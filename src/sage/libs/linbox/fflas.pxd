@@ -20,19 +20,29 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "std":
         iterator end()
         size_t size()
 
-    cdef cppclass list[T]:
-        cppclass iterator:
-            T operator*()
-            iterator operator++()
-            bint operator==(iterator)
-            bint operator!=(iterator)
-        void push_back(T&)
-        void pop_front()
-        T& front()
-        iterator begin()
-        iterator end()
+cdef extern from "givaro/givpoly1.h":
+    ## template < typename T, typename A=std::allocator<T> >
+    ## class givvector : public __GIV_STANDARD_VECTOR<T,A>
+    cdef cppclass givvector "Givaro::givvector" [T,ALLOCATOR=*]:
+        T& operator[](size_t i)
         size_t size()
-        void clear()
+
+ctypedef givvector[ModDoubleFieldElement] ModDoubleDensePolynomial
+ctypedef givvector[ModFloatFieldElement] ModFloatDensePolynomial
+
+cdef extern from "givaro/givpoly1.h":
+    ## template <class Domain, class StorageTag= Givaro::Dense>
+    ## class GivPolynomialRing : public Givaro::Poly1FactorDom< Domain,StorageTag>
+    cdef cppclass ModDoublePolynomialRing "Givaro::Poly1Dom<Givaro::Modular<double>, Givaro::Dense>":
+        ctypedef givvector[ModDoubleField] Element
+        ctypedef givvector[ModDoubleField] Polynomial
+        ModDoublePolynomialRing(ModDoubleField& F)
+    ## template <class Domain, class StorageTag= Givaro::Dense>
+    ## class GivPolynomialRing : public Givaro::Poly1FactorDom< Domain,StorageTag>
+    cdef cppclass ModFloatPolynomialRing "Givaro::Poly1Dom<Givaro::Modular<float>, Givaro::Dense>":
+        ctypedef givvector[ModFloatField] Element
+        ctypedef givvector[ModFloatField] Polynomial
+        ModFloatPolynomialRing(ModFloatField& F)
 
 cdef extern from "fflas-ffpack/fflas-ffpack.h":
     ctypedef enum fflas_trans_enum "FFLAS::FFLAS_TRANSPOSE":
@@ -105,13 +115,12 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h":
                                             size_t nr, size_t foo, size_t r,
                                             ModDoubleFieldElement* matrix, size_t nc, size_t* Q)
 
-    void ModDouble_MinPoly "FFPACK::MinPoly" ( ModDoubleField F,
+    void ModDouble_MinPoly "FFPACK::MinPoly" ( ModDoubleField& F,
                                                vector[ModDoubleFieldElement] minP, size_t N,
-                                               ModDoubleFieldElement* A, size_t lda,
-                                               ModDoubleFieldElement* X, size_t ldx, size_t* P)
+                                               ModDoubleFieldElement*A, size_t lda)
 
-    void ModDouble_CharPoly "FFPACK::CharPoly" ( ModDoubleField F,
-                                                 list[vector[ModDoubleFieldElement]] charp, size_t N,
+    void ModDouble_CharPoly "FFPACK::CharPoly" ( ModDoublePolynomialRing& R,
+                                                 ModDoubleDensePolynomial& charp, size_t N,
                                                  ModDoubleFieldElement* A, size_t lda)
 
     # float
@@ -142,9 +151,8 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h":
 
     void ModFloat_MinPoly "FFPACK::MinPoly" ( ModFloatField F,
                                               vector[ModFloatFieldElement] minP, size_t N,
-                                              ModFloatFieldElement* A, size_t lda,
-                                              ModFloatFieldElement* X, size_t ldx, size_t* P)
+                                              ModFloatFieldElement* A, size_t lda)
 
-    void ModFloat_CharPoly "FFPACK::CharPoly" ( ModFloatField F,
-                                                list[vector[ModFloatFieldElement]] charp, size_t N,
+    void ModFloat_CharPoly "FFPACK::CharPoly" ( ModFloatPolynomialRing& F,
+                                                ModFloatDensePolynomial& charp, size_t N,
                                                 ModFloatFieldElement* A, size_t lda )

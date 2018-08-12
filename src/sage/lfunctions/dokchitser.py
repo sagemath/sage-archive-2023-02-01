@@ -31,14 +31,12 @@ import copy
 import os
 import re
 import string
-import time
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ComplexField, Integer
 from sage.misc.all import verbose, sage_eval, SAGE_TMP
 import sage.interfaces.gp
 from sage.env import SAGE_EXTCODE
-
 
 
 class Dokchitser(SageObject):
@@ -365,6 +363,15 @@ class Dokchitser(SageObject):
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
             sage: L.num_coeffs()
             4
+
+        Verify that ``num_coeffs`` works with non-real spectral
+        parameters, e.g. for the L-function of the level 10 Maass form
+        with eigenvalue 2.7341055592527126::
+
+            sage: ev = 2.7341055592527126
+            sage: L = Dokchitser(conductor=10, gammaV=[ev*i, -ev*i],weight=2,eps=1)
+            sage: L.num_coeffs()
+            26
         """
         return Integer(self._gp_call_inst('cflength', T))
 
@@ -593,13 +600,20 @@ class Dokchitser(SageObject):
             sage: L = E.lseries().dokchitser(200)
             sage: L.taylor_series(1,3)
             -9.094...e-82 + (5.1538...e-82)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
+
+        Check that :trac:`25402` is fixed::
+
+            sage: L = EllipticCurve("24a1").modular_form().lseries()
+            sage: L.taylor_series(-1, 3)
+            0.000000000000000 - 0.702565506265199*z + 0.638929001045535*z^2 + O(z^3)
+
         """
         self.__check_init()
         a = self.__CC(a)
         k = Integer(k)
         try:
             z = self._gp_call_inst('Lseries', a, '', k - 1)
-            z = self.gp()('Vec(%s)' % z)
+            z = self.gp()('Vecrev(Pol(%s))' % z)
         except TypeError as msg:
             raise RuntimeError("%s\nUnable to compute Taylor expansion (try lowering the number of terms)" % msg)
         r = repr(z)
@@ -613,7 +627,7 @@ class Dokchitser(SageObject):
         K = self.__CC
         v = [K(repr(x)) for x in v]
         R = self.__CC[[var]]
-        return R(v, len(v))
+        return R(v, k)
 
     def check_functional_equation(self, T=1.2):
         r"""

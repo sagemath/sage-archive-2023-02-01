@@ -107,6 +107,7 @@ easily::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 from six.moves import range
 
@@ -114,6 +115,7 @@ import sage.misc.latex as latex
 from . import ring, ideal, quotient_ring_element
 import sage.rings.polynomial.multi_polynomial_ideal
 from sage.structure.category_object import normalize_names
+from sage.structure.richcmp import richcmp_method, richcmp
 import sage.structure.parent_gens
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.misc.cachefunc import cached_method
@@ -169,7 +171,9 @@ def QuotientRing(R, I, names=None):
     With polynomial rings (note that the variable name of the quotient
     ring can be specified as shown below)::
 
-        sage: R.<xx> = QuotientRing(QQ[x], QQ[x].ideal(x^2 + 1)); R
+        sage: P.<x> = QQ[]
+        sage: R.<xx> = QuotientRing(P, P.ideal(x^2 + 1))
+        sage: R
         Univariate Quotient Polynomial Ring in xx over Rational Field with modulus x^2 + 1
         sage: R.gens(); R.gen()
         (xx,)
@@ -182,7 +186,9 @@ def QuotientRing(R, I, names=None):
 
     ::
 
-        sage: S = QuotientRing(QQ[x], QQ[x].ideal(x^2 - 2)); S
+        sage: P.<x> = QQ[]
+        sage: S = QuotientRing(P, P.ideal(x^2 - 2))
+        sage: S
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 - 2
         sage: xbar = S.gen(); S.gen()
@@ -194,7 +200,8 @@ def QuotientRing(R, I, names=None):
 
     Sage coerces objects into ideals when possible::
 
-        sage: R = QuotientRing(QQ[x], x^2 + 1); R
+        sage: P.<x> = QQ[]
+        sage: R = QuotientRing(P, x^2 + 1); R
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 + 1
 
@@ -334,13 +341,14 @@ def is_QuotientRing(x):
     """
     return isinstance(x, QuotientRing_nc)
 
-from sage.categories.rings import Rings
+
 _Rings = Rings()
 _RingsQuotients = Rings().Quotients()
-from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRingsQuotients = CommutativeRings().Quotients()
 from sage.structure.category_object import check_default_category
 
+
+@richcmp_method
 class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
     """
     The quotient ring of `R` by a twosided ideal `I`.
@@ -860,7 +868,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: R.is_noetherian()
             True
 
-            sage: R = QuotientRing(QQ[x], x^2+1)
+            sage: P.<x> = QQ[]
+            sage: R = QuotientRing(P, x^2+1)
             sage: R.is_noetherian()
             True
 
@@ -898,7 +907,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         ::
 
-            sage: Q = QuotientRing(QQ[x], x^2 + 1)
+            sage: P.<x> = QQ[]
+            sage: Q = QuotientRing(P, x^2 + 1)
             sage: Q.cover_ring()
             Univariate Polynomial Ring in x over Rational Field
         """
@@ -938,7 +948,6 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             return super(QuotientRing_nc, self).ideal(gens, **kwds)
         if is_SingularElement(gens):
             gens = list(gens)
-            coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
         if 'coerce' in kwds and kwds['coerce']:
@@ -1058,7 +1067,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
                     pass
         return C.has_coerce_map_from(R)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Only quotients by the *same* ring and same ideal (with the same
         generators!!) are considered equal.
@@ -1080,9 +1089,9 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             False
         """
         if not isinstance(other, QuotientRing_nc):
-            return cmp(type(self), type(other))
-        return cmp((self.cover_ring(), self.defining_ideal().gens()),
-                   (other.cover_ring(), other.defining_ideal().gens()))
+            return NotImplemented
+        return richcmp((self.cover_ring(), self.defining_ideal().gens()),
+                       (other.cover_ring(), other.defining_ideal().gens()), op)
 
     def ngens(self):
         r"""

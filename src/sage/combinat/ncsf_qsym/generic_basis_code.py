@@ -494,7 +494,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             - The result of skewing the element ``x`` by the Hopf algebra
               element ``y`` (either from the left or from the right, as
               determined by ``side``), written in the basis ``self``.
-              This uses coercion to a concreate realization (either the
+              This uses coercion to a concrete realization (either the
               complete basis of non-commutative symmetric functions or
               the monomial basis of the quasi-symmetric functions).
 

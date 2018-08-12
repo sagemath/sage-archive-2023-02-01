@@ -179,9 +179,9 @@ from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
 from sage.misc.cachefunc    import cached_method
 from sage.misc.superseded   import deprecated_function_alias
-from sage.modular.all       import (DirichletGroup, trivial_character, EtaProduct,
+from sage.modular.all       import (trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
-from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
+from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1
 from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
 from sage.modules.module    import Module
@@ -418,7 +418,7 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: M = OverconvergentModularForms(2, 0, 1/2, base_ring = Qp(2))
             sage: M.base_extend(Qp(2).extension(x^2 - 2, names="w"))
-            Space of 2-adic 1/2-overconvergent modular forms of weight-character 0 over Eisenstein Extension of 2-adic Field ...
+            Space of 2-adic 1/2-overconvergent modular forms of weight-character 0 over Eisenstein Extension ...
             sage: M.base_extend(QQ)
             Traceback (most recent call last):
             ...
@@ -524,6 +524,20 @@ class OverconvergentModularFormsSpace(Module):
             False
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h1 = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h2 = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h3 = hash(OverconvergentModularForms(3, 0, 1/2))
+            sage: h1 == h2 and h1 != h3
+            True
+        """
+        return hash(self._params())
 
     def _params(self):
         r"""
@@ -657,7 +671,7 @@ class OverconvergentModularFormsSpace(Module):
         inputs with a higher precision than the set precision of this space
         will be rounded.
 
-        EXAMPLES::
+        EXAMPLES:
 
         From a `q`-expansion::
 

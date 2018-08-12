@@ -16,8 +16,6 @@ including minimum spanning trees.
 * Rewrite :func:`kruskal` to use priority queues. Once Cython has support
   for generators and the ``yield`` statement, rewrite :func:`kruskal` to use
   ``yield``.
-* Prim's algorithm.
-* Boruvka's algorithm.
 * Parallel version of Boruvka's algorithm.
 * Randomized spanning tree construction.
 
@@ -52,24 +50,21 @@ Methods
 -------
 """
 
-###########################################################################
-# Copyright (c) 2007 Jason Grout <jason-sage@creativetrax.com>
-# Copyright (c) 2009 Mike Hansen <mhansen@gmail.com>
-# Copyright (c) 2010 Gregory McWhirter <gmcwhirt@uci.edu>
-# Copyright (c) 2010 Minh Van Nguyen <nguyenminh2@gmail.com>
+#*****************************************************************************
+#       Copyright (c) 2007 Jason Grout <jason-sage@creativetrax.com>
+#       Copyright (c) 2009 Mike Hansen <mhansen@gmail.com>
+#       Copyright (c) 2010 Gregory McWhirter <gmcwhirt@uci.edu>
+#       Copyright (c) 2010 Minh Van Nguyen <nguyenminh2@gmail.com>
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# http://www.gnu.org/licenses/
-###########################################################################
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from __future__ import absolute_import
+
+cimport cython
 
 
 cpdef kruskal(G, wfunction=None, bint check=False):
@@ -340,6 +335,231 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     return sorted(T)
 
 
+
+from sage.sets.disjoint_set import *
+
+cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
+    r"""
+    Minimum spanning tree using Boruvka's algorithm.
+
+    This function assumes that we can only compute minimum spanning trees for
+    undirected graphs. Such graphs can be weighted or unweighted, and they can
+    have multiple edges (since we are computing the minimum spanning tree, only
+    the minimum weight among all `(u,v)`-edges is considered, for each pair
+    of vertices `u`, `v`).
+
+    INPUT:
+
+    - ``G`` -- an undirected graph.
+
+    - ``wfunction`` (weight function) - a function that inputs an edge ``e``
+      and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
+      and ``v`` are vertices, ``l`` is a label (that can be of any kind).
+      The ``wfunction`` can be used to transform the label into a
+      weight. In particular:
+
+      - if ``wfunction`` is not ``None``, the weight of an edge ``e``
+        is ``wfunction(e)``;
+
+      - if ``wfunction`` is ``None`` (default) and ``g`` is weighted
+        (that is, ``g.weighted()==True``), the weight of an edge
+        ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
+        is: the ordering of labels relies on Python's operator ``<``;
+
+      - if ``wfunction`` is ``None`` and ``g`` is not weighted, we set
+        all weights to 1 (hence, the output can be any spanning tree).
+
+    - ``check`` -- Whether to first perform sanity checks on the input
+      graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
+      following sanity checks are first performed on ``G`` prior to running
+      Boruvka's algorithm on that input graph:
+
+      - Is ``G`` the null graph or graph on one vertex?
+      - Is ``G`` disconnected?
+      - Is ``G`` a tree?
+
+      By default, we turn off the sanity checks for performance reasons. This
+      means that by default the function assumes that its input graph is
+      connected, and has at least one vertex. Otherwise, you should set
+      ``check=True`` to perform some sanity checks and preprocessing on the
+      input graph. 
+    
+    - ``by_weight`` -- Whether to find MST by using weights of edges provided.
+      Default: ``by_weight=True``. If ``wfunction`` is given, MST is calculated
+      using the weights of edges as per the function. If ``wfunction`` is 
+      ``None``, the weight of an edge ``e=(u,v,l)``  is ``l`` if graph is 
+      weighted, or all edge weights are considered ``1`` if graph is 
+      unweighted. If we toggle ``by_weight=False``, all weights are considered
+      as ``1`` and MST is calculated.
+
+    OUTPUT:
+
+    The edges of a minimum spanning tree of ``G``, if one exists, otherwise
+    returns the empty list.
+
+    .. SEEALSO::
+
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+
+    EXAMPLES:
+
+    An example from pages 727--728 in [Sahni2000]_. ::
+
+        sage: from sage.graphs.spanning_tree import boruvka
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: E = boruvka(G, check=True); E
+        [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
+        sage: boruvka(G, by_weight=True)
+        [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
+        sage: boruvka(G, by_weight=False)
+        [(1, 2, 28), (2, 3, 16), (3, 4, 12), (4, 5, 22), (1, 6, 10), (2, 7, 14)]
+
+    An example with custom edge labels ::
+
+        sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
+        sage: weight = lambda e:3-e[0]-e[1]
+        sage: boruvka(G, wfunction=lambda e:3-e[0]-e[1], by_weight=True)
+        [(0, 2, 10), (1, 2, 1)]
+        sage: boruvka(G, wfunction=lambda e:float(1/e[2]), by_weight=True)
+        [(0, 2, 10), (0, 1, 1)]
+
+    An example of disconnected graph with ``check`` disabled ::
+
+        sage: from sage.graphs.spanning_tree import boruvka
+        sage: G = Graph({1:{2:28}, 3:{4:16}}, weighted=True)
+        sage: boruvka(G, check=False)
+        []
+
+    TESTS:
+    
+    If the input graph is a tree, then return its edges. ::
+
+        sage: T = graphs.RandomTree(randint(1, 10))
+        sage: T.edges() == boruvka(T, check=True)
+        True
+
+    Check if the weight of MST returned by Prim's and Boruvka's is the same. ::
+
+        sage: G = Graph([(u,v,randint(1,5)) for u,v in graphs.CompleteGraph(4).edges(labels=0)], weighted=True)
+        sage: G.weighted()
+        True
+        sage: E1 = G.min_spanning_tree(algorithm='Boruvka')
+        sage: E2 = G.min_spanning_tree(algorithm='Prim_Boost')
+        sage: sum(e[2] for e in E1) == sum(e[2] for e in E2)
+        True
+
+    If the input is not a Graph::
+
+        sage: boruvka("I am not a graph")
+        Traceback (most recent call last):
+        ...
+        ValueError: The input G must be an undirected graph.
+        sage: boruvka(digraphs.Path(10))
+        Traceback (most recent call last):
+        ...
+        ValueError: The input G must be an undirected graph.
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(G, Graph):
+        raise ValueError("The input G must be an undirected graph.")
+
+    if G.order() <= 1:
+            return []
+
+    # sanity checks
+    if check:
+        if not G.is_connected():
+            return []
+        # G is now assumed to be a nonempty connected graph
+        if G.num_verts() == G.num_edges() + 1:
+            # G is a tree
+            return G.edges()
+
+    # Boruvka's algorithm
+
+    # Store the list of active edges as (e,e_weight) in a list 
+    if by_weight:
+        if wfunction is None:
+            if G.weighted():
+                edge_list = [(e, e[2]) for e in G.edge_iterator()]
+            else:
+                edge_list = [(e, 1) for e in G.edge_iterator()]
+        else:
+            edge_list = [(e, wfunction(e)) for e in G.edge_iterator()]
+    else:
+        edge_list = [(e, 1) for e in G.edge_iterator()]
+
+    # initially, each vertex is a connected component
+    partitions = DisjointSet(G.vertices())
+    # a dictionary to store the least weight outgoing edge for each component
+    cheapest = {}
+    T = [] # stores the edges in minimum spanning tree
+    numConComp = G.order()
+    numConCompPrevIter = numConComp + 1
+
+    # Dictionary to maintain active cheapest edges between pairs of components
+    components_dict = {}
+
+    while numConComp > 1:
+        # Check if number of connected components decreased.
+        # Otherwise, the graph is not connected.
+        if (numConCompPrevIter == numConComp):
+            return []
+        else:
+            numConCompPrevIter = numConComp
+
+        # If the two endpoints of current edge belong to
+        # same component, ignore the edge.
+        # Else check if current edge has lesser weight than previous
+        # cheapest edges of component1 and component2.
+        # Before that, check if component1 and 2 are present in 'cheapest' dict
+        # Also, update active cheapest edges between pairs of components
+        for e, e_weight in edge_list:
+            component1 = partitions.find(e[0])
+            component2 = partitions.find(e[1])
+
+            if component1 != component2:
+                pair = (component1, component2) if (component1 < component2) else (component2, component1)
+                if component1 in cheapest:
+                    if cheapest[component1][1] > e_weight:
+                        cheapest[component1] = (e, e_weight)
+                else:
+                    cheapest[component1] = (e, e_weight)
+
+                if component2 in cheapest:
+                    if cheapest[component2][1] > e_weight:
+                        cheapest[component2] = (e, e_weight)
+                else:
+                    cheapest[component2] = (e, e_weight)
+                # store the cheapest edge between the two components
+                if pair in components_dict:
+                    if components_dict[pair][1] > e_weight:
+                        components_dict[pair] = (e, e_weight)
+                else:
+                    components_dict[pair] = (e, e_weight)
+
+        edge_list = components_dict.values() # active edges
+
+        # Go through all the current connected components
+        # and merge wherever possible
+        for v in cheapest:
+            e, e_weight = cheapest[v]
+            component1 = partitions.find(e[0])
+            component2 = partitions.find(e[1])
+
+            if component1 != component2 :
+                partitions.union(component1, component2)
+                T.append(e)
+                numConComp = numConComp - 1
+
+        # reset the dictionaries for next iteration
+        cheapest = {}
+        components_dict = {}
+
+    return T
+
+@cython.binding(True)
 def random_spanning_tree(self, output_as_graph=False):
     r"""
     Return a random spanning tree of the graph.

@@ -76,10 +76,10 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         True
 
     There were some problems with ``set_pos`` stability in the past,
-    so let's check if this this runs without exception::
+    so let's check if this runs without exception::
 
-        sage: for i,g in enumerate(atlas_graphs):                         # long time
-        ....:     if (not g.is_connected() or i==0):
+        sage: for i, g in enumerate(atlas_graphs):           # long time
+        ....:     if (not g.is_connected() or i == 0):
         ....:         continue
         ....:     _ = g.is_planar(set_embedding=True, set_pos=True)
     """
@@ -147,7 +147,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
             while j:
                 linked_list.append(to[theGraph.E[j].neighbor])
                 j = theGraph.E[j].link[1]
-            if len(linked_list) > 0:
+            if linked_list:
                 g_dict[to[i]] = linked_list
         G = Graph(g_dict)
         gp_Free(&theGraph)

@@ -1483,7 +1483,7 @@ def OA_17_560():
     G = GF(p**alpha,prefix='x')
     G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
     G_to_int = {v:i for i,v in enumerate(G_set)}
-    # Builds an OA(n+1,n) whose last n-1 colums are
+    # Builds an OA(n+1,n) whose last n-1 columns are
     #
     # \forall x \in G and x!=0, C_x(i,j) = i+x*j
     #
@@ -3123,9 +3123,10 @@ DF = {
 
 # Create the list of DF for the documentation
 _all_l = sorted(set(l for v,k,l in DF.keys()))
-LIST_OF_DF = "\n".join("    - `\lambda={}`:\n       ".format(l) +
-                       ", ".join("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l)
+LIST_OF_DF = "\n".join(r"    - `\lambda={}`:\n       ".format(l) +
+                       ", ".join("`({},{},{})`".format(v, k, l) for v,k,_ in sorted(DF.keys()) if _ == l)
                        for l in _all_l)
+
 
 def DM_12_6_1():
     r"""
@@ -3149,7 +3150,7 @@ def DM_12_6_1():
 
     .. [Hanani75] Haim Hanani,
       Balanced incomplete block designs and related designs,
-      http://dx.doi.org/10.1016/0012-365X(75)90040-0,
+      :doi:`10.1016/0012-365X(75)90040-0`,
       Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
     """
     from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
@@ -4043,9 +4044,10 @@ DM = {
 
 # Create the list of DM for the documentation
 _all_l = sorted(set(l for v,l in DM.keys()))
-LIST_OF_DM = "\n".join("    - `\lambda={}`:\n       ".format(l)+
+LIST_OF_DM = "\n".join(r"    - `\lambda={}`:\n       ".format(l)+
                        ", ".join("`({},{},{})`".format(v,k,l) for (v,_),(k,__) in sorted(DM.items()) if _ == l)
                        for l in _all_l)
+
 
 def RBIBD_120_8_1():
     r"""
@@ -4590,8 +4592,8 @@ BIBD_constructions = {
 
 # Create the list of DF for the documentation
 _all_l = sorted(set(l for v,k,l in BIBD_constructions.keys()))
-LIST_OF_BIBD = "\n".join("    - `\lambda={}`:\n       ".format(l) +
-                       ", ".join("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(BIBD_constructions) if _ == l)
+LIST_OF_BIBD = "\n".join(r"    - `\lambda={}`:\n       ".format(l) +
+                       ", ".join("`({},{},{})`".format(v, k, l) for v,k,_ in sorted(BIBD_constructions) if _ == l)
                        for l in _all_l)
 
 # Evenly Distributed Sets (EDS)

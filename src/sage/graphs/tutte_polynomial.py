@@ -39,9 +39,10 @@ Functions
 ---------
 """
 
+from six import itervalues
+
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.graphs.graph import Graph
 from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
 from sage.misc.decorators import sage_wraps
@@ -197,6 +198,7 @@ def underlying_graph(G):
         sage: underlying_graph(G).edges()
         [(0, 1, None)]
     """
+    from sage.graphs.graph import Graph
     g = Graph()
     g.allow_loops(True)
     for edge in set(G.edges(labels=False)):
@@ -327,7 +329,7 @@ class Ear(object):
         subgraph = g.subgraph(degree_two_vertices)
         for component in subgraph.connected_components():
             edges = g.edges_incident(vertices=component, labels=True)
-            all_vertices = list(sorted(set(sum([e[:2] for e in edges], ()))))
+            all_vertices = sorted(set(sum([e[:2] for e in edges], ())))
             if len(all_vertices) < 3:
                 continue
             end_points = [v for v in all_vertices if v not in component]
@@ -632,7 +634,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
 
     uG = underlying_graph(G)
     em = edge_multiplicities(G)
-    d = em.values()
+    d = list(itervalues(em))
 
     def yy(start, end):
         return sum(y**i for i in range(start, end+1))
@@ -640,11 +642,6 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
     #Lemma 1
     if G.is_forest():
         return prod(x + yy(1, d_i-1) for d_i in d)
-
-    #Handle disconnected components
-    if not G.is_connected():
-        return prod([recursive_tp(G.subgraph(block))
-                     for block in G.connected_components()])
 
     #Theorem 1: from Haggard, Pearce, Royle 2008
     blocks, cut_vertices = G.blocks_and_cut_vertices()

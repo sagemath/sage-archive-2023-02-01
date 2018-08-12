@@ -29,16 +29,11 @@ from six.moves import range
 from six import add_metaclass
 
 from sage.rings.rational_field import QQ
-from sage.categories.posets import Posets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.graphs.digraph import DiGraph
 import sage.graphs.linearextensions
-from sage.combinat.posets.hasse_diagram import HasseDiagram
-from sage.combinat.posets.posets import Poset
-from sage.combinat.posets.elements import PosetElement
-from sage.combinat.permutation import Permutation
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
@@ -218,6 +213,40 @@ class LinearExtensionOfPoset(ClonableArray):
         relabelling = dict(zip(old,new))
         return P.relabel(relabelling).with_linear_extension(new)
 
+    def is_greedy(self):
+        r"""
+        Return ``True`` if the linear extension is greedy.
+
+        A linear extension `[e_1, e_2, \ldots, e_n]` is *greedy* if for
+        every `i` either `e_{i+1}` covers `e_i` or all upper covers
+        of `e_i` have at least one lower cover that is not in
+        `[e_1, e_2, \ldots, e_i]`.
+
+        Informally said a linear extension is greedy if it "always
+        goes up when possible" and so has no unnecessary jumps.
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: for l in P.linear_extensions():
+            ....:     if not l.is_greedy():
+            ....:         print(l)
+            [0, 2, 1, 3, 4]
+
+        TESTS::
+
+            sage: E = Poset()
+            sage: E.linear_extensions()[0].is_greedy()
+            True
+        """
+        P = self.poset()
+        for i in range(len(self)-1):
+            if not P.covers(self[i], self[i+1]):
+                for u in P.upper_covers(self[i]):
+                    if all(l in self[:i+1] for l in P.lower_covers(u)):
+                        return False
+        return True
+
     def tau(self, i):
         r"""
         Returns the operator `\tau_i` on linear extensions ``self`` of a poset.
@@ -329,6 +358,47 @@ class LinearExtensionOfPoset(ClonableArray):
             for j in range(1,i):
                 self = self.tau(j)
         return self
+
+    def jump_count(self):
+        r"""
+        Return the number of jumps in the linear extension.
+
+        A *jump* in a linear extension `[e_1, e_2, \ldots, e_n]`
+        is a pair `(e_i, e_{i+1})` such that `e_{i+1}` does not
+        cover `e_i`.
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.posets.posets.FinitePoset.jump_number()`
+
+        EXAMPLES::
+
+            sage: B3 = posets.BooleanLattice(3)
+            sage: l1 = B3.linear_extension((0, 1, 2, 3, 4, 5, 6, 7))
+            sage: l1.jump_count()
+            3
+            sage: l2 = B3.linear_extension((0, 1, 2, 4, 3, 5, 6, 7))
+            sage: l2.jump_count()
+            5
+
+        TESTS::
+
+            sage: E = Poset()
+            sage: E.linear_extensions()[0].jump_count()
+            0
+            sage: C4 = posets.ChainPoset(4)
+            sage: C4.linear_extensions()[0].jump_count()
+            0
+            sage: A4 = posets.AntichainPoset(4)
+            sage: A4.linear_extensions()[0].jump_count()
+            3
+        """
+        P = self.poset()
+        n = 0
+        for i in range(len(self)-1):
+            if not P.covers(self[i], self[i+1]):
+                n += 1
+        return n
 
 class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     """
@@ -448,9 +518,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
 
             sage: Poset().linear_extensions().cardinality()
             1
-            sage: Posets.ChainPoset(1).linear_extensions().cardinality()
+            sage: posets.ChainPoset(1).linear_extensions().cardinality()
             1
-            sage: Posets.BooleanLattice(4).linear_extensions().cardinality()
+            sage: posets.BooleanLattice(4).linear_extensions().cardinality()
             1680384
         """
         from sage.rings.integer import Integer

@@ -27,7 +27,8 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+
 from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.rings.integer_ring import ZZ
@@ -61,7 +62,7 @@ from sage.libs.flint.nmod_poly cimport (nmod_poly_init2_preinv,
 
 #from sage.libs.flint.ulong_extras cimport *
 
-from sigma0 import Sigma0
+from .sigma0 import Sigma0
 
 cdef long overflow = 1 << (4 * sizeof(long) - 1)
 cdef long underflow = -overflow
@@ -172,7 +173,7 @@ cdef class Dist(ModuleElement):
         """
         return self.parent().prime() ** (self.ordp) * self._moments
 
-    cpdef normalize(self):
+    cpdef normalize(self, include_zeroth_moment=True):
         r"""
         Normalize so that the precision of the `i`-th moment is `n-i`,
         where `n` is the number of moments.
@@ -767,7 +768,7 @@ cdef class Dist_vector(Dist):
     The `j`-th entry is stored modulo `p^{N-j}` where `N` is the total number of moments.
     (This is the accuracy that is maintained after acting by `\Gamma_0(p)`.)
 
-    INPUTS:
+    INPUT:
 
     - ``moments`` -- the list of moments.  If ``check == False`` it
       must be a vector in the appropriate approximation module.
@@ -1080,7 +1081,7 @@ cdef class Dist_vector(Dist):
         """
         return Integer(len(self._moments) + self.ordp)
 
-    cpdef normalize(self, include_zeroth_moment = True):
+    cpdef normalize(self, include_zeroth_moment=True):
         r"""
         Normalize by reducing modulo `Fil^N`, where `N` is the number of moments.
 

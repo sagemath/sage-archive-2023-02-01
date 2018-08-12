@@ -1,5 +1,5 @@
 """
-Affine curves.
+Affine curves
 
 EXAMPLES:
 
@@ -24,6 +24,7 @@ AUTHORS:
 - David Kohel (2006-01)
 
 - Grayson Jorgenson (2016-8)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -57,7 +58,7 @@ from sage.schemes.affine.affine_space import (AffineSpace,
                                               is_AffineSpace)
 from . import point
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
+from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
 
 from sage.schemes.affine.affine_space import AffineSpace, is_AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -457,7 +458,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             Scheme morphism:
             From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
             2*x^3 + (-a)*s1^2
-            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1, 
+            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1,
             2*z^3 + (-a)*s1^2
             Defn: Defined on coordinates by sending (x, s1, s2) to
                   (x*s2, 1/s2, s1/s2)
@@ -1099,7 +1100,7 @@ class AffinePlaneCurve(AffineCurve):
         return v
 
     def plot(self, *args, **kwds):
-        """
+        r"""
         Plot the real points on this affine plane curve.
 
         INPUT:
@@ -1527,6 +1528,24 @@ class AffinePlaneCurve(AffineCurve):
         f = self.defining_polynomial()
         return fundamental_group(f, projective=False)
 
+    def riemann_surface(self,**kwargs):
+        r"""Return the complex riemann surface determined by this curve
+
+        OUTPUT:
+
+         - RiemannSurface object
+
+        EXAMPLES::
+
+            sage: R.<x,y>=QQ[]
+            sage: C=Curve(x^3+3*y^3+5)
+            sage: C.riemann_surface()
+            Riemann surface defined by polynomial f = x^3 + 3*y^3 + 5 = 0, with 53 bits of precision
+
+        """
+        from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+        return RiemannSurface(self.defining_polynomial(),**kwargs)
+
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
 
@@ -1564,8 +1583,8 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
     # CHECK WHAT ASSUMPTIONS ARE MADE REGARDING AFFINE VS. PROJECTIVE MODELS!!!
     # THIS IS VERY DIRTY STILL -- NO DATASTRUCTURES FOR DIVISORS.
 
-    def riemann_roch_basis(self,D):
-        """
+    def riemann_roch_basis(self, D):
+        r"""
         Interfaces with Singular's BrillNoether command.
 
         INPUT:

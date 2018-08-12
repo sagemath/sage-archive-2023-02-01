@@ -203,6 +203,7 @@ from __future__ import division, print_function, absolute_import
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, rich_to_bool
 from .integer import Integer
 from .infinity import Infinity
 
@@ -210,6 +211,7 @@ ZZ_0 = Integer(0)
 ZZ_1 = Integer(1)
 ZZ_m1 = Integer(-1)
 ZZ_2 = Integer(2)
+
 
 def last_two_convergents(x):
     """
@@ -242,6 +244,7 @@ def last_two_convergents(x):
         p0, p1 = p1, a*p1+p0
         q0, q1 = q1, a*q1+q0
     return p0, q0, p1, q1
+
 
 def rat_interval_cf_list(r1, r2):
     r"""
@@ -289,6 +292,7 @@ def rat_interval_cf_list(r1, r2):
     return l
 
 
+@richcmp_method
 class ContinuedFraction_base(SageObject):
     r"""
     Base class for (standard) continued fractions.
@@ -311,7 +315,7 @@ class ContinuedFraction_base(SageObject):
     - computation of convergents in :meth:`convergent`, :meth:`numerator` and
       :meth:`denominator`
 
-    - comparison with other continued fractions (see :meth:`__cmp__`)
+    - comparison with other continued fractions (see :meth:`__richcmp__`)
 
     - elementary arithmetic function :meth:`floor`, :meth:`ceil`, :meth:`sign`
 
@@ -519,7 +523,7 @@ class ContinuedFraction_base(SageObject):
         s = str(v[0]) + '\n'
         for i in range(1, min(len(v) - 1, nterms)):
             s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s\n' % v[i]
-        s += '+ \\frac{\\displaystyle 1}{\\displaystyle \dots'
+        s += '+ \\frac{\\displaystyle 1}{\\displaystyle \\dots'
         s += '}' * (len(v) - 1)
         return s
 
@@ -540,8 +544,10 @@ class ContinuedFraction_base(SageObject):
             return self
         return -self
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
+        Rich comparison.
+
         EXAMPLES::
 
             sage: a = continued_fraction(-17/389)
@@ -554,19 +560,23 @@ class ContinuedFraction_base(SageObject):
             False
             sage: d == d
             True
-        """
-        i = 0
 
+            sage: a == 'nothing'
+            False
+        """
+        if not isinstance(other, ContinuedFraction_base):
+            return NotImplemented
+
+        i = 0
         while True:
             a = self.quotient(i)
             b = other.quotient(i)
-            test = cmp(a,b)
-            if test == 1:  # a > b
-                return -1 if i % 2 else 1
-            if test == -1:  # b > a
-                return 1 if i % 2 else -1
+            if a > b:
+                return rich_to_bool(op, -1 if i % 2 else 1)
+            if b > a:
+                return rich_to_bool(op, 1 if i % 2 else -1)
             if a == ZZ_0 and b == ZZ_0 and i:  # rational case
-                return 0
+                return rich_to_bool(op, 0)
             i += 1
 
     def _mpfr_(self, R):
@@ -965,17 +975,6 @@ class ContinuedFraction_base(SageObject):
         """
         return int(self.quotient(0))
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: a = continued_fraction(-17/389); a
-            [-1; 1, 21, 1, 7, 2]
-            sage: long(a)
-            -1L
-        """
-        return long(self.quotient(0))
-
     def sign(self):
         r"""
         Returns the sign of self as an Integer.
@@ -1303,8 +1302,10 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             return Infinity
         return Integer(len(self._x1))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
+        Rich comparison.
+
         EXAMPLES::
 
             sage: a = continued_fraction([(0,),(1,2,3,1,2,3,1)]); a.n()
@@ -1327,19 +1328,18 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             False
         """
         if isinstance(other, ContinuedFraction_periodic):
-            n = max(len(self._x1) + 2*len(self._x2),
-                    len(other._x1) + 2*len(other._x2))
+            n = max(len(self._x1) + 2 * len(self._x2),
+                    len(other._x1) + 2 * len(other._x2))
             for i in range(n):
                 a = self.quotient(i)
                 b = other.quotient(i)
-                test = cmp(a,b)
-                if test == 1:
-                    return -1 if i % 2 else 1
-                if test == -1:
-                    return 1 if i % 2 else -1
-            return 0
+                if a > b:
+                    return rich_to_bool(op, -1 if i % 2 else 1)
+                if b > a:
+                    return rich_to_bool(op, 1 if i % 2 else -1)
+            return rich_to_bool(op, 0)
 
-        return ContinuedFraction_base.__cmp__(self, other)
+        return ContinuedFraction_base.__richcmp__(self, other, op)
 
     def value(self):
         r"""
@@ -1642,6 +1642,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         xx1,xx2 = check_and_reduce_pair(xx1,x2)
         return self.__class__(xx1,xx2)
 
+
 class ContinuedFraction_real(ContinuedFraction_base):
     r"""
     Continued fraction of a real (exact) number.
@@ -1677,11 +1678,11 @@ class ContinuedFraction_real(ContinuedFraction_base):
         ContinuedFraction_base.__init__(self)
         self._x0 = x
 
-
         from .real_mpfi import RealIntervalField
-        self._xa = RealIntervalField(53)(self._x0)   # an approximation of the
-                                                     # last element of the orbit
-                                                     # under the Gauss map
+        self._xa = RealIntervalField(53)(self._x0)
+        # an approximation of the last element of the orbit under the
+        # Gauss map
+
         self._quotients = []
 
     def length(self):
@@ -1706,9 +1707,9 @@ class ContinuedFraction_real(ContinuedFraction_base):
         """
         raise ValueError("the length is infinite!")
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Comparison.
+        Rich comparison.
 
         EXAMPLES::
 
@@ -1725,12 +1726,12 @@ class ContinuedFraction_real(ContinuedFraction_base):
             #     sage: cmp(pi, pi+4)
             #     1
             if self.value() == other.value():
-                return 0
+                return rich_to_bool(op, 0)
             if self.value() - other.value() > 0:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
         except Exception:
-            return ContinuedFraction_base.__cmp__(self, other)
+            return ContinuedFraction_base.__richcmp__(self, other, op)
 
     def _repr_(self):
         r"""
@@ -1860,6 +1861,7 @@ class ContinuedFraction_real(ContinuedFraction_base):
             e
         """
         return self._x0
+
 
 class ContinuedFraction_infinite(ContinuedFraction_base):
     r"""
@@ -2072,7 +2074,8 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             from sage.rings.real_lazy import RLF
             return RLF(self)
 
-def check_and_reduce_pair(x1,x2=None):
+
+def check_and_reduce_pair(x1, x2=None):
     r"""
     There are often two ways to represent a given continued fraction. This
     function makes it canonical.
@@ -2096,7 +2099,7 @@ def check_and_reduce_pair(x1,x2=None):
         sage: check_and_reduce_pair([1,2],[])
         ((1, 2), (+Infinity,))
     """
-    y1 = map(Integer,x1)
+    y1 = [Integer(x) for x in x1]
 
     if x2 is None or not x2 or x2[0] is Infinity:
         y2 = [Infinity]
@@ -2107,7 +2110,7 @@ def check_and_reduce_pair(x1,x2=None):
             y1[-1] += 1
 
     else:
-        y2 = map(Integer,x2)
+        y2 = [Integer(x) for x in x2]
         if any(b <= ZZ_0 for b in y2):
             raise ValueError("the elements of the period can not be negative")
 
@@ -2331,8 +2334,6 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
     return [cf.quotient(i) for i in range(limit)]
 
 
-
-
 def continued_fraction(x, value=None):
     r"""
     Return the continued fraction of ``x``.
@@ -2506,7 +2507,7 @@ def continued_fraction(x, value=None):
     except AttributeError:
         pass
 
-    from .real_mpfi import RealIntervalField, RealIntervalFieldElement
+    from .real_mpfi import RealIntervalField
     if is_real is False:
         # we can not rely on the answer of .is_real() for elements of the
         # symbolic ring. The thing below is a dirty temporary hack.
@@ -2518,7 +2519,7 @@ def continued_fraction(x, value=None):
             pass
 
     if is_real is False:
-        raise ValueError("the number %s does not seem to be a real number"%x)
+        raise ValueError("the number %s does not seem to be a real number" % x)
 
     if x.parent().is_exact():
         return ContinuedFraction_real(x)
@@ -2530,6 +2531,7 @@ def continued_fraction(x, value=None):
         return ContinuedFraction_real(x)
 
     return continued_fraction(continued_fraction_list(x))
+
 
 def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
     r"""
@@ -2576,6 +2578,7 @@ def convergents(x):
         [0, 1, 1/2, 4/7, 5/9, 9/16, 14/25, 23/41, 60/107, 143/255]
     """
     return continued_fraction(x).convergents()
+
 
 def farey(v, lim):
     """
@@ -2636,5 +2639,3 @@ def farey(v, lim):
             if lim < mediant[1]:
                 return lower
             upper = mediant
-
-

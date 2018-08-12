@@ -1,5 +1,5 @@
 """
-Projective curves.
+Projective curves
 
 EXAMPLES:
 
@@ -26,6 +26,7 @@ AUTHORS:
 - Moritz Minzlaff (2010-11)
 
 - Grayson Jorgenson (2016-8)
+
 """
 
 #*****************************************************************************
@@ -57,7 +58,7 @@ from sage.schemes.projective.projective_space import ProjectiveSpace, is_Project
 
 from . import point
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
                                                       ProjectiveSpace)
 
@@ -240,7 +241,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             ...
             TypeError: (=Projective Space of dimension 2 over Finite Field of size
             7) must have dimension (=3)
-            
+
 
         ::
 
@@ -1599,6 +1600,23 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         H = Hom(ProjectiveSpace(R.base_ring(), 1, R.gens()), C)
         return H(param)
 
+    def riemann_surface(self,**kwargs):
+        r"""Return the complex riemann surface determined by this curve
+
+        OUTPUT:
+
+         - RiemannSurface object
+
+        EXAMPLES::
+
+            sage: R.<x,y,z>=QQ[]
+            sage: C=Curve(x^3+3*y^3+5*z^3)
+            sage: C.riemann_surface()
+            Riemann surface defined by polynomial f = x0^3 + 3*x1^3 + 5 = 0, with 53 bits of precision
+
+        """
+        return self.affine_patch(2).riemann_surface(**kwargs)
+
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
 
     _point = point.ProjectivePlaneCurvePoint_finite_field
@@ -2018,6 +2036,6 @@ def Hasse_bounds(q, genus=1):
     return (q+1-rq,q+1+rq)
 
 # Fix pickles from changing class names and plane_curves folder name
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.plane_curves.projective_curve',
                            'ProjectiveCurve_generic', ProjectivePlaneCurve)

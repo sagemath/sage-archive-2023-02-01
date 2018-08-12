@@ -384,12 +384,12 @@ Sage example in ./programmation.tex, line 1543::
 
 Sage example in ./programmation.tex, line 1552::
 
-  sage: filter (is_prime, [1..55])
+  sage: list(filter(is_prime, [1..55]))
   [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
 
 Sage example in ./programmation.tex, line 1562::
 
-  sage: p = 37 ; filter (lambda n: n^4 % p == 7, [0..p-1])
+  sage: p = 37 ; list(filter (lambda n: n^4 % p == 7, [0..p-1]))
   [3, 18, 19, 34]
 
 Sage example in ./programmation.tex, line 1571::
@@ -401,14 +401,14 @@ Sage example in ./programmation.tex, line 1571::
 
 Sage example in ./programmation.tex, line 1580::
 
-  sage: filter (is_prime, [1..55])
+  sage: list(filter (is_prime, [1..55]))
   [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
   sage: [p for p in [1..55] if is_prime(p)]
   [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
 
 Sage example in ./programmation.tex, line 1590::
 
-  sage: filter (is_prime, [4*n+1 for n in [0..20]])
+  sage: list(filter (is_prime, [4*n+1 for n in [0..20]]))
   [5, 13, 17, 29, 37, 41, 53, 61, 73]
   sage: [n^2 for n in [1..20] if is_prime(n)]
   [4, 9, 25, 49, 121, 169, 289, 361]
@@ -508,7 +508,7 @@ Sage example in ./programmation.tex, line 1835::
 
   sage: L = [[2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3],\
   ....: [1, 1, 2], [1, 2, 7]]
-  sage: L.sort (cmp = alpha) ; L    # optional - python2
+  sage: L.sort (cmp = alpha) ; L    # py2
   [[1, 1, 2], [1, 2, 7], [2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3]]
 
 Sage example in ./programmation.tex, line 1856::
@@ -527,8 +527,8 @@ Sage example in ./programmation.tex, line 1863::
 Sage example in ./programmation.tex, line 1914::
 
   sage: def fct1(L):
-  ....:   return [filter (lambda n: n % 2 == 0, L),
-  ....:           filter (lambda n: n % 2 == 1, L)]
+  ....:   return [list(filter (lambda n: n % 2 == 0, L)),
+  ....:           list(filter (lambda n: n % 2 == 1, L))]
 
 Sage example in ./programmation.tex, line 1919::
 

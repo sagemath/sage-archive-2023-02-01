@@ -12,7 +12,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import integer_types
+from six import integer_types, iteritems
 
 from copy import copy
 from sage.misc.abstract_method import abstract_method
@@ -30,9 +30,8 @@ from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.family import Family
-from six import iteritems
+
 
 class IndexedMonoidElement(MonoidElement):
     """
@@ -147,7 +146,7 @@ class IndexedMonoidElement(MonoidElement):
             pref = AsciiArt([P.prefix()])
             def ascii_art_gen(m):
                 if m[1] != 1:
-                    r = (AsciiArt([" "**Integer(len(pref))]) + ascii_art(m[1]))
+                    r = (AsciiArt([" " * len(pref)]) + ascii_art(m[1]))
                 else:
                     r = empty_ascii_art
                 r = r * P._ascii_art_generator(m[0])
@@ -288,7 +287,7 @@ class IndexedMonoidElement(MonoidElement):
             sage: (a*c^3).support()
             [0, 2]
         """
-        supp = set([key for key, exp in self._sorted_items() if exp != 0])
+        supp = set(key for key, exp in self._sorted_items() if exp != 0)
         return sorted(supp)
 
     def leading_support(self):
@@ -497,7 +496,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self.parent().print_options()
-        v = self._monomial.items()
+        v = list(self._monomial.items())
         try:
             v.sort(key=print_options['sorting_key'],
                    reverse=print_options['sorting_reverse'])
@@ -587,12 +586,13 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         for k, v in iteritems(elt._monomial):
             if k not in d:
                 raise ValueError("invalid cancellation")
-            d[k] -= v
-        for k,v in d.items():
-            if v < 0:
+            diff = d[k] - v
+            if diff < 0:
                 raise ValueError("invalid cancellation")
-            if v == 0:
+            elif diff == 0:
                 del d[k]
+            else:
+                d[k] = diff
         return self.__class__(self.parent(), d)
 
     def __len__(self):

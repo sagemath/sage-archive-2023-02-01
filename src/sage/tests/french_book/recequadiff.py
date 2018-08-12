@@ -378,9 +378,10 @@ Sage example in ./recequadiff.tex, line 1197::
   sage: from sympy import Function, Symbol
   sage: u = Function('u'); n = Symbol('n', integer=True)
 
-Sage example in ./recequadiff.tex, line 1208::
+Sage example in ./recequadiff.tex, line 1208 (WARNING: the order of factors is
+inverted, see :trac:`23496` )::
 
-  sage: f = u(n+2)-(3/2)*u(n+1)+(1/2)*u(n)
+  sage: f = u(n+2)-u(n+1)*(3/2)+u(n)*(1/2)
 
 Sage example in ./recequadiff.tex, line 1214::
 
@@ -392,8 +393,7 @@ Sage example in ./recequadiff.tex, line 1265::
 
   sage: from sympy import rsolve_hyper
   sage: n = Symbol('n', integer=True)
-  sage: rsolve_hyper([-2,1],2**(n+2),n)
+  sage: rsolve_hyper([-2,1],2**(n+2),n)  # known bug (Trac #24334)
   2**n*C0 + 2**(n + 2)*(C0 + n/2)
 
 """
-

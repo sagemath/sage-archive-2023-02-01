@@ -4,7 +4,7 @@ Reporting doctest results
 This module determines how doctest results are reported to the user.
 
 It also computes the exit status in the ``error_status`` attribute of
-:class:DocTestReporter. This is a bitwise OR of the following bits:
+:class:`DocTestReporter`. This is a bitwise OR of the following bits:
 
 - 1: Doctest failure
 - 2: Bad command line syntax or invalid options
@@ -39,6 +39,7 @@ import signal
 from sage.structure.sage_object import SageObject
 from sage.doctest.util import count_noun
 from sage.doctest.sources import DictAsObject
+from .external import available_software
 
 def signal_name(sig):
     """
@@ -111,6 +112,39 @@ class DocTestReporter(SageObject):
         self.sources_completed = 0
         self.stats = {}
         self.error_status = 0
+
+    def have_optional_tag(self, tag):
+        r"""
+        Return whether doctests marked with this tag are run.
+
+        INPUT:
+
+        - ``tag`` -- string
+
+        EXAMPLES::
+
+            sage: from sage.doctest.reporting import DocTestReporter
+            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: from sage.env import SAGE_SRC
+            sage: import os
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
+            sage: DC = DocTestController(DocTestDefaults(),[filename])
+            sage: DTR = DocTestReporter(DC)
+
+        ::
+
+            sage: DTR.have_optional_tag('sage')
+            True
+            sage: DTR.have_optional_tag('nice_unavailable_package')
+            False
+
+        """
+        if tag in self.controller.options.optional:
+            return True
+        if 'external' in self.controller.options.optional:
+            if tag in available_software.seen():
+                return True
+        return False
 
     def report_head(self, source):
         """
@@ -300,6 +334,28 @@ class DocTestReporter(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'NoneType' object has no attribute 'basename'
+
+        The only-errors mode does not output anything on success::
+
+            sage: DD = DocTestDefaults(only_errors=True)
+            sage: FDS = FileDocTestSource(filename, DD)
+            sage: DC = DocTestController(DD, [filename])
+            sage: DTR = DocTestReporter(DC)
+            sage: doctests, extras = FDS.create_doctests(globals())
+            sage: runner = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+            sage: Timer().start().stop().annotate(runner)
+            sage: D = DictAsObject({'err':None})
+            sage: runner.update_results(D)
+            0
+            sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
+
+        However, failures are still output in the errors-only mode::
+
+            sage: runner.failures = 1
+            sage: runner.update_results(D)
+            1
+            sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Failed test")
+                [... tests, 1 failure, ... s]
         """
         log = self.controller.log
         process_name = 'process (pid={0})'.format(pid) if pid else 'process'
@@ -313,7 +369,6 @@ class DocTestReporter(SageObject):
             except (TypeError, ValueError):
                 ntests = 0
                 result_dict = DictAsObject(dict(err='badresult'))
-
             if timeout:
                 fail_msg = "Timed out"
                 if ntests > 0:
@@ -432,18 +487,18 @@ class DocTestReporter(SageObject):
                                         log("    %s not run"%(count_noun(nskipped, "long test")))
                                 elif tag in ("not tested", "not implemented"):
                                     untested += nskipped
-                                else:
-                                    if tag not in self.controller.options.optional:
-                                        seen_other = True
-                                        if tag == "bug":
-                                            log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
-                                        elif tag == "":
-                                            log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
-                                        else:
-                                            log("    %s not run"%(count_noun(nskipped, tag + " test")))
+                                elif not self.have_optional_tag(tag):
+                                    seen_other = True
+                                    if tag == "bug":
+                                        log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
+                                    elif tag == "":
+                                        log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
+                                    else:
+                                        log("    %s not run"%(count_noun(nskipped, tag + " test")))
                             if untested:
-                                log ("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
-                    log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
+                                log("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
+                    if not (self.controller.options.only_errors and not f):
+                        log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
             self.sources_completed += 1
 
         except Exception:

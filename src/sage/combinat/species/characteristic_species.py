@@ -22,7 +22,6 @@ from .species import GenericCombinatorialSpecies
 from .generating_series import factorial_stream
 from .structure import GenericSpeciesStructure
 from .set_species import SetSpecies
-from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
 class CharacteristicSpeciesStructure(GenericSpeciesStructure):

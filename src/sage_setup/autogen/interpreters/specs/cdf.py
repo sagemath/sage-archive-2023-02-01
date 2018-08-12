@@ -84,7 +84,7 @@ class CDFInterpreter(StackInterpreter):
         self.c_header = ri(0,"""
             #include <stdlib.h>
             #include <complex.h>
-            #include "interpreters/wrapper_cdf.h"
+            #include "sage/ext/interpreters/wrapper_cdf.h"
 
             /* On Solaris, we need to define _Imaginary_I when compiling with GCC,
              * otherwise the constant I doesn't work. The definition below is based
@@ -213,7 +213,8 @@ if (!cdf_py_call_helper(i0, n_i1, i1, &o0)) {
 """)
             ]
         for (name, op) in [('add', '+'), ('sub', '-'),
-                           ('mul', '*'), ('div', '/')]:
+                           ('mul', '*'), ('div', '/'),
+                           ('truediv', '/')]:
             instrs.append(instr_infix(name, pg('SS', 'S'), op))
         instrs.append(instr_funcall_2args('pow', pg('SS', 'S'), 'cpow'))
         instrs.append(instr_funcall_2args('ipow', pg('SD', 'S'), 'cpow_int'))

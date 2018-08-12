@@ -1064,7 +1064,7 @@ class GenericCellComplex(SageObject):
 
             sage: V = SimplicialComplex([[0,1,2],[3]])
             sage: V
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (3,)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(3,), (0, 1, 2)}
             sage: V.is_connected()
             False
             sage: X = SimplicialComplex([[0,1,2]])

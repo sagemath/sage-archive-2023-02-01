@@ -29,10 +29,11 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.all import divisors, prime_divisors, is_square, euler_phi, gcd
-from sage.rings.all import Integer, IntegerRing, RationalField
+from sage.rings.all import Integer, ZZ, QQ
 from sage.groups.old import AbelianGroup
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.formal_sum import FormalSum
@@ -43,9 +44,6 @@ from sage.modules.free_module import FreeModule
 from sage.misc.misc import union
 
 import weakref
-
-ZZ = IntegerRing()
-QQ = RationalField()
 
 _cache = {}
 def EtaGroup(level):
@@ -367,6 +365,7 @@ def EtaProduct(level, dict):
     """
     return EtaGroup(level)(dict)
 
+
 class EtaGroupElement(MultiplicativeGroupElement):
 
     def __init__(self, parent, rdict):
@@ -456,10 +455,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
             newdict[d] = self.r(d) - other.r(d)
         return EtaProduct(self.level(), newdict)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Compare self to other. Eta products are compared according to
-        their rdicts.
+        Compare self to other.
+
+        Eta products are compared according to their rdicts.
 
         EXAMPLES::
 
@@ -474,7 +474,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
             False
         """
-        return (cmp(self.level(), other.level()) or cmp(self._rdict, other._rdict))
+        return richcmp((self.level(), self._rdict),
+                       (other.level(), other._rdict), op)
 
     def _short_repr(self):
         r"""
@@ -555,9 +556,10 @@ class EtaGroupElement(MultiplicativeGroupElement):
         eta_n = max([ (n/d).floor() for d in self._keys if self.r(d) != 0])
         eta = qexp_eta(R, eta_n)
         for d in self._keys:
-            if self.r(d) != 0:
-                pr *= eta(q**d)**self.r(d)
-        return pr*q**(self._sumDR / ZZ(24))*( R(1).add_bigoh(n))
+            rd = self.r(d)
+            if rd:
+                pr *= eta(q ** d) ** ZZ(rd)
+        return pr * q**ZZ(self._sumDR / ZZ(24)) * R(1).add_bigoh(n)
 
     def qexp(self, n):
         """

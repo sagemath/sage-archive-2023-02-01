@@ -15,6 +15,7 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -23,6 +24,8 @@ cdef extern from *: # hack to get at cython macro
 
 import re
 plusminus_pattern = re.compile("([^\(^])([\+\-])")
+
+from sage.cpython.string cimport bytes_to_str, str_to_bytes
 
 from sage.libs.singular.decl cimport number, ideal
 from sage.libs.singular.decl cimport currRing, rChangeCurrRing
@@ -122,7 +125,7 @@ cdef int singular_polynomial_rmul(poly **ret, poly *p, RingElement n, ring *r):
         0
     """
     if(r != currRing): rChangeCurrRing(r)
-    cdef number *_n = sa2si(n,r)
+    cdef number *_n = sa2si(n, r)
     ret[0] = pp_Mult_nn(p, _n, r)
     n_Delete(&_n, r)
     return 0
@@ -427,8 +430,8 @@ cdef object singular_polynomial_str(poly *p, ring *r):
     """
     if(r!=currRing): rChangeCurrRing(r)
 
-    s = p_String(p, r, r)
-    s = re.sub(plusminus_pattern, "\\1 \\2 ", s)
+    s = bytes_to_str(p_String(p, r, r))
+    s = plusminus_pattern.sub("\\1 \\2 ", s)
     return s
 
 
@@ -459,14 +462,14 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
         \left(z + 1\right) v w - z w^{2} + z v + \left(-z - 1\right) w + z + 1
     """
     poly = ""
-    cdef unsigned long e,j
-    cdef int n = r.N
+    cdef unsigned long e
+    cdef int n = r.N, j
     cdef int atomic_repr = base._repr_option('element_is_atomic')
     while p:
 
         # First determine the multinomial:
         multi = ""
-        for j in range(1,n+1):
+        for j in range(1, n+1):
             e = p_GetExp(p, j, r)
             if e > 0:
                 multi += " "+latex_gens[j-1]
@@ -490,7 +493,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
                 multi = "%s %s"%(sc,multi)
 
         # Now add on coefficiented multinomials
-        if len(poly) > 0:
+        if poly:
             poly = poly + " + "
         poly = poly + multi
 
@@ -506,7 +509,6 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
 cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, object varnames):
     cdef char **_names
     cdef char **_orig_names
-    cdef char *_name
     cdef int i
 
     if len(varnames) != r.N:
@@ -514,7 +516,7 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
 
     _names = <char**>omAlloc0(sizeof(char*)*r.N)
     for i from 0 <= i < r.N:
-        _name = varnames[i]
+        _name = str_to_bytes(varnames[i])
         _names[i] = omStrDup(_name)
 
     _orig_names = r.names
@@ -528,7 +530,6 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
     return s
 
 cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
-    cdef int  i
     cdef long _deg, deg
 
     deg = -1
@@ -545,6 +546,7 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
             p = pNext(p)
         return deg
 
+    cdef int i = 0
     for i in range(1,r.N+1):
         if p_GetExp(x, i, r):
             break

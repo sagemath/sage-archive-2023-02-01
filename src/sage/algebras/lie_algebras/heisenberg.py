@@ -139,7 +139,8 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
             return m
         return "%s_{%s}"%(m[0], m[1:]) # else it is of length at least 2
 
-    Element = LieAlgebraElement
+    class Element(LieAlgebraElement):
+        pass
 
 class HeisenbergAlgebra_fd(object):
     """
@@ -293,9 +294,10 @@ class HeisenbergAlgebra_fd(object):
             return None # Otherwise no coercion
         return super(HeisenbergAlgebra_fd, self)._coerce_map_from_(H)
 
+
 class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
                         LieAlgebraWithGenerators):
-    """
+    r"""
     A Heisenberg algebra defined using structure coefficients.
 
     The `n`-th Heisenberg algebra (where `n` is a nonnegative

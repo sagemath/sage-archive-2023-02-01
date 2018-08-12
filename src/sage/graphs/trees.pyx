@@ -35,14 +35,14 @@ cdef class TreeIterator:
         sage: def check_trees(n):
         ....:     trees = []
         ....:     for t in TreeIterator(n):
-        ....:         if t.is_tree() == False:
+        ....:         if not t.is_tree():
         ....:             return False
         ....:         if t.num_verts() != n:
         ....:             return False
         ....:         if t.num_edges() != n - 1:
         ....:             return False
         ....:         for tree in trees:
-        ....:             if tree.is_isomorphic(t) == True:
+        ....:             if tree.is_isomorphic(t):
         ....:                 return False
         ....:         trees.append(t)
         ....:     return True

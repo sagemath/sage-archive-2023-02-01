@@ -64,6 +64,8 @@ EXAMPLES::
 """
 from six import iteritems
 
+from functools import reduce
+
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
 # Below we define a function Simplex to construct a simplex as a
@@ -183,7 +185,7 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
     :class:`UniqueRepresentation`. It is intended to be used to make
     standard examples of simplicial complexes unique. See :trac:`13566`.
 
-    INPUTS:
+    INPUT:
 
     - the inputs are the same as for a :class:`SimplicialComplex`,
       with one addition and two exceptions. The exceptions are that

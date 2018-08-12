@@ -21,6 +21,7 @@ from sage.misc.lazy_import import lazy_import
 
 import sage.algebras.catalog as algebras
 
+from .quantum_groups.all import *
 from .quatalg.all import *
 
 # Algebra base classes
@@ -30,6 +31,7 @@ from .free_algebra_quotient import FreeAlgebraQuotient
 
 from .steenrod.all import *
 from .lie_algebras.all import *
+from .quantum_groups.all import *
 
 from .finite_dimensional_algebras.all import FiniteDimensionalAlgebra
 

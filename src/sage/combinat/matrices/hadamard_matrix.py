@@ -57,12 +57,11 @@ from __future__ import print_function
 
 from six.moves import range
 from six import itervalues
+from six.moves.urllib.request import urlopen
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
-from urllib import urlopen
-from sage.arith.all import is_prime, is_square, is_prime_power, divisors, kronecker_symbol
+from sage.arith.all import is_square, is_prime_power, divisors
 from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J
@@ -546,8 +545,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
 
     Other hardcoded values::
 
-        sage: for n,e in [(36,1),(36,-1),(100,1),(100,-1),(196, 1)]:
-        ....:     print(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e))
+        sage: for n,e in [(36,1),(36,-1),(100,1),(100,-1),(196, 1)]:  # long time
+        ....:     print(repr(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)))
         36 x 36 dense matrix over Integer Ring
         36 x 36 dense matrix over Integer Ring
         100 x 100 dense matrix over Integer Ring
@@ -555,24 +554,24 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         196 x 196 dense matrix over Integer Ring
 
         sage: for n,e in [(324,1),(324,-1)]: # not tested - long time, tested in RSHCD_324
-        ....:     print(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)) # not tested - long time
+        ....:     print(repr(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)))
         324 x 324 dense matrix over Integer Ring
         324 x 324 dense matrix over Integer Ring
 
     From two close prime powers::
 
-        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(64,-1))
-        64 x 64 dense matrix over Integer Ring
+        sage: regular_symmetric_hadamard_matrix_with_constant_diagonal(64,-1)
+        64 x 64 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     From a prime power and a conference matrix::
 
-        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(676,1)) # long time
-        676 x 676 dense matrix over Integer Ring
+        sage: regular_symmetric_hadamard_matrix_with_constant_diagonal(676,1)  # long time
+        676 x 676 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     Recursive construction::
 
-        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(144,-1))
-        144 x 144 dense matrix over Integer Ring
+        sage: regular_symmetric_hadamard_matrix_with_constant_diagonal(144,-1)
+        144 x 144 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     REFERENCE:
 
@@ -585,7 +584,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
       Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)` exist for all `m>1`,
       European Journal of Combinatorics,
       Volume 31, Issue 6, August 2010, Pages 1553-1559,
-      http://dx.doi.org/10.1016/j.ejc.2009.07.009.
+      :doi:`10.1016/j.ejc.2009.07.009`
     """
     if existence and (n,e) in _rshcd_cache:
         return _rshcd_cache[n,e]
@@ -715,10 +714,10 @@ def RSHCD_324(e):
     TESTS::
 
         sage: from sage.combinat.matrices.hadamard_matrix import RSHCD_324, is_hadamard_matrix
-        sage: for e in [1,-1]: # long time
-        ....:     M = RSHCD_324(e) # long time
-        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in range(324)]))) # long time
-        ....:     print(set(map(sum,M))) # long time
+        sage: for e in [1,-1]:  # long time
+        ....:     M = RSHCD_324(e)
+        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in range(324)])))
+        ....:     print(set(map(sum,M)))
         True True True
         set([18])
         True True True
@@ -746,7 +745,7 @@ def RSHCD_324(e):
 
 def _helper_payley_matrix(n, zero_position=True):
     r"""
-    Return the marix constructed in Lemma 1.19 page 291 of [SWW72]_.
+    Return the matrix constructed in Lemma 1.19 page 291 of [SWW72]_.
 
     This function return a `n^2` matrix `M` whose rows/columns are indexed by
     the element of a finite field on `n` elements `x_1,...,x_n`. The value
@@ -1251,7 +1250,7 @@ def szekeres_difference_set_pair(m, check=True):
     B = filter(lambda b: b+F.one() in sG, G)
     if check:
         from itertools import product, chain
-        assert(len(A)==len(B)==m)
+        assert(len(list(A)) == len(list(B)) == m)
         if m>1:
             assert(sG==set([xy[0]/xy[1] for xy in chain(product(A,A), product(B,B))]))
         assert(all(F.one()/b+F.one() in sG for b in B))
@@ -1293,7 +1292,7 @@ def rshcd_from_prime_power_and_conference_matrix(n):
 
     From a :func:`symmetric_conference_matrix`, we only need the Seidel
     adjacency matrix of the underlying strongly regular conference (i.e. Paley
-    type) graph, which we constuct directly.
+    type) graph, which we construct directly.
 
     INPUT:
 
@@ -1317,7 +1316,7 @@ def rshcd_from_prime_power_and_conference_matrix(n):
     Bigger examples, only provided by this construction ::
 
         sage: H = rshcd_from_prime_power_and_conference_matrix(27)  # long time
-        sage: H==H.T and is_hadamard_matrix(H)                      # long time
+        sage: H == H.T and is_hadamard_matrix(H)                    # long time
         True
         sage: H.diagonal()==[1]*676 and list(sum(H))==[26]*676      # long time
         True

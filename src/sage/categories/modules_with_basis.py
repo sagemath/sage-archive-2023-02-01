@@ -8,7 +8,6 @@ AUTHORS:
 - Christian Stump (2010): :trac:`9648` module_morphism's to a wider class
   of codomains
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -16,12 +15,12 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import absolute_import
 
 from sage.misc.lazy_import import LazyImport, lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
-from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
@@ -182,7 +181,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     def is_abelian(self):
         """
-        Returns whether this category is abelian.
+        Return whether this category is abelian.
 
         This is the case if and only if the base ring is a field.
 
@@ -676,8 +675,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                the elements of ``gens`` are already in (not necessarily
                reduced) echelon form
 
-            - ``unitrangular`` -- (default: ``False``) whether
-              the lift morphism is unitrangular
+            - ``unitriangular`` -- (default: ``False``) whether
+              the lift morphism is unitriangular
 
             If ``already_echelonized`` is ``False``, then the
             generators are put in reduced echelon form using
@@ -1006,7 +1005,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return self.sum(self.term(index, coeff) for (index, coeff) in terms)
 
         def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
-            """
+            r"""
             Return the linear combination `\lambda_1 v_1 + \cdots +
             \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
             \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates
@@ -1327,14 +1326,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 AssertionError: [2, 1] should be an element of Partitions
 
             Test that ``coefficient`` also works for those parents that do
-            not yet have an element_class::
+            not have an ``element_class``::
 
-                sage: G = DihedralGroup(3)
-                sage: F = CombinatorialFreeModule(QQ, G)
-                sage: hasattr(G, "element_class")
+                sage: H = End(ZZ)
+                sage: F = CombinatorialFreeModule(QQ, H)
+                sage: hasattr(H, "element_class")
                 False
-                sage: g = G.an_element()
-                sage: (2*F.monomial(g)).coefficient(g)
+                sage: h = H.an_element()
+                sage: (2*F.monomial(h)).coefficient(h)
                 2
             """
             # NT: coefficient_fast should be the default, just with appropriate assertions
@@ -1558,27 +1557,21 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def leading_support(self, *args, **kwds):
             r"""
-            Return the maximal element of the support of ``self``. Note
-            that this may not be the term which actually appears first when
-            ``self`` is printed.
+            Return the maximal element of the support of ``self``.
+
+            Note that this may not be the term which actually appears
+            first when ``self`` is printed.
 
             If the default ordering of the basis elements is not what is
-            desired, a comparison function, ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, ``0`` if ``x == y``
-            and a positive value if ``x > y``.
+            desired, a comparison key, ``key(x)``, can be provided.
 
             EXAMPLES::
 
-                sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
+                sage: X = CombinatorialFreeModule(QQ, [1, 2, 3])
+                sage: X.rename("X"); x = X.basis()
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + 4*X.monomial(3)
                 sage: x.leading_support()
                 3
-                sage: def cmp(x,y): return y-x
-                sage: x.leading_support(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
-                1
-
                 sage: def key(x): return -x
                 sage: x.leading_support(key=key)
                 1
@@ -1588,7 +1581,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.leading_support()
                 [3]
             """
-            return max_cmp(self.support(), *args, **kwds)
+            return max(self.support(), *args, **kwds)
 
         def leading_item(self, *args, **kwds):
             r"""
@@ -1602,10 +1595,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             Here 'leading term' means that the corresponding basis element is
             maximal.  Note that this may not be the term which actually appears
-            first when ``self`` is printed.  If the default term ordering is not
-            what is desired, a comparison function, ``cmp(x,y)``, can be
-            provided.  This should return a negative value if ``x < y``, ``0``
-            if ``x == y`` and a positive value if ``x > y``.
+            first when ``self`` is printed.
+
+            If the default term ordering is not what is desired, a
+            comparison function, ``key(x)``, can be provided.
 
             EXAMPLES::
 
@@ -1613,10 +1606,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + 4*X.monomial(3)
                 sage: x.leading_item()
                 (3, 4)
-                sage: def cmp(x,y): return y-x
-                sage: x.leading_item(cmp=cmp)
-                (1, 3)
-
                 sage: def key(x): return -x
                 sage: x.leading_item(key=key)
                 (1, 3)
@@ -1635,10 +1624,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             This is the monomial whose corresponding basis element is
             maximal. Note that this may not be the term which actually appears
-            first when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function, ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, ``0`` if ``x == y``
-            and a positive value if ``x > y``.
+            first when ``self`` is printed.
+
+            If the default term ordering is not
+            what is desired, a comparison key, ``key(x)``, can be provided.
 
             EXAMPLES::
 
@@ -1646,10 +1635,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + X.monomial(3)
                 sage: x.leading_monomial()
                 B[3]
-                sage: def cmp(x,y): return y-x
-                sage: x.leading_monomial(cmp=cmp)
-                B[1]
-
                 sage: def key(x): return -x
                 sage: x.leading_monomial(key=key)
                 B[1]
@@ -1663,14 +1648,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def leading_coefficient(self, *args, **kwds):
             r"""
-            Returns the leading coefficient of ``self``.
+            Return the leading coefficient of ``self``.
 
             This is the coefficient of the term whose corresponding basis element is
             maximal. Note that this may not be the term which actually appears
-            first when ``self`` is printed.  If the default term ordering is not
-            what is desired, a comparison function, ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, 0 if ``x == y``
-            and a positive value if ``x > y``.
+            first when ``self`` is printed.
+
+            If the default term ordering is not
+            what is desired, a comparison key, ``key(x,y)``, can be provided.
 
             EXAMPLES::
 
@@ -1678,10 +1663,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + X.monomial(3)
                 sage: x.leading_coefficient()
                 1
-                sage: def cmp(x,y): return y-x
-                sage: x.leading_coefficient(cmp=cmp)
-                3
-
                 sage: def key(x): return -x
                 sage: x.leading_coefficient(key=key)
                 3
@@ -1699,10 +1680,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             This is the term whose corresponding basis element is
             maximal. Note that this may not be the term which actually appears
-            first when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function, ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, 0 if ``x == y``
-            and a positive value if ``x > y``.
+            first when ``self`` is printed.
+
+            If the default term ordering is not
+            what is desired, a comparison key, ``key(x)``, can be provided.
 
             EXAMPLES::
 
@@ -1710,10 +1691,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + X.monomial(3)
                 sage: x.leading_term()
                 B[3]
-                sage: def cmp(x,y): return y-x
-                sage: x.leading_term(cmp=cmp)
-                3*B[1]
-
                 sage: def key(x): return -x
                 sage: x.leading_term(key=key)
                 3*B[1]
@@ -1732,9 +1709,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             ``self`` is printed.
 
             If the default ordering of the basis elements is not what is
-            desired, a comparison function, ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, `0` if ``x == y``
-            and a positive value if ``x > y``.
+            desired, a comparison key, ``key(x)``, can be provided.
 
             EXAMPLES::
 
@@ -1742,11 +1717,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + 4*X.monomial(3)
                 sage: x.trailing_support()
                 1
-                sage: def cmp(x,y): return y-x
-                sage: x.trailing_support(cmp=cmp)
-                doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                See http://trac.sagemath.org/21043 for details.
-                3
 
                 sage: def key(x): return -x
                 sage: x.trailing_support(key=key)
@@ -1757,19 +1727,19 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.trailing_support()
                 [1]
             """
-            return min_cmp(self.support(), *args, **kwds)
+            return min(self.support(), *args, **kwds)
 
         def trailing_item(self, *args, **kwds):
             r"""
-            Returns the pair ``(c, k)`` where ``c*self.parent().monomial(k)``
+            Return the pair ``(c, k)`` where ``c*self.parent().monomial(k)``
             is the trailing term of ``self``.
 
             This is the monomial whose corresponding basis element is
             minimal. Note that this may not be the term which actually appears
-            last when ``self`` is printed.  If the default term ordering is not
-            what is desired, a comparison function ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, 0 if ``x == y``
-            and a positive value if ``x > y``.
+            last when ``self`` is printed.
+
+            If the default term ordering is not
+            what is desired, a comparison key ``key(x)``, can be provided.
 
             EXAMPLES::
 
@@ -1777,10 +1747,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + X.monomial(3)
                 sage: x.trailing_item()
                 (1, 3)
-                sage: def cmp(x,y): return y-x
-                sage: x.trailing_item(cmp=cmp)
-                (3, 1)
-
                 sage: def key(x): return -x
                 sage: x.trailing_item(key=key)
                 (3, 1)
@@ -1799,10 +1765,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             This is the monomial whose corresponding basis element is
             minimal. Note that this may not be the term which actually appears
-            last when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, 0 if ``x == y``
-            and a positive value if ``x > y``.
+            last when ``self`` is printed.
+
+            If the default term ordering is not
+            what is desired, a comparison key ``key(x)``, can be provided.
 
             EXAMPLES::
 
@@ -1810,10 +1776,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + X.monomial(3)
                 sage: x.trailing_monomial()
                 B[1]
-                sage: def cmp(x,y): return y-x
-                sage: x.trailing_monomial(cmp=cmp)
-                B[3]
-
                 sage: def key(x): return -x
                 sage: x.trailing_monomial(key=key)
                 B[3]
@@ -1831,10 +1793,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             This is the coefficient of the monomial whose corresponding basis element is
             minimal. Note that this may not be the term which actually appears
-            last when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, 0 if ``x == y``
-            and a positive value if ``x > y``.
+            last when ``self`` is printed.
+
+            If the default term ordering is not
+            what is desired, a comparison key ``key(x)``, can be provided.
 
             EXAMPLES::
 
@@ -1842,10 +1804,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + X.monomial(3)
                 sage: x.trailing_coefficient()
                 3
-                sage: def cmp(x,y): return y-x
-                sage: x.trailing_coefficient(cmp=cmp)
-                1
-
                 sage: def key(x): return -x
                 sage: x.trailing_coefficient(key=key)
                 1
@@ -1863,10 +1821,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             This is the term whose corresponding basis element is
             minimal. Note that this may not be the term which actually appears
-            last when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function ``cmp(x,y)``, can be provided.
-            This should return a negative value if ``x < y``, 0 if ``x == y``
-            and a positive value if ``x > y``.
+            last when ``self`` is printed.
+
+            If the default term ordering is not
+            what is desired, a comparison key ``key(x)``, can be provided.
 
             EXAMPLES::
 
@@ -1874,10 +1832,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = 3*X.monomial(1) + 2*X.monomial(2) + X.monomial(3)
                 sage: x.trailing_term()
                 3*B[1]
-                sage: def cmp(x,y): return y-x
-                sage: x.trailing_term(cmp=cmp)
-                B[3]
-
                 sage: def key(x): return -x
                 sage: x.trailing_term(key=key)
                 B[3]
@@ -2070,7 +2024,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 This method simply delegates the work to
                 :meth:`ModulesWithBasis.ParentMethods.module_morphism`. It
                 is used by :meth:`Homset.__call__` to handle the
-                ``on_basis`` argument, and will disapear as soon as
+                ``on_basis`` argument, and will disappear as soon as
                 the logic will be generalized.
 
                 EXAMPLES::
@@ -2201,7 +2155,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: A.an_element()
                     B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
                     sage: B.an_element()
-                    B[()] + 4*B[(1,2,3)] + 2*B[(1,3)]
+                    B[()] + B[(1,2)] + 3*B[(1,2,3)] + 2*B[(1,3)]
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest
                     2*B[(0, word: )] + 2*B[(0, word: a)] + 3*B[(0, word: b)]
                 """

@@ -1243,18 +1243,28 @@ class Projection(SageObject):
             Graphics3d Object
             sage: Polyhedron(vertices=[[1,1,1]]).plot()                        # point in R^3
             Graphics3d Object
+
+        The origin is not included, if it is not in the polyhedron (:trac:`23555`)::
+
+            sage: Q = Polyhedron([[100],[101]])
+            sage: P = Q*Q*Q; P
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: p = P.plot()
+            sage: p.bounding_box()
+            ((100.0, 100.0, 100.0), (101.0, 101.0, 101.0))
         """
-        from sage.plot.plot3d.base import Graphics3d
-        plt = Graphics3d()
+        pplt = None
+        lplt = None
+        pgplt = None
         if isinstance(point_opts, dict):
             point_opts.setdefault('width', 3)
-            plt += self.render_vertices_3d(**point_opts)
+            pplt = self.render_vertices_3d(**point_opts)
         if isinstance(line_opts, dict):
             line_opts.setdefault('width', 3)
-            plt += self.render_wireframe_3d(**line_opts)
+            lplt = self.render_wireframe_3d(**line_opts)
         if isinstance(polygon_opts, dict):
-            plt += self.render_solid_3d(**polygon_opts)
-        return plt
+            pgplt = self.render_solid_3d(**polygon_opts)
+        return sum(_ for _ in [pplt, lplt, pgplt] if _ != None)
 
     def tikz(self, view=[0, 0, 1], angle=0, scale=2,
              edge_color='blue!95!black', facet_color='blue!95!black',
@@ -1435,7 +1445,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']', ')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' % (tag, tag)
+            coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         for index1, index2 in self.lines:
@@ -1556,7 +1566,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' % (tag, tag)
+            coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         for index1, index2 in self.lines:
@@ -1719,7 +1729,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' %(tag, tag)
+            coord = '\\coordinate %s at %s;\n' %(tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         # Separate the edges between back and front

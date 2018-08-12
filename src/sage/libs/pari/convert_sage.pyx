@@ -15,7 +15,9 @@ Convert PARI objects to Sage types
 #*****************************************************************************
 
 from cypari2.types cimport (GEN, typ, t_INT, t_FRAC, t_REAL, t_COMPLEX,
-   t_INTMOD, t_PADIC, t_INFINITY, t_VEC, t_COL, t_VECSMALL, t_MAT, lg, precp)
+                            t_INTMOD, t_PADIC, t_INFINITY, t_VEC, t_COL,
+                            t_VECSMALL, t_MAT, t_STR,
+                            lg, precp)
 from cypari2.pari_instance cimport prec_words_to_bits
 from cypari2.paridecl cimport gel, inf_get_sign
 
@@ -44,7 +46,7 @@ cpdef gen_to_sage(Gen z, locals=None):
     - a :class:`~sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic`
       or a :class:`~sage.rings.complex_number.ComplexNumber` if ``z`` is a complex
       number (type ``t_COMPLEX``). The former is used when the real and imaginary parts are
-      integers or rationals and the latter when they are floation point numbers. In that
+      integers or rationals and the latter when they are floating point numbers. In that
       case The precision will be the maximal precision of the real and imaginary parts.
 
     - a Python list if ``z`` is a vector or a list (type ``t_VEC``, ``t_COL``)
@@ -212,6 +214,13 @@ cpdef gen_to_sage(Gen z, locals=None):
         +Infinity
         sage: gen_to_sage(pari('-oo'))
         -Infinity
+
+    Conversion of strings::
+
+        sage: s = pari('"foo"').sage(); s
+        'foo'
+        sage: type(s)
+        <type 'str'>
     """
     cdef GEN g = z.g
     cdef long t = typ(g)
@@ -270,6 +279,8 @@ cpdef gen_to_sage(Gen z, locals=None):
         p = z.padicprime()
         K = Qp(Integer(p), precp(g))
         return K(z.lift())
+    elif t == t_STR:
+        return str(z)
     elif t == t_INFINITY:
         from sage.rings.infinity import Infinity
         if inf_get_sign(g) >= 0:
@@ -281,4 +292,3 @@ cpdef gen_to_sage(Gen z, locals=None):
     from sage.misc.sage_eval import sage_eval
     locals = {} if locals is None else locals
     return sage_eval(str(z), locals=locals)
-

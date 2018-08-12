@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # location of the corresponding gap installation
 # it is only used by the test suite
 # it cannot be moved to spkg-install as it can interfere

@@ -21,7 +21,8 @@ from __future__ import absolute_import
 from six.moves import range
 from six import integer_types
 
-from sage.rings.all import Integer, QQ, ZZ, PowerSeriesRing
+from sage.structure.richcmp import richcmp_method, richcmp
+from sage.rings.all import Integer, QQ, ZZ
 from sage.misc.all import prod, verbose
 from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
@@ -159,6 +160,8 @@ def basis_for_modform_space(*args):
     """
     raise NotImplementedError("basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()")
 
+
+@richcmp_method
 class ModularFormsRing(SageObject):
 
     def __init__(self, group, base_ring=QQ):
@@ -255,10 +258,11 @@ class ModularFormsRing(SageObject):
         """
         return self.__base_ring
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self to other. Rings are equal if and only if their groups and
-        base rings are.
+        Compare self to other.
+
+        Rings are equal if and only if their groups and base rings are.
 
         EXAMPLES::
 
@@ -269,11 +273,11 @@ class ModularFormsRing(SageObject):
             sage: ModularFormsRing(Gamma0(3)) == ModularFormsRing(Gamma0(3))
             True
         """
-
         if not isinstance(other, ModularFormsRing):
-            return cmp( type(self), type(other) )
-        else:
-            return cmp(self.group(), other.group()) or cmp(self.base_ring(), other.base_ring())
+            return NotImplemented
+
+        return richcmp((self.group(), self.base_ring()),
+                       (other.group(), other.base_ring()), op)
 
     def _repr_(self):
         r"""

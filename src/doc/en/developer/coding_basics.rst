@@ -19,7 +19,7 @@ definitions, etc., are informed by how the corresponding objects are
 used in everyday mathematics.
 
 .. [1]
-   See http://www.sagemath.org/links-components.html for a full list
+   See https://www.sagemath.org/links-components.html for a full list
    of packages shipped with every copy of Sage
 
 To meet the goal of making Sage easy to read, maintain, and improve,
@@ -35,8 +35,8 @@ Python Code Style
 Follow the standard Python formatting rules when writing code for
 Sage, as explained at the following URLs:
 
-* http://www.python.org/dev/peps/pep-0008
-* http://www.python.org/dev/peps/pep-0257
+* :pep:`0008`
+* :pep:`0257`
 
 In particular,
 
@@ -199,15 +199,15 @@ The top of each Sage code file should follow this format::
 
     """
 
-    #*****************************************************************************
+    # ****************************************************************************
     #       Copyright (C) 2013 YOUR NAME <your email>
     #
     # This program is free software: you can redistribute it and/or modify
     # it under the terms of the GNU General Public License as published by
     # the Free Software Foundation, either version 2 of the License, or
     # (at your option) any later version.
-    #                  http://www.gnu.org/licenses/
-    #*****************************************************************************
+    #                  https://www.gnu.org/licenses/
+    # ****************************************************************************
 
 As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx``, which contains the
 implementation for `\ZZ`. The names of the people who made major contributions
@@ -862,6 +862,18 @@ written.
       5
       7
 
+- **Python3 print:** even if Python2 syntax for print can still be
+  used in your own code for the moment, Python3 syntax for print must
+  be used in Sage code and doctests. If you use an old-style print in
+  doctests, it will raise a SyntaxError::
+
+      sage: print "not like that"
+      Traceback (most recent call last):
+      ...
+      SyntaxError: invalid syntax
+      sage: print("but like this")
+      but like this
+
 - **Split long lines:** You may want to split long lines of code with a
   backslash. Note: this syntax is non-standard and may be removed in the
   future::
@@ -1004,6 +1016,12 @@ framework. Here is a comprehensive list:
      Neither of this applies to files or directories which are explicitly given
      as command line arguments: those are always tested.
 
+- **py2** or **py3:** Run the line on Python 2 *only* or Python 3 *only*
+  respectively.  Generally this should be avoided as code should be tested on
+  both Python 2 and Python 3, but there are on occasion tests that are simply
+  inapplicable on one or the other, such as tests that rely on optional features
+  that are only available on one Python version or the other.
+
 - **optional:** A line flagged with ``optional - keyword`` is not tested unless
   the ``--optional=keyword`` flag is passed to ``sage -t`` (see
   :ref:`section-optional-doctest-flag`). The main applications are:
@@ -1015,7 +1033,10 @@ framework. Here is a comprehensive list:
 
   - **internet:** For lines that require an internet connection::
 
-       sage: sloane_sequence(60843)       # optional - internet
+       sage: oeis(60843)                 # optional - internet
+       A060843: Busy Beaver problem: a(n) = maximal number of steps that an
+       n-state Turing machine can make on an initially blank tape before
+       eventually halting.
 
   - **bug:** For lines that describe bugs. Alternatively, use ``# known bug``
     instead: it is an alias for ``optional bug``. ::
@@ -1166,46 +1187,6 @@ for various solutions.
 
 If you use another editor, we recommend to configure it so you do not
 add tabs to files.
-
-
-.. _chapter-picklejar:
-
-The Pickle Jar
-==============
-
-Sage maintains a pickle jar at
-``SAGE_ROOT/src/ext/pickle_jar/pickle_jar.tar.bz2`` which is a tar
-file of "standard" pickles created by ``sage``. This pickle jar is
-used to ensure that sage maintains backward compatibility by
-having :func:`sage.structure.sage_object.unpickle_all` check that
-``sage`` can always unpickle all of the pickles in the pickle jar as
-part of the standard doc testing framework.
-
-Most people first become aware of the pickle_jar when their patch breaks the
-unpickling of one of the "standard" pickles in the pickle jar due to the
-failure of the doctest::
-
-    sage -t src/sage/structure/sage_object.pyx
-
-When this happens an error message is printed which contains the following
-hints for fixing the uneatable pickle::
-
-    ----------------------------------------------------------------------
-    ** This error is probably due to an old pickle failing to unpickle.
-    ** See sage.structure.sage_object.register_unpickle_override for
-    ** how to override the default unpickling methods for (old) pickles.
-    ** NOTE: pickles should never be removed from the pickle_jar!
-    ----------------------------------------------------------------------
-
-For more details about how to fix unpickling errors in the pickle jar
-see :func:`sage.structure.sage_object.register_unpickle_override`
-
-.. WARNING::
-
-    Sage's pickle jar helps to ensure backward compatibility in sage. Pickles
-    should **only** be removed from the pickle jar after the corresponding
-    objects have been properly deprecated. Any proposal to remove pickles
-    from the pickle jar should first be discussed on sage-devel.
 
 
 Global Options

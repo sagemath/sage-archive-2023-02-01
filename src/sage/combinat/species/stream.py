@@ -130,7 +130,7 @@ class Stream_class(SageObject):
             sage: from sage.combinat.species.stream import Stream_class, Stream
             sage: s = Stream_class(const=4)
             sage: loads(dumps(s))
-            <class 'sage.combinat.species.stream.Stream_class'>
+            <sage.combinat.species.stream.Stream_class object at ...>
 
         ::
 
@@ -358,7 +358,6 @@ class Stream_class(SageObject):
             except IndexError:
                 break
             i += 1
-        raise StopIteration
 
     def __len__(self):
         """

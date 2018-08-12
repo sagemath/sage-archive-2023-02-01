@@ -145,7 +145,7 @@ You can work with subcones that form faces of other cones::
 If you need to know inclusion relations between faces, you can use ::
 
     sage: L = four_rays.face_lattice()
-    sage: list(map(len, L.level_sets()))
+    sage: [len(s) for s in L.level_sets()]
     [1, 4, 4, 1]
     sage: face = L.level_sets()[2][0]
     sage: face.rays()
@@ -195,22 +195,22 @@ import collections
 import copy
 import warnings
 
+from sage.arith.all import gcd, lcm
 from sage.combinat.posets.posets import FinitePoset
-from sage.geometry.lattice_polytope import integral_length
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
-from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
+from sage.geometry.hasse_diagram import lattice_from_incidences
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import matrix, MatrixSpace
+from sage.matrix.all import column_matrix, matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
 from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ
-from sage.arith.all import gcd
 from sage.structure.all import SageObject, parent
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \
     Poly_Con_Relation
@@ -449,7 +449,7 @@ def Cone(rays, lattice=None, check=True, normalize=True):
 
 
 def _Cone_from_PPL(cone, lattice, original_rays=None):
-    """
+    r"""
     Construct a cone from a :class:`~sage.libs.ppl.Polyhedron`.
 
     This is a private function and not intended to be exposed to the
@@ -503,6 +503,93 @@ def _Cone_from_PPL(cone, lattice, original_rays=None):
         except TypeError:
             rays = normalize_rays(rays, lattice)
         return ConvexRationalPolyhedralCone(rays, lattice, PPL=cone)
+
+
+def _ambient_space_point(body, data):
+    r"""
+    Try to convert ``data`` to a point of the ambient space of ``body``.
+
+    INPUT:
+
+    - ``body`` -- a cone, fan, or lattice polytope with ``lattice()`` method
+
+    - ``data`` -- anything
+
+    OUTPUT:
+
+    - integral, rational or numeric point of the ambient space of ``body``
+      if ``data`` were successfully interpreted in such a way, otherwise a
+      ``TypeError`` exception is raised
+
+    TESTS::
+
+        sage: from sage.geometry.cone import _ambient_space_point
+        sage: c = Cone([(1,0), (0,1)])
+        sage: _ambient_space_point(c, [1,1])
+        N(1, 1)
+        sage: _ambient_space_point(c, c.dual_lattice()([1,1]))
+        Traceback (most recent call last):
+        ...
+        TypeError: the point M(1, 1) and
+         2-d cone in 2-d lattice N have incompatible lattices
+        sage: _ambient_space_point(c, [1,1/3])
+        (1, 1/3)
+        sage: _ambient_space_point(c, [1/2,1/sqrt(3)])
+        (0.500000000000000, 0.577350269189626)
+        sage: _ambient_space_point(c, [1,1,3])
+        Traceback (most recent call last):
+        ...
+        TypeError: [1, 1, 3] does not represent a valid point
+         in the ambient space of 2-d cone in 2-d lattice N
+    """
+    L = body.lattice()
+    try: # to make a lattice element...
+        return L(data)
+    except TypeError:
+        # Special treatment for toric lattice elements
+        if is_ToricLattice(parent(data)):
+            raise TypeError("the point %s and %s have incompatible "
+                            "lattices" % (data, body))
+    try: # ... or an exact point...
+        return L.base_extend(QQ)(data)
+    except TypeError:
+        pass
+    try: # ... or at least a numeric one
+        return L.base_extend(RR)(data)
+    except TypeError:
+        pass
+    # Raise TypeError with our own message
+    raise TypeError("%s does not represent a valid point in the ambient "
+                    "space of %s" % (data, body))
+
+
+def integral_length(v):
+    """
+    Compute the integral length of a given rational vector.
+
+    INPUT:
+
+    - ``v`` -- any object which can be converted to a list of rationals
+
+    OUTPUT:
+
+    Rational number `r`` such that ``v = r * u``, where ``u`` is the
+    primitive integral vector in the direction of ``v``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.cone import integral_length
+        sage: integral_length([1, 2, 4])
+        1
+        sage: integral_length([2, 2, 4])
+        2
+        sage: integral_length([2/3, 2, 4])
+        2/3
+    """
+    data = [QQ(e) for e in list(v)]
+    ns = [e.numerator() for e in data]
+    ds = [e.denominator() for e in data]
+    return gcd(ns) / lcm(ds)
 
 
 def normalize_rays(rays, lattice):
@@ -595,6 +682,7 @@ def normalize_rays(rays, lattice):
     return rays
 
 
+@richcmp_method
 class IntegralRayCollection(SageObject,
                             collections.Hashable,
                             collections.Iterable):
@@ -656,7 +744,7 @@ class IntegralRayCollection(SageObject,
         self._rays = PointCollection(rays, lattice)
         self._lattice = lattice
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -666,32 +754,34 @@ class IntegralRayCollection(SageObject,
 
         OUTPUT:
 
-        - 0 if ``right`` is of the same type as ``self``, they have the same
-          ambient lattices, and their rays are the same and listed in the same
-          order. 1 or -1 otherwise.
+        boolean
+
+        There is equality if ``right`` is of the same type as
+        ``self``, they have the same ambient lattices, and their
+        rays are the same and listed in the same order.
 
         TESTS::
 
             sage: c1 = Cone([(1,0), (0,1)])
             sage: c2 = Cone([(0,1), (1,0)])
             sage: c3 = Cone([(0,1), (1,0)])
-            sage: cmp(c1, c2)
-            1
-            sage: cmp(c2, c1)
-            -1
-            sage: cmp(c2, c3)
-            0
+            sage: c1 > c2
+            True
+            sage: c2 < c1
+            True
+            sage: c2 == c3
+            True
             sage: c2 is c3
             False
         """
-        c = cmp(type(self), type(right))
-        if c:
-            return c
+        if type(self) != type(right):
+            return NotImplemented
+
         # We probably do need to have explicit comparison of lattices here
         # since if one of the collections does not live in a toric lattice,
         # comparison of rays may miss the difference.
-        return cmp((self.lattice(), self.rays()),
-                   (right.lattice(), right.rays()))
+        return richcmp((self.lattice(), self.rays()),
+                       (right.lattice(), right.rays()), op)
 
     def __hash__(self):
         r"""
@@ -727,60 +817,6 @@ class IntegralRayCollection(SageObject,
             N(0, 1)
         """
         return iter(self._rays)
-
-    def _ambient_space_point(self, data):
-        r"""
-        Try to convert ``data`` to a point of the ambient space of ``self``.
-
-        INPUT:
-
-        - ``data`` -- anything.
-
-        OUTPUT:
-
-        - integral, rational or numeric point of the ambient space of ``self``
-          if ``data`` were successfully interpreted in such a way, otherwise a
-          ``TypeError`` exception is raised.
-
-        TESTS::
-
-            sage: c = Cone([(1,0), (0,1)])
-            sage: c._ambient_space_point([1,1])
-            N(1, 1)
-            sage: c._ambient_space_point(c.dual_lattice()([1,1]))
-            Traceback (most recent call last):
-            ...
-            TypeError: the point M(1, 1) and
-            2-d cone in 2-d lattice N have incompatible lattices!
-            sage: c._ambient_space_point([1,1/3])
-            (1, 1/3)
-            sage: c._ambient_space_point([1/2,1/sqrt(3)])
-            (0.500000000000000, 0.577350269189626)
-            sage: c._ambient_space_point([1,1,3])
-            Traceback (most recent call last):
-            ...
-            TypeError: [1, 1, 3] does not represent a valid point
-            in the ambient space of 2-d cone in 2-d lattice N!
-        """
-        L = self.lattice()
-        try: # to make a lattice element...
-            return L(data)
-        except TypeError:
-            # Special treatment for toric lattice elements
-            if is_ToricLattice(parent(data)):
-                raise TypeError("the point %s and %s have incompatible "
-                                "lattices!" % (data, self))
-        try: # ... or an exact point...
-            return L.base_extend(QQ)(data)
-        except TypeError:
-            pass
-        try: # ... or at least a numeric one
-            return L.base_extend(RR)(data)
-        except TypeError:
-            pass
-        # Raise TypeError with our own message
-        raise TypeError("%s does not represent a valid point in the ambient "
-                        "space of %s!" % (data, self))
 
     def cartesian_product(self, other, lattice=None):
         r"""
@@ -1191,7 +1227,7 @@ class IntegralRayCollection(SageObject,
 
 
 def classify_cone_2d(ray0, ray1, check=True):
-    """
+    r"""
     Return `(d,k)` classifying the lattice cone spanned by the two rays.
 
     INPUT:
@@ -1206,7 +1242,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 
     A pair `(d,k)` of integers classifying the cone up to `GL(2, \ZZ)`
     equivalence. See Proposition 10.1.1 of [CLS]_ for the
-    definition. We return the unique `(d,k)` with minmial `k`, see
+    definition. We return the unique `(d,k)` with minimal `k`, see
     Proposition 10.1.3 of [CLS]_.
 
     EXAMPLES::
@@ -1289,6 +1325,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # Derived classes MUST allow construction of their objects using ``ambient``
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.
+@richcmp_method
 class ConvexRationalPolyhedralCone(IntegralRayCollection,
                                    collections.Container):
     r"""
@@ -1476,7 +1513,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: C = Cone([(1,0)])
             sage: C.face_lattice()
-            Finite poset containing 2 elements with distinguished linear extension
+            Finite lattice containing 2 elements with distinguished linear extension
             sage: C._test_pickling()
             sage: C2 = loads(dumps(C)); C2
             1-d cone in 2-d lattice N
@@ -1535,7 +1572,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
         """
         try:
-            point = self._ambient_space_point(point)
+            point = _ambient_space_point(self, point)
         except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a cone contains a point "
@@ -1690,7 +1727,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         rc = super(ConvexRationalPolyhedralCone, self).__neg__()
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -1700,30 +1737,32 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - 0 if ``self`` and ``right`` are cones of any kind in the same
-          lattice with the same rays listed in the same order. 1 or -1
-          otherwise.
+        boolean
+
+        There is equality if ``self`` and ``right`` are cones of any
+        kind in the same lattice with the same rays listed in the
+        same order.
 
         TESTS::
 
             sage: c1 = Cone([(1,0), (0,1)])
             sage: c2 = Cone([(0,1), (1,0)])
             sage: c3 = Cone([(0,1), (1,0)])
-            sage: cmp(c1, c2)
-            1
-            sage: cmp(c2, c1)
-            -1
-            sage: cmp(c2, c3)
-            0
+            sage: c1 > c2
+            True
+            sage: c2 < c1
+            True
+            sage: c2 == c3
+            True
             sage: c2 is c3
             False
         """
         if is_Cone(right):
             # We don't care about particular type of right in this case
-            return cmp((self.lattice(), self.rays()),
-                       (right.lattice(), right.rays()))
+            return richcmp((self.lattice(), self.rays()),
+                           (right.lattice(), right.rays()), op)
         else:
-            return cmp(type(self), type(right))
+            return NotImplemented
 
     def _latex_(self):
         r"""
@@ -2196,7 +2235,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: L = quadrant.face_lattice()
             sage: L
-            Finite poset containing 4 elements with distinguished linear extension
+            Finite lattice containing 4 elements with distinguished linear extension
 
         To see all faces arranged by dimension, you can do this::
 
@@ -2261,7 +2300,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: supercone = Cone([(1,2,3,4), (5,6,7,8),
             ....:                   (1,2,4,8), (1,3,9,7)])
             sage: supercone.face_lattice()
-            Finite poset containing 16 elements with distinguished linear extension
+            Finite lattice containing 16 elements with distinguished linear extension
             sage: supercone.face_lattice().top()
             4-d cone in 4-d lattice N
             sage: cone = supercone.facets()[0]
@@ -2308,7 +2347,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             if self._ambient is self:
                 # We need to compute face lattice on our own. To accommodate
                 # non-strictly convex cones we split rays (or rather their
-                # indicies) into those in the linear subspace and others, which
+                # indices) into those in the linear subspace and others, which
                 # we refer to as atoms.
                 S = self.linear_subspace()
                 subspace_rays = []
@@ -2323,7 +2362,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     # and there is only a conversion (no coercion)
                     # between them as of Trac ticket #10513.
                     try:
-                        _ = S(ray)
+                        S(ray)
                         subspace_rays.append(i)
                     except (TypeError, ValueError):
                         facets = [j for j, normal in enumerate(normals)
@@ -2348,7 +2387,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     else:
                         return self
 
-                self._face_lattice = Hasse_diagram_from_incidences(
+                self._face_lattice = lattice_from_incidences(
                                     atom_to_facets, facet_to_atoms, ConeFace,
                                     key = id(self))
             else:
@@ -2545,7 +2584,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         If the ambient :meth:`~IntegralRayCollection.lattice` of ``self`` is a
         :class:`toric lattice
-        <sage.geometry.toric_lattice.ToricLatticeFactory>`, the facet nomals
+        <sage.geometry.toric_lattice.ToricLatticeFactory>`, the facet normals
         will be elements of the dual lattice. If it is a general lattice (like
         ``ZZ^n``) that does not have a ``dual()`` method, the facet normals
         will be returned as integral vectors.
@@ -3688,14 +3727,30 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <N(1, -1, 1), N(0, 1, 0)>
             sage: c12.orthogonal_sublattice()
             Sublattice <M(1, 0, -1)>
+            
+        TESTS:
+        
+        We check that :trac:`24541` is fixed::
+        
+            sage: c = Cone([(1,0)], lattice=ZZ^2)
+            sage: c.orthogonal_sublattice()
+            Free module of degree 2 and rank 1 over Integer Ring
+            User basis matrix:
+            [0 1]
+            sage: c.dual()
+            2-d cone in 2-d lattice
         """
         if "_orthogonal_sublattice" not in self.__dict__:
             try:
                 self._orthogonal_sublattice = self.sublattice_quotient().dual()
             except AttributeError:
-                # Non-toric quotient? Just make ZZ^n then.
-                self._orthogonal_sublattice = ZZ**(self.lattice().dimension() -
-                                                  self.sublattice().dimension())
+                N = self.lattice()
+                basis = self.rays().basis()
+                Nsigma = column_matrix(ZZ, [N.coordinates(v) for v in basis])
+                D, U, V = Nsigma.smith_form()  # D = U * Nsigma * V
+                M = self.dual_lattice()
+                self._orthogonal_sublattice = M.submodule_with_basis(
+                    U.rows()[len(basis):])
         if args or kwds:
             return self._orthogonal_sublattice(*args, **kwds)
         else:
@@ -3713,7 +3768,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         ``self.sublattice()``. This method returns the quotient
         lattice. The lifts of the quotient generators are
         `\dim(\sigma)-\dim(\rho)` linearly independent primitive
-        lattice lattice points that, together with `N_\rho`, generate
+        lattice points that, together with `N_\rho`, generate
         `N_\sigma`.
 
         OUTPUT:
@@ -4037,7 +4092,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         set over `\ZZ` for the integral points `C\cap \ZZ^d`.
 
         If the cone `C` is not strictly convex, this method finds the
-        (unique) minimial set of lattice points that need to be added
+        (unique) minimal set of lattice points that need to be added
         to the defining rays of the cone to generate the whole
         semigroup `C\cap \ZZ^d`. But because the rays of the cone are
         not unique nor necessarily minimal in this case, neither is
@@ -4144,7 +4199,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 # "x in linear_subspace" does not work, due to absence
                 # of coercion maps as of Trac ticket #10513.
                 try:
-                    _ = linear_subspace(x)
+                    linear_subspace(x)
                     return False
                 except (TypeError, ValueError):
                     return True
@@ -4168,7 +4223,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         else:
             return PointCollection(irreducible, self.lattice())
 
-    def Hilbert_coefficients(self, point):
+    def Hilbert_coefficients(self, point, solver=None, verbose=0):
         r"""
         Return the expansion coefficients of ``point`` with respect to
         :meth:`Hilbert_basis`.
@@ -4178,6 +4233,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         - ``point`` -- a :meth:`~IntegralRayCollection.lattice` point
           in the cone, or something that can be converted to a
           point. For example, a list or tuple of integers.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+          of the LP solver. Set to 0 by default, which means quiet.
 
         OUTPUT:
 
@@ -4233,13 +4297,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         basis = self.Hilbert_basis()
 
         from sage.numerical.mip import MixedIntegerLinearProgram
-        p = MixedIntegerLinearProgram(maximization=False)
+        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
         p.set_objective(None)
         x = p.new_variable(integer=True, nonnegative=True)
-        x = [ x[i] for i in range(0,len(basis)) ]
-        for i in range(0,self.lattice_dim()):
-            p.add_constraint(sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
-        p.solve()
+        for i in range(self.lattice_dim()):
+            p.add_constraint(p.sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
+        p.solve(log=verbose)
 
         return vector(ZZ, p.get_values(x))
 
@@ -6129,12 +6192,15 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         generators. Please decrease min_rays.
 
     Ensure that we can obtain a cone in three dimensions with a large
-    number (in particular, more than 2*dim) rays::
+    number (in particular, more than 2*dim) rays. The ``max_rays`` is
+    not strictly necessary, but it minimizes the number of times that
+    we will loop with an absurd, unattainable, number of rays::
 
         sage: set_random_seed()                  # long time
         sage: K = random_cone(min_ambient_dim=3, # long time
         ....:                 max_ambient_dim=3, # long time
-        ....:                 min_rays=7)        # long time
+        ....:                 min_rays=7,        # long time
+        ....:                 max_rays=9)        # long time
         sage: K.nrays() >= 7                     # long time
         True
         sage: K.lattice_dim()                    # long time
@@ -6391,12 +6457,11 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         else:
             if K.lattice() is not lattice:
                 return False
-        return all([
-            K.nrays() >= min_rays,
-            K.nrays() <= max_rays or max_rays is None,
-            K.is_solid() == solid or solid is None,
-            K.is_strictly_convex() == strictly_convex or strictly_convex is None
-            ])
+        return all([K.nrays() >= min_rays,
+                    max_rays is None or K.nrays() <= max_rays,
+                    solid is None or K.is_solid() == solid,
+                    strictly_convex is None or
+                    K.is_strictly_convex() == strictly_convex])
 
     # Now we actually compute the thing. To avoid recursion (and the
     # associated "maximum recursion depth exceeded" error), we loop
@@ -6409,23 +6474,45 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             # No lattice given, make our own.
             d = random_min_max(min_ambient_dim, max_ambient_dim)
             L = ToricLattice(d)
+        else:
+            d = L.dimension()
 
+        # The number of rays that we will try to attain in this iteration.
         r = random_min_max(min_rays, max_rays)
 
         # The rays are trickier to generate, since we could generate v and
         # 2*v as our "two rays." In that case, the resulting cone would
-        # have one generating ray. To avoid such a situation, we start by
-        # generating ``r`` rays where ``r`` is the number we want to end
-        # up with...
-        rays = [L.random_element() for i in range(r)]
+        # have only one generating ray -- not what we want.
+        #
+        # Let's begin with an easier question: how many rays should we
+        # start with? If we want to attain r rays in this iteration,
+        # then surely r is a good number to start with, even if some
+        # of them will be redundant?
+        #
+        # Not quite, because after 2*d rays, there is a greater
+        # tendency for them to be redundant. If, for example, the
+        # maximum number of rays is unbounded, then r could be enormous
+        # Ultimately that won't be a problem, because almost all of
+        # those rays will be thrown out. However, as we discovered in
+        # Trac #24517, simply generating the random rays in the first
+        # place (and storing them in a list) is problematic.
+        #
+        # Since the returns fall off around 2*d, we start with the
+        # smaller of the two numbers 2*d or r to ensure that we don't
+        # pay a huge performance penalty for things we're going to
+        # throw out anyway. This has a side effect, namely that if you
+        # ask for more than 2*d rays, then you'll probably get the
+        # minimum amount, because we'll start with 2*d and add them
+        # one-at-a-time (see below).
+        rays = [L.random_element() for i in range(min(r,2*d))]
 
         # The lattice parameter is required when no rays are given, so
-        # we pass it in case ``r == 0`` or ``d == 0`` (or ``d == 1``
-        # but we're making a strictly convex cone).
+        # we pass it in case r == 0 or d == 0 (or d == 1 but we're
+        # making a strictly convex cone).
         K = Cone(rays, lattice=L)
 
         # Now, some of the rays that we generated were probably redundant,
-        # so we need to come up with more. We can obviously stop if ``K``
+        # so we need to come up with more. We can obviously stop if K
         # becomes the entire ambient vector space.
         #
         # We're still not guaranteed to have the correct number of
@@ -6456,7 +6543,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
 
                     # rays has immutable elements
                     from copy import copy
-                    rays = map(copy, rays)
+                    rays = [copy(ray) for ray in rays]
 
                     for i, ray in enumerate(rays):
                         rays[i][0] = pm * (ray[0].abs() + 1)

@@ -1,4 +1,4 @@
-"""
+r"""
 Helper Classes to implement Tensor Operations
 
 .. warning::
@@ -60,13 +60,12 @@ vectors of the vector collection ``VW`` ::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
-from sage.structure.sage_object import SageObject
-from sage.modules.free_module import FreeModule_ambient_field, VectorSpace
-from sage.misc.all import cached_method, prod
-from sage.matrix.constructor import vector, matrix
+from sage.modules.free_module import FreeModule_ambient_field
+from sage.misc.all import prod
+from sage.matrix.constructor import matrix
 from sage.rings.all import ZZ
-
 
 
 def symmetrized_coordinate_sums(dim, n):
@@ -91,12 +90,12 @@ def symmetrized_coordinate_sums(dim, n):
     """
     from sage.structure.formal_sum import FormalSum
     coordinates = [range(dim) for i in range(n)]
-    table = dict()
+    table = {}
     from sage.categories.cartesian_product import cartesian_product
     for i in cartesian_product(coordinates):
         sort_i = tuple(sorted(i))
         x = table.get(sort_i, [])
-        x.append([+1, tuple(i)])
+        x.append([1, tuple(i)])
         table[sort_i] = x
     return tuple(FormalSum(x) for x in table.values())
 
@@ -191,7 +190,7 @@ class VectorCollection(FreeModule_ambient_field):
             r.set_immutable()
         if matrix(base_ring, self._vectors).rank() != self.degree():
             raise ValueError('the vectors must span the ambient vector space')
-        self._all_indices = tuple(map(ZZ, range(0, self._n_vectors)))
+        self._all_indices = tuple(ZZ(i) for i in range(self._n_vectors))
 
     def vectors(self):
         """

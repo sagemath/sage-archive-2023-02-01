@@ -184,8 +184,6 @@ If the above script is called ``factor``, here is an example usage:
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
 
 Data Types
 ==========
@@ -315,7 +313,7 @@ Integers):
 
 ::
 
-    sage: range(1, 15)
+    sage: range(1, 15)  # py2
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 This is useful when using list comprehensions to construct lists:
@@ -674,7 +672,7 @@ the Python int ``1`` is unique, but the Sage Integer ``1`` is not:
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)   # optional - python2
+    sage: int(1) is int(2)/int(2)   # py2
     True
     sage: 1 is 1
     False

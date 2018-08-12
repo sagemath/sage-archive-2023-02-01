@@ -65,7 +65,7 @@ def _base_ring_to_fraction_field(S):
     - ``Q`` -- the skew polynomial ring over the fraction field of
       ``S.base_ring``.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.skew_polynomial_ring import _base_ring_to_fraction_field
         sage: R.<t> = ZZ[]
@@ -138,24 +138,26 @@ def _minimal_vanishing_polynomial(R, eval_pts):
 
 def _lagrange_polynomial(R, eval_pts, values):
     """
-    Return the Lagrange polynomial of the given points if it exists. Otherwise
-    return an unspecified polynomial (internal method).
+    Return the Lagrange polynomial of the given points if it exists.
+
+    Otherwise return an unspecified polynomial (internal method).
 
     See the documentation for
-    :meth:`SkewPolynomialRing.lagrange_polynomial` for a description of Lagrange polynomial.
+    :meth:`SkewPolynomialRing.lagrange_polynomial` for a description
+    of Lagrange polynomial.
 
-    INPUT::
+    INPUT:
 
     - ``R`` -- a skew polynomial ring over a field
 
     - ``eval_pts`` -- list of evaluation points
 
-    - ``values`` -- list of values that the lagrange polynomial takes
-        at the respective `eval_pts`
+    - ``values`` -- list of values that the Lagrange polynomial takes
+        at the respective ``eval_pts``
 
-    OUTPUT::
+    OUTPUT:
 
-    - the lagrange polynomial.
+    - the Lagrange polynomial.
 
     EXAMPLES::
 
@@ -204,7 +206,7 @@ def _lagrange_polynomial(R, eval_pts, values):
 
 
 class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
-    """
+    r"""
     A general implementation of univariate skew polynomialring over a commutative ring.
 
     Let `R` be a commutative ring, and let `\sigma` be an automorphism of
@@ -217,7 +219,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         X*a = \sigma(a) X.
 
     This means that `R[X, \sigma]` is a non-commutative ring. Skew polynomials
-    were first introduced by Ore [Ore33].
+    were first introduced by Ore [Ore33]_.
 
     EXAMPLES::
 
@@ -545,7 +547,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         OUTPUT:
 
-        ``self`` with variable name name changed to ``var``.
+        ``self`` with variable name changed to ``var``.
 
         EXAMPLES::
 
@@ -900,12 +902,12 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         return _minimal_vanishing_polynomial(_base_ring_to_fraction_field(self), eval_pts)
 
     def lagrange_polynomial(self, points):
-        """
+        r"""
         Return the minimal-degree polynomial which interpolates the given
         points.
 
         More precisely, given `n` pairs `(x_1, y_1), ..., (x_n, y_n) \in R^2`,
-        where `R` is ``self.base_ring()``, compute a skew polymial `p(x)` such
+        where `R` is ``self.base_ring()``, compute a skew polynomial `p(x)` such
         that `p(x_i) = y_i` for each `i`, under the condition that the `x_i` are
         linearly independent over the fixed field of ``self.twist_map()``.
 
@@ -923,7 +925,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         OUTPUT:
 
-        The lagrange polynomial.
+        The Lagrange polynomial.
 
         EXAMPLES::
 

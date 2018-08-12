@@ -1,4 +1,4 @@
-"""
+r"""
 Families
 
 A Family is an associative container which models a family
@@ -33,6 +33,10 @@ Check :trac:`12482` (shall be run in a fresh session)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import types
+from copy import copy
+
+from six import itervalues
 from six.moves import range
 
 from sage.misc.cachefunc import cached_method
@@ -429,7 +433,7 @@ class AbstractFamily(Parent):
         return []
 
     def zip(self, f, other, name=None):
-        """
+        r"""
         Given two families with same index set `I` (and same hidden
         keys if relevant), returns the family
         `( f(self[i], other[i]) )_{i \in I}`
@@ -449,7 +453,7 @@ class AbstractFamily(Parent):
         return Family(self.keys(), lambda i: f(self[i],other[i]), hidden_keys=self.hidden_keys(), name=name)
 
     def map(self, f, name=None):
-        """
+        r"""
         Returns the family `( f(\mathtt{self}[i]) )_{i \in I}`, where
         `I` is the index set of self.
 
@@ -529,7 +533,7 @@ class FiniteFamily(AbstractFamily):
 
     """
 
-    def __init__(self, dictionary, keys = None):
+    def __init__(self, dictionary, keys=None):
         """
         TESTS::
 
@@ -549,10 +553,6 @@ class FiniteFamily(AbstractFamily):
         Parent.__init__(self, category=FiniteEnumeratedSets())
         self._dictionary = dict(dictionary)
         self._keys = keys
-        if keys is None:
-            # Note: this overrides the two methods keys and values!
-            self.keys = dictionary.keys
-            self.values = dictionary.values
 
     @cached_method
     def __hash__(self):
@@ -580,7 +580,8 @@ class FiniteFamily(AbstractFamily):
         try:
             return hash(frozenset(self._dictionary.items()))
         except (TypeError, ValueError):
-            return hash(frozenset(list(self.keys()) + map(repr, self.values())))
+            return hash(frozenset(self.keys() +
+                                  [repr(v) for v in self.values()]))
 
     def keys(self):
         """
@@ -592,7 +593,8 @@ class FiniteFamily(AbstractFamily):
             sage: f.keys()
             ['c', 'a', 'b']
         """
-        return self._keys
+        return (self._keys if self._keys is not None
+                           else list(self._dictionary))
 
     def values(self):
         """
@@ -604,7 +606,10 @@ class FiniteFamily(AbstractFamily):
             sage: f.values()
             ['cc', 'aa', 'bb']
         """
-        return [ self._dictionary[key] for key in self._keys ]
+        if self._keys is not None:
+            return [self._dictionary[key] for key in self._keys]
+        else:
+            return list(itervalues(self._dictionary))
 
     def has_key(self, k):
         """
@@ -890,8 +895,8 @@ class LazyFamily(AbstractFamily):
         else:
             category = EnumeratedSets()
 
-        Parent.__init__(self, category = category)
-        from copy import copy
+        Parent.__init__(self, category=category)
+
         self.set = copy(set)
         self.function = function
         self.function_name = name
@@ -943,7 +948,6 @@ class LazyFamily(AbstractFamily):
             sage: f == g
             True
         """
-        from sage.misc.fpickle import pickle_function
         if not isinstance(other, self.__class__):
             return False
         if not self.set == other.set:
@@ -1081,7 +1085,7 @@ class LazyFamily(AbstractFamily):
         f = self.function
         # This should be done once for all by registering
         # sage.misc.fpickle.pickle_function to copyreg
-        if isinstance(f, type(Family)): # TODO: where is the python `function` type?
+        if isinstance(f, types.FunctionType):
             from sage.misc.fpickle import pickle_function
             f = pickle_function(f)
 
@@ -1103,7 +1107,7 @@ class LazyFamily(AbstractFamily):
             6
         """
         function = d['function']
-        if isinstance(function, str):
+        if isinstance(function, bytes):
         # Let's assume that function is an unpickled function.
             from sage.misc.fpickle import unpickle_function
             function = unpickle_function(function)

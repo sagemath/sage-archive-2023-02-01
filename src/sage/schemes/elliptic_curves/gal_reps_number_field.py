@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 r"""
-Galois representations for elliptic curves over number fields.
+Galois representations for elliptic curves over number fields
 
 This file contains the code to compute for which primes the Galois
-representation attached to an elliptic curve (over an arbitrary
-number field) is surjective. The functions in this file are called by
-the ``is_surjective`` and ``non_surjective`` methods of an elliptic curve
-over a number field.
+representation attached to an elliptic curve (over an arbitrary number field)
+is surjective. The functions in this file are called by the ``is_surjective``
+and ``non_surjective`` methods of an elliptic curve over a number field.
 
 EXAMPLES::
 
@@ -52,14 +51,14 @@ REFERENCES:
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
-from sage.rings.number_field.number_field import NumberField, QuadraticField
-from sage.schemes.elliptic_curves.cm import cm_j_invariants
+from sage.rings.number_field.number_field import NumberField
 from sage.modules.free_module import VectorSpace
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.functional import cyclotomic_polynomial
 from sage.arith.all import legendre_symbol, primes
 from sage.sets.set import Set
-from sage.rings.all import PolynomialRing, Integer, ZZ, QQ, Infinity
+from sage.rings.all import Integer, ZZ, QQ, Infinity
+
 
 class GaloisRepresentation(SageObject):
     r"""
@@ -532,7 +531,7 @@ def _maybe_borels(E, L, patience=100):
         sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, primes(20))
         [2, 3]
 
-    Here the curve really does possess isognies of degrees 2 and 3::
+    Here the curve really does possess isogenies of degrees 2 and 3::
 
         sage: [len(E.isogenies_prime_degree(l)) for l in [2,3]]
         [1, 1]
@@ -577,8 +576,8 @@ def _maybe_borels(E, L, patience=100):
 def _exceptionals(E, L, patience=1000):
     r"""
     Determine which primes in L are exceptional for E, using Proposition 19
-    of Section 2.8 of Serre's ``Proprietes Galoisiennes des Points d'Ordre
-    Fini des Courbes Elliptiques'' [Serre72].
+    of Section 2.8 of Serre's ``Propriétés Galoisiennes des Points d'Ordre
+    Fini des Courbes Elliptiques'' [Serre72]_.
 
     INPUT:
 
@@ -794,9 +793,8 @@ def deg_one_primes_iter(K, principal_only=False):
     start = K.discriminant().abs() // 4 if principal_only and K.signature() == (0,1) else 2
 
     K_is_Q = (K==QQ)
-    from sage.arith.misc import primes
-    from sage.rings.infinity import infinity
-    for p in primes(start=start, stop=infinity):
+
+    for p in primes(start=start, stop=Infinity):
         if K_is_Q:
             yield ZZ.ideal(p)
         else:
@@ -859,7 +857,7 @@ def _semistable_reducible_primes(E, verbose=False):
             last_p = p
 
     Px, Py = precomp
-    x, y = [P.gens_reduced()[0] for P in precomp]
+    x, y = [PP.gens_reduced()[0] for PP in precomp]
     EmodPx = E.reduction(Px) if d>1 else E.reduction(x)
     EmodPy = E.reduction(Py) if d>1 else E.reduction(y)
     fxpol = EmodPx.frobenius_polynomial()
@@ -919,7 +917,6 @@ def _semistable_reducible_primes(E, verbose=False):
             raise RuntimeError("error in _semistable_reducible_primes: K={} does not contain sqrt({})".format(K,a))
         K_rel = K.relativize(roota, ['name1','name2'])
         iso = K_rel.structure()[1] # an isomorphism from K to K_rel
-        E_rel = E.change_ring(iso) # same as E but over K_rel
 
         ## We try again to find a nontrivial divisibility condition. ##
 
@@ -979,7 +976,7 @@ def _possible_normalizers(E, SA):
 
     OUTPUT:
 
-    - list - A list of primes, which contains all primes `l` such that the
+    - list -- A list of primes, which contains all primes `l` such that the
              Galois image at `l` is contained in the normalizer of a Cartan
              subgroup, such that the corresponding quadratic character is
              ramified only at primes in SA.
@@ -1010,7 +1007,6 @@ def _possible_normalizers(E, SA):
     K = E.base_field()
     SA = [K.ideal(I.gens()) for I in SA]
 
-    x = K['x'].gen()
     selmer_group = K.selmer_group(SA, 2) # Generators of the selmer group.
 
     if selmer_group == []:

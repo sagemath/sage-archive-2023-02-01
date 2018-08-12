@@ -819,7 +819,7 @@ class GroebnerFan(SageObject):
         self.__verbose = verbose
         if not is_MPolynomialIdeal(I):
             raise TypeError("I must be a multivariate polynomial ideal")
-        if prefix_check([str(R_gen) for R_gen in I.ring().gens()]) != True:
+        if not prefix_check([str(R_gen) for R_gen in I.ring().gens()]):
             raise RuntimeError("Ring variables cannot contain each other as prefixes")
         S = I.ring()
         R = S.base_ring()
@@ -1002,7 +1002,7 @@ class GroebnerFan(SageObject):
             sage: R.<a,b> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([a^3-b^2,b^2-a-1]).groebner_fan()
             sage: gf._gfan_reduced_groebner_bases()
-            'Q[a,b]{{b^6-1+2*b^2-3*b^4,a+1-b^2},{b^2-1-a,a^3-1-a}}'
+            'Q[a,b]{{b^6-1+2*b^2-3*b^4,a+1-b^2},{a^3-1-a,b^2-1-a}}'
         """
         try:
             return self.__gfan_reduced_groebner_bases
@@ -1036,22 +1036,22 @@ class GroebnerFan(SageObject):
             sage: len(X)
             33
             sage: X[0]
-            [z^15 - z, y - z^11, x - z^9]
+            [z^15 - z, x - z^9, y - z^11]
             sage: X[0].ideal()
-            Ideal (z^15 - z, y - z^11, x - z^9) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            Ideal (z^15 - z, x - z^9, y - z^11) of Multivariate Polynomial Ring in x, y, z over Rational Field
             sage: X[:5]
-            [[z^15 - z, y - z^11, x - z^9],
-            [-y + z^11, y*z^4 - z, y^2 - z^8, x - z^9],
-            [-y^2 + z^8, y*z^4 - z, y^2*z^3 - y, y^3 - z^5, x - y^2*z],
-            [-y^3 + z^5, y*z^4 - z, y^2*z^3 - y, y^4 - z^2, x - y^2*z],
-            [-y^4 + z^2, y^6*z - y, y^9 - z, x - y^2*z]]
+            [[z^15 - z, x - z^9, y - z^11],
+            [y^2 - z^8, x - z^9, y*z^4 - z, -y + z^11],
+            [y^3 - z^5, x - y^2*z, y^2*z^3 - y, y*z^4 - z, -y^2 + z^8],
+            [y^4 - z^2, x - y^2*z, y^2*z^3 - y, y*z^4 - z, -y^3 + z^5],
+            [y^9 - z, y^6*z - y, x - y^2*z, -y^4 + z^2]]
             sage: R3.<x,y,z> = PolynomialRing(GF(2477),3)
             sage: gf = R3.ideal([300*x^3-y,y^2-z,z^2-12]).groebner_fan()
             sage: gf.reduced_groebner_bases()
             [[z^2 - 12, y^2 - z, x^3 + 933*y],
-            [-y^2 + z, y^4 - 12, x^3 + 933*y],
-            [z^2 - 12, -300*x^3 + y, x^6 - 1062*z],
-            [-828*x^6 + z, -300*x^3 + y, x^12 + 200]]
+            [y^4 - 12, x^3 + 933*y, -y^2 + z],
+            [x^6 - 1062*z, z^2 - 12, -300*x^3 + y],
+            [x^12 + 200, -300*x^3 + y, -828*x^6 + z]]
         """
         try:
             return self.__reduced_groebner_bases
@@ -1107,7 +1107,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([x^3-y,y^3-x-1]).groebner_fan()
             sage: gf.gfan()
-            'Q[x,y]\n{{\ny^9-1-y+3*y^3-3*y^6,\nx+1-y^3}\n,\n{\ny^3-1-x,\nx^3-y}\n,\n{\ny-x^3,\nx^9-1-x}\n}\n'
+            'Q[x,y]\n{{\ny^9-1-y+3*y^3-3*y^6,\nx+1-y^3}\n,\n{\nx^3-y,\ny^3-1-x}\n,\n{\nx^9-1-x,\ny-x^3}\n}\n'
         """
         if I is None:
             I = self._gfan_ideal()
@@ -1144,7 +1144,7 @@ class GroebnerFan(SageObject):
             sage: R4.<w1,w2,w3,w4> = PolynomialRing(QQ,4)
             sage: gf = R4.ideal([w1^2-w2,w2^3-1,2*w3-w4^2,w4^2-w1]).groebner_fan()
             sage: gf[0]
-            [w4^12 - 1, -1/2*w4^2 + w3, -w4^4 + w2, -w4^2 + w1]
+            [w4^12 - 1, -w4^4 + w2, -w4^2 + w1, -1/2*w4^2 + w3]
         """
         return self.reduced_groebner_bases()[i]
 

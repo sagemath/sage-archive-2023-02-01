@@ -116,17 +116,21 @@ Note that the letterplace implementation can only be used if the corresponding
     sage: FreeAlgebra(FreeAlgebra(ZZ,2,'ab'), 2, 'x', implementation='letterplace')
     Traceback (most recent call last):
     ...
-    NotImplementedError: The letterplace implementation is not available for the free algebra you requested
-
+    TypeError: The base ring Free Algebra on 2 generators (a, b) over Integer Ring is not a commutative ring
 """
+
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
-#  Copyright (C) 2005,2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
+#       Copyright (C) 2005,2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 from six.moves import range
 from six import integer_types
@@ -139,13 +143,10 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 
 from sage.algebras.free_algebra_element import FreeAlgebraElement
 
-import sage.structure.parent_gens
-
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.all import PolynomialRing
 from sage.rings.ring import Algebra
-from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.word import Word
@@ -234,10 +235,10 @@ class FreeAlgebraFactory(UniqueFactory):
         sage: c^3 * a * b^2
         a*b^2*c^3
     """
-    def create_key(self,base_ring, arg1=None, arg2=None,
-                                      sparse=False, order='degrevlex',
-                                      names=None, name=None,
-                                      implementation=None, degrees=None):
+    def create_key(self, base_ring, arg1=None, arg2=None,
+            sparse=None, order='degrevlex',
+            names=None, name=None,
+            implementation=None, degrees=None):
         """
         Create the key under which a free algebra is stored.
 
@@ -264,24 +265,15 @@ class FreeAlgebraFactory(UniqueFactory):
             if degrees is None:
                 return (base_ring,)
             return tuple(degrees),base_ring
-        PolRing = None
         # test if we can use libSingular/letterplace
-        if implementation is not None and implementation != 'generic':
-            try:
-                PolRing = PolynomialRing(base_ring, arg1, arg2,
-                                   sparse=sparse, order=order,
-                                   names=names, name=name,
-                                   implementation=implementation if implementation != 'letterplace' else None)
-                if not isinstance(PolRing, MPolynomialRing_libsingular):
-                    if PolRing.ngens() == 1:
-                        PolRing = PolynomialRing(base_ring, 1, PolRing.variable_names())
-                        if not isinstance(PolRing, MPolynomialRing_libsingular):
-                            raise TypeError
-                    else:
-                        raise TypeError
-            except (TypeError, NotImplementedError) as msg:
-                raise NotImplementedError("The letterplace implementation is not available for the free algebra you requested")
-        if PolRing is not None:
+        if implementation == "letterplace":
+            args = [arg for arg in (arg1, arg2) if arg is not None]
+            kwds = dict(sparse=sparse, order=order, implementation="singular")
+            if name is not None:
+                kwds["name"] = name
+            if names is not None:
+                kwds["names"] = names
+            PolRing = PolynomialRing(base_ring, *args, **kwds)
             if degrees is None:
                 return (PolRing,)
             from sage.all import TermOrder
@@ -291,9 +283,10 @@ class FreeAlgebraFactory(UniqueFactory):
             while newname in varnames:
                 newname += '_'
             varnames.append(newname)
-            return tuple(degrees),PolynomialRing(PolRing.base(), varnames,
-                    sparse=sparse, order=T,
-                    implementation=implementation if implementation != 'letterplace' else None)
+            R = PolynomialRing(
+                    PolRing.base(), varnames,
+                    sparse=sparse, order=T)
+            return tuple(degrees), R
         # normalise the generator names
         from sage.all import Integer
         if isinstance(arg1, (Integer,) + integer_types):
@@ -399,6 +392,26 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         sage: c^3 * a * b^2
         a*b^2*c^3
 
+    Two free algebras are considered the same if they have the same
+    base ring, number of generators and variable names, and the same
+    implementation::
+
+        sage: F = FreeAlgebra(QQ,3,'x')
+        sage: F == FreeAlgebra(QQ,3,'x')
+        True
+        sage: F is FreeAlgebra(QQ,3,'x')
+        True
+        sage: F == FreeAlgebra(ZZ,3,'x')
+        False
+        sage: F == FreeAlgebra(QQ,4,'x')
+        False
+        sage: F == FreeAlgebra(QQ,3,'y')
+        False
+
+    Note that since :trac:`7797` there is a different
+    implementation of free algebras. Two corresponding free
+    algebras in different implementations are not equal, but there
+    is a coercion.
     """
     Element = FreeAlgebraElement
     def __init__(self, R, n, names):
@@ -410,7 +423,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctet
             Free Algebra on 3 generators (x, y, z) over Rational Field
 
-        TEST:
+        TESTS:
 
         Note that the following is *not* the recommended way to create
         a free algebra::
@@ -474,43 +487,6 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             False
         """
         return self.__ngens <= 1 and self.base_ring().is_commutative()
-
-    def __eq__(self, other):
-        """
-        Two free algebras are considered the same if they have the same
-        base ring, number of generators and variable names, and the same
-        implementation.
-
-        EXAMPLES::
-
-            sage: F = FreeAlgebra(QQ,3,'x')
-            sage: F == FreeAlgebra(QQ,3,'x')
-            True
-            sage: F is FreeAlgebra(QQ,3,'x')
-            True
-            sage: F == FreeAlgebra(ZZ,3,'x')
-            False
-            sage: F == FreeAlgebra(QQ,4,'x')
-            False
-            sage: F == FreeAlgebra(QQ,3,'y')
-            False
-
-        Note that since :trac:`7797` there is a different
-        implementation of free algebras. Two corresponding free
-        algebras in different implementations are not equal, but there
-        is a coercion::
-
-
-        """
-        if not isinstance(other, FreeAlgebra_generic):
-            return False
-        if self.base_ring() != other.base_ring():
-            return False
-        if self.__ngens != other.ngens():
-            return False
-        if self.variable_names() != other.variable_names():
-            return False
-        return True
 
     def _repr_(self):
         """

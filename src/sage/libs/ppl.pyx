@@ -110,14 +110,11 @@ basis vectors::
     sage: C_Polyhedron(gs)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 points
 
-The above computation (using PPL) finishes without noticeable delay (timeit
-measures it to be 90 microseconds on sage.math). Below we do the same
-computation with cddlib, which needs more than 3 seconds on the same
-hardware::
+The same computation with cddlib which is slightly slower::
 
     sage: basis = list(range(5))
     sage: gs = [ tuple(coeff) for coeff in Permutations(basis) ]
-    sage: Polyhedron(vertices=gs, backend='cdd')  # long time (3s on sage.math, 2011)
+    sage: Polyhedron(vertices=gs, backend='cdd')
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices
 
 DIFFERENCES VS. C++
@@ -7100,7 +7097,7 @@ cdef class Poly_Con_Relation(object):
         if self.implies(Poly_Con_Relation.saturates()):
             rel.append('saturates')
 
-        if len(rel)>0:
+        if rel:
             return ', '.join(rel)
         else:
             return 'nothing'

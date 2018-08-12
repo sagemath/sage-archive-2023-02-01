@@ -209,8 +209,8 @@ def milnor_multiplication(r,s):
 
     INPUT:
 
-    - r - tuple of non-negative integers
-    - s - tuple of non-negative integers
+    - r -- tuple of non-negative integers
+    - s -- tuple of non-negative integers
 
     OUTPUT:
 
@@ -322,7 +322,7 @@ def multinomial(list):
 
     INPUT:
 
-    - list - list of integers
+    - list -- list of integers
 
     OUTPUT:
 
@@ -380,7 +380,7 @@ def milnor_multiplication_odd(m1,m2,p):
     - m1 - pair of tuples (e,r), where e is an increasing tuple of
       non-negative integers and r is a tuple of non-negative integers
     - m2 - pair of tuples (f,s), same format as m1
-    - p - odd prime number
+    - p -- odd prime number
 
     OUTPUT:
 
@@ -572,8 +572,8 @@ def multinomial_odd(list,p):
 
     INPUT:
 
-    - list - list of integers
-    - p - a prime number
+    - list -- list of integers
+    - p -- a prime number
 
     OUTPUT:
 

@@ -31,8 +31,10 @@ from sage.categories.tensor import tensor
 import sage.data_structures.blas_dict as blas
 from sage.typeset.ascii_art import AsciiArt
 from sage.typeset.unicode_art import UnicodeArt
+from sage.misc.superseded import deprecation
 
 import six
+
 
 class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
     r"""
@@ -95,7 +97,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     Some uses of
     :meth:`sage.categories.commutative_additive_semigroups.CommutativeAdditiveSemigroups.ParentMethods.summation`
-    and :meth:`.sum`::
+    and :meth:`sum`::
 
         sage: F = CombinatorialFreeModule(QQ, [1,2,3,4])
         sage: F.summation(F.monomial(1), F.monomial(3))
@@ -337,7 +339,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: A.element_class.mro()
             [<class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>,
-             <type 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
+             <... 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
              ...]
             sage: a,b,c = A.algebra_generators()
             sage: a * b
@@ -433,13 +435,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         # ignore the optional 'key' since it only affects CachedRepresentation
         kwds.pop('key', None)
-        # This needs to be first as per #10127
-        if 'monomial_cmp' in kwds:
-            from sage.misc.superseded import deprecation
-            deprecation(17229, "Option monomial_cmp is deprecated, use sorting_key and sorting_reverse instead.")
-            from functools import cmp_to_key
-            kwds['sorting_key'] = cmp_to_key(kwds['monomial_cmp'])
-            del kwds['monomial_cmp']
         if 'monomial_key' in kwds:
             kwds['sorting_key'] = kwds.pop('monomial_key')
         if 'monomial_reverse' in kwds:
@@ -453,9 +448,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if basis_keys in Sets().Finite():
             category = category.FiniteDimensional()
 
-        Parent.__init__(self, base=R, category=category, names=names,
-                        # Could we get rid of this?
-                        element_constructor=self._element_constructor_)
+        Parent.__init__(self, base=R, category=category, names=names)
 
         self._order = None
 
@@ -860,10 +853,16 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         Return a comparison function on the basis indices that is
         compatible with the current term order.
 
+        DEPRECATED by :trac:`24548`.
+
         EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
             sage: Acmp = A.get_order_cmp()
+            doctest:warning...:
+            DeprecationWarning: comparison should use keys
+            See http://trac.sagemath.org/24548 for details.
+
             sage: sorted(A.basis().keys(), Acmp)
             ['x', 'y', 'a', 'b']
             sage: A.set_order(list(reversed(A.basis().keys())))
@@ -871,12 +870,15 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: sorted(A.basis().keys(), Acmp)
             ['b', 'a', 'y', 'x']
         """
+        deprecation(24548, 'comparison should use keys')
         self.get_order()
         return self._order_cmp
 
     def _order_cmp(self, x, y):
         """
         Compare `x` and `y` w.r.t. the term order.
+
+        DEPRECATED by :trac:`24548`.
 
         INPUT:
 
@@ -892,12 +894,16 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: A = CombinatorialFreeModule(QQ, ['x','y','a','b'])
             sage: A.set_order(['x', 'y', 'a', 'b'])
             sage: A._order_cmp('x', 'y')
+            doctest:warning...:
+            DeprecationWarning: comparison should use keys
+            See http://trac.sagemath.org/24548 for details.
             -1
             sage: A._order_cmp('y', 'y')
             0
             sage: A._order_cmp('a', 'y')
             1
         """
+        deprecation(24548, 'comparison should use keys')
         ix = self._rank_basis(x)
         iy = self._rank_basis(y)
         if ix < iy:
@@ -989,7 +995,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         return self._from_dict(D, remove_zeros=False)
 
     def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
-        """
+        r"""
         Return the linear combination `\lambda_1 v_1 + \cdots +
         \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
         \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates
@@ -1336,7 +1342,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 
         def _repr_(self):
-            """
+            r"""
             This is customizable by setting
             ``self.print_options('tensor_symbol'=...)``.
 
@@ -1425,7 +1431,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         _unicode_art_term = _unicode_art_
 
         def _latex_(self):
-            """
+            r"""
             TESTS::
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3])
@@ -1463,7 +1469,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             return symb.join(module._repr_term(t) for (module, t) in zip(self._sets, term))
 
         def _latex_term(self, term):
-            """
+            r"""
             TESTS::
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3], prefix='x')

@@ -5,4 +5,6 @@ cdef class LaurentSeries(AlgebraElement):
     cdef long __n
 
     cdef __normalize(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
 

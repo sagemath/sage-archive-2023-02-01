@@ -134,7 +134,7 @@ cdef class PowComputer_flint(PowComputer_class):
             fmpz_pow_ui(self._fpow_variable, self.fprime, n)
             return &self._fpow_variable
 
-    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n) except NULL:
         """
         Returns a pointer to an ``mpz_t`` holding `p^n`.
 
@@ -460,8 +460,7 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         fmpz_init(self.fmpz_cval)
         fmpz_init(self.fmpz_cinv)
         fmpz_init(self.fmpz_cinv2)
-        fmpz_init(self.fmpz_clist)
-        fmpz_init(self.fmpz_clist2)
+        fmpz_init(self.fmpz_cexp)
         fmpz_init(self.fmpz_ctm)
         fmpz_init(self.fmpz_cconv)
 
@@ -479,6 +478,8 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         fmpz_poly_init(self.poly_cinv2)
         fmpz_poly_init(self.poly_flint_rep)
         fmpz_poly_init(self.poly_matmod)
+        fmpz_poly_init(self.shift_rem)
+        fmpz_poly_init(self.aliasing)
         mpz_init(self.mpz_cpow)
         mpz_init(self.mpz_ctm)
         mpz_init(self.mpz_cconv)
@@ -504,8 +505,7 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
             fmpz_clear(self.fmpz_cval)
             fmpz_clear(self.fmpz_cinv)
             fmpz_clear(self.fmpz_cinv2)
-            fmpz_clear(self.fmpz_clist)
-            fmpz_clear(self.fmpz_clist2)
+            fmpz_clear(self.fmpz_cexp)
             fmpz_clear(self.fmpz_ctm)
             fmpz_clear(self.fmpz_cconv)
             mpz_clear(self.mpz_cconv)
@@ -520,6 +520,8 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
             fmpz_poly_clear(self.poly_cinv2)
             fmpz_poly_clear(self.poly_flint_rep)
             fmpz_poly_clear(self.poly_matmod)
+            fmpz_poly_clear(self.shift_rem)
+            fmpz_poly_clear(self.aliasing)
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
         """

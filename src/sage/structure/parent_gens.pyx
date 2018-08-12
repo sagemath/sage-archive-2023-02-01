@@ -74,7 +74,7 @@ import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
 from . import gens_py
 cimport sage.structure.parent as parent
-from sage.structure.coerce_dict import MonoDict
+from sage.structure.coerce_dict cimport MonoDict
 cimport sage.structure.category_object as category_object
 
 
@@ -98,7 +98,6 @@ cdef class ParentWithGens(ParentWithBase):
             ('a', 'b', 'c')
         """
         self._base = base
-        self._has_coerce_map_from = MonoDict(23)
         self._assign_names(names=names, normalize=normalize)
 
         ParentWithBase.__init__(self, base, category=category)
@@ -249,7 +248,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: f = R.hom([5], GF(7))
             Traceback (most recent call last):
             ...
-            TypeError: images do not define a valid homomorphism
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
             sage: R.<x> = PolynomialRing(GF(7))
             sage: f = R.hom([3], GF(49,'a'))
@@ -271,7 +270,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: f(7)
             2
             sage: f
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Finite Field of size 5
 
@@ -282,7 +281,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: QQ.hom(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
+            TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
         """
         if self._element_constructor is not None:
             return parent.Parent.hom(self, im_gens, codomain, check)

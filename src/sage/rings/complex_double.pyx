@@ -50,6 +50,10 @@ AUTHORS:
 - Travis Scrimshaw (2012-10-18): Added doctests to get full coverage
 
 - Jeroen Demeyer (2013-02-27): fixed all PARI calls (:trac:`14082`)
+
+- Vincent Klein (2017-11-15) : add __mpc__() to class ComplexDoubleElement.
+  ComplexDoubleElement constructor support and gmpy2.mpc parameter.
+
 """
 
 #*****************************************************************************
@@ -99,10 +103,13 @@ cdef CC = ComplexField()
 from .real_mpfr import RealField
 cdef RR = RealField()
 
-from .real_double cimport RealDoubleElement, double_repr, double_str
+from .real_double cimport RealDoubleElement, double_repr
 from .real_double import RDF
 from sage.rings.integer_ring import ZZ
 
+IF HAVE_GMPY2:
+    cimport gmpy2
+    gmpy2.import_gmpy2()
 
 def is_ComplexDoubleField(x):
     """
@@ -293,6 +300,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             1.0*I
             sage: CDF(pari("x^2 + x + 1").polroots()[0])
             -0.5 - 0.8660254037844386*I
+            sage: from gmpy2 import mpc     # optional - gmpy2
+            sage: CDF(mpc('2.0+1.0j'))      # optional - gmpy2
+            2.0 + 1.0*I
 
         A ``TypeError`` is raised if the coercion doesn't make sense::
 
@@ -342,6 +352,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             return ComplexDoubleElement(x.real(), x.imag())
         elif isinstance(x, pari_gen):
             return pari_to_cdf(x)
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpc:
+            return ComplexDoubleElement((<gmpy2.mpc>x).real, (<gmpy2.mpc>x).imag)
         elif isinstance(x, str):
             t = cdf_parser.parse_expression(x)
             if isinstance(t, float):
@@ -790,12 +802,12 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: cmp(CDF(1.2), CDF(i))
-            1
-            sage: cmp(CDF(1), CDF(2))
-            -1
-            sage: cmp(CDF(1 + i), CDF(-1 - i))
-            1
+            sage: CDF(1.2) > CDF(i)
+            True
+            sage: CDF(1) < CDF(2)
+            True
+            sage: CDF(1 + i) > CDF(-1 - i)
+            True
 
         ::
 
@@ -990,54 +1002,6 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return CC(self)._maxima_init_(I)
 
-    def __str__(self):
-        """
-        Return the informal string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: print(CDF(0, 2/3))
-            0.666666666667*I
-            sage: a = CDF(2,-3)
-            sage: print(a)  # indirect doctest
-            2.0 - 3.0*I
-            sage: print(a^2)
-            -5.0 - 12.0*I
-            sage: print(1/CDF(0,0))
-            NaN + NaN*I
-            sage: print(CDF(oo,1))
-            +infinity + 1.0*I
-            sage: print(CDF(1,oo))
-            1.0 + +infinity*I
-            sage: print(CDF(1,-oo))
-            1.0 - +infinity*I
-            sage: print(CC(CDF(1,-oo)))
-            1.00000000000000 - +infinity*I
-            sage: print(CDF(oo,oo))
-            +infinity + +infinity*I
-            sage: print(CC(CDF(oo,oo)))
-            +infinity + +infinity*I
-            sage: print(CDF(0))
-            0.0
-        """
-        cdef double x = self._complex.dat[0]
-        cdef double y = self._complex.dat[1]
-        if x == 0:
-            if y == 0:
-                return "0.0"
-            s = ''
-        else:
-            s = double_str(x)
-            if y == 0:
-                return s
-            elif y < 0:
-                s += " - "
-                y = -y
-            else:
-                s += " + "
-
-        return s + double_str(y) + "*I"
-
     def _repr_(self):
         """
         Return the string representation of ``self``.
@@ -1097,7 +1061,7 @@ cdef class ComplexDoubleElement(FieldElement):
             '1.0 + 2.0i'
             sage: z = CDF(1,2)^100
             sage: z._latex_()
-            '-6.44316469099 \\times 10^{34} - 6.11324130776 \\times 10^{34}i'
+            '-6.443164690985956 \\times 10^{34} - 6.113241307762409 \\times 10^{34}i'
         """
         import re
         s = str(self).replace('*I', 'i')
@@ -1122,6 +1086,31 @@ cdef class ComplexDoubleElement(FieldElement):
             return new_gen_from_double(self._complex.dat[0])
         else:
             return new_t_COMPLEX_from_double(self._complex.dat[0], self._complex.dat[1])
+
+    def __mpc__(self):
+        """
+        Convert Sage ``ComplexDoubleElement`` to gmpy2 ``mpc``.
+
+        EXAMPLES::
+
+            sage: c = CDF(2,1)
+            sage: c.__mpc__()            # optional - gmpy2
+            mpc('2.0+1.0j')
+            sage: from gmpy2 import mpc  # optional - gmpy2
+            sage: mpc(c)                 # optional - gmpy2
+            mpc('2.0+1.0j')
+
+        TESTS::
+
+            sage: c.__mpc__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        IF HAVE_GMPY2:
+            return gmpy2.mpc(self._complex.dat[0], self._complex.dat[1])
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
 
     #######################################################################
     # Arithmetic
@@ -2203,7 +2192,7 @@ cdef class ComplexDoubleElement(FieldElement):
         this is a multi-valued function, and the algorithm used
         affects the value returned, as follows:
 
-        - ``'pari'``: Call the agm function from the pari library.
+        - ``'pari'``: Call the :pari:`agm` function from the pari library.
 
         - ``'optimal'``: Use the AGM sequence such that at each stage
           `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
@@ -2215,6 +2204,8 @@ cdef class ComplexDoubleElement(FieldElement):
           `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
           where the sign is chosen so that `\Re(b_1/a_1) \geq 0` (the
           so-called principal branch of the square root).
+
+        See :wikipedia:`Arithmetic-geometric mean`
 
         EXAMPLES::
 
@@ -2410,13 +2401,13 @@ cdef class FloatToCDF(Morphism):
         0.5
         sage: f = CDF.coerce_map_from(int); f
         Native morphism:
-          From: Set of Python objects of type 'int'
+          From: Set of Python objects of class 'int'
           To:   Complex Double Field
         sage: f(3r)
         3.0
         sage: f = CDF.coerce_map_from(float); f
         Native morphism:
-          From: Set of Python objects of type 'float'
+          From: Set of Python objects of class 'float'
           To:   Complex Double Field
         sage: f(3.5)
         3.5
@@ -2435,7 +2426,7 @@ cdef class FloatToCDF(Morphism):
         """
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
 
@@ -2485,7 +2476,7 @@ cdef class ComplexToCDF(Morphism):
     def __init__(self, R):
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
 

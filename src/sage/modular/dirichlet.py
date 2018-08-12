@@ -943,6 +943,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: chi = G([z^2])
             sage: chi.gauss_sum()
             zeta52^22 + zeta52^21 + zeta52^19 - zeta52^16 + zeta52^15 + zeta52^14 + zeta52^12 - zeta52^11 - zeta52^10 - zeta52^7 - zeta52^5 + zeta52^4
+
+        Check that :trac:`25127` is fixed::
+
+            sage: G = DirichletGroup(1)
+            sage: chi = G.one()
+            sage: chi.gauss_sum()
+            1
+
+
+        .. SEEALSO::
+
+            - :func:`sage.arith.misc.gauss_sum` for general finite fields
+            - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
         """
         G = self.parent()
         K = G.base_ring()
@@ -961,7 +974,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         else:
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, QQbar, or a complex field")
         zeta = zeta ** a
-        g = L.zero()
+        g = L(chi(0))
         z = L.one()
         for c in chi.values()[1:]:
             z *= zeta
@@ -1038,7 +1051,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         else:
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, QQbar, or a complex field")
         zeta = CC.zeta(G.modulus()) ** a
-        g = CC.zero()
+        g = phi(self(0))
         z = CC.one()
         for c in self.values()[1:]:
             z *= zeta
@@ -1150,10 +1163,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         return sum([self(x) * char(1-x) for x in rings.IntegerModRing(self.modulus())])
 
-    def kloosterman_sum(self, a=1,b=0):
+    def kloosterman_sum(self, a=1, b=0):
         r"""
         Return the "twisted" Kloosterman sum associated to this Dirichlet character.
-        This includes Gauss sums, classical Kloosterman sums, Salie sums, etc.
+
+        This includes Gauss sums, classical Kloosterman sums, Salié sums, etc.
 
         The Kloosterman sum associated to `\chi` and the integers a,b is
 
@@ -1162,7 +1176,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             K(a,b,\chi) = \sum_{r \in (\ZZ/m\ZZ)^\times} \chi(r)\,\zeta^{ar+br^{-1}},
 
         where `m` is the modulus of `\chi` and `\zeta` is a primitive
-        `m` th root of unity. This reduces to to the Gauss sum if `b=0`.
+        `m` th root of unity. This reduces to the Gauss sum if `b=0`.
 
         This method performs an exact calculation and returns an element of a
         suitable cyclotomic field; see also :meth:`.kloosterman_sum_numerical`,
@@ -1774,6 +1788,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         if element is not None:
             self.element.set_cache(element)
 
+
 class DirichletGroupFactory(UniqueFactory):
     r"""
     Construct a group of Dirichlet characters modulo `N`.
@@ -1984,7 +1999,8 @@ class DirichletGroupFactory(UniqueFactory):
         True
 
     """
-    def create_key(self, N, base_ring=None, zeta=None, zeta_order=None, names=None, integral=False):
+    def create_key(self, N, base_ring=None, zeta=None, zeta_order=None,
+                   names=None, integral=False):
         """
         Create a key that uniquely determines a Dirichlet group.
 
@@ -2034,8 +2050,14 @@ class DirichletGroupFactory(UniqueFactory):
             sage: G.order()
             4
 
+            sage: DirichletGroup(-33)
+            Traceback (most recent call last):
+            ...
+            ValueError: modulus should be positive
         """
         modulus = rings.Integer(N)
+        if modulus <= 0:
+            raise ValueError('modulus should be positive')
 
         if base_ring is None:
             if not (zeta is None and zeta_order is None):

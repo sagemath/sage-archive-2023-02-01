@@ -43,6 +43,8 @@ from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.misc.decorators import options
+from sage.manifolds.chart_func import ChartFunctionRing
+from sage.manifolds.calculus_method import CalculusMethod
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -67,6 +69,15 @@ class Chart(UniqueRepresentation, SageObject):
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     The string ``coordinates`` has the space ``' '`` as a separator and each
     item has at most two fields, separated by a colon (``:``):
@@ -237,7 +248,7 @@ class Chart(UniqueRepresentation, SageObject):
         manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart.
 
@@ -264,6 +275,10 @@ class Chart(UniqueRepresentation, SageObject):
             coordinates = coordinates[:-1]
         self._manifold = domain.manifold()
         self._domain = domain
+        # Handling of calculus methods available on this chart:
+        self._calc_method = CalculusMethod(current=calc_method,
+                             base_field_type=self.manifold().base_field_type())
+        self.simplify = self._calc_method.simplify
         # Treatment of the coordinates:
         if ' ' in coordinates:
             coord_list = coordinates.split()
@@ -322,6 +337,7 @@ class Chart(UniqueRepresentation, SageObject):
             if hasattr(dom, '_one_scalar_field'):
                 # dom is an open set
                 dom._one_scalar_field._express[self] = self.function_ring().one()
+
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -625,7 +641,8 @@ class Chart(UniqueRepresentation, SageObject):
             coordinates = ""
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
-            res = type(self)(subset, coordinates)
+            res = type(self)(subset, coordinates,
+                             calc_method=self._calc_method._current)
             res._restrictions.extend(self._restrictions)
             # The coordinate restrictions are added to the result chart and
             # possibly transformed into coordinate bounds:
@@ -895,12 +912,12 @@ class Chart(UniqueRepresentation, SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: X.function_ring()
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
         """
-        from sage.manifolds.coord_func_symb import CoordFunctionSymbRing
-        return CoordFunctionSymbRing(self)
 
-    def function(self, expression):
+        return ChartFunctionRing(self)
+
+    def function(self, expression, calc_method=None):
         r"""
         Define a coordinate function to the base field.
 
@@ -917,30 +934,27 @@ class Chart(UniqueRepresentation, SageObject):
         where `V` is the chart codomain and `(x^1, \ldots, x^n)` are the
         chart coordinates.
 
-        The coordinate function can be either a symbolic one or a numerical
-        one, depending on the parameter ``expression`` (see below).
-
-        See :class:`~sage.manifolds.coord_func.CoordFunction`
-        and :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        See :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         INPUT:
 
-        - ``expression`` -- material defining the coordinate function; it can
-          be either:
+        - ``expression`` -- a symbolic expression involving the chart
+          coordinates, to represent `f(x^1,\ldots, x^n)`
 
-          - a symbolic expression involving the chart coordinates, to represent
-            `f(x^1,\ldots, x^n)`
-          - a string representing the name of a file where the data
-            to construct a numerical coordinate function is stored
+        - ``calc_method`` -- string (default: ``None``): the calculus method
+          with respect to which the internal expression of the function must be
+          initialized from ``expression``; one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+          - ``None``: the chart current calculus method is assumed
 
         OUTPUT:
 
-        - instance of a subclass of the base class
-          :class:`~sage.manifolds.coord_func.CoordFunction`
-          representing the coordinate function `f`; this is
-          :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb` if
-          if  ``expression`` is a symbolic expression.
+        - instance of
+          :class:`~sage.manifolds.chart_func.ChartFunction`
+          representing the coordinate function `f`
 
         EXAMPLES:
 
@@ -952,18 +966,27 @@ class Chart(UniqueRepresentation, SageObject):
             sage: f
             sin(x*y)
             sage: type(f)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
             sage: f.display()
             (x, y) |--> sin(x*y)
             sage: f(2,3)
             sin(6)
 
+        Using SymPy for the internal representation of the function (dictionary
+        ``_express``)::
+
+            sage: g = X.function(x^2 + x*cos(y), calc_method='sympy')
+            sage: g._express
+            {'sympy': x**2 + x*cos(y)}
+
+        On the contrary, for ``f``, only the ``SR`` part has been initialized::
+
+            sage: f._express
+            {'SR': sin(x*y)}
+
         """
-        if isinstance(expression, str):
-            raise NotImplementedError("numerical coordinate function not " +
-                                      "implemented yet")
-        else:
-            return self.function_ring()(expression)
+        parent = self.function_ring()
+        return parent.element_class(parent, expression, calc_method=calc_method)
 
     def zero_function(self):
         r"""
@@ -981,12 +1004,12 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the chart codomain.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        See class :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        - a :class:`~sage.manifolds.chart_func.ChartFunction`
           representing the zero coordinate function `f`
 
         EXAMPLES::
@@ -998,7 +1021,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function().display()
             (x, y) |--> 0
             sage: type(X.zero_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
         The result is cached::
 
@@ -1035,12 +1058,12 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the chart codomain.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        See class :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        - a :class:`~sage.manifolds.chart_func.ChartFunction`
           representing the one coordinate function `f`
 
         EXAMPLES::
@@ -1052,7 +1075,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function().display()
             (x, y) |--> 1
             sage: type(X.one_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
         The result is cached::
 
@@ -1073,6 +1096,54 @@ class Chart(UniqueRepresentation, SageObject):
         """
         return self.function_ring().one()
 
+    def set_calculus_method(self, method):
+        r"""
+        Set the calculus method for computations involving coordinates of
+        this chart.
+
+        INPUT:
+
+        - ``method`` -- string; one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+
+        EXAMPLES:
+
+        The default calculus method relies on Sage's Symbolic Ring::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: X.<x,y,z> = M.chart()
+            sage: f = X.function(sin(x)*cos(y) + z^2)
+            sage: f.expr()
+            z^2 + cos(y)*sin(x)
+            sage: type(f.expr())
+            <type 'sage.symbolic.expression.Expression'>
+            sage: parent(f.expr())
+            Symbolic Ring
+            sage: f.display()
+            (x, y, z) |--> z^2 + cos(y)*sin(x)
+
+        Changing to SymPy::
+
+            sage: X.set_calculus_method('sympy')
+            sage: f.expr()
+            z**2 + sin(x)*cos(y)
+            sage: type(f.expr())
+            <class 'sympy.core.add.Add'>
+            sage: parent(f.expr())
+            <class 'sympy.core.add.Add'>
+            sage: f.display()
+            (x, y, z) |--> z**2 + sin(x)*cos(y)
+
+        Changing back to the Symbolic Ring::
+
+            sage: X.set_calculus_method('SR')
+            sage: f.display()
+            (x, y, z) |--> z^2 + cos(y)*sin(x)
+
+        """
+        self._calc_method.set(method)
 
     def multifunction(self, *expressions):
         r"""
@@ -1095,7 +1166,7 @@ class Chart(UniqueRepresentation, SageObject):
         `K^m`-valued function of the coordinates associated to the chart
         `(U, \varphi)`.
 
-        See :class:`~sage.manifolds.coord_func.MultiCoordFunction` for a
+        See :class:`~sage.manifolds.chart_func.MultiCoordFunction` for a
         complete documentation.
 
         INPUT:
@@ -1108,7 +1179,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func.MultiCoordFunction`
+        - a :class:`~sage.manifolds.chart_func.MultiCoordFunction`
           representing `f`
 
         EXAMPLES:
@@ -1125,10 +1196,10 @@ class Chart(UniqueRepresentation, SageObject):
         TESTS::
 
             sage: type(f)
-            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
 
         """
-        from sage.manifolds.coord_func import MultiCoordFunction
+        from sage.manifolds.chart_func import MultiCoordFunction
         return MultiCoordFunction(self, expressions)
 
 
@@ -1156,6 +1227,15 @@ class RealChart(Chart):
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     The string ``coordinates`` has the space ``' '`` as a separator and each
     item has at most three fields, separated by a colon (``:``):
@@ -1362,7 +1442,7 @@ class RealChart(Chart):
     :meth:`plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart on a real topological manifold.
 
@@ -1380,7 +1460,8 @@ class RealChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names)
+        Chart.__init__(self, domain, coordinates=coordinates, names=names,
+                       calc_method=calc_method)
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -1449,12 +1530,12 @@ class RealChart(Chart):
             coord_var = SR.var(coord_symb, domain='real',
                                latex_name=coord_latex)
             assume(coord_var, 'real')
-            if xmin != -Infinity:
+            if not (xmin == -Infinity):
                 if xmin_included:
                     assume(coord_var >= xmin)
                 else:
                     assume(coord_var > xmin)
-            if xmax != Infinity:
+            if not (xmax == Infinity):
                 if xmax_included:
                     assume(coord_var <= xmax)
                 else:
@@ -1797,7 +1878,8 @@ class RealChart(Chart):
             coordinates = ""
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
-            res = type(self)(subset, coordinates)
+            res = type(self)(subset, coordinates,
+                             calc_method=self._calc_method._current)
             res._bounds = self._bounds
             res._restrictions.extend(self._restrictions)
             # The coordinate restrictions are added to the result chart and
@@ -2785,8 +2867,6 @@ class CoordChange(SageObject):
 
         """
         from sage.symbolic.relation import solve
-        from sage.manifolds.utilities import simplify_chain_real, \
-                                             simplify_chain_generic
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:
@@ -2825,10 +2905,7 @@ class CoordChange(SageObject):
                                                             for i in range(n1)]
             for transf in x2_to_x1:
                 try:
-                    if self._domain.base_field_type() == 'real':
-                        transf = simplify_chain_real(transf)
-                    else:
-                        transf = simplify_chain_generic(transf)
+                    transf = self._chart2.simplify(transf)
                 except AttributeError:
                     pass
         else:
@@ -2841,10 +2918,7 @@ class CoordChange(SageObject):
                 x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
                 for transf in x2_to_x1:
                     try:
-                        if self._domain.base_field_type() == 'real':
-                            transf = simplify_chain_real(transf)
-                        else:
-                            transf = simplify_chain_generic(transf)
+                        transf = self._chart2.simplify(transf)
                     except AttributeError:
                         pass
                 if self._chart1.valid_coordinates(*x2_to_x1):
@@ -2921,9 +2995,9 @@ class CoordChange(SageObject):
             x2 = self._chart2._xx
             n1 = len(x1)
             for i in range(n1):
-                print("  {} == {}".format(x1[i], self._inverse(*(self(*x1)))[i]))
+                print("  {} == {}".format(x1[i], self._chart1.simplify(self._inverse(*(self(*x1)))[i])))
             for i in range(n1):
-                print("  {} == {}".format(x2[i], self(*(self._inverse(*x2)))[i]))
+                print("  {} == {}".format(x2[i], self._chart2.simplify(self(*(self._inverse(*x2)))[i])))
 
     def __mul__(self, other):
         r"""
@@ -3040,7 +3114,7 @@ class CoordChange(SageObject):
         from sage.tensor.modules.format_utilities import FormattedExpansion
         coords2 = self._chart2[:]
         n2 = len(coords2)
-        expr = self._transf.expr()
+        expr = self._transf.expr('SR')
         rtxt = ""
         if n2 == 1:
             rlatex = r"\begin{array}{lcl}"
@@ -3058,4 +3132,3 @@ class CoordChange(SageObject):
         return FormattedExpansion(rtxt, rlatex)
 
     disp = display
-

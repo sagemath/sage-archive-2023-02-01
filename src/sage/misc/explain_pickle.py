@@ -18,11 +18,11 @@ EXAMPLES::
     pg_make_integer('c1p')
     sage: explain_pickle(dumps(polygen(QQ)))
     pg_Polynomial_rational_flint = unpickle_global('sage.rings.polynomial.polynomial_rational_flint', 'Polynomial_rational_flint')
-    pg_PolynomialRing = unpickle_global('sage.rings.polynomial.polynomial_ring_constructor', 'PolynomialRing')
+    pg_unpickle_PolynomialRing = unpickle_global('sage.rings.polynomial.polynomial_ring_constructor', 'unpickle_PolynomialRing')
     pg_RationalField = unpickle_global('sage.rings.rational_field', 'RationalField')
     pg = unpickle_instantiate(pg_RationalField, ())
     pg_make_rational = unpickle_global('sage.rings.rational', 'make_rational')
-    pg_Polynomial_rational_flint(pg_PolynomialRing(pg, 'x', None, False), [pg_make_rational('0'), pg_make_rational('1')], False, True)
+    pg_Polynomial_rational_flint(pg_unpickle_PolynomialRing(pg, ('x',), None, False), [pg_make_rational('0'), pg_make_rational('1')], False, True)
     sage: sage_eval(explain_pickle(dumps(polygen(QQ)))) == polygen(QQ)
     True
 
@@ -40,8 +40,9 @@ version of Sage; here are the above two examples again::
     make_integer('c1p')
     sage: explain_pickle(dumps(polygen(QQ)), in_current_sage=True)
     from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
+    from sage.rings.polynomial.polynomial_ring_constructor import unpickle_PolynomialRing
     from sage.rings.rational import make_rational
-    Polynomial_rational_flint(PolynomialRing(RationalField(), 'x', None, False), [make_rational('0'), make_rational('1')], False, True)
+    Polynomial_rational_flint(unpickle_PolynomialRing(RationalField(), ('x',), None, False), [make_rational('0'), make_rational('1')], False, True)
 
 The explain_pickle function has several use cases.
 
@@ -67,8 +68,6 @@ The explain_pickle function has several use cases.
     the previous output of :obj:`explain_pickle` as a new set of
     doctests (and then update the :obj:`explain_pickle` doctest to use
     the new output), to ensure that old pickles will continue to work.
-    (These problems will also be caught using the :obj:`picklejar`,
-    but having the tests directly in the relevant module is clearer.)
 
 As mentioned above, there are several output modes for :obj:`explain_pickle`,
 that control fidelity versus simplicity of the output.  For example,
@@ -77,7 +76,7 @@ produces the corresponding class.  So GLOBAL of ``sage.rings.integer``,
 ``Integer`` is approximately equivalent to ``sage.rings.integer.Integer``.
 
 However, this class lookup process can be customized (using
-sage.structure.sage_object.register_unpickle_override).  For instance,
+sage.misc.persist.register_unpickle_override).  For instance,
 if some future version of Sage renamed ``sage/rings/integer.pyx`` to
 ``sage/rings/knuth_was_here.pyx``, old pickles would no longer work unless
 register_unpickle_override was used; in that case, GLOBAL of
@@ -157,21 +156,23 @@ old pickles to work).
 
 from __future__ import absolute_import, print_function
 
-import sys
-import re
-import types
-from six import iteritems
-from six.moves import cStringIO as StringIO
-from six.moves import cPickle
 import pickletools
-from pickletools import genops
+import re
+import sys
+import types
+
 import zlib as comp
 import bz2 as comp_other
+
+from pickletools import genops
+
+from six import iteritems
 
 import sage.all
 from sage.misc.sage_input import SageInputBuilder, SageInputExpression
 from sage.misc.sage_eval import sage_eval
-from sage.structure.sage_object import unpickle_override, unpickle_global, dumps, register_unpickle_override
+from sage.misc.persist import (unpickle_override, unpickle_global, dumps,
+                               register_unpickle_override, SageUnpickler)
 
 
 try:
@@ -2436,9 +2437,7 @@ def unpickle_newobj(klass, args):
     def pers_load(id):
         return pers[int(id)]
 
-    unp = cPickle.Unpickler(StringIO(pickle))
-    unp.persistent_load = pers_load
-    return unp.load()
+    return SageUnpickler.loads(pickle, persistent_load=pers_load)
 
 
 def unpickle_build(obj, state):
@@ -2641,11 +2640,9 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     generic_res = sage_eval(generic, preparse=False)
     if verbose_eval:
         print("loading pickle with cPickle:")
-    unp = cPickle.Unpickler(StringIO(p))
-    unp.persistent_load = pers_load
-    unp.find_global = unpickle_global
+
     try:
-        cpickle_res = unp.load()
+        cpickle_res = SageUnpickler.loads(p, persistent_load=pers_load)
         cpickle_ok = True
     except Exception:
         cpickle_ok = False

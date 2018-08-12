@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Kirillov-Reshetikhin Tableaux
 
@@ -49,7 +50,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 
 from sage.structure.parent import Parent
-from sage.structure.element_wrapper import ElementWrapper
 
 from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 
@@ -1122,6 +1122,22 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
+
+    def _unicode_art_(self):
+        r"""
+        Return a unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
+            sage: unicode_art(KRT(2,1,-4,3))
+            ┌───┬───┐
+            │ 1 │ 3 │
+            ├───┼───┤
+            │ 2 │ 4̄ │
+            └───┴───┘
+        """
+        return self.to_tableau()._unicode_art_()
 
     def to_kirillov_reshetikhin_crystal(self):
         r"""

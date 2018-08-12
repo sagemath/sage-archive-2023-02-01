@@ -207,7 +207,6 @@ AUTHORS:
 from sage.rings.ring import CommutativeRing
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generic, is_PowerSeriesRing
@@ -287,25 +286,26 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         Initializes a multivariate power series ring.  See PowerSeriesRing
         for complete documentation.
 
-        INPUT
+        INPUT:
 
-            - ``base_ring`` - a commutative ring
+        - ``base_ring`` -- a commutative ring
 
-            - ``num_gens`` - number of generators
+        - ``num_gens`` -- number of generators
 
-            - ``name_list`` - List of indeterminate names or a single name.
-                If a single name is given, indeterminates will be this name
-                followed by a number from 0 to num_gens - 1.  If a list is
-                given, these will be the indeterminate names and the length
-                of the list must be equal to num_gens.
+        - ``name_list`` -- List of indeterminate names or a single name.
+            If a single name is given, indeterminates will be this name
+            followed by a number from 0 to num_gens - 1.  If a list is
+            given, these will be the indeterminate names and the length
+            of the list must be equal to num_gens.
 
-            - ``order`` - ordering of variables; default is
-              negative degree lexicographic
+        - ``order`` -- ordering of variables; default is
+          negative degree lexicographic
 
-            - ``default_prec`` - The default total-degree precision for
-              elements.  The default value of default_prec is 10.
+        - ``default_prec`` -- The default total-degree precision for
+          elements.  The default value of default_prec is 10.
 
-            - ``sparse`` - whether or not power series are sparse
+        - ``sparse`` -- whether or not the power series are sparse.
+          The underlying polynomial ring is always sparse.
 
         EXAMPLES::
 
@@ -352,7 +352,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         Nonexact.__init__(self, default_prec)
 
         # underlying polynomial ring in which to represent elements
-        self._poly_ring_ = PolynomialRing(base_ring, self.variable_names(), sparse=sparse, order=order)
+        self._poly_ring_ = PolynomialRing(base_ring, self.variable_names(), order=order)
         # because sometimes PowerSeriesRing_generic calls self.__poly_ring
         self._PowerSeriesRing_generic__poly_ring = self._poly_ring()
 
@@ -478,10 +478,10 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             Multivariate Power Series Ring in f0, f1, f2, f3 over Rational Field
 
             sage: (c,R) = M.construction(); (c,R)
-            (Completion[('f0', 'f1', 'f2', 'f3')],
+            (Completion[('f0', 'f1', 'f2', 'f3'), prec=12],
             Multivariate Polynomial Ring in f0, f1, f2, f3 over Rational Field)
             sage: c
-            Completion[('f0', 'f1', 'f2', 'f3')]
+            Completion[('f0', 'f1', 'f2', 'f3'), prec=12]
             sage: c(R)
             Multivariate Power Series Ring in f0, f1, f2, f3 over Rational Field
             sage: c(R) == M

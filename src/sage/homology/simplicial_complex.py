@@ -23,6 +23,9 @@ AUTHORS:
 - Simon King (2014-05-02): Let simplicial complexes be objects of the
   category of simplicial complexes.
 
+- Jeremy Martin (2016-06-02): added cone_vertices, decone, is_balanced,
+  is_partitionable, intersection methods
+
 This module implements the basic structure of finite simplicial
 complexes. Given a set `V` of "vertices", a simplicial complex on `V`
 is a collection `K` of subsets of `V` satisfying the condition that if
@@ -74,12 +77,12 @@ faces.
 EXAMPLES::
 
     sage: SimplicialComplex([[1], [3, 7]])
-    Simplicial complex with vertex set (1, 3, 7) and facets {(3, 7), (1,)}
+    Simplicial complex with vertex set (1, 3, 7) and facets {(1,), (3, 7)}
     sage: SimplicialComplex()   # the empty simplicial complex
     Simplicial complex with vertex set () and facets {()}
     sage: X = SimplicialComplex([[0,1], [1,2], [2,3], [3,0]])
     sage: X
-    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2), (2, 3), (0, 3), (0, 1)}
+    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 3), (1, 2), (2, 3)}
     sage: X.stanley_reisner_ring()
     Quotient of Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring by the ideal (x1*x3, x0*x2)
     sage: X.is_pure()
@@ -113,7 +116,7 @@ Mutability (see :trac:`12587`)::
     sage: S = SimplicialComplex([[1,4], [2,4]])
     sage: S.add_face([1,3])
     sage: S.remove_face([1,3]); S
-    Simplicial complex with vertex set (1, 2, 3, 4) and facets {(2, 4), (1, 4), (3,)}
+    Simplicial complex with vertex set (1, 2, 3, 4) and facets {(3,), (1, 4), (2, 4)}
     sage: hash(S)
     Traceback (most recent call last):
     ...
@@ -181,8 +184,9 @@ lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import rename_keyword
 
+
 def lattice_paths(t1, t2, length=None):
-    """
+    r"""
     Given lists (or tuples or ...) ``t1`` and ``t2``, think of them as
     labelings for vertices: ``t1`` labeling points on the x-axis,
     ``t2`` labeling points on the y-axis, both increasing.  Return the
@@ -515,7 +519,7 @@ class Simplex(SageObject):
         if n >= 0 and n <= self.dimension():
             return Simplex(self.__tuple[:n] + self.__tuple[n+1:])
         else:
-            raise IndexError("{} does not have an nth face for n={}.".format(self, n))
+            raise IndexError("{} does not have an nth face for n={}".format(self, n))
 
     def faces(self):
         """
@@ -836,7 +840,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
     (or tuples, etc.) of vertices.  Maximal faces are also known as
     'facets'.
 
-    Alternatively, the maximal faces can be defined from a monotome boolean
+    Alternatively, the maximal faces can be defined from a monotone boolean
     function on the subsets of a set `X`. While defining ``maximal_faces=None``,
     you can thus set ``from_characteristic_function=(f,X)`` where ``X`` is the
     set of points and ``f`` a boolean monotone hereditary function that accepts
@@ -868,10 +872,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         sage: SimplicialComplex([[0,2], [0,3], [0]])
         Simplicial complex with vertex set (0, 2, 3) and facets {(0, 2), (0, 3)}
         sage: SimplicialComplex([[0,2], [0,3], [0]], maximality_check=False)
-        Simplicial complex with vertex set (0, 2, 3) and facets {(0, 2), (0, 3), (0,)}
+        Simplicial complex with vertex set (0, 2, 3) and facets {(0,), (0, 2), (0, 3)}
         sage: S = SimplicialComplex((('a', 'b'), ['a', 'c'], ('b', 'c')))
         sage: S
-        Simplicial complex with vertex set ('a', 'b', 'c') and facets {('b', 'c'), ('a', 'c'), ('a', 'b')}
+        Simplicial complex with vertex set ('a', 'b', 'c') and facets {('a', 'b'), ('a', 'c'), ('b', 'c')}
 
     Finally, if there is only one argument and it is a
     simplicial complex, return that complex.  If it is an object with
@@ -944,7 +948,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: SimplicialComplex([[0,2], [0,3], [0]])
             Simplicial complex with vertex set (0, 2, 3) and facets {(0, 2), (0, 3)}
             sage: SimplicialComplex((('a', 'b'), ('a', 'c'), ('b', 'c')))
-            Simplicial complex with vertex set ('a', 'b', 'c') and facets {('b', 'c'), ('a', 'c'), ('a', 'b')}
+            Simplicial complex with vertex set ('a', 'b', 'c') and facets {('a', 'b'), ('a', 'c'), ('b', 'c')}
 
         TESTS::
 
@@ -1019,12 +1023,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             if name_check:
                 try:
                     if int(v) < 0:
-                        raise ValueError("The vertex %s does not have an appropriate name."%v)
+                        raise ValueError("the vertex %s does not have an appropriate name"%v)
                 except ValueError:  # v is not an integer
                     try:
                         normalize_names(1, v)
                     except ValueError:
-                        raise ValueError("The vertex %s does not have an appropriate name."%v)
+                        raise ValueError("the vertex %s does not have an appropriate name"%v)
             # build dictionary of generator names
             try:
                 gen_dict[v] = 'x%s'%int(v)
@@ -1468,8 +1472,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES:
 
         The `f`- and `h`-vectors of the boundary of an octahedron are
-        computed in Wikipedia's page on simplicial complexes,
-        http://en.wikipedia.org/wiki/Simplicial_complex::
+        computed in :wikipedia:`Simplicial_complex`::
 
             sage: square = SimplicialComplex([[0,1], [1,2], [2,3], [0,3]])
             sage: S0 = SimplicialComplex([[0], [1]])
@@ -1832,7 +1835,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S.join(T)
             Simplicial complex with vertex set ('L0', 'L1', 'R2', 'R3') and 4 facets
             sage: S.join(T, rename_vertices=False)
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 3), (1, 2), (0, 2), (0, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2), (0, 3), (1, 2), (1, 3)}
 
         The notation '*' may be used, as well::
 
@@ -2267,7 +2270,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: sphere = SimplicialComplex([[0,1,2,3]])
             sage: sphere.remove_face([0,1,2,3])
             sage: sphere
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)}
             sage: sphere._homology_()
             {0: 0, 1: 0, 2: Z}
             sage: sphere._homology_(reduced=False)
@@ -2475,12 +2478,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Y.add_face([0,1])
             sage: Y.add_face([1,2,3])
             sage: Y
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (1, 2, 3)}
 
         If you add a face which is already present, there is no effect::
 
             sage: Y.add_face([1,3]); Y
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (1, 2, 3)}
 
         TESTS:
 
@@ -2575,14 +2578,18 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._complex = {}
             self.__contractible = None
 
-    def remove_face(self, face):
+    def remove_face(self, face, check=False):
         """
-        Remove a face from this simplicial complex and return the
-        resulting simplicial complex.
+        Remove a face from this simplicial complex.
 
         :param face: a face of the simplicial complex
 
-        This *changes* the simplicial complex.
+        :param check: boolean; optional, default ``False``. If
+            ``True``, raise an error if ``face`` is not a
+            face of this simplicial complex
+
+        This does not return anything; instead, it *changes* the
+        simplicial complex.
 
         ALGORITHM:
 
@@ -2601,10 +2608,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = SimplicialComplex([[0,1,2],[2,3]])
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (2, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(2, 3), (0, 1, 2)}
             sage: S.remove_face([0,1,2])
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2), (2, 3), (0, 2), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2), (1, 2), (2, 3)}
 
         TESTS:
 
@@ -2628,8 +2635,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         simplex = Simplex(face)
         facets = self.facets()
         if all([not simplex.is_face(F) for F in facets]):
-            # face is not in self: nothing to remove
-            return self
+            # face is not in self
+            if check:
+                raise ValueError('trying to remove a face which is not in the simplicial complex')
+            return
         link = self.link(simplex)
         join_facets = []
         for f in simplex.faces():
@@ -2666,7 +2675,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # Update self._faces.
         # Note: can't iterate over self._faces, because the dictionary
         # size may change during iteration.
-        for L in self._faces.keys():
+        for L in list(self._faces):
             del self._faces[L]
             if L is None or Simplex(face) not in L:
                 self.faces(L)
@@ -2681,6 +2690,54 @@ class SimplicialComplex(Parent, GenericCellComplex):
         self._complex = {}
         self.__contractible = None
         self.__enlarged = {}
+
+    def remove_faces(self, faces, check=False):
+        """
+        Remove a collection of faces from this simplicial complex.
+
+        :param faces: a list (or any iterable) of faces of the
+            simplicial complex
+
+        :param check: boolean; optional, default ``False``. If
+            ``True``, raise an error if any element of ``faces`` is not a
+            face of this simplicial complex
+
+        This does not return anything; instead, it *changes* the
+        simplicial complex.
+
+        ALGORITHM:
+
+        Run ``self.remove_face(f)`` repeatedly, for ``f`` in ``faces``.
+
+        EXAMPLES::
+
+            sage: S = range(1,5)
+            sage: Z = SimplicialComplex([S]); Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
+            sage: Z.remove_faces([[1,2]])
+            sage: Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 3, 4), (2, 3, 4)}
+
+            sage: Z = SimplicialComplex([S]); Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
+            sage: Z.remove_faces([[1,2], [2,3]])
+            sage: Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(2, 4), (1, 3, 4)}
+
+        TESTS:
+
+        Check the ``check`` argument::
+
+            sage: Z = SimplicialComplex([[1,2,3,4]])
+            sage: Z.remove_faces([[1,2], [3,4]])
+            sage: Z.remove_faces([[1,2]])
+            sage: Z.remove_faces([[1,2]], check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: trying to remove a face which is not in the simplicial complex
+        """
+        for f in faces:
+            self.remove_face(f, check=check)
 
     def connected_sum(self, other, is_mutable=True):
         """
@@ -2726,7 +2783,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         if not (self.is_pure() and other.is_pure() and
                 self.dimension() == other.dimension()):
-            raise ValueError("Complexes are not pure of the same dimension.")
+            raise ValueError("complexes are not pure of the same dimension")
         # first find a top-dimensional simplex to remove from each surface
         keep_left = self._facets[0]
         keep_right = other._facets[0]
@@ -2746,7 +2803,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
     __add__ = connected_sum
 
     def link(self, simplex, is_mutable=True):
-        """
+        r"""
         The link of a simplex in this simplicial complex.
 
         The link of a simplex `F` is the simplicial complex formed by
@@ -2763,7 +2820,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X.link(Simplex([0]))
             Simplicial complex with vertex set (1, 2) and facets {(1, 2)}
             sage: X.link([1,2])
-            Simplicial complex with vertex set (0, 3) and facets {(3,), (0,)}
+            Simplicial complex with vertex set (0, 3) and facets {(0,), (3,)}
             sage: Y = SimplicialComplex([[0,1,2,3]])
             sage: Y.link([1])
             Simplicial complex with vertex set (0, 2, 3) and facets {(0, 2, 3)}
@@ -2856,12 +2913,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         from sage.parallel.decorate import parallel
 
-        if ncpus == 0:
-            import os
-            try:
-                ncpus = int(os.environ['SAGE_NUM_THREADS'])
-            except KeyError:
-                ncpus = 1
+        if not ncpus:
+            from sage.parallel.ncpus import ncpus as get_ncpus
+            ncpus = get_ncpus()
 
         facs = [ x for x in self.face_iterator() ]
         n = len(facs)
@@ -3375,12 +3429,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: Y = SimplicialComplex([[i] for i in range(5)]); Y
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(4,), (2,), (3,), (0,), (1,)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0,), (1,), (2,), (3,), (4,)}
             sage: Y.alexander_dual()
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and 10 facets
             sage: X = SimplicialComplex([[0,1], [1,2], [2,3], [3,0]])
             sage: X.alexander_dual()
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 3), (0, 2)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2), (1, 3)}
         """
         nonfaces = self.minimal_nonfaces()
         return SimplicialComplex([self._complement(f) for f in nonfaces], is_mutable=is_mutable)
@@ -3389,7 +3443,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         The barycentric subdivision of this simplicial complex.
 
-        See http://en.wikipedia.org/wiki/Barycentric_subdivision for a
+        See :wikipedia:`Barycentric_subdivision` for a
         definition.
 
         EXAMPLES::
@@ -3441,13 +3495,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: F2 = Simplex([1,3])
             sage: F3 = Simplex([1,2,3])
             sage: SC.stellar_subdivision(F1)
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (1, 3, 4), (2, 3, 4), (0, 2, 4)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (0, 2, 4), (1, 3, 4), (2, 3, 4)}
             sage: SC.stellar_subdivision(F2)
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (1, 2, 4), (2, 3, 4)}
             sage: SC.stellar_subdivision(F3)
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (1, 2, 4), (1, 3, 4), (2, 3, 4)}
             sage: SC.stellar_subdivision(F3, inplace=True);SC
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (1, 2, 4), (1, 3, 4), (2, 3, 4)}
 
         The simplex to subdivide should be a face of self::
 
@@ -3605,12 +3659,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: X = SimplicialComplex([[0,1], [1,2,3], [0,2,3]])
             sage: X.n_skeleton(1)
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(2, 3), (0, 2), (1, 3), (1, 2), (0, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)}
             sage: X.set_immutable()
             sage: X.n_skeleton(2)
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2, 3), (1, 2, 3)}
             sage: X.n_skeleton(4)
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2, 3), (1, 2, 3)}
         """
         if n >= self.dimension():
             return self
@@ -3650,9 +3704,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: sphere = SimplicialComplex([[0,1,2,3]])
             sage: sphere.remove_face([0,1,2,3])
             sage: sphere
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)}
             sage: L = sphere._contractible_subcomplex(); L
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 3), (0, 2, 3), (1, 2, 3)}
             sage: L.homology()
             {0: 0, 1: 0, 2: 0}
         """
@@ -3838,10 +3892,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: SimplicialComplex([[]]).connected_component()
             Traceback (most recent call last):
             ...
-            ValueError: the empty simplicial complex has no connected components.
+            ValueError: the empty simplicial complex has no connected components
         """
         if self.dimension() == -1:
-            raise ValueError("the empty simplicial complex has no connected components.")
+            raise ValueError("the empty simplicial complex has no connected components")
         if simplex is None:
             v = self.vertices()[0]
         else:
@@ -3906,7 +3960,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: K.fundamental_group()
             Traceback (most recent call last):
             ...
-            ValueError: this complex is not connected, so you must specify a base point.
+            ValueError: this complex is not connected, so you must specify a base point
             sage: v0 = list(K.vertices())[0]
             sage: K.fundamental_group(base_point=v0)
             Finitely presented group < e |  >
@@ -3925,7 +3979,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         if not self.is_connected():
             if base_point is None:
-                raise ValueError("this complex is not connected, so you must specify a base point.")
+                raise ValueError("this complex is not connected, so you must specify a base point")
             return self.connected_component(Simplex([base_point])).fundamental_group(simplify=simplify)
 
         from sage.groups.free_group import FreeGroup
@@ -4282,22 +4336,30 @@ class SimplicialComplex(Parent, GenericCellComplex):
         If there are only a few vertices or faces, they are listed. If
         there are lots, the number is given.
 
+        Facets are sorted in increasing order of dimension, and within
+        each dimension, they are sorted using the underlying tuple.
+
         EXAMPLES::
 
             sage: X = SimplicialComplex([[0,1], [1,2]])
             sage: X._repr_()
-            'Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 1)}'
+            'Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1), (1, 2)}'
             sage: SimplicialComplex([[i for i in range(16)]])
             Simplicial complex with 16 vertices and 1 facets
         """
         vertex_limit = 45
         facet_limit = 55
         vertices = self.vertices()
-        facets = Set(self._facets)
+        try:
+            facets = sorted(self._facets, key=lambda f: (f.dimension(), f.tuple()))
+        except TypeError:
+            # Sorting failed.
+            facets = self._facets
+
         vertex_string = "with vertex set {}".format( tuple(sorted(vertices)) )
         if len(vertex_string) > vertex_limit:
             vertex_string = "with %s vertices" % len(vertices)
-        facet_string = "facets %s" % facets
+        facet_string = 'facets {' + repr(facets)[1:-1] + '}'
         if len(facet_string) > facet_limit:
             facet_string = "%s facets" % len(facets)
         return "Simplicial complex " + vertex_string + " and " + facet_string
@@ -4354,6 +4416,207 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         return not self._is_mutable
 
+    def cone_vertices(self):
+        r"""
+        Return the list of cone vertices of ``self``.
+
+        A vertex is a cone vertex if and only if it appears in every facet.
+
+        EXAMPLES::
+
+            sage: SimplicialComplex([[1,2,3]]).cone_vertices()
+            [1, 2, 3]
+            sage: SimplicialComplex([[1,2,3], [1,3,4], [1,5,6]]).cone_vertices()
+            [1]
+            sage: SimplicialComplex([[1,2,3], [1,3,4], [2,5,6]]).cone_vertices()
+            []
+        """
+        F = self.facets()
+        C = set(self.vertices())
+        for f in F:
+            C = C.intersection(list(f))
+            if not C:
+                break
+        return sorted(C)
+
+    def decone(self):
+        r"""
+        Return the subcomplex of ``self`` induced by the non-cone vertices.
+
+        EXAMPLES::
+
+            sage: SimplicialComplex([[1,2,3]]).decone()
+            Simplicial complex with vertex set () and facets {()}
+            sage: SimplicialComplex([[1,2,3], [1,3,4], [1,5,6]]).decone()
+            Simplicial complex with vertex set (2, 3, 4, 5, 6) and facets {(2, 3), (3, 4), (5, 6)}
+            sage: X = SimplicialComplex([[1,2,3], [1,3,4], [2,5,6]])
+            sage: X.decone() == X
+            True
+        """
+        V = set(self.vertices()).difference(self.cone_vertices())
+        return self.generated_subcomplex(V)
+
+    def is_balanced(self, check_purity=False, certificate=False):
+        r"""
+        Determine whether ``self`` is balanced.
+
+        A simplicial complex `X` of dimension `d-1` is balanced if and
+        only if its vertices can be colored with `d` colors such that
+        every face contains at most one vertex of each color.  An
+        equivalent condition is that the 1-skeleton of `X` is
+        `d`-colorable.  In some contexts, it is also required that `X`
+        be pure (i.e., that all maximal faces of `X` have the same
+        dimension).
+
+        INPUT:
+
+        - ``check_purity`` -- (default: ``False``) if this is ``True``,
+          require that ``self`` be pure as well as balanced
+
+        - ``certificate`` -- (default: ``False``) if this is ``True`` and
+          ``self`` is balanced, then return a `d`-coloring of the 1-skeleton.
+
+        EXAMPLES:
+
+        A 1-dim simplicial complex is balanced iff it is bipartite::
+
+            sage: X = SimplicialComplex([[1,2],[1,4],[3,4],[2,5]])
+            sage: X.is_balanced()
+            True
+            sage: X.is_balanced(certificate=True)
+            [[2, 4], [1, 3, 5]]
+            sage: X = SimplicialComplex([[1,2],[1,4],[3,4],[2,4]])
+            sage: X.is_balanced()
+            False
+
+        Any barycentric division is balanced::
+
+            sage: X = SimplicialComplex([[1,2,3],[1,2,4],[2,3,4]])
+            sage: X.is_balanced()
+            False
+            sage: X.barycentric_subdivision().is_balanced()
+            True
+
+        A non-pure balanced complex::
+
+            sage: X=SimplicialComplex([[1,2,3],[3,4]])
+            sage: X.is_balanced(check_purity=True)
+            False
+            sage: X.is_balanced(certificate=True)
+            [[2], [1, 4], [3]]
+        """
+        d = 1 + self.dimension()
+        if check_purity and not self.is_pure():
+            return False
+        Skel = self.graph()
+        if certificate:
+            C = Skel.coloring()
+            C = C if len(C) == d else False
+            return C
+        else:
+            return Skel.chromatic_number() == d
+
+    def is_partitionable(self, certificate=False):
+        r"""
+        Determine whether ``self`` is partitionable.
+
+        A partitioning of a simplicial complex `X` is a decomposition
+        of its face poset into disjoint Boolean intervals `[R,F]`,
+        where `F` ranges over all facets of `X`.
+
+        The method sets up an integer program with:
+
+        - a variable `y_i` for each pair `(R,F)`, where `F` is a facet of `X`
+          and `R` is a subface of `F`
+
+        - a constraint `y_i+y_j \leq 1` for each pair `(R_i,F_i)`, `(R_j,F_j)`
+          whose Boolean intervals intersect nontrivially (equivalent to
+          `(R_i\subseteq F_j and R_j\subseteq F_i))`
+
+        - objective function equal to the sum of all `y_i`
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``)  If ``True``,
+          and ``self`` is partitionable, then return a list of pairs `(R,F)`
+          that form a partitioning.
+
+        EXAMPLES:
+
+        Simplices are trivially partitionable::
+
+            sage: X = SimplicialComplex([ [1,2,3,4] ])
+            sage: X.is_partitionable()
+            True
+            sage: X.is_partitionable(certificate=True)
+            [((), (1, 2, 3, 4), 4)]
+
+        Shellable complexes are partitionable::
+
+            sage: X = SimplicialComplex([ [1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5] ])
+            sage: X.is_partitionable()
+            True
+            sage: P = X.is_partitionable(certificate=True)
+            sage: n_intervals_containing = lambda f: len([ RF for RF in P if RF[0].is_face(f) and f.is_face(RF[1]) ])
+            sage: all( n_intervals_containing(f)==1 for k in X.faces().keys() for f in X.faces()[k] )
+            True
+
+        A non-shellable, non-Cohen-Macaulay, partitionable example, constructed by Björner::
+
+            sage: X = SimplicialComplex([ [1,2,3],[1,2,4],[1,3,4],[2,3,4],[1,5,6] ])
+            sage: X.is_partitionable()
+            True
+
+        The bowtie complex is not partitionable::
+
+            sage: X = SimplicialComplex([ [1,2,3],[1,4,5] ])
+            sage: X.is_partitionable()
+            False
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        Facets = self.facets()
+        RFPairs = [(Simplex(r), f, f.dimension() - len(r) + 1)
+                   for f in self.facets() for r in Set(f).subsets()]
+        n = len(RFPairs)
+        IP = MixedIntegerLinearProgram()
+        y = IP.new_variable(binary=True)
+        for i0, pair0 in enumerate(RFPairs):
+            for i1, pair1 in enumerate(RFPairs):
+                if (i0 < i1 and pair0[0].is_face(pair1[1]) and
+                        pair1[0].is_face(pair0[1])):
+                    IP.add_constraint(y[i0] + y[i1] <= 1)
+        IP.set_objective(sum(2**RFPairs[i][2] * y[i] for i in range(n)))
+        sol = round(IP.solve())
+        if sol < sum(self.f_vector()):
+            return False
+        elif not certificate:
+            return True
+        else:
+            x = IP.get_values(y)
+            return [RFPairs[i] for i in range(n) if x[i] == 1]
+
+    def intersection(self,other):
+        r"""
+        Calculate the intersection of two simplicial complexes.
+
+        EXAMPLES:
+
+            sage: X = SimplicialComplex([[1,2,3],[1,2,4]])
+            sage: Y = SimplicialComplex([[1,2,3],[1,4,5]])
+            sage: Z = SimplicialComplex([[1,2,3],[1,4],[2,4]])
+            sage: X.intersection(Y).facets()
+            {(1, 4), (1, 2, 3)}
+            sage: X.intersection(X) == X
+            True
+            sage: X.intersection(Z) == X
+            False
+            sage: X.intersection(Z) == Z
+            True
+        """
+        F = []
+        for k in range(1 + min(self.dimension(), other.dimension())):
+            F = F + [s for s in self.faces()[k] if s in other.faces()[k]]
+        return SimplicialComplex(F)
 
 # Miscellaneous utility functions.
 

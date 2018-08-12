@@ -79,14 +79,13 @@ class IndefiniteIntegral(BuiltinFunction):
         if not is_SymbolicVariable(x):
             if len(x.variables()) == 1:
                 nx = x.variables()[0]
-                f = f*x.diff(nx)
+                f = f * x.diff(nx)
                 x = nx
             else:
                 return None
 
         # we try all listed integration algorithms
         for integrator in self.integrators:
-            res = integrator(f, x)
             try:
                 return integrator(f, x)
             except NotImplementedError:
@@ -111,7 +110,7 @@ class IndefiniteIntegral(BuiltinFunction):
             return f.derivative(diff_param).integral(x)
 
     def _print_latex_(self, f, x):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.symbolic.integration.integral import indefinite_integral
@@ -137,7 +136,7 @@ indefinite_integral = IndefiniteIntegral()
 class DefiniteIntegral(BuiltinFunction):
     def __init__(self):
         """
-        Symbolic function representing a definite integral.
+        The symbolic function representing a definite integral.
 
         EXAMPLES::
 
@@ -156,7 +155,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _eval_(self, f, x, a, b):
         """
-        Returns the results of symbolic evaluation of the integral
+        Return the results of symbolic evaluation of the integral
 
         EXAMPLES::
 
@@ -185,7 +184,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _evalf_(self, f, x, a, b, parent=None, algorithm=None):
         """
-        Returns numerical approximation of the integral
+        Return a numerical approximation of the integral
 
         EXAMPLES::
 
@@ -209,7 +208,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _tderivative_(self, f, x, a, b, diff_param=None):
         """
-        Returns derivative of symbolic integration
+        Return the derivative of symbolic integration
 
         EXAMPLES::
 
@@ -233,7 +232,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _print_latex_(self, f, x, a, b):
         r"""
-        Returns LaTeX expression for integration of a symbolic function.
+        Convert this integral to LaTeX notation
 
         EXAMPLES::
 
@@ -253,6 +252,22 @@ class DefiniteIntegral(BuiltinFunction):
         else:
             dx_str = "{d %s}"%(latex(x))
         return "\\int_{%s}^{%s} %s\\,%s"%(latex(a), latex(b), latex(f), dx_str)
+
+    def _sympy_(self, f, x, a, b):
+        """
+        Convert this integral to the equivalent SymPy object
+
+        The resulting SymPy integral can be evaluated using ``doit()``.
+
+        EXAMPLES::
+
+            sage: integral(x, x, 0, 1, hold=True)._sympy_()
+            Integral(x, (x, 0, 1))
+            sage: _.doit()
+            1/2
+        """
+        from sympy.integrals import Integral
+        return Integral(f, (x, a, b))
 
 definite_integral = DefiniteIntegral()
 
@@ -505,10 +520,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: _ = var('y, z')
         sage: (x^y - z).integrate(y)
         -y*z + x^y/log(x)
-        sage: (x^y - z).integrate(y, algorithm="sympy")  # see Trac #14694
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'ExprCondPair' object has no attribute '_sage_'
+        sage: (x^y - z).integrate(y, algorithm="sympy")
+        -y*z + cases(((log(x) == 0, y), (1, x^y/log(x))))
 
     We integrate the above function in Maple now::
 
@@ -786,6 +799,14 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         -1/4*pi*log(2) - 1/2*I*dilog(I + 1) + 1/2*I*dilog(-I + 1) + 1/2*I*dilog(1/2*I + 1/2) - 1/2*I*dilog(-1/2*I + 1/2)
         sage: abs(N(a - pi*log(2)/8)) < 1e-15  # long time
         True
+
+    Check that :trac:`17968` is fixed::
+
+        sage: a = N(integrate(exp(x^3), (x, 1, 2)), prec=54)
+        sage: a.real_part()    # abs tol 1e-13
+        275.510983763312
+        sage: a.imag_part()    # abs tol 1e-13
+        0.0
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

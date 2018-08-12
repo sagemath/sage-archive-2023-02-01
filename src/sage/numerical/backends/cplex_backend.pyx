@@ -1535,7 +1535,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solver_parameter("logfile")            # optional - CPLEX
             ''
 
-        TEST:
+        TESTS:
 
         Print the logfile's content (through :class:`MixedIntegerLinearProgram`)::
 

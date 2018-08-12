@@ -1,5 +1,5 @@
 """
-General curve constructors.
+General curve constructors
 
 AUTHORS:
 
@@ -8,6 +8,7 @@ AUTHORS:
 - David Kohel (2006-01)
 
 - Grayson Jorgenson (2016-6)
+
 """
 from __future__ import absolute_import
 

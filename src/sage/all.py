@@ -15,7 +15,7 @@ intended effect of your patch.
     sage: from sage import *
     sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-We exclude the dependencies and check to see that there are no others 
+We exclude the dependencies and check to see that there are no others
 except for the known bad apples::
 
     sage: allowed = [
@@ -70,14 +70,10 @@ import math
 
 from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
-# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
-# (which use paths relative to SAGE_SRC)
-sys.path.append(SAGE_SRC)
-
 
 ###################################################################
 
-# This import also setups the interrupt handler
+# This import also sets up the interrupt handler
 from cysignals.signals import (AlarmInterrupt, SignalError,
         sig_on_reset as sig_on_count)
 
@@ -108,6 +104,7 @@ from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
+from sage.arith.power    import generic_power as power
 from sage.databases.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *
@@ -118,7 +115,7 @@ from sage.functions.all  import *
 from sage.calculus.all   import *
 
 import sage.tests.all as tests
-from sage.tests.cython import getattr_debug
+from sage.cpython.all    import *
 
 from sage.crypto.all     import *
 import sage.crypto.mq as mq
@@ -213,6 +210,7 @@ copyright = license
 _cpu_time_ = cputime()
 _wall_time_ = walltime()
 
+
 def quit_sage(verbose=True):
     """
     If you use Sage in library mode, you should call this function
@@ -242,14 +240,6 @@ def quit_sage(verbose=True):
     import sage.libs.flint.flint
     sage.libs.flint.flint.free_flint_stack()
 
-    # stop the twisted reactor
-    try:
-       from twisted.internet import reactor
-       if reactor.running:
-          reactor.callFromThread(reactor.stop)
-    except ImportError:
-       pass
-
     # Free globally allocated mpir integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
@@ -259,18 +249,17 @@ def quit_sage(verbose=True):
     from sage.libs.all import symmetrica
     symmetrica.end()
 
-# A deprecation(20442) warning will be given when this module is
-# imported, in particular when these functions are used.
-lazy_import("sage.ext.interactive_constructors_c", ["inject_on", "inject_off"])
 
-sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Objects', Objects)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Rings', Rings)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Fields', Fields)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
+from sage.misc.persist import register_unpickle_override
+register_unpickle_override('sage.categories.category', 'Sets', Sets)
+register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
+register_unpickle_override('sage.categories.category_types', 'Objects', Objects)
+register_unpickle_override('sage.categories.category_types', 'Rings', Rings)
+register_unpickle_override('sage.categories.category_types', 'Fields', Fields)
+register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
+register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
+register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
+register_unpickle_override('sage.libs.pari.gen_py', 'pari', pari)
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()
@@ -310,20 +299,39 @@ def _write_started_file():
     O.close()
 
 
+import warnings
+warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
+# Ignore all deprecations from IPython etc.
+warnings.filterwarnings('ignore',
+    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+# However, be sure to keep OUR deprecation warnings
+warnings.filterwarnings('default',
+    '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
+
+
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed
 # in set_random_seed() will result in the same sequence you got at
 # Sage startup).
 set_random_seed()
 
-import warnings
-warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
-# Ignore all deprecations from IPython etc.
-warnings.filterwarnings('ignore',
-    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
-# but not those that have OUR deprecation warnings
-warnings.filterwarnings('default',
-    '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
+
+def sage_globals():
+    r"""
+    Return the Sage namespace.
+
+    EXAMPLES::
+
+        sage: 'log' in sage_globals()
+        True
+        sage: 'MatrixSpace' in sage_globals()
+        True
+        sage: 'Permutations' in sage_globals()
+        True
+        sage: 'TheWholeUniverse' in sage_globals()
+        False
+    """
+    return globals()

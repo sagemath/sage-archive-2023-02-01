@@ -26,7 +26,7 @@ from sage.modular.cusps import Cusp
 from sage.rings.all import Infinity, ZZ
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport Element
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 
 
@@ -258,7 +258,7 @@ cdef class ManinSymbol(Element):
         if self.weight() > 2:
             raise NotImplementedError("ModSym * Matrix only implemented "
                                       "in weight 2")
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if is_Matrix(matrix):
             if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
                 raise ValueError("matrix(=%s) must be 2x2" % matrix)
@@ -454,26 +454,25 @@ def _print_polypart(i, j):
         'Y'
     """
     if i > 1:
-        xpart = "X^%s"%i
+        xpart = "X^%s" % i
     elif i == 1:
         xpart = "X"
     else:
         xpart = ""
     if j > 1:
-        ypart = "Y^%s"%j
+        ypart = "Y^%s" % j
     elif j == 1:
         ypart = "Y"
     else:
         ypart = ""
-    if len(xpart) > 0 and len(ypart) > 0:
+    if xpart and ypart:
         times = "*"
     else:
         times = ""
-    if len(xpart + ypart) > 0:
-        polypart = "%s%s%s"%(xpart, times, ypart)
+    if xpart or ypart:
+        return xpart + times + ypart
     else:
-        polypart = ""
-    return polypart
+        return ""
 
 
 register_unpickle_override('sage.modular.modsym.manin_symbols',

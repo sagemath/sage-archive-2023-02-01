@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Bipartite graphs
 
@@ -27,15 +28,20 @@ TESTS::
 
 #*****************************************************************************
 #         Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
+#                       2018 Julian Rüth <julian.rueth@fsfe.org>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
 from six import iteritems
 from six.moves import range
 
+from .generic_graph import GenericGraph
 from .graph import Graph
 from sage.rings.integer import Integer
 
@@ -56,7 +62,8 @@ class BipartiteGraph(Graph):
     A reduced adjacency matrix contains only the non-redundant portion of the
     full adjacency matrix for the bipartite graph.  Specifically, for zero
     matrices of the appropriate size, for the reduced adjacency matrix ``H``,
-    the full adjacency matrix is ``[[0, H'], [H, 0]]``.
+    the full adjacency matrix is ``[[0, H'], [H, 0]]``. The columns correspond
+    to vertices on the left, and the rows correspond to vertices on the right.
 
     The alist file format is described at
     http://www.inference.phy.cam.ac.uk/mackay/codes/alist.html
@@ -75,7 +82,7 @@ class BipartiteGraph(Graph):
 
     EXAMPLES:
 
-    1. No inputs or ``None`` for the input creates an empty graph::
+    #. No inputs or ``None`` for the input creates an empty graph::
 
         sage: B = BipartiteGraph()
         sage: type(B)
@@ -85,7 +92,7 @@ class BipartiteGraph(Graph):
         sage: B == BipartiteGraph(None)
         True
 
-    2. From a graph: without any more information, finds a bipartition::
+    #. From a graph: without any more information, finds a bipartition::
 
         sage: B = BipartiteGraph(graphs.CycleGraph(4))
         sage: B = BipartiteGraph(graphs.CycleGraph(5))
@@ -108,11 +115,12 @@ class BipartiteGraph(Graph):
         sage: B.right
         {4, 5, 6}
 
-    You can specify a partition using ``partition`` argument. Note that if such graph
-    is not bipartite, then Sage will raise an error. However, if one specifies
-    ``check=False``, the offending edges are simply deleted (along with
-    those vertices not appearing in either list).  We also lump creating
-    one bipartite graph from another into this category::
+    #. If a Graph or DiGraph is used as data,
+       you can specify a partition using ``partition`` argument. Note that if such graph
+       is not bipartite, then Sage will raise an error. However, if one specifies
+       ``check=False``, the offending edges are simply deleted (along with
+       those vertices not appearing in either list).  We also lump creating
+       one bipartite graph from another into this category::
 
         sage: P = graphs.PetersenGraph()
         sage: partition = [list(range(5)), list(range(5,10))]
@@ -148,7 +156,18 @@ class BipartiteGraph(Graph):
         sage: B == B2
         True
 
-    4. From a reduced adjacency matrix::
+      ::
+
+        sage: d = DiGraph(6)
+        sage: d.add_edge(0,1)
+        sage: part=[[1,2,3],[0,4,5]]
+        sage: b = BipartiteGraph(d, part)
+        sage: b.left
+        {1, 2, 3}
+        sage: b.right
+        {0, 4, 5}
+
+    #. From a reduced adjacency matrix::
 
         sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
         ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
@@ -205,7 +224,7 @@ class BipartiteGraph(Graph):
          sage: B.weighted()
          True
 
-    5. From an alist file::
+    #. From an alist file::
 
          sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
          sage: fi = open(file_name, 'w')
@@ -218,7 +237,7 @@ class BipartiteGraph(Graph):
          sage: B == H
          True
 
-    6. From a NetworkX bipartite graph::
+    #. From a NetworkX bipartite graph::
 
         sage: import networkx
         sage: G = graphs.OctahedralGraph()
@@ -250,6 +269,19 @@ class BipartiteGraph(Graph):
         sage: sorted(g.left.union(g.right))
         [0, 1, 2, 3, 4, 5, 6, 7]
 
+    Make sure that loops are not allowed (:trac:`23275`)::
+
+        sage: B = BipartiteGraph(loops=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: loops are not allowed in bipartite graphs
+        sage: B = BipartiteGraph(loops=None)
+        sage: B.allows_loops()
+        False
+        sage: B.add_edge(0,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot add edge from 0 to 0 in graph without loops
 
     """
 
@@ -264,6 +296,13 @@ class BipartiteGraph(Graph):
             sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
         """
+        if kwds is None:
+            kwds = {'loops': False}
+        else:
+            if 'loops' in kwds and kwds['loops']:
+                raise ValueError('loops are not allowed in bipartite graphs')
+            kwds['loops'] = False
+
         if data is None:
             if partition is not None and check:
                 if partition[0] or partition[1]:
@@ -328,7 +367,7 @@ class BipartiteGraph(Graph):
                     for jj in range(nrows):
                         if data[jj][ii] != 0:
                             self.add_edge((ii, jj + ncols))
-        elif (isinstance(data, Graph) and partition is not None):
+        elif (isinstance(data, GenericGraph) and partition is not None):
             from copy import copy
             left, right = partition
             left = copy(left)
@@ -362,7 +401,7 @@ class BipartiteGraph(Graph):
                     if len(a_nbrs) != 0:
                         self.delete_edges([(a, b) for b in a_nbrs])
             self.left, self.right = set(partition[0]), set(partition[1])
-        elif isinstance(data, Graph):
+        elif isinstance(data, GenericGraph):
             Graph.__init__(self, data, *args, **kwds)
             try:
                 self.left, self.right = self.bipartite_sets()
@@ -797,6 +836,31 @@ class BipartiteGraph(Graph):
         # add the edge
         Graph.add_edge(self, u, v, label)
         return
+
+    def allow_loops(self, new, check=True):
+        """
+        Change whether loops are permitted in the (di)graph
+
+        .. NOTE::
+
+            This method overwrite the
+            :meth:`~sage.graphs.generic_graph.GenericGraph.allow_loops` method
+            to ensure that loops are forbidden in :class:`~BipartiteGraph`.
+
+        INPUT:
+
+        - ``new`` - boolean.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph()
+            sage: B.allow_loops(True)
+            Traceback (most recent call last):
+            ...
+            ValueError: loops are not allowed in bipartite graphs
+        """
+        if new is True:
+            raise ValueError("loops are not allowed in bipartite graphs")
 
     def complement(self):
         """
@@ -1362,7 +1426,7 @@ class BipartiteGraph(Graph):
             sage: G = graphs.CycleGraph(4)
             sage: B = BipartiteGraph([(u,v,2) for u,v in G.edges(labels=0)])
             sage: B.matching(use_edge_labels=True)
-            [(0, 3, 2), (1, 2, 2)]
+            [(1, 2, 2), (0, 3, 2)]
             sage: B.matching(use_edge_labels=True, value_only=True)
             4
             sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Edmonds')
@@ -1421,7 +1485,7 @@ class BipartiteGraph(Graph):
             g = networkx.Graph()
             if use_edge_labels:
                 for u, v in W:
-                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
+                    g.add_edge(u, v, weight=W[u, v])
             else:
                 for u, v in L:
                     g.add_edge(u, v)

@@ -753,7 +753,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                 d[index] = coeff
                 deg_comp[index[0]] = d
 
-            # Do the square on each graded componenet of ``self``.
+            # Do the square on each graded component of ``self``.
             for j in deg_comp:
                 # Make it into an actual element
                 m = j + i

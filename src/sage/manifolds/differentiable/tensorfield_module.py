@@ -41,10 +41,14 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
+from sage.rings.integer import Integer
 from sage.tensor.modules.tensor_free_module import TensorFreeModule
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
-from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
+from sage.manifolds.differentiable.diff_form import (DiffForm,
+                                                     DiffFormParal)
+from sage.manifolds.differentiable.multivectorfield import (MultivectorField,
+                                                            MultivectorFieldParal)
 from sage.manifolds.differentiable.automorphismfield import (AutomorphismField,
                                                              AutomorphismFieldParal)
 
@@ -93,7 +97,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M`
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant
       rank and `l` the covariant rank
@@ -261,16 +265,19 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         lcov = tensor_type[1]
         name = "T^({},{})({}".format(kcon, lcov, domain._name)
         latex_name = r"\mathcal{{T}}^{{({},{})}}\left({}".format(kcon, lcov, domain._latex_name)
-        if dest_map is domain.identity_map():
-            name += ")"
-            latex_name += r"\right)"
-        else:
-            name += "," + dest_map._name + ")"
-            latex_name += "," + dest_map._latex_name + r"\right)"
+        if dest_map is not domain.identity_map():
+            dm_name = dest_map._name
+            dm_latex_name = dest_map._latex_name
+            if dm_name is None:
+                dm_name = "unnamed map"
+            if dm_latex_name is None:
+                dm_latex_name = r"\mathrm{unnamed\; map}"
+            name += "," + dm_name
+            latex_name += "," + dm_latex_name
+        self._name = name + ")"
+        self._latex_name = latex_name + r"\right)"
         self._vmodule = vector_field_module
         self._tensor_type = tensor_type
-        self._name = name
-        self._latex_name = latex_name
         # the member self._ring is created for efficiency (to avoid calls to
         # self.base_ring()):
         self._ring = domain.scalar_field_algebra()
@@ -303,32 +310,55 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self.zero()
         if isinstance(comp, DiffForm):
-            # coercion of a p-form to a type-(0,p) tensor:
+            # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability
             p = form.degree()
-            if self._tensor_type != (0,p) or self._vmodule != form.base_module():
+            if (self._tensor_type != (0,p) or
+                self._vmodule != form.base_module()):
                 raise TypeError("cannot convert the {}".format(form) +
                                 " to an element of {}".format(self))
             if p == 1:
                 asym = None
             else:
                 asym = range(p)
-            resu = self.element_class(self._vmodule, (0,p), name=form._name,
+            resu = self.element_class(self._vmodule, (0,p),
+                                      name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)
             for dom, rst in form._restrictions.items():
                 resu._restrictions[dom] = dom.tensor_field_module((0,p))(rst)
             return resu
+        if isinstance(comp, MultivectorField):
+            # coercion of a p-vector field to a type-(p,0) tensor:
+            pvect = comp # for readability
+            p = pvect.degree()
+            if (self._tensor_type != (p,0) or
+                self._vmodule != pvect.base_module()):
+                raise TypeError("cannot convert the {}".format(pvect) +
+                                " to an element of {}".format(self))
+            if p == 1:
+                asym = None
+            else:
+                asym = range(p)
+            resu = self.element_class(self._vmodule, (p,0),
+                                      name=pvect._name,
+                                      latex_name=pvect._latex_name,
+                                      antisym=asym)
+            for dom, rst in pvect._restrictions.items():
+                resu._restrictions[dom] = dom.tensor_field_module((p,0))(rst)
+            return resu
         if isinstance(comp, AutomorphismField):
             # coercion of an automorphism to a type-(1,1) tensor:
             autom = comp # for readability
-            if self._tensor_type != (1,1) or self._vmodule != autom.base_module():
+            if (self._tensor_type != (1,1) or
+                self._vmodule != autom.base_module()):
                 raise TypeError("cannot convert the {}".format(autom) +
                                 " to an element of {}".format(self))
-            resu = self.element_class(self._vmodule, (1,1), name=autom._name,
+            resu = self.element_class(self._vmodule, (1,1),
+                                      name=autom._name,
                                       latex_name=autom._latex_name)
             for dom, rest in autom._restrictions.items():
                 resu._restrictions[dom] = dom.tensor_field_module((1,1))(rest)
@@ -336,17 +366,17 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         if isinstance(comp, TensorField):
             # coercion by domain restriction
             if (self._tensor_type == comp._tensor_type
-                    and self._domain.is_subset(comp._domain)
-                    and self._ambient_domain.is_subset(comp._ambient_domain)):
+                and self._domain.is_subset(comp._domain)
+                and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
                raise TypeError("cannot convert the {}".format(comp) +
                                " to an element of {}".format(self))
 
         # standard construction
-        resu = self.element_class(self._vmodule, self._tensor_type, name=name,
-                                  latex_name=latex_name, sym=sym,
-                                  antisym=antisym)
+        resu = self.element_class(self._vmodule, self._tensor_type,
+                                  name=name, latex_name=latex_name,
+                                  sym=sym, antisym=antisym)
         if comp != []:
             resu.set_comp(frame)[:] = comp
         return resu
@@ -394,13 +424,20 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             False
             sage: T02._coerce_map_from_(M.diff_form_module(2))
             True
+            sage: T20 = M.tensor_field_module((2,0))
+            sage: T20._coerce_map_from_(M.multivector_module(2))
+            True
             sage: T11 = M.tensor_field_module((1,1))
             sage: T11._coerce_map_from_(M.automorphism_field_group())
             True
 
         """
-        from sage.manifolds.differentiable.diff_form_module import DiffFormModule
-        from sage.manifolds.differentiable.automorphismfield_group import AutomorphismFieldGroup
+        from sage.manifolds.differentiable.diff_form_module import \
+                                                          DiffFormModule
+        from sage.manifolds.differentiable.multivector_module import \
+                                                       MultivectorModule
+        from sage.manifolds.differentiable.automorphismfield_group \
+                                           import AutomorphismFieldGroup
         if isinstance(other, (TensorFieldModule, TensorFieldFreeModule)):
             # coercion by domain restriction
             return (self._tensor_type == other._tensor_type
@@ -410,6 +447,10 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             # coercion of p-forms to type-(0,p) tensor fields
             return (self._vmodule is other.base_module()
                     and self._tensor_type == (0, other.degree()))
+        if isinstance(other, MultivectorModule):
+            # coercion of p-vector fields to type-(p,0) tensor fields
+            return (self._vmodule is other.base_module()
+                    and self._tensor_type == (other.degree(),0))
         if isinstance(other, AutomorphismFieldGroup):
             # coercion of automorphism fields to type-(1,1) tensor fields
             return (self._vmodule is other.base_module()
@@ -540,7 +581,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                 # (since new components are initialized to zero)
         return resu
 
-#******************************************************************************
+#***********************************************************************
 
 class TensorFieldFreeModule(TensorFreeModule):
     r"""
@@ -588,7 +629,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M`
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank
       and `l` the covariant rank
@@ -710,13 +751,19 @@ class TensorFieldFreeModule(TensorFreeModule):
         kcon = tensor_type[0]
         lcov = tensor_type[1]
         name = "T^({},{})({}".format(kcon, lcov, domain._name)
-        latex_name = r"\mathcal{{T}}^{{({}, {})}}\left(".format(kcon, lcov, domain._latex_name)
-        if dest_map is domain.identity_map():
-            name += ")"
-            latex_name += r"\right)"
-        else:
-            name += "," + dest_map._name + ")"
-            latex_name += "," + dest_map._latex_name + r"\right)"
+        latex_name = r"\mathcal{{T}}^{{({}, {})}}\left(".format(kcon,
+                                               lcov, domain._latex_name)
+        if dest_map is not domain.identity_map():
+            dm_name = dest_map._name
+            dm_latex_name = dest_map._latex_name
+            if dm_name is None:
+                dm_name = "unnamed map"
+            if dm_latex_name is None:
+                dm_latex_name = r"\mathrm{unnamed\; map}"
+            name += "," + dm_name
+            latex_name += "," + dm_latex_name
+        name += ")"
+        latex_name += r"\right)"
         TensorFreeModule.__init__(self, vector_field_module, tensor_type,
                                   name=name, latex_name=latex_name)
         self._domain = domain
@@ -737,8 +784,8 @@ class TensorFieldFreeModule(TensorFreeModule):
             sage: T12 = M.tensor_field_module((1,2))
             sage: t = T12([[[x,-y], [2,y]], [[1+x,y^2], [x^2,3]],
             ....:          [[x*y, 1-x], [y^2, x]]], name='t'); t
-            Tensor field t of type (1,2) on the 2-dimensional differentiable
-             manifold M
+            Tensor field t of type (1,2) on the 2-dimensional
+             differentiable manifold M
             sage: t.display()
             t = x d/dx*dx*dx - y d/dx*dx*dy + 2 d/dx*dy*dx + y d/dx*dy*dy
              + (x + 1) d/dy*dx*dx + y^2 d/dy*dx*dy + x^2 d/dy*dy*dx
@@ -747,32 +794,55 @@ class TensorFieldFreeModule(TensorFreeModule):
             True
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self.zero()
         if isinstance(comp, DiffFormParal):
             # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability
             p = form.degree()
-            if self._tensor_type != (0,p) or self._fmodule != form.base_module():
+            if (self._tensor_type != (0,p) or
+                self._fmodule != form.base_module()):
                 raise TypeError("cannot convert the {}".format(form) +
                                 " to an element of {}".format(self))
             if p == 1:
                 asym = None
             else:
                 asym = range(p)
-            resu = self.element_class(self._fmodule, (0,p), name=form._name,
+            resu = self.element_class(self._fmodule, (0,p),
+                                      name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)
             for frame, cp in form._components.items():
                 resu._components[frame] = cp.copy()
             return resu
+        if isinstance(comp, MultivectorFieldParal):
+            # coercion of a p-vector field to a type-(p,0) tensor field:
+            pvect = comp # for readability
+            p = pvect.degree()
+            if (self._tensor_type != (p,0) or
+                self._fmodule != pvect.base_module()):
+                raise TypeError("cannot convert the {}".format(pvect) +
+                                " to an element of {}".format(self))
+            if p == 1:
+                asym = None
+            else:
+                asym = range(p)
+            resu = self.element_class(self._fmodule, (p,0),
+                                      name=pvect._name,
+                                      latex_name=pvect._latex_name,
+                                      antisym=asym)
+            for frame, cp in pvect._components.items():
+                resu._components[frame] = cp.copy()
+            return resu
         if isinstance(comp, AutomorphismFieldParal):
             # coercion of an automorphism to a type-(1,1) tensor:
             autom = comp # for readability
-            if self._tensor_type != (1,1) or self._fmodule != autom.base_module():
+            if (self._tensor_type != (1,1) or
+                self._fmodule != autom.base_module()):
                 raise TypeError("cannot convert the {}".format(autom) +
                                 " to an element of {}".format(self))
-            resu = self.element_class(self._fmodule, (1,1), name=autom._name,
+            resu = self.element_class(self._fmodule, (1,1),
+                                      name=autom._name,
                                       latex_name=autom._latex_name)
             for basis, comp in autom._components.items():
                 resu._components[basis] = comp.copy()
@@ -780,16 +850,17 @@ class TensorFieldFreeModule(TensorFreeModule):
         if isinstance(comp, TensorField):
             # coercion by domain restriction
             if (self._tensor_type == comp._tensor_type
-                    and self._domain.is_subset(comp._domain)
-                    and self._ambient_domain.is_subset(comp._ambient_domain)):
+                and self._domain.is_subset(comp._domain)
+                and self._ambient_domain.is_subset(
+                                                 comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
                 raise TypeError("cannot convert the {}".format(comp) +
                                 " to an element of {}".format(self))
         # Standard construction
-        resu = self.element_class(self._fmodule, self._tensor_type, name=name,
-                                  latex_name=latex_name, sym=sym,
-                                  antisym=antisym)
+        resu = self.element_class(self._fmodule, self._tensor_type,
+                                  name=name, latex_name=latex_name,
+                                  sym=sym, antisym=antisym)
         if comp != []:
             resu.set_comp(frame)[:] = comp
         return resu
@@ -813,13 +884,20 @@ class TensorFieldFreeModule(TensorFreeModule):
             False
             sage: T02._coerce_map_from_(M.diff_form_module(2))
             True
+            sage: T20 = M.tensor_field_module((2,0))
+            sage: T20._coerce_map_from_(M.multivector_module(2))
+            True
             sage: T11 = M.tensor_field_module((1,1))
             sage: T11._coerce_map_from_(M.automorphism_field_group())
             True
 
         """
-        from sage.manifolds.differentiable.diff_form_module import DiffFormFreeModule
-        from sage.manifolds.differentiable.automorphismfield_group import AutomorphismFieldParalGroup
+        from sage.manifolds.differentiable.diff_form_module import \
+                                                      DiffFormFreeModule
+        from sage.manifolds.differentiable.multivector_module import \
+                                                   MultivectorFreeModule
+        from sage.manifolds.differentiable.automorphismfield_group \
+                                      import AutomorphismFieldParalGroup
         if isinstance(other, (TensorFieldModule, TensorFieldFreeModule)):
             # coercion by domain restriction
             return (self._tensor_type == other._tensor_type
@@ -829,6 +907,10 @@ class TensorFieldFreeModule(TensorFreeModule):
             # coercion of p-forms to type-(0,p) tensor fields
             return (self._fmodule is other.base_module()
                     and self._tensor_type == (0, other.degree()))
+        if isinstance(other, MultivectorFreeModule):
+            # coercion of p-vector fields to type-(p,0) tensor fields
+            return (self._fmodule is other.base_module()
+                    and self._tensor_type == (other.degree(),0))
         if isinstance(other, AutomorphismFieldParalGroup):
             # coercion of automorphism fields to type-(1,1) tensor fields
             return (self._fmodule is other.base_module()

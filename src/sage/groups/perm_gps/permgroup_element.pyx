@@ -69,7 +69,7 @@ from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.rings.all      import ZZ, Integer
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap
 from sage.interfaces.gap import is_GapElement
@@ -129,9 +129,9 @@ def make_permgroup_element_v2(G, x, domain):
     # G._domain_to_gap be set.
     G._domain = domain
     G._deg = len(domain)
-    G._domain_to_gap = dict([(key, i+1) for i, key in enumerate(domain)])
-    G._domain_from_gap = dict([(i+1, key) for i, key in enumerate(domain)])
-    return G(x, check=False)
+    G._domain_to_gap = {key: i+1 for i, key in enumerate(domain)}
+    G._domain_from_gap = {i+1: key for i, key in enumerate(domain)}
+    return G.element_class(x, G, check=False)
 
 
 def is_PermutationGroupElement(x):
@@ -1044,7 +1044,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef int i
         return {e:from_gap[self.perm[i-1]+1] for e,i in to_gap.iteritems()}
 
-    def order(self):
+    def multiplicative_order(self):
         """
         Return the order of this group element, which is the smallest
         positive integer `n` for which `g^n = 1`.
@@ -1052,6 +1052,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: s = PermutationGroupElement('(1,2)(3,5,6)')
+            sage: s.multiplicative_order()
+            6
+
+        ``order`` is just an alias for ``multiplicative_order``::
+
             sage: s.order()
             6
 
@@ -1060,7 +1065,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: prod(primes(150))
             1492182350939279320058875736615841068547583863326864530410
             sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
-            sage: t=PermutationGroupElement(L).order(); t
+            sage: t=PermutationGroupElement(L).multiplicative_order(); t
             1492182350939279320058875736615841068547583863326864530410
             sage: type(t)
             <type 'sage.rings.integer.Integer'>

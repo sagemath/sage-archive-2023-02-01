@@ -1,15 +1,7 @@
-#!/usr/bin/env bash
-
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
-fi
-
-if [ "x$SAGE64" = xyes ]; then
-   echo "Building a 64-bit version of matplotlib"
-   CFLAGS="-O2 -g -m64 "; export CFLAGS
-   LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
 fi
 
 # Write a configuration file to src/setup.cfg
@@ -18,7 +10,7 @@ python make-setup-config.py
 cd src
 
 # Finally install
-$PIP_INSTALL .
+sdh_pip_install .
 
 if [ $? -ne 0 ]; then
     echo "Error installing matplotlib package."

@@ -30,15 +30,15 @@ import six
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
-from . import constructor
+from sage.structure.richcmp import richcmp_method, richcmp
 import sage.databases.cremona
 from sage.rings.all import ZZ, QQ
-from sage.rings.number_field.all import QuadraticField
-from sage.misc.all import flatten, abstract_method, cached_method, lazy_attribute
+from sage.misc.all import flatten, cached_method
 from sage.schemes.elliptic_curves.ell_field import EllipticCurve_field
-from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_rational_field
 from sage.schemes.elliptic_curves.ell_number_field import EllipticCurve_number_field
 
+
+@richcmp_method
 class IsogenyClass_EC(SageObject):
     r"""
     Isogeny class of an elliptic curve.
@@ -139,9 +139,9 @@ class IsogenyClass_EC(SageObject):
                 return i
         raise ValueError("%s is not in isogeny class %s" % (C,self))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Returns 0 if self and other are the same isogeny class.
+        Compare self and other.
 
         If they are different, compares the sorted underlying lists of
         curves.
@@ -158,8 +158,8 @@ class IsogenyClass_EC(SageObject):
             True
         """
         if isinstance(other, IsogenyClass_EC):
-            return cmp(sorted(self.curves), sorted(other.curves))
-        return cmp(type(self), type(other))
+            return richcmp(sorted(self.curves), sorted(other.curves), op)
+        return NotImplemented
 
     def __hash__(self):
         """
@@ -180,7 +180,7 @@ class IsogenyClass_EC(SageObject):
             return self._hash
 
     def _repr_(self):
-        """
+        r"""
         The string representation of this isogeny class.
 
         .. note::
@@ -379,8 +379,8 @@ class IsogenyClass_EC(SageObject):
 
     @cached_method
     def graph(self):
-        """
-        Returns a graph whose vertices correspond to curves in this
+        r"""
+        Return a graph whose vertices correspond to curves in this
         class, and whose edges correspond to prime degree isogenies.
 
         .. note::
@@ -565,7 +565,8 @@ class IsogenyClass_EC(SageObject):
                 except ValueError:
                     raise ValueError("order does not yield a permutation of curves")
             curves.append(self.curves[j])
-            if need_perm: perm.append(j+1)
+            if need_perm:
+                perm.append(j+1)
         cpy.curves = tuple(curves)
         if need_perm:
             from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -575,18 +576,20 @@ class IsogenyClass_EC(SageObject):
                 n = len(self._maps)
                 cpy._maps = [self._maps[perm(i+1)-1] for i in range(n)]
                 for i in range(n):
-                    cpy._maps[i] = [cpy._maps[i][perm(j+1)-1] for j in range(n)]
+                    cpy._maps[i] = [cpy._maps[i][perm(jj + 1)-1]
+                                    for jj in range(n)]
         else:
             cpy._mat = None
             cpy._maps = None
         return cpy
+
 
 class IsogenyClass_EC_NumberField(IsogenyClass_EC):
     """
     Isogeny classes for elliptic curves over number fields.
     """
     def __init__(self, E):
-        """
+        r"""
         INPUT:
 
         - ``E`` -- an elliptic curve over a number field.
@@ -616,7 +619,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
         The array of isogenies themselves is not filled out but only
         contains those used to construct the class, the other entries
-        containing the interger 0.  This will be changed when the
+        containing the integer 0.  This will be changed when the
         class :class:`EllipticCurveIsogeny` allowed composition.  In
         this case we used `2`-isogenies to go from 0 to 2 and from 1
         to 3, and `3`-isogenies to go from 0 to 1 and from 2 to 3::
@@ -757,7 +760,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             True
 
         """
-        from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix, unfill_isogeny_matrix
+        from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
         from sage.sets.set import Set
         self._maps = None
@@ -844,12 +847,12 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             key_function = lambda E: flatten([list(ai) for ai in E.ainvs()])
 
         self.curves = sorted(curves,key=key_function)
-        perm = dict([(i,self.curves.index(E)) for i,E in enumerate(curves)])
+        perm = {ix: self.curves.index(Ex) for ix, Ex in enumerate(curves)}
         if verbose:
             print("Sorting permutation = %s" % perm)
 
         mat = MatrixSpace(ZZ,ncurves)(0)
-        self._maps = [[0]*ncurves for i in range(ncurves)]
+        self._maps = [[0] * ncurves for _ in range(ncurves)]
         for i,j,l,phi in tuples:
             if phi!=0:
                 mat[perm[i],perm[j]] = l
@@ -955,12 +958,13 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         # The domains and codomains here will be equal, but not the same Python object.
         self._maps = recomputed._maps
 
+
 class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
-    """
+    r"""
     Isogeny classes for elliptic curves over `\QQ`.
     """
     def __init__(self, E, algorithm="sage", label=None, empty=False):
-        """
+        r"""
         INPUT:
 
         - ``E`` -- an elliptic curve over `\QQ`.
@@ -987,7 +991,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
             sage: E.isogeny_class(order='database')
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to to find Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field in the database
+            LookupError: Cremona database does not contain entry for Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field
             sage: TestSuite(isocls).run()
         """
         self._algorithm = algorithm
@@ -1034,20 +1038,19 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
             [0 2 0 0 0 0]
         """
         algorithm = self._algorithm
-        from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix, unfill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
         self._maps = None
         if algorithm == "database":
             try:
                 label = self.E.cremona_label(space=False)
             except RuntimeError:
-                raise RuntimeError("unable to to find %s in the database"%self.E)
+                raise RuntimeError("unable to find %s in the database" % self.E)
             db = sage.databases.cremona.CremonaDatabase()
             curves = db.isogeny_class(label)
             if len(curves) == 0:
-                raise RuntimeError("unable to to find %s in the database"%self.E)
+                raise RuntimeError("unable to find %s in the database" % self.E)
             # All curves will have the same conductor and isogeny class,
-            # and there are are most 8 of them, so lexicographic sorting is okay.
+            # and there are most 8 of them, so lexicographic sorting is okay.
             self.curves = tuple(sorted(curves, key = lambda E: E.cremona_label()))
             self._mat = None
         elif algorithm == "sage":
@@ -1072,12 +1075,12 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
                         curves.append(Edash)
                     ijl_triples.append((i,j,l,phi))
                 if l_list is None:
-                    l_list = [l for l in set([ZZ(f.degree()) for f in isogs])]
+                    l_list = [ell for ell in set([ZZ(f.degree()) for f in isogs])]
                 i += 1
             self.curves = tuple(curves)
             ncurves = len(curves)
-            self._mat = MatrixSpace(ZZ,ncurves)(0)
-            self._maps = [[0]*ncurves for i in range(ncurves)]
+            self._mat = MatrixSpace(ZZ, ncurves)(0)
+            self._maps = [[0] * ncurves for _ in range(ncurves)]
             for i,j,l,phi in ijl_triples:
                 self._mat[i,j] = l
                 self._maps[i][j]=phi

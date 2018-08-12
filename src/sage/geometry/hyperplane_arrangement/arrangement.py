@@ -1182,7 +1182,7 @@ class HyperplaneArrangementElement(Element):
             """helper to iterat over the echelon pivot column indices"""
             for row in row_iter:
                 if row == 0:
-                    raise StopIteration
+                    return
                 for pivot in range(self.dimension()):
                     if row[pivot] != 0:
                         break
@@ -1212,7 +1212,7 @@ class HyperplaneArrangementElement(Element):
             assert row[pivot] == 1
             echelon_pivots.append(pivot)
             hyperplanes = [h - h.A()[pivot] * H(row, 0) for h in hyperplanes]
-        # eliminate the pivot'ed coodinates
+        # eliminate the pivot'ed coordinates
         restricted = []
         for h in hyperplanes:
             A = h.A()
@@ -1981,7 +1981,6 @@ class HyperplaneArrangementElement(Element):
         # Some hackery to generate a matrix quickly and without
         # unnecessary sanitization/ducktyping:
         MS = MatrixSpace(field, N, N)
-        MC = MS._get_matrix_class()
         table = []
         for j, sj in enumerate(Fs):
             matrix_j = []
@@ -1991,8 +1990,8 @@ class HyperplaneArrangementElement(Element):
                       for l, sil in enumerate(si)]
                 k = Fdict[tuple(sk)]
                 row_i[k] = one
-                matrix_j.extend(row_i)
-            table.append(MC(MS, matrix_j, copy=False, coerce=False))
+                matrix_j += row_i
+            table.append(MS(matrix_j, coerce=False))
         from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FDA
         return FDA(field, table, names=names, assume_associative=True)
 
@@ -2635,7 +2634,7 @@ class HyperplaneArrangementElement(Element):
 
     @cached_method(key=lambda self,a: None)
     def is_free(self, algorithm="singular"):
-        """
+        r"""
         Return if ``self`` is free.
 
         A hyperplane arrangement `A` is free if the module
@@ -2966,7 +2965,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L._element_constructor_([[0, 1, 0], [0, 0, 1]])
             Arrangement <y | x>
 
-            sage: L._element_constructor(polytopes.hypercube(2))
+            sage: L._element_constructor_(polytopes.hypercube(2))
             Arrangement <-x + 1 | -y + 1 | y + 1 | x + 1>
 
             sage: L(x, x, warn_duplicates=True)

@@ -19,7 +19,8 @@ export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
-export SAGE_VERSION=`cat $SAGE_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
+. "$SAGE_SRC"/bin/sage-version.sh
+export SAGE_VERSION
 
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH

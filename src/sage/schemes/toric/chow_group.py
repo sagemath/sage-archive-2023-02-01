@@ -152,7 +152,7 @@ class ChowCycle(FGP_Element):
 
         Do not construct :class:`ChowCycle` objects manually. Instead,
         use the parent :class:`ChowGroup<ChowGroup_class>` to obtain
-        generators or Chow cycles correspondig to cones of the fan.
+        generators or Chow cycles corresponding to cones of the fan.
 
     EXAMPLES::
 
@@ -400,9 +400,9 @@ class ChowCycle(FGP_Element):
             sage: intersection_QQ.count_points()
             -1
             sage: type(intersection_QQ.count_points())
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: type(intersection.count_points())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
         TESTS:
 
@@ -490,7 +490,7 @@ class ChowCycle(FGP_Element):
         If the toric variety is not simplicial, that is, has worse
         than orbifold singularities, there is no way to associate a
         cohomology class of the correct degree. In this case,
-        :meth:`cohomology_class` rasies a ``ValueError``.
+        :meth:`cohomology_class` raises a ``ValueError``.
 
         EXAMPLES::
 
@@ -546,7 +546,7 @@ class ChowGroupFactory(UniqueFactory):
     """
 
     def create_key_and_extra_args(self, toric_variety, base_ring=ZZ, check=True):
-        """
+        r"""
         Create a key that uniquely determines the :class:`ChowGroup_class`.
 
         INPUT:
@@ -703,10 +703,10 @@ class ChowGroup_class(FGP_Module_class):
 
         - ``x`` -- a cone of the fan, a toric divisor, or a valid
           input for
-          :class:sage.modules.fg_pid.fgp_module.FGP_Module_class`.
+          :class:`sage.modules.fg_pid.fgp_module.FGP_Module_class`.
 
         - ``check`` -- bool (default: ``True``). See
-          :class:sage.modules.fg_pid.fgp_module.FGP_Module_class`.
+          :class:`sage.modules.fg_pid.fgp_module.FGP_Module_class`.
 
         EXAMPLES::
 
@@ -772,8 +772,6 @@ class ChowGroup_class(FGP_Module_class):
             sage: matrix(rel).submatrix(col=21, ncols=6).elementary_divisors()
             [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """
-        fan = self._variety.fan()
-        dim = self._variety.dimension()
         relations = []
         for rho in self._cones:
             for u in rho.orthogonal_sublattice().gens():
@@ -782,10 +780,9 @@ class ChowGroup_class(FGP_Module_class):
                     sigma_idx = self._cones.index(sigma)
                     Q = sigma.relative_quotient(rho)
                     for v in [n.lift() for n in Q.gens()]:
-                        rel += (u*v) * V.gen(sigma_idx)
+                        rel += (u * v) * V.gen(sigma_idx)
                 relations.append(rel)
         return V.span(relations)
-
 
     def __truediv__(self, other):
         r"""
@@ -1102,7 +1099,7 @@ class ChowGroup_degree_class(SageObject):
     r"""
     A fixed-degree subgroup of the Chow group of a toric variety.
 
-    WARNING ..
+    .. WARNING::
 
         Use
         :meth:`~sage.schemes.toric.chow_group.ChowGroup_class.degree`

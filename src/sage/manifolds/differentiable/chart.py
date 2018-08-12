@@ -72,6 +72,15 @@ class DiffChart(Chart):
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     EXAMPLES:
 
@@ -238,7 +247,7 @@ class DiffChart(Chart):
         on differentiable manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart.
 
@@ -255,7 +264,8 @@ class DiffChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names)
+        Chart.__init__(self, domain, coordinates=coordinates, names=names,
+                       calc_method=calc_method)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -548,6 +558,103 @@ class DiffChart(Chart):
                     dom._top_frames.remove(resu._frame)
         return self._dom_restrict[subset]
 
+    def symbolic_velocities(self, left='D', right=None):
+        r"""
+        Return a list of symbolic variables ready to be used by the
+        user as the derivatives of the coordinate functions with respect
+        to a curve parameter (i.e. the velocities along the curve).
+        It may actually serve to denote anything else than velocities,
+        with a name including the coordinate functions.
+        The choice of strings provided as 'left' and 'right' arguments
+        is not entirely free since it must comply with Python
+        prescriptions.
+
+        INPUT:
+
+        - ``left`` -- (default: ``D``) string to concatenate to the left
+          of each coordinate functions of the chart
+        - ``right`` -- (default: ``None``) string to concatenate to the
+          right of each coordinate functions of the chart
+
+        OUTPUT:
+
+        - a list of symbolic expressions with the desired names
+
+        EXAMPLES:
+
+        Symbolic derivatives of the Cartesian coordinates of the
+        3-dimensional Euclidean space::
+
+            sage: R3 = Manifold(3, 'R3', start_index=1)
+            sage: cart.<X,Y,Z> = R3.chart()
+            sage: D = cart.symbolic_velocities(); D
+            [DX, DY, DZ]
+            sage: D = cart.symbolic_velocities(left='d', right="/dt"); D
+            Traceback (most recent call last):
+            ...
+            ValueError: The name "dX/dt" is not a valid Python
+             identifier.
+            sage: D = cart.symbolic_velocities(left='d', right="_dt"); D
+            [dX_dt, dY_dt, dZ_dt]
+            sage: D = cart.symbolic_velocities(left='', right="'"); D
+            Traceback (most recent call last):
+            ...
+            ValueError: The name "X'" is not a valid Python
+             identifier.
+            sage: D = cart.symbolic_velocities(left='', right="_dot"); D
+            [X_dot, Y_dot, Z_dot]
+            sage: R.<t> = RealLine()
+            sage: canon_chart = R.default_chart()
+            sage: D = canon_chart.symbolic_velocities() ; D
+            [Dt]
+
+        """
+
+        from sage.symbolic.ring import var
+
+        # The case len(self[:]) = 1 is treated apart due to the
+        # following fact.
+        # In the case of several coordinates, the argument of 'var' (as
+        # implemented below after the case len(self[:]) = 1) is a list
+        # of strings of the form ['Dx1', 'Dx2', ...] and not a unique
+        # string of the form 'Dx1 Dx2 ...'.
+        # Although 'var' is supposed to accept both syntaxes, the first
+        # one causes an error when it contains only one argument, due to
+        # line 784 of sage/symbolic/ring.pyx :
+        # "return self.symbol(name, latex_name=formatted_latex_name, domain=domain)"
+        # In this line, the first argument 'name' of 'symbol' is a list
+        # and not a string if the argument of 'var' is a list of one
+        # string (of the type ['Dt']), which causes error in 'symbol'.
+        # This might be corrected.
+        if len(self[:]) == 1:
+            string_vel = left + format(self[:][0]) # will raise an error
+            # in case left is not a string
+            if right is not None:
+                string_vel += right # will raise an error in case right
+                # is not a string
+
+            # If the argument of 'var' contains only one word, for
+            # instance:
+            # sage: var('Dt')
+            # then 'var' does not return a tuple containing one symbolic
+            # expression, but the symbolic expression itself.
+            # This is taken into account below in order to return a list
+            # containing one symbolic expression.
+            return [var(string_vel)]
+
+        list_strings_velocities = [left + format(coord_func)
+                                   for coord_func in self[:]] # will
+        # raise an error in case left is not a string
+
+        if right is not None:
+            list_strings_velocities = [string_vel + right for string_vel
+                                       in list_strings_velocities] # will
+            # raise an error in case right is not a string
+
+        return list(var(list_strings_velocities))
+
+
+
 #*****************************************************************************
 
 class RealDiffChart(DiffChart, RealChart):
@@ -595,6 +702,15 @@ class RealDiffChart(DiffChart, RealChart):
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     EXAMPLES:
 
@@ -791,7 +907,7 @@ class RealDiffChart(DiffChart, RealChart):
     :meth:`~sage.manifolds.chart.RealChart.plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart on a real differentiable manifold.
 
@@ -809,7 +925,8 @@ class RealDiffChart(DiffChart, RealChart):
             sage: TestSuite(X).run()
 
         """
-        RealChart.__init__(self, domain, coordinates=coordinates, names=names)
+        RealChart.__init__(self, domain, coordinates=coordinates, names=names,
+                           calc_method = calc_method)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -1015,7 +1132,7 @@ class DiffCoordChange(CoordChange):
 
         - Jacobian matrix `J`, the elements `J_{ij}` of which being
           coordinate functions
-          (cf. :class:`~sage.manifolds.coord_func.CoordFunction`)
+          (cf. :class:`~sage.manifolds.chart_func.ChartFunction`)
 
         EXAMPLES:
 
@@ -1032,7 +1149,7 @@ class DiffCoordChange(CoordChange):
         Each element of the Jacobian matrix is a coordinate function::
 
             sage: parent(X_to_Y.jacobian()[0,0])
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
 
         """
         return self._jacobian  # has been computed in __init__
@@ -1049,7 +1166,7 @@ class DiffCoordChange(CoordChange):
 
         - determinant of the Jacobian matrix `J` as a coordinate
           function
-          (cf. :class:`~sage.manifolds.coord_func.CoordFunction`)
+          (cf. :class:`~sage.manifolds.chart_func.ChartFunction`)
 
         EXAMPLES:
 
@@ -1067,7 +1184,7 @@ class DiffCoordChange(CoordChange):
         The Jacobian determinant is a coordinate function::
 
             sage: parent(X_to_Y.jacobian_det())
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
 
         """
         return self._transf.jacobian_det()

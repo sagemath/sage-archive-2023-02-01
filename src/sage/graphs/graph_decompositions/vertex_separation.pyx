@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Vertex separation
 
@@ -255,7 +256,7 @@ REFERENCES
   computing Pathwidth*, David Coudert, Dorian Mazauric, and Nicolas Nisse. In
   Symposium on Experimental Algorithms (SEA), volume 8504 of LNCS, Copenhagen,
   Denmark, pages 46-58, June 2014,
-  http://hal.inria.fr/hal-00943549/document
+  https://hal.inria.fr/hal-00943549/document
 
 Authors
 -------
@@ -324,7 +325,7 @@ def lower_bound(G):
         sage: lower_bound(g)
         1
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph or a DiGraph::
 
@@ -669,7 +670,7 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
         sage: pw, L = path_decomposition(g, algorithm = "MILP"); pw
         2
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph::
 
@@ -918,7 +919,7 @@ def vertex_separation_exp(G, verbose = False):
         sage: vertex_separation_exp(g)
         (1, [0, 1, 2, 3, 4, 5])
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph or a DiGraph::
 
@@ -1105,7 +1106,7 @@ def is_valid_ordering(G, L):
         sage: vertex_separation.is_valid_ordering(G, [1,2])
         False
 
-    TEST:
+    TESTS:
 
     Giving anything else than a Graph or a DiGraph::
 
@@ -1607,7 +1608,7 @@ def vertex_separation_BAB(G,
         sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
-        raise MemoryError("Unable to allocate data strutures.")
+        raise MemoryError("Unable to allocate data structures.")
 
     cdef list best_seq = list(range(n))
     for i in xrange(n):

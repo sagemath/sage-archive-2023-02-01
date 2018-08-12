@@ -29,6 +29,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 from libc.string cimport memcpy, memset
@@ -592,7 +593,7 @@ cdef class LeanMatrix:
         cdef list X_2 = list(U_2)
         cdef list Y_1 = []
         cdef list Y_2 = []
-        if z1 != None:
+        if z1 is not None:
             Y_1 = list(V_1) + [z1]
             Y_2 = list(V_2)
         else:

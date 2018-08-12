@@ -112,7 +112,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
     of each edge. In this way we get a bipartite graph where all the black
     vertices have valency 2 and there is no restriction on the valency
     of the white vertices. We call the edges of this new graph *darts*
-    (sometimes they are also called *half eldges* of the original graph).
+    (sometimes they are also called *half edges* of the original graph).
     Observe that each edge of the original graph is formed by two darts.
 
     Given a white vertex `v \in v(\Gamma)`, let `d(v)` be the set of darts
@@ -1067,7 +1067,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
             found = i+1 in darts_rho
             #if a value is not in darts_rho, we take the next number that appears
             #and change it to the new value.
-            if found == False:
+            if not found:
                 aux_val = min(x for x in darts_rho if x > i+1)
                 pos_darts = darts_rho.index(aux_val)
                 pos_rho = _find(aux_rho,aux_val)

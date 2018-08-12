@@ -179,7 +179,7 @@ Conversion
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <sage.matrix.constructor.MatrixFactory>`
+    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :func:`matrix`
     :meth:`~FiniteStateMachine.graph` | Underlying :class:`DiGraph`
     :meth:`~FiniteStateMachine.plot` | Plot
 
@@ -752,7 +752,7 @@ Finally, we check that this indeed computes the Gray code of the first
 Using the hook-functions
 ------------------------
 
-Let's use the :ref:`previous example "divison by
+Let's use the :ref:`previous example "division by
 3" <finite_state_machine_division_by_3_example>` to demonstrate the optional
 state and transition parameters ``hook``.
 
@@ -965,14 +965,14 @@ def full_group_by(l, key=lambda x: x):
     - that the keys are sortable (in contrast to the
       approach via ``sorted`` and ``itertools.groupby``) and
     - that the keys are hashable (in contrast to the
-      implementation proposed in `<http://stackoverflow.com/a/15250161>`_).
+      implementation proposed in `<https://stackoverflow.com/a/15250161>`_).
 
     However, it is required
 
     - that distinct keys have distinct ``str``-representations.
 
     The implementation is inspired by
-    `<http://stackoverflow.com/a/15250161>`_, but non-hashable keys are
+    `<https://stackoverflow.com/a/15250161>`_, but non-hashable keys are
     allowed.
 
     EXAMPLES::
@@ -1024,7 +1024,7 @@ def equal(iterator):
 
     ``True`` or ``False``.
 
-    This implements `<http://stackoverflow.com/a/3844832/1052778>`_.
+    This implements `<https://stackoverflow.com/a/3844832/1052778>`_.
 
     EXAMPLES::
 
@@ -2706,7 +2706,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
       process.
 
     - ``store_states_dict`` -- If ``True``, then additionally the states
-      are stored in an interal dictionary for speed up.
+      are stored in an internal dictionary for speed up.
 
     - ``on_duplicate_transition`` -- A function which is called when a
       transition is inserted into ``self`` which already existed (same
@@ -2860,7 +2860,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         ``LookupError`` or return an empty list.
 
         When constructing a finite state machine in this way, some
-        inital states and an input alphabet have to be specified.
+        initial states and an input alphabet have to be specified.
 
         ::
 
@@ -4328,7 +4328,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
             \end{tikzpicture}
 
-        TEST:
+        TESTS:
 
         Check that :trac:`16357` is fixed::
 
@@ -4409,7 +4409,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
                 \end{tikzpicture}
 
-        TEST:
+        TESTS:
 
         Check that :trac:`16357` is fixed::
 
@@ -4930,7 +4930,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 if hasattr(vertex, "accepting_where"):
                     angle = tikz_automata_where.get(vertex.accepting_where,
                                                     vertex.accepting_where)
-                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s \mid %s$} ++(%.2f:%s);\n" % (
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s \\mid %s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
                     EndOfWordLaTeX,
@@ -7445,7 +7445,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
 
     def concatenation(self, other):
-        """
+        r"""
         Concatenate this finite state machine with another finite
         state machine.
 
@@ -8176,7 +8176,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:                final_states=['A'])
             sage: F.transitions()[0].word_out is F.transitions()[1].word_out
             False
-            sage: G = Transducer([('C','C',0,1)],)
+            sage: G = Transducer([('C','C',0,1)],
             ....:                initial_states=['C'],
             ....:                final_states=['C'])
             sage: H = G.composition(F)
@@ -10046,8 +10046,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             x^2 - x - 1
             sage: R.<phi> = NumberField(x^2-x-1, embedding=1.6)
             sage: N = NAFp.number_of_words(base_ring=R); N
-            1/10*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) + 5)
-            - 1/10*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) - 5)
+            1/2*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(1/5) + 1)
+            - 1/2*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(1/5) - 1)
             sage: all(len(list(NAFp.language(s)))
             ....:     - len(list(NAFp.language(s-1))) == N.subs(n=s)
             ....:     for s in srange(1, 6))
@@ -10554,7 +10554,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         (x, y, z) = R.gens()
         try:
             M = get_matrix(self, x, y)
-        except TypeError:
+        except (TypeError, ValueError):
             sage.misc.misc.verbose(
                 "Non-integer output weights lead to "
                 "significant performance degradation.", level=0)
@@ -11034,7 +11034,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
           ``max_length`` will be considered. If ``None``, then this
           iterates over all possible words without length restrictions.
 
-        - ``kwargs`` -- will be passed on to to the :class:`process
+        - ``kwargs`` -- will be passed on to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
           description.
 
@@ -12309,7 +12309,7 @@ class Automaton(FiniteStateMachine):
           considered. If ``None``, then this iterates over all
           possible words without length restrictions.
 
-        - ``kwargs`` -- will be passed on to to the :class:`process
+        - ``kwargs`` -- will be passed on to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
           description.
 
@@ -12604,9 +12604,8 @@ class Transducer(FiniteStateMachine):
 
         return new
 
-
     def cartesian_product(self, other, only_accessible_components=True):
-        """
+        r"""
         Return a new transducer which can simultaneously process an
         input with the machines ``self`` and ``other`` where the
         output labels are `d`-tuples of the original output labels.

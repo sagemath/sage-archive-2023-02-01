@@ -121,9 +121,9 @@ REFERENCES:
 - Abramowitz and Stegun: Handbook of Mathematical Functions,
   http://www.math.sfu.ca/~cbm/aands/
 
-- http://en.wikipedia.org/wiki/Spherical_harmonics
+- :wikipedia:`Spherical_harmonics`
 
-- http://en.wikipedia.org/wiki/Helmholtz_equation
+- :wikipedia:`Helmholtz_equation`
 
 - Online Encyclopedia of Special Function
   http://algo.inria.fr/esf/index.html
@@ -163,7 +163,8 @@ from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF, CDF
-from sage.functions.other import real, imag, log_gamma
+from .gamma import log_gamma
+from .other import real, imag
 from sage.symbolic.constants import pi
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -229,9 +230,9 @@ class SphericalHarmonic(BuiltinFunction):
 
         Check that :trac:`20939` is fixed::
 
-            sage: spherical_harmonic(3,2,1,2*pi/3)
-            -1/240*sqrt(30)*(15*I*sqrt(7)*sqrt(3)
-             + 15*sqrt(7))*cos(1)*sin(1)^2/sqrt(pi)
+            sage: ex = spherical_harmonic(3,2,1,2*pi/3)
+            sage: QQbar(ex * sqrt(pi)/cos(1)/sin(1)^2).minpoly()
+            x^4 + 105/32*x^2 + 11025/1024
         """
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
@@ -473,7 +474,7 @@ class EllipticE(BuiltinFunction):
             return (elliptic_e(z, m) - elliptic_f(z, m)) / (Integer(2) * m)
 
     def _print_latex_(self, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_e(pi, x))
@@ -483,8 +484,9 @@ class EllipticE(BuiltinFunction):
 
 elliptic_e = EllipticE()
 
+
 class EllipticEC(BuiltinFunction):
-    """
+    r"""
     Return the complete elliptic integral of the second kind:
 
     .. MATH::
@@ -787,7 +789,7 @@ class EllipticF(BuiltinFunction):
                       sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
 
     def _print_latex_(self, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_f(x,pi))
@@ -796,6 +798,7 @@ class EllipticF(BuiltinFunction):
         return r"F(%s\,|\,%s)" % (latex(z), latex(m))
  
 elliptic_f = EllipticF()
+
 
 class EllipticKC(BuiltinFunction):
     r"""
@@ -1002,7 +1005,7 @@ class EllipticPi(BuiltinFunction):
                      sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
 
     def _print_latex_(self, n, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_pi(x,pi,0))

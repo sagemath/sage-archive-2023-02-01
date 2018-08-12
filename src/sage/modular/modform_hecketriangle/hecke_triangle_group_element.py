@@ -630,7 +630,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             cf_index += one
 
         preperiod_len = cf_dict[p]
-        period_len = cf_index - preperiod_len
+        #period_len = cf_index - preperiod_len
 
         return (tuple(L[:preperiod_len]), tuple(L[preperiod_len:]))
 
@@ -1351,10 +1351,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                 for j in range(1, G.n()):
                     Uj *= U
                     if U_power  == Uj:
-                        L = [one, ZZ(j)]
+                        #L = [one, ZZ(j)]
                         break
                     elif U_power == -Uj:
-                        L = [one, ZZ(-j)]
+                        #L = [one, ZZ(-j)]
                         break
                 else:
                     raise RuntimeError("There is a problem in the method "
@@ -2020,9 +2020,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.simple_fixed_point_set()
-            {(-lam + 3/2)*e - 1/2*lam + 1, 1/2*e + 1/2*lam, (-lam + 3/2)*e + 1/2*lam - 1, 1/2*e - 1/2*lam}
+            {(-lam + 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e - 1/2*lam + 1, 1/2*e - 1/2*lam, 1/2*e + 1/2*lam}
+
             sage: el.simple_fixed_point_set(extended=False)
-            {1/2*e + 1/2*lam, 1/2*e - 1/2*lam}
+            {1/2*e - 1/2*lam, 1/2*e + 1/2*lam}
         """
         if self.parent().n() == infinity:
             from warnings import warn
@@ -2507,7 +2508,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el.is_hecke_symmetric()
             False
             sage: (el.simple_fixed_point_set(), el.inverse().simple_fixed_point_set())
-            ({1/2*e, (-1/2*lam + 1/2)*e}, {(1/2*lam - 1/2)*e, -1/2*e})
+            ({1/2*e, (-1/2*lam + 1/2)*e}, {-1/2*e, (1/2*lam - 1/2)*e})
 
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.is_hecke_symmetric()
@@ -2519,7 +2520,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el.is_hecke_symmetric()
             True
             sage: el.simple_fixed_point_set()
-            {(lam - 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e + 1/2*lam - 1, (lam - 3/2)*e - 1/2*lam + 1, (-lam + 3/2)*e - 1/2*lam + 1}
+            {(lam - 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e - 1/2*lam + 1, (lam - 3/2)*e - 1/2*lam + 1, (-lam + 3/2)*e + 1/2*lam - 1}
             sage: el.simple_fixed_point_set() == el.inverse().simple_fixed_point_set()
             True
         """
@@ -2668,7 +2669,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         s = P.zero()
 
-        L1 = []
+        #L1 = []
         for v in self.simple_elements():
             a,b,c,d = v._matrix.list()
             Q = c*z**2 + (d - a)*z - b

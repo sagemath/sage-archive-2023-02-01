@@ -1,8 +1,25 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 This is Sage's version of the sphinx-build script
 
 We redirect stdout to our own logger, and remove some unwanted chatter.
 """
+# ****************************************************************************
+#       Copyright (C) 2013-2014 Volker Braun <vbraun.name@gmail.com>
+#                     2013-2017 J. H. Palmieri <<palmieri@math.washington.edu>
+#                     2013-2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#                     2014      Christopher Schwan <cschwan@students.uni-mainz.de>
+#                     2014      Nicolas M. Thiéry <nthiery@users.sf.net>
+#                     2015      Marc Mezzarobba <marc@mezzarobba.net>
+#                     2015      André Apitzsch <andre.apitzsch@etit.tu-chemnitz.de>
+#                     2018      Julian Rüth <julian.rueth@fsfe.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# ****************************************************************************
 
 import os, sys, re, sphinx
 
@@ -14,7 +31,7 @@ sphinx.util.console.term_width_line = term_width_line
 
 
 class SageSphinxLogger(object):
-    """
+    r"""
     This implements the file object interface to serve as sys.stdout
     replacement.
     """
@@ -37,6 +54,10 @@ class SageSphinxLogger(object):
         else:
             color = 'lightgray'
         self._prefix = sphinx.util.console.colorize(color, prefix)
+        # When we see an error in the log, we store it here and raise it at the
+        # end of the file (sometimes the lines following the error still
+        # contain valuable information.)
+        self._error = None
 
     def _init_chatter(self):
         # useless_chatter: regular expressions to be filtered from
@@ -55,6 +76,9 @@ class SageSphinxLogger(object):
             re.compile('WARNING: html_static_path entry .* does not exist'),
             re.compile('WARNING: while setting up extension'),
             re.compile('WARNING: Any IDs not assiend for figure node'),
+            re.compile('WARNING: .* is not referenced'),
+            re.compile('WARNING: Build finished'),
+            re.compile('language "hu" not supported'),
             )
 
         # replacements: pairs of regular expressions and their replacements,
@@ -70,9 +94,9 @@ class SageSphinxLogger(object):
                 re.compile('WARNING: search index couldn\'t be loaded, but not all documents will be built: the index will be incomplete.')
                 )
 
-        # warnings: regular expressions (or strings) indicating a problem with
-        # docbuilding. Raise an exception if any of these occur.
-        self.warnings = (re.compile('Segmentation fault'),
+        # Regular expressions indicating a problem with docbuilding. Raise an
+        # exception if any of these occur.
+        self._error_patterns = (re.compile('Segmentation fault'),
                     re.compile('SEVERE'),
                     re.compile('ERROR'),
                     re.compile('^make.*Error'),
@@ -87,12 +111,12 @@ class SageSphinxLogger(object):
         if 'latex' not in sys.argv:
             if 'multidoc_first_pass=1' in sys.argv:
                 # Catch all warnings except 'WARNING: undefined label'
-                self.warnings += (re.compile('WARNING: (?!undefined label)'),)
+                self._error_patterns += (re.compile('WARNING: (?!undefined label)'),)
             else:
-                self.warnings += (re.compile('WARNING:'),)
+                self._error_patterns += (re.compile('WARNING:'),)
 
     def _filter_out(self, line):
-        if exception is not None and self._is_stdout:
+        if self._error is not None and self._is_stdout:
             # swallow non-errors after an error occurred
             return True
         line = re.sub(self.ansi_color, '', line)
@@ -101,50 +125,100 @@ class SageSphinxLogger(object):
                 return True
         return False
 
-    def _check_warnings(self, line):
-        global exception
-        if exception is not None:
+    def _check_errors(self, line):
+        r"""
+        Search for errors in line.
+
+        EXAMPLES::
+
+            sage: from sys import stdout
+            sage: from sage_setup.docbuild.sphinxbuild import SageSphinxLogger
+            sage: logger = SageSphinxLogger(stdout, "doctesting")
+            sage: logger._log_line("Segmentation fault!\n") # indirect doctest
+            [doctestin] Segmentation fault!
+            sage: logger.raise_errors()
+            Traceback (most recent call last):
+            ...
+            OSError: [doctestin] Segmentation fault!
+
+        """
+        if self._error is not None:
             return  # we already have found an error
-        for regex in self.warnings:
+        for regex in self._error_patterns:
             if regex.search(line) is not None:
-                exception = OSError(line)
+                self._error = line
                 return
 
     def _log_line(self, line):
+        r"""
+        Write ``line`` to the output stream with some mangling.
+
+        EXAMPLES::
+
+            sage: from sys import stdout
+            sage: from sage_setup.docbuild.sphinxbuild import SageSphinxLogger
+            sage: logger = SageSphinxLogger(stdout, "doctesting")
+            sage: logger._log_line("building documentation…\n")
+            [doctestin] building documentation…
+
+        TESTS:
+
+        Verify that :trac:`25160` has been resolved::
+
+            sage: logger = SageSphinxLogger(stdout, "#25160")
+            sage: raise Exception("artificial exception")
+            Traceback (most recent call last):
+            ...
+            Exception: artificial exception
+            sage: import traceback
+            sage: for line in traceback.format_exc().split('\n'):
+            ....:     logger._log_line(line)
+            [#25160   ] Traceback (most recent call last):
+            [#25160   ]   File ...
+            [#25160   ]     self.compile_and_execute(example, compiler, test.globs)
+            [#25160   ]   File ...
+            [#25160   ]     exec(compiled, globs)
+            [#25160   ]   File ...
+            [#25160   ]     raise Exception("artificial exception")
+            [#25160   ] Exception: artificial exception
+
+        """
         if self._filter_out(line):
             return
         for (old, new) in self.replacements:
             line = old.sub(new, line)
-        line = self._prefix + ' ' + line.strip() + '\n'
+        line = self._prefix + ' ' + line.rstrip() + '\n'
         if not self._color:
             line = self.ansi_color.sub('', line)
         self._stream.write(line)
         self._stream.flush()
-        self._check_warnings(line)
+        self._check_errors(line)
+
+    def raise_errors(self):
+        r"""
+        Raise an exceptions if any errors have been found while parsing the
+        Sphinx output.
+
+        EXAMPLES::
+
+            sage: from sys import stdout
+            sage: from sage_setup.docbuild.sphinxbuild import SageSphinxLogger
+            sage: logger = SageSphinxLogger(stdout, "doctesting")
+            sage: logger._log_line("This is a SEVERE error\n")
+            [doctestin] This is a SEVERE error
+            sage: logger.raise_errors()
+            Traceback (most recent call last):
+            ...
+            OSError: [doctestin] This is a SEVERE error
+
+        """
+        if self._error is not None:
+            raise OSError(self._error)
 
     _line_buffer = ''
 
-    def _break_long_lines(self):
-        """
-        Break text that has been formated with string.ljust() back
-        into individual lines.  Return partial output. Do nothing if
-        the filter rule matches, otherwise subsequent lines would be
-        not filtered out.
-        """
-        if self._filter_out(self._line_buffer):
-            return
-        cols = sphinx.util.console._tw
-        lines = []
-        buf = self._line_buffer
-        while len(buf) > cols:
-            lines.append(buf[0:cols])
-            buf = buf[cols:]
-        lines.append(buf)
-        self._line_buffer = '\n'.join(lines)
-
     def _write(self, string):
         self._line_buffer += string
-        #self._break_long_lines()
         lines = self._line_buffer.splitlines()
         for i, line in enumerate(lines):
             last = (i == len(lines)-1)
@@ -190,12 +264,6 @@ class SageSphinxLogger(object):
 
 
 def runsphinx():
-    # Do not error out at the first warning, sometimes there is more
-    # information. So we run until the end of the file and only then
-    # raise the error.
-    global exception
-    exception = None
-
     output_dir = sys.argv[-1]
 
     saved_stdout = sys.stdout
@@ -204,12 +272,11 @@ def runsphinx():
     try:
         sys.stdout = SageSphinxLogger(sys.stdout, os.path.basename(output_dir))
         sys.stderr = SageSphinxLogger(sys.stderr, os.path.basename(output_dir))
-        sphinx.cmdline.main(sys.argv)
+        sphinx.cmdline.main(sys.argv[1:])
+        sys.stderr.raise_errors()
+        sys.stdout.raise_errors()
     finally:
         sys.stdout = saved_stdout
         sys.stderr = saved_stderr
         sys.stdout.flush()
         sys.stderr.flush()
-
-    if exception is not None:
-        raise exception

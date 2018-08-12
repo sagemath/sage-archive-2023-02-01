@@ -262,9 +262,9 @@ class NablaPiece(PuzzlePiece):
             sage: NablaPiece('1','2','3')
             3\1/2
         """
-        return "%s\%s/%s" % (self['south_west'],
-                             self['north'],
-                             self['south_east'])
+        return r"%s\%s/%s" % (self['south_west'],
+                              self['north'],
+                              self['south_east'])
 
     def clockwise_rotation(self):
         r"""
@@ -353,9 +353,9 @@ class DeltaPiece(PuzzlePiece):
             sage: DeltaPiece('1','2','3')
             2/1\3
         """
-        return "%s/%s\%s" % (self['north_west'],
-                             self['south'],
-                             self['north_east'])
+        return r"%s/%s\%s" % (self['north_west'],
+                              self['south'],
+                              self['north_east'])
 
     def clockwise_rotation(self):
         r"""
@@ -497,8 +497,8 @@ class RhombusPiece(PuzzlePiece):
             sage: RhombusPiece(delta,nabla)
             2/\3  6\/5
         """
-        return "%s/\%s  %s\/%s" % (self['north_west'], self['north_east'],
-                                   self['south_west'], self['south_east'])
+        return r"%s/\%s  %s\/%s" % (self['north_west'], self['north_east'],
+                                    self['south_west'], self['south_east'])
 
     def edges(self):
         r"""

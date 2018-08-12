@@ -11,12 +11,12 @@ Functions and Methods
 ----------------------
 """
 from six.moves import range
-from six import iteritems
 
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
 from sage.misc.decorators import rename_keyword
+
 
 def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
     """
@@ -289,14 +289,14 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
         sage: vars = var('x y z')
         sage: f = 100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
-        sage: minimize(f, [.1,.3,.4])
-        (1.00..., 1.00..., 1.00...)
+        sage: minimize(f, [.1,.3,.4]) # abs tol 1e-6
+        (1.0, 1.0, 1.0)
 
     Try the newton-conjugate gradient method; the gradient and hessian are 
     computed automatically::
 
-        sage: minimize(f, [.1, .3, .4], algorithm="ncg")
-        (0.9999999..., 0.999999..., 0.999999...)
+        sage: minimize(f, [.1, .3, .4], algorithm="ncg") # abs tol 1e-6
+        (1.0, 1.0, 1.0)
 
     We get additional convergence information with the `verbose` option::
 
@@ -309,8 +309,8 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
         sage: def rosen(x): # The Rosenbrock function
         ....:    return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
-        sage: minimize(rosen, [.1,.3,.4])
-        (1.00..., 1.00..., 1.00...)
+        sage: minimize(rosen, [.1,.3,.4]) # abs tol 3e-5
+        (1.0, 1.0, 1.0)
 
     Same example with a pure Python function and a Python function to
     compute the gradient::
@@ -328,8 +328,8 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         ....:    der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
         ....:    der[-1] = 200r*(x[-1r]-x[-2r]**2r)
         ....:    return der
-        sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs")
-        (1.00...,  1.00..., 1.00...)
+        sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs") # abs tol 1e-6
+        (1.0, 1.0, 1.0)
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
@@ -426,53 +426,70 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         sage: minimize_constrained(f, [(None,None),(4,10)],[5,5])
         (4.8..., 4.8...)
 
-    Check, if L-BFGS-B finds the same minimum::
+    Check if L-BFGS-B finds the same minimum::
 
         sage: minimize_constrained(f, [(None,None),(4,10)],[5,5], algorithm='l-bfgs-b')
         (4.7..., 4.9...)
 
-    Rosenbrock function, [http://en.wikipedia.org/wiki/Rosenbrock_function]::
+    Rosenbrock function (see the :wikipedia:`Rosenbrock_function`)::
 
         sage: from scipy.optimize import rosen, rosen_der
         sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],gradient=rosen_der,algorithm='l-bfgs-b')
         (-10.0, 10.0)
         sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],algorithm='l-bfgs-b')
         (-10.0, 10.0)
+
+    TESTS:
+
+    Check if :trac:`6592` is fixed::
+
+        sage: x, y = var('x y')
+        sage: f = (100 - x) + (1000 - y)
+        sage: c = x + y - 479 # > 0
+        sage: minimize_constrained(f, [c], [100, 300])
+        (805.985..., 1005.985...)
+        sage: minimize_constrained(f, c, [100, 300])
+        (805.985..., 1005.985...)
     """
     from sage.symbolic.expression import Expression
     import scipy
     from scipy import optimize
-    function_type=type(lambda x,y: x+y)
+    function_type = type(lambda x,y: x+y)
 
     if isinstance(func, Expression):
-        var_list=func.variables()
+        var_list = func.variables()
         var_names = [str(_) for _ in var_list]
-        fast_f=func._fast_float_(*var_names)
-        f=lambda p: fast_f(*p)
-        gradient_list=func.gradient()
-        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in range(len(gradient_list))]
-        gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        fast_f = func._fast_float_(*var_names)
+        f = lambda p: fast_f(*p)
+        gradient_list = func.gradient()
+        fast_gradient_functions = [gi._fast_float_(*var_names) for gi in gradient_list]
+        gradient = lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        if isinstance(cons, Expression):
+            fast_cons = cons._fast_float_(*var_names)
+            cons = lambda p: scipy.array([fast_cons(*p)])
+        elif isinstance(cons, list) and isinstance(cons[0], Expression):
+            fast_cons = [ci._fast_float_(*var_names) for ci in cons]
+            cons = lambda p: scipy.array([a(*p) for a in fast_cons])
     else:
-        f=func
+        f = func
 
     if isinstance(cons,list):
-        if isinstance(cons[0],tuple) or isinstance(cons[0],list) or cons[0] is None:
+        if isinstance(cons[0], tuple) or isinstance(cons[0], list) or cons[0] is None:
             if gradient is not None:
-                if algorithm=='l-bfgs-b':
-                    min= optimize.fmin_l_bfgs_b(f,x0,gradient,bounds=cons, iprint=-1, **args)[0]
+                if algorithm == 'l-bfgs-b':
+                    min = optimize.fmin_l_bfgs_b(f, x0, gradient, bounds=cons, iprint=-1, **args)[0]
                 else:
-                    min= optimize.fmin_tnc(f,x0,gradient,bounds=cons,messages=0,**args)[0]
+                    min = optimize.fmin_tnc(f, x0, gradient, bounds=cons, messages=0, **args)[0]
             else:
-                if algorithm=='l-bfgs-b':
-                    min= optimize.fmin_l_bfgs_b(f,x0,approx_grad=True,bounds=cons,iprint=-1, **args)[0]
+                if algorithm == 'l-bfgs-b':
+                    min = optimize.fmin_l_bfgs_b(f, x0, approx_grad=True, bounds=cons, iprint=-1, **args)[0]
                 else:
-                    min= optimize.fmin_tnc(f,x0,approx_grad=True,bounds=cons,messages=0,**args)[0]
-
-        elif isinstance(cons[0],function_type):
-            min= optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
-    elif isinstance(cons, function_type):
-        min= optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
-    return vector(RDF,min)
+                    min = optimize.fmin_tnc(f, x0, approx_grad=True, bounds=cons, messages=0, **args)[0]
+        elif isinstance(cons[0], function_type) or isinstance(cons[0], Expression):
+            min = optimize.fmin_cobyla(f, x0, cons, **args)
+    elif isinstance(cons, function_type) or isinstance(cons, Expression):
+        min = optimize.fmin_cobyla(f, x0, cons, **args)
+    return vector(RDF, min)
 
 
 def linear_program(c,G,h,A=None,b=None,solver=None):
@@ -738,44 +755,56 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     return [item[0] == item[1] for item in zip(parameters, estimated_params)]
 
-def binpacking(items,maximum=1,k=None):
+def binpacking(items, maximum=1, k=None, solver=None, verbose=0):
     r"""
-    Solves the bin packing problem.
+    Solve the bin packing problem.
 
     The Bin Packing problem is the following :
 
-    Given a list of items of weights `p_i` and a real value `K`, what is
-    the least number of bins such that all the items can be put in the
-    bins, while keeping sure that each bin contains a weight of at most `K` ?
+    Given a list of items of weights `p_i` and a real value `k`, what is the
+    least number of bins such that all the items can be packed in the bins,
+    while ensuring that the sum of the weights of the items packed in each bin
+    is at most `k` ?
 
-    For more informations : http://en.wikipedia.org/wiki/Bin_packing_problem
+    For more informations, see :wikipedia:`Bin_packing_problem`.
 
-    Two version of this problem are solved by this algorithm :
-         * Is it possible to put the given items in `L` bins ?
-         * What is the assignment of items using the
-           least number of bins with the given list of items ?
+    Two versions of this problem are solved by this algorithm :
+
+    - Is it possible to put the given items in `k` bins ?
+    - What is the assignment of items using the least number of bins with
+      the given list of items ?
 
     INPUT:
 
-    - ``items`` -- A list of real values (the items' weight)
+    - ``items`` -- list or dict; either a list of real values (the items'
+      weight), or a dictionary associating to each item its weight.
 
-    - ``maximum``   -- The maximal size of a bin
+    - ``maximum`` -- (default: 1); the maximal size of a bin
 
-    - ``k``     -- Number of bins
+    - ``k`` -- integer (default: ``None``); Number of bins
 
-      - When set to an integer value, the function returns a partition
-        of the items into `k` bins if possible, and raises an
-        exception otherwise.
+      - When set to an integer value, the function returns a partition of the
+        items into `k` bins if possible, and raises an exception otherwise.
 
       - When set to ``None``, the function returns a partition of the items
-        using the least number possible of bins.
+        using the least possible number of bins.
+
+    - ``solver`` -- (default: ``None``); Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
     OUTPUT:
 
-    A list of lists, each member corresponding to a box and containing
-    the list of the weights inside it. If there is no solution, an
-    exception is raised (this can only happen when ``k`` is specified
-    or if ``maximum`` is less that the size of one item).
+    A list of lists, each member corresponding to a bin and containing either
+    the list of the weights inside it when ``items`` is a list of items' weight,
+    or the list of items inside it when ``items`` is a dictionary. If there is
+    no solution, an exception is raised (this can only happen when ``k`` is
+    specified or if ``maximum`` is less than the weight of one item).
 
     EXAMPLES:
 
@@ -790,13 +819,18 @@ def binpacking(items,maximum=1,k=None):
 
     Checking the bins are of correct size ::
 
-        sage: all([ sum(b)<= 1 for b in bins ])
+        sage: all(sum(b) <= 1 for b in bins)
         True
 
     Checking every item is in a bin ::
 
         sage: b1, b2, b3 = bins
-        sage: all([ (v in b1 or v in b2 or v in b3) for v in values ])
+        sage: all((v in b1 or v in b2 or v in b3) for v in values)
+        True
+
+    And only in one bin ::
+
+        sage: sum(len(b) for b in bins) == len(values)
         True
 
     One way to use only three boxes (which is best possible) is to put
@@ -809,50 +843,70 @@ def binpacking(items,maximum=1,k=None):
         sage: binpacking([0.2,0.3,0.8,0.9], k=2)
         Traceback (most recent call last):
         ...
-        ValueError: This problem has no solution !
-    """
+        ValueError: this problem has no solution !
 
-    if max(items) > maximum:
-        raise ValueError("This problem has no solution !")
+    We can also provide a dictionary keyed by items and associating to each item
+    its weight. Then, the bins contain the name of the items inside it ::
+
+        sage: values = {'a':1/5, 'b':1/3, 'c':2/3, 'd':3/4, 'e':5/7}
+        sage: bins = binpacking(values)
+        sage: set(flatten(bins)) == set(values.keys())
+        True
+
+    TESTS:
+
+    Wrong type for parameter items::
+
+        sage: binpacking(set())
+        Traceback (most recent call last):
+        ...
+        TypeError: parameter items must be a list or a dictionary.
+    """
+    if isinstance(items, list):
+        weight = {i:w for i,w in enumerate(items)}
+    elif isinstance(items, dict):
+        weight = items
+    else:
+        raise TypeError("parameter items must be a list or a dictionary.")
+
+    if max(weight.values()) > maximum:
+        raise ValueError("this problem has no solution !")
 
     if k is None:
         from sage.functions.other import ceil
-        k=ceil(sum(items)/maximum)
+        k = ceil(sum(weight.values())/maximum)
         while True:
             from sage.numerical.mip import MIPSolverException
             try:
-                return binpacking(items,k=k,maximum=maximum)
+                return binpacking(items, k=k, maximum=maximum, solver=solver, verbose=verbose)
             except MIPSolverException:
                 k = k + 1
 
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-    p=MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver=solver)
 
-    # Boolean variable indicating whether
-    # the i th element belongs to box b
-    box=p.new_variable(binary = True)
+    # Boolean variable indicating whether the ith element belongs to box b
+    box = p.new_variable(binary=True)
 
-    # Each bin contains at most max
+    # Capacity constraint of each bin
     for b in range(k):
-        p.add_constraint(p.sum([items[i]*box[i,b] for i in range(len(items))]) <= maximum)
+        p.add_constraint(p.sum(weight[i]*box[i,b] for i in weight) <= maximum)
 
     # Each item is assigned exactly one bin
-    for i in range(len(items)):
-        p.add_constraint(p.sum([box[i,b] for b in range(k)]) == 1)
-
-    p.set_objective(None)
+    for i in weight:
+        p.add_constraint(p.sum(box[i,b] for b in range(k)) == 1)
 
     try:
-        p.solve()
+        p.solve(log=verbose)
     except MIPSolverException:
-        raise ValueError("This problem has no solution !")
+        raise ValueError("this problem has no solution !")
 
     box = p.get_values(box)
 
     boxes = [[] for i in range(k)]
 
-    for (i, b), value in iteritems(box):
-        if value == 1:
-            boxes[b].append(items[i])
+    for i,b in box:
+        if box[i,b] == 1:
+            boxes[b].append(weight[i] if isinstance(items, list) else i)
 
     return boxes

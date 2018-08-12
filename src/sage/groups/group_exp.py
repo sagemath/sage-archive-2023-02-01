@@ -206,11 +206,9 @@ class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
 
         See the documentation of :meth:`sage.structure.element_wrapper.ElementWrapper.__init__`
         for the reason behind skipping the category test.
-
         """
-
         if x not in parent._G:
-            return ValueError("%s is not an element of %s" % (x, parent._G))
+            raise ValueError("%s is not an element of %s" % (x, parent._G))
         ElementWrapper.__init__(self, parent, x)
 
     def inverse(self):

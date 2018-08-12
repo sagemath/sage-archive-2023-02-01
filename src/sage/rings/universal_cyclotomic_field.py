@@ -147,11 +147,19 @@ Check that :trac:`17117` is fixed::
     sage: imag(e3)
     -1/2*E(12)^7 + 1/2*E(12)^11
 
+Check that :trac:`25686` is fixed::
+
+    sage: UCF = UniversalCyclotomicField()
+    sage: UCF.is_finite()
+    False
+
 AUTHORS:
 
 - Christian Stump (2013): initial Sage version (see :trac:`8327`)
 
 - Vincent Delecroix (2015): complete rewriting using libgap (see :trac:`18152`)
+
+- Sebastian Oehms (2018): deleting the method is_finite since it returned the wrong result (see :trac:`25686`)
 """
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
@@ -632,6 +640,15 @@ class UniversalCyclotomicFieldElement(FieldElement):
             1.47801783444132?
             sage: _.imag().is_zero()
             True
+
+        Check that units are evaluated correctly (:trac:`23775`)::
+
+            sage: CIF(1 + E(8) - E(8,3))
+            2.41421356237310?
+            sage: (1 + E(8) - E(8,3))._eval_complex_(CC)
+            2.41421356237309
+            sage: (1 + E(8) - E(8,3))._eval_complex_(CDF) # abs tol 1e-14
+            2.414213562373095
         """
         if self._obj.IsRat():
             return R(self._obj.sage())
@@ -639,7 +656,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
         zeta = R.zeta(k)
-        s = sum(coeffs[i] * zeta ** i for i in range(1, k))
+        s = sum(coeffs[i] * zeta ** i for i in range(k))
         if self.is_real():
             return R(s.real())
         return s
@@ -657,6 +674,15 @@ class UniversalCyclotomicFieldElement(FieldElement):
             1.24697960371747
             sage: 2*cos(2*pi/7).n()
             1.24697960371747
+
+        Check that units are evaluated correctly (:trac:`23775`)::
+
+            sage: RIF(1 + E(8) - E(8,3))
+            2.414213562373095?
+            sage: RR(1 + E(8) - E(8,3))
+            2.41421356237309
+            sage: RDF(1 + E(8) - E(8,3))
+            2.414213562373095
         """
         if not self.is_real():
             raise TypeError("self is not real")
@@ -667,7 +693,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
         t = (2 * R.pi()) / k
-        return sum(coeffs[i] * (i * t).cos() for i in range(1, k))
+        return sum(coeffs[i] * (i * t).cos() for i in range(k))
 
     _mpfr_ = _eval_real_
 
@@ -959,7 +985,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         n = k if n is None else ZZ(n)
         if not k.divides(n):
             raise ValueError("n = {} must be a multiple of the conductor ({})".format(n, k))
-        return [P.element_class(P, obj.GaloisCyc(i)) for i in range(n) if n.gcd(i) == 1]
+        return [P.element_class(P, obj.GaloisCyc(i)) for i in n.coprime_integers(n)]
 
     def norm_of_galois_extension(self):
         r"""
@@ -1097,21 +1123,6 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         return (self.zero(), self.one(), -self.one(),
                 self.gen(3, 1),
                 self.gen(7, 1) - self(2) / self(3) * self.gen(7, 2))
-
-    def is_finite(self):
-        r"""
-        Return ``True``.
-
-        EXAMPLES::
-
-            sage: UniversalCyclotomicField().is_finite()
-            True
-
-        .. TODO::
-
-            this method should be provided by the category.
-        """
-        return True
 
     def _repr_(self):
         r"""

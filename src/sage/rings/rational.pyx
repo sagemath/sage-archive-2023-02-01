@@ -28,6 +28,11 @@ AUTHORS:
 
 - Vincent Delecroix (2017-05-03): faster integer-rational comparison
 
+- Vincent Klein (2017-05-11): add __mpq__() to class Rational
+
+- Vincent Klein (2017-05-22): Rational constructor support gmpy2.mpq
+  or gmpy2.mpz parameter. Add __mpz__ to class Rational.
+
 TESTS::
 
     sage: a = -2/3
@@ -47,6 +52,7 @@ TESTS::
 
 from __future__ import absolute_import
 
+cimport cython
 from cpython cimport *
 from cpython.object cimport Py_EQ, Py_NE
 
@@ -54,9 +60,11 @@ from cysignals.signals cimport sig_on, sig_off
 
 import sys
 import operator
+import fractions
 
 from sage.misc.mathml import mathml
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long, integer_check_long_py
+from sage.cpython.string cimport char_to_str, str_to_bytes
 
 import sage.misc.misc as misc
 from sage.structure.sage_object cimport SageObject
@@ -83,7 +91,7 @@ from sage.structure.parent cimport Parent
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
-import sage.structure.factorization
+
 
 import sage.rings.real_mpfr
 import sage.rings.real_double
@@ -105,6 +113,11 @@ cdef object numpy_double_interface = {'typestr': '=f8'}
 
 from libc.math cimport ldexp
 from sage.libs.gmp.all cimport *
+
+IF HAVE_GMPY2:
+    cimport gmpy2
+    gmpy2.import_gmpy2()
+
 
 cdef class Rational(sage.structure.element.FieldElement)
 
@@ -390,6 +403,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         sage: QQ(RDF(1.2))
         6/5
 
+    Conversion from fractions::
+
+        sage: import fractions
+        sage: f = fractions.Fraction(1r, 2r)
+        sage: Rational(f)
+        1/2
+
     Conversion from PARI::
 
         sage: Rational(pari('-939082/3992923'))
@@ -411,6 +431,18 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         sage: QQ(np.float16('12'))
         12
+
+    Conversions from gmpy2::
+
+        sage: from gmpy2 import *  # optional - gmpy2
+        sage: QQ(mpq('3/4'))       # optional - gmpy2
+        3/4
+        sage: QQ(mpz(42))          # optional - gmpy2
+        42
+        sage: Rational(mpq(2/3))   # optional - gmpy2
+        2/3
+        sage: Rational(mpz(5))     # optional - gmpy2
+        5
     """
     def __cinit__(self):
         r"""
@@ -447,6 +479,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             2/3
             sage: a.__init__('-h/3ki', 32); a
             -17/3730
+            sage: from gmpy2 import mpq      # optional - gmpy2
+            sage: a.__init__(mpq('3/5')); a  # optional - gmpy2
+            3/5
 
         TESTS:
 
@@ -473,7 +508,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             sage: a = 3/5
             sage: a.__reduce__()
-            (<built-in function make_rational>, ('3/5',))
+            (<cyfunction make_rational at ...>, ('3/5',))
         """
         return sage.rings.rational.make_rational, (self.str(32),)
 
@@ -495,35 +530,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             return int(self)
         raise TypeError("rational is not an integer")
 
-    def _reduce_set(self, s):
-        """
-        Used in setting a rational number when unpickling. Do not call this
-        from external code since it violates immutability.
-
-        INPUT:
-
-        -  ``s`` - string representation of rational in base 32
-
-        EXAMPLES::
-
-            sage: a = -17/3730; _, (s,) = a.__reduce__(); s
-            '-h/3ki'
-            sage: b = 2/3; b._reduce_set('-h/3ki'); b
-            -17/3730
-
-            sage: Rational(pari(-345/7687))
-            -345/7687
-            sage: Rational(pari(-345))
-            -345
-            sage: Rational(pari('Mod(2,3)'))
-            2
-            sage: Rational(pari('x'))
-            Traceback (most recent call last):
-            ...
-            TypeError: Unable to coerce PARI x to an Integer
-        """
-        mpq_set_str(self.value, s, 32)
-
     cdef __set_value(self, x, unsigned int base):
         cdef int n
         cdef Rational temp_rational
@@ -532,12 +538,12 @@ cdef class Rational(sage.structure.element.FieldElement):
         if isinstance(x, Rational):
             set_from_Rational(self, x)
 
+        elif isinstance(x, long):
+            mpz_set_pylong(mpq_numref(self.value), x)
+
         elif isinstance(x, int):
             i = x
             mpq_set_si(self.value, i, 1)
-
-        elif isinstance(x, long):
-            mpz_set_pylong(mpq_numref(self.value), x)
 
         elif isinstance(x, integer.Integer):
             set_from_Integer(self, x)
@@ -550,13 +556,15 @@ cdef class Rational(sage.structure.element.FieldElement):
             if not base:
                 set_from_Rational(self, x.simplest_rational())
             else:
-                xstr = x.str(base)
+                # Truncate in base 10 to match repr(x).
+                # See https://trac.sagemath.org/ticket/21124
+                xstr = x.str(base, truncate=(base == 10))
                 if '.' in xstr:
                     exp = (len(xstr) - (xstr.index('.') +1))
                     p = base**exp
                     pstr = '1'+'0'*exp
                     s = xstr.replace('.','') +'/'+pstr
-                    n = mpq_set_str( self.value, s, base)
+                    n = mpq_set_str(self.value, str_to_bytes(s), base)
                     if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                         raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
@@ -565,9 +573,13 @@ cdef class Rational(sage.structure.element.FieldElement):
                     if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                         raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
-
-        elif isinstance(x, basestring):
+        elif isinstance(x, bytes):
             n = mpq_set_str(self.value, x, base)
+            if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
+                raise TypeError("unable to convert {!r} to a rational".format(x))
+            mpq_canonicalize(self.value)
+        elif isinstance(x, unicode):
+            n = mpq_set_str(self.value, str_to_bytes(x), base)
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
             mpq_canonicalize(self.value)
@@ -621,6 +633,16 @@ cdef class Rational(sage.structure.element.FieldElement):
                 self.__set_value(sage.rings.real_mpfr.RR(x), base)
             else:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
+
+        elif isinstance(x, fractions.Fraction):
+            mpz_set(mpq_numref(self.value), (<integer.Integer> integer.Integer(x.numerator)).value)
+            mpz_set(mpq_denref(self.value), (<integer.Integer> integer.Integer(x.denominator)).value)
+
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpq:
+            mpq_set(self.value, (<gmpy2.mpq>x).q)
+
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+            mpq_set_z(self.value, (<gmpy2.mpz>x).z)
 
         else:
             raise TypeError("unable to convert {!r} to a rational".format(x))
@@ -815,13 +837,13 @@ cdef class Rational(sage.structure.element.FieldElement):
                 c = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         elif isinstance(right, Integer):
             c = mpq_cmp_z((<Rational>left).value, (<Integer>right).value)
-        elif isinstance(right, int):
-            c = mpq_cmp_si((<Rational>left).value, PyInt_AS_LONG(right), 1)
         elif isinstance(right, long):
             mpz_init(mpz_tmp)
             mpz_set_pylong(mpz_tmp, right)
             c = mpq_cmp_z((<Rational>left).value, mpz_tmp)
             mpz_clear(mpz_tmp)
+        elif isinstance(right, int):
+            c = mpq_cmp_si((<Rational>left).value, PyInt_AS_LONG(right), 1)
         else:
             return coercion_model.richcmp(left, right, op)
 
@@ -907,6 +929,19 @@ cdef class Rational(sage.structure.element.FieldElement):
             else:
                return "\\frac{%s}{%s}"%(self.numer(), self.denom())
 
+    def _symbolic_(self, sring):
+        """
+        Return this rational as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(QQ(7)/3); ex
+            7/3
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
+
     def _sympy_(self):
         """
         Convert Sage ``Rational`` to SymPy ``Rational``.
@@ -923,6 +958,57 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         import sympy
         return sympy.Rational(int(self.numerator()), int(self.denominator()))
+
+    def __mpz__(self):
+        """
+        Return a gmpy2 ``mpz`` if this Rational is an integer.
+
+        EXAMPLES::
+
+            sage: q = 6/2
+            sage: q.__mpz__()  # optional - gmpy2
+            mpz(3)
+            sage: q = 1/4
+            sage: q.__mpz__()  # optional - gmpy2
+            Traceback (most recent call last):
+            ...
+            TypeError: rational is not an integer
+
+        TESTS::
+
+            sage: QQ().__mpz__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        if self.denominator() != 1:
+            raise TypeError("rational is not an integer")
+        return self.numerator().__mpz__()
+
+    def __mpq__(self):
+        """
+        Convert Sage ``Rational`` to gmpy2 ``Rational``.
+
+        EXAMPLES::
+
+            sage: r = 5/3
+            sage: r.__mpq__()            # optional - gmpy2
+            mpq(5,3)
+            sage: from gmpy2 import mpq  # optional - gmpy2
+            sage: mpq(r)                 # optional - gmpy2
+            mpq(5,3)
+
+        TESTS::
+
+            sage: r.__mpq__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        IF HAVE_GMPY2:
+            return gmpy2.GMPy_MPQ_From_mpq(self.value)
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
 
     def _magma_init_(self, magma):
         """
@@ -1532,7 +1618,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             if (mpz_cmp_ui(mpq_denref(self.value), 1) == 0):
                 return mpz_perfect_power_p(mpq_numref(self.value))
-            if expected_value == False:
+            if not expected_value:
                 # A necessary condition is that both the numerator and denominator
                 # be perfect powers, which can be faster to disprove than the full
                 # product (especially if both have a large prime factor).
@@ -1561,7 +1647,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mpz_clear(prod)
                 return s == 1
 
-            if expected_value == False:
+            if not expected_value:
                 if mpz_cmpabs(mpq_numref(self.value), mpq_denref(self.value)) < 0:
                     mpz_init(prod)
                     mpz_mul_si(prod, mpq_numref(self.value), -1)
@@ -1605,7 +1691,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
-    def is_padic_square(self, p):
+    def is_padic_square(self, p, check=True):
         """
         Determines whether this rational number is a square in `\QQ_p` (or in
         `R` when ``p = infinity``).
@@ -1613,6 +1699,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         -  ``p`` - a prime number, or ``infinity``
+
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         EXAMPLES::
 
@@ -1640,7 +1728,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         ## Check that p is prime
         from .integer_ring import ZZ
         p = ZZ(p)
-        if not p.is_prime():
+        if check and not p.is_prime():
             raise ValueError('p must be "infinity" or a positive prime number.')
 
         ## Deal with finite primes
@@ -1876,7 +1964,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         When a rational number `n/d` with `(n,d)=1` is
         expanded, the period begins after `s` terms and has length
         `t`, where `s` and `t` are the smallest numbers satisfying
-        `10^s=10^{s+t} \mod d`. In general if `d=2^a3^bm` where `m`
+        `10^s=10^{s+t} \mod d`. In general if `d=2^a 5^b m` where `m`
         is coprime to 10, then `s=\max(a,b)` and `t` is the order of
         10 modulo `d`.
 
@@ -2059,7 +2147,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = str(s)
+        k = char_to_str(s)
         PyMem_Free(s)
         return k
 
@@ -2926,25 +3014,26 @@ cdef class Rational(sage.structure.element.FieldElement):
     #Define an alias for numerator
     numer = numerator
 
-    def __int__(self):
-        """
-        Convert this rational to a Python ``int``.
+    IF PY_MAJOR_VERSION <= 2:
+        def __int__(self):
+            """
+            Convert this rational to a Python ``int``.
 
-        This truncates ``self`` if ``self`` has a denominator (which is
-        consistent with Python's ``long(floats)``).
+            This truncates ``self`` if ``self`` has a denominator (which is
+            consistent with Python's ``long(floats)``).
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: int(7/3)
-            2
-            sage: int(-7/3)
-            -2
-        """
-        return int(self.__long__())
+                sage: int(7/3)
+                2
+                sage: int(-7/3)
+                -2
+            """
+            return int(self.__long__())
 
     def __long__(self):
         """
-        Convert this rational to a Python ``long``.
+        Convert this rational to a Python ``long`` (``int`` on Python 3).
 
         This truncates ``self`` if ``self`` has a denominator (which is
         consistent with Python's ``long(floats)``).
@@ -3010,8 +3099,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             ...
             ArithmeticError: factorization of 0 is not defined
         """
+        from sage.structure.factorization import Factorization
         return self.numerator().factor() * \
-           sage.structure.factorization.Factorization([(p,-e) for p, e in self.denominator().factor()])
+           Factorization([(p, -e) for p, e in self.denominator().factor()])
 
     def support(self):
         """
@@ -3060,11 +3150,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (124/345).log(5,100)
             -0.63578895682825611710391773754
             sage: log(QQ(125))
-            log(125)
+            3*log(5)
             sage: log(QQ(125), 5)
             3
             sage: log(QQ(125), 3)
-            log(125)/log(3)
+            3*log(5)/log(3)
             sage: QQ(8).log(1/2)
             -3
             sage: (1/8).log(1/2)
@@ -3091,7 +3181,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if mpz_sgn(mpq_numref(self.value)) < 0:
             from sage.symbolic.all import SR
             return SR(self).log()
-        if m <= 0 and m is not None:
+        if m is not None and m <= 0:
             raise ValueError("log base must be positive")
         if prec:
             from sage.rings.real_mpfr import RealField
@@ -3475,8 +3565,18 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
 
+    def is_rational(self):
+        r"""
+        Return ``True`` since this is a rational number.
 
-    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+        EXAMPLES::
+
+            sage: (3/4).is_rational()
+            True
+        """
+        return True
+
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500
     is_integer = is_integral
 
 
@@ -3934,6 +4034,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     return ldexp(d, shift)
 
 
+@cython.binding(True)
 def make_rational(s):
     """
     Make a rational number from ``s`` (a string in base 32)
@@ -3952,8 +4053,9 @@ def make_rational(s):
         -7/15
     """
     r = Rational()
-    r._reduce_set(s)
+    mpq_set_str(r.value, str_to_bytes(s), 32)
     return r
+
 
 cdef class Z_to_Q(Morphism):
     r"""
@@ -4075,9 +4177,10 @@ cdef class Q_to_Z(Map):
         """
         return Z_to_Q()
 
+
 cdef class int_to_Q(Morphism):
     r"""
-    A morphism from ``int`` to `\QQ`.
+    A morphism from Python 2 ``int`` to `\QQ`.
     """
     def __init__(self):
         """
@@ -4087,12 +4190,12 @@ cdef class int_to_Q(Morphism):
 
             sage: sage.rings.rational.int_to_Q()
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Rational Field
         """
         from . import rational_field
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
 
     cpdef Element _call_(self, a):
@@ -4104,10 +4207,17 @@ cdef class int_to_Q(Morphism):
             sage: f = sage.rings.rational.int_to_Q()
             sage: f(int(4)) # indirect doctest
             4
-            sage: f(int(4^100))   # random garbage, not an int
-            14
+            sage: f(4^100)  # py2 - this will crash on Python 3
+            Traceback (most recent call last):
+            ...
+            TypeError: must be a Python int object
         """
+
         cdef Rational rat
+
+        if type(a) is not int:
+            raise TypeError("must be a Python int object")
+
         rat = <Rational> Rational.__new__(Rational)
         mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
         return rat
@@ -4123,3 +4233,67 @@ cdef class int_to_Q(Morphism):
         """
         return "Native"
 
+
+cdef class long_to_Q(Morphism):
+    r"""
+    A morphism from Python 2 ``long``/Python 3 ``int`` to `\QQ`.
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: sage.rings.rational.long_to_Q()  # py2
+            Native morphism:
+              From: Set of Python objects of class 'long'
+              To:   Rational Field
+            sage: sage.rings.rational.long_to_Q()  # py3
+            Native morphism:
+              From: Set of Python objects of class 'int'
+              To:   Rational Field
+        """
+        from . import rational_field
+        import sage.categories.homset
+        from sage.sets.pythonclass import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(
+            Set_PythonType(long), rational_field.QQ))
+
+    cpdef Element _call_(self, a):
+        """
+        Return the image of the morphism on ``a``.
+
+        EXAMPLES::
+
+            sage: f = sage.rings.rational.long_to_Q()
+            sage: f(long(4)) # indirect doctest
+            4
+            sage: f(long(4^100))
+            1606938044258990275541962092341162602522202993782792835301376
+        """
+
+        cdef Rational rat
+        cdef long a_long
+        cdef int err = 0
+
+        rat = <Rational> Rational.__new__(Rational)
+
+        integer_check_long_py(a, &a_long, &err)
+
+        if not err:
+            mpq_set_si(rat.value, a_long, 1)
+        else:
+            mpz_set_pylong(mpq_numref(rat.value), a)
+
+        return rat
+
+    def _repr_type(self):
+        """
+        Return string that describes the type of morphism.
+
+        EXAMPLES::
+
+            sage: sage.rings.rational.long_to_Q()._repr_type()
+            'Native'
+        """
+        return "Native"

@@ -2,9 +2,8 @@ r"""
 Interface to FriCAS
 
 .. TODO::
-
-    - ``fricas(dilog(x))`` should be ``dilog(-(x-1))``, and some
-      more conversions in ``sage.functions`` are missing
+    - some conversions in ``sage.functions`` are still missing and
+      all should be checked and tested
 
 FriCAS is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system based on Axiom.  The FriCAS
@@ -67,8 +66,8 @@ with how the rest of SageMath works::
 
     sage: f = fricas('x^5 - y^5')                                               # optional - fricas
     sage: f^2                                                                   # optional - fricas
-       10     5 5    10
-      y   - 2x y  + x
+     10      5 5    10
+    y   - 2 x y  + x
     sage: f.factor()                                                            # optional - fricas
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
@@ -93,37 +92,45 @@ differential equation for the generating function for integer
 partitions::
 
     sage: fricas("guessADE([partition n for n in 0..40], homogeneous==4)")      # optional - fricas
-     [
-       [
-           n
-         [x ]f(x):
-              2    3 (iv)          2    2 ,             3  ,,,         2    2 ,,   2
-             x f(x) f    (x) + (20x f(x) f (x) + 5x f(x) )f   (x) - 39x f(x) f  (x)
+    [
+      [
+          n
+        [x ]f(x):
+               2    3 (iv)           2    2 ,              3  ,,,
+              x f(x) f    (x) + (20 x f(x) f (x) + 5 x f(x) )f   (x)
     <BLANKLINE>
-           +
-                 2     ,   2           2 ,           3  ,,        2 ,   4
-             (12x f(x)f (x)  - 15x f(x) f (x) + 4f(x) )f  (x) + 6x f (x)
+            +
+                    2    2 ,,   2
+              - 39 x f(x) f  (x)
     <BLANKLINE>
-           +
-                      ,   3         2 ,   2
-             10x f(x)f (x)  - 16f(x) f (x)
+            +
+                   2     ,   2            2 ,            3  ,,         2 ,   4
+              (12 x f(x)f (x)  - 15 x f(x) f (x) + 4 f(x) )f  (x) + 6 x f (x)
     <BLANKLINE>
-             =
-             0
-         ,
-                        2     3      4
-        f(x)= 1 + x + 2x  + 3x  + O(x )]
-       ]
+            +
+                        ,   3          2 ,   2
+              10 x f(x)f (x)  - 16 f(x) f (x)
+    <BLANKLINE>
+          =
+            0
+        ,
+                         2      3      4
+       f(x) = 1 + x + 2 x  + 3 x  + O(x )]
+      ]
 
 FriCAS can solve linear ordinary differential equations::
 
     sage: fricas.set("y", "operator y")                                         # optional - fricas
     sage: fricas.set("deq", "x^3*D(y x, x, 3) + x^2*D(y x, x, 2) - 2*x*D(y x, x) + 2*y x - 2*x^4")  # optional - fricas
     sage: fricas.set("sol", "solve(deq, y, x)"); fricas("sol")                  # optional - fricas
-                  5      3      2               3     2      3      3     2
-                 x  - 10x  + 20x  + 4         2x  - 3x  + 1 x  - 1 x  - 3x  - 1
-    [particular= --------------------,basis= [-------------,------,------------]]
-                          15x                       x          x         x
+                   5       3       2
+                  x  - 10 x  + 20 x  + 4
+    [particular = ----------------------,
+                           15 x
+                 3      2       3       3      2
+              2 x  - 3 x  + 1  x  - 1  x  - 3 x  - 1
+     basis = [---------------, ------, -------------]]
+                     x            x          x
 
     sage: fricas("sol.particular").sage()                                       # optional - fricas
     1/15*(x^5 - 10*x^3 + 20*x^2 + 4)/x
@@ -155,17 +162,20 @@ FriCAS can expand expressions into series::
     sage: x = fricas("x::TaylorSeries Fraction Integer")                        # optional - fricas
     sage: y = fricas("y::TaylorSeries Fraction Integer")                        # optional - fricas
     sage: 2*(1+2*x+sqrt(1-4*x)-2*x*y).recip()                                   # optional - fricas
-                   2      3     2 2     3      4       4       5
-       1 + (x y + x ) + 2x  + (x y  + 2x y + 6x ) + (4x y + 18x )
-     +
-         3 3     4 2      5       6       5 2      6        7
-       (x y  + 3x y  + 13x y + 57x ) + (6x y  + 40x y + 186x )
-     +
-         4 4     5 3      6 2       7        8       6 3      7 2       8         9
-       (x y  + 4x y  + 21x y  + 130x y + 622x ) + (8x y  + 66x y  + 432x y + 2120x )
-     +
-         5 5     6 4      7 3       8 2        9         10
-       (x y  + 5x y  + 30x y  + 220x y  + 1466x y + 7338x  ) + O(11)
+                  2       3     2 2      3       4        4        5
+      1 + (x y + x ) + 2 x  + (x y  + 2 x y + 6 x ) + (4 x y + 18 x )
+    +
+        3 3      4 2       5        6        5 2       6         7
+      (x y  + 3 x y  + 13 x y + 57 x ) + (6 x y  + 40 x y + 186 x )
+    +
+        4 4      5 3       6 2        7         8
+      (x y  + 4 x y  + 21 x y  + 130 x y + 622 x )
+    +
+          6 3       7 2        8          9
+      (8 x y  + 66 x y  + 432 x y + 2120 x )
+    +
+        5 5      6 4       7 3        8 2         9          10
+      (x y  + 5 x y  + 30 x y  + 220 x y  + 1466 x y + 7338 x  ) + O(11)
 
 FriCAS does some limits right::
 
@@ -185,7 +195,6 @@ FriCAS does some limits right::
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
-# from __future__ import absolute_import
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
@@ -193,7 +202,7 @@ from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import DOT_SAGE
 from sage.docs.instancedoc import instancedoc
 import re
-import six
+
 
 FRICAS_SINGLE_LINE_START = 3 # where the output starts when it fits next to the line number
 FRICAS_MULTI_LINE_START = 2  # and when it doesn't
@@ -225,7 +234,7 @@ class FriCAS(ExtraTabCompletion, Expect):
     """
     Interface to a FriCAS interpreter.
     """
-    def __init__(self, name='fricas', command='fricas -nox -noclef',
+    def __init__(self, name='fricas', command='fricas -nosman',
                  script_subdirectory=None, logfile=None,
                  server=None, server_tmpdir=None):
         """
@@ -235,6 +244,20 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             sage: fricas == loads(dumps(fricas))                                # optional - fricas
             True
+
+        Check that :trac:`25174` is fixed::
+
+            sage: fricas(I)                                                     # optional - fricas
+            %i
+
+            sage: integrate(sin(x)*exp(I*x), x, -pi, 0, algorithm="fricas")     # optional - fricas
+            1/2*I*pi
+
+            sage: fricas(I*sin(x)).sage()                                       # optional - fricas
+            I*sin(x)
+
+            sage: fricas(I*x).sage()                                            # optional - fricas
+            I*x
         """
         eval_using_file_cutoff = 4096-5 # magic number from Expect._eval_line (there might be a bug)
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
@@ -284,7 +307,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: fricas._quit_string()                                         # optional - fricas
-            ')quit\r'
+            ')quit'
             sage: a = FriCAS()                                                  # optional - fricas
             sage: a.is_running()                                                # optional - fricas
             False
@@ -299,17 +322,11 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             sage: import psutil                                                 # optional - fricas
             sage: p = fricas.pid(); pr = psutil.Process(p); pr                  # optional - fricas
-            <psutil.Process(pid=..., name='sman') at ...>
+            <psutil.Process(pid=..., name='AXIOMsys') at ...>
             sage: pr.children()                                                 # optional - fricas
-            [<psutil.Process(pid=..., name='AXIOMsys') at ...>,
-             <psutil.Process(pid=..., name='session') at ...>,
-             <psutil.Process(pid=..., name='spadclient') at ...>,
-             <psutil.Process(pid=..., name='sman') at ...>]
-            sage: fricas.quit()                                                 # optional - fricas
-            sage: pr.is_running()                                               # optional - fricas, random
-            False
+            []
         """
-        return ')quit\r'
+        return ')quit'
 
     def _commands(self):
         """
@@ -327,7 +344,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             True
         """
         output = self.eval(")what operations", reformat=False)
-        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\r\n(.*)\r\n\|startKeyedMsg\|", output, flags = re.DOTALL)
+        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\n(.*)\n\|startKeyedMsg\|", output, flags = re.DOTALL)
         l = m.groups()[0].split()
         return l
 
@@ -494,10 +511,10 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         """
         # otherwise there might be a message
-        m = re.search("\|startKeyedMsg\|\r\n(.*)\r\n\|endOfKeyedMsg\|\r", output, flags = re.DOTALL)
+        m = re.search("\|startKeyedMsg\|\n(.*)\n\|endOfKeyedMsg\|", output, flags = re.DOTALL)
         if m:
-            replacements = [('|startKeyedMsg|\r\n', ''),
-                            ('|endOfKeyedMsg|\r', '')]
+            replacements = [('|startKeyedMsg|\n', ''),
+                            ('|endOfKeyedMsg|', '')]
             for old, new in replacements:
                 output = output.replace(old, new)
             raise RuntimeError("An error occurred when FriCAS evaluated '%s':\n%s" % (line, output))
@@ -530,7 +547,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
     def get(self, var):
         r"""
- Get the string representation of the value (more precisely, the
+        Get the string representation of the value (more precisely, the
         OutputForm) of a variable or expression in FriCAS.
 
         If FriCAS cannot evaluate `var` an error is raised.
@@ -542,22 +559,22 @@ class FriCAS(ExtraTabCompletion, Expect):
             '2'
             sage: a = fricas('(1 + sqrt(2))^5')                                 # optional - fricas
             sage: fricas.get(a.name())                                          # optional - fricas
-            '   +-+\r\n29\\|2  + 41'
+            '    +-+\n29 \\|2  + 41'
             sage: fricas.get('(1 + sqrt(2))^5')                                 # optional - fricas
-            '   +-+\r\n29\\|2  + 41'
+            '    +-+\n29 \\|2  + 41'
             sage: fricas.new('(1 + sqrt(2))^5')                                 # optional - fricas
-               +-+
-            29\|2  + 41
+                +-+
+            29 \|2  + 41
         """
         output = self.eval(str(var), reformat=False)
         # if there is AlgebraOutput we ask no more
-        m = re.search("\|startAlgebraOutput\|\r\n(.*)\r\n\|endOfAlgebraOutput\|\r", output, flags = re.DOTALL)
+        m = re.search("\|startAlgebraOutput\|\n(.*)\n\|endOfAlgebraOutput\|", output, flags = re.DOTALL)
         if m:
-            lines = m.groups()[0].split("\r\n")
+            lines = m.groups()[0].split("\n")
             if max(len(line) for line in lines) < FRICAS_LINE_LENGTH:
-                return "\r\n".join(line[FRICAS_SINGLE_LINE_START:] for line in lines)
+                return "\n".join(line[FRICAS_SINGLE_LINE_START:] for line in lines)
             else:
-                return "\r\n".join(line[FRICAS_MULTI_LINE_START:] for line in lines)
+                return "\n".join(line[FRICAS_MULTI_LINE_START:] for line in lines)
 
         self._check_errors(var, output)
 
@@ -580,8 +597,34 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.get_string('concat([string(1) for i in 1..10000])') == "1"*10000    # optional - fricas
             True
 
+        A problem with leading space::
+
+            sage: s = "unparse((-1234567890123456789012345678901234567890123456789012345678901234567890*n::EXPR INT)::INFORM)"
+            sage: fricas.get_string(s)                                                       # optional - fricas
+            '(-1234567890123456789012345678901234567890123456789012345678901234567890)*n'
+
+        Check that :trac:`25628` is fixed::
+
+            sage: var("a b"); f = 1/(1+a*cos(x))                                # optional - fricas
+            (a, b)
+            sage: lF = integrate(f, x, algorithm="fricas")                      # optional - fricas
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: f = 1/(b*x^2+a); lF = integrate(f, x, algorithm="fricas"); lF # optional - fricas
+            [1/2*log((2*a*b*x + (b*x^2 - a)*sqrt(-a*b))/(b*x^2 + a))/sqrt(-a*b),
+             arctan(sqrt(a*b)*x/a)/sqrt(a*b)]
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+
         """
-        return self.get(str(var)).replace("\r\n", "")[1:-1]
+        # strip removes leading and trailing whitespace, after that
+        # we can assume that the first and the last character are
+        # double quotes
+        return self.get(str(var)).replace("\n", "").strip()[1:-1]
 
     def get_integer(self, var):
         """
@@ -609,7 +652,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.get_boolean('(1=2)::Boolean') == False                 # optional - fricas
             True
         """
-        return self.get(str(var)).replace("\r\n", "") == "true"
+        return self.get(str(var)).replace("\n", "") == "true"
 
     def get_unparsed_InputForm(self, var):
         """
@@ -628,7 +671,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         TESTS::
 
             sage: fricas.get_unparsed_InputForm('1..3')                         # optional - fricas
-            '1..3$Segment(Integer())'
+            '(1..3)$Segment(PositiveInteger())'
 
         """
         return self.get_string('unparse((%s)::InputForm)' %str(var))
@@ -654,13 +697,13 @@ class FriCAS(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: a = fricas(x==6); a                                           # optional - fricas, indirect doctest
-            x= 6
+            x = 6
 
         A warning:
 
             sage: fricas.set("x", 2);                                           # optional - fricas
             sage: a = fricas(x==6); a                                           # optional - fricas
-            2= 6
+            2 = 6
             sage: fricas.eval(")cl val x")                                      # optional - fricas
             ''
         """
@@ -703,7 +746,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         EXAMPLES::
 
-            sage: fricas        # indirect doctest
+            sage: fricas                                                        # indirect doctest
             FriCAS
         """
         return "FriCAS"
@@ -736,11 +779,11 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: fricas.set("x", "1783"); fricas("x")                               # optional - fricas
+            sage: fricas.set("x", "1783"); fricas("x")                          # optional - fricas
             1783
-            sage: fricas.eval(")cl val x");                                          # optional - fricas
+            sage: fricas.eval(")cl val x");                                     # optional - fricas
             ''
-            sage: fricas("x")                                                        # optional - fricas
+            sage: fricas("x")                                                   # optional - fricas
             x
 
         """
@@ -748,11 +791,15 @@ class FriCAS(ExtraTabCompletion, Expect):
                              synchronize=synchronize, locals=locals,
                              allow_use_file=allow_use_file, split_lines=split_lines,
                              **kwds)
+        # we remove carriage returns (\r) to make parsing easier
+        # they are sent depending on how fricas was invoked:
+        # on linux, "fricas -nox -noclef" sends "\r\n" and "fricas -nosman" sends "\n"
+        output = output.replace('\r', '')
         if reformat:
-            replacements = [('|startAlgebraOutput|\r\n', ''),
-                            ('|endOfAlgebraOutput|\r', ''),
-                            ('|startKeyedMsg|\r\n', ''),
-                            ('|endOfKeyedMsg|\r', '')]
+            replacements = [('|startAlgebraOutput|\n', ''),
+                            ('|endOfAlgebraOutput|', ''),
+                            ('|startKeyedMsg|\n', ''),
+                            ('|endOfKeyedMsg|', '')]
             for old, new in replacements:
                 output = output.replace(old, new)
 
@@ -850,7 +897,7 @@ class FriCASElement(ExpectElement):
 
             - can we somehow implement negative arguments?
 
-        TEST:
+        TESTS::
 
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1
@@ -963,7 +1010,7 @@ class FriCASElement(ExpectElement):
             \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4 \end{array}  \right]
 
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
-            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%A} ^{2}}+1} \over  \%A}} \right)} \  {d \%A}}
+            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
         """
         replacements = [('\sp ', '^'),
                         ('\sp{', '^{'),
@@ -994,6 +1041,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix
@@ -1014,12 +1062,15 @@ class FriCASElement(ExpectElement):
             return QQbar
 
         # now implement "functorial" types
-        if head == "OrderedCompletion":
+        if head == "OrderedCompletion" or head == "Complex":
             # this is a workaround, I don't know how translate this
             return SR
 
         if head == "IntegerMod":
             return Integers(domain[1].integer().sage())
+
+        if head == "PrimeField":
+            return FiniteField(domain[1].integer().sage())
 
         if head == "Fraction":
             return FractionField(self._get_sage_type(domain[1]))
@@ -1062,16 +1113,83 @@ class FriCASElement(ExpectElement):
             sage: f._sage_expression(s)                                         # optional - fricas
             1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
 
+        Check that :trac:`22525` is fixed::
+
+            sage: l = [sin, cos, sec, csc, cot, tan, asin, acos, atan, acot, acsc, asec, arcsin, arccos, arctan, arccot, arccsc, arcsec]
+            sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
+            [0.783326909627483,
+             0.621609968270664,
+             1.60872581046605,
+             1.27660621345890,
+             0.793551147842317,
+             1.26015821755034,
+             1.11976951499863,
+             0.451026811796262,
+             0.732815101786507,
+             0.837981225008390,
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I,
+             1.11976951499863,
+             0.451026811796262,
+             0.732815101786507,
+             0.837981225008390,
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I]
+            sage: l = [tanh, sinh, cosh, coth, sech, csch, asinh, acosh, atanh, acoth, asech, acsch, arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch]
+            sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
+            [0.716297870199024,
+             1.02651672570818,
+             1.43308638544877,
+             1.39606725303001,
+             0.697794641100332,
+             0.974168247780004,
+             0.808866935652782,
+             0.451026811796262*I,
+             1.47221948958322,
+             1.47221948958322 - 1.57079632679490*I,
+             0.467145308103262,
+             0.957800449200672,
+             0.808866935652782,
+             0.451026811796262*I,
+             1.47221948958322,
+             1.47221948958322 - 1.57079632679490*I,
+             0.467145308103262,
+             0.957800449200672]
+
+        Check that :trac:`23782` is fixed::
+
+            sage: s = '((3*n^10-25*n^9+50*n^8+62*n^7-229*n^6-25*n^5+320*n^4-12*n^3-144*n^2)/11520)::EXPR INT'
+            sage: fricas(s).sage()                                              # optional - fricas
+            1/3840*n^10 - 5/2304*n^9 + 5/1152*n^8 + 31/5760*n^7 - 229/11520*n^6 - 5/2304*n^5 + 1/36*n^4 - 1/960*n^3 - 1/80*n^2
+
+
+        Check that :trac:`25224` is fixed::
+
+            sage: integrate(log(x)/(1-x),x,algorithm='fricas')                  # optional - fricas
+            dilog(-x + 1)
+            sage: fricas(dilog(-x + 1))                                         # optional - fricas
+            dilog(x)
+            sage: dilog._fricas_()(1.0)                                         # optional - fricas
+            1.6449340668_4822643647_24152
+            sage: dilog(1.0)
+            1.64493406684823
+
         """
-        from sage.symbolic.ring import SR
+        from sage.calculus.calculus import symbolic_expression_from_string
+        from sage.libs.pynac.pynac import symbol_table, register_symbol
+        from sage.symbolic.all import I
+        from sage.functions.log import dilog
+        register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
+        register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
+
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
                         ('::Symbol', ' ')]
         for old, new in replacements:
             s = s.replace(old, new)
         try:
-            return SR(s)
-        except TypeError:
+            return symbolic_expression_from_string(s, symbol_table["fricas"])
+        except (SyntaxError, TypeError):
             raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %s)
 
 
@@ -1102,8 +1220,8 @@ class FriCASElement(ExpectElement):
         Algebraic numbers::
 
             sage: a = fricas('(1 + sqrt(2))^5'); a                              # optional - fricas
-               +-+
-            29\|2  + 41
+                +-+
+            29 \|2  + 41
             sage: b = a.sage(); b                                               # optional - fricas
             82.0121933088198?
             sage: b.radical_expression()                                        # optional - fricas
@@ -1113,6 +1231,11 @@ class FriCASElement(ExpectElement):
 
             sage: fricas("((42^17)^1783)::IntegerMod(5^(5^5))").sage() == Integers(5^(5^5))((42^17)^1783) # optional - fricas
             True
+
+        Matrices over a prime field::
+
+            sage: fricas("matrix [[1::PF 3, 2],[2, 0]]").sage().parent()        # optional - fricas
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
 
         We can also convert FriCAS's polynomials to Sage polynomials::
 
@@ -1219,6 +1342,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
+        from sage.symbolic.all import I
         from sage.matrix.constructor import matrix
         from sage.structure.factorization import Factorization
         from sage.misc.sage_eval import sage_eval
@@ -1252,6 +1376,10 @@ class FriCASElement(ExpectElement):
         if head == "Fraction":
             return P.new("numer(%s)" %self._name).sage()/P.new("denom(%s)" %self._name).sage()
 
+        if head == "Complex":
+            return (P.new("real(%s)" %self._name).sage() +
+                    P.new("imag(%s)" %self._name).sage()*I)
+
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()
             return Factorization([(p, e) for p,e in l])
@@ -1261,7 +1389,6 @@ class FriCASElement(ExpectElement):
             unparsed_InputForm = P.get_unparsed_InputForm(self._name)
         except RuntimeError as error:
             raise NotImplementedError("The translation of the FriCAS object\n\n%s\n\nto sage is not yet implemented:\n%s" %(self, error))
-
         if head == "Boolean":
             return unparsed_InputForm == "true"
 
@@ -1287,7 +1414,7 @@ class FriCASElement(ExpectElement):
             s = unparsed_InputForm[:-len("::AlgebraicNumber()")]
             return sage_eval("QQbar(" + s + ")")
 
-        if head == "IntegerMod":
+        if head == "IntegerMod" or head == "PrimeField":
             # one might be tempted not to go via InputForm here, but
             # it turns out to be safer to do it.
             n = unparsed_InputForm[len("index("):]
@@ -1296,6 +1423,10 @@ class FriCASElement(ExpectElement):
 
         if head == "Polynomial":
             base_ring = self._get_sage_type(domain[1])
+            # Polynomial Complex is translated into SR
+            if base_ring is SR:
+                return self._sage_expression(unparsed_InputForm)
+
             # the following is a bad hack, we should be getting a list here
             vars = P.get_unparsed_InputForm("variables(%s)" %self._name)[1:-1]
             if vars == "":
@@ -1310,9 +1441,9 @@ class FriCASElement(ExpectElement):
                 return self._sage_expression(unparsed_InputForm)
 
         if head == "Expression":
-            # TODO: we also have Expression Complex Integer and the like
-            if str(domain[1].car()) == "Integer":
-                return self._sage_expression(unparsed_InputForm)
+            # we treat Expression Integer and Expression Complex
+            # Integer just the same
+            return self._sage_expression(unparsed_InputForm)
 
         if head == 'DistributedMultivariatePolynomial':
             base_ring = self._get_sage_type(domain[2])

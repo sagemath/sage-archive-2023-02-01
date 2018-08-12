@@ -329,7 +329,9 @@ class Function_exp_integral_e1(BuiltinFunction):
 
     def _derivative_(self, z, diff_param=None):
         """
-        The derivative of `E_1(z)` is `-e^{-z}/z`. See [AS1964], 5.1.26.
+        The derivative of `E_1(z)` is `-e^{-z}/z`.
+
+        See [AS1964]_ 5.1.26.
 
         EXAMPLES::
 
@@ -395,7 +397,7 @@ class Function_log_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - :wikipedia:`Logarithmic_integral_function`
     - mpmath documentation: `logarithmic-integral`_
 
     .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
@@ -583,7 +585,7 @@ class Function_log_integral_offset(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - :wikipedia:`Logarithmic_integral_function`
     - mpmath documentation: `logarithmic-integral`_
 
     .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
@@ -641,7 +643,7 @@ class Function_log_integral_offset(BuiltinFunction):
         return mpmath_utils_call(mpmath.li, z, offset=True, parent=parent)
 
     def _derivative_(self, z, diff_param=None):
-        """
+        r"""
         The derivative of `\operatorname{Li}(z) is `1/log(z)`.
 
         EXAMPLES::
@@ -654,7 +656,6 @@ class Function_log_integral_offset(BuiltinFunction):
             sage: f = log_integral_offset(x^2)
             sage: f.diff(x)
             2*x/log(x^2)
-
         """
         return 1/log(z)
 
@@ -754,7 +755,7 @@ class Function_sin_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `si`_
 
     .. _`si`: http://mpmath.org/doc/current/functions/expintegrals.html#si
@@ -798,7 +799,7 @@ class Function_sin_integral(BuiltinFunction):
             return z
 
     def _evalf_(self, z, parent=None, algorithm=None):
-        """
+        r"""
         EXAMPLES:
 
         The limit `\operatorname{Si}(z)` as `z \to \infty`  is `\pi/2`::
@@ -823,7 +824,6 @@ class Function_sin_integral(BuiltinFunction):
             -1.60541297680269
             sage: sin_integral(-1e23)
             -1.57079632679490
-
         """
         import mpmath
         return mpmath_utils_call(mpmath.si, z, parent=parent)
@@ -927,7 +927,7 @@ class Function_cos_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `ci`_
 
     .. _`ci`: http://mpmath.org/doc/current/functions/expintegrals.html#ci
@@ -1060,7 +1060,7 @@ class Function_sinh_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `shi`_
 
     .. _`shi`: http://mpmath.org/doc/current/functions/expintegrals.html#shi
@@ -1130,7 +1130,7 @@ class Function_sinh_integral(BuiltinFunction):
 
             sage: f = sinh_integral(ln(x))
             sage: f.diff(x)
-            sinh(log(x))/(x*log(x))
+            1/2*(x^2 - 1)/(x^2*log(x))
 
         """
         return sinh(z)/z
@@ -1170,7 +1170,7 @@ class Function_cosh_integral(BuiltinFunction):
 
         sage: f(x) = cosh_integral(x)
         sage: find_root(f, 0.1, 1.0)
-        0.523822571389482...
+        0.523822571389...
 
     Compare ``cosh_integral(3.0)`` to the definition of the value using
     numerical integration::
@@ -1208,7 +1208,7 @@ class Function_cosh_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `chi`_
 
     .. _`chi`: http://mpmath.org/doc/current/functions/expintegrals.html#chi
@@ -1246,7 +1246,7 @@ class Function_cosh_integral(BuiltinFunction):
         return mpmath_utils_call(mpmath.chi, z, parent=parent)
 
     def _derivative_(self, z, diff_param=None):
-        """
+        r"""
         The derivative of `\operatorname{Chi}(z)` is `\cosh(z)/z`.
 
         EXAMPLES::
@@ -1258,7 +1258,7 @@ class Function_cosh_integral(BuiltinFunction):
 
             sage: f = cosh_integral(ln(x))
             sage: f.diff(x)
-            cosh(log(x))/(x*log(x))
+            1/2*(x^2 + 1)/(x^2*log(x))
 
         """
         return cosh(z)/z

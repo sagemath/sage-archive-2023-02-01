@@ -1,5 +1,3 @@
-from types import MethodType
-
 include "sage/libs/linkages/padics/fmpz_poly_unram.pxi"
 include "sage/libs/linkages/padics/unram_shared.pxi"
 include "FP_template.pxi"
@@ -24,9 +22,9 @@ cdef class PowComputer_(PowComputer_flint_unram):
         PowComputer_flint_unram.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
 
 cdef class qAdicFloatingPointElement(FPElement):
-    frobenius = MethodType(frobenius_unram, None, qAdicFloatingPointElement)
-    trace = MethodType(trace_unram, None, qAdicFloatingPointElement)
-    norm = MethodType(norm_unram, None, qAdicFloatingPointElement)
+    frobenius = frobenius_unram
+    trace = trace_unram
+    norm = norm_unram
 
     def matrix_mod_pn(self):
         """
@@ -101,7 +99,9 @@ cdef class qAdicFloatingPointElement(FPElement):
         """
         if self.ordp < 0:
             return self._flint_rep(var), Integer(self.ordp)
-        cshift(self.prime_pow.poly_flint_rep, self.unit, self.ordp, self.ordp + self.prime_pow.prec_cap, self.prime_pow, False)
+        if self._is_exact_zero():
+            raise ValueError("Zero does not have a flint rep")
+        cshift_notrunc(self.prime_pow.poly_flint_rep, self.unit, self.ordp, self.ordp + self.prime_pow.prec_cap, self.prime_pow, False)
         return self.prime_pow._new_fmpz_poly(self.prime_pow.poly_flint_rep, var), Integer(0)
 
     def __hash__(self):

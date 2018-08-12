@@ -59,11 +59,10 @@ REFERENCES:
 ##############################################################################
 from __future__ import print_function
 
-from sage.all import prod
-from sage.rings.all import RealField, RR
 from sage.schemes.elliptic_curves.all import EllipticCurve
 
-def c4c6_nonsingular(c4,c6):
+
+def c4c6_nonsingular(c4, c6):
     r"""
     Check if c4, c6 are integral with valid associated discriminant.
 
@@ -106,7 +105,8 @@ def c4c6_nonsingular(c4,c6):
     D = (c4**3-c6**2)/1728
     return not D.is_zero() and D.is_integral()
 
-def c4c6_model(c4,c6, assume_nonsingular=False):
+
+def c4c6_model(c4, c6, assume_nonsingular=False):
     r"""
     Return the elliptic curve [0,0,0,-c4/48,-c6/864] with given c-invariants.
 
@@ -142,7 +142,7 @@ def c4c6_model(c4,c6, assume_nonsingular=False):
 
 # Arithmetic utility functions
 
-def make_integral(a,P,e):
+def make_integral(a, P, e):
     r"""
     Returns b in O_K with P^e|(a-b), given a in O_{K,P}.
 
@@ -161,7 +161,7 @@ def make_integral(a,P,e):
 
     ALGORITHM:
 
-    Totally naive, we simply test reisdues modulo `P^e` until one
+    Totally naive, we simply test residues modulo `P^e` until one
     works.  We will only use this when P is a prime dividing 2 and e
     is the ramification degree, so the number of residues to check is
     at worst `2^d` where `d` is the degree of the field.
@@ -190,7 +190,8 @@ def make_integral(a,P,e):
             return b
     raise ArithmeticError("Cannot lift %s to O_K mod (%s)^%s" % (a,P,e))
 
-def sqrt_mod_4(x,P):
+
+def sqrt_mod_4(x, P):
     r"""
     Returns a local square root mod 4, if it exists.
 
@@ -221,7 +222,6 @@ def sqrt_mod_4(x,P):
         sage: ((1+a)^2 - (-1+2*a)).mod(P**e)
         0
     """
-    K = x.parent()
     e = P.ramification_index()
     P2 = P**e
     for r in P2.residues():
@@ -231,7 +231,7 @@ def sqrt_mod_4(x,P):
 
 # Kraus test and check for primes dividing 3:
 
-def test_b2_local(c4,c6,P,b2,debug=False):
+def test_b2_local(c4, c6, P, b2, debug=False):
     r"""
     Test if b2 gives a valid model at a prime dividing 3.
 
@@ -293,7 +293,8 @@ def test_b2_local(c4,c6,P,b2,debug=False):
         return False
     return E
 
-def test_b2_global(c4,c6,b2,debug=False):
+
+def test_b2_global(c4, c6, b2, debug=False):
     r"""
     Test if b2 gives a valid model at all primes dividing 3.
 
@@ -336,7 +337,8 @@ def test_b2_global(c4,c6,b2,debug=False):
         return False
     return E
 
-def check_Kraus_local_3(c4,c6,P, assume_nonsingular=False, debug=False):
+
+def check_Kraus_local_3(c4, c6, P, assume_nonsingular=False, debug=False):
     r"""
     Test if c4,c6 satisfy Kraus's conditions at a prime P dividing 3.
 
@@ -405,7 +407,7 @@ def check_Kraus_local_3(c4,c6,P, assume_nonsingular=False, debug=False):
 
 # Kraus test and check for primes dividing 2:
 
-def test_a1a3_local(c4,c6,P,a1,a3, debug=False):
+def test_a1a3_local(c4, c6, P, a1, a3, debug=False):
     r"""
     Test if a1,a3 are valid at a prime P dividing 2.
 
@@ -446,7 +448,8 @@ def test_a1a3_local(c4,c6,P,a1,a3, debug=False):
         return False
     return E
 
-def test_a1a3_global(c4,c6,a1,a3, debug=False):
+
+def test_a1a3_global(c4, c6, a1, a3, debug=False):
     r"""
     Test if a1,a3 are valid at all primes P dividing 2.
 
@@ -484,7 +487,8 @@ def test_a1a3_global(c4,c6,a1,a3, debug=False):
         return False
     return E
 
-def test_rst_global(c4,c6,r,s,t, debug=False):
+
+def test_rst_global(c4, c6, r, s, t, debug=False):
     r"""
     Test if the (r,s,t)-transform of the standard c4,c6-model is integral.
 
@@ -541,7 +545,8 @@ def test_rst_global(c4,c6,r,s,t, debug=False):
 # local a1's, then CRT these to get a global a1, then go back to get
 # the local a3's and finally CRT these.
 
-def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
+
+def check_Kraus_local_2(c4, c6, P, a1=None, assume_nonsingular=False):
     r"""
     Test if c4,c6 satisfy Kraus's conditions at a prime P dividing 2.
 
@@ -558,7 +563,7 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
 
     OUTPUT:
 
-    Either (False, 0, 0) if Kraus's condictions fail, or (True, a1,
+    Either (False, 0, 0) if Kraus's conditions fail, or (True, a1,
     a3) if they pass, in which case the elliptic curve which is the
     (a1**2/12,a1/2,a3/2)-transform of [0,0,0,-c4/48,-c6/864] is
     integral at P.  If a1 is provided and valid then the output will
@@ -582,7 +587,7 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
     c4val = c4.valuation(P)
 
     if c4val==0:
-        if a1 == None:
+        if a1 is None:
             flag, t = sqrt_mod_4(-c6,P)
             if not flag:
                 return False,0,0
@@ -599,7 +604,7 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
             raise RuntimeError("check_Kraus_local_2 fails")
 
     if c4val >= 4*e:
-        if a1 == None:
+        if a1 is None:
             a1 = c4.parent().zero() # 0
         flag, a3 = sqrt_mod_4(c6/8,P)
         if flag:
@@ -630,9 +635,9 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
 # Wrapper function for local Kraus check, outsources the real work to
 # other functions for primes dividing 2 or 3:
 
-def check_Kraus_local(c4,c6,P, assume_nonsingular=False):
+def check_Kraus_local(c4, c6, P, assume_nonsingular=False):
     r"""
-    Check Kraus's condictions locally at a prime P.
+    Check Kraus's conditions locally at a prime P.
 
     INPUT:
 
@@ -700,7 +705,8 @@ def check_Kraus_local(c4,c6,P, assume_nonsingular=False):
         return (False, None)
     return (True, c4c6_model(c4,c6))
 
-def check_Kraus_global(c4,c6, assume_nonsingular=False, debug=False):
+
+def check_Kraus_global(c4, c6, assume_nonsingular=False, debug=False):
     r"""
     Test if c4,c6 satisfy Kraus's conditions at all primes.
 
@@ -713,7 +719,7 @@ def check_Kraus_global(c4,c6, assume_nonsingular=False, debug=False):
 
     OUTPUT:
 
-    Either False if Kraus's condictions fail, or, if they pass, an
+    Either False if Kraus's conditions fail, or, if they pass, an
     elliptic curve E which is integral and has c-invariants c4,c6.
 
     EXAMPLES::

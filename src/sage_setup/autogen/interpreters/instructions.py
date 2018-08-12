@@ -198,17 +198,18 @@ class InstrSpec(object):
         r"""
         Initialize an InstrSpec.
 
-        INPUTS:
-            name -- the name of the instruction
-            io -- a pair of lists of parameter specifications for I/O of the
-                  instruction
-            code -- a string containing a snippet of C code to read
-                    from the input variables and write to the output variables
-            uses_error_handler -- True if the instruction calls Python
-                                  and jumps to error: on a Python error
-            handles_own_decref -- True if the instruction handles Python
-                                  objects and includes its own
-                                  reference-counting
+        INPUT:
+
+        - name -- the name of the instruction
+        - io -- a pair of lists of parameter specifications for I/O of the
+          instruction
+        - code -- a string containing a snippet of C code to read
+          from the input variables and write to the output variables
+        - uses_error_handler -- True if the instruction calls Python
+          and jumps to error: on a Python error
+        - handles_own_decref -- True if the instruction handles Python
+          objects and includes its own
+          reference-counting
 
         EXAMPLES::
 

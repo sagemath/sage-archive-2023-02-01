@@ -31,13 +31,13 @@ class Circle(GraphicPrimitive):
 
     INPUT:
 
-    - x - `x`-coordinate of center of Circle
+    - x -- `x`-coordinate of center of Circle
 
-    - y - `y`-coordinate of center of Circle
+    - y -- `y`-coordinate of center of Circle
 
-    - r - radius of Circle object
+    - r -- radius of Circle object
 
-    - options - dict of valid plot options to pass to constructor
+    - options -- dict of valid plot options to pass to constructor
 
     EXAMPLES:
 

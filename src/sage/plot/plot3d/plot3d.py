@@ -47,6 +47,23 @@ EXAMPLES::
     S = P + axes(6, color='black')
     sphinx_plot(S)
     
+Here is an example using a colormap and a color function ``c``::
+
+    sage: x, y = var('x y')
+    sage: cm = colormaps.hsv
+    sage: def c(x,y): return float((x+y+x*y)/15) % 1
+    sage: plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm))
+    Graphics3d Object
+
+.. PLOT::
+
+    x, y = var('x y')
+    cm = colormaps.hsv
+    def c(x,y): return float((x+y+x*y)/15) % 1
+    sphinx_plot(plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm)))
+
+Beware that the color function must take values between 0 and 1.
+
 We plot "cape man"::
 
     sage: S = sphere(size=.5, color='yellow')
@@ -88,7 +105,12 @@ Or, we plot a very simple function indeed::
 .. PLOT::
     
     sphinx_plot(plot3d(pi, (-1,1), (-1,1)))
-    
+
+Transparent with fractional opacity value::
+
+    sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2), opacity=8/10)
+    Graphics3d Object
+
 .. TODO::
 
     Add support for smooth triangles.
@@ -1120,7 +1142,7 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     xmin,xmax = ranges[0][:2]
     ymin,ymax = ranges[1][:2]
 
-    opacity = kwds.get('opacity',1)
+    opacity = float(kwds.get('opacity',1))
 
     if color == "automatic":
         texture = rainbow(num_colors, 'rgbtuple')

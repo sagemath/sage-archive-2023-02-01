@@ -20,7 +20,7 @@ from cysignals.memory cimport check_allocarray, check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from cpython.int cimport PyInt_AS_LONG
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -602,7 +602,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse(2**64 - 1)
             Traceback (most recent call last):
             ...
-            OverflowError: long int too large to convert
+            OverflowError: ... int too large to convert
 
         Secondly, a value which cannot be converted to an integral value,
         resulting in a ValueError::

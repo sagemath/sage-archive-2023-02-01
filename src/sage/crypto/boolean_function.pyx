@@ -28,9 +28,12 @@ AUTHOR:
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
+from __future__ import absolute_import
+
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -66,7 +69,7 @@ cdef walsh_hadamard(long *f, int ldn):
         sage: from sage.crypto.boolean_function import BooleanFunction
         sage: B = BooleanFunction([1,0,0,1])
         sage: B.walsh_hadamard_transform() # indirect doctest
-        (0, 0, 0, 4)
+        (0, 0, 0, -4)
     """
     cdef long n, ldm, m, mh, t1, t2, r
     n = 1 << ldn
@@ -552,6 +555,22 @@ cdef class BooleanFunction(SageObject):
             sage: BooleanFunction('00ab').truth_table(format='hex')
             '00ab'
 
+            sage: H = '0abbacadabbacad0'
+            sage: len(H)
+            16
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: H = H * 4
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: H = H * 4
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: len(T)
+            256
             sage: B.truth_table(format='oct')
             Traceback (most recent call last):
             ...
@@ -562,15 +581,8 @@ cdef class BooleanFunction(SageObject):
         if format == 'int':
             return tuple(map(int,self))
         if format == 'hex':
-            S = ""
             S = ZZ(self.truth_table(),2).str(16)
             S = "0"*((1<<(self._nvariables-2)) - len(S)) + S
-            for 1 <= i < self._truth_table.limbs:
-                if sizeof(long)==4:
-                    t = "%04x"%self._truth_table.bits[i]
-                if sizeof(long)==8:
-                    t = "%08x"%self._truth_table.bits[i]
-                S = t + S
             return S
         raise ValueError("unknown output format")
 
@@ -586,7 +598,7 @@ cdef class BooleanFunction(SageObject):
         """
         return 2**self._nvariables
 
-    def __cmp__(self, other):
+    def __richcmp__(BooleanFunction self, other, int op):
         """
         Boolean functions are considered to be equal if the number of
         input variables is the same, and all the values are equal.
@@ -605,8 +617,10 @@ cdef class BooleanFunction(SageObject):
             sage: b1 == b4
             False
         """
-        cdef BooleanFunction o=other
-        return bitset_cmp(self._truth_table, o._truth_table)
+        if not isinstance(other, BooleanFunction):
+            return NotImplemented
+        o = <BooleanFunction>other
+        return rich_to_bool(op, bitset_cmp(self._truth_table, o._truth_table))
 
     def __call__(self, x):
         """
@@ -625,20 +639,20 @@ cdef class BooleanFunction(SageObject):
             1
             sage: B([1,0])
             1
-            sage: B(7)
+            sage: B(4)
             Traceback (most recent call last):
             ...
             IndexError: index out of bound
 
         """
         if isinstance(x, (int,long,Integer)):
-            if x > self._truth_table.size:
+            if x >= self._truth_table.size:
                 raise IndexError("index out of bound")
             return bitset_in(self._truth_table,x)
         elif isinstance(x, list):
             if len(x) != self._nvariables:
                 raise ValueError("bad number of inputs")
-            return self(ZZ(map(bool,x),2))
+            return self(ZZ([bool(_) for _ in x], 2))
         else:
             raise TypeError("cannot apply Boolean function to provided element")
 
@@ -682,7 +696,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x> = GF(2^3,'a')[]
             sage: B = BooleanFunction( x^3 )
             sage: B.walsh_hadamard_transform()
-            (0, 4, 0, -4, 0, -4, 0, -4)
+            (0, -4, 0, 4, 0, 4, 0, 4)
         """
         cdef long *temp
 
@@ -691,7 +705,7 @@ cdef class BooleanFunction(SageObject):
             temp = <long *>sig_malloc(sizeof(long)*n)
 
             for 0<= i < n:
-                temp[i] = (bitset_in(self._truth_table,i)<<1)-1
+                temp[i] = 1 - (bitset_in(self._truth_table,i)<<1)
 
             walsh_hadamard(temp, self._nvariables)
             self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
@@ -952,8 +966,8 @@ cdef class BooleanFunction(SageObject):
             {0}
         """
         # NOTE: this is a toy implementation
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
-        R = BooleanPolynomialRing(self._nvariables,'x')
+        from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor
+        R = BooleanPolynomialRing_constructor(self._nvariables,'x')
         G = R.gens()
         r = [R(1)]
 
@@ -981,13 +995,13 @@ cdef class BooleanFunction(SageObject):
 
         kg = M.kernel().gens()
 
-        if len(kg)>0:
+        if kg:
             res = sum([kg[0][i]*ri for i,ri in enumerate(r)])
         else:
             res = None
 
         if dim:
-            return res,len(kg)
+            return res, len(kg)
         else:
             return res
 
@@ -998,7 +1012,7 @@ cdef class BooleanFunction(SageObject):
 
         INPUT:
 
-        - annihilator - a Boolean (default: False), if True, returns also an annihilator of minimal degree.
+        - annihilator -- a Boolean (default: False), if True, returns also an annihilator of minimal degree.
 
         EXAMPLES::
 
@@ -1028,6 +1042,27 @@ cdef class BooleanFunction(SageObject):
                         return i
         raise ValueError("you just found a bug!")
 
+    def algebraic_degree(self):
+        r"""
+        Return the algebraic degree of this Boolean function.
+
+        The algebraic degree of a Boolean function is defined as the degree
+        of its algebraic normal form. Note that the degree of the constant
+        zero function is defined to be equal to -1.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B.<x0, x1, x2, x3> = BooleanPolynomialRing()
+            sage: f = BooleanFunction(x1*x2 + x1*x2*x3 + x1)
+            sage: f.algebraic_degree()
+            3
+            sage: g = BooleanFunction([0, 0])
+            sage: g.algebraic_degree()
+            -1
+        """
+        return self.algebraic_normal_form().degree()
+
     def is_plateaued(self):
         r"""
         Return ``True`` if this function is plateaued, i.e. its Walsh transform
@@ -1040,7 +1075,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x0, x1, x2, x3> = BooleanPolynomialRing()
             sage: f = BooleanFunction(x0*x1 + x2 + x3)
             sage: f.walsh_hadamard_transform()
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, -8, 8)
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, -8)
             sage: f.is_plateaued()
             True
         """

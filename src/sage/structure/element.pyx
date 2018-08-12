@@ -154,14 +154,23 @@ instance of the class in which the method is defined. In Cython, we know
 that at least one of ``left`` or ``right`` is an instance of the class
 but we do not know a priori which one.
 
-For addition and multiplication (not for other operators), there is a
-fast path for operations with a Python ``int`` (which corresponds
-to a C ``long``). Implement ``cdef _add_long(self, long n)`` or
-``cdef _mul_long(self, long n)`` with optimized code for ``self + n``
-or ``self * n``. These are assumed to be commutative, so they are also
-called for ``n + self`` or ``n * self``.
+Powering is a special case: first of all, the 3-argument version of
+``pow()`` is not supported. Second, the coercion model checks whether
+the exponent looks like an integer. If so, the function ``_pow_int``
+is called. If the exponent is not an integer, the arguments are coerced
+to a common parent and ``_pow_`` is called. So, if your type only
+supports powering to an integer exponent, you should implement only
+``_pow_int``. If you want to support arbitrary powering, implement both
+``_pow_`` and ``_pow_int``.
+
+For addition, multiplication and powering (not for other operators),
+there is a fast path for operations with a C ``long``. For example,
+implement ``cdef _add_long(self, long n)`` with optimized code for
+``self + n``. The addition and multiplication are assumed to be
+commutative, so they are also called for ``n + self`` or ``n * self``.
 From Cython code, you can also call ``_add_long`` or ``_mul_long``
-directly.
+directly. This is strictly an optimization: there is a default
+implementation falling back to the generic arithmetic function.
 
 Examples
 ^^^^^^^^
@@ -274,34 +283,37 @@ continue down the MRO and find the ``_add_`` method in the category.
 
 from __future__ import absolute_import, division, print_function
 
-from libc.limits cimport LONG_MAX, LONG_MIN
-
+cimport cython
 from cpython cimport *
-from sage.ext.stdsage cimport *
-
 from cpython.ref cimport PyObject
 
-import types
-cdef add, sub, mul, div, truediv, floordiv, mod
-cdef iadd, isub, imul, idiv, itruediv, ifloordiv
-from operator import (add, sub, mul, div, truediv, floordiv, mod,
-        iadd, isub, imul, idiv, itruediv, ifloordiv)
-cdef dict _coerce_op_symbols = dict(
-        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//', mod='%',
-        iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//')
+from sage.ext.stdsage cimport *
 
-cdef MethodType
-from types import MethodType
+import types
+cdef add, sub, mul, div, truediv, floordiv, mod, pow
+cdef iadd, isub, imul, idiv, itruediv, ifloordiv, imod, ipow
+from operator import (add, sub, mul, truediv, floordiv, mod, pow,
+                      iadd, isub, imul, itruediv, ifloordiv, imod, ipow)
+try:
+    from operator import div, idiv
+except ImportError:
+    div = idiv = None
+
+cdef dict _coerce_op_symbols = dict(
+        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//', mod='%', pow='^',
+        iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//', imod='%', ipow='^')
 
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
-from sage.structure.misc import is_extension_type
-from sage.structure.misc cimport getattr_from_other_class
+from sage.cpython.type cimport can_assign_class
+from sage.cpython.getattr cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
+from sage.arith.long cimport integer_check_long_py
+from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.misc.decorators import sage_wraps
 
@@ -373,6 +385,7 @@ cdef class Element(SageObject):
     .. automethod:: __floordiv__
     .. automethod:: __mod__
     """
+    @cython.binding(False)
     def __getmetaclass__(_):
         from sage.misc.inherit_comparison import InheritComparisonMetaclass
         return InheritComparisonMetaclass
@@ -387,11 +400,34 @@ cdef class Element(SageObject):
 
     def _set_parent(self, parent):
         r"""
+        Set the parent of ``self`` to ``parent``.
+
         INPUT:
 
-        - ``parent`` - a SageObject
+        - ``parent`` -- a :class:`Parent`
+
+        .. WARNING::
+
+            Changing the parent of an object is not something you
+            should normally need. It is mainly meant for constructing a
+            new element from scratch, when ``__new__`` or ``__init__``
+            did not set the right parent. Using this method incorrectly
+            can break things badly.
+
+        EXAMPLES::
+
+            sage: q = 3/5
+            sage: parent(q)
+            Rational Field
+            sage: q._set_parent(CC)
+            sage: parent(q)
+            Complex Field with 53 bits of precision
+            sage: q._set_parent(float)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert type to sage.structure.parent.Parent
         """
-        self._parent = parent
+        self._parent = <Parent?>parent
 
     def __getattr__(self, name):
         """
@@ -489,7 +525,7 @@ cdef class Element(SageObject):
             sage: dir(1)         # todo: not implemented
             ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
-        from .misc import dir_with_other_class
+        from sage.cpython.getattr import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
 
     def _repr_(self):
@@ -661,14 +697,14 @@ cdef class Element(SageObject):
         SageObject._test_category(self, tester = tester)
         category = self.category()
         # Tests that self inherits methods from the categories
-        if not is_extension_type(self.__class__):
+        if can_assign_class(self):
             # For usual Python classes, that should be done with
             # standard inheritance
-            tester.assert_(isinstance(self, self.parent().category().element_class))
+            tester.assertTrue(isinstance(self, self.parent().category().element_class))
         else:
             # For extension types we just check that inheritance
             # occurs on a dummy attribute of Sets().ElementMethods
-            tester.assert_(hasattr(self, "_dummy_attribute"))
+            tester.assertTrue(hasattr(self, "_dummy_attribute"))
 
     def _test_eq(self, **options):
         """
@@ -960,15 +996,31 @@ cdef class Element(SageObject):
 
     def __nonzero__(self):
         r"""
-        Return ``True`` if ``self`` does not equal self.parent()(0).
+        Return whether this element is equal to ``self.parent()(0)``.
 
         Note that this is automatically called when converting to
         boolean, as in the conditional of an if or while statement.
 
-        TESTS:
-        Verify that :trac:`5185` is fixed.
+        EXAMPLES::
 
-        ::
+            sage: bool(1) # indirect doctest
+            True
+
+        If ``self.parent()(0)`` raises an exception (because there is no
+        meaningful zero element,) then this method returns ``True``. Here,
+        there is no zero morphism of rings that goes to a non-trivial ring::
+
+            sage: bool(Hom(ZZ, Zmod(2)).an_element())
+            True
+
+        But there is a zero morphism to the trivial ring::
+
+            sage: bool(Hom(ZZ, Zmod(1)).an_element())
+            False
+
+        TESTS:
+
+        Verify that :trac:`5185` is fixed::
 
             sage: v = vector({1: 1, 3: -1})
             sage: w = vector({1: -1, 3: 1})
@@ -980,8 +1032,14 @@ cdef class Element(SageObject):
             False
             sage: (v+w).__nonzero__()
             False
+
         """
-        return self != self._parent.zero()
+        try:
+            zero = self._parent.zero()
+        except Exception:
+            return True # by convention
+
+        return self != zero
 
     def is_zero(self):
         """
@@ -1074,7 +1132,7 @@ cdef class Element(SageObject):
             sage: e1 < e2     # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: comparison not implemented for <type 'sage.structure.element.Element'>
+            NotImplementedError: comparison not implemented for <... 'sage.structure.element.Element'>
 
         We now create an ``Element`` class where we define ``_richcmp_``
         and check that comparison works::
@@ -1101,7 +1159,7 @@ cdef class Element(SageObject):
             sage: a._cmp_(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: comparison not implemented for <type '...FloatCmp'>
+            NotImplementedError: comparison not implemented for <... '...FloatCmp'>
         """
         # Obvious case
         if left is right:
@@ -1161,15 +1219,15 @@ cdef class Element(SageObject):
             sage: e + e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for +: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 + e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e + 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for +: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) + e
             Traceback (most recent call last):
             ...
@@ -1194,12 +1252,16 @@ cdef class Element(SageObject):
         if BOTH_ARE_ELEMENT(cl):
             return coercion_model.bin_op(left, right, add)
 
+        cdef long value
+        cdef int err = -1
         try:
             # Special case addition with Python int
-            if isinstance(right, int):
-                return (<Element>left)._add_long(PyInt_AS_LONG(right))
-            if isinstance(left, int):
-                return (<Element>right)._add_long(PyInt_AS_LONG(left))
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._add_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._add_long(value)
             return coercion_model.bin_op(left, right, add)
         except TypeError:
             # Either coercion failed or arithmetic is not defined.
@@ -1282,15 +1344,15 @@ cdef class Element(SageObject):
             sage: e - e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for -: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for -: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 - e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for -: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for -: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e - 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for -: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for -: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) - e
             Traceback (most recent call last):
             ...
@@ -1370,7 +1432,7 @@ cdef class Element(SageObject):
             sage: -e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent for unary -: '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent for unary -: '<sage.structure.parent.Parent object at ...>'
         """
         return self._neg_()
 
@@ -1427,15 +1489,15 @@ cdef class Element(SageObject):
             sage: e * e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for *: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 * e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e * 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for *: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) * e
             Traceback (most recent call last):
             ...
@@ -1473,11 +1535,16 @@ cdef class Element(SageObject):
         if BOTH_ARE_ELEMENT(cl):
             return coercion_model.bin_op(left, right, mul)
 
+        cdef long value
+        cdef int err = -1
         try:
-            if isinstance(right, int):
-                return (<Element>left)._mul_long(PyInt_AS_LONG(right))
-            if isinstance(left, int):
-                return (<Element>right)._mul_long(PyInt_AS_LONG(left))
+            # Special case multiplication with Python int
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._mul_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._mul_long(value)
             return coercion_model.bin_op(left, right, mul)
         except TypeError:
             return NotImplemented
@@ -1565,15 +1632,15 @@ cdef class Element(SageObject):
             sage: e / e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 / e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e / 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) / e
             Traceback (most recent call last):
             ...
@@ -1636,15 +1703,15 @@ cdef class Element(SageObject):
             sage: operator.truediv(e, e)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: operator.truediv(1, e)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: operator.truediv(e, 1)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: operator.truediv(int(1), e)
             Traceback (most recent call last):
             ...
@@ -1737,15 +1804,15 @@ cdef class Element(SageObject):
             sage: e // e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for //: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for //: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 // e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for //: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for //: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e // 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for //: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for //: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) // e
             Traceback (most recent call last):
             ...
@@ -1837,15 +1904,15 @@ cdef class Element(SageObject):
             sage: e % e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for %: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for %: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 % e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for %: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for %: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e % 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for %: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for %: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) % e
             Traceback (most recent call last):
             ...
@@ -1905,6 +1972,150 @@ cdef class Element(SageObject):
         else:
             return python_op(other)
 
+    def __pow__(left, right, modulus):
+        """
+        Top-level power operator for :class:`Element` invoking
+        the coercion model.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _add_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: e + e
+            42
+            sage: a = Integers(389)['x']['y'](37)
+            sage: p = sage.structure.element.RingElement.__pow__
+            sage: p(a, 2)
+            202
+            sage: p(a, 2, 1)
+            Traceback (most recent call last):
+            ...
+            TypeError: the 3-argument version of pow() is not supported
+
+        TESTS::
+
+            sage: e = Element(Parent())
+            sage: e ^ e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for ^: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
+            sage: 1 ^ e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for ^: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
+            sage: e ^ 1
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for ^: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
+            sage: int(1) ^ e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for ** or pow(): 'int' and 'sage.structure.element.Element'
+            sage: e ^ int(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for ** or pow(): 'sage.structure.element.Element' and 'int'
+            sage: None ^ e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for ** or pow(): 'NoneType' and 'sage.structure.element.Element'
+            sage: e ^ None
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for ** or pow(): 'sage.structure.element.Element' and 'NoneType'
+        """
+        # The coercion model does not support a modulus
+        if modulus is not None:
+            raise TypeError("the 3-argument version of pow() is not supported")
+
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._pow_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, pow)
+
+        cdef long value
+        cdef int err = -1
+        try:
+            # Special case powering with Python integers
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._pow_long(value)
+            return coercion_model.bin_op(left, right, pow)
+        except TypeError:
+            return NotImplemented
+
+    cdef _pow_(self, other):
+        """
+        Virtual powering method for elements with identical parents.
+
+        This default Cython implementation of ``_pow_`` calls the
+        Python method ``self._pow_`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._pow_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_pow_'
+        """
+        try:
+            python_op = (<object>self)._pow_
+        except AttributeError:
+            raise bin_op_exception('^', self, other)
+        else:
+            return python_op(other)
+
+    cdef _pow_int(self, other):
+        """
+        Virtual powering method for powering to an integer exponent.
+
+        This default Cython implementation of ``_pow_int`` calls the
+        Python method ``self._pow_int`` if it exists. This method may be
+        defined in the ``ElementMethods`` of the category of the parent.
+        If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._pow_int(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_pow_int'
+        """
+        try:
+            python_op = (<object>self)._pow_int
+        except AttributeError:
+            raise bin_op_exception('^', self, other)
+        else:
+            return python_op(other)
+
+    cdef _pow_long(self, long n):
+        """
+        Generic path for powering with a C long.
+        """
+        return self._pow_int(n)
+
 
 def is_ModuleElement(x):
     """
@@ -1961,6 +2172,7 @@ cdef class ElementWithCachedMethod(Element):
     ::
 
         sage: cython_code = ["from sage.structure.element cimport Element, ElementWithCachedMethod",
+        ....:     "from sage.structure.richcmp cimport richcmp",
         ....:     "cdef class MyBrokenElement(Element):",
         ....:     "    cdef public object x",
         ....:     "    def __init__(self,P,x):",
@@ -1972,8 +2184,8 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef int _cmp_(left, right) except -2:",
-        ....:     "        return cmp(left.x,right.x)",
+        ....:     "    cpdef _richcmp_(left, right, int op):",
+        ....:     "        return richcmp(left.x,right.x,op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "cdef class MyElement(ElementWithCachedMethod):",
@@ -1987,8 +2199,8 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef int _cmp_(left, right) except -2:",
-        ....:     "        return cmp(left.x,right.x)",
+        ....:     "    cpdef _richcmp_(left, right, int op):",
+        ....:     "        return richcmp(left.x,right.x,op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "class MyPythonElement(MyBrokenElement): pass",
@@ -2128,10 +2340,26 @@ cdef class ElementWithCachedMethod(Element):
             self.__cached_methods = {name : attr}
             return attr
 
+
 cdef class ModuleElement(Element):
     """
     Generic element of a module.
     """
+    cpdef _add_(self, other):
+        """
+        Abstract addition method
+
+        TESTS::
+
+            sage: from sage.structure.element import ModuleElement
+            sage: e = ModuleElement(Parent())
+            sage: e + e
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: addition not implemented for <sage.structure.parent.Parent object at ...>
+        """
+        raise NotImplementedError(f"addition not implemented for {self._parent}")
+
     cdef _add_long(self, long n):
         """
         Generic path for adding a C long, assumed to commute.
@@ -2228,13 +2456,11 @@ cdef class MonoidElement(Element):
         """
         raise NotImplementedError
 
-    def __pow__(self, n, dummy):
+    cpdef _pow_int(self, n):
         """
         Return the (integral) power of self.
         """
-        if dummy is not None:
-            raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power_c(self,n,None)
+        return arith_generic_power(self, n)
 
     def powers(self, n):
         r"""
@@ -2260,6 +2486,7 @@ cdef class MonoidElement(Element):
 
     def __nonzero__(self):
         return True
+
 
 def is_AdditiveGroupElement(x):
     """
@@ -2318,10 +2545,25 @@ def is_RingElement(x):
     return isinstance(x, RingElement)
 
 cdef class RingElement(ModuleElement):
+    cpdef _mul_(self, other):
+        """
+        Abstract multiplication method
+
+        TESTS::
+
+            sage: from sage.structure.element import RingElement
+            sage: e = RingElement(Parent())
+            sage: e * e
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: multiplication not implemented for <sage.structure.parent.Parent object at ...>
+        """
+        raise NotImplementedError(f"multiplication not implemented for {self._parent}")
+
     def is_one(self):
         return self == self._parent.one()
 
-    def __pow__(self, n, dummy):
+    cpdef _pow_int(self, n):
         """
         Return the (integral) power of self.
 
@@ -2334,7 +2576,7 @@ cdef class RingElement(ModuleElement):
             sage: p(a,2,1)
             Traceback (most recent call last):
             ...
-            RuntimeError: __pow__ dummy argument not used
+            TypeError: the 3-argument version of pow() is not supported
             sage: p(a,388)
             1
             sage: p(a,2^120)
@@ -2354,9 +2596,7 @@ cdef class RingElement(ModuleElement):
             sage: p(a,200) * p(a,-64) == p(a,136)
             True
             sage: p(2, 1/2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: non-integral exponents not supported
+            sqrt(2)
 
         TESTS::
 
@@ -2383,11 +2623,8 @@ cdef class RingElement(ModuleElement):
             Traceback (most recent call last):
             ...
             OverflowError: exponent overflow (670592745)
-
         """
-        if dummy is not None:
-            raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power_c(self,n,None)
+        return arith_generic_power(self, n)
 
     def powers(self, n):
         r"""
@@ -2609,9 +2846,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R(121).divides(R(120))
             True
             sage: R(120).divides(R(121))
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: reduction modulo 120 not defined
+            False
 
         If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
@@ -2657,7 +2892,12 @@ cdef class CommutativeRingElement(RingElement):
             except (AttributeError, NotImplementedError):
                 pass
 
-            return (x % self) == 0
+            try:
+                return (x % self).is_zero()
+            except (TypeError, NotImplementedError):
+                pass
+
+            raise NotImplementedError
 
         else:
             #Different parents, use coercion
@@ -2883,7 +3123,7 @@ cdef class CommutativeRingElement(RingElement):
                 if not isinstance(P, IntegralDomain):
                     raise NotImplementedError('sqrt() with all=True is only implemented for integral domains, not for %s' % P)
                 if P.characteristic()==2 or sq_rt==0:
-                    #0 has only one square root, and in charasteristic 2 everything also has only 1 root
+                    #0 has only one square root, and in characteristic 2 everything also has only 1 root
                     return [ sq_rt ]
                 return [ sq_rt, -sq_rt ]
             return sq_rt
@@ -3434,9 +3674,25 @@ cdef class Matrix(ModuleElement):
             [33 36] [39 42]
             [45 48]]
         """
-        if have_same_parent(left, right):
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        return coercion_model.bin_op(left, right, mul)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, mul)
+
+        cdef long value
+        cdef int err = -1
+        try:
+            # Special case multiplication with C long
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._mul_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._mul_long(value)
+            return coercion_model.bin_op(left, right, mul)
+        except TypeError:
+            return NotImplemented
 
     def __truediv__(left, right):
         """
@@ -3842,6 +4098,8 @@ cpdef bin_op(x, y, op):
 
 
 def coerce(Parent p, x):
+    from sage.misc.superseded import deprecation
+    deprecation(25236, "sage.structure.element.coerce is deprecated")
     try:
         return p._coerce_c(x)
     except AttributeError:
@@ -4049,6 +4307,8 @@ def generic_power(a, n, one=None):
 
         sage: from sage.structure.element import generic_power
         sage: generic_power(int(12),int(0))
+        doctest:...: DeprecationWarning: import 'generic_power' from sage.arith.power instead
+        See http://trac.sagemath.org/24256 for details.
         1
         sage: generic_power(int(0),int(100))
         0
@@ -4070,83 +4330,12 @@ def generic_power(a, n, one=None):
         sage: generic_power(int(5), 0)
         1
     """
-
-    return generic_power_c(a,n,one)
-
-cdef generic_power_c(a, nn, one):
-    try:
-        n = PyNumber_Index(nn)
-    except TypeError:
-        try:
-            # Try harder, since many things coerce to Integer.
-            from sage.rings.integer import Integer
-            n = int(Integer(nn))
-        except TypeError:
-            raise NotImplementedError("non-integral exponents not supported")
-
-    if not n:
-        if one is None:
-            if isinstance(a, Element):
-                return (<Element>a)._parent.one()
-            try:
-                try:
-                    return a.parent().one()
-                except AttributeError:
-                    return type(a)(1)
-            except Exception:
-                return 1 #oops, the one sucks
-        else:
+    from sage.misc.superseded import deprecation
+    deprecation(24256, "import 'generic_power' from sage.arith.power instead")
+    if one is not None:
+        # Special cases not handled by sage.arith.power
+        if not n:
             return one
-    elif n < 0:
-        # I don't think raising division by zero is really my job. It should
-        # be the one of ~a. Moreover, this does not handle the case of monoids
-        # with partially defined division (e.g. the multiplicative monoid of a
-        # ring such as ZZ/12ZZ)
-        #        if not a:
-        #            raise ZeroDivisionError
-        a = ~a
-        n = -n
-
-    if n < 4:
-        # These cases will probably be called often
-        # and don't benefit from the code below
-        if n == 1:
-            return a
-        elif n == 2:
-            return a*a
-        elif n == 3:
-            return a*a*a
-
-    # check for idempotence, and store the result otherwise
-    aa = a*a
-    if aa == a:
-        return a
-
-    # since we've computed a^2, let's start squaring there
-    # so, let's keep the least-significant bit around, just
-    # in case.
-    m = n & 1
-    n = n >> 1
-
-    # One multiplication can be saved by starting with
-    # the second-smallest power needed rather than with 1
-    # we've already squared a, so let's start there.
-    apow = aa
-    while n&1 == 0:
-        apow = apow*apow
-        n = n >> 1
-    power = apow
-    n = n >> 1
-
-    # now multiply that least-significant bit in...
-    if m:
-        power = power * a
-
-    # and this is straight from the book.
-    while n != 0:
-        apow = apow*apow
-        if n&1 != 0:
-            power = power*apow
-        n = n >> 1
-
-    return power
+        if n < 0:
+            return ~arith_generic_power(a, -n)
+    return arith_generic_power(a, n)

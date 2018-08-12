@@ -39,6 +39,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sys
 from cysignals.memory cimport sig_malloc, sig_free
@@ -93,7 +94,7 @@ cdef class ProbabilityDistribution:
 
         raise NotImplementedError("implement in derived class")
 
-    def generate_histogram_data(self, num_samples = 1000, bins = 50):
+    def generate_histogram_data(self, num_samples=1000, bins=50):
         """
         Compute a histogram of the probability distribution.
 
@@ -117,7 +118,7 @@ cdef class ProbabilityDistribution:
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
             sage: h, b = X.generate_histogram_data(bins = 10)
-            sage: h
+            sage: h  # rel tol 1e-08
             [1.6299999999999999,
              0.0,
              0.0,
@@ -131,10 +132,9 @@ cdef class ProbabilityDistribution:
             sage: b
             [0.0, 0.20000000000000001, 0.40000000000000002, 0.60000000000000009, 0.80000000000000004, 1.0, 1.2000000000000002, 1.4000000000000001, 1.6000000000000001, 1.8, 2.0]
         """
-
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
-        S = pylab.hist(l, bins, normed = True, hold = False)
+        S = pylab.hist(l, bins, normed=True)
         return [list(S[0]), list(S[1])]
 
     def generate_histogram_plot(self, name, num_samples = 1000, bins = 50):
@@ -165,10 +165,9 @@ cdef class ProbabilityDistribution:
             sage: file = os.path.join(SAGE_TMP, "my_general_distribution_plot")
             sage: X.generate_histogram_plot(file)
         """
-
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
-        pylab.hist(l, bins, normed = True, hold = False)
+        pylab.hist(l, bins, normed=True)
         pylab.savefig(name)
 
 
@@ -1029,6 +1028,15 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
             True
             sage: one == three
             False
+
+        Testing that :trac:`24416` is fixed for when entries are larger
+        than `2^{1024}`::
+
+            sage: from collections import Counter
+            sage: X = GeneralDiscreteDistribution([1,2,2^1024])
+            sage: Counter(X.get_random_element() for _ in range(100))
+            Counter({2: 100})
+
         """
         gsl_rng_env_setup()
         self.set_random_number_generator(rng)
@@ -1039,6 +1047,10 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
         cdef int n
         n = len(P)
+
+        s = sum(P)
+        if s != 1:
+            P = [p/s for p in P]
 
         cdef double *P_vec
         P_vec = <double *> sig_malloc(n*(sizeof(double)))

@@ -46,6 +46,8 @@ AUTHORS:
   for the construction of the Reynolds operator in Singular.
 
 - Volker Braun (2013-1) port to new Parent, libGAP.
+
+- Sebastian Oehms (2018-07): Added _permutation_group_element_ (Trac #25706)
 """
 
 ##############################################################################
@@ -67,7 +69,7 @@ from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
 from sage.matrix.all import matrix
 from sage.misc.latex import latex
@@ -585,6 +587,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: a, b= MatrixGroup([A, B]).as_permutation_group().gens()
             sage: a.order(), b.order()
             (2, 1)
+
+        Check that ``_permutation_group_morphism`` works (:trac:`25706`)::
+
+            sage: MG = GU(3,2).as_matrix_group()
+            sage: PG = MG.as_permutation_group()  # this constructs the morphism
+            sage: mg = MG.an_element()
+            sage: MG._permutation_group_morphism(mg)
+            (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of
@@ -601,12 +611,23 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             mats.append(m)
         mats_str = str(gap([[list(r) for r in m] for m in mats]))
         gap.eval("iso:=IsomorphismPermGroup(Group("+mats_str+"))")
+        gap_permutation_map = gap("iso;")
         if algorithm == "smaller":
             gap.eval("small:= SmallerDegreePermutationRepresentation( Image( iso ) );")
             C = gap("Image( small )")
         else:
             C = gap("Image( iso )")
-        return PermutationGroup(gap_group=C, canonicalize=False)
+        PG = PermutationGroup(gap_group=C, canonicalize=False)
+
+        def permutation_group_map(element):
+            return PG(gap_permutation_map.ImageElm(element.gap()))
+
+        from sage.categories.homset import Hom
+        self._permutation_group_morphism = Hom(self, PG)(permutation_group_map)
+
+        return PG
+
+    _permutation_group_ = as_permutation_group
 
     def module_composition_factors(self, algorithm=None):
         r"""
@@ -1002,7 +1023,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
             K[x]^G_{\chi} = \{f \in K[x] | \pi f = \chi(\pi) f \forall \pi\in G\}
 
-        be the ring of invarants of `G` relative to `\chi`. Then the Reynold's operator
+        be the ring of invariants of `G` relative to `\chi`. Then the Reynold's operator
         is a map `R` from `K[x]` into `K[x]^G_{\chi}` defined by
 
         .. MATH:
@@ -1110,7 +1131,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G.reynolds_operator(f, chi)
             Traceback (most recent call last):
             ...
-            NotImplementedError: nontrivial characters not implemented for charateristic > 0
+            NotImplementedError: nontrivial characters not implemented for characteristic > 0
             sage: G.reynolds_operator(f)
             x^6
 
@@ -1194,14 +1215,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                     L1 = fields[0].composite_fields(fields[1])[0]
                     L = L1.composite_fields(fields[2])[0]
         else:
-            raise NotImplementedError("nontrivial characters not implemented for charateristic > 0")
+            raise NotImplementedError("nontrivial characters not implemented for characteristic > 0")
         poly = poly.change_ring(L)
         poly_gens = vector(poly.parent().gens())
         F = L.zero()
         for g in self:
             F += L(chi(g)) * poly(*g.matrix().change_ring(L)*poly_gens)
         F /= self.order()
-        try: # attempt to move F to base_ring of polyomial
+        try:  # attempt to move F to base_ring of polynomial
             F = F.change_ring(R)
         except (TypeError, ValueError):
             pass
@@ -1270,10 +1291,18 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
             sage: G.invariants_of_degree(2, R=R, chi=chi)
-            [x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 + (2*izeta3^3 +
-            3*izeta3^2 + 8*izeta3 + 3)*z^2,
-             x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z + (-2*izeta3^3 -
-            3*izeta3^2 - 8*izeta3 - 4)*y*z]
+            [x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z +
+             (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y*z,
+             x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 +
+             (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*z^2]
+
+        ::
+
+            sage: S3 = MatrixGroup(SymmetricGroup(3))
+            sage: chi = S3.character(S3.character_table()[0])
+            sage: S3.invariants_of_degree(5, chi=chi)
+            [x0^4*x1 - x0*x1^4 - x0^4*x2 + x1^4*x2 + x0*x2^4 - x1*x2^4,
+             x0^3*x1^2 - x0^2*x1^3 - x0^3*x2^2 + x1^3*x2^2 + x0^2*x2^3 - x1^2*x2^3]
         """
         D = self.degree()
         deg = int(deg)
@@ -1288,13 +1317,11 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         if ms[deg].is_zero():
             return []
         inv = set()
-        count = 0
         for e in IntegerVectors(deg, D):
             F = self.reynolds_operator(R.monomial(*e), chi=chi)
             if not F.is_zero():
                 F = F/F.lc()
                 inv.add(F)
-                count += 1
-                if count == ms[deg]:
+                if len(inv) == ms[deg]:
                     break
         return list(inv)

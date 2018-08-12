@@ -1,4 +1,4 @@
-"""
+r"""
 Commutative Differential Graded Algebras
 
 An algebra is said to be *graded commutative* if it is endowed with a
@@ -328,8 +328,8 @@ class Differential(with_metaclass(
         """
         A = self.domain()
         dom = A.basis(n)
-        cod = A.basis(n+1)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cod = A.basis(n + 1)
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(A.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -571,7 +571,7 @@ class Differential_multigraded(Differential):
         n = G(vector(n))
         dom = A.basis(n)
         cod = A.basis(n+self._degree_of_differential)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(self.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -1054,7 +1054,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             el = prod([self.gen(i)**v[i] for i in range(len(v))])
             di = el.dict()
             if len(di) == 1:
-                if tuple(di.keys()[0]) == v:
+                k, = di.keys()
+                if tuple(k) == v:
                     basis.append(el)
         return basis
 
@@ -1409,11 +1410,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 raise ValueError('This element is not homogeneous')
 
             basis = self.parent().basis(self.degree(total))
-            F = self.parent().base()
             lift = self.lift()
-            monos = self.monomials()
-            c = [lift.monomial_coefficient(x.lift()) for x in basis]
-            return c
+            return [lift.monomial_coefficient(x.lift()) for x in basis]
 
 
 class GCAlgebra_multigraded(GCAlgebra):
@@ -2645,7 +2643,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     if degrees:
         try:
             for d in degrees:
-                _ = list(d)
+                list(d)
             # If the previous line doesn't raise an error, looks multi-graded.
             multi = True
         except TypeError:

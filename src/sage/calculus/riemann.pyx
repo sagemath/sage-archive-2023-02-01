@@ -24,7 +24,7 @@ Development supported by NSF award No. 0702939.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -432,7 +432,7 @@ cdef class Riemann_Map:
             sage: hfprime(t) = 0.5*-I*e^(-I*t)
             sage: m = Riemann_Map([f, hf], [fprime, hfprime], 0.5 + 0.5*I)
 
-        Getting the szego for a specifc boundary::
+        Getting the szego for a specific boundary::
 
             sage: sz0 = m.get_szego(boundary=0)
             sage: sz1 = m.get_szego(boundary=1)
@@ -505,7 +505,7 @@ cdef class Riemann_Map:
             sage: hfprime(t) = 0.5*-I*e^(-I*t)
             sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)
 
-        Getting the boundary correspondence for a specifc boundary::
+        Getting the boundary correspondence for a specific boundary::
 
             sage: tp0 = m.get_theta_points(boundary=0)
             sage: tp1 = m.get_theta_points(boundary=1)
@@ -579,7 +579,7 @@ cdef class Riemann_Map:
         the interior of the mapped region, ``riemann_map`` will return
         the point on the unit disk that ``pt`` maps to. Note that this
         method only works for interior points; accuracy breaks down very close
-        to the boundary. To get boundary corrospondance, use
+        to the boundary. To get boundary correspondance, use
         :meth:`get_theta_points`.
 
         INPUT:

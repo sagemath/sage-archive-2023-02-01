@@ -39,11 +39,11 @@ class HypergraphGenerators():
 
         - ``regular`` (integer) -- if set to an integer value `k`, requires the
           hypergraphs to be `k`-regular. It is actually a shortcut for the
-          corresponing min/max values.
+          corresponding min/max values.
 
         - ``uniform`` (integer) -- if set to an integer value `k`, requires the
           hypergraphs to be `k`-uniform. It is actually a shortcut for the
-          corresponing min/max values.
+          corresponding min/max values.
 
         - ``max_intersection`` (integer) -- constraints the maximum cardinality
           of the intersection of two sets fro the hypergraphs. Set to ``None``
@@ -150,7 +150,8 @@ class HypergraphGenerators():
             try:
                 s = next(gen)
             except StopIteration:
-                raise StopIteration("Exhausted list of graphs from nauty geng")
+                # Exhausted list of graphs from nauty geng
+                return
 
             from sage.graphs.graph import Graph
             G = Graph(s[:-1], format='graph6')
@@ -175,5 +176,141 @@ class HypergraphGenerators():
         from sage.combinat.designs.incidence_structures import IncidenceStructure
         from itertools import combinations
         return IncidenceStructure(list(combinations(range(n),k)))
+
+    def UniformRandomUniform(self, n, k, m):
+        r"""
+        Return a uniformly sampled `k`-uniform hypergraph on `n` points with
+        `m` hyperedges.
+
+        - ``n`` -- number of nodes of the graph
+
+        - ``k`` -- uniformity
+
+        - ``m`` -- number of edges
+
+        EXAMPLES::
+
+            sage: H = hypergraphs.UniformRandomUniform(52, 3, 17)
+            sage: H
+            Incidence structure with 52 points and 17 blocks
+            sage: H.is_connected()
+            False
+
+        TESTS::
+
+            sage: hypergraphs.UniformRandomUniform(-52, 3, 17)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of vertices should be non-negative
+            sage: hypergraphs.UniformRandomUniform(52.9, 3, 17)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of vertices should be an integer
+            sage: hypergraphs.UniformRandomUniform(52, -3, 17)
+            Traceback (most recent call last):
+            ...
+            ValueError: the uniformity should be non-negative
+            sage: hypergraphs.UniformRandomUniform(52, I, 17)
+            Traceback (most recent call last):
+            ...
+            ValueError: the uniformity should be an integer
+        """
+        from sage.rings.integer import Integer
+        from sage.combinat.subset import Subsets
+        from sage.misc.prandom import sample
+
+        # Construct the vertex set
+        if n < 0:
+            raise ValueError("number of vertices should be non-negative")
+        try:
+            nverts = Integer(n)
+        except TypeError:
+            raise ValueError("number of vertices should be an integer")
+        vertices = range(nverts)
+
+        # Construct the edge set
+        if k < 0:
+            raise ValueError("the uniformity should be non-negative")
+        try:
+            uniformity = Integer(k)
+        except TypeError:
+            raise ValueError("the uniformity should be an integer")
+        all_edges = Subsets(vertices, uniformity)
+        try:
+            edges = sample(all_edges, m)
+        except OverflowError:
+            raise OverflowError("binomial({},{}) too large to be treated".format(n,k))
+        except ValueError:
+            raise ValueError("number of edges m must be between 0 and binomial({},{})".format(n,k))
+
+        from sage.combinat.designs.incidence_structures import IncidenceStructure
+        return IncidenceStructure(vertices, edges)
+
+    def BinomialRandomUniform(self, n, k, p):
+        r"""
+        Return a random `k`-uniform hypergraph on `n` points, in which each
+        edge is inserted independently with probability `p`.
+
+        - ``n`` -- number of nodes of the graph
+
+        - ``k`` -- uniformity
+
+        - ``p`` -- probability of an edge
+
+        EXAMPLES::
+
+            sage: hypergraphs.BinomialRandomUniform(50, 3, 1).num_blocks()
+            19600
+            sage: hypergraphs.BinomialRandomUniform(50, 3, 0).num_blocks()
+            0
+
+        TESTS::
+
+            sage: hypergraphs.BinomialRandomUniform(50, 3, -0.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: edge probability should be in [0,1]
+            sage: hypergraphs.BinomialRandomUniform(50, 3, 1.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: edge probability should be in [0,1]
+            sage: hypergraphs.BinomialRandomUniform(-50, 3, 0.17)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of vertices should be non-negative
+            sage: hypergraphs.BinomialRandomUniform(50.9, 3, 0.17)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of vertices should be an integer
+            sage: hypergraphs.BinomialRandomUniform(50, -3, 0.17)
+            Traceback (most recent call last):
+            ...
+            ValueError: the uniformity should be non-negative
+            sage: hypergraphs.BinomialRandomUniform(50, I, 0.17)
+            Traceback (most recent call last):
+            ...
+            ValueError: the uniformity should be an integer
+        """
+        from sage.rings.integer import Integer
+        if n < 0:
+            raise ValueError("number of vertices should be non-negative")
+        try:
+            nverts = Integer(n)
+        except TypeError:
+            raise ValueError("number of vertices should be an integer")
+        if k < 0:
+            raise ValueError("the uniformity should be non-negative")
+        try:
+            uniformity = Integer(k)
+        except TypeError:
+            raise ValueError("the uniformity should be an integer")
+        if not 0 <= p <= 1:
+            raise ValueError("edge probability should be in [0,1]")
+
+        import numpy.random as nrn
+        from sage.functions.other import binomial
+        m = nrn.binomial(binomial(nverts, uniformity), p)
+        return hypergraphs.UniformRandomUniform(n, k, m)
+
 
 hypergraphs = HypergraphGenerators()

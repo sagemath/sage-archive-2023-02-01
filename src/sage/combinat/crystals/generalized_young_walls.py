@@ -66,7 +66,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         0|1|
            |
     """
-    def __init__(self,parent,data):
+    def __init__(self, parent, data):
         r"""
         EXAMPLES::
 
@@ -96,7 +96,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         """
         return repr(self.data)
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         r"""
         EXAMPLES::
 
@@ -112,6 +112,17 @@ class GeneralizedYoungWall(CombinatorialElement):
         if isinstance(other, GeneralizedYoungWall):
             return self.data == other.data
         return self.data == other
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: GYW = crystals.infinity.GeneralizedYoungWalls(2)
+            sage: h = hash(GYW)
+        """
+        return hash(tuple(tuple(u) for u in self.data))
 
     def raw_signature(self, i):
         r"""
@@ -272,8 +283,8 @@ class GeneralizedYoungWall(CombinatorialElement):
           is a proper wall.  (Note that the resulting wall may no longer be
           reduced.) Repeat the search and replace process for all other rows of
           the above form for each `k' < k`.  Then `\mathscr{N}(Y)` is the number
-          of distinct rows, not counting multipicity, in the wall resulting from
-          this process.
+          of distinct rows, not counting multiplicity, in the wall resulting
+          from this process.
 
         EXAMPLES::
 
@@ -422,7 +433,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         else:
             s += "\\begin{tikzpicture}[baseline=5,scale=.45] \n \\foreach \\x [count=\\s from 0] in \n"
             s += "{" + ','.join("{" + ','.join( str(i) for i in r ) + "}" for r in self.data ) + "} \n"
-            s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\scriptsize] at (-\\t,\\s) {$\\y$}; \n \draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \draw[-,thick] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
+            s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\scriptsize] at (-\\t,\\s) {$\\y$}; \n \\draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \\draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \\draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \\draw[-,thick] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
         return s
 
     def _latex_(self):
@@ -441,7 +452,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         else:
             s += "\\begin{tikzpicture}[baseline=5,scale=.25] \\foreach \\x [count=\\s from 0] in \n"
             s += "{" + ','.join("{" + ','.join( str(i) for i in r ) + "}" for r in self.data ) + "} \n"
-            s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\tiny] at (-\\t,\\s) {$\\y$}; \n \draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \draw[-] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
+            s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\tiny] at (-\\t,\\s) {$\\y$}; \n \\draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \\draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \\draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \\draw[-] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
         return s
 
     def weight(self, root_lattice=False):

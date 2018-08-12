@@ -291,7 +291,7 @@ cdef class PowerSeries_poly(PowerSeries):
         if len(kwds) >= 1:
             name = P.variable_name()
             if name in kwds: # a keyword specifies the power series generator
-                if len(x) > 0:
+                if x:
                     raise ValueError("must not specify %s keyword and positional argument" % name)
                 a = self(kwds[name])
                 del kwds[name]
@@ -299,7 +299,7 @@ cdef class PowerSeries_poly(PowerSeries):
                     return a(**kwds)
                 except TypeError:
                     return a
-            elif len(x) > 0:       # both keywords and positional arguments
+            elif x:       # both keywords and positional arguments
                 a = self(*x)
                 try:
                     return a(**kwds)
@@ -1114,7 +1114,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: R.<z> = RR[[]]
             sage: f = exp(2*z)
             sage: f.pade(3, 3) # abs tol 1e-10
-            (-1.0*z^3 - 6.0*z^2 - 15.0*z - 15.0)/(z^3 - 6.0*z^2 + 15.0*z - 15.0)
+            (-z^3 - 6.0*z^2 - 15.0*z - 15.0)/(z^3 - 6.0*z^2 + 15.0*z - 15.0)
 
         When precision is too low::
 
@@ -1123,29 +1123,22 @@ cdef class PowerSeries_poly(PowerSeries):
             Traceback (most recent call last):
             ...
             ValueError: the precision of the series is not large enough
+
+        Check that :trac:`21212` is fixed::
+
+            sage: QQx.<x> = QQ[[]]
+            sage: (1+x+O(x^100)).pade(2,2)
+            x + 1
+
         """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.matrix.constructor import Matrix
         if self.precision_absolute() < n + m + 2:
             raise ValueError("the precision of the series is not large enough")
         polyring = self.parent()._poly_ring()
         z = polyring.gen()
-        c = self.list()
-        mat = Matrix(polyring, n + 1, n + 1)
-        for i in range(1, n + 1):
-            for j in range(n + 1):
-                mat[i, j] = c[m + i - j]
-        for j in range(n + 1):
-            mat[0, j] = z ** j
-        resu_v = mat.determinant().truncate(n + 1)
-        lead_v = resu_v.leading_coefficient()
-        resu_v = resu_v / lead_v
-        for j in range(n + 1):
-            mat[0, j] = z ** j * (self.truncate(max(m - j + 1, 0)))
-        resu_u = mat.determinant().truncate(m + 1)
-        lead_u = resu_u.leading_coefficient()
-        resu_u = resu_u / lead_u
-        return lead_u / lead_v * resu_u / resu_v
+        c = self.polynomial();
+        u, v = c.rational_reconstruct(z**(n + m + 1), m, n);
+        return u/v
+
 
     def _symbolic_(self, ring):
         """

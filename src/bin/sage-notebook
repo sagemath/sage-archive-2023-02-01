@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env sage-python23
 # -*- coding: utf-8 -*-
 
 import os
@@ -136,7 +136,7 @@ class SageNBExport(NotebookJupyter):
             SAGENB_EXPORT = 'sagenb-export'
             os.execvp(SAGENB_EXPORT, [SAGENB_EXPORT] + argv)
         argv += [
-            "--NotebookApp.server_extensions=['sagenb_export.nbextension']",
+            "--NotebookApp.nbserver_extensions={'sagenb_export.nbextension':True}",
             "--NotebookApp.default_url='/sagenb'",
         ]
         super(SageNBExport, self).__init__(argv)

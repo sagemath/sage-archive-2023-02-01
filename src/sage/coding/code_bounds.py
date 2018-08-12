@@ -156,12 +156,12 @@ PROBLEM: In this module we shall typically either (a) seek bounds
 on k, given n, d, q, (b) seek bounds on R, delta, q (assuming n is
 "infinity").
 
-TODO:
+.. TODO::
 
-- Johnson bounds for binary codes.
+    - Johnson bounds for binary codes.
 
-- mrrw2_bound_asymp(delta,q), "second" asymptotic
-  McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
+    - mrrw2_bound_asymp(delta,q), "second" asymptotic
+      McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
 """
 from __future__ import absolute_import
 
@@ -214,7 +214,7 @@ def _check_n_q_d(n, q, d, field_based=True):
     """
     if (q not in ZZ) or (q<2):
         raise ValueError("The alphabet size must be an integer >1")
-    if field_based==True and (not is_prime_power(q)):
+    if field_based and (not is_prime_power(q)):
         raise ValueError("The alphabet size does not make sense for a code over a field")
     if not( d > 0 and n >= d and n in ZZ and d in ZZ ):
         raise ValueError("The length or minimum distance does not make sense")
@@ -546,8 +546,9 @@ def singleton_upper_bound(n,q,d):
     _check_n_q_d(n, q, d, field_based=False)
     return q**(n - d + 1)
 
-def gv_info_rate(n,delta,q):
-    """
+
+def gv_info_rate(n, delta, q):
+    r"""
     The Gilbert-Varshamov lower bound for information rate.
 
     The Gilbert-Varshamov lower bound for information rate of a `q`-ary code of
@@ -561,6 +562,7 @@ def gv_info_rate(n,delta,q):
     q = ZZ(q)
     ans=log(gilbert_lower_bound(n,q,int(n*delta)),q)/n
     return ans
+
 
 def entropy(x, q=2):
     """
@@ -577,8 +579,8 @@ def entropy(x, q=2):
 
         sage: codes.bounds.entropy(0, 2)
         0
-        sage: codes.bounds.entropy(1/5,4)
-        1/5*log(3)/log(4) - 4/5*log(4/5)/log(4) - 1/5*log(1/5)/log(4)
+        sage: codes.bounds.entropy(1/5,4).factor()
+        1/10*(log(5) + log(3) - 4*log(4/5))/log(2)
         sage: codes.bounds.entropy(1, 3)
         log(2)/log(3)
 
@@ -627,7 +629,7 @@ def entropy_inverse(x, q=2):
 
         sage: from sage.coding.code_bounds import entropy_inverse
         sage: entropy_inverse(0.1)
-        0.012986862055848683
+        0.012986862055...
         sage: entropy_inverse(1)
         1/2
         sage: entropy_inverse(0, 3)
@@ -699,8 +701,9 @@ def singleton_bound_asymp(delta,q):
     """
     return (1-delta)
 
-def plotkin_bound_asymp(delta,q):
-    """
+
+def plotkin_bound_asymp(delta, q):
+    r"""
     The asymptotic Plotkin bound for the information rate.
 
     This only makes sense when `0 < \delta < 1-1/q`.
@@ -713,8 +716,9 @@ def plotkin_bound_asymp(delta,q):
     r = 1-1/q
     return (1-delta/r)
 
-def elias_bound_asymp(delta,q):
-    """
+
+def elias_bound_asymp(delta, q):
+    r"""
     The asymptotic Elias bound for the information rate.
 
     This only makes sense when `0 < \delta < 1-1/q`.
@@ -727,8 +731,9 @@ def elias_bound_asymp(delta,q):
     r = 1-1/q
     return RDF((1-entropy(r-sqrt(r*(r-delta)), q)))
 
-def mrrw1_bound_asymp(delta,q):
-    """
+
+def mrrw1_bound_asymp(delta, q):
+    r"""
     The first asymptotic McEliese-Rumsey-Rodemich-Welsh bound.
 
     This only makes sense when `0 < \delta < 1-1/q`.

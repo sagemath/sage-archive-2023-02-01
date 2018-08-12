@@ -1,5 +1,5 @@
 r"""
-Weierstrass form of a toric elliptic curve.
+Weierstrass form of a toric elliptic curve
 
 There are 16 reflexive polygons in the plane, see
 :func:`~sage.geometry.lattice_polytope.ReflexivePolytopes`. Each of
@@ -268,8 +268,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
 
     OUTPUT:
 
-    A tuple containing of the affine span of the Netwton polytope and
-    a dictionary with keys the integral values of the Newton polytope
+    A dictionary with keys the integral values of the Newton polytope
     and values the corresponding coefficient of ``polynomial``.
 
     EXAMPLES::
@@ -406,7 +405,7 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
 
     If ``transformation=True``, a triple `(X,Y,Z)` of polynomials
     defining a rational map of the toric hypersurface or complete
-    intersection in `\mathbb{P}^3` to its Weierstrass form in 
+    intersection in `\mathbb{P}^3` to its Weierstrass form in
     `\mathbb{P}^2[2,3,1]` is returned.
     That is, the triple satisfies
 

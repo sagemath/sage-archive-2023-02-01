@@ -338,7 +338,7 @@ def sieve(X, bound):
         sage: from sage.schemes.product_projective.rational_point import sieve
         sage: PP.<x,y,z,u,v> = ProductProjectiveSpaces([2,1], QQ)
         sage: X = PP.subscheme([x^2 + y^2 - x*z, u*u-v*u])
-        sage: sieve(X,2)
+        sage: sieve(X, 2)
         [(0 : 0 : 1 , 0 : 1), (0 : 0 : 1 , 1 : 1), (1/2 : -1/2 : 1 , 0 : 1),
          (1/2 : -1/2 : 1 , 1 : 1), (1/2 : 1/2 : 1 , 0 : 1), (1/2 : 1/2 : 1 , 1 : 1),
          (1 : 0 : 1 , 0 : 1), (1 : 0 : 1 , 1 : 1)]
@@ -387,8 +387,10 @@ def sieve(X, bound):
 
         Complexity of finding points modulo primes is assumed to be N^2 * P_max^{N}.
         Complexity of lifting points and LLL() function is assumed to
-        be close to (N^5) * (alpha^dim_scheme / P_max).
-        where alpha is product of all primes, and P_max is largest prime in list.
+        be close to (dim_max^5) * (alpha / P_max)^dim_scheme.
+        where alpha is product of all primes, P_max is largest prime in list,
+        dim_max is the max of dimension of all components, and N is dimension
+        of ambient space.
         """
 
         M = dict() # stores optimal list of primes, corresponding to list size
@@ -396,6 +398,7 @@ def sieve(X, bound):
         max_length = len(small_primes)
         M[max_length] = small_primes
         current_count = max_length - 1
+        dim = X.ambient_space().dimension()
 
         while current_count > 1:
             current_list = [] # stores prime which are bigger than least
@@ -422,9 +425,9 @@ def sieve(X, bound):
             current_count = current_count - 1
 
         best_size = 2
-        best_time = (N**2)*M[2][-1]**(N) + (N**5 * RR(prod(M[2])**dim_scheme / M[2][-1]) )
+        best_time = (dim**2)*M[2][-1]**(dim) + (dim_max**5 * (prod(M[2])/M[2][-1])**dim_scheme)
         for i in range(2, max_length + 1):
-            current_time = (N**2)*M[i][-1]**(N) + (N**5 * RR(prod(M[i])**dim_scheme  / M[i][-1]) )
+            current_time = (dim**2)*M[i][-1]**(dim) + (dim_max**5 * (prod(M[i])/M[i][-1])**dim_scheme)
             if current_time < best_time:
                 best_size = i
                 best_time = current_time

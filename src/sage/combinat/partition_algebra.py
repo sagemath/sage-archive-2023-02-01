@@ -86,7 +86,7 @@ class SetPartitionsXkElement(SetPartition):
             {{-3, -2, -1, 1, 2, 3}}
             sage: x.check()
             sage: y = A2p5.next(x); y
-            {{-3, -1, 1, 2, 3}, {-2}}
+            {{-3, 3}, {-2, -1, 1, 2}}
             sage: y.check()
         """
         #Check to make sure each element of x is a set

@@ -1276,9 +1276,9 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
         Partition diagrams of order 3/2
         sage: pd.list()
         [{{-2, -1, 1, 2}},
-         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1, 1}},
          {{-2, -1, 2}, {1}},
+         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1}, {1}}]
 
     TESTS::
@@ -1634,9 +1634,9 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
         Planar diagrams of order 3/2
         sage: pld.list()
         [{{-2, -1, 1, 2}},
-         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1, 1}},
          {{-2, -1, 2}, {1}},
+         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1}, {1}}]
 
     TESTS::

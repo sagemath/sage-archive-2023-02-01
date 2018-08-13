@@ -584,30 +584,51 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return infinity
 
-    def artin_hasse_exp(self, long prec=0):
+
+    def artin_hasse_exp(self, prec=None, algorithm=None):
         r"""
-        Return the Artin-Hasse exponential of a `p`-adic integer.
+        Return the Artin-Hasse exponential of this element.
 
         INPUT:
 
-        - ``prec`` -- the desired level of precision
-          (Default: retrieve from ``self``)
+        - ``prec`` -- an integer or ``None`` (default: ``None``)
+          the desired precision on the result; if ``None``, the
+          precision is derived from the precision on the input
+
+        - ``algorithm`` -- ``direct``, ``series``, ``newton`` or 
+          ``None`` (default)
+          The direct algorithm computes the Artin-Hasse exponential
+          of ``x``, namely ``AH(x)`` as
+
+          .. MATH::
+
+              AH(x) = exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+          The series algorithm computes the series defining the
+          Artin-Hasse exponential and evaluates it
+
+          The ``Newton`` algorithm solve the equation
+
+          .. MATH::
+
+              log(AH(x)) = x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+          using a Newton scheme. It runs roughly as fast as the computation
+          of the logarithm.
+
+          By default, we use the direct algorithm if a fast algorithm for
+          computing the exponential is available.
+          If not, we use the Newton algorithm if a fast algorithm for
+          computing the logarithm is available.
+          Otherwise we switch to the series algorithm.
 
         OUTPUT:
 
-        `p`-adic number -- the Artin-Hasse exponential of ``self``
-
-        The Artin-Hasse exponential is defined by the power series
-
-        .. MATH::
-
-            E_p(x) = exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+        The Artin-Hasse exponential of this element defined by the power series
 
         See :wikipedia:`Artin-Hasse_exponential` for more information.
 
-        EXAMPLES:
-
-        Plugging in a `p`-adic integer::
+        EXAMPLES::
 
             sage: x = Zp(5)(45/7)
             sage: y = x.artin_hasse_exp(); y
@@ -681,127 +702,117 @@ cdef class pAdicGenericElement(LocalGenericElement):
         .. [Conr] K. Conrad, *Artin-Hasse-Type Series and Roots of Unity*
            http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/AHrootofunity.pdf
         """
-        if self.valuation_c() < 1:
-            raise ValueError("series does not converge")
-
-        cdef long hi, q, qpow, r, s
-        cdef Rational c = Rational.__new__(Rational)
-        cdef mpq_t *a
-        cdef Integer p_as_Integer
-        from sage.rings.integer_ring import ZZ
-
-        if prec == 0:
-            # assumes computing up to the precision of the parent field,
-            # unless otherwise specified
-            prec = self.precision_absolute()
-        elif prec < 0:
-            raise ValueError("prec must be nonnegative")
-        a = <mpq_t *> sig_malloc(prec * sizeof(mpq_t))
-        # build a c list for coefficients, put variables in nice types
-        for r in range(prec):
-            mpq_init(a[r])
-
-        p_as_Integer = self._parent.prime()
-        if not mpz_fits_slong_p(p_as_Integer.value):
-            q = prec + 1
-            # if your prime is really big, it does not come up in the
-            # computation except to notice that it's really big
-        else:
-            q = mpz_get_si(p_as_Integer.value)
-
-        cdef Integer z = <Integer> self.lift()
-
-        mpq_set_si(a[0], 1, 1)
-        # compute the coefficients
-        for r in range(1, prec):
-            hi = floorlogp(r, q) + 1
-            if hi == 1:
-                # if p is low, do it fast
-                mpz_set(mpq_numref(a[r]), mpq_numref(a[r - 1]))
-                mpz_mul_si(mpq_denref(a[r]), mpq_denref(a[r - 1]), r)
-                mpq_canonicalize(a[r])
-            else:
-                qpow = 1
-                mpq_set(c.value, a[r - 1])
-                # otherwise do it recursively
-                for s in range(1,hi):
-                    qpow = qpow * q
-                    mpq_add(c.value, c.value, a[r - qpow])
-                    #n*c_{n} = sum_{j=0}^{hi} c_{n-p^j}
-                mpz_set(mpq_numref(a[r]), mpq_numref(c.value))
-                mpz_mul_si(mpq_denref(a[r]), mpq_denref(c.value), r)
-                mpq_canonicalize(a[r])
-
-        if prec == 1:
-        # do it fast for trivial precision
-            mpq_set(c.value, a[0])
-            for r in range(prec):
-                mpq_clear(a[r])
-                # clear memory
-            sig_free(a)
-            return self.parent(c)
-        else:
-            mpq_set(c.value, a[prec - 1])
-            # evaluate the polynomial
-            for i in range (prec-2, -1, -1):
-                mpz_mul(mpq_numref(c.value), mpq_numref(c.value), (<Integer> z).value)
-                mpq_canonicalize(c.value)
-                mpq_add(c.value, c.value, a[i])
-            for r in range(prec):
-                mpq_clear(a[r])
-            sig_free(a)
-            #clear memory
-            return self.parent()(c, prec)
-        #return the value as a p-adic
-
-
-    def artin_hasse_exp_Newton(x, prec=None):
-        val = x.valuation()
-        if val < 1:
+        if self.valuation() < 1:
             raise ValueError("Artin-Hasse exponential does not converge on this input")
-        R = x.parent()
+        R = self.parent()
+        if prec is None:
+            prec = min(self.precision_absolute(), R.precision_cap())
+        else:
+            prec = min(prec, self.precision_absolute(), R.precision_cap())
+
+        if algorithm is None:
+            try:
+                R(0).exp(1, algorithm='binary_splitting')  # we check that binary splitting is available
+                ans = self._AHE_direct(prec, exp_algorithm='binary_splitting')
+            except NotImplementedError:
+                try:
+                    R(1).log(1, algorithm='binary_splitting')  # we check that binary splitting is available
+                    ans = self._AHE_newton(prec, log_algorithm='binary_splitting')
+                except NotImplementedError:
+                    ans = self._AHE_series(prec)
+        elif algorithm == 'direct':
+            ans = self._AHE_direct(prec)
+        elif algorithm == 'series':
+            ans = self._AHE_series(prec)
+        elif algorithm == 'newton':
+            ans = self._AHE_newton(prec)
+        else:
+            raise ValueError("Algorithm must be 'direct', 'series', 'newton' or None")
+        return ans
+
+
+    def _AHE_direct(self, prec, exp_algorithm=None):
+        R = self.parent()
+        p = R.prime()
+        pow = self.add_bigoh(prec)
+        arg = pow
+        v = self.valuation()
+        denom = 1; trunc = prec
+        vmax = prec // p
+        if R.absolute_degree() == 1:
+            # Special code for Zp and Qp
+            while v <= vmax:
+                trunc += 1
+                pow = (pow**p).add_bigoh(trunc)
+                denom *= p
+                arg += pow/denom
+                v *= p
+            AH = arg.exp(algorithm=exp_algorithm)
+            if p == 2 and AH.add_bigoh(2) - self != 1:
+                AH = -AH
+        else:
+            e = R.absolute_e()
+            ep = e // (p-1)
+            while v <= vmax:
+                trunc += e
+                pow = (pow**p).add_bigoh(trunc)
+                denom *= p
+                s = pow/denom
+                if s.valuation() <= ep:
+                    raise NotImplementedError("One factor of the Artin-Hasse exponential does not converge")
+                arg += s
+                v *= p
+            AH = arg.exp(algorithm=exp_algorithm)
+        return AH
+
+    def _AHE_series(self, prec):
+        R = self.parent()
         p = R.prime()
         e = R.absolute_e()
-        if prec is None:
-            prec = min(x.precision_absolute(), R.precision_cap())
-        else:
-            prec = min(prec, x.precision_absolute(), R.precision_cap())
+
+        # We compute the Artin-Hasse series at the requested precision
+        L = _AHE_coefficients(p, prec, 1 + (prec-1)//e)
+        # We evaluate it using Hörner algorithm
+        y = R(0)
+        x = self.add_bigoh(prec)
+        for i in range(prec-1, -1, -1):
+            y = y*x + R(L[i])
+
+        return y
+
+
+    def _AHE_newton(self, prec, log_algorithm=None):
+        R = self.parent()
+        p = R.prime()
+        e = R.absolute_e()
 
         # Step 1:
         # We compute a sufficiently good approximation of the result
         # in order to bootstrap the Newton iteration
 
         # We compute the Artin-Hasse series at the requested precision
-        from sage.rings.padics.factory import ZpFM
-        from sage.functions.other import ceil
         ep = e // (p-1)
         startprec = min(prec, ep+1)
-        R2 = ZpFM(p, prec = 1 + ceil(startprec.log()/p.log()))
-        L = [ R2(1) ]
-        for i in range(1,startprec):
-            c = R2(0)
-            dec = 1
-            while dec <= i:
-                c += L[i-dec]
-                dec *= p
-            L.append(c // i)
+        L = _AHE_coefficients(p, startprec, 1)
         # We evaluate it using Hörner algorithm
         y = R(0)
-        xx = x.add_bigoh(startprec)
+        x = self.add_bigoh(startprec)
         for i in range(startprec-1, -1, -1):
-            y = y*xx + R(L[i])
+            y = y*x + R(L[i])
 
         # Step 2:
         # We use Newton iteration to solve the equation
         # log(AH(x)) = x + x^p/p + x^(p^2)/p^2 + ...
 
         # We compute b = 1 + x + x^p/p + x^(p^2)/p^2 + ...
-        pow = x
-        b = 1 + x
-        v = val; denom = 1
+        pow = self.add_bigoh(prec)
+        b = 1 + pow
+        v = self.valuation()
+        denom = 1; trunc = prec
         vmax = max(ep, prec // p)
         while v <= vmax:
-            pow = pow**p
+            trunc += e
+            pow = (pow**p).add_bigoh(trunc)
             denom *= p
             b += pow/denom
             v *= p
@@ -813,7 +824,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             else:
                 curprec = 2*curprec
             y = y.lift_to_precision(min(prec,curprec))
-            y *= b - y.log()
+            y *= b - y.log(algorithm=log_algorithm)
 
         return R(y)
 
@@ -3085,6 +3096,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ans = self._exp_binary_splitting(aprec)
         elif algorithm == 'newton':
             ans = self._exp_newton(aprec)
+        else:
+            raise ValueError("Algorithm must be 'generic', 'binary_splitting', 'newton' or None")
         return ans.add_bigoh(aprec)
         
 
@@ -3696,6 +3709,32 @@ cdef class pAdicGenericElement(LocalGenericElement):
             F[i+1] = Li_i_zeta[i+1] + (F[i]/(zeta + t)).integral()
 
         return (F[n](z - zeta)).add_bigoh(N)
+
+
+# Artin-Hasse exponential
+_AHE_coefficients_cache = { }
+def _AHE_coefficients(p, N, prec):
+    """
+    """
+    from sage.rings.padics.factory import ZpFM
+    from sage.functions.other import ceil
+    internal_prec = prec + ceil(N.log()/p.log())
+    if p in _AHE_coefficients_cache:
+        cache_internal_prec, values = _AHE_coefficients_cache[p]
+    else:
+        cache_internal_prec = 0
+    if cache_internal_prec < internal_prec:
+        parent = ZpFM(p, internal_prec)
+        values = [ parent(1) ]
+    for i in range(len(values), N):
+        c = 0
+        dec = 1
+        while dec <= i:
+            c += values[i-dec]
+            dec *= p
+        values.append(c // i)
+    _AHE_coefficients_cache[p] = (internal_prec, values)
+    return values
 
 
 # Module functions used by polylog

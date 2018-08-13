@@ -2700,41 +2700,41 @@ class TriconnectivitySPQR:
         ....: (10, 11), (10, 12)])
         sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
-        Bond: [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
-        Bond: [(1, 8, None), (1, 8, 'newVEdge2'), (1, 8, 'newVEdge3')]
-        Bond: [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
-        Bond: [(4, 5, None), (4, 5, 'newVEdge7'), (4, 5, 'newVEdge8')]
-        Bond: [(1, 4, None), (1, 4, 'newVEdge10'), (1, 4, 'newVEdge9')]
-        Triconnected: [(8, 9, None), (8, 11, None), (8, 12, 'newVEdge0'), (9, 10, None), (9, 11, None), (9, 12, None), (10, 11, None), (10, 12, None)]
-        Triconnected: [(1, 2, None), (1, 3, 'newVEdge11'), (1, 13, None), (2, 3, None), (2, 13, None), (3, 13, None)]
-        Polygon: [(1, 8, 'newVEdge2'), (1, 12, None), (8, 12, 'newVEdge1')]
-        Polygon: [(1, 4, 'newVEdge9'), (1, 8, 'newVEdge3'), (4, 5, 'newVEdge8'), (5, 8, None)]
-        Polygon: [(5, 6, None), (5, 7, 'newVEdge5'), (6, 7, None)]
-        Polygon: [(4, 5, 'newVEdge7'), (4, 7, None), (5, 7, 'newVEdge6')]
-        Polygon: [(1, 3, 'newVEdge11'), (1, 4, 'newVEdge10'), (3, 4, None)]
+        Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
+        Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
+        Polygon:  [(8, 12, 'newVEdge1'), (1, 12, None), (8, 1, 'newVEdge2')]
+        Bond:  [(1, 8, None), (8, 1, 'newVEdge2'), (8, 1, 'newVEdge3')]
+        Polygon:  [(5, 8, None), (8, 1, 'newVEdge3'), (4, 5, 'newVEdge8'), (4, 1, 'newVEdge9')]
+        Polygon:  [(5, 6, None), (6, 7, None), (5, 7, 'newVEdge5')]
+        Bond:  [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
+        Polygon:  [(5, 7, 'newVEdge6'), (4, 7, None), (5, 4, 'newVEdge7')]
+        Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
+        Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
+        Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
+        Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
 
     An example from [Gut2001]_::
 
         sage: G = Graph()
-        sage: G.add_edges([(1,2),(1,4),(2,3),(2,5),(3,4),(3,5),(4,5),(4,6),(5,7),(5,8)])
-        sage: G.add_edges([(5,14),(6,8),(7,14),(8,9),(8,10),(8,11),(8,12),(9,10),(10,13)])
-        sage: G.add_edges([(10,14),(10,15),(10,16),(11,12),(11,13),(12,13),(14,15),(14,16),(15,16)])
+        sage: G.add_edges([(1,2),(1,4),(2,3),(2,5),(3,4),(3,5),(4,5),(4,6),(5,7),(5,8),
+        ....: (5,14),(6,8),(7,14),(8,9),(8,10),(8,11),(8,12),(9,10),(10,13),
+        ....: (10,14),(10,15),(10,16),(11,12),(11,13),(12,13),(14,15),(14,16),(15,16)])
         sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
-        Bond: [(8, 10, None), (8, 10, 'newVEdge1'), (8, 10, 'newVEdge4'), (8, 10, 'newVEdge5')]
-        Bond: [(10, 14, None), (10, 14, 'newVEdge6'), (10, 14, 'newVEdge7')]
-        Bond: [(5, 14, None), (5, 14, 'newVEdge10'), (5, 14, 'newVEdge9')]
-        Bond: [(5, 8, None), (5, 8, 'newVEdge11'), (5, 8, 'newVEdge12')]
-        Bond: [(4, 5, None), (4, 5, 'newVEdge13'), (4, 5, 'newVEdge14')]
-        Triconnected: [(8, 11, None), (8, 12, None), (8, 13, 'newVEdge3'), (11, 12, None), (11, 13, None), (12, 13, None)]
-        Triconnected: [(10, 14, 'newVEdge6'), (10, 15, None), (10, 16, None), (14, 15, None), (14, 16, None), (15, 16, None)]
-        Triconnected: [(2, 3, None), (2, 4, 'newVEdge15'), (2, 5, None), (3, 4, None), (3, 5, None), (4, 5, 'newVEdge14')]
-        Polygon: [(4, 5, 'newVEdge13'), (4, 6, None), (5, 8, 'newVEdge12'), (6, 8, None)]
-        Polygon: [(8, 9, None), (8, 10, 'newVEdge1'), (9, 10, None)]
-        Polygon: [(8, 10, 'newVEdge4'), (8, 13, 'newVEdge3'), (10, 13, None)]
-        Polygon: [(5, 8, 'newVEdge11'), (5, 14, 'newVEdge10'), (8, 10, 'newVEdge5'), (10, 14, 'newVEdge7')]
-        Polygon: [(5, 7, None), (5, 14, 'newVEdge9'), (7, 14, None)]
-        Polygon: [(1, 2, None), (1, 4, None), (2, 4, 'newVEdge15')]
+        Polygon:  [(6, 8, None), (4, 6, None), (5, 8, 'newVEdge12'), (5, 4, 'newVEdge13')]
+        Polygon:  [(8, 9, None), (9, 10, None), (8, 10, 'newVEdge1')]
+        Bond:  [(8, 10, 'newVEdge1'), (8, 10, None), (8, 10, 'newVEdge4'), (10, 8, 'newVEdge5')]
+        Triconnected:  [(8, 11, None), (11, 12, None), (8, 12, None), (12, 13, None), (11, 13, None), (8, 13, 'newVEdge3')]
+        Polygon:  [(8, 13, 'newVEdge3'), (10, 13, None), (8, 10, 'newVEdge4')]
+        Triconnected:  [(10, 15, None), (14, 15, None), (15, 16, None), (10, 16, None), (14, 16, None), (10, 14, 'newVEdge6')]
+        Bond:  [(10, 14, 'newVEdge6'), (14, 10, 'newVEdge7'), (10, 14, None)]
+        Polygon:  [(14, 10, 'newVEdge7'), (10, 8, 'newVEdge5'), (5, 14, 'newVEdge10'), (5, 8, 'newVEdge11')]
+        Polygon:  [(5, 7, None), (7, 14, None), (5, 14, 'newVEdge9')]
+        Bond:  [(5, 14, None), (5, 14, 'newVEdge9'), (5, 14, 'newVEdge10')]
+        Bond:  [(5, 8, None), (5, 8, 'newVEdge11'), (5, 8, 'newVEdge12')]
+        Bond:  [(5, 4, 'newVEdge13'), (4, 5, 'newVEdge14'), (4, 5, None)]
+        Triconnected:  [(2, 3, None), (3, 4, None), (4, 5, 'newVEdge14'), (3, 5, None), (2, 5, None), (2, 4, 'newVEdge15')]
+        Polygon:  [(1, 2, None), (2, 4, 'newVEdge15'), (1, 4, None)]
 
     An example with multi-edges and accessing the triconnected components::
 
@@ -2743,9 +2743,9 @@ class TriconnectivitySPQR:
         sage: G.add_edges([(1,2),(2,3),(3,4),(4,5),(1,5),(1,5),(2,3)])
         sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
-        Bond: [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')]
-        Bond: [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
-        Polygon: [(1, 2, None), (1, 5, 'newVEdge0'), (2, 3, 'newVEdge1'), (3, 4, None), (4, 5, None)]
+        Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
+        Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, 'newVEdge1')]
         sage: tric.comp_list_new
         [[(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')],
         [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')],
@@ -2760,7 +2760,7 @@ class TriconnectivitySPQR:
         sage: G2.add_edges([('a','b'),('a','c'),('a','d'),('b','c'),('b','d'),('c','d')])
         sage: tric = TriconnectivitySPQR(G2)
         sage: tric.print_triconnected_components()
-        Triconnected: [('a', 'b', None), ('a', 'c', None), ('a', 'd', None), ('b', 'c', None), ('b', 'd', None), ('c', 'd', None)]
+        Triconnected:  [('a', 'b', None), ('b', 'c', None), ('a', 'c', None), ('c', 'd', None), ('b', 'd', None), ('a', 'd', None)]
 
     An example of a directed graph with multi-edges::
 
@@ -2769,8 +2769,8 @@ class TriconnectivitySPQR:
         sage: G3.add_edges([(1,2),(2,3),(3,4),(4,5),(1,5),(5,1)])
         sage: tric = TriconnectivitySPQR(G3)
         sage: tric.print_triconnected_components()
-        Bond: [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
-        Polygon: [(1, 2, None), (1, 5, 'newVEdge0'), (2, 3, None), (3, 4, None), (4, 5, None)]
+        Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, None)]
 
     TESTS:
 
@@ -3632,6 +3632,10 @@ class TriconnectivitySPQR:
                 self.comp_list_new.append(e_list_new)
 
     def __build_spqr_tree(self):
+        """
+        Constructs the SPQR tree of the graph and stores the tree in the variable
+        `self.spqr_tree`. Refer to function `~TriconnectivitySPQR.get_spqr_tree`.
+        """
         from sage.graphs.graph import Graph
         # Types of components 0: "P", 1: "S", 2: "R"
         component_type = ["P", "S", "R"]
@@ -3680,25 +3684,22 @@ class TriconnectivitySPQR:
             ....: (10, 11), (10, 12)])
             sage: tric = TriconnectivitySPQR(G)
             sage: tric.print_triconnected_components()
-            Bond: [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
-            Bond: [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
-            Bond: [(1, 8, None), (1, 8, 'newVEdge2'), (1, 8, 'newVEdge3')]
-            Bond: [(1, 4, None), (1, 4, 'newVEdge10'), (1, 4, 'newVEdge9')]
-            Bond: [(4, 5, None), (4, 5, 'newVEdge7'), (4, 5, 'newVEdge8')]
-            Triconnected: [(1, 2, None), (1, 3, 'newVEdge11'), (1, 13, None), (2, 3, None), (2, 13, None), (3, 13, None)]
-            Triconnected: [(8, 9, None), (8, 11, None), (8, 12, 'newVEdge0'), (9, 10, None), (9, 11, None), (9, 12, None), (10, 11, None), (10, 12, None)]
-            Polygon: [(1, 4, 'newVEdge9'), (1, 8, 'newVEdge3'), (4, 5, 'newVEdge8'), (5, 8, None)]
-            Polygon: [(1, 8, 'newVEdge2'), (1, 12, None), (8, 12, 'newVEdge1')]
-            Polygon: [(4, 5, 'newVEdge7'), (4, 7, None), (5, 7, 'newVEdge6')]
-            Polygon: [(1, 3, 'newVEdge11'), (1, 4, 'newVEdge10'), (3, 4, None)]
-            Polygon: [(5, 6, None), (5, 7, 'newVEdge5'), (6, 7, None)]
+            Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
+            Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
+            Polygon:  [(8, 12, 'newVEdge1'), (1, 12, None), (8, 1, 'newVEdge2')]
+            Bond:  [(1, 8, None), (8, 1, 'newVEdge2'), (8, 1, 'newVEdge3')]
+            Polygon:  [(5, 8, None), (8, 1, 'newVEdge3'), (4, 5, 'newVEdge8'), (4, 1, 'newVEdge9')]
+            Polygon:  [(5, 6, None), (6, 7, None), (5, 7, 'newVEdge5')]
+            Bond:  [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
+            Polygon:  [(5, 7, 'newVEdge6'), (4, 7, None), (5, 4, 'newVEdge7')]
+            Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
+            Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
+            Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
+            Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
         """
-        #prefix = ["Bond", "Polygon", "Triconnected"]
-        #for i in range(len(self.comp_list_new)):
-        #    print("{}: {}".format(prefix[self.comp_type[i]], self.comp_list_new[i]))
-        prefix = {'P': "Bond", 'S': "Polygon", 'R': "Triconnected"}
-        for node in self.spqr_tree.vertices():
-            print("{}: {}".format(prefix[node[0]], node[1].edges()))
+        prefix = ["Bond", "Polygon", "Triconnected"]
+        for i in range(len(self.comp_list_new)):
+            print("{}: {}".format(prefix[self.comp_type[i]], self.comp_list_new[i]))
 
     def get_triconnected_components(self):
         r"""
@@ -3715,15 +3716,15 @@ class TriconnectivitySPQR:
             ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1]) 
             sage: tric = TriconnectivitySPQR(G)
             sage: tric.get_triconnected_components()
-            [('Bond', [(0, 1, 'newVEdge1'), (0, 1, 'newVEdge3'), (0, 1, 'newVEdge4')]),
-             ('Polygon', [(0, 1, 'newVEdge1'), (0, 4, None), (1, 5, None), (4, 5, None)]),
-             ('Polygon', [(0, 1, 'newVEdge4'), (0, 2, None), (1, 3, None), (2, 3, None)]),
-             ('Polygon', [(0, 1, 'newVEdge3'), (0, 6, None), (1, 7, None), (6, 7, None)])]
+            [('Polygon', [(4, 5, None), (0, 4, None), (1, 5, None), (1, 0, 'newVEdge1')]),
+            ('Polygon', [(6, 7, None), (0, 6, None), (1, 7, None), (1, 0, 'newVEdge3')]),
+            ('Bond', [(1, 0, 'newVEdge1'), (1, 0, 'newVEdge3'), (1, 0, 'newVEdge4')]),
+            ('Polygon', [(1, 3, None), (1, 0, 'newVEdge4'), (0, 2, None), (2, 3, None)])]
         """
         comps = []
-        prefix = {'P': "Bond", 'S': "Polygon", 'R': "Triconnected"}
-        for node in self.spqr_tree.vertices():
-            comps.append((prefix[node[0]], node[1].edges()))
+        prefix = ["Bond", "Polygon", "Triconnected"]
+        for i in range(len(self.comp_list_new)):
+            comps.append((prefix[self.comp_type[i]], self.comp_list_new[i]))
         return comps
 
     def get_spqr_tree(self):

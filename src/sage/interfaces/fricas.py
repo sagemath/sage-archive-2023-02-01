@@ -602,6 +602,24 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: s = "unparse((-1234567890123456789012345678901234567890123456789012345678901234567890*n::EXPR INT)::INFORM)"
             sage: fricas.get_string(s)                                                       # optional - fricas
             '(-1234567890123456789012345678901234567890123456789012345678901234567890)*n'
+
+        Check that :trac:`25628` is fixed::
+
+            sage: var("a b"); f = 1/(1+a*cos(x))                                # optional - fricas
+            (a, b)
+            sage: lF = integrate(f, x, algorithm="fricas")                      # optional - fricas
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: f = 1/(b*x^2+a); lF = integrate(f, x, algorithm="fricas"); lF # optional - fricas
+            [1/2*log((2*a*b*x + (b*x^2 - a)*sqrt(-a*b))/(b*x^2 + a))/sqrt(-a*b),
+             arctan(sqrt(a*b)*x/a)/sqrt(a*b)]
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+
         """
         # strip removes leading and trailing whitespace, after that
         # we can assume that the first and the last character are
@@ -1023,6 +1041,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix
@@ -1049,6 +1068,9 @@ class FriCASElement(ExpectElement):
 
         if head == "IntegerMod":
             return Integers(domain[1].integer().sage())
+
+        if head == "PrimeField":
+            return FiniteField(domain[1].integer().sage())
 
         if head == "Fraction":
             return FractionField(self._get_sage_type(domain[1]))
@@ -1105,14 +1127,14 @@ class FriCASElement(ExpectElement):
              0.451026811796262,
              0.732815101786507,
              0.837981225008390,
-             NaN,
-             NaN,
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I,
              1.11976951499863,
              0.451026811796262,
              0.732815101786507,
              0.837981225008390,
-             NaN,
-             NaN]
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I]
             sage: l = [tanh, sinh, cosh, coth, sech, csch, asinh, acosh, atanh, acoth, asech, acsch, arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch]
             sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
             [0.716297870199024,
@@ -1209,6 +1231,11 @@ class FriCASElement(ExpectElement):
 
             sage: fricas("((42^17)^1783)::IntegerMod(5^(5^5))").sage() == Integers(5^(5^5))((42^17)^1783) # optional - fricas
             True
+
+        Matrices over a prime field::
+
+            sage: fricas("matrix [[1::PF 3, 2],[2, 0]]").sage().parent()        # optional - fricas
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
 
         We can also convert FriCAS's polynomials to Sage polynomials::
 
@@ -1387,7 +1414,7 @@ class FriCASElement(ExpectElement):
             s = unparsed_InputForm[:-len("::AlgebraicNumber()")]
             return sage_eval("QQbar(" + s + ")")
 
-        if head == "IntegerMod":
+        if head == "IntegerMod" or head == "PrimeField":
             # one might be tempted not to go via InputForm here, but
             # it turns out to be safer to do it.
             n = unparsed_InputForm[len("index("):]

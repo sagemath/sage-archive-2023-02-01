@@ -279,7 +279,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: latex(QQ) # indirect doctest
             \Bold{Q}
         """
-        return "\Bold{Q}"
+        return r"\Bold{Q}"
 
     def __reduce__(self):
         r"""
@@ -1002,7 +1002,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             yield Rational((-b, a))
 
     def random_element(self, num_bound=None, den_bound=None, *args, **kwds):
-        """
+        r"""
         Return an random element of `\QQ`.
 
         Elements are constructed by randomly choosing integers
@@ -1043,7 +1043,6 @@ class RationalField(Singleton, number_field_base.NumberField):
             0
             sage: QQ.random_element(distribution='1/n')
             -1
-
         """
         global ZZ
         if ZZ is None:

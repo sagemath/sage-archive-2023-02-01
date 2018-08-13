@@ -1211,6 +1211,104 @@ class TensorField(ModuleElement):
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
+    def add_expr_from_subdomain(self, frame, subdomain):
+        r"""
+        Add an expression to an existing component from a subdomain.
+
+        INPUT:
+
+        - ``frame`` -- vector frame `e` in which the components are to be set
+        - ``subdomain`` -- open subset of `e`'s domain in which the
+          components have additional expressions.
+
+        EXAMPLES:
+
+        We are going to consider a vector field in `\RR^3` along the 2-sphere::
+
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: S = Manifold(2, 'S', structure="Riemannian")
+            sage: E.<X,Y,Z> = M.chart()
+
+        Let us define ``S`` in terms of stereographic charts::
+
+            sage: U = S.open_subset('U')
+            sage: V = S.open_subset('V')
+            sage: S.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart()
+            sage: stereoS.<xp,yp> = V.chart("xp:x' yp:y'")
+            sage: stereoN_to_S = stereoN.transition_map(stereoS,
+            ....:                                 (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                 intersection_name='W',
+            ....:                                 restrictions1= x^2+y^2!=0,
+            ....:                                 restrictions2= xp^2+yp^2!=0)
+            sage: stereoS_to_N = stereoN_to_S.inverse()
+            sage: W = U.intersection(V)
+            sage: stereoN_W = stereoN.restrict(W)
+            sage: stereoS_W = stereoS.restrict(W)
+
+        The embedding of `S^2` in `\RR^3`::
+
+            sage: phi = S.diff_map(M, {(stereoN, E): [2*x/(1+x^2+y^2),
+            ....:                                     2*y/(1+x^2+y^2),
+            ....:                                     (x^2+y^2-1)/(1+x^2+y^2)],
+            ....:                        (stereoS, E): [2*xp/(1+xp^2+yp^2),
+            ....:                                       2*yp/(1+xp^2+yp^2),
+            ....:                               (1-xp^2-yp^2)/(1+xp^2+yp^2)]},
+            ....:                   name='Phi', latex_name=r'\Phi')
+
+        To define a vector field ``v`` along ``S`` taking its values in ``M``,
+        we first set the components on ``U``::
+
+            sage: v = M.vector_field('v').along(phi)
+            sage: vU = v.restrict(U)
+            sage: vU[:] = [x,y,x**2+y**2]
+
+        But because ``M`` is parallelizable, these components can be extended
+        to ``S`` itself::
+
+            sage: v.add_comp_by_continuation(E.frame().along(phi), U)
+
+        One can see that ``v`` is not yet fully defined: the components
+        (scalar fields) do not have values on the whole manifold::
+
+            sage: v._components.values()[0]._comp[(0,)].display()
+            S --> R
+            on U: (x, y) |--> x
+
+        To fix that, we first extend the components from ``W`` to ``V`` using
+        :meth:`add_comp_by_continuation`::
+
+            sage: v.add_comp_by_continuation(E.frame().along(phi).restrict(V),
+            ....:                            W, stereoS)
+
+        Then, the expression on the subdomain ``V`` is added to the
+        already known components on ``S`` by::
+
+            sage: v.add_expr_from_subdomain(E.frame().along(phi), V)
+
+        The definition of ``v`` is now complete::
+
+            sage: v._components.values()[0]._comp[(2,)].display()
+            S --> R
+            on U: (x, y) |--> x^2 + y^2
+            on V: (xp, yp) |--> 1/(xp^2 + yp^2)
+        """
+        dom = frame._domain
+        if not dom.is_subset(self._domain):
+            raise ValueError("the vector frame is not defined on a subset " +
+                             "of the tensor field domain")
+        if frame not in self.restrict(frame.domain())._components:
+            raise ValueError("the tensor doesn't have an expression in "
+                             "the frame"+frame._repr_())
+        comp = self.comp(frame)
+        scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
+        for ind in comp.non_redundant_index_generator():
+            comp[[ind]]._express.update(scomp[[ind]]._express)
+
+        rst = self._restrictions.copy()
+        self._del_derived()         # delete restrictions
+        self._restrictions = rst
+
     def comp(self, basis=None, from_basis=None):
         r"""
         Return the components in a given vector frame.

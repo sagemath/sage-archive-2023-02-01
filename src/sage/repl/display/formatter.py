@@ -25,11 +25,11 @@ generally, all sage expression as an ASCII art object::
     sage: shell = get_test_shell()
     sage: shell.run_cell('%display ascii_art')
     sage: shell.run_cell('integral(x^2/pi^x, x)')
-     / 2    2                      \  -x*log(pi)
-    -\x *log (pi) + 2*x*log(pi) + 2/*e
-    ---------------------------------------------
-                         3
-                      log (pi)
+       -x / 2    2                      \ 
+    -pi  *\x *log (pi) + 2*x*log(pi) + 2/ 
+    --------------------------------------
+                     3                   
+                   log (pi)               
     sage: shell.run_cell("i = var('i')")
     sage: shell.run_cell('sum(i*x^i, i, 0, 10)')
         10      9      8      7      6      5      4      3      2

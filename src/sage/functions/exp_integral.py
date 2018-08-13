@@ -643,7 +643,7 @@ class Function_log_integral_offset(BuiltinFunction):
         return mpmath_utils_call(mpmath.li, z, offset=True, parent=parent)
 
     def _derivative_(self, z, diff_param=None):
-        """
+        r"""
         The derivative of `\operatorname{Li}(z) is `1/log(z)`.
 
         EXAMPLES::
@@ -656,7 +656,6 @@ class Function_log_integral_offset(BuiltinFunction):
             sage: f = log_integral_offset(x^2)
             sage: f.diff(x)
             2*x/log(x^2)
-
         """
         return 1/log(z)
 
@@ -800,7 +799,7 @@ class Function_sin_integral(BuiltinFunction):
             return z
 
     def _evalf_(self, z, parent=None, algorithm=None):
-        """
+        r"""
         EXAMPLES:
 
         The limit `\operatorname{Si}(z)` as `z \to \infty`  is `\pi/2`::
@@ -825,7 +824,6 @@ class Function_sin_integral(BuiltinFunction):
             -1.60541297680269
             sage: sin_integral(-1e23)
             -1.57079632679490
-
         """
         import mpmath
         return mpmath_utils_call(mpmath.si, z, parent=parent)
@@ -1248,7 +1246,7 @@ class Function_cosh_integral(BuiltinFunction):
         return mpmath_utils_call(mpmath.chi, z, parent=parent)
 
     def _derivative_(self, z, diff_param=None):
-        """
+        r"""
         The derivative of `\operatorname{Chi}(z)` is `\cosh(z)/z`.
 
         EXAMPLES::

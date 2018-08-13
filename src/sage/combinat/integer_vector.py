@@ -1204,7 +1204,7 @@ class IntegerVectorsConstraints(IntegerVectors):
         """
         self.n = n
         self.k = k
-        if self.k >= 0:
+        if k is not None and self.k >= 0:
             constraints['length'] = self.k
         if 'outer' in constraints:
             constraints['ceiling'] = constraints['outer']

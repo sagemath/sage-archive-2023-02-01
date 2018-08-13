@@ -360,9 +360,9 @@ def conjugacy_class_iterator(part, S=None):
 
     m = len(part)
     for s in SetPartitions(S, part):
-        blocks = map(Set, s)
-        firsts = [t[0] for t in blocks]
-        rests = [t[1:] for t in blocks]
+        its = [iter(t) for t in s]
+        firsts = [next(t) for t in its]
+        rests = [list(t) for t in its]
         iterator = tuple(itertools.permutations(r) for r in rests)
         for r in itertools.product(*iterator):
             yield [(firsts[i],) + r[i] for i in range(m)]

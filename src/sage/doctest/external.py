@@ -172,6 +172,19 @@ def has_octave():
     except Exception:
         return False
 
+def has_pandoc():
+    """
+    Test if pandoc is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_pandoc
+        sage: has_pandoc()      # optional -- pandoc
+        FeatureTestResult('Pandoc', True)
+    """
+    from sage.features.pandoc import Pandoc
+    return Pandoc().is_present()
+
 def has_scilab():
     """
     Test if Scilab is available.
@@ -317,6 +330,7 @@ class AvailableSoftware(object):
          'mathematica',
          'matlab',
          'octave',
+         'pandoc',
          'scilab']
         sage: 'internet' in available_software # random
         True

@@ -306,7 +306,7 @@ cdef class Cache_givaro(SageObject):
 
             sage: P.<x> = PowerSeriesRing(GF(3^3, 'a'))
             sage: P.random_element(5)
-            2*a + 2 + (a^2 + a + 2)*x + (2*a + 1)*x^2 + (2*a^2 + a)*x^3 + 2*a^2*x^4 + O(x^5)
+            a^2 + (2*a^2 + a)*x + x^2 + (2*a^2 + 2*a + 2)*x^3 + (a^2 + 2*a + 2)*x^4 + O(x^5)
         """
         cdef int seed = current_randstate().c_random()
         cdef int res
@@ -1089,7 +1089,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         if self.element == cache.objectptr.one:
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         elif self.element % 2 == 0:
-            return make_FiniteField_givaroElement(cache, self.element/2)
+            return make_FiniteField_givaroElement(cache, self.element // 2)
         elif cache.objectptr.characteristic() == 2:
             return make_FiniteField_givaroElement(cache, (cache.objectptr.cardinality() - 1 + self.element)/2)
         elif extend:

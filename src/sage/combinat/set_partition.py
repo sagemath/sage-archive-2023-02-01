@@ -48,6 +48,8 @@ from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 from sage.combinat.misc import IterableFunctionCall
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.combinat_cython import (set_partition_iterator,
+                                           set_partition_iterator_blocks)
 import sage.combinat.subset as subset
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
@@ -546,9 +548,7 @@ class SetPartition(AbstractSetPartition):
             {}
         """
         self._latex_options = {}
-        sets = map(frozenset, s)
-        blocks = sorted(sets, key=min)
-        ClonableArray.__init__(self, parent, blocks, check=check)
+        ClonableArray.__init__(self, parent, sorted(map(frozenset, s), key=min), check=check)
 
     def check(self):
         """
@@ -1821,16 +1821,8 @@ class SetPartitions_all(SetPartitions):
 
             sage: it = SetPartitions().__iter__()
             sage: [next(it) for x in range(10)]
-            [{},
-             {{1}},
-             {{1, 2}},
-             {{1}, {2}},
-             {{1, 2, 3}},
-             {{1, 2}, {3}},
-             {{1, 3}, {2}},
-             {{1}, {2, 3}},
-             {{1}, {2}, {3}},
-             {{1, 2, 3, 4}}]
+            [{}, {{1}}, {{1, 2}}, {{1}, {2}}, {{1, 2, 3}}, {{1, 2}, {3}},
+             {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}, {{1, 2, 3, 4}}]
         """
         n = 0
         while True:
@@ -1970,47 +1962,8 @@ class SetPartitions_set(SetPartitions):
             sage: SetPartitions(3).list()
             [{{1, 2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}]
         """
-        base_set = list(self.base_set())
-        def from_word(w):
-            sp = []
-            for i, b in zip(base_set, w):
-                if len(sp) <= b:
-                    sp.append([i])
-                else:
-                    sp[b].append(i)
-            return self.element_class(self, sp, check=False)
-
-        # Knuth, TAOCP 4A 7.2.1.5, Algorithm H
-        N = len(base_set)
-        # H1: initialize
-        a = [0]*N
-        if N <= 1:
-            yield from_word(a)
-            return
-        b = [1]*N
-        while True:
-            # H2: visit
-            yield from_word(a)
-            if a[-1] == b[-1]:
-                # H4: find j
-                j = N-2
-                while a[j] == b[j]:
-                    j -= 1
-                # H5: increase a_j
-                if j == 0:
-                    break
-                a[j] += 1
-                # H6: zero out a_{j+1},...,a_{n-1}
-                b[-1] = b[j] + (1 if a[j] == b[j] else 0)
-                j += 1
-                while j < N-1:
-                    a[j] = 0
-                    b[j] = b[-1]
-                    j += 1
-                a[-1] = 0
-            else:
-                # H3: increase a_{n-1}
-                a[-1] += 1
+        for sp in set_partition_iterator(sorted(self._set)):
+            yield self.element_class(self, sp, check=False)
 
     def base_set(self):
         """
@@ -2191,7 +2144,7 @@ class SetPartitions_setn(SetPartitions_set):
 
     @property
     def n(self):
-        """
+        r"""
         ``self.n`` is deprecated; use :meth:`number_of_blocks` instead.
 
         TESTS::
@@ -2200,21 +2153,20 @@ class SetPartitions_setn(SetPartitions_set):
             doctest:...: DeprecationWarning: The attribute n for the number of blocks is deprecated, use the method number_of_blocks instead.
             See https://trac.sagemath.org/25462 for details.
             3
-
         """
         from sage.misc.superseded import deprecation
-        deprecation(25462, 'The attribute n for the number of blocks is deprecated, use the method number_of_blocks instead.')
+        deprecation(25462, "The attribute n for the number of blocks is deprecated,"
+                           " use the method number_of_blocks instead.")
         return self.number_of_blocks()
 
     def number_of_blocks(self):
-        """
+        r"""
         Return the number of blocks of the set partitions in ``self``.
 
         EXAMPLES::
 
             sage: SetPartitions(5, 3).number_of_blocks()
             3
-
         """
         return self._k
 
@@ -2247,34 +2199,8 @@ class SetPartitions_setn(SetPartitions_set):
              {{1, 2}, {3, 4}},
              {{1, 2, 3}, {4}}]
         """
-        base_set = list(self.base_set())
-        def from_word(w):
-            sp = []
-            for i, b in zip(base_set, w):
-                if len(sp) <= b:
-                    sp.append([i])
-                else:
-                    sp[b].append(i)
-            return self.element_class(self, sp, check=False)
-
-        # Ruskey, Combinatorial Generation, Algorithm 4.23
-        n = len(base_set)
-        a = list(range(n))
-        def gen(n, k):
-            if n == k:
-                yield from_word(a)
-            else:
-                for i in range(k):
-                    a[n-1] = i
-                    for P in gen(n-1, k):
-                        yield P
-                    a[n-1] = n-1
-                if k > 1:
-                    a[n-1] = k-1
-                    for P in gen(n-1, k-1):
-                        yield P
-                    a[n-1] = n-1
-        return gen(n, self._k)
+        for sp in set_partition_iterator_blocks(sorted(self._set), self._k):
+            yield self.element_class(self, sp, check=False)
 
     def __contains__(self, x):
         """

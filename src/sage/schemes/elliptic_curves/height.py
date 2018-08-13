@@ -1930,7 +1930,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve([phi + 1, -phi + 1, 1, 20*phi - 39, 196*phi + 237])
             sage: H = E.height_function()
             sage: H.min_gr(.1,5,True) # long time (~22s)
-            B_1(1) = 1540.19924637
+            B_1(1) = 1540.199246369678
             ...
             halving mu to 0.25 and increasing n_max to 6
             ...

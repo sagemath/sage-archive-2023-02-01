@@ -248,11 +248,8 @@ def cyclotomic_to_alpha(cyclo):
     """
     alpha = []
     for d in cyclo:
-        if d == 1:
-            alpha.append(QQ.zero())
-        else:
-            for k in ZZ(d).coprime_integers(d):
-                alpha.append(QQ((k, d)))
+        for k in ZZ(d).coprime_integers(d):
+            alpha.append(QQ((k, d)))
     return sorted(alpha)
 
 
@@ -277,7 +274,7 @@ def alpha_to_cyclotomic(alpha):
         [2]
         sage: alpha_to_cyclotomic([1/5,2/5,3/5,4/5])
         [5]
-        sage: alpha_to_cyclotomic([1/6, 1/3, 1/2, 2/3, 5/6, 1])
+        sage: alpha_to_cyclotomic([0, 1/6, 1/3, 1/2, 2/3, 5/6])
         [1, 2, 3, 6]
         sage: alpha_to_cyclotomic([1/3,2/3,1/2])
         [2, 3]
@@ -1004,7 +1001,7 @@ class HypergeometricData(object):
                        for r in range(q-1)]
 
         sigma = sum( ((-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
-                                for v, gv in gamma.items()) // (p - 1)) * 
+                                for v, gv in gamma.items()) // (p - 1)) *
                      prod(gauss_table[(v * r) % (q - 1)][1] ** gv
                           for v, gv in gamma.items()) * teich ** r)
                      << (f*(D+m[0]-m[r])) for r in range(q-1))

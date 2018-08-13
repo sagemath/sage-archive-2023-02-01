@@ -159,9 +159,6 @@ def Subsets(s, k=None, submultiset=False):
         from sage.sets.integer_range import IntegerRange
         s = IntegerRange(1,s+1)
 
-#    if len(Set(s)) != len(s):
-#        multi = True
-
     if k is None:
         if submultiset:
             return SubMultiset_s(s)

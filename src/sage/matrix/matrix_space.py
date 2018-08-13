@@ -482,7 +482,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 cls, base_ring, nrows, ncols, sparse, matrix_cls)
 
     def __init__(self, base_ring, nrows, ncols, sparse, implementation):
-        """
+        r"""
         INPUT:
 
         - ``base_ring`
@@ -1490,7 +1490,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                       hidden_function=old_index)
 
     def dimension(self):
-        """
+        r"""
         Returns (m rows) \* (n cols) of self as Integer
 
         EXAMPLES::
@@ -2074,8 +2074,38 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         K = polymake(self.base_ring())
         return '"Matrix<{}>"'.format(K)
 
+    def _random_nonzero_element(self, *args, **kwds):
+        """
+        Return a random non-zero matrix
+
+        This function repeatedly calls ``random_element`` until a non-zero
+        matrix is obtained.
+
+        INPUT:
+
+        - ``*args``, ``**kwds`` - Parameters that can be forwarded to the 
+          ``random_element`` method
+        
+        OUTPUT:
+
+        - Random non-zero matrix
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(ZZ, 4)
+            sage: M._random_nonzero_element()
+            [ -8   2   0   0]
+            [  1  -1   2   1]
+            [-95  -1  -2 -12]
+            [  0   0   1  -1]
+        """
+        rand_matrix = self.random_element(*args, **kwds)
+        while rand_matrix.is_zero():
+            rand_matrix = self.random_element(*args, **kwds)
+        return rand_matrix
+
 def dict_to_list(entries, nrows, ncols):
-    """
+    r"""
     Given a dictionary of coordinate tuples, return the list given by
     reading off the nrows\*ncols matrix in row order.
 

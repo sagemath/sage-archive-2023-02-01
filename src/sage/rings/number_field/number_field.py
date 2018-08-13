@@ -99,7 +99,6 @@ from __future__ import absolute_import, print_function
 from six.moves import range
 from six import integer_types
 
-from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
 
 import sage.libs.ntl.all as ntl
@@ -116,13 +115,10 @@ import sage.rings.real_lazy
 from sage.rings.finite_rings.integer_mod import mod
 
 
-from sage.arith.misc import is_square, quadratic_residues
-
 from sage.misc.fast_methods import WithEqualityById
 from sage.misc.functional import is_odd, lift
 
 from sage.misc.misc_c import prod
-from sage.categories.homset import End
 from sage.rings.all import Infinity
 from sage.categories.number_fields import NumberFields
 
@@ -212,13 +208,9 @@ def proof_flag(t):
     return get_flag(t, "number_field")
 
 
-import weakref
-
 from sage.misc.latex import latex
 
 import sage.arith.all as arith
-import sage.rings.rational_field as rational_field
-import sage.rings.integer_ring as integer_ring
 import sage.rings.infinity as infinity
 from sage.rings.rational import Rational
 from sage.rings.integer import Integer
@@ -241,6 +233,7 @@ CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
+
 
 def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None):
     r"""
@@ -1122,14 +1115,13 @@ class CyclotomicFieldFactory(UniqueFactory):
         if n < 0:
             raise ValueError("n (=%s) must be a positive integer" % n)
         if n > 0:
-            bracket = None
             if embedding is True:
                 embedding = (CLF, (2 * CLF.pi() * CLF.gen() / n).exp())
             elif embedding is not None:
                 x = number_field_morphisms.root_from_approx(QQ['x'].cyclotomic_polynomial(n), embedding)
                 embedding = (x.parent(), x)
             if names is None:
-                names = "zeta%s"%n
+                names = "zeta%s" % n
             names = normalize_names(1, names)
 
         return n, names, embedding
@@ -1456,8 +1448,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: R.<t> = QQ[]
-            sage: K.<a> = NumberField(t^2 + 1)
+            sage: R.<t> = QQ[] # optional - magma
+            sage: K.<a> = NumberField(t^2 + 1) # optional - magma
             sage: K._magma_init_(magma)                            # optional - magma
             'SageCreateWithNames(NumberField(_sage_[...]),["a"])'
             sage: L = magma(K)    # optional - magma
@@ -1478,8 +1470,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         A relative number field::
 
-            sage: S.<u> = K[]
-            sage: M.<b> = NumberField(u^3+u+a)
+            sage: S.<u> = K[] # optional - magma
+            sage: M.<b> = NumberField(u^3+u+a) # optional - magma
             sage: L = magma(M)    # optional - magma
             sage: L               # optional - magma
             Number Field with defining polynomial u^3 + u + a over its ground field
@@ -1754,7 +1746,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = NumberField(x^3 + 17)
             sage: b = K.polynomial_quotient_ring().random_element()
             sage: K(b)
-            -1/2*a^2 - 4
+            1/2*a^2 - 1/95*a - 1/2
 
         We can convert symbolic expressions::
 
@@ -4909,7 +4901,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if q == 1 and name != sv and name != ov:
             names = [name, '']
         else:
-            names = [name + str(i) for i in range(q + 1)]
+            names = [name + str(ii) for ii in range(q + 1)]
 
         if both_maps and not other.is_absolute():
             other_abs = other.absolute_field('z')
@@ -4974,7 +4966,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         return rets
 
     def absolute_degree(self):
-        """
+        r"""
         Return the degree of self over `\QQ`.
 
         EXAMPLES::
@@ -5314,7 +5306,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if self.__polynomial is not None:
                 X = self.__polynomial.parent().gen()
             else:
-                X = PolynomialRing(QQ).gen()
+                from sage.rings.polynomial.polynomial_ring import polygen
+                X = polygen(QQ)
             self.__gen = self._element_class(self, X)
             return self.__gen
 
@@ -5878,7 +5871,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if not self.is_totally_real():
             raise NotImplementedError("exact computation of LLL reduction only implemented in the totally real case")
 
-        Z_F = self.maximal_order()
         B = self.reduced_basis()
         T = self.reduced_gram_matrix()
         P = pari(T).qfminim((C[1]**2)*(1./2), 10**6)[2]
@@ -5930,9 +5922,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             1.00199015670185
         """
         from sage.lfunctions.all import Dokchitser
-        key = (prec, max_imaginary_part, max_asymp_coeffs)
-        r1 = self.signature()[0]
-        r2 = self.signature()[1]
+        r1, r2 = self.signature()
         zero = [0]
         one = [1]
         Z = Dokchitser(conductor = abs(self.absolute_discriminant()),
@@ -5941,13 +5931,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                        eps = 1,
                        poles = [1],
                        prec = prec)
-        s = 'nf = nfinit(%s);'%self.absolute_polynomial()
+        s = 'nf = nfinit(%s);' % self.absolute_polynomial()
         s += 'dzk = dirzetak(nf,cflength());'
         Z.init_coeffs('dzk[k]', pari_precode=s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
         Z.check_functional_equation()
-        Z.rename('Zeta function associated to %s'%self)
+        Z.rename('Zeta function associated to %s' % self)
         return Z
 
     @cached_method
@@ -8088,7 +8078,6 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.vector_space()
 
-
     def _galois_closure_and_embedding(self, names=None):
         r"""
         Return number field `K` that is the Galois closure of self and an
@@ -8462,7 +8451,7 @@ class NumberField_absolute(NumberField_generic):
     Minkowski_embedding = deprecated_function_alias(23685, minkowski_embedding)
 
     def places(self, all_complex=False, prec=None):
-        """
+        r"""
         Return the collection of all infinite places of self.
 
         By default, this returns the set of real places as
@@ -8907,18 +8896,6 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.degree()
 
-    def absolute_polynomial(self):
-        """
-        A synonym for polynomial.
-
-        EXAMPLES::
-
-            sage: K.<i> = NumberField(x^2 + 1)
-            sage: K.absolute_polynomial()
-            x^2 + 1
-        """
-        return self.polynomial()
-
     def relative_polynomial(self):
         """
         A synonym for polynomial.
@@ -8930,24 +8907,6 @@ class NumberField_absolute(NumberField_generic):
             x^2 + 1
         """
         return self.polynomial()
-
-    def absolute_vector_space(self):
-        """
-        A synonym for vector_space.
-
-        EXAMPLES::
-
-            sage: K.<i> = NumberField(x^2 + 1)
-            sage: K.absolute_vector_space()
-            (Vector space of dimension 2 over Rational Field,
-             Isomorphism map:
-              From: Vector space of dimension 2 over Rational Field
-              To:   Number Field in i with defining polynomial x^2 + 1,
-             Isomorphism map:
-              From: Number Field in i with defining polynomial x^2 + 1
-              To:   Vector space of dimension 2 over Rational Field)
-        """
-        return self.vector_space()
 
     def relative_vector_space(self):
         """
@@ -9226,7 +9185,6 @@ class NumberField_absolute(NumberField_generic):
             from sage.rings.complex_field import is_ComplexField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
             from sage.rings.real_mpfr import is_RealField
-            from sage.rings.real_mpfi import is_RealIntervalField
             from sage.rings.all import (AA, CDF, QQbar, RDF)
             if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
                                          codom is CDF or codom is QQbar:
@@ -9631,10 +9589,10 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         EXAMPLES::
 
-            sage: K=CyclotomicField(7,'z')
+            sage: K=CyclotomicField(7,'z') # optional - magma
             sage: K._magma_init_(magma)                                # optional - magma
             'SageCreateWithNames(CyclotomicField(7),["z"])'
-            sage: K=CyclotomicField(7,'zeta')
+            sage: K=CyclotomicField(7,'zeta') # optional - magma
             sage: K._magma_init_(magma)                                # optional - magma
             'SageCreateWithNames(CyclotomicField(7),["zeta"])'
         """
@@ -9722,7 +9680,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         return self.__n
 
     def _latex_(self):
-        """
+        r"""
         Return the latex representation of this cyclotomic field.
 
         EXAMPLES::
@@ -10193,9 +10151,8 @@ class NumberField_cyclotomic(NumberField_absolute):
                     if z == x:
                         return self.zeta(m)**(r+1)
                     z *= y
-            raise TypeError("Cannot coerce %s into %s"%(x,self))
-        return self._element_class(self, g)
-
+            raise TypeError("Cannot coerce %s into %s" % (x, self))
+        return self._element_class(self, x)
 
     def _coerce_from_gap(self, x):
         """
@@ -10861,7 +10818,7 @@ class NumberField_quadratic(NumberField_absolute):
         return NumberField_absolute._coerce_map_from_(self, K)
 
     def _latex_(self):
-        """
+        r"""
         Return the latex representation of this quadratic field.
 
         EXAMPLES::
@@ -11083,6 +11040,26 @@ class NumberField_quadratic(NumberField_absolute):
         from sage.schemes.elliptic_curves.all import hilbert_class_polynomial as HCP
         return QQ[name](HCP(D))
 
+    def number_of_roots_of_unity(self):
+        """
+        Return the number of roots of unity in this quadratic field.
+
+        This is always 2 except when d is -3 or -4.
+
+        EXAMPLES::
+
+            sage: QF = QuadraticField
+            sage: [QF(d).number_of_roots_of_unity() for d in range(-7, -2)]
+            [2, 2, 2, 4, 6]
+        """
+        d = self.discriminant()
+        if d == -4:
+            return 4
+        if d == -3:
+            return 6
+        return 2
+
+
 def is_fundamental_discriminant(D):
     r"""
     Return True if the integer `D` is a fundamental
@@ -11100,9 +11077,9 @@ def is_fundamental_discriminant(D):
         [-15, -11, -8, -7, -4, -3, 5, 8, 12, 13]
     """
     d = D % 4
-    if not (d in [0,1]):
+    if not (d in [0, 1]):
         return False
-    return D != 1 and  D != 0 and \
+    return D != 1 and D != 0 and \
            (arith.is_squarefree(D) or \
             (d == 0 and (D//4)%4 in [2,3] and arith.is_squarefree(D//4)))
 
@@ -11378,5 +11355,3 @@ def is_real_place(v):
         return True
     except TypeError:
         return False
-
-

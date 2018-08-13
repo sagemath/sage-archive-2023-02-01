@@ -1088,7 +1088,7 @@ def solve(f, *args, **kwds):
                     l = []
                     for d in ret:
                         r = {}
-                        for (v,ex) in d.iteritems():
+                        for (v, ex) in d.items():
                             r[v._sage_()] = ex._sage_()
                         l.append(r)
                     return l
@@ -1099,7 +1099,7 @@ def solve(f, *args, **kwds):
                 l = []
                 for sol in ret:
                     r = {}
-                    for (v,ex) in sol.iteritems():
+                    for (v, ex) in sol.items():
                         r[v._sage_()] = ex._sage_()
                     l.append(r)
                 return l
@@ -1116,7 +1116,7 @@ def solve(f, *args, **kwds):
             s = m.to_poly_solve(variables)
         except TypeError as mess: # if that gives an error, raise an error.
             if "Error executing code in Maxima" in str(mess):
-                raise ValueError("Sage is unable to determine whether the system %s can be solved for %s"%(f,args))
+                raise ValueError("Sage is unable to determine whether the system %s can be solved for %s" % (f, args))
             else:
                 raise
 

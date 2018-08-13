@@ -4561,12 +4561,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 e = entries
                 entries = {}
                 try:
-                    for k, x in e.iteritems():
+                    for k, x in e.items():
                         x = coefficient_ring(x)
                         if x:
                             entries[k] = x
                 except TypeError:
-                    raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
+                    raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s" % (x, entries, coefficient_ring))
             elif copy:
                 entries = dict(entries)  # make a copy/convert to dict
         self._entries = entries

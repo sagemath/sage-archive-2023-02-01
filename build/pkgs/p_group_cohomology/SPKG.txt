@@ -5,7 +5,7 @@
 Modular Cohomology Rings of Finite Groups
 
 The package is located at http://users.minet.uni-jena.de/cohomology/,
-that's to say the tarball p_group_cohomology-x.y.tar.gz can be found
+that's to say the tarball p_group_cohomology-x.y.tar.xz can be found
 there and the documentation of the package is provided at
 http://users.minet.uni-jena.de/cohomology/documentation/
 
@@ -97,6 +97,10 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/.
 
 == Changelog ==
 
+  * 3.0.1 (Simon King, August 2018):
+    - Add a routine to compute filter regular parameters in small degrees
+      by enumeration.
+    - Cope with some changes in Singular
   * 3.0 (Simon King, January/February 2018):
     - The MeatAxe has been removed from this package and has been replaced
       by "SharedMeatAxe", as an external package.

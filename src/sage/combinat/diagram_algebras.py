@@ -1454,12 +1454,13 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             sage: bd.symmetric_diagrams(l=1, perm=[2,1])
             Traceback (most recent call last):
             ...
-            NotImplementedError: symmetric_diagrams is only implemented for Brauer diagrams of integer order, not for order 3/2
+            NotImplementedError: only implemented for integer order, not for order 3/2
         """
         # perm = permutation on free nodes
         # l = number of arcs
         if self.order not in ZZ:
-            raise NotImplementedError("symmetric_diagrams is only implemented for Brauer diagrams of integer order, not for order %s" %(self.order))
+            raise NotImplementedError("only implemented for integer order,"
+                                      " not for order %s" % (self.order))
         n = ZZ(self.order)
         if l is None:
             l = 0
@@ -1511,10 +1512,11 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             sage: bd.from_involution_permutation_triple([[[1,2]],[[3,4]],[2,1]])
             Traceback (most recent call last):
             ...
-            NotImplementedError: from_involution_permutation_triple is only implemented for Brauer diagrams of integer order, not for order 5/2
+            NotImplementedError: only implemented for integer order, not for order 5/2
         """
         if self.order not in ZZ:
-            raise NotImplementedError("from_involution_permutation_triple is only implemented for Brauer diagrams of integer order, not for order %s" %(self.order))
+            raise NotImplementedError("only implemented for integer order,"
+                                      " not for order %s" % (self.order))
         try:
             (D1,D2,pi) = tuple(D1_D2_pi)
         except ValueError:

@@ -1038,6 +1038,20 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.harmonic_cocycles(2,prec=10)
+            sage: H2 = X.harmonic_cocycles(2,prec=10)
+            sage: hash(H1) == hash(H2)
+            True
+        """
+        return hash((self.base_ring(), self._X, self._k))
+
     def _element_constructor_(self, x):
         r"""
         Constructor for harmonic cocycles.
@@ -2390,6 +2404,20 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             True
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.padic_automorphic_forms(2,prec = 10)
+            sage: H2 = X.padic_automorphic_forms(2,prec = 10)
+            sage: hash(H1) == hash(H2)
+            True
+        """
+        return hash((self.base_ring(), self._source, self._U))
 
     def _repr_(self):
         r"""

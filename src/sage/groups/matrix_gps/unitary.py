@@ -32,20 +32,24 @@ AUTHORS:
 
 - Volker Braun (2013-1) port to new Parent, libGAP, extreme refactoring.
 
-- Sebastian Oehms (2018-8) add :meth:`invariant_form`, :func:`_UG`,
-  option for user defined invariant bilinear form and bug-fix in
-  :meth:`_check_matrix` (see :trac:`26028`)
+- Sebastian Oehms (2018-8) add  ``_UG``,
+  :meth:`~sage.groups.matrix_gps.unitary.UnitaryMatrixGroup_generic.invariant_form`,
+  option for user defined invariant bilinear form, and bug-fix in
+  ``_check_matrix`` (see :trac:`26028`)
 """
 
 #*********************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*********************************************************************************
+#*****************************************************************************
 
-from sage.rings.all import ZZ, GF
+from sage.rings.all import GF
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
@@ -86,8 +90,14 @@ def finite_field_sqrt(ring):
 
 def _UG(n, R, special, var='a', invariant_form=None):
     r"""
-    This function is commonly used by the functions GU and SU to avoid uneccessarily
-    duplicated code. For documnentation and examples see the individual functions.
+    This function is commonly used by the functions :func:`GU` and :func:`SU`
+    to avoid uneccessarily duplicated code. For documnentation and examples
+    see the individual functions.
+
+    TESTS::
+
+        sage: GU(3,25).order()  # indirect doctest
+        3961191000000
     """
     prefix = 'General'
     latex_prefix ='G'
@@ -98,35 +108,35 @@ def _UG(n, R, special, var='a', invariant_form=None):
     degree, ring = normalize_args_vectorspace(n, R, var=var)
     if is_FiniteField(ring):
         q = ring.cardinality()
-        ring = GF(q ** 2, name=var)
-        if invariant_form != None:
-            raise NotImplementedError("invariant_form for finite Groups is fixed")
+        ring = GF(q**2, name=var)
+        if invariant_form is not None:
+            raise NotImplementedError("invariant_form for finite groups is fixed by GAP")
 
-    if invariant_form != None:
+    if invariant_form is not None:
         invariant_form = normalize_args_invariant_form(ring, degree, invariant_form)
         if not invariant_form.is_hermitian():
             raise ValueError("invariant_form must be hermitian")
 
-        inserted_text =  'with respect to hermitian form'
+        inserted_text = 'with respect to hermitian form'
         try:
             if not invariant_form.is_positive_definite():
-               inserted_text =  'with respect to non positive definite hermitian form'
+               inserted_text = 'with respect to non positive definite hermitian form'
         except:
             pass
 
-        name = '{0} Unitary Group of degree {1} over {2} {3}\n{4}'.format(prefix, degree, ring, inserted_text,invariant_form)
-        ltx  = r'\text{{{0}U}}_{{{1}}}({2})\text{{ {3} }}{4}'.format(latex_prefix, degree, latex(ring), inserted_text, latex(invariant_form))
+        name = '{0} Unitary Group of degree {1} over {2} {3}\n{4}'.format(prefix,
+                                 degree, ring, inserted_text,invariant_form)
+        ltx  = r'\text{{{0}U}}_{{{1}}}({2})\text{{ {3} }}{4}'.format(latex_prefix,
+                     degree, latex(ring), inserted_text, latex(invariant_form))
     else:
         name = '{0} Unitary Group of degree {1} over {2}'.format(prefix, degree, ring)
         ltx  = r'\text{{{0}U}}_{{{1}}}({2})'.format(latex_prefix, degree, latex(ring))
 
     if is_FiniteField(ring):
-        cmd  = '{0}U({1}, {2})'.format(latex_prefix, degree, q)
+        cmd = '{0}U({1}, {2})'.format(latex_prefix, degree, q)
         return UnitaryMatrixGroup_gap(degree, ring, special, name, ltx, cmd)
     else:
         return UnitaryMatrixGroup_generic(degree, ring, special, name, ltx, invariant_form=invariant_form)
-
-
 
 
 
@@ -138,36 +148,36 @@ def GU(n, R, var='a', invariant_form=None):
     r"""
     Return the general unitary group.
 
-    The general unitary group `GU( d, R )` consists of all `d \times
-    d` matrices that preserve a nondegenerate sesquilinear form over
-    the ring `R`.
+    The general unitary group `GU( d, R )` consists of all `d \times d`
+    matrices that preserve a nondegenerate sesquilinear form over the
+    ring `R`.
 
-    .. note::
+    .. NOTE::
 
         For a finite field the matrices that preserve a sesquilinear
         form over `F_q` live over `F_{q^2}`. So ``GU(n,q)`` for
         integer ``q`` constructs the matrix group over the base ring
         ``GF(q^2)``.
 
-    .. note::
+    .. NOTE::
 
         This group is also available via ``groups.matrix.GU()``.
 
     INPUT:
 
-    - ``n`` -- a positive integer.
+    - ``n`` -- a positive integer
 
-    - ``R`` -- ring or an integer. If an integer is specified, the
-      corresponding finite field is used.
+    - ``R`` -- ring or an integer; if an integer is specified, the
+      corresponding finite field is used
 
-    - ``var`` -- (optional, default='a') variable used to represent
-      generator of the finite field, if needed.
+    - ``var`` -- (optional, default: ``'a'``) variable used to
+      represent generator of the finite field, if needed
 
-    - ``invariant_form`` --  (optional) instances being accepted by 
-      the matrix-constructor which define a n x n square matrix
-      over R describing the hermitian form to be kept invariant 
-      by the unitary group. The form is checked to be non 
-      degenerated and hermitian but not to be positive definite.
+    - ``invariant_form`` -- (optional) instances being accepted by
+      the matrix-constructor which define a `n \times n` square matrix
+      over R describing the hermitian form to be kept invariant
+      by the unitary group; the form is checked to be
+      non-degenerate and hermitian but not to be positive definite
 
     OUTPUT:
 
@@ -196,7 +206,7 @@ def GU(n, R, var='a', invariant_form=None):
         [     0      0 3*beta], [     1      0      0]
         )
 
-    using the invariant_form option::
+    Using the ``invariant_form`` option::
 
         sage: UCF = UniversalCyclotomicField(); e5=UCF.gen(5)
         sage: m=matrix(UCF, 3,3, [[1,e5,0],[e5.conjugate(),2,0],[0,0,1]])
@@ -234,9 +244,9 @@ def GU(n, R, var='a', invariant_form=None):
         sage: GU(2,QQ, invariant_form=[[1,0],[2,0]])
         Traceback (most recent call last):
         ...
-        ValueError: invariant_form must be non degenerated
+        ValueError: invariant_form must be non-degenerate
 
-    TESTS:
+    TESTS::
 
         sage: TestSuite(G).run()
         sage: groups.matrix.GU(2, 3)
@@ -251,37 +261,37 @@ def GU(n, R, var='a', invariant_form=None):
 ###############################################################################
 
 def SU(n, R, var='a', invariant_form=None):
-    """
+    r"""
     The special unitary group `SU( d, R )` consists of all `d \times d`
     matrices that preserve a nondegenerate sesquilinear form over the
-    ring `R` and have determinant one.
+    ring `R` and have determinant `1`.
 
-    .. note::
+    .. NOTE::
 
         For a finite field the matrices that preserve a sesquilinear
         form over `F_q` live over `F_{q^2}`. So ``SU(n,q)`` for
         integer ``q`` constructs the matrix group over the base ring
         ``GF(q^2)``.
 
-    .. note::
+    .. NOTE::
 
         This group is also available via ``groups.matrix.SU()``.
 
     INPUT:
 
-    - ``n`` -- a positive integer.
+    - ``n`` -- a positive integer
 
-    - ``R`` -- ring or an integer. If an integer is specified, the
-      corresponding finite field is used.
+    - ``R`` -- ring or an integer; if an integer is specified, the
+      corresponding finite field is used
 
-    - ``var`` -- (optional, default='a') variable used to represent
-      generator of the finite field, if needed.
+    - ``var`` -- (optional, default: ``'a'``) variable used to
+      represent generator of the finite field, if needed
 
-    - ``invariant_form`` --  (optional) instances being accepted by 
-      the matrix-constructor which define a n x n square matrix
-      over R describing the hermitian form to be kept invariant 
-      by the unitary group. The form is checked to be non 
-      degenerated and hermitian but not to be positive definite.
+    - ``invariant_form`` -- (optional) instances being accepted by
+      the matrix-constructor which define a `n \times n` square matrix
+      over R describing the hermitian form to be kept invariant
+      by the unitary group; the form is checked to be
+      non-degenerate and hermitian but not to be positive definite
 
     OUTPUT:
 
@@ -296,7 +306,7 @@ def SU(n, R, var='a', invariant_form=None):
         sage: SU(3,QQ)
         Special Unitary Group of degree 3 over Rational Field
 
-    using the invariant_form option::
+    Using the ``invariant_form`` option::
 
         sage: CF3 = CyclotomicField(3); e3 = CF3.gen()
         sage: m=matrix(CF3, 3,3, [[1,e3,0],[e3.conjugate(),2,0],[0,0,1]])
@@ -390,8 +400,8 @@ class UnitaryMatrixGroup_generic(NamedMatrixGroup_generic):
             [0 0 1 0]
             [0 0 0 1]
         """
-        if self._user_invariant_form_ != None:
-            return self._user_invariant_form_
+        if self._invariant_form is not None:
+            return self._invariant_form
 
         from sage.matrix.constructor import identity_matrix
         m = identity_matrix(self.base_ring(), self.degree())
@@ -400,7 +410,7 @@ class UnitaryMatrixGroup_generic(NamedMatrixGroup_generic):
 
 
     def _check_matrix(self, x, *args):
-        """a
+        """
         Check whether the matrix ``x`` is unitary.
 
         See :meth:`~sage.groups.matrix_gps.matrix_group._check_matrix`
@@ -421,7 +431,7 @@ class UnitaryMatrixGroup_generic(NamedMatrixGroup_generic):
             if H == self.one().matrix():
                 raise TypeError('matrix must be unitary')
             else:
-                raise TypeError('matrix must be unitary with respect to the hermitian form\n%s' %(H))
+                raise TypeError('matrix must be unitary with respect to the hermitian form\n{}'.format(H))
 
 
 class UnitaryMatrixGroup_gap(UnitaryMatrixGroup_generic, NamedMatrixGroup_gap):
@@ -451,3 +461,4 @@ class UnitaryMatrixGroup_gap(UnitaryMatrixGroup_generic, NamedMatrixGroup_gap):
         m = matrix(R, d, d, self.gap().InvariantSesquilinearForm()['matrix'].matrix())
         m.set_immutable()
         return m
+

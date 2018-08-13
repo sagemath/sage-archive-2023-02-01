@@ -54,7 +54,6 @@ from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.latex import latex
-from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_not_equal, rich_to_bool,
                                     richcmp_method, richcmp)
 from sage.misc.cachefunc import cached_method

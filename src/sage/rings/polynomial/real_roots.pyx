@@ -4273,8 +4273,7 @@ cdef class context:
         Initialize a context class.
         """
         self.seed = seed # saved to make context printable
-        self.random = randstate().python_random()
-        self.random.seed(seed)
+        self.random = randstate().python_random(seed=seed)
         self.do_logging = do_logging
         self.wordsize = wordsize
         self.dc_log = []

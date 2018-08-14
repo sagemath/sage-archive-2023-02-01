@@ -690,6 +690,7 @@ def zero_vector(arg0, arg1=None):
         return (arg0**arg1).zero_vector()
     raise TypeError("first argument must be a ring")
 
+
 def random_vector(ring, degree=None, *args, **kwds):
     r"""
     Returns a vector (or module element) with random entries.
@@ -2637,7 +2638,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)" % (len(l), len(r)))
 
     def cross_product_matrix(self):
         r"""
@@ -4116,7 +4117,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 try:
                     entries = [coefficient_ring(x) for x in entries]
                 except TypeError:
-                    raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
+                    raise TypeError("Unable to coerce entries (=%s) to coefficients in %s" % (entries, coefficient_ring))
             elif copy:
                 entries = list(entries)  # make a copy/convert to list
         self._entries = entries
@@ -4553,7 +4554,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                             entries_dict[i] = x
                     copy = False
                 else:
-                    raise TypeError("entries must be a dict, list or tuple, not %s", type(entries))
+                    raise TypeError("entries must be a dict, list or tuple, not %s" % type(entries))
             else:
                 entries_dict = <dict> entries
             if coerce:

@@ -688,6 +688,23 @@ class FractionField_generic(ring.Field):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h0 = hash(Frac(ZZ['x']))
+            sage: h1 = hash(Frac(ZZ['x']))
+            sage: h2 = hash(Frac(QQ['x']))
+            sage: h3 = hash(ZZ['x'])
+            sage: h0 == h1 and h1 != h2 and h1 != h3
+            True
+        """
+        # to avoid having exactly the same hash as the base ring,
+        # we change this hash using a random number
+        return hash(self._R) ^ 147068341996611
+
     def ngens(self):
         """
         This is the same as for the parent object.

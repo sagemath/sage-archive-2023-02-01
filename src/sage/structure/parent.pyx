@@ -1175,22 +1175,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return True
 
-    cpdef int _cmp_(left, right) except -2:
-        """
-        Check for Python class defining ``__cmp__``
-        """
-        try:
-            return left.__cmp__(right)
-        except AttributeError:
-            pass
-        # Default: compare by id
-        if left is right:
-            return 0
-        if (<PyObject*>left) < (<PyObject*>right):
-            return -1
-        else:
-            return 1
-
     # Should be moved and merged into the EnumeratedSets() category (#12955)
     def __getitem__(self, n):
         """
@@ -3118,7 +3102,7 @@ cdef class EltPair:
             sage: K.<a> = Qq(9)
             sage: E = EllipticCurve_from_j(0).base_extend(K)
             sage: E.get_action(ZZ)
-            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over 3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
         """
         return hash((id(self.x), id(self.y), id(self.tag)))
 

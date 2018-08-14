@@ -118,7 +118,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: ZpCR(3,5)(2).inverse_of_unit()
             2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
             sage: ZpFM(3,5)(2).inverse_of_unit()
-            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+            2 + 3 + 3^2 + 3^3 + 3^4
+            sage: ZpFP(3,5)(2).inverse_of_unit()
+            2 + 3 + 3^2 + 3^3 + 3^4
             sage: QpCR(3,5)(2).inverse_of_unit()
             2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
 
@@ -134,7 +136,11 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
             sage: R = ZpFM(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
             sage: t.inverse_of_unit()
-            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4 + O(3^5)
+            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4
+
+            sage: R = ZpFP(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: t.inverse_of_unit()
+            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4
 
             sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
             sage: t.inverse_of_unit()
@@ -152,7 +158,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
             sage: R = ZpFM(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
             sage: (t - 1).inverse_of_unit()
-            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
+            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9
 
             sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
             sage: (t - 1).inverse_of_unit()
@@ -424,13 +430,13 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
             sage: R = ZpFM(3,4)
             sage: R(3).add_bigoh(1)
-            O(3^4)
+            0
 
         If ``absprec`` exceeds the precision of the element, then this method
         has no effect::
 
             sage: R(3).add_bigoh(5)
-            3 + O(3^4)
+            3
 
         A negative value for ``absprec`` returns an element in the fraction field::
 
@@ -786,7 +792,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             1/3
         """
         F = self.parent()
-        return self.valuation()/F.ramification_index()
+        return self.valuation()/F.absolute_e()
 
     def _min_valuation(self):
         r"""
@@ -852,7 +858,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         return self.valuation()
 
     @coerce_binop
-    def quo_rem(self, other):
+    def quo_rem(self, other, integral=False):
         r"""
         Return the quotient with remainder of the division of this element by
         ``other``.
@@ -860,6 +866,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
         INPUT:
 
         - ``other`` -- an element in the same ring
+        - ``integral`` -- if True, use integral-style remainders even when the parent is a field.
+          Namely, the remainder will have no terms in its p-adic expansion above
+          the valuation of ``other``.
 
         EXAMPLES::
 
@@ -867,24 +876,30 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(12).quo_rem(R(2))
             (2*3 + O(3^6), 0)
             sage: R(2).quo_rem(R(12))
-            (0, 2 + O(3^5))
+            (O(3^4), 2 + O(3^5))
 
             sage: K = Qp(3, 5)
             sage: K(12).quo_rem(K(2))
             (2*3 + O(3^6), 0)
             sage: K(2).quo_rem(K(12))
             (2*3^-1 + 1 + 3 + 3^2 + 3^3 + O(3^4), 0)
+
+        You can get the same behavior for fields as for rings
+        by using integral=True::
+
+            sage: K(12).quo_rem(K(2), integral=True)
+            (2*3 + O(3^6), 0)
+            sage: K(2).quo_rem(K(12), integral=True)
+            (O(3^4), 2 + O(3^5))
         """
         if other.is_zero():
             raise ZeroDivisionError
 
         from sage.categories.fields import Fields
-        if self.parent() in Fields():
+        if not integral and self.parent() in Fields():
             return (self / other, self.parent().zero())
-        if self.valuation() < other.valuation():
-            return (self.parent().zero(), self)
-        return ( (self>>other.valuation())*other.unit_part().inverse_of_unit(),
-                 self.parent().zero() )
+        else:
+            return self._quo_rem(other)
 
     def _test_trivial_powers(self, **options):
         r"""

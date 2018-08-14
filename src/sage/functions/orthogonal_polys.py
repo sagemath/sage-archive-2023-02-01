@@ -768,7 +768,7 @@ class Func_chebyshev_T(ChebyshevFunction):
             True
             sage: R.<t> = Zp(2, 8, 'capped-abs')[]
             sage: chebyshev_T(10^6+1, t)
-            (2^7 + O(2^8))*t^5 + (O(2^8))*t^4 + (2^6 + O(2^8))*t^3 + (O(2^8))*t^2 + (1 + 2^6 + O(2^8))*t + (O(2^8))
+            (2^7 + O(2^8))*t^5 + O(2^8)*t^4 + (2^6 + O(2^8))*t^3 + O(2^8)*t^2 + (1 + 2^6 + O(2^8))*t + O(2^8)
         """
         if n == 0:
             return parent(x).one()
@@ -985,7 +985,7 @@ class Func_chebyshev_U(ChebyshevFunction):
             True
             sage: R.<t> = Zp(2, 6, 'capped-abs')[]
             sage: chebyshev_U(10^6+1, t)
-            (2 + O(2^6))*t + (O(2^6))
+            (2 + O(2^6))*t + O(2^6)
         """
         if n == -1:
             return parent(x).zero()

@@ -232,6 +232,8 @@ usage_advanced() {
     echo "File conversion:"
     echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
     echo "                         reStructuredText source."
+    echo "  -ipynb2rst [...]    -- Generates a reStructuredText source file from"
+    echo "                         a Jupyter notebook (.ipynb)."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
     echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
@@ -773,6 +775,11 @@ fi
 if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     shift
     exec rst2ipynb --kernel=sagemath "$@"
+fi
+
+if [ "$1" = '-ipynb2rst' -o "$1" = '--ipynb2rst' ]; then
+    shift
+    exec sage-ipynb2rst "$@"
 fi
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then

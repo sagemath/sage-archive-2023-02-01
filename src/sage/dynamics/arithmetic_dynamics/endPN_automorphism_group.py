@@ -1068,11 +1068,11 @@ def three_stable_points(rational_function, invariant_list):
 
     INPUT:
 
-    - ``rational_function``--rational function `phi` defined over finite
+    - ``rational_function`` -- rational function `\phi` defined over finite
       field `E`
 
-    - ``invariant_list``-- a list of at least `3` points of `\mathbb{P}^1(E)` that
-      is stable under `Aut_{phi}(E)`
+    - ``invariant_list`` -- a list of at least `3` points of `\mathbb{P}^1(E)` that
+      is stable under `Aut_{\phi}(E)`
 
     OUTPUT: list of automorphisms
 

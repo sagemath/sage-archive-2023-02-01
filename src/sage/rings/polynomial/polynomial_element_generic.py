@@ -1112,7 +1112,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
 
             sage: g = f + K(0,0)*t^4; g
-            (5^2 + O(5^22))*t^10 + (O(5^0))*t^4 + (3 + O(5^20))*t + (5 + O(5^21))
+            (5^2 + O(5^22))*t^10 + O(5^0)*t^4 + (3 + O(5^20))*t + 5 + O(5^21)
             sage: g.newton_polygon()
             Traceback (most recent call last):
             ...
@@ -1297,7 +1297,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         is `1`::
 
             sage: f.factor_of_slope(-1)
-            (1 + O(5^20))
+            1 + O(5^20)
 
         AUTHOR:
 

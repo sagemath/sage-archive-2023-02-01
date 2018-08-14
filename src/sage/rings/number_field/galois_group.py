@@ -167,7 +167,6 @@ class GaloisGroup_v1(SageObject):
 
 
 class GaloisGroup_v2(PermutationGroup_generic):
-
     r"""
     The Galois group of an (absolute) number field.
 
@@ -198,6 +197,20 @@ class GaloisGroup_v2(PermutationGroup_generic):
             TypeError: You must specify the name of the generator.
             sage: NumberField(x^3 - 2, 'b').galois_group(names="c")
             Galois group of Galois closure in c of Number Field in b with defining polynomial x^3 - 2
+
+        TESTS::
+
+            sage: F.<z> = CyclotomicField(7)
+            sage: G = F.galois_group()
+
+        We test that a method inherited from PermutationGroup_generic returns
+        the right type of element (see :trac:`133`)::
+
+            sage: phi = G.random_element()
+            sage: type(phi) is G.element_class
+            True
+            sage: phi(z) # random
+            z^3
         """
         self._number_field = number_field
 
@@ -218,29 +231,6 @@ class GaloisGroup_v2(PermutationGroup_generic):
 
         # PARI computes all the elements of self anyway, so we might as well store them
         self._elts = sorted([self(x, check=False) for x in g[5]])
-
-    def _element_class(self):
-        r"""
-        Return the class to be used for creating elements of this group, which
-        is GaloisGroupElement.
-
-        EXAMPLES::
-
-            sage: F.<z> = CyclotomicField(7)
-            sage: G = F.galois_group()
-            sage: G._element_class()
-            <class 'sage.rings.number_field.galois_group.GaloisGroupElement'>
-
-        We test that a method inherited from PermutationGroup_generic returns
-        the right type of element (see :trac:`133`)::
-
-            sage: phi = G.random_element()
-            sage: type(phi)
-            <class 'sage.rings.number_field.galois_group.GaloisGroupElement'>
-            sage: phi(z) # random
-            z^3
-        """
-        return GaloisGroupElement
 
     def __call__(self, x, check=True):
         r""" Create an element of self from x. Here x had better be one of:
@@ -272,7 +262,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             if len(l) != 1:
                 raise ArithmeticError
             return l[0]
-        return GaloisGroupElement(x, parent=self, check=check)
+        return self.element_class(x, parent=self, check=check)
 
     def is_galois(self):
         r"""
@@ -788,6 +778,7 @@ class GaloisGroupElement(PermutationGroupElement):
         w = [(self(g) - g).valuation(P) for g in gens]
         return min(w)
 
+GaloisGroup_v2.Element = GaloisGroupElement
 
 # For unpickling purposes we rebind GaloisGroup as GaloisGroup_v1.
 

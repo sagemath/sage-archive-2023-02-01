@@ -529,6 +529,8 @@ class RiggedConfigurationElement(ClonableArray):
         # Separate out one of the Borcherds cases
         if M[a,a] != 2:
             k = None
+            set_vac_num = True
+            rigged_index = None
             if new_rigging[-1] == -(1/2)*M[a,a]:
                 new_list.pop()
                 new_vac_nums.pop()

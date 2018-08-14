@@ -2644,39 +2644,47 @@ class _Component:
 
 
 class TriconnectivitySPQR:
-    """
-    This class implements the algorithm for finding the triconnected
-    components of a biconnected graph and constructing the SPQR tree.
-    A biconnected graph is a graph where deletion of any one vertex does
-    not disconnect the graph.
+    r"""
+    Decompose a graph into triconnected components and build SPQR-tree.
+
+    This class implements the algorithm proposed by Hopcroft and Tarjan in
+    [Hopcroft1973]_, and later corrected by Gutwenger and Mutzel in [Gut2001]_,
+    for finding the triconnected components of a biconnected graph. It then
+    organizes these components into a SPQR-tree (See :wikipedia:`SPQR_tree`).
+
+    A SPQR-tree is a tree data structure used to represent the triconnected
+    components of a biconnected (multi)graph and the 2-vertex cuts separating
+    them. A node of a SPQR-tree, and the graph associated with it, can be one of
+    the following four types:
+
+    - ``"S"`` -- the associated graph is a cycle with at least three vertices.
+      ``"S"`` stands for ``series`` and is also called a ``polygon``.
+
+    - ``"P"`` -- the associated graph is a dipole graph, a multigraph with two
+      vertices and three or more edges. ``"P"`` stands for ``parallel`` and the
+      node is called a ``bond``.
+
+    - ``"Q"`` -- the associated graph has a single real edge. This trivial case
+      is necessary to handle the graph that has only one edge.
+
+    - ``"R"`` -- the associated graph is a 3-vertex-connected graph that is not
+      a cycle or dipole. ``"R"`` stands for ``rigid``.
+
+    The edges of the tree indicate the 2-vertex cuts of the graph.
 
     INPUT:
 
-    - ``G`` -- The input graph.
+    - ``G`` -- The input graph. If ``G`` is a DiGraph, the computation is done
+      on the underlying Graph (i.e., ignoring edge orientation).
 
-    - ``check`` (default: ``True``) -- Boolean to indicate whether ``G``
-        needs to be tested for biconnectivity.
-
-    OUTPUT:
-
-    No output, the triconnected components are printed.
-    The triconnected components are stored in `comp\_list\_new` and `comp\_type`.
-    `comp\_list\_new` is a list of components, with `comp\_list\_new[i]` contains
-    the list of edges in the $i^{th}$ component. `comp\_type[i]` stores the type
-    of the $i^{th}$ component - 1 for bond, 2 for polygon, 3 for triconnected
-    component. The output can be accessed through these variables.
-
-    ALGORITHM::
-    We implement the algorithm proposed by Hopcroft and Tarjan in
-    [Hopcroft1973]_ and later corrected by Gutwenger and Mutzel in
-    [Gut2001]_.
-    In the case of a digraph, the computation is done on the underlying
-    graph.
+    - ``check`` (default: ``True``) -- Boolean to indicate whether ``G`` needs
+      to be tested for biconnectivity.
 
     .. SEEALSO::
 
         - :meth:`sage.graphs.connectivity.spqr_tree`
         - :meth:`~Graph.is_biconnected`
+        - :wikipedia:`SPQR_tree`
 
     EXAMPLES:
 
@@ -2715,62 +2723,49 @@ class TriconnectivitySPQR:
 
     An example from [Gut2001]_::
 
-        sage: G = Graph()
-        sage: G.add_edges([(1,2),(1,4),(2,3),(2,5),(3,4),(3,5),(4,5),(4,6),(5,7),(5,8),
-        ....: (5,14),(6,8),(7,14),(8,9),(8,10),(8,11),(8,12),(9,10),(10,13),
-        ....: (10,14),(10,15),(10,16),(11,12),(11,13),(12,13),(14,15),(14,16),(15,16)])
-        sage: tric = TriconnectivitySPQR(G)
-        sage: tric.print_triconnected_components()
-        Polygon:  [(6, 8, None), (4, 6, None), (5, 8, 'newVEdge12'), (5, 4, 'newVEdge13')]
-        Polygon:  [(8, 9, None), (9, 10, None), (8, 10, 'newVEdge1')]
-        Bond:  [(8, 10, 'newVEdge1'), (8, 10, None), (8, 10, 'newVEdge4'), (10, 8, 'newVEdge5')]
-        Triconnected:  [(8, 11, None), (11, 12, None), (8, 12, None), (12, 13, None), (11, 13, None), (8, 13, 'newVEdge3')]
-        Polygon:  [(8, 13, 'newVEdge3'), (10, 13, None), (8, 10, 'newVEdge4')]
-        Triconnected:  [(10, 15, None), (14, 15, None), (15, 16, None), (10, 16, None), (14, 16, None), (10, 14, 'newVEdge6')]
-        Bond:  [(10, 14, 'newVEdge6'), (14, 10, 'newVEdge7'), (10, 14, None)]
-        Polygon:  [(14, 10, 'newVEdge7'), (10, 8, 'newVEdge5'), (5, 14, 'newVEdge10'), (5, 8, 'newVEdge11')]
-        Polygon:  [(5, 7, None), (7, 14, None), (5, 14, 'newVEdge9')]
-        Bond:  [(5, 14, None), (5, 14, 'newVEdge9'), (5, 14, 'newVEdge10')]
-        Bond:  [(5, 8, None), (5, 8, 'newVEdge11'), (5, 8, 'newVEdge12')]
-        Bond:  [(5, 4, 'newVEdge13'), (4, 5, 'newVEdge14'), (4, 5, None)]
-        Triconnected:  [(2, 3, None), (3, 4, None), (4, 5, 'newVEdge14'), (3, 5, None), (2, 5, None), (2, 4, 'newVEdge15')]
-        Polygon:  [(1, 2, None), (2, 4, 'newVEdge15'), (1, 4, None)]
+        sage: G = Graph([(1, 2), (1, 4), (2, 3), (2, 5), (3, 4), (3, 5), (4, 5),
+        ....: (4, 6), (5, 7), (5, 8), (5, 14), (6, 8), (7, 14), (8, 9), (8, 10),
+        ....: (8, 11), (8, 12), (9, 10), (10, 13), (10, 14), (10, 15), (10, 16),
+        ....: (11, 12), (11, 13), (12, 13), (14, 15), (14, 16), (15, 16)])
+        sage: T = TriconnectivitySPQR(G).get_spqr_tree()
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
 
     An example with multi-edges and accessing the triconnected components::
 
-        sage: G = Graph()
-        sage: G.allow_multiple_edges(True)
-        sage: G.add_edges([(1,2),(2,3),(3,4),(4,5),(1,5),(1,5),(2,3)])
+        sage: G = Graph([(1, 2), (1, 5), (1, 5), (2, 3), (2, 3), (3, 4), (4, 5)], multiedges=True)
         sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
         Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')]
         Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, 'newVEdge1')]
-        sage: tric.comp_list_new
-        [[(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')],
-        [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')],
-        [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, 'newVEdge1')]]
-        sage: tric.comp_type
-        [0, 0, 1]
 
     An example of a triconnected graph::
 
-        sage: G2 = Graph()
-        sage: G2.allow_multiple_edges(True)
-        sage: G2.add_edges([('a','b'),('a','c'),('a','d'),('b','c'),('b','d'),('c','d')])
-        sage: tric = TriconnectivitySPQR(G2)
-        sage: tric.print_triconnected_components()
-        Triconnected:  [('a', 'b', None), ('b', 'c', None), ('a', 'c', None), ('c', 'd', None), ('b', 'd', None), ('a', 'd', None)]
+        sage: G = Graph([('a', 'b'), ('a', 'c'), ('a', 'd'), ('b', 'c'), ('b', 'd'), ('c', 'd')])
+        sage: T = TriconnectivitySPQR(G).get_spqr_tree()
+        sage: print(T.vertices())
+        [('R', Multi-graph on 4 vertices)]
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
 
     An example of a directed graph with multi-edges::
 
-        sage: G3 = DiGraph()
-        sage: G3.allow_multiple_edges(True)
-        sage: G3.add_edges([(1,2),(2,3),(3,4),(4,5),(1,5),(5,1)])
-        sage: tric = TriconnectivitySPQR(G3)
+        sage: G = DiGraph([(1, 2), (2, 3), (3, 4), (4, 5), (1, 5), (5, 1)])
+        sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
         Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, None)]
+
+    Edge labels are preserved by the construction::
+
+        sage: G = Graph([(0, 1, '01'), (0, 4, '04'), (1, 2, '12'), (1, 5, '15'),
+        ....: (2, 3, '23'), (2, 6, '26'), (3, 7, '37'), (4, 5, '45'),
+        ....: (5, 6, '56'), (6, 7, '67')])
+        sage: T = TriconnectivitySPQR(G).get_spqr_tree()
+        sage: H = spqr_tree_to_graph(T)
+        sage: set(G.edges()) == set(H.edges())
+        True
 
     TESTS:
 
@@ -2902,7 +2897,7 @@ class TriconnectivitySPQR:
         #
 
         # Deal with multiple edges
-        self.__split_multi_egdes()
+        self.__split_multiple_edges()
 
         # Build adjacency list
         for e in self.graph_copy.edge_iterator():
@@ -2948,7 +2943,7 @@ class TriconnectivitySPQR:
 
     def __tstack_push(self, h, a, b):
         """
-        Push `(h,a,b)` triple on Tstack
+        Push ``(h, a, b)`` triple on Tstack
         """
         self.t_stack_top += 1
         self.t_stack_h[self.t_stack_top] = h
@@ -2976,7 +2971,7 @@ class TriconnectivitySPQR:
 
     def __new_component(self, edges=[], type_c=0):
         """
-        Create a new component, add `edges` to it.
+        Create a new component and add `edges` to it.
         type_c = 0 for bond, 1 for polygon, 2 for triconnected component
         """
         c = _Component(edges, type_c)
@@ -2985,7 +2980,7 @@ class TriconnectivitySPQR:
 
     def __high(self, v):
         """
-        Return the high(v) value, which is the first value in highpt list of `v`
+        Return the high(v) value, which is the first value in highpt list of v.
         """
         head = self.highpt[v].get_head()
         if head is None:
@@ -2994,6 +2989,9 @@ class TriconnectivitySPQR:
             return head.get_data()
 
     def __del_high(self, e):
+        """
+        Delete edge e from the highpt list of the endpoint v it belongs to.
+        """
         if e in self.in_high:
             it = self.in_high[e]
             if it:
@@ -3003,15 +3001,14 @@ class TriconnectivitySPQR:
                     v = e[1]
                 self.highpt[v].remove(it)
 
-    def __split_multi_egdes(self):
+    def __split_multiple_edges(self):
         """
-        Iterate through all the edges, and constructs bonds wherever multiedges
-        are present.
-
-        If there are `k` multiple edges between `u` and `v`, then `k+1` edges
-        will be added to a new component (one of them is a virtual edge), all
-        the `k` edges are deleted from the graph and a virtual edge is between
-        `u` and `v` is added to the graph.
+        Make the graph simple and build bonds recording multiple edges.
+ 
+        If there are `k` multiple edges between `u` and `v`, then a new
+        component (a bond) with `k+1` edges (one of them is a virtual edge) will
+        be created, all the `k` edges are deleted from the graph and the virtual
+        edge between `u` and `v` is added to the graph.
 
         No return value. Update the `components_list` and `graph_copy`.
         `graph_copy` will become a simple graph after this function.
@@ -3057,9 +3054,11 @@ class TriconnectivitySPQR:
 
     def __dfs1(self, v, u=None, check=True):
         """
-        This function builds the palm tree of the graph using a dfs traversal.
-        Also populates the lists lowpt1, lowpt2, nd, parent, and dfs_number.
-        It updates the dict `edge_status` to reflect palm tree arcs and fronds.
+        This function builds the palm-tree of the graph using a dfs traversal.
+
+        Also populates the lists ``lowpt1``, ``lowpt2``, ``nd``, ``parent``, and
+        ``dfs_number``.  It updates the dict ``edge_status`` to reflect palm
+        tree arcs and fronds.
 
         INPUT:
 
@@ -3067,15 +3066,16 @@ class TriconnectivitySPQR:
 
         - ``u`` -- The parent vertex of ``v`` in the palm tree.
 
-        - ``check`` -- if True, the graph is tested for biconnectivity. If the
-            graph has a cut vertex, the cut vertex is returned. If set to False,
-            the graph is assumed to be biconnected, function returns None.
+        - ``check`` -- if ``True``, the graph is tested for biconnectivity. If
+          the graph has a cut vertex, the cut vertex is returned. If set to
+          ``False``, the graph is assumed to be biconnected, function returns
+          ``None``.
 
         OUTPUT:
 
-        - If ``check`` is set to True, and a cut vertex is found, the cut vertex
-          is returned. If no cut vertex is found, return None.
-        - If ``check`` is set to False, ``None`` is returned.
+        - If ``check`` is set to ``True``` and a cut vertex is found, the cut
+          vertex is returned. If no cut vertex is found, return ``None``.
+        - If ``check`` is set to ``False``, ``None`` is returned.
         """
         first_son = None # For testing biconnectivity
         s1 = None # Storing the cut vertex, if there is one
@@ -3138,8 +3138,8 @@ class TriconnectivitySPQR:
 
         The list ``adj`` and the dictionary ``in_adj`` are populated.
 
-        `phi` values of each edge are calculated using the `lowpt` values of
-        incident vertices. The edges are then sorted by the `phi` values and
+        ``phi`` values of each edge are calculated using the ``lowpt`` values of
+        incident vertices. The edges are then sorted by the ``phi`` values and
         added to adjacency list.
         """
         max_size = 3*self.n + 2
@@ -3182,8 +3182,8 @@ class TriconnectivitySPQR:
 
     def __path_finder(self, v):
         """
-        This function is a helper function for `dfs2` function.
-        Calculate `newnum[v]` and identify the edges which start a new path.
+        This function is a helper function for `__dfs2` function.
+        Calculate ``newnum[v]`` and identify the edges which start a new path.
         """
         self.newnum[v] = self.dfs_counter - self.nd[v] + 1
         e_node = self.adj[v].get_head()
@@ -3207,9 +3207,9 @@ class TriconnectivitySPQR:
 
     def __dfs2(self):
         """
-        Update the values of lowpt1 and lowpt2 lists with the help of
-        new numbering obtained from `Path Finder` function.
-        Populate `highpt` values.
+        Update the values of ``lowpt1`` and ``lowpt2`` lists with the help of
+        new numbering obtained from ``__path_finder`` function.
+        Populate ``highpt`` values.
         """
         self.in_high = {e:None for e in self.graph_copy.edge_iterator()}
         self.dfs_counter = self.n
@@ -3527,7 +3527,7 @@ class TriconnectivitySPQR:
 
     def __assemble_triconnected_components(self):
         """
-        Iterate through all the split components built by `path_finder` and
+        Iterate through all the split components built by ``__path_finder`` and
         merges two bonds or two polygons that share an edge for contructing the
         final triconnected components.
         Subsequently, convert the edges in triconnected components into original
@@ -3633,8 +3633,8 @@ class TriconnectivitySPQR:
 
     def __build_spqr_tree(self):
         """
-        Constructs the SPQR tree of the graph and stores the tree in the variable
-        `self.spqr_tree`. Refer to function `~TriconnectivitySPQR.get_spqr_tree`.
+        Build the SPQR-tree of the graph and store it in variable
+        ``self.spqr_tree``. See :meth:`~TriconnectivitySPQR.get_spqr_tree`.
         """
         from sage.graphs.graph import Graph
         # Types of components 0: "P", 1: "S", 2: "R"
@@ -3748,14 +3748,10 @@ class TriconnectivitySPQR:
         - ``R`` -- the associated graph is a 3-connected graph that is not a cycle
           or dipole. ``R`` stands for ``rigid``.
 
-        This method constructs a static spqr-tree using the decomposition of a
-        biconnected graph into cycles, cocycles, and 3-connected blocks generated by
-        :class:`sage.graphs.connectivity.TriconnectivitySPQR`.
-        See :wikipedia:`SPQR_tree`.
+        The edges of the tree indicate the 2-vertex cuts of the graph.
 
         OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
         and the subgraph of three-blocks in the decomposition.
-
 
         EXAMPLES::
 

@@ -307,7 +307,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
     def field_of_definition_critical(self, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field of definition for the critical points
+        Return smallest extension of the base field which contains the critical points
 
         Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
 
@@ -376,11 +376,15 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         if is_FiniteField(ds.base_ring()):
             return poly.splitting_field(names, map = return_embedding)
         else:
-            return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
+            K = poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
+            if K.absolute_degree() == 1:
+                return QQ
+            else:
+                return K
 
     def field_of_definition_periodic(self, n, formal = False, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field of definition for the ``n``-th periodic points
+        Return smallest extension of the base field which contains the ``n``-th periodic points
 
         Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
 
@@ -461,11 +465,15 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         if is_FiniteField(ds.base_ring()):
             return poly.splitting_field(names, map = return_embedding)
         else:
-            return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
+            K = poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
+            if K.absolute_degree() == 1:
+                return QQ
+            else:
+                return K
 
     def field_of_definition_preimage(self, n, point, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field of definition for the ``n``-th preimages of ``point``
+        Return smallest extension of the base field which contains the ``n``-th preimages of ``point``
 
         Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
 
@@ -540,4 +548,8 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         if is_FiniteField(ds.base_ring()):
             return poly.splitting_field(names, map = return_embedding)
         else:
-            return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
+            K = poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
+            if K.absolute_degree() == 1:
+                return QQ
+            else:
+                return K

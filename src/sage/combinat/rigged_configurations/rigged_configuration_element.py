@@ -522,49 +522,56 @@ class RiggedConfigurationElement(ClonableArray):
         a = self.parent()._rc_index_inverse[a]
         M = self.parent()._cartan_matrix
 
-        if M[a][a] != 2:
-            raise NotImplementedError
-
         new_list = self[a][:]
         new_vac_nums = self[a].vacancy_numbers[:]
         new_rigging = self[a].rigging[:]
 
-        # Find k and perform e_a
-        k = None
-        num_rows = len(new_list)
-        cur_rigging = -1
-        rigging_index = None
-        for i in range(num_rows):
-            if new_rigging[i] <= cur_rigging:
-                cur_rigging = new_rigging[i]
-                rigging_index = i
-
-        # If we've not found a valid k
-        if rigging_index is None:
-            return None
-
-        # Note that because the riggings are weakly decreasing, we will always
-        #   remove the last box on of a block
-        k = new_list[rigging_index]
-        set_vac_num = False
-        if k == 1:
-            new_list.pop()
-            new_vac_nums.pop()
-            new_rigging.pop()
+        # Separate out one of the Borcherds cases
+        if M[a,a] != 2:
+            k = None
+            if new_rigging[-1] == -(1/2)*M[a,a]:
+                new_list.pop()
+                new_vac_nums.pop()
+                new_rigging.pop()
+            else:
+                return None
         else:
-            new_list[rigging_index] -= 1
-            cur_rigging += 1
-            # Properly sort the riggings
-            j = rigging_index + 1
-            # Update the vacancy number if the row lengths are the same
-            if j < num_rows and new_list[j] == new_list[rigging_index]:
-                new_vac_nums[rigging_index] = new_vac_nums[j]
-                set_vac_num = True
-            while j < num_rows and new_list[j] == new_list[rigging_index] \
-              and new_rigging[j] > cur_rigging:
-                new_rigging[j-1] = new_rigging[j] # Shuffle it along
-                j += 1
-            new_rigging[j-1] = cur_rigging
+            # Find k and perform e_a
+            k = None
+            num_rows = len(new_list)
+            cur_rigging = -1
+            rigging_index = None
+            for i in range(num_rows):
+                if new_rigging[i] <= cur_rigging:
+                    cur_rigging = new_rigging[i]
+                    rigging_index = i
+
+            # If we've not found a valid k
+            if rigging_index is None:
+                return None
+
+            # Note that because the riggings are weakly decreasing, we will always
+            #   remove the last box on of a block
+            k = new_list[rigging_index]
+            set_vac_num = False
+            if k == 1:
+                new_list.pop()
+                new_vac_nums.pop()
+                new_rigging.pop()
+            else:
+                new_list[rigging_index] -= 1
+                cur_rigging += Integer((1/2)*M[a,a])
+                # Properly sort the riggings
+                j = rigging_index + 1
+                # Update the vacancy number if the row lengths are the same
+                if j < num_rows and new_list[j] == new_list[rigging_index]:
+                    new_vac_nums[rigging_index] = new_vac_nums[j]
+                    set_vac_num = True
+                while j < num_rows and new_list[j] == new_list[rigging_index] \
+                  and new_rigging[j] > cur_rigging:
+                    new_rigging[j-1] = new_rigging[j] # Shuffle it along
+                    j += 1
+                new_rigging[j-1] = cur_rigging
 
         new_partitions = []
         for b in range(len(self)):
@@ -576,8 +583,8 @@ class RiggedConfigurationElement(ClonableArray):
                     if new_list[i] < k:
                         break
 
-                    new_vac_nums[i] += M[a][b]
-                    new_rigging[i] += M[a][b]
+                    new_vac_nums[i] += M[a,b]
+                    new_rigging[i] += M[a,b]
 
 
                 if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
@@ -699,7 +706,7 @@ class RiggedConfigurationElement(ClonableArray):
         # If we've not found a valid k
         if k is None:
             new_list.append(1)
-            new_rigging.append(Integer((-1/2) * M[a][a]))
+            new_rigging.append(Integer((-1/2) * M[a,a]))
             new_vac_nums.append(None)
             k = 0
             add_index = num_rows
@@ -708,7 +715,7 @@ class RiggedConfigurationElement(ClonableArray):
             if add_index is None: # We are adding to the first row in the list
                 add_index = 0
             new_list[add_index] += 1
-            new_rigging.insert(add_index, Integer(new_rigging[rigging_index] - (1/2)*M[a][a]))
+            new_rigging.insert(add_index, Integer(new_rigging[rigging_index] - (1/2)*M[a,a]))
             new_vac_nums.insert(add_index, None)
             new_rigging.pop(rigging_index + 1) # add 1 for the insertion
             new_vac_nums.pop(rigging_index + 1)
@@ -724,8 +731,8 @@ class RiggedConfigurationElement(ClonableArray):
                         break
 
                     if i != add_index:
-                        new_vac_nums[i] -= M[a][b]
-                        new_rigging[i] -= M[a][b]
+                        new_vac_nums[i] -= M[a,b]
+                        new_rigging[i] -= M[a,b]
 
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 

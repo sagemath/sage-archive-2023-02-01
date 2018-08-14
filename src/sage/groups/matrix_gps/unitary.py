@@ -236,10 +236,10 @@ def GU(n, R, var='a', invariant_form=None):
         [E(5)^4      2      0]
         [     0      0      1]
 
-        sage GU(3,3, invariant_form=[[1,0,0],[0,2,0],[0,0,1]])
+        sage: GU(3,3, invariant_form=[[1,0,0],[0,2,0],[0,0,1]])
         Traceback (most recent call last):
         ...
-        NotImplementedError: invariant_form for finite Groups is fixed
+        NotImplementedError: invariant_form for finite groups is fixed by GAP
 
         sage: GU(2,QQ, invariant_form=[[1,0],[2,0]])
         Traceback (most recent call last):
@@ -335,10 +335,10 @@ def SU(n, R, var='a', invariant_form=None):
         [-zeta3 - 1          2          0]
         [         0          0          1]
 
-        sage SU(3,5, invariant_form=[[1,0,0],[0,2,0],[0,0,3]])
+        sage: SU(3,5, invariant_form=[[1,0,0],[0,2,0],[0,0,3]])
         Traceback (most recent call last):
         ...
-        NotImplementedError: invariant_form for finite Groups is fixed
+        NotImplementedError: invariant_form for finite groups is fixed by GAP
 
     TESTS::
 

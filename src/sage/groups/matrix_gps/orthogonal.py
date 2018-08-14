@@ -288,10 +288,12 @@ def GO(n, R, e=0, var='a', invariant_form=None):
         [1 0 0]
         [0 0 3]
 
-        sage GO(3,3, invariant_form=[[1,0,0],[0,2,0],[0,0,1]])
+        sage: GO(3,3, invariant_form=[[1,0,0],[0,2,0],[0,0,1]])
         Traceback (most recent call last):
         ...
-        NotImplementedError: invariant_form for finite Groups is fixed
+        NotImplementedError: invariant_form for finite groups is fixed by GAP
+        sage: 5+5
+        10
 
     TESTS::
 
@@ -397,10 +399,12 @@ def SO(n, R, e=None, var='a', invariant_form=None):
         [zeta3     2     0]
         [    0     0     1]
 
-        sage SO(3,5, invariant_form=[[1,0,0],[0,2,0],[0,0,3]])
+        sage: SO(3,5, invariant_form=[[1,0,0],[0,2,0],[0,0,3]])
         Traceback (most recent call last):
         ...
-        NotImplementedError: invariant_form for finite Groups is fixed
+        NotImplementedError: invariant_form for finite groups is fixed by GAP
+        sage: 5+5
+        10
 
     TESTS::
 

@@ -125,10 +125,10 @@ def Sp(n, R, var='a', invariant_form=None):
         [-1  0  0  0]
         [ 0 -2  0  0]
 
-        sage Sp(4,3, invariant_form=[[0,0,0,1],[0,0,1,0],[0,2,0,0], [2,0,0,0]])
+        sage: Sp(4,3, invariant_form=[[0,0,0,1],[0,0,1,0],[0,2,0,0], [2,0,0,0]])
         Traceback (most recent call last):
         ...
-        NotImplementedError: invariant_form for finite Groups is fixed
+        NotImplementedError: invariant_form for finite groups is fixed by GAP
 
     TESTS::
 

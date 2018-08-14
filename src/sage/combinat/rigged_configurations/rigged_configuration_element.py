@@ -493,6 +493,14 @@ class RiggedConfigurationElement(ClonableArray):
         colabels fixed and increasing the new label by one. If no such string
         exists, then `e_a` is undefined.
 
+        This method can also be used when the underlying Cartan matrix is a
+        Borcherds-Cartan matrix.  In this case, then method of [SS2018]_ is
+        used, where the new label is increased by half of the `a`-th diagonal
+        entry of the underlying Borcherds-Cartan matrix.  This method will also
+        return ``None`` if `a` is imaginary and the smallest rigging in the
+        `a`-th rigged partition is not exactly half of the `a`-th diagonal entry
+        of the Borcherds-Cartan matrix.
+
         INPUT:
 
         - ``a`` -- the index of the partition to remove a box
@@ -516,6 +524,14 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             -1[ ]-1
             <BLANKLINE>
+
+            sage: A = CartanMatrix([[-2,-1],[-1,-2]],borcherds_type=True)
+            sage: RC = crystals.infinity.RiggedConfigurations(A)
+            sage: nu0 = RC(partition_list=[[],[]])
+            sage: nu = nu0.f_string([1,0,0,0])
+            sage: ascii_art(nu.e(0))
+            5[ ]3  4[ ]3
+            5[ ]1
         """
         if a not in self.parent()._rc_index_inverse:
             raise ValueError("{} is not in the index set".format(a))
@@ -657,6 +673,11 @@ class RiggedConfigurationElement(ClonableArray):
         we need to modify the definition to work for `B(\infty)` by removing
         the condition that the resulting rigged configuration is valid.
 
+        This method can also be used when the underlying Cartan matrix is a
+        Borcherds-Cartan matrix.  In this case, then method of [SS2018]_ is
+        used, where the new label is decreased by half of the `a`-th diagonal
+        entry of the underlying Borcherds-Cartan matrix.
+
         INPUT:
 
         - ``a`` -- the index of the partition to add a box
@@ -677,6 +698,16 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             (/)
             <BLANKLINE>
+
+            sage: A = CartanMatrix([[-2,-1],[-1,-2]],borcherds_type=True)
+            sage: RC = crystals.infinity.RiggedConfigurations(A)
+            sage: nu0 = RC(partition_list=[[],[]])
+            sage: nu = nu0.f_string([1,0,0,0])
+            sage: ascii_art(nu.f(0))
+            9[ ]7  6[ ]5
+            9[ ]5
+            9[ ]3
+            9[ ]1
         """
         if a not in self.parent()._rc_index_inverse:
             raise ValueError("{} is not in the index set".format(a))

@@ -2547,6 +2547,11 @@ REFERENCES:
             *Rigged configurations for all symmetrizable types*.
             Electron. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
 
+.. [SS2018] Ben Salisbury and Travis Scrimshaw.
+            *Description of crystals for generalized Kac–Moody algebras using
+            rigged configurations*.
+            Sém. Lothar. Combin. **80B** (2018), Art. #20, 12 pp.
+
 .. [SSAMI2007] \T. Shirai, K. Shibutani, T. Akishita, S. Moriai, and T. Iwata,
                *The 128-bit blockcipher CLEFIA (extended abstract)*; in
                FSE, (2007), pp. 181-195.

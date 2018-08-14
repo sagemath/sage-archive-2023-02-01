@@ -466,21 +466,21 @@ cdef class LinearMatroid(BasisExchangeMatroid):
     # representations
 
     cpdef representation(self, B=None, reduced=False, labels=None, order=None, lift_map=None):
-        """
+        r"""
         Return a matrix representing the matroid.
 
         Let `M` be a matroid on `n` elements with rank `r`. Let `E` be an
         ordering of the groundset, as output by
         :func:`M.groundset_list() <sage.matroids.basis_exchange_matroid.BasisExchangeMatroid.groundset_list>`.
-        A *representation* of the matroid is an `r \\times n` matrix with the
-        following property. Consider column ``i`` to be labeled by ``E[i]``,
+        A *representation* of the matroid is an `r \times n` matrix with the
+        following property. Consider column `i` to be labeled by `E[i]`,
         and denote by `A[F]` the submatrix formed by the columns labeled by
         the subset `F \subseteq E`. Then for all `F \subseteq E`, the columns
         of `A[F]` are linearly independent if and only if `F` is an
         independent set in the matroid.
 
         A *reduced representation* is a matrix `D` such that `[I\ \ D]` is a
-        representation of the matroid, where `I` is an `r \\times r` identity
+        representation of the matroid, where `I` is an `r \times r` identity
         matrix. In this case, the rows of `D` are considered to be labeled by
         the first `r` elements of the list ``E``, and the columns by the
         remaining `n - r` elements.
@@ -3945,12 +3945,12 @@ cdef class BinaryMatroid(LinearMatroid):
             [1 0 1]
             [1 0 1]
 
-        TESTS::
+        TESTS:
 
-        From :trac:`23437` and comments:
+        Check that :trac:`23437` is fixed::
 
             sage: M = matroids.named_matroids.Fano().dual()
-            sage: _ = list(M.bases())
+            sage: B = list(M.bases())
             sage: N = loads(dumps(M))
             sage: N.closure(frozenset({'d'}))
             frozenset({'d'})
@@ -3967,7 +3967,7 @@ cdef class BinaryMatroid(LinearMatroid):
         else:
             A = self._A
             # current basis ordered so matrix cols form identity matrix:
-            basis, _ = self._current_rows_cols()
+            basis = self._current_rows_cols()[0]
         data = (A, gs, basis, getattr(self, '__custom_name'))
         return sage.matroids.unpickling.unpickle_binary_matroid, (version, data)
 
@@ -4840,6 +4840,21 @@ cdef class TernaryMatroid(LinearMatroid):
             sage: loads(dumps(M)).representation()
             [1 0 1]
             [1 0 1]
+
+        TESTS:
+
+        Check that :trac:`23437` is fixed::
+
+            sage: from sage.matroids.advanced import *
+            sage: X_bin = matroids.named_matroids.Fano().representation()
+            sage: X = Matrix(GF(3), X_bin)
+            sage: M = TernaryMatroid(matrix=X).dual()
+            sage: B = list(M.bases())
+            sage: N = loads(dumps(M))
+            sage: N.closure(frozenset({3}))
+            frozenset({3})
+            sage: N.is_isomorphic(M)
+            True
         """
         import sage.matroids.unpickling
         version = 0
@@ -4851,7 +4866,7 @@ cdef class TernaryMatroid(LinearMatroid):
         else:
             A = self._A
             # current basis ordered so matrix cols form identity matrix:
-            basis, _ = self._current_rows_cols()
+            basis = self._current_rows_cols()[0]
         data = (A, gs, basis, getattr(self, '__custom_name'))
         return sage.matroids.unpickling.unpickle_ternary_matroid, (version, data)
 
@@ -5545,6 +5560,21 @@ cdef class QuaternaryMatroid(LinearMatroid):
             sage: M.rename("U34")
             sage: loads(dumps(M))
             U34
+
+        TESTS:
+
+        Check that :trac:`23437` is fixed::
+
+            sage: from sage.matroids.advanced import QuaternaryMatroid
+            sage: X_bin = matroids.named_matroids.Fano().representation()
+            sage: X = Matrix(GF(4), X_bin)
+            sage: M = QuaternaryMatroid(matrix=X).dual()
+            sage: B = list(M.bases())
+            sage: N = loads(dumps(M))
+            sage: N.closure(frozenset({3}))
+            frozenset({3})
+            sage: N.is_isomorphic(M)
+            True
         """
         import sage.matroids.unpickling
         version = 0
@@ -5556,7 +5586,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         else:
             A = self._A
             # current basis ordered so matrix cols form identity matrix:
-            basis, _ = self._current_rows_cols()
+            basis = self._current_rows_cols()[0]
         data = (A, gs, basis, getattr(self, '__custom_name'))
         return sage.matroids.unpickling.unpickle_quaternary_matroid, (version, data)
 

@@ -91,6 +91,19 @@ class HammingCode(AbstractLinearCode):
                 and self.length() == other.length()\
                 and self.dimension() == other.dimension()
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: C1 = codes.HammingCode(GF(7), 3)
+            sage: C2 = codes.HammingCode(GF(7), 3)
+            sage: hash(C1) == hash(C2)
+            True
+        """
+        return hash((self.length(), self.dimension()))
+    
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.

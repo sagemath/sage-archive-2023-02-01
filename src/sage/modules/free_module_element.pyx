@@ -4459,10 +4459,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return self._new_c(dict(self._entries))
 
-    def __init__(self, parent,
-                 entries=0,
-                 coerce=True,
-                 copy=True):
+    def __init__(self, parent, entries=0, coerce=True, copy=True):
         """
         EXAMPLES::
 
@@ -4537,39 +4534,42 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         FreeModuleElement.__init__(self, parent)
         R = self.base_ring()
         cdef Py_ssize_t i
+        cdef dict entries_dict, e
         if not entries:
-            entries = {}
+            entries_dict = {}
         else:
             if type(entries) is not dict:
                 if isinstance(entries, dict):
                     # Convert derived type to dict
                     copy = True
+                    entries_dict = <dict> entries
                 elif isinstance(entries, (list, tuple)):
                     if len(entries) != self._degree:
                         raise TypeError("entries has the wrong length")
-                    e = entries
-                    entries = {}
+                    entries_dict = {}
                     for i in range(self._degree):
-                        x = e[i]
+                        x = entries[i]
                         if x:
-                            entries[i] = x
+                            entries_dict[i] = x
                     copy = False
                 else:
                     raise TypeError("entries must be a dict, list or tuple, not %s", type(entries))
+            else:
+                entries_dict = <dict> entries
             if coerce:
                 coefficient_ring = parent.coordinate_ring()
-                e = entries
-                entries = {}
+                e = entries_dict
+                entries_dict = {}
                 try:
-                    for k, x in e.items():
+                    for k, x in e.iteritems():
                         x = coefficient_ring(x)
                         if x:
-                            entries[k] = x
+                            entries_dict[k] = x
                 except TypeError:
-                    raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s" % (x, entries, coefficient_ring))
+                    raise TypeError("unable to coerce value (=%s) of entries dict (=%s) to %s" % (x, entries, coefficient_ring))
             elif copy:
-                entries = dict(entries)  # make a copy/convert to dict
-        self._entries = entries
+                entries_dict = dict(entries_dict)  # make a copy/convert to dict
+        self._entries = entries_dict
 
     cpdef _add_(left, right):
         """

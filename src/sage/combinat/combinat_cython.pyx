@@ -266,3 +266,56 @@ def set_partition_iterator_blocks(base_set, Py_ssize_t k):
     for P in _set_partition_block_gen(n, k, a):
         yield from_word(<list> P, base)
 
+#####################################################################
+## Perfect matchings iterator
+
+cdef class PerfectMatchingsIterator(object):
+
+    def __init__(self, Py_ssize_t n):
+        cdef Py_ssize_t i
+        self.n = n
+        self.available = <bint*> check_allocarray(n, sizeof(bint))
+        for i in range(n):
+            self.available[i] = False
+        self.current = [(i,i+1) for i in range(0,n,2)]
+        self.at_end = (n <= 1) or (n % 2 != 0)
+
+    def __dealloc__(self):
+        sig_free(self.available)
+
+    cpdef list next(self):
+        if self.at_end:
+            return None
+        cdef list ret = list(self.current)
+        cdef Py_ssize_t n = self.n
+        cdef Py_ssize_t a, b
+        a,b = self.current.pop()
+        self.available[a] = True
+        self.available[b] = True
+        while True:
+
+            a += 1 # Move a to the next position
+            while a < n and not self.available[a]:
+                a += 1
+            if a == n:
+                # Nothing more we can do at this level
+                if not self.current:
+                    break
+                a,b = self.current.pop()
+                self.available[a] = True
+                self.available[b] = True
+                continue
+            b = a + 1
+            while b < n and not self.available[b]:
+                b += 1
+            if b != n:
+                self.available[a] = False
+                self.available[b] = False
+                self.current.append((a,b))
+                a = 1
+                if 2 * len(self.current) == n:
+                    return ret
+
+        self.at_end = True
+        return ret
+

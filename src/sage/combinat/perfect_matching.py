@@ -64,6 +64,7 @@ from sage.combinat.partition import Partition
 from sage.misc.misc_c import prod
 from sage.matrix.constructor import matrix
 from sage.combinat.set_partition import SetPartition, SetPartitions_set
+from sage.combinat.combinat_cython import PerfectMatchingsIterator
 from sage.rings.infinity import infinity
 
 class PerfectMatching(SetPartition):
@@ -578,21 +579,13 @@ class PerfectMatchings(SetPartitions_set):
             sage: PerfectMatchings(4).list()
             [[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]]
         """
-        def iter_aux(s):
-            n = len(s)
-            if n == 0:
-                yield []
-            elif n == 1:
-                pass
-            else:
-                a = s[0]
-                for i in range(1, n):
-                    b = s[i]
-                    for p in iter_aux(s[1:i] + s[i+1:]):
-                        yield [(a, b)]+p
 
-        for p in iter_aux(list(self._set)):
-            yield self.element_class(self, p, check=False)
+        s = list(self._set)
+        it = PerfectMatchingsIterator(len(s))
+        val = it.next()
+        while val is not None:
+            yield self.element_class(self, [(s[a], s[b]) for (a,b) in val], check=False)
+            val = it.next()
 
     def __contains__(self, x):
         """

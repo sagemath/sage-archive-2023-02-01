@@ -270,7 +270,6 @@ def set_partition_iterator_blocks(base_set, Py_ssize_t k):
 ## Perfect matchings iterator
 
 cdef class PerfectMatchingsIterator(object):
-
     def __init__(self, Py_ssize_t n):
         cdef Py_ssize_t i
         self.n = n
@@ -293,7 +292,6 @@ cdef class PerfectMatchingsIterator(object):
         self.available[a] = True
         self.available[b] = True
         while True:
-
             a += 1 # Move a to the next position
             while a < n and not self.available[a]:
                 a += 1
@@ -312,10 +310,62 @@ cdef class PerfectMatchingsIterator(object):
                 self.available[a] = False
                 self.available[b] = False
                 self.current.append((a,b))
-                a = 1
+                a = -1  # This will be bumped to 0 on the next iteration
                 if 2 * len(self.current) == n:
                     return ret
 
         self.at_end = True
         return ret
+
+def generate(Py_ssize_t n):
+    cdef Py_ssize_t i, x, y, g, j, J
+    cdef Py_ssize_t* e = <Py_ssize_t*> check_allocarray(2*n, sizeof(Py_ssize_t))
+    for i in range(2*n):
+        e[i] = i
+    cdef list f = [i+1 if i % 2 == 0 else i-1 for i in range(2*n)]
+    cdef bint odd = False
+
+    yield list(f)
+    while e[0] != n - 1:
+        i = e[0]
+        if odd:
+            x = 2 * i
+        else:
+            x = i
+
+        y = <Py_ssize_t> f[x]
+        g = y - x - 1
+        if g % 2 == odd:
+            g += 1
+            j = y + 1
+        else:
+            g -= 1
+            j = y-1
+        J = f[j]
+        f[y] = J
+        f[J] = y
+        f[x] = j
+        f[j] = x
+        odd = not odd
+        e[0] = 0
+        if g == 0 or g == 2 * (n-i-1):
+            e[i] = e[i+1]
+            e[i+1] = i + 1
+
+        yield list(f)
+
+    sig_free(e)
+
+def convert(list f):
+    """
+    Convert a list ``f`` representing a fixed-point free involution
+    to a set partition.
+    """
+    cdef list ret = []
+    cdef Py_ssize_t i, val
+    for i in range(len(f)):
+        val = <Py_ssize_t> f[i]
+        if i < val:
+            ret.append((i, val))
+    return ret
 

@@ -33,8 +33,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
 from sage.structure.global_options import GlobalOptions
+from sage.combinat.combinat_cython import set_partition_iterator, perfect_matchings_iterator
 from sage.combinat.set_partition import SetPartitions, AbstractSetPartition
-from sage.combinat.perfect_matching import PerfectMatchings
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
 from sage.combinat.permutation import Permutations
 from sage.graphs.graph import Graph
@@ -65,38 +65,38 @@ def partition_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: [p for p in da.partition_diagrams(2)]
+        sage: [SetPartition(p) for p in da.partition_diagrams(2)]
         [{{-2, -1, 1, 2}},
-         {{-2, -1, 1}, {2}},
-         {{-2, -1, 2}, {1}},
-         {{-2, -1}, {1, 2}},
-         {{-2, -1}, {1}, {2}},
          {{-2, 1, 2}, {-1}},
+         {{-2}, {-1, 1, 2}},
+         {{-2, -1}, {1, 2}},
+         {{-2}, {-1}, {1, 2}},
+         {{-2, -1, 1}, {2}},
          {{-2, 1}, {-1, 2}},
          {{-2, 1}, {-1}, {2}},
          {{-2, 2}, {-1, 1}},
-         {{-2}, {-1, 1, 2}},
-         {{-2}, {-1, 1}, {2}},
+         {{-2, -1, 2}, {1}},
          {{-2, 2}, {-1}, {1}},
+         {{-2}, {-1, 1}, {2}},
          {{-2}, {-1, 2}, {1}},
-         {{-2}, {-1}, {1, 2}},
+         {{-2, -1}, {1}, {2}},
          {{-2}, {-1}, {1}, {2}}]
         sage: [SetPartition(p) for p in da.partition_diagrams(3/2)]
         [{{-2, -1, 1, 2}},
+         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1, 1}},
          {{-2, -1, 2}, {1}},
-         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1}, {1}}]
     """
     if k in ZZ:
-        S = SetPartitions(list(range(1, k+1)) + list(range(-k,0)))
+        S = set_partition_iterator(list(range(1, k+1)) + list(range(-k,0)))
         for p in S:
             yield p
     elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
-        S = SetPartitions(list(range(1, k+1)) + list(range(-k+1,0)))
+        S = set_partition_iterator(list(range(1, k+1)) + list(range(-k+1,0)))
         for p in S:
-            yield [b.union([-k]) if k in b else b for b in p]
+            yield [b + [-k] if k in b else b for b in p]
     else:
         raise ValueError("argument %s must be a half-integer"%k)
 
@@ -115,21 +115,21 @@ def brauer_diagrams(k):
 
         sage: import sage.combinat.diagram_algebras as da
         sage: [SetPartition(p) for p in da.brauer_diagrams(2)]
-        [{{-2, -1}, {1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, 1}, {-1, 2}}]
+        [{{-2, -1}, {1, 2}}, {{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}]
         sage: [SetPartition(p) for p in da.brauer_diagrams(5/2)]
         [{{-3, 3}, {-2, -1}, {1, 2}},
-         {{-3, 3}, {-2, 2}, {-1, 1}},
-         {{-3, 3}, {-2, 1}, {-1, 2}}]
+         {{-3, 3}, {-2, 1}, {-1, 2}},
+         {{-3, 3}, {-2, 2}, {-1, 1}}]
     """
     if k in ZZ:
-        S = PerfectMatchings(list(range(1,k+1)) + list(range(-k,0)))
-        for p in S:
-            yield list(p)
+        s = list(range(1,k+1)) + list(range(-k,0))
+        for p in perfect_matchings_iterator(k):
+            yield [(s[a],s[b]) for a,b in p]
     elif k + ZZ(1) / ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
-        S = PerfectMatchings(list(range(1, k)) + list(range(-k+1,0)))
-        for p in S:
-            yield list(p) + [[k, -k]]
+        s = list(range(1, k)) + list(range(-k+1,0))
+        for p in perfect_matchings_iterator(k-1):
+            yield [(s[a],s[b]) for a,b in p] + [[k, -k]]
 
 def temperley_lieb_diagrams(k):
     r"""
@@ -165,20 +165,20 @@ def planar_diagrams(k):
 
         sage: import sage.combinat.diagram_algebras as da
         sage: all_diagrams = da.partition_diagrams(2)
-        sage: [p for p in all_diagrams if p not in da.planar_diagrams(2)]
+        sage: [SetPartition(p) for p in all_diagrams if p not in da.planar_diagrams(2)]
         [{{-2, 1}, {-1, 2}}]
         sage: all_diagrams = da.partition_diagrams(5/2)
         sage: [SetPartition(p) for p in all_diagrams if p not in da.planar_diagrams(5/2)]
-        [{{-3, 1, 3}, {-2, -1, 2}},
-         {{-3, -1, 3}, {-2, 1, 2}},
+        [{{-3, -1, 3}, {-2, 1, 2}},
          {{-3, -2, 1, 3}, {-1, 2}},
+         {{-3, -1, 1, 3}, {-2, 2}},
+         {{-3, 1, 3}, {-2, -1, 2}},
+         {{-3, 1, 3}, {-2, 2}, {-1}},
+         {{-3, 1, 3}, {-2}, {-1, 2}},
          {{-3, -1, 2, 3}, {-2, 1}},
          {{-3, 3}, {-2, 1}, {-1, 2}},
          {{-3, -1, 3}, {-2, 1}, {2}},
-         {{-3, -1, 1, 3}, {-2, 2}},
-         {{-3, -1, 3}, {-2, 2}, {1}},
-         {{-3, 1, 3}, {-2, 2}, {-1}},
-         {{-3, 1, 3}, {-2}, {-1, 2}}]
+         {{-3, -1, 3}, {-2, 2}, {1}}]
     """
     for i in partition_diagrams(k):
         if is_planar(i):
@@ -519,17 +519,17 @@ class IdealDiagram(AbstractPartitionDiagram):
         Ideal diagrams of order 2
         sage: IDs(2).list()
         [{{-2, -1, 1, 2}},
-         {{-2, -1, 1}, {2}},
-         {{-2, -1, 2}, {1}},
-         {{-2, -1}, {1, 2}},
-         {{-2, -1}, {1}, {2}},
          {{-2, 1, 2}, {-1}},
-         {{-2, 1}, {-1}, {2}},
          {{-2}, {-1, 1, 2}},
-         {{-2}, {-1, 1}, {2}},
-         {{-2, 2}, {-1}, {1}},
-         {{-2}, {-1, 2}, {1}},
+         {{-2, -1}, {1, 2}},
          {{-2}, {-1}, {1, 2}},
+         {{-2, -1, 1}, {2}},
+         {{-2, 1}, {-1}, {2}},
+         {{-2, -1, 2}, {1}},
+         {{-2, 2}, {-1}, {1}},
+         {{-2}, {-1, 1}, {2}},
+         {{-2}, {-1, 2}, {1}},
+         {{-2, -1}, {1}, {2}},
          {{-2}, {-1}, {1}, {2}}]
 
         sage: from sage.combinat.diagram_algebras import PartitionDiagrams as PDs
@@ -591,18 +591,18 @@ class PlanarDiagram(AbstractPartitionDiagram):
         Planar diagrams of order 2
         sage: PlanarDiagrams(2).list()
         [{{-2, -1, 1, 2}},
-         {{-2, -1, 1}, {2}},
-         {{-2, -1, 2}, {1}},
-         {{-2, -1}, {1, 2}},
-         {{-2, -1}, {1}, {2}},
          {{-2, 1, 2}, {-1}},
+         {{-2}, {-1, 1, 2}},
+         {{-2, -1}, {1, 2}},
+         {{-2}, {-1}, {1, 2}},
+         {{-2, -1, 1}, {2}},
          {{-2, 1}, {-1}, {2}},
          {{-2, 2}, {-1, 1}},
-         {{-2}, {-1, 1, 2}},
-         {{-2}, {-1, 1}, {2}},
+         {{-2, -1, 2}, {1}},
          {{-2, 2}, {-1}, {1}},
+         {{-2}, {-1, 1}, {2}},
          {{-2}, {-1, 2}, {1}},
-         {{-2}, {-1}, {1, 2}},
+         {{-2, -1}, {1}, {2}},
          {{-2}, {-1}, {1}, {2}}]
     """
     @staticmethod
@@ -1130,34 +1130,34 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             sage: import sage.combinat.diagram_algebras as da
             sage: list(da.PartitionDiagrams(2))
             [{{-2, -1, 1, 2}},
-             {{-2, -1, 1}, {2}},
-             {{-2, -1, 2}, {1}},
-             {{-2, -1}, {1, 2}},
-             {{-2, -1}, {1}, {2}},
              {{-2, 1, 2}, {-1}},
+             {{-2}, {-1, 1, 2}},
+             {{-2, -1}, {1, 2}},
+             {{-2}, {-1}, {1, 2}},
+             {{-2, -1, 1}, {2}},
              {{-2, 1}, {-1, 2}},
              {{-2, 1}, {-1}, {2}},
              {{-2, 2}, {-1, 1}},
-             {{-2}, {-1, 1, 2}},
-             {{-2}, {-1, 1}, {2}},
+             {{-2, -1, 2}, {1}},
              {{-2, 2}, {-1}, {1}},
+             {{-2}, {-1, 1}, {2}},
              {{-2}, {-1, 2}, {1}},
-             {{-2}, {-1}, {1, 2}},
+             {{-2, -1}, {1}, {2}},
              {{-2}, {-1}, {1}, {2}}]
 
             sage: list(da.PartitionDiagrams(3/2))
             [{{-2, -1, 1, 2}},
+             {{-2, 1, 2}, {-1}},
              {{-2, 2}, {-1, 1}},
              {{-2, -1, 2}, {1}},
-             {{-2, 1, 2}, {-1}},
              {{-2, 2}, {-1}, {1}}]
 
             sage: list(da.BrauerDiagrams(5/2))
             [{{-3, 3}, {-2, -1}, {1, 2}},
-             {{-3, 3}, {-2, 2}, {-1, 1}},
-             {{-3, 3}, {-2, 1}, {-1, 2}}]
+             {{-3, 3}, {-2, 1}, {-1, 2}},
+             {{-3, 3}, {-2, 2}, {-1, 1}}]
             sage: list(da.BrauerDiagrams(2))
-            [{{-2, -1}, {1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, 1}, {-1, 2}}]
+            [{{-2, -1}, {1, 2}}, {{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}]
 
             sage: list(da.TemperleyLiebDiagrams(5/2))
             [{{-3, 3}, {-2, -1}, {1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}]
@@ -1166,45 +1166,45 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
 
             sage: list(da.PlanarDiagrams(3/2))
             [{{-2, -1, 1, 2}},
+             {{-2, 1, 2}, {-1}},
              {{-2, 2}, {-1, 1}},
              {{-2, -1, 2}, {1}},
-             {{-2, 1, 2}, {-1}},
              {{-2, 2}, {-1}, {1}}]
 
             sage: list(da.PlanarDiagrams(2))
             [{{-2, -1, 1, 2}},
-             {{-2, -1, 1}, {2}},
-             {{-2, -1, 2}, {1}},
-             {{-2, -1}, {1, 2}},
-             {{-2, -1}, {1}, {2}},
              {{-2, 1, 2}, {-1}},
+             {{-2}, {-1, 1, 2}},
+             {{-2, -1}, {1, 2}},
+             {{-2}, {-1}, {1, 2}},
+             {{-2, -1, 1}, {2}},
              {{-2, 1}, {-1}, {2}},
              {{-2, 2}, {-1, 1}},
-             {{-2}, {-1, 1, 2}},
-             {{-2}, {-1, 1}, {2}},
+             {{-2, -1, 2}, {1}},
              {{-2, 2}, {-1}, {1}},
+             {{-2}, {-1, 1}, {2}},
              {{-2}, {-1, 2}, {1}},
-             {{-2}, {-1}, {1, 2}},
+             {{-2, -1}, {1}, {2}},
              {{-2}, {-1}, {1}, {2}}]
 
             sage: list(da.IdealDiagrams(3/2))
             [{{-2, -1, 1, 2}},
-             {{-2, -1, 2}, {1}},
              {{-2, 1, 2}, {-1}},
+             {{-2, -1, 2}, {1}},
              {{-2, 2}, {-1}, {1}}]
             sage: list(da.IdealDiagrams(2))
             [{{-2, -1, 1, 2}},
-             {{-2, -1, 1}, {2}},
-             {{-2, -1, 2}, {1}},
-             {{-2, -1}, {1, 2}},
-             {{-2, -1}, {1}, {2}},
              {{-2, 1, 2}, {-1}},
-             {{-2, 1}, {-1}, {2}},
              {{-2}, {-1, 1, 2}},
-             {{-2}, {-1, 1}, {2}},
-             {{-2, 2}, {-1}, {1}},
-             {{-2}, {-1, 2}, {1}},
+             {{-2, -1}, {1, 2}},
              {{-2}, {-1}, {1, 2}},
+             {{-2, -1, 1}, {2}},
+             {{-2, 1}, {-1}, {2}},
+             {{-2, -1, 2}, {1}},
+             {{-2, 2}, {-1}, {1}},
+             {{-2}, {-1, 1}, {2}},
+             {{-2}, {-1, 2}, {1}},
+             {{-2, -1}, {1}, {2}},
              {{-2}, {-1}, {1}, {2}}]
         """
         # The _diagram_func gets set as a method, but we want to
@@ -1319,21 +1319,21 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd = da.BrauerDiagrams(3)
         sage: bd.options.display="compact"
         sage: bd.list()
-        [[12/13;1],
-         [12/12;1],
-         [12/23;1],
-         [13/13;1],
+        [[12/12;1],
          [13/12;1],
-         [13/23;1],
-         [23/13;1],
-         [/;231],
-         [/;213],
          [23/12;1],
-         [/;321],
-         [/;312],
+         [23/13;1],
          [23/23;1],
-         [/;123],
-         [/;132]]
+         [/;132],
+         [/;231],
+         [/;321],
+         [13/13;1],
+         [12/13;1],
+         [12/23;1],
+         [13/23;1],
+         [/;312],
+         [/;213],
+         [/;123]]
         sage: bd.options._reset()
     """
     Element = BrauerDiagram
@@ -1596,8 +1596,8 @@ class IdealDiagrams(AbstractPartitionDiagrams):
         True
         sage: da.IdealDiagrams(3/2).list()
         [{{-2, -1, 1, 2}},
-         {{-2, -1, 2}, {1}},
          {{-2, 1, 2}, {-1}},
+         {{-2, -1, 2}, {1}},
          {{-2, 2}, {-1}, {1}}]
     """
     Element = IdealDiagram
@@ -1638,19 +1638,19 @@ class DiagramAlgebra(CombinatorialFreeModule):
         sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
         sage: list(D.basis())
         [P{{-2, -1, 1, 2}},
-         P{{-2, -1, 1}, {2}},
-         P{{-2, -1, 2}, {1}},
-         P{{-2, -1}, {1, 2}},
-         P{{-2, -1}, {1}, {2}},
          P{{-2, 1, 2}, {-1}},
+         P{{-2}, {-1, 1, 2}},
+         P{{-2, -1}, {1, 2}},
+         P{{-2}, {-1}, {1, 2}},
+         P{{-2, -1, 1}, {2}},
          P{{-2, 1}, {-1, 2}},
          P{{-2, 1}, {-1}, {2}},
          P{{-2, 2}, {-1, 1}},
-         P{{-2}, {-1, 1, 2}},
-         P{{-2}, {-1, 1}, {2}},
+         P{{-2, -1, 2}, {1}},
          P{{-2, 2}, {-1}, {1}},
+         P{{-2}, {-1, 1}, {2}},
          P{{-2}, {-1, 2}, {1}},
-         P{{-2}, {-1}, {1, 2}},
+         P{{-2, -1}, {1}, {2}},
          P{{-2}, {-1}, {1}, {2}}]
     """
     def __init__(self, k, q, base_ring, prefix, diagrams, category=None):
@@ -2132,13 +2132,13 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         sage: A2.basis().keys()([[-2, 1, 2], [-1]])
         {{-2, 1, 2}, {-1}}
         sage: A2.basis().list()
-        [P{{-2, -1, 1, 2}}, P{{-2, -1, 1}, {2}},
-         P{{-2, -1, 2}, {1}}, P{{-2, -1}, {1, 2}},
-         P{{-2, -1}, {1}, {2}}, P{{-2, 1, 2}, {-1}},
+        [P{{-2, -1, 1, 2}}, P{{-2, 1, 2}, {-1}},
+         P{{-2}, {-1, 1, 2}}, P{{-2, -1}, {1, 2}},
+         P{{-2}, {-1}, {1, 2}}, P{{-2, -1, 1}, {2}},
          P{{-2, 1}, {-1, 2}}, P{{-2, 1}, {-1}, {2}},
-         P{{-2, 2}, {-1, 1}}, P{{-2}, {-1, 1, 2}},
-         P{{-2}, {-1, 1}, {2}}, P{{-2, 2}, {-1}, {1}},
-         P{{-2}, {-1, 2}, {1}}, P{{-2}, {-1}, {1, 2}},
+         P{{-2, 2}, {-1, 1}}, P{{-2, -1, 2}, {1}},
+         P{{-2, 2}, {-1}, {1}}, P{{-2}, {-1, 1}, {2}},
+         P{{-2}, {-1, 2}, {1}}, P{{-2, -1}, {1}, {2}},
          P{{-2}, {-1}, {1}, {2}}]
         sage: E = A2([[1,2],[-2,-1]]); E
         P{{-2, -1}, {1, 2}}
@@ -2154,16 +2154,16 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     Next, we construct an element::
 
         sage: a2 = A2.an_element(); a2
-        2*P{{-2, -1, 1}, {2}} + 2*P{{-2, -1, 1, 2}} + 3*P{{-2, -1, 2}, {1}}
+        3*P{{-2}, {-1, 1, 2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
 
     There is a natural embedding into partition algebras on more
     elements, by adding identity strands::
 
         sage: A4 = PartitionAlgebra(4, x, R)
         sage: A4(a2)
-        2*P{{-4, 4}, {-3, 3}, {-2, -1, 1}, {2}}
+        3*P{{-4, 4}, {-3, 3}, {-2}, {-1, 1, 2}}
          + 2*P{{-4, 4}, {-3, 3}, {-2, -1, 1, 2}}
-         + 3*P{{-4, 4}, {-3, 3}, {-2, -1, 2}, {1}}
+         + 2*P{{-4, 4}, {-3, 3}, {-2, 1, 2}, {-1}}
 
     Thus, the empty partition corresponds to the identity::
 
@@ -2220,9 +2220,9 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     We can convert back from the orbit basis to the diagram basis::
 
         sage: o2 = O2.an_element(); o2
-        2*O{{-2, -1, 1}, {2}} + 2*O{{-2, -1, 1, 2}} + 3*O{{-2, -1, 2}, {1}}
+        3*O{{-2}, {-1, 1, 2}} + 2*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
         sage: A2(o2)
-        2*P{{-2, -1, 1}, {2}} - 3*P{{-2, -1, 1, 2}} + 3*P{{-2, -1, 2}, {1}}
+        3*P{{-2}, {-1, 1, 2}} - 3*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
 
     One can work with partition algebras using a symbol for the parameter,
     leaving the base ring unspecified. This implies that the underlying
@@ -2484,12 +2484,12 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         TESTS::
 
             sage: elt = O3.an_element(); elt
-            2*O{{-3, -2, -1, 1, 2}, {3}} + 2*O{{-3, -2, -1, 1, 2, 3}}
-             + 3*O{{-3, -2, -1, 1, 3}, {2}}
+            2*O{{-3, -2, -1, 1, 2, 3}} + 2*O{{-3, -2, 1, 2, 3}, {-1}}
+             + 3*O{{-3, -1, 1, 2, 3}, {-2}}
             sage: A._coerce_map_from_(O3)(elt)
-            2*P{{-4, 4}, {-3, -2, -1, 1, 2}, {3}}
-             - 3*P{{-4, 4}, {-3, -2, -1, 1, 2, 3}}
-             + 3*P{{-4, 4}, {-3, -2, -1, 1, 3}, {2}}
+            -3*P{{-4, 4}, {-3, -2, -1, 1, 2, 3}}
+             + 2*P{{-4, 4}, {-3, -2, 1, 2, 3}, {-1}}
+             + 3*P{{-4, 4}, {-3, -1, 1, 2, 3}, {-2}}
           """
         # coerce from Orbit basis.
         if isinstance(R, OrbitBasis):
@@ -2567,7 +2567,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
                 sage: P = PartitionAlgebra(2, x, R)
                 sage: pp = P.an_element();
                 sage: pp.to_orbit_basis()
-                2*O{{-2, -1, 1}, {2}} + 7*O{{-2, -1, 1, 2}} + 3*O{{-2, -1, 2}, {1}}
+                3*O{{-2}, {-1, 1, 2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
                 sage: pp = (3*P([[-2], [-1, 1, 2]]) + 2*P([[-2, -1, 1, 2]])
                 ....:       + 2*P([[-2, 1, 2], [-1]])); pp
                 3*P{{-2}, {-1, 1, 2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
@@ -2803,9 +2803,9 @@ class OrbitBasis(DiagramAlgebra):
             Partition Algebra of rank 2 with parameter x over Univariate
             Polynomial Ring in x over Rational Field
             sage: o2 = O2.an_element(); o2
-            2*O{{-2, -1, 1}, {2}} + 2*O{{-2, -1, 1, 2}} + 3*O{{-2, -1, 2}, {1}}
+            3*O{{-2}, {-1, 1, 2}} + 2*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
             sage: P2(o2)
-            2*P{{-2, -1, 1}, {2}} - 3*P{{-2, -1, 1, 2}} + 3*P{{-2, -1, 2}, {1}}
+            3*P{{-2}, {-1, 1, 2}} - 3*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
 
         TESTS::
 
@@ -2983,13 +2983,13 @@ class OrbitBasis(DiagramAlgebra):
                 sage: P = PartitionAlgebra(2, x, R)
                 sage: O = P.orbit_basis()
                 sage: elt = O.an_element(); elt
-                2*O{{-2, -1, 1}, {2}} + 2*O{{-2, -1, 1, 2}} + 3*O{{-2, -1, 2}, {1}}
+                3*O{{-2}, {-1, 1, 2}} + 2*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
                 sage: elt.to_diagram_basis()
-                2*P{{-2, -1, 1}, {2}} - 3*P{{-2, -1, 1, 2}} + 3*P{{-2, -1, 2}, {1}}
+                3*P{{-2}, {-1, 1, 2}} - 3*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
                 sage: pp = P.an_element(); pp
-                2*P{{-2, -1, 1}, {2}} + 2*P{{-2, -1, 1, 2}} + 3*P{{-2, -1, 2}, {1}}
+                3*P{{-2}, {-1, 1, 2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
                 sage: op = pp.to_orbit_basis(); op
-                2*O{{-2, -1, 1}, {2}} + 7*O{{-2, -1, 1, 2}} + 3*O{{-2, -1, 2}, {1}}
+                3*O{{-2}, {-1, 1, 2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
                 sage: pp == op.to_diagram_basis()
                 True
             """
@@ -3130,7 +3130,7 @@ class BrauerAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
         sage: B.basis().keys()([[-2, 1], [2, -1]])
         {{-2, 1}, {-1, 2}}
         sage: b = B.basis().list(); b
-        [B{{-2, -1}, {1, 2}}, B{{-2, 2}, {-1, 1}}, B{{-2, 1}, {-1, 2}}]
+        [B{{-2, -1}, {1, 2}}, B{{-2, 1}, {-1, 2}}, B{{-2, 2}, {-1, 1}}]
         sage: b[0]
         B{{-2, -1}, {1, 2}}
         sage: b[0]^2
@@ -3449,18 +3449,18 @@ class PlanarAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
         {{-2, 2}, {-1, 1}}
         sage: Pl.basis().list()
         [Pl{{-2, -1, 1, 2}},
-         Pl{{-2, -1, 1}, {2}},
-         Pl{{-2, -1, 2}, {1}},
-         Pl{{-2, -1}, {1, 2}},
-         Pl{{-2, -1}, {1}, {2}},
          Pl{{-2, 1, 2}, {-1}},
+         Pl{{-2}, {-1, 1, 2}},
+         Pl{{-2, -1}, {1, 2}},
+         Pl{{-2}, {-1}, {1, 2}},
+         Pl{{-2, -1, 1}, {2}},
          Pl{{-2, 1}, {-1}, {2}},
          Pl{{-2, 2}, {-1, 1}},
-         Pl{{-2}, {-1, 1, 2}},
-         Pl{{-2}, {-1, 1}, {2}},
+         Pl{{-2, -1, 2}, {1}},
          Pl{{-2, 2}, {-1}, {1}},
+         Pl{{-2}, {-1, 1}, {2}},
          Pl{{-2}, {-1, 2}, {1}},
-         Pl{{-2}, {-1}, {1, 2}},
+         Pl{{-2, -1}, {1}, {2}},
          Pl{{-2}, {-1}, {1}, {2}}]
         sage: E = Pl([[1,2],[-1,-2]])
         sage: E^2 == x*E
@@ -3538,17 +3538,17 @@ class PropagatingIdeal(SubPartitionAlgebra):
         Ideal diagrams of order 2
         sage: I.basis().list()
         [I{{-2, -1, 1, 2}},
-         I{{-2, -1, 1}, {2}},
-         I{{-2, -1, 2}, {1}},
-         I{{-2, -1}, {1, 2}},
-         I{{-2, -1}, {1}, {2}},
          I{{-2, 1, 2}, {-1}},
-         I{{-2, 1}, {-1}, {2}},
          I{{-2}, {-1, 1, 2}},
-         I{{-2}, {-1, 1}, {2}},
-         I{{-2, 2}, {-1}, {1}},
-         I{{-2}, {-1, 2}, {1}},
+         I{{-2, -1}, {1, 2}},
          I{{-2}, {-1}, {1, 2}},
+         I{{-2, -1, 1}, {2}},
+         I{{-2, 1}, {-1}, {2}},
+         I{{-2, -1, 2}, {1}},
+         I{{-2, 2}, {-1}, {1}},
+         I{{-2}, {-1, 1}, {2}},
+         I{{-2}, {-1, 2}, {1}},
+         I{{-2, -1}, {1}, {2}},
          I{{-2}, {-1}, {1}, {2}}]
         sage: E = I([[1,2],[-1,-2]])
         sage: E^2 == x*E

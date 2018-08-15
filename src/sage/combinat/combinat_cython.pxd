@@ -12,3 +12,5 @@ cdef class PerfectMatchingsIterator(object):
 
     cpdef list next(self)
 
+cdef list convert(Py_ssize_t* f, Py_ssize_t n)
+

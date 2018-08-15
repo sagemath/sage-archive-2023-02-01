@@ -322,10 +322,15 @@ def generate(Py_ssize_t n):
     cdef Py_ssize_t* e = <Py_ssize_t*> check_allocarray(2*n, sizeof(Py_ssize_t))
     for i in range(2*n):
         e[i] = i
-    cdef list f = [i+1 if i % 2 == 0 else i-1 for i in range(2*n)]
+    cdef Py_ssize_t* f = <Py_ssize_t*> check_allocarray(2*n, sizeof(Py_ssize_t))
+    for i in range(2*n):
+        if i % 2 == 0:
+            f[i] = i + 1
+        else:
+            f[i] = i - 1
     cdef bint odd = False
 
-    yield list(f)
+    yield convert(f, n)
     while e[0] != n - 1:
         i = e[0]
         if odd:
@@ -333,7 +338,7 @@ def generate(Py_ssize_t n):
         else:
             x = i
 
-        y = <Py_ssize_t> f[x]
+        y = f[x]
         g = y - x - 1
         if g % 2 == odd:
             g += 1
@@ -352,20 +357,20 @@ def generate(Py_ssize_t n):
             e[i] = e[i+1]
             e[i+1] = i + 1
 
-        yield list(f)
+        yield convert(f, n)
 
     sig_free(e)
+    sig_free(f)
 
-def convert(list f):
+cdef list convert(Py_ssize_t* f, Py_ssize_t n):
     """
     Convert a list ``f`` representing a fixed-point free involution
     to a set partition.
     """
     cdef list ret = []
-    cdef Py_ssize_t i, val
-    for i in range(len(f)):
-        val = <Py_ssize_t> f[i]
-        if i < val:
-            ret.append((i, val))
+    cdef Py_ssize_t i
+    for i in range(2*n):
+        if i < f[i]:
+            ret.append((i, f[i]))
     return ret
 

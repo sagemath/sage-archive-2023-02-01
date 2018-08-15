@@ -1377,18 +1377,21 @@ class GraphPlot(SageObject):
 # Helper functions #
 ####################
 
-def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
+def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0, angle=0):
     r"""
     Sets some vertices on a circle in the embedding of a graph G.
 
-    This method modifies the graph's embedding so that the vertices
-    listed in ``vertices`` appear in this ordering on a circle of given
-    radius and center. The ``shift`` parameter is actually a rotation of
-    the circle. A value of ``shift=1`` will replace in the drawing the
-    `i`-th element of the list by the `(i-1)`-th. Non-integer values are
-    admissible, and a value of `\alpha` corresponds to a rotation of the
-    circle by an angle of `\alpha 2\pi/n` (where `n` is the number of
-    vertices set on the circle).
+    This method modifies the graph's embedding so that the vertices listed in
+    ``vertices`` appear in this ordering on a circle of given radius and
+    center. The ``shift`` parameter is actually a rotation of the circle. A
+    value of ``shift=1`` will replace in the drawing the `i`-th element of the
+    list by the `(i-1)`-th. Non-integer values are admissible, and a value of
+    `\alpha` corresponds to a rotation of the circle by an angle of `\alpha
+    2\pi/n` (where `n` is the number of vertices set on the circle).
+    The ``angle`` parameter is used to rotate the embedding of all vertices. For
+    instance, when ``angle=0``, the first vertex get position ``(center[0] +
+    radius, center[1])``. When ``angle=pi/2``, the first vertex get position
+    ``(center[0], center[1] + radius)``.
 
     EXAMPLES::
 
@@ -1396,6 +1399,13 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
         sage: g = graphs.CycleGraph(5)
         sage: _circle_embedding(g, [0, 2, 4, 1, 3], radius=2, shift=.5)
         sage: g.show()
+
+        sage: _circle_embedding(g, g.vertices(), angle=0)
+        sage: g._pos[0]
+        (1.0, 0.0)
+        sage: _circle_embedding(g, g.vertices(), angle=pi/2)
+        sage: g._pos[0]
+        (0.0, 1.0)
 
     TESTS:
 
@@ -1416,8 +1426,8 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
         i += shift
         # We round cos and sin to avoid results like 1.2246467991473532e-16 when
         # asking for sin(pi)
-        v_x = c_x + radius * round(cos(2*i*pi / n), 10)
-        v_y = c_y + radius * round(sin(2*i*pi / n), 10)
+        v_x = c_x + radius * round(cos(angle + 2*i*pi / n), 10)
+        v_y = c_y + radius * round(sin(angle + 2*i*pi / n), 10)
         d[v] = (v_x, v_y)
 
     g.set_pos(d)

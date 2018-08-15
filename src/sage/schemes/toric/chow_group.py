@@ -129,6 +129,7 @@ Chow cycles can be of mixed degrees::
 #*****************************************************************************
 
 from sage.misc.all import flatten
+from sage.misc.fast_methods import WithEqualityById
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.modules.free_module import FreeModule
@@ -604,7 +605,7 @@ ChowGroup = ChowGroupFactory('ChowGroup')
 
 
 #*******************************************************************
-class ChowGroup_class(FGP_Module_class):
+class ChowGroup_class(FGP_Module_class, WithEqualityById):
     r"""
     The Chow group of a toric variety.
 
@@ -823,30 +824,6 @@ class ChowGroup_class(FGP_Module_class):
             return "Chow group of " + str(self._variety)
         else:
             raise ValueError
-
-
-    def __eq__(self, other):
-        r"""
-        Comparison of two Chow groups.
-
-        INPUT:
-
-        - ``other`` -- anything.
-
-        OUTPUT:
-
-        ``True`` or ``False``.
-
-        EXAMPLES::
-
-            sage: P2 = toric_varieties.P2()
-            sage: P2.Chow_group() == P2.Chow_group()
-            True
-            sage: P2.Chow_group(ZZ) == P2.Chow_group(QQ)
-            False
-        """
-        return self is other  # ChowGroup_class is unique
-
 
     def _cone_to_V(self, cone):
         r"""

@@ -1307,20 +1307,15 @@ def GeneralizedPetersenGraph(n,k):
     if k < 1 or k > (n - 1) // 2:
             raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
     pos_dict = {}
-    G = Graph()
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
-    for i in range(n, 2*n):
-        x = float(0.5*cos((pi/2) + ((2*pi)/n)*i))
-        y = float(0.5*sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
+    G = Graph(2 * n, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
     for i in range(n):
         G.add_edge(i, (i+1) % n)
         G.add_edge(i, i+n)
         G.add_edge(i+n, n + (i+k) % n)
-    return Graph(G, pos=pos_dict, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
+    from sage.graphs.graph_plot import _circle_embedding
+    _circle_embedding(G, list(range(n)), radius=1, angle=pi/2)
+    _circle_embedding(G, list(range(n, 2*n)), radius=.5, angle=pi/2)
+    return G
 
 def HararyGraph( k, n ):
     r"""

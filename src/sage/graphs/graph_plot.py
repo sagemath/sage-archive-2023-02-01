@@ -1396,6 +1396,15 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
         sage: g = graphs.CycleGraph(5)
         sage: _circle_embedding(g, [0, 2, 4, 1, 3], radius=2, shift=.5)
         sage: g.show()
+
+    TESTS:
+
+    The rounding error raised in :trac:`22050` is fixed::
+
+        sage: G = Graph(4)
+        sage: _circle_embedding(G, G.vertices())
+        sage: G._pos
+        {0: (1.0, 0.0), 1: (0.0, 1.0), 2: (-1.0, 0.0), 3: (0.0, -1.0)}
     """
     c_x, c_y = center
     n = len(vertices)
@@ -1405,8 +1414,10 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
 
     for i,v in enumerate(vertices):
         i += shift
-        v_x = c_x + radius * cos(2*i*pi / n)
-        v_y = c_y + radius * sin(2*i*pi / n)
+        # We round cos and sin to avoid results like 1.2246467991473532e-16 when
+        # asking for sin(pi)
+        v_x = c_x + radius * round(cos(2*i*pi / n), 10)
+        v_y = c_y + radius * round(sin(2*i*pi / n), 10)
         d[v] = (v_x, v_y)
 
     g.set_pos(d)

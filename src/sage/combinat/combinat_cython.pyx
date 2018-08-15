@@ -269,55 +269,34 @@ def set_partition_iterator_blocks(base_set, Py_ssize_t k):
 #####################################################################
 ## Perfect matchings iterator
 
-cdef class PerfectMatchingsIterator(object):
-    def __init__(self, Py_ssize_t n):
-        cdef Py_ssize_t i
-        self.n = n
-        self.available = <bint*> check_allocarray(n, sizeof(bint))
-        for i in range(n):
-            self.available[i] = False
-        self.current = [(i,i+1) for i in range(0,n,2)]
-        self.at_end = (n <= 1) or (n % 2 != 0)
+def perfect_matchings_iterator(Py_ssize_t n):
+    """
+    Iterate over all perfect matchings with ``n`` parts.
 
-    def __dealloc__(self):
-        sig_free(self.available)
+    This iterates over all perfect matchings of `\{0, 1, \ldots, 2n-1\}`
+    by iterating over all fixed-point-free involutions of following
+    the notes by Walsh.
 
-    cpdef list next(self):
-        if self.at_end:
-            return None
-        cdef list ret = list(self.current)
-        cdef Py_ssize_t n = self.n
-        cdef Py_ssize_t a, b
-        a,b = self.current.pop()
-        self.available[a] = True
-        self.available[b] = True
-        while True:
-            a += 1 # Move a to the next position
-            while a < n and not self.available[a]:
-                a += 1
-            if a == n:
-                # Nothing more we can do at this level
-                if not self.current:
-                    break
-                a,b = self.current.pop()
-                self.available[a] = True
-                self.available[b] = True
-                continue
-            b = a + 1
-            while b < n and not self.available[b]:
-                b += 1
-            if b != n:
-                self.available[a] = False
-                self.available[b] = False
-                self.current.append((a,b))
-                a = -1  # This will be bumped to 0 on the next iteration
-                if 2 * len(self.current) == n:
-                    return ret
+    EXAMPLES::
 
-        self.at_end = True
-        return ret
+        sage: from sage.combinat.combinat_cython import perfect_matchings_iterator
+        sage: list(perfect_matchings_iterator(1))
+        [[(0, 1)]]
+        sage: list(perfect_matchings_iterator(2))
+        [[(0, 1), (2, 3)], [(0, 2), (1, 3)], [(0, 3), (1, 2)]]
 
-def generate(Py_ssize_t n):
+        sage: list(perfect_matchings_iterator(0))
+        [[]]
+
+    REFERENCES:
+
+    - Walsh notes:
+      http://www.info2.uqam.ca/~walsh_t/papers/Involutions%20paper.pdf
+    """
+    if n == 0:
+        yield []
+        return
+
     cdef Py_ssize_t i, x, y, g, j, J
     cdef Py_ssize_t* e = <Py_ssize_t*> check_allocarray(2*n, sizeof(Py_ssize_t))
     for i in range(2*n):

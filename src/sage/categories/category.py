@@ -396,22 +396,22 @@ class Category(UniqueRepresentation, SageObject):
         sage: loads(dumps(Ds().element_class)) is Ds().element_class
         True
 
-    .. automethod:: _super_categories
-    .. automethod:: _super_categories_for_classes
-    .. automethod:: _all_super_categories
-    .. automethod:: _all_super_categories_proper
-    .. automethod:: _set_of_super_categories
-    .. automethod:: _make_named_class
-    .. automethod:: _repr_
-    .. automethod:: _repr_object_names
-    .. automethod:: _test_category
-    .. automethod:: _with_axiom
-    .. automethod:: _with_axiom_as_tuple
-    .. automethod:: _without_axioms
-    .. automethod:: _sort
-    .. automethod:: _sort_uniq
-    .. automethod:: __classcall__
-    .. automethod:: __init__
+    .. automethod:: Category._super_categories
+    .. automethod:: Category._super_categories_for_classes
+    .. automethod:: Category._all_super_categories
+    .. automethod:: Category._all_super_categories_proper
+    .. automethod:: Category._set_of_super_categories
+    .. automethod:: Category._make_named_class
+    .. automethod:: Category._repr_
+    .. automethod:: Category._repr_object_names
+    .. automethod:: Category._test_category
+    .. automethod:: Category._with_axiom
+    .. automethod:: Category._with_axiom_as_tuple
+    .. automethod:: Category._without_axioms
+    .. automethod:: Category._sort
+    .. automethod:: Category._sort_uniq
+    .. automethod:: Category.__classcall__
+    .. automethod:: Category.__init__
     """
     @staticmethod
     def __classcall__(cls, *args, **options):
@@ -2701,7 +2701,7 @@ class CategoryWithParameters(Category):
         sage: C1.parent_class is C3.parent_class
         False
 
-    .. automethod:: _make_named_class
+    .. automethod:: Category._make_named_class
     """
 
     def _make_named_class(self, name, method_provider, cache = False, **options):
@@ -2927,9 +2927,9 @@ class JoinCategory(CategoryWithParameters):
         sage: type(A3) is type(A5)
         True
 
-    .. automethod:: _repr_object_names
-    .. automethod:: _repr_
-    .. automethod:: _without_axioms
+    .. automethod:: Category._repr_object_names
+    .. automethod:: Category._repr_
+    .. automethod:: Category._without_axioms
     """
 
     def __init__(self, super_categories, **kwds):

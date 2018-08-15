@@ -4047,10 +4047,6 @@ cdef class MPolynomial_libsingular(MPolynomial):
             rChangeCurrRing(r)
 
         if r.cf.type != n_unknown:
-            if r.cf.type == n_Z:
-                P = parent.change_ring(QQ)
-                f = (<MPolynomial_libsingular>P(self))._floordiv_(P(right))
-                return parent(sum([c.floor() * m for c, m in f]))
             if _right.is_monomial():
                 p = self._poly
                 quo = p_ISet(0,r)
@@ -4065,11 +4061,24 @@ cdef class MPolynomial_libsingular(MPolynomial):
                 raise NotImplementedError("Division of multivariate polynomials over non fields by non-monomials not implemented.")
 
         count = singular_polynomial_length_bounded(self._poly, 15)
+
+        # fast in the most common case where the division is exact; returns zero otherwise
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
             sig_on()
-        quo = singclap_pdivide(self._poly, _right._poly, r)
+        quo = p_Divide(p_Copy(self._poly, r), p_Copy(_right._poly, r), r)
         if count >= 15:
             sig_off()
+
+        if quo == NULL:
+            if r.cf.type == n_Z:
+                P = parent.change_ring(QQ)
+                f = (<MPolynomial_libsingular>P(self))._floordiv_(P(right))
+                return parent(sum([c.floor() * m for c, m in f]))
+            else:
+                sig_on()
+                quo = singclap_pdivide(self._poly, _right._poly, r)
+                sig_off()
+
         return new_MP(parent, quo)
 
     def factor(self, proof=None):

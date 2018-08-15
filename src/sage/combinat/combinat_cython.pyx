@@ -270,11 +270,11 @@ def set_partition_iterator_blocks(base_set, Py_ssize_t k):
 ## Perfect matchings iterator
 
 def perfect_matchings_iterator(Py_ssize_t n):
-    """
+    r"""
     Iterate over all perfect matchings with ``n`` parts.
 
     This iterates over all perfect matchings of `\{0, 1, \ldots, 2n-1\}`
-    using a Gray code for fixed-point-free involutions due to Walsh.
+    using a Gray code for fixed-point-free involutions due to Walsh [Wal2001]_.
 
     EXAMPLES::
 
@@ -289,8 +289,7 @@ def perfect_matchings_iterator(Py_ssize_t n):
 
     REFERENCES:
 
-    - [Wal2001]_, available at http://www.info2.uqam.ca/~walsh_t/papers/Involutions%20paper.pdf
-
+    - [Wal2001]_
     """
     if n == 0:
         yield []

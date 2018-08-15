@@ -1138,24 +1138,16 @@ def FriendshipGraph(n):
         G = CycleGraph(3)
         G.name("Friendship graph")
         return G
-    # build the edge and position dictionaries
-    from sage.functions.trig import cos, sin
-    from sage.rings.real_mpfr import RR
-    from sage.symbolic.constants import pi
-    N = 2*n + 1           # order of F_n
-    d = (2*pi) / (N - 1)  # angle between external nodes
-    edge_dict = {}
-    pos_dict = {}
-    for i in range(N - 2):
-        if i & 1:  # odd numbered node
-            edge_dict.setdefault(i, [i + 1, N - 1])
-        else:      # even numbered node
-            edge_dict.setdefault(i, [N - 1])
-        pos_dict.setdefault(i, [RR(cos(i*d)), RR(sin(i*d))])
-    edge_dict.setdefault(N - 2, [0, N - 1])
-    pos_dict.setdefault(N - 2, [RR(cos(d * (N-2))), RR(sin(d * (N-2)))])
-    pos_dict.setdefault(N - 1, [0, 0])
-    return Graph(edge_dict, pos=pos_dict, name="Friendship graph")
+    # build the edges and position dictionaries
+    N = 2 * n + 1           # order of F_n
+    center = 2 * n
+    G = Graph(N, name="Friendship graph")
+    for i in range(0, N - 1, 2):
+        G.add_cycle([center, i, i+1])
+    from sage.graphs.graph_plot import _circle_embedding
+    G.set_pos({center:(0, 0)})
+    _circle_embedding(G, list(range(N - 1)), radius=1)
+    return G
 
 def FuzzyBallGraph(partition, q):
     r"""

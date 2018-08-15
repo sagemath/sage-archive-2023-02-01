@@ -1408,9 +1408,13 @@ class FriCASElement(ExpectElement):
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
         from sage.misc.functional import symbolic_sum, symbolic_prod
+        from sage.rings.infinity import infinity
         register_symbol(I, {'fricas':'%i'})
         register_symbol(e, {'fricas':'%e'})
         register_symbol(pi, {'fricas':'pi'}) # fricas uses both pi and %pi
+        register_symbol(lambda: infinity, {'fricas':'infinity'})
+        register_symbol(lambda: infinity, {'fricas':'plusInfinity'})
+        register_symbol(lambda: -infinity, {'fricas':'minusInfinity'})
         register_symbol(cos, {'fricas':'cos'})
         register_symbol(sin, {'fricas':'sin'})
         register_symbol(tan, {'fricas':'tan'})
@@ -1730,10 +1734,10 @@ class FriCASElement(ExpectElement):
                 R = PolynomialRing(base_ring, vars)
                 return R(unparsed_InputForm)
 
-        if head == "OrderedCompletion":
-            # this is a workaround, I don't know how translate this
-            if str(domain[1].car()) == "Expression":
-                return FriCASElement._sage_expression(P.get_InputForm(self._name))
+        if head in ["OrderedCompletion", "OnePointCompletion"]:
+            # it would be more correct to get the type parameter
+            # (which might not be Expression Integer) and recurse
+            return FriCASElement._sage_expression(P.get_InputForm(self._name))
 
         if head == "Expression":
             # we treat Expression Integer and Expression Complex

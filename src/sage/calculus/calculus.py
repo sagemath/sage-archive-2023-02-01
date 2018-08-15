@@ -1246,6 +1246,15 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: lim(sin(1/x), x = 0)
         ind
 
+    We can use other packages than maxima::
+
+        sage: (x / (x+2^x+cos(x))).limit(x=-infinity, algorithm='fricas')       # optional - fricas
+        1
+        sage: limit(e^(-1/x), x=0, dir='right', algorithm='fricas')             # optional - fricas
+        0
+        sage: limit(e^(-1/x), x=0, dir='left', algorithm='fricas')              # optional - fricas
+        +Infinity
+
     TESTS::
 
         sage: lim(x^2, x=2, dir='nugget')
@@ -1309,6 +1318,13 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
         sage: (1/(x-3)).limit(x=3, dir='below')
         -Infinity
+
+    Check that :trac:`` is fixed::
+
+        sage: x.limit(x=3, algorithm='nugget')
+        Traceback (most recent call last):
+        ...
+        ValueError: Unknown algorithm: 'nugget'
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1347,6 +1363,18 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
             l = sympy.limit(ex._sympy_(), v._sympy_(), a._sympy_())
         else:
             raise NotImplementedError("sympy does not support one-sided limits")
+    elif algorithm == 'fricas':
+        from sage.interfaces.fricas import fricas
+        eq = fricas.equation(v._fricas_(), a._fricas_())
+        f = ex._fricas_()
+        if dir is None:
+            l = fricas.limit(f, eq).sage()
+        elif dir in ['plus', '+', 'right', 'above']:
+            l = fricas.limit(f, eq, '"right"').sage()
+        elif dir in ['minus', '-', 'left', 'below']:
+            l = fricas.limit(f, eq, '"left"').sage()
+    else:
+        raise ValueError("Unknown algorithm: %s" % algorithm)
 
     #return l.sage()
     return ex.parent()(l)

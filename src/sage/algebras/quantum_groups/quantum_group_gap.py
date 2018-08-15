@@ -1549,11 +1549,9 @@ class QuantumGroupModule(Parent, UniqueRepresentation):
             sage: V = Q.highest_weight_module([1,0])  # optional - gap_packages
             sage: T = tensor([V,V])  # optional - gap_packages
             sage: S = T.highest_weight_decomposition()[0]  # optional - gap_packages
-            sage: latex(S)  # optional - gap_packages
-            \begin{tikzpicture}...
-            %%
+            sage: latex(S)  # optional - gap_packages  # random (depends on dot2tex)
+            \begin{tikzpicture}
             ...
-            %
             \end{tikzpicture}
         """
         from sage.misc.latex import latex

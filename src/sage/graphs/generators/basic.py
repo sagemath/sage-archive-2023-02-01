@@ -150,31 +150,28 @@ def ButterflyGraph():
 
 def CircularLadderGraph(n):
     r"""
-    Returns a circular ladder graph with 2\*n nodes.
+    Return a circular ladder graph with `2 * n` nodes.
 
-    A Circular ladder graph is a ladder graph that is connected at the
-    ends, i.e.: a ladder bent around so that top meets bottom. Thus it
-    can be described as two parallel cycle graphs connected at each
-    corresponding node pair.
+    A Circular ladder graph is a ladder graph that is connected at the ends,
+    i.e.: a ladder bent around so that top meets bottom. Thus it can be
+    described as two parallel cycle graphs connected at each corresponding node
+    pair.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the circular
-    ladder graph is displayed as an inner and outer cycle pair, with
-    the first n nodes drawn on the inner circle. The first (0) node is
-    drawn at the top of the inner-circle, moving clockwise after that.
-    The outer circle is drawn with the (n+1)th node at the top, then
-    counterclockwise as well.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the circular ladder graph is
+    displayed as an inner and outer cycle pair, with the first `n` nodes drawn
+    on the inner circle. The first (0) node is drawn at the top of the
+    inner-circle, moving clockwise after that. The outer circle is drawn with
+    the `(n+1)`th node at the top, then counterclockwise as well.
 
-    EXAMPLES: Construct and show a circular ladder graph with 26 nodes
+    EXAMPLES:
 
-    ::
+    Construct and show a circular ladder graph with 26 nodes::
 
         sage: g = graphs.CircularLadderGraph(13)
         sage: g.show() # long time
 
-    Create several circular ladder graphs in a Sage graphics array
-
-    ::
+    Create several circular ladder graphs in a Sage graphics array::
 
         sage: g = []
         sage: j = []
@@ -189,18 +186,10 @@ def CircularLadderGraph(n):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
-    pos_dict = {}
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = [x,y]
-    for i in range(n,2*n):
-        x = float(2*(cos((pi/2) + ((2*pi)/n)*(i-n))))
-        y = float(2*(sin((pi/2) + ((2*pi)/n)*(i-n))))
-        pos_dict[i] = (x,y)
-
-    G = Graph(pos=pos_dict, name="Circular Ladder graph")
-    G.add_vertices(range(2 * n))
+    G = Graph(2 * n, name="Circular Ladder graph")
+    from sage.graphs.graph_plot import _circle_embedding
+    _circle_embedding(G, list(range(n)), radius=1, angle=pi/2)
+    _circle_embedding(G, list(range(n, 2*n)), radius=2, angle=pi/2)
     G.add_cycle(list(range(n)))
     G.add_cycle(list(range(n, 2 * n)))
     G.add_edges( (i,i+n) for i in range(n) )

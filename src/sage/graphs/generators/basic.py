@@ -163,6 +163,9 @@ def CircularLadderGraph(n):
     on the inner circle. The first (0) node is drawn at the top of the
     inner-circle, moving clockwise after that. The outer circle is drawn with
     the `(n+1)`th node at the top, then counterclockwise as well.
+    When `n == 2`, we rotate the outer circle by an angle of `\pi/8` to ensure
+    that all edges are visible (otherwise the 4 vertices of the graph would be
+    placed on a single line).
 
     EXAMPLES:
 
@@ -189,7 +192,10 @@ def CircularLadderGraph(n):
     G = Graph(2 * n, name="Circular Ladder graph")
     from sage.graphs.graph_plot import _circle_embedding
     _circle_embedding(G, list(range(n)), radius=1, angle=pi/2)
-    _circle_embedding(G, list(range(n, 2*n)), radius=2, angle=pi/2)
+    if n == 2:
+        _circle_embedding(G, list(range(4)), radius=1, angle=pi/2 + pi/8)
+    else:
+        _circle_embedding(G, list(range(n, 2*n)), radius=2, angle=pi/2)
     G.add_cycle(list(range(n)))
     G.add_cycle(list(range(n, 2 * n)))
     G.add_edges( (i,i+n) for i in range(n) )

@@ -2799,6 +2799,10 @@ REFERENCES:
 .. [Wal1970] David W. Walkup, "The lower bound conjecture for 3- and
              4-manifolds", Acta Math. 125 (1970), 75-107.
 
+.. [Wal2001] Timothy Walsh, "Gray codes for
+             involutions", J. Combin. Math. Combin. Comput. 36
+             (2001), 95-118.
+
 .. [Wam1999] van Wamelen, Paul. *Examples of genus two CM curves defined
              over the rationals*. Math. Comp. 68 (1999), no. 225, 307--320.
 

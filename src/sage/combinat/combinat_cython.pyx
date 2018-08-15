@@ -274,8 +274,7 @@ def perfect_matchings_iterator(Py_ssize_t n):
     Iterate over all perfect matchings with ``n`` parts.
 
     This iterates over all perfect matchings of `\{0, 1, \ldots, 2n-1\}`
-    by iterating over all fixed-point-free involutions of following
-    the notes by Walsh.
+    using a Gray code for fixed-point-free involutions due to Walsh.
 
     EXAMPLES::
 
@@ -290,8 +289,8 @@ def perfect_matchings_iterator(Py_ssize_t n):
 
     REFERENCES:
 
-    - Walsh notes:
-      http://www.info2.uqam.ca/~walsh_t/papers/Involutions%20paper.pdf
+    - [Wal2001]_, available at http://www.info2.uqam.ca/~walsh_t/papers/Involutions%20paper.pdf
+
     """
     if n == 0:
         yield []

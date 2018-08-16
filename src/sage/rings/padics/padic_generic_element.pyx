@@ -46,18 +46,6 @@ from sage.structure.element import coerce_binop
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 
-cdef long floorlogp(long x, long b):
-    """
-    a fast way to find the floor of the log base b of x
-    """
-    cdef long t = b
-    cdef long n = 0
-    while t <= x:
-        t *= b
-        n += 1
-    return n
-
-
 cdef class pAdicGenericElement(LocalGenericElement):
     cpdef int _cmp_(left, right) except -2:
         """
@@ -661,7 +649,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: x = Zp(3).random_element()
             sage: x.artin_hasse_exp(1)
-            1 + O(3^20)
+            1 + O(3)
 
         TESTS:
 
@@ -690,7 +678,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Zp(5)(1).artin_hasse_exp()
             Traceback (most recent call last):
             ...
-            ValueError: series does not converge
+            ValueError: Artin-Hasse exponential does not converge on this input
 
         AUTHORS:
 
@@ -732,6 +720,44 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
 
     def _AHE_direct(self, prec, exp_algorithm=None):
+        """
+        Return the Artin-Hasse exponential of this element ``x``.
+
+        If ``x`` denotes the input element, its Artin-Hasse
+        exponential is computed by taking the exponential of
+
+        .. MATH::
+
+            x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+        INPUT:
+
+        - ``prec`` -- an integer, this precision at which the
+          result should be computed
+
+        - ``exp_algorithm`` -- a string, the algorithm called
+          for computing the exponential
+
+        EXAMPLES::
+
+            sage: W = Zp(3,10)
+            sage: W(123456).artin_hasse_exp(algorithm='direct')  # indirect doctest
+            1 + 3 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10)
+
+        When `x^{p^i}/p^i` is not is the radius of convergence of the
+        exponential for some nonnegative integer `i`, an error is raised::
+
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension(x^2 + 3)
+            sage: pi.artin_hasse_exp(algorithm='direct')  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: One factor of the Artin-Hasse exponential does not converge
+
+        .. SEEALSO::
+
+            :meth:`artin_hasse_exp`, :meth:`_AHE_series`, :meth:`_AHE_newton`
+        """
         R = self.parent()
         p = R.prime()
         pow = self.add_bigoh(prec)
@@ -766,6 +792,37 @@ cdef class pAdicGenericElement(LocalGenericElement):
         return AH
 
     def _AHE_series(self, prec):
+        """
+        Return the Artin-Hasse exponential of this element.
+
+        This method first evaluates the Artin-Hasse series
+
+        .. MATH::
+
+            AH(x) = \exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots)
+
+        at enough precision and the plug the input element in it.
+
+        INPUT:
+
+        - ``prec`` -- an integer, this precision at which the
+          result should be computed
+
+        EXAMPLES::
+
+            sage: W = Zp(3,10)
+            sage: W(123456).artin_hasse_exp(algorithm='series')  # indirect doctest
+            1 + 3 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10)
+
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension(x^2 + 3)
+            sage: pi.artin_hasse_exp(algorithm='series')  # indirect doctest
+            1 + pi + 2*pi^2 + 2*pi^3 + 2*pi^4 + 2*pi^10 + 2*pi^11 + pi^13 + pi^18 + pi^19 + O(pi^20)
+
+        .. SEEALSO::
+
+            :meth:`artin_hasse_exp`, :meth:`_AHE_direct`, :meth:`_AHE_newton`
+        """
         R = self.parent()
         p = R.prime()
         e = R.absolute_e()
@@ -782,6 +839,42 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
 
     def _AHE_newton(self, prec, log_algorithm=None):
+        """
+        Return the Artin-Hasse exponential of this element.
+
+        If ``x`` denoted the input element, its Artin-Hasse exponential
+        is computed by solving the equation in ``y``
+
+        .. MATH::
+
+            \log(y) = x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+        using a Newton scheme. 
+
+        The first approximation used for initializing is computed using
+        the Newton scheme is computed using the ``series`` algorithm (see
+        :meth:`_AHE_series`).
+
+        INPUT:
+
+        - ``prec`` -- an integer, this precision at which the
+          result should be computed
+
+        EXAMPLES::
+
+            sage: W = Zp(3,10)
+            sage: W(123456).artin_hasse_exp(algorithm='newton')  # indirect doctest
+            1 + 3 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10)
+
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension(x^2 + 3)
+            sage: pi.artin_hasse_exp(algorithm='newton')  # indirect doctest
+            1 + pi + 2*pi^2 + 2*pi^3 + 2*pi^4 + 2*pi^10 + 2*pi^11 + pi^13 + pi^18 + pi^19 + O(pi^20)
+
+        .. SEEALSO::
+
+            :meth:`artin_hasse_exp`, :meth:`_AHE_direct`, :meth:`_AHE_series`
+        """
         R = self.parent()
         p = R.prime()
         e = R.absolute_e()
@@ -3715,10 +3808,84 @@ cdef class pAdicGenericElement(LocalGenericElement):
 _AHE_coefficients_cache = { }
 def _AHE_coefficients(p, N, prec):
     """
+    Compute the first ``N`` coefficients of the ``p``-adic
+    Artin-Hasse exponential series at precision ``prec``.
+
+    The output is a list of coefficients. The common parent 
+    of these coefficients is the ring of ``p``-adic integers
+    with fixed modulus (with some internal precision which 
+    could be strictly higher than ``prec``).
+
+    The result is cached.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_generic_element import _AHE_coefficients
+
+        sage: L = _AHE_coefficients(101, 10, 3); L
+        [1 + O(101^3),
+         1 + O(101^3),
+         51 + 50*101 + 50*101^2 + O(101^3),
+         17 + 84*101 + 16*101^2 + O(101^3),
+         80 + 96*101 + 79*101^2 + O(101^3),
+         16 + 100*101 + 15*101^2 + O(101^3),
+         70 + 16*101 + 53*101^2 + O(101^3),
+         10 + 60*101 + 7*101^2 + O(101^3),
+         77 + 32*101 + 89*101^2 + O(101^3),
+         31 + 37*101 + 32*101^2 + O(101^3)]
+        sage: L == [ 1/factorial(i) for i in range(10) ]
+        True
+
+    We check the parent::
+
+        sage: [ elt.parent() for elt in L ]
+        [101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3]
+
+    Sometimes the precision on the result seems to be higher
+    that the requested precision.
+    However, the result is *not* guaranteed to be correct 
+    beyond the requested precision::
+
+        sage: L = _AHE_coefficients(2, 513, 1); L
+        [1 + O(2^10),
+         1 + O(2^10),
+         1 + O(2^10),
+         2 + 2^2 + 2^4 + 2^6 + 2^8 + O(2^10),
+         ...
+         1 + 2 + 2^2 + 2^5 + 2^8 + O(2^10),
+         2^2 + 2^6 + 2^9 + O(2^10),
+         1 + O(2^10)]
+
+    We check that the result is correct modulo `2^1`::
+
+        sage: S.<x> = PowerSeriesRing(QQ, 513)
+        sage: AH = exp(sum(x^(2^i) / 2^i for i in range(10)))
+        sage: R = ZpFM(2, 1)
+        sage: [ R(c) for c in L ] == [ R(c) for c in AH.list() ]
+        True
+
+    But it is not modulo `2^{10}`::
+
+        sage: R = ZpFM(2, 10)
+        sage: [ R(c) for c in L ] == [ R(c) for c in AH.list() ]
+        False
+
     """
     from sage.rings.padics.factory import ZpFM
-    from sage.functions.other import ceil
-    internal_prec = prec + ceil(N.log()/p.log())
+    from sage.functions.other import floor
+    if N < p:
+        internal_prec = prec
+    else:
+        internal_prec = prec + floor((N-1).log()/p.log())
     if p in _AHE_coefficients_cache:
         cache_internal_prec, values = _AHE_coefficients_cache[p]
     else:

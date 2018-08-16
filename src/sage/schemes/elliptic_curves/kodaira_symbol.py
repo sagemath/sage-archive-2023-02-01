@@ -302,10 +302,13 @@ class KodairaSymbol_class(SageObject):
         """
         return self._pari
 
+
 _ks_cache = {}
+
+
 def KodairaSymbol(symbol):
     r"""
-    Returns the specified Kodaira symbol.
+    Return the specified Kodaira symbol.
 
     INPUT:
 

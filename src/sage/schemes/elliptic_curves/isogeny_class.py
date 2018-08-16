@@ -789,7 +789,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             E = self.E
 
         degs = self._reducible_primes
-        if degs == None:
+        if degs is None:
             self._reducible_primes = possible_isogeny_degrees(E, algorithm=self._algorithm)
             degs = self._reducible_primes
         if verbose:
@@ -798,7 +798,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             sys.stdout.flush()
         isogenies = E.isogenies_prime_degree(degs, minimal_models=self._minimal_models)
         if verbose:
-            sys.stdout.write(" -actual isogeny degrees: %s" % Set([phi.degree() for phi in isogenies]))
+            sys.stdout.write(" -actual isogeny degrees: %s" % set(phi.degree() for phi in isogenies))
             sys.stdout.flush()
         # Add all new codomains to the list and collect degrees:
         curves = [E]
@@ -808,7 +808,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         tuples = []
 
         def add_tup(t):
-            for T in [t, [t[1],t[0],t[2],0]]:
+            for T in [t, [t[1], t[0], t[2], 0]]:
                 if not T in tuples:
                     tuples.append(T)
                     if verbose:
@@ -1448,14 +1448,14 @@ def possible_isogeny_degrees(E, algorithm='Billerey', max_l=None,
     # prime P of good reduction such that the Frobenius polynomial at
     # P does not factor modulo ell.
 
-    if algorithm=='Larson':
+    if algorithm == 'Larson':
         L = E.galois_representation().isogeny_bound()
 
-    elif algorithm=='Billerey':
+    elif algorithm == 'Billerey':
         from sage.schemes.elliptic_curves.gal_reps_number_field import reducible_primes_Billerey
         L = reducible_primes_Billerey(E, num_l=num_l, max_l=max_l, verbose=verbose)
 
-    elif algorithm=='heuristic':
+    elif algorithm == 'heuristic':
         from sage.schemes.elliptic_curves.gal_reps_number_field import reducible_primes_naive
         L = reducible_primes_naive(E, max_l=max_l, num_P=num_l, verbose=verbose)
 
@@ -1469,4 +1469,3 @@ def possible_isogeny_degrees(E, algorithm='Billerey', max_l=None,
         L = [l for l in L if E.isogenies_prime_degree(l, minimal_models=False)]
 
     return L
-

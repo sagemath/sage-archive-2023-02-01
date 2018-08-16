@@ -1183,9 +1183,9 @@ def Billerey_B_l(E,l,B=0):
         0]
     """
     d = E.base_field().absolute_degree()
-    P = Billerey_P_l(E,l)
-    if P == None:
-        return ZZ(0)
+    P = Billerey_P_l(E, l)
+    if P is None:
+        return ZZ.zero()
     # We compute the factors one at a time since if any is 0 we quit:
     B_l = ZZ(1)
     for k in range(1+d//2):
@@ -1196,7 +1196,8 @@ def Billerey_B_l(E,l,B=0):
             return ZZ(0)
     return B_l
 
-def Billerey_R_q(E,q,B=0):
+
+def Billerey_R_q(E, q, B=0):
     r"""
     Return Billerey's `R_q`, adapted from the definition in [Bil2011]_, Theorem 2.8.
 
@@ -1237,8 +1238,10 @@ def Billerey_R_q(E,q,B=0):
             return ZZ(0)
     return R_q
 
+
 def Billerey_B_bound(E, max_l=200, num_l=8, small_prime_bound=0, debug=False):
-    """Compute Billerey's bound `B`.
+    """
+    Compute Billerey's bound `B`.
 
     We compute `B_l` for `l` up to ``max_l`` (at most) until ``num_l``
     nonzero values are found (at most).  Return the list of primes
@@ -1510,9 +1513,9 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
         print("E = {}, finding reducible primes using Billerey's algorithm".format(E.ainvs()))
 
     # Set parameters to default values if not given:
-    if max_l == None:
+    if max_l is None:
         max_l = 200
-    if num_l == None:
+    if num_l is None:
         num_l = 8
 
     K = E.base_field()
@@ -1595,9 +1598,9 @@ def reducible_primes_naive(E, max_l=None, num_P=None, verbose=False):
         [2, 2, 2, 5]
 
     """
-    if max_l == None:
+    if max_l is None:
         max_l = 1000
-    if num_P == None:
+    if num_P is None:
         num_P = 100
     if verbose:
         print("E = {}, finding reducible primes up to {} using Frobenius filter with {} primes".format(E.ainvs(), max_l, num_P))

@@ -590,7 +590,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
           .. MATH::
 
-              AH(x) = exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+              AH(x) = \exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
 
           The series algorithm computes the series defining the
           Artin-Hasse exponential and evaluates it
@@ -599,7 +599,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
           .. MATH::
 
-              log(AH(x)) = x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+              \log(AH(x)) = x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
 
           using a Newton scheme. It runs roughly as fast as the computation
           of the logarithm.
@@ -720,7 +720,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
 
     def _AHE_direct(self, prec, exp_algorithm=None):
-        """
+        r"""
         Return the Artin-Hasse exponential of this element ``x``.
 
         If ``x`` denotes the input element, its Artin-Hasse
@@ -792,7 +792,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         return AH
 
     def _AHE_series(self, prec):
-        """
+        r"""
         Return the Artin-Hasse exponential of this element.
 
         This method first evaluates the Artin-Hasse series
@@ -839,7 +839,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
 
     def _AHE_newton(self, prec, log_algorithm=None):
-        """
+        r"""
         Return the Artin-Hasse exponential of this element.
 
         If ``x`` denoted the input element, its Artin-Hasse exponential
@@ -3807,7 +3807,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 # Artin-Hasse exponential
 _AHE_coefficients_cache = { }
 def _AHE_coefficients(p, N, prec):
-    """
+    r"""
     Compute the first ``N`` coefficients of the ``p``-adic
     Artin-Hasse exponential series at precision ``prec``.
 

@@ -604,8 +604,8 @@ class Partition(CombinatorialElement):
             sage: Partitions.options.display="exp_high"; mu
             7^3, 3^2, 2, 1^7
 
-            sage: Partitions.options.convention="French";
-            sage: mu=Partition([7,7,7,3,3,2,1,1,1,1,1,1,1]); mu # indirect doctest
+            sage: Partitions.options.convention="French"
+            sage: mu = Partition([7,7,7,3,3,2,1,1,1,1,1,1,1]); mu # indirect doctest
             7^3, 3^2, 2, 1^7
             sage: Partitions.options.display="diagram"; mu
             *

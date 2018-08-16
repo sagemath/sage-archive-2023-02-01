@@ -1025,7 +1025,7 @@ class SetPartition(AbstractSetPartition):
         EXAMPLES::
 
             sage: n = PerfectMatching([(1, 6), (2, 7), (3, 5), (4, 8)])
-            sage: it = n.nestings_iterator();
+            sage: it = n.nestings_iterator()
             sage: next(it)
             ((1, 6), (3, 5))
             sage: next(it)

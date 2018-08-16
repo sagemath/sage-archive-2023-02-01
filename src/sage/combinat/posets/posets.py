@@ -1187,18 +1187,18 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def __contains__(self, x):
         r"""
-        Returns True if x is an element of the poset.
+        Return ``True`` if ``x`` is an element of the poset.
 
         TESTS::
 
             sage: from sage.combinat.posets.posets import FinitePoset
-            sage: P5 = FinitePoset(DiGraph({(5,):[(4,1),(3,2)], \
-                    (4,1):[(3,1,1),(2,2,1)], \
-                    (3,2):[(3,1,1),(2,2,1)], \
-                    (3,1,1):[(2,1,1,1)], \
-                    (2,2,1):[(2,1,1,1)], \
-                    (2,1,1,1):[(1,1,1,1,1)], \
-                    (1,1,1,1,1):[]}))
+            sage: P5 = FinitePoset(DiGraph({(5,):[(4,1),(3,2)],
+            ....:   (4,1):[(3,1,1),(2,2,1)],
+            ....:   (3,2):[(3,1,1),(2,2,1)],
+            ....:   (3,1,1):[(2,1,1,1)],
+            ....:   (2,2,1):[(2,1,1,1)],
+            ....:   (2,1,1,1):[(1,1,1,1,1)],
+            ....:   (1,1,1,1,1):[]}))
             sage: x = P5.list()[3]
             sage: x in P5
             True
@@ -1341,17 +1341,17 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
-        Returns a string representation of the poset.
+        Return a string representation of the poset.
 
         TESTS::
 
-            sage: partitions_of_five = {(5,):[(4,1),(3,2)], \
-                    (4,1):[(3,1,1),(2,2,1)], \
-                    (3,2):[(3,1,1),(2,2,1)], \
-                    (3,1,1):[(2,1,1,1)], \
-                    (2,2,1):[(2,1,1,1)], \
-                    (2,1,1,1):[(1,1,1,1,1)], \
-                    (1,1,1,1,1):[]}
+            sage: partitions_of_five = {(5,):[(4,1),(3,2)],
+            ....:   (4,1):[(3,1,1),(2,2,1)],
+            ....:   (3,2):[(3,1,1),(2,2,1)],
+            ....:   (3,1,1):[(2,1,1,1)],
+            ....:   (2,2,1):[(2,1,1,1)],
+            ....:   (2,1,1,1):[(1,1,1,1,1)],
+            ....:   (1,1,1,1,1):[]}
             sage: P5 = Poset(partitions_of_five)
             sage: P5._repr_()
             'Finite poset containing 7 elements'
@@ -3572,7 +3572,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def moebius_function(self,x,y):
         r"""
-        Returns the value of the Möbius function of the poset on the
+        Return the value of the Möbius function of the poset on the
         elements x and y.
 
         EXAMPLES::
@@ -3580,10 +3580,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
             sage: P.moebius_function(P(0),P(4))
             2
-            sage: sum([P.moebius_function(P(0),v) for v in P])
+            sage: sum(P.moebius_function(P(0),v) for v in P)
             0
-            sage: sum([abs(P.moebius_function(P(0),v)) \
-            ....:      for v in P])
+            sage: sum(abs(P.moebius_function(P(0),v))
+            ....:     for v in P)
             6
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
@@ -4681,7 +4681,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite poset containing 4 elements
             sage: sorted(P.cover_relations())
             [[(0, 'a'), (0, 'b')], [(1, 'c'), (1, 'd')]]
-            sage: P = P1.disjoint_union(P2, labels='integers');
+            sage: P = P1.disjoint_union(P2, labels='integers')
             sage: P.cover_relations()
             [[2, 3], [0, 1]]
 

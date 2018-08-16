@@ -249,7 +249,7 @@ class CombinatorialMap(object):
 
             sage: sage.combinat.combinatorial_map.combinatorial_map = sage.combinat.combinatorial_map.combinatorial_map_wrapper
             sage: import imp
-            sage: _ = imp.reload(sage.combinat.permutation);
+            sage: _ = imp.reload(sage.combinat.permutation)
             sage: p = Permutation([1,3,2,4])
             sage: p.left_tableau.__repr__()
             'Combinatorial map: Robinson-Schensted insertion tableau'
@@ -285,7 +285,7 @@ class CombinatorialMap(object):
 
             sage: sage.combinat.combinatorial_map.combinatorial_map = sage.combinat.combinatorial_map.combinatorial_map_wrapper
             sage: import imp
-            sage: _ = imp.reload(sage.combinat.permutation);
+            sage: _ = imp.reload(sage.combinat.permutation)
             sage: p = Permutation([1,3,2,4])
             sage: p.left_tableau #indirect doctest
             Combinatorial map: Robinson-Schensted insertion tableau
@@ -301,7 +301,7 @@ class CombinatorialMap(object):
 
             sage: sage.combinat.combinatorial_map.combinatorial_map = sage.combinat.combinatorial_map.combinatorial_map_wrapper
             sage: import imp
-            sage: _ = imp.reload(sage.combinat.permutation);
+            sage: _ = imp.reload(sage.combinat.permutation)
             sage: p = Permutation([1,3,2,4])
             sage: cm = type(p).left_tableau; cm
             Combinatorial map: Robinson-Schensted insertion tableau
@@ -327,7 +327,7 @@ class CombinatorialMap(object):
 
             sage: sage.combinat.combinatorial_map.combinatorial_map = sage.combinat.combinatorial_map.combinatorial_map_wrapper
             sage: import imp
-            sage: _ = imp.reload(sage.combinat.permutation);
+            sage: _ = imp.reload(sage.combinat.permutation)
             sage: from sage.combinat.permutation import Permutation
             sage: pi = Permutation([1,3,2])
             sage: f = pi.reverse
@@ -379,6 +379,7 @@ class CombinatorialMap(object):
         else:
             return self._f.__name__
 
+
 def combinatorial_maps_in_class(cls):
     """
     Return the combinatorial maps of the class as a list of combinatorial maps.
@@ -391,7 +392,7 @@ def combinatorial_maps_in_class(cls):
 
         sage: sage.combinat.combinatorial_map.combinatorial_map = sage.combinat.combinatorial_map.combinatorial_map_wrapper
         sage: import imp
-        sage: _ = imp.reload(sage.combinat.permutation);
+        sage: _ = imp.reload(sage.combinat.permutation)
         sage: from sage.combinat.combinatorial_map import combinatorial_maps_in_class
         sage: p = Permutation([1,3,2,4])
         sage: cmaps = combinatorial_maps_in_class(p)

@@ -827,7 +827,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
         sage: _connected_mutation_type_AAtildeD(Q2.digraph() )
         ['A', [2, 5], 1]
 
-        sage: Q3 = ClusterQuiver(['E',6]); Q3.mutate([5,2,1]);
+        sage: Q3 = ClusterQuiver(['E',6]); Q3.mutate([5,2,1])
         sage: _connected_mutation_type_AAtildeD(Q3.digraph(),ret_conn_vert=True)
         'unknown'
     """

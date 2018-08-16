@@ -2124,8 +2124,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:    l.append(leaf)
             ....:    leaf = chr( ord(leaf)+1 )
             sage: n_action = lambda node: l.append( node.label() )
-            sage: b = BinaryTree([[None,[]],[[[],[]],[]]]).\
-            ....:     canonical_labelling()
+            sage: b = BinaryTree([[None,[]],[[[],[]],[]]])
+            sage: b = b.canonical_labelling()
             sage: b.in_order_traversal(n_action, l_action)
             sage: l
             ['a', 1, 'b', 2, 'c', 3, 'd', 4, 'e', 5, 'f', 6, 'g', 7, 'h', 8,

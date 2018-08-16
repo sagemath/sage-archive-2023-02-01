@@ -164,7 +164,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.type()
             'A'
         """
@@ -176,7 +176,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.F()
             3
         """
@@ -188,7 +188,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.na()
             (6, 4, 3)
         """
@@ -202,7 +202,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.rk()
             (106, 17, 4)
         """
@@ -224,7 +224,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.pa()
             (1, 6, 25)
         """
@@ -245,7 +245,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.qa()
             (6, 25, 81)
         """
@@ -265,7 +265,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.r()
             106
         """
@@ -279,7 +279,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.vertices()
             Ring of integers modulo 106
         """
@@ -302,7 +302,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.triangulation()
             ((17, 89),
              (17, 72),
@@ -376,7 +376,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.intervals()
             (((0, 0, 'R'),),
              ((0, 17, 'L'),
@@ -460,7 +460,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.plot()      # not tested
         """
         # Set up plotting options

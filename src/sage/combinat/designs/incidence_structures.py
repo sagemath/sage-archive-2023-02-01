@@ -1403,7 +1403,7 @@ class IncidenceStructure(object):
 
         EXAMPLES::
 
-            sage; IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
+            sage: IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
             [[1, 2], [3, 'A']]
             sage: len(designs.steiner_triple_system(9).packing())
             3
@@ -1752,7 +1752,7 @@ class IncidenceStructure(object):
             sage: print(D.dual(algorithm="gap"))       # optional - gap_packages
             Incidence structure with 3 points and 4 blocks
             sage: blocks = [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]]
-            sage: BD = IncidenceStructure(7, blocks, name="FanoPlane");
+            sage: BD = IncidenceStructure(7, blocks, name="FanoPlane")
             sage: BD
             Incidence structure with 7 points and 7 blocks
             sage: print(BD.dual(algorithm="gap"))         # optional - gap_packages

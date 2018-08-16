@@ -718,7 +718,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def _AHE_direct(self, prec, exp_algorithm=None):
         r"""
-        Return the Artin-Hasse exponential of this element ``x``.
+        Return the Artin-Hasse exponential of this element.
 
         If ``x`` denotes the input element, its Artin-Hasse
         exponential is computed by taking the exponential of
@@ -838,8 +838,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r"""
         Return the Artin-Hasse exponential of this element.
 
-        If ``x`` denoted the input element, its Artin-Hasse exponential
-        is computed by solving the equation in ``y``
+        If ``x`` denotes the input element, its Artin-Hasse exponential
+        is computed by solving the following equation in ``y``
 
         .. MATH::
 
@@ -847,9 +847,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         using a Newton scheme. 
 
-        The first approximation used for initializing is computed using
-        the Newton scheme is computed using the ``series`` algorithm (see
-        :meth:`_AHE_series`).
+        The first approximation used for initializing the Newton iteration
+        is computed using the ``series`` algorithm (see :meth:`_AHE_series`).
 
         INPUT:
 

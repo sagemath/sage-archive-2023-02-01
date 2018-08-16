@@ -583,6 +583,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - ``algorithm`` -- ``direct``, ``series``, ``newton`` or 
           ``None`` (default)
+
           The direct algorithm computes the Artin-Hasse exponential
           of ``x``, namely ``AH(x)`` as
 
@@ -590,10 +591,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
               AH(x) = \exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
 
-          The series algorithm computes the series defining the
-          Artin-Hasse exponential and evaluates it
+          It runs roughly as fast as the computation of the exponential
+          (since the computation of the argument is not that costly).
 
-          The ``Newton`` algorithm solve the equation
+          The series algorithm computes the series defining the
+          Artin-Hasse exponential and evaluates it.
+
+          The ``Newton`` algorithm solves the equation
 
           .. MATH::
 
@@ -610,7 +614,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         OUTPUT:
 
-        The Artin-Hasse exponential of this element defined by the power series
+        The Artin-Hasse exponential of this element.
 
         See :wikipedia:`Artin-Hasse_exponential` for more information.
 
@@ -680,8 +684,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         AUTHORS:
 
-        - Mitchell Owen (2012-02-21)
-        - Sebastian Pancrantz (2012-02-21)
+        - Mitchell Owen, Sebastian Pancrantz (2012-02): initial version.
+
+        - Xavier Caruso (2018-08): extend to any p-adic rings and fields
+          and implement several algorithms.
 
         REFERENCES:
 

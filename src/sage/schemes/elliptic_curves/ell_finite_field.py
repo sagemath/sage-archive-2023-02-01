@@ -1770,7 +1770,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 raise ValueError("Field must be an extension of the base fields of both curves")
             else:
                 sc = self.cardinality(extension_degree=f_deg // s_deg)
-                oc = other.cardinality(extension_degree=fdeg // o_deg)
+                oc = other.cardinality(extension_degree=f_deg // o_deg)
                 return sc == oc
 
     def is_supersingular(self, proof=True):

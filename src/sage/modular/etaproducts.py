@@ -787,9 +787,8 @@ class CuspFamily(SageObject):
         return self._N
 
     def sage_cusp(self):
-        """
-        Return the corresponding element of
-        `\mathbb{P}^1(\QQ)`.
+        r"""
+        Return the corresponding element of `\mathbb{P}^1(\QQ)`.
 
         EXAMPLES::
 

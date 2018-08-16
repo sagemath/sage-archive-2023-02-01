@@ -39,6 +39,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef get_unsafe(self, Py_ssize_t i)
     cpdef long number_of_terms(self)
 
+    # See 23227
+    cpdef _add_(self, right)
+    cpdef _mul_(self, right)
+    cpdef _floordiv_(self, right)
+
     cdef public dict __cached_methods
 
 cdef class Polynomial_generic_dense(Polynomial):

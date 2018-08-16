@@ -13523,7 +13523,7 @@ cdef class Matrix(Matrix1):
             [           0   1 + O(2^5)            0], [42 + O(2^6)  1 + O(2^5)],
             <BLANKLINE>
             [ 1 + O(2^5) 26 + O(2^5)  6 + O(2^5)]
-            [ 0 + O(2^4)  3 + O(2^4) 11 + O(2^4)]
+            [     O(2^4)  3 + O(2^4) 11 + O(2^4)]
             [          0           0  1 + O(2^5)]
             )
 
@@ -14852,6 +14852,571 @@ cdef class Matrix(Matrix1):
             for poly in C:
                 companions.append(companion_matrix(poly, format=format))
             return block_diagonal_matrix(companions, subdivide=subdivide)
+
+    def is_positive_operator_on(self,K1,K2=None):
+        r"""
+        Determine if this matrix is a positive operator on a cone.
+
+        A matrix is a positive operator on a cone if the image of the
+        cone under the matrix is itself a subset of the cone. That
+        concept can be extended to two cones: a matrix is a positive
+        operator on a pair of cones if the image of the first cone is
+        contained in the second cone.
+
+        To reliably check whether or not this matrix is a positive
+        operator, its base ring must be either exact (for example, the
+        rationals) or the symbolic ring. An exact ring is more reliable,
+        but in some cases a matrix whose entries contain symbolic
+        constants like `e` and `\pi` will work. Performance is best
+        for integer or rational matrices, for which we can check the
+        "is a subset of the other cone" condition quickly.
+
+        INPUT:
+
+        - ``K1`` -- a polyhedral closed convex cone.
+
+        - ``K2`` -- (default: ``K1``) the codomain cone; this matrix is
+          a positive operator if the image of ``K1`` is a subset of ``K2``.
+
+        OUTPUT:
+
+        If the base ring of this matrix is exact, then ``True`` will be
+        returned if and only if this matrix is a positive operator.
+
+        If the base ring of this matrix is symbolic, then the situation is
+        more complicated:
+
+        - ``True`` will be returned if it can be proven that this matrix
+          is a positive operator.
+        - ``False`` will be returned if it can be proven that this matrix
+          is not a positive operator.
+        - ``False`` will also be returned if we can't decide; specifically
+          if we arrive at a symbolic inequality that cannot be resolved.
+
+        .. SEEALSO::
+
+              :meth:`is_cross_positive_on`,
+              :meth:`is_Z_operator_on`,
+              :meth:`is_lyapunov_like_on`
+
+        REFERENCES:
+
+        A. Berman and P. Gaiha. A generalization of irreducible
+        monotonicity. Linear Algebra and its Applications, 5:29-38,
+        1972.
+
+        A. Berman and R. J. Plemmons. Nonnegative Matrices in the
+        Mathematical Sciences. SIAM, Philadelphia, 1994.
+
+        EXAMPLES:
+
+        Nonnegative matrices are positive operators on the nonnegative
+        orthant::
+
+            sage: set_random_seed()
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: L = random_matrix(QQ,3).apply_map(abs)
+            sage: L.is_positive_operator_on(K)
+            True
+
+        Symbolic entries also work in some easy cases::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: L = matrix(SR, [ [0,       e, 0 ],
+            ....:                  [0,       2, pi],
+            ....:                  [sqrt(2), 0, 0 ] ])
+            sage: L.is_positive_operator_on(K)
+            True
+
+        Your matrix can be over any exact ring, for example the ring of
+        univariate polynomials with rational coefficients::
+
+            sage: K = Cone([(1,0),(-1,0),(0,1),(0,-1)])
+            sage: K.is_full_space()
+            True
+            sage: L = matrix(QQ[x], [[x,0],[0,1]])
+            sage: L.is_positive_operator_on(K)
+            True
+
+        TESTS:
+
+        The identity matrix is always a positive operator::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = identity_matrix(R, K.lattice_dim())
+            sage: L.is_positive_operator_on(K)
+            True
+
+        The zero matrix is always a positive operator::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = zero_matrix(R, K.lattice_dim())
+            sage: L.is_positive_operator_on(K)
+            True
+
+        Everything in ``K1.positive_operators_gens(K2)`` should be
+        positive on ``K1`` with respect to ``K2``, even if we make
+        the underlying ring symbolic (the usual case is tested by
+        the ``positive_operators_gens`` method)::
+
+            sage: set_random_seed()
+            sage: K1 = random_cone(max_ambient_dim=5)
+            sage: K2 = random_cone(max_ambient_dim=5)
+            sage: all([ L.change_ring(SR).is_positive_operator_on(K1,K2)
+            ....:       for L in K1.positive_operators_gens(K2) ]) # long time
+            True
+
+        Technically we could test this, but for now only closed convex cones
+        are supported as our ``K1`` and ``K2`` arguments::
+
+            sage: K = [ vector([1,2,3]), vector([5,-1,7]) ]
+            sage: L = identity_matrix(3)
+            sage: L.is_positive_operator_on(K)
+            Traceback (most recent call last):
+            ...
+            TypeError: K1 and K2 must be cones.
+
+        We can't give reliable answers over inexact rings::
+
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(RR,3)
+            sage: L.is_positive_operator_on(K)
+            Traceback (most recent call last):
+            ...
+            ValueError: The base ring of the matrix is neither symbolic nor
+            exact.
+
+        """
+        from sage.symbolic.ring import SR
+        from sage.geometry.cone import is_Cone
+
+        if K2 is None:
+            K2 = K1
+        if not ( is_Cone(K1) and is_Cone(K2) ):
+            raise TypeError('K1 and K2 must be cones.')
+        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+            msg = 'The base ring of the matrix is neither symbolic nor exact.'
+            raise ValueError(msg)
+
+        if self.base_ring() is ZZ or self.base_ring() is QQ:
+            # This should be way faster than computing the dual and
+            # checking a bunch of inequalities, but it doesn't work if
+            # ``self*x`` is symbolic, polynomial, or otherwise
+            # contains something unexpected. For example, ``e in
+            # Cone([(1,)])`` is true, but returns ``False``.
+            return all([ self*x in K2 for x in K1 ])
+        else:
+            # Fall back to inequality-checking when the entries of
+            # this matrix might be symbolic, polynomial, or something
+            # else weird.
+            return all([ s*(self*x) >= 0 for x in K1 for s in K2.dual() ])
+
+    def is_cross_positive_on(self,K):
+        r"""
+        Determine if this matrix is cross-positive on a cone.
+
+        We say that a matrix `L` is cross-positive on a closed convex
+        cone `K` if the inner product of `Lx` and `s` is nonnegative for
+        all pairs of orthogonal vectors `x` in `K` and `s` in the dual
+        of `K`. This property need only be checked for generators of `K`
+        and its dual.
+
+        To reliably check whether or not this matrix is cross-positive,
+        its base ring must be either exact (for example, the rationals)
+        or the symbolic ring. An exact ring is more reliable, but in
+        some cases a matrix whose entries contain symbolic constants
+        like `e` and `\pi` will work.
+
+        INPUT:
+
+        - ``K`` -- a polyhedral closed convex cone.
+
+        OUTPUT:
+
+        If the base ring of this matrix is exact, then ``True`` will be
+        returned if and only if this matrix is cross-positive on ``K``.
+
+        If the base ring of this matrix is symbolic, then the situation
+        is more complicated:
+
+        - ``True`` will be returned if it can be proven that this matrix
+          is cross-positive on ``K``.
+        - ``False`` will be returned if it can be proven that this matrix
+          is not cross-positive on ``K``.
+        - ``False`` will also be returned if we can't decide; specifically
+          if we arrive at a symbolic inequality that cannot be resolved.
+
+        .. SEEALSO::
+
+              :meth:`is_positive_operator_on`,
+              :meth:`is_Z_operator_on`,
+              :meth:`is_lyapunov_like_on`
+
+        REFERENCES:
+
+        H. Schneider and M. Vidyasagar. Cross-positive matrices. SIAM
+        Journal on Numerical Analysis, 7:508-519, 1970.
+
+        EXAMPLES:
+
+        Negative Z-matrices are cross-positive operators on the
+        nonnegative orthant::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: L = matrix(SR, [ [-1, 2, 0],
+            ....:                  [ 0, 2, 7],
+            ....:                  [ 3, 0, 3] ])
+            sage: L.is_cross_positive_on(K)
+            True
+
+        Symbolic entries also work in some easy cases::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: L = matrix(SR, [ [-1,       e, 0 ],
+            ....:                  [ 0,       2, pi],
+            ....:                  [ sqrt(2), 0, 3 ] ])
+            sage: L.is_cross_positive_on(K)
+            True
+
+        TESTS:
+
+        The identity matrix is always cross-positive::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = identity_matrix(R, K.lattice_dim())
+            sage: L.is_cross_positive_on(K)
+            True
+
+        The zero matrix is always cross-positive::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = zero_matrix(R, K.lattice_dim())
+            sage: L.is_cross_positive_on(K)
+            True
+
+        Everything in ``K.cross_positive_operators_gens()`` should be
+        cross-positive on ``K``, even if we make the underlying ring
+        symbolic (the usual case is tested by the
+        ``cross_positive_operators_gens`` method)::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=5)
+            sage: all([L.change_ring(SR).is_cross_positive_on(K)
+            ....:      for L in K.cross_positive_operators_gens()]) # long time
+            True
+
+        Technically we could test this, but for now only closed convex cones
+        are supported as our ``K`` argument::
+
+            sage: L = identity_matrix(3)
+            sage: K = [ vector([8,2,-8]), vector([5,-5,7]) ]
+            sage: L.is_cross_positive_on(K)
+            Traceback (most recent call last):
+            ...
+            TypeError: K must be a cone.
+
+        We can't give reliable answers over inexact rings::
+
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(RR,3)
+            sage: L.is_cross_positive_on(K)
+            Traceback (most recent call last):
+            ...
+            ValueError: The base ring of the matrix is neither symbolic nor
+            exact.
+
+        """
+        from sage.symbolic.ring import SR
+        from sage.geometry.cone import is_Cone
+
+        if not is_Cone(K):
+            raise TypeError('K must be a cone.')
+        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+            msg = 'The base ring of the matrix is neither symbolic nor exact.'
+            raise ValueError(msg)
+
+        return all([ s*(self*x) >= 0
+                     for (x,s) in K.discrete_complementarity_set() ])
+
+    def is_Z_operator_on(self,K):
+        r"""
+        Determine if this matrix is a Z-operator on a cone.
+
+        We say that a matrix `L` is a Z-operator on a closed convex cone
+        `K` if the inner product of `Lx` and `s` is nonpositive for all
+        pairs of orthogonal vectors `x` in `K` and `s` in the dual of
+        `K`. This property need only be checked for generators of `K`
+        and its dual.
+
+        A matrix is a Z-operator on `K` if and only if its negation is a
+        cross-positive operator on `K`.
+
+        To reliably check whether or not this matrix is a Z operator,
+        its base ring must be either exact (for example, the rationals)
+        or the symbolic ring. An exact ring is more reliable, but in
+        some cases a matrix whose entries contain symbolic constants
+        like `e` and `\pi` will work.
+
+        INPUT:
+
+        - ``K`` -- a polyhedral closed convex cone.
+
+        OUTPUT:
+
+        If the base ring of this matrix is exact, then ``True`` will be
+        returned if and only if this matrix is a Z-operator on ``K``.
+
+        If the base ring of this matrix is symbolic, then the situation
+        is more complicated:
+
+        - ``True`` will be returned if it can be proven that this matrix
+          is a Z-operator on ``K``.
+        - ``False`` will be returned if it can be proven that this matrix
+          is not a Z-operator on ``K``.
+        - ``False`` will also be returned if we can't decide; specifically
+          if we arrive at a symbolic inequality that cannot be resolved.
+
+        .. SEEALSO::
+
+              :meth:`is_positive_operator_on`,
+              :meth:`is_cross_positive_on`,
+              :meth:`is_lyapunov_like_on`
+
+        REFERENCES:
+
+        A. Berman and R. J. Plemmons. Nonnegative Matrices in the
+        Mathematical Sciences. SIAM, Philadelphia, 1994.
+
+        EXAMPLES:
+
+        Z-matrices are Z-operators on the nonnegative orthant::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: L = matrix(SR, [ [-1, -2,  0],
+            ....:                  [ 0,  2, -7],
+            ....:                  [-3,  0,  3] ])
+            sage: L.is_Z_operator_on(K)
+            True
+
+        Symbolic entries also work in some easy cases::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: L = matrix(SR, [ [-1,      -e,  0 ],
+            ....:                  [ 0,       2, -pi],
+            ....:                  [-sqrt(2), 0,  3 ] ])
+            sage: L.is_Z_operator_on(K)
+            True
+
+        TESTS:
+
+        The identity matrix is always a Z-operator::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = identity_matrix(R, K.lattice_dim())
+            sage: L.is_Z_operator_on(K)
+            True
+
+        The zero matrix is always a Z-operator::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = zero_matrix(R, K.lattice_dim())
+            sage: L.is_Z_operator_on(K)
+            True
+
+        Everything in ``K.Z_operators_gens()`` should be a Z-operator on
+        ``K``, , even if we make the underlying ring symbolic (the usual
+        case is tested by the ``Z_operators_gens`` method)::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=5)
+            sage: all([ L.change_ring(SR).is_Z_operator_on(K)
+            ....:       for L in K.Z_operators_gens() ]) # long time
+            True
+
+        Technically we could test this, but for now only closed convex cones
+        are supported as our ``K`` argument::
+
+            sage: L = identity_matrix(3)
+            sage: K = [ vector([-4,20,3]), vector([1,-5,2]) ]
+            sage: L.is_Z_operator_on(K)
+            Traceback (most recent call last):
+            ...
+            TypeError: K must be a cone.
+
+        We can't give reliable answers over inexact rings::
+
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(RR,3)
+            sage: L.is_Z_operator_on(K)
+            Traceback (most recent call last):
+            ...
+            ValueError: The base ring of the matrix is neither symbolic nor
+            exact.
+
+        """
+        return (-self).is_cross_positive_on(K)
+
+    def is_lyapunov_like_on(self,K):
+        r"""
+        Determine if this matrix is Lyapunov-like on a cone.
+
+        We say that a matrix `L` is Lyapunov-like on a closed convex
+        cone `K` if the inner product of `Lx` and `s` is zero for all
+        pairs of orthogonal vectors `x` in `K` and `s` in the dual of
+        `K`. This property need only be checked for generators of `K`
+        and its dual.
+
+        An operator is Lyapunov-like on `K` if and only if both the
+        operator itself and its negation are cross-positive on `K`.
+
+        To reliably check whether or not this matrix is Lyapunov-like,
+        its base ring must be either exact (for example, the rationals)
+        or the symbolic ring. An exact ring is more reliable, but in
+        some cases a matrix whose entries contain symbolic constants
+        like `e` and `\pi` will work.
+
+        INPUT:
+
+        - ``K`` -- a polyhedral closed convex cone.
+
+        OUTPUT:
+
+        If the base ring of this matrix is exact, then ``True`` will be
+        returned if and only if this matrix is Lyapunov-like on ``K``.
+
+        If the base ring of this matrix is symbolic, then the situation
+        is more complicated:
+
+        - ``True`` will be returned if it can be proven that this matrix
+          is Lyapunov-like on ``K``.
+        - ``False`` will be returned if it can be proven that this matrix
+          is not Lyapunov-like on ``K``.
+        - ``False`` will also be returned if we can't decide; specifically
+          if we arrive at a symbolic inequality that cannot be resolved.
+
+        .. SEEALSO::
+
+              :meth:`is_positive_operator_on`,
+              :meth:`is_cross_positive_on`,
+              :meth:`is_Z_operator_on`
+
+        REFERENCES:
+
+        - [Or2017]_
+
+        EXAMPLES:
+
+        Diagonal matrices are Lyapunov-like operators on the nonnegative
+        orthant::
+
+            sage: set_random_seed()
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: L = diagonal_matrix(random_vector(QQ,3))
+            sage: L.is_lyapunov_like_on(K)
+            True
+
+        Symbolic entries also work in some easy cases::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: L = matrix(SR, [ [e, 0,  0      ],
+            ....:                  [0, pi, 0      ],
+            ....:                  [0, 0,  sqrt(2)] ])
+            sage: L.is_lyapunov_like_on(K)
+            True
+
+        TESTS:
+
+        The identity matrix is always Lyapunov-like::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = identity_matrix(R, K.lattice_dim())
+            sage: L.is_lyapunov_like_on(K)
+            True
+
+        The zero matrix is always Lyapunov-like::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = zero_matrix(R, K.lattice_dim())
+            sage: L.is_lyapunov_like_on(K)
+            True
+
+        Everything in ``K.lyapunov_like_basis()`` should be
+        Lyapunov-like on ``K``, even if we make the underlying ring
+        symbolic (the usual case is tested by the
+        ``lyapunov_like_basis`` method)::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=5)
+            sage: all([ L.change_ring(SR).is_lyapunov_like_on(K)
+            ....:       for L in K.lyapunov_like_basis() ]) # long time
+            True
+
+        Technically we could test this, but for now only closed convex cones
+        are supported as our ``K`` argument::
+
+            sage: L = identity_matrix(3)
+            sage: K = [ vector([2,2,-1]), vector([5,4,-3]) ]
+            sage: L.is_lyapunov_like_on(K)
+            Traceback (most recent call last):
+            ...
+            TypeError: K must be a cone.
+
+        We can't give reliable answers over inexact rings::
+
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(RR,3)
+            sage: L.is_lyapunov_like_on(K)
+            Traceback (most recent call last):
+            ...
+            ValueError: The base ring of the matrix is neither symbolic nor
+            exact.
+
+        A matrix is Lyapunov-like on a cone if and only if both the
+        matrix and its negation are cross-positive on the cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=5)
+            sage: R = K.lattice().vector_space().base_ring()
+            sage: L = random_matrix(R, K.lattice_dim())
+            sage: actual = L.is_lyapunov_like_on(K)          # long time
+            sage: expected = (L.is_cross_positive_on(K) and
+            ....:             (-L).is_cross_positive_on(K))  # long time
+            sage: actual == expected                         # long time
+            True
+
+        """
+        from sage.symbolic.ring import SR
+        from sage.geometry.cone import is_Cone
+
+        if not is_Cone(K):
+            raise TypeError('K must be a cone.')
+        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+            msg = 'The base ring of the matrix is neither symbolic nor exact.'
+            raise ValueError(msg)
+
+        # Even though ``discrete_complementarity_set`` is a cached
+        # method of cones, this is faster than calling
+        # :meth:`is_cross_positive_on` twice: doing so checks twice as
+        # many inequalities as the number of equalities that we're
+        # about to check.
+        return all([ s*(self*x) == 0
+                     for (x,s) in K.discrete_complementarity_set() ])
 
     # A limited number of access-only properties are provided for matrices
     @property

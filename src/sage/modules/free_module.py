@@ -6567,7 +6567,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             TypeError: element [2, -4] is not in free module
         """
         R = self.base_ring()
-        check = (not R.is_field()) and any([a not in R for a in list(v)])
+        check = (not R.is_field()) and any(a not in R for a in list(v))
         return self(self.basis_matrix().linear_combination_of_rows(v),
                     check=check, copy=False, coerce=False)
 

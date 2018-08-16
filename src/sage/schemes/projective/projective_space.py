@@ -1429,8 +1429,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             raise ValueError("for given dimension, there should be %d variables in the Chow form" % binomial(n+1,n-dim))
         #create the brackets associated to variables
         L1 = []
-        for t in UnorderedTuples(list(range(n + 1)), dim+1):
-            if all([t[i]<t[i+1] for i in range(dim)]):
+        for t in UnorderedTuples(list(range(n + 1)), dim + 1):
+            if all(t[i] < t[i + 1] for i in range(dim)):
                 L1.append(t)
         #create the dual brackets
         L2 = []
@@ -1573,22 +1573,22 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         n = self.dimension_relative()
         P = ProjectiveSpace(r, n**2+2*n,'p')
         # makes sure there aren't to few or two many points
-        if len(points_source)!= n + 2:
+        if len(points_source) != n + 2:
             raise ValueError ("incorrect number of points in source, need %d points"%(n+2))
-        if len(points_target)!= n + 2:
+        if len(points_target) != n + 2:
             raise ValueError ("incorrect number of points in target, need %d points"%(n+2))
-        if any([x.codomain()!=self for x in points_source]):
+        if any(x.codomain()!=self for x in points_source):
             raise ValueError ("source points not in self")
-        if any([x.codomain()!=self for x in points_target]):
+        if any(x.codomain()!=self for x in points_target):
             raise ValueError ("target points not in self")
         # putting points as the rows of the matrix
         Ms = matrix(r, [list(s) for s in points_source])
-        if any([m == 0 for m in Ms.minors(n+1)]):
+        if any(m == 0 for m in Ms.minors(n + 1)):
             raise ValueError("source points not independent")
         Mt = matrix(r, [list(t) for t in points_target])
-        if any([l == 0 for l in Mt.minors(n+1)]):
+        if any(l == 0 for l in Mt.minors(n + 1)):
             raise ValueError("target points not independent")
-        A = matrix(P.coordinate_ring(), n+1, n+1, P.gens())
+        A = matrix(P.coordinate_ring(), n + 1, n + 1, P.gens())
         #transpose to get image points and then get the list of image points with columns
         funct = (A*Ms.transpose()).columns()
         eq = []

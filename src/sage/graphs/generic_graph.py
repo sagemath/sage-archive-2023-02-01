@@ -817,8 +817,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def _latex_(self):
         r"""
-
-        Returns a string to render the graph using LaTeX.
+        Return a string to render the graph using LaTeX.
 
         To adjust the string, use the
         :meth:`set_latex_options` method to set options,
@@ -843,8 +842,8 @@ class GenericGraph(GenericGraph_pyx):
             \definecolor{clv1}{rgb}{0.0,0.0,0.0}
             \definecolor{cv0v1}{rgb}{0.0,0.0,0.0}
             %
-            \Vertex[style={minimum size=1.0cm,draw=cv0,fill=cfv0,text=clv0,shape=circle},LabelOut=false,L=\hbox{$0$},x=5.0cm,y=5.0cm]{v0}
-            \Vertex[style={minimum size=1.0cm,draw=cv1,fill=cfv1,text=clv1,shape=circle},LabelOut=false,L=\hbox{$1$},x=0.0cm,y=0.0cm]{v1}
+            \Vertex[style={minimum size=1.0cm,draw=cv0,fill=cfv0,text=clv0,shape=circle},LabelOut=false,L=\hbox{$0$},x=2.5cm,y=5.0cm]{v0}
+            \Vertex[style={minimum size=1.0cm,draw=cv1,fill=cfv1,text=clv1,shape=circle},LabelOut=false,L=\hbox{$1$},x=2.5cm,y=0.0cm]{v1}
             %
             \Edge[lw=0.1cm,style={color=cv0v1,},](v0)(v1)
             %
@@ -2997,7 +2996,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: G.get_pos()
-            {0: (...e-17, 1.0),
+            {0: (0.0, 1.0),
              ...
              9: (0.475..., 0.154...)}
         """
@@ -17071,6 +17070,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not vertices:
             return
+        self.add_vertices(vertices)
         vert1 = vertices[0]
         for v in vertices[1:]:
             self.add_edge(vert1, v)
@@ -18892,12 +18892,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: G.get_pos()
-            {0: (6.12..., 1.0...),
+            {0: (0.0..., 1.0...),
              1: (-0.95..., 0.30...),
              2: (-0.58..., -0.80...),
              3: (0.58..., -0.80...),
              4: (0.95..., 0.30...),
-             5: (1.53..., 0.5...),
+             5: (0.0..., 0.5...),
              6: (-0.47..., 0.15...),
              7: (-0.29..., -0.40...),
              8: (0.29..., -0.40...),

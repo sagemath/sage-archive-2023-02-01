@@ -43,9 +43,9 @@ def graph_to_js(g):
         sage: from sage.graphs.graph_editor import graph_to_js
         sage: G = graphs.CompleteGraph(4)
         sage: graph_to_js(G)
-        'num_vertices=4;edges=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];pos=[[0.5,0.0],[0.0,0.4999999999999999],[0.4999999999999999,1.0],[1.0,0.5000000000000001]];'
+        'num_vertices=4;edges=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];pos=[[0.5,0.0],[0.0,0.5],[0.5,1.0],[1.0,0.5]];'
         sage: graph_to_js(graphs.StarGraph(2))
-        'num_vertices=3;edges=[[0,1],[0,2]];pos=[[0.75,0.5],[1.0,0.0],[0.0,1.0]];'
+        'num_vertices=3;edges=[[0,1],[0,2]];pos=[[0.0,0.5],[0.0,0.0],[0.0,1.0]];'
     """
     string = ''
     vertex_list = g.get_vertices().keys()

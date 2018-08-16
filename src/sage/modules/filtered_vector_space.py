@@ -355,7 +355,7 @@ def construct_from_generators_indices(generators, filtration, base_ring, check):
         QQ^2 >= QQ^1 >= QQ^1 >= 0
     """
     # normalize generators
-    generators = map(list, generators)
+    generators = [list(g) for g in generators]
 
     # deduce dimension
     if len(generators) == 0:
@@ -378,7 +378,7 @@ def construct_from_generators_indices(generators, filtration, base_ring, check):
     normalized = dict()
     for deg, gens in iteritems(filtration):
         deg = normalize_degree(deg)
-        gens = map(ZZ, gens)
+        gens = [ZZ(i) for i in gens]
         if any(i < 0 or i >= len(generators) for i in gens):
             raise ValueError('generator index out of bounds')
         normalized[deg] = tuple(sorted(gens))

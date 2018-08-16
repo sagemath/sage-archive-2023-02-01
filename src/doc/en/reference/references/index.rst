@@ -349,6 +349,10 @@ REFERENCES:
             Manifolds, Curves and Surfaces*, Springer (New York)
             (1988); :doi:`10.1007/978-1-4612-1033-7`
 
+.. [Bil2011] \N. Billerey. *Critères d'irréductibilité pour les
+             représentations des courbes elliptiques*. Int. J. Number
+             Theory, 7 (2011);  :doi:`10.1142/S1793042111004538`
+
 .. [BH1994] \S. Billey, M. Haiman. *Schubert polynomials for the
             classical groups*. J. Amer. Math. Soc., 1994.
 
@@ -1195,6 +1199,11 @@ REFERENCES:
               Patterns: Elements of Reusable Object-Oriented
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
 
+.. [GJK+2014] Dimitar Grantcharov, Ji Hye Jung, Seok-Jin Kang, Masaki Kashiwara,
+              Myungho Kim. *Crystal bases for the quantum queer superalgebra and
+              semistandard decomposition tableaux.*; Trans. Amer. Math. Soc.,
+              366(1): 457-489, 2014. :arxiv:`1103.1456v2`.
+
 .. [GK2013] Roland Grinis and Alexander Kasprzyk, Normal forms of
             convex lattice polytopes, :arxiv:`1301.6641`
 
@@ -1412,6 +1421,10 @@ REFERENCES:
              J. Symbolic Computation. **11** (2000).
              http://www.maths.usyd.edu.au/u/bobh/hrt.pdf
 
+.. [HS2018] \B. Hutz, M. Stoll. "Smallest representatives of
+            `SL(2,\ZZ)`-orbits of binary forms and endomorphisms of P1",
+            :arxiv:`1805.08579`, 2018.
+
 .. [Hsu1996] Tim Hsu, "Identifying congruence subgroups of the modular
              group", Proc. AMS 124, no. 5, 1351-1359 (1996)
 
@@ -1599,6 +1612,12 @@ REFERENCES:
               *PRINTcipher: A block cipher for IC-printing*; in
               CHES, (2010), pp. 16-32.
 
+.. [KLRS2016] \S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
+              *A combinatorial description of the affine Gindikin-Karpelevich
+              formula of type* `A_n^{(1)}`. Lie Algebras, Lie Superalgebras,
+              Vertex Algebras and Related Topics, Proc. Sympos. Pure Math.,
+              vol. 92, Amer. Math. Soc., Providence, RI, 2016, pp. 145–165.
+
 .. [KLS2013] Allen Knutson, Thomas Lam, and David Speyer.
              *Positroid Varieties: Juggling and Geometry*
              Compositio Mathematica, **149** (2013), no. 10.
@@ -1698,6 +1717,11 @@ REFERENCES:
             *The Bethe ansatz in a periodic box-ball system and the
             ultradiscrete Riemann theta function*, J. Stat. Mech.,
             P09005 (2006).
+
+.. [KS2010] \J.-A. Kim and D.-U. Shin.
+            *Generalized Young walls and crystal bases for quantum affine
+            algebra of type* `A`. Proc. Amer. Math. Soc. **138** (2010), no. 11,
+            3877--3889.
 
 .. [KSV2011] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts
              of projective congruence groups", J. London
@@ -2182,10 +2206,9 @@ REFERENCES:
                  model with an order-disorder transition*, Phys. Rev.
                  (2) **65** (1944), pp. 117-149.
 
-.. [Or2016] \M. Orlitzky. The Lyapunov rank of an improper
-            cone. Citation: Optimization Methods and Software
-            (accepted
-            2016-06-12). http://www.optimization-online.org/DB_HTML/2015/10/5135.html. :doi:`10.1080/10556788.2016.1202246`
+.. [Or2017] \M. Orlitzky. The Lyapunov rank of an improper cone.
+            Optimization Methods and Software, 32(1):109-125, 2017,
+            :doi:`10.1080/10556788.2016.1202246`.
 
 .. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
             Langlands dual quantum affine algebras: Exceptional cases*.

@@ -222,8 +222,10 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         return BoundarySpaceElement(self.parent(), z)
 
     def _rmul_(self, other):
-        """
-        Return self \* other. Assumes that other can be coerced into
+        r"""
+        Return self \* other.
+
+        Assumes that other can be coerced into
         self.parent().base_ring().
 
         EXAMPLES::
@@ -241,8 +243,10 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         return BoundarySpaceElement(self.parent(), x)
 
     def _lmul_(self, other):
-        """
-        Return other \* self. Assumes that other can be coerced into
+        r"""
+        Return other \* self.
+
+        Assumes that other can be coerced into
         self.parent().base_ring().
 
         EXAMPLES::

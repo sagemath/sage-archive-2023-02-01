@@ -464,7 +464,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.parent() != right.parent():
             return False
         n = len(self._polys)
-        return all([self[i]*right[j] == self[j]*right[i] for i in range(0, n) for j in range(i+1, n)])
+        return all(self[i] * right[j] == self[j] * right[i]
+                   for i in range(n) for j in range(i + 1, n))
 
     def __ne__(self, right):
         """
@@ -1922,7 +1923,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                     raise NotImplementedError("subschemes as preimages not implemented")
                 preimages = []
                 for T in X.rational_points():
-                    if not all([g(tuple(T)) == 0 for g in self]):
+                    if not all(g(tuple(T)) == 0 for g in self):
                         preimages.append(PS(T))
                 L2 = L2 + preimages
             L = L2

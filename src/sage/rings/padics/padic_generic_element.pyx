@@ -29,7 +29,6 @@ AUTHORS:
 from __future__ import absolute_import
 
 
-from cysignals.memory cimport sig_free, sig_malloc
 from sage.ext.stdsage cimport PY_NEW
 
 cimport sage.rings.padics.local_generic_element
@@ -3897,16 +3896,16 @@ def _AHE_coefficients(p, N, prec):
         sage: from sage.rings.padics.padic_generic_element import _AHE_coefficients
 
         sage: L = _AHE_coefficients(101, 10, 3); L
-        [1 + O(101^3),
-         1 + O(101^3),
-         51 + 50*101 + 50*101^2 + O(101^3),
-         17 + 84*101 + 16*101^2 + O(101^3),
-         80 + 96*101 + 79*101^2 + O(101^3),
-         16 + 100*101 + 15*101^2 + O(101^3),
-         70 + 16*101 + 53*101^2 + O(101^3),
-         10 + 60*101 + 7*101^2 + O(101^3),
-         77 + 32*101 + 89*101^2 + O(101^3),
-         31 + 37*101 + 32*101^2 + O(101^3)]
+        [1,
+         1,
+         51 + 50*101 + 50*101^2,
+         17 + 84*101 + 16*101^2,
+         80 + 96*101 + 79*101^2,
+         16 + 100*101 + 15*101^2,
+         70 + 16*101 + 53*101^2,
+         10 + 60*101 + 7*101^2,
+         77 + 32*101 + 89*101^2,
+         31 + 37*101 + 32*101^2]
         sage: L == [ 1/factorial(i) for i in range(10) ]
         True
 
@@ -3930,14 +3929,14 @@ def _AHE_coefficients(p, N, prec):
     beyond the requested precision::
 
         sage: L = _AHE_coefficients(2, 513, 1); L
-        [1 + O(2^10),
-         1 + O(2^10),
-         1 + O(2^10),
-         2 + 2^2 + 2^4 + 2^6 + 2^8 + O(2^10),
+        [1,
+         1,
+         1,
+         2 + 2^2 + 2^4 + 2^6 + 2^8,
          ...
-         1 + 2 + 2^2 + 2^5 + 2^8 + O(2^10),
-         2^2 + 2^6 + 2^9 + O(2^10),
-         1 + O(2^10)]
+         1 + 2 + 2^2 + 2^5 + 2^8,
+         2^2 + 2^6 + 2^9,
+         1]
 
     We check that the result is correct modulo `2^1`::
 

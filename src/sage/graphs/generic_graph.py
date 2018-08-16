@@ -244,8 +244,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.vertex_cut` | Return a minimum vertex cut between non-adjacent vertices `s` and `t`
     :meth:`~GenericGraph.flow` | Return a maximum flow in the graph from ``x`` to ``y``
     :meth:`~GenericGraph.nowhere_zero_flow` | Return a `k`-nowhere zero flow of the (di)graph.
-    :meth:`~GenericGraph.edge_disjoint_paths` | Returns a list of edge-disjoint paths between two vertices
-    :meth:`~GenericGraph.vertex_disjoint_paths` | Return a list of vertex-disjoint paths between two vertices as given by Menger's theorem.
+    :meth:`~GenericGraph.edge_disjoint_paths` | Return a list of edge-disjoint paths between two vertices
+    :meth:`~GenericGraph.vertex_disjoint_paths` | Return a list of vertex-disjoint paths between two vertices
     :meth:`~GenericGraph.edge_connectivity` | Return the edge connectivity of the graph.
     :meth:`~GenericGraph.vertex_connectivity` | Return the vertex connectivity of the graph.
     :meth:`~GenericGraph.transitive_closure` | Compute the transitive closure of a graph and returns it.
@@ -5471,7 +5471,7 @@ class GenericGraph(GenericGraph_pyx):
         st.delete_vertices([v for v in g if st.degree(v) == 0])
         return st
 
-    def edge_disjoint_spanning_trees(self,k, root=None, solver = None, verbose = 0):
+    def edge_disjoint_spanning_trees(self, k, root=None, solver=None, verbose=0):
         r"""
         Returns the desired number of edge-disjoint spanning
         trees/arborescences.
@@ -5566,7 +5566,7 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
-        p = MixedIntegerLinearProgram(solver = solver)
+        p = MixedIntegerLinearProgram(solver=solver)
         p.set_objective(None)
 
         # The colors we can use
@@ -5651,7 +5651,7 @@ class GenericGraph(GenericGraph_pyx):
             for v in self:
                 p.add_constraint(p.sum(r_edges[j,(u,v)] for u in self.neighbors(v)), max=1-epsilon)
         try:
-            p.solve(log = verbose)
+            p.solve(log=verbose)
 
         except MIPSolverException:
             from sage.categories.sets_cat import EmptySetError
@@ -6036,19 +6036,17 @@ class GenericGraph(GenericGraph_pyx):
             return tuple(answer)
 
 
-    def multiway_cut(self, vertices, value_only = False, use_edge_labels = False, solver = None, verbose = 0):
+    def multiway_cut(self, vertices, value_only=False, use_edge_labels=False, solver=None, verbose=0):
         r"""
-        Returns a minimum edge multiway cut corresponding to the
-        given set of vertices
+        Return a minimum edge multiway cut.
+
+        A multiway cut for a vertex set `S` in a graph or a digraph `G` is a set
+        `C` of edges such that any two vertices `u,v` in `S` are disconnected
+        when removing the edges of `C` from `G`.
         ( cf. http://www.d.kth.se/~viggo/wwwcompendium/node92.html )
-        represented by a list of edges.
 
-        A multiway cut for a vertex set `S` in a graph or a digraph
-        `G` is a set `C` of edges such that any two vertices `u,v`
-        in `S` are disconnected when removing the edges from `C` from `G`.
-
-        Such a cut is said to be minimum when its cardinality
-        (or weight) is minimum.
+        Such a cut is said to be minimum when its cardinality (or weight) is
+        minimum.
 
         INPUT:
 
@@ -6056,63 +6054,62 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``value_only`` (boolean)
 
-            - When set to ``True``, only the value of a minimum
-              multiway cut is returned.
+            - When set to ``True``, only the value of a minimum multiway cut is
+              returned.
 
-            - When set to ``False`` (default), the list of edges
-              is returned
+            - When set to ``False`` (default), the list of edges is returned
 
         - ``use_edge_labels`` (boolean)
-            - When set to ``True``, computes a weighted minimum cut
-              where each edge has a weight defined by its label. ( if
-              an edge has no label, `1` is assumed )
+
+            - When set to ``True``, computes a weighted minimum cut where each
+              edge has a weight defined by its label. ( if an edge has no label,
+              `1` is assumed )
 
             - when set to ``False`` (default), each edge has weight `1`.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
 
-        Of course, a multiway cut between two vertices correspond
-        to a minimum edge cut ::
+        Of course, a multiway cut between two vertices correspond to a minimum
+        edge cut ::
 
             sage: g = graphs.PetersenGraph()
             sage: g.edge_cut(0,3) == g.multiway_cut([0,3], value_only = True)
             True
 
-        As Petersen's graph is `3`-regular, a minimum multiway cut
-        between three vertices contains at most `2\times 3` edges
-        (which could correspond to the neighborhood of 2
-        vertices)::
+        As Petersen's graph is `3`-regular, a minimum multiway cut between three
+        vertices contains at most `2\times 3` edges (which could correspond to
+        the neighborhood of 2 vertices)::
 
             sage: g.multiway_cut([0,3,9], value_only = True) == 2*3
             True
 
-        In this case, though, the vertices are an independent set.
-        If we pick instead vertices `0,9,` and `7`, we can save `4`
-        edges in the multiway cut ::
+        In this case, though, the vertices are an independent set.  If we pick
+        instead vertices `0,9,` and `7`, we can save `4` edges in the multiway
+        cut ::
 
             sage: g.multiway_cut([0,7,9], value_only = True) == 2*3 - 1
             True
 
-        This example, though, does not work in the directed case anymore,
-        as it is not possible in Petersen's graph to mutualise edges ::
+        This example, though, does not work in the directed case anymore, as it
+        is not possible in Petersen's graph to mutualise edges ::
 
             sage: g = DiGraph(g)
             sage: g.multiway_cut([0,7,9], value_only = True) == 3*3
             True
 
-        Of course, a multiway cut between the whole vertex set
-        contains all the edges of the graph::
+        Of course, a multiway cut between the whole vertex set contains all the
+        edges of the graph::
 
             sage: C = g.multiway_cut(g.vertices())
             sage: set(C) == set(g.edges())
@@ -6122,13 +6119,13 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         from itertools import combinations, chain
 
-        p = MixedIntegerLinearProgram(maximization = False, solver= solver)
+        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
         # height[c,v] represents the height of vertex v for commodity c
         height = p.new_variable(nonnegative=True)
 
         # cut[e] represents whether e is in the cut
-        cut = p.new_variable(binary = True)
+        cut = p.new_variable(binary=True)
 
         # Reorder
         R = lambda x,y : (x,y) if x<y else (y,x)
@@ -6172,11 +6169,11 @@ class GenericGraph(GenericGraph_pyx):
 
         if value_only:
             if use_edge_labels:
-                return p.solve(objective_only = True, log = verbose)
+                return p.solve(objective_only=True, log=verbose)
             else:
-                return Integer(round(p.solve(objective_only = True, log = verbose)))
+                return Integer(round(p.solve(objective_only=True, log=verbose)))
 
-        p.solve(log = verbose)
+        p.solve(log=verbose)
 
         cut = p.get_values(cut)
 
@@ -6188,9 +6185,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
         r"""
-        Returns a maximum edge cut of the graph. For more information, see the
-        `Wikipedia article on cuts
-        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
+        Return a maximum edge cut of the graph.
+
+        For more information, see :wikipedia:`Maximum_cut`.
 
         INPUT:
 
@@ -6198,39 +6195,37 @@ class GenericGraph(GenericGraph_pyx):
 
           - When set to ``True`` (default), only the value is returned.
 
-          - When set to ``False``, both the value and a maximum edge cut
-            are returned.
+          - When set to ``False``, both the value and a maximum edge cut are
+            returned.
 
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
-          - When set to ``True``, computes a maximum weighted cut
-            where each edge has a weight defined by its label. (If
-            an edge has no label, `1` is assumed.)
+          - When set to ``True``, computes a maximum weighted cut where each
+            edge has a weight defined by its label. (If an edge has no label,
+            `1` is assumed.)
 
           - When set to ``False``, each edge has weight `1`.
 
         - ``vertices`` -- boolean (default: ``False``)
 
-          - When set to ``True``, also returns the two sets of
-            vertices that are disconnected by the cut. This implies
-            ``value_only=False``.
+          - When set to ``True``, also returns the two sets of vertices that are
+            disconnected by the cut. This implies ``value_only=False``.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
 
-        Quite obviously, the max cut of a bipartite graph
-        is the number of edges, and the two sets of vertices
-        are the two sides ::
+        Quite obviously, the max cut of a bipartite graph is the number of
+        edges, and the two sets of vertices are the two sides ::
 
             sage: g = graphs.CompleteBipartiteGraph(5,6)
             sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)
@@ -6345,7 +6340,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def longest_path(self, s=None, t=None, use_edge_labels=False, algorithm="MILP", solver=None, verbose=0):
         r"""
-        Returns a longest path of ``self``.
+        Return a longest path of ``self``.
 
         INPUT:
 
@@ -6376,10 +6371,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``solver`` -- (default: ``None``) Specify the Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+          the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -6412,8 +6407,8 @@ class GenericGraph(GenericGraph_pyx):
         The heuristic totally agrees::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.longest_path(algorithm="backtrack").edges()
-            [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (4, 9, None), (5, 7, None), (5, 8, None), (6, 8, None), (6, 9, None)]
+            sage: g.longest_path(algorithm="backtrack").edges(labels=False)
+            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9)]
 
         .. PLOT::
 
@@ -7120,13 +7115,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: for i in range(20):
             ....:     g = Graph()
             ....:     g.allow_multiple_edges(False)
-            ....:     for u,v in graphs.RandomGNP(n,.2).edges(labels = False):
+            ....:     for u,v in graphs.RandomGNP(n,.2).edges(labels=False):
             ....:          g.add_edge(u,v,round(random(),5))
-            ....:     for u,v in graphs.CycleGraph(n).edges(labels = False):
+            ....:     for u,v in graphs.CycleGraph(n).edges(labels=False):
             ....:          if not g.has_edge(u,v):
             ....:              g.add_edge(u,v,round(random(),5))
-            ....:     v1 = g.traveling_salesman_problem(constraint_generation = False, use_edge_labels = True)
-            ....:     v2 = g.traveling_salesman_problem(use_edge_labels = True)
+            ....:     v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
+            ....:     v2 = g.traveling_salesman_problem(use_edge_labels=True)
             ....:     c1 = sum(map(itemgetter(2), v1.edges()))
             ....:     c2 = sum(map(itemgetter(2), v2.edges()))
             ....:     if c1 != c2:
@@ -7141,13 +7136,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: for i in range(20):
             ....:     g = DiGraph()
             ....:     g.allow_multiple_edges(False)
-            ....:     for u,v in digraphs.RandomDirectedGNP(n,.2).edges(labels = False):
+            ....:     for u,v in digraphs.RandomDirectedGNP(n,.2).edges(labels=False):
             ....:          g.add_edge(u,v,round(random(),5))
-            ....:     for u,v in digraphs.Circuit(n).edges(labels = False):
+            ....:     for u,v in digraphs.Circuit(n).edges(labels=False):
             ....:          if not g.has_edge(u,v):
             ....:              g.add_edge(u,v,round(random(),5))
-            ....:     v2 = g.traveling_salesman_problem(use_edge_labels = True)
-            ....:     v1 = g.traveling_salesman_problem(constraint_generation = False, use_edge_labels = True)
+            ....:     v2 = g.traveling_salesman_problem(use_edge_labels=True)
+            ....:     v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
             ....:     c1 = sum(map(itemgetter(2), v1.edges()))
             ....:     c2 = sum(map(itemgetter(2), v2.edges()))
             ....:     if c1 != c2:
@@ -7506,27 +7501,47 @@ class GenericGraph(GenericGraph_pyx):
             raise EmptySetError("The given graph is not Hamiltonian")
 
 
-    def hamiltonian_cycle(self, algorithm='tsp' ):
+    def hamiltonian_cycle(self, algorithm='tsp', solver=None, constraint_generation=None,
+                          verbose=0, verbose_constraints=False):
         r"""
-        Returns a Hamiltonian cycle/circuit of the current graph/digraph
+        Return a Hamiltonian cycle/circuit of the current graph/digraph.
 
-        A graph (resp. digraph) is said to be Hamiltonian
-        if it contains as a subgraph a cycle (resp. a circuit)
-        going through all the vertices.
+        A graph (resp. digraph) is said to be Hamiltonian if it contains as a
+        subgraph a cycle (resp. a circuit) going through all the vertices.
 
-        Computing a Hamiltonian cycle/circuit being NP-Complete,
-        this algorithm could run for some time depending on
-        the instance.
+        Computing a Hamiltonian cycle/circuit being NP-Complete, this algorithm
+        could run for some time depending on the instance.
 
         ALGORITHM:
 
-        See ``Graph.traveling_salesman_problem`` for 'tsp' algorithm and
-        ``find_hamiltonian`` from ``sage.graphs.generic_graph_pyx``
-        for 'backtrack' algorithm.
+        See :meth:`~Graph.traveling_salesman_problem` for 'tsp' algorithm and
+        :meth:`~sage.graphs.generic_graph_pyx.find_hamiltonian` from
+        :mod:`sage.graphs.generic_graph_pyx` for 'backtrack' algorithm.
 
         INPUT:
 
-            - ``algorithm`` - one of 'tsp' or 'backtrack'.
+        - ``algorithm`` -- one of 'tsp' or 'backtrack'.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``constraint_generation`` (boolean) -- whether to use constraint
+          generation when solving the Mixed Integer Linear Program.
+
+          When ``constraint_generation = None``, constraint generation is used
+          whenever the graph has a density larger than 70%.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``verbose_constraints`` -- whether to display which constraints are
+          being generated.
+
 
         OUTPUT:
 
@@ -7534,21 +7549,21 @@ class GenericGraph(GenericGraph_pyx):
         exists; otherwise, raises a ``EmptySetError`` exception. If using the
         'backtrack' algorithm, returns a pair (B,P). If B is True then P is a
         Hamiltonian cycle and if B is False, P is a longest path found by the
-        algorithm. Observe that if B is False, the graph may still be Hamiltonian.
-        The 'backtrack' algorithm is only implemented for undirected
-        graphs.
+        algorithm. Observe that if B is False, the graph may still be
+        Hamiltonian.  The 'backtrack' algorithm is only implemented for
+        undirected graphs.
 
         .. WARNING::
 
-            The 'backtrack' algorithm may loop endlessly on graphs
-            with vertices of degree 1.
+            The 'backtrack' algorithm may loop endlessly on graphs with vertices
+            of degree 1.
 
         NOTE:
 
-        This function, as ``is_hamiltonian``, computes a Hamiltonian
-        cycle if it exists: the user should *NOT* test for
-        Hamiltonicity using ``is_hamiltonian`` before calling this
-        function, as it would result in computing it twice.
+        This function, as ``is_hamiltonian``, computes a Hamiltonian cycle if it
+        exists: the user should *NOT* test for Hamiltonicity using
+        ``is_hamiltonian`` before calling this function, as it would result in
+        computing it twice.
 
         The backtrack algorithm is only implemented for undirected graphs.
 
@@ -7594,7 +7609,9 @@ class GenericGraph(GenericGraph_pyx):
             from sage.numerical.mip import MIPSolverException
 
             try:
-                return self.traveling_salesman_problem(use_edge_labels = False)
+                return self.traveling_salesman_problem(use_edge_labels=False, solver=solver,
+                                                       constraint_generation=constraint_generation,
+                                                       verbose=verbose, verbose_constraints=verbose_constraints)
             except MIPSolverException:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError("The given graph is not Hamiltonian")
@@ -7624,13 +7641,13 @@ class GenericGraph(GenericGraph_pyx):
           - When set to ``False``, the ``Set`` of vertices of a minimal feedback
             vertex set is returned.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used,
-          see the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -7838,11 +7855,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, algorithm = None, solver=None, verbose=0):
         r"""
-        Returns a maximum flow in the graph from ``x`` to ``y``
-        represented by an optimal valuation of the edges. For more
-        information, see the
-        `Wikipedia article on maximum flow
-        <http://en.wikipedia.org/wiki/Max_flow>`_.
+        Return a maximum flow in the graph from ``x`` to ``y``.
+
+        The returned flow is represented by an optimal valuation of the
+        edges. For more information, see the :wikipedia:`Max_flow`.
 
         As an optimization problem, is can be expressed this way :
 
@@ -7860,73 +7876,73 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``value_only`` -- boolean (default: ``True``)
 
-          - When set to ``True``, only the value of a maximal
-            flow is returned.
+          - When set to ``True``, only the value of a maximal flow is returned.
 
-          - When set to ``False``, is returned a pair whose first element
-            is the value of the maximum flow, and whose second value is
-            a flow graph (a copy of the current graph, such that each edge
-            has the flow using it as a label, the edges without flow being
-            omitted).
+          - When set to ``False``, is returned a pair whose first element is the
+            value of the maximum flow, and whose second value is a flow graph (a
+            copy of the current graph, such that each edge has the flow using it
+            as a label, the edges without flow being omitted).
 
         - ``integer`` -- boolean (default: ``True``)
 
           - When set to ``True``, computes an optimal solution under the
-            constraint that the flow going through an edge has to be an
-            integer.
+            constraint that the flow going through an edge has to be an integer.
 
         - ``use_edge_labels`` -- boolean (default: ``True``)
 
-          - When set to ``True``, computes a maximum flow
-            where each edge has a capacity defined by its label. (If
-            an edge has no label, `1` is assumed.)
+          - When set to ``True``, computes a maximum flow where each edge has a
+            capacity defined by its label. (If an edge has no label, `1` is
+            assumed.)
 
           - When set to ``False``, each edge has capacity `1`.
 
         - ``vertex_bound`` -- boolean (default: ``False``)
 
-          - When set to ``True``, sets the maximum flow leaving
-            a vertex different from `x` to `1` (useful for vertex
-            connectivity parameters).
+          - When set to ``True``, sets the maximum flow leaving a vertex
+            different from `x` to `1` (useful for vertex connectivity
+            parameters).
 
-        - ``algorithm`` -- There are currently three different
-          implementations of this method:
+        - ``algorithm`` -- There are currently three different implementations
+          of this method:
 
               * If ``algorithm = "FF"``, a Python implementation of the
                 Ford-Fulkerson algorithm is used (only available when
                 ``vertex_bound = False``)
 
-              * If ``algorithm = "LP"``, the flow problem is solved using
-                Linear Programming.
+              * If ``algorithm = "LP"``, the flow problem is solved using Linear
+                Programming.
 
               * If ``algorithm = "igraph"``, the igraph implementation of the
-                Goldberg-Tarjan algorithm is used (only available when
-                igraph is installed and ``vertex_bound = False``)
+                Goldberg-Tarjan algorithm is used (only available when igraph is
+                installed and ``vertex_bound = False``)
 
               * If ``algorithm = None`` (default), we use ``LP`` if
-                ``vertex_bound = True``, otherwise, we use ``igraph`` if
-                it is available, ``FF`` if it is not available.
+                ``vertex_bound = True``, otherwise, we use ``igraph`` if it is
+                available, ``FF`` if it is not available.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.  function of
-          ``MixedIntegerLinearProgram``. See the documentation of
-          ``MixedIntegerLinearProgram.solve`` for more information.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
           Only useful when LP is used to solve the flow problem.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0 by
+          default (quiet).
 
           Only useful when LP is used to solve the flow problem.
 
         .. NOTE::
 
-           Even though the three different implementations are meant to
-           return the same Flow values, they can not be expected to
-           return the same Flow graphs.
+           Even though the three different implementations are meant to return
+           the same Flow values, they can not be expected to return the same
+           Flow graphs.
 
-           Besides, the use of Linear Programming may possibly mean a
-           (slight) numerical noise.
+           Besides, the use of Linear Programming may possibly mean a (slight)
+           numerical noise.
 
         EXAMPLES:
 
@@ -8069,13 +8085,13 @@ class GenericGraph(GenericGraph_pyx):
 
 
         from sage.numerical.mip import MixedIntegerLinearProgram
-        g=self
-        p=MixedIntegerLinearProgram(maximization=True, solver = solver)
-        flow=p.new_variable(nonnegative=True)
+        g = self
+        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+        flow = p.new_variable(nonnegative=True)
 
         if g.is_directed():
             # This function return the balance of flow at X
-            flow_sum=lambda X: p.sum([flow[(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-p.sum([flow[(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
+            flow_sum = lambda X: p.sum([flow[(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-p.sum([flow[(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
 
             # The flow leaving x
             flow_leaving = lambda X : p.sum([flow[(uu,vv)] for (uu,vv) in g.outgoing_edges([X],labels=None)])
@@ -8085,7 +8101,7 @@ class GenericGraph(GenericGraph_pyx):
 
         else:
             # This function return the balance of flow at X
-            flow_sum=lambda X:p.sum([flow[(X,v)]-flow[(v,X)] for v in g[X]])
+            flow_sum = lambda X:p.sum([flow[(X,v)]-flow[(v,X)] for v in g[X]])
 
             # The flow leaving x
             flow_leaving = lambda X : p.sum([flow[(X,vv)] for vv in g[X]])
@@ -8116,14 +8132,14 @@ class GenericGraph(GenericGraph_pyx):
 
 
         if value_only:
-            return p.solve(objective_only=True, log = verbose)
+            return p.solve(objective_only=True, log=verbose)
 
-        obj=p.solve(log = verbose)
+        obj = p.solve(log=verbose)
 
         if integer or use_edge_labels is False:
             obj = Integer(round(obj))
 
-        flow=p.get_values(flow)
+        flow = p.get_values(flow)
         # Builds a clean flow Draph
         flow_graph = g._build_flow_graph(flow, integer=integer)
 
@@ -8533,19 +8549,17 @@ class GenericGraph(GenericGraph_pyx):
 
     def multicommodity_flow(self, terminals, integer=True, use_edge_labels=False,vertex_bound=False, solver=None, verbose=0):
         r"""
-        Solves a multicommodity flow problem.
+        Solve a multicommodity flow problem.
 
-        In the multicommodity flow problem, we are given a set of pairs
-        `(s_i, t_i)`, called terminals meaning that `s_i` is willing
-        some flow to `t_i`.
+        In the multicommodity flow problem, we are given a set of pairs `(s_i,
+        t_i)`, called terminals meaning that `s_i` is willing some flow to
+        `t_i`.
 
-        Even though it is a natural generalisation of the flow problem
-        this version of it is NP-Complete to solve when the flows
-        are required to be integer.
+        Even though it is a natural generalisation of the flow problem this
+        version of it is NP-Complete to solve when the flows are required to be
+        integer.
 
-        For more information, see the
-        :wikipedia:`Wikipedia page on multicommodity flows
-        <Multi-commodity_flow_problem>`.
+        For more information, see the :wikipedia:`Multi-commodity_flow_problem`.
 
         INPUT:
 
@@ -8566,13 +8580,16 @@ class GenericGraph(GenericGraph_pyx):
           still send or receive several units of flow even though vertex_bound is set
           to ``True``, as this parameter is meant to represent topological properties.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0 by
+          default (quiet).
 
         ALGORITHM:
 
@@ -8580,9 +8597,8 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        An easy way to obtain a satisfiable multiflow is to compute
-        a matching in a graph, and to consider the paired vertices
-        as terminals ::
+        An easy way to obtain a satisfiable multiflow is to compute a matching
+        in a graph, and to consider the paired vertices as terminals ::
 
             sage: g = graphs.PetersenGraph()
             sage: matching = [(u,v) for u,v,_ in g.matching()]
@@ -8590,9 +8606,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: len(h)
             5
 
-        We could also have considered ``g`` as symmetric and computed
-        the multiflow in this version instead. In this case, however
-        edges can be used in both directions at the same time::
+        We could also have considered ``g`` as symmetric and computed the
+        multiflow in this version instead. In this case, however edges can be
+        used in both directions at the same time::
 
             sage: h = DiGraph(g).multicommodity_flow(matching)
             sage: len(h)
@@ -8607,8 +8623,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.numerical.mip import MixedIntegerLinearProgram
-        g=self
-        p=MixedIntegerLinearProgram(maximization=True, solver = solver)
+        g = self
+        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
 
         # Adding the intensity if not present
         terminals = [(x if len(x) == 3 else (x[0],x[1],1)) for x in terminals]
@@ -8620,18 +8636,18 @@ class GenericGraph(GenericGraph_pyx):
             set_terminals.add(t)
 
         # flow[i,(u,v)] is the flow of commodity i going from u to v
-        flow=p.new_variable(nonnegative=True)
+        flow = p.new_variable(nonnegative=True)
 
         # Whether to use edge labels
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
-            capacity=lambda x: x if x in RR else 1
+            capacity = lambda x: x if x in RR else 1
         else:
-            capacity=lambda x: 1
+            capacity = lambda x: 1
 
         if g.is_directed():
             # This function return the balance of flow at X
-            flow_sum=lambda i,X: p.sum([flow[i,(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-p.sum([flow[i,(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
+            flow_sum = lambda i,X: p.sum([flow[i,(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-p.sum([flow[i,(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
 
             # The flow leaving x
             flow_leaving = lambda i,X : p.sum([flow[i,(uu,vv)] for (uu,vv) in g.outgoing_edges([X],labels=None)])
@@ -8641,7 +8657,7 @@ class GenericGraph(GenericGraph_pyx):
 
         else:
             # This function return the balance of flow at X
-            flow_sum=lambda i,X:p.sum([flow[i,(X,v)]-flow[i,(v,X)] for v in g[X]])
+            flow_sum = lambda i,X:p.sum([flow[i,(X,v)]-flow[i,(v,X)] for v in g[X]])
 
             # The flow leaving x
             flow_leaving = lambda i, X : p.sum([flow[i,(X,vv)] for vv in g[X]])
@@ -8695,7 +8711,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("The multiflow problem has no solution")
 
-        flow=p.get_values(flow)
+        flow = p.get_values(flow)
 
         # building clean flow digraphs
         flow_graphs = [g._build_flow_graph({e:f for (ii,e),f in iteritems(flow) if ii == i}, integer=integer)
@@ -8804,39 +8820,38 @@ class GenericGraph(GenericGraph_pyx):
 
     def disjoint_routed_paths(self,pairs, solver=None, verbose=0):
         r"""
-        Returns a set of disjoint routed paths.
+        Return a set of disjoint routed paths.
 
-        Given a set of pairs `(s_i,t_i)`, a set
-        of disjoint routed paths is a set of
-        `s_i-t_i` paths which can intersect at their endpoints
-        and are vertex-disjoint otherwise.
+        Given a set of pairs `(s_i,t_i)`, a set of disjoint routed paths is a
+        set of `s_i-t_i` paths which can intersect at their endpoints and are
+        vertex-disjoint otherwise.
 
         INPUT:
 
         - ``pairs`` -- list of pairs of vertices
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` (integer) -- sets the level of verbosity. Set to `0`
           by default (quiet).
 
         EXAMPLES:
 
-        Given a grid, finding two vertex-disjoint
-        paths, the first one from the top-left corner
-        to the bottom-left corner, and the second from
-        the top-right corner to the bottom-right corner
-        is easy ::
+        Given a grid, finding two vertex-disjoint paths, the first one from the
+        top-left corner to the bottom-left corner, and the second from the
+        top-right corner to the bottom-right corner is easy ::
 
             sage: g = graphs.GridGraph([5,5])
             sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (0,4)), ((4,4), (4,0))])
 
-        Though there is obviously no solution to the problem
-        in which each corner is sending information to the opposite
-        one::
+        Though there is obviously no solution to the problem in which each
+        corner is sending information to the opposite one::
 
             sage: g = graphs.GridGraph([5,5])
             sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (4,4)), ((0,4), (4,0))])
@@ -8846,27 +8861,25 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
         try:
-            return self.multicommodity_flow(pairs, vertex_bound = True, solver=solver, verbose=verbose)
+            return self.multicommodity_flow(pairs, vertex_bound=True, solver=solver, verbose=verbose)
         except EmptySetError:
             raise EmptySetError("The disjoint routed paths do not exist.")
 
-    def edge_disjoint_paths(self, s, t, algorithm = "FF"):
+    def edge_disjoint_paths(self, s, t, algorithm="FF", solver=None, verbose=False):
         r"""
-        Returns a list of edge-disjoint paths between two
-        vertices as given by Menger's theorem.
+        Return a list of edge-disjoint paths between two vertices.
 
-        The edge version of Menger's theorem asserts that the size
-        of the minimum edge cut between two vertices `s` and`t`
-        (the minimum number of edges whose removal disconnects `s`
-        and `t`) is equal to the maximum number of pairwise
-        edge-independent paths from `s` to `t`.
+        The edge version of Menger's theorem asserts that the size of the
+        minimum edge cut between two vertices `s` and`t` (the minimum number of
+        edges whose removal disconnects `s` and `t`) is equal to the maximum
+        number of pairwise edge-independent paths from `s` to `t`.
 
         This function returns a list of such paths.
 
         INPUT:
 
-        - ``algorithm`` -- There are currently two different
-          implementations of this method :
+        - ``algorithm`` -- There are currently two different implementations of
+          this method :
 
               * If ``algorithm = "FF"`` (default), a Python implementation of the
                 Ford-Fulkerson algorithm is used.
@@ -8874,10 +8887,21 @@ class GenericGraph(GenericGraph_pyx):
               * If ``algorithm = "LP"``, the flow problem is solved using
                 Linear Programming.
 
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
         .. NOTE::
 
-            This function is topological: it does not take the eventual
-            weights of the edges into account.
+            This function is topological: it does not take the eventual weights
+            of the edges into account.
 
         EXAMPLES:
 
@@ -8888,7 +8912,8 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
         """
 
-        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False, algorithm=algorithm)
+        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False,
+                                      algorithm=algorithm, solver=solver, verbose=verbose)
 
         paths = []
 
@@ -8906,10 +8931,9 @@ class GenericGraph(GenericGraph_pyx):
 
         return paths
 
-    def vertex_disjoint_paths(self, s, t):
+    def vertex_disjoint_paths(self, s, t, solver=None, verbose=0):
         r"""
-        Return a list of vertex-disjoint paths between two vertices as given by
-        Menger's theorem.
+        Return a list of vertex-disjoint paths between two vertices.
 
         The vertex version of Menger's theorem asserts that the size of the
         minimum vertex cut between two vertices `s` and `t` (the minimum number
@@ -8917,6 +8941,22 @@ class GenericGraph(GenericGraph_pyx):
         maximum number of pairwise vertex-independent paths from `s` to `t`.
 
         This function returns a list of such paths.
+
+        INPUT:
+
+        - ``s,t`` -- two vertices of the graph.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
 
         EXAMPLES:
 
@@ -8936,7 +8976,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.vertex_disjoint_paths(1,0)
             []
         """
-        obj, flow_graph = self.flow(s, t, value_only=False, integer=True, use_edge_labels=False, vertex_bound=True)
+        obj, flow_graph = self.flow(s, t, value_only=False, integer=True, use_edge_labels=False,
+                                    vertex_bound=True, solver=solver, verbose=verbose)
 
         paths = []
         if not obj:
@@ -8956,15 +8997,11 @@ class GenericGraph(GenericGraph_pyx):
 
     def dominating_set(self, independent=False, total=False, value_only=False, solver=None, verbose=0):
         r"""
-        Returns a minimum dominating set of the graph
-        represented by the list of its vertices. For more information, see the
-        `Wikipedia article on dominating sets
-        <http://en.wikipedia.org/wiki/Dominating_set>`_.
+        Return a minimum dominating set of the graph.
 
-        A minimum dominating set `S` of a graph `G` is
-        a set of its vertices of minimal cardinality such
-        that any vertex of `G` is in `S` or has one of its neighbors
-        in `S`.
+        A minimum dominating set `S` of a graph `G` is a set of its vertices of
+        minimal cardinality such that any vertex of `G` is in `S` or has one of
+        its neighbors in `S`. See :wikipedia:`Dominating_set`.
 
         As an optimization problem, it can be expressed as:
 
@@ -21170,35 +21207,52 @@ class GenericGraph(GenericGraph_pyx):
 
         return (len(partition) == len(new_partition))
 
-    def is_hamiltonian(self):
+    def is_hamiltonian(self, solver=None, constraint_generation=None,
+                       verbose=0, verbose_constraints=False):
         r"""
-        Tests whether the current graph is Hamiltonian.
+        Test whether the current graph is Hamiltonian.
 
-        A graph (resp. digraph) is said to be Hamiltonian
-        if it contains as a subgraph a cycle (resp. a circuit)
-        going through all the vertices.
+        A graph (resp. digraph) is said to be Hamiltonian if it contains as a
+        subgraph a cycle (resp. a circuit) going through all the vertices.
 
-        Testing for Hamiltonicity being NP-Complete, this
-        algorithm could run for some time depending on
-        the instance.
+        Testing for Hamiltonicity being NP-Complete, this algorithm could run
+        for some time depending on the instance.
 
         ALGORITHM:
 
-        See ``Graph.traveling_salesman_problem``.
+        See :meth:`~Graph.traveling_salesman_problem`.
+
+        INPUT:
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``constraint_generation`` (boolean) -- whether to use constraint
+          generation when solving the Mixed Integer Linear Program.  When
+          ``constraint_generation = None``, constraint generation is used
+          whenever the graph has a density larger than 70%.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``verbose_constraints`` -- whether to display which constraints are
+          being generated.
 
         OUTPUT:
 
-        Returns ``True`` if a Hamiltonian cycle/circuit exists, and
-        ``False`` otherwise.
+        Returns ``True`` if a Hamiltonian cycle/circuit exists, and ``False``
+        otherwise.
 
         NOTE:
 
         This function, as ``hamiltonian_cycle`` and
-        ``traveling_salesman_problem``, computes a Hamiltonian
-        cycle if it exists: the user should *NOT* test for
-        Hamiltonicity using ``is_hamiltonian`` before calling
-        ``hamiltonian_cycle`` or ``traveling_salesman_problem``
-        as it would result in computing it twice.
+        ``traveling_salesman_problem``, computes a Hamiltonian cycle if it
+        exists: the user should *NOT* test for Hamiltonicity using
+        ``is_hamiltonian`` before calling ``hamiltonian_cycle`` or
+        ``traveling_salesman_problem`` as it would result in computing it twice.
 
         EXAMPLES:
 
@@ -21230,7 +21284,9 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
         try:
-            self.traveling_salesman_problem(use_edge_labels=False)
+            self.traveling_salesman_problem(use_edge_labels=False, solver=solver,
+                                            constraint_generation=constraint_generation,
+                                            verbose=verbose, verbose_constraints=verbose_constraints)
             return True
         except EmptySetError:
             return False

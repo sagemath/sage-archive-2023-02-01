@@ -33,8 +33,7 @@ from cysignals.memory cimport sig_free, sig_malloc
 from sage.ext.stdsage cimport PY_NEW
 
 cimport sage.rings.padics.local_generic_element
-from sage.libs.gmp.mpz cimport mpz_set_si, mpz_fits_slong_p, mpz_get_si,mpz_mul_si, mpz_mul, mpz_set
-from sage.libs.gmp.mpq cimport mpq_init, mpq_set_si, mpq_clear, mpq_add, mpq_set, mpq_canonicalize, mpq_denref, mpq_numref
+from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.rational cimport Rational

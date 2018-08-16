@@ -30,6 +30,7 @@ from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
 from sage.structure.element import coerce_binop
 
+
 class LieAlgebras(Category_over_base_ring):
     """
     The category of Lie algebras.
@@ -91,6 +92,55 @@ class LieAlgebras(Category_over_base_ring):
         # Also this doesn't inherit the ability to add axioms like Associative
         #   and Unital, both of which do not make sense for Lie algebras
         return [Modules(self.base_ring())]
+
+    class SubcategoryMethods:
+        def Nilpotent(self):
+            r"""
+            Return the full subcategory of nilpotent objects of ``self``.
+
+            A Lie algebra `L` is nilpotent if there exist an integer `s` such
+            that all iterated brackets of `L` of length more than `s` vanish.
+            The integer `s` is called the nilpotency step.
+            For instance any abelian Lie algebra is nilpotent of step 1.
+
+            EXAMPLES::
+
+                sage: LieAlgebras(QQ).Nilpotent()
+                Category of nilpotent Lie algebras over Rational Field
+                sage: LieAlgebras(QQ).WithBasis().Nilpotent()
+                Category of nilpotent lie algebras with basis over Rational Field
+            """
+            return self._with_axiom("Nilpotent")
+
+        def Stratified(self, base_ring=None):
+            r"""
+            Return the full subcategory of stratified objects of ``self``.
+
+            INPUT:
+
+            - ``base_ring`` -- this is ignored
+
+            A Lie algebra is stratified if it is graded and generated as a
+            Lie algebra by its component of degree one.
+
+            EXAMPLES::
+
+                sage: LieAlgebras(QQ).Stratified()
+                Category of stratified Lie algebras over Rational Field
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            from sage.categories.graded_lie_algebras import StratifiedLieAlgebrasCategory
+            return StratifiedLieAlgebrasCategory.category_of(self)
+
+    Nilpotent = LazyImport('sage.categories.nilpotent_lie_algebras',
+                           'NilpotentLieAlgebras',
+                           as_name='Nilpotent')
+    Graded = LazyImport('sage.categories.graded_lie_algebras',
+                        'GradedLieAlgebras',
+                        as_name='Graded')
+    Stratified = LazyImport('sage.categories.graded_lie_algebras',
+                            'StratifiedLieAlgebras',
+                            as_name='Stratified')
 
     # TODO: Find some way to do this without copying most of the logic.
     def _repr_object_names(self):

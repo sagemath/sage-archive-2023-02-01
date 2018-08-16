@@ -21,6 +21,7 @@ from __future__ import print_function
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.subobjects import SubobjectsCategory
@@ -59,6 +60,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         """
         from sage.categories.examples.finite_dimensional_lie_algebras_with_basis import Example
         return Example(self.base_ring(), n)
+
+    Nilpotent = LazyImport('sage.categories.nilpotent_lie_algebras',
+                           'FiniteDimensionalNilpotentLieAlgebrasWithBasis',
+                           as_name='Nilpotent')
+    Graded = LazyImport('sage.categories.graded_lie_algebras',
+                        'FiniteDimensionalGradedLieAlgebrasWithBasis',
+                        as_name='Graded')
+    Stratified = LazyImport('sage.categories.graded_lie_algebras',
+                            'FiniteDimensionalStratifiedLieAlgebrasWithBasis',
+                            as_name='Stratified')
 
     class ParentMethods:
         @cached_method
@@ -749,11 +760,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return tuple(L)
 
         @cached_method
-        def lower_central_series(self):
+        def lower_central_series(self, submodule=False):
             r"""
             Return the lower central series `(\mathfrak{g}_{i})_i`
             of ``self`` where the rightmost
             `\mathfrak{g}_k = \mathfrak{g}_{k+1} = \cdots`.
+
+            INPUT:
+
+            - ``submodule`` -- (default: ``False``) if ``True``, then the
+              result is given as submodules of ``self``
 
             We define the lower central series of a Lie algebra `\mathfrak{g}`
             recursively by `\mathfrak{g}_0 := \mathfrak{g}` and
@@ -783,6 +799,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     with basis matrix:
                     [])
 
+            The lower central series as submodules::
+
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.lower_central_series(submodule=True)
+                (Sparse vector space of dimension 2 over Rational Field,
+                Vector space of degree 2 and dimension 1 over Rational Field
+                Basis matrix:
+                [1 0])
+
             ::
 
                 sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
@@ -791,9 +816,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
                 (x,))
             """
-            L = [self]
+            if submodule:
+                L = [self.module()]
+            else:
+                L = [self]
             while L[-1].dimension() > 0:
-                s = self.product_space(L[-1])
+                s = self.product_space(L[-1], submodule = submodule)
                 if L[-1].dimension() == s.dimension():
                     break
                 L.append(s)

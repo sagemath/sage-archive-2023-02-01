@@ -3709,7 +3709,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.nops()
             38
 
-            sage: x,y,z = var('x y z');
+            sage: x,y,z = var('x y z')
             sage: print((-x+z)*(3*x-3*z))
             -3*(x - z)^2
 
@@ -10179,7 +10179,7 @@ cdef class Expression(CommutativeRingElement):
         # better not call this unless your variables really are real
         # anyway.
         for v in self.variables():
-            assume(v, 'real');
+            assume(v, 'real')
 
         # This will round trip through Maxima, essentially performing
         # self.simplify() in the process.

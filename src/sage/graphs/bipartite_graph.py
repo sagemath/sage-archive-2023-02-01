@@ -232,7 +232,7 @@ class BipartiteGraph(Graph):
                              1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
                              2 0 0 \n 3 0 0 \n 4 0 0 \n\
                              1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
-         sage: fi.close();
+         sage: fi.close()
          sage: B = BipartiteGraph(file_name)
          sage: B == H
          True
@@ -1068,7 +1068,7 @@ class BipartiteGraph(Graph):
                                 1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
                                 2 0 0 \n 3 0 0 \n 4 0 0 \n\
                                 1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
-            sage: fi.close();
+            sage: fi.close()
             sage: B = BipartiteGraph()
             sage: B.load_afile(file_name)
             Bipartite graph on 11 vertices

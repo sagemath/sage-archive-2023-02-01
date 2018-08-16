@@ -109,7 +109,7 @@ Sage example in ./programmation.tex, line 502::
 
 Sage example in ./programmation.tex, line 574::
 
-  sage: U = 2.0; V = 50.0;
+  sage: U = 2.0; V = 50.0
   sage: while V-U >= 1.0e-6:      # 1.0e-6 signifie 1.0*10^-6
   ....:   temp = U
   ....:   U = 2 * U * V / (U + V)

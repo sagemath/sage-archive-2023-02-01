@@ -92,7 +92,7 @@ R will recognize it as the correct thing::
     sage: r.seq(length=10, from_=-1, by=.2)
     [1] -1.0 -0.8 -0.6 -0.4 -0.2  0.0  0.2  0.4  0.6  0.8
 
-    sage: x = r([10.4,5.6,3.1,6.4,21.7]);
+    sage: x = r([10.4,5.6,3.1,6.4,21.7])
     sage: x.rep(2)
     [1] 10.4  5.6  3.1  6.4 21.7 10.4  5.6  3.1  6.4 21.7
     sage: x.rep(times=2)
@@ -156,7 +156,7 @@ Index vectors; selecting and modifying subsets of a data set::
 
 Distributions::
 
-    sage: r.options(width="60");
+    sage: r.options(width="60")
     $width
     [1] 100
 
@@ -1071,7 +1071,7 @@ class R(ExtraTabCompletion, Expect):
         a filename like ``Rplot001.png`` - from the command line, in
         the current directory, and in the cell directory in the notebook::
 
-            sage: d=r.setwd('"%s"'%SAGE_TMP)    # for doctesting only; ignore if you are trying this;
+            sage: d=r.setwd('"%s"'%SAGE_TMP)    # for doctesting only; ignore if you are trying this
             sage: r.plot("1:10")                # optional -- rgraphics
             null device
                       1
@@ -1888,7 +1888,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
             P.library('Hmisc')
         except ImportError:
             raise RuntimeError("The R package 'Hmisc' is required for R to LaTeX conversion, but it is not available.")
-        return LatexExpr(P.eval('latex(%s, file="");'%self.name()))
+        return LatexExpr(P.eval('latex(%s, file="");' % self.name()))
 
 
 @instancedoc

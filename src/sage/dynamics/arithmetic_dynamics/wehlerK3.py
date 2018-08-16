@@ -446,7 +446,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z, Y])
-            sage: T = PP(1, 1, 0, 1, 0, 0);
+            sage: T = PP(1, 1, 0, 1, 0, 0)
             sage: X.Lxa(T[0])
             y0 + y1
         """
@@ -483,7 +483,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
            - 4*x1*x2*y0*y2 + 7*x0^2*y1*y2 + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2 \
            sage: Y = x0*y0 + x1*y1 + x2*y2
            sage: X = WehlerK3Surface([Z, Y])
-           sage: T = PP(1, 1, 0, 1, 0, 0);
+           sage: T = PP(1, 1, 0, 1, 0, 0)
            sage: X.Qxa(T[0])
            5*y0^2 + 7*y0*y1 + y1^2 + 11*y1*y2 + y2^2
         """
@@ -522,7 +522,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
            sage: Y = x0*y0 + x1*y1 + x2*y2
            sage: Y = x0*y0 + x1*y1 + x2*y2
            sage: X = WehlerK3Surface([Z, Y])
-           sage: T = PP(1, 1, 0, 1, 0, 0);
+           sage: T = PP(1, 1, 0, 1, 0, 0)
            sage: X.Sxa(T[0])
              Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               y0 + y1,
@@ -558,7 +558,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
            sage: Y = x0*y0 + x1*y1 + x2*y2
            sage: Y = x0*y0 + x1*y1 + x2*y2
            sage: X = WehlerK3Surface([Z, Y])
-           sage: T = PP(1, 1, 0, 1, 0, 0);
+           sage: T = PP(1, 1, 0, 1, 0, 0)
            sage: X.Lyb(T[1])
              x0
         """
@@ -595,7 +595,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z, Y])
-            sage: T = PP(1, 1, 0, 1, 0, 0);
+            sage: T = PP(1, 1, 0, 1, 0, 0)
             sage: X.Qyb(T[1])
             x0^2 + 3*x0*x1 + x1^2
         """
@@ -631,7 +631,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
            + 4*x1^2*y1*y2 + x0*x1*y2^2 + 3*x2^2*y2^2
            sage: Y = x0 * y0 + x1 * y1 + x2 * y2
            sage: X = WehlerK3Surface([Z, Y])
-           sage: T = PP(1, 1, 0, 1, 0, 0);
+           sage: T = PP(1, 1, 0, 1, 0, 0)
            sage: X.Syb(T[1])
             Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x0,

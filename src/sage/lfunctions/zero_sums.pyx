@@ -1158,7 +1158,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1))) # tol 1.0e-13
             (1, 1.0103840698356263)
             sage: E = EllipticCurve("121a")
-            sage: Z = LFunctionZeroSum(E);
+            sage: Z = LFunctionZeroSum(E)
             sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))) # tol 1.0e-13
             (0, 0.0104712060086507)
 
@@ -1442,7 +1442,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             1.0103840698356263
             sage: E = EllipticCurve("121a"); print(E.rank())
             0
-            sage: Z = LFunctionZeroSum(E);
+            sage: Z = LFunctionZeroSum(E)
             sage: print(Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=2)) # tol 1.0e-11
             0.01047120600865063
 

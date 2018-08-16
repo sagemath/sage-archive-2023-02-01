@@ -3520,7 +3520,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: g=graphs.CycleGraph(5);
+            sage: g = graphs.CycleGraph(5)
             sage: g.eulerian_circuit()
             [(0, 4, None), (4, 3, None), (3, 2, None), (2, 1, None), (1, 0, None)]
             sage: g.eulerian_circuit(labels=False)

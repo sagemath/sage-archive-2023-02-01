@@ -84,7 +84,7 @@ class Graphics(WithEqualityById, SageObject):
     Here we make a graphic of embedded isosceles triangles, coloring
     each one with a different color as we go::
 
-        sage: h=10; c=0.4; p=0.5;
+        sage: h=10; c=0.4; p=0.5
         sage: G = Graphics()
         sage: for x in srange(1,h+1):
         ....:     l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]

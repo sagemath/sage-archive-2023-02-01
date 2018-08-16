@@ -206,7 +206,7 @@ def matching_polynomial(G, complement=True, name=None):
     
     Non-integer labels should work, (:trac:`15545`):: 
     
-        sage: G = Graph(10);
+        sage: G = Graph(10)
         sage: G.add_vertex((0,1))
         sage: G.add_vertex('X')
         sage: G.matching_polynomial()

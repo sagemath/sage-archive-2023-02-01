@@ -50,7 +50,7 @@ class BackendIPython(BackendBase):
             sage: from sage.repl.interpreter import get_test_shell
             sage: from sage.repl.rich_output.backend_ipython import BackendIPython
             sage: backend = BackendIPython()
-            sage: shell = get_test_shell();
+            sage: shell = get_test_shell()
             sage: backend.install(shell=shell)
             sage: shell.run_cell('1+1')
             2

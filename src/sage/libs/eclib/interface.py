@@ -1014,7 +1014,7 @@ class mwrank_MordellWeil(SageObject):
             WARNING: saturation at primes p > 2 will not be done;
             ...
             Gained index 2
-            New regulator =  93.857300720636393209
+            New regulator =  93.857...
             (False, 2, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
@@ -1025,7 +1025,7 @@ class mwrank_MordellWeil(SageObject):
             WARNING: saturation at primes p > 3 will not be done;
             ...
             Gained index 3
-            New regulator =  10.4285889689595992455
+            New regulator =  10.428...
             (False, 3, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [-13422227300, -49322830557, 12167000000]]
@@ -1036,7 +1036,7 @@ class mwrank_MordellWeil(SageObject):
             WARNING: saturation at primes p > 5 will not be done;
             ...
             Gained index 5
-            New regulator =  0.417143558758383969818
+            New regulator =  0.417...
             (False, 5, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [1, -1, 1]]
@@ -1221,7 +1221,7 @@ class mwrank_MordellWeil(SageObject):
             WARNING: saturation at primes p > 2 will not be done;
             ...
             Gained index 2
-            New regulator =  93.857300720636393209
+            New regulator =  93.857...
             (False, 2, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
@@ -1235,7 +1235,7 @@ class mwrank_MordellWeil(SageObject):
             WARNING: saturation at primes p > 3 will not be done;
             ...
             Gained index 3
-            New regulator =  10.4285889689595992455
+            New regulator =  10.428...
             (False, 3, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [-13422227300:-49322830557:12167000000]]
@@ -1249,7 +1249,7 @@ class mwrank_MordellWeil(SageObject):
             WARNING: saturation at primes p > 5 will not be done;
             ...
             Gained index 5
-            New regulator =  0.417143558758383969818
+            New regulator =  0.417...
             (False, 5, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]

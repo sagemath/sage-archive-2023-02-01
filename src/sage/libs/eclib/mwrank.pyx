@@ -1234,9 +1234,9 @@ cdef class _two_descent:
             sage: D2.saturate()
             Searching for points (bound = 8)...done:
               found points which generate a subgroup of rank 3
-              and regulator 0.417143558758383969817119544618093396749810106098479
+              and regulator 0.417...
             Processing points found during 2-descent...done:
-              now regulator = 0.417143558758383969817119544618093396749810106098479
+              now regulator = 0.417...
             No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
@@ -1281,9 +1281,9 @@ cdef class _two_descent:
             sage: D2.saturate()
             Searching for points (bound = 8)...done:
               found points which generate a subgroup of rank 3
-              and regulator 0.417143558758383969817119544618093396749810106098479
+              and regulator 0.417...
             Processing points found during 2-descent...done:
-              now regulator = 0.417143558758383969817119544618093396749810106098479
+              now regulator = 0.417...
             No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
@@ -1329,9 +1329,9 @@ cdef class _two_descent:
             sage: D2.saturate()
             Searching for points (bound = 8)...done:
               found points which generate a subgroup of rank 3
-              and regulator 0.417143558758383969817119544618093396749810106098479
+              and regulator 0.417...
             Processing points found during 2-descent...done:
-              now regulator = 0.417143558758383969817119544618093396749810106098479
+              now regulator = 0.417...
             No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'

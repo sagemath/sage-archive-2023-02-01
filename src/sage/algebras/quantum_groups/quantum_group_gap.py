@@ -31,6 +31,7 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.libs.gap.libgap import libgap
+from sage.features.gap import GapPackage
 from sage.graphs.digraph import DiGraph
 from sage.rings.rational_field import QQ
 from sage.categories.algebras import Algebras
@@ -364,6 +365,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
             sage: TestSuite(Q).run()  # long time  # optional - gap_packages
         """
         self._cartan_type = cartan_type
+        GapPackage("QuaGroup", spkg="gap_packages").require()
         libgap.LoadPackage('QuaGroup')
         R = libgap.eval('RootSystem("%s",%s)'%(cartan_type.type(), cartan_type.rank()))
         Q = self._cartan_type.root_system().root_lattice()

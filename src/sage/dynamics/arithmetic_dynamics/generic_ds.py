@@ -63,8 +63,8 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
       * ``morphism_or_polys`` is a list of homogeneous polynomials and
         ``domain`` is unspecified; ``domain`` is then taken to be the
-        projective space of appropriate dimension over the base ring of
-        the first element of ``morphism_or_polys``
+        projective space of appropriate dimension over the common parent
+        of the elements in ``morphism_or_polys``
 
       * ``morphism_or_polys`` is a single polynomial or rational
         function; ``domain`` is ignored and taken to be a
@@ -115,6 +115,30 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             Dynamical System of Affine Space of dimension 2 over Rational Field
               Defn: Defined on coordinates by sending (x, y) to
                     (y, x)
+
+    Note that ``domain`` is ignored if an endomorphism is passed in::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+        sage: P2.<x,y> = ProjectiveSpace(CC, 1)
+        sage: H = End(P2)
+        sage: f = H([CC.0*x^2, y^2])
+        sage: g = DynamicalSystem(f, domain=P)
+        sage: g.domain()
+        Projective Space of dimension 1 over Complex Field with 53 bits of precision
+
+    Constructing a common parent::
+
+        sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+        sage: DynamicalSystem([CC.0*x^2, 4/5*y^2])
+        Dynamical System of Projective Space of dimension 1 over Complex Field with 53 bits of precision
+          Defn: Defined on coordinates by sending (x : y) to
+                (1.00000000000000*I*x^2 : 0.800000000000000*y^2)
+        sage: P.<x,y> = ProjectiveSpace(GF(5), 1)
+        sage: K.<t> = GF(25)
+        sage: DynamicalSystem([GF(5)(3)*x^2, K(t)*y^2])
+        Dynamical System of Projective Space of dimension 1 over Finite Field in t of size 5^2
+          Defn: Defined on coordinates by sending (x : y) to
+                (-2*x^2 : (t)*y^2)
     """
 
     @staticmethod

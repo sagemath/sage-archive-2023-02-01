@@ -2031,18 +2031,22 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
             sage: from brial import BooleanMonomialMonoid
             sage: R.<t,y> = BooleanPolynomialRing(2)
             sage: N = BooleanMonomialMonoid(R)
-            sage: m = M(N(y)); m
+            sage: M(N(y))
+            y
+            sage: M(N(t))
             Traceback (most recent call last):
             ...
-            TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
+            ValueError: cannot convert monomial t to MonomialMonoid of Boolean PolynomialRing in x, y, z: name t not defined
 
             sage: from brial import BooleanMonomialMonoid
             sage: R.<t,x,y,z> = BooleanPolynomialRing(4)
             sage: N = BooleanMonomialMonoid(R)
-            sage: m = M(N(x*y*z)); m
+            sage: M(N(x*y*z))
+            x*y*z
+            sage: M(N(x*y*t))
             Traceback (most recent call last):
             ...
-            TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
+            ValueError: cannot convert monomial t*x*y to MonomialMonoid of Boolean PolynomialRing in x, y, z: name t not defined
         """
         if isinstance(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._parent.ngens() <= \
@@ -2170,7 +2174,7 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
                 except NameError as msg:
                     raise ValueError("cannot convert monomial %s to %s: %s" % (other, self, msg))
                 m = self._one_element
-                for i in other:
+                for i in other.iterindex():
                     m *= var_mapping[i]
                 return m
         elif isinstance(other, BooleSet):

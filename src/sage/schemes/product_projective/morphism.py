@@ -236,6 +236,114 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         newP = [f(Q) for f in self.defining_polynomials()]
         return(A.point(newP, check))
 
+    def __eq__(self, right):
+        """
+        Tests the equality of two product projective morphisms.
+
+        INPUT:
+
+        - ``right`` - a map on product of projective space.
+
+        OUTPUT:
+
+        - Boolean - True if ``self`` and ``right`` define the same product projective
+          map. False otherwise.
+
+        EXAMPLES::
+
+            sage: P1.<x1,x2,x3,x4> = ProductProjectiveSpaces([1, 1], QQ)
+            sage: P2.<y1,y2,y3,y4> = ProductProjectiveSpaces([1, 1], CC)
+            sage: H1 = End(P1); H2 = End(P2)
+            sage: f = H1([x1*x2, x2^2, x3*x4, x4^2])
+            sage: g = H2([y1*y2, y2^2, y3*y4, y4^2])
+            sage: f == g
+            False
+
+        ::
+
+            sage: P.<x,y,u,v> = ProductProjectiveSpaces([1, 1], QQ)
+            sage: H = Hom(P, P)
+            sage: f = H([x^2, y^2, u^2, v^2])
+            sage: g = H([x^2, x*y, u*v, u^2])
+            sage: f == g
+            False
+
+        ::
+
+            sage: PP.<x,y,z,a,b> = ProductProjectiveSpaces([2,1], ZZ)
+            sage: H = End(PP)
+            sage: f = H([x^2*y*z, x*y^2*z, x*y*z^2, a^2, b^2])
+            sage: g = H([x, y, z, a^3, a*b^2])
+            sage: f == g
+            True
+        """
+        if not isinstance(right, SchemeMorphism_polynomial):
+            return False
+        if self.parent() != right.parent():
+            return False
+        PP = self.parent().codomain()
+
+        n = PP.num_components()
+        dim = [ P.ngens() for P in PP ]
+        dim_prefix = [0,dim[0]]
+
+        for i in range(1,n):
+            dim_prefix.append(dim_prefix[i] + dim[i])
+
+        # compare ratio of coordinates for each projective component
+        for m in range(n):
+            l = dim_prefix[m]; r = dim_prefix[m] + dim[m]
+            for i in range(l,r):
+                for j in range(i+1,r):
+                    if self[i]*right[j] != self[j]*right[i]:
+                        return False
+        return True
+
+    def __ne__(self, right):
+        """
+        Tests the inequality of two prduct projective morphisms.
+
+        INPUT:
+
+        - ``right`` -- a map on product of projective space.
+
+        OUTPUT:
+
+        - Boolean -- True if ``self`` and ``right`` define different product
+          projective maps. False otherwise.
+
+        EXAMPLES::
+
+            sage: PP.<a,b,x,y,z> = ProductProjectiveSpaces([1,2], ZZ)
+            sage: E = End(PP)
+            sage: f = E([a^3, a*b^2, x*y, y*z, z*x])
+            sage: g = E([a*b, a^2, x^2, y^2, z^2])
+            sage: f != g
+            True
+            sage: f != f
+            False
+        """
+        if not isinstance(right, SchemeMorphism_polynomial):
+            return True
+        if self.parent() != right.parent():
+            return True
+        PP = self.parent().codomain()
+
+        n = PP.num_components()
+        dim = [ P.ngens() for P in PP ]
+        dim_prefix = [0,dim[0]]
+
+        for i in range(1,n):
+            dim_prefix.append(dim_prefix[i] + dim[i])
+
+        for m in range(n):
+            l = dim_prefix[m]; r = dim_prefix[m] + dim[m]
+            for i in range(l,r):
+                for j in range(i+1,r):
+                    if self[i]*right[j] != self[j]*right[i]:
+                        return True
+        return False
+
     def is_morphism(self):
         r"""
         Returns ``True`` if this mapping is a morphism of products of projective spaces.

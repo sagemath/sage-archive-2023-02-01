@@ -62,7 +62,7 @@ cdef class qAdicFixedModElement(FMElement):
             sage: (1+a).inverse_of_unit()._flint_rep()
             41*x^2 + 40*x + 42
             sage: (1+a)*(41*a^2+40*a+42)
-            1 + O(3^4)
+            1
         """
         return self.prime_pow._new_fmpz_poly(self.value, var)
 
@@ -96,7 +96,7 @@ cdef class qAdicFixedModElement(FMElement):
             sage: R.<a> = ZqFM(27,4)
             sage: b = a^2 + 5*a - 3
             sage: b._modp_rep()
-            ((a^2 + 2*a) + O(3^4), [0, 2, 1])
+            ((a^2 + 2*a), [0, 2, 1])
             sage: b._modp_rep(use_smallest_mode=True)[1]
             [0, -1, 1]
         """

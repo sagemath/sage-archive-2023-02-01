@@ -88,7 +88,7 @@ def c4c6_nonsingular(c4, c6):
         False
         sage: c4c6_nonsingular(4,8)
         False
-        sage: all([c4c6_nonsingular(*E.c_invariants()) for E in cremona_curves([    11..100])])
+        sage: all(c4c6_nonsingular(*E.c_invariants()) for E in cremona_curves([    11..100]))
         True
 
     Over number fields::
@@ -331,7 +331,8 @@ def test_b2_global(c4, c6, b2, debug=False):
         if debug:
             print("test_b2_global: wrong c-invariants")
         return False
-    if not all([E.is_local_integral_model(P) for P in c4.parent().primes_above(3)]):
+    if not all(E.is_local_integral_model(P)
+               for P in c4.parent().primes_above(3)):
         if debug:
             print("test_b2_global: not integral at all primes dividing 3")
         return False
@@ -477,11 +478,12 @@ def test_a1a3_global(c4, c6, a1, a3, debug=False):
         Elliptic Curve defined by y^2 + a*x*y = x^3 + (3784/3*a-24106/3)*x + (1772120/27*a-2790758/9) over Number Field in a with defining polynomial x^2 - 10
     """
     E = c4c6_model(c4,c6).rst_transform(a1**2/12,a1/2,a3/2)
-    if not (c4,c6) == E.c_invariants():
+    if not (c4, c6) == E.c_invariants():
         if debug:
             print("wrong c-invariants")
         return False
-    if not all([E.is_local_integral_model(P) for P in c4.parent().primes_above(2)]):
+    if not all(E.is_local_integral_model(P)
+               for P in c4.parent().primes_above(2)):
         if debug:
             print("not integral at all primes above 2")
         return False
@@ -769,7 +771,7 @@ def check_Kraus_global(c4, c6, assume_nonsingular=False, debug=False):
     three = K.ideal(3)
     Plist3 = K.primes_above(3)
     dat = [check_Kraus_local_3(c4,c6,P,True) for P in Plist3]
-    if not all([d[0] for d in dat]):
+    if not all(d[0] for d in dat):
         if debug:
             print("Local Kraus condition for (c4,c6)=(%s,%s) fails at some prime dividing 3" % (c4,c6))
         return False
@@ -796,10 +798,10 @@ def check_Kraus_global(c4, c6, assume_nonsingular=False, debug=False):
     # local a3; finally CRT these
     two = K.ideal(2)
     Plist2 = K.primes_above(2)
-    dat = [check_Kraus_local_2(c4,c6,P,None,True) for P in Plist2]
-    if not all([d[0] for d in dat]):
+    dat = [check_Kraus_local_2(c4, c6, P, None, True) for P in Plist2]
+    if not all(d[0] for d in dat):
         if debug:
-            print("Local Kraus condition for (c4,c6)=(%s,%s) fails at some prime dividing 2" % (c4,c6))
+            print("Local Kraus condition for (c4,c6)=(%s,%s) fails at some prime dividing 2" % (c4, c6))
         return False
     if debug:
         print("Local Kraus conditions for (c4,c6)=(%s,%s) pass at all primes dividing 2" % (c4,c6))
@@ -921,7 +923,7 @@ def semi_global_minimal_model(E, debug=False):
     sage: ainvs = (0, 0, 0, -382586771000351226384*a - 2498023791133552294513515, 358777608829102441023422458989744*a + 1110881475104109582383304709231832166)
     sage: E = EllipticCurve(ainvs)
     sage: from sage.schemes.elliptic_curves.kraus import semi_global_minimal_model
-    sage: Emin, p = semi_global_minimal_model(E) # long time (15s)
+    sage: Emin, p = semi_global_minimal_model(E) # long time (25s)
     sage: p                                      # long time
     Fractional ideal (23567, a + 2270)
     sage: p.norm()                               # long time
@@ -938,7 +940,7 @@ def semi_global_minimal_model(E, debug=False):
     else:
         if debug:
             print("No global minimal model, obstruction class = %s of order %s" % (c,c.order()))
-        bound = E.base_field().minkowski_bound()
+        bound = round(E.base_field().minkowski_bound())*5
         have_prime = False
         while not have_prime:
             try:
@@ -947,7 +949,7 @@ def semi_global_minimal_model(E, debug=False):
             except RuntimeError:
                 bound *=2
         if debug:
-            print("Using a prime in that class: %s" % P)
+            print("Using prime {} of norm {} in that class".format(P,P.norm()))
         I = I/P
     u = I.gens_reduced()[0]
     rc4 = c4/u**4

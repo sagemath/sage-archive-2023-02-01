@@ -82,7 +82,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(3).inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of 3 + O(3^5) does not exist
 
         Unlike the usual inverse of an element, the result is in the same ring
         as ``self`` and not just in its fraction field::
@@ -118,7 +118,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: ZpCR(3,5)(2).inverse_of_unit()
             2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
             sage: ZpFM(3,5)(2).inverse_of_unit()
-            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+            2 + 3 + 3^2 + 3^3 + 3^4
+            sage: ZpFP(3,5)(2).inverse_of_unit()
+            2 + 3 + 3^2 + 3^3 + 3^4
             sage: QpCR(3,5)(2).inverse_of_unit()
             2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
 
@@ -134,7 +136,11 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
             sage: R = ZpFM(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
             sage: t.inverse_of_unit()
-            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4 + O(3^5)
+            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4
+
+            sage: R = ZpFP(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: t.inverse_of_unit()
+            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4
 
             sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
             sage: t.inverse_of_unit()
@@ -152,7 +158,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
             sage: R = ZpFM(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
             sage: (t - 1).inverse_of_unit()
-            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
+            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9
 
             sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
             sage: (t - 1).inverse_of_unit()
@@ -160,11 +166,8 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         """
         if not self.is_unit():
-            raise ZeroDivisionError("Inverse does not exist.")
+            raise ZeroDivisionError(f"inverse of {self} does not exist")
         return self.parent()(~self)
-
-    #def __getitem__(self, n):
-    #    raise NotImplementedError
 
     def __iter__(self):
         """
@@ -424,13 +427,13 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
             sage: R = ZpFM(3,4)
             sage: R(3).add_bigoh(1)
-            O(3^4)
+            0
 
         If ``absprec`` exceeds the precision of the element, then this method
         has no effect::
 
             sage: R(3).add_bigoh(5)
-            3 + O(3^4)
+            3
 
         A negative value for ``absprec`` returns an element in the fraction field::
 

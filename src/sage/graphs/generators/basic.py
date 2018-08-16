@@ -150,31 +150,31 @@ def ButterflyGraph():
 
 def CircularLadderGraph(n):
     r"""
-    Returns a circular ladder graph with 2\*n nodes.
+    Return a circular ladder graph with `2 * n` nodes.
 
-    A Circular ladder graph is a ladder graph that is connected at the
-    ends, i.e.: a ladder bent around so that top meets bottom. Thus it
-    can be described as two parallel cycle graphs connected at each
-    corresponding node pair.
+    A Circular ladder graph is a ladder graph that is connected at the ends,
+    i.e.: a ladder bent around so that top meets bottom. Thus it can be
+    described as two parallel cycle graphs connected at each corresponding node
+    pair.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the circular
-    ladder graph is displayed as an inner and outer cycle pair, with
-    the first n nodes drawn on the inner circle. The first (0) node is
-    drawn at the top of the inner-circle, moving clockwise after that.
-    The outer circle is drawn with the (n+1)th node at the top, then
-    counterclockwise as well.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the circular ladder graph is
+    displayed as an inner and outer cycle pair, with the first `n` nodes drawn
+    on the inner circle. The first (0) node is drawn at the top of the
+    inner-circle, moving clockwise after that. The outer circle is drawn with
+    the `(n+1)`th node at the top, then counterclockwise as well.
+    When `n == 2`, we rotate the outer circle by an angle of `\pi/8` to ensure
+    that all edges are visible (otherwise the 4 vertices of the graph would be
+    placed on a single line).
 
-    EXAMPLES: Construct and show a circular ladder graph with 26 nodes
+    EXAMPLES:
 
-    ::
+    Construct and show a circular ladder graph with 26 nodes::
 
         sage: g = graphs.CircularLadderGraph(13)
         sage: g.show() # long time
 
-    Create several circular ladder graphs in a Sage graphics array
-
-    ::
+    Create several circular ladder graphs in a Sage graphics array::
 
         sage: g = []
         sage: j = []
@@ -189,18 +189,13 @@ def CircularLadderGraph(n):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
-    pos_dict = {}
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = [x,y]
-    for i in range(n,2*n):
-        x = float(2*(cos((pi/2) + ((2*pi)/n)*(i-n))))
-        y = float(2*(sin((pi/2) + ((2*pi)/n)*(i-n))))
-        pos_dict[i] = (x,y)
-
-    G = Graph(pos=pos_dict, name="Circular Ladder graph")
-    G.add_vertices(range(2 * n))
+    G = Graph(2 * n, name="Circular Ladder graph")
+    from sage.graphs.graph_plot import _circle_embedding
+    _circle_embedding(G, list(range(n)), radius=1, angle=pi/2)
+    if n == 2:
+        _circle_embedding(G, list(range(4)), radius=1, angle=pi/2 + pi/8)
+    else:
+        _circle_embedding(G, list(range(n, 2*n)), radius=2, angle=pi/2)
     G.add_cycle(list(range(n)))
     G.add_cycle(list(range(n, 2 * n)))
     G.add_edges( (i,i+n) for i in range(n) )
@@ -236,7 +231,7 @@ def ClawGraph():
 
 def CycleGraph(n):
     r"""
-    Returns a cycle graph with n nodes.
+    Return a cycle graph with n nodes.
 
     A cycle graph is a basic structure which is also typically called an
     `n`-gon.
@@ -309,22 +304,15 @@ def CycleGraph(n):
     G = Graph(n, name="Cycle graph")
     if n == 1:
         G.set_pos({0:(0, 0)})
-    elif n == 2:
-        G.add_edge(0, 1)
-        G.set_pos({0:(0, 1), 1:(0, -1)})
     else:
-        pos_dict = {}
-        for i in range(n):
-            x = float(cos((pi/2) + ((2*pi)/n)*i))
-            y = float(sin((pi/2) + ((2*pi)/n)*i))
-            pos_dict[i] = (x, y)
-        G.set_pos(pos_dict)
+        from sage.graphs.graph_plot import _circle_embedding
+        _circle_embedding(G, list(range(n)), angle=pi/2)
         G.add_cycle(list(range(n)))
     return G
 
 def CompleteGraph(n):
     """
-    Returns a complete graph on n nodes.
+    Return a complete graph on n nodes.
 
     A Complete Graph is a graph in which all nodes are connected to all
     other nodes.
@@ -400,12 +388,12 @@ def CompleteGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
     """
-    pos_dict = {}
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
-    G = graph.Graph(n,pos=pos_dict, name="Complete graph")
+    G = graph.Graph(n, name="Complete graph")
+    if n == 1:
+        G.set_pos({0:(0, 0)})
+    else:
+        from sage.graphs.graph_plot import _circle_embedding
+        _circle_embedding(G, list(range(n)), angle=pi/2)
     G.add_edges(((i,j) for i in range(n) for j in range(i+1,n)))
     return G
 
@@ -1048,43 +1036,47 @@ def LadderGraph(n):
 
 
 def PathGraph(n, pos=None):
-    """
-    Returns a path graph with n nodes. Pos argument takes a string
-    which is either 'circle' or 'line', (otherwise the default is
-    used). See the plotting section below for more detail.
+    r"""
+    Return a path graph with `n` nodes. 
 
-    A path graph is a graph where all inner nodes are connected to
-    their two neighbors and the two end-nodes are connected to their
-    one inner neighbors. (i.e.: a cycle graph without the first and
-    last node connected).
+    A path graph is a graph where all inner nodes are connected to their two
+    neighbors and the two end-nodes are connected to their one inner
+    neighbors (i.e.: a cycle graph without the first and last node connected).
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the graph may
-    be drawn in one of two ways: The 'line' argument will draw the
-    graph in a horizontal line (left to right) if there are less than
-    11 nodes. Otherwise the 'line' argument will append horizontal
-    lines of length 10 nodes below, alternating left to right and right
-    to left. The 'circle' argument will cause the graph to be drawn in
-    a cycle-shape, with the first node at the top and then about the
-    circle in a clockwise manner. By default (without an appropriate
-    string argument) the graph will be drawn as a 'circle' if 10 n 41
-    and as a 'line' for all other n.
+    INPUT:
 
-    EXAMPLES: Show default drawing by size: 'line': n 11
+    - ``n`` -- number of nodes of the path graph
+
+    - ``pos`` (default: ``None``) -- a string which is either 'circle' or 'line'
+      (otherwise the default is used) indicating which embedding algorithm to
+      use. See the plotting section below for more detail.
+
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the graph may be drawn in one of
+    two ways: The 'line' argument will draw the graph in a horizontal line (left
+    to right) if there are less than 11 nodes. Otherwise the 'line' argument
+    will append horizontal lines of length 10 nodes below, alternating left to
+    right and right to left. The 'circle' argument will cause the graph to be
+    drawn in a cycle-shape, with the first node at the top and then about the
+    circle in a clockwise manner. By default (without an appropriate string
+    argument) the graph will be drawn as a 'circle' if `10 < n < 41` and as a
+    'line' for all other `n`.
+
+    EXAMPLES: Show default drawing by size: 'line': `n \leq 10`
 
     ::
 
         sage: p = graphs.PathGraph(10)
         sage: p.show() # long time
 
-    'circle': 10 n 41
+    'circle': `10 < n < 41`
 
     ::
 
         sage: q = graphs.PathGraph(25)
         sage: q.show() # long time
 
-    'line': n 40
+    'line': `n \geq 41`
 
     ::
 
@@ -1109,10 +1101,11 @@ def PathGraph(n, pos=None):
 
     # Draw 'circle'
     if circle:
-        for i in range(n):
-            x = float(cos((pi/2) + ((2*pi)/n)*i))
-            y = float(sin((pi/2) + ((2*pi)/n)*i))
-            pos_dict[i] = (x,y)
+        if n == 1:
+            G.set_pos({0:(0, 0)})
+        else:
+            from sage.graphs.graph_plot import _circle_embedding
+            _circle_embedding(G, list(range(n)), angle=pi/2)
     # Draw 'line'
     else:
         counter = 0 # node index
@@ -1139,30 +1132,28 @@ def PathGraph(n, pos=None):
                 x = 9 - j
             pos_dict[counter] = (x,y)
             counter += 1
+        G.set_pos(pos_dict)
 
     G.add_edges( (i,i+1) for i in range(n-1) )
-    G.set_pos(pos_dict)
     return G
 
 def StarGraph(n):
-    """
-    Returns a star graph with n+1 nodes.
+    r"""
+    Return a star graph with `n+1` nodes.
 
-    A Star graph is a basic structure where one node is connected to
-    all other nodes.
-
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each star
-    graph will be displayed with the first (0) node in the center, the
-    second node (1) at the top, with the rest following in a
-    counterclockwise manner. (0) is the node connected to all other
+    A Star graph is a basic structure where one node is connected to all other
     nodes.
 
-    The star graph is a good opportunity to compare efficiency of
-    filling a position dictionary vs. using the spring-layout algorithm
-    for plotting. As far as display, the spring-layout should push all
-    other nodes away from the (0) node, and thus look very similar to
-    this constructor's positioning.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, each star graph will be
+    displayed with the first (0) node in the center, the second node (1) at the
+    top, with the rest following in a counterclockwise manner. (0) is the node
+    connected to all other nodes.
+
+    The star graph is a good opportunity to compare efficiency of filling a
+    position dictionary vs. using the spring-layout algorithm for plotting. As
+    far as display, the spring-layout should push all other nodes away from the
+    (0) node, and thus look very similar to this constructor's positioning.
 
     EXAMPLES::
 
@@ -1213,11 +1204,8 @@ def StarGraph(n):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
-    pos_dict = {}
-    pos_dict[0] = (0, 0)
-    for i in range(1, n+1):
-        x = float(cos((pi/2) + ((2*pi)/n)*(i-1)))
-        y = float(sin((pi/2) + ((2*pi)/n)*(i-1)))
-        pos_dict[i] = (x, y)
-    return graph.Graph({0: list(range(1, n + 1))},
-                       pos=pos_dict, name="Star graph")
+    G = Graph({0: list(range(1, n + 1))}, name="Star graph")
+    G.set_pos({0:(0, 0)})
+    from sage.graphs.graph_plot import _circle_embedding
+    _circle_embedding(G, list(range(1, n + 1)), angle=pi/2)
+    return G

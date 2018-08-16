@@ -16902,12 +16902,12 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertices`` -- an iterable with vertices for the clique to
-          be added, e.g. a list, set, graph, etc.
+        - ``vertices`` -- an iterable with vertices for the clique to be added,
+          e.g. a list, set, graph, etc.
 
-        - ``loops`` -- (boolean, default: ``False``) whether to add
-          edges from every given vertex to itself. This is allowed only
-          if the (di)graph allows loops.
+        - ``loops`` -- (boolean, default: ``False``) whether to add edges from
+          every given vertex to itself. This is allowed only if the (di)graph
+          allows loops.
 
         EXAMPLES::
 
@@ -16929,8 +16929,8 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: cannot add edge from 0 to 0 in graph without loops
 
-        If the list of vertices contains repeated elements, a loop will
-        be added at that vertex, even if ``loops=False``::
+        If the list of vertices contains repeated elements, a loop will be added
+        at that vertex, even if ``loops=False``::
 
             sage: G = Graph(loops=True)
             sage: G.add_clique([1,1])
@@ -16982,18 +16982,18 @@ class GenericGraph(GenericGraph_pyx):
 
     def add_cycle(self, vertices):
         """
-        Adds a cycle to the graph with the given vertices. If the vertices
-        are already present, only the edges are added.
+        Add a cycle to the graph with the given vertices.
 
-        For digraphs, adds the directed cycle, whose orientation is
-        determined by the list. Adds edges (vertices[u], vertices[u+1]) and
+        If the vertices are already present, only the edges are added.
+
+        For digraphs, adds the directed cycle, whose orientation is determined
+        by the list. Adds edges (vertices[u], vertices[u+1]) and
         (vertices[-1], vertices[0]).
 
         INPUT:
 
-        -  ``vertices`` -- a list of indices for the vertices of
-           the cycle to be added.
-
+        - ``vertices`` -- a list of indices for the vertices of the cycle to be
+           added.
 
         EXAMPLES::
 
@@ -17012,25 +17012,44 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.add_cycle(list(range(4)))
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None), (3, 0, None)]
+
+        TESTS:
+
+        Small cases::
+
+            sage: G = Graph()
+            sage: G.add_cycle([])
+            sage: G.order(), G.size()
+            (0, 0)
+            sage: G.add_cycle(['a'])
+            sage: G.order(), G.size()
+            (1, 0)
+            sage: G = Graph()
+            sage: G.add_cycle(['a', 'b'])
+            sage: G.order(), G.size()
+            (2, 1)
+            sage: G = Graph()
+            sage: G.add_cycle(['a', 'b', 'c'])
+            sage: G.order(), G.size()
+            (3, 3)
         """
         if vertices:
             self.add_path(vertices)
-            self.add_edge(vertices[-1], vertices[0])
+            if len(vertices) > 1:
+                self.add_edge(vertices[-1], vertices[0])
 
     def add_path(self, vertices):
         """
-        Adds a path to the graph with the given vertices. If the vertices
-        are already present, only the edges are added.
+        Add a path to the graph with the given vertices.
 
-        For digraphs, adds the directed path vertices[0], ...,
-        vertices[-1].
+        If the vertices are already present, only the edges are added.
+
+        For digraphs, adds the directed path vertices[0], ..., vertices[-1].
 
         INPUT:
 
-
-        -  ``vertices`` - a list of indices for the vertices of
-           the path to be added.
-
+        - ``vertices`` - a list of indices for the vertices of the path to be
+           added.
 
         EXAMPLES::
 

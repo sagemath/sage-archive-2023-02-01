@@ -71,38 +71,34 @@ def HarborthGraph():
 
 def HarriesGraph(embedding=1):
     r"""
-    Returns the Harries Graph.
+    Return the Harries Graph.
 
     The Harries graph is a Hamiltonian 3-regular graph on 70
-    vertices. See the :wikipedia:`Wikipedia page on the Harries
-    graph <Harries_graph>`.
+    vertices. See the :wikipedia:`Harries_graph`.
 
-    The default embedding here is to emphasize the graph's 4 orbits.
-    This graph actually has a funny construction. The following
-    procedure gives an idea of it, though not all the adjacencies
-    are being properly defined.
+    The default embedding here is to emphasize the graph's 4 orbits.  This graph
+    actually has a funny construction. The following procedure gives an idea of
+    it, though not all the adjacencies are being properly defined.
 
     #. Take two disjoint copies of a :meth:`Petersen graph
-       <PetersenGraph>`. Their vertices will form an orbit of the
-       final graph.
+       <PetersenGraph>`. Their vertices will form an orbit of the final graph.
 
-    #. Subdivide all the edges once, to create 15+15=30 new
-       vertices, which together form another orbit.
+    #. Subdivide all the edges once, to create 15+15=30 new vertices, which
+       together form another orbit.
 
-    #. Create 15 vertices, each of them linked to 2 corresponding
-       vertices of the previous orbit, one in each of the two
-       subdivided Petersen graphs. At the end of this step all
-       vertices from the previous orbit have degree 3, and the only
-       vertices of degree 2 in the graph are those that were just
+    #. Create 15 vertices, each of them linked to 2 corresponding vertices of
+       the previous orbit, one in each of the two subdivided Petersen graphs. At
+       the end of this step all vertices from the previous orbit have degree 3,
+       and the only vertices of degree 2 in the graph are those that were just
        created.
 
-    #. Create 5 vertices connected only to the ones from the
-       previous orbit so that the graph becomes 3-regular.
+    #. Create 5 vertices connected only to the ones from the previous orbit so
+       that the graph becomes 3-regular.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to 1 or 2.
 
     EXAMPLES::
 
@@ -123,7 +119,7 @@ def HarriesGraph(embedding=1):
         sage: graphs.HarriesGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
 
     """
     from sage.graphs.generators.families import LCFGraph
@@ -144,14 +140,13 @@ def HarriesGraph(embedding=1):
         o[2] = [60, 10, 12, 4, 24, 26, 18, 38, 40, 32, 52, 54, 46, 66, 68]
         o[3] = [11, 25, 39, 53, 67]
 
-        # Correspondence between the vertices of one of the two Petersen
-        # graphs on o[0] and the vertices of a standard Petersen graph
-        # object
+        # Correspondence between the vertices of one of the two Petersen graphs
+        # on o[0] and the vertices of a standard Petersen graph object
         g_to_p = {0: 0, 2: 1, 42: 5, 44: 8, 14: 7, 16: 2, 56: 9, 58: 6,
                   28: 4, 30: 3}
 
-        # Correspondence between the vertices of the other Petersen graph
-        # on o[0] and the vertices of the first one
+        # Correspondence between the vertices of the other Petersen graph on
+        # o[0] and the vertices of the first one
         g_to_g = {64: 44, 34: 0, 36: 28, 6: 2, 8: 58, 48: 16, 50: 30,
                   20: 14, 22: 56, 62: 42}
 
@@ -159,16 +154,15 @@ def HarriesGraph(embedding=1):
         for v, i in six.iteritems(g_to_p):
             gpos[v] = ppos[i]
 
-        # Position for the vertices in the second copy. Moves the first,
-        # too.
+        # Position for the vertices in the second copy. Moves the first, too.
         offset = 3.5
         for v, i in six.iteritems(g_to_g):
             x, y = gpos[i]
             gpos[v] = (x + offset*0.5, y)
             gpos[i] = (x - offset*0.5, y)
 
-        # Vertices from o[1]. These are actually the "edges" of the
-        # copies of Petersen.
+        # Vertices from o[1]. These are actually the "edges" of the copies of
+        # Petersen.
         for v in o[1]:
             p1, p2 = [gpos[x] for x in g.neighbors(v) if x in o[0]]
             gpos[v] = ((p1[0] + p2[0])/2, (p1[1] + p2[1])/2)
@@ -186,46 +180,43 @@ def HarriesGraph(embedding=1):
     elif embedding == 2:
         return g
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def HarriesWongGraph(embedding=1):
     r"""
-    Returns the Harries-Wong Graph.
+    Return the Harries-Wong Graph.
 
-    See the :wikipedia:`Wikipedia page on the Harries-Wong graph
-    <Harries-Wong_graph>`.
+    See the :wikipedia:`Harries-Wong_graph`.
 
     *About the default embedding:*
 
-    The default embedding is an attempt to emphasize the graph's
-    8 (!!!) different orbits. In order to understand this better,
-    one can picture the graph as being built in the following way:
+    The default embedding is an attempt to emphasize the graph's 8 (!!!)
+    different orbits. In order to understand this better, one can picture the
+    graph as being built in the following way:
 
-        #. One first creates a 3-dimensional cube (8 vertices, 12
-           edges), whose vertices define the first orbit of the
-           final graph.
+        #. One first creates a 3-dimensional cube (8 vertices, 12 edges), whose
+           vertices define the first orbit of the final graph.
 
-        #. The edges of this graph are subdivided once, to create 12
-           new vertices which define a second orbit.
+        #. The edges of this graph are subdivided once, to create 12 new
+           vertices which define a second orbit.
 
-        #. The edges of the graph are subdivided once more, to
-           create 24 new vertices giving a third orbit.
+        #. The edges of the graph are subdivided once more, to create 24 new
+           vertices giving a third orbit.
 
-        #. 4 vertices are created and made adjacent to the vertices
-           of the second orbit so that they have degree
-           3. These 4 vertices also define a new orbit.
+        #. 4 vertices are created and made adjacent to the vertices of the
+           second orbit so that they have degree 3. These 4 vertices also define
+           a new orbit.
 
-        #. In order to make the vertices from the third orbit
-           3-regular (they all miss one edge), one creates a binary
-           tree on 1 + 3 + 6 + 12 vertices. The leaves of this new
-           tree are made adjacent to the 12 vertices of the third
-           orbit, and the graph is now 3-regular. This binary tree
-           contributes 4 new orbits to the Harries-Wong graph.
+        #. In order to make the vertices from the third orbit 3-regular (they
+           all miss one edge), one creates a binary tree on 1 + 3 + 6 + 12
+           vertices. The leaves of this new tree are made adjacent to the 12
+           vertices of the third orbit, and the graph is now 3-regular. This
+           binary tree contributes 4 new orbits to the Harries-Wong graph.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to 1 or 2.
 
     EXAMPLES::
 
@@ -238,8 +229,8 @@ def HarriesWongGraph(embedding=1):
         10
         sage: g.diameter()
         6
-        sage: orbits = g.automorphism_group(orbits=True)[-1]
-        sage: g.show(figsize=[15, 15], partition=orbits)   # long time
+        sage: orbits = g.automorphism_group(orbits=True)[-1] # long time
+        sage: g.show(figsize=[15, 15], partition=orbits)     # long time
 
     Alternative embedding::
 
@@ -250,7 +241,7 @@ def HarriesWongGraph(embedding=1):
         sage: graphs.HarriesWongGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     L = [9, 25, 31, -17, 17, 33, 9, -29, -15, -9, 9, 25, -25, 29, 17, -9,
@@ -307,17 +298,17 @@ def HarriesWongGraph(embedding=1):
     elif embedding == 2:
         return g
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def WellsGraph():
     r"""
-    Returns the Wells graph.
+    Return the Wells graph.
 
     For more information on the Wells graph (also called Armanios-Wells graph),
     see `this page <https://www.win.tue.nl/~aeb/graphs/Wells.html>`_.
 
     The implementation follows the construction given on page 266 of
-    [BCN89]_. This requires to create intermediate graphs and run a small
+    [BCN1989]_. This requires to create intermediate graphs and run a small
     isomorphism test, while everything could be replaced by a pre-computed list
     of edges : I believe that it is better to keep "the recipe" in the code,
     however, as it is quite unlikely that this could become the most
@@ -341,11 +332,6 @@ def WellsGraph():
         sage: g.is_regular(k=5)
         True
 
-    REFERENCES:
-
-    .. [BCN89] \A. E. Brouwer, A. M. Cohen, A. Neumaier,
-      Distance-Regular Graphs,
-      Springer, 1989.
     """
     from .platonic_solids import DodecahedralGraph
     from .basic import CompleteBipartiteGraph
@@ -381,7 +367,7 @@ def WellsGraph():
                 continue
 
             if dodecahedron.distance(u,v) != 3:
-                raise ValueError("There is something wrong going on !")
+                raise ValueError("there is something wrong going on !")
 
     # The graph we will return, starting from the dodecahedron
     g = dodecahedron
@@ -424,7 +410,7 @@ def WellsGraph():
 
 def Cell600(embedding=1):
     r"""
-    Returns the 600-Cell graph.
+    Return the 600-Cell graph.
 
     This is the adjacency graph of the 600-cell. It has 120 vertices and 720
     edges. For more information, see the :wikipedia:`600-cell`.
@@ -504,7 +490,7 @@ def Cell600(embedding=1):
 
 def Cell120():
     r"""
-    Returns the 120-Cell graph.
+    Return the 120-Cell graph.
 
     This is the adjacency graph of the 120-cell. It has 600 vertices and 1200
     edges. For more information, see the :wikipedia:`120-cell`.
@@ -640,24 +626,22 @@ def SuzukiGraph():
 
 def HallJankoGraph(from_string=True):
     r"""
-    Returns the Hall-Janko graph.
+    Return the Hall-Janko graph.
 
-    For more information on the Hall-Janko graph, see its
-    :wikipedia:`Wikipedia page <Hall-Janko_graph>`.
+    For more information on the Hall-Janko graph, see
+    :wikipedia:`Hall-Janko_graph`.
 
-    The construction used to generate this graph in Sage is by
-    a 100-point permutation representation of the Janko group `J_2`,
-    as described in version 3 of the ATLAS of Finite Group
-    representations, in particular on the page `ATLAS: J2
-    -- Permutation representation on 100 points
+    The construction used to generate this graph in Sage is by a 100-point
+    permutation representation of the Janko group `J_2`, as described in version
+    3 of the ATLAS of Finite Group representations, in particular on the page
+    `ATLAS: J2 -- Permutation representation on 100 points
     <http://brauer.maths.qmul.ac.uk/Atlas/v3/permrep/J2G1-p100B0>`_.
 
     INPUT:
 
-    - ``from_string`` (boolean) -- whether to build the graph from
-      its sparse6 string or through GAP. The two methods return the
-      same graph though doing it through GAP takes more time. It is
-      set to ``True`` by default.
+    - ``from_string`` (boolean) -- whether to build the graph from its sparse6
+      string or through GAP. The two methods return the same graph though doing
+      it through GAP takes more time. It is set to ``True`` by default.
 
     EXAMPLES::
 
@@ -776,36 +760,32 @@ def HallJankoGraph(from_string=True):
 
 def Balaban10Cage(embedding=1):
     r"""
-    Returns the Balaban 10-cage.
+    Return the Balaban 10-cage.
 
-    The Balaban 10-cage is a 3-regular graph with 70 vertices and
-    105 edges. See its :wikipedia:`Wikipedia page
-    <Balaban_10-cage>`.
+    The Balaban 10-cage is a 3-regular graph with 70 vertices and 105 edges. See
+    :wikipedia:`Balaban_10-cage`.
 
-    The default embedding gives a deeper understanding of the
-    graph's automorphism group. It is divided into 4 layers (each
-    layer being a set of points at equal distance from the drawing's
-    center). From outside to inside:
+    The default embedding gives a deeper understanding of the graph's
+    automorphism group. It is divided into 4 layers (each layer being a set of
+    points at equal distance from the drawing's center). From outside to inside:
 
-    - L1: The outer layer (vertices which are the furthest from the
-      origin) is actually the disjoint union of two cycles of length
-      10.
+    - L1: The outer layer (vertices which are the furthest from the origin) is
+      actually the disjoint union of two cycles of length 10.
 
     - L2: The second layer is an independent set of 20 vertices.
 
     - L3: The third layer is a matching on 10 vertices.
 
-    - L4: The inner layer (vertices which are the closest from the
-      origin) is also the disjoint union of two cycles of length 10.
+    - L4: The inner layer (vertices which are the closest from the origin) is
+      also the disjoint union of two cycles of length 10.
 
-    This graph is not vertex-transitive, and its vertices are
-    partitioned into 3 orbits: L2, L3, and the union of L1 of L4
-    whose elements are equivalent.
+    This graph is not vertex-transitive, and its vertices are partitioned into 3
+    orbits: L2, L3, and the union of L1 of L4 whose elements are equivalent.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to be either 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to be either 1 or 2.
 
     EXAMPLES::
 
@@ -825,7 +805,7 @@ def Balaban10Cage(embedding=1):
         sage: graphs.Balaban10Cage(embedding='foo')
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     L = [-9, -25, -19, 29, 13, 35, -13, -29, 19, 25, 9, -29, 29, 17, 33,
@@ -841,7 +821,7 @@ def Balaban10Cage(embedding=1):
     if embedding == 2:
         return g
     elif embedding != 1:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
     L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
     _circle_embedding(g, L3, center=(0,0), radius = 4.3)
@@ -866,32 +846,29 @@ def Balaban10Cage(embedding=1):
 
 def Balaban11Cage(embedding = 1):
     r"""
-    Returns the Balaban 11-cage.
+    Return the Balaban 11-cage.
 
-    For more information, see this :wikipedia:`Wikipedia article on
-    the Balaban 11-cage <Balaban_11-cage>`.
+    For more information, see :wikipedia:`Balaban_11-cage`.
 
     INPUT:
 
-    - ``embedding`` -- three embeddings are available, and can be
-      selected by setting ``embedding`` to be 1, 2, or 3.
+    - ``embedding`` -- three embeddings are available, and can be selected by
+      setting ``embedding`` to be 1, 2, or 3.
 
-      - The first embedding is the one appearing on page 9 of the
-        Fifth Annual Graph Drawing Contest report [FAGDC]_. It
-        separates vertices based on their eccentricity (see
-        :meth:`eccentricity()
+      - The first embedding is the one appearing on page 9 of the Fifth Annual
+        Graph Drawing Contest report [EMMN1998]_. It separates vertices based on
+        their eccentricity (see :meth:`eccentricity()
         <sage.graphs.generic_graph.GenericGraph.eccentricity>`).
 
-      - The second embedding has been produced just for Sage and is
-        meant to emphasize the automorphism group's 6 orbits.
+      - The second embedding has been produced just for Sage and is meant to
+        emphasize the automorphism group's 6 orbits.
 
-      - The last embedding is the default one produced by the
-        :meth:`LCFGraph` constructor.
+      - The last embedding is the default one produced by the :meth:`LCFGraph`
+        constructor.
 
     .. NOTE::
 
-        The vertex labeling changes according to the value of
-        ``embedding=1``.
+        The vertex labeling changes according to the value of ``embedding=1``.
 
     EXAMPLES:
 
@@ -928,13 +905,7 @@ def Balaban11Cage(embedding = 1):
         sage: graphs.Balaban11Cage(embedding='xyzzy')
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1, 2, or 3.
-
-    REFERENCES:
-
-    .. [FAGDC] Fifth Annual Graph Drawing Contest
-       P. Eaded, J. Marks, P.Mutzel, S. North
-       http://www.merl.com/papers/docs/TR98-16.pdf
+        ValueError: the value of embedding must be 1, 2, or 3
     """
     if embedding == 1:
         pos_dict = {}
@@ -1060,19 +1031,18 @@ def Balaban11Cage(embedding = 1):
         return g
 
     else:
-        raise ValueError("The value of embedding must be 1, 2, or 3.")
+        raise ValueError("the value of embedding must be 1, 2, or 3")
 
 def BidiakisCube():
     r"""
-    Returns the Bidiakis cube.
+    Return the Bidiakis cube.
 
-    For more information, see this
-    `Wikipedia article on the Bidiakis cube <http://en.wikipedia.org/wiki/Bidiakis_cube>`_.
+    For more information, see :wikipedia:`Bidiakis_cube`.
 
     EXAMPLES:
 
-    The Bidiakis cube is a 3-regular graph having 12 vertices and 18
-    edges. This means that each vertex has a degree of 3. ::
+    The Bidiakis cube is a 3-regular graph having 12 vertices and 18 edges. This
+    means that each vertex has a degree of 3. ::
 
         sage: g = graphs.BidiakisCube(); g
         Bidiakis cube: Graph on 12 vertices
@@ -1124,15 +1094,14 @@ def BidiakisCube():
 
 def BiggsSmithGraph(embedding=1):
     r"""
-    Returns the Biggs-Smith graph.
+    Return the Biggs-Smith graph.
 
-    For more information, see this :wikipedia:`Wikipedia article on
-    the Biggs-Smith graph <Biggs-Smith_graph>`.
+    For more information, see :wikipedia:`Biggs-Smith_graph`.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to be 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to be 1 or 2.
 
     EXAMPLES:
 
@@ -1147,20 +1116,20 @@ def BiggsSmithGraph(embedding=1):
         9
         sage: g.diameter()
         7
-        sage: g.automorphism_group().cardinality()
+        sage: g.automorphism_group().cardinality() # long time
         2448
         sage: g.show(figsize=[10, 10])   # long time
 
     The other embedding::
 
-        sage: graphs.BiggsSmithGraph(embedding=2).show()
+        sage: graphs.BiggsSmithGraph(embedding=2).show() # long time
 
     TESTS::
 
         sage: graphs.BiggsSmithGraph(embedding='xyzzy')
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
 
     """
     L = [16, 24, -38, 17, 34, 48, -19, 41, -35, 47, -20, 34, -36,
@@ -1206,13 +1175,13 @@ def BiggsSmithGraph(embedding=1):
     elif embedding == 2:
         pass
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
     return g
 
 def BlanusaFirstSnarkGraph():
     r"""
-    Returns the first Blanusa Snark Graph.
+    Return the first Blanusa Snark Graph.
 
     The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
     information on them, see the :wikipedia:`Blanusa_snarks`.
@@ -1247,7 +1216,7 @@ def BlanusaFirstSnarkGraph():
 
 def BlanusaSecondSnarkGraph():
     r"""
-    Returns the second Blanusa Snark Graph.
+    Return the second Blanusa Snark Graph.
 
     The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
     information on them, see the :wikipedia:`Blanusa_snarks`.
@@ -1304,10 +1273,9 @@ def BlanusaSecondSnarkGraph():
 
 def BrinkmannGraph():
     r"""
-    Returns the Brinkmann graph.
+    Return the Brinkmann graph.
 
-    For more information, see the
-    `Wikipedia article on the Brinkmann graph <http://en.wikipedia.org/wiki/Brinkmann_graph>`_.
+    For more information, see :wikipedia:`Brinkmann_graph`.
 
     EXAMPLES:
 
@@ -1393,7 +1361,7 @@ def BrinkmannGraph():
 
 def BrouwerHaemersGraph():
     r"""
-    Returns the Brouwer-Haemers Graph.
+    Return the Brouwer-Haemers Graph.
 
     The Brouwer-Haemers is the only strongly regular graph of parameters
     `(81,20,1,6)`. It is build in Sage as the Affine Orthogonal graph
@@ -1444,11 +1412,10 @@ def BuckyBall():
     r"""
     Create the Bucky Ball graph.
 
-    This graph is a 3-regular 60-vertex planar graph. Its vertices
-    and edges correspond precisely to the carbon atoms and bonds
-    in buckminsterfullerene.  When embedded on a sphere, its 12
-    pentagon and 20 hexagon faces are arranged exactly as the
-    sections of a soccer ball.
+    This graph is a 3-regular 60-vertex planar graph. Its vertices and edges
+    correspond precisely to the carbon atoms and bonds in buckminsterfullerene.
+    When embedded on a sphere, its 12 pentagon and 20 hexagon faces are arranged
+    exactly as the sections of a soccer ball.
 
     EXAMPLES:
 
@@ -1458,8 +1425,8 @@ def BuckyBall():
         sage: g.is_planar()
         True
 
-    The Bucky Ball can also be created by extracting the 1-skeleton
-    of the Bucky Ball polyhedron, but this is much slower. ::
+    The Bucky Ball can also be created by extracting the 1-skeleton of the Bucky
+    Ball polyhedron, but this is much slower. ::
 
         sage: g = polytopes.buckyball().vertex_graph()
         sage: g.remove_loops()
@@ -1600,11 +1567,10 @@ def GossetGraph():
 
 def DoubleStarSnark():
     r"""
-    Returns the double star snark.
+    Return the double star snark.
 
-    The double star snark is a 3-regular graph on 30 vertices. See
-    the :wikipedia:`Wikipedia page on the double star snark
-    <Double-star_snark>`.
+    The double star snark is a 3-regular graph on 30 vertices. See the
+    :wikipedia:`Double-star_snark`.
 
     EXAMPLES::
 
@@ -1662,7 +1628,7 @@ def DoubleStarSnark():
 
 def MeredithGraph():
     r"""
-    Returns the Meredith Graph.
+    Return the Meredith Graph.
 
     The Meredith Graph is a 4-regular 4-connected non-hamiltonian graph. For
     more information on the Meredith Graph, see the :wikipedia:`Meredith_graph`.
@@ -1715,7 +1681,7 @@ def MeredithGraph():
 
 def KittellGraph():
     r"""
-    Returns the Kittell Graph.
+    Return the Kittell Graph.
 
     For more information, see the `Wolfram page about the Kittel Graph
     <http://mathworld.wolfram.com/KittellGraph.html>`_.
@@ -1762,7 +1728,7 @@ def KittellGraph():
 
 def CameronGraph():
     r"""
-    Returns the Cameron graph.
+    Return the Cameron graph.
 
     The Cameron graph is strongly regular with parameters `v = 231, k = 30,
     \lambda = 9, \mu = 3`.
@@ -1813,12 +1779,11 @@ def CameronGraph():
 
 def ChvatalGraph():
     r"""
-    Returns the Chvatal graph.
+    Return the Chvatal graph.
 
     Chvatal graph is one of the few known graphs to satisfy Grunbaum's
-    conjecture that for every m, n, there is an m-regular,
-    m-chromatic graph of girth at least n. For more information, see this
-    `Wikipedia article on the Chvatal graph <http://en.wikipedia.org/wiki/Chv%C3%A1tal_graph>`_.
+    conjecture that for every m, n, there is an m-regular, m-chromatic graph of
+    girth at least n. For more information, see :wikipedia:`Chv%C3%A1tal_graph`.
 
     EXAMPLES:
 
@@ -1866,6 +1831,8 @@ def ClebschGraph():
     r"""
     Return the Clebsch graph.
 
+    See :wikipedia:`Clebsch_graph`.
+
     EXAMPLES::
 
         sage: g = graphs.ClebschGraph()
@@ -1900,8 +1867,7 @@ def CoxeterGraph():
     r"""
     Return the Coxeter graph.
 
-    See the :wikipedia:`Wikipedia page on the Coxeter graph
-    <Coxeter_graph>`.
+    See the :wikipedia:`Coxeter_graph`.
 
     EXAMPLES::
 
@@ -1963,9 +1929,9 @@ def DejterGraph():
 
 def DesarguesGraph():
     """
-    Returns the Desargues graph.
+    Return the Desargues graph.
 
-    PLOTTING: The layout chosen is the same as on the cover of [1].
+    PLOTTING: The layout chosen is the same as on the cover of [Har1994]_.
 
     EXAMPLES::
 
@@ -1974,11 +1940,6 @@ def DesarguesGraph():
         sage: D.is_isomorphic(L)
         True
         sage: D.show()  # long time
-
-    REFERENCE:
-
-    - [1] Harary, F. Graph Theory. Reading, MA: Addison-Wesley,
-      1994.
     """
     from sage.graphs.generators.families import GeneralizedPetersenGraph
     G = GeneralizedPetersenGraph(10,3)
@@ -1987,10 +1948,9 @@ def DesarguesGraph():
 
 def DurerGraph():
     r"""
-    Returns the Dürer graph.
+    Return the Dürer graph.
 
-    For more information, see this
-    `Wikipedia article on the Dürer graph <http://en.wikipedia.org/wiki/D%C3%BCrer_graph>`_.
+    For more information, see :wikipedia:`D%C3%BCrer_graph`.
 
     EXAMPLES:
 
@@ -2049,16 +2009,16 @@ def DurerGraph():
 
 def DyckGraph():
     """
-    Returns the Dyck graph.
+    Return the Dyck graph.
 
     For more information, see the `MathWorld article on the Dyck graph
-    <http://mathworld.wolfram.com/DyckGraph.html>`_ or the `Wikipedia
-    article on the Dyck graph <http://en.wikipedia.org/wiki/Dyck_graph>`_.
+    <http://mathworld.wolfram.com/DyckGraph.html>`_ or the
+    :wikipedia:`Dyck_graph`.
 
     EXAMPLES:
 
-    The Dyck graph was defined by Walther von Dyck in 1881. It has `32`
-    vertices and `48` edges, and is a cubic graph (regular of degree `3`)::
+    The Dyck graph was defined by Walther von Dyck in 1881. It has `32` vertices
+    and `48` edges, and is a cubic graph (regular of degree `3`)::
 
         sage: G = graphs.DyckGraph(); G
         Dyck graph: Graph on 32 vertices
@@ -2071,8 +2031,8 @@ def DyckGraph():
         sage: G.is_regular(3)
         True
 
-    It is non-planar and Hamiltonian, as well as bipartite (making it a
-    bicubic graph)::
+    It is non-planar and Hamiltonian, as well as bipartite (making it a bicubic
+    graph)::
 
         sage: G.is_planar()
         False
@@ -2090,8 +2050,7 @@ def DyckGraph():
         sage: G.girth()
         6
 
-    Its chromatic number is `2` and its automorphism group is of order
-    `192`::
+    Its chromatic number is `2` and its automorphism group is of order `192`::
 
         sage: G.chromatic_number()
         2
@@ -2103,8 +2062,8 @@ def DyckGraph():
         sage: G.characteristic_polynomial().factor()
         (x - 3) * (x + 3) * (x - 1)^9 * (x + 1)^9 * (x^2 - 5)^6
 
-    It is a toroidal graph, and its embedding on a torus is dual to an
-    embedding of the Shrikhande graph (:meth:`ShrikhandeGraph
+    It is a toroidal graph, and its embedding on a torus is dual to an embedding
+    of the Shrikhande graph (:meth:`ShrikhandeGraph
     <GraphGenerators.ShrikhandeGraph>`).
     """
     pos_dict = {}
@@ -2142,7 +2101,7 @@ def DyckGraph():
 
 def HortonGraph():
     r"""
-    Returns the Horton Graph.
+    Return the Horton Graph.
 
     The Horton graph is a cubic 3-connected non-hamiltonian graph. For more
     information, see the :wikipedia:`Horton_graph`.
@@ -2204,10 +2163,9 @@ def HortonGraph():
 
 def EllinghamHorton54Graph():
     r"""
-    Returns the Ellingham-Horton 54-graph.
+    Return the Ellingham-Horton 54-graph.
 
-    For more information, see the :wikipedia:`Wikipedia page on the
-    Ellingham-Horton graphs <Ellingham-Horton_graph>`
+    For more information, see the :wikipedia:`Ellingham-Horton_graph`.
 
     EXAMPLES:
 
@@ -2293,11 +2251,9 @@ def EllinghamHorton54Graph():
 
 def EllinghamHorton78Graph():
     r"""
-    Returns the Ellingham-Horton 78-graph.
+    Return the Ellingham-Horton 78-graph.
 
-    For more information, see the :wikipedia:`Wikipedia page on the
-    Ellingham-Horton graphs
-    <http://en.wikipedia.org/wiki/Ellingham%E2%80%93Horton_graph>`
+    For more information, see the :wikipedia:`Ellingham%E2%80%93Horton_graph`
 
     EXAMPLES:
 
@@ -2373,15 +2329,14 @@ def EllinghamHorton78Graph():
 
 def ErreraGraph():
     r"""
-    Returns the Errera graph.
+    Return the Errera graph.
 
-    For more information, see this
-    `Wikipedia article on the Errera graph <http://en.wikipedia.org/wiki/Errera_graph>`_.
+    For more information, see :wikipedia:`Errera_graph`.
 
     EXAMPLES:
 
-    The Errera graph is named after Alfred Errera. It is a planar graph
-    on 17 vertices and having 45 edges. ::
+    The Errera graph is named after Alfred Errera. It is a planar graph on 17
+    vertices and having 45 edges. ::
 
         sage: G = graphs.ErreraGraph(); G
         Errera graph: Graph on 17 vertices
@@ -2392,8 +2347,8 @@ def ErreraGraph():
         sage: G.size()
         45
 
-    The Errera graph is Hamiltonian with radius 3, diameter 4, girth 3,
-    and chromatic number 4. ::
+    The Errera graph is Hamiltonian with radius 3, diameter 4, girth 3, and
+    chromatic number 4. ::
 
         sage: G.is_hamiltonian()
         True
@@ -2406,17 +2361,16 @@ def ErreraGraph():
         sage: G.chromatic_number()
         4
 
-    Each vertex degree is either 5 or 6. That is, if `f` counts the
-    number of vertices of degree 5 and `s` counts the number of vertices
-    of degree 6, then `f + s` is equal to the order of the Errera
-    graph. ::
+    Each vertex degree is either 5 or 6. That is, if `f` counts the number of
+    vertices of degree 5 and `s` counts the number of vertices of degree 6, then
+    `f + s` is equal to the order of the Errera graph. ::
 
         sage: D = G.degree_sequence()
         sage: D.count(5) + D.count(6) == G.order()
         True
 
-    The automorphism group of the Errera graph is isomorphic to the
-    dihedral group of order 20. ::
+    The automorphism group of the Errera graph is isomorphic to the dihedral
+    group of order 20. ::
 
         sage: ag = G.automorphism_group()
         sage: ag.is_isomorphic(DihedralGroup(10))
@@ -2468,22 +2422,16 @@ def F26AGraph():
 
 def FlowerSnark():
     """
-    Returns a Flower Snark.
+    Return a Flower Snark.
 
-    A flower snark has 20 vertices. It is part of the class of
-    biconnected cubic graphs with edge chromatic number = 4, known as
-    snarks. (i.e.: the Petersen graph). All snarks are not Hamiltonian,
-    non-planar and have Petersen graph graph minors.
+    A flower snark has 20 vertices. It is part of the class of biconnected cubic
+    graphs with edge chromatic number = 4, known as snarks. (i.e.: the Petersen
+    graph). All snarks are not Hamiltonian, non-planar and have Petersen graph
+    graph minors. See :wikipedia:`Flower_snark`.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the nodes are
-    drawn 0-14 on the outer circle, and 15-19 in an inner pentagon.
-
-    REFERENCES:
-
-    - [1] Weisstein, E. (1999). "Flower Snark - from Wolfram
-      MathWorld". [Online] Available:
-      http://mathworld.wolfram.com/FlowerSnark.html [2007, February 17]
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the nodes are drawn 0-14 on the
+    outer circle, and 15-19 in an inner pentagon.
 
     EXAMPLES: Inspect a flower snark::
 
@@ -2514,10 +2462,9 @@ def FlowerSnark():
 
 def FolkmanGraph():
     """
-    Returns the Folkman graph.
+    Return the Folkman graph.
 
-    See the :wikipedia:`Wikipedia page on the Folkman Graph
-    <Folkman_graph>`.
+    See the :wikipedia:`Folkman_graph`.
 
     EXAMPLES::
 
@@ -2551,10 +2498,9 @@ def FolkmanGraph():
 
 def FosterGraph():
     """
-    Returns the Foster graph.
+    Return the Foster graph.
 
-    See the :wikipedia:`Wikipedia page on the Foster Graph
-    <Foster_graph>`.
+    See the :wikipedia:`Foster_graph`.
 
     EXAMPLES::
 
@@ -2580,15 +2526,14 @@ def FosterGraph():
 
 def FranklinGraph():
     r"""
-    Returns the Franklin graph.
+    Return the Franklin graph.
 
-    For more information, see this
-    `Wikipedia article on the Franklin graph <http://en.wikipedia.org/wiki/Franklin_graph>`_.
+    For more information, see :wikipedia:`Franklin_graph`.
 
     EXAMPLES:
 
-    The Franklin graph is named after Philip Franklin. It is a
-    3-regular graph on 12 vertices and having 18 edges. ::
+    The Franklin graph is named after Philip Franklin. It is a 3-regular graph
+    on 12 vertices and having 18 edges. ::
 
         sage: G = graphs.FranklinGraph(); G
         Franklin graph: Graph on 12 vertices
@@ -2599,8 +2544,8 @@ def FranklinGraph():
         sage: G.size()
         18
 
-    The Franklin graph is a Hamiltonian, bipartite graph with radius 3,
-    diameter 3, and girth 4. ::
+    The Franklin graph is a Hamiltonian, bipartite graph with radius 3, diameter
+    3, and girth 4. ::
 
         sage: G.is_hamiltonian()
         True
@@ -2650,21 +2595,15 @@ def FranklinGraph():
 
 def FruchtGraph():
     """
-    Returns a Frucht Graph.
+    Return a Frucht Graph.
 
-    A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic
-    identity graph. It is planar and it is Hamiltonian.
+    A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic identity
+    graph. It is planar and it is Hamiltonian. See :wikipedia:`Frucht_graph`.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the first
-    seven nodes are on the outer circle, with the next four on an inner
-    circle and the last in the center.
-
-    REFERENCES:
-
-    - [1] Weisstein, E. (1999). "Frucht Graph - from Wolfram
-      MathWorld". [Online] Available:
-      http://mathworld.wolfram.com/FruchtGraph.html [2007, February 17]
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the first seven nodes are on the
+    outer circle, with the next four on an inner circle and the last in the
+    center.
 
     EXAMPLES::
 
@@ -2700,13 +2639,12 @@ def GoldnerHararyGraph():
     r"""
     Return the Goldner-Harary graph.
 
-    For more information, see this
-    `Wikipedia article on the Goldner-Harary graph <http://en.wikipedia.org/wiki/Goldner%E2%80%93Harary_graph>`_.
+    For more information, see :wikipedia:`Goldner%E2%80%93Harary_graph`.
 
     EXAMPLES:
 
-    The Goldner-Harary graph is named after A. Goldner and Frank Harary.
-    It is a planar graph having 11 vertices and 27 edges. ::
+    The Goldner-Harary graph is named after A. Goldner and Frank Harary.  It is
+    a planar graph having 11 vertices and 27 edges. ::
 
         sage: G = graphs.GoldnerHararyGraph(); G
         Goldner-Harary graph: Graph on 11 vertices
@@ -2717,8 +2655,8 @@ def GoldnerHararyGraph():
         sage: G.size()
         27
 
-    The Goldner-Harary graph is chordal with radius 2, diameter 2, and
-    girth 3. ::
+    The Goldner-Harary graph is chordal with radius 2, diameter 2, and girth
+    3. ::
 
         sage: G.is_chordal()
         True
@@ -2729,8 +2667,8 @@ def GoldnerHararyGraph():
         sage: G.girth()
         3
 
-    Its chromatic number is 4 and its automorphism group is isomorphic to
-    the dihedral group `D_6`. ::
+    Its chromatic number is 4 and its automorphism group is isomorphic to the
+    dihedral group `D_6`. ::
 
         sage: G.chromatic_number()
         4
@@ -2767,15 +2705,14 @@ def GoldnerHararyGraph():
 
 def GrayGraph(embedding=1):
     r"""
-    Returns the Gray graph.
+    Return the Gray graph.
 
-    See the :wikipedia:`Wikipedia page on the Gray Graph
-    <Gray_graph>`.
+    See the :wikipedia:`Gray_graph`.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to 1 or 2.
 
     EXAMPLES::
 
@@ -2796,7 +2733,7 @@ def GrayGraph(embedding=1):
         sage: graphs.GrayGraph(embedding = 3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1, 2, or 3.
+        ValueError: the value of embedding must be 1, 2, or 3
     """
 
     from sage.graphs.generators.families import LCFGraph
@@ -2809,28 +2746,22 @@ def GrayGraph(embedding=1):
         _circle_embedding(g, o[1], center=(0, 0), radius=.6, shift=-.5)
 
     elif embedding != 2:
-        raise ValueError("The value of embedding must be 1, 2, or 3.")
+        raise ValueError("the value of embedding must be 1, 2, or 3")
 
     return g
 
 def GrotzschGraph():
     r"""
-    Returns the Grötzsch graph.
+    Return the Grötzsch graph.
 
-    The Grötzsch graph is an example of a triangle-free graph with
-    chromatic number equal to 4. For more information, see this
-    `Wikipedia article on Grötzsch graph <http://en.wikipedia.org/wiki/Gr%C3%B6tzsch_graph>`_.
-
-    REFERENCE:
-
-    - [1] Weisstein, Eric W. "Grotzsch Graph."
-      From MathWorld--A Wolfram Web Resource.
-      http://mathworld.wolfram.com/GroetzschGraph.html
+    The Grötzsch graph is an example of a triangle-free graph with chromatic
+    number equal to 4. For more information, see
+    :wikipedia:`Gr%C3%B6tzsch_graph`.
 
     EXAMPLES:
 
-    The Grötzsch graph is named after Herbert Grötzsch. It is a
-    Hamiltonian graph with 11 vertices and 20 edges. ::
+    The Grötzsch graph is named after Herbert Grötzsch. It is a Hamiltonian
+    graph with 11 vertices and 20 edges. ::
 
         sage: G = graphs.GrotzschGraph(); G
         Grotzsch graph: Graph on 11 vertices
@@ -2841,8 +2772,8 @@ def GrotzschGraph():
         sage: G.size()
         20
 
-    The Grötzsch graph is triangle-free and having radius 2, diameter 2,
-    and girth 4. ::
+    The Grötzsch graph is triangle-free and having radius 2, diameter 2, and
+    girth 4. ::
 
         sage: G.is_triangle_free()
         True
@@ -2853,8 +2784,8 @@ def GrotzschGraph():
         sage: G.girth()
         4
 
-    Its chromatic number is 4 and its automorphism group is isomorphic
-    to the dihedral group `D_5`. ::
+    Its chromatic number is 4 and its automorphism group is isomorphic to the
+    dihedral group `D_5`. ::
 
         sage: G.chromatic_number()
         4
@@ -2897,23 +2828,17 @@ def GrotzschGraph():
 
 def HeawoodGraph():
     """
-    Returns a Heawood graph.
+    Return a Heawood graph.
 
-    The Heawood graph is a cage graph that has 14 nodes. It is a cubic
-    symmetric graph. (See also the Möbius-Kantor graph). It is
-    nonplanar and Hamiltonian. It has diameter = 3, radius = 3, girth =
-    6, chromatic number = 2. It is 4-transitive but not 5-transitive.
+    The Heawood graph is a cage graph that has 14 nodes. It is a cubic symmetric
+    graph. (See also the Möbius-Kantor graph). It is nonplanar and
+    Hamiltonian. It has diameter = 3, radius = 3, girth = 6, chromatic number =
+    2. It is 4-transitive but not 5-transitive. See :wikipedia:`Heawood_graph`.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the nodes are
-    positioned in a circular layout with the first node appearing at
-    the top, and then continuing counterclockwise.
-
-    REFERENCES:
-
-    - [1] Weisstein, E. (1999). "Heawood Graph - from Wolfram
-      MathWorld". [Online] Available:
-      http://mathworld.wolfram.com/HeawoodGraph.html [2007, February 17]
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the nodes are positioned in a
+    circular layout with the first node appearing at the top, and then
+    continuing counterclockwise.
 
     EXAMPLES::
 
@@ -2942,15 +2867,14 @@ def HeawoodGraph():
 
 def HerschelGraph():
     r"""
-    Returns the Herschel graph.
+    Return the Herschel graph.
 
-    For more information, see this
-    `Wikipedia article on the Herschel graph <http://en.wikipedia.org/wiki/Herschel_graph>`_.
+    For more information, see :wikipedia:`Herschel_graph`.
 
     EXAMPLES:
 
-    The Herschel graph is named after Alexander Stewart Herschel. It is
-    a planar, bipartite graph with 11 vertices and 18 edges. ::
+    The Herschel graph is named after Alexander Stewart Herschel. It is a
+    planar, bipartite graph with 11 vertices and 18 edges. ::
 
         sage: G = graphs.HerschelGraph(); G
         Herschel graph: Graph on 11 vertices
@@ -2963,8 +2887,8 @@ def HerschelGraph():
         sage: G.size()
         18
 
-    The Herschel graph is a perfect graph with radius 3, diameter 4, and
-    girth 4. ::
+    The Herschel graph is a perfect graph with radius 3, diameter 4, and girth
+    4. ::
 
         sage: G.is_perfect()
         True
@@ -2975,8 +2899,8 @@ def HerschelGraph():
         sage: G.girth()
         4
 
-    Its chromatic number is 2 and its automorphism group is
-    isomorphic to the dihedral group `D_6`. ::
+    Its chromatic number is 2 and its automorphism group is isomorphic to the
+    dihedral group `D_6`. ::
 
         sage: G.chromatic_number()
         2
@@ -3011,32 +2935,30 @@ def HerschelGraph():
 
 def HigmanSimsGraph(relabel=True):
     r"""
-    Returns the Higman-Sims graph.
+    Return the Higman-Sims graph.
 
-    The Higman-Sims graph is a remarkable strongly regular
-    graph of degree 22 on 100 vertices.  For example, it can
-    be split into two sets of 50 vertices each, so that each
-    half induces a subgraph isomorphic to the
-    Hoffman-Singleton graph
-    (:meth:`~HoffmanSingletonGraph`).
-    This can be done in 352 ways (see [BROUWER-HS-2009]_).
+    The Higman-Sims graph is a remarkable strongly regular graph of degree 22 on
+    100 vertices.  For example, it can be split into two sets of 50 vertices
+    each, so that each half induces a subgraph isomorphic to the
+    Hoffman-Singleton graph (:meth:`~HoffmanSingletonGraph`).  This can be done
+    in 352 ways (see `Higman-Sims graph
+    <https://www.win.tue.nl/~aeb/graphs/Higman-Sims.html>`_ by Andries
+    E. Brouwer, accessed 24 October 2009.)
 
-    Its most famous property is that the automorphism
-    group has an index 2 subgroup which is one of the
-    26 sporadic groups. [HIGMAN1968]_
+    Its most famous property is that the automorphism group has an index 2
+    subgroup which is one of the 26 sporadic groups. [HS1968]_
 
-    The construction used here follows [HAFNER2004]_.
+    The construction used here follows [Haf2004]_.
+
+    See also :wikipedia:`Higman–Sims_graph`.
 
     INPUT:
 
-    - ``relabel`` - default: ``True``.  If ``True`` the
-      vertices will be labeled with consecutive integers.
-      If ``False`` the labels are strings that are three
-      digits long. "xyz" means the vertex is in group
-      x (zero through three), pentagon or pentagram y
-      (zero through four), and is vertex z (zero
-      through four) of that pentagon or pentagram.
-      See [HAFNER2004]_ for more.
+    - ``relabel`` - default: ``True``.  If ``True`` the vertices will be labeled
+      with consecutive integers.  If ``False`` the labels are strings that are
+      three digits long. "xyz" means the vertex is in group x (zero through
+      three), pentagon or pentagram y (zero through four), and is vertex z (zero
+      through four) of that pentagon or pentagram.  See [Haf2004]_ for more.
 
     OUTPUT:
 
@@ -3044,10 +2966,9 @@ def HigmanSimsGraph(relabel=True):
 
     EXAMPLES:
 
-    A split into the first 50 and last 50 vertices
-    will induce two copies of the Hoffman-Singleton graph,
-    and we illustrate another such split, which is obvious
-    based on the construction used. ::
+    A split into the first 50 and last 50 vertices will induce two copies of the
+    Hoffman-Singleton graph, and we illustrate another such split, which is
+    obvious based on the construction used. ::
 
         sage: H = graphs.HigmanSimsGraph()
         sage: A = H.subgraph(range(0,50))
@@ -3060,9 +2981,8 @@ def HigmanSimsGraph(relabel=True):
         sage: K.is_isomorphic(C) and K.is_isomorphic(D)
         True
 
-    The automorphism group contains only one nontrivial
-    proper normal subgroup, which is of index 2 and is
-    simple.  It is known as the Higman-Sims group.  ::
+    The automorphism group contains only one nontrivial proper normal subgroup,
+    which is of index 2 and is simple.  It is known as the Higman-Sims group. ::
 
         sage: H = graphs.HigmanSimsGraph()
         sage: G = H.automorphism_group()
@@ -3074,19 +2994,6 @@ def HigmanSimsGraph(relabel=True):
         sage: g//K.order()
         2
 
-    REFERENCES:
-
-        .. [BROUWER-HS-2009] `Higman-Sims graph
-           <https://www.win.tue.nl/~aeb/graphs/Higman-Sims.html>`_.
-           Andries E. Brouwer, accessed 24 October 2009.
-        .. [HIGMAN1968] A simple group of order 44,352,000,
-           Math.Z. 105 (1968) 110-113. D.G. Higman & C. Sims.
-        .. [HAFNER2004] `On the graphs of Hoffman-Singleton and
-           Higman-Sims
-           <http://www.combinatorics.org/Volume_11/PDF/v11i1r77.pdf>`_.
-           The Electronic Journal of Combinatorics 11 (2004), #R77,
-           Paul R. Hafner, accessed 24 October 2009.
-
     AUTHOR:
 
         - Rob Beezer (2009-10-24)
@@ -3094,8 +3001,8 @@ def HigmanSimsGraph(relabel=True):
     HS = Graph()
     HS.name('Higman-Sims graph')
 
-    # Four groups of either five pentagons, or five pentagrams
-    # 4 x 5 x 5 = 100 vertices
+    # Four groups of either five pentagons, or five pentagrams 4 x 5 x 5 = 100
+    # vertices
     # First digit is "group", second is "penta{gon|gram}", third is "vertex"
     vlist = ['%d%d%d'%(g,p,v)
                     for g in range(4) for p in range(5) for v in range(5)]
@@ -3179,27 +3086,22 @@ def HigmanSimsGraph(relabel=True):
 
 def HoffmanSingletonGraph():
     r"""
-    Returns the Hoffman-Singleton graph.
+    Return the Hoffman-Singleton graph.
 
-    The Hoffman-Singleton graph is the Moore graph of degree 7,
-    diameter 2 and girth 5. The Hoffman-Singleton theorem states that
-    any Moore graph with girth 5 must have degree 2, 3, 7 or 57. The
-    first three respectively are the pentagon, the Petersen graph, and
-    the Hoffman-Singleton graph. The existence of a Moore graph with
-    girth 5 and degree 57 is still open.
+    The Hoffman-Singleton graph is the Moore graph of degree 7, diameter 2 and
+    girth 5. The Hoffman-Singleton theorem states that any Moore graph with
+    girth 5 must have degree 2, 3, 7 or 57. The first three respectively are the
+    pentagon, the Petersen graph, and the Hoffman-Singleton graph. The existence
+    of a Moore graph with girth 5 and degree 57 is still open.
 
-    A Moore graph is a graph with diameter `d` and girth
-    `2d + 1`. This implies that the graph is regular, and
-    distance regular.
+    A Moore graph is a graph with diameter `d` and girth `2d + 1`. This implies
+    that the graph is regular, and distance regular.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. A novel algorithm written by
-    Tom Boothby gives a random layout which is pleasing to the eye.
+    For more details, see [GR2001]_ and :wikipedia:`Hoffman–Singleton_graph`.
 
-    REFERENCES:
-
-    .. [GodsilRoyle] Godsil, C. and Royle, G. Algebraic Graph Theory.
-      Springer, 2001.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. A novel algorithm written by Tom Boothby gives
+    a random layout which is pleasing to the eye.
 
     EXAMPLES::
 
@@ -3213,8 +3115,7 @@ def HoffmanSingletonGraph():
         sage: HS.num_verts()
         50
 
-    Note that you get a different layout each time you create the graph.
-    ::
+    Note that you get a different layout each time you create the graph.  ::
 
         sage: HS.layout()[1]
         (-0.844..., 0.535...)
@@ -3272,10 +3173,9 @@ def HoffmanSingletonGraph():
 
 def HoffmanGraph():
     r"""
-    Returns the Hoffman Graph.
+    Return the Hoffman Graph.
 
-    See the :wikipedia:`Wikipedia page on the Hoffman graph
-    <Hoffman_graph>`.
+    See the :wikipedia:`Hoffman_graph`.
 
     EXAMPLES::
 
@@ -3316,10 +3216,9 @@ def HoffmanGraph():
 
 def HoltGraph():
     r"""
-    Returns the Holt graph (also called the Doyle graph).
+    Return the Holt graph (also called the Doyle graph).
 
-    See the :wikipedia:`Wikipedia page on the Holt graph
-    <Holt_graph>`.
+    See the :wikipedia:`Holt_graph`.
 
     EXAMPLES::
 
@@ -3359,36 +3258,31 @@ def HoltGraph():
 
 def KrackhardtKiteGraph():
     """
-    Returns a Krackhardt kite graph with 10 nodes.
+    Return a Krackhardt kite graph with 10 nodes.
 
-    The Krackhardt kite graph was originally developed by David
-    Krackhardt for the purpose of studying social networks. It is used
-    to show the distinction between: degree centrality, betweeness
-    centrality, and closeness centrality. For more information read the
-    plotting section below in conjunction with the example.
+    The Krackhardt kite graph was originally developed by David Krackhardt for
+    the purpose of studying social networks (see [Kre2002]_ and
+    :wikipedia:`Krackhardt_kite_graph`). It is used to show the distinction
+    between: degree centrality, betweeness centrality, and closeness
+    centrality. For more information read the plotting section below in
+    conjunction with the example.
 
-    REFERENCES:
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the graph is drawn left to
+    right, in top to bottom row sequence of [2, 3, 2, 1, 1, 1] nodes on each
+    row. This places the fourth node (3) in the center of the kite, with the
+    highest degree. But the fourth node only connects nodes that are otherwise
+    connected, or those in its clique (i.e.: Degree Centrality). The eighth (7)
+    node is where the kite meets the tail. It has degree = 3, less than the
+    average, but is the only connection between the kite and tail (i.e.:
+    Betweenness Centrality). The sixth and seventh nodes (5 and 6) are drawn in
+    the third row and have degree = 5. These nodes have the shortest path to all
+    other nodes in the graph (i.e.: Closeness Centrality).  Please execute the
+    example for visualization.
 
-    - [1] Kreps, V. (2002). "Social Network Analysis".  [Online] Available:
-      http://www.orgnet.com/sna.html
+    EXAMPLES: 
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the graph is
-    drawn left to right, in top to bottom row sequence of [2, 3, 2, 1,
-    1, 1] nodes on each row. This places the fourth node (3) in the
-    center of the kite, with the highest degree. But the fourth node
-    only connects nodes that are otherwise connected, or those in its
-    clique (i.e.: Degree Centrality). The eighth (7) node is where the
-    kite meets the tail. It has degree = 3, less than the average, but
-    is the only connection between the kite and tail (i.e.: Betweenness
-    Centrality). The sixth and seventh nodes (5 and 6) are drawn in the
-    third row and have degree = 5. These nodes have the shortest path
-    to all other nodes in the graph (i.e.: Closeness Centrality).
-    Please execute the example for visualization.
-
-    EXAMPLES: Construct and show a Krackhardt kite graph
-
-    ::
+    Construct and show a Krackhardt kite graph ::
 
         sage: g = graphs.KrackhardtKiteGraph()
         sage: g.show() # long time
@@ -3495,20 +3389,18 @@ def LocalMcLaughlinGraph():
 
 def LjubljanaGraph(embedding=1):
     r"""
-    Returns the Ljubljana Graph.
+    Return the Ljubljana Graph.
 
-    The Ljubljana graph is a bipartite 3-regular graph on 112
-    vertices and 168 edges. It is not vertex-transitive as it has
-    two orbits which are also independent sets of size 56. See the
-    :wikipedia:`Wikipedia page on the Ljubljana Graph
-    <Ljubljana_graph>`.
+    The Ljubljana graph is a bipartite 3-regular graph on 112 vertices and 168
+    edges. It is not vertex-transitive as it has two orbits which are also
+    independent sets of size 56. See the :wikipedia:`Ljubljana_graph`.
 
     The default embedding is obtained from the Heawood graph.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to 1 or 2.
 
     EXAMPLES::
 
@@ -3529,7 +3421,7 @@ def LjubljanaGraph(embedding=1):
         sage: graphs.LjubljanaGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     L = [47, -23, -31, 39, 25, -21, -31, -41, 25, 15, 29, -41, -19, 15,
@@ -3544,8 +3436,8 @@ def LjubljanaGraph(embedding=1):
     if embedding == 1:
         dh = HeawoodGraph().get_pos()
 
-        # Correspondence between the vertices of the Heawood Graph and
-        # 8-sets of the Ljubljana Graph.
+        # Correspondence between the vertices of the Heawood Graph and 8-sets of
+        # the Ljubljana Graph.
 
         d = {
             0: [1, 21, 39, 57, 51, 77, 95, 107],
@@ -3577,11 +3469,11 @@ def LjubljanaGraph(embedding=1):
         return g
 
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def LivingstoneGraph():
     r"""
-    Returns the Livingstone Graph.
+    Return the Livingstone Graph.
 
     The Livingstone graph is a distance-transitive graph on 266 vertices whose
     automorphism group is the :class:`J1 group
@@ -3610,7 +3502,7 @@ def LivingstoneGraph():
 
 def M22Graph():
     r"""
-    Returns the M22 graph.
+    Return the M22 graph.
 
     The `M_{22}` graph is the unique strongly regular graph with parameters
     `v = 77, k = 16, \lambda = 0, \mu = 4`.
@@ -3644,7 +3536,7 @@ def M22Graph():
 
 def MarkstroemGraph():
     r"""
-    Returns the Markström Graph.
+    Return the Markström Graph.
 
     The Markström Graph is a cubic planar graph with no cycles of length 4 nor
     8, but containing cycles of length 16. For more information, see the
@@ -3690,15 +3582,14 @@ def MarkstroemGraph():
 
 def McGeeGraph(embedding=2):
     r"""
-    Returns the McGee Graph.
+    Return the McGee Graph.
 
-    See the :wikipedia:`Wikipedia page on the McGee Graph
-    <McGee_graph>`.
+    See the :wikipedia:`McGee_graph`.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to 1 or 2.
 
     EXAMPLES::
 
@@ -3719,14 +3610,8 @@ def McGeeGraph(embedding=2):
         sage: graphs.McGeeGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
-
-    L = [47, -23, -31, 39, 25, -21, -31, -41, 25, 15, 29, -41, -19, 15,
-         -49, 33, 39, -35, -21, 17, -33, 49, 41, 31, -15, -29, 41, 31,
-         -15, -25, 21, 31, -51, -25, 23, 9, -17, 51, 35, -29, 21, -51,
-         -39, 33, -9, -51, 51, -47, -33, 19, 51, -21, 29, 21, -31, -39]
-
     from sage.graphs.generators.families import LCFGraph
     g = LCFGraph(24, [12, 7, -7], 8)
     g.name('McGee graph')
@@ -3747,18 +3632,18 @@ def McGeeGraph(embedding=2):
         return g
 
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def McLaughlinGraph():
     r"""
-    Returns the McLaughlin Graph.
+    Return the McLaughlin Graph.
 
     The McLaughlin Graph is the unique strongly regular graph of parameters
     `(275, 112, 30, 56)`.
 
     For more information on the McLaughlin Graph, see its web page on `Andries
-    Brouwer's website <https://www.win.tue.nl/~aeb/graphs/McL.html>`_ which gives
-    the definition that this method implements.
+    Brouwer's website <https://www.win.tue.nl/~aeb/graphs/McL.html>`_ which
+    gives the definition that this method implements.
 
     .. NOTE::
 
@@ -3811,21 +3696,17 @@ def McLaughlinGraph():
 
 def MoebiusKantorGraph():
     """
-    Returns a Möbius-Kantor Graph.
+    Return a Möbius-Kantor Graph.
 
-    A Möbius-Kantor graph is a cubic symmetric graph. (See also the
-    Heawood graph). It has 16 nodes and 24 edges. It is nonplanar and
-    Hamiltonian. It has diameter = 4, girth = 6, and chromatic number =
-    2. It is identical to the Generalized Petersen graph, P[8,3].
+    A Möbius-Kantor graph is a cubic symmetric graph. (See also the Heawood
+    graph). It has 16 nodes and 24 edges. It is nonplanar and Hamiltonian. It
+    has diameter = 4, girth = 6, and chromatic number = 2. It is identical to
+    the Generalized Petersen graph, P[8,3].
+
+    For more details, see `Möbius-Kantor Graph - from Wolfram MathWorld
+    <http://mathworld.wolfram.com/Moebius-KantorGraph.html>`_.
 
     PLOTTING: See the plotting section for the generalized Petersen graphs.
-
-    REFERENCES:
-
-    - [1] Weisstein, E. (1999). "Möbius-Kantor Graph - from
-      Wolfram MathWorld". [Online] Available:
-      http://mathworld.wolfram.com/Moebius-KantorGraph.html [2007,
-      February 17]
 
     EXAMPLES::
 
@@ -3843,10 +3724,10 @@ def MoebiusKantorGraph():
 
 def MoserSpindle():
     r"""
-    Returns the Moser spindle.
+    Return the Moser spindle.
 
-    For more information, see this
-    `MathWorld article on the Moser spindle <http://mathworld.wolfram.com/MoserSpindle.html>`_.
+    For more information, see this `MathWorld article on the Moser spindle
+    <http://mathworld.wolfram.com/MoserSpindle.html>`_.
 
     EXAMPLES:
 
@@ -3872,8 +3753,8 @@ def MoserSpindle():
         sage: G.girth()
         3
 
-    The Moser spindle has chromatic number 4 and its automorphism
-    group is isomorphic to the dihedral group `D_4`. ::
+    The Moser spindle has chromatic number 4 and its automorphism group is
+    isomorphic to the dihedral group `D_4`. ::
 
         sage: G.chromatic_number()
         4
@@ -3900,15 +3781,14 @@ def MoserSpindle():
 
 def NauruGraph(embedding=2):
     """
-    Returns the Nauru Graph.
+    Return the Nauru Graph.
 
-    See the :wikipedia:`Wikipedia page on the Nauru Graph
-    <Nauru_graph>`.
+    See the :wikipedia:`Nauru_graph`.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to 1 or 2.
 
     EXAMPLES::
 
@@ -3929,7 +3809,7 @@ def NauruGraph(embedding=2):
         sage: graphs.NauruGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
         sage: graphs.NauruGraph(embedding=1).is_isomorphic(g)
         True
     """
@@ -3945,11 +3825,11 @@ def NauruGraph(embedding=2):
         g.name("Nauru Graph")
         return g
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def PappusGraph():
     """
-    Returns the Pappus graph, a graph on 18 vertices.
+    Return the Pappus graph, a graph on 18 vertices.
 
     The Pappus graph is cubic, symmetric, and distance-regular.
 
@@ -3977,7 +3857,7 @@ def PappusGraph():
 
 def PoussinGraph():
     r"""
-    Returns the Poussin Graph.
+    Return the Poussin Graph.
 
     For more information on the Poussin Graph, see its corresponding `Wolfram
     page <http://mathworld.wolfram.com/PoussinGraph.html>`_.
@@ -4006,20 +3886,18 @@ def PoussinGraph():
 
 def PetersenGraph():
     """
-    Returns the Petersen Graph.
+    Return the Petersen Graph.
 
-    The Petersen Graph is a named graph that consists of 10 vertices
-    and 15 edges, usually drawn as a five-point star embedded in a
-    pentagon.
+    The Petersen Graph is a named graph that consists of 10 vertices and 15
+    edges, usually drawn as a five-point star embedded in a pentagon.
 
-    The Petersen Graph is a common counterexample. For example, it is
-    not Hamiltonian.
+    The Petersen Graph is a common counterexample. For example, it is not
+    Hamiltonian.
 
     PLOTTING: See the plotting section for the generalized Petersen graphs.
 
-    EXAMPLES: We compare below the Petersen graph with the default
-    spring-layout versus a planned position dictionary of [x,y]
-    tuples::
+    EXAMPLES: We compare below the Petersen graph with the default spring-layout
+    versus a planned position dictionary of [x,y] tuples::
 
         sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
         sage: petersen_spring.show() # long time
@@ -4061,10 +3939,9 @@ def PerkelGraph():
 
 def RobertsonGraph():
     """
-    Returns the Robertson graph.
+    Return the Robertson graph.
 
-    See the :wikipedia:`Wikipedia page on the Robertson Graph
-    <Robertson_graph>`.
+    See the :wikipedia:`Robertson_graph`.
 
     EXAMPLES::
 
@@ -4095,13 +3972,12 @@ def RobertsonGraph():
 
 def SchlaefliGraph():
     r"""
-    Returns the Schläfli graph.
+    Return the Schläfli graph.
 
     The Schläfli graph is the only strongly regular graphs of parameters
-    `(27,16,10,8)` (see [GodsilRoyle]_).
+    `(27,16,10,8)` (see [GR2001]_).
 
-    For more information, see the :wikipedia:`Wikipedia article on the
-    Schläfli graph <Schläfli_graph>`.
+    For more information, see the :wikipedia:`Schläfli_graph`.
 
     .. SEEALSO::
 
@@ -4141,11 +4017,11 @@ def SchlaefliGraph():
 
 def ShrikhandeGraph():
     """
-    Returns the Shrikhande graph.
+    Return the Shrikhande graph.
 
     For more information, see the `MathWorld article on the Shrikhande graph
     <http://mathworld.wolfram.com/ShrikhandeGraph.html>`_ or the
-    :wikipedia:`Wikipedia article on the Shrikhande graph <Shrikhande_graph>`.
+    :wikipedia:`Shrikhande_graph`.
 
     .. SEEALSO::
 
@@ -4154,8 +4030,8 @@ def ShrikhandeGraph():
 
     EXAMPLES:
 
-    The Shrikhande graph was defined by S. S. Shrikhande in 1959. It has
-    `16` vertices and `48` edges, and is strongly regular of degree `6` with
+    The Shrikhande graph was defined by S. S. Shrikhande in 1959. It has `16`
+    vertices and `48` edges, and is strongly regular of degree `6` with
     parameters `(2,2)`::
 
         sage: G = graphs.ShrikhandeGraph(); G
@@ -4189,8 +4065,7 @@ def ShrikhandeGraph():
         sage: G.girth()
         3
 
-    Its chromatic number is `4` and its automorphism group is of order
-    `192`::
+    Its chromatic number is `4` and its automorphism group is of order `192`::
 
         sage: G.chromatic_number()
         4
@@ -4235,7 +4110,7 @@ def ShrikhandeGraph():
 
 def SylvesterGraph():
     """
-    Returns the Sylvester Graph.
+    Return the Sylvester Graph.
 
     This graph is obtained from the Hoffman Singleton graph by considering the
     graph induced by the vertices at distance two from the vertices of an (any)
@@ -4277,12 +4152,12 @@ def SimsGewirtzGraph():
 
     This graph is obtained from the Higman Sims graph by considering the graph
     induced by the vertices at distance two from the vertices of an (any)
-    edge. It is the only strongly regular graph with parameters `v = 56, k = 10,
-    \lambda = 0, \mu = 2`
+    edge. It is the only strongly regular graph with parameters `v = 56`, 
+    `k = 10`, `\lambda = 0`, `\mu = 2`
 
     For more information on the Sylvester graph, see
     `<https://www.win.tue.nl/~aeb/graphs/Sims-Gewirtz.html>`_ or its
-    :wikipedia:`Wikipedia page <Gewirtz graph>`.
+    :wikipedia:`Gewirtz_graph`.
 
     .. SEEALSO::
 
@@ -4314,7 +4189,7 @@ def SimsGewirtzGraph():
 
 def SousselierGraph():
     r"""
-    Returns the Sousselier Graph.
+    Return the Sousselier Graph.
 
     The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
     edges. For more information, see the corresponding `Wikipedia page (in
@@ -4354,7 +4229,7 @@ def SousselierGraph():
 
 def SzekeresSnarkGraph():
     r"""
-    Returns the Szekeres Snark Graph.
+    Return the Szekeres Snark Graph.
 
     The Szekeres graph is a snark with 50 vertices and 75 edges. For more
     information on this graph, see the :wikipedia:`Szekeres_snark`.
@@ -4395,7 +4270,7 @@ def SzekeresSnarkGraph():
 
 def ThomsenGraph():
     """
-    Returns the Thomsen Graph.
+    Return the Thomsen Graph.
 
     The Thomsen Graph is actually a complete bipartite graph with `(n1, n2) =
     (3, 3)`. It is also called the Utility graph.
@@ -4417,7 +4292,7 @@ def ThomsenGraph():
 
 def TietzeGraph():
     r"""
-    Returns the Tietze Graph.
+    Return the Tietze Graph.
 
     For more information on the Tietze Graph, see the
     :wikipedia:`Tietze's_graph`.
@@ -4497,10 +4372,9 @@ def TruncatedTetrahedralGraph():
 
 def Tutte12Cage():
     r"""
-    Returns Tutte's 12-Cage.
+    Return the Tutte 12-Cage.
 
-    See the :wikipedia:`Wikipedia page on the Tutte 12-Cage
-    <Tutte_12-cage>`.
+    See the :wikipedia:`Tutte_12-cage`.
 
     EXAMPLES::
 
@@ -4525,15 +4399,14 @@ def Tutte12Cage():
 
 def TutteCoxeterGraph(embedding=2):
     r"""
-    Returns the Tutte-Coxeter graph.
+    Return the Tutte-Coxeter graph.
 
-    See the :wikipedia:`Wikipedia page on the Tutte-Coxeter Graph
-    <Tutte-Coxeter_graph>`.
+    See the :wikipedia:`Tutte-Coxeter_graph`.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be
-      selected by setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- two embeddings are available, and can be selected by
+      setting ``embedding`` to 1 or 2.
 
     EXAMPLES::
 
@@ -4554,7 +4427,7 @@ def TutteCoxeterGraph(embedding=2):
         sage: graphs.TutteCoxeterGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     from sage.graphs.generators.families import LCFGraph
@@ -4584,11 +4457,11 @@ def TutteCoxeterGraph(embedding=2):
         return g
 
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def TutteGraph():
     r"""
-    Returns the Tutte Graph.
+    Return the Tutte Graph.
 
     The Tutte graph is a 3-regular, 3-connected, and planar non-hamiltonian
     graph. For more information on the Tutte Graph, see the
@@ -4647,10 +4520,9 @@ def TutteGraph():
 
 def WagnerGraph():
     """
-    Returns the Wagner Graph.
+    Return the Wagner Graph.
 
-    See the :wikipedia:`Wikipedia page on the Wagner Graph
-    <Wagner_graph>`.
+    See the :wikipedia:`Wagner_graph`.
 
     EXAMPLES::
 
@@ -4672,7 +4544,7 @@ def WagnerGraph():
 
 def WatkinsSnarkGraph():
     r"""
-    Returns the Watkins Snark Graph.
+    Return the Watkins Snark Graph.
 
     The Watkins Graph is a snark with 50 vertices and 75 edges. For more
     information, see the :wikipedia:`Watkins_snark`.
@@ -4708,7 +4580,7 @@ def WatkinsSnarkGraph():
 
 def WienerArayaGraph():
     r"""
-    Returns the Wiener-Araya Graph.
+    Return the Wiener-Araya Graph.
 
     The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
     67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
@@ -4773,10 +4645,11 @@ def _EllipticLinesProjectivePlaneScheme(k):
     Pseudo-cyclic association scheme for action of `O(3,2^k)` on elliptic lines
 
     The group `O(3,2^k)` acts naturally on the `q(q-1)/2` lines of `PG(2,2^k)`
-    skew to the conic preserved by it, see Sect. 12.7.B of [BCN89]_ and Sect. 6.D
-    in [BvL84]_. Compute the orbitals of this action and return them.
+    skew to the conic preserved by it, see Sect. 12.7.B of [BCN1989]_ and
+    Sect. 6.D in [BvL84]_. Compute the orbitals of this action and return them.
 
-    This is a helper for :func:`sage.graphs.generators.smallgraphs.MathonStronglyRegularGraph`.
+    This is a helper for
+    :func:`sage.graphs.generators.smallgraphs.MathonStronglyRegularGraph`.
 
     INPUT:
 
@@ -4828,10 +4701,10 @@ def MathonStronglyRegularGraph(t):
 
     TESTS::
 
-        sage: G = graphs.MathonStronglyRegularGraph(1)        # long time
+        sage: G = graphs.MathonStronglyRegularGraph(1) # long time
         sage: G.is_strongly_regular(parameters=True)   # long time
         (784, 270, 98, 90)
-        sage: G = graphs.MathonStronglyRegularGraph(2)        # long time
+        sage: G = graphs.MathonStronglyRegularGraph(2) # long time
         sage: G.is_strongly_regular(parameters=True)   # long time
         (784, 297, 116, 110)
 
@@ -4842,11 +4715,11 @@ def MathonStronglyRegularGraph(t):
 
 def JankoKharaghaniGraph(v):
     r"""
-    Returns a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg.
+    Return a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg.
 
     This functions returns a strongly regular graph for the two sets of
-    parameters shown to be realizable in [JK02]_. The paper also uses a
-    construction from [GM87]_.
+    parameters shown to be realizable in [JK2002]_. The paper also uses a
+    construction from [GM1987]_.
 
     INPUT:
 
@@ -4861,19 +4734,6 @@ def JankoKharaghaniGraph(v):
         sage: g = graphs.JankoKharaghaniGraph(1800)  # not tested (30s)
         sage: g.is_strongly_regular(parameters=True) # not tested (30s)
         (1800, 1029, 588, 588)
-
-    REFERENCES:
-
-    .. [JK02] Janko, Kharaghani,
-       A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
-       J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
-       :doi:`10.1006/jcta.2001.3231`
-
-    .. [GM87] Gibbons, Mathon,
-       Construction methods for Bhaskar Rao and related designs,
-       J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5--30.
-       http://journals.cambridge.org/article_S1446788700033929
-
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     from sage.matrix.constructor import matrix
@@ -4949,27 +4809,18 @@ def JankoKharaghaniGraph(v):
 
 def JankoKharaghaniTonchevGraph():
     r"""
-    Returns a (324,153,72,72)-strongly regular graph from [JKT01]_.
+    Return a (324,153,72,72)-strongly regular graph from [JKT2001]_.
 
-    Build the graph using the description given in [JKT01]_, taking
-    sets B1 and B163 in the text as adjacencies of vertices 1 and 163,
-    respectively, and taking the edge orbits of the group `G` provided.
+    Build the graph using the description given in [JKT2001]_, taking sets B1
+    and B163 in the text as adjacencies of vertices 1 and 163, respectively, and
+    taking the edge orbits of the group `G` provided.
 
     EXAMPLES::
 
         sage: Gamma=graphs.JankoKharaghaniTonchevGraph()  # long time
         sage: Gamma.is_strongly_regular(parameters=True)  # long time
         (324, 153, 72, 72)
-
-    REFERENCES:
-
-    .. [JKT01] \Z.Janko, H.Kharaghani, V.D.Tonchev
-       The existence of a Bush-type Hadamard matrix of order 324
-       and two new infinite classes of symmetric designs.
-       Des. Codes Cryptogr. 24(2001), 225--232
-
     """
-    from itertools import product
     from sage.misc.misc_c import prod
     from sage.combinat.permutation import Permutation as P
     from sage.libs.gap.libgap import libgap
@@ -5020,10 +4871,10 @@ def IoninKharaghani765Graph():
     r"""
     Return a `(765, 192, 48, 48)`-strongly regular graph.
 
-    Existence of a strongly regular graph with these parameters was claimed in [IK03]_.
-    Implementing the construction in the latter did not work, however. This function
-    implements the following instructions, shared by Yury Ionin and Hadi
-    Kharaghani.
+    Existence of a strongly regular graph with these parameters was claimed in
+    [IK2003]_.  Implementing the construction in the latter did not work,
+    however. This function implements the following instructions, shared by Yury
+    Ionin and Hadi Kharaghani.
 
         Let `A` be the affine plane over the field `GF(3)=\{-1,0,1\}`. Let
 
@@ -5114,16 +4965,8 @@ def IoninKharaghani765Graph():
 
     .. TODO::
 
-        An update to [IK03]_ meant to fix the problem encountered became available
+        An update to [IK2003]_ meant to fix the problem encountered became available
         2016/02/24, see http://www.cs.uleth.ca/~hadi/research/IoninKharaghani.pdf
-
-    REFERENCE:
-
-    .. [IK03] Yury Ionin, Hadi Kharaghani
-       New families of strongly regular graphs.
-       Journal of Combinatorial Designs,
-       Vol 11 (2003), no. 3, 208--217,
-       :doi:`10.1002/jcd.10038`
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     K = GF(3)
@@ -5164,7 +5007,7 @@ def IoninKharaghani765Graph():
         return matrix.block([Xi[i:] + Xi[:i]
                              for i in range(len(Xi))])
 
-    sigma = lambda Xi: Xi[1:] + [pi[Xi[0]]]
+    # sigma = lambda Xi: Xi[1:] + [pi[Xi[0]]]
     f_pow = lambda f, i, X: f_pow(f, i-1, f(X)) if i else X
 
     sigma2 = lambda Xi: Xi[1:] + [Xi[0]]
@@ -5188,16 +5031,16 @@ def IoninKharaghani765Graph():
         vec = f_pow(sigma2, i % 5, vec)
         int_to_matrix[i+1] = N(vec)
 
-    M = matrix.block([[int_to_matrix[x] for x in R] for R in W.rows()])
-    g = Graph(M,name="Ionin-Kharaghani")
+    M2 = matrix.block([[int_to_matrix[x] for x in R] for R in W.rows()])
+    g = Graph(M2, name="Ionin-Kharaghani")
     return g
 
 
 def U42Graph216():
     r"""
-    Returns a (216,40,4,8)-strongly regular graph from [CRS16]_.
+    Return a (216,40,4,8)-strongly regular graph from [CRS2016]_.
 
-    Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_
+    Build the graph, interpreting the `U_4(2)`-action considered in [CRS2016]_
     as the one on the hyperbolic lines of the corresponding unitary polar space,
     and then doing the unique merging of the orbitals leading to a graph with
     the parameters in question.
@@ -5207,12 +5050,6 @@ def U42Graph216():
         sage: G=graphs.U42Graph216()                 # optional - gap_packages (grape)
         sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape)
         (216, 40, 4, 8)
-
-    REFERENCES:
-
-    .. [CRS16] \Dean Crnković, Sanja Rukavina, Andrea Švob,
-       Strongly regular graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`.
-       :arxiv:`1609.07133`
     """
     from sage.libs.gap.libgap import libgap
     from sage.features.gap import GapPackage
@@ -5246,14 +5083,14 @@ def U42Graph216():
 
 def U42Graph540():
     r"""
-    Returns a (540,187,58,68)-strongly regular graph from [CRS16]_.
+    Return a (540,187,58,68)-strongly regular graph from [CRS2016]_.
 
-    Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_
-    as the action of `U_4(2)=Sp_4(3)<U_4(3)` on the nonsingular, w.r.t.
-    to the Hermitean form stabilised by `U_4(3)`, points of the
-    3-dimensional projective space over `GF(9)`. There are several possible
-    mergings of orbitals, some leading to non-isomorphic graphs with the same
-    parameters. We found the merging here using [COCO]_.
+    Build the graph, interpreting the `U_4(2)`-action considered in [CRS2016]_
+    as the action of `U_4(2)=Sp_4(3)<U_4(3)` on the nonsingular, w.r.t.  to the
+    Hermitean form stabilised by `U_4(3)`, points of the 3-dimensional
+    projective space over `GF(9)`. There are several possible mergings of
+    orbitals, some leading to non-isomorphic graphs with the same parameters. We
+    found the merging here using [COCO]_.
 
     EXAMPLES::
 

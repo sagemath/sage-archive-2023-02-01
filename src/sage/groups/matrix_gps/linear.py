@@ -63,6 +63,7 @@ from sage.misc.latex import latex
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
 from sage.categories.groups import Groups
+from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 
 
 ###############################################################################
@@ -277,5 +278,17 @@ class LinearMatrixGroup_generic(NamedMatrixGroup_generic):
                 raise TypeError('matrix must non-zero determinant')
 
 
-class LinearMatrixGroup_gap(NamedMatrixGroup_gap, LinearMatrixGroup_generic):
+class LinearMatrixGroup_gap(NamedMatrixGroup_gap, LinearMatrixGroup_generic, FinitelyGeneratedMatrixGroup_gap):
+    r"""
+    The general or special linear group in GAP.
+
+    TESTS:
+
+    Check that :trac:`20867` is fixed::
+
+        sage: from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
+        sage: G = GL(3,3)
+        sage: isinstance(G, FinitelyGeneratedMatrixGroup_gap)
+        True
+    """
     pass

@@ -46,7 +46,7 @@ from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, normalize_args_invariant_form,
     NamedMatrixGroup_generic, NamedMatrixGroup_gap)
-
+from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 
 
 ###############################################################################
@@ -240,7 +240,7 @@ class SymplecticMatrixGroup_generic(NamedMatrixGroup_generic):
             raise TypeError('matrix must be symplectic with respect to the alternating form\n{}'.format(F))
 
 
-class SymplecticMatrixGroup_gap(SymplecticMatrixGroup_generic, NamedMatrixGroup_gap):
+class SymplecticMatrixGroup_gap(SymplecticMatrixGroup_generic, NamedMatrixGroup_gap, FinitelyGeneratedMatrixGroup_gap):
     r"""
     Symplectic group in GAP.
 
@@ -251,6 +251,15 @@ class SymplecticMatrixGroup_gap(SymplecticMatrixGroup_generic, NamedMatrixGroup_
 
         sage: latex(Sp(4,5))
         \text{Sp}_{4}(\Bold{F}_{5})
+
+    TESTS:
+
+    Check that :trac:`20867` is fixed::
+
+        sage: from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
+        sage: G = Sp(4,3)
+        sage: isinstance(G, FinitelyGeneratedMatrixGroup_gap)
+        True
     """
 
     @cached_method

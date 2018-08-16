@@ -7404,7 +7404,7 @@ def ll_red_nf_redsb(p, BooleSet reductors):
         sage: from brial import ll_red_nf_redsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_redsb(p, reductors)
         b*c + b*d + c + d + 1
@@ -7446,7 +7446,7 @@ def ll_red_nf_noredsb(BooleanPolynomial p, BooleSet reductors):
         sage: from brial import ll_red_nf_noredsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_noredsb(p, reductors)
         b*c + b*d + c + d + 1
@@ -7479,7 +7479,7 @@ def ll_red_nf_noredsb_single_recursive_call(BooleanPolynomial p, BooleSet reduct
         sage: from brial import ll_red_nf_noredsb_single_recursive_call
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_noredsb_single_recursive_call(p, reductors)
         b*c + b*d + c + d + 1

@@ -2389,7 +2389,7 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: x = RDF(4e300); y = RDF(3e300);
+            sage: x = RDF(4e300); y = RDF(3e300)
             sage: x.hypot(y)
             5e+300
             sage: sqrt(x^2+y^2) # overflow

@@ -1987,7 +1987,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         EXAMPLES::
 
             sage: K.<u> = PowerSeriesRing(GF(5))
-            sage: Frob = K.frobenius_endomorphism(2);
+            sage: Frob = K.frobenius_endomorphism(2)
             sage: Frob._latex_()
             '\\verb"Frob"^{2}'
         """

@@ -1180,7 +1180,7 @@ class FunctionField_polymod(FunctionField):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[];
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(x^2*y^5 - 1/x)
             sage: g, d = L._make_monic_integral(L.polynomial()); g,d
             (y^5 - x^12, x^3)

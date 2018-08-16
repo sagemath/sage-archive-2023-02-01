@@ -134,13 +134,12 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
             s = "Frob^%s" % self._power
         return s
 
-
     cpdef Element _call_ (self, x):
         """
         TESTS::
 
             sage: K.<a> = Qq(5^3)
-            sage: Frob = K.frobenius_endomorphism();
+            sage: Frob = K.frobenius_endomorphism()
             sage: Frob(a) == a.frobenius()
             True
         """
@@ -148,7 +147,6 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         for i in range(self._power):
             res = res.frobenius()
         return res
-
 
     def order(self):
         """

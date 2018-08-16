@@ -323,7 +323,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             sage: from sage.rings.finite_rings.hom_finite_field import FiniteFieldHomomorphism_generic
             sage: k.<t> = GF(3^7)
             sage: K.<T> = GF(3^21)
-            sage: f = FiniteFieldHomomorphism_generic(Hom(k, K));
+            sage: f = FiniteFieldHomomorphism_generic(Hom(k, K))
             sage: g = f.section(); g
             Section of Ring morphism:
               From: Finite Field in t of size 3^7

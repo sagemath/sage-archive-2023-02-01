@@ -123,7 +123,7 @@ Construct ring homomorphisms from one power series ring to another::
 
 Multiplicative inversion of power series::
 
-    sage: h = 1 + s + t + s*t + s^2*t^2 + 3*s^4 + 3*s^3*t + R.O(5);
+    sage: h = 1 + s + t + s*t + s^2*t^2 + 3*s^4 + 3*s^3*t + R.O(5)
     sage: k = h^-1; k
     1 - s - t + s^2 + s*t + t^2 - s^3 - s^2*t - s*t^2 - t^3 - 2*s^4 -
     2*s^3*t + s*t^3 + t^4 + O(s, t)^5
@@ -131,8 +131,8 @@ Multiplicative inversion of power series::
     1 + O(s, t)^5
 
     sage: f = 1 - 5*s^29 - 5*s^28*t + 4*s^18*t^35 + \
-    4*s^17*t^36 - s^45*t^25 - s^44*t^26 + s^7*t^83 + \
-    s^6*t^84 + R.O(101)
+    ....: 4*s^17*t^36 - s^45*t^25 - s^44*t^26 + s^7*t^83 + \
+    ....: s^6*t^84 + R.O(101)
     sage: h = ~f; h
     1 + 5*s^29 + 5*s^28*t - 4*s^18*t^35 - 4*s^17*t^36 + 25*s^58 + 50*s^57*t
     + 25*s^56*t^2 + s^45*t^25 + s^44*t^26 - 40*s^47*t^35 - 80*s^46*t^36
@@ -175,7 +175,7 @@ def is_MPowerSeries(f):
 
         sage: from sage.rings.power_series_ring_element import is_PowerSeries
         sage: from sage.rings.multi_power_series_ring_element import is_MPowerSeries
-        sage: M = PowerSeriesRing(ZZ,4,'v');
+        sage: M = PowerSeriesRing(ZZ,4,'v')
         sage: is_PowerSeries(M.random_element(10))
         True
         sage: is_MPowerSeries(M.random_element(10))

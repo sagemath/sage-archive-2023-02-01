@@ -977,14 +977,14 @@ cdef class FPElement(pAdicTemplateElement):
 
     cdef pAdicTemplateElement lift_to_precision_c(self, long absprec):
         """
-        Lifts this element to another with precision at least absprec.
+        Lift this element to another with precision at least absprec.
 
         Since floating point elements don't track precision, this
         function just returns the same element.
 
         EXAMPLES::
 
-            sage: R = ZpFP(5);
+            sage: R = ZpFP(5)
             sage: a = R(77, 2); a
             2
             sage: a.lift_to_precision(17) # indirect doctest

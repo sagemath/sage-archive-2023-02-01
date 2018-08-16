@@ -4152,7 +4152,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Factoring over a number field over which we cannot factor the
         discriminant and over which `nffactor()` fails::
 
-            sage: p = next_prime(10^50); q = next_prime(10^51); n = p*q;
+            sage: p = next_prime(10^50); q = next_prime(10^51); n = p*q
             sage: K.<a> = QuadraticField(p*q)
             sage: R.<x> = PolynomialRing(K)
             sage: K.pari_polynomial('a').nffactor("x^2+1")
@@ -4853,8 +4853,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.is_primitive()
             False
 
-            sage: x=polygen(Integers(10));
-            sage: f=5*x^2+2
+            sage: x = polygen(Integers(10))
+            sage: f = 5*x^2+2
             sage: #f.is_primitive()  #BUG:: elsewhere in Sage, should return True
             sage: f=4*x^2+2
             sage: #f.is_primitive()  #BUG:: elsewhere in Sage, should return False
@@ -8374,7 +8374,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: z  = PolynomialRing(QQ, 'z').gen()
             sage: p = -z**16 - z**15 - z**14 + z**13 + z**12 + z**11 - z**5 - z**4 - z**3 + z**2 + z + 1
             sage: m = z**21
-            sage: n, d = p.rational_reconstruct(m);
+            sage: n, d = p.rational_reconstruct(m)
             sage: print((n ,d))
             (z^4 + 2*z^3 + 3*z^2 + 2*z + 1, z^10 + z^9 + z^8 + z^7 + z^6 + z^5 + z^4 + z^3 + z^2 + z + 1)
             sage: print(((p*d - n) % m ).is_zero())
@@ -8382,10 +8382,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Over `\ZZ[z]`::
 
-            sage: z  = PolynomialRing(ZZ, 'z').gen();
+            sage: z  = PolynomialRing(ZZ, 'z').gen()
             sage: p = -z**16 - z**15 - z**14 + z**13 + z**12 + z**11 - z**5 - z**4 - z**3 + z**2 + z + 1
             sage: m = z**21
-            sage: n, d = p.rational_reconstruct(m);
+            sage: n, d = p.rational_reconstruct(m)
             sage: print((n ,d))
             (z^4 + 2*z^3 + 3*z^2 + 2*z + 1, z^10 + z^9 + z^8 + z^7 + z^6 + z^5 + z^4 + z^3 + z^2 + z + 1)
             sage: print(((p*d - n) % m ).is_zero())
@@ -8393,10 +8393,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Over an integral domain ``d`` might not be monic::
 
-            sage: P = PolynomialRing(ZZ,'x');
+            sage: P = PolynomialRing(ZZ,'x')
             sage: x = P.gen()
             sage: p = 7*x^5 - 10*x^4 + 16*x^3 - 32*x^2 + 128*x + 256
-            sage: m = x^5;
+            sage: m = x^5
             sage: n, d = p.rational_reconstruct(m, 3, 2)
             sage: print((n ,d))
             (-32*x^3 + 384*x^2 + 2304*x + 2048, 5*x + 8)
@@ -8416,8 +8416,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: z = Pz.gen()
             sage: # p = (1 + t^2*z + z^4) / (1 - t*z)
             sage: p = (1 + t^2*z + z^4)*(1 - t*z).inverse_mod(z^9)
-            sage: m = z^9;
-            sage: n, d = p.rational_reconstruct(m);
+            sage: m = z^9
+            sage: n, d = p.rational_reconstruct(m)
             sage: print((n ,d))
             ((1/-t)*z^4 - t*z + 1/-t, z + 1/-t)
             sage: print(((p*d - n) % m ).is_zero())
@@ -8437,8 +8437,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: z = PolynomialRing(P, 'z').gen()
             sage: # p = (1 + t^2*z + z^4) / (1 - t*z) mod z^9
             sage: p = (1 + t^2*z + z^4) * sum((t*z)**i for i in range(9))
-            sage: m = z^9;
-            sage: n, d = p.rational_reconstruct(m,);
+            sage: m = z^9
+            sage: n, d = p.rational_reconstruct(m,)
             sage: print((n ,d))
             (-z^4 - t^2*z - 1, t*z - 1)
             sage: print(((p*d - n) % m ).is_zero())
@@ -8449,17 +8449,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = PolynomialRing(Qp(5),'x').gen()
             sage: p = 4*x^5 + 3*x^4 + 2*x^3 + 2*x^2 + 4*x + 2
             sage: m = x^6
-            sage: n, d = p.rational_reconstruct(m, 3, 2);
+            sage: n, d = p.rational_reconstruct(m, 3, 2)
             sage: print(((p*d - n) % m ).is_zero())
             True
 
         Can also be used to obtain known Padé approximations::
 
             sage: z = PowerSeriesRing(QQ, 'z').gen()
-            sage: P = PolynomialRing(QQ,'x');
+            sage: P = PolynomialRing(QQ,'x')
             sage: x = P.gen()
             sage: p = P(exp(z).list())
-            sage: m = x^5;
+            sage: m = x^5
             sage: n, d = p.rational_reconstruct(m, 4, 0)
             sage: print((n ,d))
             (1/24*x^4 + 1/6*x^3 + 1/2*x^2 + x + 1, 1)
@@ -8472,21 +8472,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
             sage: p = P(log(1-z).list())
-            sage: m = x^9;
+            sage: m = x^9
             sage: n, d = p.rational_reconstruct(m, 4, 4)
             sage: print((n ,d))
             (25/6*x^4 - 130/3*x^3 + 105*x^2 - 70*x, x^4 - 20*x^3 + 90*x^2 - 140*x + 70)
             sage: print(((p*d - n) % m ).is_zero())
             True
             sage: p = P(sqrt(1+z).list())
-            sage: m = x^6;
+            sage: m = x^6
             sage: n, d = p.rational_reconstruct(m, 3, 2)
             sage: print((n ,d))
             (1/6*x^3 + 3*x^2 + 8*x + 16/3, x^2 + 16/3*x + 16/3)
             sage: print(((p*d - n) % m ).is_zero())
             True
             sage: p = P(exp(2*z).list())
-            sage: m = x^7;
+            sage: m = x^7
             sage: n, d = p.rational_reconstruct(m, 3, 3)
             sage: print((n ,d))
             (-x^3 - 6*x^2 - 15*x - 15, x^3 - 6*x^2 + 15*x - 15)
@@ -8496,7 +8496,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Over `\RR[z]`::
 
             sage: z = PowerSeriesRing(RR, 'z').gen()
-            sage: P = PolynomialRing(RR,'x');
+            sage: P = PolynomialRing(RR,'x')
             sage: x = P.gen()
             sage: p = P(exp(2*z).list())
             sage: m = x^7
@@ -8516,9 +8516,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         "is only implemented when the base ring is a field "
                         "or a integral domain, "
                         "a workaround is to do a multimodular approach")
-            Pf = P.base_extend(P.base_ring().fraction_field());
-            sF = Pf(self);
-            mF = Pf(m);
+            Pf = P.base_extend(P.base_ring().fraction_field())
+            sF = Pf(self)
+            mF = Pf(m)
             n, d = sF.rational_reconstruct( mF, n_deg, d_deg)
             l = lcm([n.denominator(), d.denominator()])
             n *= l
@@ -8536,14 +8536,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     "n_deg and d_deg should be positive")
 
         #XGCD until degree the degree of t1 surpasses the degree of n
-        s0 = P(0);
-        t0 = P(1);
-        s1 = P(m);
-        t1 = self.mod(s1);
+        s0 = P(0)
+        t0 = P(1)
+        s1 = P(m)
+        t1 = self.mod(s1)
 
         while n_deg < t1.degree() and t1 != 0:
-            q, r1 = s1.quo_rem(t1);
-            r0 = s0 - q*t0;
+            q, r1 = s1.quo_rem(t1)
+            r0 = s0 - q*t0
             s0 = t0
             s1 = t1
             t0 = r0

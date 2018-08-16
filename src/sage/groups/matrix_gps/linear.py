@@ -71,7 +71,7 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 ###############################################################################
 
 def GL(n, R, var='a'):
-    """
+    r"""
     Return the general linear group.
 
     The general linear group `GL( d, R )` consists of all `d \times d`

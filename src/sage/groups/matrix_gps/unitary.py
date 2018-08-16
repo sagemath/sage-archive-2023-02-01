@@ -157,8 +157,8 @@ def GU(n, R, var='a', invariant_form=None):
 
         For a finite field the matrices that preserve a sesquilinear
         form over `F_q` live over `F_{q^2}`. So ``GU(n,q)`` for
-        integer ``q`` constructs the matrix group over the base ring
-        ``GF(q^2)``.
+        a prime power ``q`` constructs the matrix group over the base
+        ring ``GF(q^2)``.
 
     .. NOTE::
 
@@ -271,8 +271,8 @@ def SU(n, R, var='a', invariant_form=None):
 
         For a finite field the matrices that preserve a sesquilinear
         form over `F_q` live over `F_{q^2}`. So ``SU(n,q)`` for
-        integer ``q`` constructs the matrix group over the base ring
-        ``GF(q^2)``.
+        a prime power ``q`` constructs the matrix group over the base
+        ring ``GF(q^2)``.
 
     .. NOTE::
 

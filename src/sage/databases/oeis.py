@@ -219,7 +219,7 @@ def _urls(html_string):
 
     """
     urls = []
-    from HTMLParser import HTMLParser
+    from html.parser import HTMLParser
 
     class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
@@ -369,7 +369,7 @@ class OEIS:
             sage: oeis()
             Traceback (most recent call last):
             ...
-            TypeError: __call__() takes at least 2 arguments (1 given)
+            TypeError: __call__() ...
         """
         if isinstance(query, str):
             if re.match('^A[0-9]{6}$', query):
@@ -662,7 +662,7 @@ class OEISSequence(SageObject):
         self._fields = defaultdict(list)
         for line in entry.splitlines():
             self._fields[line[1]].append(line[11:])
-        if 'dead' in self.keywords(): 
+        if 'dead' in self.keywords():
             from warnings import warn
             warn('This sequence is dead: "{}: {}"'.format(self.id(), self.name()), RuntimeWarning)
 
@@ -1795,8 +1795,8 @@ class FancyTuple(tuple):
     """
     def __repr__(self):
         r"""
-        Prints the tuple with one value per line, each line begins with the
-        index of the value in ``self``.
+        Print the tuple with one value per line, where each line
+        begins with the index of the value in ``self``.
 
         EXAMPLES::
 
@@ -1814,7 +1814,7 @@ class FancyTuple(tuple):
     def __getslice__(self, i, j):
         r"""
         The slice of a FancyTuple remains a FancyTuple.
-        
+
         EXAMPLES::
 
             sage: from sage.databases.oeis import FancyTuple
@@ -1822,7 +1822,7 @@ class FancyTuple(tuple):
             sage: t[-2:]
             0: three
             1: 4
-        
+
         TESTS::
 
             sage: t = ('é', 'è', 'à', 'ç')
@@ -1833,5 +1833,6 @@ class FancyTuple(tuple):
             1: ç
         """
         return FancyTuple(tuple(self).__getslice__(i, j))
+
 
 oeis = OEIS()

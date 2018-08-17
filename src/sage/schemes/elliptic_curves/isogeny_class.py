@@ -798,7 +798,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             sys.stdout.flush()
         isogenies = E.isogenies_prime_degree(degs, minimal_models=self._minimal_models)
         if verbose:
-            sys.stdout.write(" -actual isogeny degrees: %s" % set(phi.degree() for phi in isogenies))
+            sys.stdout.write(" -actual isogeny degrees: %s" % Set(phi.degree() for phi in isogenies))
             sys.stdout.flush()
         # Add all new codomains to the list and collect degrees:
         curves = [E]
@@ -866,16 +866,18 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
         # key function for sorting
         if E.has_rational_cm():
-            key_function = lambda E: (-E.cm_discriminant(),flatten([list(ai) for ai in E.ainvs()]))
+            key_function = lambda E: (-E.cm_discriminant(),
+                                      flatten([list(ai) for ai in E.ainvs()]))
         else:
             key_function = lambda E: flatten([list(ai) for ai in E.ainvs()])
 
         self.curves = sorted(curves,key=key_function)
-        perm = dict([(ind,self.curves.index(Ei)) for ind,Ei in enumerate(curves)])
+        perm = dict([(ind, self.curves.index(Ei))
+                     for ind, Ei in enumerate(curves)])
         if verbose:
             print("Sorting permutation = %s" % perm)
 
-        mat = MatrixSpace(ZZ,ncurves)(0)
+        mat = MatrixSpace(ZZ, ncurves)(0)
         self._maps = [[0] * ncurves for _ in range(ncurves)]
         for i,j,l,phi in tuples:
             if phi!=0:

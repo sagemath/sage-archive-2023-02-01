@@ -1205,7 +1205,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: S.<x> = K[]
             sage: L.<pi> = K.extension(x^2 + 2*x + 2)
             sage: zeta = L.primitive_root_of_unity(); zeta
-            a + a*pi + (a + 1)*pi^2 + (a + 1)*pi^4 + (a + 1)*pi^5 + (a + 1)*pi^6 + a^2*pi^8 + a^2*pi^9 + O(pi^10)
+            a + a*pi + pi^2 + a*pi^4 + a*pi^5 + a^2*pi^8 + a^2*pi^9 + O(pi^10)
             sage: zeta.parent() is L
             True
         
@@ -1300,7 +1300,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: zeta, order = R.primitive_root_of_unity(order=True)
             sage: zeta
-            2 + 2*pi + pi^4 + pi^9 + O(pi^12)
+            2 + 2*pi + 2*pi^3 + 2*pi^7 + 2*pi^8 + 2*pi^9 + pi^11 + O(pi^12)
             sage: order
             18
             sage: zeta.multiplicative_order()
@@ -1308,7 +1308,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: zeta, order = R.primitive_root_of_unity(24, order=True)
             sage: zeta
-            2 + 2*pi^3 + pi^6 + pi^7 + pi^8 + 2*pi^10 + 2*pi^11 + O(pi^12)
+            2 + pi^3 + 2*pi^7 + 2*pi^8 + 2*pi^10 + 2*pi^11 + O(pi^12)
             sage: order   # equal to gcd(18,24)
             6
             sage: zeta.multiplicative_order()
@@ -1385,13 +1385,13 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: roots = R.roots_of_unity(); roots
             [1 + O(pi^4),
-             a + a*pi + a*pi^2 + O(pi^4),
+             a + 2*a*pi + 2*a*pi^2 + a*pi^3 + O(pi^4),
              ... 
-             1 + 2*pi + pi^2 + O(pi^4),
+             1 + pi + O(pi^4),
              a + a*pi^2 + 2*a*pi^3 + O(pi^4),
              ...
-             1 + pi + O(pi^4),
-             a + 2*a*pi + 2*a*pi^2 + a*pi^3 + O(pi^4),
+             1 + 2*pi + pi^2 + O(pi^4),
+             a + a*pi + a*pi^2 + O(pi^4),
              ...]
             sage: len(roots)
             24

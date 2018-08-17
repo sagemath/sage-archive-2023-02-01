@@ -341,7 +341,7 @@ class ParametrizedSurface3D(SageObject):
         """
         self.equation = tuple(equation)
 
-        if len(variables[0]):
+        if variables[0]:
             self.variables_range = (variables[0][1:3], variables[1][1:3])
             self.variables_list  = (variables[0][0], variables[1][0])
         else:
@@ -351,10 +351,9 @@ class ParametrizedSurface3D(SageObject):
         self.variables = {1:self.variables_list[0],2:self.variables_list[1]}
         self.name = name
 
-
     def _latex_(self):
         r"""
-        Returns the LaTeX representation of this parametrized surface.
+        Return the LaTeX representation of this parametrized surface.
 
         EXAMPLES::
 

@@ -1,8 +1,8 @@
 # This file configures automatic builds of Sage on [CircleCI](https://circleci.com).
 # To make the build time not too excessive, we seed the build cache with
 # sagemath/sagemath-dev:develop. When basic SPKGs change, this does not help much,
-# still the full build does usually not exceed CircleCI's limits for open
-# source projcets (five hours on 2 vCPUs as of early 2018.)
+# as the full build will often exceed CircleCI's limits for open source
+# projcets (five hours on 2 vCPUs as of early 2018.)
 # You might want to try to build locally or with GitLab CI, see
 # `.gitlab-ci.yml` for more options.
 

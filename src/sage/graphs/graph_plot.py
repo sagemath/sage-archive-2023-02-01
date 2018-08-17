@@ -106,13 +106,6 @@ previously::
     :meth:`GraphPlot.show` | Shows the (Di)Graph associated with this GraphPlot object.
     :meth:`GraphPlot.plot` | Returns a graphics object representing the (di)graph.
     :meth:`GraphPlot.layout_tree` | Compute a nice layout of a tree.
-    :meth:`~sage.graphs.graph_plot._circle_embedding` | Sets some vertices on a circle in the embedding of a graph G.
-    :meth:`~sage.graphs.graph_plot._line_embedding` | Sets some vertices on a line in the embedding of a graph G.
-
-Methods and classes
--------------------
-.. autofunction:: _circle_embedding
-.. autofunction:: _line_embedding
 """
 
 layout_options =   {
@@ -301,11 +294,11 @@ class GraphPlot(SageObject):
         but due to numerical noise we do not check the values themselves::
 
             sage: g.get_pos()
-            {0: [...e-17, 1.0],
-             1: [-0.951..., 0.309...],
-             2: [-0.587..., -0.809...],
-             3: [0.587..., -0.809...],
-             4: [0.951..., 0.309...]}
+            {0: (0.0, 1.0),
+             1: (-0.951..., 0.309...),
+             2: (-0.587..., -0.809...),
+             3: (0.587..., -0.809...),
+             4: (0.951..., 0.309...)}
 
         ::
 
@@ -1373,110 +1366,3 @@ class GraphPlot(SageObject):
 
         return pos
 
-####################
-# Helper functions #
-####################
-
-def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0, angle=0):
-    r"""
-    Sets some vertices on a circle in the embedding of a graph G.
-
-    This method modifies the graph's embedding so that the vertices listed in
-    ``vertices`` appear in this ordering on a circle of given radius and
-    center. The ``shift`` parameter is actually a rotation of the circle. A
-    value of ``shift=1`` will replace in the drawing the `i`-th element of the
-    list by the `(i-1)`-th. Non-integer values are admissible, and a value of
-    `\alpha` corresponds to a rotation of the circle by an angle of `\alpha
-    2\pi/n` (where `n` is the number of vertices set on the circle).
-    The ``angle`` parameter is used to rotate the embedding of all vertices. For
-    instance, when ``angle=0``, the first vertex get position ``(center[0] +
-    radius, center[1])``. When ``angle=pi/2``, the first vertex get position
-    ``(center[0], center[1] + radius)``.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.graph_plot import _circle_embedding
-        sage: g = graphs.CycleGraph(5)
-        sage: _circle_embedding(g, [0, 2, 4, 1, 3], radius=2, shift=.5)
-        sage: g.show()
-
-        sage: _circle_embedding(g, g.vertices(), angle=0)
-        sage: g._pos[0]
-        (1.0, 0.0)
-        sage: _circle_embedding(g, g.vertices(), angle=pi/2)
-        sage: g._pos[0]
-        (0.0, 1.0)
-
-    TESTS:
-
-    The rounding error raised in :trac:`22050` is fixed::
-
-        sage: G = Graph(4)
-        sage: _circle_embedding(G, G.vertices())
-        sage: G._pos
-        {0: (1.0, 0.0), 1: (0.0, 1.0), 2: (-1.0, 0.0), 3: (0.0, -1.0)}
-    """
-    c_x, c_y = center
-    n = len(vertices)
-    d = g.get_pos()
-    if d is None:
-        d = {}
-
-    for i,v in enumerate(vertices):
-        i += shift
-        # We round cos and sin to avoid results like 1.2246467991473532e-16 when
-        # asking for sin(pi)
-        v_x = c_x + radius * round(cos(angle + 2*i*pi / n), 10)
-        v_y = c_y + radius * round(sin(angle + 2*i*pi / n), 10)
-        d[v] = (v_x, v_y)
-
-    g.set_pos(d)
-
-def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
-    r"""
-    Sets some vertices on a line in the embedding of a graph G.
-
-    This method modifies the graph's embedding so that the vertices of
-    ``vertices`` appear on a line, where the position of ``vertices[0]``
-    is the pair ``first`` and the position of ``vertices[-1]`` is
-    ``last``. The vertices are evenly spaced.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.graph_plot import _line_embedding
-        sage: g = graphs.PathGraph(5)
-        sage: _line_embedding(g, [0, 2, 4, 1, 3], first=(-1, -1), last=(1, 1))
-        sage: g.show()
-
-    TESTS::
-
-        sage: from sage.graphs.graph_plot import _line_embedding
-        sage: g = Graph(1)
-        sage: _line_embedding(g, [0], first=(-1, -1), last=(1, 1))
-        sage: g.get_pos()
-        {0: (0, 0)}
-        sage: g = Graph()
-        sage: _line_embedding(g, g.vertices(), first=(-1, -1), last=(1, 1))
-        sage: g.get_pos()
-        {}
-    """
-    d = g.get_pos()
-    if d is None:
-        d = {}
-
-    n = len(vertices) - 1.
-
-    if n:
-        fx, fy = first
-        dx = (last[0] - first[0])/n
-        dy = (last[1] - first[1])/n
-    else:
-        fx, fy = (first[0] + last[0])/2, (first[1] + last[1])/2
-        dx = dy = 0
-
-    for v in vertices:
-        d[v] = (fx, fy)
-        fx += dx
-        fy += dy
-
-    g.set_pos(d)

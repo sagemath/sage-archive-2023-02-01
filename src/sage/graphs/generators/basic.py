@@ -190,12 +190,11 @@ def CircularLadderGraph(n):
         sage: G.show() # long time
     """
     G = Graph(2 * n, name="Circular Ladder graph")
-    from sage.graphs.graph_plot import _circle_embedding
-    _circle_embedding(G, list(range(n)), radius=1, angle=pi/2)
+    G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
     if n == 2:
-        _circle_embedding(G, list(range(4)), radius=1, angle=pi/2 + pi/8)
+        G._circle_embedding(list(range(4)), radius=1, angle=pi/2 + pi/8)
     else:
-        _circle_embedding(G, list(range(n, 2*n)), radius=2, angle=pi/2)
+        G._circle_embedding(list(range(n, 2*n)), radius=2, angle=pi/2)
     G.add_cycle(list(range(n)))
     G.add_cycle(list(range(n, 2 * n)))
     G.add_edges( (i,i+n) for i in range(n) )
@@ -305,8 +304,7 @@ def CycleGraph(n):
     if n == 1:
         G.set_pos({0:(0, 0)})
     else:
-        from sage.graphs.graph_plot import _circle_embedding
-        _circle_embedding(G, list(range(n)), angle=pi/2)
+        G._circle_embedding(list(range(n)), angle=pi/2)
         G.add_cycle(list(range(n)))
     return G
 
@@ -392,8 +390,7 @@ def CompleteGraph(n):
     if n == 1:
         G.set_pos({0:(0, 0)})
     else:
-        from sage.graphs.graph_plot import _circle_embedding
-        _circle_embedding(G, list(range(n)), angle=pi/2)
+        G._circle_embedding(list(range(n)), angle=pi/2)
     G.add_edges(((i,j) for i in range(n) for j in range(i+1,n)))
     return G
 
@@ -518,10 +515,9 @@ def CompleteBipartiteGraph(n1, n2, set_position=True):
     # - vertices n1,..,n1+n2-1 are placed on the line (0, 0) to (max(n1, n2), 0)
     # If n1 (or n2) is 1, the vertex is centered in the line.
     if set_position:
-        from sage.graphs.graph_plot import _line_embedding
         nmax = max(n1, n2)
-        _line_embedding(G, list(range(n1)), first=(0, 1), last=(nmax, 1))
-        _line_embedding(G, list(range(n1, n1+n2)), first=(0, 0), last=(nmax, 0))
+        G._line_embedding(list(range(n1)), first=(0, 1), last=(nmax, 1))
+        G._line_embedding(list(range(n1, n1+n2)), first=(0, 0), last=(nmax, 0))
 
     return G
 
@@ -1104,8 +1100,7 @@ def PathGraph(n, pos=None):
         if n == 1:
             G.set_pos({0:(0, 0)})
         else:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, list(range(n)), angle=pi/2)
+            G._circle_embedding(list(range(n)), angle=pi/2)
     # Draw 'line'
     else:
         counter = 0 # node index
@@ -1206,6 +1201,5 @@ def StarGraph(n):
     """
     G = Graph({0: list(range(1, n + 1))}, name="Star graph")
     G.set_pos({0:(0, 0)})
-    from sage.graphs.graph_plot import _circle_embedding
-    _circle_embedding(G, list(range(1, n + 1)), angle=pi/2)
+    G._circle_embedding(list(range(1, n + 1)), angle=pi/2)
     return G

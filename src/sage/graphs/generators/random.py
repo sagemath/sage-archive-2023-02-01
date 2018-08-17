@@ -219,9 +219,9 @@ def RandomBipartite(n1, n2, p, set_position=False):
     Test assigned positions::
 
         sage: graphs.RandomBipartite(1, 2, .1, set_position=True).get_pos()
-        {(0, 0): (1, 1), (1, 0): (0, 0), (1, 1): (2.0, 0.0)}
+        {(0, 0): (1, 1.0), (1, 0): (0, 0), (1, 1): (2.0, 0.0)}
         sage: graphs.RandomBipartite(2, 1, .1, set_position=True).get_pos()
-        {(0, 0): (0, 1), (0, 1): (2.0, 1.0), (1, 0): (1, 0)}
+        {(0, 0): (0, 1), (0, 1): (2.0, 1.0), (1, 0): (1, 0.0)}
         sage: graphs.RandomBipartite(2, 2, .1, set_position=True).get_pos()
         {(0, 0): (0, 1), (0, 1): (2.0, 1.0), (1, 0): (0, 0), (1, 1): (2.0, 0.0)}
         sage: graphs.RandomBipartite(2, 2, .1, set_position=False).get_pos()
@@ -251,10 +251,9 @@ def RandomBipartite(n1, n2, p, set_position=False):
     # - vertices in S2 are placed on the line from (0, 0) to (max(n1, n2), 0)
     # If S1 or S2 has a single vertex, it is centered in the line.
     if set_position:
-        from sage.graphs.graph_plot import _line_embedding
         nmax = max(n1, n2)
-        _line_embedding(g, S1, first=(0, 1), last=(nmax, 1))
-        _line_embedding(g, S2, first=(0, 0), last=(nmax, 0))
+        g._line_embedding(S1, first=(0, 1), last=(nmax, 1))
+        g._line_embedding(S2, first=(0, 0), last=(nmax, 0))
 
     return g
 
@@ -292,9 +291,9 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
         {2, 3}
 
         sage: graphs.RandomRegularBipartite(1, 2, 2, set_position=True).get_pos()
-        {0: (1, 1), 1: (0, 0), 2: (2.0, 0.0)}
+        {0: (1, 1.0), 1: (0, 0), 2: (2.0, 0.0)}
         sage: graphs.RandomRegularBipartite(2, 1, 1, set_position=True).get_pos()
-        {0: (0, 1), 1: (2.0, 1.0), 2: (1, 0)}
+        {0: (0, 1), 1: (2.0, 1.0), 2: (1, 0.0)}
         sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=True).get_pos()
         {0: (0, 1), 1: (3.0, 1.0), 2: (0, 0), 3: (1.5, 0.0), 4: (3.0, 0.0)}
         sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=False).get_pos()
@@ -408,10 +407,9 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
     # - vertices n1,..,n1+n2-1 are placed on the line (0, 0) to (max(n1, n2), 0)
     # If n1 (or n2) is 1, the vertex is centered in the line.
     if set_position:
-        from sage.graphs.graph_plot import _line_embedding
         nmax = max(n1, n2)
-        _line_embedding(G, list(range(n1)), first=(0, 1), last=(nmax, 1))
-        _line_embedding(G, list(range(n1, n1+n2)), first=(0, 0), last=(nmax, 0))
+        G._line_embedding(list(range(n1)), first=(0, 1), last=(nmax, 1))
+        G._line_embedding(list(range(n1, n1+n2)), first=(0, 0), last=(nmax, 0))
 
     return G
 

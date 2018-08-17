@@ -21,7 +21,6 @@ from six.moves import range
 # import from Sage library
 from sage.graphs.graph import Graph
 from math import sin, cos, pi
-from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 
 #######################################################################
 #   Named Graphs
@@ -268,39 +267,39 @@ def HarriesWongGraph(embedding=1):
 
         # Binary tree (left side)
         d[66] = (-9.5, 0)
-        _line_embedding(g, [37, 65, 67], first=(-8, 2.25),
+        g._line_embedding([37, 65, 67], first=(-8, 2.25),
                 last=(-8, -2.25))
-        _line_embedding(g, [36, 38, 64, 24, 68, 30], first=(-7, 3),
+        g._line_embedding([36, 38, 64, 24, 68, 30], first=(-7, 3),
                 last=(-7, -3))
-        _line_embedding(g, [35, 39, 63, 25, 59, 29, 11, 5, 55, 23, 69, 31],
+        g._line_embedding([35, 39, 63, 25, 59, 29, 11, 5, 55, 23, 69, 31],
                 first=(-6, 3.5), last=(-6, -3.5))
 
         # Cube, corners: [9, 15, 21, 27, 45, 51, 57, 61]
-        _circle_embedding(g, [61, 9], center=(0, -1.5), shift=.2,
+        g._circle_embedding([61, 9], center=(0, -1.5), shift=.2,
                 radius=4)
-        _circle_embedding(g, [27, 15], center=(0, -1.5), shift=.7,
+        g._circle_embedding([27, 15], center=(0, -1.5), shift=.7,
                 radius=4*.707)
-        _circle_embedding(g, [51, 21], center=(0, 2.5), shift=.2,
+        g._circle_embedding([51, 21], center=(0, 2.5), shift=.2,
                 radius=4)
-        _circle_embedding(g, [45, 57], center=(0, 2.5), shift=.7,
+        g._circle_embedding([45, 57], center=(0, 2.5), shift=.7,
                 radius=4*.707)
 
         # Cube, subdivision
-        _line_embedding(g, [21, 22, 43, 44, 45], first=d[21], last=d[45])
-        _line_embedding(g, [21, 4, 3, 56, 57], first=d[21], last=d[57])
-        _line_embedding(g, [57, 12, 13, 14, 15], first=d[57], last=d[15])
-        _line_embedding(g, [15, 6, 7, 8, 9], first=d[15], last=d[9])
-        _line_embedding(g, [9, 10, 19, 20, 21], first=d[9], last=d[21])
-        _line_embedding(g, [45, 54, 53, 52, 51], first=d[45], last=d[51])
-        _line_embedding(g, [51, 50, 49, 58, 57], first=d[51], last=d[57])
-        _line_embedding(g, [51, 32, 33, 34, 61], first=d[51], last=d[61])
-        _line_embedding(g, [61, 62, 41, 40, 27], first=d[61], last=d[27])
-        _line_embedding(g, [9, 0, 1, 26, 27], first=d[9], last=d[27])
-        _line_embedding(g, [27, 28, 47, 46, 45], first=d[27], last=d[45])
-        _line_embedding(g, [15, 16, 17, 60, 61], first=d[15], last=d[61])
+        g._line_embedding([21, 22, 43, 44, 45], first=d[21], last=d[45])
+        g._line_embedding([21, 4, 3, 56, 57], first=d[21], last=d[57])
+        g._line_embedding([57, 12, 13, 14, 15], first=d[57], last=d[15])
+        g._line_embedding([15, 6, 7, 8, 9], first=d[15], last=d[9])
+        g._line_embedding([9, 10, 19, 20, 21], first=d[9], last=d[21])
+        g._line_embedding([45, 54, 53, 52, 51], first=d[45], last=d[51])
+        g._line_embedding([51, 50, 49, 58, 57], first=d[51], last=d[57])
+        g._line_embedding([51, 32, 33, 34, 61], first=d[51], last=d[61])
+        g._line_embedding([61, 62, 41, 40, 27], first=d[61], last=d[27])
+        g._line_embedding([9, 0, 1, 26, 27], first=d[9], last=d[27])
+        g._line_embedding([27, 28, 47, 46, 45], first=d[27], last=d[45])
+        g._line_embedding([15, 16, 17, 60, 61], first=d[15], last=d[61])
 
         # Top vertices
-        _line_embedding(g, [2, 18, 42, 48], first=(-1, 7), last=(3, 7))
+        g._line_embedding([2, 18, 42, 48], first=(-1, 7), last=(3, 7))
 
         return g
 
@@ -414,11 +413,10 @@ def WellsGraph():
          (3, 17, 21, 9, 24, 16, 27, 25),
          (6, 10, 8, 15, 0, 11, 19, 26)]
 
-    from sage.graphs.graph_plot import _circle_embedding
-    _circle_embedding(g, p[0], radius = 1)
-    _circle_embedding(g, p[1], radius = .9)
-    _circle_embedding(g, p[2], radius = .8)
-    _circle_embedding(g, p[3], radius = .7)
+    g._circle_embedding(p[0], radius = 1)
+    g._circle_embedding(p[1], radius = .9)
+    g._circle_embedding(p[2], radius = .8)
+    g._circle_embedding(p[3], radius = .7)
 
     return g
 
@@ -478,7 +476,6 @@ def Cell600(embedding=1):
                lambda i, j: U[i].inner_product(U[j]) == f / 2])
 
     # Embedding
-    from sage.graphs.graph_plot import _circle_embedding
     if embedding == 1:
         pos = [0, 1, 3, 13, 78, 90, 93, 110, 29, 104, 11, 48, 107, 83, 92, 55,
                32, 16, 117, 24, 26, 56, 52, 47, 75, 72, 66, 112, 27, 115, 21,
@@ -498,7 +495,7 @@ def Cell600(embedding=1):
                15, 39, 56, 67, 118, 55, 89, 45, 107, 95, 99, 70, 53, 33, 111,
                22, 117, 32, 28, 59, 105, 40, 71, 77, 16, 97, 50]
 
-    _circle_embedding(g, pos)
+    g._circle_embedding(pos)
 
     return g
 
@@ -564,7 +561,6 @@ def Cell120():
     g = Graph([list(range(600)),
                lambda i, j: U[i].inner_product(U[j]) == 6*f-2])
 
-    from sage.graphs.graph_plot import _circle_embedding
     pos = [0, 1, 3, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 20, 21, 23, 24, 25,
            27, 33, 40, 47, 49, 76, 77, 216, 217, 218, 219, 220, 222, 224, 225,
            226, 230, 231, 232, 233, 235, 238, 241, 242, 245, 247, 249, 251, 253,
@@ -608,7 +604,7 @@ def Cell120():
            254, 262, 404, 168, 282, 335, 569, 351, 560, 581, 538, 399, 396, 584,
            228, 258, 380, 407, 505, 539, 263, 327, 250, 248, 383, 371, 546, 372,
            356, 332, 384]
-    _circle_embedding(g, pos)
+    g._circle_embedding(pos)
 
     return g
 
@@ -770,7 +766,7 @@ def HallJankoGraph(from_string=True):
         g = Graph([(int(u), int(v)) for u,v in edges])
         g.relabel()
 
-    _circle_embedding(g, list(range(100)))
+    g._circle_embedding(list(range(100)))
     g.name("Hall-Janko graph")
     return g
 
@@ -844,23 +840,23 @@ def Balaban10Cage(embedding=1):
         raise ValueError("The value of embedding must be 1 or 2.")
 
     L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
-    _circle_embedding(g, L3, center=(0,0), radius = 4.3)
+    g._circle_embedding(L3, center=(0, 0), radius = 4.3)
 
     L2  = [6, 4, 23, 25, 60, 36, 1, 47, 28, 30, 39, 41, 50, 52, 33, 9, 44,
             20, 55, 57]
-    _circle_embedding(g, L2, center=(0,0), radius = 5, shift=-.5)
+    g._circle_embedding(L2, center=(0, 0), radius = 5, shift=-.5)
 
 
     L1a = [69, 68, 67, 66, 65, 64, 63, 62, 61, 0]
     L1b = [19, 18, 17, 16, 15, 14, 13, 12, 11, 10]
-    _circle_embedding(g, L1a, center=(0,0), radius = 6, shift = 3.25)
-    _circle_embedding(g, L1b, center=(0,0), radius = 6, shift = -1.25)
+    g._circle_embedding(L1a, center=(0, 0), radius = 6, shift = 3.25)
+    g._circle_embedding(L1b, center=(0, 0), radius = 6, shift = -1.25)
 
     L4a = [37, 2, 31, 38, 53, 32, 21, 54, 3, 22]
-    _circle_embedding(g, L4a, center=(0,0), radius = 3, shift = 1.9)
+    g._circle_embedding(L4a, center=(0, 0), radius = 3, shift = 1.9)
 
     L4b = [26, 59, 48, 27, 42, 49, 8, 43, 58, 7]
-    _circle_embedding(g, L4b, center=(0,0), radius = 3, shift = 1.1)
+    g._circle_embedding(L4b, center=(0, 0), radius = 3, shift = 1.1)
 
     return g
 
@@ -1191,17 +1187,16 @@ def BiggsSmithGraph(embedding=1):
                  43, 41, 32]]
 
         # central orbits
-        _circle_embedding(g, orbs[1], center=(-.4, 0), radius=.2)
-        _circle_embedding(g, orbs[3], center=(.4, 0), radius=.2, shift=4)
+        g._circle_embedding(orbs[1], center=(-.4, 0), radius=.2)
+        g._circle_embedding(orbs[3], center=(.4, 0), radius=.2, shift=4)
 
         # lower orbits
-        _circle_embedding(g, orbs[0], center=(-.9, -.5), radius=.3,
-                shift=2)
-        _circle_embedding(g, orbs[2], center=(-.9, .5), radius=.3)
+        g._circle_embedding(orbs[0], center=(-.9, -.5), radius=.3, shift=2)
+        g._circle_embedding(orbs[2], center=(-.9, .5), radius=.3)
 
         # upper orbits
-        _circle_embedding(g, orbs[4], center=(.9, -.5), radius=.3, shift=4)
-        _circle_embedding(g, orbs[5], center=(.9, .5), radius=.3, shift=-2)
+        g._circle_embedding(orbs[4], center=(.9, -.5), radius=.3, shift=4)
+        g._circle_embedding(orbs[5], center=(.9, .5), radius=.3, shift=-2)
 
     elif embedding == 2:
         pass
@@ -1241,7 +1236,7 @@ def BlanusaFirstSnarkGraph():
               name="Blanusa First Snark Graph")
 
     g.add_cycle(list(range(17)))
-    _circle_embedding(g, list(range(17)), shift=0.25)
+    g._circle_embedding(list(range(17)), shift=0.25)
     g.get_pos()[17] = (0,0)
     return g
 
@@ -1279,26 +1274,22 @@ def BlanusaSecondSnarkGraph():
     g.add_cycle([(1,i) for i in range(5)])
     g.add_cycle([(0,5),(0,6),(0,7),(1,5),(1,6),(1,7)])
 
-    _circle_embedding(g,
-                      [(0,(2*i)%5) for i in range(5)],
-                      center = (-1.5,0),
-                      shift = .5)
-    _circle_embedding(g,
-                      [(1,(2*i)%5) for i in range(5)],
-                      center = (1.5,0))
+    g._circle_embedding([(0, (2*i)%5) for i in range(5)],
+                            center = (-1.5, 0),
+                            shift = .5)
+    g._circle_embedding([(1, (2*i)%5) for i in range(5)],
+                            center = (1.5, 0))
 
-    _circle_embedding(g,
-                      [(0,i) for i in range(5,8)]+[0]*4,
-                      center = (-1.2,0),
-                      shift = 2.5,
-                      radius = 2.2)
-    _circle_embedding(g,
-                      [(1,i) for i in range(5,8)]+[0]*4,
-                      center = (1.2,0),
-                      shift = -1,
-                      radius = 2.2)
+    g._circle_embedding([(0, i) for i in range(5, 8)] + [0]*4,
+                            center = (-1.2, 0),
+                            shift = 2.5,
+                            radius = 2.2)
+    g._circle_embedding([(1, i) for i in range(5,8)] + [0]*4,
+                            center = (1.2, 0),
+                            shift = -1,
+                            radius = 2.2)
 
-    _circle_embedding(g,[0,1], shift=.5)
+    g._circle_embedding([0, 1], shift=.5)
     g.relabel()
     return g
 
@@ -1436,7 +1427,7 @@ def BrouwerHaemersGraph():
                 42, 43, 44, 36, 37, 38, 69, 70, 71, 63, 64, 65, 66, 67, 68,
                 78, 79, 80, 72, 73, 74, 75, 76, 77, 60, 61, 62, 54, 55, 56,
                 57, 58, 59]
-    _circle_embedding(G, ordering)
+    G._circle_embedding(ordering)
     G.name("Brouwer-Haemers")
     return G
 
@@ -1594,7 +1585,7 @@ def GossetGraph():
                 5, 37, 27, 46, 47, 48, 11, 52, 29, 20, 39, 41, 22, 40, 1, 25, 38,
                 34, 45, 42, 19, 24]
 
-    _circle_embedding(G,ordering)
+    G._circle_embedding(ordering)
 
     return G
 
@@ -1655,8 +1646,8 @@ def DoubleStarSnark():
         }
 
     g = Graph(d, pos={}, name="Double star snark")
-    _circle_embedding(g, list(range(15)), radius=2)
-    _circle_embedding(g, list(range(15, 30)), radius=1.4)
+    g._circle_embedding(list(range(15)), radius=2)
+    g._circle_embedding(list(range(15, 30)), radius=1.4)
 
     return g
 
@@ -1704,10 +1695,10 @@ def MeredithGraph():
                 g.add_edge(('inner',i,j),('inner',i,k+4))
                 g.add_edge(('outer',i,j),('outer',i,k+4))
 
-    _circle_embedding(g, sum([[('outer',i,j) for j in range(4)]+10*[0] for i in range(5)],[]), radius = 1, shift = 2)
-    _circle_embedding(g, sum([[('outer',i,j) for j in range(4,7)]+10*[0] for i in range(5)],[]), radius = 1.2, shift = 2.2)
-    _circle_embedding(g, sum([[('inner',i,j) for j in range(4)]+7*[0] for i in range(5)],[]), radius = .6, shift = 1.24)
-    _circle_embedding(g, sum([[('inner',i,j) for j in range(4,7)]+5*[0] for i in range(5)],[]), radius = .4, shift = 1.05)
+    g._circle_embedding(sum([[('outer',i,j) for j in range(4)]+10*[0] for i in range(5)],[]), radius = 1, shift = 2)
+    g._circle_embedding(sum([[('outer',i,j) for j in range(4,7)]+10*[0] for i in range(5)],[]), radius = 1.2, shift = 2.2)
+    g._circle_embedding(sum([[('inner',i,j) for j in range(4)]+7*[0] for i in range(5)],[]), radius = .6, shift = 1.24)
+    g._circle_embedding(sum([[('inner',i,j) for j in range(4,7)]+5*[0] for i in range(5)],[]), radius = .4, shift = 1.05)
 
     g.delete_vertex(0)
     g.relabel()
@@ -1750,9 +1741,9 @@ def KittellGraph():
                22: [17, 19, 20, 21, 15]},
               name = "Kittell Graph")
 
-    _circle_embedding(g, list(range(3)), shift=.75)
-    _circle_embedding(g, list(range(3, 13)), radius = .4)
-    _circle_embedding(g, list(range(15, 22)), radius = .2, shift=-.15)
+    g._circle_embedding(list(range(3)), shift=.75)
+    g._circle_embedding(list(range(3, 13)), radius = .4)
+    g._circle_embedding(list(range(15, 22)), radius = .2, shift=-.15)
     pos = g.get_pos()
     pos[13] = (-.65,-.35)
     pos[14] = (.65,-.35)
@@ -1808,7 +1799,7 @@ def CameronGraph():
                 221, 149, 227, 217, 17, 107, 172, 212, 122, 226, 23, 85, 42,
                 80, 92, 81, 89, 78, 83, 88, 79, 130, 192, 189, 166]
 
-    _circle_embedding(g, ordering)
+    g._circle_embedding(ordering)
     return g
 
 def ChvatalGraph():
@@ -1891,7 +1882,7 @@ def ClebschGraph():
         g.add_edge(x % 16, (x + 8) % 16)
         x += 1
 
-    _circle_embedding(g, list(range(16)), shift=.5)
+    g._circle_embedding(list(range(16)), shift=.5)
     g.name("Clebsch graph")
 
     return g
@@ -1926,8 +1917,8 @@ def CoxeterGraph():
     g.add_cycle(list(range(24)))
     g.add_edges([(5, 11), (9, 20), (12, 1), (13, 19), (17, 4), (3, 21)])
 
-    _circle_embedding(g, list(range(24)))
-    _circle_embedding(g, [24, 25, 26], radius=.5)
+    g._circle_embedding(list(range(24)))
+    g._circle_embedding([24, 25, 26], radius=.5)
     g.get_pos()[27] = (0, 0)
 
     g.name("Coxeter Graph")
@@ -2191,12 +2182,12 @@ def HortonGraph():
 
     # Embedding
     for i in range(6):
-        _circle_embedding(g, [(i,j) for j in range(16)], center=(cos(2*i*pi/6),sin(2*i*pi/6)), radius=.3)
+        g._circle_embedding([(i,j) for j in range(16)], center=(cos(2*i*pi/6), sin(2*i*pi/6)), radius=.3)
 
     for i in range(3):
         g.delete_vertex((2*i+1,15))
 
-    _circle_embedding(g, [0, 1, 2], radius=.2, shift=-0.75)
+    g._circle_embedding([0, 1, 2], radius=.2, shift=-0.75)
 
     g.relabel()
 
@@ -2268,17 +2259,17 @@ def EllinghamHorton54Graph():
     g.add_edge(52, 53)
 
     # Top
-    _circle_embedding(g, list(range(16)), center=(0, .5), shift=.5, radius=.5)
+    g._circle_embedding(list(range(16)), center=(0, .5), shift=.5, radius=.5)
 
     # Bottom-left
-    _circle_embedding(g, list(range(16, 22)), center=(-1.5, -1))
-    _circle_embedding(g, list(range(22, 28)), center=(-1.5, -1), radius=.5)
-    _circle_embedding(g, list(range(28, 34)), center=(-1.5, -1), radius=.7)
+    g._circle_embedding(list(range(16, 22)), center=(-1.5, -1))
+    g._circle_embedding(list(range(22, 28)), center=(-1.5, -1), radius=.5)
+    g._circle_embedding(list(range(28, 34)), center=(-1.5, -1), radius=.7)
 
     # Bottom right
-    _circle_embedding(g, list(range(34, 40)), center=(1.5, -1))
-    _circle_embedding(g, list(range(40, 46)), center=(1.5, -1), radius=.5)
-    _circle_embedding(g, list(range(46, 52)), center=(1.5, -1), radius=.7)
+    g._circle_embedding(list(range(34, 40)), center=(1.5, -1))
+    g._circle_embedding(list(range(40, 46)), center=(1.5, -1), radius=.5)
+    g._circle_embedding(list(range(46, 52)), center=(1.5, -1), radius=.7)
 
     d = g.get_pos()
     d[52] = (-.3, -2.5)
@@ -2345,11 +2336,11 @@ def EllinghamHorton78Graph():
             64: [65, 69], 65: [77], 66: [70, 73], 67: [68, 73],
             68: [69, 76], 70: [71, 76], 76: [77]}, pos={})
 
-    _circle_embedding(g, list(range(15)), center=(-2.5, 1.5))
-    _circle_embedding(g, list(range(15, 30)), center=(-2.5, -1.5))
-    _circle_embedding(g, [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+    g._circle_embedding(list(range(15)), center=(-2.5, 1.5))
+    g._circle_embedding(list(range(15, 30)), center=(-2.5, -1.5))
+    g._circle_embedding([30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
         42, 74, 43, 44], center=(2.5, 1.5))
-    _circle_embedding(g, [45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+    g._circle_embedding([45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
         57, 58, 75, 59], center=(2.5, -1.5))
 
     d = g.get_pos()
@@ -2361,11 +2352,11 @@ def EllinghamHorton78Graph():
     d[15] = (-2.1, -.1)
     d[72] = (-2.1, .1)
 
-    _line_embedding(g, [60, 61, 62, 63], first=(-1, 2), last=(1, 2))
-    _line_embedding(g, [64, 65, 37], first=(-.5, 1.5), last=(1.2, 1.5))
-    _line_embedding(g, [66, 73, 67, 68, 69], first=(1.2, -2),
+    g._line_embedding([60, 61, 62, 63], first=(-1, 2), last=(1, 2))
+    g._line_embedding([64, 65, 37], first=(-.5, 1.5), last=(1.2, 1.5))
+    g._line_embedding([66, 73, 67, 68, 69], first=(1.2, -2),
             last=(-.8, -2))
-    _line_embedding(g, [66, 70, 71], first=(.7, -1.5), last=(-1, -1.5))
+    g._line_embedding([66, 70, 71], first=(.7, -1.5), last=(-1, -1.5))
 
     g.name("Ellingham-Horton 78-graph")
 
@@ -2805,8 +2796,8 @@ def GrayGraph(embedding=1):
 
     if embedding == 1:
         o = g.automorphism_group(orbits=True)[-1]
-        _circle_embedding(g, o[0], center=(0, 0), radius=1)
-        _circle_embedding(g, o[1], center=(0, 0), radius=.6, shift=-.5)
+        g._circle_embedding(o[0], center=(0, 0), radius=1)
+        g._circle_embedding(o[1], center=(0, 0), radius=.6, shift=-.5)
 
     elif embedding != 2:
         raise ValueError("The value of embedding must be 1, 2, or 3.")
@@ -3305,10 +3296,10 @@ def HoffmanGraph():
             10: [12, 15],
             11: [14],
             13: [15]})
-    g.set_pos({})
-    _circle_embedding(g, list(range(8)))
-    _circle_embedding(g, list(range(8, 14)), radius=.7, shift=.5)
-    _circle_embedding(g, [14, 15], radius=.1)
+
+    g._circle_embedding(list(range(8)))
+    g._circle_embedding(list(range(8, 14)), radius=.7, shift=.5)
+    g._circle_embedding([14, 15], radius=.1)
 
     g.name("Hoffman Graph")
 
@@ -3351,7 +3342,7 @@ def HoltGraph():
             g.add_edge((x,y),((7*x-7)%9,(y+1)%3))
 
     for j in range(0,6,2):
-        _line_embedding(g, [(x,j/2) for x in range(9)],
+        g._line_embedding([(x,j/2) for x in range(9)],
                         first=(cos(2*j*pi/6),sin(2*j*pi/6)),
                         last=(cos(2*(j+1)*pi/6),sin(2*(j+1)*pi/6)))
 
@@ -3427,11 +3418,10 @@ def Klein3RegularGraph():
         sage: g.chromatic_number()
         3
     """
-    from sage.graphs.graph_plot import _circle_embedding
     g3 = Graph(':w`_GKWDBap`CMWFCpWsQUNdBwwuXPHrg`U`RIqypehVLqgHupYcFJyAv^Prk]'+
                'EcarHwIVHAKh|\\tLVUxT]`ZDTJ{Af[o_AuKs{r_?ef',
                loops=False, multiedges=False)
-    _circle_embedding(g3,[0, 2, 3, 4, 6, 8, 14, 1, 37, 30, 34, 48, 55, 43, 40,
+    g3._circle_embedding([0, 2, 3, 4, 6, 8, 14, 1, 37, 30, 34, 48, 55, 43, 40,
                           45, 18, 20, 47, 42, 23, 17, 16, 10, 41, 11, 49, 25,
                           51, 26, 54, 9, 22, 15, 21, 12, 24, 7, 52, 31, 32, 36,
                           46, 35, 29, 50, 27, 19, 28, 5, 33, 13, 53, 39, 38, 44])
@@ -3460,10 +3450,9 @@ def Klein7RegularGraph():
         sage: g.chromatic_number()
         4
     """
-    from sage.graphs.graph_plot import _circle_embedding
     g7 = Graph(':W__@`AaBbC_CDbDcE`F_AG_@DEH_IgHIJbFGIKaFHILeFGHMdFKN_EKOPaCNP'+
                'Q`HOQRcGLRS`BKMSTdJKLPTU',loops=False,multiedges=False)
-    _circle_embedding(g7,[0, 2, 3, 1, 9, 16, 20, 21, 4, 19, 17, 7, 15,
+    g7._circle_embedding([0, 2, 3, 1, 9, 16, 20, 21, 4, 19, 17, 7, 15,
                           10, 8, 13, 11, 5, 23, 22, 14, 12, 18, 6])
     g7.name("Klein 7-regular Graph")
     return g7
@@ -3568,7 +3557,7 @@ def LjubljanaGraph(embedding=1):
         # circles are slowly shifted to obtain a symmetric drawing.
 
         for i, (u, vertices) in enumerate(six.iteritems(d)):
-            _circle_embedding(g, vertices, center=dh[u], radius=.1,
+            g._circle_embedding(vertices, center=dh[u], radius=.1,
                     shift=8.*i/14)
 
         return g
@@ -3638,7 +3627,7 @@ def M22Graph():
                 33, 73, 58, 55, 41, 29, 66, 54, 76, 46, 67, 11, 51, 47, 62, 53,
                 15, 8, 18, 13, 59, 37, 30, 57, 75, 74, 42]
 
-    _circle_embedding(g, ordering)
+    g._circle_embedding(ordering)
 
     return g
 
@@ -3681,10 +3670,10 @@ def MarkstroemGraph():
     g.add_cycle([21,22,23])
     g.add_edges([(19,22),(18,21),(20,23)])
 
-    _circle_embedding(g, sum([[9+3*i+j for j in range(3)]+[0]*2 for i in range(3)],[]), radius=.6, shift=.7)
-    _circle_embedding(g, [18,19,20], radius=.35, shift=.25)
-    _circle_embedding(g, [21,22,23], radius=.15, shift=.25)
-    _circle_embedding(g, list(range(9)))
+    g._circle_embedding(sum([[9+3*i+j for j in range(3)]+[0]*2 for i in range(3)],[]), radius=.6, shift=.7)
+    g._circle_embedding([18,19,20], radius=.35, shift=.25)
+    g._circle_embedding([21,22,23], radius=.15, shift=.25)
+    g._circle_embedding(list(range(9)))
 
     return g
 
@@ -3740,9 +3729,9 @@ def McGeeGraph(embedding=2):
              [5, 4, 11, 10, 17, 16, 23, 22],
              [3, 12, 9, 18, 15, 0, 21, 6]]
 
-        _circle_embedding(g, o[0], radius=1.5)
-        _circle_embedding(g, o[1], radius=3, shift=-.5)
-        _circle_embedding(g, o[2], radius=2.25, shift=.5)
+        g._circle_embedding(o[0], radius=1.5)
+        g._circle_embedding(o[1], radius=3, shift=-.5)
+        g._circle_embedding(o[2], radius=2.25, shift=.5)
 
         return g
 
@@ -3997,9 +3986,9 @@ def PoussinGraph():
     g.add_cycle(list(range(9, 14)))
     g.add_path([8,12,7,11,6,10,5,9,3,13,8,12])
     g.add_edges([(14,i) for i in range(9,14)])
-    _circle_embedding(g, list(range(3)), shift=.75)
-    _circle_embedding(g, list(range(3, 9)), radius=.4, shift=0)
-    _circle_embedding(g, list(range(9, 14)), radius=.2, shift=.4)
+    g._circle_embedding(list(range(3)), shift=.75)
+    g._circle_embedding(list(range(3, 9)), radius=.4, shift=0)
+    g._circle_embedding(list(range(9, 14)), radius=.2, shift=.4)
     g.get_pos()[14] = (0,0)
 
     return g
@@ -4053,7 +4042,7 @@ def PerkelGraph():
         g.add_edges(((0, i), (2, (i + j) % 19)) for j in [5, -4, -8])
         g.add_edges(((1, i), (2, (i + j) % 19)) for j in [7, -4, -5])
     g.relabel()
-    _circle_embedding(g,[0, 2, 3, 35, 8, 33, 45, 5, 53, 51, 18, 50, 29, 46, 30,
+    g._circle_embedding([0, 2, 3, 35, 8, 33, 45, 5, 53, 51, 18, 50, 29, 46, 30,
                          48, 40, 17, 20, 27, 43, 16, 7, 14, 6, 4, 15, 41, 24, 37,
                          28, 9, 55, 38, 19, 34, 39, 36, 54, 52, 44, 23, 12, 22,
                          32, 10, 13, 26, 1, 21, 42, 56, 49, 31, 47, 11, 25])
@@ -4135,7 +4124,7 @@ def SchlaefliGraph():
     from sage.graphs.graph import Graph
     G = Graph('ZBXzr|}^z~TTitjLth|dmkrmsl|if}TmbJMhrJX]YfFyTbmsseztKTvyhDvw')
     order = [1,8,5,10,2,6,11,15,17,13,18,12,9,24,25,3,26,7,16,20,23,0,21,14,22,4,19]
-    _circle_embedding(G, order)
+    G._circle_embedding(order)
     G.name("Schläfli graph")
     return G
 
@@ -4266,7 +4255,7 @@ def SylvesterGraph():
     ordering = [0, 1, 2, 4, 5, 9, 16, 35, 15, 18, 20, 30, 22, 6, 33, 32, 14,
                 10, 28, 29, 7, 24, 23, 26, 19, 12, 13, 21, 11, 31, 3, 27, 25,
                 17, 8, 34]
-    _circle_embedding(g,ordering, shift=.5)
+    g._circle_embedding(ordering, shift=.5)
     g.name("Sylvester Graph")
     return g
 
@@ -4308,7 +4297,7 @@ def SimsGewirtzGraph():
                 53, 52, 38, 43, 44, 18, 20, 32, 19, 42, 54, 36, 51, 30, 33, 35,
                 37, 28, 34, 12, 29, 23, 55, 25, 40, 24, 9, 14, 48, 39, 45, 16,
                 13, 21, 31, 50, 10, 46]
-    _circle_embedding(g,ordering)
+    g._circle_embedding(ordering)
     g.name("Sims-Gewirtz Graph")
     return g
 
@@ -4347,7 +4336,7 @@ def SousselierGraph():
     g.add_edge(6,2)
     g.add_edges([(15,i) for i in range(15) if i%3==1])
 
-    _circle_embedding(g, list(range(15)), shift=-.25)
+    g._circle_embedding(list(range(15)), shift=-.25)
     g.get_pos()[15] = (0,0)
 
     return g
@@ -4382,12 +4371,12 @@ def SzekeresSnarkGraph():
 
         g.add_edge((i,0),((i+1)%5,8))
         g.add_edge((i,6),((i+2)%5,2))
-        _circle_embedding(g, [(i,j) for j in range(9)],
+        g._circle_embedding([(i, j) for j in range(9)],
                           radius=.3,
-                          center=(cos(2*(i+.25)*pi/5),sin(2*(i+.25)*pi/5)),
+                          center=(cos(2*(i+.25)*pi/5), sin(2*(i+.25)*pi/5)),
                           shift=5.45+1.8*i)
 
-    _circle_embedding(g, list(range(5)), radius=1, shift=.25)
+    g._circle_embedding(list(range(5)), radius=1, shift=.25)
 
     g.relabel()
     return g
@@ -4441,8 +4430,8 @@ def TietzeGraph():
     g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8)], name="Tietze Graph")
     g.add_cycle(list(range(9)))
     g.add_cycle([9,10,11])
-    _circle_embedding(g, list(range(9)))
-    _circle_embedding(g,[9,10,11],radius=.5)
+    g._circle_embedding(list(range(9)))
+    g._circle_embedding([9, 10, 11], radius=.5)
 
     return g
 
@@ -4489,9 +4478,9 @@ def TruncatedTetrahedralGraph():
         True
     """
     g = Graph(':K`ESwC_EOyDl\\MCi', loops=False, multiedges=False)
-    _circle_embedding(g, list(range(6)), radius=1)
-    _circle_embedding(g, list(range(6, 9)), radius=.6, shift=.25)
-    _circle_embedding(g, list(range(9, 12)), radius=.2, shift=.25)
+    g._circle_embedding(list(range(6)), radius=1)
+    g._circle_embedding(list(range(6, 9)), radius=.6, shift=.25)
+    g._circle_embedding(list(range(9, 12)), radius=.2, shift=.25)
     g.name("Truncated Tetrahedron")
     return g
 
@@ -4571,12 +4560,12 @@ def TutteCoxeterGraph(embedding=2):
             5: [10, 14, 24, 20, 16]
             }
 
-        _circle_embedding(g, d[0], center=(-1, 1), radius=.25)
-        _circle_embedding(g, d[1], center=(1, 1), radius=.25)
-        _circle_embedding(g, d[2], center=(-.8, 0), radius=.25, shift=2.5)
-        _circle_embedding(g, d[3], center=(1.2, 0), radius=.25)
-        _circle_embedding(g, d[4], center=(-1, -1), radius=.25, shift=2)
-        _circle_embedding(g, d[5], center=(1, -1), radius=.25)
+        g._circle_embedding(d[0], center=(-1, 1), radius=.25)
+        g._circle_embedding(d[1], center=(1, 1), radius=.25)
+        g._circle_embedding(d[2], center=(-.8, 0), radius=.25, shift=2.5)
+        g._circle_embedding(d[3], center=(1.2, 0), radius=.25)
+        g._circle_embedding(d[4], center=(-1, -1), radius=.25, shift=2)
+        g._circle_embedding(d[5], center=(1, -1), radius=.25)
 
         return g
 
@@ -4613,7 +4602,6 @@ def TutteGraph():
         False
     """
     g = Graph(name="Tutte Graph")
-    from sage.graphs.graph_plot import _circle_embedding
 
     g.add_cycle([(i,j) for i in range(3) for j in range(3) ])
     for i in range(3):
@@ -4628,18 +4616,18 @@ def TutteGraph():
         g.add_edge((i,4),(i,14))
         g.add_edge((i,9),(i,14))
 
-    _circle_embedding(g, [(i,j) for i in range(3)  for j in range(6)], shift=.5)
-    _circle_embedding(g, [(i,14) for i in range(3) ], radius=.3,shift=.25)
+    g._circle_embedding([(i, j) for i in range(3)  for j in range(6)], shift=.5)
+    g._circle_embedding([(i, 14) for i in range(3) ], radius=.3, shift=.25)
 
     for i in range(3):
-        _circle_embedding(g, [(i,j) for j in range(3,9)]+[0]*5,
+        g._circle_embedding([(i, j) for j in range(3, 9)] + [0]*5,
                           shift=3.7*(i-2)+.75,
                           radius=.4,
-                          center=(.6*cos(2*(i+.25)*pi/3),.6*sin(2*(i+.25)*pi/3)))
-        _circle_embedding(g, [(i,j) for j in range(9,14)],
+                          center=(.6*cos(2*(i+.25)*pi/3), .6*sin(2*(i+.25)*pi/3)))
+        g._circle_embedding([(i, j) for j in range(9, 14)],
                           shift=1.7*(i-2)+1,
                           radius=.2,
-                          center=(.6*cos(2*(i+.25)*pi/3),.6*sin(2*(i+.25)*pi/3)))
+                          center=(.6*cos(2*(i+.25)*pi/3), .6*sin(2*(i+.25)*pi/3)))
 
     g.get_pos()[0] = (0,0)
 
@@ -4691,10 +4679,9 @@ def WatkinsSnarkGraph():
 
     for i in range(5):
         g.add_cycle([(i,j) for j in range(9)])
-        _circle_embedding(g,
-                          [(i,j) for j in range(4)]+[0]*2+[(i,4)]+[0]*2+[(i,j) for j in range(5,9)],
+        g._circle_embedding([(i,j) for j in range(4)]+[0]*2+[(i,4)]+[0]*2+[(i,j) for j in range(5,9)],
                           radius=.3,
-                          center=(cos(2*(i+.25)*pi/5),sin(2*(i+.25)*pi/5)),
+                          center=(cos(2*(i+.25)*pi/5), sin(2*(i+.25)*pi/5)),
                           shift=2.7*i+7.55)
         g.add_edge((i,5),((i+1)%5,0))
         g.add_edge((i,8),((i+2)%5,3))
@@ -4703,7 +4690,7 @@ def WatkinsSnarkGraph():
         g.add_edge((i,4),i)
         g.add_edge((i,6),(i,2))
 
-    _circle_embedding(g, list(range(5)), shift=.25, radius=1.1)
+    g._circle_embedding(list(range(5)), shift=.25, radius=1.1)
     return g
 
 def WienerArayaGraph():
@@ -4734,19 +4721,17 @@ def WienerArayaGraph():
         True
     """
     g = Graph(name="Wiener-Araya Graph")
-    from sage.graphs.graph_plot import _circle_embedding
 
     g.add_cycle([(0,i) for i in range(4)])
     g.add_cycle([(1,i) for i in range(12)])
     g.add_cycle([(2,i) for i in range(20)])
     g.add_cycle([(3,i) for i in range(6)])
-    _circle_embedding(g, [(0,i) for i in range(4)], shift=.5)
-    _circle_embedding(g,
-                      sum([[(1,3*i),(1,3*i+1)]+[0]*3+[(1,3*i+2)]+[0]*3 for i in range(4)],[]),
+    g._circle_embedding([(0, i) for i in range(4)], shift=.5)
+    g._circle_embedding(sum([[(1,3*i),(1,3*i+1)]+[0]*3+[(1,3*i+2)]+[0]*3 for i in range(4)],[]),
                       shift=4,
                       radius=.65)
-    _circle_embedding(g, [(2,i) for i in range(20)], radius=.5)
-    _circle_embedding(g, [(3,i) for i in range(6)], radius=.3, shift=.5)
+    g._circle_embedding([(2, i) for i in range(20)], radius=.5)
+    g._circle_embedding([(3, i) for i in range(6)], radius=.3, shift=.5)
 
     for i in range(4):
         g.delete_edge((1,3*i),(1,3*i+1))

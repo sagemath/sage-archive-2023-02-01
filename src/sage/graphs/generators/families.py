@@ -317,10 +317,9 @@ def BarbellGraph(n1, n2):
     G.add_path(list(range(n1 - 1 , n1 + n2 + 1)))
     G.add_clique(list(range(n1 + n2, n1 + n2 + n1)))
 
-    from sage.graphs.graph_plot import _circle_embedding, _line_embedding
-    _circle_embedding(G, list(range(n1)), shift=1, angle=pi/4)
-    _line_embedding(G, list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
-    _circle_embedding(G, list(range(n1 + n2, n1 + n2 + n1)), center=(n2 + 3, n2 + 3), angle=5*pi/4)
+    G._circle_embedding(list(range(n1)), shift=1, angle=pi/4)
+    G._line_embedding(list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
+    G._circle_embedding(list(range(n1 + n2, n1 + n2 + n1)), center=(n2 + 3, n2 + 3), angle=5*pi/4)
     return G
 
 
@@ -389,12 +388,11 @@ def LollipopGraph(n1, n2):
     G.add_path(list(range(n1, n1 + n2)))
     if n1 * n2 > 0:
         G.add_edge(n1 - 1, n1)
-    from sage.graphs.graph_plot import _circle_embedding, _line_embedding
     if n1 == 1:
         G.set_pos({0:(0, 0)})
     else:
-        _circle_embedding(G, list(range(n1)), shift=1, angle=pi/4)
-    _line_embedding(G, list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
+        G._circle_embedding(list(range(n1)), shift=1, angle=pi/4)
+    G._line_embedding(list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
     return G
 
 
@@ -457,9 +455,8 @@ def TadpoleGraph(n1, n2):
     G.add_path(list(range(n1, n1 + n2)))
     if n1 * n2 > 0:
         G.add_edge(n1 - 1, n1)
-    from sage.graphs.graph_plot import _circle_embedding, _line_embedding
-    _circle_embedding(G, list(range(n1)), shift=1, angle=pi/4)
-    _line_embedding(G, list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
+    G._circle_embedding(list(range(n1)), shift=1, angle=pi/4)
+    G._line_embedding(list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
     return G
 
 
@@ -775,13 +772,11 @@ def CirculantGraph(n, adjacency):
         (4, 5),
         (5, 6)]
     """
-    from sage.graphs.graph_plot import _circle_embedding
-
-    if not isinstance(adjacency,list):
-        adjacency=[adjacency]
+    if not isinstance(adjacency, list):
+        adjacency = [adjacency]
 
     G = Graph(n, name="Circulant graph ("+str(adjacency)+")")
-    _circle_embedding(G, list(range(n)))
+    G._circle_embedding(list(range(n)))
 
     for v in G:
         G.add_edges([(v,(v+j)%n) for j in adjacency])
@@ -1107,9 +1102,8 @@ def FriendshipGraph(n):
     G = Graph(N, name="Friendship graph")
     for i in range(0, N - 1, 2):
         G.add_cycle([center, i, i+1])
-    from sage.graphs.graph_plot import _circle_embedding
     G.set_pos({center:(0, 0)})
-    _circle_embedding(G, list(range(N - 1)), radius=1)
+    G._circle_embedding(list(range(N - 1)), radius=1)
     return G
 
 def FuzzyBallGraph(partition, q):
@@ -1275,9 +1269,8 @@ def GeneralizedPetersenGraph(n,k):
         G.add_edge(i, (i+1) % n)
         G.add_edge(i, i+n)
         G.add_edge(i+n, n + (i+k) % n)
-    from sage.graphs.graph_plot import _circle_embedding
-    _circle_embedding(G, list(range(n)), radius=1, angle=pi/2)
-    _circle_embedding(G, list(range(n, 2*n)), radius=.5, angle=pi/2)
+    G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
+    G._circle_embedding(list(range(n, 2*n)), radius=.5, angle=pi/2)
     return G
 
 def HararyGraph( k, n ):
@@ -1466,8 +1459,7 @@ def LCFGraph(n, shift_list, repeats):
     """
     import networkx
     G = Graph(networkx.LCF_graph(n, shift_list, repeats), name="LCF Graph")
-    from sage.graphs.graph_plot import _circle_embedding
-    _circle_embedding(G, list(range(n)), radius=1, angle=pi/2)
+    G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
     return G
 
 def MycielskiGraph(k=1, relabel=True):
@@ -2259,7 +2251,6 @@ def petersen_family(generate=False):
     if not generate:
         from sage.graphs.generators.basic import CompleteGraph, \
              CompleteBipartiteGraph, CompleteMultipartiteGraph
-        from sage.graphs.graph_plot import _circle_embedding
         l = [PetersenGraph(), CompleteGraph(6),
              CompleteMultipartiteGraph([3, 3, 1])]
         g = CompleteBipartiteGraph(4, 4)
@@ -2267,16 +2258,16 @@ def petersen_family(generate=False):
         g.name("")
         l.append(g)
         g = Graph('HKN?Yeb')
-        _circle_embedding(g, [1, 2, 4, 3, 0, 5])
-        _circle_embedding(g, [6, 7, 8], radius=.6, shift=1.25)
+        g._circle_embedding([1, 2, 4, 3, 0, 5])
+        g._circle_embedding([6, 7, 8], radius=.6, shift=1.25)
         l.append(g)
         g = Graph('Fs\\zw')
-        _circle_embedding(g, [1, 2, 3])
-        _circle_embedding(g, [4, 5, 6], radius=.7)
+        g._circle_embedding([1, 2, 3])
+        g._circle_embedding([4, 5, 6], radius=.7)
         g.get_pos()[0] = (0, 0)
         l.append(g)
         g = Graph('GYQ[p{')
-        _circle_embedding(g, [1, 4, 6, 0, 5, 7, 3], shift=0.25)
+        g._circle_embedding([1, 4, 6, 0, 5, 7, 3], shift=0.25)
         g.get_pos()[2] = (0, 0)
         l.append(g)
         return l
@@ -2679,8 +2670,6 @@ def RingedTree(k, vertex_labels = True):
     if k<1:
         raise ValueError('The number of levels must be >= 1.')
 
-    from sage.graphs.graph_plot import _circle_embedding
-
     # Creating the Balanced tree, which contains most edges already
     g = BalancedTree(2,k-1)
     g.name('Ringed Tree on '+str(k)+' levels')
@@ -2695,7 +2684,7 @@ def RingedTree(k, vertex_labels = True):
         # And set the vertices' positions
         radius = i if i <= 1 else 1.5**i
         shift = -2**(i-2)+.5 if i > 1 else 0
-        _circle_embedding(g, vertices, radius = radius, shift = shift)
+        g._circle_embedding(vertices, radius = radius, shift = shift)
 
     # Specific position for the central vertex
     g.get_pos()[0] = (0,0.2)

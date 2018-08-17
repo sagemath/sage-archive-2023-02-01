@@ -611,17 +611,18 @@ class SageDocTestParser(doctest.DocTestParser):
     A version of the standard doctest parser which handles Sage's
     custom options and tolerances in floating point arithmetic.
     """
-    def __init__(self, long=False, optional_tags=()):
+    def __init__(self, optional_tags=(), long=False):
         r"""
         INPUT:
 
-        - ``long`` -- boolean, whether to run doctests marked as taking a long time.
         - ``optional_tags`` -- a list or tuple of strings.
+        - ``long`` -- boolean, whether to run doctests marked as taking a
+          long time.
 
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'))
             sage: ex = DTP.parse("sage: 2 + 2\n")[1]
             sage: ex.sage_source
             '2 + 2\n'
@@ -653,8 +654,8 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
-            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'), True)
+            sage: DTP2 = SageDocTestParser(('sage','magma','guava'), False)
             sage: DTP == DTP2
             False
         """
@@ -669,8 +670,8 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
-            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'), True)
+            sage: DTP2 = SageDocTestParser(('sage','magma','guava'), False)
             sage: DTP != DTP2
             True
         """
@@ -696,7 +697,7 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'))
             sage: example = 'Explanatory text::\n\n    sage: E = magma("EllipticCurve([1, 1, 1, -10, -10])") # optional: magma\n\nLater text'
             sage: parsed = DTP.parse(example)
             sage: parsed[0]
@@ -710,7 +711,7 @@ class SageDocTestParser(doctest.DocTestParser):
         optional argument, the corresponding examples will just be
         removed::
 
-            sage: DTP2 = SageDocTestParser(True, ('sage',))
+            sage: DTP2 = SageDocTestParser(('sage',))
             sage: parsed2 = DTP2.parse(example)
             sage: parsed2
             ['Explanatory text::\n\n', '\nLater text']
@@ -816,7 +817,7 @@ class SageOutputChecker(doctest.OutputChecker):
         sage: from sage.doctest.parsing import SageOutputChecker, MarkedOutput, SageDocTestParser
         sage: import doctest
         sage: optflag = doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS
-        sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+        sage: DTP = SageDocTestParser(('sage','magma','guava'))
         sage: OC = SageOutputChecker()
         sage: example2 = 'sage: gamma(1.6) # tol 2.0e-11\n0.893515349287690'
         sage: ex = DTP.parse(example2)[1]

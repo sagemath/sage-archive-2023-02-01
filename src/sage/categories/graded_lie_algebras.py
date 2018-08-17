@@ -58,10 +58,7 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(GradedModulesCategory):
             EXAMPLES::
 
                 sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: C = LieAlgebras(QQ).FiniteDimensional() \
-                ....:                    .WithBasis().Stratified()
-                sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'z': 1}},
-                ....:                         category = C)
+                sage: L = NilpotentLieAlgebra(QQ, 2, step=2)
                 sage: L.homogeneous_component_as_submodule(2)
                 Sparse vector space of degree 3 and dimension 1 over Rational Field
                 Basis matrix:
@@ -81,17 +78,13 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(GradedModulesCategory):
             EXAMPLES::
 
                 sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: C = LieAlgebras(QQ).FiniteDimensional() \
-                ....:                    .WithBasis().Stratified()
-                sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'z': 1}},
-                ....:                         category = C)
+                sage: L.<X,Y,Z> = NilpotentLieAlgebra(ZZ, 2, step=2)
                 sage: L._test_grading()
-                sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'x': 1}},
-                ....:                         category = C)
+                sage: L._basis_degrees[Y] = 2
                 sage: L._test_grading()
                 Traceback (most recent call last):
                 ...
-                AssertionError: Lie bracket [x, y] is not in the homogeneous component of degree 2
+                AssertionError: Lie bracket [X, Y] is not in the homogeneous component of degree 3
 
             See the documentation for :class:`TestSuite` for more information.
             """
@@ -168,7 +161,16 @@ class StratifiedLieAlgebrasCategory(RegressiveCovariantConstructionCategory,
 
 class StratifiedLieAlgebras(StratifiedLieAlgebrasCategory):
     r"""
-    Category of stratified Lie algebras
+    Category of stratified Lie algebras.
+
+    A stratified Lie algebra is a graded Lie algebra that is generated as a Lie
+    algebra by its homogeneous component of degree 1.
+
+    TESTS::
+
+        sage: C = LieAlgebras(QQ).Stratified()
+        sage: TestSuite(C).run()
+
     """
     pass
 
@@ -179,6 +181,12 @@ class FiniteDimensionalStratifiedLieAlgebrasWithBasis(StratifiedLieAlgebrasCateg
 
     A stratified Lie algebra is a graded Lie algebra that is generated as a Lie
     algebra by its homogeneous component of degree 1.
+
+    TESTS::
+
+        sage: C = LieAlgebras(QQ).FiniteDimensional().WithBasis().Stratified()
+        sage: TestSuite(C).run()
+
     """
 
     def extra_super_categories(self):
@@ -213,10 +221,7 @@ class FiniteDimensionalStratifiedLieAlgebrasWithBasis(StratifiedLieAlgebrasCateg
             EXAMPLES::
  
                 sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: C = LieAlgebras(QQ).FiniteDimensional() \
-                ....:                    .WithBasis().Stratified()
-                sage: sc = {('X','Y'): {'Z': 1}}
-                sage: L.<X,Y,Z> = NilpotentLieAlgebra(QQ, sc, category = C)
+                sage: L.<X,Y,Z> = NilpotentLieAlgebra(QQ, 2, step=2)
                 sage: L.degree_on_basis(X)
                 1
                 sage: L.degree_on_basis(Y)
@@ -253,17 +258,16 @@ class FiniteDimensionalStratifiedLieAlgebrasWithBasis(StratifiedLieAlgebrasCateg
             EXAMPLES::
 
                 sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: C = LieAlgebras(QQ).FiniteDimensional() \
-                ....:                    .WithBasis().Stratified()
-                sage: sc = {('x','y'): {'z': 1}}
-                sage: L.<x,y,z> = NilpotentLieAlgebra(QQ, sc, category = C)
+                sage: L = NilpotentLieAlgebra(QQ, 2, step=3)
                 sage: L._test_generated_by_degree_one()
-                sage: L._basis_degrees = {x: 1, y: 2, z: 3}
+                sage: L.inject_variables()
+                Defining X_1, X_2, X_12, X_112, X_122
+                sage: L._basis_degrees[X_2] = 2
                 sage: L._test_generated_by_degree_one()
                 Traceback (most recent call last):
                 ...
-                AssertionError: [x] does not generate Nilpotent Lie algebra on
-                3 generators (x, y, z) over Rational Field
+                AssertionError: [X_1] does not generate Nilpotent Lie algebra on
+                5 generators (X_1, X_2, X_12, X_112, X_122) over Rational Field
 
             See the documentation for :class:`TestSuite` for more information.
             """

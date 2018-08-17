@@ -1543,8 +1543,6 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
         # MultivectorFieldParal attributes:
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
-        self._extensions_graph = {self._domain: self}
-        self._restrictions_graph = {self._domain: self}
         # VectorField attributes:
         self._vmodule = vector_field_module
         # Initialization of derived quantities:

@@ -58,7 +58,7 @@ cdef class Iterator(object):
                 else:
                     noncom_i.append(j)
             noncom.append(noncom_i)
-        noncom.append(range(n))
+        noncom.append(list(range(n)))
         return noncom
 
     def __init__(self, W, int N, str algorithm="depth", bint tracking_words=True,
@@ -79,7 +79,7 @@ cdef class Iterator(object):
         self.tracking_words = tracking_words
 
         if order is None:
-            self.order = range(self.n)
+            self.order = list(range(self.n))
 
         # "breadth" is 1.5x slower than "depth" since it uses
         # a deque with popleft instead of a list with pop
@@ -414,7 +414,7 @@ def iterator_tracking_words(W):
         ((1,24,12,2)(3,20,19,6)(4,5,22,17)(7,13,23,11)(8,10,9,21)(14,15,18,16), [0, 0, 1, 1, 0, 0])
     """
     cdef tuple S = tuple(W.simple_reflections())
-    cdef list index_list = range(len(S))
+    cdef list index_list = list(range(len(S)))
 
     cdef list level_set_cur = [(W.one(), [])]
     cdef set level_set_old = set([ W.one() ])
@@ -602,7 +602,7 @@ cdef PermutationGroupElement _new_mul_(PermutationGroupElement left, Permutation
         prod.perm = <int *> sig_malloc(n_sizeofint)
 
     cdef int i
-    for i in range(n):#from 0 <= i < n:
+    for i in range(n):
         prod.perm[i] = right.perm[left.perm[i]]
 
     return prod

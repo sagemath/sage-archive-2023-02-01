@@ -479,17 +479,15 @@ def test_relation_maxima(relation):
         True
         sage: forget()
         
-    In case one of the solutions while solving an equation is a real number::
-        
-        sage: var('K, d, R')
-        (K, d, R)
-        sage: assume(K>0)
-        sage: assume(K, 'noninteger')
-        sage: assume(R>0)
-        sage: assume(R<1)
-        sage: assume(d<R)
+    In case an equation is to be solved for non-integers, ''assume()''
+    is used::
+    
+        sage: k = var('k')
+        sage: assume(k,'noninteger')
+        sage: solve([k^3==1],k)
+        [k == 1/2*I*sqrt(3) - 1/2, k == -1/2*I*sqrt(3) - 1/2]
         sage: assumptions()
-        [K > 0, K is noninteger, R > 0, R < 1, d < R]
+        [k is noninteger]
     """
     m = relation._maxima_()
 
@@ -714,8 +712,8 @@ def solve(f, *args, **kwds):
         x: -2, y: 4
 
     If there is a parameter in the answer, that will show up as
-    a new variable.  In the following example, ``r1`` is a real free
-    variable (because of the ``r``)::
+    a new variable.  In the following example, ``r1`` is an arbitrary
+    constant (because of the ``r``)::
 
         sage: forget()
         sage: x, y = var('x,y')
@@ -1360,7 +1358,7 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
     if to_check:
         for ix, soln in reversed(list(enumerate(X))):
             if soln.lhs().is_symbol():
-                if any([a.contradicts(soln) for a in to_check]):
+                if any(a.contradicts(soln) for a in to_check):
                     del X[ix]
                     if multiplicities:
                         del ret_multiplicities[ix]

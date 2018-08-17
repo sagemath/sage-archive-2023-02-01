@@ -325,7 +325,6 @@ cdef class CAElement(pAdicTemplateElement):
         K = self.parent().fraction_field()
         return K(self) / K(right)
 
-    @coerce_binop
     def _quo_rem(self, _right):
         """
         Quotient with remainder.
@@ -333,7 +332,7 @@ cdef class CAElement(pAdicTemplateElement):
         EXAMPLES::
 
             sage: R = ZpCA(3, 5)
-            sage: R(12).quo_rem(R(2))
+            sage: R(12).quo_rem(R(2)) # indirect doctest
             (2*3 + O(3^5), O(3^5))
             sage: R(2).quo_rem(R(12)) # indirect doctest
             (O(3^4), 2 + O(3^5))
@@ -902,11 +901,11 @@ cdef class CAElement(pAdicTemplateElement):
 
             sage: R.<a> = ZqCA(5^3)
             sage: a.polynomial()
-            (1 + O(5^20))*x + (O(5^20))
+            (1 + O(5^20))*x + O(5^20)
             sage: a.polynomial(var='y')
-            (1 + O(5^20))*y + (O(5^20))
+            (1 + O(5^20))*y + O(5^20)
             sage: (5*a^2 + R(25, 4)).polynomial()
-            (5 + O(5^4))*x^2 + (O(5^4))*x + (5^2 + O(5^4))
+            (5 + O(5^4))*x^2 + O(5^4)*x + 5^2 + O(5^4)
         """
         R = self.base_ring()
         S = R[var]

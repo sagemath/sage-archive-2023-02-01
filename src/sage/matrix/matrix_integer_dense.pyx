@@ -4880,14 +4880,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
         # 0. Base case
         if self.nrows() == 0:
             pos = row.nonzero_positions()
-            if len(pos) > 0:
+            if pos:
                 pivots = [pos[0]]
                 if row[pivots[0]] < 0:
                     row *= -1
             else:
                 pivots = []
             return matrix([row]), pivots
-
 
         if row == 0:
             return self, pivots

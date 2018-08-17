@@ -22,6 +22,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef bint is_one(self)
     cpdef bint is_term(self)
 
+    cpdef dict _mpoly_dict_recursive(self, tuple variables=*, base_ring=*)
+
     cpdef _add_(self, other)
     cpdef _mul_(self, other)
     cpdef _floordiv_(self, right)

@@ -141,7 +141,9 @@ sagelib: \
 		$(inst_jupyter_core) \
 		$(inst_lcalc) \
 		$(inst_lrcalc) \
+		$(inst_libbraiding) \
 		$(inst_libgap) \
+		$(inst_libhomfly) \
 		$(inst_libpng) \
 		$(inst_linbox) \
 		$(inst_m4ri) \

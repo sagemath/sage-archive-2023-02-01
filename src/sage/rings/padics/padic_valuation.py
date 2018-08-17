@@ -35,7 +35,7 @@ overview can also be found in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013-2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -47,7 +47,6 @@ from sage.rings.valuation.value_group import DiscreteValueSemigroup
 from sage.rings.valuation.mapped_valuation import FiniteExtensionFromLimitValuation
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
-from sage.misc.fast_methods import WithEqualityById
 
 from sage.rings.all import infinity
 
@@ -324,7 +323,6 @@ class PadicValuationFactory(UniqueFactory):
         """
         from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
         from sage.rings.number_field.number_field import is_NumberField
-        from sage.rings.fraction_field import is_FractionField
         if is_NumberField(R.fraction_field()):
             L = R.fraction_field()
             G = L.relative_polynomial()
@@ -685,8 +683,6 @@ class pAdicValuation_base(DiscreteValuation):
             [2-adic valuation]
 
         """
-        from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
-        parent = DiscretePseudoValuationSpace(ring)
         approximants = approximants or self.mac_lane_approximants(ring.modulus().change_ring(self.domain()), assume_squarefree=True, require_incomparability=True)
         return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
 
@@ -769,8 +765,6 @@ class pAdicValuation_base(DiscreteValuation):
             from sage.rings.number_field.number_field import is_NumberField
             if is_NumberField(ring.fraction_field()):
                 if ring.base_ring().fraction_field() is self.domain().fraction_field():
-                    from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
-                    parent = DiscretePseudoValuationSpace(ring)
                     approximants = self.mac_lane_approximants(ring.fraction_field().relative_polynomial().change_ring(self.domain()), assume_squarefree=True, require_incomparability=True)
                     return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
                 if ring.base_ring() is not ring and self.domain().is_subring(ring.base_ring()):
@@ -997,7 +991,6 @@ class pAdicValuation_padic(pAdicValuation_base):
             y^5 + O(y^60)
 
         """
-        from sage.rings.all import ZZ
         x = self.domain().coerce(x)
         s = self.value_group()(s)
         return x << s
@@ -1359,8 +1352,6 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
         """
         if ring is self.domain().fraction_field():
             if self.domain() is not self.domain().fraction_field():
-                base_ring = self.domain().base_ring()
-                base_valuation = self.restriction(base_ring).extension(base_ring.fraction_field())
                 G = ring.relative_polynomial()
                 approximant = self._base_valuation.change_domain(G.parent())._initial_approximation
                 return [pAdicValuation(ring, approximant)]

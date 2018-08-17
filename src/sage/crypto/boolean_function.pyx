@@ -995,13 +995,13 @@ cdef class BooleanFunction(SageObject):
 
         kg = M.kernel().gens()
 
-        if len(kg)>0:
+        if kg:
             res = sum([kg[0][i]*ri for i,ri in enumerate(r)])
         else:
             res = None
 
         if dim:
-            return res,len(kg)
+            return res, len(kg)
         else:
             return res
 

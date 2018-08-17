@@ -265,9 +265,9 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
           internally used to pass in additional structural information, e.g.,
           about the field from which this field is created as a subfield.
 
-    We explicitly take a ``kwds`` attribute for compatibility
+    We accept ``implementation`` and ``prec`` attributes for compatibility
     with :class:`~sage.categories.pushout.AlgebraicExtensionFunctor`
-    but we ignore it as it is not used.
+    but we ignore them as they are not used.
 
     EXAMPLES::
 
@@ -541,6 +541,11 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     """
     if names is not None:
         name = names
+    for key, val in kwds.items():
+        if key not in ['implementation', 'prec']:
+            raise TypeError("NumberField() got an unexpected keyword argument '%s'"%key)
+        if not (val is None or isinstance(val, list) and all(c is None for c in val)):
+            raise NotImplementedError("Number field with prescribed %s is not implemented"%key)
     if isinstance(polynomial, (list,tuple)):
         return NumberFieldTower(polynomial, names=name, check=check, embeddings=embedding, latex_names=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structures=structure)
 
@@ -1750,7 +1755,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = NumberField(x^3 + 17)
             sage: b = K.polynomial_quotient_ring().random_element()
             sage: K(b)
-            -1/2*a^2 - 4
+            1/2*a^2 - 1/95*a - 1/2
 
         We can convert symbolic expressions::
 
@@ -3513,10 +3518,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if B<2:
             return []
 
+        from sage.rings.fast_arith import prime_range
         if self is QQ:
-            return arith.primes(B+1)
+            #return arith.primes(B+1)
+            return prime_range(B+1, algorithm="pari_isprime")
         else:
-            P = [pp for p in arith.primes(B+1) for pp in self.primes_above(p)]
+            #P = [pp for p in arith.primes(B+1) for pp in self.primes_above(p)]
+            P = [pp for p in prime_range(B+1, algorithm="pari_isprime") for pp in self.primes_above(p)]
             P = [p for p in P if p.norm() <= B]
             P.sort(key=lambda P: (P.norm(),P))
             return P
@@ -3563,11 +3571,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if B < 2:
             return
 
+        from sage.rings.fast_arith import prime_range
         if self is QQ:
-            for p in arith.primes(B+1):
+            #for p in arith.primes(B+1):
+            for p in prime_range(B+1,algorithm="pari_isprime"):
                 yield p
         else:
-            for p in arith.primes(B+1):
+            #for p in arith.primes(B+1):
+            for p in prime_range(B+1,algorithm="pari_isprime"):
                 for pp in self.primes_above(p):
                     if pp.norm() <= B:
                         yield pp
@@ -6518,7 +6529,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^3 + 3)
             sage: U = K.unit_group(proof=False)
-            sage: U == K.S_unit_group(proof=False)
+            sage: U.is_isomorphic(K.S_unit_group(proof=False))
             True
 
         The value of `S` may be specified as a list of prime ideals,

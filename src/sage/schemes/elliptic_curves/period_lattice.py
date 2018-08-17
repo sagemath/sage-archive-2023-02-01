@@ -1749,12 +1749,12 @@ class PeriodLattice_ell(PeriodLattice):
         # test for the point at infinity:
 
         eps = (C(2)**(-0.8*prec)).real()  ## to test integrality w.r.t. lattice within 20%
-        if all([(t.round()-t).abs() < eps for t in self.coordinates(z)]):
+        if all((t.round()-t).abs() < eps for t in self.coordinates(z)):
             K = z.parent()
             if to_curve:
                 return self.curve().change_ring(K)(0)
             else:
-                return (K('+infinity'),K('+infinity'))
+                return (K('+infinity'), K('+infinity'))
 
         # general number field code (including QQ):
 

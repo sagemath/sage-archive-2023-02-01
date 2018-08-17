@@ -886,9 +886,9 @@ class WordMorphism(SageObject):
             s += r"\begin{array}{l}" + '\n'
             lines = []
             for a in A:
-                lines.append(r"%s \mapsto %s"% (a, self.image(a)))
+                lines.append(r"%s \mapsto %s" % (a, self.image(a)))
             s += '\\\\\n'.join(lines)
-            s += '\n' + "\end{array}"
+            s += '\n' + r"\end{array}"
             return LatexExpr(s)
         else:
             raise ValueError('unknown latex_layout(=%s)' % latex_layout)

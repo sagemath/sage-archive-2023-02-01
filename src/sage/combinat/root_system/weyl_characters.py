@@ -22,7 +22,7 @@ from sage.rings.all import ZZ
 
 
 class WeylCharacterRing(CombinatorialFreeModule):
-    """
+    r"""
     A class for rings of Weyl characters.
 
     Let `K` be a compact Lie group, which we assume is semisimple and
@@ -1343,7 +1343,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             return self.parent().char_from_weights(d)
 
         def frobenius_schur_indicator(self):
-            """
+            r"""
             Return:
 
             - `1` if the representation is real (orthogonal)
@@ -1458,8 +1458,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 raise ValueError("{} is not irreducible".format(other))
             return self.coefficient(other.support()[0])
 
+
 def irreducible_character_freudenthal(hwv, debug=False):
-    """
+    r"""
     Return the dictionary of multiplicities for the irreducible
     character with highest weight `\lambda`.
 
@@ -1907,7 +1908,7 @@ class WeightRing(CombinatorialFreeModule):
             return self.parent()._from_dict(d2)
 
         def shift(self, mu):
-            """
+            r"""
             Add `\mu` to any weight. Extended by linearity to the weight ring.
 
             INPUT:

@@ -273,8 +273,9 @@ def Hom(X, Y, category=None, check=True):
 
     Facade parents over plain Python types are supported::
 
-        sage: R = sage.structure.parent.Set_PythonType(int)
-        sage: S = sage.structure.parent.Set_PythonType(float)
+        sage: from sage.sets.pythonclass import Set_PythonType
+        sage: R = Set_PythonType(int)
+        sage: S = Set_PythonType(float)
         sage: Hom(R, S)
         Set of Morphisms from Set of Python objects of class 'int' to Set of Python objects of class 'float' in Category of sets
 

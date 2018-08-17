@@ -1013,11 +1013,9 @@ class CubicalComplex(GenericCellComplex):
             {[0,1] x [0,0]}
         """
         other_facets = other.maximal_cells()
-        answer = True
-        for cube in self.maximal_cells():
-            answer = answer and any([cube.is_face(other_cube)
-                                     for other_cube in other_facets])
-        return answer
+        return all(any(cube.is_face(other_cube)
+                       for other_cube in other_facets)
+                   for cube in self.maximal_cells())
 
     def cells(self, subcomplex=None):
         """

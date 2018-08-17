@@ -879,7 +879,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         return self.preimage( self.codomain().monomial(i) )
 
     def preimage(self, f):
-        """
+        r"""
         Return the preimage of `f` under ``self``.
 
         EXAMPLES::
@@ -978,7 +978,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         return out
 
     def coreduced(self, y):
-        """
+        r"""
         Return `y` reduced w.r.t. the image of ``self``.
 
         INPUT:
@@ -1069,7 +1069,7 @@ class TriangularModuleMorphism(ModuleMorphism):
     co_reduced = deprecated_function_alias(8678, coreduced)
 
     def cokernel_basis_indices(self):
-        """
+        r"""
         Return the indices of the natural monomial basis of the cokernel of ``self``.
 
         INPUT:
@@ -1496,7 +1496,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         return self.codomain().term(i, self._diagonal(i))
 
     def __invert__(self):
-        """
+        r"""
         Return the inverse diagonal morphism.
 
         EXAMPLES::

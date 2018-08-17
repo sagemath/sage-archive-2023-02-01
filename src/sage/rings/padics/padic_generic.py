@@ -262,9 +262,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5, 'fixed-mod')
             sage: R.uniformizer_pow(3)
-            3^3 + O(3^5)
+            3^3
             sage: R.uniformizer_pow(infinity)
-            O(3^5)
+            0
         """
         if n is infinity:
             return self(0)
@@ -368,7 +368,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5,'fixed-mod')
             sage: R.residue_system()
-            [O(3^5), 1 + O(3^5), 2 + O(3^5)]
+            [0, 1, 2]
         """
         return [self(i) for i in self.residue_class_field()]
 
@@ -414,15 +414,15 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: R = Zp(5, print_mode='digits')
-            sage: K = R.fraction_field(); repr(K(1/3))[3:]
-            '31313131313131313132'
-            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))[3:]
+            sage: R = Zp(5, print_mode='digits', show_prec=False)
+            sage: K = R.fraction_field(); K(1/3)
+            31313131313131313132
+            sage: L = R.fraction_field({'max_ram_terms':4}); L(1/3)
             doctest:warning
             ...
             DeprecationWarning: Use the change method if you want to change print options in fraction_field()
             See http://trac.sagemath.org/23227 for details.
-            '3132'
+            3132
             sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.fraction_field()
             17-adic Unramified Extension Field in a defined by x^4 + 7*x^2 + 10*x + 3
@@ -474,15 +474,15 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: K = Qp(5, print_mode='digits')
-            sage: R = K.integer_ring(); repr(R(1/3))[3:]
-            '31313131313131313132'
-            sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
+            sage: K = Qp(5, print_mode='digits', show_prec=False)
+            sage: R = K.integer_ring(); R(1/3)
+            31313131313131313132
+            sage: S = K.integer_ring({'max_ram_terms':4}); S(1/3)
             doctest:warning
             ...
             DeprecationWarning: Use the change method if you want to change print options in integer_ring()
             See http://trac.sagemath.org/23227 for details.
-            '3132'
+            3132
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
             17-adic Unramified Extension Ring in a defined by x^4 + 7*x^2 + 10*x + 3
@@ -546,7 +546,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
             sage: R = Zp(5, 10, 'fixed-mod', 'series')
             sage: R.teichmuller(2)
-            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9
             sage: R = Zp(5,5)
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
@@ -601,7 +601,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5,'fixed-mod', 'terse')
             sage: R.teichmuller_system()
-            [1 + O(3^5), 242 + O(3^5)]
+            [1, 242]
 
         Check that :trac:`20457` is fixed::
 
@@ -1609,7 +1609,6 @@ class ResidueLiftingMap(Morphism):
         R = self.codomain()
         K = R.maximal_unramified_subextension()
         if self._n == 1 or K is R:
-            #unram_n = (self._n - 1) // R.absolute_e() + 1
             unram_n = self._n
             if K.absolute_degree() == 1:
                 lift = K._element_constructor_(x, unram_n)
@@ -1617,8 +1616,9 @@ class ResidueLiftingMap(Morphism):
                 lift = K(x.polynomial().list(), unram_n)
             return R(lift, self._n)
         else:
+            #unram_n = (self._n - 1) // R.absolute_e() + 1
             raise NotImplementedError
- 
+
     def _call_with_args(self, x, args=(), kwds={}):
         """
         Evaluate this morphism with extra arguments.

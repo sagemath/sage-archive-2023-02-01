@@ -2416,7 +2416,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return T.sum_of_monomials( (C(j), C(i-j)) for j in range(0,i+1) )
 
     class MultiplicativeBasesOnPrimitiveElements(Category_realization_of_parent):
-        """
+        r"""
         Category of multiplicative bases of the non-commutative symmetric
         functions whose generators are primitive elements.
 

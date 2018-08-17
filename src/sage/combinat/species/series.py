@@ -1128,8 +1128,8 @@ class LazyPowerSeries(AlgebraElement):
     times = _mul_
 
     def _times_gen(self, y, ao):
-        """
-        Returns an iterator for the coefficients of self \* y.
+        r"""
+        Return an iterator for the coefficients of self \* y.
 
         EXAMPLES::
 

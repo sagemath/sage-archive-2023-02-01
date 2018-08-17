@@ -1363,7 +1363,7 @@ class PermutationGroup_generic(FiniteGroup):
         return tuple(result)
 
     def transversals(self, point):
-        """
+        r"""
         If G is a permutation group acting on the set `X = \{1, 2, ...., n\}`
         and H is the stabilizer subgroup of <integer>, a right
         (respectively left) transversal is a set containing exactly
@@ -1522,7 +1522,7 @@ class PermutationGroup_generic(FiniteGroup):
         return [self._domain_from_gap[x] for x in self._gap_().StabChain(seed).BaseStabChain().sage()]
 
     def strong_generating_system(self, base_of_group=None):
-        """
+        r"""
         Return a Strong Generating System of ``self`` according the given
         base for the right action of ``self`` on itself.
 
@@ -2736,8 +2736,8 @@ class PermutationGroup_generic(FiniteGroup):
 
     @hap_decorator
     def cohomology_part(self, n, p = 0):
-        """
-        Computes the p-part of the group cohomology `H^n(G, F)`,
+        r"""
+        Compute the p-part of the group cohomology `H^n(G, F)`,
         where `F = \ZZ` if `p=0` and `F = \ZZ / p \ZZ` if
         `p > 0` is a prime.
 

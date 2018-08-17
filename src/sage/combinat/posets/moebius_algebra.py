@@ -361,6 +361,7 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
 
     idempotent = I
 
+
 class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
     r"""
     The quantum Möbius algebra of a lattice.
@@ -388,6 +389,13 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             sage: L = posets.BooleanLattice(4)
             sage: M = L.quantum_moebius_algebra()
             sage: TestSuite(M).run() # long time
+
+            sage: from sage.combinat.posets.moebius_algebra import QuantumMoebiusAlgebra
+            sage: L = posets.Crown(2)
+            sage: QuantumMoebiusAlgebra(L)
+            Traceback (most recent call last):
+            ...
+            ValueError: L must be a lattice
         """
         if not L.is_lattice():
             raise ValueError("L must be a lattice")

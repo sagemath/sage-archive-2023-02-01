@@ -605,6 +605,11 @@ class DefPolyConversion(Morphism):
             sage: R(u)
             1 + O(a^10)
 
+            sage: u += a^4 + a^5 + a^7 + a^8; u
+            1 + a^4 + a^5 + a^7 + a^8 + O(a^10)
+            sage: R(u)
+            1 + a^4 + a^5 + a^7 + a^8 + O(a^10)
+
             sage: R(K(0))
             0
 
@@ -617,7 +622,7 @@ class DefPolyConversion(Morphism):
         if isinstance(x.parent(), pAdicExtensionGeneric):
             absprec = x.precision_absolute()
             if absprec is not Infinity:
-                return S([Sbase(c) for c in L], absprec)
+                return S([Sbase(c).lift_to_precision() for c in L], absprec)
         return S([Sbase(c) for c in L])
 
     def _call_with_args(self, x, args=(), kwds={}):
@@ -664,5 +669,5 @@ class DefPolyConversion(Morphism):
                 absprec = kwds.pop('absprec', Infinity)
             absprec = min(absprec, x.precision_absolute())
             if absprec is not Infinity:
-                return S([Sbase(c) for c in L], absprec, *args, **kwds)
+                return S([Sbase(c).lift_to_precision() for c in L], absprec, *args, **kwds)
         return S([Sbase(c) for c in L], *args, **kwds)

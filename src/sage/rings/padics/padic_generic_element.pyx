@@ -747,7 +747,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: W(123456).artin_hasse_exp(algorithm='direct')  # indirect doctest
             1 + 3 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10)
 
-        When `x^{p^i}/p^i` is not is the domain of convergence of the
+        When `x^{p^i}/p^i` is not in the domain of convergence of the
         exponential for some nonnegative integer `i`, an error is raised::
 
             sage: S.<x> = W[]

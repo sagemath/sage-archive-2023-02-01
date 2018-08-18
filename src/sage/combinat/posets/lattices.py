@@ -1772,24 +1772,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not certificate and not self.is_atomic():
             return False
 
-        n = self.cardinality()
         H = self._hasse_diagram
         mt = H._meet
-        jn = H._join
-        bottom = 0
-
-        for top in range(n):
-            interval = H.principal_order_ideal(top)
-            for e in interval:
-                for f in interval:
-                    if mt[e, f] == bottom and jn[e, f] == top:
-                        break
-                else:
-                    if certificate:
-                        return (False, (self._vertex_to_element(top),
-                                        self._vertex_to_element(e)))
-                    return False
-
+        n = H.order()-1
+        for e in range(2, n+1):
+            t = n
+            for lc in H.neighbors_in(e):
+                t = mt[t, lc]
+                if t == 0:
+                    break
+            else:
+                if certificate:
+                    return (False, (self[e], self[t]))
+                return False
         return (True, None) if certificate else True
 
     def breadth(self, certificate=False):

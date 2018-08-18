@@ -535,10 +535,7 @@ class pAdicLseries(SageObject):
 
         - [MTT]_
 
-        .. [Ka] Kayuza Kato, *`p`-adic Hodge theory and values of zeta
-                functions of modular forms*, Cohomologies `p`-adiques et
-                applications arithmétiques III, Astérisque vol 295, SMF,
-                Paris, 2004.
+        - [Ka]_
 
         EXAMPLES::
 

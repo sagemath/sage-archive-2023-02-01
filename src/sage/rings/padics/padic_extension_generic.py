@@ -102,7 +102,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
                     from sage.rings.padics.relative_ramified_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
 
-
     def _extension_type(self):
         """
         Return the type (``Unramified``, ``Eisenstein``) of this 
@@ -122,9 +121,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         return ""
 
-    def _repr_(self, do_latex = False):
+    def _repr_(self, do_latex=False):
         """
-        Returns a print representation of this extension.
+        Return a print representation of this extension.
 
         EXAMPLES::
 
@@ -274,6 +273,23 @@ class pAdicExtensionGeneric(pAdicGeneric):
             True
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<a> = Qq(27)
+            sage: S.<a> = Qq(27,print_mode='val-unit')
+            sage: hash(R) == hash(S)
+            False
+            sage: S.<a> = Qq(27,type='capped-rel')
+            sage: hash(R) == hash(S)
+            True
+        """
+        return hash((self.ground_ring(), self.defining_polynomial(),
+                     self.precision_cap(), repr(self._printer)))
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError

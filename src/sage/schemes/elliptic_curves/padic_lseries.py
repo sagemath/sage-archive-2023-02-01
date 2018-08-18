@@ -36,21 +36,14 @@ See [SW]_ for more details.
 
 REFERENCES:
 
-.. [MTT] \B. Mazur, J. Tate, and J. Teitelbaum,
-   *On `p`-adic analogues of the conjectures of Birch and
-   Swinnerton-Dyer*, Inventiones mathematicae 84, (1986), 1-48.
+- [MTT]_
 
-.. [BP] Dominique Bernardi and Bernadette Perrin-Riou,
-   *Variante `p`-adique de la conjecture de Birch et
-   Swinnerton-Dyer (le cas supersingulier)*, C. R. Acad. Sci. Paris,
-   Sér I. Math., 317 (1993), no. 3, 227-232.
+- [BP]_
 
 .. [Po] Robert Pollack, *On the `p`-adic `L`-function of a modular form
    at a supersingular prime*, Duke Math. J. 118 (2003), no. 3, 523-558.
 
-.. [SW] William Stein and Christian Wuthrich, *Algorithms
-   for the Arithmetic of Elliptic Curves using Iwasawa Theory*,
-   Mathematics of Computation 82 (2013), 1757-1792.
+- [SW]_
 
 AUTHORS:
 

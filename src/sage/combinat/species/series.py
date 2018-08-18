@@ -43,8 +43,9 @@ import sage.structure.parent_base
 from sage.categories.all import Rings
 from sage.structure.element import Element, parent, AlgebraElement
 
+
 class LazyPowerSeriesRing(Algebra):
-    def __init__(self, R, element_class = None, names=None):
+    def __init__(self, R, element_class=None, names=None):
         """
         TESTS::
 
@@ -128,6 +129,22 @@ class LazyPowerSeriesRing(Algebra):
             True
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: LQ = LazyPowerSeriesRing(QQ)
+            sage: LZ = LazyPowerSeriesRing(ZZ)
+            sage: hash(LQ) == hash(LQ)
+            True
+            sage: hash(LZ) == hash(LQ)
+            False
+        """
+        # with a random number, so that the hash is not that of the base ring
+        return hash((16079305, self.base_ring()))
 
     def _coerce_impl(self, x):
         """

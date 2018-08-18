@@ -1396,6 +1396,11 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: len(roots)
             24
 
+        We check that the logarithm of each root of unity vanishes::
+
+            sage: for root in roots:
+            ....:     if root.log() != 0: raise ValueError
+
         """
         zeta, order = self.primitive_root_of_unity(n, order=True)
         return [ zeta**i for i in range(order) ]

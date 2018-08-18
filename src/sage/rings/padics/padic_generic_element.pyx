@@ -726,7 +726,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r"""
         Return the Artin-Hasse exponential of this element.
 
-        If ``x`` denotes the input element, its Artin-Hasse
+        If `x` denotes the input element, its Artin-Hasse
         exponential is computed by taking the exponential of
 
         .. MATH::
@@ -747,7 +747,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: W(123456).artin_hasse_exp(algorithm='direct')  # indirect doctest
             1 + 3 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10)
 
-        When `x^{p^i}/p^i` is not is the radius of convergence of the
+        When `x^{p^i}/p^i` is not is the domain of convergence of the
         exponential for some nonnegative integer `i`, an error is raised::
 
             sage: S.<x> = W[]
@@ -756,6 +756,31 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: One factor of the Artin-Hasse exponential does not converge
+
+        There is however an important exception.
+        When we are working over `\ZZ_2` or `\QQ_2` and `x` is congruent to `2`
+        modulo `4`, then `x` and `x^2/2` are not in the domain of convergence of
+        the exponential. However, `\exp(x + x^2/2)` does converge. 
+        In this case, the Artin-Hasse exponential of `x`, denotes by `AH(x)`, is
+
+        .. MATH::
+
+            AH(x) = - \exp(x + \frac{x^2}{2} + \frac{x^4}{4} + \dots)
+
+        with a negative sign.
+        This method knows about this fact and handles the computation correctly::
+
+            sage: W = Zp(2,8)
+            sage: x = W(1234); x
+            2 + 2^4 + 2^6 + 2^7 + O(2^9)
+            sage: y1 = x.artin_hasse_exp(algorithm='direct'); y1
+            1 + 2 + 2^2 + 2^6 + O(2^8)
+            sage: y2 = exp(x + x^2/2 + x^4/4 + x^8/8); y2
+            1 + 2^3 + 2^4 + 2^5 + 2^7 + O(2^8)
+            sage: y1 == -y2
+            True
+            sage: y1 == x.artin_hasse_exp(algorithm='series')
+            True
 
         .. SEEALSO::
 
@@ -777,7 +802,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 arg += pow/denom
                 v *= p
             AH = arg.exp(algorithm=exp_algorithm)
-            if p == 2 and AH.add_bigoh(2) - self != 1:
+            if p == 2 and self.add_bigoh(2) == 2:
                 AH = -AH
         else:
             e = R.absolute_e()

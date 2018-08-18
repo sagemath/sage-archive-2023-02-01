@@ -1,5 +1,5 @@
 r"""
-Graded and stratified Lie algebras
+Graded Lie Algebras
 
 AUTHORS:
 
@@ -17,10 +17,9 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.category import Category
-from sage.categories.category_types import Category_over_base_ring
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 from sage.categories.graded_modules import GradedModulesCategory
-
 
 class GradedLieAlgebras(GradedModulesCategory):
     r"""
@@ -30,256 +29,30 @@ class GradedLieAlgebras(GradedModulesCategory):
 
         sage: C = LieAlgebras(QQ).Graded()
         sage: TestSuite(C).run()
-
     """
-    pass
-
-
-class FiniteDimensionalGradedLieAlgebrasWithBasis(GradedModulesCategory):
-    r"""
-    Category of finite dimensional graded Lie algebras with a basis.
-    
-    A grading of a Lie algebra `\mathfrak{g}` is a direct sum decomposition
-    `\mathfrak{g} = \bigoplus_{i} V_i` such that `[V_i,V_j] \subset V_{i+j}`.
-
-    TESTS::
-
-        sage: C = LieAlgebras(QQ).FiniteDimensional().WithBasis().Graded()
-        sage: TestSuite(C).run()
-
-    """
-
-    class ParentMethods:
-
-        def homogeneous_component_as_submodule(self, d):
-            """
-            Return the ``d``-th homogeneous component of ``self`` as a submodule.
-
-            EXAMPLES::
-
-                sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: C = LieAlgebras(QQ).FiniteDimensional() \
-                ....:                    .WithBasis().Stratified()
-                sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'z': 1}},
-                ....:                         category = C)
-                sage: L.homogeneous_component_as_submodule(2)
-                Sparse vector space of degree 3 and dimension 1 over Rational Field
-                Basis matrix:
-                [0 0 1]
-            """
-            B = self.homogeneous_component_basis(d)
-            return self.module().submodule([X.to_vector() for X in B])
-
-        def _test_grading(self, **options):
+    class SubcategoryMethods:
+        def Stratified(self):
             r"""
-            Tests that the Lie bracket respects the grading.
+            Return the full subcategory of stratified objects of ``self``.
 
-            INPUT:
-
-            - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            A Lie algebra is stratified if it is graded and generated as a
+            Lie algebra by its component of degree one.
 
             EXAMPLES::
 
-                sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: C = LieAlgebras(QQ).FiniteDimensional() \
-                ....:                    .WithBasis().Stratified()
-                sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'z': 1}},
-                ....:                         category = C)
-                sage: L._test_grading()
-                sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'x': 1}},
-                ....:                         category = C)
-                sage: L._test_grading()
-                Traceback (most recent call last):
-                ...
-                AssertionError: Lie bracket [x, y] is not in the homogeneous component of degree 2
-
-            See the documentation for :class:`TestSuite` for more information.
+                sage: LieAlgebras(QQ).Graded().Stratified()
+                Category of stratified graded Lie algebras over Rational Field
             """
-            tester = self._tester(**options)
+            return self._with_axiom("Stratified")
 
-            for X_ind in self.indices():
-                X = self.basis()[X_ind]
-                i = self.degree_on_basis(X_ind)
-                for Y_ind in self.indices():
-                    Y = self.basis()[Y_ind]
-                    j = self.degree_on_basis(Y_ind)
-                    Z = self.bracket(X, Y).to_vector()
-                    tester.assertTrue(
-                        Z in self.homogeneous_component_as_submodule(i + j),
-                        msg="Lie bracket [%s, %s] is not in the "
-                        "homogeneous component of degree %d" % (X, Y, i + j))
-
-
-class StratifiedLieAlgebrasCategory(RegressiveCovariantConstructionCategory,
-                                    Category_over_base_ring):
-
-    def __init__(self, base_category):
-        super(StratifiedLieAlgebrasCategory, self).__init__(base_category,
-                                                            base_category.base_ring())
-
-    _functor_category = "Stratified"
-
-    def _repr_object_names(self):
-        """
-        EXAMPLES::
-
-            sage: LieAlgebras(QQ).Stratified()  # indirect doctest
-            Category of stratified Lie algebras over Rational Field
-        """
-        return "stratified {}".format(self.base_category()._repr_object_names())
-
-    @classmethod
-    def default_super_categories(cls, category, *args):
+    class Stratified(CategoryWithAxiom_over_base_ring):
         r"""
-        Return the default super categories of ``category.Stratified()``.
+        Category of stratified Lie algebras.
 
-        Mathematical meaning: every stratified Lie algebra is also graded.
+        TESTS::
 
-        INPUT:
-
-        - ``cls`` -- the class ``StratifiedLieAlgebrasCategory``
-        - ``category`` -- a category
-
-        OUTPUT: a (join) category
-
-        In practice, this returns ``category.Stratified()``, joined
-        together with the result of the method
-        :meth:`RegressiveCovariantConstructionCategory.default_super_categories() <sage.categories.covariant_functorial_construction.RegressiveCovariantConstructionCategory.default_super_categories>`
-        (that is the join of ``category.Graded()`` and ``cat`` for
-        each ``cat`` in the super categories of ``category``).
-
-        EXAMPLES:
-
-        Consider ``category=LieAlgebras(QQ)``. Then, a stratification of a Lie 
-        algebra `L` is also a grading::
-
-            sage: LieAlgebras(QQ).Stratified().super_categories()
-            [Category of graded Lie algebras over Rational Field]
-
-        This resulted from the following call::
-
-            sage: sage.categories.graded_lie_algebras.StratifiedLieAlgebrasCategory.default_super_categories(LieAlgebras(QQ))
-            Category of graded Lie algebras over Rational Field
+            sage: C = LieAlgebras(QQ).Graded().Stratified()
+            sage: TestSuite(C).run()
         """
-        P = super(StratifiedLieAlgebrasCategory, cls)
-        cat = P.default_super_categories(category, *args)
-        return Category.join([category.Graded(), cat])
+        pass
 
-
-class StratifiedLieAlgebras(StratifiedLieAlgebrasCategory):
-    r"""
-    Category of stratified Lie algebras
-    """
-    pass
-
-
-class FiniteDimensionalStratifiedLieAlgebrasWithBasis(StratifiedLieAlgebrasCategory):
-    r"""
-    Category of finite dimensional stratified Lie algebras with a basis.
-
-    A stratified Lie algebra is a graded Lie algebra that is generated as a Lie
-    algebra by its homogeneous component of degree 1.
-    """
-
-    def extra_super_categories(self):
-        r"""
-        Implements the fact that a finite dimensional stratified Lie algebra
-        is necessarily nilpotent.
-        """
-        R = self.base_ring()
-        from sage.categories.lie_algebras import LieAlgebras
-        return [LieAlgebras(R).FiniteDimensional().WithBasis().Nilpotent()]
-
-    class ParentMethods:
-
-        def degree_on_basis(self, m):
-            r"""
-            Returns the degree of the basis element ``m``
-
-            INPUT:
-
-            - ``m`` -- an element in ``self.indices()`` or in ``self.basis()``
-
-            If the degrees of the basis elements are not defined, they will
-            be computed. By assumption the stratification
-            `V_1 \oplus \dots \oplus V_s` of ``self`` is such that each
-            component `V_k` is spanned by some subset of the basis.
-
-            The degree of a basis element `X` is therefore the largest index
-            `k`such that `X \in V_k\oplus\dots\oplus V_s`. The space 
-            `V_k\oplus\dots\oplus V_s` is by assumption the `k`th term of the 
-            lower central series. 
-
-            EXAMPLES::
- 
-                sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: C = LieAlgebras(QQ).FiniteDimensional() \
-                ....:                    .WithBasis().Stratified()
-                sage: sc = {('X','Y'): {'Z': 1}}
-                sage: L.<X,Y,Z> = NilpotentLieAlgebra(QQ, sc, category = C)
-                sage: L.degree_on_basis(X)
-                1
-                sage: L.degree_on_basis(Y)
-                1
-                sage: L[X, Y]
-                Z
-                sage: L.degree_on_basis(Z)
-                2
-            """
-            if not hasattr(self, '_basis_degrees'):
-                lcs = self.lower_central_series(submodule=True)
-                self._basis_degrees = {}
-
-                for k in reversed(range(len(lcs) - 1)):
-                    for X in self.basis():
-                        if X in self._basis_degrees:
-                            continue
-                        if X.to_vector() in lcs[k]:
-                            self._basis_degrees[X] = k + 1
-
-            if m in self.indices():
-                m = self.basis()[m]
-            return self._basis_degrees[m]
-
-        def _test_generated_by_degree_one(self, **options):
-            r"""
-            Tests that the Lie algebra is generated by the homogeneous component
-            of degree one.
-
-            INPUT:
-
-            - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
-
-            EXAMPLES::
-
-                sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: C = LieAlgebras(QQ).FiniteDimensional() \
-                ....:                    .WithBasis().Stratified()
-                sage: sc = {('x','y'): {'z': 1}}
-                sage: L.<x,y,z> = NilpotentLieAlgebra(QQ, sc, category = C)
-                sage: L._test_generated_by_degree_one()
-                sage: L._basis_degrees = {x: 1, y: 2, z: 3}
-                sage: L._test_generated_by_degree_one()
-                Traceback (most recent call last):
-                ...
-                AssertionError: [x] does not generate Nilpotent Lie algebra on
-                3 generators (x, y, z) over Rational Field
-
-            See the documentation for :class:`TestSuite` for more information.
-            """
-            tester = self._tester(**options)
-
-            V1 = self.homogeneous_component_as_submodule(1)
-            B1 = V1.basis()
-            m = self.module()
-
-            V = V1
-            d = 0
-            while V.dimension() > d:
-                B = V.basis()
-                d = V.dimension()
-                V = m.submodule(B + [self.bracket(X, Y).to_vector()
-                                 for X in B1 for Y in B])
-
-            tester.assertEqual(V, m,
-                msg="%s does not generate %s" % ([self(X) for X in B1], self))

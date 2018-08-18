@@ -112,35 +112,9 @@ class LieAlgebras(Category_over_base_ring):
             """
             return self._with_axiom("Nilpotent")
 
-        def Stratified(self, base_ring=None):
-            r"""
-            Return the full subcategory of stratified objects of ``self``.
-
-            INPUT:
-
-            - ``base_ring`` -- this is ignored
-
-            A Lie algebra is stratified if it is graded and generated as a
-            Lie algebra by its component of degree one.
-
-            EXAMPLES::
-
-                sage: LieAlgebras(QQ).Stratified()
-                Category of stratified Lie algebras over Rational Field
-            """
-            assert base_ring is None or base_ring is self.base_ring()
-            from sage.categories.graded_lie_algebras import StratifiedLieAlgebrasCategory
-            return StratifiedLieAlgebrasCategory.category_of(self)
-
-    Nilpotent = LazyImport('sage.categories.nilpotent_lie_algebras',
-                           'NilpotentLieAlgebras',
-                           as_name='Nilpotent')
     Graded = LazyImport('sage.categories.graded_lie_algebras',
                         'GradedLieAlgebras',
                         as_name='Graded')
-    Stratified = LazyImport('sage.categories.graded_lie_algebras',
-                            'StratifiedLieAlgebras',
-                            as_name='Stratified')
 
     # TODO: Find some way to do this without copying most of the logic.
     def _repr_object_names(self):
@@ -225,6 +199,22 @@ class LieAlgebras(Category_over_base_ring):
             if self.base_ring() in Sets().Finite():
                 return [Sets().Finite()]
             return []
+
+    class Nilpotent(CategoryWithAxiom_over_base_ring):
+        r"""
+        Category of nilpotent Lie algebras.
+
+        TESTS::
+
+            sage: C = LieAlgebras(QQ).Nilpotent()
+            sage: TestSuite(C).run()
+        """
+        class ParentMethods:
+            @abstract_method
+            def step(self):
+                r"""
+                Return the nilpotency step of the Lie algebra.
+                """
 
     class ParentMethods:
         #@abstract_method

@@ -3078,16 +3078,12 @@ class TriconnectivitySPQR:
 
     def __split_multiple_edges(self):
         """
-        Iterate through all the edges, and constructs bonds wherever multiedges
-        are present.
+        Make the graph simple and build bonds recording multiple edges.
 
-        If there are `k` multiple edges between `u` and `v`, then `k+1` edges
-        will be added to a new component (one of them is a virtual edge), all
-        the `k` edges are deleted from the graph and a virtual edge is between
-        `u` and `v` is added to the graph.
-
-        No return value. Update the `components_list` and `graph_copy`.
-        `graph_copy` will become a simple graph after this function.
+        If there are `k` multiple edges between `u` and `v`, then a new
+        component (a bond) with `k+1` edges (one of them is a virtual edge) will
+        be created, all the `k` edges are deleted from the graph and the virtual
+        edge between `u` and `v` is added to the graph.
         """
         comp = []
         if self.graph_copy.has_multiple_edges():

@@ -2736,9 +2736,9 @@ class TriconnectivitySPQR:
         sage: G = Graph([(1, 2), (1, 5), (1, 5), (2, 3), (2, 3), (3, 4), (4, 5)], multiedges=True)
         sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
-        Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
-        Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')]
-        Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, 'newVEdge1')]
+        Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge0')]
+        Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge1')]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge1'), (3, 4, None), (1, 2, None), (2, 3, 'newVEdge0')]
 
     An example of a triconnected graph::
 
@@ -3001,35 +3001,110 @@ class TriconnectivitySPQR:
                     v = e[1]
                 self.highpt[v].remove(it)
 
+    def bucketSort(self, bucket, edge_list):
+        """
+        Use radix sort to sort the buckets
+        """
+        # if only one edge is present
+        if len(bucket) == 1:
+            return
+
+        # Create n bucket linked lists
+        bucket_list = []
+        for i in range(self.n):
+            bucket_list.append(_LinkedList())
+
+        # Get the head pointer of the edge list
+        e_node = edge_list.head
+
+        # Link the n buckets w.r.t bucketId
+        while e_node:
+            bucketId = bucket[e_node.get_data()]
+            if bucket_list[bucketId].get_head():
+                bucket_list[bucketId].tail.next = e_node
+                bucket_list[bucketId].tail = bucket_list[bucketId].tail.next
+            else:
+                bucket_list[bucketId].set_head(e_node)
+            e_node = e_node.next
+
+        # Using bucket list rearrange the edge_list
+        new_tail = None
+        for i in range(self.n):
+            new_head = bucket_list[i].get_head()
+            if(new_head):
+                if new_tail:
+                    new_tail.next = new_head
+                else:
+                    edge_list.set_head(new_head)
+                new_tail = bucket_list[i].tail
+
+        edge_list.tail = new_tail
+        new_tail.next = None
+
+    def sort_edges(self):
+        """
+        A helper function for Split_multiple_edges to sort the edges of
+        graph_copy.
+
+        It won't take any input instead creates a linked list of edges, which
+        are in graph_copy and returns head pointer of the sorted edge list.
+
+        This function is an implementation of the sorting algorithm given in
+        [Hopcroft1973]_
+        """
+        # Create a linkedlist of edges
+        edge_list = _LinkedList()
+        for e in self.graph_copy.edges(sort=False):
+            edge_list.append(_LinkedListNode(e))
+
+        bucketMin = {} # Contains a lower index of edge end point
+        bucketMax = {} # Contains a higher index of edge end point
+
+        # As all the vertices and thier indexes are same
+        # and in all edge (u, v), u < v.
+        # for all edges bucket min will be first u and
+        # bucket max will be v
+        for e in self.graph_copy.edge_iterator():
+            bucketMin[e] = e[0]
+            bucketMax[e] = e[1]
+
+        # Sort according to the endpoint with lower index
+        self.bucketSort(bucketMin, edge_list)
+        # Sort according to the endpoint with higher index
+        self.bucketSort(bucketMax, edge_list)
+
+        # Return sorted list head pointer
+        return edge_list.get_head()
+
     def __split_multiple_edges(self):
         """
-        Make the graph simple and build bonds recording multiple edges.
- 
-        If there are `k` multiple edges between `u` and `v`, then a new
-        component (a bond) with `k+1` edges (one of them is a virtual edge) will
-        be created, all the `k` edges are deleted from the graph and the virtual
-        edge between `u` and `v` is added to the graph.
+        Iterate through all the edges, and constructs bonds wherever multiedges
+        are present.
+
+        If there are `k` multiple edges between `u` and `v`, then `k+1` edges
+        will be added to a new component (one of them is a virtual edge), all
+        the `k` edges are deleted from the graph and a virtual edge is between
+        `u` and `v` is added to the graph.
 
         No return value. Update the `components_list` and `graph_copy`.
         `graph_copy` will become a simple graph after this function.
         """
         comp = []
         if self.graph_copy.has_multiple_edges():
-            sorted_edges = sorted(self.graph_copy.edge_iterator())
-            for i in range(len(sorted_edges) - 1):
-
+            sorted_edges = self.sort_edges()
+            while sorted_edges.next:
                 # Find multi edges and add to component and delete from graph
-                if (sorted_edges[i][0] == sorted_edges[i + 1][0]) and \
-                   (sorted_edges[i][1] == sorted_edges[i + 1][1]):
-                    self.graph_copy.delete_edge(sorted_edges[i])
-                    comp.append(sorted_edges[i])
+                if (sorted_edges.get_data()[0] == sorted_edges.next.get_data()[0]) and \
+                   (sorted_edges.get_data()[1] == sorted_edges.next.get_data()[1]):
+                    self.graph_copy.delete_edge(sorted_edges.get_data())
+                    comp.append(sorted_edges.get_data())
                 else:
                     if comp:
-                        comp.append(sorted_edges[i])
-                        self.graph_copy.delete_edge(sorted_edges[i])
+                        comp.append(sorted_edges.get_data())
+                        self.graph_copy.delete_edge(sorted_edges.get_data())
 
                         # Add virtual edge to graph_copy
-                        newVEdge = (sorted_edges[i][0], sorted_edges[i][1], "newVEdge"+str(self.virtual_edge_num))
+                        newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1], "newVEdge"+str(self.virtual_edge_num))
                         self.graph_copy.add_edge(newVEdge)
                         self.virtual_edge_num += 1
 
@@ -3039,12 +3114,13 @@ class TriconnectivitySPQR:
                         comp.append(newVEdge)
                         self.__new_component(comp)
                     comp = []
+                sorted_edges = sorted_edges.next
             if comp:
-                comp.append(sorted_edges[i+1])
-                self.graph_copy.delete_edge(sorted_edges[i+1])
+                comp.append(sorted_edges.get_data())
+                self.graph_copy.delete_edge(sorted_edges.get_data())
 
                 # Add virtual edge to graph_copy
-                newVEdge = (sorted_edges[i+1][0], sorted_edges[i+1][1], "newVEdge"+str(self.virtual_edge_num))
+                newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1], "newVEdge"+str(self.virtual_edge_num))
                 self.graph_copy.add_edge(newVEdge)
                 self.virtual_edge_num += 1
                 self.edge_status[newVEdge] = 0

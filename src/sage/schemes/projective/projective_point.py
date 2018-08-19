@@ -401,7 +401,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
             sage: hash(P([2, 5]))
             -479010389                     # 32-bit
-            4677413289753502123            # 64-bit
+            3339499987291935084            # 64-bit
         """
         R = self.codomain().base_ring()
         #if there is a fraction field normalize the point so that

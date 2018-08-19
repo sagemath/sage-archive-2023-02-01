@@ -288,7 +288,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: hash(R) == hash(S)
             True
         """
-        return hash((self.ground_ring(), self.defining_polynomial(),
+        return hash((self.ground_ring(), self.defining_polynomial(exact=True),
                      self.precision_cap(), repr(self._printer)))
 
     #def absolute_discriminant(self):

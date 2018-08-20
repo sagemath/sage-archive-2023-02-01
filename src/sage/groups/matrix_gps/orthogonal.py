@@ -91,6 +91,7 @@ from sage.misc.cachefunc import cached_method
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, normalize_args_invariant_form,
     NamedMatrixGroup_generic, NamedMatrixGroup_gap)
+from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 
 def normalize_args_e(degree, ring, e):
     """
@@ -516,8 +517,19 @@ class OrthogonalMatrixGroup_generic(NamedMatrixGroup_generic):
                 raise TypeError('matrix must be orthogonal with respect to the symmetric form\n%s' %(F))
         # TODO: check that quadratic form is preserved in characteristic two
 
-class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_gap):
+class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_gap, FinitelyGeneratedMatrixGroup_gap):
+    r"""
+    The general or special orthogonal group in GAP.
 
+    TESTS:
+
+    Check that :trac:`20867` is fixed::
+
+        sage: from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
+        sage: G = GO(3,3)
+        sage: isinstance(G, FinitelyGeneratedMatrixGroup_gap)
+        True
+    """
     @cached_method
     def invariant_bilinear_form(self):
         """

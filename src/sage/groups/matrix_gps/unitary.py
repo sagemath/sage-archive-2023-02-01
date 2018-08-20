@@ -56,6 +56,7 @@ from sage.misc.cachefunc import cached_method
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, normalize_args_invariant_form,
     NamedMatrixGroup_generic, NamedMatrixGroup_gap )
+from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 
 
 def finite_field_sqrt(ring):
@@ -156,8 +157,8 @@ def GU(n, R, var='a', invariant_form=None):
 
         For a finite field the matrices that preserve a sesquilinear
         form over `F_q` live over `F_{q^2}`. So ``GU(n,q)`` for
-        integer ``q`` constructs the matrix group over the base ring
-        ``GF(q^2)``.
+        a prime power ``q`` constructs the matrix group over the base
+        ring ``GF(q^2)``.
 
     .. NOTE::
 
@@ -270,8 +271,8 @@ def SU(n, R, var='a', invariant_form=None):
 
         For a finite field the matrices that preserve a sesquilinear
         form over `F_q` live over `F_{q^2}`. So ``SU(n,q)`` for
-        integer ``q`` constructs the matrix group over the base ring
-        ``GF(q^2)``.
+        a prime power ``q`` constructs the matrix group over the base
+        ring ``GF(q^2)``.
 
     .. NOTE::
 
@@ -433,8 +434,19 @@ class UnitaryMatrixGroup_generic(NamedMatrixGroup_generic):
             else:
                 raise TypeError('matrix must be unitary with respect to the hermitian form\n{}'.format(H))
 
+class UnitaryMatrixGroup_gap(UnitaryMatrixGroup_generic, NamedMatrixGroup_gap, FinitelyGeneratedMatrixGroup_gap):
+    r"""
+    The general or special unitary group in GAP.
 
-class UnitaryMatrixGroup_gap(UnitaryMatrixGroup_generic, NamedMatrixGroup_gap):
+    TESTS:
+
+    Check that :trac:`20867` is fixed::
+
+        sage: from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
+        sage: G = GU(3,3)
+        sage: isinstance(G, FinitelyGeneratedMatrixGroup_gap)
+        True
+    """
 
     @cached_method
     def invariant_form(self):

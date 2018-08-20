@@ -890,7 +890,7 @@ class Function_lambert_w(BuiltinFunction):
             return mpmath_utils.call(mpmath.lambertw, z, n, parent=R)
 
     def _derivative_(self, n, z, diff_param=None):
-        """
+        r"""
         The derivative of `W_n(x)` is `W_n(x)/(x \cdot W_n(x) + x)`.
 
         EXAMPLES::
@@ -964,7 +964,7 @@ class Function_lambert_w(BuiltinFunction):
             return "lambert_w(%s, %s)" % (n, z)
 
     def _print_latex_(self, n, z):
-        """
+        r"""
         Custom _print_latex_ method to avoid printing the branch
         number if it is zero.
 

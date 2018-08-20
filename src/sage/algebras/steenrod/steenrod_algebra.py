@@ -2270,11 +2270,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                         or t[i] < 2**self.profile(i+1)
                         for i in range(len(t))])
         # p odd:
-        if any([self.profile(i,1) != 2 for i in t[0]]):
+        if any(self.profile(i, 1) != 2 for i in t[0]):
             return False
-        return all([self.profile(i+1,0) == Infinity
-                    or t[1][i] < p**self.profile(i+1,0)
-                    for i in range(len(t[1]))])
+        return all(self.profile(i + 1,0) == Infinity
+                   or t[1][i] < p**self.profile(i + 1,0)
+                   for i in range(len(t[1])))
 
     def P(self, *nums):
         r"""

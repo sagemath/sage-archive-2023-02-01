@@ -342,7 +342,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             2
             sage: phi.register_as_conversion()
 
-            sage: from sage.structure.parent import Set_PythonType_class
+            sage: from sage.sets.pythonclass import Set_PythonType_class
             sage: psi = Hom(Set_PythonType_class(str), F, Sets())(lambda s: ZZ(len(s)))
             sage: psi.register_as_conversion()
             sage: psi('a')

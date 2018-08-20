@@ -11,7 +11,8 @@ import errno
 
 from sage.env import (
     SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
-    SAGE_VERSION
+    SAGE_VERSION,
+    MATHJAX_DIR, JSMOL_DIR, THREEJS_DIR,
 )
 
 
@@ -111,13 +112,13 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec()
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.use_local_mathjax()
             sage: mathjax = os.path.join(spec.nbextensions_dir, 'mathjax')
             sage: os.path.isdir(mathjax)
             True
         """
-        src = os.path.join(SAGE_LOCAL, 'share', 'mathjax')
+        src = MATHJAX_DIR
         dst = os.path.join(self.nbextensions_dir, 'mathjax')
         self.symlink(src, dst)
 
@@ -128,13 +129,13 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec()
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.use_local_jsmol()
             sage: jsmol = os.path.join(spec.nbextensions_dir, 'jsmol')
             sage: os.path.isdir(jsmol)
             True
         """
-        src = os.path.join(SAGE_LOCAL, 'share', 'jsmol')
+        src = os.path.join(JSMOL_DIR)
         dst = os.path.join(self.nbextensions_dir, 'jsmol')
         self.symlink(src, dst)
 
@@ -145,13 +146,13 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec()
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.use_local_threejs()
             sage: threejs = os.path.join(spec.nbextensions_dir, 'threejs')
             sage: os.path.isdir(threejs)
             True
         """
-        src = os.path.join(SAGE_LOCAL, 'share', 'threejs')
+        src = THREEJS_DIR
         dst = os.path.join(self.nbextensions_dir, 'threejs')
         self.symlink(src, dst)
 

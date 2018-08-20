@@ -3904,6 +3904,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 #############################################
 # Generic dense element
 #############################################
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_dense(parent, entries, degree):
     """
     EXAMPLES::
@@ -3922,6 +3924,8 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
     v._degree = degree
     return v
 
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable):
     """
     EXAMPLES::
@@ -4210,7 +4214,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: v.__reduce__()
-            (<built-in function make_FreeModuleElement_generic_dense_v1>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
+            (<cyfunction make_FreeModuleElement_generic_dense_v1 at ...>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
         """
         return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
@@ -4354,6 +4358,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 #############################################
 # Generic sparse element
 #############################################
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     """
     EXAMPLES::
@@ -4368,6 +4374,8 @@ def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     v._degree = degree
     return v
 
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable):
     """
     EXAMPLES::
@@ -4384,6 +4392,7 @@ def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable
     v._degree = degree
     v._is_mutable = is_mutable
     return v
+
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
@@ -4764,7 +4773,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
             sage: v = vector([1,2/3,pi], sparse=True)
             sage: v.__reduce__()
-            (<built-in function make_FreeModuleElement_generic_sparse_v1>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
+            (<cyfunction make_FreeModuleElement_generic_sparse_v1 at ...>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
         """
         return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 

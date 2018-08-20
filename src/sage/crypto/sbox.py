@@ -1322,6 +1322,8 @@ class SBox(SageObject):
                S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
 
         For more results concering boomerang connectivity matrix, see [CHPSS18]_ .
+        The algorithm used here, is the one from Dunkelman, published in a
+        preprint, see [Du2018]_ .
 
         EXAMPLES::
 
@@ -1344,6 +1346,8 @@ class SBox(SageObject):
             [16  0  2  2  0  0  2  2  2  2  0  0  2  2  0  0]
             [16  8  0  0  8  0  0  0  0  0  0  8  0  0  8 16]
         """
+        from itertools import product
+
         Si = self.inverse()
 
         m = self.input_size()
@@ -1352,19 +1356,23 @@ class SBox(SageObject):
         nrows = 1 << m
         ncols = 1 << n
 
-        A = Matrix(ZZ, nrows, ncols)
+        A = []
 
-        for x in range(nrows):
-            for di in range(nrows):
-                for do in range(ncols):
-                    l = Si( self(x) ^ do )
-                    r = Si( self(x ^ di) ^ do )
-                    if (l ^ r == di):
-                        A[di, do] += 1
+        for delta_in in range(ncols):
+            table = [list() for _ in range(ncols)]
+            for x in range(nrows):
+                table[x ^ self(Si(x) ^ delta_in)].append(x)
 
+            row = [0]*ncols
+            for l in table:
+                for i, j in product(l, l):
+                    row[i ^ j] += 1
+            A += row
+
+        A = Matrix(ZZ, nrows, ncols, A)
         A.set_immutable()
-        return A
 
+        return A
 
     def linear_structures(self):
         r"""

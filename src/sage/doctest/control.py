@@ -87,7 +87,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(['sage']) | auto_optional_tags
+        self.optional = set(['sage', 'dochtml']) | auto_optional_tags
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -106,6 +106,11 @@ class DocTestDefaults(SageObject):
         self.failed = False
         self.new = False
         self.show_skipped = False
+
+        # > 0: always run GC before every test
+        # < 0: disable GC
+        self.gc = 0
+
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
         self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")
@@ -299,6 +304,9 @@ class DocTestController(SageObject):
                 options.timeout = int(os.getenv('SAGE_TIMEOUT_LONG', 30 * 60))
             else:
                 options.timeout = int(os.getenv('SAGE_TIMEOUT', 5 * 60))
+            # For non-default GC options, double the timeout
+            if options.gc:
+                options.timeout *= 2
         if options.nthreads == 0:
             options.nthreads = int(os.getenv('SAGE_NUM_THREADS_PARALLEL',1))
         if options.failed and not (args or options.new or options.sagenb):
@@ -343,7 +351,8 @@ class DocTestController(SageObject):
                     if not optionaltag_regex.search(o):
                         raise ValueError('invalid optional tag {!r}'.format(o))
 
-                options.optional |= auto_optional_tags
+                if "sage" in options.optional:
+                    options.optional |= auto_optional_tags
 
         self.options = options
         self.files = args
@@ -741,7 +750,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: sorted(DC.sources[0].options.optional)  # abs tol 1
-            ['guava', 'magma', 'py3']
+            ['guava', 'magma']
 
         We check that files are skipped appropriately::
 
@@ -968,7 +977,7 @@ class DocTestController(SageObject):
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(), [])
             sage: DC._optional_tags_string()
-            'sage'
+            'dochtml,sage'
             sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
             sage: DC._optional_tags_string()
             'all'

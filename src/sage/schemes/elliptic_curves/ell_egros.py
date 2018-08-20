@@ -389,7 +389,7 @@ def egros_get_j(S=[], proof=None, verbose=False):
         83
 
     """
-    if not all([p.is_prime() for p in S]):
+    if not all(p.is_prime() for p in S):
         raise ValueError("Elements of S must be prime.")
 
         if proof is None:
@@ -403,8 +403,8 @@ def egros_get_j(S=[], proof=None, verbose=False):
 
     SS = [-1] + S
 
-    jlist=[]
-    wcount=0
+    jlist = []
+    wcount = 0
     nw = 6**len(S) * 2
 
     if verbose:

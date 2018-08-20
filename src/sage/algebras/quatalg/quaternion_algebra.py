@@ -1374,13 +1374,13 @@ class QuaternionOrder(Algebra):
                     M = matrix(A.base_ring(), 4, 4, [ x.coefficient_tuple() for x in basis])
                     v = M.solve_left(V([1,0,0,0]))
 
-                    if any([ not a in O for a in v]):
+                    if any(a not in O for a in v):
                         raise ValueError("lattice must contain 1")
 
                     # check if multiplicatively closed
                     Y = matrix(QQ, 16, 4, [ (x*y).coefficient_tuple() for x in basis for y in basis])
                     X = M.solve_left(Y)
-                    if any([ not a in O for x in X for a in x ]):
+                    if any(a not in O for x in X for a in x):
                         raise ValueError("given lattice must be a ring")
 
         self.__basis = basis

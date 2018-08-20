@@ -461,7 +461,7 @@ def root_graph(g, verbose = False):
 
         sage: from sage.graphs.line_graph import root_graph
         sage: root_graph(graphs.CompleteGraph(3))
-        (Complete bipartite graph: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3)})
+        (Complete bipartite graph of order 1+3: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3)})
         sage: root_graph(graphs.OctahedralGraph())
         (Complete graph: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3), 3: (1, 2), 4: (1, 3), 5: (2, 3)})
         sage: root_graph(graphs.DiamondGraph())

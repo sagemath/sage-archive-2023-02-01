@@ -17,7 +17,7 @@ H(yperplane) and V(ertex) representation objects for polyhedra
 from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
 from sage.structure.richcmp import richcmp_method, richcmp
-from sage.rings.all import QQ, ZZ, RDF
+from sage.rings.all import ZZ
 from sage.modules.free_module_element import vector
 
 
@@ -1407,7 +1407,7 @@ class Line(Vrepresentation):
         return Hobj.A() * self.vector()
 
 
-def repr_pretty(coefficients, type, prefix='x', indices=None, latex=False):
+def repr_pretty(coefficients, type, prefix='x', indices=None, latex=False, style='positive',split=False):
     r"""
     Return a pretty representation of equation/inequality represented
     by the coefficients.
@@ -1424,6 +1424,11 @@ def repr_pretty(coefficients, type, prefix='x', indices=None, latex=False):
     - ``indices`` -- a tuple or other iterable
 
     - ``latex`` -- a boolean
+
+    - ``split`` -- a boolean
+
+    - ``style`` -- either ``"positive"`` (making all coefficients positive), or
+      ``"<="``, or ``">="``.
 
     OUTPUT:
 
@@ -1448,15 +1453,43 @@ def repr_pretty(coefficients, type, prefix='x', indices=None, latex=False):
     if indices is None:
         indices = range(len(coeffs)-1)
     vars = vector([1] + list(SR(prefix + '{}'.format(i)) for i in indices))
-    positive_part = vector([max(c, 0) for c in coeffs])
-    negative_part = - (coeffs - positive_part)
-    assert coeffs == positive_part - negative_part
+    f = latex_function if latex else repr
     if type == PolyhedronRepresentation.EQUATION:
         rel = '=' if latex else '=='
     elif type == PolyhedronRepresentation.INEQUALITY:
-        rel = r'\geq' if latex else '>='
+        if style == '<=':
+            rel = r'\leq' if latex else '<='
+        else:
+            rel = r'\geq' if latex else '>='
     else:
         raise NotImplementedError(
             'no pretty printing available: wrong type {}'.format(type))
-    f = latex_function if latex else repr
-    return '{} {} {}'.format(f(positive_part*vars), rel, f(negative_part*vars))
+
+    if not split:
+        if style == 'positive':
+            positive_part = vector([max(c, 0) for c in coeffs])
+            negative_part = - (coeffs - positive_part)
+            assert coeffs == positive_part - negative_part
+            return '{} {} {}'.format(f(positive_part*vars), rel, f(negative_part*vars))
+        elif style == '>=':
+            product = coeffs[1:]*vars[1:]
+            return '{} {} {}'.format(f(product), rel, f(-coeffs[0]))
+        elif style == '<=':
+            product = -1*(coeffs[1:]*vars[1:])
+            return '{} {} {}'.format(f(product), rel, f(coeffs[0]))
+        else:
+            raise NotImplementedError('no pretty printing available: wrong style {}'.format(style))
+    else:
+        if style == 'positive':
+            positive_part = vector([max(c, 0) for c in coeffs])
+            negative_part = - (coeffs - positive_part)
+            assert coeffs == positive_part - negative_part
+            return (str(f(positive_part*vars)), rel, str(f(negative_part*vars)))
+        elif style == '>=':
+            product = coeffs[1:]*vars[1:]
+            return (str(f(product)), rel, str(f(-coeffs[0])))
+        elif style == '<=':
+            product = -1*(coeffs[1:]*vars[1:])
+            return (str(f(product)), rel, str(f(coeffs[0])))
+        else:
+            raise NotImplementedError('no pretty printing available: wrong style {}'.format(style))

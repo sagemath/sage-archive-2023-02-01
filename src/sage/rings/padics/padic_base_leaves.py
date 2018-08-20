@@ -275,7 +275,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
             sage: K.has_coerce_map_from(ZpCA(17,40))
             False
         """
-        #if isistance(R, pAdicRingLazy) and R.prime() == self.prime():
+        #if isinstance(R, pAdicRingLazy) and R.prime() == self.prime():
         #    return True
         if isinstance(R, pAdicRingCappedRelative) and R.prime() == self.prime():
             if R.precision_cap() < self.precision_cap():
@@ -371,7 +371,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
             sage: K.has_coerce_map_from(Zp(17,40))
             True
         """
-        #if isistance(R, pAdicRingLazy) and R.prime() == self.prime():
+        #if isinstance(R, pAdicRingLazy) and R.prime() == self.prime():
         #    return True
         if isinstance(R, pAdicRingCappedRelative) and R.prime() == self.prime():
             return True
@@ -572,7 +572,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             sage: K.has_coerce_map_from(Zp(17,40))
             False
         """
-        #if isistance(R, pAdicRingLazy) and R.prime() == self.prime():
+        #if isinstance(R, pAdicRingLazy) and R.prime() == self.prime():
         #    return True
         if isinstance(R, pAdicRingFixedMod) and R.prime() == self.prime():
             if R.precision_cap() > self.precision_cap():

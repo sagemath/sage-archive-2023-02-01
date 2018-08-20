@@ -710,7 +710,7 @@ class AffinePermutationTypeA(AffinePermutation):
         INPUT:
 
         - ``typ`` -- 'increasing' or 'decreasing' (default: 'decreasing'.)
-          Chooses whether to find increasing or deacreasing sets.
+          Chooses whether to find increasing or decreasing sets.
 
         - ``side`` -- 'right' or 'left' (default: 'right'.)  Chooses whether to
           find maximal sets starting from the left or the right.
@@ -776,7 +776,7 @@ class AffinePermutationTypeA(AffinePermutation):
         INPUT:
 
         - ``typ`` -- 'increasing' or 'decreasing' (default: 'decreasing'.)
-          Chooses whether to find increasing or deacreasing sets.
+          Chooses whether to find increasing or decreasing sets.
 
         - ``side`` -- 'right' or 'left' (default: 'right'.)  Chooses whether to
           find maximal sets starting from the left or the right.
@@ -877,7 +877,7 @@ class AffinePermutationTypeA(AffinePermutation):
         INPUT:
 
         - ``typ`` -- 'increasing' or 'decreasing' (default: 'decreasing'.)
-          Chooses whether to find increasing or deacreasing sets.
+          Chooses whether to find increasing or decreasing sets.
 
         - ``side`` -- 'right' or 'left' (default: 'right'.)  Chooses whether to
           find maximal sets starting from the left or the right.
@@ -924,7 +924,7 @@ class AffinePermutationTypeA(AffinePermutation):
         INPUT:
 
         - ``typ`` -- 'increasing' or 'decreasing' (default: 'decreasing'.)
-          Chooses whether to find increasing or deacreasing sets.
+          Chooses whether to find increasing or decreasing sets.
 
         - ``side`` -- 'right' or 'left' (default: 'right'.)  Chooses whether to
           find maximal sets starting from the left or the right.

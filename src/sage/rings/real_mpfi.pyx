@@ -2925,7 +2925,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
     def ceil(self):
         """
-        Return the celing of this interval as an interval
+        Return the ceiling of this interval as an interval
 
         The ceiling of a real number `x` is the smallest integer larger than or
         equal to `x`.

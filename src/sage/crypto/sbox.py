@@ -1321,7 +1321,7 @@ class SBox(SageObject):
             |\{ x \in \mathbb{F}_2^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
                S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
 
-        For more results concering boomerang connectivity matrix, see [CHPSS18]_ .
+        For more results concerning boomerang connectivity matrix, see [CHPSS18]_ .
         The algorithm used here, is the one from Dunkelman, published in a
         preprint, see [Du2018]_ .
 

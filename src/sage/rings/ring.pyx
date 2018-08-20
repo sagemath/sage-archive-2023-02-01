@@ -135,7 +135,7 @@ cdef class Ring(ParentWithGens):
         sage: TestSuite(ZZ['x','y']).run()
         sage: TestSuite(ZZ['x','y']['t']).run()
 
-    Test agaings another bug fixed in :trac:`9944`::
+    Test against another bug fixed in :trac:`9944`::
 
         sage: QQ['x'].category()
         Join of Category of euclidean domains and Category of commutative algebras over

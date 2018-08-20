@@ -241,7 +241,7 @@ def addnontripts(tripts_labels, nontripts_labels, ptsdict):
     OUTPUT:
 
     A dictionary containing ground set elements in ``tripts`` as keys and
-    their (x,y) position as values allong with all keys and respective values
+    their (x,y) position as values along with all keys and respective values
     in ``ptsdict``.
 
     EXAMPLES::

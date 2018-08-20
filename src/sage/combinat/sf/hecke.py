@@ -33,10 +33,11 @@ from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.rings.integer_ring import ZZ
 
+
 class HeckeCharacter(SymmetricFunctionAlgebra_multiplicative):
     r"""
     Basis of the symmetric functions that gives the characters of the
-    Hecke aglebra in analogy to the Frobenious formula for the
+    Hecke algebra in analogy to the Frobenius formula for the
     symmetric group.
 
     Consider the Hecke algebra `H_n(q)` with quadratic relations

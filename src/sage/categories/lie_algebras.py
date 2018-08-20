@@ -213,8 +213,26 @@ class LieAlgebras(Category_over_base_ring):
             @abstract_method
             def step(self):
                 r"""
-                Return the nilpotency step of the Lie algebra.
+                Return the nilpotency step of ``self``.
+
+                EXAMPLES::
+
+                    sage: h = lie_algebras.Heisenberg(ZZ, oo)
+                    sage: h.step()
+                    2
                 """
+
+            def is_nilpotent(self):
+                r"""
+                Return ``True`` since ``self`` is nilpotent.
+
+                EXAMPLES::
+
+                    sage: h = lie_algebras.Heisenberg(ZZ, oo)
+                    sage: h.is_nilpotent()
+                    True
+                """
+                return True
 
     class ParentMethods:
         #@abstract_method

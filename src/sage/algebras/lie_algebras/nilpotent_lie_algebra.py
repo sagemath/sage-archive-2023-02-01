@@ -65,9 +65,7 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
         ....:                                    ('X','Z'): {'W': 1},
         ....:                                    ('Y','Z'): {'T': 1}})
         sage: TestSuite(L).run()
-
     """
-
     @staticmethod
     def __classcall_private__(cls, R, s_coeff, names=None, index_set=None, **kwds):
         """
@@ -120,36 +118,25 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
         r"""
         Initialize ``self``
         """
-
         if step:
             self._step = step
 
-        category = LieAlgebras(R).FiniteDimensional().WithBasis() \
-                                 .Nilpotent().or_subcategory(category)
+        cat = LieAlgebras(R).FiniteDimensional().WithBasis().Nilpotent()
+        cat = cat.or_subcategory(category)
         LieAlgebraWithStructureCoefficients.__init__(self, R, s_coeff,
                                                      names, index_set,
-                                                     category=category, **kwds)
+                                                     category=cat, **kwds)
 
     def _repr_(self):
+        """
+        Return a string representation of ``self``.
+        """
         return "Nilpotent %s" % (super(NilpotentLieAlgebra_dense, self)._repr_())
-
-    def is_nilpotent(self):
-        """
-        Returns ``True``, since ``self`` is nilpotent.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-            sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'z': 1}})
-            sage: L.is_nilpotent()
-            True
-        """
-        return True
 
 def NilpotentLieAlgebra(R, arg, step=None, names=None,
                         free=False, category=None, **kwds):
     r"""
-    Constructs a nilpotent Lie algebra.
+    Construct a nilpotent Lie algebra.
 
     INPUT:
 
@@ -171,28 +158,29 @@ def NilpotentLieAlgebra(R, arg, step=None, names=None,
       
     EXAMPLES:
     
-        The Heisenberg algebra from its structural coefficients::
+    The Heisenberg algebra from its structural coefficients::
 
-            sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-            sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}}); L
-            Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
-            sage: L.category()
-            Category of finite dimensional nilpotent lie algebras with basis over Rational Field
+        sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
+        sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}}); L
+        Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
+        sage: L.category()
+        Category of finite dimensional nilpotent lie algebras with basis over Rational Field
 
-        Defining the Engel Lie algebra and binding its basis::
+    Defining the Engel Lie algebra and binding its basis::
 
-            sage: sc = {('X','Y'): {'Z': 1}, ('X','Z'): {'W': 1}}
-            sage: E.<X,Y,Z,W> = NilpotentLieAlgebra(QQ, sc); E
-            Nilpotent Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
-            sage: E[X, Y + Z]
-            Z + W
-            sage: E[X, [X, Y + Z]]
-            W 
-            sage: E[X, [X, [X, Y + Z]]]
-            0
+        sage: sc = {('X','Y'): {'Z': 1}, ('X','Z'): {'W': 1}}
+        sage: E.<X,Y,Z,W> = NilpotentLieAlgebra(QQ, sc); E
+        Nilpotent Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
+        sage: E[X, Y + Z]
+        Z + W
+        sage: E[X, [X, Y + Z]]
+        W
+        sage: E[X, [X, [X, Y + Z]]]
+        0
     """
     if free:
         raise NotImplementedError("free nilpotent Lie algebras not yet implemented")
 
     return NilpotentLieAlgebra_dense(R, arg, names, step=step,
                                      category=category, **kwds)
+

@@ -23,10 +23,9 @@ from sage.categories.graded_modules import GradedModulesCategory
 class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     r"""
     Category of finite dimensional graded Lie algebras with a basis.
-    
+
     A grading of a Lie algebra `\mathfrak{g}` is a direct sum decomposition
     `\mathfrak{g} = \bigoplus_{i} V_i` such that `[V_i,V_j] \subset V_{i+j}`.
-
 
     EXAMPLES::
 
@@ -66,7 +65,7 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
                 sage: L._test_grading()
                 Traceback (most recent call last):
                 ...
-                AssertionError: Lie bracket [x, y] is not in the homogeneous component of degree 2
+                AssertionError: Lie bracket [x, y] has degree 1, not degree 2
 
             See the documentation for :class:`TestSuite` for more information.
             """
@@ -77,9 +76,11 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
                 i = X.degree()
                 j = Y.degree()
                 Z = self.bracket(X, Y)
+                if Z == 0:
+                    continue
                 tester.assertEquals(Z.degree(), i + j,
                     msg="Lie bracket [%s, %s] has degree %d, not degree %d " %
-                        (X, Y, Z.degree() i + j))
+                        (X, Y, Z.degree(), i + j))
                 tester.assertTrue(
                     Z.to_vector() in self.homogeneous_component_as_submodule(i + j),
                     msg="Lie bracket [%s, %s] is not in the "
@@ -180,7 +181,7 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
                 `k`-th term of the lower central series.
 
                 EXAMPLES::
-     
+
                     sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
                     sage: C = LieAlgebras(QQ).WithBasis().Graded()
                     sage: C = C.FiniteDimensional().Stratified().Nilpotent()

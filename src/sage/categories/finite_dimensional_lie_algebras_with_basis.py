@@ -1392,3 +1392,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     self._step = len(self.lower_central_series(submodule=True)) - 1
                 return self._step
 
+            def is_nilpotent(self):
+                r"""
+                Return ``True`` since ``self`` is nilpotent.
+
+                EXAMPLES::
+
+                    sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
+                    sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'z': 1}})
+                    sage: L.is_nilpotent()
+                    True
+                """
+                return True
+

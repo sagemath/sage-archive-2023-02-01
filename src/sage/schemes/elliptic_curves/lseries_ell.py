@@ -102,22 +102,29 @@ class Lseries_ell(SageObject):
     def dokchitser(self, prec=53,
                    max_imaginary_part=0,
                    max_asymp_coeffs=40,
-                   algorithm='gp'):
+                   algorithm=None):
         r"""
-        Return interface to Tim Dokchitser's program for computing
-        with the `L`-series of this elliptic curve; this provides a way
-        to compute Taylor expansions and higher derivatives of
-        `L`-series.
+        Return an interface for computing with the `L`-series
+        of this elliptic curve.
+
+        This provides a way to compute Taylor expansions and higher
+        derivatives of `L`-series.
 
         INPUT:
 
-        - ``prec`` -- integer (bits precision)
+        - ``prec`` -- optional integer (default 53) bits precision
 
-        - ``max_imaginary_part`` -- real number
+        - ``max_imaginary_part`` -- optional real number (default 0)
 
-        - ``max_asymp_coeffs`` -- integer
+        - ``max_asymp_coeffs`` -- optional integer (default 40)
 
-        - ``algorithm`` -- string: 'gp' or 'magma'
+        - ``algorithm`` -- optional string: 'gp' (default), 'pari' or 'magma'
+
+        If algorithm is "gp", this returns an interface to Tim
+        Dokchitser's program for computing with the L-functions.
+
+        If algorithm is "pari", this returns instead an interface to Pari's
+        own general implementation of L-functions.
 
         .. note::
 
@@ -135,7 +142,7 @@ class Lseries_ell(SageObject):
             sage: L.Evaluate(2)                                         # optional - magma
             0.38157540826071121129371040958008663667709753398892116
 
-        If the curve has too large a conductor, it isn't possible to
+        If the curve has too large a conductor, it is not possible to
         compute with the `L`-series using this command.  Instead a
         ``RuntimeError`` is raised::
 
@@ -144,33 +151,52 @@ class Lseries_ell(SageObject):
             Traceback (most recent call last):
             ...
             RuntimeError: Unable to create L-series, due to precision or other limits in PARI.
+
+        Using the "pari" algorithm::
+
+            sage: E = EllipticCurve('37a')
+            sage: L = E.lseries().dokchitser(algorithm="pari")
+            sage: L(2)
+            0.381575408260711
         """
+        if algorithm is None:
+            algorithm = "gp"
+        
         if algorithm == 'magma':
             from sage.interfaces.all import magma
-            return magma(self.__E).LSeries(Precision = prec)
+            return magma(self.__E).LSeries(Precision=prec)
 
-        from sage.lfunctions.all import Dokchitser
-        key = (prec, max_imaginary_part, max_asymp_coeffs)
-        try:
-            return self.__dokchitser[key]
-        except KeyError:
-            pass
-        except AttributeError:
-            self.__dokchitser = {}
-        L = Dokchitser(conductor = self.__E.conductor(),
-                       gammaV = [0,1],
-                       weight = 2,
-                       eps = self.__E.root_number(),
-                       poles = [],
-                       prec = prec)
-        s = 'e = ellinit(%s);'%list(self.__E.minimal_model().a_invariants())
-        s += 'a(k) = ellak(e, k);'
-        L.init_coeffs('a(k)', 1, pari_precode = s,
-                      max_imaginary_part=max_imaginary_part,
-                      max_asymp_coeffs=max_asymp_coeffs)
-        L.rename('Dokchitser L-function associated to %s'%self.__E)
-        self.__dokchitser[key] = L
-        return L
+        if algorithm == 'pari':
+            from sage.lfunctions.lfunctions_pari import LFunction, lfun_elliptic_curve
+            L = LFunction(lfun_elliptic_curve(self.__E), prec=prec)
+            L.rename('Pari L-function associated to %s' % self.__E)
+            return L
+
+        if algorithm == 'gp':
+            from sage.lfunctions.all import Dokchitser
+            key = (prec, max_imaginary_part, max_asymp_coeffs)
+            try:
+                return self.__dokchitser[key]
+            except KeyError:
+                pass
+            except AttributeError:
+                self.__dokchitser = {}
+            L = Dokchitser(conductor=self.__E.conductor(),
+                           gammaV=[0, 1],
+                           weight=2,
+                           eps=self.__E.root_number(),
+                           poles=[],
+                           prec=prec)
+            s = 'e = ellinit(%s);' % list(self.__E.minimal_model().a_invariants())
+            s += 'a(k) = ellak(e, k);'
+            L.init_coeffs('a(k)', 1, pari_precode=s,
+                          max_imaginary_part=max_imaginary_part,
+                          max_asymp_coeffs=max_asymp_coeffs)
+            L.rename('Dokchitser L-function associated to %s' % self.__E)
+            self.__dokchitser[key] = L
+            return L
+
+        raise ValueError('algorithm must be "gp", "pari" or "magma"')
 
     def sympow(self, n, prec):
         r"""

@@ -63,22 +63,27 @@ def is_ModularFormElement(x):
     return isinstance(x, ModularFormElement)
 
 
-def delta_lseries(prec=53,
-                 max_imaginary_part=0,
-                 max_asymp_coeffs=40):
+def delta_lseries(prec=53, max_imaginary_part=0,
+                  max_asymp_coeffs=40, algorithm=None):
     r"""
-    Return the L-series of the modular form Delta.
+    Return the L-series of the modular form `\Delta`.
 
-    This actually returns an interface to Tim Dokchitser's program
-    for computing with the L-series of the modular form `\Delta`.
+    If algorithm is "gp", this returns an interface to Tim
+    Dokchitser's program for computing with the L-series of the
+    modular form `\Delta`.
+
+    If algorithm is "pari", this returns instead an interface to Pari's
+    own general implementation of L-functions.
 
     INPUT:
 
-    - ``prec`` - integer (bits precision)
+    - ``prec`` -- integer (bits precision)
 
-    - ``max_imaginary_part`` - real number
+    - ``max_imaginary_part`` -- real number
 
-    - ``max_asymp_coeffs`` - integer
+    - ``max_asymp_coeffs`` -- integer
+
+    - ``algorithm`` -- optional string: 'gp' (default), 'pari'
 
     OUTPUT:
 
@@ -89,21 +94,31 @@ def delta_lseries(prec=53,
         sage: L = delta_lseries()
         sage: L(1)
         0.0374412812685155
+
+        sage: L = delta_lseries(algorithm='pari')
+        sage: L(1)
+        0.0374412812685155
     """
-    from sage.lfunctions.all import Dokchitser
-    # key = (prec, max_imaginary_part, max_asymp_coeffs)
-    L = Dokchitser(conductor = 1,
-                   gammaV = [0, 1],
-                   weight = 12,
-                   eps = 1,
-                   prec = prec)
-    s = 'tau(n) = (5*sigma(n,3)+7*sigma(n,5))*n/12-35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5));'
-    L.init_coeffs('tau(k)',pari_precode = s,
-                  max_imaginary_part=max_imaginary_part,
-                  max_asymp_coeffs=max_asymp_coeffs)
-    L.set_coeff_growth('2*n^(11/2)')
-    L.rename('L-series associated to the modular form Delta')
-    return L
+    if algorithm is None:
+        algorithm = "gp"
+
+    if algorithm == 'gp':
+        from sage.lfunctions.all import Dokchitser
+        L = Dokchitser(conductor=1, gammaV=[0, 1], weight=12, eps=1,
+                       prec=prec)
+        s = 'tau(n) = (5*sigma(n,3)+7*sigma(n,5))*n/12-35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5));'
+        L.init_coeffs('tau(k)', pari_precode=s,
+                      max_imaginary_part=max_imaginary_part,
+                      max_asymp_coeffs=max_asymp_coeffs)
+        L.set_coeff_growth('2*n^(11/2)')
+        L.rename('L-series associated to the modular form Delta')
+        return L
+    elif algorithm == 'pari':
+        from sage.lfunctions.lfunctions_pari import LFunction, lfun_delta
+        return LFunction(lfun_delta(), prec=prec)
+
+    raise ValueError('algorithm must be "gp" or "pari"')
+
 
 
 class ModularForm_abstract(ModuleElement):

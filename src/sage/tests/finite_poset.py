@@ -18,7 +18,7 @@ implications = {
  'doubling_lower': ['doubling_convex', 'meet_semidistributive'],
  'doubling_upper': ['doubling_convex', 'join_semidistributive'],
  'cosectionally_complemented': ['complemented', 'coatomic', 'regular'],
- 'distributive': ['modular', 'semidistributive', 'join_distributive', 'meet_distributive', 'subdirectly_reducible', 'doubling_interval'],
+ 'distributive': ['modular', 'semidistributive', 'join_distributive', 'meet_distributive', 'subdirectly_reducible', 'doubling_interval', 'extremal'],
  'geometric': ['upper_semimodular', 'relatively_complemented'],
  'isoform': ['uniform'],
  'join_distributive': ['meet_semidistributive', 'upper_semimodular'],
@@ -70,6 +70,7 @@ two_to_one = [ ['distributive', 'dismantlable', 'planar'],
                ['meet_semidistributive', 'join_semidistributive', 'semidistributive'],
                ['lower_semimodular', 'meet_semidistributive', 'distributive'],
                ['upper_semimodular', 'join_semidistributive', 'distributive'],
+               ['complemented', 'modular', 'relatively_complemented'],
              ]
 
 mutually_exclusive = [

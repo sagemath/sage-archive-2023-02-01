@@ -1170,7 +1170,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             - Weaker properties: :meth:`is_modular`,
               :meth:`is_semidistributive`, :meth:`is_join_distributive`,
               :meth:`is_meet_distributive`, :meth:`is_subdirectly_reducible`,
-              :meth:`is_constructible_by_doublings` (by interval doubling)
+              :meth:`is_constructible_by_doublings` (by interval doubling),
+              :meth:`is_extremal`
             - Stronger properties: :meth:`is_stone`
 
         TESTS::
@@ -2350,8 +2351,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Canonical example is the lattice of partitions of finite set
         ordered by refinement::
 
-            sage: S = SetPartitions(3)
-            sage: L = LatticePoset( (S, lambda a, b: S.is_less_than(a, b)) )
+            sage: L = posets.SetPartitions(4)
             sage: L.is_geometric()
             True
 

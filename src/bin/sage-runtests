@@ -82,6 +82,18 @@ if __name__ == "__main__":
     parser.add_option("--stats_path", "--stats-path", default=os.path.join(DOT_SAGE, "timings2.json"),
                           help="path to a json dictionary for the latest run storing a timing for each file")
 
+    def gc_option(option, opt_str, value, parser):
+        gcopts = dict(DEFAULT=0, ALWAYS=1, NEVER=-1)
+        try:
+            arg = gcopts[value.upper()]
+        except KeyError:
+            parser.error("unknown value {0}={1}".format(opt_str, value))
+        setattr(parser.values, option.dest, arg)
+
+    parser.add_option("--gc", type="string", action="callback", callback=gc_option,
+                      help="control garbarge collection "
+                           "(ALWAYS: collect garbage before every test; NEVER: disable gc; DEFAULT: Python default)")
+
     # The --serial option is only really for internal use, better not
     # document it.
     parser.add_option("--serial", action="store_true", default=False, help=optparse.SUPPRESS_HELP)

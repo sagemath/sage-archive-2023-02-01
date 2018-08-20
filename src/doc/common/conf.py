@@ -1,6 +1,7 @@
 import sys, os, sphinx
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, SAGE_SHARE
 import sage.version
+from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from six import iteritems
 
@@ -148,21 +149,6 @@ def set_intersphinx_mappings(app):
             dst = os.path.join(invpath, directory, 'objects.inv')
             app.config.intersphinx_mapping[src] = dst
 
-
-pythonversion = sys.version.split(' ')[0]
-# Python and Sage trac ticket shortcuts. For example, :trac:`7549` .
-
-# Sage trac ticket shortcuts. For example, :trac:`7549` .
-extlinks = {
-    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('https://arxiv.org/abs/%s', 'Arxiv '),
-    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('https://doi.org/%s', 'doi:'),
-    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
-    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
-    }
 
 # By default document are not master.
 multidocs_is_master = True
@@ -621,9 +607,9 @@ def call_intersphinx(app, env, node, contnode):
     Check that the link from the thematic tutorials to the reference
     manual is relative, see :trac:`20118`::
 
-        sage: from sage.env import SAGE_DOC
-        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")
-        sage: for line in open(thematic_index).readlines():
+        sage: from sage.env import SAGE_DOC  # optional - dochtml
+        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")  # optional - dochtml
+        sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
         ....:         sys.stdout.write(line)
         <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics v...)"><span>Introduction to the -adics</span></a></li>

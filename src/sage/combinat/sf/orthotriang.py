@@ -187,8 +187,8 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
                               self._base_to_self_cache, to_other_function = self._to_base)
 
     def _to_base(self, part):
-        """
-        Returns a function which takes in a partition `\mu` and returns the
+        r"""
+        Return a function which takes in a partition `\mu` and returns the
         coefficient of a partition in the expansion of ``self`` `(part)` in base.
 
         INPUT:

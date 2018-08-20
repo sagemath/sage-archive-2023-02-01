@@ -1591,7 +1591,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: f._call_(1/2)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(2, 6) does not exist
             sage: f(1/2)
             Traceback (most recent call last):
             ...

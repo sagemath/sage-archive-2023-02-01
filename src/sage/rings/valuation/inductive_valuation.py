@@ -122,7 +122,7 @@ class InductiveValuation(DevelopingValuation):
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
             sage: h = v.equivalence_reciprocal(f); h
-            (2 + O(3^5))
+            2 + O(3^5)
             sage: v.is_equivalent(f*h, 1)
             True
 
@@ -245,9 +245,9 @@ class InductiveValuation(DevelopingValuation):
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
-            (3^2 + O(3^7))
+            3^2 + O(3^7)
             sage: v.equivalence_unit(-2)
-            (3^-2 + O(3^3))
+            3^-2 + O(3^3)
 
         Note that this might fail for negative ``s`` if the domain is not
         defined over a field::
@@ -1191,7 +1191,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: V = v1.mac_lane_step(G)
             sage: v2 = V[0]
             sage: F = v2.equivalence_decomposition(G); F
-            (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
+            (-19683) * (x^4 + 2*x^2 + 2*alpha + 3)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha + 3)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + 3*alpha + 3)^3
             sage: v2.is_equivalent(F.prod(), G)
             True
 
@@ -1211,7 +1211,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             v = self.extension(domain)
             ret = v.equivalence_decomposition(v.domain()(f))
             return Factorization([(self._eliminate_denominators(g), e)
-                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()))
+                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()), sort=False)
 
         valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations, degree_bound=degree_bound)
         F = F.factor()

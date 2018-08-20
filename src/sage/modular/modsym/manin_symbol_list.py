@@ -799,7 +799,7 @@ class ManinSymbolList_gamma1(ManinSymbolList_group):
         True
     """
     def __init__(self, level, weight):
-        """
+        r"""
         Constructor for a ModularSymbolList for `\Gamma_0(N)`.
 
         EXAMPLES::

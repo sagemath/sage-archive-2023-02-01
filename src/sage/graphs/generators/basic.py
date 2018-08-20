@@ -409,64 +409,68 @@ def CompleteGraph(n):
     G.add_edges(((i,j) for i in range(n) for j in range(i+1,n)))
     return G
 
-def CompleteBipartiteGraph(n1, n2):
-    """
-    Returns a Complete Bipartite Graph sized n1+n2, with each of the
-    nodes [0,(n1-1)] connected to each of the nodes [n1,(n2-1)] and
-    vice versa.
+def CompleteBipartiteGraph(n1, n2, set_position=True):
+    r"""
+    Return a Complete Bipartite Graph on `n1 + n2` vertices.
 
-    A Complete Bipartite Graph is a graph with its vertices partitioned
-    into two groups, V1 and V2. Each v in V1 is connected to every v in
-    V2, and vice versa.
+    A Complete Bipartite Graph is a graph with its vertices partitioned into two
+    groups, `V_1 = \{0,...,n1-1\}` and `V_2 = \{n1,...,n1+n2-1\}`. Each `u \in
+    V_1` is connected to every `v \in V_2`.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each complete
-    bipartite graph will be displayed with the first n1 nodes on the
-    top row (at y=1) from left to right. The remaining n2 nodes appear
-    at y=0, also from left to right. The shorter row (partition with
-    fewer nodes) is stretched to the same length as the longer row,
-    unless the shorter row has 1 node; in which case it is centered.
-    The x values in the plot are in domain [0,maxn1,n2].
+    INPUT:
 
-    In the Complete Bipartite graph, there is a visual difference in
-    using the spring-layout algorithm vs. the position dictionary used
-    in this constructor. The position dictionary flattens the graph and
-    separates the partitioned nodes, making it clear which nodes an
-    edge is connected to. The Complete Bipartite graph plotted with the
-    spring-layout algorithm tends to center the nodes in n1 (see
-    spring_med in examples below), thus overlapping its nodes and
-    edges, making it typically hard to decipher.
+    - ``n1, n2`` -- number of vertices in each side
 
-    Filling the position dictionary in advance adds O(n) to the
-    constructor. Feel free to race the constructors below in the
-    examples section. The much larger difference is the time added by
-    the spring-layout algorithm when plotting. (Also shown in the
-    example below). The spring model is typically described as
-    `O(n^3)`, as appears to be the case in the NetworkX source
+    - ``set_position`` -- boolean (default ``True``); if set to ``True``, we
+      assign positions to the vertices so that the set of cardinality `n1` is
+      on the line `y=1` and the set of cardinality `n2` is on the line `y=0`.
+
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, each complete bipartite graph
+    will be displayed with the first `n1` nodes on the top row (at `y=1`) from
+    left to right. The remaining `n2` nodes appear at `y=0`, also from left to
+    right. The shorter row (partition with fewer nodes) is stretched to the same
+    length as the longer row, unless the shorter row has 1 node; in which case
+    it is centered. The `x` values in the plot are in domain `[0, \max(n1,
+    n2)]`.
+
+    In the Complete Bipartite graph, there is a visual difference in using the
+    spring-layout algorithm vs. the position dictionary used in this
+    constructor. The position dictionary flattens the graph and separates the
+    partitioned nodes, making it clear which nodes an edge is connected to. The
+    Complete Bipartite graph plotted with the spring-layout algorithm tends to
+    center the nodes in n1 (see spring_med in examples below), thus overlapping
+    its nodes and edges, making it typically hard to decipher.
+
+    Filling the position dictionary in advance adds `O(n)` to the constructor.
+    Feel free to race the constructors below in the examples section. The much
+    larger difference is the time added by the spring-layout algorithm when
+    plotting. (Also shown in the example below). The spring model is typically
+    described as `O(n^3)`, as appears to be the case in the NetworkX source
     code.
 
-    EXAMPLES: Two ways of constructing the complete bipartite graph,
-    using different layout algorithms::
+    EXAMPLES:
+
+    Two ways of constructing the complete bipartite graph, using different
+    layout algorithms::
 
         sage: import networkx
-        sage: n = networkx.complete_bipartite_graph(389,157); spring_big = Graph(n)   # long time
-        sage: posdict_big = graphs.CompleteBipartiteGraph(389,157)                    # long time
+        sage: n = networkx.complete_bipartite_graph(389, 157); spring_big = Graph(n)   # long time
+        sage: posdict_big = graphs.CompleteBipartiteGraph(389, 157)                    # long time
 
     Compare the plotting::
 
-        sage: n = networkx.complete_bipartite_graph(11,17)
+        sage: n = networkx.complete_bipartite_graph(11, 17)
         sage: spring_med = Graph(n)
-        sage: posdict_med = graphs.CompleteBipartiteGraph(11,17)
+        sage: posdict_med = graphs.CompleteBipartiteGraph(11, 17)
 
-    Notice here how the spring-layout tends to center the nodes of n1
-
-    ::
+    Notice here how the spring-layout tends to center the nodes of `n1`::
 
         sage: spring_med.show() # long time
         sage: posdict_med.show() # long time
 
-    View many complete bipartite graphs with a Sage Graphics Array,
-    with this constructor (i.e., the position dictionary filled)::
+    View many complete bipartite graphs with a Sage Graphics Array, with this
+    constructor (i.e., the position dictionary filled)::
 
         sage: g = []
         sage: j = []
@@ -500,7 +504,7 @@ def CompleteBipartiteGraph(n1, n2):
     :trac:`12155`::
 
         sage: graphs.CompleteBipartiteGraph(5,6).complement()
-        complement(Complete bipartite graph): Graph on 11 vertices
+        complement(Complete bipartite graph of order 5+6): Graph on 11 vertices
 
     TESTS:
 
@@ -509,41 +513,28 @@ def CompleteBipartiteGraph(n1, n2):
         sage: graphs.CompleteBipartiteGraph(-1,1)
         Traceback (most recent call last):
         ...
-        ValueError: The arguments n1(=-1) and n2(=1) must be positive integers.
+        ValueError: the arguments n1(=-1) and n2(=1) must be positive integers
         sage: graphs.CompleteBipartiteGraph(1,-1)
         Traceback (most recent call last):
         ...
-        ValueError: The arguments n1(=1) and n2(=-1) must be positive integers.
+        ValueError: the arguments n1(=1) and n2(=-1) must be positive integers
     """
     if n1<0 or n2<0:
-        raise ValueError('The arguments n1(={}) and n2(={}) must be positive integers.'.format(n1,n2))
+        raise ValueError('the arguments n1(={}) and n2(={}) must be positive integers'.format(n1,n2))
 
-    pos_dict = {}
-    c1 = 1 # scaling factor for top row
-    c2 = 1 # scaling factor for bottom row
-    c3 = 0 # pad to center if top row has 1 node
-    c4 = 0 # pad to center if bottom row has 1 node
-    if n1 > n2:
-        if n2 == 1:
-            c4 = (n1-1)/2
-        else:
-            c2 = ((n1-1)/(n2-1))
-    elif n2 > n1:
-        if n1 == 1:
-            c3 = (n2-1)/2
-        else:
-            c1 = ((n2-1)/(n1-1))
-    for i in range(n1):
-        x = c1*i + c3
-        y = 1
-        pos_dict[i] = (x, y)
-    for i in range(n1,n1+n2):
-        x = c2*(i-n1) + c4
-        y = 0
-        pos_dict[i] = (x, y)
-
-    G = Graph(n1+n2, pos=pos_dict, name="Complete bipartite graph")
+    G = Graph(n1+n2, name="Complete bipartite graph of order {}+{}".format(n1, n2))
     G.add_edges((i,j) for i in range(n1) for j in range(n1,n1+n2))
+
+    # We now assign positions to vertices:
+    # - vertices 0,..,n1-1 are placed on the line (0, 1) to (max(n1, n2), 1)
+    # - vertices n1,..,n1+n2-1 are placed on the line (0, 0) to (max(n1, n2), 0)
+    # If n1 (or n2) is 1, the vertex is centered in the line.
+    if set_position:
+        from sage.graphs.graph_plot import _line_embedding
+        nmax = max(n1, n2)
+        _line_embedding(G, list(range(n1)), first=(0, 1), last=(nmax, 1))
+        _line_embedding(G, list(range(n1, n1+n2)), first=(0, 0), last=(nmax, 0))
+
     return G
 
 def CompleteMultipartiteGraph(l):

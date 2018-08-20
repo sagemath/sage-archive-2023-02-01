@@ -2680,7 +2680,8 @@ def singular_gb_standard_options(func):
         sage: sage_getargspec(I.interreduced_basis)
         ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
         sage: sage_getsourcelines(I.interreduced_basis)
-        (['    @singular_gb_standard_options\n',
+        (['    @handle_AA_and_QQbar\n',
+          '    @singular_gb_standard_options\n',
           '    @libsingular_gb_standard_options\n',
           '    def interreduced_basis(self):\n', '
           ...

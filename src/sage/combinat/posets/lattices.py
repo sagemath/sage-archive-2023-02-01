@@ -64,6 +64,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_interval_dismantlable` | Return ``True`` if the lattice is interval dismantlable.
     :meth:`~FiniteLatticePoset.is_sublattice_dismantlable` | Return ``True`` if the lattice is sublattice dismantlable.
     :meth:`~FiniteLatticePoset.is_stone` | Return ``True`` if the lattice is a Stone lattice.
+    :meth:`~FiniteLatticePoset.is_trim` | Return ``True`` if the lattice is a trim lattice.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
     :meth:`~FiniteLatticePoset.is_isoform` | Return ``True`` if all congruences of the lattice consists of isoform blocks.
@@ -1170,6 +1171,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             - Weaker properties: :meth:`is_modular`,
               :meth:`is_semidistributive`, :meth:`is_join_distributive`,
               :meth:`is_meet_distributive`, :meth:`is_subdirectly_reducible`,
+              :meth:`is_trim`,
               :meth:`is_constructible_by_doublings` (by interval doubling)
             - Stronger properties: :meth:`is_stone`
 
@@ -1455,7 +1457,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Stronger properties: :meth:`is_distributive`
+            - Stronger properties: :meth:`is_distributive`, :meth:`is_trim`
 
         REFERENCES:
 
@@ -1464,6 +1466,55 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ji = len(self.join_irreducibles())
         mi = len(self.meet_irreducibles())
         return ji == mi == self.height() - 1
+
+    def is_trim(self, certificate=False):
+        """
+        Return whether a lattice is trim.
+
+        A lattice is trim if it is extremal and left modular.
+
+        This notion is defined in [Thom2006]_.
+
+        INPUT:
+
+        - certificate -- boolean (default ``False``) whether to return
+          instead a maximum chain of left modular elements
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.is_trim()
+            True
+
+            sage: Q = LatticePoset(posets.SymmetricGroupWeakOrderPoset(3))
+            sage: Q.is_trim()
+            False
+
+        TESTS::
+
+            sage: LatticePoset({1:[]}).is_trim(True)
+            (True, [1])
+
+        .. SEEALSO::
+
+            - Weaker properties: :meth:`is_extremal`
+            - Stronger properties: :meth:`is_distributive`
+
+        REFERENCES:
+
+        .. [Thom2006] Hugh Thomas, *An analogue of distributivity for
+           ungraded lattices*. Order 23 (2006), no. 2-3, 249-269.
+        """
+        ji = len(self.join_irreducibles())
+        mi = len(self.meet_irreducibles())
+        h, chain = self.height(certificate=True)
+        if not (ji == mi == h - 1):
+            return (False, None) if certificate else False
+
+        if all(self.is_left_modular_element(e) for e in chain):
+            return (True, chain) if certificate else True
+        else:
+            return (False, None) if certificate else False
 
     def is_complemented(self, certificate=False):
         r"""

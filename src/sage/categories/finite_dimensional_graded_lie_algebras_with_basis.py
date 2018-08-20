@@ -137,7 +137,11 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
                     sage: sc = {('x','y'): {'z': 1}}
                     sage: L.<x,y,z> = NilpotentLieAlgebra(QQ, sc, category=C)
                     sage: L._test_generated_by_degree_one()
+
+                We modify ``L`` with a different grading::
+
                     sage: L._basis_degrees = {x: 1, y: 2, z: 3}
+                    sage: L.homogeneous_component_as_submodule.clear_cache()
                     sage: L._test_generated_by_degree_one()
                     Traceback (most recent call last):
                     ...
@@ -172,11 +176,11 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
 
                 If the degrees of the basis elements are not defined,
                 they will be computed. By assumption the stratification
-                `V_1 \oplus \dots \oplus V_s` of ``self`` is such that each
+                `V_1 \oplus \cdots \oplus V_s` of ``self`` is such that each
                 component `V_k` is spanned by some subset of the basis.
 
                 The degree of a basis element `X` is therefore the largest
-                index `k`such that `X \in V_k\oplus\dots\oplus V_s`. The
+                index `k`such that `X \in V_k \oplus \cdots \oplus V_s`. The
                 space  `V_k \oplus \cdots \oplus V_s` is by assumption the
                 `k`-th term of the lower central series.
 

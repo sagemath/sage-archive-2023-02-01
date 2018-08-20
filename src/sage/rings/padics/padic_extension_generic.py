@@ -288,8 +288,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: hash(R) == hash(S)
             True
         """
+        hash_printer = tuple(sorted(self._printer.dict().items()))
         return hash((self.ground_ring(), self.defining_polynomial(exact=True),
-                     self.precision_cap(), repr(self._printer)))
+                     self.precision_cap(), hash_printer))
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError
@@ -526,9 +527,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         from sage.categories.pushout import AlgebraicExtensionFunctor as AEF, FractionField as FF
         if not forbid_frac_field and self.is_field():
             return (FF(), self.integer_ring())
-        print_mode = self._printer.dict()
-        return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
-                    precs=[self.precision_cap()], print_mode=self._printer.dict(),
+        return (AEF([self.defining_polynomial(exact=True)],
+                    [self.variable_name()],
+                    precs=[self.precision_cap()],
+                    print_mode=self._printer.dict(),
                     implementations=[self._implementation]),
                 self.base_ring())
 
@@ -537,7 +539,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def random_element(self):
         """
-        Returns a random element of self.
+        Return a random element of ``self``.
 
         This is done by picking a random element of the ground ring
         self.degree() times, then treating those elements as

@@ -663,8 +663,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 except AttributeError:
                     A = self
 
+            if L not in self.category():
+                # L might be a submodule of A.module()
+                LB = [self.from_vector(b) for b in L.basis()]
+            else:
+                LB = L.basis()
+
             B = self.basis()
-            LB = L.basis()
             b_mat = matrix(A.base_ring(), [A.bracket(b, lb).to_vector()
                                            for b in B for lb in LB])
             if submodule is True or not (self.is_ideal(A) and L.is_ideal(A)):

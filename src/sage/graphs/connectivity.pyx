@@ -3001,7 +3001,7 @@ class TriconnectivitySPQR:
                     v = e[1]
                 self.highpt[v].remove(it)
 
-    def bucketSort(self, bucket, edge_list):
+    def __bucket_sort(self, bucket, edge_list):
         """
         Use radix sort to sort the buckets
         """
@@ -3027,11 +3027,11 @@ class TriconnectivitySPQR:
                 bucket_list[bucketId].set_head(e_node)
             e_node = e_node.next
 
-        # Using bucket list rearrange the edge_list
+        # Rearrange the `edge_list` Using bucket list
         new_tail = None
         for i in range(self.n):
             new_head = bucket_list[i].get_head()
-            if(new_head):
+            if new_head:
                 if new_tail:
                     new_tail.next = new_head
                 else:
@@ -3041,39 +3041,38 @@ class TriconnectivitySPQR:
         edge_list.tail = new_tail
         new_tail.next = None
 
-    def sort_edges(self):
+    def __sort_edges(self):
         """
-        A helper function for Split_multiple_edges to sort the edges of
+        A helper function for `split_multiple_edges` to sort the edges of
         graph_copy.
 
-        It won't take any input instead creates a linked list of edges, which
-        are in graph_copy and returns head pointer of the sorted edge list.
+        Sorts the edges of `graph_copy` and stores the sorted edges in a linked
+        list. The head pointer of the linked list is returned.
 
         This function is an implementation of the sorting algorithm given in
-        [Hopcroft1973]_
+        [Hopcroft1973]_.
         """
         # Create a linkedlist of edges
         edge_list = _LinkedList()
         for e in self.graph_copy.edges(sort=False):
             edge_list.append(_LinkedListNode(e))
 
-        bucketMin = {} # Contains a lower index of edge end point
-        bucketMax = {} # Contains a higher index of edge end point
+        bucketMin = {} # Contains the lower index of edge end point
+        bucketMax = {} # Contains the higher index of edge end point
 
-        # As all the vertices and thier indexes are same
-        # and in all edge (u, v), u < v.
-        # for all edges bucket min will be first u and
-        # bucket max will be v
+        # In `graph_copy`, every edge `(u, v)` is such that `u < v`.
+        # Hence, `bucketMin` of an edge `(u, v)` will be `u`
+        # and `bucketMax` will be `v`.
         for e in self.graph_copy.edge_iterator():
             bucketMin[e] = e[0]
             bucketMax[e] = e[1]
 
         # Sort according to the endpoint with lower index
-        self.bucketSort(bucketMin, edge_list)
+        self.__bucket_sort(bucketMin, edge_list)
         # Sort according to the endpoint with higher index
-        self.bucketSort(bucketMax, edge_list)
+        self.__bucket_sort(bucketMax, edge_list)
 
-        # Return sorted list head pointer
+        # Return the head pointer to the sorted edge list
         return edge_list.get_head()
 
     def __split_multiple_edges(self):
@@ -3087,7 +3086,7 @@ class TriconnectivitySPQR:
         """
         comp = []
         if self.graph_copy.has_multiple_edges():
-            sorted_edges = self.sort_edges()
+            sorted_edges = self.__sort_edges()
             while sorted_edges.next:
                 # Find multi edges and add to component and delete from graph
                 if (sorted_edges.get_data()[0] == sorted_edges.next.get_data()[0]) and \

@@ -61,6 +61,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         from sage.categories.examples.finite_dimensional_lie_algebras_with_basis import Example
         return Example(self.base_ring(), n)
 
+    Nilpotent = LazyImport('sage.categories.finite_dimensional_nilpotent_lie_algebras_with_basis',
+                           'FiniteDimensionalNilpotentLieAlgebrasWithBasis')
+
     class ParentMethods:
         @cached_method
         def _construct_UEA(self):
@@ -1327,86 +1330,4 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     [   1    0 -1/2]
                     [   0    1    1]
                 """
-
-    class Nilpotent(CategoryWithAxiom_over_base_ring):
-        """
-        Category of finite dimensional nilpotent Lie algebras with basis.
-
-        TESTS::
-
-            sage: C1 = LieAlgebras(QQ).FiniteDimensional().WithBasis().Nilpotent()
-            sage: C2 = LieAlgebras(QQ).Nilpotent().FiniteDimensional().WithBasis()
-            sage: C1 is C2
-            True
-            sage: TestSuite(C1).run()
-        """
-        class ParentMethods:
-            def _test_nilpotency(self, **options):
-                r"""
-                Tests that the Lie algebra is nilpotent and has
-                the correct step.
-
-                INPUT:
-
-                - ``options`` -- any keyword arguments accepted by
-                  :meth:`_tester`.
-
-                EXAMPLES::
-                
-                    sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                    sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}})
-                    sage: L._test_nilpotency()
-                    sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}}, step = 3)
-                    sage: L._test_nilpotency()
-                    Traceback (most recent call last):
-                    ...
-                    AssertionError: claimed nilpotency step 3 does not match the actual nilpotency step 2
-                    sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'X': 1}})
-                    sage: L._test_nilpotency()
-                    Traceback (most recent call last):
-                    ...
-                    AssertionError: final term of lower central series is non-zero
-
-                See the documentation for :class:`TestSuite` for more information.
-                """
-                tester = self._tester(**options)
-
-                lcs = self.lower_central_series(submodule=True)
-                tester.assertEqual(lcs[-1].dimension(), 0,
-                    msg="final term of lower central series is non-zero")
-
-                step = self.step()
-                tester.assertEqual(len(lcs) - 1, step,
-                    msg="claimed nilpotency step %d does not match the "
-                    "actual nilpotency step %d" % (step, len(lcs) - 1))
-
-            def step(self):
-                r"""
-                Return the nilpotency step of the Lie algebra.
-                
-                EXAMPLES::
-                
-                    sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                    sage: NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}}).step()
-                    2
-                    sage: sc = {('X','Y'): {'Z': 1}, ('X','Z'): {'W': 1}}
-                    sage: NilpotentLieAlgebra(QQ, sc).step()
-                    3
-                """
-                if not hasattr(self, '_step'):
-                    self._step = len(self.lower_central_series(submodule=True)) - 1
-                return self._step
-
-            def is_nilpotent(self):
-                r"""
-                Return ``True`` since ``self`` is nilpotent.
-
-                EXAMPLES::
-
-                    sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                    sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'z': 1}})
-                    sage: L.is_nilpotent()
-                    True
-                """
-                return True
 

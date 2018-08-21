@@ -29,23 +29,23 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
     - ``R`` -- the base ring
     - ``s_coeff`` -- a dictionary of structural coefficients
     - ``names`` -- (default:``None``) list of strings to use as names of basis
-      elements. If ``None``, the names will be inferred from the structural
-      coefficients.
+      elements; if ``None``, the names will be inferred from the structural
+      coefficients
     - ``index_set`` -- (default:``None``) list of hashable and comparable
-      elements to use for indexing.
-    - ``step`` -- (default:``None``) an integer; the nilpotency step of the
-      Lie algebra. If ``None``, the nilpotency step is undefined and will need
-      to be computed later.
-    - ``category`` -- (default:``None``) a subcategory of
-      :class:`~sage.categories.lie_algebras.LieAlgebras.FiniteDimensional.WithBasis.Nilpotent`
+      elements to use for indexing
+    - ``step`` -- (optional) an integer; the nilpotency step of the
+      Lie algebra if known; otherwise it will be computed when needed
+    - ``category`` -- (optional) a subcategory of finite dimensional
+      nilpotent Lie algebras with basis
 
     EXAMPLES:
 
-    The input to a :class:`NilpotentLieAlgebra_dense` should be of the same form
-    as to a :class:`~sage.algebras.lie_algebras.structure_coefficients.LieAlgebraWithStructureCoefficients`::
+    The input to a :class:`NilpotentLieAlgebra_dense` should be of the
+    same form as to a
+    :class:`~sage.algebras.lie_algebras.structure_coefficients.LieAlgebraWithStructureCoefficients`::
 
-        sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra_dense
-        sage: L.<X,Y,Z,W> = NilpotentLieAlgebra_dense(QQ, {('X','Y'): {'Z': 1}})
+        sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
+        sage: L.<X,Y,Z,W> = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}})
         sage: L
         Nilpotent Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
         sage: L[X, Y]
@@ -56,14 +56,14 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
     If the parameter ``names`` is omitted, then the terms appearing in the
     structural coefficients are used as names::
 
-        sage: L = NilpotentLieAlgebra_dense(QQ, {('X','Y'): {'Z': 1}}); L
+        sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}}); L
         Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
 
     TESTS::
 
-        sage: L = NilpotentLieAlgebra_dense(QQ, {('X','Y'): {'Z': 1},
-        ....:                                    ('X','Z'): {'W': 1},
-        ....:                                    ('Y','Z'): {'T': 1}})
+        sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1},
+        ....:                              ('X','Z'): {'W': 1},
+        ....:                              ('Y','Z'): {'T': 1}})
         sage: TestSuite(L).run()
     """
     @staticmethod
@@ -73,8 +73,8 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
 
         EXAMPLES:
 
-        If the variable order is specified, the order of structural coefficients
-        does not matter::
+        If the variable order is specified, the order of structural
+        coefficients does not matter::
 
             sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra_dense
             sage: L1.<x,y,z> = NilpotentLieAlgebra_dense(QQ, {('x','y'): {'z': 1}})
@@ -116,7 +116,13 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
     def __init__(self, R, s_coeff, names, index_set, step=None,
                  category=None, **kwds):
         r"""
-        Initialize ``self``
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
+            sage: L.<X,Y,Z,W> = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}})
+            sage: TestSuite(L).run()
         """
         if step:
             self._step = step
@@ -130,6 +136,13 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
+            sage: L.<X,Y,Z,W> = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}})
+            sage: L
+            Nilpotent Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
         """
         return "Nilpotent %s" % (super(NilpotentLieAlgebra_dense, self)._repr_())
 
@@ -141,20 +154,18 @@ def NilpotentLieAlgebra(R, arg, step=None, names=None,
     INPUT:
 
     - ``R`` -- the base ring
-    - ``arg`` -- If the argument ``free`` is ``False``, then ``arg`` should be 
-      a dictionary of structural coefficients.
-      If ``free`` is ``True``, then ``arg`` should be the number of generators 
-      of the free nilpotent Lie algebra.
-    - ``step`` -- (default:``None``) an integer; the nilpotency step of the 
-      Lie algebra. If ``None``, the nilpotency step is undefined and will need
-      to be computed later. The ``step`` must be specified if ``free`` is
-      ``True``.
-    - ``names`` -- (default:``None``) a list of strings to use as names of basis
-      elements. If ``None`` and ``free`` is ``False``, the names will be
-      extracted from the structural coefficients. If ``None`` and ``free`` is
-      ``True``, the names will be autogenerated.
-    - ``category`` -- (default:``None``) a subcategory of
-      :class:`~sage.categories.lie_algebras.LieAlgebras.FiniteDimensional.WithBasis.Nilpotent`
+    - ``arg`` -- if the argument ``free`` is ``False``, then ``arg`` should be
+      a dictionary of structural coefficients; otherwise ``arg`` should be
+      the number of generators of the free nilpotent Lie algebra
+    - ``step`` -- (optional) an integer; the nilpotency step of the
+      Lie algebra if known; otherwise it will be computed when needed;
+      the ``step`` must be specified if ``free`` is ``True``
+    - ``names`` -- (default:``None``) a list of strings to use as names of
+      basis elements; if ``None`` and ``free`` is ``False``, the names will
+      be extracted from the structural coefficients; otherwise the names
+      will be autogenerated
+    - ``category`` -- (optional) a subcategory of nilpotent Lie algebras
+      with basis
       
     EXAMPLES:
     

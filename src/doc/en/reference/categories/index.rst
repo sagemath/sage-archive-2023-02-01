@@ -231,6 +231,7 @@ Examples of parents using categories
    sage/categories/examples/finite_dimensional_algebras_with_basis
    sage/categories/examples/finite_enumerated_sets
    sage/categories/examples/finite_dimensional_lie_algebras_with_basis
+   sage/categories/examples/finite_dimensional_nilpotent_lie_algebras_with_basis
    sage/categories/examples/finite_monoids
    sage/categories/examples/finite_semigroups
    sage/categories/examples/finite_weyl_groups

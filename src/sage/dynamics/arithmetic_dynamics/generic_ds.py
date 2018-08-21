@@ -35,6 +35,7 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.rational_field import QQ
 from copy import copy
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -305,7 +306,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         F = self.as_scheme_morphism().specialization(D, phi, homset)
         return F.as_dynamical_system()
 
-    def field_of_definition_critical(self, return_embedding = False, simplify_all = False, names = 'a'):
+    def field_of_definition_critical(self, return_embedding=False, simplify_all=False, names='a'):
         r"""
         Return smallest extension of the base field which contains the critical points
 
@@ -331,30 +332,35 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: f = DynamicalSystem([1/3*x^3 + x*y^2, y^3], domain = P)
+            sage: f = DynamicalSystem([1/3*x^3 + x*y^2, y^3], domain=P)
+            sage: f.critical_points()
+            [(1 : 0)]
             sage: N.<a> = f.field_of_definition_critical(); N
             Number Field in a with defining polynomial x^2 + 1
+            sage: g = f.change_ring(N)
+            sage: g.critical_points()
+            [(-a : 1), (a : 1), (1 : 0)]
+
+            Note that the number of critical points is 2d-2, but (1:0) has multiplicity 2 in this case
 
         ::
 
             sage: A.<z> = AffineSpace(QQ, 1)
-            sage: f = DynamicalSystem([z^4 + 2*z^2 + 2], domain = A)
+            sage: f = DynamicalSystem([z^4 + 2*z^2 + 2], domain=A)
             sage: K.<a> = f.field_of_definition_critical(); K
             Number Field in a with defining polynomial z^2 + 1
-            sage: a^2
-            -1
 
         ::
 
             sage: G.<a> = GF(9)
             sage: R.<z> = G[]
-            sage: R.irreducible_element(3, algorithm = 'first_lexicographic')
+            sage: R.irreducible_element(3, algorithm='first_lexicographic')
             z^3 + (a + 1)*z + a
             sage: A.<x> = AffineSpace(G,1)
-            sage: f = DynamicalSystem([x^4 + (2*a+2)*x^2 + a*x], domain = A)
+            sage: f = DynamicalSystem([x^4 + (2*a+2)*x^2 + a*x], domain=A)
             sage: f[0].derivative(x).univariate_polynomial().is_irreducible()
             True
-            sage: f.field_of_definition_critical(return_embedding = True, names = 'b')
+            sage: f.field_of_definition_critical(return_embedding=True, names='b')
             (Finite Field in b of size 3^6, Ring morphism:
                 From: Finite Field in a of size 3^2
                 To:   Finite Field in b of size 3^6
@@ -374,17 +380,24 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         x = CR.gen(0)
         poly = (g*CR(f).derivative(x) - f*CR(g).derivative(x)).univariate_polynomial()
         if is_FiniteField(ds.base_ring()):
-            return poly.splitting_field(names, map = return_embedding)
+            return poly.splitting_field(names, map=return_embedding)
         else:
-            K = poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
-            if K.absolute_degree() == 1:
-                return QQ
+            K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+            if return_embedding:
+                N = K[0]
+            else:
+                N = K
+            if N.absolute_degree() == 1:
+                if return_embedding:
+                    return (QQ,ds.base_ring().embeddings(QQ)[0])
+                else:
+                    return QQ
             else:
                 return K
 
-    def field_of_definition_periodic(self, n, formal = False, return_embedding = False, simplify_all = False, names = 'a'):
+    def field_of_definition_periodic(self, n, formal=False, return_embedding=False, simplify_all=False, names='a'):
         r"""
-        Return smallest extension of the base field which contains the ``n``-th periodic points
+        Return smallest extension of the base field which contains all fixed points of the ``n``-th iterate
 
         Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
 
@@ -414,28 +427,40 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: f = DynamicalSystem([x^2, y^2], domain = P)
+            sage: f = DynamicalSystem([x^2, y^2], domain=P)
+            sage: f.periodic_points(3, minimal=False)
+            [(0 : 1), (1 : 0), (1 : 1)]
             sage: N.<a> = f.field_of_definition_periodic(3); N
             Number Field in a with defining polynomial x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+            sage: f.periodic_points(3,minimal=False, R=N)
+            [(0 : 1),
+             (a : 1),
+             (a^5 : 1),
+             (a^2 : 1),
+             (-a^5 - a^4 - a^3 - a^2 - a - 1 : 1),
+             (a^4 : 1),
+             (1 : 0),
+             (a^3 : 1),
+             (1 : 1)]
 
         ::
 
             sage: A.<z> = AffineSpace(QQ, 1)
-            sage: f = DynamicalSystem([(z^2 + 1)/(2*z + 1)], domain = A)
+            sage: f = DynamicalSystem([(z^2 + 1)/(2*z + 1)], domain=A)
             sage: K.<a> = f.field_of_definition_periodic(2); K
             Number Field in a with defining polynomial z^4 + 12*z^3 + 39*z^2 + 18*z + 171
-            sage: F.<b> = f.field_of_definition_periodic(2, formal = True); F
+            sage: F.<b> = f.field_of_definition_periodic(2, formal=True); F
             Number Field in b with defining polynomial z^2 + 3*z + 6
 
         ::
 
             sage: G.<a> = GF(4)
             sage: A.<x> = AffineSpace(G, 1)
-            sage: f = DynamicalSystem([x^2 + (a+1)*x + 1], domain = A)
+            sage: f = DynamicalSystem([x^2 + (a+1)*x + 1], domain=A)
             sage: g = f.nth_iterate_map(2)[0]
             sage: (g-x).univariate_polynomial().factor()
             (x + 1) * (x + a + 1) * (x^2 + a*x + 1)
-            sage: f.field_of_definition_periodic(2, return_embedding = True, names = 'b')
+            sage: f.field_of_definition_periodic(2, return_embedding=True, names='b')
             (Finite Field in b of size 2^4, Ring morphism:
                 From: Finite Field in a of size 2^2
                 To:   Finite Field in b of size 2^4
@@ -463,15 +488,22 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             f,g = fn[0].numerator(), fn[0].denominator()
             poly = (f - g*x).univariate_polynomial()        
         if is_FiniteField(ds.base_ring()):
-            return poly.splitting_field(names, map = return_embedding)
+            return poly.splitting_field(names, map=return_embedding)
         else:
-            K = poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
-            if K.absolute_degree() == 1:
-                return QQ
+            K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+            if return_embedding:
+                N = K[0]
+            else:
+                N = K
+            if N.absolute_degree() == 1:
+                if return_embedding:
+                    return (QQ,ds.base_ring().embeddings(QQ)[0])
+                else:
+                    return QQ
             else:
                 return K
 
-    def field_of_definition_preimage(self, n, point, return_embedding = False, simplify_all = False, names = 'a'):
+    def field_of_definition_preimage(self, point, n, return_embedding=False, simplify_all=False, names='a'):
         r"""
         Return smallest extension of the base field which contains the ``n``-th preimages of ``point``
 
@@ -479,9 +511,9 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``n`` -- a positive integer
-
         - ``point`` -- a point in this map's domain
+
+        - ``n`` -- a positive integer
 
         - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
           system into the returned number field. Note that computing this embedding might be expensive.
@@ -501,23 +533,23 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: f = DynamicalSystem([1/3*x^2 + 2/3*x*y, x^2 - 2*y^2], domain = P)
-            sage: N.<a> = f.field_of_definition_preimage(2, P(1,1), simplify_all = True); N
+            sage: f = DynamicalSystem([1/3*x^2 + 2/3*x*y, x^2 - 2*y^2], domain=P)
+            sage: N.<a> = f.field_of_definition_preimage(P(1,1), 2, simplify_all=True); N
             Number Field in a with defining polynomial x^8 - 4*x^7 - 128*x^6 + 398*x^5 + 3913*x^4 - 8494*x^3 - 26250*x^2 + 30564*x - 2916
 
         ::
 
             sage: A.<z> = AffineSpace(QQ, 1)
-            sage: f = DynamicalSystem([z^2], domain = A)
-            sage: K.<a> = f.field_of_definition_preimage(3, A(1)); K
+            sage: f = DynamicalSystem([z^2], domain=A)
+            sage: K.<a> = f.field_of_definition_preimage(A(1), 3); K
             Number Field in a with defining polynomial z^4 + 1
 
         ::
 
             sage: G = GF(5)
             sage: P.<x,y> = ProjectiveSpace(G, 1)
-            sage: f = DynamicalSystem([x^2 + 2*y^2, y^2], domain = P)
-            sage: f.field_of_definition_preimage(2, P(2,1), return_embedding = True, names = 'a')
+            sage: f = DynamicalSystem([x^2 + 2*y^2, y^2], domain=P)
+            sage: f.field_of_definition_preimage(P(2,1), 2, return_embedding=True, names='a')
             (Finite Field in a of size 5^2, Ring morphism:
                 From: Finite Field of size 5
                 To:   Finite Field in a of size 5^2
@@ -546,10 +578,17 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             CR = CR.ring()
         poly = (f*point[1] - g*CR(point[0])).univariate_polynomial()
         if is_FiniteField(ds.base_ring()):
-            return poly.splitting_field(names, map = return_embedding)
+            return poly.splitting_field(names, map=return_embedding)
         else:
-            K = poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
-            if K.absolute_degree() == 1:
-                return QQ
+            K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+            if return_embedding:
+                N = K[0]
+            else:
+                N = K
+            if N.absolute_degree() == 1:
+                if return_embedding:
+                    return (QQ,ds.base_ring().embeddings(QQ)[0])
+                else:
+                    return QQ
             else:
                 return K

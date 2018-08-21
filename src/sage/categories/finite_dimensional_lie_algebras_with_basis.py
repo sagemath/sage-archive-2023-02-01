@@ -61,15 +61,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         from sage.categories.examples.finite_dimensional_lie_algebras_with_basis import Example
         return Example(self.base_ring(), n)
 
-    Nilpotent = LazyImport('sage.categories.nilpotent_lie_algebras',
-                           'FiniteDimensionalNilpotentLieAlgebrasWithBasis',
-                           as_name='Nilpotent')
-    Graded = LazyImport('sage.categories.graded_lie_algebras',
-                        'FiniteDimensionalGradedLieAlgebrasWithBasis',
-                        as_name='Graded')
-    Stratified = LazyImport('sage.categories.graded_lie_algebras',
-                            'FiniteDimensionalStratifiedLieAlgebrasWithBasis',
-                            as_name='Stratified')
+    Nilpotent = LazyImport('sage.categories.finite_dimensional_nilpotent_lie_algebras_with_basis',
+                           'FiniteDimensionalNilpotentLieAlgebrasWithBasis')
 
     class ParentMethods:
         @cached_method
@@ -673,8 +666,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 except AttributeError:
                     A = self
 
+            if L not in self.category():
+                # L might be a submodule of A.module()
+                LB = [self.from_vector(b) for b in L.basis()]
+            else:
+                LB = L.basis()
+
             B = self.basis()
-            LB = L.basis()
             b_mat = matrix(A.base_ring(), [A.bracket(b, lb).to_vector()
                                            for b in B for lb in LB])
             if submodule is True or not (self.is_ideal(A) and L.is_ideal(A)):

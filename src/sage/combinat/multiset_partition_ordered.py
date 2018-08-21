@@ -966,7 +966,6 @@ class OrderedMultisetPartition(ClonableArray):
         bb = self.minimaj_blocks()
         b = [block[0] for block in bb]
         beginning = [0]+running_total(self.shape_from_cardinality())
-        #beginning = _partial_sum(self.shape_from_cardinality())
         w = _concatenate(bb)
         D = [0] + _descents(w) + [len(w)]
         pieces = [b]
@@ -1624,28 +1623,28 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         X = _concatenate(x)
         P = OrderedMultisetPartitions_X(tuple(iteritems(_get_weight(X))))
         x = P.element_class(P, [frozenset(block) for block in x])
-        def pass_test(co, key, tst):
-            # define simple tests for each possible constraint
-            if key == 'size':
-                return co.size() == tst
-            if key == 'length':
-                return co.length() == tst
-            if key == 'min_length':
-                return co.length() >= tst
-            if key == 'max_length':
-                return co.length() <= tst
-            if key == 'weight':
-                return co.weight() == tst
-            if key == 'alphabet':
-                return frozenset(co.letters()).issubset(tst)
-            if key == 'order':
-                return co.order() == tst
-            if key == 'min_order':
-                return co.order() >= tst
-            if key == 'max_order':
-                return co.order() <= tst
+        constr = self.full_constraints
+        tsts = []
+        if 'size' in constr:
+            tsts.append( x.size() == constr['size'] )
+        if 'weight' in constr:
+            tsts.append(  x.weight() == constr['weight'] )
+        if 'alphabet' in constr:
+            tsts.append(  frozenset(x.letters()).issubset(constr['alphabet']) )
+        if 'length' in constr:
+            tsts.append( x.length() == constr['length'] )
+        if 'min_length' in constr:
+            tsts.append(  x.length() >= constr['min_length'] )
+        if 'max_length' in constr:
+            tsts.append(  x.length() <= constr['max_length'] )
+        if 'order' in constr:
+            tsts.append( x.order() == constr['order'] )
+        if 'min_order' in constr:
+            tsts.append(  x.order() >= constr['min_order'] )
+        if 'max_order' in constr:
+            tsts.append(  x.order() <= constr['max_order'] )
 
-        return all(pass_test(x, key, tst) for (key, tst) in iteritems(self.full_constraints) if tst)
+        return all(tsts)
 
     def _from_list(self, lst):
         """
@@ -2825,23 +2824,6 @@ def _iterator_order(A, d, lengths=None):
                     yield tuple(frozenset(X) for X in co)
                     #yield P(co)
 
-def _partial_sum(lst):
-    """
-    Return partial sums of elements in ``lst``,
-    including the empty and the full sum.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.multiset_partition_ordered import _partial_sum
-        sage: lst = [1,3,5]
-        sage: _partial_sum(lst)
-        [0, 1, 4, 9]
-    """
-    result = [0]
-    for i in lst:
-        result.append(result[-1] + i)
-    return result
-
 def _descents(w):
     r"""
     Return descent positions in the word ``w``.
@@ -3119,7 +3101,6 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             word = T(*[B(a) for a in _concatenate(t)])
             blocks = [len(h) for h in t]
             breaks = tuple([0]+running_total(blocks))
-            #breaks = tuple(_partial_sum(blocks))
             mu = self.element_class(self, (word, breaks))
             self.module_generators.append(mu)
 
@@ -3154,7 +3135,6 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         """
         t = self._OMPs.an_element().to_tableau()
         breaks = tuple([0]+running_total([len(h) for h in t]))
-        #breaks = tuple(_partial_sum([len(h) for h in t]))
         B,T = self._BT
         return self.element_class(self, (T(*[B(a) for a in _concatenate(t)]), breaks))
 
@@ -3183,7 +3163,6 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         if x in self:
             t = self._OMPs(x).to_tableau()
             breaks = tuple([0]+running_total([len(h) for h in t]))
-            #breaks = tuple(_partial_sum([len(h) for h in t]))
             B,T = self._BT
             return self.element_class(self, (T(*[B(a) for a in _concatenate(t)]), breaks))
         else:

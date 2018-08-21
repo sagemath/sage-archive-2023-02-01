@@ -26,6 +26,7 @@ from sage.rings.power_series_ring import PowerSeriesRing
 from sage.arith.all import binomial, kronecker
 from sage.rings.padics.precision_error import PrecisionError
 from sage.structure.sage_object import SageObject
+from sage.misc.superseded import deprecation
 
 
 class pAdicLseries(SageObject):
@@ -374,7 +375,7 @@ class pAdicLseries(SageObject):
                    symb_twisted.moment(r) for r in range(j + 1)) / ap
 
 
-def log_gamma_binomial(p, gamma, n, M):
+def log_gamma_binomial(p, gamma, n, M, old=None):
     r"""
     Return the list of coefficients in the power series
     expansion (up to precision `M`) of `\binom{\log_p(z)/\log_p(\gamma)}{n}`
@@ -398,7 +399,20 @@ def log_gamma_binomial(p, gamma, n, M):
         [0, -3/205, 651/84050, -223/42025]
         sage: log_gamma_binomial(5,1+5,3,4)
         [0, 2/205, -223/42025, 95228/25845375]
+
+    TESTS::
+
+        sage: z = polygen(QQ, 'z')
+        sage: log_gamma_binomial(5,1+5,z,2,4)
+        doctest:...: DeprecationWarning: the parameter z is ignored and deprecated
+        See https://trac.sagemath.org/26096 for details.
+        [0, -3/205, 651/84050, -223/42025]
     """
+    if old is not None:
+        deprecation(26096, 'the parameter z is ignored and deprecated')
+        # old deprecated order for the parameters
+        z, n, M = n, M, old
+
     S = PowerSeriesRing(QQ, 'z')
     L = S([0] + [ZZ(-1) ** j / j for j in range(1, M)])  # log_p(1+z)
     loggam = L.O(M) / L(gamma - 1)

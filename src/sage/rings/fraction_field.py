@@ -983,6 +983,14 @@ class FractionField_1poly_field(FractionField_generic):
 
         return super(FractionField_1poly_field, self)._coerce_map_from_(R)
 
+    def derivation(self, factor=1):
+        from sage.rings.derivation import RingDerivation_fraction, RingDerivation
+        from sage.categories.homset import End, Homset
+        H = Homset(self, self)
+        theta = End(self).identity()
+        return RingDerivation_polynomial(H, theta, [factor])
+
+
 
 class FractionFieldEmbedding(DefaultConvertMap_unique):
     r"""

@@ -18,7 +18,6 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.graded_modules import GradedModulesCategory
 
 class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     r"""
@@ -191,6 +190,8 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
                     sage: C = C.FiniteDimensional().Stratified().Nilpotent()
                     sage: sc = {('X','Y'): {'Z': 1}}
                     sage: L.<X,Y,Z> = NilpotentLieAlgebra(QQ, sc, category=C)
+                    sage: L.degree_on_basis(X.leading_support())
+                    1
                     sage: X.degree()
                     1
                     sage: Y.degree()

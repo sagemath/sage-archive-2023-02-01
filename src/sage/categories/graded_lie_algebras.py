@@ -16,9 +16,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 from sage.categories.graded_modules import GradedModulesCategory
 
 class GradedLieAlgebras(GradedModulesCategory):

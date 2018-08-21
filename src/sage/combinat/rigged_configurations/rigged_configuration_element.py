@@ -525,7 +525,7 @@ class RiggedConfigurationElement(ClonableArray):
             -1[ ]-1
             <BLANKLINE>
 
-            sage: A = CartanMatrix([[-2,-1],[-1,-2]],borcherds_type=True)
+            sage: A = CartanMatrix([[-2,-1],[-1,-2]], borcherds=True)
             sage: RC = crystals.infinity.RiggedConfigurations(A)
             sage: nu0 = RC(partition_list=[[],[]])
             sage: nu = nu0.f_string([1,0,0,0])
@@ -547,12 +547,11 @@ class RiggedConfigurationElement(ClonableArray):
             k = None
             set_vac_num = True
             rigged_index = None
-            if new_rigging[-1] == -(1/2)*M[a,a]:
-                new_list.pop()
-                new_vac_nums.pop()
-                new_rigging.pop()
-            else:
+            if new_rigging[-1] != -M[a,a] // 2:
                 return None
+            new_list.pop()
+            new_vac_nums.pop()
+            new_rigging.pop()
         else:
             # Find k and perform e_a
             k = None
@@ -578,7 +577,7 @@ class RiggedConfigurationElement(ClonableArray):
                 new_rigging.pop()
             else:
                 new_list[rigging_index] -= 1
-                cur_rigging += Integer((1/2)*M[a,a])
+                cur_rigging += M[a,a] // 2
                 # Properly sort the riggings
                 j = rigging_index + 1
                 # Update the vacancy number if the row lengths are the same
@@ -699,7 +698,7 @@ class RiggedConfigurationElement(ClonableArray):
             (/)
             <BLANKLINE>
 
-            sage: A = CartanMatrix([[-2,-1],[-1,-2]],borcherds_type=True)
+            sage: A = CartanMatrix([[-2,-1],[-1,-2]], borcherds=True)
             sage: RC = crystals.infinity.RiggedConfigurations(A)
             sage: nu0 = RC(partition_list=[[],[]])
             sage: nu = nu0.f_string([1,0,0,0])
@@ -739,7 +738,7 @@ class RiggedConfigurationElement(ClonableArray):
         # If we've not found a valid k
         if k is None:
             new_list.append(1)
-            new_rigging.append(Integer((-1/2) * M[a,a]))
+            new_rigging.append(-M[a,a] // 2)
             new_vac_nums.append(None)
             k = 0
             add_index = num_rows
@@ -748,7 +747,7 @@ class RiggedConfigurationElement(ClonableArray):
             if add_index is None: # We are adding to the first row in the list
                 add_index = 0
             new_list[add_index] += 1
-            new_rigging.insert(add_index, Integer(new_rigging[rigging_index] - (1/2)*M[a,a]))
+            new_rigging.insert(add_index, new_rigging[rigging_index] - M[a,a] // 2)
             new_vac_nums.insert(add_index, None)
             new_rigging.pop(rigging_index + 1) # add 1 for the insertion
             new_vac_nums.pop(rigging_index + 1)

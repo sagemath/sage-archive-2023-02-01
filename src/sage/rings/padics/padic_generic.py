@@ -1266,7 +1266,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def primitive_root_of_unity(self, n=None, order=False):
         """
-        Return a generator of the group of ``n``th roots of unity
+        Return a generator of the group of ``n``-th roots of unity
         in this ring.
 
         INPUT:
@@ -1277,14 +1277,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         OUTPUT:
 
-        A generator of the group of ``n``th roots of unity.
+        A generator of the group of ``n``-th roots of unity.
         If ``n`` is ``None``, a generator of the full group of roots
         of unity is returned.
 
         If ``order`` is ``True``, the order of the above group is
-        returned as well.        
+        returned as well.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R = Zp(5, 10)
             sage: zeta = R.primitive_root_of_unity(); zeta
@@ -1292,7 +1292,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: zeta == R.teichmuller(2)
             True
 
-        Now we consider an example with non trivial ``p``th roots of unity::
+        Now we consider an example with non trivial ``p``-th roots of unity::
 
             sage: W = Zp(3, 2)
             sage: S.<x> = W[]
@@ -1348,14 +1348,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def roots_of_unity(self, n=None):
         """
-        Return all the ``n``th roots of unity in this ring.
+        Return all the ``n``-th roots of unity in this ring.
 
         INPUT:
 
         - ``n`` -- an integer or ``None`` (default: ``None``); if
           ``None``, the full group of roots of unity is returned.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R = Zp(5, 10)
             sage: roots = R.roots_of_unity(); roots
@@ -1368,7 +1368,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             [1 + O(5^10),
              4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)]
 
-        In this case, the roots of unity are the Teichmüller representatives::
+        In this case, the roots of unity are the Teichmuller representatives::
 
             sage: R.teichmuller_system()
             [1 + O(5^10),
@@ -1377,7 +1377,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
              4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)]
 
         In general, there might be more roots of unity (it happens when the ring has non 
-        trivial ``p``th roots of unity)::
+        trivial ``p``-th roots of unity)::
 
             sage: W.<a> = Zq(3^2, 2)
             sage: S.<x> = W[]

@@ -47,7 +47,7 @@ class GradedLieAlgebras(GradedModulesCategory):
         r"""
         Category of stratified Lie algebras.
 
-        A graded Lie algebra `L = \bigoplus_{k=0}^M L_k` (where
+        A graded Lie algebra `L = \bigoplus_{k=1}^M L_k` (where
         possibly `M = \infty`) is called *stratified* if it is generated
         by `L_1`; in other words, we have `L_{k+1} = [L_1, L_k]`.
 

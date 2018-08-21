@@ -110,7 +110,7 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
 
         A stratified Lie algebra is a graded Lie algebra that is generated
         as a Lie algebra by its homogeneous component of degree 1. That is
-        to say, For a graded Lie algebra `L = \bigoplus_{k=0}^M L_k`,
+        to say, for a graded Lie algebra `L = \bigoplus_{k=1}^M L_k`,
         we have `L_{k+1} = [L_1, L_k]`.
 
         TESTS::

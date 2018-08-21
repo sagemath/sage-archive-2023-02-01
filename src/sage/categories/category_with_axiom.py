@@ -1685,7 +1685,8 @@ all_axioms += ("Flying", "Blue",
                "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
                "Distributive",
                "Endset",
-               "Pointed"
+               "Pointed",
+               "Stratified", "Nilpotent"
               )
 
 def uncamelcase(s,separator=" "):

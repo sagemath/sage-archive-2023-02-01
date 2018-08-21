@@ -17,7 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
 
@@ -50,6 +50,10 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             gens = Partitions()
         from sage.categories.examples.lie_algebras_with_basis import Example
         return Example(self.base_ring(), gens)
+
+    Graded = LazyImport('sage.categories.graded_lie_algebras_with_basis',
+                        'GradedLieAlgebrasWithBasis',
+                        as_name='Graded')
 
     class ParentMethods:
         def _basis_key(self, x):

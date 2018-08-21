@@ -65,6 +65,9 @@ class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):
             sage: L = LieAlgebra(QQ, 3, 'x', abelian=True)
             sage: TestSuite(L).run()
         """
+        category = kwds.get("category", None)
+        kwds["category"] = LieAlgebras(R).FiniteDimensional().WithBasis() \
+                                         .Nilpotent().or_subcategory(category)
         LieAlgebraWithStructureCoefficients.__init__(self, R, Family({}), names, index_set, **kwds)
 
     def _repr_(self):

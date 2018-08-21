@@ -60,15 +60,15 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
             EXAMPLES::
             
-                sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}})
+                sage: L = LieAlgebra(QQ, {('X','Y'): {'Z': 1}}, nilpotent=True)
                 sage: L._test_nilpotency()
-                sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}}, step = 3)
+                sage: L = LieAlgebra(QQ, {('X','Y'): {'Z': 1}},
+                ....:                nilpotent=True, step = 3)
                 sage: L._test_nilpotency()
                 Traceback (most recent call last):
                 ...
                 AssertionError: claimed nilpotency step 3 does not match the actual nilpotency step 2
-                sage: L = NilpotentLieAlgebra(QQ, {('X','Y'): {'X': 1}})
+                sage: L = LieAlgebra(QQ, {('X','Y'): {'X': 1}}, nilpotent=True)
                 sage: L._test_nilpotency()
                 Traceback (most recent call last):
                 ...
@@ -93,11 +93,11 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
             
             EXAMPLES::
             
-                sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: NilpotentLieAlgebra(QQ, {('X','Y'): {'Z': 1}}).step()
+                sage: L = LieAlgebra(QQ, {('X','Y'): {'Z': 1}}, nilpotent=True)
+                sage: L.step()
                 2
                 sage: sc = {('X','Y'): {'Z': 1}, ('X','Z'): {'W': 1}}
-                sage: NilpotentLieAlgebra(QQ, sc).step()
+                sage: LieAlgebra(QQ, sc, nilpotent=True).step()
                 3
             """
             if not hasattr(self, '_step'):
@@ -110,8 +110,7 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
             EXAMPLES::
 
-                sage: from sage.algebras.lie_algebras.nilpotent_lie_algebra import NilpotentLieAlgebra
-                sage: L = NilpotentLieAlgebra(QQ, {('x','y'): {'z': 1}})
+                sage: L = LieAlgebra(QQ, {('x','y'): {'z': 1}}, nilpotent=True)
                 sage: L.is_nilpotent()
                 True
             """

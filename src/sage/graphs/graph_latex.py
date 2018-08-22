@@ -1594,55 +1594,6 @@ class GraphLatex(SageObject):
             return ((p[0] - xmin) * x_scale + llx,
                     (p[1] - ymin) * y_scale + lly)
 
-        # The positions of the vertices will get scaled to fill the
-        # specified size of the image, as given by graphic_size.
-        # But first a border is subtracted away and the graph
-        # is scaled to fit there.
-
-        # Lower left, upper right corners of box inside borders
-        llx = margins[0]
-        lly = margins[3]
-        urx = graphic_size[0] - margins[1]
-        ury = graphic_size[1] - margins[2]
-        # width and height of space
-        w = urx - llx
-        h = ury - lly
-
-        # TODO: Could use self._graph._layout_bounding_box(pos)
-        # trans = lambda x,y: [x[0]-y[0],x[1]-y[1]]
-        # Determine the spread in the x and y directions (i.e. xmax, ymax)
-        # Needs care for perfectly horizontal and vertical layouts
-        # pos = copy.deepcopy(self._graph.layout(layout = layout, labels = "latex"))
-        pos = self._graph.layout()
-        if pos.values():
-            xmin = min(i[0] for i in pos.values())
-            ymin = min(i[1] for i in pos.values())
-            xmax = max(i[0] for i in pos.values())
-            ymax = max(i[1] for i in pos.values())
-        else:
-            xmax, ymax = 0, 0
-
-        # Linear scaling factors that will be used to scale the image to
-        # fit into the bordered region.  Purely horizontal, or purely vertical,
-        # layouts get put in the middle of the bounding box by setting the
-        # scaling to a constant value on a midline
-        xspread = xmax - xmin
-        if xspread == 0:
-            x_scale = 0.0
-            llx = llx + 0.5 * w
-        else:
-            x_scale = float(w) / xspread
-        yspread = ymax - ymin
-        if yspread == 0:
-            y_scale = 0.0
-            lly = lly + 0.5 * h
-        else:
-            y_scale = float(h) / yspread
-
-        # Could preserve aspect ratio here by setting both scale factors to the minimum
-        # and doing a shift of the larger to center
-        # A linear function will map layout positions into the bordered graphic space
-
         #############
         #  Vertices
         #############

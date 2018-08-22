@@ -782,7 +782,9 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import _search_src_or_doc
-        sage: print(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', '^combinat', interact=False)) # random # long time
+        sage: print(_search_src_or_doc('src', r'matrix\(',  # long time random
+        ....:       'incidence_structures', 'self',
+        ....:       '^combinat', interact=False))
         misc/sagedoc.py:        sage: _search_src_or_doc('src', 'matrix(', 'incidence_structures', 'self', '^combinat', interact=False)
         combinat/designs/incidence_structures.py:        M1 = self.incidence_matrix()
         combinat/designs/incidence_structures.py:        A = self.incidence_matrix()
@@ -807,6 +809,17 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         True
         sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)  # optional - dochtml
         True
+
+    When passing ``interactive=True``, in a terminal session this will pass the
+    ``text/plain`` output to the configured pager, while in a notebook session
+    it will display the ``text/html`` output in the notebook's pager.  However,
+    in a non-interactive session (as in the doctests) it should just print the
+    results to stdout::
+
+        sage: from sage.misc.sagedoc import _search_src_or_doc
+        sage: _search_src_or_doc('src', r'def _search_src_or_doc\(',
+        ....:                    interact=True)  # long time
+        misc/sagedoc.py:...:        def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     """
 
     # process keyword arguments
@@ -1108,6 +1121,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         misc/sagedoc.py:... print(search_src('^ *sage[:] .*search_src\(', interact=False)) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         misc/sagedoc.py:... print(search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False)) # random # long time
+        misc/sagedoc.py:... sage: results = search_src('format_search_as_html', # long time
+
 
     TESTS:
 
@@ -1232,11 +1247,11 @@ def format_search_as_html(what, results, search):
       string which is taken verbatim, or a list of multiple search terms if
       there were more than one
 
-    This function parses ``results``: each line should have the form
-    ``FILENAME: string`` where FILENAME is the file in which the string that
-    matched the search was found.  If FILENAME ends in '.html', then this is
-    part of the documentation; otherwise, it is in the source code.  In either
-    case, an appropriate link is created.
+    This function parses ``results``: each line should have either the form
+    ``FILENAME`` or ``FILENAME: string`` where FILENAME is the file in which
+    the string that matched the search was found.  If FILENAME ends in '.html',
+    then this is part of the documentation; otherwise, it is in the source
+    code.  In either case, an appropriate link is created.
 
     EXAMPLES::
 
@@ -1245,6 +1260,17 @@ def format_search_as_html(what, results, search):
         '<html><font color="black"><h2>Search Source: "antipode antihomomorphism"</h2></font><font color="darkpurple"><ol><li><a href="/src/algebras/steenrod_algebra_element.py" target="_blank"><tt>algebras/steenrod_algebra_element.py</tt></a>\n</ol></font></html>'
         sage: format_search_as_html('Other', 'html/en/reference/sage/algebras/steenrod_algebra_element.html:an antihomomorphism: if we call the antipode <span class="math">c</span>, then', 'antipode antihomomorphism')
         '<html><font color="black"><h2>Search Other: "antipode antihomomorphism"</h2></font><font color="darkpurple"><ol><li><a href="/doc/live/reference/sage/algebras/steenrod_algebra_element.html" target="_blank"><tt>reference/sage/algebras/steenrod_algebra_element.html</tt></a>\n</ol></font></html>'
+
+    TESTS:
+
+        Test that results from a ``search_src`` with ``multiline=True`` works
+        reasonably::
+
+            sage: results = search_src('format_search_as_html',  # long time
+            ....:                      multiline=True, interact=False)
+            sage: format_search_as_html('Source', results,  # long time
+            ....:                       'format_search_as_html')
+            '<html><font color="black"><h2>Search Source: "format_search_as_html"</h2></font><font color="darkpurple"><ol><li><a href="/src/misc/sagedoc.py" target="_blank"><tt>misc/sagedoc.py</tt></a>\n</ol></font></html>'
     """
 
     if not isinstance(search, list):
@@ -1267,9 +1293,9 @@ def format_search_as_html(what, results, search):
 
     files = set([])
     for L in results:
-        i = L.find(':')
-        if i != -1:
-            files.add(L[:i])
+        filename = L.strip().split(':', 1)[0]
+        if filename:
+            files.add(filename)
     files = sorted(files)
     for F in files:
         if F.endswith('.html'):

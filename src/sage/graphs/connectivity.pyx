@@ -27,6 +27,8 @@ Here is what the module can do:
     :meth:`is_cut_vertex` | Return True if the input vertex is a cut-vertex.
     :meth:`edge_connectivity` | Return the edge connectivity of the graph.
     :meth:`vertex_connectivity` | Return the vertex connectivity of the graph.
+    :meth:`~TriconnectivitySPQR.get_triconnected_components` | Return the triconnected components of a biconnected graph.
+    :meth:`~TriconnectivitySPQR.get_spqr_tree` | Returns the SPQR tree of a biconnected graph constructed from its triconnected components.
 
 **For DiGraph:**
 
@@ -1887,7 +1889,7 @@ def bridges(G, labels=True):
 # Methods for finding 3-vertex-connected components and building SPQR-tree
 # ==============================================================================
 
-def cleave(G, cut_vertices=None, virtual_edges=True):
+def cleave(G, cut_vertices=None, virtual_edges=True, solver=None, verbose=0):
     r"""
     Return the connected subgraphs separated by the input vertex cut.
 
@@ -1906,6 +1908,15 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
     - ``virtual_edges`` -- boolean (default: ``True``); whether to add virtual
       edges to the sides of the cut or not. A virtual edge is an edge between a
       pair of vertices of the cut that are not connected by an edge in ``G``.
+
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
     OUTPUT: A triple `(S, C, f)`, where
 
@@ -2021,7 +2032,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
                 raise ValueError("vertex {} is not a vertex of the input graph".format(u))
         cut_vertices = list(cut_vertices)
     else:
-        cut_size,cut_vertices = G.vertex_connectivity(value_only=False)
+        cut_size,cut_vertices = G.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
         if not cut_vertices:
             # Typical example is a clique
             raise ValueError("the input graph has no vertex cut")
@@ -2066,7 +2077,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
 
     return cut_sides, cocycles, virtual_cut_graph
 
-def spqr_tree(G):
+def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     r"""
     Return an SPQR-tree representing the triconnected components of the graph.
 
@@ -2094,6 +2105,28 @@ def spqr_tree(G):
     cocycles are dipole graphs with one edge per real edge between the included
     vertices and one additional (virtual) edge per connected component resulting
     from deletion of the vertices in the cut. See :wikipedia:`SPQR_tree`.
+
+    INPUT:
+
+    - ``G`` - the input graph.
+
+    - ``algorithm`` -- The algorithm to use in computing the SPQR tree of ``G``.
+        The following algorithms are supported:
+
+      - ``"Hopcroft_Tarjan"`` (default) -- Use the algorithm proposed by
+        Hopcroft and Tarjan in [Hopcroft1973]_ and later corrected by Gutwenger
+        and Mutzel in [Gut2001]_.
+
+      - ``"cleave"`` -- Using method :meth:`sage.graphs.connectivity.cleave`.
+
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
     OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
     and the subgraph of three-blocks in the decomposition.
@@ -2149,27 +2182,69 @@ def spqr_tree(G):
         sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
         True
 
+        sage: G = Graph('LlCG{O@?GBoMw?')
+        sage: T = spqr_tree(G, algorithm="Hopcroft_Tarjan")
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+        sage: T2 = spqr_tree(G, algorithm='cleave')
+        sage: G.is_isomorphic(spqr_tree_to_graph(T2))
+        True
+
+        sage: G = Graph([(0, 1)], multiedges=True)
+        sage: T = spqr_tree(G, algorithm='cleave')
+        sage: T.vertices()
+        [('Q', Multi-graph on 2 vertices)]
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+        sage: T = spqr_tree(G, algorithm='Hopcroft_Tarjan')
+        sage: T.vertices()
+        [('Q', Multi-graph on 2 vertices)]
+        sage: G.add_edge(0, 1)
+        sage: spqr_tree(G, algorithm='cleave').vertices()
+        [('P', Multi-graph on 2 vertices)]
+
     TESTS::
 
         sage: G = graphs.PathGraph(4)
         sage: spqr_tree(G)
         Traceback (most recent call last):
         ...
-        ValueError: generation of SPQR-trees is only implemented for 2-connected graphs
+        ValueError: Graph is not biconnected
 
         sage: G = Graph([(0, 0)], loops=True)
         sage: spqr_tree(G)
         Traceback (most recent call last):
         ...
-        ValueError: generation of SPQR-trees is only implemented for graphs without loops
+        ValueError: Graph is not biconnected
+
+        sage: spqr_tree(Graph(), algorithm="easy")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: SPQR tree algorithm 'easy' is not implemented
     """
+    from sage.graphs.generic_graph import GenericGraph
+    if not isinstance(G, GenericGraph):
+        raise TypeError("the input must be a Sage graph")
+
+    if algorithm == "Hopcroft_Tarjan":
+        from sage.graphs.connectivity import TriconnectivitySPQR
+        tric = TriconnectivitySPQR(G)
+        return tric.get_spqr_tree()
+
+    if algorithm != "cleave":
+        raise NotImplementedError("SPQR tree algorithm '{}' is not implemented".format(algorithm))
+
     from sage.graphs.graph import Graph
     from collections import Counter
 
     if G.has_loops():
         raise ValueError("generation of SPQR-trees is only implemented for graphs without loops")
 
-    cut_size, cut_vertices = G.vertex_connectivity(value_only=False)
+    if G.order() == 2 and G.size():
+        return Graph({('Q' if G.size() == 1 else 'P', Graph(G, immutable=True, multiedges=True)):[]},
+                         name='SPQR-tree of {}'.format(G.name()))
+
+    cut_size, cut_vertices = G.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
 
     if cut_size < 2:
         raise ValueError("generation of SPQR-trees is only implemented for 2-connected graphs")
@@ -2200,72 +2275,67 @@ def spqr_tree(G):
     # We now search for 2-vertex cuts. If a cut is found, we split the graph and
     # check each side for S or R blocks or another 2-vertex cut
     R_blocks = []
-    virtual_edges = set()
     two_blocks = [(SG, cut_vertices)]
-    cycles_graph = Graph(multiedges=True)
     cocycles_count = Counter()
+    cycles_list = []
+    virtual_to_cycles = dict()
 
     while two_blocks:
         B,B_cut = two_blocks.pop()
         # B will be always simple graph.
         S, C, f = cleave(B, cut_vertices=B_cut)
+        # Store the number of edges of the cocycle (P block)
+        fe = frozenset(B_cut)
+        cocycles_count[fe] += C.size()
+        # Check the sides of the cut
         for K in S:
             if K.is_cycle():
-                # Add all the edges of K to cycles list.
-                cycles_graph.add_edges(e for e in K.edge_iterator(labels=False))
+                # Add this cycle to the list of cycles
+                cycles_list.append(K)
+                # We associate the index of K in cycle_list to the virtual edge
+                if f.size():
+                    if fe in virtual_to_cycles:
+                        virtual_to_cycles[fe].append(len(cycles_list)-1)
+                    else:
+                        virtual_to_cycles[fe] = [len(cycles_list)-1]
             else:
-                K_cut_size,K_cut_vertices = K.vertex_connectivity(value_only=False)
+                K_cut_size,K_cut_vertices = K.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
                 if K_cut_size == 2:
                     # The graph has a 2-vertex cut. We add it to the stack
                     two_blocks.append((K, K_cut_vertices))
                 else:
                     # The graph is 3-vertex connected
                     R_blocks.append(('R', Graph(K, immutable=True)))
-        # Store edges of cocycle (P block) and virtual edges (if any)
-        cocycles_count.update(frozenset(e) for e in C.edge_iterator(labels=False))
-        virtual_edges.update(frozenset(e) for e in f.edge_iterator(labels=False))
 
+    # Cycles of order > 3 may have been triangulated; We undo this to reduce the
+    # number of S-blocks. Two cycles can be merged if they share a virtual edge
+    # that is not shared by any other block, i.e., cocycles_count[e] == 2. We
+    # use a DisjointSet to form the groups of cycles to be merged.
+    from sage.sets.disjoint_set import DisjointSet
+    DS = DisjointSet(range(len(cycles_list)))
+    for e in virtual_to_cycles:
+        if cocycles_count[e] == 2 and len(virtual_to_cycles[e]) == 2:
+            # This virtual edge is only between 2 cycles
+            C1, C2 = virtual_to_cycles[e]
+            DS.union(C1, C2)
+            cycles_list[C1].delete_edge(e)
+            cycles_list[C2].delete_edge(e)
+            cocycles_count[e] -= 2
 
-    # Cycles of order > 3 may have been triangulated; We undo this to reduce
-    # the number of S-blocks. We start removing edges of the triangulation.
-    count = Counter([frozenset(e) for e in cycles_graph.multiple_edges(labels=False)])
-    for e,num in count.items():
-        if num == 2 and e in virtual_edges:
-            virtual_edges.discard(e)
-            for _ in range(num):
-                cycles_graph.delete_edge(e)
-                cocycles_count[e] -= 1
-
-    # We then extract cycles to form S_blocks
+    # We finalize the creation of S_blocks.
     S_blocks = []
-    if not cycles_graph:
-        tmp = []
-    elif cycles_graph.is_connected():
-        tmp = [cycles_graph]
-    else:
-        tmp = list(cycles_graph.connected_components_subgraphs())
-    while tmp:
-        block = tmp.pop()
-        if block.is_cycle():
-            S_blocks.append(('S', Graph(block, immutable=True)))
-        elif block.has_multiple_edges():
-            cut = block.multiple_edges(labels=False)[0]
-            S,C,f = cleave(block, cut_vertices=cut)
-            # Remove the cut edge from `S block` components if present
-            for h in S:
-                while h.has_edge(cut):
-                    h.delete_edge(cut)
-                h.add_edge(cut)
-                tmp.append(h)
-        else:
-            # This should never happen
-            raise ValueError("something goes wrong")
+    for root,indexes in DS.root_to_elements_dict().items():
+        E = []
+        for i in indexes:
+            E.extend(cycles_list[i].edge_iterator(labels=False))
+        S_blocks.append(('S', Graph(E, immutable=True)))
 
 
     # We now build the SPQR tree
     Tree = Graph(name='SPQR tree of {}'.format(G.name()))
     SR_blocks = S_blocks + R_blocks
     Tree.add_vertices(SR_blocks)
+    P2 = []
     for e,num in cocycles_count.items():
         if num:
             P_block = ('P', Graph([e] * (num + max(0, counter_multiedges[e] - 1)), multiedges=True, immutable=True))
@@ -2278,6 +2348,17 @@ def spqr_tree(G):
                         Tree.add_edge(block, P_block)
                 except:
                     continue
+            if num == 2:
+                # When 2 S or R blocks are separated by a 2-cut without edge, we
+                # have added a P block with only 2 edges. We must remove them
+                # and connect neighbors by an edge. So we record these blocks
+                P2.append(P_block)
+
+    # We now remove the P blocks with only 2 edges.
+    for P_block in P2:
+        u, v = Tree.neighbors(P_block)
+        Tree.add_edge(u, v)
+        Tree.delete_vertex(P_block)
 
     # We finally add P blocks to account for multiple edges of the input graph
     # that are not involved in any separator of the graph
@@ -2342,19 +2423,1465 @@ def spqr_tree_to_graph(T):
     from collections import Counter
 
     count_G = Counter()
+    count_P = Counter()
     for t,g in T.vertex_iterator():
-        if not t == 'P':
-            count_G.update(g.edge_iterator(labels=False))
-
-    for t,g in T.vertex_iterator():
-        if t == 'P':
-            count_g = Counter(g.edge_iterator(labels=False))
-            for e,num in count_g.items():
-                count_G[e] = abs(count_g[e] - count_G[e])
+        if t in ['P', 'Q']:
+            count_P.update(g.edge_iterator())
+        else:
+            count_G.update(g.edge_iterator())
 
     G = Graph(multiedges=True)
     for e,num in count_G.items():
+        if e in count_P:
+            num = abs(count_P[e] - count_G[e])
+        elif num == 2:
+            # Case of 2 S or R blocks separated by a 2-cut without edge.
+            # No P-block was created as a P-block has at least 3 edges.
+            continue
         for _ in range(num):
             G.add_edge(e)
 
+    # Some edges might only be in P_blocks. Such edges are true edges of the
+    # graph. This happen when virtual edges have distinct labels.
+    for e,num in count_P.items():
+        if e not in count_G:
+            for _ in range(num):
+                G.add_edge(e)
+
     return G
+
+
+class _LinkedListNode:
+    """
+    Node in a ``LinkedList``.
+
+    This class is a helper class for ``TriconnectivitySPQR``.
+
+    This class implements a node of a (doubly) linked list and so has pointers
+    to previous and next nodes in the list. If this node is the ``head`` of the
+    linked list, reference to the linked list object is stored in ``listobj``.
+    """
+
+    def __init__(self, data=None):
+        """
+        Initialize this ``LinkedListNode``.
+
+        INPUT:
+
+        - ``data`` -- (default: ``None``) either an edge, or an integer.
+        """
+        self.prev = None
+        self.next = None
+        self.set_data(data)
+
+    def set_data(self, data):
+        self.data = data
+
+    def get_data(self):
+        return self.data
+
+class _LinkedList:
+    """
+    A doubly linked list with head and tail pointers.
+
+    This is a helper class for ``TriconnectivitySPQR``.
+
+    This class implements a doubly linked list of ``LinkedListNode``.
+    """
+    def __init__(self):
+        """
+        Initialize this ``LinkedList``.
+        """
+        self.head = None
+        self.tail = None
+        self.length = 0
+
+    def remove(self, node):
+        """
+        Remove the node ``node`` from the linked list.
+        """
+        if node.prev is None and node.next is None:
+            self.head = None
+            self.tail = None
+        elif node.prev is None: # node is head
+            self.head = node.next
+            node.next.prev = None
+        elif node.next is None: #node is tail
+            node.prev.next = None
+            self.tail = node.prev
+        else:
+            node.prev.next = node.next
+            node.next.prev = node.prev
+        self.length -= 1
+
+    def set_head(self, h):
+        """
+        Set the node ``h`` as the head of the linked list.
+        """
+        self.head = h
+        self.tail = h
+        self.length = 1
+
+    def append(self, node):
+        """
+        Append the node ``node`` to the linked list.
+        """
+        if self.head is None:
+            self.set_head(node)
+        else:
+            self.tail.next = node
+            node.prev = self.tail
+            self.tail = node
+            self.length += 1
+
+    def get_head(self):
+        return self.head
+
+    def get_length(self):
+        return self.length
+
+    def push_front(self, node):
+        """
+        Add node ``node`` to the beginning of the linked list.
+        """
+        if self.head is None:
+            self.set_head(node)
+        else:
+            self.head.prev = node
+            node.next = self.head
+            self.head = node
+            self.length += 1
+
+    def to_string(self):
+        """
+        Return a string representation of self.
+        """
+        temp = self.head
+        s = ""
+        while temp:
+            s += "  " + str(temp.get_data())
+            temp = temp.next
+        return s
+
+    def concatenate(self, lst2):
+        """
+        Concatenates lst2 to self.
+
+        Makes lst2 empty.
+        """
+        self.tail.next = lst2.head
+        lst2.head.prev = self.tail
+        self.tail = lst2.tail
+        self.length += lst2.length
+        lst2.head = None
+        lst2.length = 0
+
+class _Component:
+    """
+    Connected component class.
+
+    This is a helper class for ``TriconnectivitySPQR``.
+
+    This class is used to store a connected component. It contains:
+    - ``edge_list`` -- list of edges belonging to the component, stored as a ``LinkedList``.
+    - ``component_type`` -- the type of the component.
+        - 0 if bond.
+        - 1 if polygon.
+        - 2 is triconnected component.
+    """
+    def __init__(self, edge_list, type_c):
+        """
+        Initialize this component.
+
+        INPUT:
+
+        - ``edge_list`` -- list of edges to be added to the component.
+
+        - `type_c` -- type of the component (0, 1, or 2).
+        """
+        self.edge_list = _LinkedList()
+        for e in edge_list:
+            self.edge_list.append(_LinkedListNode(e))
+        self.component_type = type_c
+
+    def add_edge(self, e):
+        self.edge_list.append(_LinkedListNode(e))
+
+    def finish_tric_or_poly(self, e):
+        """
+        Edge `e` is the last edge to be added to the component.
+        Classify the component as a polygon or triconnected component
+        depending on the number of edges belonging to it.
+        """
+        self.add_edge(e)
+        if self.edge_list.get_length() >= 4:
+            self.component_type = 2
+        else:
+            self.component_type = 1
+
+    def __str__(self):
+        """
+        Return a string representation of the component.
+        """
+        if self.component_type == 0:
+            type_str = "Bond: "
+        elif self.component_type == 1:
+            type_str =  "Polygon: "
+        else:
+            type_str = "Triconnected: "
+        return type_str + self.edge_list.to_string()
+
+    def get_edge_list(self):
+        """
+        Return the list of edges belonging to the component.
+        """
+        cdef list e_list = []
+        e_node = self.edge_list.get_head()
+        while e_node:
+            e_list.append(e_node.get_data())
+            e_node = e_node.next
+        return e_list
+
+
+class TriconnectivitySPQR:
+    r"""
+    Decompose a graph into triconnected components and build SPQR-tree.
+
+    This class implements the algorithm proposed by Hopcroft and Tarjan in
+    [Hopcroft1973]_, and later corrected by Gutwenger and Mutzel in [Gut2001]_,
+    for finding the triconnected components of a biconnected graph. It then
+    organizes these components into a SPQR-tree (See :wikipedia:`SPQR_tree`).
+
+    A SPQR-tree is a tree data structure used to represent the triconnected
+    components of a biconnected (multi)graph and the 2-vertex cuts separating
+    them. A node of a SPQR-tree, and the graph associated with it, can be one of
+    the following four types:
+
+    - ``"S"`` -- the associated graph is a cycle with at least three vertices.
+      ``"S"`` stands for ``series`` and is also called a ``polygon``.
+
+    - ``"P"`` -- the associated graph is a dipole graph, a multigraph with two
+      vertices and three or more edges. ``"P"`` stands for ``parallel`` and the
+      node is called a ``bond``.
+
+    - ``"Q"`` -- the associated graph has a single real edge. This trivial case
+      is necessary to handle the graph that has only one edge.
+
+    - ``"R"`` -- the associated graph is a 3-vertex-connected graph that is not
+      a cycle or dipole. ``"R"`` stands for ``rigid``.
+
+    The edges of the tree indicate the 2-vertex cuts of the graph.
+
+    INPUT:
+
+    - ``G`` -- The input graph. If ``G`` is a DiGraph, the computation is done
+      on the underlying Graph (i.e., ignoring edge orientation).
+
+    - ``check`` (default: ``True``) -- Boolean to indicate whether ``G`` needs
+      to be tested for biconnectivity.
+
+    .. SEEALSO::
+
+        - :meth:`sage.graphs.connectivity.spqr_tree`
+        - :meth:`~Graph.is_biconnected`
+        - :wikipedia:`SPQR_tree`
+
+    EXAMPLES:
+
+    :wikipedia:`SPQR_tree` reference paper example::
+
+        sage: from sage.graphs.connectivity import TriconnectivitySPQR
+        sage: from sage.graphs.connectivity import spqr_tree_to_graph
+        sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (3, 4), (2, 3),
+        ....: (2, 13), (3, 13), (4, 5), (4, 7), (5, 6), (5, 8), (5, 7), (6, 7),
+        ....: (8, 11), (8, 9), (8, 12), (9, 10), (9, 11), (9, 12), (10, 12)])
+        sage: tric = TriconnectivitySPQR(G)
+        sage: T = tric.get_spqr_tree()
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+
+    An example from [Hopcroft1973]_::
+
+        sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (1, 13), (2, 3),
+        ....: (2, 13), (3, 4), (3, 13), (4, 5), (4, 7), (5, 6), (5, 7), (5, 8),
+        ....: (6, 7), (8, 9), (8, 11), (8, 12), (9, 10), (9, 11), (9, 12),
+        ....: (10, 11), (10, 12)])
+        sage: tric = TriconnectivitySPQR(G)
+        sage: tric.print_triconnected_components()
+        Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
+        Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
+        Polygon:  [(8, 12, 'newVEdge1'), (1, 12, None), (8, 1, 'newVEdge2')]
+        Bond:  [(1, 8, None), (8, 1, 'newVEdge2'), (8, 1, 'newVEdge3')]
+        Polygon:  [(5, 8, None), (8, 1, 'newVEdge3'), (4, 5, 'newVEdge8'), (4, 1, 'newVEdge9')]
+        Polygon:  [(5, 6, None), (6, 7, None), (5, 7, 'newVEdge5')]
+        Bond:  [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
+        Polygon:  [(5, 7, 'newVEdge6'), (4, 7, None), (5, 4, 'newVEdge7')]
+        Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
+        Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
+        Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
+        Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
+
+    An example from [Gut2001]_::
+
+        sage: G = Graph([(1, 2), (1, 4), (2, 3), (2, 5), (3, 4), (3, 5), (4, 5),
+        ....: (4, 6), (5, 7), (5, 8), (5, 14), (6, 8), (7, 14), (8, 9), (8, 10),
+        ....: (8, 11), (8, 12), (9, 10), (10, 13), (10, 14), (10, 15), (10, 16),
+        ....: (11, 12), (11, 13), (12, 13), (14, 15), (14, 16), (15, 16)])
+        sage: T = TriconnectivitySPQR(G).get_spqr_tree()
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+
+    An example with multi-edges and accessing the triconnected components::
+
+        sage: G = Graph([(1, 2), (1, 5), (1, 5), (2, 3), (2, 3), (3, 4), (4, 5)], multiedges=True)
+        sage: tric = TriconnectivitySPQR(G)
+        sage: tric.print_triconnected_components()
+        Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge0')]
+        Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge1')]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge1'), (3, 4, None), (1, 2, None), (2, 3, 'newVEdge0')]
+
+    An example of a triconnected graph::
+
+        sage: G = Graph([('a', 'b'), ('a', 'c'), ('a', 'd'), ('b', 'c'), ('b', 'd'), ('c', 'd')])
+        sage: T = TriconnectivitySPQR(G).get_spqr_tree()
+        sage: print(T.vertices())
+        [('R', Multi-graph on 4 vertices)]
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+
+    An example of a directed graph with multi-edges::
+
+        sage: G = DiGraph([(1, 2), (2, 3), (3, 4), (4, 5), (1, 5), (5, 1)])
+        sage: tric = TriconnectivitySPQR(G)
+        sage: tric.print_triconnected_components()
+        Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, None)]
+
+    Edge labels are preserved by the construction::
+
+        sage: G = Graph([(0, 1, '01'), (0, 4, '04'), (1, 2, '12'), (1, 5, '15'),
+        ....: (2, 3, '23'), (2, 6, '26'), (3, 7, '37'), (4, 5, '45'),
+        ....: (5, 6, '56'), (6, 7, '67')])
+        sage: T = TriconnectivitySPQR(G).get_spqr_tree()
+        sage: H = spqr_tree_to_graph(T)
+        sage: set(G.edges()) == set(H.edges())
+        True
+
+    TESTS:
+
+    A disconnected graph::
+
+        sage: from sage.graphs.connectivity import TriconnectivitySPQR
+        sage: G = Graph([(1,2),(3,5)])
+        sage: tric = TriconnectivitySPQR(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph is not connected
+
+    A graph with a cut vertex::
+
+        sage: from sage.graphs.connectivity import TriconnectivitySPQR
+        sage: G = Graph([(1,2),(1,3),(2,3),(3,4),(3,5),(4,5)])
+        sage: tric = TriconnectivitySPQR(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph has a cut vertex
+    """
+    def __init__(self, G, check=True):
+        """
+        """
+        self.n = G.order()
+        self.m = G.size()
+        self.graph_name = G.name()
+
+        # Trivial cases
+        if self.n < 2:
+            raise ValueError("Graph is not biconnected")
+        elif self.n == 2 and self.m:
+            # a P block with at least 1 edge
+            self.comp_list_new = [G.edges()]
+            self.comp_type = [0]
+            self.__build_spqr_tree()
+            return
+        elif self.m < self.n -1:
+            # less edges than a tree
+            raise ValueError("Graph is not connected")
+        elif self.m < self.n:
+            # less edges than a cycle
+            raise ValueError("Graph is not biconnected")
+
+        from sage.graphs.graph import Graph
+
+        # Make a copy of the input graph G in which
+        # - vertices are relabeled as integers in [0..n-1]
+        # - edges are relabeled with distinct labels in order to distinguish
+        #   between multi-edges
+        self.int_to_vertex = G.vertices()
+        self.vertex_to_int = {u:i for i,u in enumerate(self.int_to_vertex)}
+        self.int_to_original_edge_label = [] # to associate original edge label
+        self.graph_copy = Graph(self.n, multiedges=True)
+        for i,(u, v, l) in enumerate(G.edge_iterator()):
+            self.graph_copy.add_edge(self.vertex_to_int[u], self.vertex_to_int[v], i)
+            self.int_to_original_edge_label.append(l)
+
+        #
+        # Initialize data structures needed for the algorithm
+        #
+
+        # status of each edge: unseen=0, tree=1, frond=2
+        self.edge_status = {e: 0 for e in self.graph_copy.edge_iterator()}
+
+        # Edges of the graph which are in the reverse direction in palm tree
+        self.reverse_edges = set()
+
+        self.dfs_number = [0 for i in range(self.n)] # DFS number of vertex i
+
+        # Linked list of fronds entering vertex i in the order they are visited
+        self.highpt = [_LinkedList() for i in range(self.n)]
+
+        # A dictionary whose key is an edge e, value is a pointer to element in
+        # self.highpt containing the edge e. Used in the `path_search` function.
+        self.in_high = {e:None for e in self.graph_copy.edge_iterator()}
+
+        # Translates DFS number of a vertex to its new number
+        self.old_to_new = [0 for i in range(self.n+1)]
+        self.newnum = [0 for i in range(self.n)] # new number of vertex i
+        self.node_at = [0 for i in range(self.n+1)] # node at dfs number of i
+        self.lowpt1 = [None for i in range(self.n)] # lowpt1 number of vertex i
+        self.lowpt2 = [None for i in range(self.n)] # lowpt2 number of vertex i
+
+        # i^th value contains a LinkedList of incident edges of vertex i
+        self.adj = [_LinkedList() for i in range(self.n)]
+
+        # A dictionary whose key is an edge, value is a pointer to element in
+        # self.adj containing the edge. Used in the `path_search` function.
+        self.in_adj = {}
+        self.nd = [None for i in range(self.n)] # number of descendants of vertex i
+
+        # Parent vertex of vertex i in the palm tree
+        self.parent = [None for i in range(self.n)]
+        self.degree = [None for i in range(self.n)] # Degree of vertex i
+        self.tree_arc = [None for i in range(self.n)] # Tree arc entering the vertex i
+        self.vertex_at = [1 for i in range(self.n)] # vertex with DFS number of i
+        self.dfs_counter = 0
+        self.components_list = [] # list of components of `graph_copy`
+        self.graph_copy_adjacency = [[] for i in range(self.n)] # Stores adjacency list
+
+        # Dictionary of (e, True/False) to denote if edge e starts a path
+        self.starts_path = {e:False for e in self.graph_copy.edge_iterator()}
+
+        self.is_biconnected = True # Boolean to store if the graph is biconnected or not
+        self.cut_vertex = None # If graph is not biconnected
+
+        # Label used for virtual edges, incremented at every new virtual edge
+        self.virtual_edge_num = 0
+
+        self.new_path = False # Boolean used to store if new path is started
+
+        # Stacks used in `path_search` function
+        self.e_stack = []
+        self.t_stack_h = [None for i in range(2*self.m + 1)]
+        self.t_stack_a = [None for i in range(2*self.m + 1)]
+        self.t_stack_b = [None for i in range(2*self.m + 1)]
+        self.t_stack_top = 0
+        self.t_stack_a[self.t_stack_top] = -1
+
+        # The final triconnected components are stored
+        self.comp_list_new = [] # i^th entry is list of edges in i^th component
+        self.comp_type = [] # i^th entry is type of i^th component
+        # The final SPQR tree is stored
+        self.spqr_tree = None # Graph
+
+        #
+        # Triconnectivity algorithm
+        #
+
+        # Deal with multiple edges
+        self.__split_multiple_edges()
+
+        # Build adjacency list
+        for e in self.graph_copy.edge_iterator():
+            self.graph_copy_adjacency[e[0]].append(e)
+            self.graph_copy_adjacency[e[1]].append(e)
+
+        self.dfs_counter = 0 # Initialisation for dfs1()
+        self.start_vertex = 0 # Initialisation for dfs1()
+        self.cut_vertex = self.__dfs1(self.start_vertex, check=check)
+
+        if check:
+            # If graph is disconnected
+            if self.dfs_counter < self.n:
+                raise ValueError("Graph is not connected")
+
+            # If graph has a cut vertex
+            if self.cut_vertex != None:
+                raise ValueError("Graph has a cut vertex")
+
+        # Identify reversed edges to reflect the palm tree arcs and fronds
+        for e in self.graph_copy.edge_iterator():
+            up = (self.dfs_number[e[1]] - self.dfs_number[e[0]]) > 0
+            if (up and self.edge_status[e]==2) or (not up and self.edge_status[e]==1):
+                # Add edge to the set reverse_edges
+                self.reverse_edges.add(e)
+
+        self.__build_acceptable_adj_struct()
+        self.__dfs2()
+
+        self.__path_search(self.start_vertex)
+
+        # last split component
+        c = _Component([],0)
+        while self.e_stack:
+            c.add_edge(self.__estack_pop())
+        c.component_type = 2 if c.edge_list.get_length() > 4 else 1
+        self.components_list.append(c)
+        c = None
+
+        self.__assemble_triconnected_components()
+
+        self.__build_spqr_tree()
+
+    def __tstack_push(self, h, a, b):
+        """
+        Push ``(h, a, b)`` triple on Tstack
+        """
+        self.t_stack_top += 1
+        self.t_stack_h[self.t_stack_top] = h
+        self.t_stack_a[self.t_stack_top] = a
+        self.t_stack_b[self.t_stack_top] = b
+
+    def __tstack_push_eos(self):
+        """
+        Push end-of-stack marker on Tstack
+        """
+        self.t_stack_top += 1
+        self.t_stack_a[self.t_stack_top] = -1
+
+    def __tstack_not_eos(self):
+        """
+        Return true iff end-of-stack marker is not on top of Tstack
+        """
+        return self.t_stack_a[self.t_stack_top] != -1
+
+    def __estack_pop(self):
+        """
+        Pop from estack and return the popped element
+        """
+        return self.e_stack.pop()
+
+    def __new_component(self, edges=[], type_c=0):
+        """
+        Create a new component and add `edges` to it.
+        type_c = 0 for bond, 1 for polygon, 2 for triconnected component
+        """
+        c = _Component(edges, type_c)
+        self.components_list.append(c)
+        return c
+
+    def __high(self, v):
+        """
+        Return the high(v) value, which is the first value in highpt list of v.
+        """
+        head = self.highpt[v].get_head()
+        if head is None:
+            return 0
+        else:
+            return head.get_data()
+
+    def __del_high(self, e):
+        """
+        Delete edge e from the highpt list of the endpoint v it belongs to.
+        """
+        if e in self.in_high:
+            it = self.in_high[e]
+            if it:
+                if e in self.reverse_edges:
+                    v = e[0]
+                else:
+                    v = e[1]
+                self.highpt[v].remove(it)
+
+    def __bucket_sort(self, bucket, edge_list):
+        """
+        Use radix sort to sort the buckets
+        """
+        # if only one edge is present
+        if len(bucket) == 1:
+            return
+
+        # Create n bucket linked lists
+        bucket_list = []
+        for i in range(self.n):
+            bucket_list.append(_LinkedList())
+
+        # Get the head pointer of the edge list
+        e_node = edge_list.head
+
+        # Link the n buckets w.r.t bucketId
+        while e_node:
+            bucketId = bucket[e_node.get_data()]
+            if bucket_list[bucketId].get_head():
+                bucket_list[bucketId].tail.next = e_node
+                bucket_list[bucketId].tail = bucket_list[bucketId].tail.next
+            else:
+                bucket_list[bucketId].set_head(e_node)
+            e_node = e_node.next
+
+        # Rearrange the `edge_list` Using bucket list
+        new_tail = None
+        for i in range(self.n):
+            new_head = bucket_list[i].get_head()
+            if new_head:
+                if new_tail:
+                    new_tail.next = new_head
+                else:
+                    edge_list.set_head(new_head)
+                new_tail = bucket_list[i].tail
+
+        edge_list.tail = new_tail
+        new_tail.next = None
+
+    def __sort_edges(self):
+        """
+        A helper function for `split_multiple_edges` to sort the edges of
+        graph_copy.
+
+        Sorts the edges of `graph_copy` and stores the sorted edges in a linked
+        list. The head pointer of the linked list is returned.
+
+        This function is an implementation of the sorting algorithm given in
+        [Hopcroft1973]_.
+        """
+        # Create a linkedlist of edges
+        edge_list = _LinkedList()
+        for e in self.graph_copy.edges(sort=False):
+            edge_list.append(_LinkedListNode(e))
+
+        bucketMin = {} # Contains the lower index of edge end point
+        bucketMax = {} # Contains the higher index of edge end point
+
+        # In `graph_copy`, every edge `(u, v)` is such that `u < v`.
+        # Hence, `bucketMin` of an edge `(u, v)` will be `u`
+        # and `bucketMax` will be `v`.
+        for e in self.graph_copy.edge_iterator():
+            bucketMin[e] = e[0]
+            bucketMax[e] = e[1]
+
+        # Sort according to the endpoint with lower index
+        self.__bucket_sort(bucketMin, edge_list)
+        # Sort according to the endpoint with higher index
+        self.__bucket_sort(bucketMax, edge_list)
+
+        # Return the head pointer to the sorted edge list
+        return edge_list.get_head()
+
+    def __split_multiple_edges(self):
+        """
+        Make the graph simple and build bonds recording multiple edges.
+
+        If there are `k` multiple edges between `u` and `v`, then a new
+        component (a bond) with `k+1` edges (one of them is a virtual edge) will
+        be created, all the `k` edges are deleted from the graph and the virtual
+        edge between `u` and `v` is added to the graph.
+        """
+        comp = []
+        if self.graph_copy.has_multiple_edges():
+            sorted_edges = self.__sort_edges()
+            while sorted_edges.next:
+                # Find multi edges and add to component and delete from graph
+                if (sorted_edges.get_data()[0] == sorted_edges.next.get_data()[0]) and \
+                   (sorted_edges.get_data()[1] == sorted_edges.next.get_data()[1]):
+                    self.graph_copy.delete_edge(sorted_edges.get_data())
+                    comp.append(sorted_edges.get_data())
+                else:
+                    if comp:
+                        comp.append(sorted_edges.get_data())
+                        self.graph_copy.delete_edge(sorted_edges.get_data())
+
+                        # Add virtual edge to graph_copy
+                        newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1], "newVEdge"+str(self.virtual_edge_num))
+                        self.graph_copy.add_edge(newVEdge)
+                        self.virtual_edge_num += 1
+
+                        # mark unseen for newVEdge
+                        self.edge_status[newVEdge] = 0
+
+                        comp.append(newVEdge)
+                        self.__new_component(comp)
+                    comp = []
+                sorted_edges = sorted_edges.next
+            if comp:
+                comp.append(sorted_edges.get_data())
+                self.graph_copy.delete_edge(sorted_edges.get_data())
+
+                # Add virtual edge to graph_copy
+                newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1], "newVEdge"+str(self.virtual_edge_num))
+                self.graph_copy.add_edge(newVEdge)
+                self.virtual_edge_num += 1
+                self.edge_status[newVEdge] = 0
+
+                comp.append(newVEdge)
+                self.__new_component(comp)
+
+    def __dfs1(self, v, u=None, check=True):
+        """
+        This function builds the palm-tree of the graph using a dfs traversal.
+
+        Also populates the lists ``lowpt1``, ``lowpt2``, ``nd``, ``parent``, and
+        ``dfs_number``.  It updates the dict ``edge_status`` to reflect palm
+        tree arcs and fronds.
+
+        INPUT:
+
+        - ``v`` -- The start vertex for DFS.
+
+        - ``u`` -- The parent vertex of ``v`` in the palm tree.
+
+        - ``check`` -- if ``True``, the graph is tested for biconnectivity. If
+          the graph has a cut vertex, the cut vertex is returned. If set to
+          ``False``, the graph is assumed to be biconnected, function returns
+          ``None``.
+
+        OUTPUT:
+
+        - If ``check`` is set to ``True``` and a cut vertex is found, the cut
+          vertex is returned. If no cut vertex is found, return ``None``.
+        - If ``check`` is set to ``False``, ``None`` is returned.
+        """
+        first_son = None # For testing biconnectivity
+        s1 = None # Storing the cut vertex, if there is one
+        self.dfs_counter += 1
+        self.dfs_number[v] = self.dfs_counter
+        self.parent[v] = u
+        self.degree[v] = self.graph_copy.degree(v)
+        self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
+        self.nd[v] = 1
+        for e in self.graph_copy_adjacency[v]:
+            if self.edge_status[e]:
+                continue
+
+            w = e[0] if e[0] != v else e[1] # Opposite vertex of edge e
+            if self.dfs_number[w] == 0:
+                self.edge_status[e] = 1 # tree edge
+                if first_son is None:
+                    first_son = w
+                self.tree_arc[w] = e
+                s1 = self.__dfs1(w, v, check)
+
+                if check:
+                    # Check for cut vertex.
+                    # The situation in which there is no path from w to an
+                    # ancestor of v : we have identified a cut vertex
+                    if (self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son or u != None):
+                        s1 = v
+
+                # Calculate the `lowpt1` and `lowpt2` values.
+                # `lowpt1` is the smallest vertex (the vertex x with smallest
+                # dfs_number[x]) that can be reached from v.
+                # `lowpt2` is the next smallest vertex that can be reached from v.
+                if self.lowpt1[w] < self.lowpt1[v]:
+                    self.lowpt2[v] = min(self.lowpt1[v], self.lowpt2[w])
+                    self.lowpt1[v] = self.lowpt1[w]
+
+                elif self.lowpt1[w] == self.lowpt1[v]:
+                    self.lowpt2[v] = min(self.lowpt2[v], self.lowpt2[w])
+
+                else:
+                    self.lowpt2[v] = min(self.lowpt2[v], self.lowpt1[w])
+
+                self.nd[v] += self.nd[w]
+
+            else:
+                self.edge_status[e] = 2 # frond
+                if self.dfs_number[w] < self.lowpt1[v]:
+                    self.lowpt2[v] = self.lowpt1[v]
+                    self.lowpt1[v] = self.dfs_number[w]
+                elif self.dfs_number[w] > self.lowpt1[v]:
+                    self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
+
+        return s1 # s1 is None if graph does not have a cut vertex
+
+
+    def __build_acceptable_adj_struct(self):
+        """
+        Builds the adjacency lists for each vertex with certain properties of
+        the ordering, using the ``lowpt1`` and ``lowpt2`` values.
+
+        The list ``adj`` and the dictionary ``in_adj`` are populated.
+
+        ``phi`` values of each edge are calculated using the ``lowpt`` values of
+        incident vertices. The edges are then sorted by the ``phi`` values and
+        added to adjacency list.
+        """
+        max_size = 3*self.n + 2
+        bucket = [[] for _ in range(max_size + 1)]
+
+        for e in self.graph_copy.edge_iterator():
+            edge_type = self.edge_status[e]
+
+            # compute phi value
+            # bucket sort adjacency list by phi values
+            if e in self.reverse_edges:
+                if edge_type == 1: # tree arc
+                    if self.lowpt2[e[0]] < self.dfs_number[e[1]]:
+                        phi = 3*self.lowpt1[e[0]]
+                    else:
+                        phi = 3*self.lowpt1[e[0]] + 2
+                else: # tree frond
+                    phi = 3*self.dfs_number[e[0]]+1
+            else:
+                if edge_type == 1: # tree arc
+                    if self.lowpt2[e[1]] < self.dfs_number[e[0]]:
+                        phi = 3*self.lowpt1[e[1]]
+                    else:
+                        phi = 3*self.lowpt1[e[1]] + 2
+                else: # tree frond
+                    phi = 3*self.dfs_number[e[1]]+1
+
+            bucket[phi].append(e)
+
+        # Populate `adj` and `in_adj` with the sorted edges
+        for i in range(1, max_size + 1):
+            for e in bucket[i]:
+                node = _LinkedListNode(e)
+                if e in self.reverse_edges:
+                    self.adj[e[1]].append(node)
+                    self.in_adj[e] = node
+                else:
+                    self.adj[e[0]].append(node)
+                    self.in_adj[e] = node
+
+    def __path_finder(self, v):
+        """
+        This function is a helper function for `__dfs2` function.
+        Calculate ``newnum[v]`` and identify the edges which start a new path.
+        """
+        self.newnum[v] = self.dfs_counter - self.nd[v] + 1
+        e_node = self.adj[v].get_head()
+        while e_node:
+            e = e_node.get_data()
+            e_node = e_node.next
+            w = e[1] if e[0] == v else e[0] # opposite vertex of e
+            if self.new_path:
+                self.new_path = False
+                self.starts_path[e] = True
+            if self.edge_status[e] == 1: # tree arc
+                self.__path_finder(w)
+                self.dfs_counter -= 1
+            else:
+                # Identified a new frond that enters `w`. Add to `highpt[w]`.
+                highpt_node = _LinkedListNode(self.newnum[v])
+                self.highpt[w].append(highpt_node)
+                self.in_high[e] = highpt_node
+                self.new_path = True
+
+
+    def __dfs2(self):
+        """
+        Update the values of ``lowpt1`` and ``lowpt2`` lists with the help of
+        new numbering obtained from ``__path_finder`` function.
+        Populate ``highpt`` values.
+        """
+        self.in_high = {e:None for e in self.graph_copy.edge_iterator()}
+        self.dfs_counter = self.n
+        self.newnum = [0 for i in range(self.n)]
+        self.starts_path = {e:False for e in self.graph_copy.edge_iterator()}
+
+        self.new_path = True
+
+        # We call the pathFinder function with the start vertex
+        self.__path_finder(self.start_vertex)
+
+        # Update `old_to_new` values with the calculated `newnum` values
+        for v in self.graph_copy.vertex_iterator():
+            self.old_to_new[self.dfs_number[v]] = self.newnum[v]
+
+        # Update lowpt values according to `newnum` values.
+        for v in self.graph_copy.vertex_iterator():
+            self.node_at[self.newnum[v]] = v
+            self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
+            self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]
+
+    def __path_search(self, v):
+        """
+        Find the separation pairs and construct the split components.
+        Check for type-1 and type-2 separation pairs, and construct the split
+        components while also creating new virtual edges wherever required.
+        """
+        y = 0
+        vnum = self.newnum[v]
+        outv = self.adj[v].get_length()
+        e_node = self.adj[v].get_head()
+        while e_node:
+            e = e_node.get_data()
+            it = e_node
+
+            if e in self.reverse_edges:
+                w = e[0] # target
+            else:
+                w = e[1]
+            wnum = self.newnum[w]
+            if self.edge_status[e] == 1: # e is a tree arc
+                if self.starts_path[e]: # if a new path starts at edge e
+                    y = 0
+                    # Pop all (h,a,b) from tstack where a > lowpt1[w]
+                    if self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
+                        while self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
+                            y = max(y, self.t_stack_h[self.t_stack_top])
+                            b = self.t_stack_b[self.t_stack_top]
+                            self.t_stack_top -= 1
+                        self.__tstack_push(y, self.lowpt1[w], b)
+
+                    else:
+                        self.__tstack_push(wnum + self.nd[w] - 1, self.lowpt1[w], vnum)
+                    self.__tstack_push_eos()
+
+                self.__path_search(w)
+
+                self.e_stack.append(self.tree_arc[w])
+                temp_node = self.adj[w].get_head()
+                temp = temp_node.get_data()
+                if temp in self.reverse_edges:
+                    temp_target = temp[0]
+                else:
+                    temp_target = temp[1]
+
+                # Type-2 separation pair check
+                # while v is not the start_vertex
+                while vnum != 1 and ((self.t_stack_a[self.t_stack_top] == vnum) or \
+                        (self.degree[w] == 2 and self.newnum[temp_target] > wnum)):
+
+                    a = self.t_stack_a[self.t_stack_top]
+                    b = self.t_stack_b[self.t_stack_top]
+                    e_virt = None
+                    if a == vnum and self.parent[self.node_at[b]] == self.node_at[a]:
+                        self.t_stack_top -= 1
+
+                    else:
+                        e_ab = None
+                        if self.degree[w] == 2 and self.newnum[temp_target] > wnum:
+                            # found type-2 separation pair - (v, temp_target)
+                            e1 = self.__estack_pop()
+                            e2 = self.__estack_pop()
+                            self.adj[w].remove(self.in_adj[e2])
+
+                            if e2 in self.reverse_edges:
+                                x = e2[0] # target
+                            else:
+                                x = e2[1] # target
+
+                            e_virt = tuple([v, x, "newVEdge"+str(self.virtual_edge_num)])
+                            self.graph_copy.add_edge(e_virt)
+                            self.virtual_edge_num += 1
+                            self.degree[v] -= 1
+                            self.degree[x] -= 1
+
+                            if e2 in self.reverse_edges:
+                                e2_source = e2[1] # target
+                            else:
+                                e2_source = e2[0]
+                            if e2_source != w:
+                                raise ValueError("Graph is not biconnected")
+
+                            comp = _Component([e1, e2, e_virt], 1)
+                            self.components_list.append(comp)
+                            comp = None
+
+                            if self.e_stack:
+                                e1 = self.e_stack[-1]
+                                if e1 in self.reverse_edges:
+                                    if e1[1] == x and e1[0] == v:
+                                        e_ab = self.__estack_pop()
+                                        self.adj[x].remove(self.in_adj[e_ab])
+                                        self.__del_high(e_ab)
+                                else:
+                                    if e1[0] == x and e1[1] == v:
+                                        e_ab = self.__estack_pop()
+                                        self.adj[x].remove(self.in_adj[e_ab])
+                                        self.__del_high(e_ab)
+
+                        else: # found type-2 separation pair - (self.node_at[a], self.node_at[b])
+                            h = self.t_stack_h[self.t_stack_top]
+                            self.t_stack_top -= 1
+
+                            comp = _Component([],0)
+                            while True:
+                                xy = self.e_stack[-1]
+                                if xy in self.reverse_edges:
+                                    x = xy[1]
+                                    xy_target = xy[0]
+                                else:
+                                    x = xy[0]
+                                    xy_target = xy[1]
+                                if not (a <= self.newnum[x] and self.newnum[x] <= h and \
+                                    a <= self.newnum[xy_target] and self.newnum[xy_target] <= h):
+                                    break
+                                if (self.newnum[x] == a and self.newnum[xy_target] == b) or \
+                                    (self.newnum[xy_target] == a and self.newnum[x] == b):
+                                    e_ab = self.__estack_pop()
+                                    if e_ab in self.reverse_edges:
+                                        e_ab_source = e_ab[1] # source
+                                    else:
+                                        e_ab_source = e_ab[0] # source
+                                    self.adj[e_ab_source].remove(self.in_adj[e_ab])
+                                    self.__del_high(e_ab)
+
+                                else:
+                                    eh = self.__estack_pop()
+                                    if eh in self.reverse_edges:
+                                        eh_source = eh[1]
+                                    else:
+                                        eh_source = eh[0]
+                                    if it != self.in_adj[eh]:
+                                        self.adj[eh_source].remove(self.in_adj[eh])
+                                        self.__del_high(eh)
+
+                                    comp.add_edge(eh)
+                                    self.degree[x] -= 1
+                                    self.degree[xy_target] -= 1
+
+                            e_virt = tuple([self.node_at[a], self.node_at[b], "newVEdge"+str(self.virtual_edge_num)])
+                            self.graph_copy.add_edge(e_virt)
+                            self.virtual_edge_num += 1
+                            comp.finish_tric_or_poly(e_virt)
+                            self.components_list.append(comp)
+                            comp = None
+                            x = self.node_at[b]
+
+                        if e_ab is not None:
+                            comp = _Component([e_ab, e_virt], type_c=0)
+                            e_virt = tuple([v, x, "newVEdge"+str(self.virtual_edge_num)])
+                            self.graph_copy.add_edge(e_virt)
+                            self.virtual_edge_num += 1
+                            comp.add_edge(e_virt)
+                            self.degree[x] -= 1
+                            self.degree[v] -= 1
+                            self.components_list.append(comp)
+                            comp = None
+
+                        self.e_stack.append(e_virt)
+                        # Replace the edge `it` with `e_virt`
+                        it.set_data(e_virt)
+
+                        self.in_adj[e_virt] = it
+                        self.degree[x] += 1
+                        self.degree[v] += 1
+                        self.parent[x] = v
+                        self.tree_arc[x] = e_virt
+                        self.edge_status[e_virt] = 1
+                        w = x
+                        wnum = self.newnum[w]
+
+                # start type-1 check
+                if self.lowpt2[w] >= vnum and self.lowpt1[w] < vnum and \
+                    (self.parent[v] != self.start_vertex or outv >= 2):
+                    # type-1 separation pair - (self.node_at[self.lowpt1[w]], v)
+                    # Create a new component and add edges to it
+                    comp = _Component([], 0)
+                    if not self.e_stack:
+                        raise ValueError("stack is empty")
+                    while self.e_stack:
+                        xy = self.e_stack[-1]
+                        if xy in self.reverse_edges:
+                            xx = self.newnum[xy[1]] #source
+                            y = self.newnum[xy[0]] #target
+                        else:
+                            xx = self.newnum[xy[0]] #source
+                            y = self.newnum[xy[1]] #target
+
+                        if not ((wnum <= xx and  xx < wnum + self.nd[w]) or \
+                            (wnum <= y and y < wnum + self.nd[w])):
+                            break
+
+                        comp.add_edge(self.__estack_pop())
+                        self.__del_high(xy)
+                        self.degree[self.node_at[xx]] -= 1
+                        self.degree[self.node_at[y]] -= 1
+
+                    e_virt = tuple([v, self.node_at[self.lowpt1[w]], "newVEdge"+str(self.virtual_edge_num)])
+                    self.graph_copy.add_edge(e_virt) # Add virtual edge to graph
+                    self.virtual_edge_num += 1
+                    comp.finish_tric_or_poly(e_virt) # Add virtual edge to component
+                    self.components_list.append(comp)
+                    comp = None
+
+                    if (xx == vnum and y == self.lowpt1[w]) or \
+                        (y == vnum and xx == self.lowpt1[w]):
+                        comp_bond = _Component([], type_c=0) # new triple bond
+                        eh = self.__estack_pop()
+                        if self.in_adj[eh] != it:
+                            if eh in self.reverse_edges:
+                                self.adj[eh[1]].remove(self.in_adj[eh])
+                            else:
+                                self.adj[eh[0]].remove(self.in_adj[eh])
+
+                        comp_bond.add_edge(eh)
+                        comp_bond.add_edge(e_virt)
+                        e_virt = (v, self.node_at[self.lowpt1[w]], "newVEdge"+str(self.virtual_edge_num))
+                        self.graph_copy.add_edge(e_virt)
+                        self.virtual_edge_num += 1
+                        comp_bond.add_edge(e_virt)
+                        if eh in self.in_high:
+                            self.in_high[e_virt] = self.in_high[eh]
+                        self.degree[v] -= 1
+                        self.degree[self.node_at[self.lowpt1[w]]] -= 1
+
+                        self.components_list.append(comp_bond)
+                        comp_bond = None
+
+                    if self.node_at[self.lowpt1[w]] != self.parent[v]:
+                        self.e_stack.append(e_virt)
+
+                        # replace edge `it` with `e_virt`
+                        it.set_data(e_virt)
+
+                        self.in_adj[e_virt] = it
+                        if not e_virt in self.in_high and self.__high(self.node_at[self.lowpt1[w]]) < vnum:
+                            vnum_node = _LinkedListNode(vnum)
+                            self.highpt[self.node_at[self.lowpt1[w]]].push_front(vnum_node)
+                            self.in_high[e_virt] = vnum_node
+
+                        self.degree[v] += 1
+                        self.degree[self.node_at[self.lowpt1[w]]] += 1
+
+                    else:
+                        self.adj[v].remove(it)
+                        comp_bond = _Component([e_virt], type_c=0)
+                        e_virt = (self.node_at[self.lowpt1[w]], v, "newVEdge"+str(self.virtual_edge_num))
+                        self.graph_copy.add_edge(e_virt)
+                        self.virtual_edge_num += 1
+                        comp_bond.add_edge(e_virt)
+
+                        eh = self.tree_arc[v];
+                        comp_bond.add_edge(eh)
+
+                        self.components_list.append(comp_bond)
+                        comp_bond = None
+
+                        self.tree_arc[v] = e_virt
+                        self.edge_status[e_virt] = 1
+                        if eh in self.in_adj:
+                            self.in_adj[e_virt] = self.in_adj[eh]
+                        e_virt_node = _LinkedListNode(e_virt)
+                        self.in_adj[eh] = e_virt_node
+                        # end type-1 search
+
+                # if an path starts at edge e, empty the tstack.
+                if self.starts_path[e]:
+                    while self.__tstack_not_eos():
+                        self.t_stack_top -= 1
+                    self.t_stack_top -= 1
+
+                while self.__tstack_not_eos() and self.t_stack_b[self.t_stack_top] != vnum \
+                    and self.__high(v) > self.t_stack_h[self.t_stack_top]:
+                    self.t_stack_top -= 1
+
+                outv -= 1
+
+            else: # e is a frond
+                if self.starts_path[e]:
+                    y = 0
+                    # pop all (h,a,b) from tstack where a > w
+                    if self.t_stack_a[self.t_stack_top] > wnum:
+                        while self.t_stack_a[self.t_stack_top] > wnum:
+                            y = max(y, self.t_stack_h[self.t_stack_top])
+                            b = self.t_stack_b[self.t_stack_top]
+                            self.t_stack_top -= 1
+                        self.__tstack_push(y, wnum, b)
+
+                    else:
+                        self.__tstack_push(vnum, wnum, vnum)
+                self.e_stack.append(e) # add (v,w) to ESTACK
+
+            # Go to next edge in adjacency list
+            e_node = e_node.next
+
+    def __assemble_triconnected_components(self):
+        """
+        Iterate through all the split components built by ``__path_finder`` and
+        merges two bonds or two polygons that share an edge for contructing the
+        final triconnected components.
+        Subsequently, convert the edges in triconnected components into original
+        vertices and edges. The triconnected components are stored in
+        `self.comp\_list\_new` and `self.comp\_type`.
+        """
+        comp1 = {} # The index of first component that an edge belongs to
+        comp2 = {} # The index of second component that an edge belongs to
+        item1 = {} # Pointer to the edge node in component1
+        item2 = {} # Pointer to the edge node in component2
+        num_components = len(self.components_list)
+        visited = [False for i in range(num_components)]
+
+        # For each edge, we populate the comp1, comp2, item1 and item2 values
+        for i in range(num_components): # for each component
+            e_node = self.components_list[i].edge_list.get_head()
+            while e_node: # for each edge
+                e = e_node.get_data()
+                if e not in item1:
+                    comp1[e] = i
+                    item1[e] = e_node
+                else:
+                    comp2[e] = i
+                    item2[e] = e_node
+
+                e_node = e_node.next
+
+        # For each edge in a component, if the edge is a virtual edge, merge
+        # the two components the edge belongs to
+        for i in range(num_components):
+            c1 = self.components_list[i]
+            c1_type = c1.component_type
+            l1 = c1.edge_list
+            visited[i] = True
+
+            if l1.get_length() == 0:
+                continue
+
+            if c1_type == 0 or c1_type == 1:
+                e_node = self.components_list[i].edge_list.get_head()
+                # Iterate through each edge in the component
+                while e_node:
+                    e = e_node.get_data()
+                    e_node_next = e_node.next
+                    # The label of a virtual edge is a string
+                    if not isinstance(e[2], str):
+                        e_node = e_node_next
+                        continue
+
+                    j = comp1[e]
+                    if visited[j]:
+                        j = comp2[e]
+                        if visited[j]:
+                            e_node = e_node_next
+                            continue
+                        e_node2 = item2[e]
+                    else:
+                        e_node2 = item1[e]
+
+                    c2 = self.components_list[j]
+
+                    # If the two components are not the same type, do not merge
+                    if (c1_type != c2.component_type):
+                        e_node = e_node_next # Go to next edge
+                        continue
+
+                    visited[j] = True
+                    l2 = c2.edge_list
+
+                    # Remove the corresponding virtual edges in both the components
+                    # and merge the components
+                    l2.remove(e_node2)
+                    l1.concatenate(l2)
+
+                    # if `e_node_next` was empty, after merging two components,
+                    # more edges are added to the component.
+                    if not e_node_next:
+                        e_node_next = e_node.next # Go to next edge
+
+                    l1.remove(e_node)
+
+                    e_node = e_node_next
+
+        # Convert connected components into original graph vertices and edges
+        self.comp_list_new = []
+        self.comp_type = []
+        for comp in self.components_list:
+            if comp.edge_list.get_length() > 0:
+                e_list = comp.get_edge_list()
+                e_list_new = []
+                # For each edge, get the original source, target and label
+                for u,v,l in e_list:
+                    source = self.int_to_vertex[u]
+                    target = self.int_to_vertex[v]
+                    if isinstance(l, str):
+                        label = l
+                    else:
+                        label = self.int_to_original_edge_label[l]
+                    e_list_new.append((source, target, label))
+                # Add the component data to `comp_list_new` and `comp_type`
+                self.comp_type.append(comp.component_type)
+                self.comp_list_new.append(e_list_new)
+
+    def __build_spqr_tree(self):
+        """
+        Build the SPQR-tree of the graph and store it in variable
+        ``self.spqr_tree``. See :meth:`~TriconnectivitySPQR.get_spqr_tree`.
+        """
+        from sage.graphs.graph import Graph
+        # Types of components 0: "P", 1: "S", 2: "R"
+        component_type = ["P", "S", "R"]
+
+        self.spqr_tree = Graph(multiedges=False, name='SPQR-tree of {}'.format(self.graph_name))
+
+        if len(self.comp_list_new) == 1 and self.comp_type[0] == 0:
+            self.spqr_tree.add_vertex(('Q' if len(self.comp_list_new[0]) == 1 else 'P',
+                                 Graph(self.comp_list_new[0], immutable=True, multiedges=True)))
+            return
+
+        int_to_vertex = []
+        partner_nodes = {}
+
+        for i in range(len(self.comp_list_new)):
+            # Create a new tree vertex
+            u = (component_type[self.comp_type[i]],
+                     Graph(self.comp_list_new[i], immutable=True, multiedges=True))
+            self.spqr_tree.add_vertex(u)
+            int_to_vertex.append(u)
+
+            # Add an edge to each node containing the same virtual edge
+            for e in self.comp_list_new[i]:
+                if e[2] and "newVEdge" in e[2]:
+                    if e in partner_nodes:
+                        for j in partner_nodes[e]:
+                            self.spqr_tree.add_edge(int_to_vertex[i], int_to_vertex[j])
+                        partner_nodes[e].append(i)
+                    else:
+                        partner_nodes[e] = [i]
+
+    def print_triconnected_components(self):
+        """
+        Print the type and list of edges of each component.
+
+        The types are ``{0: "Bond", 1: "Polygon", 2: "Triconnected"}``.
+
+        EXAMPLES:
+
+        An example from [Hopcroft1973]_::
+
+            sage: from sage.graphs.connectivity import TriconnectivitySPQR
+            sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (1, 13), (2, 3),
+            ....: (2, 13), (3, 4), (3, 13), (4, 5), (4, 7), (5, 6), (5, 7), (5, 8),
+            ....: (6, 7), (8, 9), (8, 11), (8, 12), (9, 10), (9, 11), (9, 12),
+            ....: (10, 11), (10, 12)])
+            sage: tric = TriconnectivitySPQR(G)
+            sage: tric.print_triconnected_components()
+            Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
+            Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
+            Polygon:  [(8, 12, 'newVEdge1'), (1, 12, None), (8, 1, 'newVEdge2')]
+            Bond:  [(1, 8, None), (8, 1, 'newVEdge2'), (8, 1, 'newVEdge3')]
+            Polygon:  [(5, 8, None), (8, 1, 'newVEdge3'), (4, 5, 'newVEdge8'), (4, 1, 'newVEdge9')]
+            Polygon:  [(5, 6, None), (6, 7, None), (5, 7, 'newVEdge5')]
+            Bond:  [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
+            Polygon:  [(5, 7, 'newVEdge6'), (4, 7, None), (5, 4, 'newVEdge7')]
+            Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
+            Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
+            Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
+            Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
+        """
+        prefix = ["Bond", "Polygon", "Triconnected"]
+        for i in range(len(self.comp_list_new)):
+            print("{}: {}".format(prefix[self.comp_type[i]], self.comp_list_new[i]))
+
+    def get_triconnected_components(self):
+        r"""
+        Return the triconnected components as a list of tuples.
+
+        Each component is represented as a tuple of the type of the component
+        and the list of edges of the component.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.connectivity import TriconnectivitySPQR
+            sage: G = Graph(2)
+            sage: for i in range(3):
+            ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1]) 
+            sage: tric = TriconnectivitySPQR(G)
+            sage: tric.get_triconnected_components()
+            [('Polygon', [(4, 5, None), (0, 4, None), (1, 5, None), (1, 0, 'newVEdge1')]),
+            ('Polygon', [(6, 7, None), (0, 6, None), (1, 7, None), (1, 0, 'newVEdge3')]),
+            ('Bond', [(1, 0, 'newVEdge1'), (1, 0, 'newVEdge3'), (1, 0, 'newVEdge4')]),
+            ('Polygon', [(1, 3, None), (1, 0, 'newVEdge4'), (0, 2, None), (2, 3, None)])]
+        """
+        comps = []
+        prefix = ["Bond", "Polygon", "Triconnected"]
+        for i in range(len(self.comp_list_new)):
+            comps.append((prefix[self.comp_type[i]], self.comp_list_new[i]))
+        return comps
+
+    def get_spqr_tree(self):
+        r"""
+        Return an SPQR-tree representing the triconnected components of the graph.
+
+        An SPQR-tree is a tree data structure used to represent the triconnected
+        components of a biconnected (multi)graph and the 2-vertex cuts separating
+        them. A node of a SPQR-tree, and the graph associated with it, can be one of
+        the following four types:
+
+        - ``S`` -- the associated graph is a cycle with at least three vertices.
+          ``S`` stands for ``series``.
+
+        - ``P`` -- the associated graph is a dipole graph, a multigraph with two
+          vertices and three or more edges. ``P`` stands for ``parallel``.
+
+        - ``Q`` -- the associated graph has a single real edge. This trivial case is
+          necessary to handle the graph that has only one edge.
+
+        - ``R`` -- the associated graph is a 3-connected graph that is not a cycle
+          or dipole. ``R`` stands for ``rigid``.
+
+        The edges of the tree indicate the 2-vertex cuts of the graph.
+
+        OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
+        and the subgraph of three-blocks in the decomposition.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.connectivity import TriconnectivitySPQR
+            sage: G = Graph(2)
+            sage: for i in range(3):
+            ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: K4 = graphs.CompleteGraph(4)
+            sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'R')
+            True
+            sage: from sage.graphs.connectivity import spqr_tree_to_graph
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
+
+            sage: G = Graph(2)
+            sage: for i in range(3):
+            ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1])
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: C4 = graphs.CycleGraph(4)
+            sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
+            True
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
+
+            sage: G.allow_multiple_edges(True)
+            sage: G.add_edges(G.edges())
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
+            True
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
+
+            sage: G = graphs.CycleGraph(6)
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: Tree.order()
+            1
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
+            sage: G.add_edge(0, 3)
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: Tree.order()
+            3
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
+
+            sage: G = Graph([(0, 1)], multiedges=True)
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: Tree.vertices()
+            [('Q', Multi-graph on 2 vertices)]
+            sage: G.add_edge(0, 1)
+            sage: Tree = TriconnectivitySPQR(G).get_spqr_tree()
+            sage: Tree.vertices()
+            [('P', Multi-graph on 2 vertices)]
+        """
+        return self.spqr_tree

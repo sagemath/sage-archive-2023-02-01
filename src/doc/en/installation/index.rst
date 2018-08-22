@@ -50,6 +50,7 @@ binaries and from sources.
    :maxdepth: 2
 
    binary
+   conda
    source
    launching
    standard_packages

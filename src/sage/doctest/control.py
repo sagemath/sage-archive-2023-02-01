@@ -1148,23 +1148,24 @@ class DocTestController(SageObject):
         providing a logfile does not raise a ValueError: I/O operation on
         closed file)::
 
-            sage: DD = DocTestDefaults(optional=set(['sage', 'external']), logfile=tmp_filename())
-            sage: filename = os.path.join(SAGE_SRC, "sage", "misc", "latex.py")
+            sage: logfile = tmp_filename(ext='.log')
+            sage: DD = DocTestDefaults(optional=set(['sage', 'external']), logfile=logfile)
+            sage: filename = tmp_filename(ext='.py')
             sage: DC = DocTestController(DD, [filename])
             sage: DC.run()
             Running doctests with ID ...
             Using --optional=external,sage
             External software to be detected: ...
             Doctesting 1 file.
-            sage -t .../sage/misc/latex.py
-                [... tests, ... s]
+            sage -t ....py
+                [0 tests, 0.00 s]
             ----------------------------------------------------------------------
             All tests passed!
             ----------------------------------------------------------------------
-            Total time for all tests: ... seconds
-                cpu time: ... seconds
-                cumulative wall time: ... seconds
-            External software detected for doctesting: ...
+            Total time for all tests: 0.0 seconds
+                cpu time: 0.0 seconds
+                cumulative wall time: 0.0 seconds
+            External software detected for doctesting:
             0
 
         """

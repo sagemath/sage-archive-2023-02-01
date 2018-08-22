@@ -45,7 +45,7 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
         True
         sage: TestSuite(C1).run()
     """
-    _base_category_class_and_axiom = [LieAlgebras.FiniteDimensional.WithBasis, "Nilpotent"]
+    _base_category_class_and_axiom = (LieAlgebras.FiniteDimensional.WithBasis, "Nilpotent")
 
     class ParentMethods:
         def _test_nilpotency(self, **options):

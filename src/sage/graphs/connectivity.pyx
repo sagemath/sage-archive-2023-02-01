@@ -2086,17 +2086,17 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     them. A node of a SPQR-tree, and the graph associated with it, can be one of
     the following four types:
 
-    - ``S`` -- the associated graph is a cycle with at least three vertices.
-      ``S`` stands for ``series``.
+    - ``"S"`` -- the associated graph is a cycle with at least three vertices.
+      ``"S"`` stands for ``series``.
 
-    - ``P`` -- the associated graph is a dipole graph, a multigraph with two
-      vertices and three or more edges. ``P`` stands for ``parallel``.
+    - ``"P"`` -- the associated graph is a dipole graph, a multigraph with two
+      vertices and three or more edges. ``"P"`` stands for ``parallel``.
 
-    - ``Q`` -- the associated graph has a single real edge. This trivial case is
-      necessary to handle the graph that has only one edge.
+    - ``"Q"`` -- the associated graph has a single real edge. This trivial case
+      is necessary to handle the graph that has only one edge.
 
-    - ``R`` -- the associated graph is a 3-connected graph that is not a cycle
-      or dipole. ``R`` stands for ``rigid``.
+    - ``"R"`` -- the associated graph is a 3-connected graph that is not a cycle
+      or dipole. ``"R"`` stands for ``rigid``.
 
     This method decomposes a biconnected graph into cycles, cocycles, and
     3-connected blocks summed over cocycles, and arranges them as a SPQR-tree.
@@ -2115,9 +2115,10 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
 
       - ``"Hopcroft_Tarjan"`` (default) -- Use the algorithm proposed by
         Hopcroft and Tarjan in [Hopcroft1973]_ and later corrected by Gutwenger
-        and Mutzel in [Gut2001]_.
+        and Mutzel in [Gut2001]_. See
+        :class:`~sage.graphs.connectivity.TriconnectivitySPQR`.
 
-      - ``"cleave"`` -- Using method :meth:`sage.graphs.connectivity.cleave`.
+      - ``"cleave"`` -- Using method :meth:`~sage.graphs.connectivity.cleave`.
 
     - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
       be used. If set to ``None``, the default one is used. For more information
@@ -2676,11 +2677,11 @@ class TriconnectivitySPQR:
 
     INPUT:
 
-    - ``G`` -- The input graph. If ``G`` is a DiGraph, the computation is done
+    - ``G`` -- the input graph. If ``G`` is a DiGraph, the computation is done
       on the underlying Graph (i.e., ignoring edge orientation).
 
-    - ``check`` (default: ``True``) -- Boolean to indicate whether ``G`` needs
-      to be tested for biconnectivity.
+    - ``check`` -- boolean (default: ``True``); indicates whether ``G`` needs to
+      be tested for biconnectivity.
 
     .. SEEALSO::
 
@@ -2806,10 +2807,10 @@ class TriconnectivitySPQR:
 
         INPUT:
 
-        - ``G`` -- The input graph. If ``G`` is a DiGraph, the computation is
+        - ``G`` -- the input graph. If ``G`` is a DiGraph, the computation is
           done on the underlying Graph (i.e., ignoring edge orientation).
 
-        - ``check`` (default: ``True``) -- Boolean to indicate whether ``G``
+        - ``check`` -- boolean (default: ``True``); indicates whether ``G``
           needs to be tested for biconnectivity.
         """
         self.n = G.order()
@@ -3766,8 +3767,6 @@ class TriconnectivitySPQR:
         """
         Print the type and list of edges of each component.
 
-        The types are ``{0: "Bond", 1: "Polygon", 2: "Triconnected"}``.
-
         EXAMPLES:
 
         An example from [Hopcroft1973]_::
@@ -3792,6 +3791,7 @@ class TriconnectivitySPQR:
             Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
             Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
         """
+        # The types are {0: "Bond", 1: "Polygon", 2: "Triconnected"}
         prefix = ["Bond", "Polygon", "Triconnected"]
         for i in range(len(self.comp_list_new)):
             print("{}: {}".format(prefix[self.comp_type[i]], self.comp_list_new[i]))
@@ -3817,6 +3817,7 @@ class TriconnectivitySPQR:
             ('Polygon', [(1, 3, None), (1, 0, 'newVEdge4'), (0, 2, None), (2, 3, None)])]
         """
         comps = []
+        # The types are {0: "Bond", 1: "Polygon", 2: "Triconnected"}
         prefix = ["Bond", "Polygon", "Triconnected"]
         for i in range(len(self.comp_list_new)):
             comps.append((prefix[self.comp_type[i]], self.comp_list_new[i]))
@@ -3824,29 +3825,30 @@ class TriconnectivitySPQR:
 
     def get_spqr_tree(self):
         r"""
-        Return an SPQR-tree representing the triconnected components of the graph.
+        Return an SPQR-tree representing the triconnected components of the
+        graph.
 
         An SPQR-tree is a tree data structure used to represent the triconnected
-        components of a biconnected (multi)graph and the 2-vertex cuts separating
-        them. A node of a SPQR-tree, and the graph associated with it, can be one of
-        the following four types:
+        components of a biconnected (multi)graph and the 2-vertex cuts
+        separating them. A node of a SPQR-tree, and the graph associated with
+        it, can be one of the following four types:
 
-        - ``S`` -- the associated graph is a cycle with at least three vertices.
-          ``S`` stands for ``series``.
+        - ``"S"`` -- the associated graph is a cycle with at least three vertices.
+          ``"S"`` stands for ``series``.
 
-        - ``P`` -- the associated graph is a dipole graph, a multigraph with two
-          vertices and three or more edges. ``P`` stands for ``parallel``.
+        - ``"P"`` -- the associated graph is a dipole graph, a multigraph with
+          two vertices and three or more edges. ``"P"`` stands for ``parallel``.
 
-        - ``Q`` -- the associated graph has a single real edge. This trivial case is
-          necessary to handle the graph that has only one edge.
+        - ``"Q"`` -- the associated graph has a single real edge. This trivial
+          case is necessary to handle the graph that has only one edge.
 
-        - ``R`` -- the associated graph is a 3-connected graph that is not a cycle
-          or dipole. ``R`` stands for ``rigid``.
+        - ``"R"`` -- the associated graph is a 3-connected graph that is not a
+          cycle or dipole. ``"R"`` stands for ``rigid``.
 
         The edges of the tree indicate the 2-vertex cuts of the graph.
 
-        OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
-        and the subgraph of three-blocks in the decomposition.
+        OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's
+        type and the subgraph of three-blocks in the decomposition.
 
         EXAMPLES::
 

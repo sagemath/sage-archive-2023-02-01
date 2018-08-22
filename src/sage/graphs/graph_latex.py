@@ -1398,24 +1398,23 @@ class GraphLatex(SageObject):
         ``_options`` to render the graph with commands from the ``tkz-graph``
         LaTeX package.
 
-        This requires that the LaTeX optional packages
-        tkz-graph and tkz-berge be installed.  You may also need a
-        current version of the pgf package.  If the tkz-graph and
-        tkz-berge packages are present in the system's TeX
-        installation, the appropriate ``\\usepackage{}`` commands
-        will be added to the LaTeX preamble as part of
-        the initialization of the graph. If these two packages
-        are not present, then this command will return a warning
-        on its first use, but will return a string that could be
-        used elsewhere, such as a LaTeX document.
+        This requires that the LaTeX optional packages ``tkz-graph`` and
+        ``tkz-berge`` be installed. You may also need a current version of the
+        pgf package.  If the ``tkz-graph`` and ``tkz-berge`` packages are
+        present in the system's TeX installation, the appropriate
+        ``\\usepackage{}`` commands will be added to the LaTeX preamble as part
+        of the initialization of the graph. If these two packages are not
+        present, then this command will return a warning on its first use, but
+        will return a string that could be used elsewhere, such as a LaTeX
+        document.
 
         For more information about tkz-graph you can visit
         `Altermundus.com <http://altermundus.com/>`_
 
         EXAMPLES:
 
-        With a pre-built ``tkz-graph`` style specified, the latex
-        representation will be relatively simple. ::
+        With a pre-built ``tkz-graph`` style specified, the latex representation
+        will be relatively simple. ::
 
             sage: from sage.graphs.graph_latex import check_tkz_graph
             sage: check_tkz_graph()  # random - depends on TeX installation
@@ -1436,8 +1435,8 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
-        Setting the style to "Custom" results in various configurable
-        aspects set to the defaults, so the string is more involved. ::
+        Setting the style to "Custom" results in various configurable aspects
+        set to the defaults, so the string is more involved. ::
 
             sage: from sage.graphs.graph_latex import check_tkz_graph
             sage: check_tkz_graph()  # random - depends on TeX installation
@@ -1469,14 +1468,14 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
-        See the introduction to the :mod:`~sage.graphs.graph_latex` module
-        for more information on the use of this routine.
+        See the introduction to the :mod:`~sage.graphs.graph_latex` module for
+        more information on the use of this routine.
 
         TESTS:
 
-        Graphs with preset layouts that are vertical or horizontal
-        can cause problems. First test is a horizontal layout on a
-        path with three vertices. ::
+        Graphs with preset layouts that are vertical or horizontal can cause
+        problems. First test is a horizontal layout on a path with three
+        vertices. ::
 
             sage: from sage.graphs.graph_latex import check_tkz_graph
             sage: check_tkz_graph()  # random - depends on TeX installation
@@ -1487,8 +1486,8 @@ class GraphLatex(SageObject):
             ...
             \end{tikzpicture}
 
-        Scaling to a bounding box is problematic for graphs with
-        just one vertex, or none. ::
+        Scaling to a bounding box is problematic for graphs with just one
+        vertex, or none. ::
 
             sage: from sage.graphs.graph_latex import check_tkz_graph
             sage: check_tkz_graph()  # random - depends on TeX installation
@@ -1499,19 +1498,17 @@ class GraphLatex(SageObject):
             ...
             \end{tikzpicture}
         """
-
         # This routine does not handle multiple edges
-        # It will properly handle digraphs where a pair of vertices
-        # has an edge in each direction, since edges of a digraph are
-        # curved.
+        # It will properly handle digraphs where a pair of vertices has an edge
+        # in each direction, since edges of a digraph are curved.
         if self._graph.has_multiple_edges():
             raise NotImplementedError('it is not possible create a tkz-graph version of a graph with multiple edges')
 
         from matplotlib.colors import ColorConverter
         from sage.misc.latex import latex
 
-        # On first use of this method, the next call may print warnings
-        # as a side effect, but will be silent on any subsequent use.
+        # On first use of this method, the next call may print warnings as a
+        # side effect, but will be silent on any subsequent use.
         check_tkz_graph()
 
         # Overhead
@@ -1519,11 +1516,11 @@ class GraphLatex(SageObject):
         prefix = 'v'  # leading string on internal (to tkz-graph) vertex names
 
         ####################
-        #  Pre-built syles
+        #  Pre-built styles
         ####################
 
-        # We preserve the pre-built style OR
-        # get defaults for each option, but we do not mix the two
+        # We preserve the pre-built style OR get defaults for each option, but
+        # we do not mix the two
         style = self.get_option('tkz_style')
         customized = (style == 'Custom')
         # We don't do much for a pre-built style
@@ -1541,10 +1538,9 @@ class GraphLatex(SageObject):
         graphic_size = self.get_option('graphic_size')
         margins = self.get_option('margins')
 
-        # The positions of the vertices will get scaled to fill the
-        # specified size of the image, as given by graphic_size.
-        # But first a border is subtracted away and the graph
-        # is scaled to fit there.
+        # The positions of the vertices will get scaled to fill the specified
+        # size of the image, as given by graphic_size.  But first a border is
+        # subtracted away and the graph is scaled to fit there.
 
         # Lower left, upper right corners of box inside borders
         llx = margins[0]
@@ -1560,7 +1556,8 @@ class GraphLatex(SageObject):
         # Determine the spread in the x and y directions (i.e. xmax, ymax)
         # Needs care for perfectly horizontal and vertical layouts
 
-        # We grab the graph's layout (or it is computed as a consequence of the request)
+        # We grab the graph's layout (or it is computed as a consequence of the
+        # request)
         pos = self._graph.layout()
         if pos.values():
             xmin = min(i[0] for i in pos.values())
@@ -1570,8 +1567,8 @@ class GraphLatex(SageObject):
         else:
             xmax, ymax = 0, 0
 
-        # Linear scaling factors that will be used to scale the image to
-        # fit into the bordered region.  Purely horizontal, or purely vertical,
+        # Linear scaling factors that will be used to scale the image to fit
+        # into the bordered region.  Purely horizontal, or purely vertical,
         # layouts get put in the middle of the bounding box by setting the
         # scaling to a constant value on a midline
         xspread = xmax - xmin
@@ -1586,9 +1583,10 @@ class GraphLatex(SageObject):
             lly = lly + 0.5 * h
         else:
             y_scale = float(h) / yspread
-        # Could preserve aspect ratio here by setting both scale factors to the minimum
-        # and doing a shift of the larger to center
-        # A linear function will map layout positions into the bordered graphic space
+        # Could preserve aspect ratio here by setting both scale factors to the
+        # minimum and doing a shift of the larger to center
+        # A linear function will map layout positions into the bordered graphic
+        # space
 
         def translate(p):
             return ((p[0] - xmin) * x_scale + llx,
@@ -1599,19 +1597,20 @@ class GraphLatex(SageObject):
         #############
 
         # We record the index of each vertex in the graph's list of vertices
-        # Which is just a convenience for forming vertex names internal to tkz-graph
+        # Which is just a convenience for forming vertex names internal to
+        # tkz-graph
         index_of_vertex = {}
         vertex_list = self._graph.vertices()
         for u in self._graph:
             index_of_vertex[u] = vertex_list.index(u)
 
-        # Vertex labels can be switched on/off, and we don't record
-        # or use this type of extra information if they are switched off
+        # Vertex labels can be switched on/off, and we don't record or use this
+        # type of extra information if they are switched off
         vertex_labels = self.get_option('vertex_labels')
 
-        # We collect options for vertices, default values and for-some-vertices information
-        # These are combined into dictionaries on a per-vertex basis, for all vertices
-        # This only applies for a custom style
+        # We collect options for vertices, default values and for-some-vertices
+        # information. These are combined into dictionaries on a per-vertex
+        # basis, for all vertices. This only applies for a custom style
         #
         # Defaults
         #
@@ -1686,16 +1685,17 @@ class GraphLatex(SageObject):
         ##########
 
         if customized:
-            # An "edge fill" is a bit unusual, so we allow it to
-            # be turned off as the default.
+            # An "edge fill" is a bit unusual, so we allow it to be turned off
+            # as the default.
             edge_fills = self.get_option('edge_fills')
 
-            # Edge labels can be switched on/off, and we don't record
-            # or use this type of extra information if they are switched off
+            # Edge labels can be switched on/off, and we don't record or use
+            # this type of extra information if they are switched off
             edge_labels = self.get_option('edge_labels')
 
-            # We collect options for edges, default values and for-some-edges information
-            # These are combined into dictionaries on a per-edge basis, for all edges
+            # We collect options for edges, default values and for-some-edges
+            # information.  These are combined into dictionaries on a per-edge
+            # basis, for all edges
             #
             # Defaults
             #
@@ -1722,11 +1722,10 @@ class GraphLatex(SageObject):
 
             # Form dictionaries, each indexed for all edges
             #
-            # A key of a dictionary indexed by edges may be
-            # set for an edge of an undirected
-            # graph in the "wrong" order, so we use a
-            # "reverse" to test for this case.  Everything formed
-            # here conforms to the order used in the graph.
+            # A key of a dictionary indexed by edges may be set for an edge of
+            # an undirected graph in the "wrong" order, so we use a "reverse" to
+            # test for this case.  Everything formed here conforms to the order
+            # used in the graph.
             #
             e_color = {}
             if edge_fills:
@@ -1795,9 +1794,9 @@ class GraphLatex(SageObject):
         #  Loops
         ##########
 
-        # Loops can be styled much like any other edge
-        # By indexing on a pair of two equal vertices
-        # Though edge thickness is not implemented in tkz-graph!
+        # Loops can be styled much like any other edge by indexing on a pair of
+        # two equal vertices
+        # though edge thickness is not implemented in tkz-graph!
         # Size and direction are unique, and are indexed by the vertex
         # rather than on edges.
 

@@ -65,7 +65,6 @@ class GradedLieAlgebras(GradedModulesCategory):
                 sage: C = LieAlgebras(QQ).Graded().Stratified().FiniteDimensional()
                 sage: TestSuite(C).run()
             """
-
             def extra_super_categories(self):
                 """
                 Implements the fact that a finite dimensional stratified Lie
@@ -78,6 +77,9 @@ class GradedLieAlgebras(GradedModulesCategory):
                     [Category of nilpotent Lie algebras over Rational Field]
                     sage: C is C.Nilpotent()
                     True
+                    sage: C.is_subcategory(LieAlgebras(QQ).Nilpotent())
+                    True
                 """
                 from sage.categories.lie_algebras import LieAlgebras
                 return [LieAlgebras(self.base_ring()).Nilpotent()]
+

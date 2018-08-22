@@ -70,19 +70,20 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
             tester = self._tester(**options)
 
             from sage.misc.misc import some_tuples
-            for X,Y in some_tuples(self.basis(), 2, tester._max_runs):
+            for X, Y in some_tuples(self.basis(), 2, tester._max_runs):
                 i = X.degree()
                 j = Y.degree()
                 Z = self.bracket(X, Y)
                 if Z == 0:
                     continue
-                tester.assertEquals(Z.degree(), i + j,
-                    msg="Lie bracket [%s, %s] has degree %d, not degree %d " %
-                        (X, Y, Z.degree(), i + j))
+                Zdeg = Z.degree()
+                tester.assertEquals(Zdeg, i + j,
+                    msg="Lie bracket [%s, %s] has degree %s, not degree %s " %
+                        (X, Y, Zdeg, i + j))
                 tester.assertTrue(
                     Z.to_vector() in self.homogeneous_component_as_submodule(i + j),
                     msg="Lie bracket [%s, %s] is not in the "
-                        "homogeneous component of degree %d" % (X, Y, i + j))
+                        "homogeneous component of degree %s" % (X, Y, i + j))
 
         @cached_method
         def homogeneous_component_as_submodule(self, d):

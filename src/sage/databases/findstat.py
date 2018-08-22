@@ -1015,6 +1015,7 @@ class FindStatStatistic(SageObject):
 
             sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values() # optional -- internet
             0: (St000012: The area of a Dyck path., [], 14)
+            ...
         """
         self._query = "data"
 

@@ -779,6 +779,23 @@ class BinaryQF(SageObject):
             sage: q = BinaryQF(1, 0, -1)
             sage: q.reduced_form()
             x^2 + 2*x*y
+
+            sage: BinaryQF(1, 9, 4).reduced_form(transformation=True)
+            (
+                                 [ 0 -1]
+            4*x^2 + 7*x*y - y^2, [ 1  2]
+            )
+            sage: BinaryQF(3, 7, -2).reduced_form(transformation=True)
+            (
+                                   [1 0]
+            3*x^2 + 7*x*y - 2*y^2, [0 1]
+            )
+            sage: BinaryQF(-6, 6, -1).reduced_form(transformation=True)
+            (
+                                  [ 0 -1]
+            -x^2 + 2*x*y + 2*y^2, [ 1 -4]
+            )
+
         """
         if self.is_reduced():
             if transformation:
@@ -1036,7 +1053,8 @@ class BinaryQF(SageObject):
         r"""
         Return if ``self`` is reduced.
 
-        Let `f = a x^2 + b xy + c y^2` be a binary quadratic form.
+        Let `f = a x^2 + b xy + c y^2` be a binary quadratic form of
+        discrimininant `D`.
 
         - If `f` is positive definite (`D < 0` and `a > 0`), then `f`
           is reduced if and only if `|b|\leq a \leq c`, and `b\geq 0`
@@ -1069,10 +1087,14 @@ class BinaryQF(SageObject):
             sage: Q.is_reduced()
             True
 
-        An example using an indefinite form::
+        Examples using indefinite forms::
 
             sage: f = BinaryQF(-1, 2, 2)
             sage: f.is_reduced()
+            True
+            sage: BinaryQF(1, 9, 4).is_reduced()
+            False
+            sage: BinaryQF(1, 5, -1).is_reduced()
             True
 
         """

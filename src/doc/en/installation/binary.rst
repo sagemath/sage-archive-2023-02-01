@@ -15,7 +15,7 @@ Download Guide
 
 Not sure what to download? Just follow these steps.
 
-- Determine your operating system (Windows, Linux or Mac OS X).
+- Determine your operating system (Windows, Linux or macOS).
 
 - According to your operating system, go to the appropriate Download
   section of the `SageMath website <http://www.sagemath.org/>`_.
@@ -24,7 +24,7 @@ Not sure what to download? Just follow these steps.
 - Download the binary that is appropriate to your system. Depending on your
   operating system you might need additional information such as your CPU
   type (e.g. 64 bits or 32 bits) and your operating system version. If you
-  use OS X you will have the choice between a tarball (whose names ends with
+  use macOS you will have the choice between a tarball (whose names ends with
   ``tar.bz2``) and two kinds of mountable disk images (whose names end with
   ``app.dmg`` and simply ``.dmg``). Except for windows, the naming scheme of
   the files is always ``sage-VERSION-OS-CPU.EXTENSION`` where ``EXTENSION``
@@ -51,7 +51,7 @@ Unicode characters in the path name.
 Next, download the latest binary tarball available
 (see "Download Guide" above). The tarball name should end
 with ``.tar.gz`` or ``.tar.bz2``. If you want to use the ``.dmg``
-or ``.app.dmg`` for Mac switch to the next section.
+or ``.app.dmg`` for macOS switch to the next section.
 
 Unpack the tarball where you intend to install Sage. This is done
 from the command line using the ``tar`` program. Next, to launch
@@ -81,16 +81,16 @@ the ``ln`` program from the command line::
 where ``/path/to/SageMath/sage`` is the actual path to your SageMath
 installation.
 
-OS X
-----
+macOS
+-----
 
-On OS X there are three possible binaries for each version. They can
+On macOS there are three possible binaries for each version. They can
 be recognized by their suffixes:
 
 - ``tar.bz2``: a binary tarball
 - ``dmg``: a compressed image of the binary
-- ``app.dmg``: a compressed image of a full OS X application (with
-  shorcuts)
+- ``app.dmg``: a compressed image of a full macOS application (with
+  shortcuts)
 
 This section explains how to install from ``dmg`` or ``app.dmg``. For
 the installation of the binary tarball ``tar.bz2`` just follow the steps

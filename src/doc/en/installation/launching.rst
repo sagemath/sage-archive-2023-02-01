@@ -7,7 +7,7 @@ Now we assume that you installed Sage properly on your system. This
 section quickly explains how to start the Sage console and the Jupyter
 notebook from the command line.
 
-If you did install the Windows version of the Mac OS X applications you
+If you did install the Windows version or the macOS application you
 should have icons available on your desktops or launching menus. Otherwise
 you are strongly advised to create shorcuts for Sage as indicated as the end
 of the "Linux" Section in :ref:`sec-installation-from-binaries`. Assuming

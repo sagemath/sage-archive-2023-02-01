@@ -10,9 +10,8 @@ Installing SageMath from your distribution package manager is the preferred and
 fastest solution (dependencies will be automatically taken care of and SageMath
 will be using your system Python). It is the case at least for the following
 GNU/Linux distributions: Debian version >= 9, Ubuntu version >= 18.04,
-Arch Linux, and NixOS. In this case, install the packages ``sagemath`` and
-``sagemath-jupyter``. For Gentoo, you might want to give a try to
-`sage-on-gentoo <https://github.com/cschwan/sage-on-gentoo>`_.
+Arch Linux, and NixOS. If you are in this situation, see
+:ref:`sec-GNU-Linux`.
 
 If your operating system does not provide SageMath, you can also use a
 pre-built binary. See the section :ref:`sec-installation-from-binaries`.
@@ -49,6 +48,7 @@ binaries and from sources.
 .. toctree::
    :maxdepth: 2
 
+   linux
    binary
    conda
    source

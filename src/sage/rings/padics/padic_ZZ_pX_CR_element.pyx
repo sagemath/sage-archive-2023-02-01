@@ -87,7 +87,7 @@ An Eisenstein extension::
     sage: S.<x> = R[]
     sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
     sage: W.<w> = R.ext(f); W
-    Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Ring
+    5-adic Eisenstein Extension Ring in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5
     sage: z = (1+w)^5; z
     1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
     sage: y = z >> 1; y
@@ -103,7 +103,7 @@ An Eisenstein extension::
     sage: (1/w)^12+w
     w^-12 + w + O(w^13)
     sage: (1/w).parent()
-    Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Field
+    5-adic Eisenstein Extension Field in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5
 
 Unramified extensions::
 
@@ -861,8 +861,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             '5563A4105291255628.148272'
             sage: repr(y*847)[3:]
             '000000000000000000000003'
-            sage: repr(W(77/3, relprec=0))
-            '0'
+            sage: repr(W(77/3, relprec=0))[3:]
+            '000'
             sage: c = F(11^-1 + O(11^2)); repr(c)[3:]
             '011111.01A'
             sage: repr(c * 11)[3:]
@@ -1575,7 +1575,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y = ~z; y # indirect doctest
             1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
             sage: y.parent()
-            Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Field
+            5-adic Eisenstein Extension Field in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5
             sage: z = z - 1
             sage: ~z
             w^-5 + 4*w^-4 + 4*w^-3 + 4*w^-2 + 2*w^-1 + 1 + w + 4*w^2 + 4*w^3 + 4*w^4 + w^5 + w^6 + w^7 + 4*w^8 + 4*w^9 + 2*w^10 + w^11 + 2*w^12 + 4*w^13 + 4*w^14 + O(w^15)
@@ -2521,7 +2521,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: S.<x> = ZZ[]
             sage: W.<w> = Zp(5).extension(x^2 - 5)
             sage: (w + W(5, 7)).polynomial()
-            (1 + O(5^3))*x + (5 + O(5^4))
+            (1 + O(5^3))*x + 5 + O(5^4)
         """
         R = self.base_ring()
         S = R[var]

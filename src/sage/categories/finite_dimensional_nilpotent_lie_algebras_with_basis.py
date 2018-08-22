@@ -50,16 +50,15 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
     class ParentMethods:
         def _test_nilpotency(self, **options):
             r"""
-            Tests that the Lie algebra is nilpotent and has
-            the correct step.
+            Tests that ``self`` is nilpotent and has the correct step.
 
             INPUT:
 
             - ``options`` -- any keyword arguments accepted by
-              :meth:`_tester`.
+              :meth:`_tester`
 
             EXAMPLES::
-            
+
                 sage: L = LieAlgebra(QQ, {('X','Y'): {'Z': 1}}, nilpotent=True)
                 sage: L._test_nilpotency()
                 sage: L = LieAlgebra(QQ, {('X','Y'): {'Z': 1}},
@@ -89,10 +88,10 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
         def step(self):
             r"""
-            Return the nilpotency step of the Lie algebra.
-            
+            Return the nilpotency step of ``self``.
+
             EXAMPLES::
-            
+
                 sage: L = LieAlgebra(QQ, {('X','Y'): {'Z': 1}}, nilpotent=True)
                 sage: L.step()
                 2

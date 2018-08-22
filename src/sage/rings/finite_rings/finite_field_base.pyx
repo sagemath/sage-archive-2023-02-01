@@ -1284,7 +1284,7 @@ cdef class FiniteField(Field):
             sage: K.<a> = Qq(49); k = K.residue_field()
             sage: k.convert_map_from(K)
             Reduction morphism:
-              From: Unramified Extension in a defined by x^2 + 6*x + 3 with capped relative precision 20 over 7-adic Field
+              From: 7-adic Unramified Extension Field in a defined by x^2 + 6*x + 3
               To:   Finite Field in a0 of size 7^2
 
         Check that :trac:`8240 is resolved::
@@ -1292,7 +1292,7 @@ cdef class FiniteField(Field):
             sage: R.<a> = Zq(81); k = R.residue_field()
             sage: k.convert_map_from(R)
             Reduction morphism:
-              From: Unramified Extension in a defined by x^4 + 2*x^3 + 2 with capped relative precision 20 over 3-adic Ring
+              From: 3-adic Unramified Extension Ring in a defined by x^4 + 2*x^3 + 2
               To:   Finite Field in a0 of size 3^4
         """
         from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
@@ -1413,7 +1413,7 @@ cdef class FiniteField(Field):
                 if modulus.change_ring(self).is_irreducible():
                     E = GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
                 else:
-                    E = Field.extension(self, modulus, name=name, embedding=embedding)
+                    E = Field.extension(self, modulus, name=name, embedding=embedding, **kwds)
         elif isinstance(modulus, (int, Integer)):
             E = GF(self.order()**modulus, name=name, **kwds)
             if E is self:
@@ -1430,7 +1430,7 @@ cdef class FiniteField(Field):
                 except AssertionError: # coercion already exists
                     pass
         else:
-            E = Field.extension(self, modulus, name=name, embedding=embedding)
+            E = Field.extension(self, modulus, name=name, embedding=embedding, **kwds)
         if map:
             return (E, E.coerce_map_from(self))
         else:

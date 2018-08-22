@@ -191,6 +191,23 @@ class pAdicBaseGeneric(pAdicGeneric):
             raise IndexError("only one generator")
         return self(self.prime())
 
+    def modulus(self, exact=False):
+        r"""
+        Returns the polynomial defining this extension.
+
+        For compatibility with extension fields; we define the modulus to be x-1.
+
+        INPUT:
+
+        - ``exact`` -- boolean (default ``False``), whether to return a polynomial with integer entries.
+
+        EXAMPLES::
+
+            sage: Zp(5).modulus(exact=True)
+            x
+        """
+        return self.defining_polynomial(exact=exact)
+
     def absolute_discriminant(self):
         """
         Returns the absolute discriminant of this `p`-adic ring
@@ -258,7 +275,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
             sage: R = Zp(3,5,'fixed-mod', 'series')
             sage: R.uniformizer()
-            3 + O(3^5)
+            3
         """
         return self(self.prime_pow._prime())
 

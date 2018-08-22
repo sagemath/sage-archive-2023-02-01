@@ -66,7 +66,8 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
         sage: TestSuite(L).run()
     """
     @staticmethod
-    def __classcall_private__(cls, R, s_coeff, names=None, index_set=None, **kwds):
+    def __classcall_private__(cls, R, s_coeff, names=None, index_set=None,
+                              category=None, **kwds):
         """
         Normalize input to ensure a unique representation.
 
@@ -94,6 +95,16 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
             Nilpotent Lie algebra on 3 generators (y, x, z) over Rational Field
             sage: L1 is L2
             False
+
+        Constructed using two different methods from :class:`LieAlgebra`
+        yields the same Lie algebra::
+
+            sage: sc = {('X','Y'): {'Z': 1}}
+            sage: C = LieAlgebras(QQ).Nilpotent().FiniteDimensional().WithBasis()
+            sage: L1.<X,Y,Z> = LieAlgebra(QQ, sc, category=C)
+            sage: L2 = LieAlgebra(QQ, sc, nilpotent=True, names=['X','Y','Z'])
+            sage: L1 is L2
+            True
         """
         if not names:
             # extract names from structural coefficients
@@ -109,11 +120,13 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(
             s_coeff, index_set)
 
-        return super(NilpotentLieAlgebra_dense, cls).__classcall__(
-            cls, R, s_coeff, names, index_set, **kwds)
+        cat = LieAlgebras(R).FiniteDimensional().WithBasis().Nilpotent()
+        category = cat.or_subcategory(category)
 
-    def __init__(self, R, s_coeff, names, index_set, step=None,
-                 category=None, **kwds):
+        return super(NilpotentLieAlgebra_dense, cls).__classcall__(
+            cls, R, s_coeff, names, index_set, category=category, **kwds)
+
+    def __init__(self, R, s_coeff, names, index_set, step=None, **kwds):
         r"""
         Initialize ``self``.
 
@@ -122,14 +135,12 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
             sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z': 1}}, nilpotent=True)
             sage: TestSuite(L).run()
         """
-        if step:
+        if step is not None:
             self._step = step
 
-        cat = LieAlgebras(R).FiniteDimensional().WithBasis().Nilpotent()
-        cat = cat.or_subcategory(category)
         LieAlgebraWithStructureCoefficients.__init__(self, R, s_coeff,
                                                      names, index_set,
-                                                     category=cat, **kwds)
+                                                     **kwds)
 
     def _repr_(self):
         """

@@ -4077,7 +4077,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         return f
 
-    def factor(self, proof=True):
+    def factor(self, proof=None):
         """
         Return the factorization of this polynomial.
 

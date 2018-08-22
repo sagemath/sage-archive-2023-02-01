@@ -120,7 +120,7 @@ def HyperellipticCurve_from_invariants(i, reduced=True, precision=None,
         sage: HyperellipticCurve_from_invariants([GF(5)(1),1,0,1])
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: Inverse does not exist.
+        ZeroDivisionError: inverse of Mod(0, 5) does not exist
 
     ALGORITHM:
 

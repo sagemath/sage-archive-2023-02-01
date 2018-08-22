@@ -1401,6 +1401,41 @@ def get_cmap(cmap):
         return ListedColormap(cmap)
 
 
+def check_color_data(cfcm):
+    """
+    Make sure that the arguments are in order (coloring function, colormap).
+
+    This will allow users to use both possible orders.
+
+    EXAMPLES::
+
+        sage: from sage.plot.colors import check_color_data
+        sage: var('x,y')
+        (x, y)
+        sage: cf = lambda x,y : (x+y) % 1
+        sage: cm = colormaps.autumn
+        sage: check_color_data((cf, cm)) == (cf, cm)
+        True
+        sage: check_color_data((cm, cf)) == (cf, cm)
+        True
+
+    TESTS::
+
+        sage: check_color_data(('a', 33))
+        Traceback (most recent call last):
+        ...
+        ValueError: color data must be (color function, colormap)
+    """
+    cf, cm = cfcm
+    from matplotlib.colors import Colormap
+    if isinstance(cm, Colormap):
+        return cf, cm
+    elif isinstance(cf, Colormap):
+        return cm, cf
+    else:
+        raise ValueError('color data must be (color function, colormap)')
+
+
 class Colormaps(collections.MutableMapping):
     """
     A dict-like collection of lazily-loaded matplotlib color maps.

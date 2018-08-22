@@ -38,7 +38,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         Many of these tests should use non-abelian Lie algebras and need to
         be added after :trac:`16820`.
     """
-    _base_category_class_and_axiom = [LieAlgebras.FiniteDimensional, "WithBasis"]
+    _base_category_class_and_axiom = (LieAlgebras.FiniteDimensional, "WithBasis")
 
     def example(self, n=3):
         """

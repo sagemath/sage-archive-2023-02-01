@@ -25,7 +25,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
     Category of Lie algebras with a basis.
     """
-    _base_category_class_and_axiom = [LieAlgebras, "WithBasis"]
+    _base_category_class_and_axiom = (LieAlgebras, "WithBasis")
 
     def example(self, gens=None):
         """

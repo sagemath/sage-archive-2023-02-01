@@ -114,9 +114,20 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
         to say, for a graded Lie algebra `L = \bigoplus_{k=1}^M L_k`,
         we have `L_{k+1} = [L_1, L_k]`.
 
+        EXAMPLES::
+
+            sage: C = LieAlgebras(QQ).WithBasis().Graded().Stratified().FiniteDimensional()
+            sage: C
+            Category of finite dimensional stratified lie algebras with basis over Rational Field
+
+        A finite-dimensional stratified Lie algebra is nilpotent::
+
+            sage: C is C.Nilpotent()
+            True
+
         TESTS::
 
-            sage: C = LieAlgebras(QQ).Graded().FiniteDimensional().WithBasis().Stratified()
+            sage: C = LieAlgebras(QQ).WithBasis().Graded().FiniteDimensional().Stratified()
             sage: TestSuite(C).run()
         """
         class ParentMethods:

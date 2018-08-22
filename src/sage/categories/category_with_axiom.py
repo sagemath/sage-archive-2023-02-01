@@ -1679,6 +1679,7 @@ all_axioms += ("Flying", "Blue",
                "WellGenerated",
                "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
+               "Nilpotent",
                "FiniteDimensional", "Connected", "WithBasis",
                "Irreducible",
                "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors", "Cellular",
@@ -1686,7 +1687,7 @@ all_axioms += ("Flying", "Blue",
                "Distributive",
                "Endset",
                "Pointed",
-               "Stratified", "Nilpotent"
+               "Stratified",
               )
 
 def uncamelcase(s,separator=" "):
@@ -2268,6 +2269,14 @@ class CategoryWithAxiom(Category):
                 result = result.replace("graded ", "graded connected ", 1)
             elif axiom == "Connected" and "filtered " in result:
                 result = result.replace("filtered ", "filtered connected ", 1)
+            elif axiom == "Stratified" and "graded " in result:
+                result = result.replace("graded ", "stratified ", 1)
+            elif axiom == "Nilpotent" and "finite dimensional " in result:
+                # We need to put nilpotent before finite dimensional in the
+                #   axioms ordering so we do not (unnecessarily) display
+                #   'nilpotent' in 'finite dimensional nilpotent stratified'.
+                # So we need to swap the order here.
+                result = result.replace("finite dimensional ", "finite dimensional nilpotent ", 1)
             elif axiom == "Endset" and "homsets" in result:
                 # Without the space at the end to handle Homsets().Endset()
                 result = result.replace("homsets", "endsets", 1)

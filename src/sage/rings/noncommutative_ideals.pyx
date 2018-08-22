@@ -271,7 +271,6 @@ class Ideal_nc(Ideal_generic):
              False
              sage: IR == [A.1+A.2,A.1^2]*A
              True
-
         """
         if not isinstance(right, Ideal_nc):
             return False
@@ -298,9 +297,25 @@ class Ideal_nc(Ideal_generic):
              True
              sage: IR != [A.1+A.2,A.1^2]*A
              False
-
         """
         return not self.__eq__(right)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+             sage: A = SteenrodAlgebra(2)
+             sage: IR = [A.1+A.2,A.1^2]*A
+             sage: IL = A*[A.1+A.2,A.1^2]
+             sage: IT = A*[A.1+A.2,A.1^2]*A
+             sage: hash(IT) == hash(IL)
+             False
+             sage: hash(IR) == hash([A.1^2,A.1+A.2]*A)
+             True
+        """
+        return hash((self.parent(), self.__side, frozenset(self.gens())))
 
     def side(self):
         """

@@ -22,7 +22,6 @@ from sage.rings.complex_double import CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.rational import Rational
 
 class Function_exp(GinacFunction):
     r"""

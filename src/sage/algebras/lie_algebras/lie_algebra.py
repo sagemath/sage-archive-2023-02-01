@@ -319,6 +319,17 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z': 1}}, category=C); L
         Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
 
+    Free nilpotent Lie algebras are the truncated versions of the free Lie
+    algebras. That is, the only relations other than anticommutativity and the
+    Jacobi identity among the Lie brackets are that brackets of length higher
+    than the nilpotency step vanish. They can be created by using the
+    ``step`` keyword::
+
+        sage: L = LieAlgebra(ZZ, 2, step=3); L
+        Free Nilpotent Lie algebra on 5 generators (X_1, X_2, X_12, X_112, X_122) over Integer Ring
+        sage: L.step()
+        3
+
     REFERENCES:
 
     - [deG2000]_ Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
@@ -422,6 +433,13 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         # Otherwise it must be either a free or abelian Lie algebra
 
         if arg1 in ZZ:
+            step = kwds.get("step", None)
+            if step:
+                # Parse input as a free nilpotent Lie algebra
+                from sage.algebras.lie_algebras.nilpotent_lie_algebra import FreeNilpotentLieAlgebra
+                del kwds["step"]
+                return FreeNilpotentLieAlgebra(R, arg1, step, names=names, **kwds)
+
             if isinstance(arg0, str):
                 names = arg0
             if names is None:

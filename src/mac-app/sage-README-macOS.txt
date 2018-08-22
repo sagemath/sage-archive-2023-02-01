@@ -3,12 +3,12 @@ This is Sage -- open source mathematical software.
          http://www.sagemath.org
 
 **
-  These binaries are only for the OS X version that is indicated by the package .dmg name.
-  They generally will not work on any other OS X version (unless explicitly stated otherwise).
+  These binaries are only for the macOS version that is indicated by the package .dmg name.
+  They generally will not work on any other macOS version (unless explicitly stated otherwise).
 **
 
 There are two ways in which Sage can be distributed.  One is as a
-"regular" OS X application named something like Sage-VERSION.  If you
+"regular" macOS application named something like Sage-VERSION.  If you
 see such an application, skip to the section about Sage.app.  If
 instead you see a folder called "sage", proceed as follows.
 

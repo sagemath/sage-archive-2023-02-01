@@ -385,7 +385,7 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
                                  .Graded().Stratified().or_subcategory(category)
         NilpotentLieAlgebra_dense.__init__(self, R, s_coeff, names,
                                            index_set, s,
-                                           category, **kwds)
+                                           category=category, **kwds)
 
     def _repr_generator(self, w):
         r"""

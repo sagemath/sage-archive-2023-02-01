@@ -756,7 +756,7 @@ def format_src(s):
 ###############################
 
 def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
-                       extra4='', extra5='', **kwds):
+                       extra4='', extra5='', **kwargs):
     r"""
     Search the Sage library or documentation for lines containing
     ``string`` and possibly some other terms. This function is used by
@@ -808,31 +808,15 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)  # optional - dochtml
         True
     """
-    # process keywords
-    if 'interact' in kwds:
-        interact = kwds['interact']
-    else:
-        interact = True
-    if 'path_re' in kwds:
-        path_re = kwds['path_re']
-    else:
-        path_re = ''
-    if 'module' in kwds:
-        module = kwds['module']
-    else:
-        module = 'sage'
-    if 'whole_word' in kwds:
-        whole_word = kwds['whole_word']
-    else:
-        whole_word = False
-    if 'ignore_case' in kwds:
-        ignore_case = kwds['ignore_case']
-    else:
-        ignore_case = True
-    if 'multiline' in kwds:
-        multiline = kwds['multiline']
-    else:
-        multiline = False
+
+    # process keyword arguments
+    interact = kwargs.get('interact', True)
+    path_re = kwargs.get('path_re', '')
+    module = kwargs.get('module', 'sage')
+    whole_word = kwargs.get('whole_word', False)
+    ignore_case = kwargs.get('ignore_case', True)
+    multiline = kwargs.get('multiline', False)
+
     # done processing keywords
     # define module, exts (file extension), title (title of search),
     # base_path (top directory in which to search)

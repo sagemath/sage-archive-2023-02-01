@@ -646,9 +646,9 @@ class BinaryQF(SageObject):
         r"""
         Return if this form is reducible and cache the result.
 
-        A binary form `q` is called reducible if it is the product of two
-        linear forms `q = (a x + b y) ( c x + d y)`.
-        Or equivalently if its discriminant is a square.
+        A binary form `q` is called reducible if it is the product of
+        two linear forms `q = (a x + b y) (c x + d y)`, or
+        equivalently if its discriminant is a square.
 
         EXAMPLES::
 
@@ -682,7 +682,7 @@ class BinaryQF(SageObject):
             sage: red == f*trans
             True
 
-            sage: f = BinaryQF(0,5,24)
+            sage: f = BinaryQF(0, 5, 24)
             sage: red, trans = f._reduce_indef(transformation=True)
             sage: red == f*trans
             True
@@ -718,7 +718,7 @@ class BinaryQF(SageObject):
                         q, r = a.quo_rem(-b)
                         q = -q
                     if transformation:
-                        T = Matrix(ZZ, 2, 2, [1, 0,-q, 1])
+                        T = Matrix(ZZ, 2, 2, [1, 0, -q, 1])
                         U = U * T
                     Q = BinaryQF(r, b, c)
         if transformation:
@@ -776,7 +776,7 @@ class BinaryQF(SageObject):
             sage: g.is_reduced()
             True
 
-            sage: q = BinaryQF(1,0,-1)
+            sage: q = BinaryQF(1, 0, -1)
             sage: q.reduced_form()
             x^2 + 2*x*y
         """
@@ -801,9 +801,12 @@ class BinaryQF(SageObject):
                     'quadratic forms is not implemented in Sage')
             return self._reduce_indef(transformation)
         elif algorithm == 'pari':
-            if transformation or self.is_reducible():
+            if transformation:
                 raise NotImplementedError('transformation=True is not '
                                         'supported using PARI')
+            elif self.is_reducible():
+                raise NotImplementedError('reducible forms are not '
+                                          'supported using PARI')
             return BinaryQF(self.__pari__().qfbred())
         else:
             raise ValueError('unknown implementation for binary quadratic form '
@@ -890,7 +893,7 @@ class BinaryQF(SageObject):
         if self.discriminant().is_square():
             # Buchmann/Vollmer assume the discriminant to be non-square
             raise NotImplementedError('computation of cycles is only '
-                    'implemented for non-square discrimiants')
+                    'implemented for non-square discriminants')
         C = [self]
         Q1 = self._RhoTau()
         while not self == Q1:

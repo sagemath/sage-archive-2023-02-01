@@ -18,7 +18,7 @@ If your operating system does not provide SageMath, you can also use a
 pre-built binary. See the section :ref:`sec-installation-from-binaries`.
 
 Or you could install the ``sage`` package from the `conda-forge
-<https://conda-forge.org/>` project. See the section
+<https://conda-forge.org/>`_ project. See the section
 :ref:`sec-installation-conda`.
 
 By compiling SageMath from its sources you might be able to run a slightly more

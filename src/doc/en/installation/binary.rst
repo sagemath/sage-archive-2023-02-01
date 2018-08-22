@@ -103,7 +103,7 @@ on your desktop. Simply use it. In both situations you might want to
 have shortcuts so that ``sage`` in the console simply works out of the box.
 For that purpose, follows the steps at the end of the section "Linux".
 
-Microsoft Windows (cygwin)
+Microsoft Windows (Cygwin)
 --------------------------
 
 Installing SageMath on Windows require to have a 64 bits Windows

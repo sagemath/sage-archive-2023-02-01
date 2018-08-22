@@ -281,16 +281,16 @@ class pAdicExtensionGeneric(pAdicGeneric):
         EXAMPLES::
 
             sage: R.<a> = Qq(27)
-            sage: S.<a> = Qq(27,print_mode='val-unit')
+            sage: S.<a> = Qq(5,print_mode='val-unit')
             sage: hash(R) == hash(S)
             False
             sage: S.<a> = Qq(27,type='capped-rel')
             sage: hash(R) == hash(S)
             True
         """
-        hash_printer = tuple(sorted(self._printer.dict().items()))
+        # _printer is not hashable, hence not taken into account
         return hash((self.ground_ring(), self.defining_polynomial(exact=True),
-                     self.precision_cap(), hash_printer))
+                     self.precision_cap()))
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError

@@ -185,12 +185,12 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
 
                 If the degrees of the basis elements are not defined,
                 they will be computed. By assumption the stratification
-                `V_1 \oplus \cdots \oplus V_s` of ``self`` is such that each
-                component `V_k` is spanned by some subset of the basis.
+                `L_1 \oplus \cdots \oplus L_s` of ``self`` is such that each
+                component `L_k` is spanned by some subset of the basis.
 
                 The degree of a basis element `X` is therefore the largest
-                index `k` such that `X \in V_k \oplus \cdots \oplus V_s`. The
-                space  `V_k \oplus \cdots \oplus V_s` is by assumption the
+                index `k` such that `X \in L_k \oplus \cdots \oplus L_s`. The
+                space  `L_k \oplus \cdots \oplus L_s` is by assumption the
                 `k`-th term of the lower central series.
 
                 EXAMPLES::

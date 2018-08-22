@@ -1,5 +1,5 @@
 r"""
-Graded Lie algebras With Basis
+Graded Lie Algebras With Basis
 """
 
 # ****************************************************************************

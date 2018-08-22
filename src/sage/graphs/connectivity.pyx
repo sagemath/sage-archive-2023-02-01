@@ -2453,18 +2453,16 @@ def spqr_tree_to_graph(T):
 
 class _LinkedListNode:
     """
-    Node in a ``LinkedList``.
+    Node in a ``_LinkedList``.
 
     This class is a helper class for ``TriconnectivitySPQR``.
 
     This class implements a node of a (doubly) linked list and so has pointers
-    to previous and next nodes in the list. If this node is the ``head`` of the
-    linked list, reference to the linked list object is stored in ``listobj``.
+    to previous and next nodes in the list.
     """
-
     def __init__(self, data=None):
         """
-        Initialize this ``LinkedListNode``.
+        Initialize this ``_LinkedListNode``.
 
         INPUT:
 
@@ -2486,11 +2484,11 @@ class _LinkedList:
 
     This is a helper class for ``TriconnectivitySPQR``.
 
-    This class implements a doubly linked list of ``LinkedListNode``.
+    This class implements a doubly linked list of ``_LinkedListNode``.
     """
     def __init__(self):
         """
-        Initialize this ``LinkedList``.
+        Initialize this ``_LinkedList``.
         """
         self.head = None
         self.tail = None
@@ -2565,7 +2563,7 @@ class _LinkedList:
 
     def concatenate(self, lst2):
         """
-        Concatenates lst2 to self.
+        Concatenate lst2 to self.
 
         Makes lst2 empty.
         """
@@ -2583,7 +2581,9 @@ class _Component:
     This is a helper class for ``TriconnectivitySPQR``.
 
     This class is used to store a connected component. It contains:
-    - ``edge_list`` -- list of edges belonging to the component, stored as a ``LinkedList``.
+    - ``edge_list`` -- list of edges belonging to the component, stored as a
+      ``_LinkedList``.
+
     - ``component_type`` -- the type of the component.
         - 0 if bond.
         - 1 if polygon.
@@ -2608,7 +2608,9 @@ class _Component:
         self.edge_list.append(_LinkedListNode(e))
 
     def finish_tric_or_poly(self, e):
-        """
+        r"""
+        Finalize the component by adding edge `e`.
+
         Edge `e` is the last edge to be added to the component.
         Classify the component as a polygon or triconnected component
         depending on the number of edges belonging to it.
@@ -2789,6 +2791,15 @@ class TriconnectivitySPQR:
     """
     def __init__(self, G, check=True):
         """
+        Initialize this object, decompose the graph and build SPQR-tree.
+
+        INPUT:
+
+        - ``G`` -- The input graph. If ``G`` is a DiGraph, the computation is
+          done on the underlying Graph (i.e., ignoring edge orientation).
+
+        - ``check`` (default: ``True``) -- Boolean to indicate whether ``G``
+          needs to be tested for biconnectivity.
         """
         self.n = G.order()
         self.m = G.size()
@@ -3099,7 +3110,8 @@ class TriconnectivitySPQR:
                         self.graph_copy.delete_edge(sorted_edges.get_data())
 
                         # Add virtual edge to graph_copy
-                        newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1], "newVEdge"+str(self.virtual_edge_num))
+                        newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1],
+                                        "newVEdge"+str(self.virtual_edge_num))
                         self.graph_copy.add_edge(newVEdge)
                         self.virtual_edge_num += 1
 
@@ -3115,7 +3127,8 @@ class TriconnectivitySPQR:
                 self.graph_copy.delete_edge(sorted_edges.get_data())
 
                 # Add virtual edge to graph_copy
-                newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1], "newVEdge"+str(self.virtual_edge_num))
+                newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1],
+                                "newVEdge"+str(self.virtual_edge_num))
                 self.graph_copy.add_edge(newVEdge)
                 self.virtual_edge_num += 1
                 self.edge_status[newVEdge] = 0

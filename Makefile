@@ -111,43 +111,47 @@ micro_release: bdist-clean sagelib-clean
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
+# Flags for ./sage -t --all:
+OPTIONAL = --optional=sage,dochtml,optional
+OPTIONAL_AND_EXTERNAL = $(OPTIONAL),external
+
 test: all
 	$(TESTALL) --logfile=logs/test.log
 
 check: test
 
 testall: all
-	$(TESTALL) --optional=sage,optional,external --logfile=logs/testall.log
+	$(TESTALL) $(OPTIONAL_AND_EXTERNAL) --logfile=logs/testall.log
 
 testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong: all
-	$(TESTALL) --long --optional=sage,optional,external --logfile=logs/testalllong.log
+	$(TESTALL) --long $(OPTIONAL_AND_EXTERNAL) --logfile=logs/testalllong.log
 
 ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall: all
-	$(PTESTALL) --optional=sage,optional,external --logfile=logs/ptestall.log
+	$(PTESTALL) $(OPTIONAL_AND_EXTERNAL) --logfile=logs/ptestall.log
 
 ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong: all
-	$(PTESTALL) --long --optional=sage,optional,external --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long $(OPTIONAL_AND_EXTERNAL) --logfile=logs/ptestalllong.log
 
 testoptional: all
-	$(TESTALL) --optional=sage,optional --logfile=logs/testoptional.log
+	$(TESTALL) $(OPTIONAL) --logfile=logs/testoptional.log
 
 testoptionallong: all
-	$(TESTALL) --long --optional=sage,optional --logfile=logs/testoptionallong.log
+	$(TESTALL) --long $(OPTIONAL) --logfile=logs/testoptionallong.log
 
 ptestoptional: all
-	$(PTESTALL) --optional=sage,optional --logfile=logs/ptestoptional.log
+	$(PTESTALL) $(OPTIONAL) --logfile=logs/ptestoptional.log
 
 ptestoptionallong: all
-	$(PTESTALL) --long --optional=sage,optional --logfile=logs/ptestoptionallong.log
+	$(PTESTALL) --long $(OPTIONAL) --logfile=logs/ptestoptionallong.log
 
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d

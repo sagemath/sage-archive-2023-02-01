@@ -4,7 +4,7 @@ Install from Pre-built Binaries
 ===============================
 
 Installation from a pre-built binary tarball is an easy and
-fast way to install Sage. Note that on GNU/Linux a prefered
+fast way to install Sage. Note that on GNU/Linux a preferred
 way is to use your package manager (e.g. apt, pacman, yum).
 
 In all cases, we assume that you have a computer with at least
@@ -22,7 +22,7 @@ Not sure what to download? Just follow these steps.
 - Choose a download server (aka mirror) that is close to your location.
 
 - Download the binary that is appropriate to your system. Depending on your
-  operating system you might need additional informations such as your CPU
+  operating system you might need additional information such as your CPU
   type (e.g. 64 bits or 32 bits) and your operating system version. If you
   use OS X you will have the choice between a tarball (whose names ends with
   ``tar.bz2``) and two kinds of mountable disk images (whose names end with
@@ -46,7 +46,7 @@ in the notebooks.
 Choose an appropriate directory where to install Sage. If you have
 administrator rights on your computer a good choice is ``/opt``
 otherwise it can be anywhere in your home directory. Avoid spaces and
-unicode characters in the path name.
+Unicode characters in the path name.
 
 Next, download the latest binary tarball available
 (see "Download Guide" above). The tarball name should end

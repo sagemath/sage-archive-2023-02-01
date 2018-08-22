@@ -6,7 +6,7 @@ Welcome to the Sage Installation Guide
 You can install Sage either from the package manager of your distribution, a
 pre-built binary tarball or from its sources.
 
-Installing Sage from your distribution package manager is the prefered and
+Installing Sage from your distribution package manager is the preferred and
 faster solution (dependencies will be automatically taken care of and Sage will
 be using your system Python). It is the case at least for the following
 GNU/Linux distributions: Debian version >= 9, Ubuntu version >= 18.04 and

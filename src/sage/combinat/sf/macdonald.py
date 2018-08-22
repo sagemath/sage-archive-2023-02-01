@@ -782,12 +782,12 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: J = Sym.macdonald(t=2).J()
             sage: s = Sym.schur()
             sage: J._s_to_self(s[2,1])
-            ((-q+2)/(28*q-7))*McdJ[1, 1, 1] + (1/(-4*q+1))*McdJ[2, 1]
+            ((-1/28*q+1/14)/(q-1/4))*McdJ[1, 1, 1] - (1/4/(q-1/4))*McdJ[2, 1]
 
         This is for internal use only. Please use instead::
 
             sage: J(s[2,1])
-            ((-q+2)/(28*q-7))*McdJ[1, 1, 1] + (1/(-4*q+1))*McdJ[2, 1]
+            ((-1/28*q+1/14)/(q-1/4))*McdJ[1, 1, 1] - (1/4/(q-1/4))*McdJ[2, 1]
         """
         return self._from_cache(x, self._s_cache, self._s_to_self_cache, q = self.q, t = self.t)
 

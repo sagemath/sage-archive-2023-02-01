@@ -4468,9 +4468,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             [  0   0   0   0 384]
             sage: JQ = SymmetricFunctions(QQ['t'].fraction_field()).jack().Q()
             sage: matrix([[JQ(mu).scalar_jack(JQ(nu)) for nu in Partitions(3)] for mu in Partitions(3)])
-            [(2*t^2 + 3*t + 1)/(6*t^3)                         0                         0]
-            [                        0     (t + 2)/(2*t^3 + t^2)                         0]
-            [                        0                         0     6/(t^3 + 3*t^2 + 2*t)]
+            [(1/3*t^2 + 1/2*t + 1/6)/t^3                           0                           0]
+            [                          0 (1/2*t + 1)/(t^3 + 1/2*t^2)                           0]
+            [                          0                           0       6/(t^3 + 3*t^2 + 2*t)]
         """
         parent = self.parent()
         if t is None:

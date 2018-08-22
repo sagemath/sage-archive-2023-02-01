@@ -331,7 +331,7 @@ cdef class Matrix(Matrix1):
             sage: v = vector([3,4*x - 2])
             sage: X = A \ v
             sage: X
-            ((-8*x^2 + 4*x + 9)/(10*x^3 + x), (19*x^2 - 2*x - 3)/(10*x^3 + x))
+            ((-4/5*x^2 + 2/5*x + 9/10)/(x^3 + 1/10*x), (19/10*x^2 - 1/5*x - 3/10)/(x^3 + 1/10*x))
             sage: A * X == v
             True
 

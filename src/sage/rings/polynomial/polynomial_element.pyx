@@ -8419,7 +8419,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: m = z^9;
             sage: n, d = p.rational_reconstruct(m);
             sage: print((n ,d))
-            ((1/-t)*z^4 - t*z + 1/-t, z + 1/-t)
+            (-1/t*z^4 - t*z - 1/t, z - 1/t)
             sage: print(((p*d - n) % m ).is_zero())
             True
             sage: w = PowerSeriesRing(P.fraction_field(), 'w').gen()

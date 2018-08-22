@@ -19,6 +19,7 @@ Not sure what to download? Just follow these steps.
 
 - According to your operating system, go to the appropriate Download
   section of the `SageMath website <http://www.sagemath.org/>`_.
+
 - Choose a download server (aka mirror) that is close to your location.
 
 - Download the binary that is appropriate to your system. Depending on your
@@ -26,9 +27,9 @@ Not sure what to download? Just follow these steps.
   type (e.g. 64 bits or 32 bits) and your operating system version. If you
   use macOS you will have the choice between a tarball (whose names ends with
   ``tar.bz2``) and two kinds of mountable disk images (whose names end with
-  ``app.dmg`` and simply ``.dmg``). Except for windows, the naming scheme of
+  ``app.dmg`` and simply ``.dmg``). Except for Windows, the naming scheme of
   the files is always ``sage-VERSION-OS-CPU.EXTENSION`` where ``EXTENSION``
-  can be ``tar.gz``, ``tar.bz2``, ``dmg`` or ``app-dmg``.
+  can be ``tar.gz``, ``tar.bz2``, ``dmg`` or ``app.dmg``.
  
 - Then choose the appropriate section below corresponding to your situation.
 
@@ -96,20 +97,19 @@ This section explains how to install from ``dmg`` or ``app.dmg``. For
 the installation of the binary tarball ``tar.bz2`` just follow the steps
 of the Linux installation.
 
-After downloading the file, double click on the dmg file. It would take
-some time. Then drag the folder SageMath that just appeared to
-/Applications/. If you did download the app, an icon should have appeared
-on your desktop. Simply use it. In both situations you might want to
-have shortcuts so that ``sage`` in the console simply works out of the box.
-For that purpose, follows the steps at the end of the section "Linux".
+After downloading the file, double click on the dmg file to mount it which will
+take some time.  Then drag the folder ``SageMath`` that just appeared to
+``/Applications/``. If you did download the app, an icon should have appeared
+on your desktop. Simply use it. In both situations you might want to have
+shortcuts so that ``sage`` in the console simply works out of the box.  For
+that purpose, follows the steps at the end of the section "Linux".
 
 Microsoft Windows (Cygwin)
 --------------------------
 
-Installing SageMath on Windows require to have a 64 bits Windows
-(which is likely to be the case on modern computer). If you happen
-to have a 32 bits windows, you can consider the alternatives mentioned
-at the end of :ref:`installation-guide`.
+SageMath on Windows requires a 64-bit Windows (which is likely to be the case
+on a modern computer). If you happen to have a 32-bit Windows, you can consider
+the alternatives mentioned at the end of :ref:`installation-guide`.
 
-First download the binary corresponding to Windows (see the above "Download
-Guide" section) and run it.
+To install SageMath on Windows, just download the installer (see the above
+"Download Guide" section) and run it.

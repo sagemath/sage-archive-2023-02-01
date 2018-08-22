@@ -3,7 +3,7 @@
 Launching SageMath
 ==================
 
-Now we assume that you installed Sage properly on your system. This
+Now we assume that you installed SageMath properly on your system. This
 section quickly explains how to start the Sage console and the Jupyter
 Notebook from the command line.
 

@@ -32,7 +32,7 @@ Note that there are other alternatives to use Sage that avoids installing it:
   This might be an option if you fail installing SageMath on your operating
   system.
 
-- `CoCalc <https://cocalc.com/>`_: an online service that provides sagemath and
+- `CoCalc <https://cocalc.com/>`_: an online service that provides SageMath and
   many other tools.
 
 - `Sage Cell Server <https://sagecell.sagemath.org/>`_: an online service for

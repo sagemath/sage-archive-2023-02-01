@@ -903,17 +903,16 @@ class DocTestController(SageObject):
             self.reporter = DocTestReporter(self)
             self.dispatcher = DocTestDispatcher(self)
             N = self.options.global_iterations
-            for it in range(N):
+            for _ in range(N):
                 try:
                     self.timer = Timer().start()
                     self.dispatcher.dispatch()
                 except KeyboardInterrupt:
-                    it = N - 1
                     break
                 finally:
                     self.timer.stop()
                     self.reporter.finalize()
-                    self.cleanup(it == N - 1)
+                    self.cleanup(False)
         else:
             self.log("No files to doctest")
             self.reporter = DictAsObject(dict(error_status=0))
@@ -1144,6 +1143,30 @@ class DocTestController(SageObject):
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
             0
+
+        We check that #25378 is fixed (testing external packages while
+        providing a logfile does not raise a ValueError: I/O operation on
+        closed file)::
+
+            sage: DD = DocTestDefaults(optional=set(['sage', 'external']), logfile=tmp_filename())
+            sage: filename = os.path.join(SAGE_SRC, "sage", "misc", "latex.py")
+            sage: DC = DocTestController(DD, [filename])
+            sage: DC.run()
+            Running doctests with ID ...
+            Using --optional=external,sage
+            External software to be detected: ...
+            Doctesting 1 file.
+            sage -t .../sage/misc/latex.py
+                [... tests, ... s]
+            ----------------------------------------------------------------------
+            All tests passed!
+            ----------------------------------------------------------------------
+            Total time for all tests: ... seconds
+                cpu time: ... seconds
+                cumulative wall time: ... seconds
+            External software detected for doctesting: ...
+            0
+
         """
         opt = self.options
         L = (opt.gdb, opt.valgrind, opt.massif, opt.cachegrind, opt.omega)
@@ -1183,6 +1206,7 @@ class DocTestController(SageObject):
             if self.options.optional is True or 'external' in self.options.optional:
                 self.log("External software detected for doctesting: "
                          + ','.join(available_software.seen()))
+            self.cleanup()
             return self.reporter.error_status
 
 def run_doctests(module, options=None):
@@ -1242,6 +1266,7 @@ def run_doctests(module, options=None):
     if not save_dtmode:
         if options.debug:
             raise ValueError("You should not try to run doctests with a debugger from within Sage: IPython objects to embedded shells")
+        from IPython import get_ipython
         IP = get_ipython()
         old_color = IP.colors
         IP.run_line_magic('colors', 'NoColor')

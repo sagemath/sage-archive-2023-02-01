@@ -83,6 +83,7 @@ Individual Categories
    sage/categories/finite_dimensional_hopf_algebras_with_basis
    sage/categories/finite_dimensional_lie_algebras_with_basis
    sage/categories/finite_dimensional_modules_with_basis
+   sage/categories/finite_dimensional_nilpotent_lie_algebras_with_basis
    sage/categories/finite_dimensional_semisimple_algebras_with_basis
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
@@ -231,7 +232,6 @@ Examples of parents using categories
    sage/categories/examples/finite_dimensional_algebras_with_basis
    sage/categories/examples/finite_enumerated_sets
    sage/categories/examples/finite_dimensional_lie_algebras_with_basis
-   sage/categories/examples/finite_dimensional_nilpotent_lie_algebras_with_basis
    sage/categories/examples/finite_monoids
    sage/categories/examples/finite_semigroups
    sage/categories/examples/finite_weyl_groups

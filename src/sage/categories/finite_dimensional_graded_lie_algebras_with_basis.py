@@ -189,7 +189,7 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
                 component `V_k` is spanned by some subset of the basis.
 
                 The degree of a basis element `X` is therefore the largest
-                index `k`such that `X \in V_k \oplus \cdots \oplus V_s`. The
+                index `k` such that `X \in V_k \oplus \cdots \oplus V_s`. The
                 space  `V_k \oplus \cdots \oplus V_s` is by assumption the
                 `k`-th term of the lower central series.
 

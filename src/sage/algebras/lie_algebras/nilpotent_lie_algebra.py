@@ -20,7 +20,7 @@ from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStru
 from sage.categories.lie_algebras import LieAlgebras
 from sage.structure.indexed_generators import standardize_names_index_set
 from sage.rings.integer_ring import ZZ
-from collections import OrderedDict
+from collections import defaultdict
 
 class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
     r"""
@@ -349,17 +349,20 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
         from sage.algebras.lie_algebras.lie_algebra import LieAlgebra
 
         free_gen_names = ['F%d' % k for k in range(r)]
+        free_gen_names_inv = {val: i+1 for i,val in enumerate(free_gen_names)}
         L = LieAlgebra(R, free_gen_names).Lyndon()
 
-        basis_dict = OrderedDict()
+        basis_by_deg = {d: [] for d in range(1, s+1)}
         for d in range(1, s + 1):
             for X in L.graded_basis(d):
                 # convert brackets of form [X_1, [X_1, X_2]] to words (1,1,2)
-                w = tuple(free_gen_names.index(s) + 1
+                w = tuple(free_gen_names_inv[s]
                           for s in X.leading_support().to_word())
-                basis_dict[w] = X
+                basis_by_deg[d].append((w, X))
 
-        if len(names) == 1 and len(basis_dict) > 1:
+        index_set = [ind for d in basis_by_deg for ind, val in basis_by_deg[d]]
+
+        if len(names) == 1 and len(index_set) > 1:
             if not naming:
                 if r > 10:
                     naming = 'linear'
@@ -367,34 +370,39 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
                     naming = 'index'
             if naming == 'linear':
                 names = ['%s_%d' % (names[0], k + 1)
-                         for k in range(len(basis_dict))]
+                         for k in range(len(index_set))]
             elif naming == 'index':
                 if r > 10:
                     raise ValueError("'index' naming scheme not supported for "
                                      "over 10 generators")
                 names = ['%s_%s' % (names[0], "".join(str(s) for s in w))
-                         for w in basis_dict]
+                         for w in index_set]
             else:
                 raise ValueError("unknown naming scheme %s" % naming)
 
         # extract structural coefficients from the free Lie algebra
         s_coeff = {}
-        for k, X_ind in enumerate(basis_dict):
-            X = basis_dict[X_ind]
-            degX = len(X_ind)
-            for Y_ind in basis_dict.keys()[k+1:]:
-                # brackets are only computed when deg(X) + deg(Y) <= s
-                degY = len(Y_ind)
-                if degX + degY > s:
-                    continue
+        for dx in range(1, s + 1):
+            # Brackets are only computed when deg(X) + deg(Y) <= s
+            # We also require deg(Y) >= deg(X) by the ordering
+            for dy in range(dx, s + 1 - dx):
+                if dx == dy:
+                    for i, val in enumerate(basis_by_deg[dx]):
+                        X_ind, X = val
+                        for Y_ind, Y in basis_by_deg[dy][i+1:]:
+                            Z = L[X, Y]
+                            if not Z.is_zero():
+                                s_coeff[(X_ind, Y_ind)] = {W_ind: Z[W.leading_support()]
+                                                           for W_ind, W in basis_by_deg[dx+dy]}
+                else:
+                    for X_ind, X in basis_by_deg[dx]:
+                        for Y_ind, Y in basis_by_deg[dy]:
+                            Z = L[X, Y]
+                            if not Z.is_zero():
+                                s_coeff[(X_ind, Y_ind)] = {W_ind: Z[W.leading_support()]
+                                                           for W_ind, W in basis_by_deg[dx+dy]}
 
-                Y = basis_dict[Y_ind]
-                Z = L[X, Y]
-                if not Z.is_zero():
-                    s_coeff[(X_ind, Y_ind)] = {W: Z[basis_dict[W].leading_support()]
-                                               for W in basis_dict}
-
-        names, index_set = standardize_names_index_set(names, basis_dict.keys())
+        names, index_set = standardize_names_index_set(names, index_set)
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(
             s_coeff, index_set)
 

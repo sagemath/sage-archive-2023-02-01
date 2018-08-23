@@ -112,8 +112,7 @@ TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
 # Flags for ./sage -t --all:
-OPTIONAL = --optional=sage,dochtml,optional
-OPTIONAL_AND_EXTERNAL = $(OPTIONAL),external
+OPTIONAL_AND_EXTERNAL = --optional=sage,dochtml,optional,external
 
 test: all
 	$(TESTALL) --logfile=logs/test.log
@@ -142,16 +141,16 @@ ptestalllong: all
 	$(PTESTALL) --long $(OPTIONAL_AND_EXTERNAL) --logfile=logs/ptestalllong.log
 
 testoptional: all
-	$(TESTALL) $(OPTIONAL) --logfile=logs/testoptional.log
+	$(TESTALL) --logfile=logs/testoptional.log
 
 testoptionallong: all
-	$(TESTALL) --long $(OPTIONAL) --logfile=logs/testoptionallong.log
+	$(TESTALL) --long --logfile=logs/testoptionallong.log
 
 ptestoptional: all
-	$(PTESTALL) $(OPTIONAL) --logfile=logs/ptestoptional.log
+	$(PTESTALL) --logfile=logs/ptestoptional.log
 
 ptestoptionallong: all
-	$(PTESTALL) --long $(OPTIONAL) --logfile=logs/ptestoptionallong.log
+	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d

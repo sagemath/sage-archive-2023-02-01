@@ -300,6 +300,28 @@ cdef class FractionFieldElement(FieldElement):
             return True, self._parent( sq_rt/b )
         return False, None
 
+    def nth_root(self, n):
+        r"""
+        Return a ``n``-th root of this element.
+
+        EXAMPLES::
+
+            sage: R = QQ['t'].fraction_field()
+            sage: t = R.gen()
+            sage: p = (t+1)^3 / (t^2+t-1)^3
+            sage: p.nth_root(3)
+            (t + 1)/(t^2 + t - 1)
+
+            sage: p = (t+1) / (t-1)
+            sage: p.nth_root(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a 2nd power
+        """
+        a = self.numerator()
+        b = self.denominator()
+        return a.nth_root(n) / b.nth_root(n)
+
     def __hash__(self):
         """
         This function hashes in a special way to ensure that generators of

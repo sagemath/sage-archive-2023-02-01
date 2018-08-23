@@ -1410,8 +1410,6 @@ def check_color_data(cfcm):
     EXAMPLES::
 
         sage: from sage.plot.colors import check_color_data
-        sage: var('x,y')
-        (x, y)
         sage: cf = lambda x,y : (x+y) % 1
         sage: cm = colormaps.autumn
         sage: check_color_data((cf, cm)) == (cf, cm)

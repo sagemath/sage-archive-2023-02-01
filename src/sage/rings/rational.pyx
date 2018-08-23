@@ -1041,7 +1041,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             dtype('O')
 
             sage: numpy.array([1, 1/2, 3/4])
-            array([ 1.  ,  0.5 ,  0.75])
+            array([1.  , 0.5 , 0.75])
         """
         if mpz_cmp_ui(mpq_denref(self.value), 1) == 0:
             if mpz_fits_slong_p(mpq_numref(self.value)):

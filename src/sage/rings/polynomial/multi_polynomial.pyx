@@ -1994,13 +1994,11 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         R = self.parent()
         phi = R.flattening_morphism()
-        if phi.section() is None:
-            raise RuntimeError('R = {} has no section'.format(phi))
         S = phi.codomain()
         p = phi(self)
 
         V = p.variables()
-        if len(V) == 0:
+        if not V:
             # constant
             root = self.constant_coefficient().nth_root(n)
             return phi.section()(S(root))
@@ -2041,9 +2039,10 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         try:
             sqrt = self.nth_root(2)
-            return (True,sqrt) if root else True
         except ValueError:
             return (False,None) if root else False
+        else:
+            return (True,sqrt) if root else True
 
     def specialization(self, D=None, phi=None):
         r"""

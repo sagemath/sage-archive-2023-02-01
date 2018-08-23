@@ -1965,7 +1965,7 @@ cdef class MPolynomial(CommutativeRingElement):
         r"""
         Return a `n`-th root of this element.
 
-        This method relies on factorization.
+        If there is no such root, a ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -1977,42 +1977,71 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: b.nth_root(42)
             Traceback (most recent call last):
             ...
-            ValueError: (x + 2*y + 3*z)^(1/42) does not lie in
-            Multivariate Polynomial Ring in x, y, z over Rational Field
+            ValueError: not a 42nd power
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<z,t> = R[]
+            sage: T.<u,v> = S[]
+            sage: p = (1 + x*u + y + v) * (1 + z*t)
+            sage: (p**3).nth_root(3)
+            (x*z*t + x)*u + (z*t + 1)*v + (y + 1)*z*t + y + 1
+            sage: (p**3).nth_root(3).parent() is p.parent()
+            True
+            sage: ((1+x+z+t)**2).nth_root(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a 3rd power
         """
-        # note: this code is duplicated in
-        # sage.rings.polynomial.polynomial_element.Polynomial.nth_root
-        from sage.rings.integer_ring import ZZ
+        R = self.parent()
+        phi = R.flattening_morphism()
+        if phi.section() is None:
+            raise RuntimeError('R = {} has no section'.format(phi))
+        S = phi.codomain()
+        p = phi(self)
 
-        n = ZZ.coerce(n)
-
-        if n <= 0:
-            raise ValueError("n (={}) must be positive".format(n))
-        elif n.is_one() or self.is_zero():
-            return self
-        elif self.degree() % n:
-            raise ValueError("({})^(1/{}) does not lie in {}".format(self, n, self.parent()))
+        V = p.variables()
+        if len(V) == 0:
+            # constant
+            root = self.constant_coefficient().nth_root(n)
+            return phi.section()(S(root))
+        elif len(V) == 1:
+            # univariate
+            U = PolynomialRing(S.base_ring(), str(V[0]))
+            pU = U(p)
         else:
-            f = self.factor()
-            u = self.base_ring()(f.unit())
+            # specialize one variable
+            # (in order to call the univariate case)
+            U0 = PolynomialRing(S.base_ring(), [str(v) for v in V[:-1]])
+            U = U0[str(V[-1])]
+            pU = U(p)
 
-            if u.is_one():
-                ans = self.parent().one()
-            else:
-                # try to compute a n-th root of the unit in the
-                # base ring. the `nth_root` method thus has to be
-                # implemented in the base ring.
-                try:
-                    ans = self.parent(u.nth_root(n))
-                except AttributeError:
-                    raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
+        # recursive call
+        root = pU.nth_root(n)
+        return phi.section()(S(root))
 
-            for (v, exp) in f:
-                if exp % n:
-                    raise ValueError("({})^(1/{}) does not lie in {}".format(self, n, self.parent()))
-                ans *= v ** (exp // n)
+    def is_square(self, root=False):
+        r"""
+        Test whether this polynomial is a square root.
 
-            return ans
+        INPUT:
+
+        - ``root`` - if set to ``True`` return a pair ``(True, root)``
+          where ``root`` is a square root or ``(False, None)`` if
+          it is not a square.
+
+        EXAMPLES::
+
+            sage: R.<a,b> = QQ[]
+            sage: a.is_square()
+            False
+            sage: ((1+a*b^2)^2).is_square()
+            True
+        """
+        try:
+            sqrt = self.nth_root(2)
+            return (True,sqrt) if root else True
+        except ValueError:
+            return (False,None) if root else False
 
     def specialization(self, D=None, phi=None):
         r"""

@@ -194,7 +194,6 @@ from collections import OrderedDict
 import re
 import webbrowser
 import tempfile
-import time
 import inspect
 import json
 import cgi

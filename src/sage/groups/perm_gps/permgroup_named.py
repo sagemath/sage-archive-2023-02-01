@@ -3039,3 +3039,308 @@ class SuzukiGroup(PermutationGroup_unique):
 
         """
         return "The Suzuki group over %s" % self.base_ring()
+
+class ComplexReflectionGroup(PermutationGroup_unique):
+    """
+    The complex reflection group `G(m,p,n)` as a permutation group.
+
+    We can realize `G(m,1,n)` as `m` copies of the symmetric group
+    `S_n` with `s_i` for `1 \leq i < n` acting as the usual adjacent
+    transposition on each copy of `S_n`. We construct the cycle
+    `s_n = (n, 2n, \ldots, mn)`.
+
+    We construct `G(m,p,n)` as a subgroup of `G(m,1,n)` by
+    `s_i \mapsto s_i` for all `1 \leq i < n`,
+
+    .. MATH::
+
+        s_n \mapsto s_n^{-1} s_{n-1} s_n,
+        \qquad\qquad
+        s_{n+1} \mapsto s_n^p.
+
+    Note that if `p = m`, then `s_{n+1} = 1`, in which case we
+    do not consider it as a generator.
+
+    INPUT:
+
+    - ``m, p, n`` -- positive integers
+
+    .. NOTE::
+
+        This group is also available via
+        ``groups.permutation.ComplexReflection()``.
+
+    .. NOTE::
+
+        The convenion for the index set is for `G(m, 1, n)` to
+        have the complex reflection of order `m` correspond to
+        `s_n`; i.e., `s_n^m = 1` and `s_i^2 = 1` for all `i < m`.
+
+    EXAMPLES::
+
+        sage: G = groups.permutation.ComplexReflection(3, 1, 5)
+        sage: G.order()
+        29160
+        sage: G
+        Complex reflection group G(3, 1, 5) as a permutation group
+        sage: G.category()
+        Join of Category of finite enumerated permutation groups
+            and Category of finite complex reflection groups
+
+        sage: G = groups.permutation.ComplexReflection(3, 3, 4)
+        sage: G.cardinality()
+        648
+        sage: s1, s2, s3, s4 = G.simple_reflections()
+        sage: s4*s2*s4 == s2*s4*s2
+        True
+        sage: (s4*s3*s2)^2 == (s2*s4*s3)^2
+        True
+
+        sage: G = groups.permutation.ComplexReflection(6, 2, 3)
+        sage: G.cardinality()
+        648
+        sage: s1, s2, s3, s4 = G.simple_reflections()
+        sage: s3^2 == G.one()
+        True
+        sage: s4^3 == G.one()
+        True
+        sage: s4 * s3 * s2 == s3 * s2 * s4
+        True
+        sage: (s3*s2*s1)^2 == (s1*s3*s2)^2
+        True
+        sage: s3 * s1 * s3 == s1 * s3 * s1
+        True
+        sage: s4 * s3 * (s2*s3)^(2-1) == s2 * s4
+        True
+
+        sage: G = groups.permutation.ComplexReflection(4, 2, 5)
+        sage: G.cardinality()
+        61440
+
+    REFERENCES:
+
+    - :wikipedia:`Complex_reflection_group`
+    """
+    def __init__(self, m, p, n):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: G = groups.permutation.ComplexReflection(3, 2, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: p (=2) must divide m (=3)
+
+            sage: G = groups.permutation.ComplexReflection(3, 1, 5)
+            sage: TestSuite(G).run()  # long time
+
+            sage: G = groups.permutation.ComplexReflection(3, 3, 4)
+            sage: TestSuite(G).run()
+
+            sage: G = groups.permutation.ComplexReflection(4, 2, 5)
+            sage: TestSuite(G).run()  # long time
+
+            sage: groups.permutation.ComplexReflection(4, 1, 3).cardinality()
+            384
+            sage: CP = ColoredPermutations(4, 3)
+            sage: CP.cardinality()
+            384
+        """
+        self._m = Integer(m)
+        self._p = Integer(p)
+        self._n = Integer(n)
+        if min(self._m, self._p, self._n) < 1:
+            raise ValueError("m (=%s) p (=%s) n (=%s) must all be >= 1" % (self._m, self._p, self._n))
+        if self._m % self._p != 0:
+            raise ValueError("p (=%s) must divide m (=%s)" % (self._p, self._m))
+
+        from sage.categories.finite_complex_reflection_groups import FiniteComplexReflectionGroups
+        from sage.categories.finite_permutation_groups import FinitePermutationGroups
+        cat = FinitePermutationGroups() & FiniteComplexReflectionGroups()
+
+        gens = [[(i+k, i+1+k) for k in range(0, self._m * self._n, self._n)]
+                for i in range(1, self._n)]
+        if self._p == 1:
+            gens.append([tuple(range(self._n, self._m*self._n + 1, self._n))])
+        else:
+            from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+            snm = PermutationGroupElement(gens[-1])
+            sn = PermutationGroupElement([tuple(range(self._n, self._m*self._n + 1, self._n))])
+            gens.append(sn**(self._m-1) * snm * sn)
+            if self._p != self._m:
+                gens.append(sn**self._p)
+
+        PermutationGroup_generic.__init__(self, gens, category=cat)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: groups.permutation.ComplexReflection(3, 1, 5)
+            Complex reflection group G(3, 1, 5) as a permutation group
+        """
+        return "Complex reflection group G(%s, %s, %s) as a permutation group" % (self._m, self._p, self._n)
+
+    def _latex_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.ComplexReflection(3, 1, 5)
+            sage: latex(G)
+            G(3,1,5)
+        """
+        return "G(%s,%s,%s)" % (self._m, self._p, self._n)
+
+    @cached_method
+    def index_set(self):
+        r"""
+        Return the index set of ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.ComplexReflection(4, 1, 3)
+            sage: G.index_set()
+            (1, 2, 3)
+
+            sage: G = groups.permutation.ComplexReflection(1, 1, 3)
+            sage: G.index_set()
+            (1, 2)
+
+            sage: G = groups.permutation.ComplexReflection(4, 2, 3)
+            sage: G.index_set()
+            (1, 2, 3, 4)
+
+            sage: G = groups.permutation.ComplexReflection(4, 4, 3)
+            sage: G.index_set()
+            (1, 2, 3)
+        """
+        n = self._n
+        if self._m != 1:
+            n += 1
+        if self._p != 1 and self._p != self._m:
+            n += 1
+        return tuple(range(1, n))
+
+    def simple_reflection(self, i):
+        r"""
+        Return the ``i``-th simple reflection of ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.ComplexReflection(3, 1, 4)
+            sage: G.simple_reflection(2)
+            (2,3)(6,7)(10,11)
+            sage: G.simple_reflection(4)
+            (4,8,12)
+
+            sage: G = groups.permutation.ComplexReflection(1, 1, 4)
+            sage: G.simple_reflections()
+            Finite family {1: (1,2), 2: (2,3), 3: (3,4)}
+        """
+        if i not in self.index_set():
+            raise ValueError("not an index of a simple reflection")
+
+        if i < self._n:
+            return self([(i+k, i+1+k) for k in range(0, self._m * self._n, self._n)])
+        if self._p == 1:
+            return self([tuple(range(self._n, self._m*self._n + 1, self._n))])
+
+        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+        sn = PermutationGroupElement([tuple(range(self._n, self._m*self._n + 1, self._n))])
+        if i == self._n + 1:
+            return self(sn**self._p)
+
+        snm = PermutationGroupElement([(self._n-1+k, self._n+k)
+                                       for k in range(0, self._m * self._n, self._n)])
+        return self(sn**(self._m-1) * snm * sn)
+
+    def degrees(self):
+        r"""
+        Return the degrees of ``self``.
+
+        The degrees of a complex reflection group are the degrees of
+        the fundamental invariants of the ring of polynomial invariants.
+
+        If `m = 1`, then we are in the special case of the symmetric group
+        and the degrees are `(2, 3, \ldots, n, n+1)`. Otherwise the degrees
+        are `(m, 2m, \ldots, (n-1)m, nm/p)`.
+
+        EXAMPLES::
+
+            sage: C = groups.permutation.ComplexReflection(4, 1, 3)
+            sage: C.degrees()
+            (4, 8, 12)
+            sage: G = groups.permutation.ComplexReflection(4, 2, 3)
+            sage: G.degrees()
+            (4, 6, 8)
+            sage: Gp = groups.permutation.ComplexReflection(4, 4, 3)
+            sage: Gp.degrees()
+            (3, 4, 8)
+            sage: S = groups.permutation.ComplexReflection(1, 1, 3)
+            sage: S.degrees()
+            (2, 3)
+
+        Check that the product of the degrees is equal to the
+        cardinality::
+
+            sage: prod(C.degrees()) == C.cardinality()
+            True
+            sage: prod(G.degrees()) == G.cardinality()
+            True
+            sage: prod(Gp.degrees()) == Gp.cardinality()
+            True
+            sage: prod(S.degrees()) == S.cardinality()
+            True
+        """
+        # For the usual symmetric group (self._m=1) we need to start at 2
+        start = 2 if self._m == 1 else 1
+        ret = [self._m * i for i in range(start, self._n)]
+        ret.append(self._m * self._n // self._p)
+        return tuple(sorted(ret))
+
+    def codegrees(self):
+        r"""
+        Return the codegrees of ``self``.
+
+        Let `G` be a complex reflection group. The codegrees
+        `d_1^* \leq d_2^* \leq \cdots \leq d_{\ell}^*` of `G` can be
+        defined by:
+
+        .. MATH::
+
+            \prod_{i=1}^{\ell} (q - d_i^* - 1)
+            = \sum_{g \in G} \det(g) q^{\dim(V^g)},
+
+        where `V` is the natural complex vector space that `G` acts on
+        and `\ell` is the :meth:`rank`.
+
+        If `m = 1`, then we are in the special case of the symmetric group
+        and the codegrees are `(n-2, n-3, \ldots 1, 0)`. Otherwise the degrees
+        are `((n-1)m, (n-2)m, \ldots, m, 0)`.
+
+        EXAMPLES::
+
+            sage: C = groups.permutation.ComplexReflection(4, 1, 3)
+            sage: C.codegrees()
+            (8, 4, 0)
+            sage: G = groups.permutation.ComplexReflection(3, 3, 4)
+            sage: G.codegrees()
+            (6, 5, 3, 0)
+            sage: S = groups.permutation.ComplexReflection(1, 1, 3)
+            sage: S.codegrees()
+            (1, 0)
+        """
+        # Special case for the usual symmetric group
+        if self._m == 1:
+            return tuple(reversed(range(self._n-1)))
+        if self._p < self._m:
+            return tuple([self._m * i for i in reversed(range(self._n))])
+        ret = [self._m * i for i in reversed(range(self._n-1))]
+        ret.append((self._n-1)*self._m - self._n)
+        return tuple(sorted(ret, reverse=True))
+

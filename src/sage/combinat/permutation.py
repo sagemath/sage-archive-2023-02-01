@@ -6357,6 +6357,24 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         return self(x.domain())
 
+    def as_permutation_group(self):
+        """
+        Return ``self`` as a permutation group.
+
+        EXAMPLES::
+
+            sage: P = Permutations(4)
+            sage: PG = P.as_permutation_group()
+            sage: PG
+            Symmetric group of order 4! as a permutation group
+
+            sage: G = SymmetricGroup(4)
+            sage: PG is G
+            True
+        """
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        return SymmetricGroup(self.n)
+
     def identity(self):
         r"""
         Return the identity permutation of size `n`.

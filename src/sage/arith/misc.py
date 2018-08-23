@@ -1718,7 +1718,7 @@ def gcd(a, b=None, **kwargs):
         ...
         TypeError: unable to call gcd with a
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: GCD(int8(97),int8(100))
@@ -2126,7 +2126,7 @@ def power_mod(a,n,m):
         ...
         ZeroDivisionError: modulus must be nonzero.
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int32
         sage: power_mod(int32(2),int32(390),int32(391))
@@ -2245,7 +2245,7 @@ def rational_reconstruction(a, m, algorithm='fast'):
         ...
         ValueError: unknown algorithm 'foobar'
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int32
         sage: rational_reconstruction(int32(3), int32(292393))
@@ -2284,7 +2284,7 @@ def mqrr_rational_reconstruction(u, m, T):
         sage: mqrr_rational_reconstruction(21,3100,13)
         (21, 1)
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int16
         sage: mqrr_rational_reconstruction(int16(21),int16(3100),int16(13))
@@ -2352,7 +2352,7 @@ def trial_division(n, bound=None):
         sage: trial_division(387833, 400)
         389
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: trial_division(int8(91))
@@ -2573,7 +2573,7 @@ def radical(n, *args, **kwds):
         sage: radical(K(2))
         i + 1
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: radical(int8(50))
@@ -2628,7 +2628,7 @@ def prime_divisors(n):
         sage: prime_divisors(x^12 - 1)
         [x - 1, x + 1, x^2 - x + 1, x^2 + 1, x^2 + x + 1, x^4 - x^2 + 1]
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: prime_divisors(int8(-100))
@@ -2659,7 +2659,7 @@ def odd_part(n):
         sage: odd_part(factorial(31))
         122529844256906551386796875
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: odd_part(int8(5))
@@ -2701,7 +2701,7 @@ def prime_to_m_part(n,m):
         sage: 240.prime_to_m_part(2)
         15
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int16
         sage: prime_to_m_part(int16(240), int16(2))
@@ -2757,7 +2757,7 @@ def is_square(n, root=False):
         sage: is_square(4, True)
         (True, 2)
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: is_square(int8(4))
@@ -2766,10 +2766,14 @@ def is_square(n, root=False):
         sage: is_square(mpz(4))     # optional - gmpy2
         True
 
-    Indirect test with LaurentPolynomial_univariate::
+    Tests with Polynomial::
 
         sage: R.<v> = LaurentPolynomialRing(QQ, 'v')
         sage: H = IwahoriHeckeAlgebra('A3', v**2)
+        sage: R.<a,b,c,d> = QQ[]
+        sage: p = a*b + c*d*a*d*a + 5
+        sage: is_square(p**2)
+        True
     """
     try:
         m = n.is_square
@@ -2824,7 +2828,7 @@ def is_squarefree(n):
         ...
         ArithmeticError: non-principal ideal in factorization
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: is_squarefree(int8(100))
@@ -2913,7 +2917,7 @@ class Euler_Phi:
 
         sage: P = plot(euler_phi, -3, 71)
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: euler_phi(int8(37))
@@ -3573,7 +3577,7 @@ def multinomial(*ks):
         sage: multinomial(Partition([4, 2]))
         15
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: multinomial(int8(3), int8(2))
@@ -3622,7 +3626,7 @@ def binomial_coefficients(n):
         sage: (x+y)^3
         x^3 + 3*x^2*y + 3*x*y^2 + y^3
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: sorted(binomial_coefficients(int8(3)).items())
@@ -3787,7 +3791,7 @@ def kronecker_symbol(x,y):
         sage: kronecker(2/3,5)
         1
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: kronecker_symbol(int8(13),int8(21))
@@ -3838,7 +3842,7 @@ def legendre_symbol(x,p):
         sage: legendre_symbol(2/3,7)
         -1
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: legendre_symbol(int8(2),int8(3))
@@ -3893,7 +3897,7 @@ def jacobi_symbol(a,b):
         ...
         ValueError: second input must be odd, 2 is not odd
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int16
         sage: jacobi_symbol(int16(10),int16(777))
@@ -3999,7 +4003,7 @@ def primitive_root(n, check=True):
         ...
         ValueError: no primitive root
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: primitive_root(int8(-46))
@@ -4088,7 +4092,7 @@ def quadratic_residues(n):
         sage: v = quadratic_residues(1000); len(v);
         159
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: quadratic_residues(int8(11))
@@ -4151,7 +4155,7 @@ class Moebius:
         sage: moebius(x+2)
         -1
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: moebius(int8(-5))
@@ -4337,7 +4341,7 @@ def continuant(v, n=None):
         ...
         TypeError: object of type 'sage.rings.integer.Integer' has no len()
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: continuant([int8(1),int8(2),int8(3)])
@@ -4381,7 +4385,7 @@ def number_of_divisors(n):
         sage: number_of_divisors(-720)
         30
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: number_of_divisors(int8(100))
@@ -4445,7 +4449,7 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
         sage: hilbert_symbol(QQ(-1)/QQ(4), -1, 3) == 1
         True
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: hilbert_symbol(int8(2),int8(3),int8(5),algorithm='all')
@@ -4536,7 +4540,7 @@ def hilbert_conductor(a, b):
         sage: hilbert_conductor(-3, -17)
         17
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: hilbert_conductor(int8(-3), int8(-17))
@@ -4600,7 +4604,7 @@ def hilbert_conductor_inverse(d):
         ....:     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
         ....:         print("hilbert_conductor_inverse failed for d = {}".format(d))
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: hilbert_conductor_inverse(int8(30))
@@ -4733,7 +4737,7 @@ def falling_factorial(x, a):
         sage: bool(falling_factorial(int(4), int(2)) == falling_factorial(4,2))
         True
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: falling_factorial(int8(10), int8(3))
@@ -4838,7 +4842,7 @@ def rising_factorial(x, a):
         sage: bool(rising_factorial(int(4), int(2)) == rising_factorial(4,2))
         True
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: rising_factorial(int8(10), int8(3))
@@ -4875,7 +4879,7 @@ def integer_ceil(x):
         ...
         NotImplementedError: computation of ceil of x not implemented
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import float32
         sage: integer_ceil(float32(5.4))
@@ -4921,7 +4925,7 @@ def integer_floor(x):
         ...
         NotImplementedError: computation of floor of x not implemented
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import float32
         sage: integer_floor(float32(5.4))
@@ -4984,7 +4988,7 @@ def two_squares(n):
         ....:     aa,bb = two_squares(n)
         ....:     assert aa**2 + bb**2 == n
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int16
         sage: two_squares(int16(389))
@@ -5108,7 +5112,7 @@ def three_squares(n):
         ....:     aa,bb,cc = three_squares(n)
         ....:     assert aa**2 + bb**2 + cc**2 == n
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int16
         sage: three_squares(int16(389))
@@ -5239,7 +5243,7 @@ def four_squares(n):
         ....:     aa,bb,cc,dd = four_squares(n)
         ....:     assert aa**2 + bb**2 + cc**2 + dd**2 == n
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int16
         sage: four_squares(int16(389))
@@ -5333,7 +5337,7 @@ def sum_of_k_squares(k,n):
         ...
         ValueError: k = -1 must be non-negative
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int16
         sage: sum_of_k_squares(int16(2), int16(9634))
@@ -5404,7 +5408,7 @@ def subfactorial(n):
         sage: subfactorial(8)
         14833
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: subfactorial(int8(8))
@@ -5447,7 +5451,7 @@ def is_power_of_two(n):
         sage: is_power_of_two(-4)
         False
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: is_power_of_two(int8(16))
@@ -5480,7 +5484,7 @@ def differences(lis, n=1):
         sage: differences([p - i^2 for i, p in enumerate(prime_range(50))], 3)
         [-1, 2, -4, 4, -4, 4, 0, -6, 8, -6, 0, 4]
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: differences([int8(1),int8(4),int8(6),int8(19)])
@@ -5607,7 +5611,7 @@ def fundamental_discriminant(D):
         sage: fundamental_discriminant(2)
         8
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: fundamental_discriminant(int8(102))
@@ -5653,7 +5657,7 @@ def squarefree_divisors(x):
         sage: type(a)
         <type 'sage.rings.integer.Integer'>
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: list(squarefree_divisors(int8(12)))
@@ -5750,7 +5754,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(6, 8, algorithm='pari')
         -1/8
 
-    Tests with gmpy2 and numpy numbers::
+    Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
         sage: dedekind_sum(int8(5), int8(7), algorithm='default')

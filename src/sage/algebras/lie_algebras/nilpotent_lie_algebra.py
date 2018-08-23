@@ -177,15 +177,15 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
     - ``naming`` -- (optional) a string; the naming scheme to use for
       the basis; valid values are:
 
-      * ``'index'`` - (default for `r \leq 10`) the basis elements are
+      * ``'index'`` - (default for `r < 10`) the basis elements are
         ``names_w``, where ``w`` are Lyndon words indexing the basis
-      * ``'linear'`` - (default for `r > 10`) the basis is indexed
+      * ``'linear'`` - (default for `r \geq 10`) the basis is indexed
         ``names_1``, ..., ``names_n`` in the ordering of the Lyndon basis
 
     .. NOTE::
 
-        The ``'index'`` naming scheme is not supported if `r > 10` since
-        it leads to ambiguous names.
+        The ``'index'`` naming scheme is not supported if `r \geq 10`
+        since it leads to ambiguous names.
 
     EXAMPLES:
 
@@ -218,7 +218,7 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
 
     A fully custom naming scheme on the Heisenberg algebra::
 
-        sage: L = LieAlgebra(ZZ, 2, step=2, names = ('X', 'Y', 'Z'))
+        sage: L = LieAlgebra(ZZ, 2, step=2, names=('X', 'Y', 'Z'))
         sage: a, b, c = L.basis()
         sage: L.basis().list()
         [X, Y, Z]
@@ -364,7 +364,7 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
 
         if len(names) == 1 and len(index_set) > 1:
             if not naming:
-                if r > 10:
+                if r >= 10:
                     naming = 'linear'
                 else:
                     naming = 'index'
@@ -372,9 +372,9 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
                 names = ['%s_%d' % (names[0], k + 1)
                          for k in range(len(index_set))]
             elif naming == 'index':
-                if r > 10:
+                if r >= 10:
                     raise ValueError("'index' naming scheme not supported for "
-                                     "over 10 generators")
+                                     "10 or more generators")
                 names = ['%s_%s' % (names[0], "".join(str(s) for s in w))
                          for w in index_set]
             else:

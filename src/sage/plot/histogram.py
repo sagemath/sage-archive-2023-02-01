@@ -186,7 +186,7 @@ class Histogram(GraphicPrimitive):
             subplot.hist(self.datalist.transpose(), **options)
 
 
-@options(aspect_ratio='automatic',align='mid', weights=None, range=None, bins=10, density=False, edgecolor='black')
+@options(aspect_ratio='automatic', align='mid', weights=None, range=None, bins=10, density=False, edgecolor='black')
 def histogram(datalist, **options):
     """
     Computes and draws the histogram for list(s) of numerical data.

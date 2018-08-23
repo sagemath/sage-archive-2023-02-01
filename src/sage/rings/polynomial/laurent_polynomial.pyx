@@ -3147,3 +3147,51 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         return Factorization(f, unit=u)
 
+    def is_square(self, root=False):
+        r"""
+        Test whether this Laurent polynomial is a square root.
+
+        INPUT:
+
+        - ``root`` - boolean (default ``False``) - if set to ``True``
+          then return a pair ``(True, sqrt)`` with ``sqrt`` a square
+          root of this Laurent polynomial when it exists or
+          ``(False, None)``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: p = (1 + x*y + z^-3)
+            sage: (p**2).is_square()
+            True
+            sage: (p**2).is_square(root=True)
+            (True, x*y + 1 + z^-3)
+
+            sage: x.is_square()
+            False
+            sage: x.is_square(root=True)
+            (False, None)
+
+            sage: (x**-4 * (1 + z)).is_square(root=False)
+            False
+            sage: (x**-4 * (1 + z)).is_square(root=True)
+            (False, None)
+        """
+        self._normalize()
+        if not self._mon.is_multiple_of(2):
+            return (False, None) if root else False
+
+        cdef LaurentPolynomial_mpair ans
+
+        if not root:
+            return self._poly.is_square(root=False)
+        else:
+            (pans, root) = self._poly.is_square(root=True)
+            if not pans:
+                return (False, None)
+
+            mon = self._mon.escalar_div(2)
+            ans = self._new_c()
+            ans._mon = mon
+            ans._poly = root
+            return (True, ans)

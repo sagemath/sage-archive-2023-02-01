@@ -2036,6 +2036,8 @@ cdef class MPolynomial(CommutativeRingElement):
             False
             sage: ((1+a*b^2)^2).is_square()
             True
+            sage: ((1+a*b^2)^2).is_square(root=True)
+            (True, a*b^2 + 1)
         """
         try:
             sqrt = self.nth_root(2)

@@ -111,8 +111,11 @@ micro_release: bdist-clean sagelib-clean
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
-# Flags for ./sage -t --all:
-OPTIONAL_AND_EXTERNAL = --optional=sage,dochtml,optional,external
+# Flags for ./sage -t --all.
+# By default, include all tests marked 'dochtml' -- see
+# https://trac.sagemath.org/ticket/25345 and
+# https://trac.sagemath.org/ticket/26110.
+TESTALL_FLAGS = --optional=sage,dochtml,optional,external
 
 test: all
 	$(TESTALL) --logfile=logs/test.log
@@ -120,25 +123,25 @@ test: all
 check: test
 
 testall: all
-	$(TESTALL) $(OPTIONAL_AND_EXTERNAL) --logfile=logs/testall.log
+	$(TESTALL) $(TESTALL_FLAGS) --logfile=logs/testall.log
 
 testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong: all
-	$(TESTALL) --long $(OPTIONAL_AND_EXTERNAL) --logfile=logs/testalllong.log
+	$(TESTALL) --long $(TESTALL_FLAGS) --logfile=logs/testalllong.log
 
 ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall: all
-	$(PTESTALL) $(OPTIONAL_AND_EXTERNAL) --logfile=logs/ptestall.log
+	$(PTESTALL) $(TESTALL_FLAGS) --logfile=logs/ptestall.log
 
 ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong: all
-	$(PTESTALL) --long $(OPTIONAL_AND_EXTERNAL) --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long $(TESTALL_FLAGS) --logfile=logs/ptestalllong.log
 
 testoptional: all
 	$(TESTALL) --logfile=logs/testoptional.log

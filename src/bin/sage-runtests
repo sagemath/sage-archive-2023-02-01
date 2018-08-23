@@ -36,6 +36,9 @@ if __name__ == "__main__":
     parser.add_option("--warn-long", dest="warn_long", default=None, action="callback",
         callback=optional_argument, callback_args=(float, 1.0), nargs=0,
         metavar="SECONDS", help="warn if tests take more time than SECONDS")
+    # By default, include all tests marked 'dochtml' -- see
+    # https://trac.sagemath.org/ticket/25345 and
+    # https://trac.sagemath.org/ticket/26110:
     parser.add_option("--optional", metavar="PKGS", default="sage,dochtml,optional",
         help='only run tests including one of the "# optional" tags listed in PKGS; '
              'if "sage" is listed, will also run the standard doctests; '

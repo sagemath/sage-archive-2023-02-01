@@ -68,7 +68,7 @@ class Histogram(GraphicPrimitive):
 
             sage: H = histogram([10,3,5]); h = H[0]
             sage: h.get_minmax_data()
-            {'xmax': 10.0, 'xmin': 3.0, 'ymax': 0.4761904761904765, 'ymin': 0}
+            {'xmax': 10.0, 'xmin': 3.0, 'ymax': 1, 'ymin': 0}
             sage: G = histogram([random() for _ in range(500)]); g = G[0]
             sage: g.get_minmax_data() # random output
             {'xmax': 0.99729312925213209, 'xmin': 0.00013024562219410285, 'ymax': 61, 'ymin': 0}

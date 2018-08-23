@@ -73,6 +73,7 @@ from six import add_metaclass
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.posets import Posets
+from sage.categories.all import Monoids
 from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.categories.finite_posets import FinitePosets
 from sage.combinat.binary_tree import BinaryTrees
@@ -589,6 +590,44 @@ class TamariIntervalPoset(Element):
             False
         """
         return self._poset
+
+    def _mul_(self, other):
+        """
+        Return the associative product of ``self`` and ``other``.
+
+        This is defined by taking the disjoint union of the relations
+        of ``self`` with the relations of ``other`` shifted by `n`,
+        where `n` is the size of ``self``.
+
+        EXAMPLES::
+
+            sage: T1 = TamariIntervalPoset(1,[])
+            sage: T2 = TamariIntervalPoset(2,[[1,2]])
+            sage: T1*T1
+            The Tamari interval of size 2 induced by relations []
+            sage: T2*T1
+            The Tamari interval of size 3 induced by relations [(1, 2)]
+            sage: T1*T2
+            The Tamari interval of size 3 induced by relations [(2, 3)]
+            sage: T2*T2
+            The Tamari interval of size 4 induced by relations [(1, 2), (3, 4)]
+
+        TESTS::
+
+            sage: U = TamariIntervalPoset(0,[])
+            sage: U*T1 == T1
+            True
+            sage: T2*U == T2
+            True
+        """
+        n = self._size
+        m = other.size()
+        relations = self._poset.cover_relations()
+        relations.extend([(i + n, j + n)
+                          for i, j in other._poset.cover_relations_iterator()])
+        P = FinitePoset(DiGraph([list(range(1, n + m + 1)), relations],
+                                format='vertices_and_edges'))
+        return TamariIntervalPoset(P, check=False)
 
     def __hash__(self):
         """
@@ -3505,7 +3544,8 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
             """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), TamariIntervalPosets_size),
-            facade=True, keepkey=False, category=(Posets(), EnumeratedSets()))
+            facade=True, keepkey=False,
+            category=(Posets(), EnumeratedSets(), Monoids()))
 
     def _repr_(self):
         r"""
@@ -3515,6 +3555,19 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
             Interval-posets
         """
         return "Interval-posets"
+
+    def one(self):
+        """
+        Return the unit of the monoid.
+
+        This is the empty interval poset, of size 0.
+
+        EXAMPLES::
+
+            sage: TamariIntervalPosets().one()
+            The Tamari interval of size 0 induced by relations []
+        """
+        return TamariIntervalPoset(0, [])
 
     def _element_constructor_(self, size, relations):
         r"""

@@ -450,8 +450,11 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: LyndonWords(3,3).list() # indirect doctest
+            sage: LyndonWords(3,3).list()  # indirect doctest
             [word: 112, word: 113, word: 122, word: 123, word: 132, word: 133, word: 223, word: 233]
+
+            sage: sum(1 for lw in LyndonWords(11, 6))  # long time
+            295020
         """
         for lw in generate_lyndon_words(self._n, self._k):
             yield self._words([i+1 for i in lw], check=False)

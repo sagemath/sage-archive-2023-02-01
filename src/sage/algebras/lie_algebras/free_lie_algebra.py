@@ -805,22 +805,12 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             if k == 1:
                 return tuple(self.element_class(self, {LieGenerator(n): one}) for n in names)
 
-            # Slightly modified form of LyndonWords_nk which is 0 indexed,
-            #   does not create any temporary objects and simplifies the
-            #   combined logic
-            from sage.combinat.integer_vector import IntegerVectors
-            from sage.combinat.necklace import _sfc
-
+            from sage.combinat.lyndon_word import generate_lyndon_words
             n = len(self._indices)
             ret = []
-            for c in IntegerVectors(k, n):
-                nonzero_indices = [i for i,val in enumerate(c) if val != 0]
-
-                cf = [c[i] for i in nonzero_indices]
-
-                for z in _sfc(cf, equality=True):
-                    b = self._standard_bracket(tuple([names[nonzero_indices[i]] for i in z]))
-                    ret.append(self.element_class(self, {b: one}))
+            for lw in generate_lyndon_words(n, k):
+                b = self._standard_bracket(tuple([names[i] for i in lw]))
+                ret.append(self.element_class(self, {b: one}))
             return tuple(ret)
 
         def pbw_basis(self, **kwds):

@@ -324,8 +324,9 @@ def _sympysage_derivative(self):
         sage: assert diff(f(x),x) == sympy_diff._sage_()
     """
     from sage.calculus.functional import derivative
-    args = [arg._sage_() for arg in self.args]
-    return derivative(*args)
+    f = self.args[0]._sage_()
+    args = [[a._sage_() for a in arg] if isinstance(arg,tuple) else arg._sage_() for arg in self.args[2:]]
+    return derivative(f, *args)
 
 def _sympysage_order(self):
     """

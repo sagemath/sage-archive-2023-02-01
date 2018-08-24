@@ -3042,7 +3042,7 @@ class SuzukiGroup(PermutationGroup_unique):
 
 class ComplexReflectionGroup(PermutationGroup_unique):
     """
-    The complex reflection group `G(m,p,n)` as a permutation group.
+    A finite complex reflection group as a permutation group.
 
     We can realize `G(m,1,n)` as `m` copies of the symmetric group
     `S_n` with `s_i` for `1 \leq i < n` acting as the usual adjacent
@@ -3061,9 +3061,17 @@ class ComplexReflectionGroup(PermutationGroup_unique):
     Note that if `p = m`, then `s_{n+1} = 1`, in which case we
     do not consider it as a generator.
 
+    The exceptional complex reflection groups `G_m` (in the Shephard-Todd
+    classification) are not yet implemented.
+
     INPUT:
 
-    - ``m, p, n`` -- positive integers
+    One of the following:
+
+    - ``m, p, n`` -- positive integers to construct `G(m,p,n)`
+
+    - ``m`` -- integer such that `4 \leq m \leq 37` to construct
+      an exceptional complex reflection `G_m`
 
     .. NOTE::
 
@@ -3117,11 +3125,16 @@ class ComplexReflectionGroup(PermutationGroup_unique):
         sage: G.cardinality()
         61440
 
+        sage: G = groups.permutation.ComplexReflection(4)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: exceptional complex reflection groups are not yet implemented
+
     REFERENCES:
 
     - :wikipedia:`Complex_reflection_group`
     """
-    def __init__(self, m, p, n):
+    def __init__(self, m, p=None, n=None):
         """
         Initialize ``self``.
 
@@ -3147,6 +3160,9 @@ class ComplexReflectionGroup(PermutationGroup_unique):
             sage: CP.cardinality()
             384
         """
+        if p is None:
+            raise NotImplementedError("exceptional complex reflection groups"
+                                      " are not yet implemented")
         self._m = Integer(m)
         self._p = Integer(p)
         self._n = Integer(n)

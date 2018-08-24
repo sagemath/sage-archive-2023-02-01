@@ -516,9 +516,9 @@ class Function_gamma_inc_lower(BuiltinFunction):
             sage: gamma_inc_lower(2,377/79)
             -456/79*e^(-377/79) + 1
             sage: gamma_inc_lower(3,x)
-            -x^2*e^(-x) - 2*x*e^(-x) - 2*e^(-x) + 2
+            -(x^2 + 2*x + 2)*e^(-x) + 2
             sage: gamma_inc_lower(9/2,37/7)
-            105/16*sqrt(pi)*erf(1/7*sqrt(259)) - 836473/19208*sqrt(259)*e^(-37/7)
+            -1/38416*sqrt(pi)*(1672946*sqrt(259)*e^(-37/7)/sqrt(pi) - 252105*erf(1/7*sqrt(259)))
         """
         if y == 0:
             return 0

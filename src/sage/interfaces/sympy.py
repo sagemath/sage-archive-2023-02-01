@@ -505,7 +505,7 @@ def _sympysage_piecewise(self):
 
         sage: _ = var('y, z')
         sage: (x^y - z).integrate(y, algorithm="sympy")
-        -y*z + cases(((log(x) == 0, y), (1, x^y/log(x))))
+        -y*z + cases(((log(x) != 0, x^y/log(x)), (1, y)))
     """
     from sage.functions.other import cases
     return cases([(p.cond._sage_(),p.expr._sage_()) for p in self.args])

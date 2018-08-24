@@ -802,10 +802,10 @@ class PermutationGroup_generic(FiniteGroup):
 
             sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
             sage: G.list()
-            [(), (1,2), (1,2,3,4), (1,3)(2,4), (1,3,4), (2,3,4), (1,4,3,2),
-             (1,3,2,4), (1,3,4,2), (1,2,4,3), (1,4,2,3), (2,4,3), (1,4,3),
-             (1,4)(2,3), (1,4,2), (1,3,2), (1,3), (3,4), (2,4), (1,4), (2,3),
-             (1,2)(3,4), (1,2,3), (1,2,4)]
+            [(), (1,4)(2,3), (1,2)(3,4), (1,3)(2,4), (2,4,3), (1,4,2),
+             (1,2,3), (1,3,4), (2,3,4), (1,4,3), (1,2,4), (1,3,2), (3,4),
+             (1,4,2,3), (1,2), (1,3,2,4), (2,4), (1,4,3,2), (1,2,3,4),
+             (1,3), (2,3), (1,4), (1,2,4,3), (1,3,4,2)]
 
             sage: G = PermutationGroup([[('a','b')]], domain=('a', 'b')); G
             Permutation Group with generators [('a','b')]
@@ -1597,7 +1597,7 @@ class PermutationGroup_generic(FiniteGroup):
         return [self._domain_from_gap[x] for x in self._gap_().StabChain(seed).BaseStabChain().sage()]
 
     def strong_generating_system(self, base_of_group=None, implementation="sage"):
-        """
+        r"""
         Return a Strong Generating System of ``self`` according the given
         base for the right action of ``self`` on itself.
 

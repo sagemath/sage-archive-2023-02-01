@@ -1,4 +1,4 @@
-"""
+r"""
 Permutation group elements
 
 AUTHORS:
@@ -11,27 +11,25 @@ AUTHORS:
 
 There are several ways to define a permutation group element:
 
--  Define a permutation group `G`, then use
-   ``G.gens()`` and multiplication \* to construct
-   elements.
+-  Define a permutation group `G`, then use ``G.gens()``
+   and multiplication ``*`` to construct elements.
 
--  Define a permutation group `G`, then use e.g.,
+-  Define a permutation group `G`, then use, e.g.,
    ``G([(1,2),(3,4,5)])`` to construct an element of the
    group. You could also use ``G('(1,2)(3,4,5)')``
 
--  Use e.g.,
+-  Use, e.g.,
    ``PermutationGroupElement([(1,2),(3,4,5)])`` or
    ``PermutationGroupElement('(1,2)(3,4,5)')`` to make a
    permutation group element with parent `S_5`.
 
+EXAMPLES:
 
-EXAMPLES: We illustrate construction of permutation using several
+We illustrate construction of permutation using several
 different methods.
 
 First we construct elements by multiplying together generators for
-a group.
-
-::
+a group::
 
     sage: G = PermutationGroup(['(1,2)(3,4)', '(3,4,5,6)'], canonicalize=False)
     sage: s = G.gens()
@@ -45,9 +43,7 @@ a group.
     Permutation Group with generators [(1,2)(3,4), (3,4,5,6)]
 
 Next we illustrate creation of a permutation using coercion into an
-already-created group.
-
-::
+already-created group::
 
     sage: g = G([(1,2),(3,5,6)])
     sage: g
@@ -58,9 +54,7 @@ already-created group.
     True
 
 We can also use a string or one-line notation to specify the
-permutation.
-
-::
+permutation::
 
     sage: h = G('(1,2)(3,5,6)')
     sage: i = G([2,1,5,4,6,3])
@@ -69,23 +63,24 @@ permutation.
 
 The Rubik's cube group::
 
-    sage: f= [(17,19,24,22),(18,21,23,20),(6,25,43,16),(7,28,42,13),(8,30,41,11)]
-    sage: b=[(33,35,40,38),(34,37,39,36),( 3, 9,46,32),( 2,12,47,29),( 1,14,48,27)]
-    sage: l=[( 9,11,16,14),(10,13,15,12),( 1,17,41,40),( 4,20,44,37),( 6,22,46,35)]
-    sage: r=[(25,27,32,30),(26,29,31,28),( 3,38,43,19),( 5,36,45,21),( 8,33,48,24)]
-    sage: u=[( 1, 3, 8, 6),( 2, 5, 7, 4),( 9,33,25,17),(10,34,26,18),(11,35,27,19)]
-    sage: d=[(41,43,48,46),(42,45,47,44),(14,22,30,38),(15,23,31,39),(16,24,32,40)]
-    sage: cube = PermutationGroup([f,b,l,r,u,d])
-    sage: F=cube.gens()[0]
-    sage: B=cube.gens()[1]
-    sage: L=cube.gens()[2]
-    sage: R=cube.gens()[3]
-    sage: U=cube.gens()[4]
-    sage: D=cube.gens()[5]
+    sage: f = [(17,19,24,22),(18,21,23,20),( 6,25,43,16),( 7,28,42,13),( 8,30,41,11)]
+    sage: b = [(33,35,40,38),(34,37,39,36),( 3, 9,46,32),( 2,12,47,29),( 1,14,48,27)]
+    sage: l = [( 9,11,16,14),(10,13,15,12),( 1,17,41,40),( 4,20,44,37),( 6,22,46,35)]
+    sage: r = [(25,27,32,30),(26,29,31,28),( 3,38,43,19),( 5,36,45,21),( 8,33,48,24)]
+    sage: u = [( 1, 3, 8, 6),( 2, 5, 7, 4),( 9,33,25,17),(10,34,26,18),(11,35,27,19)]
+    sage: d = [(41,43,48,46),(42,45,47,44),(14,22,30,38),(15,23,31,39),(16,24,32,40)]
+    sage: cube = PermutationGroup([f, b, l, r, u, d])
+    sage: F, B, L, R, U, D = cube.gens()
     sage: cube.order()
     43252003274489856000
     sage: F.order()
     4
+
+We create element of a permutation group of large degree::
+
+    sage: G = SymmetricGroup(30)
+    sage: s = G(srange(30,0,-1)); s
+    (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 
 #*****************************************************************************

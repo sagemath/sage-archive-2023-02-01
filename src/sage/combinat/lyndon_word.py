@@ -457,8 +457,9 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
             sage: sum(1 for lw in LyndonWords(11, 6))  # long time
             295020
         """
+        W = self._words._element_classes['list']
         for lw in generate_lyndon_words(self._n, self._k):
-            yield self._words([i+1 for i in lw], check=False)
+            yield W(self._words, [i+1 for i in lw])
 
 def StandardBracketedLyndonWords(n, k):
     """

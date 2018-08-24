@@ -3065,8 +3065,12 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
              [(), ()],
              [(2,3), (2,3)]]
             sage: PM_max.automorphisms_of_rows_and_columns()
-            [((), ()), ((2,3), (2,3)), ((1,2), (1,2)),
-             ((1,3,2), (1,3,2)), ((1,2,3), (1,2,3)), ((1,3), (1,3))]
+            [((), ()),
+             ((1,2,3), (1,2,3)),
+             ((1,3,2), (1,3,2)),
+             ((2,3), (2,3)),
+             ((1,2), (1,2)),
+             ((1,3), (1,3))]
             sage: PMs = [i._palp_PM_max(check=True)
             ....:        for i in ReflexivePolytopes(2)] # long time
             sage: all(len(i) == len(j.automorphisms_of_rows_and_columns())

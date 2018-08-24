@@ -807,7 +807,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_plain(G.an_element(), 3)
-            () + 2*(1,2)
+            ()
 
         .. SEEALSO::
 
@@ -873,7 +873,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_direct_product(G.an_element(), 3)
-            () + 2*(1,2)
+            ()
 
         .. SEEALSO::
 

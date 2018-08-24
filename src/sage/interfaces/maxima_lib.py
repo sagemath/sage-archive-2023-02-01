@@ -102,9 +102,9 @@ from sage.env import MAXIMA_FAS
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
 ecl_eval("(setf *load-verbose* NIL)")
-try:
+if (MAXIMA_FAS):
     ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
-except RuntimeError:
+else:
     ecl_eval("(require 'maxima)")
 ecl_eval("(in-package :maxima)")
 ecl_eval("(setq $nolabels t))")

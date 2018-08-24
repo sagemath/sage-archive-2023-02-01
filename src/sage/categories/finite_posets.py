@@ -466,7 +466,8 @@ class FinitePosets(CategoryWithAxiom):
 
         def birational_free_labelling(self, linear_extension=None,
                                       prefix='x', base_field=None,
-                                      reduced=False, addvars=None):
+                                      reduced=False, addvars=None,
+                                      labels=None):
             r"""
             Return the birational free labelling of ``self``.
 
@@ -595,6 +596,14 @@ class FinitePosets(CategoryWithAxiom):
               names of extra variables to be adjoined to the ground
               field (these don't have an effect on the labels)
 
+            - ``labels`` -- Either a function that takes an element
+               and returns a name for the indeterminate corresponding
+               to that element, or a string containing acomma separated
+               list of indeterminates. If the list contains more
+               indeterminates than needed, the excess will be ignored.
+               If it contains too few, then the needed indeterminates
+               will be constructed from ``prefix``.
+
             OUTPUT:
 
             The birational free labelling of the poset ``self`` and the
@@ -648,6 +657,25 @@ class FinitePosets(CategoryWithAxiom):
                 [(1, x1), (2, x3), (3, x2)]
                 sage: l[1][2]
                 x3
+
+            Illustrating labelling with a function::
+
+                sage: P = posets.ChainPoset(2).product(posets.ChainPoset(2))
+                sage: l = P.birational_free_labelling(labels=lambda e : 'x_' + str(e[0]) + str(e[1]))
+                sage: sorted(l[1].items())
+                [((0, 0), x_00), ((0, 1), x_01), ((1, 0), x_10), ((1, 1), x_11)]
+
+            Illustrating labelling with a comma separated list of labels
+                sage: l = P.birational_free_labelling(labels='w,x,y,z')
+                sage: sorted(l[1].items())
+                [((0, 0), w), ((0, 1), x), ((1, 0), y), ((1, 1), z)]
+                sage: l = P.birational_free_labelling(labels='w,x,y,z,m')
+                sage: sorted(l[1].items())
+                [((0, 0), w), ((0, 1), x), ((1, 0), y), ((1, 1), z)]
+                sage: l = P.birational_free_labelling(labels='w')
+                sage: sorted(l[1].items())
+                [((0, 0), w), ((0, 1), x1), ((1, 0), x2), ((1, 1), x3)]
+
 
             Illustrating the warning about facade::
 
@@ -786,21 +814,26 @@ class FinitePosets(CategoryWithAxiom):
             if linear_extension is None:
                 linear_extension = self.linear_extension()
             n = self.cardinality()
-            varstring = ""
-            for i in range(1, n + 1):
-                varstring += prefix + str(i) + ','
-            if reduced:
-                varstring = varstring[:-1]
+            label_list = []
+            if labels:
+                if callable(labels):
+                    label_list = [labels(e) for e in linear_extension]
+                else:
+                    label_list = labels.split(',')
+                    if len(label_list) > n:
+                        label_list = label_list[:n]
+                    elif len(label_list) < n:
+                        label_list += [prefix + str(i) for i in range(1, n + 1 - len(label_list))]
+
             else:
-                varstring = 'a,' + varstring + 'b'
+                label_list = [prefix + str(i) for i in range(1, n + 1)]
+            if not reduced:
+                label_list = ['a'] + label_list + ['b']
             if addvars:
-                varstring += ',' + addvars
-            if len(varstring) > 0 and varstring[0] == ',':
-                varstring = varstring[1:]
-            if len(varstring) > 0:
-                varnum = varstring.count(',') + 1
-            else:
-                varnum = 0
+                label_list += addvars.split(',')
+            varstring = ','.join(label_list)
+            varnum = len(label_list)
+
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             PR = PolynomialRing(base_field, varstring, varnum)
             # Now, ``PR`` is the polynomial ring in `n + 2` indeterminates

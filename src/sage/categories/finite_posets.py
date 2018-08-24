@@ -598,11 +598,12 @@ class FinitePosets(CategoryWithAxiom):
 
             - ``labels`` -- Either a function that takes an element
                and returns a name for the indeterminate corresponding
-               to that element, or a string containing acomma separated
-               list of indeterminates. If the list contains more
-               indeterminates than needed, the excess will be ignored.
-               If it contains too few, then the needed indeterminates
-               will be constructed from ``prefix``.
+               to that element, or a string containing a comma separated
+               list of indeterminates that will be assigned to elements
+               in the order of the ``linear_extension``. If the list
+               contains more indeterminates than needed, the excess will
+               be ignored. If it contains too few, then the needed
+               indeterminates will be constructed from ``prefix``.
 
             OUTPUT:
 
@@ -665,7 +666,8 @@ class FinitePosets(CategoryWithAxiom):
                 sage: sorted(l[1].items())
                 [((0, 0), x_00), ((0, 1), x_01), ((1, 0), x_10), ((1, 1), x_11)]
 
-            Illustrating labelling with a comma separated list of labels
+            Illustrating labelling with a comma separated list of labels::
+
                 sage: l = P.birational_free_labelling(labels='w,x,y,z')
                 sage: sorted(l[1].items())
                 [((0, 0), w), ((0, 1), x), ((1, 0), y), ((1, 1), z)]

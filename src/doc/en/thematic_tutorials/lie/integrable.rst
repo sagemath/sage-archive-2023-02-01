@@ -221,7 +221,7 @@ is the same as that for ``mw2``, calculated above::
 String functions of integrable representations often appear
 in the Online Encyclopedia of Integer Sequences::
 
-    sage: [oeis(x) for x in V.strings().values()]
+    sage: [oeis(x) for x in V.strings().values()]    # optional - internet
     [0: A233758: Bisection of A006950 (the even part).,
      0: A233759: Bisection of A006950 (the odd part).]
 

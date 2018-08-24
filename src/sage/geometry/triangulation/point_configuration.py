@@ -52,6 +52,7 @@ A 2-dimensional point configuration::
     :width: 300 px
 
     p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
+    p = PointConfiguration([[-1,-1],[1,1],[1,0],[0,1],[0,0]])
     sphinx_plot(p.plot(axes=False))
 
 A triangulation of it::
@@ -1871,12 +1872,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: pc.contained_simplex()
-            (P(2, 1), P(0, 0), P(1, 0))
+            (P(0, 0), P(-1, -1), P(0, 1))
             sage: pc.contained_simplex(point_order = [pc[1],pc[3],pc[4],pc[2],pc[0]])
-            (P(0,1),P(1,1),P(-1,-1)) 
+            (P(0, 1), P(1, 1), P(-1, -1)) 
             sage: # lower-dimensional example:
             sage: pc.contained_simplex(point_order = [pc[0],pc[3],pc[4]])
-            (P(0,0),P(1,1))
+            (P(0, 0), P(1, 1))
             
         TESTS::
 

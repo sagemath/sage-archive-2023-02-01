@@ -60,16 +60,21 @@ subgroups of index p
 
 -- SuzukiGroup(q), Suzuki group over GF(q), $^2 B_2(2^{2k+1}) = Sz(2^{2k+1})$.
 
+-- ComplexReflectionGroup, the complex reflection group `G(m, p, n)` or
+                           the exceptional complex reflection group `G_m`
 
 AUTHOR:
-    - David Joyner (2007-06): split from permgp.py (suggested by Nick Alexander)
+
+- David Joyner (2007-06): split from permgp.py (suggested by Nick Alexander)
 
 REFERENCES:
-    Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
-    Wielandt, H., Finite Permutation Groups. New York: Academic Press, 1964.
-    Dixon, J. and Mortimer, B., Permutation Groups, Springer-Verlag, Berlin/New York, 1996.
 
-NOTE:
+- Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
+- Wielandt, H., Finite Permutation Groups. New York: Academic Press, 1964.
+- Dixon, J. and Mortimer, B., Permutation Groups, Springer-Verlag, Berlin/New York, 1996.
+
+.. NOTE::
+
     Though Suzuki groups are okay, Ree groups should *not* be wrapped as
     permutation groups - the construction is too slow - unless (for
     small values or the parameter) they are made using explicit generators.

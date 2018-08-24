@@ -140,6 +140,56 @@ def _stirling_number2(n, k):
     return s
 
 #####################################################################
+## Lyndon word iterator
+
+def generate_lyndon_words(Py_ssize_t n, Py_ssize_t k):
+    """
+    Generate all Lyndon words with of length ``k`` with ``n`` letters.
+
+    The resulting Lyndon words will be words represented as lists
+    whose alphabet is ``range(n)``.
+
+    ALGORITHM:
+
+    The FKM algorithm from *Combinatorial Generation* by Ruskey.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat_cython import generate_lyndon_words
+        sage: list(generate_lyndon_words(4, 2))
+        [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
+        sage: list(generate_lyndon_words(2, 4))
+        [[0, 0, 0, 1], [0, 0, 1, 1], [0, 1, 1, 1]]
+
+    TESTS::
+
+        sage: list(generate_lyndon_words(6, 1))
+        [[0], [1], [2], [3], [4], [5]]
+
+        sage: list(generate_lyndon_words(5, 0))
+        []
+    """
+    cdef Py_ssize_t i, j
+    if k == 0:
+        return
+    if k == 1:
+        for i in range(n):
+            yield [i]
+        return
+
+    cdef list a = [0] * (k+1)
+    i = k
+    while i != 0:
+        a[i] += 1
+        for j in range(1, k-i+1):
+            a[j + i] = a[j]
+        if k == i:
+            yield a[1:]
+        i = k
+        while a[i] == n - 1:
+            i -= 1
+
+#####################################################################
 ## Set partition iterators
 
 @cython.wraparound(False)

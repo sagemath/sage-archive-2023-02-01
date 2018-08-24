@@ -25,6 +25,7 @@ from sage.misc.all import prod
 from . import necklace
 from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
 from sage.combinat.words.words import FiniteWords
+from sage.combinat.combinat_cython import generate_lyndon_words
 
 
 def LyndonWords(e=None, k=None):
@@ -569,44 +570,4 @@ def standard_bracketing(lw):
     for i in range(1, len(lw)):
         if lw[i:] in LyndonWords():
             return [standard_bracketing(lw[:i]), standard_bracketing(lw[i:])]
-
-
-def generate_lyndon_words(n, k):
-    """
-    Generate all Lyndon words with of length ``k`` with ``n`` letters.
-
-    The resulting Lyndon words will be words represented as lists
-    whose alphabet is ``range(n)``.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.lyndon_word import generate_lyndon_words
-        sage: list(generate_lyndon_words(4, 2))
-        [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
-        sage: list(generate_lyndon_words(2, 4))
-        [[0, 0, 0, 1], [0, 0, 1, 1], [0, 1, 1, 1]]
-
-    TESTS::
-
-        sage: list(generate_lyndon_words(6, 1))
-        [[0], [1], [2], [3], [4], [5]]
-
-        sage: list(generate_lyndon_words(5, 0))
-        []
-    """
-    if k == 0:
-        return
-    if k == 1:
-        for i in range(n):
-            yield [i]
-        return
-
-    ret = []
-    for c in integer_vectors_nk_fast_iter(k, n):
-        nonzero_indices = [i for i, val in enumerate(c) if val != 0]
-
-        cf = [c[i] for i in nonzero_indices]
-
-        for z in necklace._sfc(cf, equality=True):
-            yield [nonzero_indices[i] for i in z]
 

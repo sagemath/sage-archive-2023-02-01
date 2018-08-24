@@ -805,7 +805,7 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             if k == 1:
                 return tuple(self.element_class(self, {LieGenerator(n): one}) for n in names)
 
-            from sage.combinat.lyndon_word import generate_lyndon_words
+            from sage.combinat.combinat_cython import generate_lyndon_words
             n = len(self._indices)
             ret = []
             for lw in generate_lyndon_words(n, k):

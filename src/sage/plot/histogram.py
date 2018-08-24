@@ -57,6 +57,10 @@ class Histogram(GraphicPrimitive):
             from sage.plot.misc import get_matplotlib_linestyle
             options['linestyle'] = get_matplotlib_linestyle(
                     options['linestyle'], return_type='long')
+        if options.get('range', None):
+            # numpy.histogram performs type checks on "range" so this must be
+            # actual floats
+            options['range'] = map(float, options['range'])
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
@@ -81,10 +85,10 @@ class Histogram(GraphicPrimitive):
         """
         import numpy
         options=self.options()
-        opt=dict(range = options.pop('range',None),
-                 bins = options.pop('bins',None),
-                 density = options.pop('density',None),
-                 weights = options.pop('weights', None))
+        opt=dict(range = options.get('range', None),
+                 bins = options.get('bins', None),
+                 density = options.get('density', None),
+                 weights = options.get('weights', None))
  
         #check to see if a list of datasets
         if not hasattr(self.datalist[0],'__contains__' ):

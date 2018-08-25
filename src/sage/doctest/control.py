@@ -1144,9 +1144,9 @@ class DocTestController(SageObject):
                 cumulative wall time: ... seconds
             0
 
-        We check that #25378 is fixed (testing external packages while
-        providing a logfile does not raise a ValueError: I/O operation on
-        closed file)::
+        We check that :trac:`25378` is fixed (testing external packages
+        while providing a logfile does not raise a ValueError: I/O
+        operation on closed file)::
 
             sage: logfile = tmp_filename(ext='.log')
             sage: DD = DocTestDefaults(optional=set(['sage', 'external']), logfile=logfile)
@@ -1165,7 +1165,7 @@ class DocTestController(SageObject):
             Total time for all tests: 0.0 seconds
                 cpu time: 0.0 seconds
                 cumulative wall time: 0.0 seconds
-            External software detected for doctesting:
+            External software detected for doctesting:...
             0
 
         """

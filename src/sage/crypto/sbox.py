@@ -764,6 +764,20 @@ class SBox(SageObject):
             [y0 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + 1,
              y1 + x0*x2 + x1 + 1,
              y2 + x0 + x1*x2 + x1 + x2 + 1]
+
+        TESTS:
+
+        Check that :trac:`22453` is fixed::
+
+            sage: from sage.crypto.sboxes import AES
+            sage: aes_polys = AES.polynomials()
+            sage: p = aes_polys[0].parent("x3*y0 + x5*y0 + x7*y0 + x6*y1 + x2*y2"
+            ....:                         " + x3*y2 + x4*y2 + x2*y3 + x3*y3 +"
+            ....:                         " x5*y4 + x6*y4 + x3*y5 + x4*y5 + x4*y7"
+            ....:                         " + x2 + x3 + y2 + y3 + y4 + 1")
+            sage: p in aes_polys
+            True
+
         """
         def nterms(nvars, deg):
             """
@@ -824,13 +838,15 @@ class SBox(SageObject):
                 A[row,col] = mul([bits[col][i] for i in range(len(exponent)) if exponent[i]])
             row +=1
 
+        rankSize = A.rank() - 1
+
         for c in range(ncols):
             A[0,c] = 1
 
         RR = A.echelon_form(algorithm='row_reduction')
 
         # extract spanning stet
-        gens = (RR.column(ncols-1)[1<<m:]).list()
+        gens = (RR.column(ncols-1)[rankSize:]).list()
 
         if not groebner:
             return gens
@@ -1097,8 +1113,8 @@ class SBox(SageObject):
 
         INPUT:
 
-        - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
-          length ``self.output_size()``
+        - ``b`` -- either an integer or a list/tuple/vector of `\GF{2}`
+          elements of length ``self.output_size()``
 
         EXAMPLES::
 
@@ -1114,17 +1130,20 @@ class SBox(SageObject):
         """
         m = self.input_size()
         n = self.output_size()
-        ret = BooleanFunction(m)
 
-        if isinstance(b, integer_types + (Integer,)):
-            b = vector(GF(2), self.to_bits(b, n))
-        elif len(b) == n:
-            b = vector(GF(2), b)
-        else:
-            raise TypeError("cannot compute component function using parameter %s"%(b,))
+        try:
+            b = list(b)
+            if len(b) > n:
+                raise ValueError("Input (%s) is too long and would be truncated." % (b,))
+            b = self.from_bits(b)
+        except TypeError:
+            try:
+                b = ZZ(b)
+            except TypeError:
+                raise TypeError("Cannot handle input argument %s" % (b,))
 
-        for x in range(1<<m):
-            ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
+        ret = BooleanFunction([ZZ(b & self(x)).popcount() & 1 for x in range(1 << m)])
+
         return ret
 
     def nonlinearity(self):
@@ -1303,6 +1322,8 @@ class SBox(SageObject):
                S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
 
         For more results concering boomerang connectivity matrix, see [CHPSS18]_ .
+        The algorithm used here, is the one from Dunkelman, published in a
+        preprint, see [Du2018]_ .
 
         EXAMPLES::
 
@@ -1325,6 +1346,8 @@ class SBox(SageObject):
             [16  0  2  2  0  0  2  2  2  2  0  0  2  2  0  0]
             [16  8  0  0  8  0  0  0  0  0  0  8  0  0  8 16]
         """
+        from itertools import product
+
         Si = self.inverse()
 
         m = self.input_size()
@@ -1333,19 +1356,23 @@ class SBox(SageObject):
         nrows = 1 << m
         ncols = 1 << n
 
-        A = Matrix(ZZ, nrows, ncols)
+        A = []
 
-        for x in range(nrows):
-            for di in range(nrows):
-                for do in range(ncols):
-                    l = Si( self(x) ^ do )
-                    r = Si( self(x ^ di) ^ do )
-                    if (l ^ r == di):
-                        A[di, do] += 1
+        for delta_in in range(ncols):
+            table = [list() for _ in range(ncols)]
+            for x in range(nrows):
+                table[x ^ self(Si(x) ^ delta_in)].append(x)
 
+            row = [0]*ncols
+            for l in table:
+                for i, j in product(l, l):
+                    row[i ^ j] += 1
+            A += row
+
+        A = Matrix(ZZ, nrows, ncols, A)
         A.set_immutable()
-        return A
 
+        return A
 
     def linear_structures(self):
         r"""

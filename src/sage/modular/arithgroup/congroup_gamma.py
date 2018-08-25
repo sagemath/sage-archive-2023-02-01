@@ -76,7 +76,7 @@ class Gamma_class(CongruenceSubgroup):
     def _latex_(self):
         r"""
         Return the \LaTeX representation of self.
-        
+
         EXAMPLES::
 
             sage: Gamma(20)._latex_()

@@ -275,6 +275,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
         if F is None:
             if not self.base_ring() in Fields():
                 raise TypeError("curve must be defined over a field")
+            F = self.base_ring()
         elif not F in Fields():
             raise TypeError("(=%s) must be a field"%F)
         X = self.singular_subscheme()

@@ -264,9 +264,9 @@ class Representation(Representation_abstract):
             sage: A = G.algebra(ZZ)
             sage: R = A.regular_representation()
             sage: x = A.an_element(); x
-            () + 4*(1,2,3,4) + 2*(1,4)(2,3)
+            () + 3*(1,2,3,4) + (1,3) + 2*(1,4)(2,3)
             sage: R(x)
-            () + 4*(1,2,3,4) + 2*(1,4)(2,3)
+            () + 3*(1,2,3,4) + (1,3) + 2*(1,4)(2,3)
         """
         if isinstance(x, Element) and x.parent() is self._module:
             return self._from_dict(x.monomial_coefficients(copy=False), remove_zeros=False)

@@ -79,23 +79,13 @@ else
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --without-ensurepip"
 fi
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-    --enable-shared $PYTHON_CONFIGURE
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring Python."
-    exit 1
-fi
+sdh_configure --enable-shared $PYTHON_CONFIGURE
 
 # Make sure -L. is placed before -L$SAGE_LOCAL/lib so that python and extension
 # modules are linked with the right libpython; we pass this in at make time
 # only, since we don't want -L. to be saved as one of the default LDFLAGS
 # used for building third-party extension modules
-$MAKE LDFLAGS="-L. $LDFLAGS"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building Python."
-    exit 1
-fi
+sdh_make LDFLAGS="-L. $LDFLAGS"
 
 if [ "$UNAME" = "Darwin" ]; then
     export DYLD_LIBRARY_PATH="."

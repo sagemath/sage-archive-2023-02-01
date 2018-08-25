@@ -133,6 +133,8 @@ List of Poset methods
     :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
     :meth:`~FinitePoset.maximal_antichains` | Return the maximal antichains of the poset.
     :meth:`~FinitePoset.antichains_iterator` | Return an iterator over the antichains of the poset.
+    :meth:`~FinitePoset.random_maximal_chain` | Return a random maximal chain.
+    :meth:`~FinitePoset.random_maximal_antichain` | Return a random maximal antichain.
 
 **Drawing**
 
@@ -212,6 +214,7 @@ List of Poset methods
     :meth:`~FinitePoset.promotion` | Return the (extended) promotion on the linear extension of the poset.
     :meth:`~FinitePoset.evacuation` | Return evacuation on the linear extension associated to the poset.
     :meth:`~FinitePoset.with_linear_extension` | Return a copy of ``self`` with a different default linear extension.
+    :meth:`~FinitePoset.random_linear_extension` | Return a random linear extension.
 
 **Matrices**
 
@@ -2753,8 +2756,8 @@ class FinitePoset(UniqueRepresentation, Parent):
           of the poset
 
         - ``ordered`` -- a Boolean. If ``True``, then return ``True``
-          only if elements in `elms` are strictly increasing in the
-          poset; this makes no sense if `elms` is a set. If ``False``
+          only if elements in ``elms`` are strictly increasing in the
+          poset; this makes no sense if ``elms`` is a set. If ``False``
           (the default), then elements can be repeated and be in any
           order.
 
@@ -3978,8 +3981,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def isomorphic_subposets_iterator(self, other):
         """
-        Return an iterator over the subposets of `self` isomorphic to
-        `other`.
+        Return an iterator over the subposets of ``self`` isomorphic to
+        ``other``.
 
         By subposet we mean ``self.subposet(X)`` which is isomorphic
         to ``other`` and where ``X`` is a subset of elements of
@@ -4019,7 +4022,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def isomorphic_subposets(self, other):
         """
-        Return a list of subposets of `self` isomorphic to `other`.
+        Return a list of subposets of ``self`` isomorphic to ``other``.
 
         By subposet we mean ``self.subposet(X)`` which is isomorphic to
         ``other`` and where ``X`` is a subset of elements of ``self``.
@@ -4030,8 +4033,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C2=Poset({0:[1]})
-            sage: C3=Poset({'a':['b'], 'b':['c']})
+            sage: C2 = Poset({0:[1]})
+            sage: C3 = Poset({'a':['b'], 'b':['c']})
             sage: for x in C3.isomorphic_subposets(C2):
             ....:     print(x.cover_relations())
             [['b', 'c']]
@@ -5819,6 +5822,112 @@ class FinitePoset(UniqueRepresentation, Parent):
         if direction != 'down':
             raise ValueError("direction must be 'up', 'down' or 'antichain'")
         return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
+
+    def random_maximal_chain(self):
+        """
+        Return a random maximal chain of the poset.
+
+        The distribution is not uniform.
+
+        EXAMPLES::
+
+            sage: set_random_seed(0)  # results are reproduceable
+            sage: P = posets.BooleanLattice(4)
+            sage: P.random_maximal_chain()
+            [0, 2, 10, 11, 15]
+
+        TESTS::
+
+            sage: Poset().random_maximal_chain()
+            []
+            sage: Poset({42: []}).random_maximal_chain()
+            [42]
+        """
+        from sage.misc.prandom import randint
+
+        if self.cardinality() == 0:
+            return []
+
+        mins = self.minimal_elements()
+        new = mins[randint(0, len(mins)-1)]
+        result = [new]
+        nexts = self.upper_covers(new)
+        while nexts:
+            new = nexts[randint(0, len(nexts)-1)]
+            result.append(new)
+            nexts = self.upper_covers(new)
+        return result
+
+    def random_maximal_antichain(self):
+        """
+        Return a random maximal antichain of the poset.
+
+        The distribution is not uniform.
+
+        EXAMPLES::
+
+            sage: set_random_seed(0)  # results are reproduceable
+            sage: P = posets.BooleanLattice(4)
+            sage: P.random_maximal_antichain()
+            [1, 8, 2, 4]
+
+        TESTS::
+
+            sage: Poset().random_maximal_antichain()
+            []
+            sage: Poset({42: []}).random_maximal_antichain()
+            [42]
+        """
+        H = self.hasse_diagram()
+        result = []
+
+        while H.order():
+            new = H.random_vertex()
+            result.append(new)
+            down = list(H.depth_first_search(new, neighbors=H.neighbor_in_iterator))
+            up = list(H.depth_first_search(new))
+            H.delete_vertices(down+up)
+
+        return result
+
+    def random_linear_extension(self):
+        """
+        Return a random linear extension of the poset.
+
+        The distribution is not uniform.
+
+        EXAMPLES::
+
+            sage: set_random_seed(0)  # results are reproduceable
+            sage: P = posets.BooleanLattice(4)
+            sage: P.random_linear_extension()
+            [0, 2, 8, 1, 9, 4, 5, 10, 6, 12, 14, 13, 3, 7, 11, 15]
+
+        TESTS::
+
+            sage: Poset().random_linear_extension()
+            []
+            sage: Poset({42: []}).random_linear_extension()
+            [42]
+        """
+        from sage.misc.prandom import randint
+
+        H = self._hasse_diagram
+        result = []
+        indegs = list(H.in_degree_iterator())
+        mins = H.sources()
+
+        for _ in range(H.order()):
+            new_index = randint(0, len(mins)-1)
+            new = mins[new_index]
+            result.append(new)
+            mins = mins[:new_index]+mins[new_index+1:]
+            for u in H.neighbors_out(new):
+                indegs[u] -= 1
+                if indegs[u] == 0:
+                    mins.append(u)
+
+        return [self._vertex_to_element(v) for v in result]
 
     def order_filter(self, elements):
         r"""

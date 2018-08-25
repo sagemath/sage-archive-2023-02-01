@@ -2703,7 +2703,7 @@ cdef class ToRDF(Morphism):
         """
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, RDF))
 

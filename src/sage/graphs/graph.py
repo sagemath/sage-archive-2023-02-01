@@ -694,7 +694,7 @@ class Graph(GenericGraph):
 
        There are also list functions to take care of lists of graphs::
 
-           sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\N\n'
+           sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\\N\n'
            sage: graphs_list.from_sparse6(s)
            [Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices]
 
@@ -7263,12 +7263,12 @@ class Graph(GenericGraph):
 
         These modules being of special interest, the disjoint union of
         graphs is called a Parallel composition, and the complement of
-        a disjoint union is called a Parallel composition. A graph
+        a disjoint union is called a Series composition. A graph
         whose only modules are singletons is called Prime.
 
         For more information on modular decomposition, in particular
         for an explanation of the terms "Parallel," "Prime" and
-        "Serie," see the `Wikipedia article on modular decomposition
+        "Series," see the `Wikipedia article on modular decomposition
         <http://en.wikipedia.org/wiki/Modular_decomposition>`_.
 
         You may also be interested in the survey from Michel Habib and

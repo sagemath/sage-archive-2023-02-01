@@ -182,12 +182,14 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
                 os.rmdir(dirname)
         else:
             print("Warning: Directory '{0}' not found".format(
-                cur_dir), file=sys.stderr)
+                dirname), file=sys.stderr)
 
     # Remove the files; if a directory is empty after removing a file
     # from it, remove the directory too.
     for filename in files:
-        filename = pth.join(sage_local, filename)
+        # Just in case: use lstrip to remove leading "/" from
+        # filename. See https://trac.sagemath.org/ticket/26013.
+        filename = pth.join(sage_local, filename.lstrip(os.sep))
         dirname = pth.dirname(filename)
         if os.path.exists(filename):
             if verbose:

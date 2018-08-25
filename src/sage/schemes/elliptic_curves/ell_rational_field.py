@@ -4807,7 +4807,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         D1 = E1.discriminant()
         D2 = E2.discriminant()
 
-        if any([E1.change_ring(rings.GF(p)).cardinality() != E2.change_ring(rings.GF(p)).cardinality() for p in [p for p in rings.prime_range(2,maxp) if D1.valuation(p) == 0 and D2.valuation(p) == 0]]):
+        if any(E1.change_ring(rings.GF(p)).cardinality() != E2.change_ring(rings.GF(p)).cardinality()
+               for p in rings.prime_range(2, maxp)
+               if D1.valuation(p) == 0 and D2.valuation(p) == 0):
             return False
 
         if E1.conductor() != E2.conductor():
@@ -5873,7 +5875,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 r = len(mw_base)
             except TypeError:
                 raise TypeError('mw_base must be a list')
-            if not all([P.curve() is self for P in mw_base]):
+            if not all(P.curve() is self for P in mw_base):
                 raise ValueError("points are not on the correct curve")
 
         tors_points = self.torsion_points()
@@ -6280,14 +6282,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if not self.is_integral():
             raise ValueError("S_integral_points() can only be called on an integral model")
-        if not all([self.is_p_minimal(s) for s in S]):
+        if not all(self.is_p_minimal(s) for s in S):
             raise ValueError("%s must be p-minimal for all primes in S"%self)
 
         try:
             len_S = len(S)
             if len_S == 0:
                 return self.integral_points(mw_base, both_signs, verbose)
-            if not all([s.is_prime() for s in S]):
+            if not all(s.is_prime() for s in S):
                 raise ValueError("All elements of S must be prime")
             S.sort()
         except TypeError:
@@ -6310,7 +6312,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 r = len(mw_base)
             except TypeError:
                 raise TypeError('mw_base must be a list')
-            if not all([P.curve() is self for P in mw_base]):
+            if not all(P.curve() is self for P in mw_base):
                 raise ValueError("mw_base-points are not on the correct curve")
 
         #End Input-Check ######################################################
@@ -6419,7 +6421,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 Pi[i] = Pi[i-1] + mw_baseN[i]
 
             while True:
-                if all([n==0 for n in ni]):
+                if all(n==0 for n in ni):
                     test_with_T(E0)
                     break
 
@@ -6432,7 +6434,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     ni[i0] = -N
                     i0 -= 1
                 ni[i0] += 1
-                if all([n==0 for n in ni[0:i0+1]]):
+                if all(n==0 for n in ni[0:i0+1]):
                     Pi[i0] = E0
                 else:
                     Pi[i0] += mw_base[i0]
@@ -6473,7 +6475,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             x_min_pos = not x_min_neg
             log_ab = R(abs_bound.log())
             alpha = [(log_ab/R(log(p,e))).floor() for p in S]
-            if all([alpha_i <= 1 for alpha_i in alpha]): # so alpha_i must be 0 to satisfy that denominator is a square
+            if all(alpha_i <= 1 for alpha_i in alpha): # so alpha_i must be 0 to satisfy that denominator is a square
                 int_abs_bound = abs_bound.floor()
                 return set([x for x  in range(-int_abs_bound, int_abs_bound) if E.is_x_coord(x)])
             else:
@@ -6863,14 +6865,14 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N, x_bound):
         ....:       E = EllipticCurve([0,0,0,a,b])
         ....:       xs = [P[0] for P in E.integral_points()]
         ....:       return x in xs
-        sage: all([t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321),
+        sage: all(t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321),
         ....: (0,17, 5234), (11,4, 16833), (-13,37, 60721), (-12,-10, 80327),
         ....: (-7,22, 484961), (-9,28, 764396), (-13,4, 1056517), (-19,-51,
         ....: 2955980), (-24,124, 4435710), (-30,133, 5143326), (-37,60,
         ....: 11975623), (-23,-33, 17454557), (-16,49, 19103002), (27,-62,
         ....: 28844402), (37,18, 64039202), (2,97, 90086608), (49,-64,
         ....: 482042404), (-59,74, 7257247018), (94,689, 30841587841),
-        ....: (469,1594, 6327540232326), (1785,0, 275702503440)] ])
+        ....: (469,1594, 6327540232326), (1785,0, 275702503440)])
         True
     """
     from sage.groups.generic import multiples
@@ -6948,7 +6950,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N, x_bound):
 
     tors_points_R = [ER(_) for _ in tors_points]
     while True:
-        if all([n==0 for n in ni]):
+        if all(n==0 for n in ni):
              use_t(E(0))
              break
 
@@ -6966,7 +6968,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N, x_bound):
         ni[i0] += 1
         # The next lines are to prevent rounding error: (-P)+P behaves
         # badly for real points!
-        if all([n==0 for n in ni[0:i0+1]]):
+        if all(n==0 for n in ni[0:i0+1]):
             RPi[i0] = ER0
         else:
             RPi[i0] += Rgens[i0]

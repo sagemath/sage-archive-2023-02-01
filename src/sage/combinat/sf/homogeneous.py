@@ -1,4 +1,4 @@
-"""
+r"""
 Homogeneous symmetric functions
 
 By this we mean the basis formed of the complete homogeneous

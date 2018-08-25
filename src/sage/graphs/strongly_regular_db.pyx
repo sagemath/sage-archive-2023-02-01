@@ -3243,8 +3243,8 @@ cdef load_brouwer_database():
         return
     import json
 
-    from sage.env import SAGE_SHARE
-    with open(SAGE_SHARE+"/graphs/brouwer_srg_database.json",'r') as datafile:
+    from sage.env import GRAPHS_DATA_DIR
+    with open(GRAPHS_DATA_DIR+"/brouwer_srg_database.json",'r') as datafile:
         _brouwer_database = {(v,k,l,mu):{'status':status,'comments':comments}
                              for (v,k,l,mu,status,comments) in json.load(datafile)}
 

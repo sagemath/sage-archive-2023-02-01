@@ -1423,6 +1423,71 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         """
         return self.__n == 0 and self.__u.is_constant()
 
+
+    def is_square(self, root=False):
+        r"""
+        Return whether this Laurent polynomial is a square.
+
+        If ``root`` is set to ``True`` then return a pair made of the
+        boolean answer together with ``None`` or a square root.
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentPolynomialRing(QQ)
+
+            sage: R.one().is_square()
+            True
+            sage: R(2).is_square()
+            False
+
+            sage: t.is_square()
+            False
+            sage: (t**-2).is_square()
+            True
+
+        Usage of the ``root`` option::
+
+            sage: p = (1 + t^-1 - 2*t^3)
+            sage: p.is_square(root=True)
+            (False, None)
+            sage: (p**2).is_square(root=True)
+            (True, -t^-1 - 1 + 2*t^3)
+
+        The answer is dependent of the base ring::
+
+            sage: S.<u> = LaurentPolynomialRing(QQbar)
+            sage: (2 + 4*t + 2*t^2).is_square()
+            False
+            sage: (2 + 4*u + 2*u^2).is_square()
+            True
+
+        TESTS::
+
+            sage: R.<t> = LaurentPolynomialRing(QQ)
+            sage: (t - t).is_square(True)
+            (True, 0)
+
+            sage: for _ in range(10):
+            ....:     p = t ** randint(-15,15) * sum(QQ.random_element() * t**n for n in range(randint(5,10)))
+            ....:     ans, r = (p**2).is_square(root=True)
+            ....:     assert ans
+            ....:     assert r*r == p*p
+        """
+        cdef LaurentPolynomial_univariate sqrt
+        if self.__n % 2:
+            return (False, None) if root else False
+        elif root:
+            ans, r = self.__u.is_square(True)
+            if ans:
+                sqrt = self._new_c()
+                sqrt.__u = r
+                sqrt.__n = self.__n // 2
+                return (True, sqrt)
+            else:
+                return (False, None)
+        else:
+            return self.__u.is_square(False)
+
     def __copy__(self):
         """
         Return a copy of ``self``.

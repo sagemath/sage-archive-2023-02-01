@@ -1054,14 +1054,15 @@ class Tableau(ClonableList):
             [((0, 1), (0, 2)), ((1, 0), (1, 1)), ((1, 1), (0, 0)), ((2, 1), (1, 0))]
         """
         inversions = []
+        previous_row = None
         for i, row in enumerate(self):
             for j, entry in enumerate(row):
-                #c is in position (i,j)
-                #Find the d that satisfy condition 1
+                # c is in position (i,j)
+                # find the d that satisfy condition 1
                 for k in range(j+1, len(row)):
                     if entry > row[k]:
                         inversions.append( ((i,j),(i,k)) )
-                #Find the d that satisfy condition 2
+                # find the d that satisfy condition 2
                 if i == 0:
                     continue
                 for k in range(j):

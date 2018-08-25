@@ -291,7 +291,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f.change_ring(GF(3))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(0, 3) does not exist
 
         We can only change the ring if there is a ``__call__`` coercion
         defined. The following succeeds because ``ZZ(K(4))`` is defined.

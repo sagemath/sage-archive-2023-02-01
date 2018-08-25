@@ -1330,8 +1330,8 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
             holes[i] = [h2]
             IOA.remove(h2)
 
-        holes = sum(holes,[])
-        holes = map(list, list(zip(*holes)))
+        holes = sum(holes, [])
+        holes = [list(h) for h in zip(*holes)]
 
         # Building the relabel matrix
         for l in holes:

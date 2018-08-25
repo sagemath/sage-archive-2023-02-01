@@ -690,7 +690,7 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
         return True
 
     def gens(self):
-        """
+        r"""
         Return a generator over all Hecke operator `T_n` for
         `n = 1, 2, 3, \ldots`, with `n` coprime to the
         level. This is an infinite sequence.

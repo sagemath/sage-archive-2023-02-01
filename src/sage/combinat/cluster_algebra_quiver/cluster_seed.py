@@ -1147,7 +1147,8 @@ class ClusterSeed(SageObject):
             sage: S.x(2)
             x2
 
-            sage: S = ClusterSeed(DiGraph([['a', 'b'], ['b', 'c']]), frozen = ['c'])
+            sage: dg = DiGraph([['a', 'b'], ['b', 'c']], format="list_of_edges")
+            sage: S = ClusterSeed(dg, frozen = ['c'])
             sage: S.x(0)
             a
             sage: S.x('a')
@@ -1187,7 +1188,8 @@ class ClusterSeed(SageObject):
             sage: S.y(2)
             y2
 
-            sage: S = ClusterSeed(DiGraph([['a', 'b'], ['b', 'c']]), frozen = ['c'])
+            sage: dg = DiGraph([['a', 'b'], ['b', 'c']], format="list_of_edges")
+            sage: S = ClusterSeed(dg, frozen = ['c'])
             sage: S.y(0)
             c
             sage: S.y('c')
@@ -3683,11 +3685,12 @@ class ClusterSeed(SageObject):
 
         For a cluster seed from an arbitrarily labelled digraph::
 
-            sage: S = ClusterSeed(DiGraph([['a', 'b'], ['b', 'c']]), frozen=['b'])
+            sage: dg = DiGraph([['a', 'b'], ['b', 'c']], format="list_of_edges")
+            sage: S = ClusterSeed(dg, frozen = ['b'])
             sage: S.cluster_class()
             [[a, c], [a, (b + 1)/c], [(b + 1)/a, c], [(b + 1)/a, (b + 1)/c]]
 
-            sage: S2 = ClusterSeed(DiGraph([['a', 'b'], ['b', 'c']]), frozen=[])
+            sage: S2 = ClusterSeed(dg, frozen=[])
             sage: S2.cluster_class()
             [[a, b, c],
             [a, b, (b + 1)/c],
@@ -3858,7 +3861,8 @@ class ClusterSeed(SageObject):
 
         For a cluster seed from an arbitrarily labelled digraph::
 
-            sage: S = ClusterSeed(DiGraph([['a', 'b'], ['b', 'c']]), frozen=['b'])
+            sage: dg = DiGraph([['a', 'b'], ['b', 'c']], format="list_of_edges")
+            sage: S = ClusterSeed(dg, frozen=['b'])
             sage: S.b_matrix_class()
             [
             [ 0  0]  [ 0  0]  [0 0]

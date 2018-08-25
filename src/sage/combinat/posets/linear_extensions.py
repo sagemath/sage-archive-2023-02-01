@@ -214,7 +214,7 @@ class LinearExtensionOfPoset(ClonableArray):
         return P.relabel(relabelling).with_linear_extension(new)
 
     def is_greedy(self):
-        """
+        r"""
         Return ``True`` if the linear extension is greedy.
 
         A linear extension `[e_1, e_2, \ldots, e_n]` is *greedy* if for
@@ -360,7 +360,7 @@ class LinearExtensionOfPoset(ClonableArray):
         return self
 
     def jump_count(self):
-        """
+        r"""
         Return the number of jumps in the linear extension.
 
         A *jump* in a linear extension `[e_1, e_2, \ldots, e_n]`

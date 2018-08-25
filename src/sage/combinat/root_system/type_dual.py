@@ -654,7 +654,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
                 return "E_6^{(2)}"
         result = self._type._latex_()
         import re
-        if re.match(".*\^{\(\d\)}$", result):
+        if re.match(r".*\^{\(\d\)}$", result):
             return "%s%s}"%(result[:-1], self.options('dual_latex'))
         else:
             return "{%s}^%s"%(result, self.options('dual_latex'))

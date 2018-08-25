@@ -92,7 +92,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: L.<a> = K.extension(x^30-3)
             sage: HK = H.change_ring(K)
             sage: HL = HK.change_ring(L); HL
-            Hyperelliptic Curve over Eisenstein Extension in a defined by x^30 - 3 with capped relative precision 150 over 3-adic Field defined by (1 + O(a^150))*y^2 = (1 + O(a^150))*x^5 + (2 + 2*a^30 + a^60 + 2*a^90 + 2*a^120 + O(a^150))*x + a^60 + O(a^210)
+            Hyperelliptic Curve over 3-adic Eisenstein Extension Field in a defined by x^30 - 3 defined by (1 + O(a^150))*y^2 = (1 + O(a^150))*x^5 + (2 + 2*a^30 + a^60 + 2*a^90 + 2*a^120 + O(a^150))*x + a^60 + O(a^210)
 
             sage: R.<x> = FiniteField(7)[]
             sage: H = HyperellipticCurve(x^8 + x + 5)

@@ -871,18 +871,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             sage: K.valuation(x).residue_ring()
             Rational Field
 
-            sage: K.<x> = FunctionField(QQ)
-            sage: v = valuations.GaussValuation(QQ['x'], QQ.valuation(2))
-            sage: w = K.valuation(v)
-            sage: w.residue_ring()
-            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using ...)
-
-            sage: R.<x> = QQ[]
-            sage: vv = v.augmentation(x, 1)
-            sage: w = K.valuation(vv)
-            sage: w.residue_ring()
-            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using ...)
-            
         """
         return self._base_valuation.residue_ring().fraction_field()
 
@@ -978,6 +966,32 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
         """
         InducedFunctionFieldValuation_base.__init__(self, parent, base_valuation)
         RationalFunctionFieldValuation_base.__init__(self, parent)
+
+    def residue_ring(self):
+        r"""
+        Return the residue field of this valuation.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = valuations.GaussValuation(QQ['x'], QQ.valuation(2))
+            sage: w = K.valuation(v)
+            sage: w.residue_ring()
+            Rational function field in x over Finite Field of size 2
+
+            sage: R.<x> = QQ[]
+            sage: vv = v.augmentation(x, 1)
+            sage: w = K.valuation(vv)
+            sage: w.residue_ring()
+            Rational function field in x over Finite Field of size 2
+
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 + 2*x)
+            sage: w.extension(L).residue_ring()
+            Function field in u2 defined by u2^2 + x
+
+        """
+        return self._base_valuation.residue_ring().fraction_field().function_field()
 
 
 class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation, DiscreteFunctionFieldValuation_base):

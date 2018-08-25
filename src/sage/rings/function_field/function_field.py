@@ -2083,7 +2083,7 @@ class FunctionField_polymod(FunctionField):
         Suppose that the constant base field is perfect. If this is a monic
         integral inseparable extension of a rational function field, then the
         defining polynomial is separable if we swap the variables (Proposition
-        4.1 in Chapter VIII of [Lang2002]_.)
+        4.8 in Chapter VIII of [Lang2002]_.)
         The algorithm reduces to this case with :meth:`monic_integral_model`.
 
         REFERENCES:

@@ -580,7 +580,7 @@ def entropy(x, q=2):
         sage: codes.bounds.entropy(0, 2)
         0
         sage: codes.bounds.entropy(1/5,4).factor()
-        1/10*(log(5) + log(3) - 4*log(4/5))/log(2)
+        1/10*(log(3) - 4*log(4/5) - log(1/5))/log(2)
         sage: codes.bounds.entropy(1, 3)
         log(2)/log(3)
 

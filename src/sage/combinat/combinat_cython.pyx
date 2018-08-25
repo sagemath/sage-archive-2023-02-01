@@ -323,3 +323,89 @@ def set_partition_iterator_blocks(base_set, Py_ssize_t k):
     # TODO: implement _set_partition_block_gen as an iterative algorithm
     for P in _set_partition_block_gen(n, k, a):
         yield from_word(<list> P, base)
+
+#####################################################################
+## Perfect matchings iterator
+
+def perfect_matchings_iterator(Py_ssize_t n):
+    r"""
+    Iterate over all perfect matchings with ``n`` parts.
+
+    This iterates over all perfect matchings of `\{0, 1, \ldots, 2n-1\}`
+    using a Gray code for fixed-point-free involutions due to Walsh [Wal2001]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat_cython import perfect_matchings_iterator
+        sage: list(perfect_matchings_iterator(1))
+        [[(0, 1)]]
+        sage: list(perfect_matchings_iterator(2))
+        [[(0, 1), (2, 3)], [(0, 2), (1, 3)], [(0, 3), (1, 2)]]
+
+        sage: list(perfect_matchings_iterator(0))
+        [[]]
+
+    REFERENCES:
+
+    - [Wal2001]_
+    """
+    if n == 0:
+        yield []
+        return
+
+    cdef Py_ssize_t i, x, y, g, j, J
+    cdef Py_ssize_t* e = <Py_ssize_t*> check_allocarray(2*n, sizeof(Py_ssize_t))
+    for i in range(2*n):
+        e[i] = i
+    cdef Py_ssize_t* f = <Py_ssize_t*> check_allocarray(2*n, sizeof(Py_ssize_t))
+    for i in range(2*n):
+        if i % 2 == 0:
+            f[i] = i + 1
+        else:
+            f[i] = i - 1
+    cdef bint odd = False
+
+    yield convert(f, n)
+    while e[0] != n - 1:
+        i = e[0]
+        if odd:
+            x = 2 * i
+        else:
+            x = i
+
+        y = f[x]
+        g = y - x - 1
+        if g % 2 == odd:
+            g += 1
+            j = y + 1
+        else:
+            g -= 1
+            j = y-1
+        J = f[j]
+        f[y] = J
+        f[J] = y
+        f[x] = j
+        f[j] = x
+        odd = not odd
+        e[0] = 0
+        if g == 0 or g == 2 * (n-i-1):
+            e[i] = e[i+1]
+            e[i+1] = i + 1
+
+        yield convert(f, n)
+
+    sig_free(e)
+    sig_free(f)
+
+cdef list convert(Py_ssize_t* f, Py_ssize_t n):
+    """
+    Convert a list ``f`` representing a fixed-point free involution
+    to a set partition.
+    """
+    cdef list ret = []
+    cdef Py_ssize_t i
+    for i in range(2*n):
+        if i < f[i]:
+            ret.append((i, f[i]))
+    return ret
+

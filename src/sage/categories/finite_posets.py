@@ -467,7 +467,9 @@ class FinitePosets(CategoryWithAxiom):
         def birational_free_labelling(self, linear_extension=None,
                                       prefix='x', base_field=None,
                                       reduced=False, addvars=None,
-                                      labels=None):
+                                      labels=None,
+                                      min_label=None,
+                                      max_label=None):
             r"""
             Return the birational free labelling of ``self``.
 
@@ -596,14 +598,22 @@ class FinitePosets(CategoryWithAxiom):
               names of extra variables to be adjoined to the ground
               field (these don't have an effect on the labels)
 
-            - ``labels`` -- Either a function that takes an element
-               and returns a name for the indeterminate corresponding
-               to that element, or a string containing a comma separated
-               list of indeterminates that will be assigned to elements
-               in the order of the ``linear_extension``. If the list
-               contains more indeterminates than needed, the excess will
-               be ignored. If it contains too few, then the needed
-               indeterminates will be constructed from ``prefix``.
+            - ``labels`` -- (default: ``'x'``) Either a function
+              that takes an element of the poset and returns a name
+              for the indeterminate corresponding to that element,
+              or a string containing a comma-separated list of
+              indeterminates that will be assigned to elements in
+              the order of ``linear_extension``. If the
+              list contains more indeterminates than needed, the
+              excess will be ignored. If it contains too few, then
+              the needed indeterminates will be constructed from
+              ``prefix``.
+
+            - ``min_label`` -- (default: ``'a'``) a string to be
+              used as the label for the element `0` of `\widehat{P}`
+
+            - ``max_label`` -- (default: ``'b'``) a string to be
+              used as the label for the element `1` of `\widehat{P}`
 
             OUTPUT:
 
@@ -665,6 +675,19 @@ class FinitePosets(CategoryWithAxiom):
                 sage: l = P.birational_free_labelling(labels=lambda e : 'x_' + str(e[0]) + str(e[1]))
                 sage: sorted(l[1].items())
                 [((0, 0), x_00), ((0, 1), x_01), ((1, 0), x_10), ((1, 1), x_11)]
+                sage: l[2]
+                a
+
+            The same, but with ``min_label`` and ``max_label`` provided::
+
+                sage: P = posets.ChainPoset(2).product(posets.ChainPoset(2))
+                sage: l = P.birational_free_labelling(labels=lambda e : 'x_' + str(e[0]) + str(e[1]), min_label="lambda", max_label="mu")
+                sage: sorted(l[1].items())
+                [((0, 0), x_00), ((0, 1), x_01), ((1, 0), x_10), ((1, 1), x_11)]
+                sage: l[2]
+                lambda
+                sage: l[3]
+                mu
 
             Illustrating labelling with a comma separated list of labels::
 
@@ -677,7 +700,6 @@ class FinitePosets(CategoryWithAxiom):
                 sage: l = P.birational_free_labelling(labels='w')
                 sage: sorted(l[1].items())
                 [((0, 0), w), ((0, 1), x1), ((1, 0), x2), ((1, 1), x3)]
-
 
             Illustrating the warning about facade::
 
@@ -809,6 +831,11 @@ class FinitePosets(CategoryWithAxiom):
                  {},
                  a,
                  b)
+                sage: P.birational_free_labelling(labels="x,y,z", min_label="spam", max_label="eggs")
+                (Fraction Field of Multivariate Polynomial Ring in spam, eggs over Rational Field,
+                 {},
+                 spam,
+                 eggs)
             """
             if base_field is None:
                 from sage.rings.rational_field import QQ
@@ -826,11 +853,14 @@ class FinitePosets(CategoryWithAxiom):
                         label_list = label_list[:n]
                     elif len(label_list) < n:
                         label_list += [prefix + str(i) for i in range(1, n + 1 - len(label_list))]
-
             else:
                 label_list = [prefix + str(i) for i in range(1, n + 1)]
             if not reduced:
-                label_list = ['a'] + label_list + ['b']
+                if min_label is None:
+                    min_label = 'a'
+                if max_label is None:
+                    max_label = 'b'
+                label_list = [min_label] + label_list + [max_label]
             if addvars:
                 label_list += addvars.split(',')
             varstring = ','.join(label_list)

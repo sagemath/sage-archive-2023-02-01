@@ -142,35 +142,35 @@ def _stirling_number2(n, k):
 #####################################################################
 ## Lyndon word iterator
 
-def generate_lyndon_words(Py_ssize_t n, Py_ssize_t k):
+def lyndon_word_iterator(Py_ssize_t n, Py_ssize_t k):
     """
-    Generate all Lyndon words with of length ``k`` with ``n`` letters.
+    Generate the Lyndon words of fixed length `k` over the alphabet `{0, 1, ..., n-1}`.
 
     The resulting Lyndon words will be words represented as lists
     whose alphabet is ``range(n)``.
 
     ALGORITHM:
 
-    The FKM algorithm from *Combinatorial Generation* by Ruskey.
+    The iterative FKM Algorithm 7.2 from *Combinatorial Generation* by Ruskey.
 
     EXAMPLES::
 
-        sage: from sage.combinat.combinat_cython import generate_lyndon_words
-        sage: list(generate_lyndon_words(4, 2))
+        sage: from sage.combinat.combinat_cython import lyndon_word_iterator
+        sage: list(lyndon_word_iterator(4, 2))
         [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
-        sage: list(generate_lyndon_words(2, 4))
+        sage: list(lyndon_word_iterator(2, 4))
         [[0, 0, 0, 1], [0, 0, 1, 1], [0, 1, 1, 1]]
 
     TESTS::
 
-        sage: from sage.combinat.combinat_cython import generate_lyndon_words
-        sage: list(generate_lyndon_words(6, 1))
+        sage: from sage.combinat.combinat_cython import lyndon_word_iterator
+        sage: list(lyndon_word_iterator(6, 1))
         [[0], [1], [2], [3], [4], [5]]
-        sage: list(generate_lyndon_words(5, 0))
+        sage: list(lyndon_word_iterator(5, 0))
         []
-        sage: list(generate_lyndon_words(1, 1000))
+        sage: list(lyndon_word_iterator(1, 1000))
         []
-        sage: list(generate_lyndon_words(1, 1))
+        sage: list(lyndon_word_iterator(1, 1))
         [[0]]
     """
     cdef Py_ssize_t i, j
@@ -321,4 +321,3 @@ def set_partition_iterator_blocks(base_set, Py_ssize_t k):
     # TODO: implement _set_partition_block_gen as an iterative algorithm
     for P in _set_partition_block_gen(n, k, a):
         yield from_word(<list> P, base)
-

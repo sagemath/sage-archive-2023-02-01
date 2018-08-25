@@ -24,7 +24,7 @@ from sage.misc.all import prod
 
 from . import necklace
 from sage.combinat.words.words import FiniteWords
-from sage.combinat.combinat_cython import generate_lyndon_words
+from sage.combinat.combinat_cython import lyndon_word_iterator
 
 
 def LyndonWords(e=None, k=None):
@@ -60,16 +60,16 @@ def LyndonWords(e=None, k=None):
     If e is an integer, then e specifies the length of the
     alphabet; k must also be specified in this case::
 
-        sage: LW = LyndonWords(3,3); LW
-        Lyndon words from an alphabet of size 3 of length 3
+        sage: LW = LyndonWords(3, 4); LW
+        Lyndon words from an alphabet of size 3 of length 4
         sage: LW.first()
-        word: 112
+        word: 1112
         sage: LW.last()
-        word: 233
+        word: 2333
         sage: LW.random_element() # random
-        word: 112
+        word: 1232
         sage: LW.cardinality()
-        8
+        18
 
     If e is a (weak) composition, then it returns the class of Lyndon
     words that have evaluation e::
@@ -342,7 +342,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
 
 class LyndonWords_nk(UniqueRepresentation, Parent):
     r"""
-    Lyndon words of fixed length `n` over the alphabet `{1, 2, ..., k}`.
+    Lyndon words of fixed length `k` over the alphabet `{1, 2, ..., n}`.
 
     EXAMPLES::
 
@@ -362,9 +362,9 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         """
         INPUT:
 
-        - ``n`` -- the length of the words
+        - ``n`` -- the size of the alphabet
 
-        - ``k`` -- the size of the alphabet
+        - ``k`` -- the length of the words
 
         TESTS::
 
@@ -466,7 +466,7 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
             [word: 1]
         """
         W = self._words._element_classes['list']
-        for lw in generate_lyndon_words(self._n, self._k):
+        for lw in lyndon_word_iterator(self._n, self._k):
             yield W(self._words, [i+1 for i in lw])
 
 def StandardBracketedLyndonWords(n, k):

@@ -42,7 +42,7 @@ Check that sphinx is not imported at Sage start-up::
 
 from __future__ import print_function
 from __future__ import absolute_import
-from six import string_types
+from six import string_types, text_type
 
 import os, re, sys
 import pydoc
@@ -756,7 +756,7 @@ def format_src(s):
 ###############################
 
 def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
-                       extra4='', extra5='', **kwds):
+                       extra4='', extra5='', **kwargs):
     r"""
     Search the Sage library or documentation for lines containing
     ``string`` and possibly some other terms. This function is used by
@@ -782,7 +782,9 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import _search_src_or_doc
-        sage: print(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', '^combinat', interact=False)) # random # long time
+        sage: print(_search_src_or_doc('src', r'matrix\(',  # long time random
+        ....:       'incidence_structures', 'self',
+        ....:       '^combinat', interact=False))
         misc/sagedoc.py:        sage: _search_src_or_doc('src', 'matrix(', 'incidence_structures', 'self', '^combinat', interact=False)
         combinat/designs/incidence_structures.py:        M1 = self.incidence_matrix()
         combinat/designs/incidence_structures.py:        A = self.incidence_matrix()
@@ -807,32 +809,27 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         True
         sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)  # optional - dochtml
         True
+
+    When passing ``interactive=True``, in a terminal session this will pass the
+    ``text/plain`` output to the configured pager, while in a notebook session
+    it will display the ``text/html`` output in the notebook's pager.  However,
+    in a non-interactive session (as in the doctests) it should just print the
+    results to stdout::
+
+        sage: from sage.misc.sagedoc import _search_src_or_doc
+        sage: _search_src_or_doc('src', r'def _search_src_or_doc\(',
+        ....:                    interact=True)  # long time
+        misc/sagedoc.py:...:        def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     """
-    # process keywords
-    if 'interact' in kwds:
-        interact = kwds['interact']
-    else:
-        interact = True
-    if 'path_re' in kwds:
-        path_re = kwds['path_re']
-    else:
-        path_re = ''
-    if 'module' in kwds:
-        module = kwds['module']
-    else:
-        module = 'sage'
-    if 'whole_word' in kwds:
-        whole_word = kwds['whole_word']
-    else:
-        whole_word = False
-    if 'ignore_case' in kwds:
-        ignore_case = kwds['ignore_case']
-    else:
-        ignore_case = True
-    if 'multiline' in kwds:
-        multiline = kwds['multiline']
-    else:
-        multiline = False
+
+    # process keyword arguments
+    interact = kwargs.get('interact', True)
+    path_re = kwargs.get('path_re', '')
+    module = kwargs.get('module', 'sage')
+    whole_word = kwargs.get('whole_word', False)
+    ignore_case = kwargs.get('ignore_case', True)
+    multiline = kwargs.get('multiline', False)
+
     # done processing keywords
     # define module, exts (file extension), title (title of search),
     # base_path (top directory in which to search)
@@ -902,27 +899,21 @@ or you can use 'sage -docbuild all html' to build all of the missing documentati
 You can build this with 'sage -docbuild {} html'.""".format(s))
 
     strip = len(base_path)
-    results = ''
+    results = []
     # in regular expressions, '\bWORD\b' matches 'WORD' but not
     # 'SWORD' or 'WORDS'.  so if the user requests a whole_word
     # search, append and prepend '\b' to each string.
+    regexp = string
+    extra_regexps = extras = [extra1, extra2, extra3, extra4, extra5]
     if whole_word:
-        string = r'\b' + string + r'\b'
-        if extra1:
-            extra1 = r'\b' + extra1 + r'\b'
-        if extra2:
-            extra2 = r'\b' + extra2 + r'\b'
-        if extra3:
-            extra3 = r'\b' + extra3 + r'\b'
-        if extra4:
-            extra4 = r'\b' + extra4 + r'\b'
-        if extra5:
-            extra5 = r'\b' + extra5 + r'\b'
+        regexp = r'\b' + regexp + r'\b'
+        extra_regexps = [r'\b%s\b' % e for e in extra_regexps]
     if ignore_case:
         # 'flags' is a flag passed to re.search. use bit-wise or "|" to combine flags.
         flags = re.IGNORECASE
     else:
         flags = 0
+
     # done with preparation; ready to start search
     for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):
         for f in files:
@@ -935,37 +926,47 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                             match_list = line
                         else:
                             match_list = None
-                        for extra in [extra1, extra2, extra3, extra4, extra5]:
+                        for extra in extra_regexps:
                             if extra and match_list:
                                 if not re.search(extra, match_list):
                                     match_list = None
                         if match_list:
-                            results += filename[strip:].lstrip("/") + "\n"
+                            results.append(filename[strip:].lstrip("/") + '\n')
                     else:
                         match_list = [(lineno, line) for lineno, line in
                                       enumerate(open(filename).read().splitlines(True))
                                       if re.search(string, line, flags)]
-                        for extra in [extra1, extra2, extra3, extra4, extra5]:
+                        for extra in extra_regexps:
                             if extra:
                                 match_list = [s for s in match_list
                                                 if re.search(extra, s[1], re.MULTILINE | flags)]
                         for num, line in match_list:
-                            results += ':'.join([filename[strip:].lstrip("/"), str(num+1), line])
+                            results.append('{}:{}:{}'.format(
+                                filename[strip:].lstrip('/'), num + 1, line))
+
+    text_results = ''.join(results).rstrip()
 
     if not interact:
-        return results
+        return text_results
+
+    html_results = format_search_as_html(title, results, [string] + extras)
 
     from sage.server.support import EMBEDDED_MODE
-    if EMBEDDED_MODE:   # I.e., running from the notebook
-        if multiline: # insert the colons that format_search_as_html expects
-            results = ":\n".join(results.splitlines()) + ":"
-        # format the search terms nicely
-        terms = ', '.join(['"%s"' % s for s in [string] + [extra1,
-                          extra2, extra3, extra4, extra5] if s])
-        print(format_search_as_html(title, results, terms))
+    if EMBEDDED_MODE:
+        # Running from the legacy Sage Notebook
+        print(html_results)
     else:
-        from . import pager
-        pager.pager()(results)
+        # Pass through the IPython pager in a mime bundle
+        from IPython.core.page import page
+        if not isinstance(text_results, text_type):
+            text_results = text_results.decode('utf-8', 'replace')
+
+        page({
+            'text/plain': text_results,
+            # 'text/html': html_results  # don't return HTML results since
+                                         # they currently are not correctly
+                                         # formatted for Jupyter use
+        })
 
 
 def search_src(string, extra1='', extra2='', extra3='', extra4='',
@@ -1120,6 +1121,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         misc/sagedoc.py:... print(search_src('^ *sage[:] .*search_src\(', interact=False)) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         misc/sagedoc.py:... print(search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False)) # random # long time
+        misc/sagedoc.py:... sage: results = search_src('format_search_as_html', # long time
+
 
     TESTS:
 
@@ -1229,7 +1232,7 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='',
                               extra2=extra2, extra3=extra3, extra4=extra4,
                               extra5=extra5, **kwds)
 
-def format_search_as_html(what, r, search):
+def format_search_as_html(what, results, search):
     r"""
     Format the output from ``search_src``, ``search_def``, or
     ``search_doc`` as html, for use in the notebook.
@@ -1238,36 +1241,61 @@ def format_search_as_html(what, r, search):
 
     - ``what`` - (string) what was searched (source code or
       documentation)
-    - ``r`` - (string) the results of the search
-    - ``search`` - (string) what was being searched for
+    - ``results`` - (string or list) the results of the search as a string or list of
+      search results
+    - ``search`` - (string or list) what was being searched for, either as a
+      string which is taken verbatim, or a list of multiple search terms if
+      there were more than one
 
-    This function parses ``r``: it should have the form ``FILENAME:
-    string`` where FILENAME is the file in which the string that matched
-    the search was found. Everything following the first colon is
-    ignored; we just use the filename. If FILENAME ends in '.html', then
-    this is part of the documentation; otherwise, it is in the source
+    This function parses ``results``: each line should have either the form
+    ``FILENAME`` or ``FILENAME: string`` where FILENAME is the file in which
+    the string that matched the search was found.  If FILENAME ends in '.html',
+    then this is part of the documentation; otherwise, it is in the source
     code.  In either case, an appropriate link is created.
 
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format_search_as_html
         sage: format_search_as_html('Source', 'algebras/steenrod_algebra_element.py:        an antihomomorphism: if we call the antipode `c`, then', 'antipode antihomomorphism')
-        '<html><font color="black"><h2>Search Source: antipode antihomomorphism</h2></font><font color="darkpurple"><ol><li><a href="/src/algebras/steenrod_algebra_element.py" target="_blank"><tt>algebras/steenrod_algebra_element.py</tt></a>\n</ol></font></html>'
+        '<html><font color="black"><h2>Search Source: "antipode antihomomorphism"</h2></font><font color="darkpurple"><ol><li><a href="/src/algebras/steenrod_algebra_element.py" target="_blank"><tt>algebras/steenrod_algebra_element.py</tt></a>\n</ol></font></html>'
         sage: format_search_as_html('Other', 'html/en/reference/sage/algebras/steenrod_algebra_element.html:an antihomomorphism: if we call the antipode <span class="math">c</span>, then', 'antipode antihomomorphism')
-        '<html><font color="black"><h2>Search Other: antipode antihomomorphism</h2></font><font color="darkpurple"><ol><li><a href="/doc/live/reference/sage/algebras/steenrod_algebra_element.html" target="_blank"><tt>reference/sage/algebras/steenrod_algebra_element.html</tt></a>\n</ol></font></html>'
+        '<html><font color="black"><h2>Search Other: "antipode antihomomorphism"</h2></font><font color="darkpurple"><ol><li><a href="/doc/live/reference/sage/algebras/steenrod_algebra_element.html" target="_blank"><tt>reference/sage/algebras/steenrod_algebra_element.html</tt></a>\n</ol></font></html>'
+
+    TESTS:
+
+        Test that results from a ``search_src`` with ``multiline=True`` works
+        reasonably::
+
+            sage: results = search_src('format_search_as_html',  # long time
+            ....:                      multiline=True, interact=False)
+            sage: format_search_as_html('Source', results,  # long time
+            ....:                       'format_search_as_html')
+            '<html><font color="black"><h2>Search Source: "format_search_as_html"</h2></font><font color="darkpurple"><ol><li><a href="/src/misc/sagedoc.py" target="_blank"><tt>misc/sagedoc.py</tt></a>\n</ol></font></html>'
     """
-    s = '<html>'
-    s += '<font color="black">'
-    s += '<h2>Search %s: %s</h2>'%(what, search)
-    s += '</font>'
-    s += '<font color="darkpurple">'
-    s += '<ol>'
+
+    if not isinstance(search, list):
+        search = [search]
+
+    s = [
+        '<html>',
+        '<font color="black">',
+        '<h2>Search {}: {}</h2>'.format(
+            what, ', '.join('"{}"'.format(s) for s in search if s.strip())),
+        '</font>',
+        '<font color="darkpurple">',
+        '<ol>'
+    ]
+
+    append = s.append
+
+    if not isinstance(results, list):
+        results = results.splitlines()
 
     files = set([])
-    for L in r.splitlines():
-        i = L.find(':')
-        if i != -1:
-            files.add(L[:i])
+    for L in results:
+        filename = L.strip().split(':', 1)[0]
+        if filename:
+            files.add(filename)
     files = sorted(files)
     for F in files:
         if F.endswith('.html'):
@@ -1276,11 +1304,11 @@ def format_search_as_html(what, r, search):
         else:
             # source code
             url = '/src/' + F
-        s += '<li><a href="%s" target="_blank"><tt>%s</tt></a>\n'%(url, F)
-    s += '</ol>'
-    s += '</font>'
-    s += '</html>'
-    return s
+        append('<li><a href="%s" target="_blank"><tt>%s</tt></a>\n' % (url, F))
+    append('</ol>')
+    append('</font>')
+    append('</html>')
+    return ''.join(s)
 
 
 
@@ -1300,7 +1328,7 @@ def my_getsource(obj, oname=''):
     - ``oname`` -- str (optional). A name under which the object is
       known. Currently ignored by Sage.
 
-    OUTPUT: 
+    OUTPUT:
 
     Its documentation (string)
 

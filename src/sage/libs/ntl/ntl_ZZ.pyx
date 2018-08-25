@@ -337,7 +337,7 @@ cdef class ntl_ZZ(object):
 
     def valuation(self, ntl_ZZ prime):
         """
-        Uses code in ``ntlwrap.cpp`` to compute the number of times
+        Uses code in ``ntlwrap_impl.h`` to compute the number of times
         prime divides self.
 
         EXAMPLES::
@@ -366,7 +366,7 @@ cdef class ntl_ZZ(object):
 
     def val_unit(self, ntl_ZZ prime):
         """
-        Uses code in ``ntlwrap.cpp`` to compute p-adic valuation and
+        Uses code in ``ntlwrap_impl.h`` to compute p-adic valuation and
         unit of self.
 
         EXAMPLES::

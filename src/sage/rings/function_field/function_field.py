@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Function Fields
 
-A function field is an extension field of transcendental degree one of a
-rational function field over a constant field. A function field in Sage is a
-rational function field, an extension of a rational function field, or of
-another function field.
+A function field (of one variable) is a finitely generated field extension of
+transcendence degree one. In Sage, a function field can be a rational function
+field or a finite extension of a function field.
 
 EXAMPLES:
 

@@ -717,13 +717,12 @@ cdef class Matrix(Matrix1):
             TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 3 by 2 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 2 dense matrices over Finite Field of size 3'
 
         We illustrate various combinations of sparse and dense matrices.
-        Notice how if base rings are unequal, both operands must be sparse
-        to get a sparse result. ::
+        The usual coercion rules apply::
 
             sage: A = matrix(ZZ, 5, 6, range(30), sparse=False)
             sage: B = matrix(ZZ, 5, 6, range(30), sparse=True)
             sage: C = matrix(QQ, 5, 6, range(30), sparse=True)
-            sage: A.elementwise_product(C).is_dense()
+            sage: A.elementwise_product(C).is_sparse()
             True
             sage: B.elementwise_product(C).is_sparse()
             True

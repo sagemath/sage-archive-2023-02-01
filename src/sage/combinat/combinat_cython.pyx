@@ -5,11 +5,13 @@ Currently implemented:
 
 - Stirling numbers of the second kind
 - iterators for set partitions
+- iterator for Lyndon words
 
 AUTHORS:
 
 - Fredrik Johansson (2010-10): Stirling numbers of second kind
-- Martin Rubey and Travis Scrimshaw (2018): iterators for set partitions
+- Martin Rubey and Travis Scrimshaw (2018): iterators for set partitions and
+  Lyndon words
 """
 
 cimport cython
@@ -143,15 +145,15 @@ def _stirling_number2(n, k):
 ## Lyndon word iterator
 
 def lyndon_word_iterator(Py_ssize_t n, Py_ssize_t k):
-    """
-    Generate the Lyndon words of fixed length `k` over the alphabet `{0, 1, ..., n-1}`.
+    r"""
+    Generate the Lyndon words of fixed length ``k`` with ``n`` letters.
 
     The resulting Lyndon words will be words represented as lists
-    whose alphabet is ``range(n)``.
+    whose alphabet is ``range(n)`` (`= \{0, 1, \ldots, n-1\}`).
 
     ALGORITHM:
 
-    The iterative FKM Algorithm 7.2 from *Combinatorial Generation* by Ruskey.
+    The iterative FKM Algorithm 7.2 from [Rus2003]_.
 
     EXAMPLES::
 
@@ -272,8 +274,8 @@ def set_partition_iterator(base_set):
 def _set_partition_block_gen(Py_ssize_t n, Py_ssize_t k, list a):
     r"""
     Recursively generate set partitions of ``n`` with fixed block
-    size ``k`` using Algorithm 4.23 from *Combinatorial Generation*
-    by Ruskey. ``a`` is a list of size ``n``.
+    size ``k`` using Algorithm 4.23 from [Rus2003]_.
+    ``a`` is a list of size ``n``.
 
     EXAMPLES::
 

@@ -342,7 +342,13 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
 
 class LyndonWords_nk(UniqueRepresentation, Parent):
     r"""
-    Lyndon words of fixed length `k` over the alphabet `{1, 2, ..., n}`.
+    Lyndon words of fixed length `k` over the alphabet
+    `\{1, 2, \ldots, n\}`.
+
+    INPUT:
+
+    - ``n`` -- the size of the alphabet
+    - ``k`` -- the length of the words
 
     EXAMPLES::
 
@@ -360,11 +366,7 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
     """
     def __init__(self, n, k):
         """
-        INPUT:
-
-        - ``n`` -- the size of the alphabet
-
-        - ``k`` -- the length of the words
+        Initialize ``self``.
 
         TESTS::
 

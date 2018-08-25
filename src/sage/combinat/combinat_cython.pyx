@@ -6,12 +6,13 @@ Currently implemented:
 - Stirling numbers of the second kind
 - iterators for set partitions
 - iterator for Lyndon words
+- iterator for perfect matchings
 
 AUTHORS:
 
 - Fredrik Johansson (2010-10): Stirling numbers of second kind
-- Martin Rubey and Travis Scrimshaw (2018): iterators for set partitions and
-  Lyndon words
+- Martin Rubey and Travis Scrimshaw (2018): iterators for set partitions,
+  Lyndon words, and perfect matchings
 """
 
 cimport cython

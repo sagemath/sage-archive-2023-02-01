@@ -163,11 +163,15 @@ def generate_lyndon_words(Py_ssize_t n, Py_ssize_t k):
 
     TESTS::
 
+        sage: from sage.combinat.combinat_cython import generate_lyndon_words
         sage: list(generate_lyndon_words(6, 1))
         [[0], [1], [2], [3], [4], [5]]
-
         sage: list(generate_lyndon_words(5, 0))
         []
+        sage: list(generate_lyndon_words(1, 1000))
+        []
+        sage: list(generate_lyndon_words(1, 1))
+        [[0]]
     """
     cdef Py_ssize_t i, j
     if k == 0:
@@ -175,6 +179,8 @@ def generate_lyndon_words(Py_ssize_t n, Py_ssize_t k):
     if k == 1:
         for i in range(n):
             yield [i]
+        return
+    if n == 1:
         return
 
     cdef list a = [0] * (k+1)

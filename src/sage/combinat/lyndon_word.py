@@ -23,7 +23,6 @@ from sage.arith.all import factorial, divisors, gcd, moebius
 from sage.misc.all import prod
 
 from . import necklace
-from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
 from sage.combinat.words.words import FiniteWords
 from sage.combinat.combinat_cython import generate_lyndon_words
 
@@ -454,8 +453,17 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
             sage: LyndonWords(3,3).list()  # indirect doctest
             [word: 112, word: 113, word: 122, word: 123, word: 132, word: 133, word: 223, word: 233]
 
-            sage: sum(1 for lw in LyndonWords(11, 6))  # long time
+            sage: sum(1 for lw in LyndonWords(11, 6))
             295020
+
+            sage: sum(1 for lw in LyndonWords(1000, 1))
+            1000
+
+            sage: sum(1 for lw in LyndonWords(1, 1000))
+            0
+
+            sage: list(LyndonWords(1, 1))
+            [word: 1]
         """
         W = self._words._element_classes['list']
         for lw in generate_lyndon_words(self._n, self._k):

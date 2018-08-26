@@ -410,7 +410,7 @@ class RiggedConfigurationElement(ClonableArray):
         ret_string = self[0]._latex_()
 
         for partition in self[1:]:
-            ret_string += "\n\quad\n" + partition._latex_()
+            ret_string += "\n\\quad\n" + partition._latex_()
 
         return ret_string
 
@@ -923,7 +923,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
         return self.parent().to_virtual(self)
 
     def e(self, a):
-        """
+        r"""
         Return the action of `e_a` on ``self``.
 
         This works by lifting into the virtual configuration, then applying
@@ -959,7 +959,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
         return self.parent().from_virtual(virtual_rc)
 
     def f(self, a):
-        """
+        r"""
         Return the action of `f_a` on ``self``.
 
         This works by lifting into the virtual configuration, then applying

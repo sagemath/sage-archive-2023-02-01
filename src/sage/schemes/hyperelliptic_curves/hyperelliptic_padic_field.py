@@ -96,6 +96,18 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             ...
             ValueError: (5^-2 + O(5^6) : 5^-3 + 4*5^2 + 5^3 + 3*5^4 + O(5^5) : 1 + O(5^8)) and (1 + O(5^8) : 0 : 1 + O(5^8)) are not in the same residue disc
 
+        TESTS:
+
+        Check that :trac:`26005` is fixed::
+
+            sage: L = Qp(5, 100)
+            sage: HL = H.change_ring(L)
+            sage: P = HL.lift_x(1 + 2*5^2)
+            sage: Q = HL.lift_x(1 + 3*5^2)
+            sage: x,y,z=HL.local_analytic_interpolation(P, Q)
+            sage: x.polynomial().degree()
+            98
+
         AUTHORS:
 
         - Robert Bradshaw (2007-03)
@@ -106,20 +118,20 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             raise ValueError("%s and %s are not in the same residue disc"%(P,Q))
         disc = self.residue_disc(P)
         t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
-        if disc == self.change_ring(self.base_ring().residue_field())(0,1,0):
+        if disc == self.change_ring(self.base_ring().residue_field())(0,1,0): # Infinite disc
             x,y = self.local_coordinates_at_infinity(2*prec)
             g = self.genus()
             return (x*t**(2*g+1),y*t**(2*g+1),t**(2*g+1))
-        if disc[1] !=0:
+        if disc[1] != 0: # non-Weierstrass disc
             x = P[0]+t*(Q[0]-P[0])
             pts = self.lift_x(x, all=True)
             if pts[0][1][0] == P[1]:
                 return pts[0]
             else:
                 return pts[1]
-        else:
+        else: # Weierstrass disc
             S = self.find_char_zero_weier_point(P)
-            x,y = self.local_coord(S)
+            x,y = self.local_coord(S, prec)
             a = P[1]
             b = Q[1] - P[1]
             y = a + b*t

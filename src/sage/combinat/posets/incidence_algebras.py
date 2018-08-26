@@ -644,6 +644,18 @@ class ReducedIncidenceAlgebra(CombinatorialFreeModule):
             R[(0, 0)]
             sage: R[3, 11]
             R[(0, 1)]
+
+        TESTS:
+
+            sage: R[2, 5]
+            Traceback (most recent call last):
+            ...
+            ValueError: not an interval
+
+            sage: R[-1]
+            Traceback (most recent call last):
+            ...
+            ValueError: not an element of the poset
         """
         if not isinstance(A, (list, tuple)):
             if A not in self._ambient._poset.list():

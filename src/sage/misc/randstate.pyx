@@ -563,7 +563,7 @@ cdef class randstate:
         """
         return self._seed
 
-    def python_random(self, cls=None):
+    def python_random(self, cls=None, seed=None):
         r"""
         Return a :class:`random.Random` object.  The first time it is
         called on a given :class:`randstate`, a new :class:`random.Random`
@@ -579,6 +579,10 @@ cdef class randstate:
           :class:`random.Random` (e.g. a subclass thereof) to use as the
           Python RNG interface.  Otherwise the standard :class:`random.Random`
           is used.
+
+        - ``seed`` -- (optional) an integer to seed the :class:`random.Random`
+          instance with upon creation; if not specified it is seeded using
+          ``ZZ.random_element(1 << 128)``.
 
         EXAMPLES::
 
@@ -598,7 +602,10 @@ cdef class randstate:
 
         from sage.rings.integer_ring import ZZ
         rand = cls()
-        rand.seed(long(ZZ.random_element(long(1)<<128)))
+        if seed is None:
+            rand.seed(long(ZZ.random_element(long(1)<<128)))
+        else:
+            rand.seed(long(seed))
         self._python_random = rand
         return rand
 

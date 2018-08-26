@@ -52,9 +52,9 @@ database with the :meth:`~GraphClass.description` method::
     sage: Chordal.description()
     Class of graphs : Chordal
     -------------------------
-    type                           :  base
     id                             :  gc_32
     name                           :  chordal
+    type                           :  base
     <BLANKLINE>
     Problems :
     -----------
@@ -632,9 +632,9 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal.description()
             Class of graphs : Chordal
             -------------------------
-            type                           :  base
             id                             :  gc_32
             name                           :  chordal
+            type                           :  base
             <BLANKLINE>
             Problems :
             -----------
@@ -665,7 +665,7 @@ class GraphClass(SageObject, CachedRepresentation):
         print("Class of graphs : "+self._name)
         print("-" * (len(self._name)+18))
 
-        for key, value in six.iteritems(cls):
+        for key, value in sorted(cls.items()):
             if value != "" and key != "problem":
                 print("{:30} : {}".format(key, value))
 
@@ -976,7 +976,6 @@ class GraphClasses(UniqueRepresentation):
             ...
         """
         classes = self.classes()
-        classes_list = classes.values()
 
         # We want to print the different fields, and this dictionary stores the
         # maximal number of characters of each field.
@@ -989,7 +988,11 @@ class GraphClasses(UniqueRepresentation):
 
         # We sort the classes alphabetically, though we would like to display the
         # meaningful classes at the top of the list
-        classes_list.sort(key = lambda x:x.get("name","zzzzz")+"{0:4}".format(int(x["id"].split('_')[1])))
+        def sort_key(x):
+            name = x.get("name","zzzzz")
+            return "{}{:4}".format(name, int(x["id"].split('_')[1]))
+
+        classes_list = sorted(classes.values(), key=sort_key)
 
         # Maximum width of a field
         MAX_LEN = 40
@@ -1031,9 +1034,9 @@ def _XML_to_dict(root):
         sage: graph_classes.Perfect.description() # indirect doctest
         Class of graphs : Perfect
         -------------------------
-        type                           :  base
         id                             :  gc_56
         name                           :  perfect
+        type                           :  base
         ...
     """
     ans = root.attrib.copy()

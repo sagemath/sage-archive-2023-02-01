@@ -1387,9 +1387,9 @@ class NumberField_relative(NumberField_generic):
         return self.__relative_vector_space
 
     def absolute_vector_space(self):
-        """
-        Return vector space over `\QQ` of self and isomorphisms from
-        the vector space to self and in the other direction.
+        r"""
+        Return vector space over `\QQ` of ``self`` and isomorphisms from
+        the vector space to ``self`` and in the other direction.
 
         EXAMPLES::
 

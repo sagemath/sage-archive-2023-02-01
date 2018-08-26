@@ -27,7 +27,7 @@ cd src/
 
 for p in \
     aclib cohomolo-1.6.4 corelg crime ctbllib cryst crystcat design factint gbnp grape \
-    guava-3.13 Hap1.11 HAPcryst happrime hecke laguna liealgdb liepring liering loops mapclass polymaking \
+    guava-3.13 Hap1.11 HAPcryst happrime hecke laguna liealgdb liepring liering loops mapclass nq-2.5.3 polymaking \
     QPA-1.25 quagroup repsn sla sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
 do
     echo "Copying package $p"
@@ -80,6 +80,20 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error building cohomolo package."
     exit 1
 fi
+
+# Build nq package
+cd "$PKG_DIR/nq-2.5.3"
+./configure --with-gaproot="$GAP_DIR"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring nq package."
+    exit 1
+fi
+$MAKE 
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building nq package."
+    exit 1
+fi
+
 
 # Some GAP packages have weird permissions
 chmod -R u+rwX "$PKG_DIR"

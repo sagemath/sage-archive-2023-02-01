@@ -1720,13 +1720,13 @@ class DeltaComplexExamples():
         return DeltaComplex({Simplex(n): True})
 
     def SurfaceOfGenus(self, g, orientable=True):
-        """
+        r"""
         A surface of genus g as a `\Delta`-complex.
 
         :param g: the genus
         :type g: non-negative integer
         :param orientable: whether the surface should be orientable
-        :type orientable: bool, optional, default True
+        :type orientable: bool, optional, default ``True``
 
         In the orientable case, return a sphere if `g` is zero, and
         otherwise return a `g`-fold connected sum of a torus with

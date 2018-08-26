@@ -14,7 +14,7 @@ REFERENCES:
 - [AS1964]_ Abramowitz and Stegun: *Handbook of Mathematical Functions*
 - :wikipedia:`Exponential_integral`
 - Online Encyclopedia of Special Function: http://algo.inria.fr/esf/index.html
-- NIST Digital Library of Mathematical Functions: http://dlmf.nist.gov/
+- NIST Digital Library of Mathematical Functions: https://dlmf.nist.gov/
 - Maxima `special functions package`_
 - `mpmath library`_
 

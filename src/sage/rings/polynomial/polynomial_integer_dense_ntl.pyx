@@ -1023,14 +1023,13 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         p = Integer(p)
         if not p.is_prime():
             raise ValueError("p must be prime")
-        if all([c%p==0 for c in self.coefficients()]):
+        if not any(c % p for c in self.coefficients()):
             raise ArithmeticError("factorization of 0 is not defined")
         f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
-
 
     def factor_padic(self, p, prec=10):
         """

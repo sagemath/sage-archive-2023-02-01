@@ -332,7 +332,8 @@ class R(ExtraTabCompletion, Expect):
                   prompt = '> ', #default, later comes the change
 
                   # This is the command that starts up your program
-                  command = "R --vanilla --quiet",
+                  # See #25806 for the --no-readline switch which fixes hangs for some
+                  command = "R --no-readline --vanilla --quiet",
 
                   server=server,
                   server_tmpdir=server_tmpdir,

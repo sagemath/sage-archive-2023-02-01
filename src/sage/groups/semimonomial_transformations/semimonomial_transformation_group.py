@@ -392,7 +392,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
         ring_latex = self.base_ring()._latex_()
         return ('\\left(' + ring_latex + '^' + str(self.degree()) + '\\wr' +
                 SymmetricGroup(self.degree())._latex_() +
-                ' \\right) \\rtimes \operatorname{Aut}(' + ring_latex + ')')
+                ' \\right) \\rtimes \\operatorname{Aut}(' + ring_latex + ')')
 
 
 class SemimonomialActionVec(Action):

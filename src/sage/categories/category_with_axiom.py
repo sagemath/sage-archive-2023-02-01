@@ -1855,13 +1855,13 @@ class CategoryWithAxiom(Category):
     how to implement axioms and the documentation of the axiom
     infrastructure.
 
-    .. automethod:: __classcall__
-    .. automethod:: __classget__
-    .. automethod:: __init__
-    .. automethod:: _repr_object_names
-    .. automethod:: _repr_object_names_static
-    .. automethod:: _test_category_with_axiom
-    .. automethod:: _without_axioms
+    .. automethod:: CategoryWithAxiom.__classcall__
+    .. automethod:: CategoryWithAxiom.__classget__
+    .. automethod:: CategoryWithAxiom.__init__
+    .. automethod:: CategoryWithAxiom._repr_object_names
+    .. automethod:: CategoryWithAxiom._repr_object_names_static
+    .. automethod:: CategoryWithAxiom._test_category_with_axiom
+    .. automethod:: CategoryWithAxiom._without_axioms
     """
 
     @lazy_class_attribute

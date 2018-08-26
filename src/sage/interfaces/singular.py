@@ -654,7 +654,9 @@ class Singular(ExtraTabCompletion, Expect):
 
         s = Expect.eval(self, x, **kwds)
 
-        if s.find("error") != -1 or s.find("Segment fault") != -1:
+        # "Segment fault" is not a typo:
+        # Singular actually does use that string
+        if s.find("error occurred") != -1 or s.find("Segment fault") != -1:
             raise SingularError('Singular error:\n%s'%s)
 
         if get_verbose() > 0:
@@ -1079,7 +1081,7 @@ class Singular(ExtraTabCompletion, Expect):
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.current_ring()
             polynomial ring, over a field, global ordering
-            //   coefficients: float
+            //   coefficients: Float()
             //   number of vars : 2
             //        block   1 : ordering lp
             //                  : names    a b
@@ -1157,7 +1159,7 @@ class Singular(ExtraTabCompletion, Expect):
              sage: singular._tab_completion()
              ['exteriorPower',
               ...
-              'flintZ']
+              'crossprod']
          """
         p = re.compile("// *([a-z0-9A-Z_]*).*") #compiles regular expression
         proclist = self.eval("listvar(proc)").splitlines()
@@ -1183,7 +1185,7 @@ class Singular(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: singular.version()
-            "Singular ... version 4.1.0 ...
+            "Singular ... version 4...
         """
         return singular_version()
 
@@ -1562,7 +1564,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         elif charstr[0] in ['0', 'QQ']:
             from sage.all import QQ
             br = QQ
-        elif charstr[0]=='real':
+        elif charstr[0].startswith('Float'):
             from sage.all import RealField, ceil, log
             prec = singular.eval('ringlist(basering)[1][2][1]')
             br = RealField(ceil((ZZ(prec)+1)/log(2,10)))
@@ -1750,7 +1752,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
         # Singular 4 puts parentheses around floats and sign outside them
         charstr = self.parent().eval('charstr(basering)').split(',',1)
-        if charstr[0] in ['real', 'complex']:
+        if charstr[0].startswith('Float') or charstr[0] == 'complex':
               for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
@@ -1992,7 +1994,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.current_ring()
             polynomial ring, over a field, global ordering
-            //   coefficients: float
+            //   coefficients: Float()
             //   number of vars : 2
             //        block   1 : ordering lp
             //                  : names    a b
@@ -2072,7 +2074,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: R._tab_completion()
             ['exteriorPower',
              ...
-             'flintZ']
+             'crossprod']
         """
         return self.parent()._tab_completion()
 
@@ -2358,7 +2360,7 @@ def singular_version():
     EXAMPLES::
 
         sage: singular.version()
-        "Singular ... version 4.1.0 ...
+        "Singular ... version 4...
     """
     return singular.eval('system("--version");')
 

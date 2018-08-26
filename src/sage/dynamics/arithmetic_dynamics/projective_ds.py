@@ -2787,7 +2787,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2-2*x*y-2*y^2, -2*x^2-2*x*y+y^2])
             sage: f.automorphism_group(return_functions=True)
-            [x, 2/(2*x), -x - 1, -2*x/(2*x + 2), (-x - 1)/x, -1/(x + 1)]
+            [x, 1/x, -x - 1, -x/(x + 1), (-x - 1)/x, -1/(x + 1)]
 
         ::
 
@@ -5736,12 +5736,31 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             sage: R.<x,y> = ProjectiveSpace(GF(3^2,'t'),1)
             sage: f = DynamicalSystem_projective([x^3,y^3])
             sage: f.automorphism_group(return_functions=True, iso_type=True) # long time
-            ([x, x/(x + 1), x/(2*x + 1), 2/(x + 2), (2*x + 1)/(2*x), (2*x + 2)/x,
-            1/(2*x + 2), x + 1, x + 2, x/(x + 2), 2*x/(x + 1), 2*x, 1/x, 2*x + 1,
-            2*x + 2, ((t + 2)*x + t + 2)/((2*t + 1)*x + t + 2), (t*x + 2*t)/(t*x +
-            t), 2/x, (x + 1)/(x + 2), (2*t*x + t)/(t*x), (2*t + 1)/((2*t + 1)*x +
-            2*t + 1), ((2*t + 1)*x + 2*t + 1)/((2*t + 1)*x), t/(t*x + 2*t), (2*x +
-            1)/(x + 1)], 'PGL(2,3)')
+            ([x,
+              x/(x + 1),
+              2*x/(x + 2),
+              2/(x + 2),
+              (x + 2)/x,
+              (2*x + 2)/x,
+              2/(x + 1),
+              x + 1,
+              x + 2,
+              x/(x + 2),
+              2*x/(x + 1),
+              2*x,
+              1/x,
+              2*x + 1,
+              2*x + 2,
+              (x + 2)/(x + 1),
+              2/x,
+              (2*x + 2)/(x + 2),
+              (x + 1)/(x + 2),
+              (2*x + 1)/x,
+              1/(x + 1),
+              1/(x + 2),
+              (2*x + 1)/(x + 1),
+              (x + 1)/x],
+             'PGL(2,3)')
 
         ::
 

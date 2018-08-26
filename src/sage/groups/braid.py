@@ -172,7 +172,7 @@ class Braid(FiniteTypeArtinGroupElement):
         return self.strands() - sum(len(c)-1 for c in cycles)
 
     def burau_matrix(self, var='t', reduced=False):
-        """
+        r"""
         Return the Burau matrix of the braid.
 
         INPUT:

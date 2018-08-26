@@ -2126,6 +2126,33 @@ class FunctionField_polymod(FunctionField):
                Defn: y |--> x_
                      x |--> y_)
 
+        If the base field is not perfect this is only implemented in trivial cases::
+
+            sage: k.<t> = FunctionField(GF(2))
+            sage: k.is_perfect()
+            False
+            sage: K.<x> = FunctionField(k)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 - t)
+            sage: L.separable_model()
+            (Function field in y defined by y^3 + t,
+             Function Field endomorphism of Function field in y defined by y^3 + t
+               Defn: y |--> y
+                     x |--> x,
+             Function Field endomorphism of Function field in y defined by y^3 + t
+               Defn: y |--> y
+                     x |--> x)
+
+        Some other cases for which a separable model could be constructed are
+        not supported yet::
+
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - t)
+            sage: L.separable_model()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: constructing a separable model is only implemented for function fields over a perfect constant base field
+
         TESTS:
 
         Check that this also works in characteristic zero::

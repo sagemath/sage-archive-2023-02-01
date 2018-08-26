@@ -774,7 +774,10 @@ class Simplex(SageObject):
         """
         if not isinstance(other, Simplex):
             return False
-        return sorted(tuple(set(self))) < sorted(tuple(set(other)))
+        try:
+            return sorted(self) < sorted(other)
+        except TypeError:
+            return sorted(map(str,self)) < sorted(map(str, other))
 
     def __hash__(self):
         """
@@ -1015,7 +1018,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if isinstance(vertex_set, (int, Integer)):
             vertices = tuple(range(vertex_set + 1))
         elif sort_facets:
-            vertices = tuple(sorted(vertex_set))
+            try:
+                vertices = tuple(sorted(vertex_set))
+            except TypeError:
+                vertices = tuple(sorted(vertex_set, key=str))
         else:
             vertices = tuple(vertex_set)
         gen_dict = {}
@@ -1046,7 +1052,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 any(face.is_face(other) for other in good_faces)):
                 continue
             if sort_facets:
-                face = Simplex(sorted(face.tuple()))
+                try:
+                    face = Simplex(sorted(face.tuple()))
+                except TypeError:
+                    face = Simplex(sorted(face.tuple(), key=str))
             good_faces.append(face)
 
         # if no maximal faces, add the empty face as a facet
@@ -1192,9 +1201,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: SimplicialComplex()._an_element_()
             ()
             sage: simplicial_complexes.Sphere(3)._an_element_()
-            (1, 2, 3, 4)
+            (0, 1, 2, 3)
         """
-        return self.facets()[0]
+        try:
+            return sorted(self.facets())[0]
+        except TypeError:
+            return self.facets()[0]
 
     def __contains__(self, x):
         """
@@ -1245,8 +1257,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: Y = SimplicialComplex([[0,2], [1,4]])
-            sage: Y.maximal_faces()
+            sage: Y.maximal_faces() # random
             {(1, 4), (0, 2)}
+            sage: sorted(Y.maximal_faces())
+            [(0, 2), (1, 4)]
 
         ``facets`` is a synonym for ``maximal_faces``::
 
@@ -1328,11 +1342,17 @@ class SimplicialComplex(Parent, GenericCellComplex):
           the empty face. Otherwise it returns faces in decreasing order of
           dimension.
 
+        .. NOTE::
+
+            Among the faces of a fixed dimension, there is no sorting.
+
         EXAMPLES::
 
             sage: S1 = simplicial_complexes.Sphere(1)
-            sage: [f for f in S1.face_iterator()]
+            sage: [f for f in S1.face_iterator()] # random
             [(), (2,), (0,), (1,), (1, 2), (0, 2), (0, 1)]
+            sage: sorted(S1.face_iterator())
+            [(), (0,), (0, 1), (0, 2), (1,), (1, 2), (2,)]
         """
         Fs = self.faces()
         dim_index = range(-1, self.dimension() + 1)
@@ -1410,8 +1430,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Z.n_cells(2, subcomplex=K)
             [(1, 2, 4), (1, 3, 4)]
             sage: S = SimplicialComplex([[complex(i), complex(1)]], sort_facets=False)
-            sage: S.n_cells(0)
+            sage: S.n_cells(0) # random -- order may depend on the version of Python
             [(1j,), ((1+0j),)]
+            sage: sorted(S.n_cells(0), key=str)
+            [((1+0j),), (1j,)]
         """
         if sort is None:
             sort = self._sorted
@@ -1678,7 +1700,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         edges = defaultdict(list)
         # go through all codim 1 faces to build the edge
         for F in Fs:
-            F_tuple = sorted(F._Simplex__set)
+            try:
+                F_tuple = sorted(F._Simplex__set)
+            except TypeError:
+                F_tuple = tuple(F._Simplex__set)
             for i in range(d+1):
                 coF = tuple(F_tuple[:i]+F_tuple[i+1:])
                 if coF in edges:
@@ -3362,7 +3387,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Y._stanley_reisner_base_ring(base_ring=QQ)
             Multivariate Polynomial Ring in a, c, b over Rational Field
         """
-        return PolynomialRing(base_ring, self._gen_dict.values())
+        return PolynomialRing(base_ring, list(self._gen_dict.values()))
 
     def stanley_reisner_ring(self, base_ring=ZZ):
         """
@@ -4351,12 +4376,16 @@ class SimplicialComplex(Parent, GenericCellComplex):
         facet_limit = 55
         vertices = self.vertices()
         try:
+            vertices = sorted(vertices)
+        except TypeError:
+            vertices = sorted(vertices, key=str)
+        try:
             facets = sorted(self._facets, key=lambda f: (f.dimension(), f.tuple()))
         except TypeError:
             # Sorting failed.
             facets = self._facets
 
-        vertex_string = "with vertex set {}".format( tuple(sorted(vertices)) )
+        vertex_string = "with vertex set {}".format(tuple(vertices))
         if len(vertex_string) > vertex_limit:
             vertex_string = "with %s vertices" % len(vertices)
         facet_string = 'facets {' + repr(facets)[1:-1] + '}'

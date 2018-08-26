@@ -2429,6 +2429,9 @@ REFERENCES:
 .. [Rud1958] \M. E. Rudin. *An unshellable triangulation of a
              tetrahedron*. Bull. Amer. Math. Soc. 64 (1958), 90-91.
 
+.. [Rus2003] Frank Ruskey. *Combinatorial Generation*. (2003).
+             http://www.1stworks.com/ref/ruskeycombgen.pdf
+
 .. [Rüt2014] Julian Rüth, *Models of Curves and Valuations*. Open Access
              Repositorium der Universität Ulm. Dissertation (2014).
              :doi:`10.18725/OPARU-3275`

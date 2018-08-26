@@ -110,6 +110,6 @@ class InventoryBuilder(StandaloneHTMLBuilder):
     copy_static_files = removed_method_error
     handle_finish = removed_method_error
 
+
 def setup(app):
     app.add_builder(InventoryBuilder)
-

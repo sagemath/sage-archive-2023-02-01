@@ -4455,14 +4455,19 @@ def TruncatedIcosidodecahedralGraph():
     and 180 edges. For more information, see the
     :wikipedia:`Truncated_icosidodecahedron`.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Unfortunately, this graph can not be constructed currently, due to numerical issues::
 
         sage: g = graphs.TruncatedIcosidodecahedralGraph(); g
-        Truncated Icosidodecahedron: Graph on 120 vertices
-        sage: g.order(), g.size()
+        Traceback (most recent call last):
+        ...
+        ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
+        sage: g.order(), g.size() # not tested
         (120, 180)
     """
     from sage.geometry.polyhedron.library import polytopes
+    # note that dropping exact=False here makes the construction take forever
     G = polytopes.icosidodecahedron(exact=False).truncation().graph()
     G.name("Truncated Icosidodecahedron")
     return G
@@ -5155,15 +5160,15 @@ def IoninKharaghani765Graph():
                        for j in range(9)])
 
     def N(Xi):
-        Xi = map(M, Xi)
-        return matrix.block([Xi[i:]+Xi[:i]
+        Xi = [M(x) for x in Xi]
+        return matrix.block([Xi[i:] + Xi[:i]
                              for i in range(len(Xi))])
 
     sigma = lambda Xi: Xi[1:] + [pi[Xi[0]]]
-    f_pow = lambda f,i,X : f_pow(f,i-1,f(X)) if i else X
+    f_pow = lambda f, i, X: f_pow(f, i-1, f(X)) if i else X
 
     sigma2 = lambda Xi: Xi[1:] + [Xi[0]]
-    pi_vec = lambda x: map(pi.get,x)
+    pi_vec = lambda x: [pi.get(_) for _ in x]
 
     # The matrix W, with off-diagonal entries equal to integers 1,...,15
     # (instead of x^1,...,x^15)
@@ -5179,8 +5184,8 @@ def IoninKharaghani765Graph():
     int_to_matrix = {0:matrix.zero(45)}
     for i in range(15):
         vec = [frozenset([]),L[0,0],L[1,0],L[2,0],L[3,0]]
-        vec = f_pow(pi_vec,i%3,vec)
-        vec = f_pow(sigma2,i%5,vec)
+        vec = f_pow(pi_vec, i % 3, vec)
+        vec = f_pow(sigma2, i % 5, vec)
         int_to_matrix[i+1] = N(vec)
 
     M = matrix.block([[int_to_matrix[x] for x in R] for R in W.rows()])
@@ -5210,10 +5215,9 @@ def U42Graph216():
        :arxiv:`1609.07133`
     """
     from sage.libs.gap.libgap import libgap
-    from sage.misc.package import is_package_installed, PackageNotFoundError
+    from sage.features.gap import GapPackage
 
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
+    GapPackage("grape", spkg="gap_packages").require()
 
     adj_list=libgap.function_factory("""function()
                 local gg, hl, o216, a216, x, h, re, G;
@@ -5259,10 +5263,9 @@ def U42Graph540():
 
     """
     from sage.libs.gap.libgap import libgap
-    from sage.misc.package import is_package_installed, PackageNotFoundError
+    from sage.features.gap import GapPackage
 
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
+    GapPackage("grape", spkg="gap_packages").require()
 
     adj_list=libgap.function_factory("""function()
                 local f, o540, a540, x, oh, h, lo, G;

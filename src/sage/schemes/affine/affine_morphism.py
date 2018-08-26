@@ -262,7 +262,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return False
         if self.parent() != right.parent():
             return False
-        return all([self[i] == right[i] for i in range(len(self._polys))])
+        return all(self[i] == right[i] for i in range(len(self._polys)))
 
     def __ne__(self, right):
         """
@@ -291,7 +291,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return True
         if self.parent() != right.parent():
             return True
-        if all([self[i] == right[i] for i in range(len(self._polys))]):
+        if all(self[i] == right[i] for i in range(len(self._polys))):
             return False
         return True
 
@@ -857,7 +857,7 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
             sage: f(P).weil_restriction() == F(Q)
             True
         """
-        if any([isinstance(f,FractionFieldElement) for f in self]):
+        if any(isinstance(f, FractionFieldElement) for f in self):
             raise TypeError("coordinate functions must be polynomials")
 
         DS = self.domain()

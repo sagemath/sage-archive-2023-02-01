@@ -330,7 +330,7 @@ def str_function(x):
         return x
     # Deal with special characters
     char_wrapper = r"{\char`\%s}"
-    x = "".join(char_wrapper % c if c in "#$%&\^_{}~" else c for c in x)
+    x = "".join(char_wrapper % c if c in r"#$%&\^_{}~" else c for c in x)
     # Avoid grouping spaces into one
     x = x.replace(" ", "{ }")
     # And dashes too, since it causes issues for the command line...
@@ -865,8 +865,9 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         return "Error latexing slide."
     return return_suffix
 
+
 class LatexCall:
-    """
+    r"""
     Typeset Sage objects via a ``__call__`` method to this class,
     typically by calling those objects' ``_latex_`` methods.  The
     class :class:`Latex` inherits from this. This class is used in
@@ -1964,7 +1965,7 @@ class MathJax:
             # part should end in "}}", so omit the last two characters
             # from y
             y = part[:closing-1]
-            for delimiter in """|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":
+            for delimiter in r"""|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":
                 if delimiter not in y:
                     break
             if delimiter == "E":
@@ -2420,7 +2421,7 @@ def repr_lincomb(symbols, coeffs):
                 # multiplication sign in
                 try:
                     if bv in CC:
-                        s += "%s\cdot %s" % (coeff, b)
+                        s += r"%s\cdot %s" % (coeff, b)
                     else:
                         s += "%s%s" % (coeff, b)
                 except Exception:
@@ -2615,7 +2616,7 @@ def latex_variable_name(x, is_fname=False):
         # * The "\d|[.,]" means "decimal digit" or period or comma
         # * The "+" means "1 or more"
         # * The "$" means "at the end of the line"
-        m = re.search('(\d|[.,])+$',x)
+        m = re.search(r'(\d|[.,])+$', x)
         if m is None:
             prefix = x
             suffix = None
@@ -2630,14 +2631,15 @@ def latex_variable_name(x, is_fname=False):
             for sym in symtable.values():
                 if sym[0] == '_' and sym[1:] == suffix:
                     return latex_variable_name(suffix)
-    if suffix and len(suffix) > 0:
+    if suffix and len(suffix):
         # handle the suffix specially because it very well might be numeric
         # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)
-        if suffix.strip("1234567890")!="":
+        if suffix.strip("1234567890") != "":
             suffix = latex_variable_name(suffix, is_fname) # recurse to deal with recursive subscripts
-        return '%s_{%s}'%(latex_varify(prefix, is_fname), suffix)
+        return '%s_{%s}' % (latex_varify(prefix, is_fname), suffix)
     else:
         return latex_varify(prefix, is_fname)
+
 
 class LatexExamples():
     r"""

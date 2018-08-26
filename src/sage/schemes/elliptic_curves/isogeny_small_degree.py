@@ -708,7 +708,7 @@ def isogenies_2(E, minimal_models=True):
 
 
 def isogenies_3(E, minimal_models=True):
-    """
+    r"""
     Return a list of all 3-isogenies with domain ``E``.
 
     INPUT:
@@ -748,7 +748,7 @@ def isogenies_3(E, minimal_models=True):
     f3 = E.division_polynomial(3)
     x3 = sorted(f3.roots(multiplicities=False))
     x = f3.parent().gen()
-    ff = [x-x3i for x3i in x3]
+    ff = [x - x3i for x3i in x3]
     from sage.rings.number_field.number_field_base import is_NumberField
     model = "minimal" if minimal_models and is_NumberField(E.base_field()) else None
     isogs = [E.isogeny(f, model=model) for f in ff]
@@ -757,7 +757,8 @@ def isogenies_3(E, minimal_models=True):
 # 6 special cases: `l` = 5, 7, 13 and `j` = 0, 1728.
 
 def isogenies_5_0(E, minimal_models=True):
-    r"""Returns a list of all the 5-isogenies  with domain ``E`` when the
+    r"""
+    Return a list of all the 5-isogenies  with domain ``E`` when the
     j-invariant is 0.
 
     INPUT:

@@ -306,7 +306,7 @@ warnings.filterwarnings('ignore',
     module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default',
-    '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
+    r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
 
 
 # Set a new random number seed as the very last thing

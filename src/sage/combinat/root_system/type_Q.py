@@ -76,8 +76,8 @@ class CartanType(CartanType_standard_finite):
         return (CartanType, (self.letter, self.n+1))
 
     def index_set(self):
-        """
-        Returns index set for Cartan type Q.
+        r"""
+        Return the index set for Cartan type Q.
 
         The index set for type Q is of the form
         `\{-n, \ldots, -1, 1, \ldots, n\}`.
@@ -87,7 +87,7 @@ class CartanType(CartanType_standard_finite):
             sage: CartanType(['Q', 3]).index_set()
             (1, 2, -2, -1)
         """
-        return tuple(range(1,self.n+1)+range(-self.n,0))
+        return tuple(range(1, self.n + 1) + range(-self.n, 0))
 
     def _latex_(self):
         r"""
@@ -98,7 +98,7 @@ class CartanType(CartanType_standard_finite):
             sage: latex(CartanType(['Q',4]))
             Q_{4}
         """
-        return "Q_{%s}"%(self.n+1)
+        return "Q_{%s}" % (self.n + 1)
 
     def root_system(self):
         """

@@ -197,7 +197,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         Derivation map:
           From: Function field in y defined by y^2 - x
           To:   Function field in y defined by y^2 - x
-          Defn: y |--> (-1/2/-x)*y
+          Defn: y |--> 1/2/x*y
     """
     def __init__(self, L, d):
         """
@@ -248,7 +248,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             sage: d(x) # indirect doctest
             1
             sage: d(y)
-            (-1/2/-x)*y
+            1/2/x*y
             sage: d(y^2)
             1
         """
@@ -273,7 +273,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             Derivation map:
               From: Function field in y defined by y^2 - x
               To:   Function field in y defined by y^2 - x
-              Defn: y |--> (-1/2/-x)*y
+              Defn: y |--> 1/2/x*y
 
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^2 - y)
@@ -281,7 +281,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             Derivation map:
               From: Function field in z defined by z^2 - y
               To:   Function field in z defined by z^2 - y
-              Defn: y |--> (-1/2/-x)*y
+              Defn: y |--> 1/2/x*y
                     z |--> 1/4/x*z
         """
         base = self._d._repr_defn()

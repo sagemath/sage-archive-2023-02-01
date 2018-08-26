@@ -1271,7 +1271,7 @@ class TensorField(ModuleElement):
         One can see that ``v`` is not yet fully defined: the components
         (scalar fields) do not have values on the whole manifold::
 
-            sage: v._components.values()[0]._comp[(0,)].display()
+            sage: sorted(v._components.values())[0]._comp[(0,)].display()
             S --> R
             on U: (x, y) |--> x
 
@@ -1288,7 +1288,7 @@ class TensorField(ModuleElement):
 
         The definition of ``v`` is now complete::
 
-            sage: v._components.values()[0]._comp[(2,)].display()
+            sage: sorted(v._components.values())[0]._comp[(2,)].display()
             S --> R
             on U: (x, y) |--> x^2 + y^2
             on V: (xp, yp) |--> 1/(xp^2 + yp^2)

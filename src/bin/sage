@@ -587,7 +587,7 @@ fi
 
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
     shift
-    exec pip "$@"
+    exec sage-python23 -m pip "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then

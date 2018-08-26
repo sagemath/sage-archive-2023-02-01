@@ -37,6 +37,9 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
     :meth:`~posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
     :meth:`~posets.PentagonPoset` | Return the Pentagon poset.
+    :meth:`~posets.PermutationPattern` | Return the Permutation pattern poset.
+    :meth:`~posets.PermutationPatternInterval` | Return an interval in the Permutation pattern poset.
+    :meth:`~posets.PermutationPatternOccurrenceInterval` | Return the occurrence poset for a pair of comparable elements in the Permutation pattern poset.
     :meth:`~posets.PowerPoset` | Return a power poset.
     :meth:`~posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~posets.RandomPoset` | Return a random poset on `n` elements.
@@ -80,7 +83,7 @@ from six import add_metaclass, string_types
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
-from sage.combinat.permutation import Permutations, Permutation
+from sage.combinat.permutation import Permutations, Permutation, to_standard
 from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
                                            JoinSemilattice, FiniteLatticePoset)
@@ -1440,7 +1443,7 @@ class Posets(object):
 
         Elements of the (infinite) lattice are words with letters '1'
         and '2'.  The covers of a word are the words with another '1'
-        added somewhere not after the first occurence of an existing
+        added somewhere not after the first occurrence of an existing
         '1' and, additionally, the words where the first '1' is replaced by a
         '2'. The lattice is truncated to have rank `n`.
 
@@ -1498,6 +1501,187 @@ class Posets(object):
         D = DiGraph([[], covers], format='vertices_and_edges')
         D.relabel(lambda v: Word(v), inplace=True)
         return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
+
+    @staticmethod
+    def PermutationPattern(n):
+        r"""
+        Return the poset of permutations under pattern containment
+        up to rank ``n``.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        A permutation `u = u_1 \cdots u_n` contains the pattern
+        `v = v_1 \cdots v_m` if there is a (not necessarily consecutive)
+        subsequence of `u`  of length `m` whose entries have the same
+        relative order as `v`.
+
+        See :wikipedia:`Permutation_pattern`.
+
+        EXAMPLES::
+
+            sage: P4 = posets.PermutationPattern(4); P4
+            Finite poset containing 33 elements
+            sage: sorted(P4.lower_covers(Permutation([2,4,1,3])))
+            [[1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.permutation.Permutation.has_pattern`
+
+        TESTS::
+
+            sage: posets.PermutationPattern(1)
+            Finite poset containing 1 elements
+            sage: posets.PermutationPattern(2)
+            Finite poset containing 3 elements
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {}".format(n))
+        if n <= 0:
+            raise ValueError("number of elements must be nonnegative, not {}".format(n))
+        elem = []
+        for i in range(1, n+1):
+            elem += Permutations(i)
+        return Poset((elem, lambda a,b: b.has_pattern(a)))
+
+    @staticmethod
+    def PermutationPatternInterval(bottom, top):
+        r"""
+        Return the poset consisting of an interval in the poset of permutations
+        under pattern containment between ``bottom`` and ``top``.
+
+        INPUT:
+
+        - ``bottom``, ``top`` -- permutations where ``top`` contains
+          ``bottom`` as a pattern
+
+        A permutation `u = u_1 \cdots u_n` contains the pattern
+        `v = v_1 \cdots v_m` if there is a (not necessarily consecutive)
+        subsequence of `u`  of length `m` whose entries have the same
+        relative order as `v`.
+
+        See :wikipedia:`Permutation_pattern`.
+
+        EXAMPLES::
+
+            sage: t = Permutation([2,3,1])
+            sage: b = Permutation([4,6,2,3,5,1])
+            sage: R = posets.PermutationPatternInterval(t, b); R
+            Finite poset containing 14 elements
+            sage: R.moebius_function(R.bottom(),R.top())
+            -4
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.permutation.Permutation.has_pattern`,
+            :meth:`PermutationPattern`
+
+        TESTS::
+
+            sage: p = Permutation([1])
+            sage: posets.PermutationPatternInterval(p, p)
+            Finite poset containing 1 elements
+        """
+        P = Permutations()
+        top = P(top)
+        bottom = P(bottom)
+        if not top.has_pattern(bottom):
+            raise ValueError("{} doesn't contain {} as a pattern".format(top, bottom))
+        elem = [[top]] # Make a list of lists of elements in the interval divided by rank.
+                       # List will be flattened at the end
+        level = 0    # Consider the top element to be level 0, and then go down from there.
+        rel = []     # List of covering relations to be fed into poset constructor.
+        while len(top) - len(bottom) >= level + 1:
+            elem.append([]) # Add a new empty level
+            for upper in elem[level]:
+                # Run through all permutations on current level
+                #   and find relations for which it is upper cover
+                upper_perm = P(upper)
+                for i in range(len(top)-level):
+                    # Try and remove the ith element from the permutation
+                    lower = list(upper)
+                    j = lower.pop(i)
+                    for k in range(len(top)-level-1): # Standardize result
+                        if lower[k] > j:
+                            lower[k] = lower[k] - 1
+                    lower_perm = P(lower)
+                    if lower_perm.has_pattern(bottom): # Check to see if result is in interval
+                        rel += [[lower_perm, upper_perm]]
+                        if lower not in elem[level+1]:
+                            elem[level+1].append(lower_perm)
+            level += 1
+        elem = [item for sublist in elem for item in sublist]
+        return Poset((elem,rel))
+
+    @staticmethod
+    def PermutationPatternOccurrenceInterval(bottom, top, pos):
+        r"""
+        Return the poset consisting of an interval in the poset of
+        permutations under pattern containment between ``bottom`` and
+        ``top``, where a specified instance of ``bottom`` in ``top``
+        must be maintained.
+
+        INPUT:
+
+        - ``bottom``, ``top`` -- permutations where ``top`` contains
+           ``bottom`` as a pattern
+        - ``pos`` -- a list of indices indicating a distinguished copy of
+           ``bottom`` inside ``top`` (indexed starting at 0)
+
+        For futher information (and picture illustrating included example),
+        see [ST2010]_ .
+
+        See :wikipedia:`Permutation_pattern`.
+
+        EXAMPLES::
+
+            sage: t = Permutation([3,2,1])
+            sage: b = Permutation([6,3,4,5,2,1])
+            sage: A = posets.PermutationPatternOccurrenceInterval(t, b, (0,2,4)); A
+            Finite poset containing 8 elements
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.permutation.Permutation.has_pattern`,
+            :meth:`PermutationPattern`, :meth:`PermutationPatternInterval`
+        """
+        P = Permutations()
+        top = P(top)
+        bottom = P(bottom)
+        if not to_standard([top[z] for z in pos]) == list(bottom): # check input
+            raise ValueError("cannot find 'bottom' in 'top' given by 'pos'")
+        elem = [[(top, pos)]]
+        level = 0
+        rel = []
+        while len(top) - len(bottom) >= level + 1:
+            elem.append([]) # Add a new empty level
+            for upper in elem[level]:
+                for i in range(len(top)-level):
+                    # Try and remove the ith element from the permutation
+                    if i in upper[1]:
+                        continue
+                    lower_perm = list(upper[0])
+                    j = lower_perm.pop(i)
+                    for e in range(len(top)-level-1):
+                        if lower_perm[e] > j:
+                            lower_perm[e] = lower_perm[e] - 1
+                    lower_pos = list(upper[1])
+                    for f in range(len(upper[1])):
+                        if upper[1][f] > i:
+                            lower_pos[f] = upper[1][f] - 1
+                    rel += [[(P(lower_perm), tuple(lower_pos)),
+                             (P(upper[0]), upper[1])]]
+                    if (P(lower_perm), tuple(lower_pos)) not in elem[level+1]:
+                        elem[level+1].append((P(lower_perm), tuple(lower_pos)))
+            level += 1
+        elem = [item for sublist in elem for item in sublist]
+        return Poset([elem,rel])
+
+
 
 
 ## RANDOM LATTICES

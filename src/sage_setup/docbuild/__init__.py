@@ -265,35 +265,29 @@ class DocBuilder(object):
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
 
-if NUM_THREADS > 1:
-    def build_many(target, args):
-        from multiprocessing import Pool
-        pool = Pool(NUM_THREADS, maxtasksperchild=1)
-        # map_async handles KeyboardInterrupt correctly. Plain map and
-        # apply_async does not, so don't use it.
-        x = pool.map_async(target, args, 1)
-        try:
-            ret = x.get(99999)
-            pool.close()
-            pool.join()
-        except Exception:
-            pool.terminate()
-            if ABORT_ON_ERROR:
-                raise
-        return ret
-else:
-    def build_many(target, args):
-        results = []
-
-        for arg in args:
-            try:
-                results.append(target(arg))
-            except Exception:
-                if ABORT_ON_ERROR:
-                    raise
-
-        return results
-
+def build_many(target, args):
+    # Pool() uses an actual fork() to run each new instance. This is important
+    # for performance reasons, i.e., don't use a forkserver when it becomes
+    # available with Python 3: Here, sage is already initialized which is quite
+    # costly, with a forkserver we would have to reinitialize it for every
+    # document we build. At the same time, don't serialize this by taking the
+    # pool (and thus the call to fork()) out completely: The call to Sphinx
+    # leaks memory, so we need to build each document in its own process to
+    # control the RAM usage.
+    from multiprocessing import Pool
+    pool = Pool(NUM_THREADS, maxtasksperchild=1)
+    # map_async handles KeyboardInterrupt correctly. Plain map and
+    # apply_async does not, so don't use it.
+    x = pool.map_async(target, args, 1)
+    try:
+        ret = x.get(99999)
+        pool.close()
+        pool.join()
+    except Exception:
+        pool.terminate()
+        if ABORT_ON_ERROR:
+            raise
+    return ret
 
 ##########################################
 #      Parallel Building Ref Manual      #
@@ -940,7 +934,12 @@ class ReferenceSubBuilder(DocBuilder):
             except ImportError as err:
                 logger.error("Warning: Could not import %s %s", module_name, err)
                 raise
-            newtime = os.path.getmtime(sys.modules[module_name].__file__)
+
+            module_filename = sys.modules[module_name].__file__
+            if (module_filename.endswith('.pyc') or module_filename.endswith('.pyo')):
+                source_filename = module_filename[:-1]
+                if (os.path.exists(source_filename)): module_filename = source_filename
+            newtime = os.path.getmtime(module_filename)
 
             if newtime > mtime:
                 updated_modules.append(module_name)

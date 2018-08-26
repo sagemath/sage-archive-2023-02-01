@@ -288,7 +288,7 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         return R.weight_lattice()
 
     class Element(RiggedConfigurationElement):
-        """
+        r"""
         A rigged configuration in `\mathcal{B}(\infty)` in simply-laced types.
 
         TESTS::
@@ -492,7 +492,7 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
                                   rigging_list=riggings)
 
     class Element(RCNonSimplyLacedElement):
-        """
+        r"""
         A rigged configuration in `\mathcal{B}(\infty)` in
         non-simply-laced types.
 

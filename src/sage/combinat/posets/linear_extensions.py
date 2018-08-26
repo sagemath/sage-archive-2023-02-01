@@ -112,10 +112,15 @@ class LinearExtensionOfPoset(ClonableArray):
             Finite poset containing 4 elements
             sage: TestSuite(p).run()
 
+        TESTS::
+
             sage: LinearExtensionOfPoset([4,3,2,1], P)
             Traceback (most recent call last):
             ...
             ValueError: [4, 3, 2, 1] is not a linear extension of Finite poset containing 4 elements
+
+            sage: p is LinearExtensionOfPoset(p, P)
+            True
         """
         if isinstance(linear_extension, cls):
             return linear_extension
@@ -399,6 +404,7 @@ class LinearExtensionOfPoset(ClonableArray):
             if not P.covers(self[i], self[i+1]):
                 n += 1
         return n
+
 
 class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     """

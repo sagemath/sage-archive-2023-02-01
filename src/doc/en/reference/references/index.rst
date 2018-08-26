@@ -2574,6 +2574,10 @@ REFERENCES:
                *The 128-bit blockcipher CLEFIA (extended abstract)*; in
                FSE, (2007), pp. 181-195.
 
+.. [ST2010] Einar Steingrimmsson and Bridget Tenner.
+            *The Moebius Function of the Permutation Pattern Poset*,
+            Journal of Combinatorics 1 (2010), 39-52
+
 .. [ST2011] \A. Schilling, P. Tingley. *Demazure crystals,
             Kirillov-Reshetikhin crystals, and the energy function*.
             Electronic Journal of Combinatorics. **19(2)**. 2012.

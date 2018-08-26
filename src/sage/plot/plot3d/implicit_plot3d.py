@@ -147,7 +147,9 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         P = implicit_plot3d(metaball(-0.6,0,0) + metaball(0.6,0,0), (x,-2,2), (y,-2,2), (z,-2,2), plot_points=60, contour=2, color='seagreen')
         sphinx_plot(P)
 
-    One can color the surface according to a coloring function and a colormap::
+    One can also color the surface using a coloring function and a
+    colormap as follows. Note that the coloring function must take
+    values in the interval [0,1]. ::
 
         sage: t = (sin(3*z)**2).function(x,y,z)
         sage: cm = colormaps.gist_rainbow

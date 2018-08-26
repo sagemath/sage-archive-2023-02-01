@@ -103,7 +103,7 @@ class SageSphinxLogger(object):
         # We fail whenever a line starts with "WARNING:", however, we ignore
         # these warnings, as they are not relevant.
         self._ignored_warnings = (
-            re.compile(r'WARNING: favicon file \'favicon.ico\' does not exist'),
+            re.compile("WARNING: favicon file 'favicon.ico' does not exist"),
             re.compile('WARNING: html_static_path entry .* does not exist'),
             re.compile('WARNING: while setting up extension'),
             re.compile('WARNING: Any IDs not assiend for figure node'),

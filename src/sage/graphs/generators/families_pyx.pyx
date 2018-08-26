@@ -36,7 +36,7 @@ def FurerGadget(int k, prefix=None):
         for i in range(k):
             G.add_vertex((i, 'a'))
             G.add_vertex((i, 'b'))
-    powerset = chain.from_iterable(combinations(range(k), r) for r in range(k+1) if r % 2 == 0)
+    powerset = list(chain.from_iterable(combinations(range(k), r) for r in range(k+1) if r % 2 == 0))
     if prefix is not None:
         for t in powerset:
             s = set(t)
@@ -60,6 +60,8 @@ def FurerGadget(int k, prefix=None):
     else:
         for i in range(k):
             partition.append([(i, 'a'),(i, 'b')])
+    if prefix is not None:
+        powerset = [(prefix,el) for el in powerset]
     partition.append(powerset)
     return G, partition
 
@@ -109,6 +111,7 @@ def CaiFurerImmermanGraph(G, bint twisted=False):
     cdef int i,j
     cdef str s
     for v in G:
+        print(G.degree(v), v)
         Fk, p = FurerGadget(G.degree(v), v)
         total_partition += p
         newG=newG.union(Fk)
@@ -118,14 +121,14 @@ def CaiFurerImmermanGraph(G, bint twisted=False):
         edge_index[v] += 1
         j = edge_index[u]
         edge_index[u] += 1
-        edge_va = (v, (i, 'a'))
-        edge_vb = (v, (i, 'b'))
-        edge_ua = (u, (j, 'a'))
-        edge_ub = (u, (j, 'b'))
+        edge_va = (v, i, 'a')
+        edge_vb = (v, i, 'b')
+        edge_ua = (u, j, 'a')
+        edge_ub = (u, j, 'b')
         if isConnected and twisted:
             temp = edge_ua
             edge_ua = edge_ub
-            edge_ua = temp
+            edge_ub = temp
             isConnected = False
         newG.add_edge(edge_va, edge_ua)
         newG.add_edge(edge_vb, edge_ub)

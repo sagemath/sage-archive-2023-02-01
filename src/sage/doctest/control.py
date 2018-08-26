@@ -107,6 +107,7 @@ class DocTestDefaults(SageObject):
         self.failed = False
         self.new = False
         self.show_skipped = False
+        self.target_walltime = None
 
         # > 0: always run GC before every test
         # < 0: disable GC

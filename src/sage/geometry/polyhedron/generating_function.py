@@ -82,7 +82,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
     - ``prefix_variable_name`` -- (default: ``'y'``) a string
 
-      The variable names of the laurent polynomial ring of the output
+      The variable names of the Laurent polynomial ring of the output
       are this string followed by an integer.
 
     - ``Factorization_sort`` (default: ``False``) and
@@ -103,7 +103,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
     The generating function as a (partial)
     :class:`~sage.structure.factorization.Factorization`
-    of the result whose factors are laurent polynomials
+    of the result whose factors are Laurent polynomials
 
     The result might be a tuple of such factorizations
     (depending on the parameter ``result_as_tuple``) as well.

@@ -303,7 +303,7 @@ class FullyPackedLoop(Element):
         ....:         a,b=a%6+1,b%6+1;
         ....:     rotated_ncp.append((a,b))
         sage: PerfectMatching(ASMs[1].gyration().to_fully_packed_loop().link_pattern()) ==\
-        PerfectMatching(rotated_ncp)
+        ....:     PerfectMatching(rotated_ncp)
         True
 
         sage: fpl = FullyPackedLoop(ASMs[0])
@@ -314,11 +314,11 @@ class FullyPackedLoop(Element):
         ....:         a,b=a%6+1,b%6+1;
         ....:     rotated_ncp.append((a,b))
         sage: PerfectMatching(ASMs[0].gyration().to_fully_packed_loop().link_pattern()) ==\
-        PerfectMatching(rotated_ncp)
+        ....:     PerfectMatching(rotated_ncp)
         True
 
-        sage: mat = AlternatingSignMatrix([[0,0,1,0,0,0,0],[1,0,-1,0,1,0,0],\
-        [0,0,1,0,0,0,0],[0,1,-1,0,0,1,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,1]])
+        sage: mat = AlternatingSignMatrix([[0,0,1,0,0,0,0],[1,0,-1,0,1,0,0],
+        ....:     [0,0,1,0,0,0,0],[0,1,-1,0,0,1,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,1]])
         sage: fpl = FullyPackedLoop(mat) # n=7
         sage: ncp = fpl.link_pattern()
         sage: rotated_ncp=[]
@@ -327,11 +327,11 @@ class FullyPackedLoop(Element):
         ....:         a,b=a%14+1,b%14+1;
         ....:     rotated_ncp.append((a,b))
         sage: PerfectMatching(mat.gyration().to_fully_packed_loop().link_pattern()) ==\
-        PerfectMatching(rotated_ncp)
+        ....:     PerfectMatching(rotated_ncp)
         True
 
-        sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0],\
-        [0,1,0,0,-1,1], [1,0,-1,1,0,0], [0,0,1,0,0,0], [0,0,0,0,1,0]])
+        sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0],
+        ....:     [0,1,0,0,-1,1], [1,0,-1,1,0,0], [0,0,1,0,0,0], [0,0,0,0,1,0]])
         sage: fpl = FullyPackedLoop(mat) # n =6
         sage: ncp = fpl.link_pattern()
         sage: rotated_ncp=[]
@@ -340,7 +340,7 @@ class FullyPackedLoop(Element):
         ....:         a,b=a%12+1,b%12+1;
         ....:     rotated_ncp.append((a,b))
         sage: PerfectMatching(mat.gyration().to_fully_packed_loop().link_pattern()) ==\
-        PerfectMatching(rotated_ncp)
+        ....:     PerfectMatching(rotated_ncp)
         True
 
     More examples::
@@ -529,8 +529,8 @@ class FullyPackedLoop(Element):
             SVM = generator
         elif isinstance(generator, SixVertexConfiguration):
             # Check that this is an ice square model
-            generator = SixVertexModel(generator.parent()._nrows, \
-            boundary_conditions='ice')(generator)
+            generator = SixVertexModel(generator.parent()._nrows,
+                                       boundary_conditions='ice')(generator)
             M = generator.to_alternating_sign_matrix().to_matrix()
             M = AlternatingSignMatrix(M)
             SVM = generator
@@ -545,8 +545,8 @@ class FullyPackedLoop(Element):
                 SVM = generator
 
         if not SVM:
-            raise TypeError('generator for FullyPackedLoop must either be an \
-            AlternatingSignMatrix or a SquareIceModel.Element')
+            raise TypeError('generator for FullyPackedLoop must either be an '
+                            'AlternatingSignMatrix or a SquareIceModel.Element')
         FPLs = FullyPackedLoops(len(SVM))
         return FPLs(generator)
 
@@ -695,7 +695,7 @@ class FullyPackedLoop(Element):
             True
 
             sage: FullyPackedLoop(A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])) ==\
-            FullyPackedLoop(A([[1, 0, 0],[0, 0, 1],[0, 1, 0]]))
+            ....:    FullyPackedLoop(A([[1, 0, 0],[0, 0, 1],[0, 1, 0]]))
             False
 
             sage: FullyPackedLoop(M) == M
@@ -1022,10 +1022,8 @@ class FullyPackedLoop(Element):
         while True:
             i += d[0]
             j += d[1]
-            orbit.append((i,j))
-            if (i,j) == orbit[0] or \
-               i == -1 or j == -1 or \
-               i == n or j == n:
+            orbit.append((i, j))
+            if (i, j) == orbit[0] or i == -1 or j == -1 or i == n or j == n:
                 break
 
             conf = sv[i][j]
@@ -1102,7 +1100,7 @@ class FullyPackedLoop(Element):
             ....:         a,b=a%6+1,b%6+1;
             ....:     rotated_ncp.append((a,b))
             sage: PerfectMatching(ASMs[1].gyration().to_fully_packed_loop().link_pattern()) ==\
-            PerfectMatching(rotated_ncp)
+            ....:     PerfectMatching(rotated_ncp)
             True
 
             sage: fpl = FullyPackedLoop(ASMs[0])
@@ -1113,11 +1111,11 @@ class FullyPackedLoop(Element):
             ....:         a,b=a%6+1,b%6+1;
             ....:     rotated_ncp.append((a,b))
             sage: PerfectMatching(ASMs[0].gyration().to_fully_packed_loop().link_pattern()) ==\
-            PerfectMatching(rotated_ncp)
+            ....:     PerfectMatching(rotated_ncp)
             True
 
-            sage: mat = AlternatingSignMatrix([[0,0,1,0,0,0,0],[1,0,-1,0,1,0,0],[0,0,1,0,0,0,0],\
-            [0,1,-1,0,0,1,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,1]])
+            sage: mat = AlternatingSignMatrix([[0,0,1,0,0,0,0],[1,0,-1,0,1,0,0],[0,0,1,0,0,0,0],
+            ....:     [0,1,-1,0,0,1,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,1]])
             sage: fpl = FullyPackedLoop(mat) # n=7
             sage: ncp = fpl.link_pattern()
             sage: rotated_ncp=[]
@@ -1126,11 +1124,11 @@ class FullyPackedLoop(Element):
             ....:         a,b=a%14+1,b%14+1;
             ....:     rotated_ncp.append((a,b))
             sage: PerfectMatching(mat.gyration().to_fully_packed_loop().link_pattern()) ==\
-            PerfectMatching(rotated_ncp)
+            ....:     PerfectMatching(rotated_ncp)
             True
 
-            sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0], [0,1,0,0,-1,1], [1,0,-1,1,0,0], \
-            [0,0,1,0,0,0], [0,0,0,0,1,0]])
+            sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0], [0,1,0,0,-1,1], [1,0,-1,1,0,0], 
+            ....:     [0,0,1,0,0,0], [0,0,0,0,1,0]])
             sage: fpl = FullyPackedLoop(mat)
             sage: ncp = fpl.link_pattern()
             sage: rotated_ncp=[]
@@ -1139,7 +1137,7 @@ class FullyPackedLoop(Element):
             ....:         a,b=a%12+1,b%12+1;
             ....:     rotated_ncp.append((a,b))
             sage: PerfectMatching(mat.gyration().to_fully_packed_loop().link_pattern()) ==\
-            PerfectMatching(rotated_ncp)
+            ....:     PerfectMatching(rotated_ncp)
             True
 
         TESTS:

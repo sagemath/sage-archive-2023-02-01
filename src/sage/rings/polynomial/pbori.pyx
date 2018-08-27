@@ -6336,7 +6336,7 @@ cdef class ReductionStrategy:
 
         INPUT:
 
-        - ``p`` - a polynomial
+        - ``p`` -- a polynomial
 
         EXAMPLES::
 
@@ -6350,7 +6350,7 @@ cdef class ReductionStrategy:
             sage: red.head_normal_form(x + y*z)
             y + z + 1
 
-            sage; red.nf(x + y*z)
+            sage: red.nf(x + y*z)
             y + z + 1
         """
         return new_BP_from_PBPoly(self._parent, deref(self._strat).headNormalForm(p._pbpoly))

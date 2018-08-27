@@ -517,7 +517,7 @@ class PartitionTuple(CombinatorialElement):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.options._reset()
 
-            sage: Partitions.options(convention="French");
+            sage: Partitions.options(convention="French")
             sage: PartitionTuples.options(display="diagram"); mu
             *
             *    **    *

@@ -125,8 +125,8 @@ class ClusterSeed(SageObject):
         sage: S = ClusterSeed(['A', 4]); S.use_fpolys(False); S._use_fpolys
         False
 
-        sage: S = ClusterSeed(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]), frozen = \
-                  ['c']); S
+        sage: S = ClusterSeed(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]), frozen =
+        ....:     ['c']); S
         A seed for a cluster algebra of rank 4 with 1 frozen variable
 
         sage: S = ClusterSeed(['D', 4],user_labels = [-1, 0, 1, 2]);S
@@ -378,7 +378,7 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: S = ClusterSeed(['A',4]);
+            sage: S = ClusterSeed(['A',4])
             sage: S.use_c_vectors(False); S.use_g_vectors(False); S.use_fpolys(False); S.track_mutations(False)
             sage: S.use_c_vectors(True)
             Warning: Initializing c-vectors at this point could lead to inconsistent seed data.
@@ -390,9 +390,9 @@ class ClusterSeed(SageObject):
             [0 0 1 0]
             [0 0 0 1]
 
-            sage: S = ClusterSeed(['A',4]);
+            sage: S = ClusterSeed(['A',4])
             sage: S.use_c_vectors(False); S.use_g_vectors(False); S.use_fpolys(False); S.track_mutations(False)
-            sage: S.mutate(1);
+            sage: S.mutate(1)
             sage: S.use_c_vectors(True, force=True)
             sage: S.c_matrix()
             [1 0 0 0]
@@ -454,7 +454,7 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: S = ClusterSeed(['A',4]);
+            sage: S = ClusterSeed(['A',4])
             sage: S.use_g_vectors(False); S.use_fpolys(False)
             sage: S.use_g_vectors(True)
             sage: S.g_matrix()
@@ -463,9 +463,9 @@ class ClusterSeed(SageObject):
             [0 0 1 0]
             [0 0 0 1]
 
-            sage: S = ClusterSeed(['A',4]);
+            sage: S = ClusterSeed(['A',4])
             sage: S.use_g_vectors(False); S.use_fpolys(False)
-            sage: S.mutate(1);
+            sage: S.mutate(1)
             sage: S.use_g_vectors(True)
             sage: S.g_matrix()
             [ 1  0  0  0]
@@ -473,18 +473,18 @@ class ClusterSeed(SageObject):
             [ 0  0  1  0]
             [ 0  0  0  1]
 
-            sage: S = ClusterSeed(['A',4]);
+            sage: S = ClusterSeed(['A',4])
             sage: S.use_g_vectors(False); S.use_fpolys(False); S.track_mutations(False)
-            sage: S.mutate(1);
+            sage: S.mutate(1)
             sage: S.use_c_vectors(False)
             sage: S.g_matrix()
             Traceback (most recent call last):
             ...
             ValueError: Unable to calculate g-vectors. Need to use g vectors.
 
-            sage: S = ClusterSeed(['A',4]);
+            sage: S = ClusterSeed(['A',4])
             sage: S.use_g_vectors(False); S.use_fpolys(False); S.track_mutations(False)
-            sage: S.mutate(1);
+            sage: S.mutate(1)
             sage: S.use_c_vectors(False)
             sage: S.use_g_vectors(True)
             Warning: Initializing g-vectors at this point could lead to inconsistent seed data.
@@ -535,7 +535,7 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: S = ClusterSeed(['A',4]);
+            sage: S = ClusterSeed(['A',4])
             sage: S.use_d_vectors(True)
             sage: S.d_matrix()
             [-1  0  0  0]
@@ -832,7 +832,7 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: S = ClusterSeed(['A',3]);
+            sage: S = ClusterSeed(['A',3])
             sage: X = matrix([[0,0,1],[0,1,0],[1,0,0]])
             sage: S.set_c_matrix(X)
             sage: S.c_matrix()
@@ -1172,8 +1172,8 @@ class ClusterSeed(SageObject):
 
     def y(self, k):
         r"""
-        Return the `k` *-th initial coefficient (frozen variable)* for the \
-        associated cluster seed, or the cluster variable of the corresponding \
+        Return the `k` *-th initial coefficient (frozen variable)* for the
+        associated cluster seed, or the cluster variable of the corresponding
         vertex in self.quiver.
 
         EXAMPLES::
@@ -1247,8 +1247,8 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: S = ClusterSeed(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]), \
-                      frozen = ['b', 'd'])
+            sage: S = ClusterSeed(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]),
+            ....:          frozen = ['b', 'd'])
             sage: S.free_vertices()
             ['a', 'c', 'e']
 
@@ -1264,8 +1264,8 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: S = ClusterSeed(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]), \
-                      frozen = ['b', 'd'])
+            sage: S = ClusterSeed(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]),
+            ....:          frozen = ['b', 'd'])
             sage: S.frozen_vertices()
             ['b', 'd']
         """
@@ -1664,7 +1664,7 @@ class ClusterSeed(SageObject):
             [ 0  0 -1]
             [ 0 -1  0]
 
-            sage: S = ClusterSeed(['A',4]);
+            sage: S = ClusterSeed(['A',4])
             sage: S.use_g_vectors(False); S.use_fpolys(False);  S.use_c_vectors(False);  S.use_d_vectors(False); S.track_mutations(False); 
             sage: S.c_matrix()
             Traceback (most recent call last):
@@ -1968,8 +1968,8 @@ class ClusterSeed(SageObject):
             sage: ClusterSeed(['A',[3,3],1]).principal_extension().red_vertices()
             []
 
-            sage: Q = ClusterSeed(['A',[3,3],1]).principal_extension();
-            sage: Q.mutate(1);
+            sage: Q = ClusterSeed(['A',[3,3],1]).principal_extension()
+            sage: Q.mutate(1)
             sage: Q.red_vertices()
             [1]
 
@@ -1993,8 +1993,8 @@ class ClusterSeed(SageObject):
 
             sage: ClusterSeed(['A',[3,3],1]).principal_extension().first_red_vertex()
 
-            sage: Q = ClusterSeed(['A',[3,3],1]).principal_extension();
-            sage: Q.mutate(1);
+            sage: Q = ClusterSeed(['A',[3,3],1]).principal_extension()
+            sage: Q.mutate(1)
             sage: Q.first_red_vertex()
             1
 
@@ -2111,7 +2111,7 @@ class ClusterSeed(SageObject):
 
     def smallest_c_vector(self):
         r"""
-        Return the vertex with the smallest c vector
+        Return the vertex with the smallest c vector.
 
         OUTPUT:
 
@@ -2120,7 +2120,7 @@ class ClusterSeed(SageObject):
         EXAMPLES::
 
             sage: B = matrix([[0,2],[-2,0]])
-            sage: C = ClusterSeed(B).principal_extension();
+            sage: C = ClusterSeed(B).principal_extension()
             sage: C.mutate(0)
             sage: C.smallest_c_vector()
             0
@@ -2129,9 +2129,9 @@ class ClusterSeed(SageObject):
         min_sum = infinity
         vertex_to_mutate = []
 
-        for i in list(enumerate(self.c_matrix().columns())):
+        for i in enumerate(self.c_matrix().columns()):
             col = i[1]
-            vertex=i[0]
+            vertex = i[0]
             cur_vertex_sum = abs(sum(col))
             if min_sum == cur_vertex_sum:
                 vertex_to_mutate.append(vertex)
@@ -2293,12 +2293,12 @@ class ClusterSeed(SageObject):
             [ 1  0 -1]
             [ 0  1  0]
 
-            sage: S = ClusterSeed(['A', 4], user_labels=['a', 'b', 'c', 'd']);
+            sage: S = ClusterSeed(['A', 4], user_labels=['a', 'b', 'c', 'd'])
             sage: S.mutate('a'); S.mutate('(b+1)/a')
             sage: S.cluster()
             [a, b, c, d]
 
-            sage: S = ClusterSeed(['A', 4], user_labels=['a', 'b', 'c']);
+            sage: S = ClusterSeed(['A', 4], user_labels=['a', 'b', 'c'])
             Traceback (most recent call last):
             ...
             ValueError: the number of user-defined labels is not
@@ -2318,10 +2318,10 @@ class ClusterSeed(SageObject):
             sage: S.cluster()
             [x, y, w, z]
 
-            sage: S = ClusterSeed(['A', 4], user_labels=[[1, 2], [2, 3], [4, 5], [5, 6]]);
+            sage: S = ClusterSeed(['A', 4], user_labels=[[1, 2], [2, 3], [4, 5], [5, 6]])
             sage: S.cluster()
             [x_1_2, x_2_3, x_4_5, x_5_6]
-            sage: S.mutate('[1,2]');
+            sage: S.mutate('[1,2]')
             sage: S.cluster()
             [(x_2_3 + 1)/x_1_2, x_2_3, x_4_5, x_5_6]
 
@@ -3214,8 +3214,7 @@ class ClusterSeed(SageObject):
             sage: S.set_cluster([1,1,1])
             Warning: clusters not being tracked so this command is ignored.
         """
-
-        if len(cluster) < self._n+self._m:
+        if len(cluster) < self._n + self._m:
             raise ValueError('The number of given cluster variables is wrong')
         if self._use_fpolys:        
             if any(c not in FractionField(self._R) for c in cluster):

@@ -1934,9 +1934,9 @@ class Graphics(WithEqualityById, SageObject):
             Graphics object consisting of 1 graphics primitive
 
         When using ``title_pos``, it must be ensured that a list or a tuple
-        of length two is used. Otherwise, an error is raised.::
+        of length two is used. Otherwise, an error is raised::
 
-            sage; plot(x, -4, 4, title='Plot x', title_pos=0.05)
+            sage: plot(x, -4, 4, title='Plot x', title_pos=0.05)
             Traceback (most recent call last):
             ...
             ValueError: 'title_pos' must be a list or tuple of two real numbers.

@@ -2516,7 +2516,7 @@ class RuleLLMS(Rule):
             sage: LLMS3.forward_rule(Z, None, Z, None, Z, 1)
             (None, [1], 0)
 
-            sage: Y = Core([3,1,1], 3);
+            sage: Y = Core([3,1,1], 3)
             sage: LLMS3.forward_rule(Y, None, Y, None, Y, 1)
             (None, [4, 2, 1, 1], 3)
 
@@ -3564,7 +3564,7 @@ class RuleYoungFibonacci(Rule):
         TESTS::
 
             sage: YF = GrowthDiagram.rules.YoungFibonacci()
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = YF(w);
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = YF(w)
             sage: GrowthDiagram(YF, labels=G.out_labels()).to_word() == w  # indirect doctest
             True
         """

@@ -2102,7 +2102,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: x = ExtendedAffineWeylGroup(['A',2,1]).W0P().simple_reflection(0); x;
+                sage: x = ExtendedAffineWeylGroup(['A',2,1]).W0P().simple_reflection(0); x
                 s1*s2*s1 * t[-Lambdacheck[1] - Lambdacheck[2]]
                 sage: x.to_classical_weyl()
                 s1*s2*s1

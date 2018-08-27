@@ -280,8 +280,8 @@ class WeakReversePlanePartition(Tableau):
         result ([Gans1981]_ Corollary 3.4)::
 
             sage: a = WeakReversePlanePartition([[1,3,5],[2,4]])
-            sage: a.hillman_grassl_inverse().conjugate() \
-            ....:     == a.conjugate().hillman_grassl_inverse()
+            sage: a.hillman_grassl_inverse().conjugate() ==\
+            ....:     a.conjugate().hillman_grassl_inverse()
             True
         """
         return Tableau(hillman_grassl_inverse(list(self)))
@@ -400,11 +400,12 @@ class WeakReversePlanePartition(Tableau):
         `M` and then transposing the result::
 
             sage: a = WeakReversePlanePartition([[1,3,5],[2,4]])
-            sage: a.pak_correspondence().conjugate() \
-            ....:     == a.conjugate().pak_correspondence()
+            sage: a.pak_correspondence().conjugate() ==\
+            ....:     a.conjugate().pak_correspondence()
             True
         """
         return Tableau(pak_correspondence(list(self)))
+
 
 class WeakReversePlanePartitions(Tableaux):
     r"""

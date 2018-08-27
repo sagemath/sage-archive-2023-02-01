@@ -2489,7 +2489,7 @@ class DyckWord_complete(DyckWord):
 
         TESTS::
 
-            sage: ld=DyckWords(5);
+            sage: ld = DyckWords(5)
             sage: list(ld) == [dw.to_non_decreasing_parking_function().to_dyck_word() for dw in ld]
             True
         """

@@ -1950,6 +1950,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (<0,1,2>, <0,2,4>, <2,3,4>)
             sage: pc.placing_triangulation(point_order=(3,2,1,4,0))
             (<0,1,4>, <1,2,3>, <1,3,4>)
+            sage: pc.placing_triangulation(point_order=[pc[1],pc[3],pc[4],pc[0]])
+            (<0,1,4>, <1,3,4>)
             sage: U=matrix([
             ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
             ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
@@ -2012,10 +2014,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             point_order = list(self.points())
         elif isinstance(point_order[0], Point):
             point_order = list(point_order)
-            assert all(p.point_configuration()==self for p in point_order)
+            assert all(p.point_configuration() is self for p in point_order),\
+                "Some point in 'point_order' does not belong to the PointConfiguration."
         else:
             point_order = [self.point(i) for i in point_order]
-        assert set(point_order)<=set(self.points())
 
         # construct the initial simplex
         if point_order_is_given:

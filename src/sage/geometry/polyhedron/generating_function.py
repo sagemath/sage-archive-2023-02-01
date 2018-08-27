@@ -383,8 +383,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
         sage: P = Polyhedron(rays=[(1, sqrt(2)), (0, 1)])
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend
-        for computations with Symbolic Ring
+        ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
         sage: P = Polyhedron(ieqs=[(RDF(pi), RDF(1))])
         sage: P.generating_function_of_integral_points()
         Traceback (most recent call last):

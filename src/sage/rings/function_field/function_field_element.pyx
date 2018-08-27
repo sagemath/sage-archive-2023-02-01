@@ -316,7 +316,8 @@ cdef class FunctionFieldElement(FieldElement):
             W^2 - W + 4*x
         """
         R = self.parent().base_field().maximal_order()
-        return all([a in R for a in self.minimal_polynomial()])
+        return all(a in R for a in self.minimal_polynomial())
+
 
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
@@ -513,7 +514,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: a = ~(2*y + 1/x); a                           # indirect doctest
-            (-x^2/(8*x^5 + x^2 + 1/2))*y + (2*x^3 + x)/(16*x^5 + 2*x^2 + 1)
+            (-1/8*x^2/(x^5 + 1/8*x^2 + 1/16))*y + (1/8*x^3 + 1/16*x)/(x^5 + 1/8*x^2 + 1/16)
             sage: a*(2*y + 1/x)
             1
         """
@@ -534,9 +535,9 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: a = ~(2*y + 1/x); a
-            (-x^2/(8*x^5 + x^2 + 1/2))*y + (2*x^3 + x)/(16*x^5 + 2*x^2 + 1)
+            (-1/8*x^2/(x^5 + 1/8*x^2 + 1/16))*y + (1/8*x^3 + 1/16*x)/(x^5 + 1/8*x^2 + 1/16)
             sage: a.list()
-            [(2*x^3 + x)/(16*x^5 + 2*x^2 + 1), -x^2/(8*x^5 + x^2 + 1/2)]
+            [(1/8*x^3 + 1/16*x)/(x^5 + 1/8*x^2 + 1/16), -1/8*x^2/(x^5 + 1/8*x^2 + 1/16)]
             sage: (x*y).list()
             [0, x]
         """
@@ -591,13 +592,13 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             sage: t.element()
             t
             sage: type(t.element())
-            <type 'sage.rings.fraction_field_FpT.FpTElement'>
+            <... 'sage.rings.fraction_field_FpT.FpTElement'>
 
             sage: K.<t> = FunctionField(GF(131101))
             sage: t.element()
             t
             sage: type(t.element())
-            <class 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
+            <... 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
         """
         return self._x
 

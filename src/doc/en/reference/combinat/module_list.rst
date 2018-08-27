@@ -83,6 +83,7 @@ Comprehensive Module list
     sage/combinat/crystals/spins
     sage/combinat/crystals/star_crystal
     sage/combinat/crystals/tensor_product
+    sage/combinat/crystals/tensor_product_element
     sage/combinat/cyclic_sieving_phenomenon
     sage/combinat/debruijn_sequence
     sage/combinat/degree_sequences
@@ -265,6 +266,7 @@ Comprehensive Module list
     sage/combinat/root_system/type_G_affine
     sage/combinat/root_system/type_H
     sage/combinat/root_system/type_I
+    sage/combinat/root_system/type_Q
     sage/combinat/root_system/type_affine
     sage/combinat/root_system/type_dual
     sage/combinat/root_system/extended_affine_weyl_group

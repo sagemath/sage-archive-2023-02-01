@@ -113,7 +113,7 @@ class Cusps_class(ParentWithBase):
         return "Set P^1(QQ) of all cusps"
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of self.
 
         EXAMPLES::
@@ -123,7 +123,7 @@ class Cusps_class(ParentWithBase):
             sage: latex(Cusps) == Cusps._latex_()
             True
         """
-        return "\\mathbf{P}^1(\\QQ)"
+        return r"\mathbf{P}^1(\QQ)"
 
     def __call__(self, x):
         """
@@ -854,7 +854,7 @@ class Cusp(Element):
         return False, 0
 
     def is_gamma_h_equiv(self, other, G):
-        """
+        r"""
         Return a pair (b, t), where b is True or False as self and other
         are equivalent under the action of G, and t is 1 or -1, as
         described below.

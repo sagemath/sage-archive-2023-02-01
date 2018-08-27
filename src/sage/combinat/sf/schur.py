@@ -271,7 +271,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         omega_involution = omega
 
         def scalar(self, x, zee=None):
-            """
+            r"""
             Return the standard scalar product between ``self`` and `x`.
 
             Note that the Schur functions are self-dual with respect to this

@@ -224,7 +224,7 @@ Sage example in ./polynomes.tex, line 856::
 Sage example in ./polynomes.tex, line 864::
 
   sage: r.reduce(); r
-  1.00000000000000/(-x + 1.00000000000000)
+    -1.00000000000000/(x - 1.00000000000000)
 
 Sage example in ./polynomes.tex, line 907::
 

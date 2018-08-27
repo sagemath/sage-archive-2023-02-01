@@ -461,7 +461,8 @@ class SineGordonYsystem(SageObject):
         EXAMPLES::
 
             sage: Y = SineGordonYsystem('A',(6,4,3));
-            sage: Y.plot()      # not tested
+            sage: Y.plot()  # long time 2s
+            Graphics object consisting of 219 graphics primitives
         """
         # Set up plotting options
         if 'radius' in kwds:
@@ -511,6 +512,7 @@ class SineGordonYsystem(SageObject):
                             return sorted((a, b, p))
 
         def plot_arc(radius, p, q, **opts):
+            # TODO: THIS SHOULD USE THE EXISTING PLOT OF ARCS!
             # plot the arc from p to q differently depending on the type of self
             p = ZZ(p)
             q = ZZ(q)

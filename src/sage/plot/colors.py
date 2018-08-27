@@ -1151,7 +1151,7 @@ class ColorsDict(dict):
             True
         """
         methods = ['__dir__', '__getattr__']
-        return dir(super(ColorsDict, self)) + methods + self.keys()
+        return dir(super(ColorsDict, self)) + methods + sorted(self)
 
 colors = ColorsDict()
 
@@ -1285,7 +1285,7 @@ def float_to_integer(r, g, b):
     """
     r, g, b = map(mod_one, (r, g, b))
     return int(r * 255) << 16 | int(g * 255) << 8 | int(b * 255)
-    
+
 
 def rainbow(n, format='hex'):
     """
@@ -1392,7 +1392,7 @@ def get_cmap(cmap):
         return cmap
 
     elif isinstance(cmap, six.string_types):
-        if not cmap in cm.datad.keys():
+        if not cmap in cm.datad:
             raise RuntimeError("Color map %s not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)" % cmap)
         return cm.__dict__[cmap]
 
@@ -1441,7 +1441,7 @@ class Colormaps(collections.MutableMapping):
         if not cm:
             from matplotlib import cm
         if not self.maps:
-            for cmap in cm.datad.keys():
+            for cmap in cm.datad:
                 self.maps[cmap] = cm.__getattribute__(cmap)
 
     def __dir__(self):
@@ -1464,7 +1464,7 @@ class Colormaps(collections.MutableMapping):
         methods = ['load_maps', '__dir__', '__len__', '__iter__',
                    '__contains__', '__getitem__', '__getattr__',
                    '__setitem__', '__delitem__']
-        return dir(super(Colormaps, self)) + methods + self.keys()
+        return dir(super(Colormaps, self)) + methods + sorted(self)
 
     def __len__(self):
         """

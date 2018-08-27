@@ -145,7 +145,7 @@ def is_FilteredVectorSpace(X):
 
 
 def FilteredVectorSpace(arg1, arg2=None, base_ring=QQ, check=True):
-    """
+    r"""
     Construct a filtered vector space.
 
     INPUT:
@@ -355,7 +355,7 @@ def construct_from_generators_indices(generators, filtration, base_ring, check):
         QQ^2 >= QQ^1 >= QQ^1 >= 0
     """
     # normalize generators
-    generators = map(list, generators)
+    generators = [list(g) for g in generators]
 
     # deduce dimension
     if len(generators) == 0:
@@ -378,7 +378,7 @@ def construct_from_generators_indices(generators, filtration, base_ring, check):
     normalized = dict()
     for deg, gens in iteritems(filtration):
         deg = normalize_degree(deg)
-        gens = map(ZZ, gens)
+        gens = [ZZ(i) for i in gens]
         if any(i < 0 or i >= len(generators) for i in gens):
             raise ValueError('generator index out of bounds')
         normalized[deg] = tuple(sorted(gens))
@@ -543,7 +543,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         return (len(f) == 1) or (len(f) == 2 and f[1][0] == infinity)
 
     def is_exhaustive(self):
-        """
+        r"""
         Return whether the filtration is exhaustive.
 
         A filtration $\{F_d\}$ in an ambient vector space $V$ is
@@ -568,7 +568,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             self.ambient_vector_space().dimension()
 
     def is_separating(self):
-        """
+        r"""
         Return whether the filtration is separating.
 
         A filtration $\{F_d\}$ in an ambient vector space $V$ is

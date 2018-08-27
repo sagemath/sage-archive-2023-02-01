@@ -629,7 +629,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
         return 0
 
     def _print_latex_(self, m, n, **kwds):
-        """
+        r"""
         Return latex expression
 
         EXAMPLES::
@@ -638,9 +638,8 @@ class FunctionKroneckerDelta(BuiltinFunction):
             sage: m,n=var('m,n')
             sage: latex(kronecker_delta(m,n))
             \delta_{m,n}
-
         """
         from sage.misc.latex import latex
-        return "\\delta_{%s,%s}"%(latex(m), latex(n))
+        return r"\delta_{%s,%s}" % (latex(m), latex(n))
 
 kronecker_delta = FunctionKroneckerDelta()

@@ -1332,9 +1332,12 @@ def genus(T1, T2):
     cells_map, t1, t2, t3 = tau123(T1, T2)
     return (len(t1.to_cycles()) + len(t2.to_cycles()) + len(t3.to_cycles()) - T1.nr_filled_cells() - 2) // (-2)
 
+
 def tau123(T1, T2):
-    """
-    Compute the tau_i representation for a bitrade (T1, T2). See the
+    r"""
+    Compute the tau_i representation for a bitrade (T1, T2).
+
+    See the
     functions tau1, tau2, and tau3 for the mathematical definitions.
 
     OUTPUT:
@@ -1438,7 +1441,6 @@ def tau123(T1, T2):
         sage: len((t1*t2*t3).fixed_points()) == T1.nr_filled_cells()
         True
     """
-
     assert is_bitrade(T1, T2)
 
     cells_map = T1.filled_cells_map()
@@ -1448,6 +1450,7 @@ def tau123(T1, T2):
     t3 = tau3(T1, T2, cells_map)
 
     return (cells_map, t1, t2, t3)
+
 
 def isotopism(p):
     """
@@ -2332,7 +2335,7 @@ def group_to_LatinSquare(G):
 
 
 def alternating_group_bitrade_generators(m):
-    """
+    r"""
     Construct generators a, b, c for the alternating group on 3m+1
     points, such that a\*b\*c = 1.
 
@@ -2359,7 +2362,6 @@ def alternating_group_bitrade_generators(m):
         [ 2  1  3 -1]
         [ 0  3 -1  2]
     """
-
     assert m >= 1
 
     a = tuple(range(1, 2*m+1 + 1))
@@ -2464,7 +2466,7 @@ def p3_group_bitrade_generators(p):
 
 
 def check_bitrade_generators(a, b, c):
-    """
+    r"""
     Three group elements a, b, c will generate a bitrade if a\*b\*c = 1
     and the subgroups a, b, c intersect (pairwise) in just the
     identity.
@@ -2483,7 +2485,8 @@ def check_bitrade_generators(a, b, c):
     B = PermutationGroup([b])
     C = PermutationGroup([c])
 
-    if a*b != c**(-1): return False
+    if a*b != c**(-1):
+        return False
 
     X = gap.Intersection(gap.Intersection(A, B), C)
     return X.Size() == 1

@@ -518,10 +518,10 @@ If this all works, you can then make calls like:
 
         try:
             self._expect.expect(self._prompt)
-        except (pexpect.TIMEOUT, pexpect.EOF):
+        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
             self._expect = None
             self._session_number = BAD_SESSION
-            raise RuntimeError("unable to start %s" % self.name())
+            raise RuntimeError("unable to start %s: %s" % (self.name(), msg))
         self._expect.timeout = None
 
         with gc_disabled():

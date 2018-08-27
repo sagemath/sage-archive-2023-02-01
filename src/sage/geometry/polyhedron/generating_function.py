@@ -36,7 +36,7 @@ Functions
 
 from __future__ import print_function
 from __future__ import absolute_import
-from six import iteritems, itervalues
+from six import iteritems
 
 Hrepresentation_str_options = {'prefix': 'b', 'style': 'positive'}
 
@@ -449,7 +449,6 @@ def generating_function_of_integral_points(polyhedron, split=False,
                      'b{}'.format(b-1)
                      for a, b in zip(pi[:-1], pi[1:])))
             for pi in Permutations(d))
-        from sage.functions.other import factorial
         parts = ZZ(d).factorial()
     else:
         if isinstance(split, (list, tuple)):
@@ -1523,9 +1522,7 @@ def _compositions_mod_(u, r):
             yield ()
         return
 
-    from itertools import product
     from sage.arith.srange import srange
-    from sage.modules.free_module_element import vector
     from sage.rings.finite_rings.integer_mod_ring import Zmod
 
     v = u[0]

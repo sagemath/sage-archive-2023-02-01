@@ -727,7 +727,7 @@ def UnitaryDualPolarGraph(m, q):
     r"""
     Returns the Dual Unitary Polar Graph `U(m,q)`.
 
-    For more information on Unitary Dual Polar graphs, see [BCN89]_ and
+    For more information on Unitary Dual Polar graphs, see [BCN1989]_ and
     Sect. 2.3.1 of [Co81]_.
 
     INPUT:
@@ -780,7 +780,7 @@ def SymplecticDualPolarGraph(m, q):
     r"""
     Returns the Symplectic Dual Polar Graph `DSp(m,q)`.
 
-    For more information on Symplectic Dual Polar graphs, see [BCN89]_ and
+    For more information on Symplectic Dual Polar graphs, see [BCN1989]_ and
     Sect. 2.3.1 of [Co81]_.
 
     INPUT:

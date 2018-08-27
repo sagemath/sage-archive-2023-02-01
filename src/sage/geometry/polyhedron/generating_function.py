@@ -38,6 +38,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from six import iteritems, itervalues
 
+Hrepresentation_str_options = {'prefix': 'b', 'style': 'positive'}
 
 def generating_function_of_integral_points(polyhedron, split=False,
                                       result_as_tuple=None, **kwds):
@@ -453,7 +454,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
     else:
         if isinstance(split, (list, tuple)):
             parts = len(split)
-        split = iter((ph, ph.repr_pretty_Hrepresentation(prefix='b'))
+        split = iter((ph, ph.Hrepresentation_str(Hrepresentation_str_options))
                      for ph in split)
 
     result = []
@@ -492,7 +493,7 @@ def _generating_function_of_integral_points_(
     logger = logging.getLogger(__name__)
 
     logger.info('using polyhedron %s',
-                polyhedron.repr_pretty_Hrepresentation(prefix='b'))
+                polyhedron.Hrepresentation_str(**Hrepresentation_str_options))
 
     if polyhedron.is_empty():
         from sage.structure.factorization import Factorization

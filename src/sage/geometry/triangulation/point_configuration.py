@@ -51,7 +51,6 @@ A 2-dimensional point configuration::
 .. PLOT::
     :width: 300 px
 
-    p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
     p = PointConfiguration([[-1,-1],[1,1],[1,0],[0,1],[0,0]])
     sphinx_plot(p.plot(axes=False))
 
@@ -1986,14 +1985,14 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             simplex = list(simplex)
             origin = simplex[0]
             rest = simplex[1:]
-            span = matrix([ origin.reduced_affine_vector()-p.reduced_affine_vector()
-                            for p in rest ])
+            span = matrix([origin.reduced_affine_vector()-p.reduced_affine_vector()
+                           for p in rest])
             # span.inverse() linearly transforms the simplex into the unit simplex
             normals = span.inverse().columns()
             facets = []
             # The facets incident to the chosen vertex "origin"
             for opposing_vertex, normal in zip(rest, normals):
-                facet = frozenset([origin] + [ p for p in rest if p is not opposing_vertex ])
+                facet = frozenset([origin] + [p for p in rest if p is not opposing_vertex])
                 facets.append(facet)
                 normal.set_immutable()
                 facet_normals[facet] = normal
@@ -2015,14 +2014,14 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             point_order = list(point_order)
             assert all(p.point_configuration()==self for p in point_order)
         else:
-            point_order = [ self.point(i) for i in point_order ]
+            point_order = [self.point(i) for i in point_order]
         assert set(point_order)<=set(self.points())
 
         # construct the initial simplex
         if point_order_is_given:
-            simplices = [ frozenset(self.contained_simplex(large=False, point_order = point_order)) ]
+            simplices = [frozenset(self.contained_simplex(large=False, point_order = point_order))]
         else:
-            simplices = [ frozenset(self.contained_simplex(large=True)) ]
+            simplices = [frozenset(self.contained_simplex(large=True))]
         for s in simplices[0]:
             try:
                 point_order.remove(s)
@@ -2060,7 +2059,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             facets.update(new_facets)
 
         # construct the triangulation
-        triangulation = [ [p.index() for p in simplex] for simplex in simplices ]
+        triangulation = [[p.index() for p in simplex] for simplex in simplices]
         return self(triangulation)
 
     pushing_triangulation = placing_triangulation

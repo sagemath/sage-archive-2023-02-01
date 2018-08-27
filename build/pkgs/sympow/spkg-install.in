@@ -38,6 +38,8 @@ try_add_CFLAG()
     return 2
 }
 
+export ENDIANTUPLE="$( sage-python23 endiantuple.py )"
+
 # These flags never hurt, so add them if possible
 for FLAG in '-fno-fast-math' '-mfpmath=sse' '-Dx86'; do
     try_add_CFLAG $FLAG
@@ -97,6 +99,11 @@ _EOF_
 #######################################################################
 cd src/
 # Force bash as shell
+export VARPREFIX="$SAGE_LOCAL/var"
+cachedir="$VARPREFIX/cache/sympow/datafiles"
+rm -rf "$cachedir"
+mkdir -p "$cachedir"
+export PREFIX="$SAGE_LOCAL"
 bash ./Configure || sdh_die "Error configuring SYMPOW"
 
 #######################################################################
@@ -111,29 +118,6 @@ TARGET="$SAGE_LOCAL/lib/sympow"
 
 # Remove old install if any
 rm -rf "$TARGET"
+rm -rf "$SAGE_LOCAL/bin/sympow"
 
-sdh_install sympow *.gp new_data datafiles "$TARGET"
-
-# Create binary versions of datafiles
-# Note: This should probably be a post-install step since it requires calling
-# the compiled sympow binary; however in this case it happens to work fine
-# since it does not have any external dependencies and can run from the temp
-# install dir
-cd "${SAGE_DESTDIR}${TARGET}/datafiles"
-for file in *.txt; do
-    NUM=`grep -c AT $file`
-    ../sympow -txt2bin "$NUM" <$file ${file/%txt/bin} || \
-        sdh_die "Error running SYMPOW"
-done
-
-# Create sympow script in $SAGE_LOCAL/bin
-BIN="$SAGE_DESTDIR_LOCAL/bin"
-mkdir -p "$BIN"
-SCRIPT="$BIN/sympow"
-
-cat >"$SCRIPT" <<'EOF'
-cd "$SAGE_LOCAL/lib/sympow"
-exec ./sympow "$@"
-EOF
-
-chmod +x "$SCRIPT"
+sdh_make_install

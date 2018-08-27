@@ -1,0 +1,80 @@
+From 68ac889dcb24358905be3aa3e3180c0824bb06ce Mon Sep 17 00:00:00 2001
+From: Timo Kaufmann <timokau@zoho.com>
+Date: Mon, 27 Aug 2018 18:21:42 +0200
+Subject: [PATCH 1/2] Remove the ENDIANTUPLE detection
+
+It depends on autotools. Instead, ENDIANTUPLE needs to be detected
+outside of the build process. The ./Configure script now expects that
+variable to be set.
+---
+ Configure | 41 +++--------------------------------------
+ 1 file changed, 3 insertions(+), 38 deletions(-)
+
+diff --git a/Configure b/Configure
+index d02f92d..d6dddad 100755
+--- a/Configure
++++ b/Configure
+@@ -1,4 +1,4 @@
+-#! /bin/bash
++#! /bin/bash/
+ 
+ if [ "$1" != "" ];
+ then
+@@ -52,18 +52,6 @@ SH=/bin/sh
+ echo "#define SH \"$SH\"" >> $CONFIG
+ echo "SH = $SH" >> $FILE
+ 
+-AUTOHEADER=`which \autoheader`
+-if [ -z "$AUTOHEADER" ];
+-then
+-echo "**ERROR**: Could not find autoheader"; exit;
+-fi
+-
+-AUTOCONF=`which \autoconf`
+-if [ -z "$AUTOCONF" ];
+-then
+-echo "**ERROR**: Could not find autoconf"; exit;
+-fi
+-
+ CC=${CC:-gcc} && echo "CC = $CC" >> $FILE
+ ##if [ -z "$CC" ];
+ ##then
+@@ -205,33 +193,10 @@ EOF
+ exit 1
+ fi
+ 
+-##
+-
+-## inspired from fontconfig material (configure.ac and fcarch.h)
+-#######################################################################
+-# Determine architecture endianess-tuple
+-#######################################################################
+-( \
+-cd config && \
+-$AUTOHEADER endiantuple.ac && $AUTOCONF -o endiantuple_ac.sh endiantuple.ac && \
+-$SH endiantuple_ac.sh > endiantuple_ac.log )
+-if [ $? -ne 0 -o ! -f config/endiantuple.c ]; then
+-    echo >&2 "Error: failed to generate config/endiantuple.c"
+-    exit 1
+-fi
+-
+-$CC -o config/endiantuple config/endiantuple.c
+-if [ $? -ne 0 ]; then
+-    echo >&2 "Error: the command below failed:"
+-    echo >&2 "$CC -o config/endiantuple config/endiantuple.c"
+-    exit 1
+-fi
+-ENDIANTUPLE=$(config/endiantuple) && echo "#define ENDIANTUPLE \"$ENDIANTUPLE\"" >> $CONFIG
+ if [ -z "$ENDIANTUPLE" ]; then
+-    echo >&2 "Error: could not determine the endian tuple"
+-		exit 1
++	echo "ENDIANTUPLE not set" >&2
++	exit 1
+ fi
+-
+ echo "ENDIANTUPLE for SYMPOW: $ENDIANTUPLE"
+ 
+ echo "CONFETA = config/endiantuple_ac.sh config/endiantuple.c.in" >> $FILE
+-- 
+2.16.4
+

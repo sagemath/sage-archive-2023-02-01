@@ -1864,15 +1864,15 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,1),(0,1)])
             sage: pc.contained_simplex()
-            (P(0, 0), P(1, 1), P(1, 0))
+            (P(0, 1), P(2, 1), P(1, 0))
             sage: pc.contained_simplex(large=False)
-            (P(0, 0), P(1, 0), P(2, 1))
+            (P(0, 1), P(1, 1), P(1, 0))
             sage: pc.contained_simplex(initial_point=pc.point(2))
             (P(2, 1), P(0, 0), P(1, 0))
 
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: pc.contained_simplex()
-            (P(0, 0), P(-1, -1), P(0, 1))
+            (P(-1, -1), P(1, 1), P(0, 1))
             sage: pc.contained_simplex(point_order = [pc[1],pc[3],pc[4],pc[2],pc[0]])
             (P(0, 1), P(1, 1), P(-1, -1)) 
             sage: # lower-dimensional example:
@@ -1883,10 +1883,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0]])
             sage: pc.contained_simplex()
-            (P(0, 0), P(0, 1), P(1, 0))
+            (P(1, 0), P(0, 1), P(0, 0))
             sage: pc = PointConfiguration([[0,0],[0,1]])
             sage: pc.contained_simplex()
-            (P(0, 0), P(0, 1))
+            (P(0, 1), P(0, 0))
             sage: pc = PointConfiguration([[0,0]])
             sage: pc.contained_simplex()
             (P(0, 0),)
@@ -1898,16 +1898,17 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         if point_order is None:
             points = list(self.points())
         else:
-            points = list(point_order)
+            points = list(reversed(point_order))
+            # points are removed one by one from the end.
             initial_point = None
             large = False
             # If point_order is specified, the points of the
             # PointConfiguration are actually ignored.
-        if len(points)==0:
+        if not points:
             return tuple()
                          
         if initial_point is None:
-            origin = points.pop(0)
+            origin = points.pop()
         else:
             origin = initial_point
             points.remove(origin)
@@ -1918,9 +1919,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 p = self.farthest_point(vertices, points)
                 points.remove(p)
             else:
-                p = points.pop(0)
+                p = points.pop()
             edge = p.reduced_affine_vector()-origin.reduced_affine_vector()
-            if len(edges)>0 and (ker * edge).is_zero():
+            if edges and (ker * edge).is_zero():
                 continue
             vertices.append(p)
             edges.append(edge)
@@ -1947,7 +1948,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,2),(0,1)])
             sage: pc.placing_triangulation()
-            (<0,1,2>, <0,2,3>, <0,3,4>)
+            (<0,1,2>, <0,2,4>, <2,3,4>)
             sage: pc.placing_triangulation(point_order=(3,2,1,4,0))
             (<0,1,4>, <1,2,3>, <1,3,4>)
             sage: U=matrix([
@@ -1959,11 +1960,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             ....: ])
             sage: p = PointConfiguration(U.columns())
             sage: triangulation = p.placing_triangulation();  triangulation
-            (<0,1,2,3,4,7>, <0,1,2,3,4,12>, <0,1,2,3,6,7>,
-            <0,1,2,3,6,12>, <0,1,2,4,6,7>, <0,1,2,4,6,12>,
-            <0,1,3,4,7,12>, <0,1,3,6,7,12>, <0,1,4,6,7,12>,
-            <0,2,3,4,6,7>, <0,2,3,4,6,12>, <0,3,4,6,7,12>,
-            <1,3,4,5,6,12>, <1,3,4,6,7,12>)
+            (<0,2,3,4,6,7>, <0,2,3,4,6,12>, <0,2,3,4,7,13>, <0,2,3,4,12,13>,
+             <0,2,3,6,7,13>, <0,2,3,6,12,13>, <0,2,4,6,7,13>, <0,2,4,6,12,13>,
+             <0,3,4,6,7,12>, <0,3,4,7,12,13>, <0,3,6,7,12,13>, <0,4,6,7,12,13>,
+             <1,3,4,5,6,12>, <1,3,4,6,11,12>, <1,3,4,7,11,13>, <1,3,4,11,12,13>,
+             <1,3,6,7,11,13>, <1,3,6,11,12,13>, <1,4,6,7,11,13>, <1,4,6,11,12,13>,
+             <3,4,6,7,11,12>, <3,4,7,11,12,13>, <3,6,7,11,12,13>, <4,6,7,11,12,13>)
             sage: sum(p.volume(t) for t in triangulation)
             42
             sage: p0 = PointConfiguration([(0,0),(+1,0),(-1,0),(0,+1),(0,-1)])

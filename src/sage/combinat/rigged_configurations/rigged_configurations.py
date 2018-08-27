@@ -39,9 +39,10 @@ from sage.combinat.rigged_configurations.rigged_configuration_element import (
      KRRCTypeA2DualElement)
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
+
 # Used in the KR crystals catalog so that there is a common interface
 def KirillovReshetikhinCrystal(cartan_type, r, s):
-    """
+    r"""
     Return the KR crystal `B^{r,s}` using
     :class:`rigged configurations <RiggedConfigurations>`.
 

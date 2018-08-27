@@ -278,7 +278,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         gens = [tuple(self._domain)]
         if len(self._domain) > 2:
             gens.append(tuple(self._domain[:2]))
-        self._gens = [self._element_class()(g, self, check=False)
+        self._gens = [self.element_class(g, self, check=False)
                       for g in gens]
 
     def _gap_init_(self, gap=None):
@@ -463,7 +463,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         return q_factorial(self.degree(), parameter)
 
     def conjugacy_classes_representatives(self):
-        """
+        r"""
         Return a complete list of representatives of conjugacy classes in
         a permutation group `G`.
 
@@ -568,7 +568,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         return SymmetricGroupConjugacyClass(self, g)
 
     def algebra(self, base_ring, category=None):
-        """
+        r"""
         Return the symmetric group algebra associated to ``self``.
 
         INPUT:
@@ -591,9 +591,9 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A = S3.algebra(QQ); A
             Symmetric group algebra of order 3 over Rational Field
             sage: a = S3.an_element(); a
-            (1,2,3)
+            (2,3)
             sage: A(a)
-            (1,2,3)
+            (2,3)
 
         We illustrate the choice of the category::
 
@@ -613,9 +613,9 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S.algebra(QQ)
             Algebra of Symmetric group of order 3! as a permutation group over Rational Field
             sage: a = S.an_element(); a
-            (2,3,5)
+            (3,5)
             sage: S.algebra(QQ)(a)
-            (2,3,5)
+            (3,5)
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         domain = self.domain()
@@ -624,16 +624,8 @@ class SymmetricGroup(PermutationGroup_symalt):
         else:
             return super(SymmetricGroup, self).algebra(base_ring)
 
-    def _element_class(self):
-        r"""
-        Return the class to be used for creating elements of this group.
+    Element = SymmetricGroupElement
 
-        EXAMPLES::
-
-            sage: SymmetricGroup(17)._element_class()
-            <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
-        """
-        return SymmetricGroupElement
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -1377,7 +1369,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 
 class DihedralGroup(PermutationGroup_unique):
     def __init__(self, n):
-        """
+        r"""
         The Dihedral group of order `2n` for any integer `n\geq 1`.
 
         INPUT:
@@ -2701,10 +2693,10 @@ class PSL(PermutationGroup_plg):
         return "The projective special linear group of degree %s over %s"%(self._n, self.base_ring())
 
     def ramification_module_decomposition_hurwitz_curve(self):
-        """
+        r"""
         Helps compute the decomposition of the ramification module
         for the Hurwitz curves X (over CC say) with automorphism group
-        G = PSL(2,q), q a "Hurwitz prime" (ie, p is $\pm 1 \pmod 7$).
+        G = PSL(2,q), q a "Hurwitz prime" (ie, p is `\pm 1 \pmod 7`).
         Using this computation and Borne's formula helps determine the
         G-module structure of the RR spaces of equivariant
         divisors can be determined explicitly.

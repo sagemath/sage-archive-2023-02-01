@@ -54,7 +54,7 @@ from sage.misc.prandom import randint
 import sage.schemes.elliptic_curves.constructor as elliptic
 from .sql_db import SQLDatabase, verify_column
 from sage.misc.package import is_package_installed
-from sage.env import SAGE_SHARE
+from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR
 from sage.misc.all import walltime
 
 import re
@@ -421,9 +421,10 @@ def parse_lmfdb_label(label):
         num = "1"
     return int(conductor), iso, int(num)
 
+
 def split_code(key):
     """
-    Splits class+curve id string into its two parts.
+    Splits class + curve id string into its two parts.
 
     EXAMPLES::
 
@@ -431,8 +432,8 @@ def split_code(key):
         sage: cremona.split_code('ba2')
         ('ba', '2')
     """
-    cu = re.split("[a-z]*", key)[1]
-    cl =  re.split("[0-9]*", key)[0]
+    cu = re.split("[a-z]+", key)[1]
+    cl =  re.split("[0-9]+", key)[0]
     return (cl, cu)
 
 
@@ -608,7 +609,7 @@ class MiniCremonaDatabase(SQLDatabase):
         """
         self.name = name
         name = name.replace(' ','_')
-        db_path = os.path.join(SAGE_SHARE, 'cremona', name+'.db')
+        db_path = os.path.join(CREMONA_MINI_DATA_DIR, name+'.db')
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')
@@ -1419,7 +1420,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
         """
         self.name = name
         name = name.replace(' ','_')
-        db_path = os.path.join(SAGE_SHARE, 'cremona', name+'.db')
+        db_path = os.path.join(CREMONA_LARGE_DATA_DIR, name+'.db')
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')

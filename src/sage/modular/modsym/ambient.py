@@ -126,6 +126,19 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
     - ``custom_init`` - a function that is called with self as input
       before any computations are done using self; this could be used
       to set a custom modular symbols presentation.
+
+    TESTS::
+
+        sage: ModularSymbols(11,2) == ModularSymbols(11,2)
+        True
+        sage: ModularSymbols(11,2) == ModularSymbols(11,4)
+        False
+        sage: ModularSymbols(11,2) != ModularSymbols(11,2)
+        False
+        sage: ModularSymbols(11,2) != ModularSymbols(11,4)
+        True
+        sage: hash(ModularSymbols(11,2)) != hash(ModularSymbols(11,4))
+        True
     """
     def __init__(self, group, weight, sign, base_ring,
                  character=None, custom_init=None, category=None):
@@ -181,43 +194,6 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
                          group, weight, sign, base_ring, character)
 
         hecke.AmbientHeckeModule.__init__(self, base_ring, rank, group.level(), weight, category=category)
-
-    def __eq__(self, other):
-        """
-        Check that ``self`` is equal to ``other``.
-
-        EXAMPLES::
-
-            sage: ModularSymbols(11,2) == ModularSymbols(11,2)
-            True
-            sage: ModularSymbols(11,2) == ModularSymbols(11,4)
-            False
-        """
-        if not isinstance(other, ModularSymbolsSpace):
-            return False
-
-        if isinstance(other, ModularSymbolsAmbient):
-            return (self.group() == other.group() and
-                    self.weight() == other.weight() and
-                    self.sign() == other.sign() and
-                    self.base_ring() == other.base_ring() and
-                    self.character() == other.character())
-
-        return (self == other.ambient_hecke_module() and
-                self.free_module() == other.free_module())
-
-    def __ne__(self, other):
-        """
-        Check that ``self`` is not equal to ``other``.
-
-        EXAMPLES::
-
-            sage: ModularSymbols(11,2) != ModularSymbols(11,2)
-            False
-            sage: ModularSymbols(11,2) != ModularSymbols(11,4)
-            True
-        """
-        return not (self == other)
 
     def new_submodule(self, p=None):
         r"""
@@ -2382,9 +2358,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M = ModularSymbols(DirichletGroup(24,QQ).1,2,sign=1)
             sage: M.compact_newform_eigenvalues(prime_range(10),'a')
             [(
-            [-1/2 -1/2]                
-            [ 1/2 -1/2]                
-            [  -1    1]                
+            [-1/2 -1/2]
+            [ 1/2 -1/2]
+            [  -1    1]
             [  -2    0], (1, -2*a0 - 1)
             )]
             sage: a = M.compact_newform_eigenvalues([1..10],'a')[0]
@@ -2393,9 +2369,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M = ModularSymbols(DirichletGroup(13).0^2,2,sign=1)
             sage: M.compact_newform_eigenvalues(prime_range(10),'a')
             [(
-            [  -zeta6 - 1]     
-            [ 2*zeta6 - 2]     
-            [-2*zeta6 + 1]     
+            [  -zeta6 - 1]
+            [ 2*zeta6 - 2]
+            [-2*zeta6 + 1]
             [           0], (1)
             )]
             sage: a = M.compact_newform_eigenvalues([1..10],'a')[0]
@@ -3551,7 +3527,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         return m * self.group().dimension_new_cusp_forms(self.weight(), eps=self.character())
 
     def _matrix_of_operator_on_modular_symbols(self, codomain, R, character_twist=False):
-        """
+        r"""
         INPUT:
 
 
@@ -3582,7 +3558,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             sage: M._matrix_of_operator_on_modular_symbols(M,HeilbronnCremona(3))
             [ 6  6]
             [ 0 10]
-
         """
         eps = self.character()
         rows = []

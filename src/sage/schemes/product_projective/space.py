@@ -623,11 +623,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             ValueError: polynomial is not multi-homogeneous
         """
         E = polynomial.exponents()
-        if len(E) == 0:
+        if not E:
             return []
         d = [sum(t) for t in self._factors(E[0])]
         for k in range(len(E)):
-            if not all([d == [sum(t) for t in self._factors(E[k])]]):
+            if d != [sum(t) for t in self._factors(E[k])]:
                 raise ValueError("polynomial is not multi-homogeneous")
         return d
 
@@ -1148,48 +1148,73 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         EXAMPLES::
 
             sage: PP = ProductProjectiveSpaces(QQ, [1, 2])
-            sage: list(PP.points_of_bounded_height(bound=2))
-            [(0 : 1 , 0 : 0 : 1), (0 : 1 , 1 : 0 : 1), (0 : 1 , -1 : 0 : 1), (0 : 1 , 0 : 1 : 1),
-            (0 : 1 , 1 : 1 : 1), (0 : 1 , -1 : 1 : 1), (0 : 1 , 0 : -1 : 1), (0 : 1 , 1 : -1 : 1),
-            (0 : 1 , -1 : -1 : 1), (0 : 1 , 0 : 1 : 0), (0 : 1 , 1 : 1 : 0), (0 : 1 , -1 : 1 : 0),
-            (0 : 1 , 1 : 0 : 0), (1 : 1 , 0 : 0 : 1), (1 : 1 , 1 : 0 : 1), (1 : 1 , -1 : 0 : 1),
-            (1 : 1 , 0 : 1 : 1), (1 : 1 , 1 : 1 : 1), (1 : 1 , -1 : 1 : 1), (1 : 1 , 0 : -1 : 1),
-            (1 : 1 , 1 : -1 : 1), (1 : 1 , -1 : -1 : 1), (1 : 1 , 0 : 1 : 0), (1 : 1 , 1 : 1 : 0),
-            (1 : 1 , -1 : 1 : 0), (1 : 1 , 1 : 0 : 0), (-1 : 1 , 0 : 0 : 1), (-1 : 1 , 1 : 0 : 1),
-            (-1 : 1 , -1 : 0 : 1), (-1 : 1 , 0 : 1 : 1), (-1 : 1 , 1 : 1 : 1), (-1 : 1 , -1 : 1 : 1),
-            (-1 : 1 , 0 : -1 : 1), (-1 : 1 , 1 : -1 : 1), (-1 : 1 , -1 : -1 : 1), (-1 : 1 , 0 : 1 : 0),
-            (-1 : 1 , 1 : 1 : 0), (-1 : 1 , -1 : 1 : 0), (-1 : 1 , 1 : 0 : 0), (1 : 0 , 0 : 0 : 1),
-            (1 : 0 , 1 : 0 : 1), (1 : 0 , -1 : 0 : 1), (1 : 0 , 0 : 1 : 1), (1 : 0 , 1 : 1 : 1),
-            (1 : 0 , -1 : 1 : 1), (1 : 0 , 0 : -1 : 1), (1 : 0 , 1 : -1 : 1), (1 : 0 , -1 : -1 : 1),
-            (1 : 0 , 0 : 1 : 0), (1 : 0 , 1 : 1 : 0), (1 : 0 , -1 : 1 : 0), (1 : 0 , 1 : 0 : 0)]
+            sage: sorted(list(PP.points_of_bounded_height(bound=1)))
+            [(-1 : 1 , -1 : -1 : 1), (-1 : 1 , -1 : 0 : 1), (-1 : 1 , -1 : 1 : 0), (-1 : 1 , -1 : 1 : 1),
+             (-1 : 1 , 0 : -1 : 1), (-1 : 1 , 0 : 0 : 1), (-1 : 1 , 0 : 1 : 0), (-1 : 1 , 0 : 1 : 1),
+             (-1 : 1 , 1 : -1 : 1), (-1 : 1 , 1 : 0 : 0), (-1 : 1 , 1 : 0 : 1), (-1 : 1 , 1 : 1 : 0),
+             (-1 : 1 , 1 : 1 : 1), (0 : 1 , -1 : -1 : 1), (0 : 1 , -1 : 0 : 1), (0 : 1 , -1 : 1 : 0),
+             (0 : 1 , -1 : 1 : 1), (0 : 1 , 0 : -1 : 1), (0 : 1 , 0 : 0 : 1), (0 : 1 , 0 : 1 : 0),
+             (0 : 1 , 0 : 1 : 1), (0 : 1 , 1 : -1 : 1), (0 : 1 , 1 : 0 : 0), (0 : 1 , 1 : 0 : 1),
+             (0 : 1 , 1 : 1 : 0), (0 : 1 , 1 : 1 : 1), (1 : 0 , -1 : -1 : 1), (1 : 0 , -1 : 0 : 1),
+             (1 : 0 , -1 : 1 : 0), (1 : 0 , -1 : 1 : 1), (1 : 0 , 0 : -1 : 1), (1 : 0 , 0 : 0 : 1),
+             (1 : 0 , 0 : 1 : 0), (1 : 0 , 0 : 1 : 1), (1 : 0 , 1 : -1 : 1), (1 : 0 , 1 : 0 : 0),
+             (1 : 0 , 1 : 0 : 1), (1 : 0 , 1 : 1 : 0), (1 : 0 , 1 : 1 : 1), (1 : 1 , -1 : -1 : 1),
+             (1 : 1 , -1 : 0 : 1), (1 : 1 , -1 : 1 : 0), (1 : 1 , -1 : 1 : 1), (1 : 1 , 0 : -1 : 1),
+             (1 : 1 , 0 : 0 : 1), (1 : 1 , 0 : 1 : 0), (1 : 1 , 0 : 1 : 1), (1 : 1 , 1 : -1 : 1),
+             (1 : 1 , 1 : 0 : 0), (1 : 1 , 1 : 0 : 1), (1 : 1 , 1 : 1 : 0), (1 : 1 , 1 : 1 : 1)]
 
         ::
 
             sage: u = QQ['u'].0
             sage: P = ProductProjectiveSpaces([1, 1], NumberField(u^2 - 2, 'v'))
-            sage: list(P.points_of_bounded_height(bound=1.5))
-            [(0 : 1 , 0 : 1), (0 : 1 , -1 : 1), (0 : 1 , 1 : 1), (0 : 1 , -1/2*v : 1), (0 : 1 , -v : 1),
-            (0 : 1 , 1/2*v : 1), (0 : 1 , v : 1), (0 : 1 , 1 : 0), (-1 : 1 , 0 : 1), (-1 : 1 , -1 : 1),
-            (-1 : 1 , 1 : 1), (-1 : 1 , -1/2*v : 1), (-1 : 1 , -v : 1), (-1 : 1 , 1/2*v : 1), (-1 : 1 , v : 1),
-            (-1 : 1 , 1 : 0), (1 : 1 , 0 : 1), (1 : 1 , -1 : 1), (1 : 1 , 1 : 1), (1 : 1 , -1/2*v : 1),
-            (1 : 1 , -v : 1), (1 : 1 , 1/2*v : 1), (1 : 1 , v : 1), (1 : 1 , 1 : 0), (-1/2*v : 1 , 0 : 1),
-            (-1/2*v : 1 , -1 : 1), (-1/2*v : 1 , 1 : 1), (-1/2*v : 1 , -1/2*v : 1), (-1/2*v : 1 , -v : 1),
-            (-1/2*v : 1 , 1/2*v : 1), (-1/2*v : 1 , v : 1), (-1/2*v : 1 , 1 : 0), (-v : 1 , 0 : 1),
-            (-v : 1 , -1 : 1), (-v : 1 , 1 : 1), (-v : 1 , -1/2*v : 1), (-v : 1 , -v : 1), (-v : 1 , 1/2*v : 1),
-            (-v : 1 , v : 1), (-v : 1 , 1 : 0), (1/2*v : 1 , 0 : 1), (1/2*v : 1 , -1 : 1), (1/2*v : 1 , 1 : 1),
-            (1/2*v : 1 , -1/2*v : 1), (1/2*v : 1 , -v : 1), (1/2*v : 1 , 1/2*v : 1), (1/2*v : 1 , v : 1),
-            (1/2*v : 1 , 1 : 0), (v : 1 , 0 : 1), (v : 1 , -1 : 1), (v : 1 , 1 : 1), (v : 1 , -1/2*v : 1),
-            (v : 1 , -v : 1), (v : 1 , 1/2*v : 1), (v : 1 , v : 1), (v : 1 , 1 : 0), (1 : 0 , 0 : 1),
-            (1 : 0 , -1 : 1), (1 : 0 , 1 : 1), (1 : 0 , -1/2*v : 1), (1 : 0 , -v : 1), (1 : 0 , 1/2*v : 1),
-            (1 : 0 , v : 1), (1 : 0 , 1 : 0)]
+            sage: sorted(list(P.points_of_bounded_height(bound=1.5)))
+            [(-v : 1 , -v : 1), (-v : 1 , -1 : 1), (-v : 1 , -1/2*v : 1), (-v : 1 , 0 : 1), (-v : 1 , 1/2*v : 1),
+             (-v : 1 , 1 : 0), (-v : 1 , 1 : 1), (-v : 1 , v : 1), (-1 : 1 , -v : 1), (-1 : 1 , -1 : 1),
+             (-1 : 1 , -1/2*v : 1), (-1 : 1 , 0 : 1), (-1 : 1 , 1/2*v : 1), (-1 : 1 , 1 : 0), (-1 : 1 , 1 : 1),
+             (-1 : 1 , v : 1), (-1/2*v : 1 , -v : 1), (-1/2*v : 1 , -1 : 1), (-1/2*v : 1 , -1/2*v : 1), (-1/2*v : 1 , 0 : 1),
+             (-1/2*v : 1 , 1/2*v : 1), (-1/2*v : 1 , 1 : 0), (-1/2*v : 1 , 1 : 1), (-1/2*v : 1 , v : 1), (0 : 1 , -v : 1),
+             (0 : 1 , -1 : 1), (0 : 1 , -1/2*v : 1), (0 : 1 , 0 : 1), (0 : 1 , 1/2*v : 1), (0 : 1 , 1 : 0),
+             (0 : 1 , 1 : 1), (0 : 1 , v : 1), (1/2*v : 1 , -v : 1), (1/2*v : 1 , -1 : 1), (1/2*v : 1 , -1/2*v : 1),
+             (1/2*v : 1 , 0 : 1), (1/2*v : 1 , 1/2*v : 1), (1/2*v : 1 , 1 : 0), (1/2*v : 1 , 1 : 1), (1/2*v : 1 , v : 1),
+             (1 : 0 , -v : 1), (1 : 0 , -1 : 1), (1 : 0 , -1/2*v : 1), (1 : 0 , 0 : 1), (1 : 0 , 1/2*v : 1),
+             (1 : 0 , 1 : 0), (1 : 0 , 1 : 1), (1 : 0 , v : 1), (1 : 1 , -v : 1), (1 : 1 , -1 : 1),
+             (1 : 1 , -1/2*v : 1), (1 : 1 , 0 : 1), (1 : 1 , 1/2*v : 1), (1 : 1 , 1 : 0), (1 : 1 , 1 : 1),
+             (1 : 1 , v : 1), (v : 1 , -v : 1), (v : 1 , -1 : 1), (v : 1 , -1/2*v : 1), (v : 1 , 0 : 1),
+             (v : 1 , 1/2*v : 1), (v : 1 , 1 : 0), (v : 1 , 1 : 1), (v : 1 , v : 1)]
         """
         B = kwds.pop('bound')
         tol = kwds.pop('tolerance', 1e-2)
         prec = kwds.pop('precision', 53)
         m = self.num_components()
-        comp_points = [list(self._components[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec)) for i in range(m)]
-        indices = xmrange([len(comp_points[i]) for i in range(m)])
-        return iter([self([comp_points[t][I[t]] for t in range(m)]) for I in indices])
+        iters = [ self[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec) for i in range(m) ]
+        dim = [self[i].dimension_relative() + 1 for i in range(m)]
+        
+        dim_prefix = [0, dim[0]] # prefixes dim list
+        for i in range(1, len(dim)):
+            dim_prefix.append(dim_prefix[i] + dim[i])
+
+        pts = []
+        P = []
+        for i in range(m):
+            pt = next(iters[i])
+            for j in range(dim[i]):
+                P.append(pt[j]) # initial value of P
+        yield self(P)
+
+        i = 0
+        while i < m:
+            try:
+                pt = next(iters[i])
+                for j in range(dim[i]):
+                    P[dim_prefix[i] + j] = pt[j]
+                yield self(P)
+                i = 0
+            except StopIteration:
+                iters[i] = self[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec)
+                pt = next(iters[i]) # reset
+                for j in range(dim[i]):
+                    P[dim_prefix[i] + j] = pt[j]
+                i += 1
 
 class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
     def _point(self, *args, **kwds):

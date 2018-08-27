@@ -197,7 +197,8 @@ import string
 
 WORKSPACE = gap_workspace_file()
 
-GAP_BINARY = os.path.join(SAGE_LOCAL, 'bin', 'gap')
+from sage.env import GAP_ROOT_DIR
+GAP_BINARY = os.path.join(GAP_ROOT_DIR, 'bin', 'gap.sh')
 
 first_try = True
 
@@ -1554,7 +1555,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
-                'toric', 'laguna', 'braid']:
+                'toric', 'laguna', 'braid', 'polycyclic', 'nq']:
         # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:
             g.load_package(pkg, verbose=verbose)

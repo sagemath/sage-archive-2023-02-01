@@ -831,14 +831,17 @@ Permutations::
 
 Set partitions::
 
-    sage: C = SetPartitions([1,2,3])
+    sage: C = SetPartitions(["a", "b", "c"])
     sage: C
-    Set partitions of {1, 2, 3}
+    Set partitions of {'a', 'c', 'b'}
     sage: C.cardinality()
     5
     sage: C.list()
-    [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}},
-     {{1}, {2}, {3}}]
+    [{{'a', 'b', 'c'}},
+     {{'a', 'b'}, {'c'}},
+     {{'a', 'c'}, {'b'}},
+     {{'a'}, {'b', 'c'}},
+     {{'a'}, {'b'}, {'c'}}]
 
 Partial orders on a set of `8` elements, up to isomorphism::
 
@@ -1421,7 +1424,9 @@ usual combinatorial operations and also its structure as a product group::
     sage: H = cartesian_product([G,G])
     sage: H in Groups()
     True
-    sage: t = H.an_element()
+    sage: H.an_element()
+    ((1,3), (1,3))
+    sage: t = H([G.gen(0), G.gen(0)])
     sage: t
     ((1,2,3,4), (1,2,3,4))
     sage: t*t

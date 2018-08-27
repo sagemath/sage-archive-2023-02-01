@@ -88,9 +88,10 @@ def normalise_hadamard(H):
             H.rescale_row(i, -1)
     return H
 
+
 def hadamard_matrix_paleyI(n, normalize=True):
-    """
-    Implements the Paley type I construction.
+    r"""
+    Implement the Paley type I construction.
 
     The Paley type I case corresponds to the case `p \cong 3 \mod{4}` for a
     prime `p` (see [Hora]_).
@@ -154,9 +155,10 @@ def hadamard_matrix_paleyI(n, normalize=True):
         H = normalise_hadamard(H)
     return H
 
+
 def hadamard_matrix_paleyII(n):
-    """
-    Implements the Paley type II construction.
+    r"""
+    Implement the Paley type II construction.
 
     The Paley type II case corresponds to the case `p \cong 1 \mod{4}` for a
     prime `p` (see [Hora]_).

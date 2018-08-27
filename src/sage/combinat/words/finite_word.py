@@ -632,7 +632,7 @@ class FiniteWord_class(Word_class):
         return True
 
     def schuetzenberger_involution(self, n = None):
-        """
+        r"""
         Return the Schützenberger involution of the word ``self``, which is obtained
         by reverting the word and then complementing all letters within the
         underlying ordered alphabet. If ``n`` is specified, the underlying

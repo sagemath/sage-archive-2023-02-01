@@ -250,10 +250,8 @@ class Gp(ExtraTabCompletion, Expect):
         self._eval_line('default(breakloop,0);')
         # list of directories where gp will look for scripts (only current working directory)
         self._eval_line('default(path,".");')
-        # location of elldata, seadata, galdata
-        self._eval_line('default(datadir, "$SAGE_LOCAL/share/pari");')
         # executable for gp ?? help
-        self._eval_line('default(help, "$SAGE_LOCAL/bin/gphelp -detex");')
+        self._eval_line('default(help, "gphelp -detex");')
         # logfile disabled since Expect already logs
         self._eval_line('default(log,0);')
         # set random seed

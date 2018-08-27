@@ -38,7 +38,7 @@ from functools import reduce
 
 from .external import available_software
 
-float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
+float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
@@ -180,6 +180,59 @@ def normalize_long_repr(s):
     return _long_repr_re.sub(lambda m: m.group(1), s)
 
 
+_normalize_bound_method_re = re.compile(
+    r'<bound method \S+[.](?P<meth>[^. ]+)\sof\s(?P<obj>.+)>', re.M | re.S)
+
+def normalize_bound_method_repr(s):
+    """
+    Normalize differences between Python 2 and 3 in how bound methods are
+    represented.
+
+    On Python 2 bound methods are represented using the class name of the
+    object the method was bound to, whereas on Python 3 they are represented
+    with the fully-qualified name of the function that implements the method.
+
+    In the context of a doctest it's almost impossible to convert accurately
+    from the latter to the former or vice-versa, so we simplify the reprs of
+    bound methods to just the bare method name.
+
+    This is slightly regressive since it means one can't use the repr of a
+    bound method to test whether some element is getting a method from the
+    correct class (imporant sometimes in the cases of dynamic classes).
+    However, such tests could be written could be written more explicitly to
+    emphasize that they are testing such behavior.
+
+    EXAMPLES:
+
+    ::
+
+        sage: from sage.doctest.parsing import normalize_bound_method_repr
+        sage: el = Semigroups().example().an_element()
+        sage: el
+        42
+        sage: el.is_idempotent
+        <bound method ....is_idempotent of 42>
+        sage: normalize_bound_method_repr(repr(el.is_idempotent))
+        '<bound method is_idempotent of 42>'
+
+    An example where the object ``repr`` contains whitespace::
+
+        sage: U = DisjointUnionEnumeratedSets(
+        ....:          Family([1, 2, 3], Partitions), facade=False)
+        sage: U._element_constructor_
+        <bound method ...._element_constructor_default of Disjoint union of
+        Finite family {...}>
+        sage: normalize_bound_method_repr(repr(U._element_constructor_))
+        '<bound method _element_constructor_default of Disjoint union of Finite
+        family {...}>'
+    """
+
+    def subst(m):
+        return '<bound method {meth} of {obj}>'.format(**m.groupdict())
+
+    return _normalize_bound_method_re.sub(subst, s)
+
+
 # Collection of fixups applied in the SageOutputChecker.  Each element in this
 # this list a pair of functions applied to the actual test output ('g' for
 # "got") and the expected test output ('w' for "wanted").  The first function
@@ -201,7 +254,10 @@ else:
          lambda g, w: (g, normalize_type_repr(w))),
 
         (lambda g, w: 'L' in w or 'l' in w,
-         lambda g, w: (g, normalize_long_repr(w)))
+         lambda g, w: (g, normalize_long_repr(w))),
+        (lambda g, w: '<bound method' in w,
+         lambda g, w: (normalize_bound_method_repr(g),
+                       normalize_bound_method_repr(w)))
     ]
 
 
@@ -555,17 +611,18 @@ class SageDocTestParser(doctest.DocTestParser):
     A version of the standard doctest parser which handles Sage's
     custom options and tolerances in floating point arithmetic.
     """
-    def __init__(self, long=False, optional_tags=()):
+    def __init__(self, optional_tags=(), long=False):
         r"""
         INPUT:
 
-        - ``long`` -- boolean, whether to run doctests marked as taking a long time.
         - ``optional_tags`` -- a list or tuple of strings.
+        - ``long`` -- boolean, whether to run doctests marked as taking a
+          long time.
 
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'))
             sage: ex = DTP.parse("sage: 2 + 2\n")[1]
             sage: ex.sage_source
             '2 + 2\n'
@@ -597,8 +654,8 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
-            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'), True)
+            sage: DTP2 = SageDocTestParser(('sage','magma','guava'), False)
             sage: DTP == DTP2
             False
         """
@@ -613,8 +670,8 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
-            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'), True)
+            sage: DTP2 = SageDocTestParser(('sage','magma','guava'), False)
             sage: DTP != DTP2
             True
         """
@@ -640,7 +697,7 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'))
             sage: example = 'Explanatory text::\n\n    sage: E = magma("EllipticCurve([1, 1, 1, -10, -10])") # optional: magma\n\nLater text'
             sage: parsed = DTP.parse(example)
             sage: parsed[0]
@@ -654,7 +711,7 @@ class SageDocTestParser(doctest.DocTestParser):
         optional argument, the corresponding examples will just be
         removed::
 
-            sage: DTP2 = SageDocTestParser(True, ('sage',))
+            sage: DTP2 = SageDocTestParser(('sage',))
             sage: parsed2 = DTP2.parse(example)
             sage: parsed2
             ['Explanatory text::\n\n', '\nLater text']
@@ -760,7 +817,7 @@ class SageOutputChecker(doctest.OutputChecker):
         sage: from sage.doctest.parsing import SageOutputChecker, MarkedOutput, SageDocTestParser
         sage: import doctest
         sage: optflag = doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS
-        sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+        sage: DTP = SageDocTestParser(('sage','magma','guava'))
         sage: OC = SageOutputChecker()
         sage: example2 = 'sage: gamma(1.6) # tol 2.0e-11\n0.893515349287690'
         sage: ex = DTP.parse(example2)[1]

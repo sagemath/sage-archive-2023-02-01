@@ -2069,13 +2069,13 @@ class EllipticCurveCanonicalHeight:
         tp = lcm([L.tamagawa_exponent() for L in self.E.local_data()] + [ZZ(1)])
 
         # Include infinite places:
-        if tp%2==1:
+        if tp % 2 == 1:
             if self.K == QQ:
-                if self.E.real_components()==2:
-                    tp*=2
-            elif any([v(self.E.discriminant()>0)
-                      for v in self.K.real_places()]):
-                tp *=2
+                if self.E.real_components() == 2:
+                    tp *= 2
+            elif any(v(self.E.discriminant()) > 0
+                     for v in self.K.real_places()):
+                tp *= 2
         # Now tp is such that tp*P has good reduction at all places
         # for all points P:
         return self.min_gr(tol, n_max, verbose) / tp ** 2

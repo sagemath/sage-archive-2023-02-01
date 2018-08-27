@@ -1559,6 +1559,18 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     return
                 raise
 
+            try:
+                r = self.residue_ring()
+            except Exception:
+                # If the residue ring can not be constructed for some reason
+                # then we do not check its relation to the residue field.
+                # _test_residue_ring() is responible for checking whether the
+                # residue ring should be constructible or not.
+                pass
+            else:
+                # the residue ring must coerce into the residue field
+                tester.assertTrue(self.residue_field().has_coerce_map_from(self.residue_ring()))
+
             c = self.residue_field().characteristic()
             if c != 0:
                 tester.assertGreater(self(c), 0)

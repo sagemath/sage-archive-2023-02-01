@@ -990,7 +990,22 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
             sage: w.extension(L).residue_ring()
             Function field in u2 defined by u2^2 + x
 
+        TESTS:
+
+        This still works for pseudo-valuations::
+
+            sage: R.<x> = QQ[]
+            sage: v = valuations.GaussValuation(R, QQ.valuation(2))
+            sage: vv = v.augmentation(x, infinity)
+            sage: K.<x> = FunctionField(QQ)
+            sage: w = K.valuation(vv)
+            sage: w.residue_ring()
+            Finite Field of size 2
+
         """
+        if not self.is_discrete_valuation():
+            # A pseudo valuation attaining negative infinity does typically not have a function field as its residue ring
+            return super(NonClassicalRationalFunctionFieldValuation, self).residue_ring()
         return self._base_valuation.residue_ring().fraction_field().function_field()
 
 

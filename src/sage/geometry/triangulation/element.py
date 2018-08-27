@@ -39,6 +39,7 @@ See :mod:`sage.geometry.triangulation.point_configuration` for more details.
 ########################################################################
 from six import iteritems
 
+from sage.structure.richcmp import richcmp
 from sage.structure.element import Element
 from sage.rings.all import QQ, ZZ
 from sage.modules.all import vector
@@ -223,7 +224,6 @@ class Triangulation(Element):
         :meth:`~sage.geometry.triangulation.point_configuration.PointConfiguration.triangulations`
         to triangulate point configurations.
     """
-
     def __init__(self, triangulation, parent, check=True):
         """
         The constructor of a ``Triangulation`` object. Note that an
@@ -274,7 +274,6 @@ class Triangulation(Element):
                                  for t in triangulation)
         self._triangulation = triangulation
 
-
     def point_configuration(self):
         """
         Returns the point configuration underlying the triangulation.
@@ -300,19 +299,13 @@ class Triangulation(Element):
         """
         return self._point_configuration
 
-
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
         INPUT:
 
-        - ``right`` -- anything.
-
-        OUTPUT:
-
-        - 0 if ``right`` is the same triangulation as ``self``, 1 or
-          -1 otherwise.
+        - ``right`` -- a triangulation
 
         TESTS::
 
@@ -322,20 +315,12 @@ class Triangulation(Element):
             sage: t2 = Triangulation([[2,1,0]], pc)
             sage: t1 is t2
             False
-            sage: cmp(t1, t2)
-            0
             sage: t1 == t2    # indirect doctest
             True
-            sage: abs( cmp(t1, Triangulation(((0,1),(1,2)), pc, check=False) ))
-            1
+            sage: t1 != Triangulation(((0,1),(1,2)), pc, check=False)
+            True
         """
-        left = self
-        c = cmp(isinstance(left,Triangulation), isinstance(right,Triangulation))
-        if c: return c
-        c = cmp(left.point_configuration(), right.point_configuration())
-        if c: return c
-        return cmp(left._triangulation, right._triangulation)
-
+        return richcmp(self._triangulation, right._triangulation, op)
 
     def __iter__(self):
         """
@@ -358,7 +343,6 @@ class Triangulation(Element):
         """
         for p in self._triangulation:
             yield p
-
 
     def __getitem__(self, i):
         """

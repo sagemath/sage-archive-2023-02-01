@@ -612,16 +612,16 @@ class ChooseNK(Combinations_setk):
 
         TESTS::
 
-            sage: loads("x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1K\xce\xc8\xcf"
-            ....:   "/N\x8d\xcf\xcb\xe6r\x06\xb3\xfc\xbc\xb9\n\x195\x1b\x0b"
-            ....:   "\x99j\x0b\x995B\x99\xe2\xf3\nY :\x8a2\xf3\xd2\x8b\xf52"
-            ....:   "\xf3JR\xd3S\x8b\xb8r\x13\xb3S\xe3a\x9cB\xd6PF\xd3\xd6\xa0"
-            ....:   "B6\xa0\xfa\xecB\xf6\x0c \xd7\x08\xc8\xe5(M\xd2\x03\x00{"
-            ....:   "\x82$\xd8")
+            sage: loads(b"x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1K\xce\xc8\xcf"
+            ....:   b"/N\x8d\xcf\xcb\xe6r\x06\xb3\xfc\xbc\xb9\n\x195\x1b\x0b"
+            ....:   b"\x99j\x0b\x995B\x99\xe2\xf3\nY :\x8a2\xf3\xd2\x8b\xf52"
+            ....:   b"\xf3JR\xd3S\x8b\xb8r\x13\xb3S\xe3a\x9cB\xd6PF\xd3\xd6\xa0"
+            ....:   b"B6\xa0\xfa\xecB\xf6\x0c \xd7\x08\xc8\xe5(M\xd2\x03\x00{"
+            ....:   b"\x82$\xd8")
             Combinations of [0, 1, 2, 3, 4] of length 2
         """
         self.__class__ = Combinations_setk
         Combinations_setk.__init__(self, list(range(state['_n'])), state['_k'])
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.choose_nk", "ChooseNK", ChooseNK)

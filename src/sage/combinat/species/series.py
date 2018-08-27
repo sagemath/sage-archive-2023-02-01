@@ -50,8 +50,15 @@ class LazyPowerSeriesRing(Algebra):
 
             sage: from sage.combinat.species.series import LazyPowerSeriesRing
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: loads(dumps(L))
-            Lazy Power Series Ring over Rational Field
+
+        Equality testing is undecidable in general, and not much
+        efforts are done at this stage to implement equality when
+        possible. Hence the failing tests below::
+
+            sage: TestSuite(L).run()
+            Failure in ...
+            The following tests failed: _test_additive_associativity, _test_associativity, _test_distributivity, _test_elements, _test_one, _test_prod, _test_zero
+
         """
         #Make sure R is a ring with unit element
         if not R in Rings():
@@ -70,7 +77,7 @@ class LazyPowerSeriesRing(Algebra):
         self._element_class = element_class if element_class is not None else LazyPowerSeries
         self._order = None
         self._name = names
-        sage.structure.parent_base.ParentWithBase.__init__(self, R)
+        sage.structure.parent_base.ParentWithBase.__init__(self, R, category=Rings())
 
     def ngens(self):
         """
@@ -90,8 +97,10 @@ class LazyPowerSeriesRing(Algebra):
         """
         return "Lazy Power Series Ring over %s"%self.base_ring()
 
-    def __cmp__(self, x):
-        """
+    def __eq__(self, x):
+        """ 
+        Check whether ``self`` is equal to ``x``.
+
         EXAMPLES::
 
             sage: LQ = LazyPowerSeriesRing(QQ)
@@ -101,9 +110,24 @@ class LazyPowerSeriesRing(Algebra):
             sage: LZ == LQ
             False
         """
-        if self.__class__ is not x.__class__:
-            return cmp(self.__class__, x.__class__)
-        return cmp(self.base_ring(), x.base_ring())
+        if not isinstance(x, LazyPowerSeriesRing):
+            return False
+        return self.base_ring() == x.base_ring()
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: LQ = LazyPowerSeriesRing(QQ)
+            sage: LZ = LazyPowerSeriesRing(ZZ)
+            sage: LQ != LQ
+            False
+            sage: LZ != LQ
+            True
+        """
+        return not (self == other)
 
     def _coerce_impl(self, x):
         """
@@ -214,19 +238,8 @@ class LazyPowerSeriesRing(Algebra):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: L.zero()
             0
-
-        TESTS:
-
-        Check that the method `zero_element` raises a warning (:trac:`17694`)::
-
-            sage: L.zero_element()
-            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
-            See http://trac.sagemath.org/17694 for details.
-            0
         """
         return self(self.base_ring().zero())
-
-    zero_element = deprecated_function_alias(17694, zero)
 
     def identity_element(self):
         """
@@ -393,10 +406,9 @@ class LazyPowerSeriesRing(Algebra):
         """
         EXAMPLES::
 
-            sage: from builtins import map
             sage: from sage.combinat.species.stream import _integers_from
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: g = map(lambda i: L([1]+[0]*i+[1]), _integers_from(0))
+            sage: g = (L([1]+[0]*i+[1]) for i in _integers_from(0))
             sage: g2 = L._product_generator_gen(g)
             sage: [next(g2) for i in range(10)]
             [1, 1, 2, 4, 7, 12, 20, 33, 53, 84]
@@ -1475,7 +1487,7 @@ class LazyPowerSeries(AlgebraElement):
             #Check to see if the stream is finite
             if self.is_finite(n-1):
                 yield self._stream[n-1]
-                raise StopIteration
+                break
             else:
                 yield (Integer(1)/Integer(n))*self._stream[n-1]
                 n += 1
@@ -1498,7 +1510,6 @@ class LazyPowerSeries(AlgebraElement):
 
         if ao == inf:
             yield self._zero
-            raise StopIteration
         else:
             for _ in range(ao-1):
                 yield self._zero
@@ -1510,7 +1521,7 @@ class LazyPowerSeries(AlgebraElement):
                 #Check to see if the stream is finite
                 if self.is_finite(n-1):
                     yield self.coefficient(n-1)
-                    raise StopIteration
+                    break
                 else:
                     yield (Integer(1)/Integer(n))*self.coefficient(n-1)
                     n += 1

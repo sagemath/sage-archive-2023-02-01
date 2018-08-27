@@ -100,29 +100,29 @@ A relative number field example::
     sage: UL.zeta_order()
     24
     sage: UL.roots_of_unity()
-    [-b*a,
-     -b^2*a - b^2,
-     -b^3,
-     -a,
-     -b*a - b,
-     -b^2,
-     b^3*a,
-     -a - 1,
-     -b,
-     b^2*a,
-     b^3*a + b^3,
-     -1,
-     b*a,
-     b^2*a + b^2,
-     b^3,
-     a,
-     b*a + b,
-     b^2,
-     -b^3*a,
-     a + 1,
-     b,
+    [-b^3*a - b^3,
      -b^2*a,
-     -b^3*a - b^3,
+     b,
+     a + 1,
+     -b^3*a,
+     b^2,
+     b*a + b,
+     a,
+     b^3,
+     b^2*a + b^2,
+     b*a,
+     -1,
+     b^3*a + b^3,
+     b^2*a,
+     -b,
+     -a - 1,
+     b^3*a,
+     -b^2,
+     -b*a - b,
+     -a,
+     -b^3,
+     -b^2*a - b^2,
+     -b*a,
      1]
 
 A relative extension example, which worked thanks to the code review by F.W.Clarke::
@@ -204,7 +204,13 @@ class UnitGroup(AbelianGroupWithValues_class):
     An S-unit group::
 
         sage: SUK = UnitGroup(K,S=21); SUK
-        S-unit group with structure C26 x Z x Z x Z x Z x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (3, z^3 + z^2 - 1), Fractional ideal (3, z^3 + z^2 + z - 1), Fractional ideal (3, z^3 - z - 1), Fractional ideal (3, z^3 - z^2 - z - 1), Fractional ideal (7))
+        S-unit group with structure C26 x Z x Z x Z x Z x Z x Z x Z x Z x Z x Z of
+         Cyclotomic Field of order 13 and degree 12 with
+         S = (Fractional ideal (3, z^3 - z - 1),
+              Fractional ideal (3, z^3 + z^2 + z - 1),
+              Fractional ideal (3, z^3 + z^2 - 1),
+              Fractional ideal (3, z^3 - z^2 - z - 1),
+              Fractional ideal (7))
         sage: SUK.rank()
         10
         sage: SUK.zeta_order()

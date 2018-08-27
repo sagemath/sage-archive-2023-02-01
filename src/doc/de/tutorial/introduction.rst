@@ -63,7 +63,7 @@ Installation
 
 Falls Sie Sage auf Ihrem Computer nicht installiert haben und nur ein
 paar Befehle ausführen möchten, können Sie es online unter
-http://www.sagenb.org benutzen.
+http://sagecell.sagemath.org benutzen.
 
 Schauen Sie sich den `Sage Installation Guide <http://doc.sagemath.org/html/en/installation/index.html>`_ an, um Anleitungen
 zur Installation von Sage auf Ihrem Computer zu erhalten.

@@ -19,6 +19,7 @@ fields (generally `\RR` or `\CC`).
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sage.rings.complex_double
 
@@ -64,7 +65,7 @@ cdef class NumberFieldEmbedding(Morphism):
         else:
             self._gen_image = R(gen_embedding)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         A helper for pickling and copying.
 
@@ -91,8 +92,9 @@ cdef class NumberFieldEmbedding(Morphism):
             sage: g(a)^3
             2.00000000000000?
         """
-        _slots['_gen_image'] = self._gen_image
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots['_gen_image'] = self._gen_image
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -609,7 +611,7 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
             -1
         """
         Morphism.__init__(self, K, L)
-        from number_field import NumberField_cyclotomic
+        from .number_field import NumberField_cyclotomic
         if not isinstance(K, NumberField_cyclotomic) or not isinstance(L, NumberField_cyclotomic):
             raise TypeError("CyclotomicFieldEmbedding only valid for cyclotomic fields.")
         Kn = K._n()
@@ -619,7 +621,7 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
         self.ratio = L._log_gen(K.coerce_embedding()(K.gen()))
         self._gen_image = L.gen() ** self.ratio
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         A helper for pickling and copying.
 
@@ -646,9 +648,9 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
             sage: g(cf6.0)
             zeta12^2
         """
-        _slots['_gen_image'] = self._gen_image
-        _slots['ratio'] = self.ratio
-        return Morphism._extra_slots(self, _slots)
+        slots = NumberFieldEmbedding._extra_slots(self)
+        slots['ratio'] = self.ratio
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

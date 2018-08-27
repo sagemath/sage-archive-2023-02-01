@@ -2513,7 +2513,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                         self._parent, 0)
         return c
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, Element right):
         r"""
         Multiply ``self`` on the right by scalar.
 
@@ -2542,7 +2542,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                         self._parent, 0)
         return r
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, Element left):
         r"""
         Multiply ``self`` on the left by scalar.
 
@@ -3160,6 +3160,7 @@ cdef class ConstantSkewPolynomialSection(Map):
         else:
             raise TypeError("not a constant polynomial")
 
+
 cdef class SkewPolynomialBaseringInjection(Morphism):
     r"""
     Representation of the canonical homomorphism from a ring `R` into a skew
@@ -3170,7 +3171,7 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
 
     .. SEEALSO::
 
-        :class:~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
+        :class:`~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
 
     EXAMPLES::
 

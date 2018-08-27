@@ -16,7 +16,7 @@ Elements of Arithmetic Subgroups
 from __future__ import absolute_import
 
 from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, Element
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.rings.all import ZZ
 from sage.modular.cusps import Cusp
 
@@ -111,7 +111,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         from .congroup_sl2z import SL2Z
         oldparent, kwdict = state
-        self._set_parent(SL2Z)
+        self._parent = SL2Z
         if '_ArithmeticSubgroupElement__x' in kwdict:
             self.__x = M2Z(kwdict['_ArithmeticSubgroupElement__x'])
         elif '_CongruenceSubgroupElement__x' in kwdict:
@@ -413,7 +413,8 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: hash(SL2Z.0)
-            -4
+            -8192788425652673914  # 64-bit
+            -1995808122           # 32-bit
         """
         return hash(self.__x)
 

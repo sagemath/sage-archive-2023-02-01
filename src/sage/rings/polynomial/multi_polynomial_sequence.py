@@ -1,4 +1,4 @@
-"""
+r"""
 Polynomial Sequences
 
 We call a finite list of polynomials a ``Polynomial Sequence``.
@@ -129,9 +129,9 @@ easily::
     sage: A.rank()
     4056
     sage: A[4055]*v
-    (k001*k003)
+    (k002*k003)
 
-TEST::
+TESTS::
 
     sage: P.<x,y> = PolynomialRing(QQ)
     sage: I = [[x^2 + y^2], [x^2 - y^2]]
@@ -160,7 +160,6 @@ from sage.misc.cachefunc import cached_method
 
 from types import GeneratorType
 from sage.misc.converting_dict import KeyConvertingDict
-from sage.misc.package import is_package_installed
 
 from sage.structure.sequence import Sequence, Sequence_generic
 
@@ -267,8 +266,8 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     TESTS:
 
-    A PolynomialSequence can exist with elements in a infinite field of
-    characteristic 2 that is not (see :trac:`19452`)::
+    A PolynomialSequence can exist with elements in an infinite field of
+    characteristic 2 (see :trac:`19452`)::
 
         sage: from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         sage: F = GF(2)
@@ -277,8 +276,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         sage: PolynomialSequence([0], R)
         [0]
     """
-
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial
 
     is_ring = lambda r: is_MPolynomialRing(r) or isinstance(r, BooleanMonomialMonoid) or (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring()))
@@ -514,6 +512,19 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: gb = F.groebner_basis()
             sage: Ideal(gb).basis_is_groebner()
             True
+
+        TESTS:
+
+        Check that this method also works for boolean polynomials
+        (:trac:`10680`)::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: F0 = Sequence(map(lambda f: f.lm(),[a,b,c,d]))
+            sage: F0.groebner_basis()
+            [a, b, c, d]
+            sage: F1 = Sequence([a,b,c*d,d^2])
+            sage: F1.groebner_basis()
+            [a, b, d]
         """
         return self.ideal().groebner_basis(*args, **kwargs)
 
@@ -649,7 +660,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
         J = RR.ideal([ Ts[j] - RR(self[j]) for j in range(r)])
         JJ = J.elimination_ideal(Xs)
-        # By the elimination theorem, JJ is the kernel of the ring homorphism
+        # By the elimination theorem, JJ is the kernel of the ring morphism
         # `phi:K[\bar T] \to K[\bar X]` that fixes `K` and sends each
         # `T_i` to `f_i`.
         # So JJ is the ideal of annihilating polynomials of `f_1,\ldots,f_r`,
@@ -1035,7 +1046,7 @@ class PolynomialSequence_generic(Sequence_generic):
         ALGORITHM:
 
         Uses Singular's interred command or
-        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
+        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction`
         if conversion to Singular fails.
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
@@ -1067,7 +1078,7 @@ class PolynomialSequence_generic(Sequence_generic):
     def is_groebner(self, singular=singular):
         r"""
         Returns ``True`` if the generators of this ideal (``self.gens()``)
-        form a Grbner basis.
+        form a Groebner basis.
 
         Let `I` be the set of generators of this ideal. The check is
         performed by trying to lift `Syz(LM(I))` to `Syz(I)` as `I`
@@ -1090,7 +1101,7 @@ class PolynomialSequence_generic(Sequence_generic):
         return self.ideal().basis_is_groebner()
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
-    """
+    r"""
     Polynomial Sequences over `\mathbb{F}_2`.
     """
     def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False, use_polybori=False):
@@ -1430,9 +1441,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         if S != []:
             if algorithm == "exhaustive_search":
-                if not is_package_installed('fes'):
-                    from sage.misc.package import PackageNotFoundError
-                    raise PackageNotFoundError("fes")
+                from sage.features.fes import LibFES
+                LibFES().require()
                 from sage.libs.fes import exhaustive_search
                 solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)
 
@@ -1513,14 +1523,15 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         else:
             return PolynomialSequence_generic.reduced(self)
 
+
 class PolynomialSequence_gf2e(PolynomialSequence_generic):
-    """
+    r"""
     PolynomialSequence over `\mathbb{F}_{2^e}`, i.e extensions over
     GF(2).
     """
 
     def weil_restriction(self):
-        """
+        r"""
         Project this polynomial system to `\mathbb{F}_2`.
 
         That is, compute the Weil restriction of scalars for the
@@ -1551,6 +1562,6 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
         J += FieldIdeal(J.ring())
         return PolynomialSequence(J)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)

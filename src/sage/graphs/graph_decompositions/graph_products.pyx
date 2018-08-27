@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Products of graphs
 
@@ -229,11 +230,12 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     from sage.rings.integer import Integer
     H = g
 
-    # Of course the number of vertices of g can not be prime !
-    if g.order() <= 1 or Integer(g.order()).is_prime():
-        return (False, None) if relabeling else False
     if not g.is_connected():
-        raise ValueError("The graph must be connected !")
+        raise NotImplementedError("recognition of Cartesian product is not implemented for disconnected graphs")
+
+    # Of course the number of vertices of g can not be prime !
+    if g.order() <= 3 or Integer(g.order()).is_prime():
+        return (False, None) if relabeling else False
 
     from sage.graphs.graph import Graph
 

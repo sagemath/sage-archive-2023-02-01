@@ -20,7 +20,7 @@ Methods index
     :meth:`~GLPKGraphBackend.set_vertex_demand`   | Sets the vertex parameters.
     :meth:`~GLPKGraphBackend.set_vertices_demand` | Sets the parameters of selected vertices.
     :meth:`~GLPKGraphBackend.get_vertex`          | Returns a specific vertex as a ``dict`` Object.
-    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictonaries associated to each vertex.
+    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictionaries associated to each vertex.
     :meth:`~GLPKGraphBackend.vertices`            | Returns a ``list`` of all vertices.
     :meth:`~GLPKGraphBackend.delete_vertex`       | Removes a vertex from the graph.
     :meth:`~GLPKGraphBackend.delete_vertices`     | Removes vertices from the graph.
@@ -67,13 +67,14 @@ Classes and methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
+
+from cysignals.memory cimport check_allocarray, sig_free
 
 from sage.libs.glpk.constants cimport *
 from sage.libs.glpk.graph cimport *
 from sage.numerical.mip import MIPSolverException
-
-include "cysignals/memory.pxi"
 
 cdef class GLPKGraphBackend(object):
     """
@@ -119,7 +120,7 @@ cdef class GLPKGraphBackend(object):
      * - ``dimacs``
 
        - Read data from a plain ASCII text file in DIMACS format.
-         A discription of the DIMACS format can be found at
+         A description of the DIMACS format can be found at
          http://dimacs.rutgers.edu/Challenges/.
 
      * - ``mincost``
@@ -495,7 +496,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef dict get_vertices(self, verts):
         """
-        Returns a dictionary of the dictonaries associated to each vertex.
+        Returns a dictionary of the dictionaries associated to each vertex.
 
         INPUT:
 
@@ -625,7 +626,7 @@ cdef class GLPKGraphBackend(object):
 
         - ``edges`` -- An iterable container of pairs of the form ``(u, v)``,
           where ``u`` is name (as ``str``) of the tail vertex and ``v`` is the
-          name (as ``str``) of the head vertex or an interable container of
+          name (as ``str``) of the head vertex or an iterable container of
           triples of the form ``(u, v, params)`` where params is a ``dict`` as
           described in ``add_edge``.
 
@@ -845,15 +846,11 @@ cdef class GLPKGraphBackend(object):
         if i < 0:
             raise RuntimeError("Vertex %s does not exist."%(vert))
 
-        cdef int * num = <int *> sig_malloc(2 * sizeof(int))
+        cdef int num[2]
         num[1] = i + 1
         cdef int ndel = 1
 
-        if not num:
-            raise MemoryError("Error allocating memory.")
-
         glp_del_vertices(self.graph, ndel, num)
-        sig_free(num)
 
     cpdef delete_vertices(self, list verts):
         r"""
@@ -889,9 +886,7 @@ cdef class GLPKGraphBackend(object):
             i = verts_val.index(-1)
             raise RuntimeError("Vertex %s does not exist."%(verts[i]))
 
-        cdef int * num = <int *> sig_malloc((len(verts_val)+1) * sizeof(int))
-        if not num:
-            raise MemoryError("Error allocating memory.")
+        cdef int * num = <int *>check_allocarray(len(verts_val) + 1, sizeof(int))
         cdef int ndel = len(verts_val)
 
         for i,(v) in enumerate(verts_val):
@@ -912,7 +907,7 @@ cdef class GLPKGraphBackend(object):
         - ``u`` -- The name (as ``str``) of the tail vertex of the edge
         - ``v`` -- The name (as ``str``) of the tail vertex of the edge
         - ``params`` -- ``params`` -- An optional ``dict`` containing the edge
-          parameters (see :meth:``add_edge``). If this parameter
+          parameters (see :meth:`add_edge`). If this parameter
           is not provided, all edges connecting ``u`` and ``v`` are deleted.
           Otherwise only edges with matching parameters are deleted.
 
@@ -1070,7 +1065,7 @@ cdef class GLPKGraphBackend(object):
         Writes the graph to a text file in DIMACS format.
 
         Writes the data to plain ASCII text file in DIMACS format.
-        A discription of the DIMACS format can be found at
+        A description of the DIMACS format can be found at
         http://dimacs.rutgers.edu/Challenges/.
 
         INPUT:

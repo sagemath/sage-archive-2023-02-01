@@ -1,4 +1,4 @@
-"""
+r"""
 Commutative Differential Graded Algebras
 
 An algebra is said to be *graded commutative* if it is endowed with a
@@ -71,9 +71,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six import string_types
 
-import six
+from sage.misc.six import with_metaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -97,7 +98,11 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 
-class Differential(UniqueRepresentation, Morphism):
+
+class Differential(with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        UniqueRepresentation, Morphism
+    )):
     r"""
     Differential of a commutative graded algebra.
 
@@ -119,8 +124,6 @@ class Differential(UniqueRepresentation, Morphism):
         sage: B.differential()(x)
         x*y
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, A, im_gens):
         r"""
@@ -325,8 +328,8 @@ class Differential(UniqueRepresentation, Morphism):
         """
         A = self.domain()
         dom = A.basis(n)
-        cod = A.basis(n+1)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cod = A.basis(n + 1)
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(A.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -568,7 +571,7 @@ class Differential_multigraded(Differential):
         n = G(vector(n))
         dom = A.basis(n)
         cod = A.basis(n+self._degree_of_differential)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(self.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -847,7 +850,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             else:
                 n = len(degrees)
             names = tuple('x{}'.format(i) for i in range(n))
-        elif isinstance(names, six.string_types):
+        elif isinstance(names, string_types):
             names = tuple(names.split(','))
             n = len(names)
         else:
@@ -1051,7 +1054,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             el = prod([self.gen(i)**v[i] for i in range(len(v))])
             di = el.dict()
             if len(di) == 1:
-                if tuple(di.keys()[0]) == v:
+                k, = di.keys()
+                if tuple(k) == v:
                     basis.append(el)
         return basis
 
@@ -1406,11 +1410,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 raise ValueError('This element is not homogeneous')
 
             basis = self.parent().basis(self.degree(total))
-            F = self.parent().base()
             lift = self.lift()
-            monos = self.monomials()
-            c = [lift.monomial_coefficient(x.lift()) for x in basis]
-            return c
+            return [lift.monomial_coefficient(x.lift()) for x in basis]
 
 
 class GCAlgebra_multigraded(GCAlgebra):
@@ -2642,7 +2643,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     if degrees:
         try:
             for d in degrees:
-                _ = list(d)
+                list(d)
             # If the previous line doesn't raise an error, looks multi-graded.
             multi = True
         except TypeError:

@@ -194,8 +194,6 @@ suivant :
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
 
 Types de données
 ================
@@ -327,7 +325,7 @@ Sage) :
 
 ::
 
-    sage: range(1, 15)
+    sage: range(1, 15)  # py2
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 Cela est utile pour construire des listes par compréhension :

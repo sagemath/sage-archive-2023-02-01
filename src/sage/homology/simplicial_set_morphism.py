@@ -29,6 +29,7 @@ This module implements morphisms and homsets of simplicial sets.
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
+from six.moves import range
 
 import itertools
 
@@ -319,7 +320,7 @@ class SimplicialSetMorphism(Morphism):
         r"""
         Return a morphism of simplicial sets.
 
-        INPUTS:
+        INPUT:
 
         - ``data`` -- optional. Dictionary defining the map.
         - ``domain`` -- simplicial set
@@ -497,16 +498,16 @@ class SimplicialSetMorphism(Morphism):
         d = {sigma:data[sigma] for sigma in data if sigma.is_nondegenerate()}
         # For each simplex in d.keys(), add its faces, and the faces
         # of its faces, etc., to d.
-        for simplex in d.keys():
+        for simplex in list(d):
             faces = domain.faces(simplex)
             add = []
             if faces:
-                for (i,sigma) in enumerate(faces):
+                for (i, sigma) in enumerate(faces):
                     nondegen = sigma.nondegenerate()
                     if nondegen not in d:
-                        add.append((sigma,i,simplex))
+                        add.append((sigma, i, simplex))
             while add:
-                (sigma,i,tau) = add.pop()
+                (sigma, i, tau) = add.pop()
                 # sigma is the ith face of tau.
                 face_f = codomain.face(d[tau], i)
                 degens = sigma.degeneracies()
@@ -634,7 +635,7 @@ class SimplicialSetMorphism(Morphism):
             raise ValueError('element is not a simplex in the domain')
         if self.is_constant():
             target = self._constant
-            return target.apply_degeneracies(*range(x.dimension()-1,-1,-1))
+            return target.apply_degeneracies(*range(x.dimension()-1, -1, -1))
         if self._is_identity:
             return x
         return self._dictionary[x.nondegenerate()].apply_degeneracies(*x.degeneracies())
@@ -794,7 +795,7 @@ class SimplicialSetMorphism(Morphism):
 
     def is_injective(self):
         """
-        Return ``True`` if this map is surjective.
+        Return ``True`` if this map is injective.
 
         EXAMPLES::
 
@@ -824,7 +825,7 @@ class SimplicialSetMorphism(Morphism):
 
     def is_bijective(self):
         """
-        Return ``True`` if this map is surjective.
+        Return ``True`` if this map is bijective.
 
         EXAMPLES::
 
@@ -1333,7 +1334,7 @@ class SimplicialSetMorphism(Morphism):
             Y_faces = list(self.codomain().n_cells(dim))
             num_faces_X = len(X_faces)
             num_faces_Y = len(Y_faces)
-            mval = [0 for i in range(num_faces_X * num_faces_Y)]
+            mval = [0 for _ in range(num_faces_X * num_faces_Y)]
             for idx,x in enumerate(X_faces):
                 y = self(x)
                 if y.is_nondegenerate():

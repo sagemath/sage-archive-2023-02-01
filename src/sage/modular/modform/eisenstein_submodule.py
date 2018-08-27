@@ -103,7 +103,7 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
 
             sage: E = EisensteinForms(eps, 1); E
-            Eisenstein subspace of dimension 1 of Modular Forms space of dimension 1, character [zeta12] and weight 1 over Cyclotomic Field of order 12 and degree 4
+            Eisenstein subspace of dimension 1 of Modular Forms space of character [zeta12] and weight 1 over Cyclotomic Field of order 12 and degree 4
             sage: E.modular_symbols()
             Traceback (most recent call last):
             ...
@@ -662,7 +662,6 @@ def cyclotomic_restriction_tower(L,K):
         raise ValueError("K must be contained in L")
     f = L.defining_polynomial()
     R = K['x']
-    x = R.gen()
     g = R(f)
     h_ls = [ t[0] for t in g.factor() if t[0](L.gen(0)) == 0 ]
     if len(h_ls) == 0:

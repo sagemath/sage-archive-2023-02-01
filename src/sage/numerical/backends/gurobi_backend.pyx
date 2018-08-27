@@ -19,16 +19,19 @@ Methods
 -------
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.numerical.mip import MIPSolverException
 
@@ -57,11 +60,13 @@ cdef class GurobiBackend(GenericBackend):
 
         # Initializing the master Environment. This one is kept to be
         # deallocated on __dealloc__
-        error = GRBloadenv(&self.env_master, NULL)
-
+        error = GRBemptyenv(&self.env_master)
         if self.env_master == NULL:
             raise RuntimeError("Could not initialize Gurobi environment")
-
+        check(self.env_master, error)
+        error = GRBsetintparam(self.env_master, "OutputFlag", 0)
+        check(self.env_master, error)
+        error = GRBstartenv(self.env_master)
         check(self.env_master, error)
 
         # Initializing the model
@@ -221,7 +226,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.nrows()
             0
             sage: p.add_linear_constraints(5, 0, None)
-            sage: p.add_col(range(5), range(5))
+            sage: p.add_col(list(range(5)), list(range(5)))
             sage: p.nrows()
             5
         """

@@ -404,7 +404,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             z._entries.rows[0][i] = (self._entries.rows[0][i] & r._entries.rows[0][i])
         return z
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         EXAMPLES::
 

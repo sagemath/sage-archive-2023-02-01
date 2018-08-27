@@ -439,7 +439,7 @@ class Core(CombinatorialElement):
 
             sage: c = Core([1],3)
             sage: c.weak_covers()
-            [[2], [1, 1]]
+            [[1, 1], [2]]
 
             sage: c = Core([4,2],3)
             sage: c.weak_covers()

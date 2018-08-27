@@ -12,7 +12,10 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/signals.pxi"
+
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -124,7 +127,7 @@ cdef class ntl_mat_ZZ(object):
             sage: M = ntl.mat_ZZ(2,3,[5..10]) ; M.__repr__()
             '[\n[5 6 7]\n[8 9 10]\n]'
         """
-        return mat_ZZ_to_PyString(&self.x).replace('[[','[\n[',1)
+        return ccrepr(self.x).replace('[[','[\n[',1)
 
     def __mul__(ntl_mat_ZZ self, other):
         """

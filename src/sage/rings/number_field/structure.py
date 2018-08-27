@@ -14,8 +14,8 @@ Both produce the same extension of `\QQ`. However, they should not be
 identical because `M` carries additional information::
 
     sage: L.structure()
-    (Ring Coercion endomorphism of Number Field in a with defining polynomial x^2 - 2,
-     Ring Coercion endomorphism of Number Field in a with defining polynomial x^2 - 2)
+    (Identity endomorphism of Number Field in a with defining polynomial x^2 - 2,
+     Identity endomorphism of Number Field in a with defining polynomial x^2 - 2)
     sage: M.structure()
     (Isomorphism given by variable name change map:
       From: Number Field in a with defining polynomial x^2 - 2
@@ -151,6 +151,15 @@ class NameChange(NumberFieldStructure):
         sage: K.<i> = QuadraticField(-1)
         sage: NameChange(K)
         <sage.rings.number_field.structure.NameChange object at 0x...>
+
+    Check for memory leaks:
+
+        sage: u=id(NumberField(x^2-5,'a').absolute_field('b'))
+        sage: import gc
+        sage: gc.collect() #random
+        10
+        sage: [id(v) for v in gc.get_objects() if id(v) == u]
+        []
 
     """
     def create_structure(self, field):

@@ -45,6 +45,46 @@ class CommutativeRings(CategoryWithAxiom):
         True
 
     """
+    class ParentMethods:
+        def _test_divides(self, **options):
+            r"""
+            Run generic tests on the method :meth:`divides`.
+
+            EXAMPLES::
+
+                sage: ZZ._test_divides()
+            """
+            tester = self._tester(**options)
+
+            # 1. is there a divides method ?
+            a = self.an_element()
+            try:
+                a.divides
+            except AttributeError:
+                return
+
+            # 2. divisibility of 0 and 1
+            z = self.zero()
+            o = self.one()
+
+            tester.assertTrue(z.divides(z))
+            tester.assertTrue(o.divides(o))
+            tester.assertTrue(o.divides(z))
+            tester.assertTrue(z.divides(o) is self.is_zero())
+
+            if not self.is_exact():
+                return
+
+            # 3. divisibility of some elements
+            S = tester.some_elements()
+            for a,b in tester.some_elements(repeat=2):
+                try:
+                    test = a.divides(a*b)
+                except NotImplementedError:
+                    pass
+                else:
+                    tester.assertTrue(test)
+
     class ElementMethods:
         pass
 
@@ -85,7 +125,7 @@ class CommutativeRings(CategoryWithAxiom):
                 .. NOTE::
 
                     When `R = \ZZ / n \ZZ` the smallest element of each coset is
-                    sometimes callled a *coset leader*. This function returns
+                    sometimes called a *coset leader*. This function returns
                     sorted lists so that the coset leader will always be the
                     first element of the coset.
 

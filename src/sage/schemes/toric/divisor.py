@@ -672,12 +672,12 @@ class ToricDivisor_generic(Divisor_generic):
             sage: vector(D)        # syntactic sugar
             (0, 1, 1, 0, 0, 0)
             sage: type( vector(D) )
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            <... 'sage.modules.vector_integer_dense.Vector_integer_dense'>
             sage: D_QQ = dP6.divisor((0,1,1,0,0,0), base_ring=QQ);
             sage: vector(D_QQ)
             (0, 1, 1, 0, 0, 0)
             sage: type( vector(D_QQ) )
-            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+            <... 'sage.modules.vector_rational_dense.Vector_rational_dense'>
 
         The vector representation is a suitable input for :func:`ToricDivisor` ::
 
@@ -742,7 +742,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        - an interger or a rational number.
+        - an integer or a rational number.
 
         EXAMPLES::
 
@@ -934,7 +934,7 @@ class ToricDivisor_generic(Divisor_generic):
         return self._is_Cartier
 
     def is_QQ_Cartier(self):
-        """
+        r"""
         Return whether the divisor is a `\QQ`-Cartier divisor.
 
         A `\QQ`-Cartier divisor is a divisor such that some multiple
@@ -1128,7 +1128,7 @@ class ToricDivisor_generic(Divisor_generic):
                     for i, cone_1d in enumerate(fan(dim=1)) )
 
     def is_ample(self):
-        """
+        r"""
         Return whether a `\QQ`-Cartier divisor is ample.
 
         OUTPUT:
@@ -1212,7 +1212,7 @@ class ToricDivisor_generic(Divisor_generic):
         return self._is_ample
 
     def is_nef(self):
-        """
+        r"""
         Return whether a `\QQ`-Cartier divisor is nef.
 
         OUTPUT:
@@ -1724,7 +1724,7 @@ class ToricDivisor_generic(Divisor_generic):
         cohomology. For toric divisors, the local sections can be
         chosen to be monomials (instead of general homogeneous
         polynomials), this is the reason for the extra grading by
-        `m\in M`. General refrences would be [Fu1993]_, [CLS]_. Here
+        `m\in M`. General references would be [Fu1993]_, [CLS]_. Here
         are some salient features of our implementation:
 
         * First, a finite set of `M`-lattice points is identified that

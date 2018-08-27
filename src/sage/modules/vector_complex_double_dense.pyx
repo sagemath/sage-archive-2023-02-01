@@ -39,13 +39,14 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.complex_double import CDF
 
 cimport numpy
 
 
-cdef class Vector_complex_double_dense(vector_double_dense.Vector_double_dense):
+cdef class Vector_complex_double_dense(Vector_double_dense):
     """
     Vectors over the Complex Double Field.  These are supposed to be
     fast vector operations using C doubles. Most operations are

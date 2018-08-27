@@ -727,7 +727,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                     zero = self._base_ring()(0)
                     self._list.extend([zero] * (n - len(self._list)) + [value])
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         Return ``self`` as a Pari object.
         """

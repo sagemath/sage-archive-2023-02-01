@@ -25,6 +25,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cpython.int cimport *
 from sage.ext.stdsage cimport PY_NEW
@@ -34,9 +35,11 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 import sage.rings.finite_rings.integer_mod
-from sage.libs.cypari2.types cimport *
-from sage.libs.cypari2.gen cimport Gen as pari_gen
+from cypari2.types cimport *
+from cypari2.gen cimport Gen as pari_gen
 from sage.rings.infinity import infinity
+from sage.structure.element cimport parent
+
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 # The following Integer is used so that the functions here don't need to initialize an mpz_t.
@@ -139,7 +142,6 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             return maxordp
         k = mpz_remove(temp.value, value.value, prime_pow.prime.value)
     else:
-        from sage.structure.element import parent
         raise NotImplementedError("Can not determine p-adic valuation of an element of %s"%parent(x))
     # Should check for overflow
     return k * e
@@ -210,7 +212,6 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
         if mpz_cmp_ui(temp.value, 1) != 0:
             raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
     else:
-        from sage.structure.element import parent
         raise NotImplementedError("Can not determine p-adic precision of an element of %s"%parent(x))
     return k * e
 
@@ -356,7 +357,11 @@ cdef inline int cconv_mpq_t_out_shared(mpq_t out, mpz_t x, long valshift, long p
     -` ``prec`` -- a long, the precision of ``x``, used in rational reconstruction
     - ``prime_pow`` -- a PowComputer for the ring
     """
-    mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec))
+    try:
+        mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec))
+    except (ArithmeticError, ValueError):
+        mpz_set(mpq_numref(out), x)
+        mpz_set_ui(mpq_denref(out), 1)
 
     # if valshift is nonzero then we starte with x as a p-adic unit,
     # so there will be no powers of p in the numerator or denominator

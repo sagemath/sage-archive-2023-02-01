@@ -550,7 +550,7 @@ class SubwordComplexFacet(Simplex, Element):
             if coefficients is not None:
                 coeff = {I[i]: coefficients[i]
                          for i in range(len(coefficients))}
-                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda}
+                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda.keys()}
             Q = self.parent().word()
             V_weights = []
             pi = W.one()

@@ -14,7 +14,7 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
-from sage.misc.package import PackageNotFoundError
+from __future__ import absolute_import
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
@@ -122,19 +122,18 @@ cdef class SatSolver:
             [((1, -3), False, None), ((2, 3, -1), False, None)]
         """
         if isinstance(filename,str):
-            file_object = open(filename,"r")
+            file_object = open(filename, "r")
         else:
             file_object = filename
         for line in file_object:
             if line.startswith("c"):
-                continue # comment
+                continue  # comment
             if line.startswith("p"):
-                continue # header
+                continue  # header
             line = line.split(" ")
-            clause = map(int,[e for e in line if e])
+            clause = [int(e) for e in line if e]
             clause = clause[:-1] # strip trailing zero
             self.add_clause(clause)
-
 
     def __call__(self, assumptions=None):
         """
@@ -276,7 +275,7 @@ cdef class SatSolver:
         """
         return ["gens"]
 
-def SAT(solver=None):
+def SAT(solver=None, *args, **kwds):
     r"""
     Return a :class:`SatSolver` instance.
 
@@ -311,25 +310,21 @@ def SAT(solver=None):
     Forcing CryptoMiniSat::
 
         sage: SAT(solver="cryptominisat") # optional - cryptominisat
-        CryptoMiniSat
-        #vars:       0, #lits:       0, #clauses:       0, #learnt:       0, #assigns:       0
-
+        CryptoMiniSat solver: 0 variables, 0 clauses.
     """
     if solver is None:
-        try:
-            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
-            solver = "cryptominisat"
-        except ImportError:
+        import pkgutil
+        if pkgutil.find_loader('pycryptosat') is None:
             solver = "LP"
+        else:
+            solver = "cryptominisat"
 
     if solver == 'cryptominisat':
-        try:
-            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
-        except ImportError:
-            raise PackageNotFoundError("cryptominisat")
-        return CryptoMiniSat()
+        from sage.sat.solvers.cryptominisat import CryptoMiniSat
+        return CryptoMiniSat(*args, **kwds)
     elif solver == "LP":
-        from sat_lp import SatLP
+        from .sat_lp import SatLP
         return SatLP()
     else:
         raise ValueError("Solver '{}' is not available".format(solver))
+

@@ -47,11 +47,11 @@ def sphinxify(docstring, format='html'):
 
         sage: from sage.misc.sphinxify import sphinxify
         sage: sphinxify('A test')
-        '...<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
+        '<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
         sage: sphinxify('**Testing**\n`monospace`')
-        '...<div class="docstring"...<strong>Testing</strong>\n<span class="math"...</p>\n\n\n</div>'
+        '<div class="docstring"...<strong>Testing</strong>\n<span class="math...</p>\n\n\n</div>'
         sage: sphinxify('`x=y`')
-        '...<div class="docstring">\n    \n  <p><span class="math">x=y</span></p>\n\n\n</div>'
+        '<div class="docstring">\n    \n  <p><span class="math notranslate nohighlight">x=y</span></p>\n\n\n</div>'
         sage: sphinxify('`x=y`', format='text')
         'x=y\n'
         sage: sphinxify(':math:`x=y`', format='text')
@@ -80,6 +80,10 @@ def sphinxify(docstring, format='html'):
     # buildername, confoverrides, status, warning, freshenv).
     confdir = os.path.join(SAGE_DOC_SRC, 'en', 'introspect')
 
+    open(os.path.join(srcdir, 'docutils.conf'), 'w').write(r"""
+[parsers]
+smart_quotes = no
+""")
     doctreedir = os.path.join(srcdir, 'doctrees')
     confoverrides = {'html_context': {}, 'master_doc': 'docstring'}
 

@@ -21,7 +21,7 @@ cdef extern from *: # hack to get at cython macro
     int unlikely(int)
     int likely(int)
 
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.libs.singular.decl cimport ideal, ring, poly, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing
 from sage.libs.singular.decl cimport new_skStrategy, delete_skStrategy, id_RankFreeModule
@@ -141,7 +141,7 @@ cdef class GroebnerStrategy(SageObject):
 
     def __dealloc__(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
             sage: P.<x,y,z> = PolynomialRing(GF(32003))
@@ -176,7 +176,7 @@ cdef class GroebnerStrategy(SageObject):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
             sage: P.<x,y,z> = PolynomialRing(GF(32003))
@@ -378,7 +378,7 @@ cdef class NCGroebnerStrategy(SageObject):
 
     def __dealloc__(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.libs.singular.groebner_strategy import NCGroebnerStrategy
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
@@ -410,7 +410,7 @@ cdef class NCGroebnerStrategy(SageObject):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.libs.singular.groebner_strategy import NCGroebnerStrategy
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)

@@ -60,7 +60,7 @@ Installation
 ============
 
 If you do not have Sage installed on a computer and just
-want to try some commands, use online at http://www.sagenb.org.
+want to try some commands, use it online at http://sagecell.sagemath.org.
 
 See the Sage Installation Guide in the documentation section of the
 main Sage webpage [SA]_ for instructions on installing Sage on your

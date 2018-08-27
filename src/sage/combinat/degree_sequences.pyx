@@ -264,9 +264,10 @@ Checking the consistency of enumeration and test::
 
 
 from libc.string cimport memset
+from cysignals.memory cimport check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.rings.integer cimport Integer
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 
 
 cdef unsigned char * seq
@@ -375,7 +376,7 @@ class DegreeSequences:
         """
         Representing the element
 
-        TEST::
+        TESTS::
 
             sage: DegreeSequences(6)
             Degree sequences on 6 elements
@@ -401,8 +402,7 @@ class DegreeSequences:
         """
         Freeing the memory
         """
-        if seq != NULL:
-            sig_free(seq)
+        sig_free(seq)
 
 cdef init(int n):
     """
@@ -417,10 +417,7 @@ cdef init(int n):
     elif n == 1:
         return [[0]]
 
-    sig_on()
-    seq = <unsigned char *> sig_malloc((n+1)*sizeof(unsigned char))
-    memset(seq,0,(n+1)*sizeof(unsigned char))
-    sig_off()
+    seq = <unsigned char *>check_calloc(n + 1, sizeof(unsigned char))
 
     # We begin with one vertex of degree 0
     seq[0] = 1

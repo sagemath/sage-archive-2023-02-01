@@ -7,16 +7,21 @@ templating.
 AUTHOR:
     -- Martin Albrecht (2008-10): initial version
 """
+
 #*****************************************************************************
 #       Copyright (C) 2008 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.libs.ntl.GF2 cimport *
 from sage.libs.ntl.GF2X cimport *
-include "cysignals/signals.pxi"
 
 
 cdef GF2X_c *celement_new(long parent):
@@ -66,7 +71,6 @@ cdef object celement_repr(GF2X_c *e, long parent):
         sage: x
         x
     """
-    #return GF2X_to_PyString(e)
     raise NotImplementedError
 
 cdef inline int celement_set(GF2X_c* res, GF2X_c* a, long parent) except -2:

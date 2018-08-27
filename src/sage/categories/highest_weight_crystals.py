@@ -837,7 +837,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
                 [The T crystal of type ['A', 2] and weight Lambda[2],
                  The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
               To:   The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
-              Defn: [Lambda[2], [[3]]] |--> [2, 1, 3]
+              Defn: [Lambda[2], [[3]]] |--> [[1, 3], [2]]
             sage: psi(Bp.highest_weight_vector())
             [[1, 1], [2]]
         """

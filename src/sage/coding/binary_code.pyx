@@ -30,18 +30,23 @@ AUTHOR:
 
 """
 
-#*******************************************************************************
-#         Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*******************************************************************************
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
+from __future__ import absolute_import, print_function
+
+from libc.string cimport memcpy
 from cpython.mem cimport *
 from cpython.object cimport PyObject_RichCompare
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
+
 from sage.structure.element import is_Matrix
 from sage.misc.misc import cputime
 from sage.rings.integer cimport Integer
@@ -1250,7 +1255,7 @@ cdef class OrbitPartition:
     which also keeps track of the minimum element and size of each
     cell of the partition, and the size of the partition.
 
-    * http://en.wikipedia.org/wiki/Disjoint-set_data_structure
+    See :wikipedia:`Disjoint-set_data_structure`
 
     """
     def __cinit__(self, int nrows, int ncols):
@@ -3119,7 +3124,7 @@ cdef class BinaryCodeClassifier:
         INPUT:
 
         - CC - a BinaryCode object
-        - verbosity - a nonnegative integer
+        - verbosity -- a nonnegative integer
 
         OUTPUT:
             a tuple, (gens, labeling, size, base)
@@ -3808,7 +3813,7 @@ cdef class BinaryCodeClassifier:
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()
             sage: B = BinaryCode(codes.GolayCode(GF(2)).generator_matrix())
-            sage: B.apply_permutation(range(24,-1,-1))
+            sage: B.apply_permutation(list(range(24,-1,-1)))
             sage: B
             Binary [24,12] linear code, generator matrix
             [011000111010100000000000]

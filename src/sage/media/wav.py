@@ -20,7 +20,7 @@ sample, and the number of channels in the file.
 
 AUTHORS:
 
-- Bobby Moretti and Gonzolo Tornaria (2007-07-01): First version
+- Bobby Moretti and Gonzalo Tornaria (2007-07-01): First version
 - William Stein (2007-07-03): add more
 - Bobby Moretti (2007-07-03): add doctests
 """
@@ -37,6 +37,7 @@ from sage.structure.sage_object import SageObject
 from sage.arith.srange import srange
 from sage.misc.html import html
 from sage.rings.all import RDF
+
 
 class Wave(SageObject):
     """
@@ -124,7 +125,6 @@ class Wave(SageObject):
 
         Creates a link to this wave file in the notebook.
         """
-        from sage.misc.html import html
         i = 0
         fname = 'sage%s.wav'%i
         while os.path.exists(fname):
@@ -194,7 +194,7 @@ class Wave(SageObject):
         OUTPUT:
             A list of bytes (in string form) representing the raw wav data.
         """
-        return self._bytes[:nframes*self._width]
+        return self._bytes[:self._nframes * self._width]
 
     def getlength(self):
         """

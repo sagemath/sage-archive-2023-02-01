@@ -41,7 +41,7 @@ Different operations with cusps over a number field:
     sage: alpha.ideal()
     Fractional ideal (7, a + 3)
     sage: alpha.ABmatrix()
-    [a + 10, -3*a + 1, 7, -2*a]
+    [a + 10, 2*a + 6, 7, a + 5]
     sage: alpha.apply([0, 1, -1,0])
     Cusp [7: -a - 10] of Number Field in a with defining polynomial x^2 + 5
 
@@ -82,10 +82,11 @@ List representatives for Gamma_0(N) - equivalence classes of cusps:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import integer_types
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
-from sage.structure.sage_object import richcmp, rich_to_bool
+from sage.structure.richcmp import richcmp, rich_to_bool
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
@@ -106,10 +107,10 @@ def NFCusps_clear_list_reprs_cache():
         sage: N = k.ideal(a+1)
         sage: sage.modular.cusps_nf.list_of_representatives(N)
         (Fractional ideal (1), Fractional ideal (17, a - 5))
-        sage: sage.modular.cusps_nf._list_reprs_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._list_reprs_cache)
         [Fractional ideal (a + 1)]
         sage: sage.modular.cusps_nf.NFCusps_clear_list_reprs_cache()
-        sage: sage.modular.cusps_nf._list_reprs_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._list_reprs_cache)
         []
     """
     global _list_reprs_cache
@@ -135,7 +136,7 @@ def list_of_representatives(N):
     EXAMPLES::
 
         sage: sage.modular.cusps_nf.NFCusps_clear_list_reprs_cache()
-        sage: sage.modular.cusps_nf._list_reprs_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._list_reprs_cache)
         []
 
     ::
@@ -150,7 +151,7 @@ def list_of_representatives(N):
 
     The output of ``list_of_representatives`` has been cached::
 
-        sage: sage.modular.cusps_nf._list_reprs_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._list_reprs_cache)
         [Fractional ideal (713, a + 208)]
         sage: sage.modular.cusps_nf._list_reprs_cache[N]
         (Fractional ideal (1),
@@ -174,10 +175,10 @@ def NFCusps_clear_cache():
         sage: k.<a> = NumberField(x^3 + 51)
         sage: kCusps = NFCusps(k); kCusps
         Set of all cusps of Number Field in a with defining polynomial x^3 + 51
-        sage: sage.modular.cusps_nf._nfcusps_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._nfcusps_cache)
         [Number Field in a with defining polynomial x^3 + 51]
         sage: NFCusps_clear_cache()
-        sage: sage.modular.cusps_nf._nfcusps_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._nfcusps_cache)
         []
     """
     global _nfcusps_cache
@@ -268,12 +269,9 @@ class NFCuspsSpace(ParentWithBase):
         self.__number_field = number_field
         ParentWithBase.__init__(self, self)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
         Return equality only if right is the set of cusps for the same field.
-
-        Comparing sets of cusps for two different fields gives the same
-        result as comparing the two fields.
 
         EXAMPLES::
 
@@ -289,13 +287,31 @@ class NFCuspsSpace(ParentWithBase):
             True
             sage: LCusps == kCusps
             False
-
         """
-        t = cmp(type(self), type(right))
-        if t:
-            return t
-        else:
-            return cmp(self.number_field(), right.number_field())
+        if not isinstance(right, NFCuspsSpace):
+            return False
+        return self.number_field() == right.number_field()
+
+    def __ne__(self, right):
+        """
+        Check that ``self`` is not equal to ``right``.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: L.<a> = NumberField(x^2 + 23)
+            sage: kCusps = NFCusps(k); kCusps
+            Set of all cusps of Number Field in a with defining polynomial x^2 + 5
+            sage: LCusps = NFCusps(L); LCusps
+            Set of all cusps of Number Field in a with defining polynomial x^2 + 23
+            sage: kCusps != NFCusps(k)
+            False
+            sage: LCusps != NFCusps(L)
+            False
+            sage: LCusps != kCusps
+            True
+        """
+        return not (self == right)
 
     def _repr_(self):
         """
@@ -535,7 +551,7 @@ class NFCusp(Element):
             elif is_InfinityElement(a):
                 self.__a = R.one()
                 self.__b = R.zero()
-            elif isinstance(a, (int, long)):
+            elif isinstance(a, integer_types):
                 self.__a = R(a)
                 self.__b = R.one()
             elif isinstance(a, (tuple, list)):
@@ -591,7 +607,7 @@ class NFCusp(Element):
                 self.__a = R.zero()
                 self.__b = R.one()
                 return
-            if (b in R or isinstance(b, (int, long))) and (a in R or isinstance(a, (int, long))):
+            if (b in R or isinstance(b, integer_types)) and (a in R or isinstance(a, integer_types)):
                 self.__a = R(a)
                 self.__b = R(b)
             else:
@@ -607,7 +623,7 @@ class NFCusp(Element):
                         self.__b = R.zero()
                         return
                     r = a.__a / (a.__b * b)
-                elif isinstance(a, (int, long)):
+                elif isinstance(a, integer_types):
                     r = R(a) / b
                 elif isinstance(a, (tuple, list)):
                     if len(a) != 2:
@@ -1336,6 +1352,5 @@ def units_mod_ideal(I):
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
     from sage.misc.mrange import xmrange
-    from sage.misc.all import prod
 
     return [k.prod(u**e for u, e in zip(ulist, ei)) for ei in xmrange(elist)]

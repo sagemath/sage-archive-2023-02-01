@@ -1,14 +1,6 @@
-#!/usr/bin/env bash
-
 ###########################################
 ## Singular
 ###########################################
-
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "Error: SAGE_LOCAL undefined -- exiting..."
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
 
 SRC=`pwd`/src
 cd "$SRC"
@@ -34,17 +26,6 @@ fi
 
 export CFLAGS CXXFLAGS
 
-if [ "x$SAGE64" = xyes ]; then
-    echo "Building a 64-bit version of Singular"
-    CFLAGS="$CFLAGS -m64"
-    CXXFLAGS="$CXXFLAGS -m64"
-    CPPFLAGS="$CPPFLAGS -m64"; export CPPFLAGS
-    LDFLAGS="$LDFLAGS -m64"; export LDFLAGS
-    if [ "x`uname`" = xSunOS ] ; then
-        export CC="$CC -m64"
-        export CXX="$CXX -m64"
-    fi
-fi
 
 remove_old_version()
 {
@@ -61,17 +42,32 @@ remove_old_version()
     rm -f "$SAGE_LOCAL/include/omlimits.h" # 3.x only
     rm -rf "$SAGE_LOCAL/include/resources" #4.x only
     rm -rf "$SAGE_LOCAL/include/gfanlib" #4.x only
-    rm -f "$SAGE_LOCAL"/lib/libsingular* # 3.x with lower case
-    rm -f "$SAGE_LOCAL"/lib/libsingcf*.a # 3.x only additional archives
-    rm -f "$SAGE_LOCAL"/lib/libsingfac*.a # 3.x only additional archives
-    rm -f "$SAGE_LOCAL"/lib/libSingular* # 4.x with upper case
+
+    # Clean up all Singular-related libraries
+    libs=(
+        singular  # 3.x with lower case
+        singcf    # 3.x only additional archives
+        singfac   # 3.x only additional archives
+        Singular  # 4.x with upper case
+        polys
+        factory
+        omalloc
+        resources           # 3.x
+        singular_resources  # 4.x and up
+        gfan
+    )
+    if [ "$UNAME" = "CYGWIN" ]; then
+        for name in ${libs[*]}; do
+            rm -f "$SAGE_LOCAL"/bin/cyg${name}*.dll
+            rm -f "$SAGE_LOCAL"/lib/lib${name}*.a
+        done
+    else
+        for name in ${libs[*]}; do
+            rm -f "$SAGE_LOCAL"/lib/lib${name}*
+        done
+    fi
+
     rm -f "$SAGE_LOCAL"/lib/p_Procs_Field* # 3.x only
-    # a bunch of additional libraries for 4.x
-    rm -f "$SAGE_LOCAL"/lib/libpolys*
-    rm -f "$SAGE_LOCAL"/lib/libfactory*
-    rm -f "$SAGE_LOCAL"/lib/libomalloc*
-    rm -f "$SAGE_LOCAL"/lib/libresources*
-    rm -r "$SAGE_LOCAL"/lib/libgfan*
     rm -rf "$SAGE_LOCAL/share/singular"
     rm -f "$SAGE_LOCAL"/share/info/singular*
 }
@@ -85,62 +81,29 @@ config()
     #    omalloc/configure).  Not all of these configure scripts
     #    support all options given here, leading to warnings which
     #    may be ignored.
-    ./configure --prefix="$SAGE_LOCAL" \
-                --exec-prefix="$SAGE_LOCAL" \
-                --bindir="$SAGE_LOCAL"/bin \
-                --libdir="$SAGE_LOCAL"/lib \
-                --with-gmp="$SAGE_LOCAL" \
-                --with-ntl="$SAGE_LOCAL" \
-                --with-flint="$SAGE_LOCAL" \
-                --enable-gfanlib \
-                --enable-Singular \
-                --enable-factory \
-                --disable-doc \
-                $SINGULAR_CONFIGURE
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error configuring Singular."
-        exit 1
-    fi
+    sdh_configure --exec-prefix="$SAGE_LOCAL" \
+                  --bindir="$SAGE_LOCAL/bin" \
+                  --with-gmp="$SAGE_LOCAL" \
+                  --with-ntl="$SAGE_LOCAL" \
+                  --with-flint="$SAGE_LOCAL" \
+                  --enable-gfanlib \
+                  --enable-Singular \
+                  --enable-factory \
+                  --disable-doc \
+                  --disable-polymake \
+                  $SINGULAR_CONFIGURE
 }
 
 
 build_singular()
 {
-    $MAKE
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error building Singular."
-        exit 1
-    fi
-
-    $MAKE install
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error installing Singular."
-        exit 1
-    fi
-
-}
-
-fix_includes()
-{
-    # Fix all Singular includes to work from local/include
-    cd "$SAGE_LOCAL/include"
-
-    # First, generate a sed script to do these replacements
-    find singular -name '*.h' | while read include; do
-        # Replace #include <foo> by #include <singular/foo>
-        echo "s|# *include .${include#singular/}.|#include <$include>|"
-    done >"$SRC/fix_includes.sed"
-
-    # Now execute the script (we add .bak because BSD sed, used also
-    # on OS X, requires an argument for -i)
-    find singular -name '*.h' -exec sed -i.bak -f "$SRC/fix_includes.sed" {} \;
+    sdh_make
+    sdh_make_install
 }
 
 
 # Actually run all the functions defined above
-for i in remove_old_version config \
-  build_singular fix_includes ; do
+for i in remove_old_version config build_singular; do
     echo "############### Singular stage $i ###############"
     cd "$SRC" && $i
 done

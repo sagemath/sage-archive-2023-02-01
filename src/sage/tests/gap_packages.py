@@ -55,22 +55,41 @@ def test_packages(packages, only_failures=False):
         sage: test_packages(pkgs)    # random output
           Status    Package      GAP Output
         +---------+------------+------------+
-                    Alnuth       true
-                    GAPDoc       true
-          Failure   HAPcryst     fail
-                    Hap          true
-                    autpgrp      true
-                    crime        true
-                    ctbllib      true
-                    design       true
-                    factint      true
-                    grape        true
-                    guava        true
-                    laguna       true
-                    polycyclic   true
-                    polymaking   true
-                    sonata       true
-                    toric        true
+                   Alnuth       true
+                   GAPDoc       true
+                   HAPcryst     true
+                   Hap          true
+                   QPA          true
+                   aclib        true
+                   atlasrep     true
+                   autpgrp      true
+                   cohomolo     true
+                   corelg       true
+                   crime        true
+                   cryst        true
+                   crystcat     true
+                   ctbllib      true
+                   design       true
+                   factint      true
+                   gbnp         true
+                   grape        true
+                   guava        true
+                   happrime     true
+                   hecke        true
+                   laguna       true
+                   liealgdb     true
+                   liepring     true
+                   liering      true
+                   loops        true
+                   mapclass     true
+                   polycyclic   true
+                   polymaking   true
+                   quagroup     true
+                   repsn        true
+                   sla          true
+                   sonata       true
+                   tomlib       true
+                   toric        true
     """
     rows = [['Status', 'Package', 'GAP Output']]
     for pkg in packages:
@@ -102,7 +121,7 @@ def all_installed_packages(ignore_dot_gap=False):
 
         sage: from sage.tests.gap_packages import all_installed_packages
         sage: all_installed_packages()
-        (...'GAPDoc',...)
+        (...'GAPDoc'...)
     """
     packages = []
     for path in libgap.eval('GAP_ROOT_PATHS').sage():

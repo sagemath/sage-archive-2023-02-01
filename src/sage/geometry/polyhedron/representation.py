@@ -16,6 +16,7 @@ H(yperplane) and V(ertex) representation objects for polyhedra
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.all import QQ, ZZ, RDF
 from sage.modules.free_module_element import vector
 
@@ -30,6 +31,7 @@ from sage.modules.free_module_element import vector
 #                  /       \               /      |    \
 #           Inequality  Equation        Vertex   Ray   Line
 
+@richcmp_method
 class PolyhedronRepresentation(SageObject):
     """
     The internal base class for all representation objects of
@@ -42,9 +44,9 @@ class PolyhedronRepresentation(SageObject):
 
     TESTS::
 
-            sage: import sage.geometry.polyhedron.representation as P
-            sage: P.PolyhedronRepresentation()
-            <class 'sage.geometry.polyhedron.representation.PolyhedronRepresentation'>
+        sage: import sage.geometry.polyhedron.representation as P
+        sage: P.PolyhedronRepresentation()
+        <sage.geometry.polyhedron.representation.PolyhedronRepresentation object at ...>
     """
 
     # Numeric values for the output of the type() method
@@ -96,7 +98,7 @@ class PolyhedronRepresentation(SageObject):
         # Hrepresentation._set_data below).
         return hash(tuple(self._vector))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare two representation objects
 
@@ -110,8 +112,7 @@ class PolyhedronRepresentation(SageObject):
 
         OUTPUT:
 
-        One of `-1`, `0`, `+1`.  ``True`` if and only if ``other`` represents the same
-        H-representation object.
+        boolean
 
         EXAMPLES::
 
@@ -120,24 +121,21 @@ class PolyhedronRepresentation(SageObject):
             An inequality (1, 0) x + 0 >= 0
             sage: ieq == copy(ieq)
             True
-            sage: cmp(ieq, copy(ieq))
-            0
-
-            sage: cmp(ieq, 'a string')
-            -1
 
             sage: square = Polyhedron([(0,0), (1,0), (0,1), (1,1)], base_ring=QQ)
-            sage: cmp(square.Vrepresentation(0), triangle.Vrepresentation(0))
-            0
+            sage: square.Vrepresentation(0) == triangle.Vrepresentation(0)
+            True
 
-            sage: ieq = square.Hrepresentation(0);  ieq.vector()
+            sage: ieq = square.Hrepresentation(0); ieq.vector()
             (0, 1, 0)
-            sage: abs(cmp(ieq, Polyhedron([(0,1,0)]).Vrepresentation(0)))
-            1
+            sage: ieq != Polyhedron([(0,1,0)]).Vrepresentation(0)
+            True
         """
         if not isinstance(other, PolyhedronRepresentation):
-            return -1
-        return cmp(type(self), type(other)) or cmp(self._vector, other._vector)
+            return NotImplemented
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self._vector, other._vector, op)
 
     def vector(self, base_ring=None):
         """

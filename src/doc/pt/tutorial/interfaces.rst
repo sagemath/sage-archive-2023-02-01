@@ -63,7 +63,7 @@ diferentes:
     sage: type(gp('znprimroot(10007)'))
     <class 'sage.interfaces.gp.GpElement'>
     sage: type(pari('znprimroot(10007)'))
-    <type 'sage.libs.cypari2.gen.Gen'>
+    <type 'cypari2.gen.Gen'>
 
 Então qual eu devo usar? Depende do que você está fazendo. A interface
 GP pode fazer absolutamente tudo o que você poderia fazer na linha de
@@ -101,7 +101,7 @@ Primeiro criamos uma lista do PARI a partir de uma lista do Python.
     sage: v
     [1, 2, 3, 4, 5]
     sage: type(v)
-    <type 'sage.libs.cypari2.gen.Gen'>
+    <type 'cypari2.gen.Gen'>
 
 Cada objeto do PARI é do tipo ``Gen``. O tipo PARI do objeto
 subjacente pode ser obtido usando a função ``type``.
@@ -197,7 +197,7 @@ digite ``...``):
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
     polynomial ring, over a field, global ordering
-    //   characteristic : 0
+    //   coefficients: QQ
     //   number of vars : 2
     //        block   1 : ordering dp
     //                  : names    x y 

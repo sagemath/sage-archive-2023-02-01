@@ -40,6 +40,8 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.rings.all import Integer
+from sage.cpython.getattr import raw_getattr
+
 
 class KBoundedQuotient(UniqueRepresentation, Parent):
 
@@ -592,12 +594,12 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             if isinstance(c, Partition):
                 assert len(rest) == 0
             else:
-                if len(rest) > 0 or isinstance(c,(int,Integer)):
-                    c = self._kbounded_partitions.element_class(self._kbounded_partitions, [c]+list(rest))
+                if len(rest) or isinstance(c, (int, Integer)):
+                    c = self._kbounded_partitions.element_class(self._kbounded_partitions, [c] + list(rest))
                 else:
                     c = self._kbounded_partitions.element_class(self._kbounded_partitions, list(c))
-            if len(c) != 0 and c[0] > self.k:
-                raise ValueError("Partition is not %d-bounded"%self.k)
+            if c and c[0] > self.k:
+                raise ValueError("Partition is not %d-bounded" % self.k)
             return self.monomial(c)
 
         def _repr_term(self, c):
@@ -917,10 +919,10 @@ class KBoundedQuotientBasis(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.__func__
-    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.__func__
-    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
+    __getitem__ = raw_getattr(KBoundedQuotientBases.ParentMethods, "__getitem__")
+    _repr_term = raw_getattr(KBoundedQuotientBases.ParentMethods, "_repr_term")
+    _element_constructor_ = raw_getattr(KBoundedQuotientBases.ParentMethods, "_element_constructor_")
+
 
 class kMonomial(KBoundedQuotientBasis):
     r"""

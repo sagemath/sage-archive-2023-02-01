@@ -81,6 +81,7 @@ Backends for Polyhedra
    sage/geometry/polyhedron/backend_cdd
    sage/geometry/polyhedron/backend_field
    sage/geometry/polyhedron/backend_normaliz
+   sage/geometry/polyhedron/backend_polymake
    sage/geometry/polyhedron/backend_ppl
    sage/geometry/polyhedron/double_description
    sage/geometry/polyhedron/double_description_inhomogeneous
@@ -96,6 +97,7 @@ Triangulations
    sage/geometry/triangulation/base
    sage/geometry/triangulation/element
 
+
 Miscellaneous
 -------------
 
@@ -106,6 +108,7 @@ Miscellaneous
    sage/geometry/newton_polygon
    sage/geometry/ribbon_graph
    sage/geometry/pseudolines
+   sage/geometry/voronoi_diagram
 
 Helper functions
 ----------------

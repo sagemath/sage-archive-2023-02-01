@@ -118,7 +118,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         .. NOTE::
 
-            This constructer generates SAT variables for each Boolean polynomial variable.
+            This constructor generates SAT variables for each Boolean polynomial variable.
         """
         self.random_generator = Random(random_seed)
         self.one_set = ring.one().set()
@@ -330,7 +330,7 @@ class CNFEncoder(ANF2CNFConverter):
         f = [self.monomial(m) for m in f]
 
         if self.use_xor_clauses:
-            self.solver.add_xor_clause(f, equal_zero)
+            self.solver.add_xor_clause(f, rhs=not equal_zero)
         elif f > self.cutting_number:
             for fpart, this_equal_zero in self.split_xor(f, equal_zero):
                 ll = len(fpart)
@@ -573,7 +573,6 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e.phi
             [None, a, b, c, a*b]
         """
-        res = []
         for f in F:
             self.clauses(f)
         return self.phi
@@ -602,17 +601,10 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e.to_polynomial( (1,-2,3) )
             a*b*c + a*b + b*c + b
         """
-        def product(l):
-            # order of these multiplications for performance
-            res = l[0]
-            for p in l[1:]:
-                res = res*p
-            return res
-
         phi = self.phi
-        product = self.ring(1)
+        product = self.ring.one()
         for v in c:
             if phi[abs(v)] is None:
-                raise ValueError("Clause containst an XOR glueing variable.")
-            product *= phi[abs(v)] + int(v>0)
+                raise ValueError("clause contains an XOR glueing variable")
+            product *= phi[abs(v)] + int(v > 0)
         return product

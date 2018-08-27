@@ -36,39 +36,34 @@ AUTHORS:
 - Simon King (2010-05): Improve invariant_generators by using GAP
   for the construction of the Reynolds operator in Singular.
 """
-from __future__ import absolute_import
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
-import types
-from sage.rings.all import ZZ
+from __future__ import absolute_import
+
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
-from sage.interfaces.gap import gap
-from sage.matrix.matrix import is_Matrix
-from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
+from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
-from sage.structure.sage_object import SageObject
-from sage.misc.decorators import rename_keyword
+from sage.structure.richcmp import (richcmp_not_equal, rich_to_bool,
+                                    richcmp_method, richcmp)
 from sage.misc.cachefunc import cached_method
-from sage.groups.generic import structure_description
-
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP
 from sage.groups.libgap_mixin import GroupMixinLibGAP
 
 from sage.groups.matrix_gps.group_element import (
-    is_MatrixGroupElement, MatrixGroupElement_generic, MatrixGroupElement_gap)
+    MatrixGroupElement_generic, MatrixGroupElement_gap)
 
 #################################################################
 
@@ -239,6 +234,7 @@ class MatrixGroup_base(Group):
 #
 ###################################################################
 
+@richcmp_method
 class MatrixGroup_generic(MatrixGroup_base):
 
     Element = MatrixGroupElement_generic
@@ -311,9 +307,9 @@ class MatrixGroup_generic(MatrixGroup_base):
         """
         return MatrixSpace(self.base_ring(), self.degree())
 
-    def _cmp_generators(self, other):
+    def __richcmp__(self, other, op):
         """
-        Implement comparison
+        Implement rich comparison.
 
         We treat two matrix groups as equal if their generators are
         the same in the same order. Infinitely-generated groups are
@@ -321,155 +317,78 @@ class MatrixGroup_generic(MatrixGroup_base):
 
         INPUT:
 
-        - ``other`` -- anything.
+        - ``other`` -- anything
+
+        - ``op`` -- comparison operator
 
         OUTPUT:
 
-        ``-1``, ``0``, or ``+1``.
+        boolean
 
         EXAMPLES::
 
             sage: G = GL(2,3)
             sage: H = MatrixGroup(G.gens())
-            sage: G._cmp_generators(H)
-            0
-            sage: cmp(G,H)
-            0
-            sage: cmp(H,G)
-            0
+            sage: H == G
+            True
             sage: G == H
             True
+
+            sage: MS = MatrixSpace(QQ, 2, 2)
+            sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
+            sage: G == G
+            True
+            sage: G == MatrixGroup(G.gens())
+            True
+
+        TESTS::
+
+            sage: G = groups.matrix.GL(4,2)
+            sage: H = MatrixGroup(G.gens())
+            sage: G == H
+            True
+            sage: G != H
+            False
         """
         if not is_MatrixGroup(other):
-            return cmp(type(self), type(other))
-        c = cmp(self.matrix_space(), other.matrix_space())
-        if c != 0:
-            return c
+            return NotImplemented
 
-        def identity_cmp():
-            return cmp(id(self), id(other))
+        if self is other:
+            return rich_to_bool(op, 0)
+
+        lx = self.matrix_space()
+        rx = other.matrix_space()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
 
         # compare number of generators
         try:
             n_self = self.ngens()
             n_other = other.ngens()
         except (AttributeError, NotImplementedError):
-            return identity_cmp()
-        c = cmp(n_self, n_other)
-        if c != 0:
-            return c
+            return richcmp(id(self), id(other), op)
+
+        if n_self != n_other:
+            return richcmp_not_equal(self, other, op)
+
         from sage.structure.element import is_InfinityElement
         if is_InfinityElement(n_self) or is_InfinityElement(n_other):
-            return identity_cmp()
+            return richcmp(id(self), id(other), op)
 
-        # compacte generator matrices
+        # compact generator matrices
         try:
             self_gens = self.gens()
             other_gens = other.gens()
         except (AttributeError, NotImplementedError):
-            return identity_cmp()
+            return richcmp(id(self), id(other), op)
+
         assert(n_self == n_other)
-        for g,h in zip(self_gens, other_gens):
-            c = cmp(g.matrix(), h.matrix())
-            if c != 0:
-                return c
-        return c
-
-    def __cmp__(self, other):
-        """
-        Implement comparison
-
-        EXAMPLES::
-
-            sage: MS = MatrixSpace(SR, 2, 2)
-            sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
-            sage: from sage.groups.matrix_gps.matrix_group import MatrixGroup_generic
-            sage: MatrixGroup_generic.__cmp__(G, G)
-            0
-            sage: cmp(G,G)
-            0
-            sage: cmp(G, MatrixGroup(G.gens()))
-            0
-            sage: G == MatrixGroup(G.gens())
-            True
-        """
-        return self._cmp_generators(other)
-
-    def _Hom_(self, G, cat=None):
-        """
-        Construct a homset.
-
-        INPUT:
-
-        - ``G`` -- group; the codomain
-
-        - ``cat`` -- category; must be unset
-
-        OUTPUT:
-
-        The set of homomorphisms from ``self`` to ``G``.
-
-        EXAMPLES::
-
-            sage: MS = MatrixSpace(SR, 2, 2)
-            sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
-            sage: G.Hom(G)
-            Set of Homomorphisms from Matrix group over Symbolic Ring with 2 generators (
-            [1 0]  [1 2]
-            [0 1], [3 4]
-            ) to Matrix group over Symbolic Ring with 2 generators (
-            [1 0]  [1 2]
-            [0 1], [3 4]
-            )
-
-        TESTS:
-
-        Check that :trac:`19407` is fixed::
-
-            sage: G = GL(2, GF(2))
-            sage: H = GL(3, ZZ)
-            sage: Hom(G, H)
-            Set of Homomorphisms from General Linear Group of degree 2
-             over Finite Field of size 2 to General Linear Group of degree 3
-             over Integer Ring
-        """
-        if not is_MatrixGroup(G):
-            raise TypeError("G (=%s) must be a matrix group."%G)
-        from . import homset
-        return homset.MatrixGroupHomset(self, G, cat)
-
-    def hom(self, x):
-        """
-        Return the group homomorphism defined by ``x``
-
-        INPUT:
-
-        - ``x`` -- a list/tuple/iterable of matrix group elements.
-
-        OUTPUT:
-
-        The group homomorphism defined by ``x``.
-
-        EXAMPLES::
-
-            sage: G = MatrixGroup([matrix(GF(5), [[1,3],[0,1]])])
-            sage: H = MatrixGroup([matrix(GF(5), [[1,2],[0,1]])])
-            sage: G.hom([H.gen(0)])
-            Homomorphism : Matrix group over Finite Field of size 5 with 1 generators (
-            [1 3]
-            [0 1]
-            ) --> Matrix group over Finite Field of size 5 with 1 generators (
-            [1 2]
-            [0 1]
-            )
-        """
-        v = Sequence(x)
-        U = v.universe()
-        if not is_MatrixGroup(U):
-            raise TypeError("u (=%s) must have universe a matrix group."%U)
-        return self.Hom(U)(x)
-
-
+        for g, h in zip(self_gens, other_gens):
+            lx = g.matrix()
+            rx = h.matrix()
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+        return rich_to_bool(op, 0)
 
 ###################################################################
 #
@@ -699,4 +618,4 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         return FinitelyGeneratedMatrixGroup_gap(self.degree(), self.base_ring(),
                                                 libgap_subgroup, ambient=self)
 
-MatrixGroup_gap.structure_description = types.MethodType(structure_description, None, MatrixGroup_gap)
+    from sage.groups.generic import structure_description

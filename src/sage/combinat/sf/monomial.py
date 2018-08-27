@@ -174,7 +174,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         out = self.sum_of_terms((Partition(e), c)
                                 for (e,c) in six.iteritems(f.dict())
                                 if tuple(sorted(e)) == tuple(reversed(e)))
-        if check and out.expand(f.parent().ngens(),f.parent().gens()) != f:
+        if check and out.expand(f.parent().ngens(),f.parent().variable_names()) != f:
             raise ValueError("%s is not a symmetric polynomial"%f)
         return out
 
@@ -219,7 +219,9 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: m.from_polynomial_exp(f)
             3*m[4] + 2*m[5, 5, 5, 3, 1, 1]
 
-        ..SEEALSO:: :func:`Partition`, :meth:`Partition.to_exp`
+        .. SEEALSO::
+
+            :func:`Partition`, :meth:`Partition.to_exp`
         """
         assert self.base_ring() == p.parent().base_ring()
         return self.sum_of_terms((Partition(exp=monomial), coeff)
@@ -301,7 +303,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             return self._expand(condition, n, alphabet)
 
 # Backward compatibility for unpickling
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 
 import six
 

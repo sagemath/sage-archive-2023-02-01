@@ -20,6 +20,7 @@ from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 from sage.modular.cusps import Cusp
 from sage.arith.all import gcd
+from sage.structure.richcmp import richcmp_method, richcmp
 
 from .congroup_sl2z import SL2Z
 
@@ -55,12 +56,12 @@ def Gamma_constructor(N):
         _gamma_cache[N] = Gamma_class(N)
         return _gamma_cache[N]
 
+
+@richcmp_method
 class Gamma_class(CongruenceSubgroup):
     r"""
     The principal congruence subgroup `\Gamma(N)`.
     """
-
-
     def _repr_(self):
         """
         Return the string representation of self.
@@ -96,7 +97,7 @@ class Gamma_class(CongruenceSubgroup):
         """
         return Gamma_constructor, (self.level(),)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare self to other.
 
@@ -114,9 +115,9 @@ class Gamma_class(CongruenceSubgroup):
             True
         """
         if is_Gamma(other):
-            return cmp(self.level(), other.level())
+            return richcmp(self.level(), other.level(), op)
         else:
-            return CongruenceSubgroup.__cmp__(self, other)
+            return NotImplemented
 
     def index(self):
         r"""

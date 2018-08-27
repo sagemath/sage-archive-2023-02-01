@@ -18,16 +18,18 @@ Heilbronn matrix computation
 #*****************************************************************************
 from __future__ import absolute_import
 
+from cysignals.memory cimport check_allocarray, sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 import sage.arith.all
 
 import sage.misc.misc
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
-
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.flint.fmpz cimport fmpz_add
 from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.fmpq_mat cimport fmpq_mat_entry_num
 
 cdef extern from "<math.h>":
     float roundf(float x)
@@ -61,9 +63,7 @@ cdef struct list:
 cdef int* expand(int *v, int n, int new_length) except NULL:
     cdef int *w
     cdef int i
-    w = <int*>  sig_malloc(new_length*sizeof(int))
-    if w == <int*> 0:
-        return NULL
+    w = <int*>check_allocarray(new_length, sizeof(int))
     if v:
         for i in range(n):
             w[i] = v[i]
@@ -877,8 +877,6 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
     cdef Heilbronn H
     cdef fmpz_poly_t* poly
     cdef Integer coeff = Integer()
-    cdef mpz_t tmp
-    mpz_init(tmp)
 
     for z, m in enumerate(indices):
         H = HeilbronnCremona(m) if sage.arith.all.is_prime(m) else HeilbronnMerel(m)
@@ -907,12 +905,13 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
             p = P1.index(a[j], b[j])
             # Now fill in row z of the matrix T.
             if p != -1:
-                for w in range(k-1):
+                for w in range(min(fmpz_poly_length(poly[j]), k-1)):
                     # The following two lines are just a vastly faster version of:
                     #           T[z, n*w + p] += poly[j][w]
                     # They use that we know that T has only integer entries.
-                    fmpz_poly_get_coeff_mpz(tmp, poly[j], w)
-                    mpz_add(mpq_numref(T._matrix[z][n*w+p]), mpq_numref(T._matrix[z][n*w+p]), tmp)
+                    fmpz_add(fmpq_mat_entry_num(T._matrix, z, n*w+p),
+                             fmpq_mat_entry_num(T._matrix, z, n*w+p),
+                             fmpz_poly_get_coeff_ptr(poly[j], w))
 
         # Free a and b
         sig_free(a)
@@ -922,8 +921,6 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
         for j in range(H.length):
             fmpz_poly_clear(poly[j])
         sig_free(poly)
-
-    mpz_clear(tmp)
 
     # Return the product T * R, whose rows are the image of (u,v) under
     # the Hecke operators T_n for n in indices.

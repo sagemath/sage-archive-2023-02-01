@@ -107,7 +107,7 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.fraction_field import FractionField
-from sage.structure.element import FieldElement
+from sage.structure.element import FieldElement, parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.interfaces.gp import Gp
@@ -338,7 +338,7 @@ class CFiniteSequence(FieldElement):
         INPUT:
 
         - ``ogf`` -- the ordinary generating function, a fraction of polynomials over the rationals
-        - ``parent`` --  the parent of the C-Finite sequence, an occurence of :class:`CFiniteSequences`
+        - ``parent`` --  the parent of the C-Finite sequence, an occurrence of :class:`CFiniteSequences`
 
         OUTPUT:
 
@@ -792,7 +792,7 @@ class CFiniteSequence(FieldElement):
         return R(self.ogf())
 
     def closed_form(self, n = 'n'):
-        """
+        r"""
         Return a symbolic expression in ``n``, which equals the n-th term of
         the sequence.
 
@@ -830,12 +830,12 @@ class CFiniteSequence(FieldElement):
         Binet's formula for the Fibonacci numbers::
 
             sage: CFiniteSequence(x/(1-x-x^2)).closed_form()
-            1/5*sqrt(5)*(1/2*sqrt(5) + 1/2)^n - 1/5*sqrt(5)*(-1/2*sqrt(5) + 1/2)^n
+            sqrt(1/5)*(1/2*sqrt(5) + 1/2)^n - sqrt(1/5)*(-1/2*sqrt(5) + 1/2)^n
             sage: [_.subs(n=k).full_simplify() for k in range(6)]
             [0, 1, 1, 2, 3, 5]
 
             sage: CFiniteSequence((4*x+3)/(1-2*x-5*x^2)).closed_form()
-            1/12*(sqrt(6) + 1)^n*(7*sqrt(6) + 18) - 1/12*(-sqrt(6) + 1)^n*(7*sqrt(6) - 18)
+            1/2*(sqrt(6) + 1)^n*(7*sqrt(1/6) + 3) - 1/2*(-sqrt(6) + 1)^n*(7*sqrt(1/6) - 3)
 
         Examples with multiple roots::
 
@@ -846,7 +846,7 @@ class CFiniteSequence(FieldElement):
             sage: CFiniteSequence(1/(1-x)^3/(1-2*x)^4).closed_form()
             4/3*(n^3 - 3*n^2 + 20*n - 36)*2^n + 1/2*n^2 + 19/2*n + 49
             sage: CFiniteSequence((x/(1-x-x^2))^2).closed_form()
-            1/25*(5*n - sqrt(5))*(1/2*sqrt(5) + 1/2)^n + 1/25*(5*n + sqrt(5))*(-1/2*sqrt(5) + 1/2)^n
+            1/5*(n - sqrt(1/5))*(1/2*sqrt(5) + 1/2)^n + 1/5*(n + sqrt(1/5))*(-1/2*sqrt(5) + 1/2)^n
         """
         from sage.arith.all import binomial
         from sage.rings.qqbar import QQbar
@@ -1031,10 +1031,9 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
         x = self.gen()
         return self((2-x)/(1-x-x**2))
 
-
     def __contains__(self, x):
         """
-        Return True if x is an element of ``CFinteSequences`` or
+        Return True if x is an element of ``CFiniteSequences`` or
         canonically coerces to this ring.
 
         EXAMPLES::
@@ -1054,14 +1053,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             sage: y in Cy
             True
         """
-        if x.parent() == self:
-            return True
-        try:
-            self._coerce_(x)
-        except TypeError:
-            return False
-        return True
-
+        return self.has_coerce_map_from(parent(x))
 
     def fraction_field(self):
         r"""
@@ -1108,7 +1100,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             return True
 
     def from_recurrence(self, coefficients, values):
-        """
+        r"""
         Create a C-finite sequence given the coefficients $c$ and
         starting values $a$ of a homogenous linear recurrence.
 
@@ -1266,7 +1258,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             else:
                 return CFiniteSequence(num / den)
 
-"""
+r"""
 .. TODO::
 
     sage: CFiniteSequence(x+x^2+x^3+x^4+x^5+O(x^6)) # not implemented

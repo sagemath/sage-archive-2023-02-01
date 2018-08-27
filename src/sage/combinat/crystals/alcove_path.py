@@ -27,9 +27,9 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import richcmp
-from sage.categories.finite_crystals import FiniteCrystals
+from sage.structure.richcmp import richcmp
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.loop_crystals import LoopCrystals
 from sage.graphs.all import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
@@ -329,11 +329,11 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
 
 
         if cartan_type.is_finite() and highest_weight_crystal:
-            Parent.__init__(self, category=ClassicalCrystals() )
+            Parent.__init__(self, category=ClassicalCrystals())
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = True
         elif cartan_type.is_finite() and not highest_weight_crystal:
-            Parent.__init__(self, category=FiniteCrystals() )
+            Parent.__init__(self, category=LoopCrystals().Finite())
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = True
             self._cartan_type = cartan_type.affine()
@@ -475,31 +475,6 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         if not self._highest_weight_crystal:
             return super(CrystalOfAlcovePaths, self).digraph()
         return super(CrystalOfAlcovePaths, self).digraph(depth=depth)
-
-    def weight_lattice_realization(self):
-        r"""
-        Return the weight lattice realization of ``self``.
-
-        EXAMPLES::
-
-            sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
-            sage: B.weight_lattice_realization()
-            Extended weight lattice of the Root system of type ['A', 2, 1]
-
-            sage: C = crystals.AlcovePaths("B3",[1,0,0])
-            sage: C.weight_lattice_realization()
-            Ambient space of the Root system of type ['B', 3]
-
-            sage: A = crystals.AlcovePaths(['A',2,1], [1,0], highest_weight_crystal=False)
-            sage: A.weight_lattice_realization()
-            Weight lattice of the Root system of type ['A', 2, 1]
-        """
-        F = self.cartan_type().root_system()
-        if self.cartan_type().is_affine():
-            return F.weight_lattice(extended=self._highest_weight_crystal)
-        if self.cartan_type().is_finite() and F.ambient_space() is not None:
-            return F.ambient_space()
-        return F.weight_lattice()
 
 class CrystalOfAlcovePathsElement(ElementWrapper):
     """
@@ -1845,7 +1820,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
         (0,8)     : {(0,5)       : 1 }
         })
 
-    if (G.is_isomorphic(GT) != True):
+    if not G.is_isomorphic(GT):
         return False
     else:
         print("G2 example passed.")
@@ -1871,7 +1846,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
         (0, 6, 7):{ (0, 1, 7): 2}
         })
 
-    if (G.is_isomorphic(GT) != True):
+    if not G.is_isomorphic(GT):
         return False
     else:
         print("C3 example passed.")
@@ -1909,7 +1884,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
         (6, 7, 11):{ (0, 7, 11): 1, (6, 7, 8): 3}
         })
 
-    if (G.is_isomorphic(GT) != True):
+    if not G.is_isomorphic(GT):
         return False
     else:
         print("B3 example 1 passed.")
@@ -1940,7 +1915,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
         (0, 7):{ (0, 1, 7): 1, (0, 2): 3}
         })
 
-    if (G.is_isomorphic(GT) != True):
+    if not G.is_isomorphic(GT):
         return False
     else:
         print("B3 example 2 passed.")

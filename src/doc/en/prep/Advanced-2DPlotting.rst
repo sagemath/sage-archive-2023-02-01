@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _prep-advanced-2dplotting:
+
 Tutorial for Advanced 2d Plotting
 =================================
 
@@ -659,7 +661,7 @@ text is just text.
 
 ::
 
-    sage: text('$\int_0^2 x^2\, dx$', (0.5,2))+plot(x^2,(x,0,2),fill=True)
+    sage: text(r'$\int_0^2 x^2\, dx$', (0.5,2))+plot(x^2,(x,0,2),fill=True)
     Graphics object consisting of 3 graphics primitives
 
 .. _Saving:

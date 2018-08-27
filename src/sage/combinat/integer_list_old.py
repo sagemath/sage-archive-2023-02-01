@@ -410,8 +410,6 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: list(iterator(2, 3, 3, lambda i: 0, lambda i: 5, 0, 10))
         [[0, 1, 1], [0, 0, 2]]
     """
-    #from sage.misc.superseded import deprecation
-    #deprecation(13605, 'iterator(...) is deprecated. Use IntegerListLex(...) instead.')
     stopgap("Iterator uses the old implementation of IntegerListsLex, which does not allow for arbitrary input;"
             " non-allowed input can return wrong results,"
             " please see the documentation for IntegerListsLex for details.",
@@ -1023,6 +1021,18 @@ class IntegerListsLex(Parent):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Compute a hash for ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
+            sage: h = hash(C)
+        """
+        return hash(repr(self)) ^ 53397379531
+
     def _repr_(self):
         """
         Returns the name of this combinatorial class.
@@ -1160,8 +1170,8 @@ class IntegerListsLex(Parent):
         Default brute force implementation of count by iteration
         through all the objects.
 
-        Note that this skips the call to ``_element_constructor``, unlike
-        the default implementation.
+        Note that this skips the call to ``_element_constructor_``,
+        unlike the default implementation.
 
         .. TODO::
 

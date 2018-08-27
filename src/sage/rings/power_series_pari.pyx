@@ -71,9 +71,9 @@ AUTHORS:
 
 from __future__ import absolute_import, division, print_function
 
-from sage.libs.cypari2.gen cimport Gen as pari_gen, new_ref
-from sage.libs.cypari2.pari_instance cimport get_var
-from sage.libs.cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
+from cypari2.gen cimport Gen as pari_gen
+from cypari2.pari_instance cimport get_var
+from cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
 from sage.libs.pari.all import pari
 
 from sage.misc.superseded import deprecated_function_alias
@@ -152,45 +152,45 @@ cdef class PowerSeries_pari(PowerSeries):
             if f_parent is parent:
                 if prec is infinity:
                     prec = (<PowerSeries>f)._prec
-                g = f._pari_()
+                g = f.__pari__()
             elif R.has_coerce_map_from(f_parent):
-                g = R.coerce(f)._pari_()
+                g = R.coerce(f).__pari__()
             else:
                 if prec is infinity:
                     prec = f.prec()
-                g = f.polynomial().change_ring(R)._pari_()
+                g = f.polynomial().change_ring(R).__pari__()
         elif isinstance(f, Polynomial):
             f_parent = (<Polynomial>f)._parent
             if f_parent is P:
-                g = f._pari_()
+                g = f.__pari__()
             elif R.has_coerce_map_from(f_parent):
-                g = R.coerce(f)._pari_()
+                g = R.coerce(f).__pari__()
             else:
-                g = P.coerce(f)._pari_()
+                g = P.coerce(f).__pari__()
         elif isinstance(f, pari_gen):
             g = f
             t = typ(g.g)
             if t == t_POL:
-                g = P(g)._pari_()
+                g = P(g).__pari__()
             elif t == t_SER and varn(g.g) == get_var(v):
                 if valp(g.g) < 0:
                     raise ValueError('series has negative valuation')
                 if prec is infinity:
                     prec = lg(g.g) - 2 + valp(g.g)
-                g = P(g.Pol(v))._pari_()
+                g = P(g.Pol(v)).__pari__()
             elif t == t_RFRAC:
                 if prec is infinity:
                     prec = parent.default_prec()
-                g = P.fraction_field()(g)._pari_()
+                g = P.fraction_field()(g).__pari__()
                 g = g.Ser(v, prec - g.valuation(v))
             elif t == t_VEC:
-                g = P(g.Polrev(v))._pari_()
+                g = P(g.Polrev(v)).__pari__()
             else:
-                g = R(g)._pari_()
+                g = R(g).__pari__()
         elif isinstance(f, (list, tuple)):
             g = pari([R.coerce(x) for x in f]).Polrev(v)
         else:
-            g = R.coerce(f)._pari_()
+            g = R.coerce(f).__pari__()
 
         if prec is infinity:
             self.g = g
@@ -231,14 +231,14 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return PowerSeries_pari, (self._parent, self.g, self._prec, False)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a PARI object.
 
         TESTS::
 
             sage: R.<t> = PowerSeriesRing(GF(7), implementation='pari')
-            sage: (3 - t^3 + O(t^5))._pari_()
+            sage: (3 - t^3 + O(t^5)).__pari__()
             Mod(3, 7) + Mod(6, 7)*t^3 + O(t^5)
 
         """
@@ -400,8 +400,8 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         if len(kwds) >= 1:
             name = self._parent.variable_name()
-            if kwds.has_key(name):  # the series variable is specified by a keyword
-                if len(x) > 0:
+            if name in kwds:  # the series variable is specified by a keyword
+                if len(x):
                     raise ValueError("must not specify %s keyword and positional argument" % name)
                 x = [kwds[name]]
                 del kwds[name]
@@ -429,7 +429,7 @@ cdef class PowerSeries_pari(PowerSeries):
         from sage.rings.padics.padic_generic import pAdicGeneric
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
         from sage.rings.power_series_ring import PowerSeriesRing_generic
-        from sage.rings.laurent_series_ring import LaurentSeriesRing_generic
+        from sage.rings.laurent_series_ring import LaurentSeriesRing
         if isinstance(Q, pAdicGeneric):
             # Substitution of p-adic numbers in power series is
             # currently not implemented in PARI (2.8.0-development).
@@ -437,7 +437,7 @@ cdef class PowerSeries_pari(PowerSeries):
             if t <= 0:
                 raise ValueError("can only substitute elements of positive valuation")
             return Q(self.polynomial()(a)).add_bigoh(t * self._prec)
-        elif isinstance(Q, (PowerSeriesRing_generic, LaurentSeriesRing_generic)):
+        elif isinstance(Q, (PowerSeriesRing_generic, LaurentSeriesRing)):
             # In Sage, we want an error to be raised when trying to
             # substitute a series of non-positive valuation, but PARI
             # (2.8.0-development) does not do this.  For example,
@@ -602,7 +602,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g * (<PowerSeries_pari>right).g)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         Right multiplication by a scalar.
 
@@ -616,7 +616,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g * c)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         Left multiplication by a scalar.
 
@@ -678,7 +678,7 @@ cdef class PowerSeries_pari(PowerSeries):
             g = g.truncate()
         if typ(g.g) == t_POL and varn(g.g) == vn:
             # t_POL has 2 codewords.  Use new_ref instead of g[i] for speed.
-            return [R(new_ref(gel(g.g, i), g)) for i in range(2, lg(g.g))]
+            return [R(g.new_ref(gel(g.g, i))) for i in range(2, lg(g.g))]
         else:
             return [R(g)]
 
@@ -735,9 +735,9 @@ cdef class PowerSeries_pari(PowerSeries):
         if typ(g.g) == t_POL and varn(g.g) == get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_POL has 2 codewords
             if n <= l:
-                return [R(new_ref(gel(g.g, i + 2), g)) for i in range(n)]
+                return [R(g.new_ref(gel(g.g, i + 2))) for i in range(n)]
             else:
-                return ([R(new_ref(gel(g.g, i + 2), g)) for i in range(l)]
+                return ([R(g.new_ref(gel(g.g, i + 2))) for i in range(l)]
                         + [R.zero()] * (n - l))
         elif typ(g.g) == t_SER and varn(g.g) == get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_SER has 2 codewords
@@ -746,10 +746,10 @@ cdef class PowerSeries_pari(PowerSeries):
                 return [R.zero()] * n
             elif n <= l + m:
                 return ([R.zero()] * m
-                        + [R(new_ref(gel(g.g, i + 2), g)) for i in range(n - m)])
+                        + [R(g.new_ref(gel(g.g, i + 2))) for i in range(n - m)])
             else:
                 return ([R.zero()] * m
-                        + [R(new_ref(gel(g.g, i + 2), g)) for i in range(l)]
+                        + [R(g.new_ref(gel(g.g, i + 2))) for i in range(l)]
                         + [R.zero()] * (n - l - m))
         else:
             return [R(g)] + [R.zero()] * (n - 1)

@@ -172,7 +172,7 @@ def rings0():
         sage: type(sage.rings.tests.rings0())
         <... 'list'>
     """
-    from sage.all import IntegerRing, RationalField, ZZ, IntegerModRing
+    from sage.all import IntegerRing, RationalField
     v = [(IntegerRing, 'ring of integers'),
          (RationalField, 'field of rational numbers'),
          (integer_mod_ring, 'integers modulo n for n at most 50000'),
@@ -181,10 +181,11 @@ def rings0():
          (small_finite_field, 'finite field with cardinality at most 2^16'),
          (quadratic_number_field, 'a quadratic number field'),
          (absolute_number_field, 'an absolute number field of degree at most 10')
-         #(relative_number_field, 'a tower of at most 2 extensions each of degree at most 2')  # relative numbers are totally broken broken -- 4782
+         #(relative_number_field, 'a tower of at most 2 extensions each of degree at most 2')  # relative numbers are totally broken -- 4782
          ]
 
     return v
+
 
 def rings1():
     """

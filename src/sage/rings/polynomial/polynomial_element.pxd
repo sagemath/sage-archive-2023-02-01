@@ -20,16 +20,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     cpdef bint is_zero(self)
     cpdef bint is_one(self)
+    cpdef bint is_term(self)
 
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+    cpdef _floordiv_(self, right)
     cpdef Polynomial _mul_trunc_(self, Polynomial right, long n)
     cpdef Polynomial _power_trunc(self, unsigned long n, long prec)
+    cdef Polynomial _mul_term(self, Polynomial term, bint term_on_right)
 
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace
     cdef _inplace_truncate(self, long n)
 
+    cdef get_coeff_c(self, Py_ssize_t i)
     cdef get_unsafe(self, Py_ssize_t i)
     cpdef long number_of_terms(self)
+
+    cdef public dict __cached_methods
 
 cdef class Polynomial_generic_dense(Polynomial):
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P)

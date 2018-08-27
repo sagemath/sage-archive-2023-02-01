@@ -45,18 +45,17 @@ REFERENCES:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from . import graph
 import os
 import re
 from sage.rings.integer import Integer
-from sqlite3 import dbapi2 as sqlite # if anyone would like to explain why dbapi2...
 from sage.databases.sql_db import SQLDatabase, SQLQuery
 from sage.env import GRAPHS_DATA_DIR
 from sage.graphs.graph import Graph
 dblocation = os.path.join(GRAPHS_DATA_DIR,'graphs.db')
+
 
 def degseq_to_data(degree_sequence):
     """
@@ -72,6 +71,7 @@ def degseq_to_data(degree_sequence):
     """
     degree_sequence.sort()
     return sum(degree_sequence[i]*10**i for i in range(len(degree_sequence)))
+
 
 def data_to_degseq(data, graph6=None):
     """
@@ -137,13 +137,15 @@ def subgraphs_to_query(subgraphs, db):
         'SELECT ,,,,,  FROM misc WHERE ( ( misc.induced_subgraphs regexp ? ) AND (
         misc.induced_subgraphs regexp ? ) ) AND ( misc.induced_subgraphs regexp ? )'
     """
-    q = GraphQuery(graph_db=db,induced_subgraphs=subgraphs[1])
+    q = GraphQuery(graph_db=db, induced_subgraphs=subgraphs[1])
     if subgraphs[0] == 'all_of':
-        for i in range(len(subgraphs))[2:]:
-            q.intersect(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),in_place=True)
+        for i in range(2, len(subgraphs)):
+            q.intersect(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),
+                        in_place=True)
     elif subgraphs[0] == 'one_of':
-        for i in range(len(subgraphs))[2:]:
-            q.union(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),in_place=True)
+        for i in range(2, len(subgraphs)):
+            q.union(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),
+                    in_place=True)
     else:
         raise KeyError('Unable to initiate query:  Illegal input format for induced_subgraphs.')
     return q
@@ -204,8 +206,8 @@ def graph_db_info(tablename=None):
 
     EXAMPLES::
 
-        sage: graph_db_info().keys()
-        ['graph_data', 'degrees', 'spectrum', 'misc', 'aut_grp']
+        sage: sorted(graph_db_info())
+        ['aut_grp', 'degrees', 'graph_data', 'misc', 'spectrum']
 
     ::
 
@@ -636,7 +638,7 @@ class GraphQuery(GenericGraphQuery):
 
     def get_graphs_list(self):
         """
-        Returns a list of Sage Graph objects that satisfy the query.
+        Return a list of Sage Graph objects that satisfy the query.
 
         EXAMPLES::
 
@@ -647,8 +649,6 @@ class GraphQuery(GenericGraphQuery):
             sage: len(L)
             35
         """
-        from sage.graphs.graph_list import from_graph6
-
         s = self.__query_string__
         re.sub('SELECT.*FROM ', 'SELECT graph6 FROM ', s)
         q = GenericGraphQuery(s, self.__database__, self.__param_tuple__)

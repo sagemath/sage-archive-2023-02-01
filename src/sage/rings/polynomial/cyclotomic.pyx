@@ -24,13 +24,12 @@ method of univariate polynomial ring objects and the top-level
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import sys
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-from libc.string cimport memset
+from cysignals.memory cimport sig_malloc, check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.structure.element cimport parent
 
@@ -148,12 +147,7 @@ def cyclotomic_coeffs(nn, sparse=None):
             d = prod(s)
             max_deg += n / d
 
-    if (<object>max_deg)*sizeof(long) > sys.maxsize:
-        raise MemoryError("Not enough memory to calculate cyclotomic polynomial of %s" % n)
-    cdef long* coeffs = <long*>sig_malloc(sizeof(long) * (max_deg+1))
-    if coeffs == NULL:
-        raise MemoryError("Not enough memory to calculate cyclotomic polynomial of %s" % n)
-    memset(coeffs, 0, sizeof(long) * (max_deg+1))
+    cdef long* coeffs = <long*>check_calloc(max_deg+1, sizeof(long))
     coeffs[0] = 1
 
     cdef long k, dd, offset = 0, deg = 0

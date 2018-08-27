@@ -89,23 +89,6 @@ To find out more about
 see the top of the module :doc:`growth group <growth_group>`.
 
 
-.. WARNING::
-
-    As this code is experimental, a warning is thrown when an
-    asymptotic ring (or an associated structure) is created for the
-    first time in a session (see
-    :class:`sage.misc.superseded.experimental`).
-
-    TESTS::
-
-        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-        sage: G = GrowthGroup('x^ZZ')
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-
-
 .. _asymptotic_ring_intro:
 
 Introductory Examples
@@ -469,7 +452,6 @@ from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.defaults import series_precision
-from sage.misc.superseded import experimental
 from sage.rings.all import RIF
 
 
@@ -1093,7 +1075,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         INPUT:
 
         - ``monomial`` -- a monomial element which can be converted
-          into the the asymptotic ring of this element
+          into the asymptotic ring of this element
 
         OUTPUT:
 
@@ -2503,7 +2485,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         ::
 
             sage: (x^2 + log(x)).subs(x=4*x+2).truncate(5)
-            16*x^2 + 16*x + log(x) + log(4) + 4 + 1/2*x^(-1) + O(x^(-2))
+            16*x^2 + 16*x + log(x) + 2*log(2) + 4 + 1/2*x^(-1) + O(x^(-2))
             sage: _.parent()
             Asymptotic Ring <(e^x)^QQ * x^ZZ * log(x)^ZZ> over Symbolic Ring
 
@@ -3365,9 +3347,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
     Element = AsymptoticExpansion
 
 
-    __default_prec__ = series_precision()  # default default-precision
-
-
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
                       names=None, category=None, default_prec=None):
@@ -3487,15 +3466,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             category = CommutativeAlgebras(Rings())
 
         if default_prec is None:
-            default_prec = cls.__default_prec__
+            default_prec = series_precision()
 
         return super(AsymptoticRing,
                      cls).__classcall__(cls, growth_group, coefficient_ring,
                                         category=category,
                                         default_prec=default_prec)
 
-
-    @experimental(trac_number=17601)
     def __init__(self, growth_group, coefficient_ring, category, default_prec):
         r"""
         See :class:`AsymptoticRing` for more information.
@@ -3621,9 +3598,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self
-        from .misc import underlying_class
-        return underlying_class(self)(**values)
-
+        return self._underlying_class()(**values)
 
     @staticmethod
     def _create_empty_summands_():
@@ -3854,7 +3829,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         from .misc import combine_exceptions
         from sage.symbolic.ring import SymbolicRing
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
         from sage.rings.power_series_ring import is_PowerSeriesRing
 
         if isinstance(P, SymbolicRing):
@@ -4414,11 +4389,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: A.construction()[0].cls
             <class '__main__.MyAsymptoticRing'>
         """
-        from .misc import underlying_class
         return (AsymptoticRingFunctor(self.growth_group,
                                       default_prec=self.default_prec,
                                       category=self.category(),
-                                      cls=underlying_class(self)),
+                                      cls=self._underlying_class()),
                 self.coefficient_ring)
 
 

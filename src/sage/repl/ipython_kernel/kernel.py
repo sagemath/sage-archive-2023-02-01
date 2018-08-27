@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The Sage ZMQ Kernel
 
@@ -66,8 +67,8 @@ class SageKernel(IPythonKernel):
 
             sage: from sage.repl.ipython_kernel.kernel import SageKernel
             sage: sk = SageKernel.__new__(SageKernel)
-            sage: sk.banner
-            '...SageMath version...'
+            sage: print(sk.banner)
+            ┌...SageMath version...
         """
         from sage.misc.banner import banner_text
         return banner_text()
@@ -157,7 +158,7 @@ class SageKernel(IPythonKernel):
             },
             {
                 'text': "Matplotlib",
-                'url': "http://matplotlib.org/contents.html",
+                'url': "https://matplotlib.org/contents.html",
             },
             {
                 'text': "Markdown",
@@ -180,7 +181,7 @@ class SageKernel(IPythonKernel):
             sage: k = SageKernel.__new__(SageKernel)
             sage: k.pre_handler_hook()
             sage: k.saved_sigint_handler
-            <built-in function python_check_interrupt>
+            <cyfunction python_check_interrupt at ...>
         """
         from cysignals import init_cysignals
         self.saved_sigint_handler = init_cysignals()

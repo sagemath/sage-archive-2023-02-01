@@ -20,6 +20,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
 from sage.libs.glpk.error import GLPKError
@@ -28,8 +31,6 @@ from sage.libs.glpk.lp cimport *
 from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
 
@@ -153,7 +154,7 @@ cdef class GLPKBackend(GenericBackend):
         Add ``number`` new variables.
 
         This amounts to adding new columns to the matrix. By default,
-        the variables are both positive, real and theor coefficient in
+        the variables are both positive, real and their coefficient in
         the objective function is 0.0.
 
         INPUT:
@@ -394,10 +395,43 @@ cdef class GLPKBackend(GenericBackend):
 
         EXAMPLES::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "GLPK")
-            sage: p.set_verbosity(2)
+            sage: p.<x> = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.add_constraint(10 * x[0] <= 1)
+            sage: p.add_constraint(5 * x[1] <= 1)
+            sage: p.set_objective(x[0] + x[1])
+            sage: p.solve()
+            0.30000000000000004
+            sage: p.get_backend().set_verbosity(3)
+            sage: p.solve()
+            GLPK Integer Optimizer...
+            2 rows, 2 columns, 2 non-zeros
+            0 integer variables, none of which are binary
+            Preprocessing...
+            Objective value =   3.000000000e-01
+            INTEGER OPTIMAL SOLUTION FOUND BY MIP PREPROCESSOR
+            0.30000000000000004
 
+        ::
+
+            sage: p.<x> = MixedIntegerLinearProgram(solver="GLPK/exact")
+            sage: p.add_constraint(10 * x[0] <= 1)
+            sage: p.add_constraint(5 * x[1] <= 1)
+            sage: p.set_objective(x[0] + x[1])
+            sage: p.solve()
+            0.3
+            sage: p.get_backend().set_verbosity(2)
+            sage: p.solve()
+            *     2:   objval =                    0.3   (0)
+            *     2:   objval =                    0.3   (0)
+            0.3
+            sage: p.get_backend().set_verbosity(3)
+            sage: p.solve()
+            glp_exact: 2 rows, 2 columns, 2 non-zeros
+            GNU MP bignum library is being used
+            *     2:   objval =                    0.3   (0)
+            *     2:   objval =                    0.3   (0)
+            OPTIMAL SOLUTION FOUND
+            0.3
         """
         if level == 0:
             self.iocp.msg_lev = GLP_MSG_OFF
@@ -544,7 +578,7 @@ cdef class GLPKBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             GLPKError: glp_set_mat_row: i = 1; len = 1; invalid row length
-            Error detected in file glpapi01.c at line ...
+            Error detected in file api/prob1.c at line ...
         """
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
@@ -752,7 +786,7 @@ cdef class GLPKBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
@@ -909,11 +943,6 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: lp.solver_parameter("simplex_or_intopt", "exact_simplex_only") # use exact simplex only
             sage: lp.solve()
-            glp_exact: 3 rows, 2 columns, 6 non-zeros
-            GNU MP bignum library is being used
-            *     2:   objval =                      2   (0)
-            *     2:   objval =                      2   (0)
-            OPTIMAL SOLUTION FOUND
             2.0
             sage: lp.get_values([x, y])
             [1.5, 0.5]
@@ -946,11 +975,6 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.add_constraint(x <= test)
             sage: lp.set_objective(x)
             sage: lp.solve() == test # yes, we want an exact comparison here
-            glp_exact: 1 rows, 1 columns, 1 non-zeros
-            GNU MP bignum library is being used
-            *     0:   objval =                      0   (0)
-            *     1:   objval =   9.00719925474095e+15   (0)
-            OPTIMAL SOLUTION FOUND
             True
             sage: lp.get_values(x) == test # yes, we want an exact comparison here
             True
@@ -1662,7 +1686,7 @@ cdef class GLPKBackend(GenericBackend):
         For example, both ``glp_gmi_cuts`` or ``"gmi_cuts"`` control whether
         to solve using Gomory cuts.
 
-        Parameter **values** are specificed as strings in upper case,
+        Parameter **values** are specified as strings in upper case,
         or as constants in lower case. For example, both ``glp_on`` and ``"GLP_ON"``
         specify the same thing.
 
@@ -1688,7 +1712,7 @@ cdef class GLPKBackend(GenericBackend):
 
          * - ``simplex_or_intopt``
 
-           - specifiy which of ``simplex``, ``exact`` and ``intopt`` routines
+           - specify which of ``simplex``, ``exact`` and ``intopt`` routines
              in GLPK to use.
              This is controlled by setting ``simplex_or_intopt`` to
              ``glp_simplex_only``, ``glp_exact_simplex_only``,
@@ -2384,7 +2408,7 @@ cdef class GLPKBackend(GenericBackend):
         else:
             return 0.0
 
-    cpdef int get_row_stat(self, int i):
+    cpdef int get_row_stat(self, int i) except? -1:
         """
         Retrieve the status of a constraint.
 
@@ -2421,14 +2445,15 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.get_row_stat(1)
             3
             sage: lp.get_row_stat(-1)
-            Exception ValueError: ...
-            0
+            Traceback (most recent call last):
+            ...
+            ValueError: The constraint's index i must satisfy 0 <= i < number_of_constraints
         """
         if i < 0 or i >= glp_get_num_rows(self.lp):
             raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
         return glp_get_row_stat(self.lp, i+1)
 
-    cpdef int get_col_stat(self, int j):
+    cpdef int get_col_stat(self, int j) except? -1:
         """
         Retrieve the status of a variable.
 
@@ -2464,9 +2489,10 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: lp.get_col_stat(1)
             2
-            sage: lp.get_col_stat(-1)
-            Exception ValueError: ...
-            0
+            sage: lp.get_col_stat(100)
+            Traceback (most recent call last):
+            ...
+            ValueError: The variable's index j must satisfy 0 <= j < number_of_variables
         """
         if j < 0 or j >= glp_get_num_cols(self.lp):
             raise ValueError("The variable's index j must satisfy 0 <= j < number_of_variables")
@@ -2589,7 +2615,7 @@ cdef class GLPKBackend(GenericBackend):
         - if `0 \leq k \leq m-1`, the basic variable is `k`-th auxiliary
           variable,
 
-        - if `m \leq k \leq m+n-1`, the basic variable is `(k-m)`-th structual
+        - if `m \leq k \leq m+n-1`, the basic variable is `(k-m)`-th structural
           variable,
 
         where `m` is the number of rows and `n` is the number of columns in the
@@ -2682,7 +2708,7 @@ cdef class GLPKBackend(GenericBackend):
           variable,
 
         - if `m \leq k \leq m+n-1`, the non-basic variable is `(k-m)`-th
-          structual variable,
+          structural variable,
 
         where `m` is the number of rows and `n` is the number of columns
         in the specified problem object.

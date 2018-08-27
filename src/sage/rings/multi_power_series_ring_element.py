@@ -155,9 +155,9 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
+from six import iteritems, integer_types
 
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.infinity import infinity, is_Infinite
@@ -282,7 +282,7 @@ class MPowerSeries(PowerSeries):
 
     Convert elements from polynomial rings::
 
-        sage: R = PolynomialRing(ZZ,5,T.gens())
+        sage: R = PolynomialRing(ZZ,5,T.variable_names())
         sage: t = R.gens()
         sage: r = -t[2]*t[3] + t[3]^2 + t[4]^2
         sage: T(r)
@@ -580,10 +580,19 @@ class MPowerSeries(PowerSeries):
             sage: f._latex_()
             '- t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
             2 t_{1} t_{2}^{12} + 2 t_{0}^{7} t_{1}^{5} t_{2}^{2}
-            + O(t0, t1, t2)^{15}'
+            + O(t_{0}, t_{1}, t_{2})^{15}'
+
+        TESTS:
+
+        Check that :trac:`25156` is fixed::
+
+            sage: R.<x1,y1> = PowerSeriesRing(QQ, ('x', 'y'))
+            sage: element = 1 + y1^10 + x1^5
+            sage: element._latex_()
+            '1 + x_{1}^{5} + y_{1}^{10}'
         """
         if self._prec == infinity:
-            return "%s" % self._value()
+            return "%s" % self._value()._latex_()
         return "%(val)s + O(%(gens)s)^{%(prec)s}" \
                %{'val':self._value()._latex_(),
                  'gens':', '.join(g._latex_() for g in self.parent().gens()),
@@ -1079,7 +1088,7 @@ class MPowerSeries(PowerSeries):
             sage: g.polynomial() == f.polynomial() % 2
             True
         """
-        if isinstance(other,(int,Integer,long)):
+        if isinstance(other, integer_types + (Integer,)):
             return self.change_ring(Zmod(other))
         raise NotImplementedError("Mod on multivariate power series ring elements not defined except modulo an integer.")
 
@@ -1183,7 +1192,7 @@ class MPowerSeries(PowerSeries):
             sage: f.monomials()
             []
         """
-        return self.coefficients().keys()
+        return list(self.coefficients())
 
     def coefficients(self):
         """
@@ -1672,7 +1681,7 @@ class MPowerSeries(PowerSeries):
         TESTS:
 
         We try to recognize variables even if they are not recognized as
-        genrators of the rings::
+        generators of the rings::
 
             sage: T.<a,b> = PowerSeriesRing(QQ,2)
             sage: a.is_gen()
@@ -1737,7 +1746,7 @@ class MPowerSeries(PowerSeries):
         """
         raise NotImplementedError("egf")
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Method from univariate power series not yet implemented
 
@@ -1745,12 +1754,12 @@ class MPowerSeries(PowerSeries):
 
             sage: T.<a,b> = PowerSeriesRing(ZZ,2)
             sage: f = a + b + a*b + T.O(5)
-            sage: f._pari_()
+            sage: f.__pari__()
             Traceback (most recent call last):
             ...
-            NotImplementedError: _pari_
+            NotImplementedError: __pari__
         """
-        raise NotImplementedError("_pari_")
+        raise NotImplementedError("__pari__")
 
 
 

@@ -76,6 +76,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.arithgroup.all import Gamma0
 from sage.libs.pari.all import pari
 from sage.misc.misc import verbose
+from sage.structure.richcmp import richcmp_method, richcmp
 
 ZZy = rings.PolynomialRing(rings.ZZ, 'y')
 
@@ -356,6 +357,8 @@ def supersingular_j(FF):
         j_invss = root_hc_poly_list[0][0]
     return FF(j_invss)
 
+
+@richcmp_method
 class SupersingularModule(hecke.HeckeModule_free_module):
     r"""
     The module of supersingular points in a given characteristic, with
@@ -420,9 +423,9 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         return "Module of supersingular points on X_0(%s)/F_%s over %s"%(
             self.__level, self.__prime, self.base_ring())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         EXAMPLES::
 
@@ -434,9 +437,9 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             True
         """
         if not isinstance(other, SupersingularModule):
-            return cmp(type(self), type(other))
-        else:
-            return cmp( (self.__level, self.__prime, self.base_ring()), (other.__level, other.__prime, other.base_ring()))
+            return NotImplemented
+        return richcmp((self.__level, self.__prime, self.base_ring()),
+                       (other.__level, other.__prime, other.base_ring()), op)
 
     def free_module(self):
         """

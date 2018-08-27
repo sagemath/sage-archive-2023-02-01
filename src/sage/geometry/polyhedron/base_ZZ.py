@@ -11,20 +11,21 @@ Base class for polyhedra over `\ZZ`
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
+from .base_QQ import Polyhedron_QQ
 from sage.arith.all import gcd
 from .constructor import Polyhedron
 from .base import Polyhedron_base
+from sage.misc.superseded import deprecated_function_alias
 
 
 #########################################################################
-class Polyhedron_ZZ(Polyhedron_base):
-    """
+class Polyhedron_ZZ(Polyhedron_QQ):
+    r"""
     Base class for Polyhedra over `\ZZ`
 
     TESTS::
@@ -33,72 +34,6 @@ class Polyhedron_ZZ(Polyhedron_base):
         A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
         sage: TestSuite(p).run(skip='_test_pickling')
     """
-    def _is_zero(self, x):
-        """
-        Test whether ``x`` is zero.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_zero(0)
-            True
-            sage: p._is_zero(1/100000)
-            False
-        """
-        return x==0
-
-    def _is_nonneg(self, x):
-        """
-        Test whether ``x`` is nonnegative.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_nonneg(1)
-            True
-            sage: p._is_nonneg(-1/100000)
-            False
-        """
-        return x>=0
-
-    def _is_positive(self, x):
-        """
-        Test whether ``x`` is positive.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_positive(1)
-            True
-            sage: p._is_positive(0)
-            False
-        """
-        return x>0
-
     _base_ring = ZZ
 
     def is_lattice_polytope(self):
@@ -116,8 +51,16 @@ class Polyhedron_ZZ(Polyhedron_base):
             True
             sage: polytopes.regular_polygon(5).is_lattice_polytope()
             False
+
+        TESTS:
+
+        Check :trac:`22622`::
+
+            sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+            sage: P1.is_lattice_polytope()
+            False
         """
-        return True
+        return self.is_compact()
 
     def ehrhart_polynomial(self, verbose=False, dual=None,
             irrational_primal=None, irrational_all_primal=None, maxdet=None,
@@ -312,7 +255,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p.polar()
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: type(_)
-            <class 'sage.geometry.polyhedron.backend_ppl.Polyhedra_ZZ_ppl_with_category.element_class'>
+            <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
             sage: p.polar().base_ring()
             Integer Ring
         """
@@ -418,7 +361,7 @@ class Polyhedron_ZZ(Polyhedron_base):
                 plane._delete()
 
     def find_translation(self, translated_polyhedron):
-        """
+        r"""
         Return the translation vector to ``translated_polyhedron``.
 
         INPUT:
@@ -457,7 +400,7 @@ class Polyhedron_ZZ(Polyhedron_base):
         return v
 
     def _subpoly_parallel_facets(self):
-        """
+        r"""
         Generator for all lattice sub-polyhedra with parallel facets.
 
         In a sub-polyhedron `Y\subset X` not all edges of `Y` need to
@@ -525,8 +468,8 @@ class Polyhedron_ZZ(Polyhedron_base):
             yield parent([v, [], []], None)
 
     @cached_method
-    def Minkowski_decompositions(self):
-        """
+    def minkowski_decompositions(self):
+        r"""
         Return all Minkowski sums that add up to the polyhedron.
 
         OUTPUT:
@@ -539,7 +482,7 @@ class Polyhedron_ZZ(Polyhedron_base):
         EXAMPLES::
 
             sage: square = Polyhedron(vertices=[(0,0),(1,0),(0,1),(1,1)])
-            sage: square.Minkowski_decompositions()
+            sage: square.minkowski_decompositions()
             ((A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
               A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices),
              (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
@@ -549,7 +492,7 @@ class Polyhedron_ZZ(Polyhedron_base):
 
             sage: Q = Polyhedron(vertices=[(4,0), (6,0), (0,3), (4,3)])
             sage: R = Polyhedron(vertices=[(0,0), (5,0), (8,4), (3,2)])
-            sage: (Q+R).Minkowski_decompositions()
+            sage: (Q+R).minkowski_decompositions()
             ((A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
               A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
              (A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices,
@@ -567,13 +510,21 @@ class Polyhedron_ZZ(Polyhedron_base):
              (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
               A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 6 vertices))
 
-           sage: [ len(square.dilation(i).Minkowski_decompositions())
+           sage: [ len(square.dilation(i).minkowski_decompositions())
            ....:   for i in range(6) ]
            [1, 2, 5, 8, 13, 18]
            sage: [ ceil((i^2+2*i-1)/2)+1 for i in range(10) ]
            [1, 2, 5, 8, 13, 18, 25, 32, 41, 50]
+
+        TESTS::
+
+            sage: Q = Polyhedron(vertices=[(4,0), (6,0), (0,3), (4,3)])
+            sage: D = Q.Minkowski_decompositions()
+            doctest:warning...:
+            DeprecationWarning: Minkowski_decompositions is deprecated. Please use minkowski_decompositions instead.
+            See http://trac.sagemath.org/23685 for details.
         """
-        if self.dim()>2 or not self.is_compact():
+        if self.dim() > 2 or not self.is_compact():
             raise NotImplementedError('only implemented for bounded polygons')
         summands = []
         def is_known_summand(poly):
@@ -590,7 +541,9 @@ class Polyhedron_ZZ(Polyhedron_base):
             Y = self - X
             if X+Y != self:
                 continue
-            decompositions.append((X,Y))
+            decompositions.append((X, Y))
             summands += [X, Y]
         return tuple(decompositions)
 
+    Minkowski_decompositions = deprecated_function_alias(23685,
+                                                         minkowski_decompositions)

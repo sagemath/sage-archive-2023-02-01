@@ -292,6 +292,7 @@ from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, Asci
 from sage.misc.all import prod
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 import os
 
 
@@ -553,7 +554,7 @@ class LiE(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 2\n')
+            sage: _ = f.write('x = 2\n')
             sage: f.close()
             sage: lie.read(filename)  # optional - lie
             sage: lie.get('x')        # optional - lie
@@ -747,6 +748,7 @@ class LiE(ExtraTabCompletion, Expect):
         return LiEFunctionElement
 
     
+@instancedoc
 class LiEElement(ExtraTabCompletion, ExpectElement):
     def _tab_completion(self):
         """
@@ -866,27 +868,29 @@ class LiEElement(ExtraTabCompletion, ExpectElement):
             return ExpectElement._sage_(self)
 
 
+@instancedoc
 class LiEFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
             sage: a4 = lie('A4')  # optional - lie
-            sage: a4.diagram._sage_doc_() # optional - lie
+            sage: a4.diagram.__doc__  # optional - lie
             'diagram(g)...'
         """
         M = self._obj.parent()
         return M.help(self._name)
 
 
+@instancedoc
 class LiEFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the help for self.
 
         EXAMPLES::
 
-            sage: lie.diagram._sage_doc_() # optional - lie
+            sage: lie.diagram.__doc__  # optional - lie
             'diagram(g)...'
         """
         M = self._parent

@@ -20,7 +20,6 @@ from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from .generic_backend cimport GenericBackend
-from cvxopt import solvers
 from copy import copy
 
 
@@ -39,7 +38,7 @@ cdef class CVXOPTBackend(GenericBackend):
     :trac:`20332`::
 
         sage: p
-        Mixed Integer Program  ( maximization, 0 variables, 0 constraints )
+        Mixed Integer Program (no objective, 0 variables, 0 constraints)
 
     General backend testsuite::
 
@@ -323,7 +322,7 @@ cdef class CVXOPTBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
@@ -500,7 +499,7 @@ cdef class CVXOPTBackend(GenericBackend):
         for eq_index in range(self.nrows()):
             h.append(self.row_upper_bound[eq_index])
             #upper bound is already in G
-            if self.row_lower_bound[eq_index] != None:
+            if self.row_lower_bound[eq_index] is not None:
                 h.append(-1 * self.row_lower_bound[eq_index])
                 for cindex in range(len(self.G_matrix)):
                     if cindex == eq_index:
@@ -512,14 +511,14 @@ cdef class CVXOPTBackend(GenericBackend):
 
         #for the upper bounds (if there are any)
         for i in range(len(self.col_upper_bound)):
-            if self.col_upper_bound[i] != None:
+            if self.col_upper_bound[i] is not None:
                 h.append(self.col_upper_bound[i])
                 for cindex in range(len(self.G_matrix)):
                     if cindex == i:
                         self.G_matrix[cindex].append(1)
                     else:
                         self.G_matrix[cindex].append(0)
-            if self.col_lower_bound[i] != None:
+            if self.col_lower_bound[i] is not None:
                 h.append(self.col_lower_bound[i])
                 for cindex in range(len(self.G_matrix)):
                     if cindex == i:

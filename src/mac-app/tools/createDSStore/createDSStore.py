@@ -7,7 +7,7 @@ a certain background image, and places the icons.
 This file is intended to be placed into the directory from which a dmg is
 created for packaging an application. It needs as additional information the
 name of the volume that will be used when creating the dmg and the name of the
-application, including the .app, e.g., Sage-6.9.app.
+application, including the .app, e.g., Sage-8.1.app.
 
 We could just always use the same .DS_Store that if the volume name and
 application name were not changing.
@@ -74,14 +74,14 @@ def getBackgroundImage_alias(volume_name):
 
     global backgroundImageName
 
-    carbon_path = '%s:%s' % (volume_name, backgroundImageName)
-
     volume = mac_alias.VolumeInfo(volume_name,
                                   getSomeTime(),
                                   'H+',
                                   0,
                                   0,
                                   '\x00\x00')
+
+    carbon_path = '%s:%s' % (volume_name, backgroundImageName)
 
     target = mac_alias.TargetInfo(0,
                                   backgroundImageName,

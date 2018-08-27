@@ -20,6 +20,7 @@ AUTHOR:
 
 - William Stein (2008)
 """
+from __future__ import absolute_import
 
 from sage.rings.all import RDF, CDF, Integer
 from sage.modules.all import vector

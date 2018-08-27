@@ -18,6 +18,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
+from sage.cpython.getattr import raw_getattr
 lazy_import("sage.rings.integer", "Integer")
 
 class FiniteEnumeratedSets(CategoryWithAxiom):
@@ -265,10 +266,10 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             - ``self.cardinality()``
             - ``self.unrank()``
 
-            .. seealso:: :meth:`_cardinality_from_list`,
+            .. SEEALSO:: :meth:`_cardinality_from_list`,
                 :meth:`_iterator_from_list`, and :meth:`_unrank_from_list`
 
-            .. warning::
+            .. WARNING::
 
                 The overriding of ``self.__iter__`` to use the cache
                 is ignored upon calls such as ``for x in C:`` or
@@ -615,12 +616,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C.__iter__.__module__
                 'sage.categories.sets_cat'
             """
-
-            # Ambiguity resolution between methods inherited from
-            # Sets.CartesianProducts and from EnumeratedSets.Finite.
-            random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
-            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
-            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
+            random_element = raw_getattr(Sets.CartesianProducts.ParentMethods, "random_element")
+            cardinality = raw_getattr(Sets.CartesianProducts.ParentMethods, "cardinality")
+            __iter__ = raw_getattr(Sets.CartesianProducts.ParentMethods, "__iter__")
 
             def last(self):
                 r"""

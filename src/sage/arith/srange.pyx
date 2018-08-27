@@ -21,11 +21,11 @@ AUTHORS:
 from __future__ import division, print_function
 
 from libc.math cimport ceil
+from cysignals.signals cimport sig_check
+
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport parent
 from sage.structure.sequence import Sequence
-
-include "cysignals/signals.pxi"
 
 
 def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include_endpoint=False, endpoint_tolerance=1e-5):
@@ -214,8 +214,9 @@ def srange(*args, **kwds):
        it from the built-in Python ``range`` command.  The s
        at the beginning of the name stands for "Sage".
 
-    .. seealso: :func:`xsrange` -- iterator which is used to implement
-       :func:`srange`.
+    .. SEEALSO::
+
+        :func:`xsrange` -- iterator which is used to implement :func:`srange`.
 
     EXAMPLES::
 
@@ -385,7 +386,7 @@ def ellipsis_iter(*args, step=None):
     step = universe(step)
 
     # this is a bit more complicated because we can't pop what's already been yielded
-    next = None
+    next_ = None
     skip = False
     last_end = None
     # first we handle step_magic (which may require two pops if the range is empty)
@@ -400,7 +401,7 @@ def ellipsis_iter(*args, step=None):
                 yield a
             last_end = a
             skip = True
-            next = None
+            next_ = None
             step_magic += 1
         else:
             yield args[step_magic-2]
@@ -420,10 +421,10 @@ def ellipsis_iter(*args, step=None):
                     yield cur
             start, end = args[i-1], args[i+1]
             if i < 2 or args[i-2] is not Ellipsis:
-                next = None
+                next_ = None
             more = xsrange(start, end, step, coerce=False, include_endpoint=True)
             try:
-                first = more.next()  # BUG: cannot currently use next(more)
+                first = next(more)
                 if last_end != first:
                     yield first
                 for a in more:
@@ -432,11 +433,11 @@ def ellipsis_iter(*args, step=None):
             except StopIteration:
                 last_end = None
             skip = True
-            next = None
+            next_ = None
         else:
-            if next is not None:
-                yield next
-            next = args[i]
+            if next_ is not None:
+                yield next_
+            next_ = args[i]
             last_end = None
 
 

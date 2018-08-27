@@ -49,6 +49,8 @@ vertex.
    page instead.
 """
 from __future__ import absolute_import
+from six.moves import range
+from six import integer_types
 
 from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
@@ -294,7 +296,7 @@ class DeltaComplex(GenericCellComplex):
                     new_data[dim] = s
                     dim += 1
             elif isinstance(data, dict):
-                if all(isinstance(a, (Integer, int, long)) for a in data):
+                if all(isinstance(a, (Integer,) + integer_types) for a in data):
                     # a dictionary indexed by integers
                     new_data = data
                     if -1 not in new_data:
@@ -1006,7 +1008,9 @@ class DeltaComplex(GenericCellComplex):
                             # Simplex, as well as the function
                             # 'lattice_paths', in
                             # simplicial_complex.py.)
-                            for path in lattice_paths(range(k+1), range(n+1), length=d+1):
+                            for path in lattice_paths(list(range(k + 1)),
+                                                      list(range(n + 1)),
+                                                      length=d+1):
                                 path = tuple(path)
                                 new[(k, k_idx, n, n_idx, path)] = len(simplices)
                                 bdry_list = []
@@ -1259,7 +1263,7 @@ class DeltaComplex(GenericCellComplex):
         of a single top-dimensional simplex without subdividing every
         simplex in the complex.
 
-        The term "elementary subdivison" is taken from p. 112 in John
+        The term "elementary subdivision" is taken from p. 112 in John
         M. Lee's book [Lee2011]_.
 
         EXAMPLES::

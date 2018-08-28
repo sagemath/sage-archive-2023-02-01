@@ -465,8 +465,6 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             True
             sage: L._poset is P
             True
-            sage: L._linear_extensions_of_hasse_diagram
-            Linear extensions of Hasse diagram of a poset containing 3 elements
             sage: TestSuite(L).run()
 
             sage: P = Poset((divisors(15), attrcall("divides")))
@@ -481,7 +479,6 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: TestSuite(L).run(skip="_test_an_element")
         """
         self._poset = poset
-        self._linear_extensions_of_hasse_diagram = sage.graphs.linearextensions.LinearExtensions(poset._hasse_diagram)
         self._is_facade = facade
         if facade:
             facade = (list,)
@@ -610,8 +607,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: sorted(L)
             [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [2, 1, 3, 4], [2, 1, 4, 3]]
         """
+        from sage.combinat.combinat_cython import linear_extension_iterator
         vertex_to_element = self._poset._vertex_to_element
-        for lin_ext in self._linear_extensions_of_hasse_diagram:
+        for lin_ext in linear_extension_iterator(self._poset._hasse_diagram):
             yield self._element_constructor_([vertex_to_element(_) for _ in lin_ext])
 
     def __contains__(self, obj):

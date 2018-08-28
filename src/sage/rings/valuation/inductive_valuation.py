@@ -664,7 +664,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from .augmented_valuation import AugmentedValuation
         return AugmentedValuation(self, phi, mu, check)
 
-    def mac_lane_step(self, G, principal_part_bound=None, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None, check=True):
+    def mac_lane_step(self, G, principal_part_bound=None, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None, check=True, allow_same_key=True):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
         integral polynomial ``G`` which is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`.
@@ -780,9 +780,23 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert len(F) == 1
                     break
 
+                if self.phi() == phi and not allow_same_key:
+                    continue
+
                 verbose("Determining the augmentation of %s for %s"%(self, phi), level=11)
+
+                base = self
+                if phi.degree() == base.phi().degree():
+                    # very frequently, the degree of the key polynomials
+                    # stagnate for a bit while the valuation of the key
+                    # polynomial is slowly increased.
+                    # In this case, we can drop previous key polynomials
+                    # of the same degree. (They have no influence on the
+                    # phi-adic expansion.)
+                    if not base.is_gauss_valuation():
+                        base = base._base_valuation
                 old_mu = self(phi)
-                w = self.augmentation(phi, old_mu, check=False)
+                w = base.augmentation(phi, old_mu, check=False)
 
                 # we made some experiments here: instead of computing the
                 # coefficients again from scratch, update the coefficients when
@@ -818,18 +832,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     new_mu = old_mu - slope
                     new_valuations = [val - (j*slope if slope is not -infinity else (0 if j == 0 else -infinity))
                                       for j,val in enumerate(w_valuations)]
-                    base = self
-                    if phi.degree() == base.phi().degree():
-                        # very frequently, the degree of the key polynomials
-                        # stagnate for a bit while the valuation of the key
-                        # polynomial is slowly increased.
-                        # In this case, we can drop previous key polynomials
-                        # of the same degree. (They have no influence on the
-                        # phi-adic expansion.)
-                        assert new_mu > self(phi)
-                        if not base.is_gauss_valuation():
-                            base = base._base_valuation
+                    if phi.degree() == self.phi().degree():
+                        assert new_mu > self(phi), "the valuation of the key polynomial must increase when the degree stagnates"
                     w = base.augmentation(phi, new_mu, check=False)
+                    verbose("Augmented %s to %s"%(self, w), level=13)
                     assert slope is -infinity or 0 in w.newton_polygon(G).slopes(repetition=False)
 
                     from sage.rings.all import ZZ

@@ -746,7 +746,7 @@ class DiscreteValuation(DiscretePseudoValuation):
                              coefficients=node.coefficients,
                              valuations=node.valuations,
                              check=False,
-                             allow_same_key=node.valuation.is_gauss_valuation(),
+                             allow_equivalent_key=node.valuation.is_gauss_valuation(),
                              principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:
                 ef = bound == w.E()*w.F()

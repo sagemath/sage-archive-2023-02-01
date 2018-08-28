@@ -664,7 +664,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from .augmented_valuation import AugmentedValuation
         return AugmentedValuation(self, phi, mu, check)
 
-    def mac_lane_step(self, G, principal_part_bound=None, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None, check=True, allow_same_key=True):
+    def mac_lane_step(self, G, principal_part_bound=None, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None, check=True, allow_equivalent_key=True):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
         integral polynomial ``G`` which is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`.
@@ -697,6 +697,54 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         - ``check`` -- whether to check that ``G`` is a squarefree monic
           non-constant  integral polynomial and not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`
           (default: ``True``)
+
+        - ``allow_equivalent_key`` -- whether to return valuations which end in
+          essentially the same key polynomial as this valuation but have a
+          higher valuation assigned to that key polynomial (default: ``True``)
+
+        EXAMPLES:
+
+        We can use this method to perform the individual steps of
+        :meth:`~sage.rings.valuation.valuation.DiscreteValuation.mac_lane_approximants`::
+
+            sage: R.<x> = QQ[]
+            sage: v = QQ.valuation(2)
+            sage: f = x^36 + 1160/81*x^31 + 9920/27*x^30 + 1040/81*x^26 + 52480/81*x^25 + 220160/81*x^24 - 5120/81*x^21 - 143360/81*x^20 - 573440/81*x^19 + 12451840/81*x^18 - 266240/567*x^16 - 20316160/567*x^15 - 198737920/189*x^14 - 1129840640/81*x^13 - 1907359744/27*x^12 + 8192/81*x^11 + 655360/81*x^10 + 5242880/21*x^9 + 2118123520/567*x^8 + 15460204544/567*x^7 + 6509559808/81*x^6 - 16777216/567*x^2 - 268435456/567*x - 1073741824/567
+            sage: v.mac_lane_approximants(f)
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 2056) = 23/2 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 2/5, v(x^5 + 4) = 7/2 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^10 + 8*x^5 + 64) = 7 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^5 + 8) = 5 ]]
+
+        Starting from the Gauss valuation, a MacLane step branches off with
+        some linear key polynomials in the above example::
+
+            sage: v0 = GaussValuation(R, v)
+            sage: V1 = v0.mac_lane_step(f); V1
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 3/5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 2/5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ]]
+
+        The computation of MacLane approximants would now perform a MacLane
+        step on each of these branches, note however, that a direct call to
+        this method might produce some unexpected results::
+
+            sage: V1[0].mac_lane_step(f)
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^5 + 8) = 5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^10 + 8*x^5 + 64) = 7 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ]]
+
+        Note how this detected the two augmentations of ``V1[0]`` but also two
+        other valuations that we had seen in the previous step and that are
+        greater than ``V1[0]``. To ignore such trivial augmentations, we can
+        set ``allow_equivalent_key``::
+
+            sage: V1[0].mac_lane_step(f, allow_equivalent_key=False)
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^5 + 8) = 5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^10 + 8*x^5 + 64) = 7 ]]
 
         TESTS::
 
@@ -780,8 +828,13 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert len(F) == 1
                     break
 
-                if self.phi() == phi and not allow_same_key:
-                    continue
+                if not allow_equivalent_key and self.phi().degree() == phi.degree():
+                    # We ignore augmentations that could have been detected in
+                    # the previous MacLane step, see [Rüt2014, Theorem 4.33],
+                    # i.e., we ignore key polynomials that are equivalent to
+                    # the current key in the sense of that theorem.
+                    if self.is_equivalent(self.phi(), phi):
+                        continue
 
                 verbose("Determining the augmentation of %s for %s"%(self, phi), level=11)
 
@@ -844,6 +897,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert degree_bound <= G.degree()
                     assert degree_bound >= phi.degree()
                     ret.append((w, degree_bound, multiplicities[slope], w_coefficients, new_valuations))
+
+        if len(ret) == 0:
+            assert not allow_equivalent_key, "a MacLane step produced no augmentation"
+            assert 0 not in self.newton_polygon(G).slopes(), "a MacLane step produced no augmentation but the valuation given to the key polynomial was correct, i.e., it appears to come out of a call to mac_lane_approximants"
 
         assert ret, "a MacLane step produced no augmentations"
         if not report_degree_bounds_and_caches:

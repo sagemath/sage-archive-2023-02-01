@@ -453,7 +453,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
     else:
         if isinstance(split, (list, tuple)):
             parts = len(split)
-        split = iter((ph, ph.Hrepresentation_str(Hrepresentation_str_options))
+        split = iter((ph, ph.Hrepresentation_str(**Hrepresentation_str_options))
                      for ph in split)
 
     result = []

@@ -1019,7 +1019,7 @@ REFERENCES:
              for the Yokonuma-Hecke algebra and the algebra of braids
              and ties*. (2015) :arxiv:`1506.00715`.
 
-.. [ESSS2012] \D. Engels, M.-J. O. Saarinen, P. Schweitzer, and E. M. Smith,
+.. [ESSS2011] \D. Engels, M.-J. O. Saarinen, P. Schweitzer, and E. M. Smith,
               *The Hummingbird-2 lightweight authenticated encryption algorithm*; in
               RFIDSec, (2011), pp. 19-31.
 
@@ -1585,6 +1585,10 @@ REFERENCES:
 .. [Ke2008] \B. Keller, *Cluster algebras, quiver representations
             and triangulated categories*, :arXiv:`0807.1960`.
 
+.. [KG2016] \P. Karpmann and Benjamin Gregoire, *The LITTLUN S-box and the FLY
+            block cipher*, Lightweight Cryptography Workshop, 2016.
+            https://www.nist.gov/sites/default/files/documents/2016/10/18/karpman-paper-lwc2016.pdf
+
 .. [KK1995] Victor Klee and Peter Kleinschmidt,
             *Convex polytopes and related complexes.*, in \R. L. Graham,
             \M. Grötschel, \L Lovász, *Handbook of combinatorics*,
@@ -1965,7 +1969,7 @@ REFERENCES:
 .. [MagmaHGM] *Hypergeometric motives* in Magma,
    http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
 
-.. [Mas94] James L. Massey,
+.. [Mas1994] James L. Massey,
            *SAFER K-64: A byte-oriented block-ciphering algorithm*; in
            FSE’93, Volume 809 of LNCS, pages 1-17.
            Springer, Heidelberg, December 1994.
@@ -2886,7 +2890,10 @@ REFERENCES:
             *Analysis of the DVB Common Scrambling Algorithm*; in
             IFIP TC-6 TC-11, (2005).
 
-.. [WZY2015] WenLing Wu, Lei Zhang, and XiaoLi Yu, *The DBlock family of block ciphers*;
+.. [WZ2011] \W. Wu and L. Zhang, *The LBlock family of block ciphers*;
+            in ACNS, (2011), pp. 327-344.
+
+.. [WZY2015] Wenling Wu, Lei Zhang, and Xiaoli Yu, *The DBlock family of block ciphers*;
              in Science China Information Sciences, (2015), pp. 1-14.
 
 .. _ref-X:

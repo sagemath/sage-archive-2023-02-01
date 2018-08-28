@@ -746,6 +746,11 @@ class DiscreteValuation(DiscretePseudoValuation):
                              coefficients=node.coefficients,
                              valuations=node.valuations,
                              check=False,
+                             # We do not want to see augmentations that are
+                             # already part of other branches of the tree of
+                             # valuations for obvious performance reasons and
+                             # also because the principal_part_bound would be
+                             # incorrect for these.
                              allow_equivalent_key=node.valuation.is_gauss_valuation(),
                              principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:

@@ -583,12 +583,18 @@ class FractionField_generic(ring.Field):
             TypeError: cannot convert tau/(tau + 1)/1 to an element of Fraction
             Field of Univariate Polynomial Ring in z over Cyclotomic Field of
             order 2 and degree 1
+
+        Check that :trac:`#26150` is fixed::
+
+            sage: z = SR.var('z')
+            sage: CyclotomicField(2)['z'].fraction_field()(2*(4*z + 5)/((z + 1)*(z - 1)^4))
+            (8*z + 10)/(z^5 - 3*z^4 + 2*z^3 + 2*z^2 - 3*z + 1)
         """
         if y is None:
             if isinstance(x, Element) and x.parent() is self:
                 return x
             else:
-                y = self.base_ring().one()
+                y = self.one()
 
         try:
             return self._element_class(self, x, y, coerce=coerce)
@@ -627,7 +633,7 @@ class FractionField_generic(ring.Field):
             try:
                 x = x0.numerator()*y0.denominator()
                 y = y0.numerator()*x0.denominator()
-            except AttributeError:
+            except (AttributeError, TypeError):
                 raise TypeError("cannot convert {!r}/{!r} to an element of {}".format(
                                 x0, y0, self))
             try:

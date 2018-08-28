@@ -8318,7 +8318,7 @@ class Graph(GenericGraph):
     from sage.graphs.lovasz_theta import lovasz_theta
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
-    from sage.graphs.connectivity import bridges
+    from sage.graphs.connectivity import bridges, cleave, spqr_tree
 
 
 _additional_categories = {
@@ -8341,7 +8341,10 @@ _additional_categories = {
     "tutte_polynomial"          : "Algorithmically hard stuff",
     "lovasz_theta"              : "Leftovers",
     "strong_orientations_iterator" : "Connectivity, orientations, trees",
-    "random_orientation"        : "Connectivity, orientations, trees"
+    "random_orientation"        : "Connectivity, orientations, trees",
+    "bridges"                   : "Connectivity, orientations, trees",
+    "cleave"                    : "Connectivity, orientations, trees",
+    "spqr_tree"                 : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

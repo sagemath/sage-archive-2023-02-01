@@ -27,8 +27,6 @@ Here is what the module can do:
     :meth:`is_cut_vertex` | Return True if the input vertex is a cut-vertex.
     :meth:`edge_connectivity` | Return the edge connectivity of the graph.
     :meth:`vertex_connectivity` | Return the vertex connectivity of the graph.
-    :meth:`~TriconnectivitySPQR.get_triconnected_components` | Return the triconnected components of a biconnected graph.
-    :meth:`~TriconnectivitySPQR.get_spqr_tree` | Returns the SPQR tree of a biconnected graph constructed from its triconnected components.
 
 **For DiGraph:**
 

@@ -80,7 +80,7 @@ class LinearExtensions(Parent):
 
         """
         from sage.combinat.posets.posets import Poset
-        self._dag = Poset(dag)._hasse_diagram # this returns a copy
+        self._dag = Poset(dag) # this returns a copy
         Parent.__init__(self, category = FiniteEnumeratedSets())
 
     def _repr_(self):
@@ -90,7 +90,7 @@ class LinearExtensions(Parent):
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: LinearExtensions(D)
-            Linear extensions of Hasse diagram of a poset containing 5 elements
+            Linear extensions of Finite poset containing 5 elements
 
         """
         return "Linear extensions of %s"%self._dag
@@ -110,7 +110,26 @@ class LinearExtensions(Parent):
              [0, 2, 1, 4, 3],
              [0, 2, 4, 1, 3]]
 
+        TESTS::
+
+            sage: D = DiGraph({ "a":["b","c"], "b":["d"], "c":["d","e"] })
+            sage: sorted(LinearExtensions(D))
+            [['a', 'b', 'c', 'd', 'e'],
+             ['a', 'b', 'c', 'e', 'd'],
+             ['a', 'c', 'b', 'd', 'e'],
+             ['a', 'c', 'b', 'e', 'd'],
+             ['a', 'c', 'e', 'b', 'd']]
+
+            sage: D = DiGraph({ 4:[3,2], 3:[1], 2:[1,0] })
+            sage: sorted(LinearExtensions(D))
+            [[4, 2, 0, 3, 1],
+             [4, 2, 3, 0, 1],
+             [4, 2, 3, 1, 0],
+             [4, 3, 2, 0, 1],
+             [4, 3, 2, 1, 0]]
+
         """
         from sage.combinat.combinat_cython import linear_extension_iterator
-        for e in linear_extension_iterator(self._dag):
-            yield e
+        elts = list(self._dag)
+        for e in linear_extension_iterator(self._dag._hasse_diagram):
+            yield [elts[i] for i in e]

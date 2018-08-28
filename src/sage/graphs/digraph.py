@@ -2967,9 +2967,9 @@ class DiGraph(GenericGraph):
             ....:         if sort.index(u) > sort.index(v):
             ....:             print("This should never happen.")
         """
-        from sage.combinat.combinat_cython import linear_extension_iterator
+        from sage.graphs.linearextensions import LinearExtensions
         try:
-            return sorted(linear_extension_iterator(Poset(self)._hasse_diagram))
+            return sorted(LinearExtensions(self))
         except TypeError:
             raise TypeError('Digraph is not acyclic; there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
 

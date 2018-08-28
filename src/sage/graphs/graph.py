@@ -8330,7 +8330,7 @@ _additional_categories = {
     "rank_decomposition"        : "Algorithmically hard stuff",
     "pathwidth"                 : "Algorithmically hard stuff",
     "matching_polynomial"       : "Algorithmically hard stuff",
-    "all_max_cliques"           : "Clique-related methods",
+    "all_max_clique"            : "Clique-related methods",
     "cliques_maximum"           : "Clique-related methods",
     "random_spanning_tree"      : "Connectivity, orientations, trees",
     "is_cartesian_product"      : "Graph properties",

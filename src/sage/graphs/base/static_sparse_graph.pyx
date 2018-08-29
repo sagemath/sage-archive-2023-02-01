@@ -953,23 +953,19 @@ def spectral_radius(G, prec=1e-10):
         sage: spectral_radius(Graph(), 1e-10)
         Traceback (most recent call last):
         ...
-        ValueError: graph without edges
+        ValueError: empty graph
     """
     if not G:
-        raise ValueError("graph without edges")
+        raise ValueError("empty graph")
     if G.is_directed():
         if not G.is_strongly_connected():
             raise ValueError("G must be strongly connected")
-        # NOTE: this is a complete waste of time... but there is no
-        # is_bipartite method on oriented graphs!
-        is_bipartite, colors = G.to_undirected().is_bipartite(certificate=True)
     elif not G.is_connected():
         raise ValueError("G must be connected")
-    else:
-        is_bipartite, colors = G.is_bipartite(certificate=True)
-
+    
     cdef double e_min, e_max
 
+    is_bipartite, colors = G.is_bipartite(certificate=True)
     if is_bipartite:
         # NOTE: for bipartite graph there are two eigenvalues of maximum modulus
         # and the iteration is likely to reach a cycle of length 2 and hence the

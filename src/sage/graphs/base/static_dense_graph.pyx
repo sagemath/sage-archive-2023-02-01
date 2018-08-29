@@ -50,7 +50,7 @@ include "sage/data_structures/binary_matrix.pxi"
 from cysignals.signals cimport sig_on, sig_off, sig_check
 
 
-cdef dict dense_graph_init(binary_matrix_t m, g, translation=False, to_undirected=False):
+cdef dict dense_graph_init(binary_matrix_t m, g, translation=False, force_undirected=False):
     r"""
     Initializes the binary matrix from a Sage (di)graph.
 
@@ -63,11 +63,12 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False, to_undirecte
     - ``translation`` (boolean) -- whether to return a dictionary associating to
       each vertex its corresponding integer in the binary matrix.
 
-    - ``to_undirected`` (boolean) -- whether to consider the graph as undirected or not.
+    - ``force_undirected`` (boolean) -- whether to consider the graph as
+      undirected or not.
     """
     cdef dict d_translation
     from sage.graphs.graph import Graph
-    cdef bint is_undirected = isinstance(g, Graph) or to_undirected
+    cdef bint is_undirected = isinstance(g, Graph) or force_undirected
     cdef int n = g.order()
 
     binary_matrix_init(m, n, n)
@@ -398,7 +399,7 @@ def connected_subgraph_iterator(G, k=None, bint vertices_only=False):
     cdef list int_to_vertex = G.vertices()
     cdef binary_matrix_t DG
     sig_on()
-    dense_graph_init(DG, G, translation=False, to_undirected=True)
+    dense_graph_init(DG, G, translation=False, force_undirected=True)
 
     # We use a stack of bitsets. We need 3 bitsets per level with at most n + 1
     # levels, so 3 * n + 3 bitsets. We also need 1 bitset that we create at the

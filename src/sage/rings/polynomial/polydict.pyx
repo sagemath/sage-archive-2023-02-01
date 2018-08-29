@@ -1565,10 +1565,27 @@ cdef class ETuple:
             (0, 0, 1)
             sage: ETuple([0,3,12]).escalar_div(3)
             (0, 1, 4)
+
+            sage: ETuple([1,5,2]).escalar_div(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+
+        TESTS:
+
+        Checking that memory allocation works fine::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: t = ETuple(range(2048))
+            sage: for n in range(1,9):
+            ....:     t = t.escalar_div(n)
+            sage: assert t.is_constant()
         """
+        if not n:
+            raise ZeroDivisionError
         cdef size_t i, j
         cdef ETuple result = self._new()
-        result._data = <int*> sig_malloc(sizeof(int) * self._nonzero)
+        result._data = <int*> sig_malloc(sizeof(int) * 2 * self._nonzero)
         result._nonzero = 0
         for i in range(self._nonzero):
             result._data[2 * result._nonzero + 1] = self._data[2 * i + 1] / n

@@ -1744,8 +1744,6 @@ class BipartiteGraph(Graph):
             sage: H = B._subgraph_by_deleting(vertices=B.vertices(), edge_property=(lambda e: e[2] == 1))
             sage: H.order(), H.size()
             (5, 2)
-
-        TESTS::
         """
         if inplace:
             B = self

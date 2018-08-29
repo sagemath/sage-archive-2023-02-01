@@ -517,7 +517,7 @@ class InstanceTester(unittest.TestCase):
 
             sage: tester = InstanceTester(ZZ)
             sage: ZZ.some_elements()             # yikes, shamelessly trivial ...
-            <generator object _some_elements_from_iterator at 0x...>
+            <generator object ..._some_elements_from_iterator at 0x...>
             sage: list(tester.some_elements())
             [0, 1, -1, 2, -2, ..., 49, -49, 50]
 

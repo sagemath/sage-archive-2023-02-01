@@ -419,7 +419,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
             sage: X = Polyhedron(vertices=[(0,0), (0,1), (1,0), (1,1)])
             sage: X._subpoly_parallel_facets()
-            <generator object _subpoly_parallel_facets at 0x...>
+            <generator object ..._subpoly_parallel_facets at 0x...>
             sage: for p in X._subpoly_parallel_facets():
             ....:     print(p.Vrepresentation())
             (A vertex at (0, 0),)

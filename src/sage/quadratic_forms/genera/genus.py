@@ -1839,6 +1839,14 @@ class GenusSymbol_global_ring(object):
     def dimension(self):
         r"""
         Return the dimension of this genus.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import Genus
+            sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
+            sage: G = Genus(A)
+            sage: G.dimension()
+            2
         """
         p, n = self.signature_pair_of_matrix()
         return p + n

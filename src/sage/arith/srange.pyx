@@ -551,7 +551,7 @@ def ellipsis_range(*args, step=None):
                     L.pop()
                     start = args[i-2]
             more = srange(start, end, step, coerce=False, include_endpoint=True)
-            if len(more) > 0:
+            if more:
                 if last_end == more[0]:
                     L.pop()
                 last_end = more[-1]

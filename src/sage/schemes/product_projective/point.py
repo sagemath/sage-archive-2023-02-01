@@ -22,7 +22,10 @@ We construct products projective spaces of various dimensions over the same ring
 #*****************************************************************************
 from copy import copy
 from sage.categories.integral_domains import IntegralDomains
+from sage.categories.number_fields import NumberFields
 from sage.rings.fraction_field import FractionField
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.rings.qqbar import QQbar
 from sage.schemes.generic.morphism import SchemeMorphism
 from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.structure.sequence import Sequence
@@ -306,6 +309,52 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         for i in range(self.codomain().ambient_space().num_components()):
             self[i].normalize_coordinates()
 
+    def dehomogenize(self, L):
+        r"""
+        Dehomogenizes `k^{th}` point at `L[k]^{th}` coordinate.
+
+        This function computes the appropriate affine patch using ``L``
+        and then returns the dehomogenized point on of this affine space.
+
+        INPUT:
+
+        - ``L`` - a list of non-negative integers
+
+        OUTPUT:
+
+        - :class:`SchemeMorphism_point_affine`.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces([2, 2, 2], QQ, 'x')
+            sage: A = PP([2, 4, 6, 23, 46, 23, 9, 3, 1])
+            sage: A.dehomogenize([0, 1, 2])
+            (2, 3, 1/2, 1/2, 9, 3)
+
+        ::
+
+            sage: PP.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2], CC)
+            sage: X = PP.subscheme([a^2 + b^2])
+            sage: P = X([2, 2*i, -3, 6*i, 3 - 6*i])
+            sage: P.dehomogenize([1,0])
+            (-1.00000000000000*I, -2.00000000000000*I, -1.00000000000000 + 2.00000000000000*I)
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces([1, 1], ZZ)
+            sage: A = PP([0,1,2,4])
+            sage: A.dehomogenize([0,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: can't dehomogenize at 0 coordinate
+        """
+        PP = self.codomain()
+        A = PP.affine_patch(L)
+        pt = []
+        for i in range(PP.ambient_space().num_components()):
+            pt.extend(self[i].dehomogenize(L[i]))
+        return A(pt)
+
     def scale_by(self, t):
         r"""
         Scale the coordinates of the point by ``t``, done componentwise.
@@ -442,6 +491,100 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         from sage.misc.superseded import deprecation
         deprecation(23479, "use f.orbit(P, N, **kwds) instead")
         return f.orbit(self, N, **kwds)
+
+    def global_height(self, prec=None):
+        r"""
+        Returns the absolute logarithmic height of the point.
+
+        This function computes the maximum of global height of each
+        component point in the product. Global height of component
+        point is computed using function for projective point.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces(QQ, [2,2], 'x')
+            sage: Q = PP([1, 7, 5, 18, 2, 3])
+            sage: Q.global_height()
+            1.94591014905531
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces(ZZ, [1,1], 'x')
+            sage: A = PP([-30, 2, 1, 6])
+            sage: A.global_height()
+            3.40119738166216
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: k.<w> = NumberField(x^2 + 5)
+            sage: PP = ProductProjectiveSpaces(k, [1, 2], 'y')
+            sage: Q = PP([3, 5*w+1, 1, 7*w, 10])
+            sage: Q.global_height()
+            2.30258509299405
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces(QQbar, [1, 1], 'x')
+            sage: Q = PP([1, QQbar(sqrt(2)), QQbar(5^(1/3)), QQbar(3^(1/3))])
+            sage: Q.global_height()
+            0.536479304144700
+        """
+        K = self.codomain().base_ring()
+        if K not in NumberFields() and not is_NumberFieldOrder(K) and K != QQbar:
+            raise TypeError("must be over a number field or a number field order or QQbar")
+
+        n = self.codomain().ambient_space().num_components()
+        return max(self[i].global_height(prec=prec) for i in range(n))
+
+    def local_height(self, v, prec=None):
+        r"""
+        Returns the maximum of the local height of the coordinates of this point.
+
+        This function computes the maximum of local height of each component point
+        in the product. Local height of component point is computed using function
+        for projective point.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces(QQ, [1, 1], 'x')
+            sage: A = PP([11, 5, 10, 2])
+            sage: A.local_height(5)
+            1.60943791243410
+
+        ::
+
+            sage: P = ProductProjectiveSpaces(QQ, [1,2], 'x')
+            sage: Q = P([1, 4, 1/2, 2, 32])
+            sage: Q.local_height(2)
+            4.15888308335967
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in NumberFields():
+            raise TypeError("must be over a number field or a number field order")
+        
+        n = self.codomain().ambient_space().num_components()
+        return max(self[i].local_height(v, prec=prec) for i in range(n))
 
 class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
 

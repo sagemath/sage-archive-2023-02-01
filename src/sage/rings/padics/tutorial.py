@@ -151,25 +151,25 @@ One can create elements as follows::
 
     sage: a = R(375)
     sage: a
-    3*5^3 + O(5^10)
+    3*5^3
     sage: b = R(105)
     sage: b
-    5 + 4*5^2 + O(5^10)
+    5 + 4*5^2
 
 Now that we have some elements, we can do arithmetic in the ring.
 
 ::
 
     sage: a + b
-    5 + 4*5^2 + 3*5^3 + O(5^10)
+    5 + 4*5^2 + 3*5^3
     sage: a * b
-    3*5^4 + 2*5^5 + 2*5^6 + O(5^10)
+    3*5^4 + 2*5^5 + 2*5^6
 
 Floor division (//) divides even though the result isn't really
 known to the claimed precision; note that division isn't defined::
 
     sage: a // 5
-    3*5^2 + O(5^10)
+    3*5^2
 
 ::
 
@@ -182,7 +182,7 @@ Since elements don't actually store their actual precision, one can
 only divide by units::
 
     sage: a / 2
-    4*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10)
+    4*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9
     sage: a / b
     Traceback (most recent call last):
     ...
@@ -192,7 +192,7 @@ If you want to divide by a non-unit, do it using the ``//``
 operator::
 
     sage: a // b
-    3*5^2 + 3*5^3 + 2*5^5 + 5^6 + 4*5^7 + 2*5^8 + O(5^10)
+    3*5^2 + 3*5^3 + 2*5^5 + 5^6 + 4*5^7 + 2*5^8 + 3*5^9
 
 Capped Absolute Rings
 ---------------------
@@ -310,7 +310,7 @@ In addition to requiring a prime power as the first argument,
 One can specify this name as follows::
 
     sage: R.<c> = Zq(125, prec = 20); R
-    Unramified Extension in c defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
+    5-adic Unramified Extension Ring in c defined by x^3 + 3*x + 3
 
 Eisenstein Extensions
 ---------------------

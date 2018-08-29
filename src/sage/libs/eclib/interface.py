@@ -335,7 +335,7 @@ class mwrank_EllipticCurve(SageObject):
                     second_limit = 8,
                     n_aux = -1,
                     second_descent = True):
-        """
+        r"""
         Compute 2-descent data for this curve.
 
         INPUT:
@@ -410,7 +410,6 @@ class mwrank_EllipticCurve(SageObject):
             True
             sage: E.two_descent(verbose=False)
             True
-
         """
         from sage.libs.eclib.mwrank import _two_descent # import here to save time
         first_limit = int(first_limit)

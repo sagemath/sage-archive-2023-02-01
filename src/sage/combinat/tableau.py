@@ -1054,14 +1054,15 @@ class Tableau(ClonableList):
             [((0, 1), (0, 2)), ((1, 0), (1, 1)), ((1, 1), (0, 0)), ((2, 1), (1, 0))]
         """
         inversions = []
+        previous_row = None
         for i, row in enumerate(self):
             for j, entry in enumerate(row):
-                #c is in position (i,j)
-                #Find the d that satisfy condition 1
+                # c is in position (i,j)
+                # find the d that satisfy condition 1
                 for k in range(j+1, len(row)):
                     if entry > row[k]:
                         inversions.append( ((i,j),(i,k)) )
-                #Find the d that satisfy condition 2
+                # find the d that satisfy condition 2
                 if i == 0:
                     continue
                 for k in range(j):
@@ -7413,8 +7414,8 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
 
         EXAMPLES::
 
-            sage: StandardTableaux(5).random_element() # random
-            [[1, 4, 5], [2], [3]]
+            sage: StandardTableaux(10).random_element() # random
+            [[1, 3, 6], [2, 5, 7], [4, 8], [9], [10]]
             sage: StandardTableaux(0).random_element()
             []
             sage: StandardTableaux(1).random_element()
@@ -7454,8 +7455,10 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
         # singletons (corresponding to the fixed points of the
         # involution) and pairs (forming a perfect matching on the
         # remaining values).
-        permutation_cycle_rep = [(fixed_point,) for fixed_point in fixed_point_positions] + \
-                                list(PerfectMatchings(set(range(1, self.size + 1)) - set(fixed_point_positions)).random_element())
+        matching = PerfectMatchings(set(range(1, self.size + 1))
+                                    - set(fixed_point_positions)).random_element()
+        permutation_cycle_rep = ([(fixed_point,) for fixed_point in fixed_point_positions]
+                                 + [(a,b) for a,b in matching])
         return from_cycles(self.size, permutation_cycle_rep).robinson_schensted()[0]
 
 

@@ -49,6 +49,9 @@ Here is what the module can do:
     :delim: |
 
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
+    :meth:`cleave` | Return the connected subgraphs separated by the input vertex cut.
+    :meth:`spqr_tree` | Return a SPQR-tree representing the triconnected components of the graph.
+    :meth:`spqr_tree_to_graph` | Return the graph represented by the SPQR-tree `T`.
 
 Methods
 -------
@@ -56,14 +59,16 @@ Methods
 from __future__ import absolute_import
 from sage.rings.integer import Integer
 
+
 def is_connected(G):
     """
-    Indicates whether the (di)graph is connected. Note that in a graph,
-    path connected is equivalent to connected.
+    Test whether the (di)graph is connected.
+
+    Note that in a graph, path connected is equivalent to connected.
 
     INPUT:
 
-    - ``G`` (generic_graph) - the input graph.
+    - ``G`` (generic_graph) -- the input graph.
 
     .. SEEALSO::
 
@@ -115,17 +120,20 @@ def is_connected(G):
         return len(conn_verts) == G.num_verts()
 
 
-def connected_components(G):
+def connected_components(G, sort=True):
     """
-    Returns the list of connected components.
+    Return the list of connected components.
 
-    Returns a list of lists of vertices, each list representing a
+    This returns a list of lists of vertices, each list representing a
     connected component. The list is ordered from largest to smallest
     component.
 
     INPUT:
 
-    - ``G`` (generic_graph) - the input graph.
+    - ``G`` (generic_graph) -- the input graph.
+
+    - ``sort`` -- boolean (default ``True``)
+      whether to sort vertices inside each component
 
     EXAMPLES::
 
@@ -157,7 +165,7 @@ def connected_components(G):
     components = []
     for v in G:
         if v not in seen:
-            c = connected_component_containing_vertex(G, v)
+            c = connected_component_containing_vertex(G, v, sort=sort)
             seen.update(c)
             components.append(c)
     components.sort(key=lambda comp: -len(comp))
@@ -166,11 +174,11 @@ def connected_components(G):
 
 def connected_components_number(G):
     """
-    Returns the number of connected components.
+    Return the number of connected components.
 
     INPUT:
 
-    - ``G`` (generic_graph) - the input graph.
+    - ``G`` (generic_graph) -- the input graph.
 
     EXAMPLES::
 
@@ -194,12 +202,12 @@ def connected_components_number(G):
         ...
         TypeError: the input must be a Sage graph
     """
-    return len(connected_components(G))
+    return len(connected_components(G, sort=False))
 
 
 def connected_components_subgraphs(G):
     """
-    Returns a list of connected components as graph objects.
+    Return a list of connected components as graph objects.
 
     EXAMPLES::
 
@@ -227,22 +235,25 @@ def connected_components_subgraphs(G):
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    cc = connected_components(G)
+    cc = connected_components(G, sort=False)
     list = []
     for c in cc:
         list.append(G.subgraph(c, inplace=False))
     return list
 
 
-def connected_component_containing_vertex(G, vertex):
+def connected_component_containing_vertex(G, vertex, sort=True):
     """
-    Returns a list of the vertices connected to vertex.
+    Return a list of the vertices connected to vertex.
 
     INPUT:
 
-    - ``G`` (generic_graph) - the input graph.
+    - ``G`` (generic_graph) -- the input graph.
 
-    - ``v`` - the vertex to search for.
+    - ``v`` -- the vertex to search for.
+
+    - ``sort`` -- boolean (default ``True``)
+      whether to sort vertices inside the component
 
     EXAMPLES::
 
@@ -275,7 +286,8 @@ def connected_component_containing_vertex(G, vertex):
     except AttributeError:
         c = list(G.depth_first_search(vertex, ignore_direction=True))
 
-    c.sort()
+    if sort:
+        c.sort()
     return c
 
 
@@ -313,12 +325,13 @@ def connected_components_sizes(G):
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    return sorted((len(cc) for cc in connected_components(G)),reverse=True)
+    return sorted((len(cc) for cc in connected_components(G, False)),
+                  reverse=True)
 
 
 def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
     """
-    Computes the blocks and cut vertices of the graph.
+    Compute the blocks and cut vertices of the graph.
 
     In the case of a digraph, this computation is done on the underlying
     graph.
@@ -1869,3 +1882,479 @@ def bridges(G, labels=True):
                 my_bridges.append(tuple(b))
 
     return my_bridges
+
+# ==============================================================================
+# Methods for finding 3-vertex-connected components and building SPQR-tree
+# ==============================================================================
+
+def cleave(G, cut_vertices=None, virtual_edges=True):
+    r"""
+    Return the connected subgraphs separated by the input vertex cut.
+
+    Given a connected (multi)graph `G` and a vertex cut `X`, this method
+    computes the list of subgraphs of `G` induced by each connected component
+    `c` of `G\setminus X` plus `X`, i.e., `G[c\cup X]`.
+
+    INPUT:
+
+    - ``G`` -- a Graph.
+
+    - ``cut_vertices`` -- (default: ``None``) a set of vertices representing a
+      vertex cut of ``G``. If no vertex cut is given, the method will compute
+      one via a call to :meth:`~sage.graphs.connectivity.vertex_connectivity`.
+
+    - ``virtual_edges`` -- boolean (default: ``True``); whether to add virtual
+      edges to the sides of the cut or not. A virtual edge is an edge between a
+      pair of vertices of the cut that are not connected by an edge in ``G``.
+
+    OUTPUT: A triple `(S, C, f)`, where
+
+    - `S` is a list of the graphs that are sides of the vertex cut.
+
+    - `C` is the graph of the cocycles. For each pair of vertices of the cut,
+      if there exists an edge between them, `C` has one copy of each edge
+      connecting them in ``G`` per sides of the cut plus one extra copy.
+      Furthermore, when ``virtual_edges == True``, if a pair of vertices of the
+      cut is not connected by an edge in ``G``, then it has one virtual edge
+      between them per sides of the cut.
+
+    - `f` is the complement of the subgraph of ``G`` induced by the vertex
+      cut. Hence, its vertex set is the vertex cut, and its edge set is the set
+      of virtual edges (i.e., edges between pairs of vertices of the cut that
+      are not connected by an edge in ``G``). When ``virtual_edges == False``,
+      the edge set is empty.
+
+    EXAMPLES:
+
+    If there is an edge between cut vertices::
+
+        sage: from sage.graphs.connectivity import cleave
+        sage: G = Graph(2)
+        sage: for _ in range(3):
+        ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
+        sage: S1,C1,f1 = cleave(G, cut_vertices=[0, 1])
+        sage: [g.order() for g in S1]
+        [4, 4, 4]
+        sage: C1.order(), C1.size()
+        (2, 4)
+        sage: f1.vertices(), f1.edges()
+        ([0, 1], [])
+
+    If ``virtual_edges == False`` and there is an edge between cut vertices::
+
+        sage: G.subgraph([0, 1]).complement() == Graph([[0, 1], []])
+        True
+        sage: S2,C2,f2 = cleave(G, cut_vertices=[0, 1], virtual_edges = False)
+        sage: (S1 == S2, C1 == C2, f1 == f2)
+        (True, True, True)
+
+    If cut vertices doesn't have edge between them::
+
+        sage: G.delete_edge(0, 1)
+        sage: S1,C1,f1 = cleave(G, cut_vertices=[0, 1])
+        sage: [g.order() for g in S1]
+        [4, 4, 4]
+        sage: C1.order(), C1.size()
+        (2, 3)
+        sage: f1.vertices(), f1.edges()
+        ([0, 1], [(0, 1, None)])
+
+    If ``virtual_edges == False`` and the cut vertices are not connected by an
+    edge::
+
+        sage: G.subgraph([0, 1]).complement() == Graph([[0, 1], []])
+        False
+        sage: S2,C2,f2 = cleave(G, cut_vertices=[0, 1], virtual_edges = False)
+        sage: [g.order() for g in S2]
+        [4, 4, 4]
+        sage: C2.order(), C2.size()
+        (2, 0)
+        sage: f2.vertices(), f2.edges()
+        ([0, 1], [])
+        sage: (S1 == S2, C1 == C2, f1 == f2)
+        (False, False, False)
+
+    If `G` is a biconnected multigraph::
+
+        sage: G = graphs.CompleteBipartiteGraph(2,3)
+        sage: G.add_edge(2, 3)
+        sage: G.allow_multiple_edges(True)
+        sage: G.add_edges(G.edges())
+        sage: G.add_edges([(0, 1), (0, 1), (0, 1)])
+        sage: S,C,f = cleave(G, cut_vertices=[0, 1])
+        sage: for g in S:
+        ....:     print(g.edges(labels=0))
+        [(0, 1), (0, 1), (0, 1), (0, 2), (0, 2), (0, 3), (0, 3), (1, 2), (1, 2), (1, 3), (1, 3), (2, 3), (2, 3)]
+        [(0, 1), (0, 1), (0, 1), (0, 4), (0, 4), (1, 4), (1, 4)]
+
+    TESTS::
+
+        sage: cleave(Graph(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: this method is designed for connected graphs only
+        sage: cleave(graphs.PathGraph(3), cut_vertices=[5])
+        Traceback (most recent call last):
+        ...
+        ValueError: vertex 5 is not a vertex of the input graph
+        sage: cleave(Graph())
+        Traceback (most recent call last):
+        ...
+        ValueError: the input graph has no vertex cut
+        sage: cleave(graphs.CompleteGraph(5))
+        Traceback (most recent call last):
+        ...
+        ValueError: the input graph has no vertex cut
+        sage: cleave(graphs.CompleteGraph(5), cut_vertices=[3, 4])
+        Traceback (most recent call last):
+        ...
+        ValueError: the set cut_vertices is not a vertex cut of the graph
+    """
+    if not G.is_connected():
+        raise ValueError("this method is designed for connected graphs only")
+
+    # If a vertex cut is given, we check that it is valid. Otherwise, we compute
+    # a small vertex cut
+    if cut_vertices:
+        for u in cut_vertices:
+            if not u in G:
+                raise ValueError("vertex {} is not a vertex of the input graph".format(u))
+        cut_vertices = list(cut_vertices)
+    else:
+        cut_size,cut_vertices = G.vertex_connectivity(value_only=False)
+        if not cut_vertices:
+            # Typical example is a clique
+            raise ValueError("the input graph has no vertex cut")
+
+    H = G.copy()
+    H.delete_vertices(cut_vertices)
+    CC = H.connected_components()
+    if len(CC) == 1:
+        raise ValueError("the set cut_vertices is not a vertex cut of the graph")
+
+    # We identify the virtual edges, i.e., pairs of vertices of the vertex cut
+    # that are not connected by an edge in G
+    from sage.graphs.graph import Graph
+    K = G.subgraph(cut_vertices)
+    if virtual_edges:
+        if K.allows_multiple_edges():
+            virtual_cut_graph = K.to_simple().complement()
+        else:
+            virtual_cut_graph = K.complement()
+    else:
+        virtual_cut_graph = Graph([cut_vertices, []])
+
+    # We now build the graphs in each side of the cut, including the vertices
+    # from the vertex cut
+    cut_sides = []
+    for comp in CC:
+        h = G.subgraph(comp + cut_vertices)
+        if virtual_edges:
+            h.add_edges(virtual_cut_graph.edges())
+        cut_sides.append(h)
+
+    # We build the cocycles for re-assembly. For each edge between a pair of
+    # vertices of the cut in the original graph G, a bond with one edge more
+    # than the number of cut sides is needed. For pairs of vertices of the cut
+    # that are not connected by an edge in G, a bond with one edge per cut side
+    # is needed.
+    cocycles = Graph([cut_vertices, []], multiedges=True)
+    if K.size():
+        cocycles.add_edges(K.edges() * (len(cut_sides) + 1))
+    if virtual_edges and virtual_cut_graph:
+        cocycles.add_edges(virtual_cut_graph.edges() * len(cut_sides))
+
+    return cut_sides, cocycles, virtual_cut_graph
+
+def spqr_tree(G):
+    r"""
+    Return an SPQR-tree representing the triconnected components of the graph.
+
+    An SPQR-tree is a tree data structure used to represent the triconnected
+    components of a biconnected (multi)graph and the 2-vertex cuts separating
+    them. A node of a SPQR-tree, and the graph associated with it, can be one of
+    the following four types:
+
+    - ``S`` -- the associated graph is a cycle with at least three vertices.
+      ``S`` stands for ``series``.
+
+    - ``P`` -- the associated graph is a dipole graph, a multigraph with two
+      vertices and three or more edges. ``P`` stands for ``parallel``.
+
+    - ``Q`` -- the associated graph has a single real edge. This trivial case is
+      necessary to handle the graph that has only one edge.
+
+    - ``R`` -- the associated graph is a 3-connected graph that is not a cycle
+      or dipole. ``R`` stands for ``rigid``.
+
+    This method decomposes a biconnected graph into cycles, cocycles, and
+    3-connected blocks summed over cocycles, and arranges them as a SPQR-tree.
+    More precisely, it splits the graph at each of its 2-vertex cuts, giving a
+    unique decomposition into 3-connected blocks, cycles and cocycles. The
+    cocycles are dipole graphs with one edge per real edge between the included
+    vertices and one additional (virtual) edge per connected component resulting
+    from deletion of the vertices in the cut. See :wikipedia:`SPQR_tree`.
+
+    OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
+    and the subgraph of three-blocks in the decomposition.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.connectivity import spqr_tree
+        sage: G = Graph(2)
+        sage: for i in range(3):
+        ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
+        sage: Tree = spqr_tree(G)
+        sage: Tree.order()
+        4
+        sage: K4 = graphs.CompleteGraph(4)
+        sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'R')
+        True
+        sage: from sage.graphs.connectivity import spqr_tree_to_graph
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
+
+        sage: G = Graph(2)
+        sage: for i in range(3):
+        ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1])
+        sage: Tree = spqr_tree(G)
+        sage: Tree.order()
+        4
+        sage: C4 = graphs.CycleGraph(4)
+        sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
+        True
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
+
+        sage: G.allow_multiple_edges(True)
+        sage: G.add_edges(G.edges())
+        sage: Tree = spqr_tree(G)
+        sage: Tree.order()
+        13
+        sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
+        True
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
+
+        sage: G = graphs.CycleGraph(6)
+        sage: Tree = spqr_tree(G)
+        sage: Tree.order()
+        1
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
+        sage: G.add_edge(0, 3)
+        sage: Tree = spqr_tree(G)
+        sage: Tree.order()
+        3
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
+
+    TESTS::
+
+        sage: G = graphs.PathGraph(4)
+        sage: spqr_tree(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: generation of SPQR-trees is only implemented for 2-connected graphs
+
+        sage: G = Graph([(0, 0)], loops=True)
+        sage: spqr_tree(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: generation of SPQR-trees is only implemented for graphs without loops
+    """
+    from sage.graphs.graph import Graph
+    from collections import Counter
+
+    if G.has_loops():
+        raise ValueError("generation of SPQR-trees is only implemented for graphs without loops")
+
+    cut_size, cut_vertices = G.vertex_connectivity(value_only=False)
+
+    if cut_size < 2:
+        raise ValueError("generation of SPQR-trees is only implemented for 2-connected graphs")
+    elif cut_size > 2:
+        return Graph({('R', Graph(G, immutable=True)):[]}, name='SPQR-tree of {}'.format(G.name()))
+
+    # Split_multiple_edge Algorithm. If the input graph has multiple edges, we
+    # make SG a simple graph while recording virtual edges that will be needed
+    # to 2-sum with cocycles during reconstruction. After this step, next steps
+    # will be finding S and R blocks.
+    if G.has_multiple_edges():
+        SG = G.to_simple()
+        counter_multiedges = Counter([frozenset(e) for e in G.multiple_edges(labels=False)])
+    else:
+        SG = G
+        counter_multiedges = Counter()
+
+    # If SG simplifies to a cycle, we return the corresponding SPQR tree
+    if SG.is_cycle():
+        T = Graph(name='SPQR-tree of {}'.format(G.name()))
+        S_node = ('S', Graph(SG, immutable=True))
+        T.add_vertex(S_node)
+        for e,num in counter_multiedges.items():
+            P_node = ('P', Graph([e] * (num + 1), multiedges=True, immutable=True))
+            T.add_edge(S_node, P_node)
+        return T
+
+    # We now search for 2-vertex cuts. If a cut is found, we split the graph and
+    # check each side for S or R blocks or another 2-vertex cut
+    R_blocks = []
+    virtual_edges = set()
+    two_blocks = [(SG, cut_vertices)]
+    cycles_graph = Graph(multiedges=True)
+    cocycles_count = Counter()
+
+    while two_blocks:
+        B,B_cut = two_blocks.pop()
+        # B will be always simple graph.
+        S, C, f = cleave(B, cut_vertices=B_cut)
+        for K in S:
+            if K.is_cycle():
+                # Add all the edges of K to cycles list.
+                cycles_graph.add_edges(e for e in K.edge_iterator(labels=False))
+            else:
+                K_cut_size,K_cut_vertices = K.vertex_connectivity(value_only=False)
+                if K_cut_size == 2:
+                    # The graph has a 2-vertex cut. We add it to the stack
+                    two_blocks.append((K, K_cut_vertices))
+                else:
+                    # The graph is 3-vertex connected
+                    R_blocks.append(('R', Graph(K, immutable=True)))
+        # Store edges of cocycle (P block) and virtual edges (if any)
+        cocycles_count.update(frozenset(e) for e in C.edge_iterator(labels=False))
+        virtual_edges.update(frozenset(e) for e in f.edge_iterator(labels=False))
+
+
+    # Cycles of order > 3 may have been triangulated; We undo this to reduce
+    # the number of S-blocks. We start removing edges of the triangulation.
+    count = Counter([frozenset(e) for e in cycles_graph.multiple_edges(labels=False)])
+    for e,num in count.items():
+        if num == 2 and e in virtual_edges:
+            virtual_edges.discard(e)
+            for _ in range(num):
+                cycles_graph.delete_edge(e)
+                cocycles_count[e] -= 1
+
+    # We then extract cycles to form S_blocks
+    S_blocks = []
+    if not cycles_graph:
+        tmp = []
+    elif cycles_graph.is_connected():
+        tmp = [cycles_graph]
+    else:
+        tmp = list(cycles_graph.connected_components_subgraphs())
+    while tmp:
+        block = tmp.pop()
+        if block.is_cycle():
+            S_blocks.append(('S', Graph(block, immutable=True)))
+        elif block.has_multiple_edges():
+            cut = block.multiple_edges(labels=False)[0]
+            S,C,f = cleave(block, cut_vertices=cut)
+            # Remove the cut edge from `S block` components if present
+            for h in S:
+                while h.has_edge(cut):
+                    h.delete_edge(cut)
+                h.add_edge(cut)
+                tmp.append(h)
+        else:
+            # This should never happen
+            raise ValueError("something goes wrong")
+
+
+    # We now build the SPQR tree
+    Tree = Graph(name='SPQR tree of {}'.format(G.name()))
+    SR_blocks = S_blocks + R_blocks
+    Tree.add_vertices(SR_blocks)
+    for e,num in cocycles_count.items():
+        if num:
+            P_block = ('P', Graph([e] * (num + max(0, counter_multiedges[e] - 1)), multiedges=True, immutable=True))
+            for block in SR_blocks:
+                # Note: here we use a try...except statement since the immutable
+                # graph backend raises an error if an end vertex of the edge is
+                # not in the graph.
+                try:
+                    if block[1].has_edge(e):
+                        Tree.add_edge(block, P_block)
+                except:
+                    continue
+
+    # We finally add P blocks to account for multiple edges of the input graph
+    # that are not involved in any separator of the graph
+    for e,num in counter_multiedges.items():
+        if not cocycles_count[e]:
+            P_block = ('P', Graph([e] * (num + 1), multiedges=True, immutable=True))
+            for block in SR_blocks:
+                try:
+                    if block[1].has_edge(e):
+                        Tree.add_edge(block, P_block)
+                        break
+                except:
+                    continue
+
+    return Tree
+
+def spqr_tree_to_graph(T):
+    r"""
+    Return the graph represented by the SPQR-tree `T`.
+
+    The main purpose of this method is to test :meth:`spqr_tree`.
+
+    INPUT:
+
+    - ``T`` -- a SPQR tree as returned by :meth:`spqr_tree`.
+
+    OUTPUT: a (multi) graph
+
+    EXAMPLES:
+
+    :wikipedia:`SPQR_tree` reference paper example::
+
+        sage: from sage.graphs.connectivity import spqr_tree
+        sage: from sage.graphs.connectivity import spqr_tree_to_graph
+        sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (3, 4), (2, 3),
+        ....: (2, 13), (3, 13), (4, 5), (4, 7), (5, 6), (5, 8), (5, 7), (6, 7),
+        ....: (8, 11), (8, 9), (8, 12), (9, 10), (9, 11), (9, 12), (10, 12)])
+        sage: T = spqr_tree(G)
+        sage: H = spqr_tree_to_graph(T)
+        sage: H.is_isomorphic(G)
+        True
+
+    A small multigraph ::
+
+        sage: G = Graph([(0, 2), (0, 2), (1, 3), (2, 3)], multiedges=True)
+        sage: for i in range(3):
+        ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
+        sage: for i in range(3):
+        ....:     G.add_clique([2, 3, G.add_vertex(), G.add_vertex()])
+        sage: T = spqr_tree(G)
+        sage: H = spqr_tree_to_graph(T)
+        sage: H.is_isomorphic(G)
+        True
+
+    TESTS::
+
+        sage: H = spqr_tree_to_graph(Graph())
+        sage: H.is_isomorphic(Graph())
+        True
+    """
+    from sage.graphs.graph import Graph
+    from collections import Counter
+
+    count_G = Counter()
+    for t,g in T.vertex_iterator():
+        if not t == 'P':
+            count_G.update(g.edge_iterator(labels=False))
+
+    for t,g in T.vertex_iterator():
+        if t == 'P':
+            count_g = Counter(g.edge_iterator(labels=False))
+            for e,num in count_g.items():
+                count_G[e] = abs(count_g[e] - count_G[e])
+
+    G = Graph(multiedges=True)
+    for e,num in count_G.items():
+        for _ in range(num):
+            G.add_edge(e)
+
+    return G

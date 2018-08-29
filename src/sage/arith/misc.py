@@ -18,6 +18,7 @@ from six.moves import range
 from six import integer_types
 
 import math
+import collections
 
 from sage.misc.misc import powerset
 from sage.misc.misc_c import prod
@@ -3197,7 +3198,7 @@ def multinomial(*ks):
     INPUT:
 
     - An arbitrary number of integer arguments `k_1,\dots,k_n`
-    - A list of integers `[k_1,\dots,k_n]`
+    - An iterable (e.g. a list) of integers `[k_1,\dots,k_n]`
 
     OUTPUT:
 
@@ -3221,15 +3222,19 @@ def multinomial(*ks):
         618970023101454657175683075
         sage: multinomial([2^30, 2, 1])
         618970023101454657175683075
+        sage: multinomial(Composition([1, 3]))
+        4
+        sage: multinomial(Partition([4, 2]))
+        15
 
     AUTHORS:
 
     - Gabriel Ebner
     """
-    if isinstance(ks[0],list):
-        if len(ks) >1:
-            raise ValueError("multinomial takes only one list argument")
-        ks=ks[0]
+    if isinstance(ks[0], collections.Iterable):
+        if len(ks) > 1:
+            raise ValueError("multinomial takes only one iterable argument")
+        ks = ks[0]
 
     s, c = 0, 1
     for k in ks:
@@ -5058,6 +5063,7 @@ def squarefree_divisors(x):
     for a in powerset(prime_divisors(x)):
         yield prod(a, ZZ.one())
 
+
 def dedekind_sum(p, q, algorithm='default'):
     r"""
     Return the Dedekind sum `s(p,q)` defined for integers `p`, `q` as
@@ -5268,3 +5274,33 @@ def gauss_sum(char_value, finite_field):
         gen_power *= gen
         zq_power *= zeta_q
     return resu
+
+
+def dedekind_psi(N):
+    r"""
+    Return the value of the Dedekind psi function at ``N``.
+
+    INPUT:
+
+    - ``N`` -- a positive integer
+
+    OUTPUT:
+
+    an integer
+
+    The Dedekind psi function is the multiplicative function defined by
+
+    .. MATH::
+
+        \psi(n) = n \prod_{p|n, p prime} (1 + 1/p).
+
+    See :wikipedia:`Dedekind_psi_function` and :oeis:`A001615`.
+
+    EXAMPLES::
+
+        sage: from sage.arith.misc import dedekind_psi
+        sage: [dedekind_psi(d) for d in range(1, 12)]
+        [1, 3, 4, 6, 6, 12, 8, 12, 12, 18, 12]
+    """
+    N = Integer(N)
+    return Integer(N * prod(1 + 1 / p for p in N.prime_divisors()))

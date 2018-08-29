@@ -104,11 +104,11 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
         sage: for P in SetPartitions(6,[3,3]):
         ....:     res,aut= _is_a_splitting(P[0],P[1],7,return_automorphism=True)
         ....:     if res:
-        ....:         print((aut, P[0], P[1]))
-        (6, {1, 2, 3}, {4, 5, 6})
-        (3, {1, 2, 4}, {3, 5, 6})
-        (6, {1, 3, 5}, {2, 4, 6})
-        (6, {1, 4, 5}, {2, 3, 6})
+        ....:         print((aut, P))
+        (6, {{1, 2, 3}, {4, 5, 6}})
+        (3, {{1, 2, 4}, {3, 5, 6}})
+        (6, {{1, 3, 5}, {2, 4, 6}})
+        (6, {{1, 4, 5}, {2, 3, 6}})
 
     We illustrate now how to find idempotents in quotient rings::
 
@@ -170,7 +170,7 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
     # now that we know that (S1,S2) is a partition, we look for an invertible
     # element b that maps S1 to S2 by multiplication
     for b in Integer(n).coprime_integers(n):
-        if b != 1 and all(b * x in S2 for x in S1):
+        if b >= 2 and all(b * x in S2 for x in S1):
             if return_automorphism:
                 return True, b
             else:

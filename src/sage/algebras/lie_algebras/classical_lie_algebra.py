@@ -1072,10 +1072,10 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                     s_coeffs[(-r, -s)] = {-a: -c}
 
         # Lastly, make sure a < b for all (a, b) in the coefficients and flip if necessary
-        for k in s_coeffs.keys():
-            a,b = k[0], k[1]
+        for k in list(s_coeffs):
+            a, b = k[0], k[1]
             if self._basis_key(a) > self._basis_key(b):
-                s_coeffs[(b,a)] = [(index, -v) for index,v in s_coeffs[k].items()]
+                s_coeffs[(b, a)] = [(index, -v) for index, v in s_coeffs[k].items()]
                 del s_coeffs[k]
             else:
                 s_coeffs[k] = s_coeffs[k].items()

@@ -132,6 +132,13 @@ Check the fix for :trac:`25251` and :trac:`25252`::
     sqrt(2)*((I - 1)*sqrt(2) - 2)
     sage: (1 + exp(I*pi/4)) * exp(I*pi/4)
     -(1/4*I + 1/4)*sqrt(2)*(-(I + 1)*sqrt(2) - 2)
+
+Test if :trac:`24883` is fixed::
+
+    sage: a = exp(I*pi/4) + 1
+    sage: b = 1 - exp(I*pi/4)
+    sage: a*b
+    1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 """
 
 #*****************************************************************************
@@ -11135,11 +11142,11 @@ cdef class Expression(CommutativeRingElement):
             (diff(f(x), x) + 1)*(diff(f(x), x) - 1)
         """
         from sage.calculus.calculus import symbolic_expression_from_maxima_string, symbolic_expression_from_string
-        if len(dontfactor) > 0:
+        if dontfactor:
             m = self._maxima_()
             name = m.name()
-            varstr = ','.join(['_SAGE_VAR_'+str(v) for v in dontfactor])
-            cmd = 'block([dontfactor:[%s]],factor(%s))'%(varstr, name)
+            varstr = ','.join(['_SAGE_VAR_' + str(v) for v in dontfactor])
+            cmd = 'block([dontfactor:[%s]],factor(%s))' % (varstr, name)
             return symbolic_expression_from_maxima_string(cmd)
         else:
             try:

@@ -725,7 +725,6 @@ class SBox(SageObject):
             gens = X + Y
 
         m = self.input_size()
-        n = self.output_size()
 
         solutions = []
         for i in range(1<<m):
@@ -833,7 +832,6 @@ class SBox(SageObject):
 
         m = self.input_size()
         n = self.output_size()
-        F = self._F
 
         if X is None and Y is None:
             P = self.ring()

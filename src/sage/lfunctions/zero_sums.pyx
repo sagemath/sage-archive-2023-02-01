@@ -551,20 +551,20 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
 
-        # If Delta>6.95, then exp(2*pi*Delta)>sys.maxint, so we get overflow
+        # If Delta>6.95, then exp(2*pi*Delta)>sys.maxsize, so we get overflow
         # when summing over the logarithmic derivative coefficients
         if Delta > 6.95:
             raise ValueError("Delta value too large; will result in overflow")
 
-        if function=="sincsquared_parallel":
+        if function == "sincsquared_parallel":
             return self._zerosum_sincsquared_parallel(Delta=Delta,ncpus=ncpus)
-        elif function=="sincsquared_fast":
+        elif function == "sincsquared_fast":
             return self._zerosum_sincsquared_fast(Delta=Delta)
-        elif function=="sincsquared":
+        elif function == "sincsquared":
             return self._zerosum_sincsquared(Delta=Delta,tau=tau)
-        elif function=="gaussian":
+        elif function == "gaussian":
             return self._zerosum_gaussian(Delta=Delta)
-        elif function=="cauchy":
+        elif function == "cauchy":
             return self._zerosum_cauchy(Delta=Delta,tau=tau)
         else:
             raise ValueError("Input function not recognized.")

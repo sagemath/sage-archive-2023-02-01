@@ -379,7 +379,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         TESTS:
 
-            sage: t(-sys.maxint-1r) == t(-sys.maxint-1)
+            sage: t(-sys.maxsize-1r) == t(-sys.maxsize-1)
             True
         """
         cdef Polynomial_integer_dense_flint f

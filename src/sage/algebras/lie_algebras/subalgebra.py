@@ -528,6 +528,38 @@ class LieSubalgebra_finite_dimensional_with_basis(LieSubset_with_gens):
         return Family(self.element_class(self, L.from_vector(v))
                       for v in sm.echelonized_basis())
 
+    def from_vector(self, v):
+        r"""
+        Return the element of ``self`` corresponding to the vector ``v``
+
+        INPUT:
+
+        - ``v`` -- a vector in ``self.module()`` or ``self.ambient().module()``
+
+        EXAMPLES:
+
+        An element from a vector of the intrinsic module::
+
+            sage: L.<X,Y,Z> = LieAlgebra(ZZ, abelian=True)
+            sage: L.dimension()
+            3
+            sage: S = L.subalgebra([X, Y])
+            sage: S.dimension()
+            2
+            sage: S.from_vector([1, 2])
+            X + 2*Y
+
+        An element from a vector of the ambient module
+
+            sage: S.from_vector([1, 2, 3])
+            X + 2*Y + 3*Z
+        """
+        if len(v) == self.ambient().dimension():
+            return self.ambient().from_vector(v)
+
+        sup = super(LieSubalgebra_finite_dimensional_with_basis, self)
+        return sup.from_vector(v)
+
     def basis_matrix(self):
         r"""
         Return the basis matrix of ``self`` as a submodule

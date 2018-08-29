@@ -1569,7 +1569,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 pass
             else:
                 # the residue ring must coerce into the residue field
-                tester.assertTrue(self.residue_field().has_coerce_map_from(self.residue_ring()))
+                tester.assertTrue(self.residue_field().has_coerce_map_from(r))
 
             c = self.residue_field().characteristic()
             if c != 0:

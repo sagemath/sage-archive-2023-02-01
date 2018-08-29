@@ -937,6 +937,11 @@ def spectral_radius(G, prec=1e-10):
 
         sage: from sage.graphs.base.static_sparse_graph import spectral_radius
 
+        sage: Graph(1).spectral_radius()
+        (0.0, 0.0)
+        sage: Graph([(0,0)], loops=True).spectral_radius()
+        (1.0, 1.0)
+
         sage: spectral_radius(Graph([(0,1),(0,2)]), 1e-20)
         Traceback (most recent call last):
         ...
@@ -965,6 +970,10 @@ def spectral_radius(G, prec=1e-10):
     
     cdef double e_min, e_max
 
+    if G.num_verts() == 1:
+        e_min = e_max = G.num_edges()
+        return (e_min, e_max)
+
     is_bipartite, colors = G.is_bipartite(certificate=True)
     if is_bipartite:
         # NOTE: for bipartite graph there are two eigenvalues of maximum modulus
@@ -984,9 +993,7 @@ def spectral_radius(G, prec=1e-10):
                         H.add_edge(u0, u2)
 
         e_min, e_max = spectral_radius(H, prec)
-        e_min = sqrt(e_min)
-        e_max = sqrt(e_max)
-        return e_min, e_max
+        return sqrt(e_min), sqrt(e_max)
 
     cdef double c_prec = prec
     if 1+c_prec/2 == 1:

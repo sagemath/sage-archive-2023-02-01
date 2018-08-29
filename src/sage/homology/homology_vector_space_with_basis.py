@@ -337,7 +337,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
     @cached_method
     def _to_cycle_on_basis(self, i):
-        """
+        r"""
         Return the (co)cycle representative of the basis element
         indexed by ``i``.
 

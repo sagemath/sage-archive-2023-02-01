@@ -962,7 +962,7 @@ class NonDegenerateSimplex(AbstractSimplex_class, WithEqualityById):
 
 def AbstractSimplex(dim, degeneracies=(), underlying=None,
                     name=None, latex_name=None):
-    """
+    r"""
     An abstract simplex, a building block of a simplicial set.
 
     In a simplicial set, a simplex either is non-degenerate or is

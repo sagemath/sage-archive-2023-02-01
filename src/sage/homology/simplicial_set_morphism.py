@@ -300,7 +300,7 @@ class SimplicialSetHomset(Homset):
                 pass
 
     def _latex_(self):
-        """
+        r"""
         LaTeX representation
 
         EXAMPLES::

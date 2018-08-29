@@ -335,7 +335,7 @@ def ClassifyingSpace(group):
 
 
 def RealProjectiveSpace(n):
-    """
+    r"""
     Return real `n`-dimensional projective space, as a simplicial set.
 
     This is constructed as the `n`-skeleton of the nerve of the group

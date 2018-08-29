@@ -492,7 +492,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             })
 
         def coboundary(self):
-            """
+            r"""
             Return the coboundary of this cochain
 
             OUTPUT:
@@ -572,7 +572,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             return self.to_complex().is_boundary()
 
         def eval(self, other):
-            """
+            r"""
             Evaluate this cochain on the chain ``other``.
 
             INPUT:
@@ -623,8 +623,8 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             return R(result)
 
         def cup_product(self, cochain):
-            """
-            Return the cup product with another cochain
+            r"""
+            Return the cup product with another cochain.
 
             INPUT:
 
@@ -679,5 +679,3 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
                         right = right_chains(right_cell)
                         accumulator += codomain(cell) * coeff * self.eval(left) * cochain.eval(right)
             return accumulator
-
-

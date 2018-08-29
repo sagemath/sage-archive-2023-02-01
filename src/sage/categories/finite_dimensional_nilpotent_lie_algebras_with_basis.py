@@ -129,12 +129,17 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
             A subalgebra of a nilpotent Lie algebra is nilpotent::
 
-                sage: L.<X,Y,Z> = LieAlgebra(QQ, abelian=True)
-                sage: S = L.subalgebra([X, Y])
-                sage: S.basis()
-                Family (X, Y)
+                sage: L = LieAlgebra(QQ, 3, step=4)
+                sage: x,y,z = L.homogeneous_component_basis(1)
+                sage: S = L.subalgebra([x, y])
+                sage: L.dimension()
+                32
+                sage: S.dimension()
+                8
                 sage: S.category()
                 Category of subobjects of finite dimensional nilpotent lie algebras with basis over Rational Field
+                sage: S.step()
+                4
             """
             from sage.algebras.lie_algebras.subalgebra import LieSubalgebra_finite_dimensional_with_basis
             C = LieAlgebras(self.base_ring()).FiniteDimensional().WithBasis()
@@ -154,15 +159,17 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
             An ideal of a nilpotent Lie algebra is nilpotent::
 
-                sage: L = LieAlgebra(QQ, 3, step=3)
+                sage: L = LieAlgebra(QQ, 3, step=4)
                 sage: x,y,z = L.homogeneous_component_basis(1)
                 sage: I = L.ideal(z)
-                sage: L.basis().list()
-                [X_1, X_2, X_3, X_12, X_13, X_23, X_112, X_113, X_122, X_123, X_132, X_133, X_223, X_233]
-                sage: I.basis().list()
-                [X_3, X_13, X_23, X_113, X_123, X_132, X_133, X_223, X_233]
+                sage: L.dimension()
+                32
+                sage: I.dimension()
+                24
                 sage: I.category()
                 Category of subobjects of finite dimensional nilpotent lie algebras with basis over Rational Field
+                sage: I.step()
+                3
             """
             from sage.algebras.lie_algebras.ideal import LieIdeal_finite_dimensional_with_basis
             C = LieAlgebras(self.base_ring()).FiniteDimensional().WithBasis()

@@ -584,7 +584,7 @@ class FractionField_generic(ring.Field):
             Field of Univariate Polynomial Ring in z over Cyclotomic Field of
             order 2 and degree 1
 
-        Check that :trac:`#26150` is fixed::
+        Check that :trac:`26150` is fixed::
 
             sage: z = SR.var('z')
             sage: CyclotomicField(2)['z'].fraction_field()(2*(4*z + 5)/((z + 1)*(z - 1)^4))

@@ -2202,6 +2202,31 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: spqr_tree(G, algorithm='cleave').vertices()
         [('P', Multi-graph on 2 vertices)]
 
+        sage: from collections import Counter
+        sage: G = graphs.PetersenGraph()
+        sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
+        sage: Counter(u[0] for u in T)
+        Counter({'R': 1})
+        sage: T = G.spqr_tree(algorithm="cleave")
+        sage: Counter(u[0] for u in T)
+        Counter({'R': 1})
+        sage: for u,v in G.edges(labels=False):
+        ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
+        sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
+        sage: Counter(u[0] for u in T)
+        Counter({'P': 15, 'S': 15, 'R': 1})
+        sage: T = G.spqr_tree(algorithm="cleave")
+        sage: Counter(u[0] for u in T)
+        Counter({'P': 15, 'S': 15, 'R': 1})
+        sage: for u,v in G.edges(labels=False):
+        ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
+        sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
+        sage: Counter(u[0] for u in T)
+        Counter({'S': 75, 'P': 60, 'R': 1})
+        sage: T = G.spqr_tree(algorithm="cleave") # long time
+        sage: Counter(u[0] for u in T)            # long time
+        Counter({'S': 75, 'P': 60, 'R': 1})
+
     TESTS::
 
         sage: G = graphs.PathGraph(4)
@@ -2277,7 +2302,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     two_blocks = [(SG, cut_vertices)]
     cocycles_count = Counter()
     cycles_list = []
-    virtual_to_cycles = dict()
+    virtual_edge_to_cycles = dict()
 
     while two_blocks:
         B,B_cut = two_blocks.pop()
@@ -2286,17 +2311,13 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         # Store the number of edges of the cocycle (P block)
         fe = frozenset(B_cut)
         cocycles_count[fe] += C.size()
+        if f.size():
+            virtual_edge_to_cycles[fe] = []
         # Check the sides of the cut
         for K in S:
             if K.is_cycle():
                 # Add this cycle to the list of cycles
                 cycles_list.append(K)
-                # We associate the index of K in cycle_list to the virtual edge
-                if f.size():
-                    if fe in virtual_to_cycles:
-                        virtual_to_cycles[fe].append(len(cycles_list)-1)
-                    else:
-                        virtual_to_cycles[fe] = [len(cycles_list)-1]
             else:
                 K_cut_size,K_cut_vertices = K.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
                 if K_cut_size == 2:
@@ -2309,17 +2330,23 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     # Cycles of order > 3 may have been triangulated; We undo this to reduce the
     # number of S-blocks. Two cycles can be merged if they share a virtual edge
     # that is not shared by any other block, i.e., cocycles_count[e] == 2. We
-    # use a DisjointSet to form the groups of cycles to be merged.
+    # first associate cycles to virtual edges. Then, we use a DisjointSet to
+    # form the groups of cycles to be merged.
+    for K_index,K in enumerate(cycles_list):
+        for e in K.edge_iterator(labels=False):
+            fe = frozenset(e)
+            if fe in virtual_edge_to_cycles:
+                virtual_edge_to_cycles[fe].append(K_index)
     from sage.sets.disjoint_set import DisjointSet
     DS = DisjointSet(range(len(cycles_list)))
-    for e in virtual_to_cycles:
-        if cocycles_count[e] == 2 and len(virtual_to_cycles[e]) == 2:
+    for fe in virtual_edge_to_cycles:
+        if cocycles_count[fe] == 2 and len(virtual_edge_to_cycles[fe]) == 2:
             # This virtual edge is only between 2 cycles
-            C1, C2 = virtual_to_cycles[e]
+            C1, C2 = virtual_edge_to_cycles[fe]
             DS.union(C1, C2)
-            cycles_list[C1].delete_edge(e)
-            cycles_list[C2].delete_edge(e)
-            cocycles_count[e] -= 2
+            cycles_list[C1].delete_edge(fe)
+            cycles_list[C2].delete_edge(fe)
+            cocycles_count[fe] -= 2
 
     # We finalize the creation of S_blocks.
     S_blocks = []
@@ -2328,7 +2355,6 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         for i in indexes:
             E.extend(cycles_list[i].edge_iterator(labels=False))
         S_blocks.append(('S', Graph(E, immutable=True)))
-
 
     # We now build the SPQR tree
     Tree = Graph(name='SPQR tree of {}'.format(G.name()))

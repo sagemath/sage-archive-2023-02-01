@@ -1104,7 +1104,20 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             Multiplicative Abelian group isomorphic to C2 x C3
             sage: G.permutation_group()
             Permutation Group with generators [(3,4,5), (1,2)]
+
+        TESTS:
+
+        Check that :trac:`25692` is fixed::
+
+            sage: G = AbelianGroup([0])
+            sage: G.permutation_group()
+            Traceback (most recent call last):
+            ...
+            TypeError: Abelian group must be finite
         """
+        # GAP does not support infinite permutation groups
+        if not self.is_finite(): 
+            raise TypeError('Abelian group must be finite')
         from sage.groups.perm_gps.permgroup import PermutationGroup
         s = 'Image(IsomorphismPermGroup(%s))'%self._gap_init_()
         return PermutationGroup(gap_group=s)

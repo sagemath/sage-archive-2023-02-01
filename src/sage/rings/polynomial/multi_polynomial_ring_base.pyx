@@ -561,30 +561,6 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             return 'PolynomialRing(%s,[%s])'%(gap(self.base_ring()).name(),','.join(L))
         return 'PolynomialRing(%s,[%s])'%(self.base_ring()._gap_init_(),','.join(L))
 
-    def is_finite(self):
-        r"""
-        Test whether this multivariate polynomial ring is finite.
-
-        .. TODO::
-
-            This should be handled by categories but ``sage.rings.Ring`` does
-            implement a ``is_finite`` method that overrides that category
-            implementation.
-
-        EXAMPLES::
-
-            sage: PolynomialRing(QQ, names=[]).is_finite()
-            False
-            sage: PolynomialRing(GF(5), names=[]).is_finite()
-            True
-            sage: PolynomialRing(GF(5),names=['x']).is_finite()
-            False
-            sage: PolynomialRing(Zmod(1), names=['x','y']).is_finite()
-            True
-        """
-        category = self.category()
-        return category is category.Finite()
-
     def is_field(self, proof = True):
         """
         Test whether this multivariate polynomial ring is a field.
@@ -600,6 +576,8 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             True
             sage: PolynomialRing(ZZ, 'x', 0).is_field()
             False
+            sage: PolynomialRing(Zmod(1), names=['x','y']).is_finite()
+            True
         """
         if not self.ngens():
             return self.base_ring().is_field(proof)

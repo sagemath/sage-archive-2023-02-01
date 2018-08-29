@@ -500,6 +500,9 @@ cdef class RealIntervalField_class(Field):
         sage: RIF.middle_field() is RR
         True
         sage: TestSuite(RIF).run()
+
+        sage: RealIntervalField(10).is_finite()
+        False
     """
     Element = RealIntervalFieldElement
 
@@ -975,17 +978,6 @@ cdef class RealIntervalField_class(Field):
         if key == 'element_is_atomic':
             return True
         return super(RealIntervalField_class, self)._repr_option(key)
-
-    def is_finite(self):
-        """
-        Return ``False``, since the field of real numbers is not finite.
-
-        EXAMPLES::
-
-            sage: RealIntervalField(10).is_finite()
-            False
-        """
-        return False
 
     def characteristic(self):
         """

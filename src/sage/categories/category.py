@@ -2778,7 +2778,7 @@ class CategoryWithParameters(Category):
              and Category of quotient fields
              and Category of metric spaces
             sage: RR.category()
-            Join of Category of fields and Category of complete metric spaces
+            Join of Category of fields and Category of infinite sets and Category of complete metric spaces
             sage: Modules(QQ).parent_class is Modules(RR).parent_class
             False
 

@@ -536,6 +536,13 @@ class AlgebraicField_common(sage.rings.ring.Field):
     r"""
     Common base class for the classes :class:`~AlgebraicRealField` and
     :class:`~AlgebraicField`.
+
+    TESTS::
+
+        sage: AA.is_finite()
+        False
+        sage: QQbar.is_finite()
+        False
     """
 
     class options(GlobalOptions):
@@ -555,18 +562,6 @@ class AlgebraicField_common(sage.rings.ring.Field):
         """
 
         return 64
-
-    def is_finite(self):
-        r"""
-        Check whether this field is finite. Since this class is only used for
-        fields of characteristic 0, always returns False.
-
-        EXAMPLES::
-
-            sage: QQbar.is_finite()
-            False
-        """
-        return False
 
     def characteristic(self):
         r"""
@@ -703,9 +698,10 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         This function calls functions in superclasses which set the category, so we check that.
 
             sage: QQbar.category() # indirect doctest
-            Category of fields
+            Category of infinite fields
         """
-        AlgebraicField_common.__init__(self, self, ('x',), normalize=False)
+        from sage.categories.fields import Fields
+        AlgebraicField_common.__init__(self, self, ('x',), normalize=False, category=Fields().Infinite())
 
     def _element_constructor_(self, x):
         r"""
@@ -1119,7 +1115,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         We test by setting the category::
 
             sage: QQbar.category() # indirect doctest
-            Category of fields
+            Category of infinite fields
             sage: QQbar.base_ring()
             Algebraic Real Field
 
@@ -1128,7 +1124,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar._repr_option('element_is_atomic')
             False
         """
-        AlgebraicField_common.__init__(self, AA, ('I',), normalize=False)
+        from sage.categories.fields import Fields
+        AlgebraicField_common.__init__(self, AA, ('I',), normalize=False, category=Fields().Infinite())
 
     def _element_constructor_(self, x):
         """

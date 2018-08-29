@@ -157,7 +157,25 @@ cdef class Ring(ParentWithGens):
         True
         sage: CDF._repr_option('element_is_atomic')
         False
-    """
+
+    Check that categories correctly implement `is_finite` and `cardinality`::
+
+        sage: QQ.is_finite()
+        False
+        sage: GF(2^10,'a').is_finite()
+        True
+        sage: R.<x> = GF(7)[]
+        sage: R.is_finite()
+        False
+        sage: S.<y> = R.quo(x^2+1)
+        sage: S.is_finite()
+        True
+
+        sage: Integers(7).cardinality()
+        7
+        sage: QQ.cardinality()
+        +Infinity
+     """
     def __init__(self, base, names=None, normalize=True, category = None):
         """
         Initialize ``self``.
@@ -893,47 +911,6 @@ cdef class Ring(ParentWithGens):
             False
         """
         return False
-
-    def is_finite(self):
-        """
-        Return ``True`` if this ring is finite.
-
-        EXAMPLES::
-
-            sage: QQ.is_finite()
-            False
-            sage: GF(2^10,'a').is_finite()
-            True
-            sage: R.<x> = GF(7)[]
-            sage: R.is_finite()
-            False
-            sage: S.<y> = R.quo(x^2+1)
-            sage: S.is_finite()
-            True
-        """
-        if self.is_zero():
-            return True
-        return super(Ring, self).is_finite()
-
-    def cardinality(self):
-        """
-        Return the cardinality of the underlying set.
-
-        OUTPUT:
-
-        Either an integer or ``+Infinity``.
-
-        EXAMPLES::
-
-            sage: Integers(7).cardinality()
-            7
-            sage: QQ.cardinality()
-            +Infinity
-        """
-        if not self.is_finite():
-            from .infinity import Infinity
-            return Infinity
-        raise NotImplementedError
 
     def is_integral_domain(self, proof = True):
         """
@@ -1696,14 +1673,6 @@ cdef class IntegralDomain(CommutativeRing):
             True
             sage: R.<x> = PolynomialRing(QQ); R.is_field()
             False
-
-        An example where we raise a ``NotImplementedError``::
-
-            sage: R = IntegralDomain(ZZ)
-            sage: R.is_field()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot construct elements of <sage.rings.ring.IntegralDomain object at ...>
         """
         if self.is_finite():
             return True

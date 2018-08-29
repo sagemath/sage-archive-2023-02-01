@@ -314,6 +314,9 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         TESTS::
 
             sage: TestSuite(MPComplexField(17)).run()
+
+            sage: MPComplexField(17).is_finite()
+            False
         """
         if prec < mpfr_prec_min() or prec > mpfr_prec_max():
             raise ValueError("prec (=%s) must be >= %s and <= %s." % (
@@ -591,17 +594,6 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: MPComplexField(42).is_exact()
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Return ``False``, since the field of complex numbers is not finite.
-
-        EXAMPLES::
-
-            sage: MPComplexField(17).is_finite()
             False
         """
         return False

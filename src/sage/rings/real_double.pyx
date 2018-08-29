@@ -137,6 +137,10 @@ cdef class RealDoubleField_class(Field):
         sage: b == RR(a)
         True
 
+    TESTS::
+
+        sage: RDF.is_finite()
+        False
     """
     def __init__(self):
         """
@@ -148,7 +152,7 @@ cdef class RealDoubleField_class(Field):
             sage: TestSuite(R).run()
         """
         from sage.categories.fields import Fields
-        Field.__init__(self, self, category=Fields().Metric().Complete())
+        Field.__init__(self, self, category=Fields().Infinite().Metric().Complete())
         self._populate_coercion_lists_(init_no_parent=True,
                                        convert_method_name='_real_double_')
 
@@ -458,20 +462,6 @@ cdef class RealDoubleField_class(Field):
             1
         """
         return 1
-
-    def is_finite(self):
-        """
-        Return ``False``, since the field of real numbers is not finite.
-
-        Technical note: There exists an upper bound on the double
-        representation.
-
-        EXAMPLES::
-
-            sage: RDF.is_finite()
-            False
-        """
-        return False
 
     def characteristic(self):
         """

@@ -1079,6 +1079,9 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
             sage: UCF = UniversalCyclotomicField()
             sage: TestSuite(UCF).run()
+
+            sage: UniversalCyclotomicField().is_finite()
+            False
         """
         from sage.categories.fields import Fields
         Field.__init__(self, base_ring=QQ, category=Fields().Infinite())

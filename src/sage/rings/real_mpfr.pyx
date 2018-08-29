@@ -514,6 +514,11 @@ cdef class RealField_class(sage.rings.ring.Field):
             Traceback (most recent call last):
             ...
             OverflowError: Sage Integer too large to convert to C long
+
+        Check methods inherited from categories::
+
+            sage: RealField(10).is_finite()
+            False
         """
         global MY_MPFR_PREC_MAX
         if prec < MPFR_PREC_MIN or prec > MY_MPFR_PREC_MAX:
@@ -529,7 +534,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         self.rnd_str = char_to_str(rnd_str + 5)  # Strip "MPFR_"
 
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self, tuple([]), False, category=Fields().Metric().Complete())
+        ParentWithGens.__init__(self, self, tuple([]), False, category=Fields().Infinite().Metric().Complete())
 
         # Initialize zero and one
         cdef RealNumber rn
@@ -935,17 +940,6 @@ cdef class RealField_class(sage.rings.ring.Field):
         if key == 'element_is_atomic':
             return True
         return super(RealField_class, self)._repr_option(key)
-
-    def is_finite(self):
-        """
-        Return ``False``, since the field of real numbers is not finite.
-
-        EXAMPLES::
-
-            sage: RealField(10).is_finite()
-            False
-        """
-        return False
 
     def characteristic(self):
         """

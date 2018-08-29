@@ -359,6 +359,10 @@ class RealBallField(UniqueRepresentation, Field):
         sage: a = (sqrt2 - 1)^1000
         sage: RBF(a)
         [1.676156872756536e-383 +/- 4.39e-399]
+
+
+        sage: RealBallField().is_finite()
+        False
     """
     Element = RealBall
 
@@ -614,21 +618,6 @@ class RealBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: RealBallField().is_exact()
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Real ball fields are infinite.
-
-        They already specify it via their category, but we currently need to
-        re-implement this method due to the legacy implementation in
-        :class:`sage.rings.ring.Ring`.
-
-        EXAMPLES::
-
-            sage: RealBallField().is_finite()
             False
         """
         return False

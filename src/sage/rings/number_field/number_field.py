@@ -146,7 +146,10 @@ from builtins import zip
 from sage.misc.superseded import deprecated_function_alias
 
 
-_NumberFields = NumberFields()
+# even though number fields are infinite, it seems delicate
+# to have it automatically understood by the category
+# see https://groups.google.com/forum/#!topic/sage-devel/-ZtXuXan6cg
+_NumberFields = NumberFields().Infinite()
 
 def is_NumberFieldHomsetCodomain(codomain):
     """

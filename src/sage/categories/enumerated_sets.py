@@ -553,7 +553,7 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: Q.is_finite()
                 Traceback (most recent call last):
                 ...
-                AttributeError: 'super' object has no attribute 'is_finite'
+                AttributeError: 'QuotientRing_generic_with_category' object has no attribute 'is_finite'
                 sage: Q.list()   # indirect test
                 Traceback (most recent call last):
                 ...

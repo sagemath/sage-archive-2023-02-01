@@ -325,6 +325,9 @@ class ComplexBallField(UniqueRepresentation, Field):
         Traceback (most recent call last):
         ...
         ValueError: precision must be at least 2
+
+        sage: ComplexBallField().is_finite()
+        False
     """
     Element = ComplexBall
 
@@ -669,21 +672,6 @@ class ComplexBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: ComplexBallField().is_exact()
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Complex ball fields are infinite.
-
-        They already specify it via their category, but we currently need to
-        re-implement this method due to the legacy implementation in
-        :class:`sage.rings.ring.Ring`.
-
-        EXAMPLES::
-
-            sage: ComplexBallField().is_finite()
             False
         """
         return False

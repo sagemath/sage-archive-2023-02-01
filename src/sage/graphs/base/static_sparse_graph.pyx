@@ -186,6 +186,7 @@ include "sage/data_structures/bitset.pxi"
 cimport cpython
 from libc.string cimport memset
 from libc.limits cimport INT_MAX
+from libc.math cimport sqrt
 from libcpp.vector cimport vector
 from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -918,9 +919,25 @@ def spectral_radius(G, prec=1e-10):
         sage: max(G.adjacency_matrix().eigenvalues(AA))
         2.414213562373095?
 
+    Some bipartite graphs::
+
+        sage: G = Graph([(0,1),(0,3),(2,3)])
+        sage: G.spectral_radius()  # abs tol 1e-10
+        (1.6180339887253428, 1.6180339887592732)
+
+        sage: G = DiGraph([(0,1),(0,3),(2,3),(3,0),(1,0),(1,2)])
+        sage: G.spectral_radius() # abs tol 1e-10
+        (1.5537739740270458, 1.553773974033029)
+
+        sage: G = graphs.CompleteBipartiteGraph(1,3)
+        sage: G.spectral_radius()  # abs tol 1e-10
+        (1.7320508075688772, 1.7320508075688774)
+
     TESTS::
 
-        sage: spectral_radius(G, 1e-20)
+        sage: from sage.graphs.base.static_sparse_graph import spectral_radius
+
+        sage: spectral_radius(Graph([(0,1),(0,2)]), 1e-20)
         Traceback (most recent call last):
         ...
         ValueError: precision (=1.00000000000000e-20) is too small
@@ -932,12 +949,48 @@ def spectral_radius(G, prec=1e-10):
         ....:     e = max(G.adjacency_matrix().charpoly().roots(AA,multiplicities=False))
         ....:     e_min, e_max = G.spectral_radius(1e-13)
         ....:     assert e_min < e < e_max
+
+        sage: spectral_radius(Graph(), 1e-10)
+        Traceback (most recent call last):
+        ...
+        ValueError: graph without edges
     """
+    if not G:
+        raise ValueError("graph without edges")
     if G.is_directed():
         if not G.is_strongly_connected():
             raise ValueError("G must be strongly connected")
+        # NOTE: this is a complete waste of time... but there is no
+        # is_bipartite method on oriented graphs!
+        is_bipartite, colors = G.to_undirected().is_bipartite(certificate=True)
     elif not G.is_connected():
         raise ValueError("G must be connected")
+    else:
+        is_bipartite, colors = G.is_bipartite(certificate=True)
+
+    cdef double e_min, e_max
+
+    if is_bipartite:
+        # NOTE: for bipartite graph there are two eigenvalues of maximum modulus
+        # and the iteration is likely to reach a cycle of length 2 and hence the
+        # algorithm never terminate. Here we compute the "square" reduced to
+        # one component of the bipartition.
+        from sage.graphs.all import DiGraph
+        H = DiGraph(loops=True, multiedges=True)
+        if G.is_directed():
+            neighbors_iterator = G.neighbor_out_iterator
+        else:
+            neighbors_iterator = G.neighbor_iterator
+        for u0 in G:
+            if colors[u0] == 0:
+                for u1 in neighbors_iterator(u0):
+                    for u2 in neighbors_iterator(u1):
+                        H.add_edge(u0, u2)
+
+        e_min, e_max = spectral_radius(H, prec)
+        e_min = sqrt(e_min)
+        e_max = sqrt(e_max)
+        return e_min, e_max
 
     cdef double c_prec = prec
     if 1+c_prec/2 == 1:
@@ -963,7 +1016,6 @@ def spectral_radius(G, prec=1e-10):
 
     cdef size_t i
     cdef uint32_t *p
-    cdef double e_min, e_max
     cdef double s
 
     for i in range(n):

@@ -1441,14 +1441,14 @@ def ShiftedComplex(generators):
     EXAMPLES::
 
         sage: X = simplicial_complexes.ShiftedComplex([ Simplex([1,6]), (2,4), [8] ])
-        sage: X.facets()
-        {(2, 4), (7,), (1, 2), (1, 5), (1, 4), (8,), (2, 3), (1, 6), (1, 3)}
+        sage: sorted(X.facets())
+        [(1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 3), (2, 4), (7,), (8,)]
         sage: X = simplicial_complexes.ShiftedComplex([ [2,3,5] ])
-        sage: X.facets()
-        {(1, 3, 4), (1, 3, 5), (2, 3, 5), (1, 2, 3), (2, 3, 4), (1, 2, 5), (1, 2, 4)}
+        sage: sorted(X.facets())
+        [(1, 2, 3), (1, 2, 4), (1, 2, 5), (1, 3, 4), (1, 3, 5), (2, 3, 4), (2, 3, 5)]
         sage: X = simplicial_complexes.ShiftedComplex([ [1,3,5], [2,6] ])
-        sage: X.facets()
-        {(1, 3, 4), (1, 3, 5), (1, 6), (2, 6), (1, 2, 3), (1, 2, 5), (1, 2, 4)}
+        sage: sorted(X.facets())
+        [(1, 2, 3), (1, 2, 4), (1, 2, 5), (1, 3, 4), (1, 3, 5), (1, 6), (2, 6)]
     """
     from sage.combinat.partition import Partitions
     Facets = []

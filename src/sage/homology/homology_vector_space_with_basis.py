@@ -111,9 +111,9 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         sage: H = Klein_c.cohomology_ring(GF(2))
         sage: x,y = H.basis(1)
         sage: x.cup_product(x)
-        h^{2,0}
-        sage: x.cup_product(y)
         0
+        sage: x.cup_product(y)
+        h^{2,0}
         sage: y.cup_product(y)
         h^{2,0}
 
@@ -126,6 +126,10 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         0
         sage: v.cup_product(v)
         h^{2,0}
+
+    An isomorphism between the rings for the cubical model and the
+    `\Delta`-complex model can be obtained by sending `x` to `u+v`,
+    `y` to `v`. ::
 
         sage: X = simplicial_sets.RealProjectiveSpace(6)
         sage: H_X = X.cohomology_ring(GF(2))
@@ -548,7 +552,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: T = cubical_complexes.Torus()
             sage: x,y = T.cohomology_ring(QQ).basis(1)
             sage: x.cup_product(y)
-            -h^{2,0}
+            h^{2,0}
             sage: x.cup_product(x)
             0
 

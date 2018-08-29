@@ -752,6 +752,14 @@ class DiscreteValuation(DiscretePseudoValuation):
                              # also because the principal_part_bound would be
                              # incorrect for these.
                              allow_equivalent_key=node.valuation.is_gauss_valuation(),
+                             # The length of an edge in the Newton polygon in
+                             # one MacLane step bounds the length of the
+                             # principal part (i.e., the part with negative
+                             # slopes) of the Newton polygons in the next
+                             # MacLane step. Therefore, mac_lane_step does not
+                             # need to compute valuations for coefficients
+                             # beyond that bound as they do not contribute any
+                             # augmentations.
                              principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:
                 ef = bound == w.E()*w.F()

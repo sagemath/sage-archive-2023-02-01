@@ -2641,7 +2641,7 @@ class _Component:
         depending on the number of edges belonging to it.
         """
         self.add_edge(e)
-        if self.edge_list.get_length() >= 4:
+        if self.edge_list.get_length() > 4:
             self.component_type = 2
         else:
             self.component_type = 1

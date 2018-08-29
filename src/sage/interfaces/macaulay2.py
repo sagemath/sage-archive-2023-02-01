@@ -607,7 +607,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
 @instancedoc
 class Macaulay2Element(ExtraTabCompletion, ExpectElement):
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: m = macaulay2('matrix {{1,2},{3,4}}') # optional - macaulay2

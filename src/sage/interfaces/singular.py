@@ -1115,7 +1115,7 @@ class Singular(ExtraTabCompletion, Expect):
             True
         """
         ringlist = self.eval("listvar(ring)").splitlines()
-        p = re.compile("// ([a-zA-Z0-9_]*).*\[.*\].*\*.*") #do this in constructor?
+        p = re.compile(r"// ([a-zA-Z0-9_]*).*\[.*\].*\*.*") #do this in constructor?
         for line in ringlist:
             m = p.match(line)
             if m:
@@ -1166,7 +1166,7 @@ class Singular(ExtraTabCompletion, Expect):
         return [p.match(line).group(int(1)) for line in proclist]
 
     def console(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: singular_console() #not tested
@@ -2021,7 +2021,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             ['0', 'x', 'y', 'dp', '1,1', 'C', '0', '_[1]=0']
         """
         s = str(self)
-        c = '\[[0-9]*\]:'
+        c = r'\[[0-9]*\]:'
         r = re.compile(c)
         s = r.sub('',s).strip()
         return s.split()
@@ -2092,7 +2092,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             'poly'
         """
         # singular reports // $varname $type $stuff
-        p = re.compile("// [\w]+ (\w+) [\w]*")
+        p = re.compile(r"// [\w]+ (\w+) [\w]*")
         m = p.match(self.parent().eval("type(%s)"%self.name()))
         return m.group(1)
 
@@ -2266,8 +2266,8 @@ def generate_docstring_dictionary():
     import os
     singular_docdir = os.environ['SINGULARPATH']+"/../info/"
 
-    new_node = re.compile("File: singular\.hlp,  Node: ([^,]*),.*")
-    new_lookup = re.compile("\* ([^:]*):*([^.]*)\..*")
+    new_node = re.compile(r"File: singular\.hlp,  Node: ([^,]*),.*")
+    new_lookup = re.compile(r"\* ([^:]*):*([^.]*)\..*")
 
     L, in_node, curr_node = [], False, None
 
@@ -2335,7 +2335,7 @@ def reduce_load_Singular():
 
 
 def singular_console():
-    """
+    r"""
     Spawn a new Singular command-line session.
 
     EXAMPLES::
@@ -2365,36 +2365,35 @@ def singular_version():
     return singular.eval('system("--version");')
 
 
-
 class SingularGBLogPrettyPrinter:
     """
     A device which prints Singular Groebner basis computation logs
     more verbatim.
     """
-    rng_chng = re.compile("\[\d+:\d+\]")# [m:n] internal ring change to
+    rng_chng = re.compile(r"\[\d+:\d+\]")# [m:n] internal ring change to
                                         # poly representation with
                                         # exponent bound m and n words in
                                         # exponent vector
     new_elem = re.compile("s")          # found a new element of the standard basis
     red_zero = re.compile("-")          # reduced a pair/S-polynomial to 0
-    red_post = re.compile("\.")         # postponed a reduction of a pair/S-polynomial
+    red_post = re.compile(r"\.")         # postponed a reduction of a pair/S-polynomial
     cri_hilb = re.compile("h")          # used Hilbert series criterion
-    hig_corn = re.compile("H\(\d+\)")   # found a 'highest corner' of degree d, no need to consider higher degrees
-    num_crit = re.compile("\(\d+\)")    # n critical pairs are still to be reduced
-    red_num =  re.compile("\(S:\d+\)")  # doing complete reduction of n elements
-    deg_lead = re.compile("\d+")        # the degree of the leading terms is currently d
+    hig_corn = re.compile(r"H\(\d+\)")   # found a 'highest corner' of degree d, no need to consider higher degrees
+    num_crit = re.compile(r"\(\d+\)")    # n critical pairs are still to be reduced
+    red_num =  re.compile(r"\(S:\d+\)")  # doing complete reduction of n elements
+    deg_lead = re.compile(r"\d+")        # the degree of the leading terms is currently d
 
     # SlimGB
-    red_para = re.compile("M\[(\d+),(\d+)\]") # parallel reduction of n elements with m non-zero output elements
+    red_para = re.compile(r"M\[(\d+),(\d+)\]") # parallel reduction of n elements with m non-zero output elements
     red_betr = re.compile("b")                # exchange of a reductor by a 'better' one
     non_mini = re.compile("e")                # a new reductor with non-minimal leading term
 
-    crt_lne1 = re.compile("product criterion:(\d+) chain criterion:(\d+)")
-    crt_lne2 = re.compile("NF:(\d+) product criterion:(\d+), ext_product criterion:(\d+)")
+    crt_lne1 = re.compile(r"product criterion:(\d+) chain criterion:(\d+)")
+    crt_lne2 = re.compile(r"NF:(\d+) product criterion:(\d+), ext_product criterion:(\d+)")
 
-    pat_sync = re.compile("1\+(\d+);")
+    pat_sync = re.compile(r"1\+(\d+);")
 
-    global_pattern = re.compile("(\[\d+:\d+\]|s|-|\.|h|H\(\d+\)|\(\d+\)|\(S:\d+\)|\d+|M\[\d+,[b,e]*\d+\]|b|e).*")
+    global_pattern = re.compile(r"(\[\d+:\d+\]|s|-|\.|h|H\(\d+\)|\(\d+\)|\(S:\d+\)|\d+|M\[\d+,[b,e]*\d+\]|b|e).*")
 
     def __init__(self, verbosity=1):
         """

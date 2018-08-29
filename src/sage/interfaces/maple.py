@@ -442,7 +442,7 @@ connection to a server running Maple; for hints, type
         return self._expect
 
     def console(self):
-        """
+        r"""
         Spawn a new Maple command-line session.
 
         EXAMPLES::
@@ -1146,7 +1146,7 @@ def reduce_load_Maple():
 
 
 def maple_console():
-    """
+    r"""
     Spawn a new Maple command-line session.
 
     EXAMPLES::

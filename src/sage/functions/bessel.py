@@ -341,11 +341,12 @@ class Function_Bessel_J(BuiltinFunction):
             sage: bessel_J(x, x)._sympy_()
             besselj(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_J", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_J', nargs=2,
                                  conversions=dict(mathematica='BesselJ',
                                                   maxima='bessel_j',
                                                   sympy='besselj',
-                                                  fricas='besselJ'))
+                                                  fricas='besselJ',
+                                                  giac='BesselJ'))
 
     def _eval_(self, n, x):
         """
@@ -557,11 +558,12 @@ class Function_Bessel_Y(BuiltinFunction):
             sage: bessel_Y(x, x)._sympy_()
             bessely(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_Y', nargs=2,
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
                                                   sympy='bessely',
-                                                  fricas='besselY'))
+                                                  fricas='besselY',
+                                                  giac='BesselY'))
 
     def _eval_(self, n, x):
         """
@@ -686,7 +688,7 @@ class Function_Bessel_I(BuiltinFunction):
 
         sage: a = bessel_I(pi, bessel_I(1, I))
         sage: N(a, digits=20)
-        0.00026073272117205890528 - 0.0011528954889080572266*I
+        0.00026073272117205890524 - 0.0011528954889080572268*I
 
         sage: f = bessel_I(2, x)
         sage: f.diff(x)
@@ -762,7 +764,7 @@ class Function_Bessel_I(BuiltinFunction):
             sage: bessel_I(x, x)._sympy_()
             besseli(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_I", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_I', nargs=2,
                                  conversions=dict(mathematica='BesselI',
                                                   maxima='bessel_i',
                                                   sympy='besseli',
@@ -876,7 +878,7 @@ class Function_Bessel_K(BuiltinFunction):
         sage: a = bessel_K(pi, bessel_K(1, I)); a
         bessel_K(pi, bessel_K(1, I))
         sage: N(a, digits=20)
-        3.8507583115005220157 + 0.068528298579883425792*I
+        3.8507583115005220156 + 0.068528298579883425456*I
 
         sage: f = bessel_K(2, x)
         sage: f.diff(x)
@@ -962,7 +964,7 @@ class Function_Bessel_K(BuiltinFunction):
             sage: bessel_K(x, x)._sympy_()
             besselk(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_K", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_K', nargs=2,
                                  conversions=dict(mathematica='BesselK',
                                                   maxima='bessel_k',
                                                   sympy='besselk',
@@ -1174,7 +1176,7 @@ def Bessel(*args, **kwds):
 
     """
     # Determine the order and type of function from the arguments and keywords.
-    # These are recored in local variables: _type, _order, _system, _nargs.
+    # These are recorded in local variables: _type, _order, _system, _nargs.
     _type = None
     if len(args) == 0:    # no order specified
         _order = None
@@ -1318,7 +1320,8 @@ class Function_Struve_H(BuiltinFunction):
         if diff_param == 0:
             raise ValueError("cannot differentiate struve_H in the first parameter")
 
-        from sage.functions.other import sqrt, gamma
+        from .gamma import gamma
+        from .other import sqrt
         return (z**a/(sqrt(pi)*2**a*gamma(a+Integer(3)/Integer(2)))-struve_H(a+1,z)+struve_H(a-1,z))/2
 
     def _print_latex_(self, a, z):
@@ -1432,7 +1435,8 @@ class Function_Struve_L(BuiltinFunction):
         if diff_param == 0:
             raise ValueError("cannot differentiate struve_L in the first parameter")
 
-        from sage.functions.other import sqrt, gamma
+        from .gamma import gamma
+        from .other import sqrt
         return (z**a/(sqrt(pi)*2**a*gamma(a+Integer(3)/Integer(2)))-struve_L(a+1,z)+struve_L(a-1,z))/2
 
     def _print_latex_(self, a, z):

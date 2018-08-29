@@ -80,11 +80,11 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
-from sage.combinat.root_system.ambient_space import AmbientSpace
+from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+
 
 class AbstractSingleCrystalElement(Element):
     r"""
@@ -468,25 +468,13 @@ class RCrystal(UniqueRepresentation, Parent):
         sage: T = crystals.TensorProduct(R, B)
         sage: mg = T(R.highest_weight_vector(), B.highest_weight_vector())
         sage: S = T.subcrystal(generators=[mg])
-        sage: for x in S: x.weight()
-        (2, 1, 0)
-        (2, 0, 1)
-        (1, 2, 0)
-        (1, 1, 1)
-        (1, 1, 1)
-        (1, 0, 2)
-        (0, 2, 1)
-        (0, 1, 2)
+        sage: sorted([x.weight() for x in S], key=str)
+        [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 1, 1),
+         (1, 1, 1), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
         sage: C = crystals.Tableaux("A2", shape=[2,1])
-        sage: for x in C: x.weight()
-        (2, 1, 0)
-        (1, 2, 0)
-        (1, 1, 1)
-        (1, 0, 2)
-        (0, 1, 2)
-        (2, 0, 1)
-        (1, 1, 1)
-        (0, 2, 1)
+        sage: sorted([x.weight() for x in C], key=str)
+        [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 1, 1),
+         (1, 1, 1), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
         sage: GT = T.digraph(subset=S)
         sage: GC = C.digraph()
         sage: GT.is_isomorphic(GC, edge_labels=True)

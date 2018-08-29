@@ -76,7 +76,7 @@ class OHLC:
         return '%10s %4.2f %4.2f %4.2f %4.2f %10d'%(self.timestamp, self.open, self.high,
                    self.low, self.close, self.volume)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare ``self`` and ``other``.
 
@@ -84,13 +84,47 @@ class OHLC:
 
             sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
             sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
-            sage: cmp(ohlc, ohlc2)
-            -1
+            sage: ohlc == ohlc2
+            False
         """
         if not isinstance(other, OHLC):
-            return cmp(type(self), type(other))
-        return cmp((self.timestamp, self.open, self.high, self.low, self.close, self.volume),
-                   (other.timestamp, other.open, other.high, other.low, other.close, other.volume))
+            return False
+        return (self.timestamp == other.timestamp and
+                self.open == other.open and
+                self.high == other.high and
+                self.low == other.low and
+                self.close == other.close and
+                self.volume == other.volume)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: H = hash(ohlc)
+        """
+        return hash((self.timestamp,
+                     self.open,
+                     self.high,
+                     self.low,
+                     self.close ,
+                     self.volume))
+
+    def __ne__(self, other):
+        """
+        Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
+            sage: ohlc != ohlc2
+            True
+        """
+        return not (self == other)
+    
 
 class Stock:
     """
@@ -155,7 +189,7 @@ class Stock:
         r"""
         Get Yahoo current price data for this stock.
 
-        This method returns a dictionary wit the following keys:
+        This method returns a dictionary with the following keys:
 
 
         .. csv-table::
@@ -341,10 +375,9 @@ class Stock:
         if enddate is None:
             enddate = date.today().strftime("%b+%d,+%Y")
 
-        cid = self.cid
         symbol = self.symbol
 
-        if self.cid=='':
+        if self.cid == '':
             if ':' in symbol:
                 R = self._get_data('', startdate, enddate, histperiod)
             else:
@@ -503,7 +536,8 @@ class Stock:
         object like so. Note that the path must be explicit::
 
             sage: filename = tmp_filename(ext='.csv')
-            sage: open(filename,'w').write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
+            sage: with open(filename, 'w') as fobj:
+            ....:     _ = fobj.write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
             sage: finance.Stock('aapl').load_from_file(filename)[:5]
             [
             1212408060 188.00 188.00 188.00 188.00        687,
@@ -550,7 +584,8 @@ class Stock:
         This indirectly tests ``_load_from_csv()``::
 
             sage: filename = tmp_filename(ext='.csv')
-            sage: open(filename,'w').write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
+            sage: with open(filename,'w') as fobj:
+            ....:     _ = fobj.write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
             sage: finance.Stock('aapl').load_from_file(filename)
             [
             1212408060 188.00 188.00 188.00 188.00        687,
@@ -561,7 +596,6 @@ class Stock:
             ]
         """
         R = R.splitlines()
-        headings = R[0].split(',')
         hist_data = []
         for x in reversed(R[1:]):
             try:

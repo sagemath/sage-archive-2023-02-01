@@ -18,11 +18,12 @@ TESTS:
 Check that argspecs of extension function/methods appear correctly,
 see :trac:`12849`::
 
-    sage: from sage.env import SAGE_DOC
-    sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
-    sage: for line in open(docfilename):
-    ....:     if "#sage.symbolic.expression.Expression.numerical_approx" in line:
-    ....:         print(line)
+    sage: from sage.env import SAGE_DOC  # optional - dochtml
+    sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')  # optional - dochtml
+    sage: with open(docfilename) as fobj:  # optional - dochtml
+    ....:     for line in fobj:
+    ....:         if "#sage.symbolic.expression.Expression.numerical_approx" in line:
+    ....:             print(line)
     <code class="descname">numerical_approx</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
 
 Check that sphinx is not imported at Sage start-up::
@@ -41,6 +42,8 @@ Check that sphinx is not imported at Sage start-up::
 
 from __future__ import print_function
 from __future__ import absolute_import
+from six import string_types
+
 import os, re, sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
@@ -54,7 +57,7 @@ from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 # should instead by taken care of by MathJax -- and nonmath, which
 # should be done always.
 
-# Math substititions: don't forget the leading backslash '\\'. These
+# Math substitutions: don't forget the leading backslash '\\'. These
 # are done using regular expressions, so it works best to also make
 # the strings raw: r'\\blah'.
 math_substitutes = [
@@ -241,21 +244,21 @@ def skip_TESTS_block(docstring):
     - ``docstring``, a string
 
     A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
-    the same with two colons), on a line on its own, and ending with
-    an unindented line (that is, the same level of indentation as
-    "TESTS") matching one of the following:
+    the same with two colons), on a line on its own, and ending either
+    with a line indented less than "TESTS", or with a line with the
+    same level of indentation -- not more -- matching one of the
+    following:
 
-    - a line which starts with whitespace and then a Sphinx directive
-      of the form ".. foo:", optionally followed by other text.
+    - a Sphinx directive of the form ".. foo:", optionally followed by
+      other text.
 
-    - a line which starts with whitespace and then text of the form
-      "UPPERCASE:", optionally followed by other text.
+    - text of the form "UPPERCASE:", optionally followed by other
+      text.
 
-    - lines which look like a ReST header: one line containing
-      anything, followed by a line consisting only of whitespace,
-      followed by a string of hyphens, equal signs, or other
-      characters which are valid markers for ReST headers: 
-      ``- = ` : ' " ~ _ ^ * + # < >``.
+    - lines which look like a reST header: one line containing
+      anything, followed by a line consisting only of a string of
+      hyphens, equal signs, or other characters which are valid
+      markers for reST headers: ``- = ` : ' " ~ _ ^ * + # < >``.
 
     Return the string obtained from ``docstring`` by removing these
     blocks.
@@ -266,22 +269,41 @@ def skip_TESTS_block(docstring):
         sage: start = ' Docstring\n\n'
         sage: test = ' TEST: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
         sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
-        sage: refs = ' REFERENCES: \n text text \n'
-        sage: directive = ' .. todo:: \n     do some stuff \n'
 
+    Test lines starting with "REFERENCES:"::
+
+        sage: refs = ' REFERENCES: \n text text \n'
         sage: skip_TESTS_block(start + test + refs).rstrip() == (start + refs).rstrip()
         True
         sage: skip_TESTS_block(start + test + test2 + refs).rstrip() == (start + refs).rstrip()
-        True 
+        True
         sage: skip_TESTS_block(start + test + refs + test2).rstrip() == (start + refs).rstrip()
         True
+
+    Test Sphinx directives::
+
+        sage: directive = ' .. todo:: \n     do some stuff \n'
         sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
         True
 
-        sage: header = 'Header:\n~~~~~~~~'
-        sage: fake_header = 'Header:\n-=-=-=-=-='
+    Test unindented lines::
+
+        sage: unindented = 'NOT INDENTED\n'
+        sage: skip_TESTS_block(start + test + unindented).rstrip() == (start + unindented).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + unindented + test2 + unindented).rstrip() == (start + unindented + unindented).rstrip()
+        True
+
+    Test headers::
+
+        sage: header = ' Header:\n ~~~~~~~~'
         sage: skip_TESTS_block(start + test + header) == start + header
         True
+
+    Not a header because the characters on the second line must all be
+    the same::
+
+        sage: fake_header = ' Header:\n -=-=-=-=-='
         sage: skip_TESTS_block(start + test + fake_header).rstrip() == start.rstrip()
         True
 
@@ -291,7 +313,7 @@ def skip_TESTS_block(docstring):
         sage: another_fake = '\n    blah\n    ----'
         sage: skip_TESTS_block(start + test + another_fake).rstrip() == start.rstrip()
         True
-   """
+    """
     # tests_block: match a line starting with whitespace, then
     # "TEST" or "TESTS" followed by ":" or "::", then possibly
     # more whitespace, then the end of the line.
@@ -304,7 +326,7 @@ def skip_TESTS_block(docstring):
     # "REFERENCES:" or "ALGORITHM:".
     end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
     # header: match a string of hyphens, or other characters which are
-    # valid markers for ReST headers: - = ` : ' " ~ _ ^ * + # < >
+    # valid markers for reST headers: - = ` : ' " ~ _ ^ * + # < >
     header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
     s = ''
     skip = False
@@ -321,12 +343,21 @@ def skip_TESTS_block(docstring):
                 s += "\n"
                 s += l
         else:
-            if end_of_block.match(l) and not tests_block.match(l):
+            if l and not l.isspace() and not l.startswith(indentation):
+                # A non-blank line indented less than 'TESTS:'
+                skip = False
+                s += "\n"
+                s += l
+            elif end_of_block.match(l) and not tests_block.match(l):
+                # A line matching end_of_block and indented the same as 'TESTS:'
+                if l.startswith(indentation + " "):
+                    continue
                 skip = False
                 s += "\n"
                 s += l
             elif header.match(l):
-                if l.find(indentation) == 0:
+                # A line matching header.
+                if l.startswith(indentation + " "):
                     continue
                 skip = False
                 if previous:
@@ -335,7 +366,7 @@ def skip_TESTS_block(docstring):
                 s += "\n"
                 s += l
         previous = l
-    return s[1:] # Remove empty line from the beginning. 
+    return s[1:] # Remove empty line from the beginning.
 
 def process_dollars(s):
     r"""nodetex
@@ -430,6 +461,20 @@ def process_dollars(s):
             s = s[:m.start()] + "$" + s[m.end():]
     return s
 
+
+# Sage trac ticket shortcuts. For example, :trac:`7549` .
+pythonversion = sys.version.split(' ')[0]
+extlinks = {
+    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
+    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
+    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
+    'arxiv': ('https://arxiv.org/abs/%s', 'Arxiv '),
+    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
+    'doi': ('https://doi.org/%s', 'doi:'),
+    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
+    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
+}
+
 def process_extlinks(s, embedded=False):
     r"""nodetex
 
@@ -463,10 +508,6 @@ def process_extlinks(s, embedded=False):
     """
     if embedded:
         return s
-    oldpath = sys.path
-    sys.path = [os.path.join(SAGE_DOC_SRC, 'common')] + oldpath
-    from conf import extlinks
-    sys.path = oldpath
     for key in extlinks:
         while True:
             m = re.search(':%s:`([^`]*)`' % key, s)
@@ -568,16 +609,16 @@ def format(s, embedded=False):
         "   Returns ...  Todo: add tests as in combinat::rankers\n"
 
     In the following use case, the ``nodetex`` directive would have been ignored prior
-    to #11815::
+    to :trac:`11815`::
 
         sage: cython_code = ["def testfunc(x):",
-        ... "    '''",
-        ... "    nodetex",
-        ... "    This is a doc string with raw latex",
-        ... "",
-        ... "    `x \\geq y`",
-        ... "    '''",
-        ... "    return -x"]
+        ....: "    '''",
+        ....: "    nodetex",
+        ....: "    This is a doc string with raw latex",
+        ....: "",
+        ....: "    `x \\geq y`",
+        ....: "    '''",
+        ....: "    return -x"]
         sage: cython('\n'.join(cython_code))
         sage: from sage.misc.sageinspect import sage_getdoc
         sage: print(sage_getdoc(testfunc))
@@ -607,7 +648,7 @@ def format(s, embedded=False):
         ...
 
     """
-    if not isinstance(s, str):
+    if not isinstance(s, string_types):
         raise TypeError("s must be a string")
 
     # Leading empty lines must be removed, since we search for directives
@@ -689,7 +730,7 @@ def format_src(s):
         sage: format_src('<<<Sq>>>')[5:15]
         'Sq(*nums):'
     """
-    if not isinstance(s, str):
+    if not isinstance(s, string_types):
         raise TypeError("s must be a string")
     docs = set([])
     import sage.all
@@ -741,7 +782,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import _search_src_or_doc
-        sage: print(_search_src_or_doc('src', 'matrix\(', 'incidence_structures', 'self', '^combinat', interact=False)) # random # long time
+        sage: print(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', '^combinat', interact=False)) # random # long time
         misc/sagedoc.py:        sage: _search_src_or_doc('src', 'matrix(', 'incidence_structures', 'self', '^combinat', interact=False)
         combinat/designs/incidence_structures.py:        M1 = self.incidence_matrix()
         combinat/designs/incidence_structures.py:        A = self.incidence_matrix()
@@ -759,11 +800,12 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
 
     ::
 
-        sage: len(_search_src_or_doc('src', 'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
+        sage: from sage.misc.sagedoc import _search_src_or_doc  # optional - dochtml
+        sage: len(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1  # optional - dochtml
         True
-        sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # long time (4s on sage.math, 2012)
+        sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # optional - dochtml, long time (4s on sage.math, 2012)
         True
-        sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)
+        sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)  # optional - dochtml
         True
     """
     # process keywords
@@ -1129,9 +1171,9 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     counting the length of ``search_doc('tree',
     interact=False).splitlines()`` gives the number of matches. ::
 
-        sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time
+        sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # optional - dochtml, long time
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # long time
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # optional - dochtml, long time
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,
@@ -1301,9 +1343,9 @@ class _sage_doc:
 
     EXAMPLES::
 
-        sage: browse_sage_doc._open("reference", testing=True)[0]  # indirect doctest
+        sage: browse_sage_doc._open("reference", testing=True)[0]  # optional - dochtml, indirect doctest
         'http://localhost:8000/doc/live/reference/index.html'
-        sage: browse_sage_doc(identity_matrix, 'rst')[-107:-47]
+        sage: browse_sage_doc(identity_matrix, 'rst')[-107:-47]  # optional - dochtml
         'Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring'
     """
     def __init__(self):
@@ -1463,9 +1505,9 @@ class _sage_doc:
 
         EXAMPLES::
 
-            sage: browse_sage_doc._open("reference", testing=True)[0]
+            sage: browse_sage_doc._open("reference", testing=True)[0]  # optional - dochtml
             'http://localhost:8000/doc/live/reference/index.html'
-            sage: browse_sage_doc._open("tutorial", testing=True)[1]
+            sage: browse_sage_doc._open("tutorial", testing=True)[1]  # optional - dochtml
             '.../html/en/tutorial/index.html'
         """
         url = self._base_url + os.path.join(name, "index.html")
@@ -1548,13 +1590,7 @@ def help(module=None):
         Welcome to Sage ...
     """
     if not module is None:
-        if hasattr(module, '_sage_doc_'):
-            from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
-            docstr = 'Help on ' + str(module) + '\n'
-            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n'
-            pydoc.pager(docstr + _sage_getdoc_unformatted(module))
-        else:
-            python_help(module)
+        python_help(module)
     else:
         print("""Welcome to Sage {}!
 

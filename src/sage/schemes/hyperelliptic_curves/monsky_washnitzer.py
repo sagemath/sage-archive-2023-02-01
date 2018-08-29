@@ -15,7 +15,8 @@ REFERENCES:
    4, 323-338
 
 .. [Edix] Edixhoven, B., "Point counting after Kedlaya", EIDMA-Stieltjes
-   graduate course, Lieden (lecture notes?).
+   graduate course, Leiden
+   (notes: https://www.math.leidenuniv.nl/~edix/oww/mathofcrypt/carls_edixhoven/kedlaya.pdf)
 
 AUTHORS:
 
@@ -61,11 +62,12 @@ from sage.modules.all import vector
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.richcmp import richcmp
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
 from sage.arith.all import binomial, integer_ceil as ceil
-from sage.misc.functional import log
+from sage.functions.log import log
 from sage.misc.misc import newton_method_sizes
 
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
@@ -406,7 +408,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     __nonzero__ = __bool__
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -419,7 +421,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: x == x + x - x
             True
         """
-        return cmp(self._triple, other._triple)
+        return richcmp(self._triple, other._triple, op)
 
     def _repr_(self):
         """
@@ -744,7 +746,7 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
     in coeffs[offset]. Note that coeffs[i] will be meaningless for i
     offset after this function is finished.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -752,7 +754,7 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_negative(Q, 5, coeffs, 3)
         sage: coeffs[3]
-         [28, 52, 9]
+        [28, 52, 9]
 
     ::
 
@@ -762,7 +764,7 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_negative(Q, 7, coeffs, 3)
         sage: coeffs[3]
-         [245, 332, 9]
+        [245, 332, 9]
     """
 
     m = helper_matrix(Q).list()
@@ -845,7 +847,7 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
     in coeffs[offset]. Note that coeffs[i] will be meaningless for i
     offset after this function is finished.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -856,7 +858,7 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_positive(Q, 5, coeffs, 0)
         sage: coeffs[0]
-         [16, 102, 88]
+        [16, 102, 88]
 
     ::
 
@@ -864,7 +866,7 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_positive(Q, 5, coeffs, 0)
         sage: coeffs[0]
-         [24, 108, 92]
+        [24, 108, 92]
     """
 
     base_ring = Q.base_ring()
@@ -937,7 +939,7 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
     in coeffs[offset]. This method completely ignores coeffs[i] for i
     != offset.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -945,7 +947,7 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_zero(Q, coeffs, 1)
         sage: coeffs[1]
-         [6, 5, 0]
+        [6, 5, 0]
     """
 
     a = coeffs[int(offset)]
@@ -996,14 +998,14 @@ def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
        The algorithm operates in-place, so the data in coeffs is
        destroyed.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_all(Q, 5, coeffs, 1)
-         (21, 106)
+        (21, 106)
     """
 
     R = Q.base_ring()
@@ -1362,7 +1364,7 @@ def adjusted_prec(p, prec):
 
 
 def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
-    """
+    r"""
     Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
     with respect to the basis `(dx/y, x dx/y)`.
 
@@ -1580,7 +1582,6 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
     only really makes sense when it is divisible by p anyway, perhaps
     this isn't a problem after all.
     """
-
     M = int(M)
     if M < 2:
         raise ValueError("M (=%s) must be at least 2" % M)
@@ -1728,8 +1729,6 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 #
 #*****************************************************************************
 
-import weakref
-
 from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 from sage.schemes.hyperelliptic_curves.hyperelliptic_generic import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
@@ -1745,7 +1744,7 @@ from sage.misc.misc import repr_lincomb
 
 
 def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
-    """
+    r"""
     Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
     with respect to the basis `(dx/2y, x dx/2y, ...x^{d-2} dx/2y)`, where
     `d` is the degree of `Q`.
@@ -1758,7 +1757,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
 
     - ``prec`` -- (optional) `p`-adic precision of the coefficient ring
 
-    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficint ring
+    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficient ring
 
     OUTPUT:
 
@@ -2163,6 +2162,7 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
         return False
 SpecialHyperellipticQuotientRing_class = SpecialHyperellipticQuotientRing
 
+
 class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
     def __init__(self, parent, val=0, offset=0, check=True):
@@ -2194,25 +2194,25 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         if offset != 0:
             self._f = self._f.parent()([a << offset for a in self._f], check=False)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Compares the elements
+        Compare the elements.
 
         EXAMPLES::
 
             sage: R.<x> = QQ['x']
             sage: E = HyperellipticCurve(x^5-36*x+1)
             sage: x,y = E.monsky_washnitzer_gens()
-            sage: x.__cmp__(x)
-            0
-            sage: x.__cmp__(y)
-            1
+            sage: x == x
+            True
+            sage: x > y
+            True
         """
-        return cmp(self._f, other._f)
+        return richcmp(self._f, other._f, op)
 
     def change_ring(self, R):
         """
-        Return the same element after changing the base ring to R
+        Return the same element after changing the base ring to R.
 
         EXAMPLES::
 
@@ -2652,7 +2652,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
             sage: MW.base_ring()
             SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = x^5 - 4*x + 4) over Rational Field
             sage: MW.base_extend(Qp(5,5)).base_ring()
-            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = (1 + O(5^5))*x^5 + (1 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x + (4 + O(5^5))) over 5-adic Field with capped relative precision 5
+            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = (1 + O(5^5))*x^5 + (1 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x + 4 + O(5^5)) over 5-adic Field with capped relative precision 5
         """
         return MonskyWashnitzerDifferentialRing(self.base_ring().base_extend(R))
 
@@ -2677,7 +2677,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
             sage: MW.base_ring()
             SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = x^5 - 4*x + 4) over Rational Field
             sage: MW.change_ring(Qp(5,5)).base_ring()
-            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = (1 + O(5^5))*x^5 + (1 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x + (4 + O(5^5))) over 5-adic Field with capped relative precision 5
+            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = (1 + O(5^5))*x^5 + (1 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x + 4 + O(5^5)) over 5-adic Field with capped relative precision 5
         """
         return MonskyWashnitzerDifferentialRing(self.base_ring().change_ring(R))
 
@@ -2751,7 +2751,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
 
     @cached_method
     def frob_Q(self, p):
-        """
+        r"""
         Returns and caches `Q(x^p)`, which is used in computing the image of
         `y` under a `p`-power lift of Frobenius to `A^{\dagger}`.
 
@@ -2847,8 +2847,8 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
         return MonskyWashnitzerDifferential(self, F_dx_y)
 
     def frob_basis_elements(self, prec, p):
-        """
-        Returns the action of a `p`-power lift of Frobenius on the basis
+        r"""
+        Return the action of a `p`-power lift of Frobenius on the basis
 
         .. MATH::
 
@@ -3564,7 +3564,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
             sage: w.coleman_integral(P,2*P)
             O(5^6)
 
-            sage: Q = E.lift_x(3)
+            sage: Q = E([3,58332])
             sage: w.coleman_integral(P,Q)
             2*5 + 4*5^2 + 3*5^3 + 4*5^4 + 3*5^5 + O(5^6)
             sage: w.coleman_integral(2*P,Q)

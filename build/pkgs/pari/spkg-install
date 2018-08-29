@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 ###########################################
 ## PARI
 ###########################################
@@ -23,23 +22,6 @@ set_environment()
     # with building Sage:
     LANG=C
     export LANG
-
-    # Add the proper flags for 64-bit build mode on OS X and OpenSolaris x64.
-    # Setting CFLAGS is not sufficient on Solaris since PARI 2.4.3, as this
-    # flag is not being used when the checks for GMP and Readline are made,
-    # so the checks for them fail.  One must redefine CC and export that.
-
-    # Let the user choose a flag other than "-m64" for 64-bit builds
-    # if needed:
-    if [ -z "$CFLAG64" ]; then
-        CFLAG64=-m64
-    fi
-
-    if [ "x$SAGE64" = xyes ]; then
-        echo "Building a 64-bit version of PARI/GP"
-        CFLAGS="$CFLAGS $CFLAG64"
-        CC="$CC $CFLAG64" && export CC
-    fi
 
     # Pari ignores LDFLAGS when linking libpari-gmp.so, so we trick it:
     DLLDFLAGS="$LDFLAGS"
@@ -177,13 +159,6 @@ install()
     $MAKE -j1 install install-lib-sta
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing PARI"
-        exit 1
-    fi
-
-    # Copy anal.h
-    cp -f "src/language/anal.h" "$SAGE_LOCAL/include/pari/anal.h"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error copying anal.h"
         exit 1
     fi
 

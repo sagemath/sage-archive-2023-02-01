@@ -4,15 +4,18 @@ Graphics objects
 
 This file contains the definition of the classes :class:`Graphics` and
 :class:`GraphicsArray`.  Usually, you don't create these classes directly
-(although you can do it), you would use :func:`plot` or
-:func:`graphics_array` instead.
+(although you can do it), you would use :func:`plot` or :func:`graphics_array`
+instead.
 
 AUTHORS:
 
 - Jeroen Demeyer (2012-04-19): split off this file from plot.py (:trac:`12857`)
+
 - Punarbasu Purkayastha (2012-05-20): Add logarithmic scale (:trac:`4529`)
+
 - Emily Chen (2013-01-05): Add documentation for
   :meth:`~sage.plot.graphics.Graphics.show` figsize parameter (:trac:`5956`)
+
 - Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
 """
@@ -27,13 +30,13 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import zip
+from six import integer_types
 
 import os
 from math import isnan
 import sage.misc.misc
-from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
@@ -43,35 +46,11 @@ from .colors import rgbcolor
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 
-def show_default(default=None):
-    r"""
-    Set the default for showing plots using any plot commands. If
-    called with no arguments, returns the current default.
-
-    If this is ``True`` (the default) then any plot object
-    when displayed will be displayed as an actual plot instead of text,
-    i.e., the show command is not needed.
-
-    EXAMPLES:
-
-    The default starts out as ``True`` in interactive use and
-    ``False`` in doctests::
-
-        sage: show_default()  # long time
-        doctest:...: DeprecationWarning: this is done automatically by the doctest framework
-        See http://trac.sagemath.org/14469 for details.
-        False
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14469, 'this is done automatically by the doctest framework')
-    import sage.doctest
-    if default is None:
-        return not sage.doctest.DOCTEST_MODE
-    sage.doctest.DOCTEST_MODE = not bool(default)
 
 # If do_verify is True, options are checked when drawing a
 # GraphicsPrimitive.  See primitive.py
 do_verify = True
+
 
 def is_Graphics(x):
     """
@@ -690,8 +669,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: c = circle((0,0), 1)
             sage: c.axes_labels(['axe des abscisses', u'axe des ordonnées'])
             sage: c._axes_labels
-            ('axe des abscisses', u'axe des ordonn\xc3\xa9es')
-
+            ('axe des abscisses', u'axe des ordonn\xe9es')
         """
         if l is None:
             try:
@@ -772,7 +750,7 @@ class Graphics(WithEqualityById, SageObject):
         If called with no input, return the current
         ``axes_width`` setting.
 
-        EXAMPLE: We create a plot, see the default axes width (with funny
+        EXAMPLES: We create a plot, see the default axes width (with funny
         Python float rounding), then reset the width to 10 (very fat).
 
         ::
@@ -933,7 +911,7 @@ class Graphics(WithEqualityById, SageObject):
         """
         Returns the ith graphics primitive object:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = circle((1,1),2) + circle((2,2),5); print(G)
             Graphics object consisting of 2 graphics primitives
@@ -1023,7 +1001,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
-        if isinstance(other, (int, long)) and other == 0:
+        if isinstance(other, integer_types) and other == 0:
             return self
         raise TypeError
 
@@ -1573,7 +1551,7 @@ class Graphics(WithEqualityById, SageObject):
 
           - ``"default"`` -- Uses matplotlib's internal text rendering
             engine called Mathtext ( see
-            http://matplotlib.org/users/mathtext.html ). If you have
+            https://matplotlib.org/users/mathtext.html ). If you have
             modified the default matplotlib settings, for instance via
             a matplotlibrc file, then this option will not change any of
             those settings.
@@ -1624,12 +1602,14 @@ class Graphics(WithEqualityById, SageObject):
         requires that LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='latex') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         If you want all the text in your plot to use Type 1 fonts, then
         set the ``typeset`` option to ``"type1"``. This requires that
         LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='type1') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         You can turn on the drawing of a frame around the plots::
 
@@ -2125,13 +2105,17 @@ class Graphics(WithEqualityById, SageObject):
             ymin = min(d['ymin'] for d in minmax_data)
             ymax = max(d['ymax'] for d in minmax_data)
             if isnan(xmin):
-                xmin=0; sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
+                xmin=0
+                sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
             if isnan(xmax):
-                xmax=0; sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
+                xmax=0
+                sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
             if isnan(ymin):
-                ymin=0; sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
+                ymin=0
+                sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
             if isnan(ymax):
-                ymax=0; sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
+                ymax=0
+                sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
         else:
             xmin = xmax = ymin = ymax = 0
 
@@ -2144,7 +2128,7 @@ class Graphics(WithEqualityById, SageObject):
         return self._limit_output_aspect_ratio(xmin, xmax, ymin, ymax)
 
     def _limit_output_aspect_ratio(self, xmin, xmax, ymin, ymax):
-        """
+        r"""
         Private helper function for :meth:`get_minmax_data`
 
         INPUT:
@@ -2272,6 +2256,7 @@ class Graphics(WithEqualityById, SageObject):
         from matplotlib.ticker import FuncFormatter, FixedFormatter
         from sage.misc.latex import latex
         from sage.symbolic.ring import SR
+        from .misc import _multiple_of_constant
         #---------------------- Formatting x-ticks ----------------------#
         if x_formatter is None:
             if scale[0] == 'log':
@@ -2279,7 +2264,6 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 x_formatter = OldScalarFormatter()
         elif x_formatter in SR:
-            from .misc import _multiple_of_constant
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,x_const))
@@ -2305,7 +2289,6 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 y_formatter = OldScalarFormatter()
         elif y_formatter in SR:
-            from .misc import _multiple_of_constant
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,y_const))
@@ -2334,16 +2317,16 @@ class Graphics(WithEqualityById, SageObject):
         # If there are not enough ticks (2 or more) to determine that the scale
         # is non-linear, we throw a warning.
         from warnings import warn
-        tickwarnmsg  = 'The %s-axis contains fewer than 2 ticks; '
+        tickwarnmsg = 'The %s-axis contains fewer than 2 ticks; '
         tickwarnmsg += 'the logarithmic scale of the plot may not be apparent '
         tickwarnmsg += 'to the reader.'
 
-        if (scale[0] == 'log' and not isinstance(x_locator, NullLocator)
-                and len(subplot.xaxis.get_ticklocs()) < 2):
+        if (scale[0] == 'log' and not isinstance(x_locator, NullLocator) and
+                len(subplot.xaxis.get_ticklocs()) < 2):
             warn(tickwarnmsg % 'x')
 
-        if (scale[1] == 'log' and not isinstance(y_locator, NullLocator)
-                and len(subplot.yaxis.get_ticklocs()) < 2):
+        if (scale[1] == 'log' and not isinstance(y_locator, NullLocator) and
+                len(subplot.yaxis.get_ticklocs()) < 2):
             warn(tickwarnmsg % 'y')
 
         return (subplot, x_locator, y_locator, x_formatter, y_formatter)
@@ -2475,6 +2458,7 @@ class Graphics(WithEqualityById, SageObject):
                    axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
+                   stylesheet=None,
                    typeset='default'):
         r"""
         Return a matplotlib figure object representing the graphic
@@ -2544,8 +2528,20 @@ class Graphics(WithEqualityById, SageObject):
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
 
+        # as discussed in trac #25799 and #23696, Sage prefers the computer
+        # modern fonts of TeX for math texts such as axes labels, but otherwise
+        # adopts the default style of matplotlib
+        from matplotlib import rcParams
+        rcParams['mathtext.fontset'] = 'cm'
+        rcParams['mathtext.rm'] = 'serif'
+
+        import matplotlib.pyplot as plt
+        if stylesheet in plt.style.available:
+            plt.style.use(stylesheet)
+
         from sage.symbolic.ring import SR
-        if not isinstance(tick_formatter, (list, tuple)):  # make sure both formatters typeset or both don't
+        # make sure both formatters typeset or both don't
+        if not isinstance(tick_formatter, (list, tuple)):
             if tick_formatter == "latex" or tick_formatter in SR:
                 tick_formatter = (tick_formatter, "latex")
             else:
@@ -2558,7 +2554,6 @@ class Graphics(WithEqualityById, SageObject):
             axes = self._show_axes
 
         from matplotlib.figure import Figure
-        from matplotlib import rcParams
         if typeset == 'type1': # Requires LaTeX, dvipng, gs to be installed.
             rcParams['ps.useafm'] = True
             rcParams['pdf.use14corefonts'] = True
@@ -2590,10 +2585,12 @@ class Graphics(WithEqualityById, SageObject):
         if figsize is not None:
             # then the figsize should be two positive numbers
             if len(figsize) != 2:
-                raise ValueError("figsize should be a positive number or a list of two positive numbers, not {0}".format(figsize))
+                raise ValueError("figsize should be a positive number "
+                                 "or a list of two positive numbers, not {0}".format(figsize))
             figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
             if not (figsize[0] > 0 and figsize[1] > 0):
-                raise ValueError("figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1]))
+                raise ValueError("figsize should be positive numbers, "
+                                 "not {0} and {1}".format(figsize[0],figsize[1]))
 
         if figure is None:
             figure=Figure(figsize=figsize)
@@ -2606,10 +2603,12 @@ class Graphics(WithEqualityById, SageObject):
         old_opts = dict()
         for g in self._objects:
             opts, old_opts[g] = g.options(), g.options()
-            for k,v in opts.items():
+            for k, v in opts.items():
                 try:
-                    if v.parent() in sage.categories.fields.Fields(): opts[k] = float(v)
-                except (AttributeError, TypeError): pass
+                    if v.parent() in sage.categories.fields.Fields():
+                        opts[k] = float(v)
+                except (AttributeError, TypeError):
+                    pass
             g.set_options(opts)
             g._render_on_subplot(subplot)
             if hasattr(g, '_bbox_extra_artists'):
@@ -2682,7 +2681,7 @@ class Graphics(WithEqualityById, SageObject):
                 lframe = leg.get_frame()
                 lframe.set_facecolor(color)
                 from sage.plot.colors import to_mpl_color
-                for txt,color in zip(leg.get_texts(), self._legend_colors):
+                for txt, color in zip(leg.get_texts(), self._legend_colors):
                     if color is not None:
                         txt.set_color(to_mpl_color(color))
 
@@ -2994,8 +2993,8 @@ class Graphics(WithEqualityById, SageObject):
         #subplot.autoscale_view(tight=True)
         if title is not None:
             if title_pos is not None:
-                if ((not isinstance(title_pos, (list, tuple)))
-                    or (len(title_pos) != 2)):
+                if (not isinstance(title_pos, (list, tuple)) or
+                        len(title_pos) != 2):
                     raise ValueError("'title_pos' must be a list or tuple "
                                      "of two real numbers.")
                 title_pos = (float(title_pos[0]), float(title_pos[1]))
@@ -3019,14 +3018,15 @@ class Graphics(WithEqualityById, SageObject):
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
-        Save an image representation of self.  The image type is
-        determined by the extension of the filename.  For example,
-        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
-        ``.svg``.  Currently this is implemented by calling the
-        :meth:`save` method of self, passing along all arguments and
-        keywords.
+        Save an image representation of self.
 
-        .. Note::
+        The image type is determined by the extension of the filename.
+        For example, this could be ``.png``, ``.jpg``, ``.gif``,
+        ``.pdf``, ``.svg``.  Currently this is implemented by calling
+        the :meth:`save` method of self, passing along all arguments
+        and keywords.
+
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.
@@ -3068,7 +3068,7 @@ class Graphics(WithEqualityById, SageObject):
             * ``.pdf``,
 
             * ``.pgf``,
-           
+
             * ``.png``,
 
             * ``.ps``,
@@ -3151,8 +3151,8 @@ class Graphics(WithEqualityById, SageObject):
         ext = os.path.splitext(filename)[1].lower()
 
         if ext not in ALLOWED_EXTENSIONS:
-            raise ValueError("allowed file extensions for images are '"
-                             + "', '".join(ALLOWED_EXTENSIONS) + "'!")
+            raise ValueError("allowed file extensions for images are '" +
+                             "', '".join(ALLOWED_EXTENSIONS) + "'!")
         elif ext in ['', '.sobj']:
             SageObject.save(self, filename)
         else:
@@ -3174,18 +3174,16 @@ class Graphics(WithEqualityById, SageObject):
                 if latex_implementations[0] == "pdflatex":
                     # use pdflatex and set font encoding as per
                     # matplotlib documentation:
-                    # http://matplotlib.org/users/pgf.html#pgf-tutorial
-                    pgf_options= {
-                            "pgf.texsystem": "pdflatex",
-                            "pgf.preamble": [
-                                         r"\usepackage[utf8x]{inputenc}",
-                                         r"\usepackage[T1]{fontenc}",
-                                         #r"\usepackage{cmbright}",
-                                         ]
+                    # https://matplotlib.org/users/pgf.html#pgf-tutorial
+                    pgf_options= {"pgf.texsystem": "pdflatex",
+                                  "pgf.preamble": [
+                                      r"\usepackage[utf8x]{inputenc}",
+                                      r"\usepackage[T1]{fontenc}"
+                                  ]
                     }
                 else:
                     pgf_options = {
-                            "pgf.texsystem": latex_implementations[0],
+                        "pgf.texsystem": latex_implementations[0],
                     }
                 from matplotlib import rcParams
                 rcParams.update(pgf_options)
@@ -3263,7 +3261,7 @@ class Graphics(WithEqualityById, SageObject):
         for g in self:
             g_zorder = g.options().get('zorder', 0)
             if hasattr(g, 'xdata'):
-                g_str = '{0}:\t{1}'.format(g, zip(g.xdata, g.ydata))
+                g_str = '{0}:\t{1}'.format(g, list(zip(g.xdata, g.ydata)))
             else:
                 g_str = repr(g)
             data.append([g_zorder, g_str, g])
@@ -3621,7 +3619,7 @@ class GraphicsArray(WithEqualityById, SageObject):
         figure = Figure(self._figsize)
         global do_verify
         do_verify = True
-        for i,g in zip(range(1, dims+1), glist):
+        for i, g in zip(range(1, dims + 1), glist):
             subplot = figure.add_subplot(rows, cols, i)
             g.matplotlib(filename, figure=figure, sub=subplot,
                          verify=do_verify, axes = axes, **kwds)

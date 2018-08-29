@@ -78,7 +78,7 @@ def _iter_vectors(n, lower, upper, step=None):
     - ``upper`` - upper bound (exclusive), integer ``> lower``.
     - ``step`` - used for recursion, ignore.
 
-    EXAMPLE::
+    EXAMPLES::
 
       sage: from sage.stats.distributions.discrete_gaussian_lattice import _iter_vectors
       sage: list(_iter_vectors(2, -1, 2))
@@ -87,7 +87,7 @@ def _iter_vectors(n, lower, upper, step=None):
     """
     if step is None:
         if ZZ(lower) >= ZZ(upper):
-            raise ValueError("Expected lower < uppper, but got %d >= %d" % (lower, upper))
+            raise ValueError("Expected lower < upper, but got %d >= %d" % (lower, upper))
         if ZZ(n) <= 0:
             raise ValueError("Expected n>0 but got %d <= 0" % n)
         step = n
@@ -110,7 +110,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
     r"""
     GPV sampler for Discrete Gaussians over Lattices.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
         sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^10, 3.0); D
@@ -157,7 +157,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         - ``sigma`` - if ``precision`` is ``None`` then the precision of
           ``sigma`` is used.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(100, RR(3))
@@ -196,7 +196,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         - ``tau`` -- all vectors `v` with `|v|_∞ ≤ τ·σ` are enumerated
                      (default: ``3``).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: n = 3; sigma = 1.0; m = 1000
@@ -237,7 +237,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         - ``c`` -- center `c`, any vector in `\ZZ^n` is supported, but `c ∈ Λ(B)` is faster.
         - ``precision`` -- bit precision `≥ 53`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: n = 2; sigma = 3.0; m = 5000
@@ -320,7 +320,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         r"""
         Return a new sample.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1,0,0))
@@ -349,7 +349,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         Samples from this sampler will have expected norm `\sqrt{n}σ` where `n`
         is the dimension of the lattice.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1,0,0))
@@ -364,7 +364,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         Samples from this sampler will be centered at `c`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1,0,0)); D
@@ -381,7 +381,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
     def __repr__(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1,0,0)); D
@@ -399,7 +399,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         r"""
         Return a new sample assuming `c ∈ Λ(B)`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1,0,0))
@@ -418,7 +418,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         """
         Return a new sample.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1/2,0,0))

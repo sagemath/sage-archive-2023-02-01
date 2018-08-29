@@ -10,7 +10,7 @@ Suffix Tries and Suffix Trees
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 from six import iteritems
 
 from sage.structure.sage_object import SageObject
@@ -277,9 +277,8 @@ class SuffixTrie(SageObject):
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words([0,1])([0,1,0,1,1])
             sage: t = SuffixTrie(w)
-            sage: [t.transition_function(u,letter) == v \
-                    for ((u,letter),v) in t._transition_function.iteritems()] \
-                    == [True] * len(t._transition_function)
+            sage: all(t.transition_function(u, letter) == v
+            ....:     for ((u, letter), v) in t._transition_function.items())
             True
         """
         if node == -1:
@@ -311,7 +310,7 @@ class SuffixTrie(SageObject):
             sage: s.states()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         """
-        return range(len(self._transition_function))
+        return list(range(len(self._transition_function)))
 
     def suffix_link(self, state):
         r"""
@@ -938,7 +937,7 @@ class ImplicitSuffixTree(SageObject):
         r"""
         Returns the node obtained by starting from ``node`` and following the
         edges labelled by the letters of ``word``. Returns ``("explicit",
-        end_node)`` if we end at ``end_node``, or ``("implicit", (edge, d))``
+        end_node)`` if we end at ``end_node``, or ``("implicit", edge, d)``
         if we end `d` spots along an edge.
 
         INPUT:
@@ -996,7 +995,7 @@ class ImplicitSuffixTree(SageObject):
             sage: t.states()
             [0, 1, 2, 3, 4, 5, 6, 7]
         """
-        return range(len(self._transition_function))
+        return list(range(len(self._transition_function)))
 
     def suffix_link(self, state):
         r"""
@@ -1251,36 +1250,91 @@ class ImplicitSuffixTree(SageObject):
         """
         # Every factor is a prefix of a suffix, so we do a depth
         # first search of the implicit suffix tree of the word.
+        w = self.word()
+        wlen = self.word().length()
         if n is None:
-            queue = [(0, self._word.parent()())]
+            queue = [(0, 0, -1, 0)]
+            yield w[0:0]
             while queue:
-                (v,w) = queue.pop()
-                yield w
-                if self._transition_function[v] != {}:
+                (v,i,j,l) = queue.pop()
+                for k in range(i,j+1):
+                    yield w[j-l:k]
+                for ((i,j),u) in iteritems(self._transition_function[v]):
+                    if j is None:
+                        j = wlen
+                    queue.append((u,i,j, l+j-i+1))
+        elif isinstance(n, (int,Integer)):
+            queue = [(0, 0, -1, 0)]
+            while queue:
+                (v,i,j,l) = queue.pop()
+                if l == n:
+                    yield w[j-l:j]
+                if l < n:
                     for ((i,j),u) in iteritems(self._transition_function[v]):
                         if j is None:
-                            j = self.word().length()
-                        for k in range(i,j):
-                            yield w * self.word()[i-1:k]
-                        queue.append((u,w*self.word()[i-1:j]))
-        elif isinstance(n, (int,Integer)):
-            queue = [(0, self._word.parent()())]
-            while queue:
-                (v,w) = queue.pop()
-                length_w = w.length()
-                if length_w == n:
-                    yield w
-                if length_w < n:
-                    if self._transition_function[v] != {}:
-                        for ((i,j),u) in iteritems(self._transition_function[v]):
-                            if j is None:
-                                j = self.word().length()
-                            if j - i >= n - length_w:
-                                yield w*self.word()[i-1:i-1+n-length_w]
-                            else:
-                                queue.append((u,w*self.word()[i-1:j]))
+                            j = wlen
+                        if j - i >= n - l:
+                            yield w[i-l-1:i-l+n-1]
+                        else:
+                            queue.append((u,i,j, l+j-i+1))
         else:
             raise TypeError("not an integer or None: %s" %s)
+
+
+    def LZ_decomposition(self):
+        r"""
+        Return a list of index of the begining of the block of the Lempel-Ziv
+        decomposition of ``self.word``
+
+        The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a
+        word `w=x_1...x_n` such that `u_i` is the longest prefix of `u_i...u_k`
+        that has an occurence starting before `u_i` or a letter if this prefix
+        is empty.
+
+        OUTPUT:
+
+        Return a list ``iB`` of index such that the blocks of the decomposition
+        are ``self.word()[iB[k]:iB[k+1]]``
+
+        EXAMPLES::
+
+            sage: w = Word('abababb')
+            sage: T = w.suffix_tree()
+            sage: T.LZ_decomposition()
+            [0, 1, 2, 6, 7]
+            sage: w = Word('abaababacabba')
+            sage: T = w.suffix_tree()
+            sage: T.LZ_decomposition()
+            [0, 1, 2, 3, 6, 8, 9, 11, 13]
+            sage: w = Word([0, 0, 0, 1, 1, 0, 1])
+            sage: T = w.suffix_tree()
+            sage: T.LZ_decomposition()
+            [0, 1, 3, 4, 5, 7]
+            sage: w = Word('0000100101')
+            sage: T = w.suffix_tree()
+            sage: T.LZ_decomposition()
+            [0, 1, 4, 5, 9, 10]
+        """
+        iB = [0]
+        i = 0
+        w = self.word()
+        while i < len(w):
+            l = 0
+            ((x, y), successor) = self._find_transition(0, w[i])
+            x = x-1
+            while x < i+l:
+                if y == None:
+                    l = len(w)-i
+                else:
+                    l += y-x
+                if i+l >= len(w):
+                    l = len(w)-i
+                    break
+                ((x, y), successor) = self._find_transition(successor, w[i+l])
+                x = x-1
+            i += max(1, l)
+            iB.append(i)
+        return iB
 
     #####
     # Miscellaneous methods

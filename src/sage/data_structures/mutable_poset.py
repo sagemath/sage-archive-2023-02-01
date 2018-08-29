@@ -1993,9 +1993,9 @@ class MutablePoset(SageObject):
              (2, <type 'sage.rings.integer.Integer'>),
              (4, <type 'sage.rings.integer.Integer'>)]
             sage: [(v, type(v)) for v in P.elements_topological()]
-            [((1, 1), <type 'tuple'>),
-             ((2, 1), <type 'tuple'>),
-             ((4, 4), <type 'tuple'>)]
+            [((1, 1), <... 'tuple'>),
+             ((2, 1), <... 'tuple'>),
+             ((4, 4), <... 'tuple'>)]
             sage: [(v, type(v)) for v in P.shells_topological()]
             [((1, 1), <class 'sage.data_structures.mutable_poset.MutablePosetShell'>),
              ((2, 1), <class 'sage.data_structures.mutable_poset.MutablePosetShell'>),
@@ -3412,9 +3412,11 @@ class MutablePoset(SageObject):
             if topological else self.shells()
         remove = []
         for shell in shells:
-            shell._element_ = function(shell._element_)
-            if shell._element_ is None:
+            image = function(shell._element_)
+            if image is None:
                 remove.append(shell.key)
+            else:
+                shell._element_ = image
         for key in remove:
             self.remove(key)
 

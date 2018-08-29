@@ -21,11 +21,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.list cimport *
 from sage.libs.gmp.mpz cimport *
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
+from sage.rings.padics.misc import trim_zeros
 
 import sys
 
@@ -59,7 +60,7 @@ def pAdicPrinter(ring, options={}):
         sage: pAdicPrinter(R, {'sep': '&'})
         series printer for 5-adic Ring with capped relative precision 20
     """
-    for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+    for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec']:
         if option not in options:
             options[option] = None
     return pAdicPrinter_class(ring, **options)
@@ -296,7 +297,7 @@ cdef class pAdicPrinter_class(SageObject):
     or field, and uses these to compute the representations of
     elements.
     """
-    def __init__(self, ring, mode, pos, ram_name, unram_name, var_name, max_ram_terms, max_unram_terms, max_terse_terms, sep, alphabet):
+    def __init__(self, ring, mode, pos, ram_name, unram_name, var_name, max_ram_terms, max_unram_terms, max_terse_terms, sep, alphabet, show_prec):
         """
         Initializes a pAdicPrinter.
 
@@ -366,9 +367,18 @@ cdef class pAdicPrinter_class(SageObject):
               p-adic digits into strings (so that no separator need be
               used in 'digits' mode).
 
+            - show_prec -- Specify how the precision is printed; it 
+              can be 'none', 'bigoh' or 'dots' (the latter being not
+              available for all modes)
+
         TESTS::
 
             sage: R = Qp(7, print_mode='bars', print_sep='&') #indirect doctest
+
+            sage: R = Zp(5, print_mode='digits', print_max_terms=10)
+            Traceback (most recent call last):
+            ...
+            ValueError: max_ram_terms must be unset when show_prec is 'dots'
         """
         global _printer_defaults
         self.ring = ring
@@ -393,7 +403,7 @@ cdef class pAdicPrinter_class(SageObject):
         elif mode == 'terse':
             self.mode = terse
         elif mode == 'digits':
-            if len(self.alphabet) < self.prime_pow.prime or (not self.base and ring.inertia_degree() != 1):
+            if len(self.alphabet) < self.prime_pow.prime or (not self.base and ring.absolute_f() != 1):
                 raise ValueError("digits printing mode only usable for totally ramified extensions with p at most the length of the alphabet (default 62).  Try using print_mode = 'bars' instead.")
             else:
                 self.mode = digits
@@ -436,6 +446,12 @@ cdef class pAdicPrinter_class(SageObject):
                 raise ValueError("max_terse_terms must be positive and fit in a long")
         else:
             self.max_terse_terms = _printer_defaults._max_terse_terms
+        from .factory import _canonicalize_show_prec
+        self.show_prec = _canonicalize_show_prec(self.ring._prec_type(), mode, show_prec)
+
+        # Incompatibilities
+        if self.show_prec == 'dots' and max_ram_terms >= 0:
+            raise ValueError("max_ram_terms must be unset when show_prec is 'dots'")
 
     def __reduce__(self):
         """
@@ -452,15 +468,16 @@ cdef class pAdicPrinter_class(SageObject):
 
         return pAdicPrinter, (self.ring, \
                               {'mode': self._print_mode(), \
-                              'pos': self.pos, \
-                              'ram_name': self.ram_name, \
-                              'unram_name': self.unram_name, \
-                              'var_name': self.var_name, \
-                              'max_ram_terms': self.max_ram_terms, \
-                              'max_unram_terms': self.max_unram_terms, \
-                              'max_terse_terms': self.max_terse_terms, \
-                              'sep':self.sep, \
-                              'alphabet': self.alphabet})
+                               'pos': self.pos, \
+                               'ram_name': self.ram_name, \
+                               'unram_name': self.unram_name, \
+                               'var_name': self.var_name, \
+                               'max_ram_terms': self.max_ram_terms, \
+                               'max_unram_terms': self.max_unram_terms, \
+                               'max_terse_terms': self.max_terse_terms, \
+                               'sep':self.sep, \
+                               'alphabet': self.alphabet, \
+                               'show_prec': self.show_prec})
 
     def __richcmp__(self, other, op):
         """
@@ -543,7 +560,7 @@ cdef class pAdicPrinter_class(SageObject):
             if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
 
-        f = max(self.ring.f(), other.ring.f())
+        f = max(self.ring.absolute_f(), other.ring.absolute_f())
 
         if f > 1 and (self.mode == series or self.mode == bars):
             lx = self.unram_name
@@ -556,7 +573,7 @@ cdef class pAdicPrinter_class(SageObject):
             if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
 
-        f = max(self.ring.degree(), other.ring.degree())
+        f = max(self.ring.relative_degree(), other.ring.relative_degree())
 
         if f > 1 and self.mode == terse:
             lx = self.var_name
@@ -565,6 +582,10 @@ cdef class pAdicPrinter_class(SageObject):
                 return richcmp_not_equal(lx, rx, op)
             lx = self.max_terse_terms
             rx = other.max_terse_terms
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+            lx = self.show_prec
+            rx = other.show_prec
             if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
 
@@ -605,7 +626,7 @@ cdef class pAdicPrinter_class(SageObject):
             sage: D = Zp(5)._printer.dict(); D['sep']
             '|'
         """
-        return {'mode': self._print_mode(), 'pos': self.pos, 'ram_name': self.ram_name, 'unram_name': self.unram_name, 'var_name': self.var_name, 'max_ram_terms': self.max_ram_terms, 'max_unram_terms': self.max_unram_terms, 'max_terse_terms': self.max_terse_terms, 'sep': self.sep, 'alphabet': self.alphabet}
+        return {'mode': self._print_mode(), 'pos': self.pos, 'ram_name': self.ram_name, 'unram_name': self.unram_name, 'var_name': self.var_name, 'max_ram_terms': self.max_ram_terms, 'max_unram_terms': self.max_unram_terms, 'max_terse_terms': self.max_terse_terms, 'sep': self.sep, 'alphabet': self.alphabet, 'show_prec': self.show_prec}
 
     def __exit__(self, type, value, traceback):
         """
@@ -689,6 +710,17 @@ cdef class pAdicPrinter_class(SageObject):
         """
         return self.max_terse_terms
 
+    def _show_prec(self):
+        """
+        Accesses self.show_prec.
+
+        EXAMPLES::
+
+            sage: R = ZpFP(5); R._printer._show_prec()
+            'none'
+        """
+        return self.show_prec
+
     def _ring(self):
         """
         Accesses self.ring.
@@ -748,7 +780,7 @@ cdef class pAdicPrinter_class(SageObject):
         value.
 
         If pos is True, these integers will be in the range
-        [0,... p-1]; if po is False, they will be in the range
+        [0,..., p-1]; if pos is False, they will be in the range
         [(1-p)/2,..., p/2].
 
         The first entry will be the coefficient of p^0, etc.
@@ -790,9 +822,9 @@ cdef class pAdicPrinter_class(SageObject):
             from sage.rings.padics.padic_capped_relative_element import base_p_list
             return base_p_list(value, pos, self.prime_pow)
         elif pos:
-            return value.unit_part().list()
+            return trim_zeros(list(value.unit_part().expansion()))
         else:
-            return value.unit_part().list('smallest')
+            return trim_zeros(list(value.unit_part().expansion(lift_mode='smallest')))
 
     def repr_gen(self, elt, do_latex, pos = None, mode = None, ram_name = None):
         """
@@ -865,40 +897,71 @@ cdef class pAdicPrinter_class(SageObject):
             sage: padic_printing.sep('|')
             sage: repr(Qp(97, print_mode='bars')(1/13))
             '...29|82|7|44|74|59|67|14|89|52|22|37|29|82|7|44|74|59|67|15'
+
+        TESTS:
+
+        Check that :trac:`24843` is resolved::
+
+            sage: R = Zp(2, print_mode='digits', show_prec=True)
+            sage: repr(R(0,10))
+            '...0000000000'
         """
         cdef Py_ssize_t i
+        s = ""
+        if self.show_prec == "dots":
+            unknown_digit = "?"
+        else:
+            unknown_digit = "0"
         if elt._is_exact_zero():
             return "0"
-        if elt._is_inexact_zero():
-            if mode == val_unit or mode == series:
-                s = "O(%s"%(ram_name)
-            elif mode == terse:
-                s = "0 + O(%s"%(ram_name)
-            else: # mode == digits or bars
-                s = "..."
+        elif elt._is_inexact_zero():
+            prec = elt.precision_absolute()
+            if mode == digits and self.show_prec == "dots":
+                if prec > 0:
+                    s = (self.alphabet[0] * prec)
+                else:
+                    s = unknown_digit + "." + (unknown_digit * (-prec)) + self.alphabet[0]
+            elif mode == bars and self.show_prec == "dots":
+                if self.base or self._ring().absolute_f() == 1:
+                    zero = '0'
+                else:
+                    zero = '[]'
+                if prec > 0:
+                    L = [zero] * prec
+                    s = self.sep.join(L)
+                else:
+                    L = ['.'] + ([unknown_digit] * (-prec)) + [zero]
+                    s = self.sep + self.sep.join(L)
         elif mode == val_unit:
             if do_latex:
                 if elt.valuation() == 0:
-                    s = "%s + O(%s"%(self._repr_spec(elt, do_latex, pos, terse, 0, ram_name), ram_name)
+                    s = self._repr_spec(elt, do_latex, pos, terse, 0, ram_name)
                 elif elt.valuation() == 1:
-                    s = "%s \\cdot %s + O(%s"%(ram_name, self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name), ram_name)
+                    s = "%s \\cdot %s"%(ram_name, self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name))
                 else:
-                    s = "%s^{%s} \\cdot %s + O(%s"%(ram_name, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name), ram_name)
+                    s = "%s^{%s} \\cdot %s"%(ram_name, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name))
             else:
                 if elt.valuation() == 0:
-                    s = "%s + O(%s"%(self._repr_spec(elt, do_latex, pos, terse, 0, ram_name), ram_name)
+                    s = self._repr_spec(elt, do_latex, pos, terse, 0, ram_name)
                 elif elt.valuation() == 1:
-                    s = "%s * %s + O(%s"%(ram_name, self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name), ram_name)
+                    s = "%s * %s"%(ram_name, self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name))
                 else:
-                    s = "%s^%s * %s + O(%s"%(ram_name, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name), ram_name)
+                    s = "%s^%s * %s"%(ram_name, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name))
         elif mode == digits:
             n = elt.valuation()
             if self.base:
                 L = self.base_p_list(elt, True)
             else:
                 L = elt._ext_p_list(True)
-            if self.max_ram_terms != -1:
-                L = L[:max(self.max_ram_terms, -n)]
+            if self.max_ram_terms == -1:
+                lenL = elt.precision_relative()
+            else:
+                lenL = min(elt.precision_relative(), max(self.max_ram_terms, -n))
+            if self.show_prec == "dots":
+                if len(L) < lenL:
+                    L += [0] * (lenL - len(L))
+            if len(L) > lenL:
+                L = L[:lenL]
             L.reverse()
             # The following step should work since mode is only allowed to be digits in the case of totally ramified extensions
             # with primes smaller than the length of the alphabet
@@ -906,20 +969,29 @@ cdef class pAdicPrinter_class(SageObject):
             if n > 0:
                 L += [self.alphabet[0]]*n
             elif n < 0:
-                L = ['?']*(1 - n - len(L)) + L
+                L = [unknown_digit]*(1 - n - lenL) + L
                 L = L[:n] + ['.'] + L[n:]
             s = "".join(L)
-            s = "..." + s
         elif mode == bars:
             n = elt.valuation()
             if self.base:
                 L = self.base_p_list(elt, self.pos)
             else:
                 L = elt._ext_p_list(self.pos)
-            if self.max_ram_terms != -1:
-                L = L[:max(self.max_ram_terms, -n)]
+            if self.max_ram_terms == -1:
+                lenL = elt.precision_relative()
+            else:
+                lenL = min(elt.precision_relative(), max(self.max_ram_terms, -n))
+            if self.show_prec == "dots":
+                if len(L) < lenL:
+                    if self.base or self._ring().absolute_f() == 1:
+                        L += [0]*(lenL - len(L))
+                    else:
+                        L += [[]]*(lenL - len(L))
+            if len(L) > lenL:
+                L = L[:lenL]
             L.reverse()
-            if self.base or self._ring().f() == 1 or self.max_unram_terms == -1:
+            if self.base or self._ring().absolute_f() == 1 or self.max_unram_terms == -1:
                 L = [str(a) for a in L]
             else:
                 if self.max_unram_terms == 0:
@@ -929,21 +1001,28 @@ cdef class pAdicPrinter_class(SageObject):
                 else:
                     L = ["[%s,..., "%(a[0]) + ", ".join([str(b) for b in a[1-self.max_unram_terms:]]) + "]" if len(a) > 2 else str(a) for a in L]
             if n > 0:
-                if self.base or self._ring().f() == 1:
+                if self.base or self._ring().absolute_f() == 1:
                     L += ['0']*n
                 else:
                     L += ['[]']*n
             elif n < 0:
                 L = ['0']*(min(-n, elt.precision_relative()) - len(L)) + L
-                L = ['?']*(-n - len(L)) + L
+                L = [unknown_digit]*(-n - len(L)) + L
                 L = L[:n] + ['.'] + L[n:]
             if L[0] == '.':
-                s = "..." + self.sep + self.sep.join(L)
+                s = self.sep + self.sep.join(L)
             else:
-                s = "..." + self.sep.join(L)
+                s = self.sep.join(L)
         else: # mode == terse or series
-            s = "%s + O(%s"%(self._repr_spec(elt, do_latex, pos, mode, 0, ram_name), ram_name)
-        if mode != bars and mode != digits:
+            s = self._repr_spec(elt, do_latex, pos, mode, 0, ram_name)
+
+        if self.show_prec == "dots":
+            s = "..." + s
+        if self.show_prec == "bigoh":
+            if s == "":
+                s = "O(%s" % ram_name
+            else:
+                s += " + O(%s" % ram_name
             if elt.precision_absolute() == 1:
                 s += ")"
             else:
@@ -951,6 +1030,7 @@ cdef class pAdicPrinter_class(SageObject):
                     s += "^{%s})"%(elt.precision_absolute())
                 else:
                     s += "^%s)"%(elt.precision_absolute())
+        if s == "": s = "0"
         return s
 
     cdef _repr_spec(self, pAdicGenericElement elt, bint do_latex, bint pos, int mode, bint paren, ram_name):
@@ -971,13 +1051,12 @@ cdef class pAdicPrinter_class(SageObject):
                 v = elt.valuation()
                 if v >= 0:
                     lift_z = <Integer> elt.lift()
+                    pprec = self.prime_pow.pow_Integer(mpz_get_ui((<Integer>elt.precision_absolute()).value))
                 else:
                     lift_z = <Integer> elt.unit_part().lift()
+                    pprec = self.prime_pow.pow_Integer(mpz_get_ui((<Integer>elt.precision_relative()).value))
+                mpz_mod(lift_z.value, lift_z.value, pprec.value)
                 if not pos:
-                    if v >= 0:
-                        pprec = self.prime_pow.pow_Integer(mpz_get_ui((<Integer>elt.precision_absolute()).value))
-                    else:
-                        pprec = self.prime_pow.pow_Integer(mpz_get_ui((<Integer>elt.precision_relative()).value))
                     if lift_z > pprec / 2:
                         mpz_sub(lift_z.value, lift_z.value, pprec.value)
                     else:
@@ -1016,6 +1095,40 @@ cdef class pAdicPrinter_class(SageObject):
                     poly, k = elt._flint_rep_abs()
                     L = [repr(a) for a in poly.coefficients(sparse=False)]
                     ZZ_pEX = 1
+                elif elt.parent()._implementation == 'Polynomial':
+                    poly = elt._poly_rep()
+                    if do_latex:
+                        L = [a._latex_() for a in poly.coefficients(sparse=False)]
+                    else:
+                        L = [repr(a) for a in poly.coefficients(sparse=False)]
+                    L, ellipsis = self._truncate_list(L, self.max_terse_terms, '0')
+                    s = ''
+                    for i, a in enumerate(L):
+                        if a == '0':
+                            continue
+                        if (i > 0) and ('+' in a or '-' in a[1:]):
+                            a = '(' + a + ')'
+                        if a[0] == '-':
+                            if s:
+                                s += ' - '
+                            else:
+                                s = '-'
+                            if a[1:] == '1':
+                                s += self._var(self.var_name, i, do_latex)
+                            else:
+                                s += a[1:] + self._dot_var(self.var_name, i, do_latex)
+                        else:
+                            if s:
+                                s += ' + '
+                            if a == '1':
+                                s += self._var(self.var_name, i, do_latex)
+                            else:
+                                s += a + self._dot_var(self.var_name, i, do_latex)
+                    if ellipsis:
+                        s += self._plus_ellipsis(do_latex)
+                    if paren and ' ' in s:
+                        s = '(' + s + ')'
+                    return s
                 else:
                     if elt.parent().is_capped_relative():
                         poly, k = elt._ntl_rep_abs()
@@ -1088,17 +1201,15 @@ cdef class pAdicPrinter_class(SageObject):
                 # since elt was not supposed to be zero, this should give a non-empty list.
                 if len(L) == 0:
                     raise RuntimeError("repr_spec called on zero")
-                if isinstance(L[0], list): # unramified part to the extension
+                R = elt.parent()
+                f = R.absolute_f()
+                if f > 1: # unramified part to the extension
                     if self.unram_name is None:
                         raise RuntimeError("need to have specified a name for the unramified variable")
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, [])
                     for i from 0 <= i < len(L):
                         term = self._print_unram_term(L[i], do_latex, self.unram_name, self.max_unram_terms, 0, 0)
-                        #L[i], ellipsis_unram = self._truncate_list(L[i], self.max_unram_terms, 0)
-                        #term = self._print_list_as_poly(L[i], do_latex, self.unram_name, 0, 0)
                         if len(term) > 0:
-                            #if ellipsis_unram:
-                            #    term += self._plus_ellipsis(do_latex)
                             exp = i + val
                             if (not do_latex and term.find(" ") != -1) or (do_latex and (term.find(" + ") != -1 or term.find(" - ") != -1)):
                                 if len(s) > 0:
@@ -1130,7 +1241,7 @@ cdef class pAdicPrinter_class(SageObject):
                                     s += self._dot_var(ram_name, exp, do_latex)
                     if ellipsis:
                         s += self._plus_ellipsis(do_latex)
-                else: # L[0] is not a list, so no unramified printing required
+                else: # f = 1, so no unramified printing required
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, 0)
                     s = self._print_list_as_poly(L, do_latex, ram_name, val, 1)
                     if ellipsis:
@@ -1217,33 +1328,31 @@ cdef class pAdicPrinter_class(SageObject):
 
         INPUT:
 
-            - L -- a list
+        - L -- a list
 
-            - max_terms -- nonnegative integer (or -1, in which case
-              no truncation occurs)
+        - max_terms -- nonnegative integer (or -1, in which case
+          no truncation occurs)
 
-            - zero -- what should be considered zero, usually 0 or [].
+        - zero -- what should be considered zero, usually 0 or [].
 
-        OUTPUTS::
+        OUTPUT:
 
-            - Truncated list -- later terms are removed.
-            - Boolean -- whether any truncation occurred.
+        - Truncated list -- later terms are removed.
+        - Boolean -- whether any truncation occurred.
         """
-        cdef bint ellipsis = 0
-        if max_terms == -1:
-            return L, ellipsis
-        if len(L) == 0:
-            return L, ellipsis
+        if max_terms == -1 or len(L) == 0:
+            return list(L), False
         cdef Py_ssize_t i, nonzero_index
         cdef Py_ssize_t count = 0
-        for i from 0 <= i < len(L):
-            if L[i] != zero:
+        ans = []
+        for i, c in enumerate(L):
+            if c != zero:
                 count += 1
                 if count > max_terms:
-                    ellipsis = 1
-                    return L[:nonzero_index+1], ellipsis
+                    return ans[:nonzero_index+1], True
                 nonzero_index = i
-        return L, ellipsis
+            ans.append(c)
+        return ans, False
 
     cdef _print_unram_term(self, L, bint do_latex, polyname, long max_unram_terms, long expshift, bint increasing):
         """

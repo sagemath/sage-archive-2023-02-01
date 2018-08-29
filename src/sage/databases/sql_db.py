@@ -235,8 +235,8 @@ def construct_skeleton(database):
 
         sage: G = SQLDatabase(GraphDatabase().__dblocation__, False)
         sage: from sage.databases.sql_db import construct_skeleton
-        sage: construct_skeleton(G).keys()
-        [u'aut_grp', u'degrees', u'spectrum', u'misc', u'graph_data']
+        sage: sorted(construct_skeleton(G))
+        [u'aut_grp', u'degrees', u'graph_data', u'misc', u'spectrum']
     """
     skeleton = {}
     cur = database.__connection__.cursor()
@@ -629,7 +629,7 @@ class SQLQuery(SageObject):
             sage: from sage.graphs.graph_database import valid_kwds, data_to_degseq
             sage: relabel = {}
             sage: for col in valid_kwds:
-            ...       relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
+            ....:     relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
             sage: q = GraphQuery(display_cols=['graph6','degree_sequence'], num_vertices=4)
             sage: SQLQuery.show(q, format_cols={'degree_sequence':(lambda x,y: data_to_degseq(x,y))}, relabel_cols=relabel, id_col='graph6')
             Graph6               Degree Sequence
@@ -772,7 +772,7 @@ class SQLQuery(SageObject):
             if re.search(pattern, self.__query_string__) \
               or re.search(pattern, other.__query_string__):
                 raise TypeError('Input queries have joins but join ' \
-                    + 'paramaters are NoneType')
+                    + 'parameters are NoneType')
             s = ((self.__query_string__).upper()).split('FROM ')
             o = ((other.__query_string__).upper()).split('FROM ')
             s = s[1].split(' WHERE ')
@@ -909,10 +909,10 @@ class SQLDatabase(SageObject):
         is the name of a column::
 
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ... 'vertices':{'sql':'INTEGER'},
-            ... 'edges':{'sql':'INTEGER'}
-            ... }
+            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ....: 'vertices':{'sql':'INTEGER'},
+            ....: 'edges':{'sql':'INTEGER'}
+            ....: }
 
         Then we create the table::
 
@@ -946,12 +946,12 @@ class SQLDatabase(SageObject):
 
             sage: labels = {}
             sage: for i in range(2, 5):
-            ...       labels[i] = []
-            ...       for g in all_labeled_graphs(i):
-            ...           g = g.canonical_label()
-            ...           if g not in labels[i]:
-            ...               labels[i].append(g)
-            ...               D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
+            ....:     labels[i] = []
+            ....:     for g in all_labeled_graphs(i):
+            ....:         g = g.canonical_label()
+            ....:         if g not in labels[i]:
+            ....:             labels[i].append(g)
+            ....:             D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
             sage: D.show('simon') # random
             edges                graph6               vertices
             ------------------------------------------------------------
@@ -1316,7 +1316,7 @@ class SQLDatabase(SageObject):
             sage: con = D.get_connection()
             sage: t = con.execute('CREATE TABLE simon(n INTEGER, n2 INTEGER)')
             sage: for n in range(10):
-            ...     t = con.execute('INSERT INTO simon VALUES(%d,%d)'%(n,n^2))
+            ....:   t = con.execute('INSERT INTO simon VALUES(%d,%d)'%(n,n^2))
             sage: D.show('simon')
             n                    n2
             ----------------------------------------
@@ -1378,10 +1378,10 @@ class SQLDatabase(SageObject):
 
             sage: D = SQLDatabase()
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ... 'vertices':{'sql':'INTEGER'},
-            ... 'edges':{'sql':'INTEGER'}
-            ... }
+            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ....: 'vertices':{'sql':'INTEGER'},
+            ....: 'edges':{'sql':'INTEGER'}
+            ....: }
             sage: D.create_table('simon', table_skeleton)
             sage: D.show('simon')
             edges                graph6               vertices
@@ -1791,7 +1791,7 @@ class SQLDatabase(SageObject):
             index_string = 'CREATE INDEX ' + col_name + ' ON ' + table_name \
                 + ' (' + col_name + ')'
         cur = self.__connection__.cursor()
-        exe = cur.execute(index_string)
+        cur.execute(index_string)
 
         # Update Skeleton
         self.__skeleton__[table_name][col_name]['index'] = True
@@ -1821,14 +1821,15 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
         if table_name not in self.__skeleton__:
-            raise ValueError("Database has no table %s."%table_name)
+            raise ValueError("Database has no table %s." % table_name)
         if index_name not in self.__skeleton__[table_name]:
-            raise ValueError("Table %s has no column %s."%(table,index_name))
+            raise ValueError("Table %s has no column %s." % (table_name,
+                                                             index_name))
         if not self.__skeleton__[table_name][index_name]['index']:
             return # silently
 
         cur = self.__connection__.cursor()
-        exe = cur.execute('DROP INDEX i_' + table_name + '_' + index_name)
+        cur.execute('DROP INDEX i_' + table_name + '_' + index_name)
 
         # Update Skeleton
         self.__skeleton__[table_name][index_name]['index'] = False

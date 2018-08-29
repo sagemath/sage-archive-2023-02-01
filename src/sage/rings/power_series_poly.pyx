@@ -4,13 +4,14 @@ Power Series Methods
 
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from infinity import infinity, is_Infinite
+from .infinity import infinity, is_Infinite
 from sage.libs.all import pari_gen, PariError
 from sage.misc.superseded import deprecated_function_alias
+
 
 cdef class PowerSeries_poly(PowerSeries):
 
@@ -49,9 +50,9 @@ cdef class PowerSeries_poly(PowerSeries):
                 pass
             elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
-            elif isinstance(f, PowerSeries_poly):
-                prec = (<PowerSeries_poly>f)._prec
-                f = R((<PowerSeries_poly>f).__f)
+            elif isinstance(f, PowerSeries):  # not only PowerSeries_poly
+                prec = (<PowerSeries>f)._prec
+                f = R(f.polynomial())
             else:
                 if f:
                     f = R(f, check=check)
@@ -107,7 +108,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         Return the underlying polynomial of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = GF(7)[[]]
             sage: f = 3 - t^3 + O(t^5)
@@ -290,7 +291,7 @@ cdef class PowerSeries_poly(PowerSeries):
         if len(kwds) >= 1:
             name = P.variable_name()
             if name in kwds: # a keyword specifies the power series generator
-                if len(x) > 0:
+                if x:
                     raise ValueError("must not specify %s keyword and positional argument" % name)
                 a = self(kwds[name])
                 del kwds[name]
@@ -298,7 +299,7 @@ cdef class PowerSeries_poly(PowerSeries):
                     return a(**kwds)
                 except TypeError:
                     return a
-            elif len(x) > 0:       # both keywords and positional arguments
+            elif x:       # both keywords and positional arguments
                 a = self(*x)
                 try:
                     return a(**kwds)
@@ -545,7 +546,7 @@ cdef class PowerSeries_poly(PowerSeries):
                                 prec = prec,
                                 check = True)  # check, since truncation may be needed
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         Multiply self on the right by a scalar.
 
@@ -558,7 +559,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return PowerSeries_poly(self._parent, self.__f * c, self._prec, check=False)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         Multiply self on the left by a scalar.
 
@@ -790,7 +791,7 @@ cdef class PowerSeries_poly(PowerSeries):
         Otherwise, we call _derivative(var) on each coefficient of
         the series.
 
-        SEE ALSO::
+        SEEALSO::
 
             self.derivative()
 
@@ -1019,7 +1020,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         # first, try reversion with pari; this is faster than Lagrange inversion
         try:
-            f2 = f._pari_()
+            f2 = f.__pari__()
             g = f2.serreverse()
             return PowerSeries_poly(f.parent(), g.Vec(-out_prec), out_prec)
         except (TypeError,ValueError,AttributeError,PariError):
@@ -1050,8 +1051,6 @@ cdef class PowerSeries_poly(PowerSeries):
             g += R(k.padded_list(i)[i - 1]/i)*t**i
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
-
-    reversion = deprecated_function_alias(17724, reverse)
 
     def pade(self, m, n):
         r"""
@@ -1115,7 +1114,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: R.<z> = RR[[]]
             sage: f = exp(2*z)
             sage: f.pade(3, 3) # abs tol 1e-10
-            (-1.0*z^3 - 6.0*z^2 - 15.0*z - 15.0)/(z^3 - 6.0*z^2 + 15.0*z - 15.0)
+            (-z^3 - 6.0*z^2 - 15.0*z - 15.0)/(z^3 - 6.0*z^2 + 15.0*z - 15.0)
 
         When precision is too low::
 
@@ -1124,29 +1123,22 @@ cdef class PowerSeries_poly(PowerSeries):
             Traceback (most recent call last):
             ...
             ValueError: the precision of the series is not large enough
+
+        Check that :trac:`21212` is fixed::
+
+            sage: QQx.<x> = QQ[[]]
+            sage: (1+x+O(x^100)).pade(2,2)
+            x + 1
+
         """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.matrix.constructor import Matrix
         if self.precision_absolute() < n + m + 2:
             raise ValueError("the precision of the series is not large enough")
         polyring = self.parent()._poly_ring()
         z = polyring.gen()
-        c = self.list()
-        mat = Matrix(polyring, n + 1, n + 1)
-        for i in range(1, n + 1):
-            for j in range(n + 1):
-                mat[i, j] = c[m + i - j]
-        for j in range(n + 1):
-            mat[0, j] = z ** j
-        resu_v = mat.determinant().truncate(n + 1)
-        lead_v = resu_v.leading_coefficient()
-        resu_v = resu_v / lead_v
-        for j in range(n + 1):
-            mat[0, j] = z ** j * (self.truncate(max(m - j + 1, 0)))
-        resu_u = mat.determinant().truncate(m + 1)
-        lead_u = resu_u.leading_coefficient()
-        resu_u = resu_u / lead_u
-        return lead_u / lead_v * resu_u / resu_v
+        c = self.polynomial();
+        u, v = c.rational_reconstruct(z**(n + m + 1), m, n);
+        return u/v
+
 
     def _symbolic_(self, ring):
         """
@@ -1172,9 +1164,9 @@ cdef class PowerSeries_poly(PowerSeries):
 
         TESTS:
 
-        Check that :trac:``18094`` is fixed::
+        Check that :trac:`18094` is fixed::
 
-            sage: R.<x>=PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ)
             sage: SR(R(0).add_bigoh(20))
             Order(x^20)
         """

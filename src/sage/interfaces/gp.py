@@ -146,7 +146,8 @@ from sage.misc.misc import verbose
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
 import sage.rings.complex_field
-## import sage.rings.all
+from sage.docs.instancedoc import instancedoc
+
 
 class Gp(ExtraTabCompletion, Expect):
     """
@@ -220,7 +221,8 @@ class Gp(ExtraTabCompletion, Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for gp interpeter.
+        Set the seed for gp interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -248,10 +250,8 @@ class Gp(ExtraTabCompletion, Expect):
         self._eval_line('default(breakloop,0);')
         # list of directories where gp will look for scripts (only current working directory)
         self._eval_line('default(path,".");')
-        # location of elldata, seadata, galdata
-        self._eval_line('default(datadir, "$SAGE_LOCAL/share/pari");')
         # executable for gp ?? help
-        self._eval_line('default(help, "$SAGE_LOCAL/bin/gphelp -detex");')
+        self._eval_line('default(help, "gphelp -detex");')
         # logfile disabled since Expect already logs
         self._eval_line('default(log,0);')
         # set random seed
@@ -287,9 +287,9 @@ class Gp(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: gp._function_class()
-            <class 'sage.interfaces.gp.GpFunction'>
+            <class 'sage.interfaces.expect.ExpectFunction'>
             sage: type(gp.gcd)
-            <class 'sage.interfaces.gp.GpFunction'>
+            <class 'sage.interfaces.expect.ExpectFunction'>
         """
         return GpFunction
 
@@ -327,7 +327,7 @@ class Gp(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 22;\n')
+            sage: _ = f.write('x = 22;\n')
             sage: f.close()
             sage: gp.read(filename)
             sage: gp.get('x').strip()
@@ -657,7 +657,7 @@ class Gp(ExtraTabCompletion, Expect):
             10
             sage: gp.quit()  # indirect doctest
             sage: a
-            <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
+            (invalid PARI/GP interpreter object -- The pari session in which this object was defined is no longer running.)
             sage: gp("30!")
             265252859812191058636308480000000
         """
@@ -709,12 +709,9 @@ class Gp(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: gp._function_element_class()
-            <class 'sage.interfaces.gp.GpFunctionElement'>
-
-        ::
-
+            <class 'sage.interfaces.expect.FunctionElement'>
             sage: type(gp(2).gcd)
-            <class 'sage.interfaces.gp.GpFunctionElement'>
+            <class 'sage.interfaces.expect.FunctionElement'>
         """
         return GpFunctionElement
 
@@ -837,6 +834,7 @@ class Gp(ExtraTabCompletion, Expect):
         return x
 
 
+@instancedoc
 class GpElement(ExpectElement):
     """
     EXAMPLES: This example illustrates dumping and loading GP elements
@@ -1049,12 +1047,8 @@ class GpElement(ExpectElement):
         return self.parent()._tab_completion()
 
 
-class GpFunctionElement(FunctionElement):
-    pass
-
-class GpFunction(ExpectFunction):
-    pass
-
+GpFunctionElement = FunctionElement
+GpFunction = ExpectFunction
 
 
 def is_GpElement(x):

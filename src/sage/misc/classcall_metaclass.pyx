@@ -97,7 +97,6 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
             sage: isinstance(Foo, type)
             True
     """
-    _included_private_doc_ = ['__call__', '__contains__', '__get__']
 
     def __cinit__(self, *args, **opts):
         r"""
@@ -509,8 +508,7 @@ class CRef(object):
         """
         self.i = i+1
 
-class C2(object):
-    __metaclass__ = ClasscallMetaclass
+class C2(object, metaclass=ClasscallMetaclass):
     def __init__(self, i):
         """
         TESTS::
@@ -532,8 +530,7 @@ class C3(object, metaclass = ClasscallMetaclass):
         """
         self.i = i+1
 
-class C2C(object):
-    __metaclass__ = ClasscallMetaclass
+class C2C(object, metaclass=ClasscallMetaclass):
     @staticmethod
     def __classcall__(cls, i):
         """

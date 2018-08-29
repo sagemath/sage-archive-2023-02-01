@@ -527,7 +527,130 @@ class HighestWeightCrystals(Category_singleton):
             return G
 
     class ElementMethods:
-        pass
+        def string_parameters(self, word=None):
+            r"""
+            Return the string parameters of ``self`` corresponding to the
+            reduced word ``word``.
+
+            Given a reduced expression `w = s_{i_1} \cdots s_{i_k}`,
+            the string parameters of `b \in B` corresponding to `w`
+            are `(a_1, \ldots, a_k)` such that
+
+            .. MATH::
+
+                \begin{aligned}
+                e_{i_m}^{a_m} \cdots e_{i_1}^{a_1} b & \neq 0 \\
+                e_{i_m}^{a_m+1} \cdots e_{i_1}^{a_1} b & = 0
+                \end{aligned}
+
+            for all `1 \leq m \leq k`.
+
+            For connected components isomorphic to `B(\lambda)` or
+            `B(\infty)`, if `w = w_0` is the longest element of the
+            Weyl group, then the path determined by the string
+            parametrization terminates at the highest weight vector.
+
+            INPUT:
+
+            - ``word`` -- a word in the alphabet of the index set; if not
+              specified and we are in finite type, then this will be some
+              reduced expression for the long element determined by the
+              Weyl group
+
+            EXAMPLES::
+
+                sage: B = crystals.infinity.NakajimaMonomials(['A',3])
+                sage: mg = B.highest_weight_vector()
+                sage: w0 = [1,2,1,3,2,1]
+                sage: mg.string_parameters(w0)
+                [0, 0, 0, 0, 0, 0]
+                sage: mg.f_string([1]).string_parameters(w0)
+                [1, 0, 0, 0, 0, 0]
+                sage: mg.f_string([1,1,1]).string_parameters(w0)
+                [3, 0, 0, 0, 0, 0]
+                sage: mg.f_string([1,1,1,2,2]).string_parameters(w0)
+                [1, 2, 2, 0, 0, 0]
+                sage: mg.f_string([1,1,1,2,2]) == mg.f_string([1,1,2,2,1])
+                True
+                sage: x = mg.f_string([1,1,1,2,2,1,3,3,2,1,1,1])
+                sage: x.string_parameters(w0)
+                [4, 1, 1, 2, 2, 2]
+                sage: x.string_parameters([3,2,1,3,2,3])
+                [2, 3, 7, 0, 0, 0]
+                sage: x == mg.f_string([1]*7 + [2]*3 + [3]*2)
+                True
+
+            ::
+
+                sage: B = crystals.infinity.Tableaux("A5")
+                sage: b = B(rows=[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,6,6,6,6,6,6],
+                ....:             [2,2,2,2,2,2,2,2,2,4,5,5,5,6],
+                ....:             [3,3,3,3,3,3,3,5],
+                ....:             [4,4,4,6,6,6],
+                ....:             [5,6]])
+                sage: b.string_parameters([1,2,1,3,2,1,4,3,2,1,5,4,3,2,1])
+                [0, 1, 1, 1, 1, 0, 4, 4, 3, 0, 11, 10, 7, 7, 6]
+
+                sage: B = crystals.infinity.Tableaux("G2")
+                sage: b = B(rows=[[1,1,1,1,1,3,3,0,-3,-3,-2,-2,-1,-1,-1,-1],[2,3,3,3]])
+                sage: b.string_parameters([2,1,2,1,2,1])
+                [5, 13, 11, 15, 4, 4]
+                sage: b.string_parameters([1,2,1,2,1,2])
+                [7, 12, 15, 8, 10, 0]
+
+            ::
+
+                sage: C = crystals.Tableaux(['C',2], shape=[2,1])
+                sage: mg = C.highest_weight_vector()
+                sage: lw = C.lowest_weight_vectors()[0]
+                sage: lw.string_parameters([1,2,1,2])
+                [1, 2, 3, 1]
+                sage: lw.string_parameters([2,1,2,1])
+                [1, 3, 2, 1]
+                sage: lw.e_string([2,1,1,1,2,2,1]) == mg
+                True
+                sage: lw.e_string([1,2,2,1,1,1,2]) == mg
+                True
+
+            TESTS::
+
+                sage: B = crystals.infinity.NakajimaMonomials(['B',3])
+                sage: mg = B.highest_weight_vector()
+                sage: mg.string_parameters()
+                [0, 0, 0, 0, 0, 0, 0, 0, 0]
+                sage: w0 = WeylGroup(['B',3]).long_element().reduced_word()
+                sage: def f_word(params):
+                ....:     return reversed([index for i, index in enumerate(w0)
+                ....:                      for _ in range(params[i])])
+                sage: all(mg.f_string( f_word(x.value.string_parameters(w0)) ) == x.value
+                ....:     for x in B.subcrystal(max_depth=4))
+                True
+
+                sage: B = crystals.infinity.NakajimaMonomials(['A',2,1])
+                sage: mg = B.highest_weight_vector()
+                sage: mg.string_parameters()
+                Traceback (most recent call last):
+                ...
+                ValueError: the word must be specified because the
+                 Weyl group is not finite
+            """
+            if word is None:
+                if not self.cartan_type().is_finite():
+                    raise ValueError("the word must be specified because"
+                                     " the Weyl group is not finite")
+                from sage.combinat.root_system.weyl_group import WeylGroup
+                word = WeylGroup(self.cartan_type()).long_element().reduced_word()
+            x = self
+            params = []
+            for i in word:
+                count = 0
+                y = x.e(i)
+                while y is not None:
+                    x = y
+                    y = x.e(i)
+                    count += 1
+                params.append(count)
+            return params
 
     class TensorProducts(TensorProductsCategory):
         """
@@ -714,7 +837,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
                 [The T crystal of type ['A', 2] and weight Lambda[2],
                  The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
               To:   The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
-              Defn: [Lambda[2], [[3]]] |--> [2, 1, 3]
+              Defn: [Lambda[2], [[3]]] |--> [[1, 3], [2]]
             sage: psi(Bp.highest_weight_vector())
             [[1, 1], [2]]
         """

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-p-adic L-functions of elliptic curves
+`p`-adic `L`-functions of elliptic curves
 
 To an elliptic curve `E` over the rational numbers and a prime `p`, one
 can associate a `p`-adic L-function; at least if `E` does not have additive
@@ -24,7 +24,7 @@ If `E` is supersingular, the series will have coefficients in a quadratic
 extension of `\QQ_p`, and the coefficients will be unbounded. In this case we
 have only implemented the series for `\eta = 0`. We have also implemented the
 `p`-adic L-series as formulated by Perrin-Riou [BP], which has coefficients in
-the Dieudonne module `D_pE = H^1_{dR}(E/\QQ_p)` of `E`. There is a different
+the Dieudonné module `D_pE = H^1_{dR}(E/\QQ_p)` of `E`. There is a different
 description by Pollack [Po] which is not available here.
 
 According to the `p`-adic version of the Birch and Swinnerton-Dyer conjecture
@@ -87,9 +87,10 @@ from sage.rings.infinity import infinity
 from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
 
 from sage.rings.integer import Integer
-from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
+from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 
 from sage.misc.all import verbose, denominator, get_verbose
 import sage.arith.all as arith
@@ -98,15 +99,18 @@ from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
 import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 # from sage.interfaces.all import gp
-from sage.misc.functional import log
-
+from sage.functions.log import log
+from sage.functions.other import floor
 from sage.misc.decorators import rename_keyword
 
+
+@richcmp_method
 class pAdicLseries(SageObject):
     r"""
     The `p`-adic L-series of an elliptic curve.
 
     EXAMPLES:
+
     An ordinary example::
 
         sage: e = EllipticCurve('389a')
@@ -193,7 +197,7 @@ class pAdicLseries(SageObject):
             raise NotImplementedError("p (=%s) must be a prime of semi-stable reduction"%p)
 
         try :
-            crla = E.label()
+            E.label()
         except RuntimeError :
             print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 
@@ -208,15 +212,14 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-        sage: E = EllipticCurve('11a1')
-        sage: lp = E.padic_lseries(5)
-        sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
-        -1/2
-
+            sage: E = EllipticCurve('11a1')
+            sage: lp = E.padic_lseries(5)
+            sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
+            -1/2
         """
         self._negative_modular_symbol = self._E.modular_symbol(sign=-1, implementation="sage", normalize=self._normalize)
 
-    def __cmp__(self,other):
+    def __richcmp__(self, other, op):
         r"""
         Compare self and other.
 
@@ -232,11 +235,9 @@ class pAdicLseries(SageObject):
             sage: lp1 == lp3
             False
         """
-        c = cmp(type(self), type(other))
-        if c:
-            return c
-        return cmp((self._E, self._p), (other._E, other._p))
-
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self._E, self._p), (other._E, other._p), op)
 
     def elliptic_curve(self):
         r"""
@@ -467,9 +468,11 @@ class pAdicLseries(SageObject):
         just the unit root.
 
         INPUT:
+
         -  ``prec`` - positive integer, the `p`-adic precision of the root.
 
         EXAMPLES:
+
         Consider the elliptic curve 37a::
 
             sage: E = EllipticCurve('37a')
@@ -520,7 +523,7 @@ class pAdicLseries(SageObject):
                 if a.valuation() < 1:
                     self._alpha[prec] = K(a)
                     return K(a)
-            raise RunTimeError("bug in p-adic L-function alpha")
+            raise RuntimeError("bug in p-adic L-function alpha")
         else: # supersingular case
             f = f.change_ring(K)
             A = K.extension(f, names="alpha")
@@ -544,8 +547,8 @@ class pAdicLseries(SageObject):
           Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
 
         - [Ka] Kayuza Kato, `p`-adic Hodge theory and values of zeta functions of modular
-          forms, Cohomologies `p`-adiques et applications arithmetiques III,
-          Asterisque vol 295, SMF, Paris, 2004.
+          forms, Cohomologies `p`-adiques et applications arithmétiques III,
+          Astérisque vol 295, SMF, Paris, 2004.
 
         EXAMPLES::
 
@@ -712,7 +715,9 @@ class pAdicLseries(SageObject):
           On `p`-adic analogues of the conjectures of Birch and
           Swinnerton-Dyer, Invertiones mathematicae 84, (1986), 1-48.
 
-        .. note: No check on precision is made, so this may fail for huge `D`.
+        .. note::
+
+            No check on precision is made, so this may fail for huge `D`.
 
         EXAMPLES::
 
@@ -787,9 +792,10 @@ class pAdicLseriesOrdinary(pAdicLseries):
           Teichmueller character on the group of roots of unity in
           `\ZZ_p^\times`)
 
-        ALIAS: power_series is identical to series.
+        :meth:`power_series` is identical to ``series``.
 
         EXAMPLES:
+
         We compute some `p`-adic L-functions associated to the elliptic
         curve 11a::
 
@@ -1118,7 +1124,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         ALIAS: power_series is identical to series.
 
         EXAMPLES:
-        A superingular example, where we must compute to higher precision to see anything::
+
+        A supersingular example, where we must compute to higher precision to see anything::
 
             sage: e = EllipticCurve('37a')
             sage: L = e.padic_lseries(3); L
@@ -1128,7 +1135,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.series(4)         # takes a long time (several seconds)
             O(alpha) + (alpha^-2 + O(alpha^0))*T + (alpha^-2 + O(alpha^0))*T^2 + O(T^5)
             sage: L.alpha(2).parent()
-            Eisenstein Extension of 3-adic Field with capped relative precision 2 in alpha defined by (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
+            3-adic Eisenstein Extension Field in alpha defined by x^2 + 3*x + 3
 
         An example where we only compute the leading term (:trac:`15737`)::
 
@@ -1343,7 +1350,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
             `(1-\varphi)^{-2}\cdot L_p(E,T) =` ``v[1]`` `\cdot \omega +` ``v[2]`` `\cdot \varphi(\omega)`
 
-        as an element of the Dieudonne module `D_p(E) = H^1_{dR}(E/\QQ_p)` where
+        as an element of the Dieudonné module `D_p(E) = H^1_{dR}(E/\QQ_p)` where
         `\omega` is the invariant differential and `\varphi` is the Frobenius on `D_p(E)`.
         According to the `p`-adic Birch and Swinnerton-Dyer
         conjecture [BP] this function has a zero of order
@@ -1397,18 +1404,18 @@ class pAdicLseriesSupersingular(pAdicLseries):
     @rename_keyword(deprecation=6094, method="algorithm")
     def frobenius(self, prec=20, algorithm = "mw"):
         r"""
-        This returns a geometric Frobenius `\varphi` on the Diedonne module `D_p(E)`
+        Return a geometric Frobenius `\varphi` on the Dieudonné module `D_p(E)`
         with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
+
         It satisfies  `\varphi^2 - a_p/p\, \varphi + 1/p = 0`.
 
         INPUT:
 
         - ``prec`` - (default: 20) a positive integer
 
-        - ``algorithm`` - either 'mw' (default) for Monsky-Washintzer
+        - ``algorithm`` - either 'mw' (default) for Monsky-Washnitzer
           or 'approx' for the algorithm described by Bernardi and Perrin-Riou
           (much slower and not fully tested)
-
 
         EXAMPLES::
 
@@ -1464,13 +1471,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def __phi_bpr(self, prec=0):
         r"""
-        This returns a geometric Frobenius `\varphi` on the Dieudonne module `D_p(E)`
+        This returns a geometric Frobenius `\varphi` on the Dieudonné module `D_p(E)`
         with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
         It satisfies  `\varphi^2 - a_p/p\, \varphi + 1/p = 0`.
 
         The algorithm used here is described in bernardi-perrin-riou on page 232.
 
-        .. note: Warning. This function has not been sufficiently tested. It is very slow.
+        .. WARNING::
+
+            This function has not been sufficiently tested. It is very slow.
 
         EXAMPLES::
 
@@ -1557,6 +1566,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def bernardi_sigma_function(self, prec=20):
         r"""
         Return the  `p`-adic sigma function of Bernardi in terms of `z = log(t)`.
+
         This is the same as ``padic_sigma`` with ``E2 = 0``.
 
         EXAMPLES::
@@ -1567,7 +1577,6 @@ class pAdicLseriesSupersingular(pAdicLseries):
             z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 + O(z^10)
         """
         E = self._E
-        p = self._p
 
         Eh = E.formal()
         lo = Eh.log(prec + 5)
@@ -1587,7 +1596,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def Dp_valued_height(self,prec=20):
         r"""
-        Return the canonical `p`-adic height with values in the Dieudonne module `D_p(E)`.
+        Return the canonical `p`-adic height with values in the Dieudonné module `D_p(E)`.
         It is defined to be
 
             `h_{\eta} \cdot \omega - h_{\omega} \cdot \eta`
@@ -1615,11 +1624,6 @@ class pAdicLseriesSupersingular(pAdicLseries):
         n = arith.LCM(E.tamagawa_numbers())
         n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
 
-        if p < 5:
-            phi = self.frobenius(min(6,prec),algorithm="approx")
-        else:
-            phi = self.frobenius(prec+2,algorithm="mw")
-
         def height(P,check=True):
             if P.is_finite_order():
                 return Qp(p,prec)(0)
@@ -1644,11 +1648,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         return height
 
-
-
     def Dp_valued_regulator(self,prec=20,v1=0,v2=0):
         r"""
-        Return the canonical `p`-adic regulator with values in the Dieudonne module `D_p(E)`
+        Return the canonical `p`-adic regulator with values in the Dieudonné module `D_p(E)`
         as defined by Perrin-Riou using the `p`-adic height with values in `D_p(E)`.
         The result is written in the basis `\omega`, `\varphi(\omega)`, and hence the
         coordinates of the result are independent of the chosen Weierstrass equation.
@@ -1659,7 +1661,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         REFERENCES:
 
-        - [PR] Perrin Riou, Arithmetique des courbes elliptiques a reduction supersinguliere en `p`,
+        - [PR] Perrin Riou, Arithmétique des courbes elliptiques à réduction supersingulière en `p`,
           Experiment. Math. 12 (2003), no. 2, 155-186.
 
         - [SW] William Stein and Christian Wuthrich, Computations About Tate-Shafarevich Groups

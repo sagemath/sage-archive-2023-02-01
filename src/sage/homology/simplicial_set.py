@@ -135,7 +135,7 @@ simplicial sets are never equal::
     sage: simplicial_sets.Point() == simplicial_sets.Point()
     True
 
-You can construct subsimplical sets by specifying a list of simplices,
+You can construct subsimplicial sets by specifying a list of simplices,
 and then you can define the quotient simplicial set::
 
     sage: X = simplicial_sets.Simplex(2)
@@ -251,6 +251,7 @@ copy of the integers::
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
+from six.moves import range
 
 import copy
 
@@ -488,7 +489,7 @@ class AbstractSimplex_class(SageObject):
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
 
-        At this point, comparision between v and w is random, based on
+        At this point, comparison between v and w is random, based on
         their location in memory. ::
 
             sage: v < w and w < v
@@ -2019,7 +2020,8 @@ class SimplicialSet_arbitrary(Parent):
                 raise NotImplementedError('this simplicial set may be infinite, so '
                                           'specify dimensions when computing homology')
             else:
-                if isinstance(dim, (list, tuple)):
+                if isinstance(dim, (list, tuple, range)):
+                    dim = list(dim)
                     max_dim = max(dim)
                     space = self.n_skeleton(max_dim+1)
                     min_dim = min(dim)
@@ -2304,8 +2306,9 @@ class SimplicialSet_arbitrary(Parent):
         - ``others`` -- one or several simplicial sets
 
         As long as the factors are all finite, the inclusion map from
-        each factor is available.
-
+        each factor is available. Any factors which are empty are
+        ignored completely: they do not appear in the list of factors,
+        etc.
 
         EXAMPLES::
 
@@ -2338,6 +2341,16 @@ class SimplicialSet_arbitrary(Parent):
             Torus
             sage: i.codomain()
             Disjoint union: (Torus u S^2)
+
+        Empty factors are ignored::
+
+            sage: from sage.homology.simplicial_set_examples import Empty
+            sage: E = Empty()
+            sage: K = S2.disjoint_union(S2, E, E, S2)
+            sage: K == S2.disjoint_union(S2, S2)
+            True
+            sage: K.factors()
+            (S^2, S^2, S^2)
         """
         from .simplicial_set_constructions import DisjointUnionOfSimplicialSets, \
             DisjointUnionOfSimplicialSets_finite
@@ -3119,7 +3132,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
     - ``base_point`` (optional, default ``None``) -- 0-simplex in this
       simplicial set, its base point
 
-    - ``name`` (optional, defaul ``None``) -- string, the name of the
+    - ``name`` (optional, default ``None``) -- string, the name of the
       simplicial set
 
     - ``check`` (optional, default ``True``) -- boolean. If ``True``,
@@ -3209,7 +3222,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
             ...
             ValueError: simplicial identity d_i d_j = d_{j-1} d_i fails in dimension 2
 
-        Returning a copy of the orignal::
+        Returning a copy of the original::
 
             sage: v = AbstractSimplex(0)
             sage: e = AbstractSimplex(1)
@@ -3645,10 +3658,10 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
                                         degree_of_differential=1)
                 return ChainComplex({0: matrix(base_ring, 0, 0)},
                                     degree_of_differential=-1)
-            dimensions = range(self.dimension()+1)
+            dimensions = list(range(self.dimension() + 1))
         else:
-            if not isinstance(dimensions, (list, tuple)):
-                dimensions = range(dimensions-1, dimensions+2)
+            if not isinstance(dimensions, (list, tuple, range)):
+                dimensions = list(range(dimensions - 1, dimensions + 2))
             else:
                 dimensions = [n for n in dimensions if n >= 0]
             if not dimensions:

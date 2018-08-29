@@ -51,11 +51,12 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sage
 from sage.structure.list_clone cimport ClonableIntArray
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport generic_power_c
+from sage.arith.power cimport generic_power
 from sage.sets.set import Set_object_enumerated
 
 
@@ -384,6 +385,53 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
         return res
 
 
+cpdef FiniteSetMap_Set FiniteSetMap_Set_from_list(t, parent, lst):
+    """
+    Creates a ``FiniteSetMap`` from a list
+
+    .. warning:: no check is performed !
+
+    TESTS::
+
+        sage: from sage.sets.finite_set_map_cy import FiniteSetMap_Set_from_list as from_list
+        sage: F = FiniteSetMaps(["a", "b"], [3, 4, 5])
+        sage: f = from_list(F.element_class, F, [0,2]); f.check(); f
+        map: a -> 3, b -> 5
+        sage: f.parent() is F
+        True
+        sage: f.is_immutable()
+        True
+    """
+    cdef FiniteSetMap_MN res
+    cdef type cls = <type>t
+    res = cls.__new__(cls)
+    super(FiniteSetMap_MN, res).__init__(parent, lst)
+    return res
+
+cpdef FiniteSetMap_Set FiniteSetMap_Set_from_dict(t, parent, d):
+    """
+    Creates a ``FiniteSetMap`` from a dictionary
+
+    .. warning:: no check is performed !
+
+    TESTS::
+
+        sage: from sage.sets.finite_set_map_cy import FiniteSetMap_Set_from_dict as from_dict
+        sage: F = FiniteSetMaps(["a", "b"], [3, 4, 5])
+        sage: f = from_dict(F.element_class, F, {"a": 3, "b": 5}); f.check(); f
+        map: a -> 3, b -> 5
+        sage: f.parent() is F
+        True
+        sage: f.is_immutable()
+        True
+    """
+    cdef FiniteSetMap_Set res
+    cdef type cls = <type>t
+    res = cls.__new__(cls)
+    res.__init__(parent, d.__getitem__)
+    return res
+
+
 cdef class FiniteSetMap_Set(FiniteSetMap_MN):
     """
     Data structure for maps
@@ -554,53 +602,6 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
         return "map: "+", ".join([("%s -> %s"%(i, self(i))) for i in self.domain()])
 
 
-cpdef FiniteSetMap_Set FiniteSetMap_Set_from_list(t, parent, lst):
-    """
-    Creates a ``FiniteSetMap`` from a list
-
-    .. warning:: no check is performed !
-
-    TESTS::
-
-        sage: from sage.sets.finite_set_map_cy import FiniteSetMap_Set_from_list as from_list
-        sage: F = FiniteSetMaps(["a", "b"], [3, 4, 5])
-        sage: f = from_list(F.element_class, F, [0,2]); f.check(); f
-        map: a -> 3, b -> 5
-        sage: f.parent() is F
-        True
-        sage: f.is_immutable()
-        True
-    """
-    cdef FiniteSetMap_MN res
-    cdef type cls = <type>t
-    res = cls.__new__(cls)
-    super(FiniteSetMap_MN, res).__init__(parent, lst)
-    return res
-
-cpdef FiniteSetMap_Set FiniteSetMap_Set_from_dict(t, parent, d):
-    """
-    Creates a ``FiniteSetMap`` from a dictionary
-
-    .. warning:: no check is performed !
-
-    TESTS::
-
-        sage: from sage.sets.finite_set_map_cy import FiniteSetMap_Set_from_dict as from_dict
-        sage: F = FiniteSetMaps(["a", "b"], [3, 4, 5])
-        sage: f = from_dict(F.element_class, F, {"a": 3, "b": 5}); f.check(); f
-        map: a -> 3, b -> 5
-        sage: f.parent() is F
-        True
-        sage: f.is_immutable()
-        True
-    """
-    cdef FiniteSetMap_Set res
-    cdef type cls = <type>t
-    res = cls.__new__(cls)
-    res.__init__(parent, d.__getitem__)
-    return res
-
-
 cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
     """
     Maps from ``range(n)`` to itself.
@@ -651,7 +652,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
         """
         if dummy is not None:
             raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power_c(self, n, self.parent().one())
+        return generic_power(self, n)
 
 
 cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
@@ -709,4 +710,4 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
         """
         if dummy is not None:
             raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power_c(self, n, self.parent().one())
+        return generic_power(self, n)

@@ -44,7 +44,7 @@ def test_function(n, m,level=10):
         return test_function2(m, n)
 
 
-class Debug:
+class Debug(object):
     """
     Create a debugger for the most recent stack trace.
 
@@ -70,7 +70,7 @@ class Debug:
 
             sage: a = sage0.eval("sage.interacts.debugger.test_function('n', 'm')")
             sage: sage0('sage.interacts.debugger.Debug()')
-            <sage.interacts.debugger.Debug instance at 0x...>
+            <sage.interacts.debugger.Debug object at 0x...>
         """
         import inspect
         import sys
@@ -159,14 +159,14 @@ class Debug:
              sage: print(sage0("d.listing(1)"))
                  2...      x = a + b
              --&gt; ...      y = a * b
-                 ...      return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
+                 ....:    return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
              <hr>> <a href="/src/interacts/debugger.py" target="_new">src/sage/interacts/debugger.py</a>
              sage: print(sage0("d.listing()"))
                  2...
                  ...
-                 ...      x = a + b
+                 ....:    x = a + b
              --&gt; ...      y = a * b
-                 ...      return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
+                 ....:    return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
                  ...
              sage: _ = sage0.eval('d._curframe_index -= 1')
              sage: print(sage0("d.listing(1)"))

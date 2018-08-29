@@ -1009,6 +1009,6 @@ class HallLittlewood_qp(HallLittlewood_generic):
                               lower_triangular=True, ones_on_diagonal=True)
 
 # Unpickling backward compatibility
-sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_p', HallLittlewood_p.Element)
-sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_q', HallLittlewood_q.Element)
-sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_qp', HallLittlewood_qp.Element)
+sage.misc.persist.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_p', HallLittlewood_p.Element)
+sage.misc.persist.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_q', HallLittlewood_q.Element)
+sage.misc.persist.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_qp', HallLittlewood_qp.Element)

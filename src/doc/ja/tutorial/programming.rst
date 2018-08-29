@@ -160,9 +160,6 @@ Cythonソースファイルから生成されたC言語コードをコンパイ�
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
-
 
 
 データ型
@@ -292,7 +289,7 @@ SageのIntegerクラスが使えるのは言うまでもない(Rationalクラス
 
 ::
 
-    sage: range(1, 15)
+    sage: range(1, 15)  # py2
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 この ``range`` が便利なのは，リスト内包表記を使ってリストを生成する場合だ:
@@ -437,7 +434,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 ディクショナリに含まれるキーと値の対を反復に利用する場合に，よく使われるイディオムがある:
@@ -446,7 +443,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 最後の出力を見ると判るように，ディクショナリ内は整列されていない．
@@ -630,17 +627,6 @@ Sageに付属している関数 ``kronecker`` は，PARIのCライブラリを�
     True
     True
 
-比較演算は，ほとんどいかなる組合せの二つのオブジェクトに対しても行ないうると考えてよい．
-対象となるオブジェクトは，全順序付け(total ordering)されなくても構わない．
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # random 出力は一定しない。
-    False
-
 記号を含む不等号の判定には  ``bool`` 関数を用いる:
 
 ::
@@ -661,7 +647,7 @@ Sageにおける異種オブジェクト間の比較演算では，まず対象�
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)  # optional - python2
+    sage: int(1) is int(2)/int(2)  # py2
     True
     sage: 1 is 1
     False

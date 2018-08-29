@@ -11,7 +11,7 @@ AUTHORS:
 - Martin Albrecht, Robert Fitzpatrick, Daniel Cabracas, Florian Göpfert,
   Michael Schneider: initial version
 
-EXAMPLE::
+EXAMPLES::
 
     sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
     sage: sigma = 3.0; n=1000
@@ -54,7 +54,7 @@ EXAMPLE::
 #*****************************************************************************/
 from __future__ import absolute_import
 
-from sage.rings.all import RealField, RR, ZZ
+from sage.rings.all import RR, ZZ
 from .discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.structure.sage_object import SageObject
 
@@ -63,7 +63,7 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
     r"""
     Discrete Gaussian sampler for polynomials.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
         sage: DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)()
@@ -90,7 +90,7 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
           :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianDistributionIntegerSampler`
           is passed, then this sampler is used to sample coefficients.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
             sage: DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)()
@@ -110,7 +110,7 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
         """
         Return a new sample.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
             sage: sampler = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 12.0)
@@ -122,7 +122,7 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
             sage: DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)

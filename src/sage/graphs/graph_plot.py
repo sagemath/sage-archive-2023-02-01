@@ -10,7 +10,7 @@ All graphs have an associated Sage graphics object, which you can display::
     sage: P = G.plot()
     sage: P.show() # long time
 
-.. PLOT:
+.. PLOT::
     
     sphinx_plot(graphs.WheelGraph(15))
 
@@ -161,10 +161,13 @@ graphplot_options.update(
                     'max_dist': 'The max distance range to allow multiedges.',
                     'talk': 'Whether to display the vertices in talk mode '
                         '(larger and white).',
-                    'graph_border': 'Whether or not to draw a frame around the graph.'})
+                    'graph_border': 'Whether or not to draw a frame around the graph.',
+                    'edge_labels_background' : 'The color of the background of the edge labels'})
+
+from six import iteritems
 
 _PLOT_OPTIONS_TABLE = ""
-for key, value in graphplot_options.iteritems():
+for key, value in iteritems(graphplot_options):
     _PLOT_OPTIONS_TABLE += "    ``"+str(key)+"`` | "+str(value)+"\n"
 __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 
@@ -186,7 +189,6 @@ __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
-from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
 from six import text_type as str
 
@@ -212,7 +214,8 @@ DEFAULT_PLOT_OPTIONS = {
     "partition"           : None,
     "dist"                : .075,
     "max_dist"            : 1.5,
-    "loop_size"           : .075
+    "loop_size"           : .075,
+    "edge_labels_background" : "white"
     }
 
 class GraphPlot(SageObject):
@@ -223,7 +226,7 @@ class GraphPlot(SageObject):
         as some functions to set parameters for vertices and edges.  This constructor
         assumes default options are set.  Defaults are shown in the example below.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.graph_plot import GraphPlot
             sage: options = {
@@ -243,13 +246,14 @@ class GraphPlot(SageObject):
             ....:   'partition':None,
             ....:   'dist':.075,
             ....:   'max_dist':1.5,
-            ....:   'loop_size':.075}
+            ....:   'loop_size':.075,
+            ....:   'edge_labels_background':'transparent'}
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
             sage: GP = GraphPlot(g, options)
 
         """
         # Setting the default values if needed
-        for k,value in DEFAULT_PLOT_OPTIONS.iteritems():
+        for k, value in iteritems(DEFAULT_PLOT_OPTIONS):
             if k not in options:
                 options[k] = value
         self._plot_components = {}
@@ -271,7 +275,7 @@ class GraphPlot(SageObject):
         """
         Returns a string representation of a ``GraphPlot`` object.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This function is called implicitly by the code below::
 
@@ -329,11 +333,11 @@ class GraphPlot(SageObject):
             sage: g = graphs.FruchtGraph()
             sage: gp = g.graphplot()
             sage: set(map(type, flatten(gp._pos.values())))
-            {<type 'float'>}
+            {<... 'float'>}
             sage: g = graphs.BullGraph()
             sage: gp = g.graphplot(save_pos=True)
             sage: set(map(type, flatten(gp._pos.values())))
-            {<type 'float'>}
+            {<... 'float'>}
 
         Non-ascii labels are also possible using unicode (:trac:`21008`)::
 
@@ -342,7 +346,8 @@ class GraphPlot(SageObject):
         """
         self._pos = self._graph.layout(**self._options)
         # make sure the positions are floats (trac #10124)
-        self._pos = dict((k,(float(v[0]), float(v[1]))) for k,v in self._pos.iteritems())
+        self._pos = dict((k, (float(v[0]), float(v[1])))
+                         for k, v in iteritems(self._pos))
 
     def set_vertices(self, **vertex_options):
         """
@@ -415,7 +420,7 @@ class GraphPlot(SageObject):
 
         if 'vertex_colors' not in self._options or self._options['vertex_colors'] is None:
             if self._options['partition'] is not None:
-                from sage.plot.colors import rainbow,rgbcolor
+                from sage.plot.colors import rainbow
                 partition = self._options['partition']
                 l = len(partition)
                 R = rainbow(l)
@@ -449,7 +454,7 @@ class GraphPlot(SageObject):
                                                             clip=False)
                                                      for center in self._pos.values()]
             else:
-                self._plot_components['vertices'] = scatter_plot(self._pos.values(),
+                self._plot_components['vertices'] = scatter_plot(list(self._pos.values()),
                                                                  clip=False, **voptions)
         else:
             # Color list must be ordered:
@@ -593,10 +598,17 @@ class GraphPlot(SageObject):
             ....:         vn = vector(((x-(vx[v0]+vx[v1])/2.),y-(vy[v0]+vy[v1])/2.)).norm()
             ....:         assert vn < tol
 
+        Ticket :trac:`24051` is fixed::
+
+            sage: G = Graph([(0,1), (0,1)], multiedges=True)
+            sage: G.plot(edge_colors={"red":[(1,0)]})
+            Graphics object consisting of 5 graphics primitives
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
         if 'edge_colors' in edge_options: self._options['color_by_label'] = False
+        if self._options['edge_labels_background']=="transparent":
+            self._options['edge_labels_background']="None"
 
         # Handle base edge options: thickness, linestyle
         eoptions={}
@@ -626,7 +638,8 @@ class GraphPlot(SageObject):
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
             if self._options['color_by_label']:
                 edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
-            else: edge_colors = self._options['edge_colors']
+            else:
+                edge_colors = self._options['edge_colors']
             edges_drawn = []
             for color in edge_colors:
                 for edge in edge_colors[color]:
@@ -660,7 +673,10 @@ class GraphPlot(SageObject):
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
-                if (edge[0],edge[1],edge[2]) not in edges_drawn:
+                if (edge[0],edge[1],edge[2]) not in edges_drawn and \
+                    ( self._graph.is_directed() or
+                      (edge[1],edge[0],edge[2]) not in edges_drawn
+                    ):
                     key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
@@ -699,7 +715,8 @@ class GraphPlot(SageObject):
                             rgbcolor=local_labels[i][1], **eoptions))
                         if labels:
                             self._plot_components['edge_labels'].append(text(local_labels[i][0],
-                                (self._pos[a][0], self._pos[a][1]-2*curr_loop_size)))
+                                (self._pos[a][0], self._pos[a][1]-2*curr_loop_size),
+                                background_color=self._options['edge_labels_background']))
                         curr_loop_size += distance/4
                 elif len(edges_to_draw[(a,b)]) > 1:
                     # Multi-edge
@@ -766,9 +783,10 @@ class GraphPlot(SageObject):
                         if labels:
                             j = k/2.0
                             self._plot_components['edge_labels'].append(text(local_labels[2*i][0],
-                                [odd_x(j),odd_y(j)]))
+                                [odd_x(j),odd_y(j)], background_color=self._options['edge_labels_background']))
                             self._plot_components['edge_labels'].append(text(local_labels[2*i+1][0],
-                                [even_x(j),even_y(j)]))
+                                [even_x(j),even_y(j)],
+                                background_color=self._options['edge_labels_background']))
                     if len(local_labels)%2 == 1:
                         edges_to_draw[(a,b)] = [local_labels[-1]] # draw line for last odd
 
@@ -781,7 +799,8 @@ class GraphPlot(SageObject):
                     **eoptions))
                 if labels:
                     self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),
-                        [(C[0]+D[0])/2., (C[1]+D[1])/2.]))
+                        [(C[0]+D[0])/2., (C[1]+D[1])/2.],
+                        background_color=self._options['edge_labels_background']))
             elif dir:
                 self._plot_components['edges'].append(arrow(self._pos[a],self._pos[b],
                     rgbcolor=edges_to_draw[(a,b)][0][1], arrowshorten=self._arrowshorten,
@@ -792,7 +811,8 @@ class GraphPlot(SageObject):
             if labels and not self._arcdigraph:
                 self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),
                     [(self._pos[a][0]+self._pos[b][0])/2.,
-                    (self._pos[a][1]+self._pos[b][1])/2.]))
+                    (self._pos[a][1]+self._pos[b][1])/2.],
+                    background_color=self._options['edge_labels_background']))
 
     def _polar_hack_for_multidigraph(self, A, B, VR):
         """
@@ -800,7 +820,7 @@ class GraphPlot(SageObject):
         segment from A to B (xy tuples) and circles centered at A and B, both with
         radius VR.  Returns a tuple of xy tuples representing the two points.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: d = DiGraph({}, loops=True, multiedges=True, sparse=True)
             sage: d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
@@ -852,7 +872,7 @@ class GraphPlot(SageObject):
             - Any options not used by plot will be passed on to the
               :meth:`~sage.plot.graphics.Graphics.show` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = graphs.CubeGraph(8)
             sage: P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
@@ -866,7 +886,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k,value in DEFAULT_SHOW_OPTIONS.iteritems():
+        for k, value in iteritems(DEFAULT_SHOW_OPTIONS):
             if k not in kwds:
                 kwds[k] = value
 
@@ -1049,7 +1069,7 @@ class GraphPlot(SageObject):
             sage: g.graphplot(pos=pos, layout='spring', iterations=0).plot()
             Graphics object consisting of 11 graphics primitives
 
-        .. PLOT:
+        .. PLOT::
 
             pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8],
                 3:[0.6, -0.8], 4:[0.8, 0.3]}
@@ -1075,7 +1095,7 @@ class GraphPlot(SageObject):
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
             Graphics object consisting of 14 graphics primitives
 
-        .. PLOT:
+        .. PLOT::
 
             T = list(graphs.trees(7))
             t = T[3]
@@ -1125,7 +1145,7 @@ class GraphPlot(SageObject):
             sage: t = T[3]
             sage: t.graphplot(layout='tree').show()
 
-        .. PLOT:
+        .. PLOT::
 
             T = list(graphs.trees(7))
             t = T[3]
@@ -1211,6 +1231,11 @@ class GraphPlot(SageObject):
             ....:      part_bbox = part.get_minmax_data()
             ....:      assert bbox['xmin'] <= part_bbox['xmin'] <= part_bbox['xmax'] <= bbox['xmax']
             ....:      assert bbox['ymin'] <= part_bbox['ymin'] <= part_bbox['ymax'] <= bbox['ymax']
+
+        Check that one can plot immutable graphs (:trac:`17340`)::
+
+            sage: Graph({0:[0]},immutable=True).plot()
+            Graphics object consisting of 3 graphics primitives
         """
         G = Graphics()
         options = self._options.copy()
@@ -1365,7 +1390,7 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
     circle by an angle of `\alpha 2\pi/n` (where `n` is the number of
     vertices set on the circle).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_plot import _circle_embedding
         sage: g = graphs.CycleGraph(5)
@@ -1395,24 +1420,42 @@ def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
     is the pair ``first`` and the position of ``vertices[-1]`` is
     ``last``. The vertices are evenly spaced.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_plot import _line_embedding
         sage: g = graphs.PathGraph(5)
         sage: _line_embedding(g, [0, 2, 4, 1, 3], first=(-1, -1), last=(1, 1))
         sage: g.show()
+
+    TESTS::
+
+        sage: from sage.graphs.graph_plot import _line_embedding
+        sage: g = Graph(1)
+        sage: _line_embedding(g, [0], first=(-1, -1), last=(1, 1))
+        sage: g.get_pos()
+        {0: (0, 0)}
+        sage: g = Graph()
+        sage: _line_embedding(g, g.vertices(), first=(-1, -1), last=(1, 1))
+        sage: g.get_pos()
+        {}
     """
-    n = len(vertices) - 1.
-
-    fx, fy = first
-    dx = (last[0] - first[0])/n
-    dy = (last[1] - first[1])/n
-
     d = g.get_pos()
     if d is None:
         d = {}
+
+    n = len(vertices) - 1.
+
+    if n:
+        fx, fy = first
+        dx = (last[0] - first[0])/n
+        dy = (last[1] - first[1])/n
+    else:
+        fx, fy = (first[0] + last[0])/2, (first[1] + last[1])/2
+        dx = dy = 0
 
     for v in vertices:
         d[v] = (fx, fy)
         fx += dx
         fy += dy
+
+    g.set_pos(d)

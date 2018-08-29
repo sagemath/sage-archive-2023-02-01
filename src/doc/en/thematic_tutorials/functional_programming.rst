@@ -191,7 +191,7 @@ matrices::
     sage: rows = [randint(1, 10) for i in range(10)]
     sage: cols = [randint(1, 10) for i in range(10)]
     sage: rings = [ZZ]*10
-    sage: M = map(random_matrix, rings, rows, cols)
+    sage: M = list(map(random_matrix, rings, rows, cols))
     sage: M[0]  # random
     <BLANKLINE>
     [ -1  -3  -1 -37   1  -1  -4   5]
@@ -213,8 +213,8 @@ together with ``map`` as follows::
     [ 2  6  2]
     sage: rows = [randint(1, 10) for i in range(10)]
     sage: cols = [randint(1, 10) for i in range(10)]
-    sage: M = map(rand_mat, rows, cols)
-    sage: M = map(matrix, M)
+    sage: M = list(map(rand_mat, rows, cols))
+    sage: M = list(map(matrix, M))
     sage: M[0]  # random
     <BLANKLINE>
     [ 9  1  5  2 10 10  1]
@@ -302,7 +302,7 @@ out all items that satisfy some condition(s) defined in the given
 function. For example, you could use ``filter`` to filter out all
 primes between 1 and 50, inclusive. ::
 
-    sage: filter(is_prime, [1..50])
+    sage: list(filter(is_prime, [1..50]))
     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]
 
 For a given positive integer `n`, the
@@ -320,7 +320,7 @@ to 20. Then you could use ``filter`` instead of list comprehension
 to obtain all the required `a`'s. ::
 
     sage: is_coprime = lambda k: gcd(k, 20) == 1
-    sage: filter(is_coprime, range(1, 21))
+    sage: list(filter(is_coprime, range(1, 21)))
     [1, 3, 7, 9, 11, 13, 17, 19]
 
 The function ``primroots`` defined below returns all primitive roots

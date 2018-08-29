@@ -1,5 +1,5 @@
 """
-Installing the SageMath Jupyter Kernel and extensions
+Installing the SageMath Jupyter Kernel and Extensions
 
 Kernels have to register themselves with Jupyter so that they appear
 in the Jupyter notebook's kernel drop-down. This is done by
@@ -11,17 +11,21 @@ import errno
 
 from sage.env import (
     SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
-    SAGE_VERSION
+    SAGE_VERSION,
+    MATHJAX_DIR, JSMOL_DIR, THREEJS_DIR,
 )
-from jupyter_core.paths import ENV_JUPYTER_PATH
-JUPYTER_PATH = ENV_JUPYTER_PATH[0]
 
 
 class SageKernelSpec(object):
 
-    def __init__(self):
+    def __init__(self, prefix=None):
         """
         Utility to manage SageMath kernels and extensions
+
+        INPUT:
+
+        - ``prefix`` -- (optional, default: ``sys.prefix``)
+          directory for the installation prefix
 
         EXAMPLES::
 
@@ -29,10 +33,15 @@ class SageKernelSpec(object):
             sage: spec = SageKernelSpec()
             sage: spec._display_name    # random output
             'SageMath 6.9'
+            sage: spec.kernel_dir == SageKernelSpec(sys.prefix).kernel_dir
+            True
         """
         self._display_name = 'SageMath {0}'.format(SAGE_VERSION)
-        self.nbextensions_dir = os.path.join(JUPYTER_PATH, "nbextensions")
-        self.kernel_dir = os.path.join(JUPYTER_PATH, "kernels", self.identifier())
+        if prefix is None:
+            from sys import prefix
+        jupyter_dir = os.path.join(prefix, "share", "jupyter")
+        self.nbextensions_dir = os.path.join(jupyter_dir, "nbextensions")
+        self.kernel_dir = os.path.join(jupyter_dir, "kernels", self.identifier())
         self._mkdirs()
 
     def _mkdirs(self):
@@ -103,13 +112,13 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec()
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.use_local_mathjax()
             sage: mathjax = os.path.join(spec.nbextensions_dir, 'mathjax')
             sage: os.path.isdir(mathjax)
             True
         """
-        src = os.path.join(SAGE_LOCAL, 'share', 'mathjax')
+        src = MATHJAX_DIR
         dst = os.path.join(self.nbextensions_dir, 'mathjax')
         self.symlink(src, dst)
 
@@ -120,14 +129,31 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec()
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.use_local_jsmol()
             sage: jsmol = os.path.join(spec.nbextensions_dir, 'jsmol')
             sage: os.path.isdir(jsmol)
             True
         """
-        src = os.path.join(SAGE_LOCAL, 'share', 'jsmol')
+        src = os.path.join(JSMOL_DIR)
         dst = os.path.join(self.nbextensions_dir, 'jsmol')
+        self.symlink(src, dst)
+
+    def use_local_threejs(self):
+        """
+        Symlink threejs to the Jupyter notebook.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.install import SageKernelSpec
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
+            sage: spec.use_local_threejs()
+            sage: threejs = os.path.join(spec.nbextensions_dir, 'threejs')
+            sage: os.path.isdir(threejs)
+            True
+        """
+        src = THREEJS_DIR
+        dst = os.path.join(self.nbextensions_dir, 'threejs')
         self.symlink(src, dst)
 
     def _kernel_cmd(self):
@@ -219,7 +245,7 @@ class SageKernelSpec(object):
         )
 
     @classmethod
-    def update(cls):
+    def update(cls, *args, **kwds):
         """
         Configure the Jupyter notebook for the SageMath kernel
 
@@ -233,9 +259,10 @@ class SageKernelSpec(object):
             sage: spec = SageKernelSpec()
             sage: spec.update()  # not tested
         """
-        instance = cls()
+        instance = cls(*args, **kwds)
         instance.use_local_mathjax()
         instance.use_local_jsmol()
+        instance.use_local_threejs()
         instance._install_spec()
         instance._symlink_resources()
 

@@ -75,6 +75,7 @@ from sage.rings.integer cimport Integer
 from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
+from sage.rings.polynomial.polynomial_element cimport _dict_to_list
 from sage.structure.element import coerce_binop
 from sage.misc.superseded import experimental
 
@@ -153,7 +154,7 @@ cdef class SkewPolynomial(AlgebraElement):
         sage: b = S([t^2,t+1,1]); b
         x^2 + (t + 1)*x + t^2
         sage: c = S.random_element(degree=3,monic=True); c
-        x^3 + (-95*t^2 + t + 2)*x^2 + (-t^2 + t)*x + 2*t - 8
+        x^3 + (2*t - 1)*x
 
     Ring operations are supported::
 
@@ -180,9 +181,9 @@ cdef class SkewPolynomial(AlgebraElement):
 
         sage: q,r = c.right_quo_rem(b)
         sage: q
-        x - 95*t^2
+        x - t - 2
         sage: r
-        (95*t^3 + 93*t^2 - t - 1)*x + 95*t^4 + 2*t - 8
+        3*t*x + t^3 + 2*t^2
         sage: c == q*b + r
         True
 
@@ -2120,6 +2121,40 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self.parent().variable_name()
 
+    def multi_point_evaluation(self, eval_pts):
+        """
+        Evaluate ``self`` at list of evaluation points.
+
+        INPUT:
+
+        - ``eval_pts`` -- list of points at which ``self`` is to be evaluated
+
+        OUTPUT:
+
+        List of values of ``self`` at the ``eval_pts``.
+
+        .. TODO::
+
+            This method currently trivially calls the evaluation function
+            repeatedly. If fast skew polynomial multiplication is available, an
+            asymptotically faster method is possible using standard divide and
+            conquer techniques and
+            :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general.minimal_vanishing_polynomial`.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x + t
+            sage: eval_pts = [1, t, t^2]
+            sage: c = a.multi_point_evaluation(eval_pts); c
+            [t + 1, 3*t^2 + 4*t + 4, 4*t]
+            sage: c == [ a(e) for e in eval_pts ]
+            True
+        """
+        return [ self(e) for e in eval_pts ]
+
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     r"""
@@ -2201,7 +2236,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return
 
         elif isinstance(x, dict):
-            x = self._dict_to_list(x, R.zero())
+            x = _dict_to_list(x, R.zero())
 
         elif not isinstance(x, list):
             x = [x]
@@ -2326,7 +2361,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         except IndexError:
             return self.base_ring().zero()
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         r"""
         Return a list of the coefficients of ``self``.
 
@@ -2348,7 +2383,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: a.list()
             [t^2 + 1, 0, t + 1, 0, 1]
         """
-        return list((<SkewPolynomial_generic_dense>self)._coeffs) # This creates a shallow copy
+        if copy:
+            # This creates a shallow copy
+            return list((<SkewPolynomial_generic_dense>self)._coeffs)
+        else:
+            return (<SkewPolynomial_generic_dense>self)._coeffs
 
     cpdef dict dict(self):
         r"""
@@ -2404,11 +2443,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = S.random_element(monic=True); a
-            x^2 + (-12*t^2 + 1/2*t - 1/95)*x - 1/2*t^2 - 4
+            x^2 + (-1/95*t - 1/2)*x
             sage: b = -S.random_element(monic=True); b
-            -x^2 + (5/2*t - 2/3)*x + 1/4*t^2 - 1/2*t + 1
+            -x^2 - 1/2*x
             sage: c = a+b; c
-            (-12*t^2 + 3*t - 193/285)*x - 1/4*t^2 - 1/2*t - 3
+            (-1/95*t - 1)*x
             sage: c.degree()
             1
         """
@@ -2435,11 +2474,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = S.random_element(monic=True); a
-            x^2 + (-12*t^2 + 1/2*t - 1/95)*x - 1/2*t^2 - 4
+            x^2 + (-1/95*t - 1/2)*x
             sage: b = S.random_element(monic=True); b
-            x^2 + (-5/2*t + 2/3)*x - 1/4*t^2 + 1/2*t - 1
+            x^2 + 1/2*x
             sage: c = a-b; c
-            (-12*t^2 + 3*t - 193/285)*x - 1/4*t^2 - 1/2*t - 3
+            (-1/95*t - 1)*x
             sage: c.degree()
             1
         """
@@ -2474,7 +2513,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                         self._parent, 0)
         return c
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, Element right):
         r"""
         Multiply ``self`` on the right by scalar.
 
@@ -2503,7 +2542,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                         self._parent, 0)
         return r
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef ModuleElement _rmul_(self, Element left):
         r"""
         Multiply ``self`` on the left by scalar.
 
@@ -2827,9 +2866,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = S.random_element(degree=4); a
-            t^2*x^4 + (-12*t^2 - 2*t - 1)*x^3 + (-95*t^2 + t + 2)*x^2 + (-t^2 + t)*x + 2*t - 8
+            (-t - 95)*x^4 + x^3 + (2*t - 1)*x
             sage: b = S.random_element(monic=True); b
-            x^2 + (4*t^2 - t - 2)*x - t^2 + t - 1
+            x^2 + (-12*t - 2)*x
             sage: q,r = a.right_quo_rem(b)
             sage: a == q*b + r
             True
@@ -2837,7 +2876,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         The leading coefficient of the divisor need to be invertible::
 
             sage: c = S.random_element(); c
-            (-4*t^2 + t)*x^2 - 2*t^2*x + 5*t^2 - 6*t - 4
+            (t - 1)*x^2 + t^2*x
             sage: a.right_quo_rem(c)
             Traceback (most recent call last):
             ...
@@ -3121,6 +3160,7 @@ cdef class ConstantSkewPolynomialSection(Map):
         else:
             raise TypeError("not a constant polynomial")
 
+
 cdef class SkewPolynomialBaseringInjection(Morphism):
     r"""
     Representation of the canonical homomorphism from a ring `R` into a skew
@@ -3131,7 +3171,7 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
 
     .. SEEALSO::
 
-        :class:~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
+        :class:`~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
 
     EXAMPLES::
 

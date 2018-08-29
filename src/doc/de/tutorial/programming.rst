@@ -194,8 +194,6 @@ PATH-Umgebungsvariable enthalten sein. Falls das das obige Skript
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
 
 Datentypen
 ==========
@@ -330,7 +328,7 @@ Sage-Integers):
 
 ::
 
-    sage: range(1, 15)
+    sage: range(1, 15)  # py2
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 Dies ist nützlich wenn man List-Comprehensions verwendet um Listen zu
@@ -476,7 +474,7 @@ Daten umwandeln:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Eine häufig vorkommende Ausdrucksweise ist über einem Paar in einem
@@ -485,7 +483,7 @@ Dictionary zu iterieren:
 ::
 
     sage: d = {2:4, 4:16, 3:9}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Ein Dictionary ist ungeordnet, wie die letzte Ausgabe verdeutlicht.
@@ -674,18 +672,6 @@ gleichen Typ konvertieren, falls dies möglich ist:
     False
     sage: 2/3 < 3/2;   3/2 < 3/1
     True
-    True
-
-Fast immer können zwei beliebige Objekte verglichen werden. Es gibt
-keine Voraussetzung die besagt, dass die Objekte mit einer totalen Ordnung
-versehen sein müssen.
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
     True
 
 Nutzen Sie bool für symbolische Ungleichungen:

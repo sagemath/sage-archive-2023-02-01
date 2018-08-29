@@ -58,7 +58,7 @@ Functions
 from __future__ import print_function, absolute_import
 
 from builtins import zip
-from six import itervalues
+from six import itervalues, iteritems
 from six.moves import range
 
 from sage.misc.cachefunc import cached_function
@@ -134,7 +134,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
 
     .. SEEALSO::
 
-        :func:`orthogonal_array` -- a tranversal design `TD(k,n)` is equivalent to an
+        :func:`orthogonal_array` -- a transversal design `TD(k,n)` is equivalent to an
         orthogonal array `OA(k,n,2)`.
 
     EXAMPLES::
@@ -469,7 +469,7 @@ def is_transversal_design(B,k,n, verbose=False):
 
     .. NOTE::
 
-        The tranversal design must have `\{0, \ldots, kn-1\}` as a ground set,
+        The transversal design must have `\{0, \ldots, kn-1\}` as a ground set,
         partitioned as `k` sets of size `n`: `\{0, \ldots, k-1\} \sqcup
         \{k, \ldots, 2k-1\} \sqcup \cdots \sqcup \{k(n-1), \ldots, kn-1\}`.
 
@@ -718,7 +718,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 
         This function uses transversal designs with
         `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}` both as input and
-        ouptut.
+        output.
 
     EXAMPLES::
 
@@ -1029,7 +1029,7 @@ def largest_available_k(n,t=2):
 
     - ``t`` -- (integer; default: 2) -- strength of the array
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: designs.orthogonal_arrays.largest_available_k(0)
         +Infinity
@@ -1330,8 +1330,8 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
             holes[i] = [h2]
             IOA.remove(h2)
 
-        holes = sum(holes,[])
-        holes = map(list, list(zip(*holes)))
+        holes = sum(holes, [])
+        holes = [list(h) for h in zip(*holes)]
 
         # Building the relabel matrix
         for l in holes:
@@ -1374,9 +1374,11 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         return orthogonal_array(k,n,existence=existence)
 
     # From a quasi-difference matrix
-    elif number_of_holes==1 and any(uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1 for (nn,lmbda,mu,uu),(kk,_) in QDM.get((n,1),{}).iteritems()):
-        for (nn,lmbda,mu,uu),(kk,f) in QDM[n,1].iteritems():
-            if uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1:
+    elif (number_of_holes == 1 and
+          any(uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1
+              for (nn,lmbda,mu,uu),(kk,_) in iteritems(QDM.get((n,1),{})))):
+        for (nn,lmbda,mu,uu),(kk,f) in iteritems(QDM[n,1]):
+            if uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1:
                 break
         G,M = f()
         OA  = OA_from_quasi_difference_matrix(M,G,fill_hole=False)
@@ -1422,7 +1424,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
 
     `x` blocks of an `OA` are said to be disjoint if they all have
     different values for a every given index, i.e. if they correspond to
-    disjoint blocks in the `TD` assciated with the `OA`.
+    disjoint blocks in the `TD` associated with the `OA`.
 
     INPUT:
 
@@ -1620,7 +1622,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
         - :func:`~sage.combinat.designs.database.OA_11_640`
         - :func:`~sage.combinat.designs.database.OA_15_896`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_n_times_2_pow_c_from_matrix
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
@@ -1676,7 +1678,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     F = FiniteField(2**c,'w')
     GG = G.cartesian_product(F)
 
-    # dictionary from integers to elments of GF(2^c): i -> w^i, None -> 0
+    # dictionary from integers to elements of GF(2^c): i -> w^i, None -> 0
     w = F.multiplicative_generator()
     r = {i:w**i for i in range(2**c-1)}
     r[None] = F.zero()
@@ -1805,10 +1807,10 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     G_to_int = {x:i for i,x in enumerate(G)}
 
     # A cache for addition in G
-    G_sum = [[0]*Gn for _ in range(Gn)]
-    for x,i in G_to_int.iteritems():
-        for xx,ii in G_to_int.iteritems():
-            G_sum[i][ii] = G_to_int[x+xx]
+    G_sum = [[0] * Gn for _ in range(Gn)]
+    for x, i in iteritems(G_to_int):
+        for xx, ii in iteritems(G_to_int):
+            G_sum[i][ii] = G_to_int[x + xx]
 
     # Convert M to integers
     M = [[None if x is None else G_to_int[G(x)] for x in line] for line in M]
@@ -2118,7 +2120,7 @@ class OAMainFunctions():
 
         - ``k,n,t`` (integers) -- parameters of the orthogonal array.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.explain_construction(9,565)
             "Wilson's construction n=23.24+13 with master design OA(9+1,23)"
@@ -2187,7 +2189,7 @@ class OAMainFunctions():
 
             :meth:`is_available`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.exists(3,6) # indirect doctest
             True
@@ -2211,7 +2213,7 @@ class OAMainFunctions():
 
             :meth:`exists`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.is_available(3,6) # indirect doctest
             True

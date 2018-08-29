@@ -1,5 +1,16 @@
 r"""
-Function Field Elements
+Elements of function fields
+
+Sage provides arithmetic with elements of function fields.
+
+EXAMPLES:
+
+Arithmetic with rational functions::
+
+    sage: K.<t> = FunctionField(QQ)
+    sage: f = t - 1
+    sage: g = t^2 - 3
+    sage: h = f^2/g^3
 
 AUTHORS:
 
@@ -10,6 +21,9 @@ AUTHORS:
 - Julian Rueth (2011-06-28): treat zero correctly
 
 - Maarten Derickx (2011-09-11): added doctests, fixed pickling
+
+- Kwankyu Lee (2017-04-30): added elements for global function fields
+
 """
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
@@ -22,15 +36,15 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal
-
+from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 def is_FunctionFieldElement(x):
     """
-    Return True if x is any type of function field element.
+    Return ``True`` if ``x`` is any type of function field element.
 
     EXAMPLES::
 
@@ -40,8 +54,9 @@ def is_FunctionFieldElement(x):
         sage: sage.rings.function_field.function_field_element.is_FunctionFieldElement(0)
         False
     """
-    if isinstance(x, FunctionFieldElement): return True
-    from function_field import is_FunctionField
+    if isinstance(x, FunctionFieldElement):
+        return True
+    from .function_field import is_FunctionField
     return is_FunctionField(x.parent())
 
 def make_FunctionFieldElement(parent, element_class, representing_element):
@@ -59,7 +74,7 @@ def make_FunctionFieldElement(parent, element_class, representing_element):
 
 cdef class FunctionFieldElement(FieldElement):
     """
-    The abstract base class for function field elements.
+    Abstract base class for function field elements.
 
     EXAMPLES::
 
@@ -67,7 +82,6 @@ cdef class FunctionFieldElement(FieldElement):
         sage: isinstance(t, sage.rings.function_field.function_field_element.FunctionFieldElement)
         True
     """
-
     cdef readonly object _x
     cdef readonly object _matrix
 
@@ -89,9 +103,9 @@ cdef class FunctionFieldElement(FieldElement):
         x._parent = self._parent
         return x
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
-        Coerce this element to PARI.
+        Coerce the element to PARI.
 
         PARI does not know about general function field elements, so this
         raises an Exception.
@@ -103,7 +117,7 @@ cdef class FunctionFieldElement(FieldElement):
             sage: K.<a> = FunctionField(QQ)
             sage: R.<b> = K[]
             sage: L.<b> = K.extension(b^2-a)
-            sage: b._pari_()
+            sage: b.__pari__()
             Traceback (most recent call last):
             ...
             NotImplementedError: PARI does not support general function field elements.
@@ -125,10 +139,16 @@ cdef class FunctionFieldElement(FieldElement):
         """
         return self._x._latex_()
 
-    def matrix(self):
+    @cached_method
+    def matrix(self, base=None):
         r"""
-        Return the matrix of multiplication by self, interpreting self as an element
-        of a vector space over its base field.
+        Return the matrix of multiplication by this element, interpreting this
+        element as an element of a vector space over ``base``.
+
+        INPUT:
+
+        - ``base`` -- a function field (default: ``None``), if ``None``, then
+          the matrix is formed over the base field of this function field.
 
         EXAMPLES:
 
@@ -153,13 +173,24 @@ cdef class FunctionFieldElement(FieldElement):
         An example in a relative extension, where neither function
         field is rational::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: M.<T> = L[]; Z.<alpha> = L.extension(T^3 - y^2*T + x)
+            sage: M.<T> = L[]
+            sage: Z.<alpha> = L.extension(T^3 - y^2*T + x)
             sage: alpha.matrix()
             [          0           1           0]
             [          0           0           1]
             [         -x x*y - 4*x^3           0]
+            sage: alpha.matrix(K)
+            [           0            0            1            0            0            0]
+            [           0            0            0            1            0            0]
+            [           0            0            0            0            1            0]
+            [           0            0            0            0            0            1]
+            [          -x            0       -4*x^3            x            0            0]
+            [           0           -x       -4*x^4 -4*x^3 + x^2            0            0]
+            sage: alpha.matrix(Z)
+            [alpha]
 
         We show that this matrix does indeed work as expected when making a
         vector space from a function field::
@@ -175,27 +206,21 @@ cdef class FunctionFieldElement(FieldElement):
             sage: y5 == y4y
             True
         """
-        if self._matrix is None:
-            # Multiply each power of field generator on the left by this
-            # element; make matrix whose rows are the coefficients of the
-            # result, and transpose.
-            K = self.parent()
-            v = []
-            x = K.gen()
-            a = K(1)
-            d = K.degree()
-            for n in range(d):
-                v += (a*self).list()
-                a *= x
-            k = K.base_ring()
-            import sage.matrix.matrix_space
-            M = sage.matrix.matrix_space.MatrixSpace(k, d)
-            self._matrix = M(v)
-        return self._matrix
+        # multiply each element of the vector space isomorphic to the parent
+        # with this element; make matrix whose rows are the coefficients of the
+        # result, and transpose
+        V, f, t = self.parent().vector_space(base)
+        rows = [ t(self*f(b)) for b in V.basis() ]
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(V.base_field(), V.dimension())
+        ret = MS(rows)
+        ret.transpose()
+        ret.set_immutable()
+        return ret
 
     def trace(self):
         """
-        Return the trace of this function field element.
+        Return the trace of the element.
 
         EXAMPLES::
 
@@ -208,7 +233,7 @@ cdef class FunctionFieldElement(FieldElement):
 
     def norm(self):
         """
-        Return the norm of this function field element.
+        Return the norm of the element.
 
         EXAMPLES::
 
@@ -231,9 +256,8 @@ cdef class FunctionFieldElement(FieldElement):
 
     def characteristic_polynomial(self, *args, **kwds):
         """
-        Return the characteristic polynomial of this function field
-        element.  Give an optional input string to name the variable
-        in the characteristic polynomial.
+        Return the characteristic polynomial of the element. Give an optional
+        input string to name the variable in the characteristic polynomial.
 
         EXAMPLES::
 
@@ -253,9 +277,8 @@ cdef class FunctionFieldElement(FieldElement):
 
     def minimal_polynomial(self, *args, **kwds):
         """
-        Return the minimal polynomial of this function field element.
-        Give an optional input string to name the variable in the
-        characteristic polynomial.
+        Return the minimal polynomial of the element. Give an optional input
+        string to name the variable in the characteristic polynomial.
 
         EXAMPLES::
 
@@ -275,7 +298,7 @@ cdef class FunctionFieldElement(FieldElement):
 
     def is_integral(self):
         r"""
-        Determine if self is integral over the maximal order of the base field.
+        Determine if the element is integral over the maximal order of the base field.
 
         EXAMPLES::
 
@@ -308,12 +331,13 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
     def __init__(self, parent, x, reduce=True):
         """
+        Initialize.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: type(y)
-            <type 'sage.rings.function_field.function_field_element.FunctionFieldElement_polymod'>
+            sage: TestSuite(x*y + 1/x^3).run()
         """
         FieldElement.__init__(self, parent)
         if reduce:
@@ -323,22 +347,23 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     def element(self):
         """
-        Return the underlying polynomial that represents this element.
+        Return the underlying polynomial that represents the element.
 
         EXAMPLES::
+
             sage: K.<x> = FunctionField(QQ); R.<T> = K[]
             sage: L.<y> = K.extension(T^2 - x*T + 4*x^3)
             sage: f = y/x^2 + x/(x^2+1); f
             1/x^2*y + x/(x^2 + 1)
             sage: f.element()
             1/x^2*y + x/(x^2 + 1)
-            sage: type(f.element())
-            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
         """
         return self._x
 
     def _repr_(self):
         """
+        Return the string representation of the element.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -350,6 +375,8 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     def __nonzero__(self):
         """
+        Return True if the element is not zero.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -365,6 +392,8 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     def __hash__(self):
         """
+        Return the hash of the element.
+
         TESTS::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -376,6 +405,8 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     cpdef _richcmp_(self, other, int op):
         """
+        Do rich comparison with the other element with respect to ``op``
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -391,6 +422,12 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     cpdef _add_(self, right):
         """
+        Add the element with the other element.
+
+        INPUT:
+
+        - ``right`` -- element
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -408,6 +445,12 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     cpdef _sub_(self, right):
         """
+        Subtract the other element from the element.
+
+        INPUT:
+
+        - ``right`` -- element
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -423,6 +466,12 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     cpdef _mul_(self, right):
         """
+        Multiply the element with the other element.
+
+        INPUT:
+
+        - ``right`` -- element
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -436,6 +485,12 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     cpdef _div_(self, right):
         """
+        Divide the element with the other element.
+
+        INPUT:
+
+        - ``right`` -- element
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -451,6 +506,8 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     def __invert__(self):
         """
+        Return the multiplicative inverse of the element.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -467,9 +524,10 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     def list(self):
         """
-        Return a list of coefficients of self, i.e., if self is an element of
-        a function field K[y]/(f(y)), then return the coefficients of the
-        reduced presentation as a polynomial in K[y].
+        Return the list of the coefficients prepresenting the element.
+
+        If the function field is `K[y]/(f(y))`, then return the coefficients of
+        the reduced presentation of the element as a polynomial in `K[y]`.
 
         EXAMPLES::
 
@@ -492,33 +550,40 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         sage: K.<t> = FunctionField(QQ); K
         Rational function field in t over Rational Field
+        sage: t^2 + 3/2*t
+        t^2 + 3/2*t
+        sage: FunctionField(QQ,'t').gen()^3
+        t^3
     """
     def __init__(self, parent, x, reduce=True):
         """
+        Initialize.
+
         EXAMPLES::
 
-            sage: FunctionField(QQ,'t').gen()^3
-            t^3
+            sage: K.<t> = FunctionField(QQ)
+            sage: x = t^3
+            sage: TestSuite(x).run()
         """
         FieldElement.__init__(self, parent)
         self._x = x
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
-        Coerce this element to PARI.
+        Coerce the element to PARI.
 
         EXAMPLES::
 
             sage: K.<a> = FunctionField(QQ)
-            sage: ((a+1)/(a-1))._pari_()
+            sage: ((a+1)/(a-1)).__pari__()
             (a + 1)/(a - 1)
 
         """
-        return self.element()._pari_()
+        return self.element().__pari__()
 
     def element(self):
         """
-        Return the underlying fraction field element that represents this element.
+        Return the underlying fraction field element that represents the element.
 
         EXAMPLES::
 
@@ -538,11 +603,10 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def list(self):
         """
-        Return a list of coefficients of self, i.e., if self is an element of
-        a function field K[y]/(f(y)), then return the coefficients of the
-        reduced presentation as a polynomial in K[y].
-        Since self is a member of a rational function field, this simply returns
-        the list `[self]`
+        Return a list with just the element.
+
+        The list represents the element when the rational function field is
+        viewed as a (one-dimensional) vector space over itself.
 
         EXAMPLES::
 
@@ -554,6 +618,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def _repr_(self):
         """
+        Return the string representation of the element.
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -564,6 +630,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def __nonzero__(self):
         """
+        Return True if the element is not zero.
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -578,6 +646,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def __hash__(self):
         """
+        Return the hash of the element.
+
         TESTS:
 
         It would be nice if the following would produce a list of
@@ -591,6 +661,14 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     cpdef _richcmp_(self, other, int op):
         """
+        Compare the element with the other element with respect to ``op``
+
+        INPUT:
+
+        - ``other`` -- element
+
+        - ``op`` -- comparison operator
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -614,6 +692,12 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     cpdef _add_(self, right):
         """
+        Add the element with the other element.
+
+        INPUT:
+
+        - ``right`` -- element
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -626,6 +710,12 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     cpdef _sub_(self, right):
         """
+        Subtract the other element from the element.
+
+        INPUT:
+
+        - ``right`` -- element
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -638,6 +728,12 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     cpdef _mul_(self, right):
         """
+        Multiply the element with the other element
+
+        INPUT:
+
+        - ``right`` -- element
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -650,6 +746,12 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     cpdef _div_(self, right):
         """
+        Divide the element with the other element
+
+        INPUT:
+
+        - ``right`` -- element
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -663,6 +765,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def numerator(self):
         """
+        Return the numerator of the rational function.
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -675,6 +779,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def denominator(self):
         """
+        Return the denominator of the rational function.
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -725,7 +831,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def sqrt(self, all=False):
         """
-        Returns the square root of self.
+        Return the square root of the rational function.
 
         EXAMPLES::
 
@@ -749,7 +855,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def factor(self):
         """
-        Factor this rational function.
+        Factor the rational function.
 
         EXAMPLES::
 
@@ -770,10 +876,9 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return Factorization([(P(a),e) for a,e in F], unit=F.unit())
 
     def inverse_mod(self, I):
-        r"""
-        Return an inverse of self modulo the integral ideal `I`, if
-        defined, i.e., if `I` and self together generate the unit
-        ideal.
+        """
+        Return an inverse of the element modulo the integral ideal `I`, if `I`
+        and the element together generate the unit ideal.
 
         EXAMPLES::
 
@@ -789,3 +894,9 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         assert f.denominator() == 1
         assert self._x.denominator() == 1
         return self.parent()(self._x.numerator().inverse_mod(f.numerator()))
+
+cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
+    """
+    Elements of global function fields
+    """
+    pass

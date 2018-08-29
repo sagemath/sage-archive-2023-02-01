@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # WARNING -- if you add a package here, also add it to
 # the gap_reset_workspace() command in
 #    <SAGE_ROOT>/src/sage/interfaces/gap.py
@@ -18,7 +16,7 @@ PKG_DIR="$GAP_DIR/pkg"
 # overwriting them
 chmod -R u+rwX "$PKG_DIR" || mkdir -p "$PKG_DIR"
 
-$CP -p SPKG.txt "$PKG_DIR"
+cp SPKG.txt "$PKG_DIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error copying SPKG.txt"
     exit 1
@@ -28,12 +26,12 @@ fi
 cd src/
 
 for p in \
-    aclib crime ctbllib cryst crystcat design factint grape \
-    guava-3.13 Hap1.11 HAPcryst happrime laguna polymaking \
-    sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
+    aclib cohomolo-1.6.4 corelg crime ctbllib cryst crystcat design factint gbnp grape \
+    guava-3.13 Hap1.11 HAPcryst happrime hecke laguna liealgdb liepring liering loops mapclass polymaking \
+    QPA-1.25 quagroup repsn sla sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
 do
     echo "Copying package $p"
-    $CP -pr $p "$PKG_DIR"
+    cp -r $p "$PKG_DIR"
     if [ $? -ne 0 ]; then
         echo >&2 "Error copying package $p."
         exit 1
@@ -68,8 +66,22 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+
+# Build cohomolo package
+cd "$PKG_DIR"/cohomolo-1*
+#rm -rf bin   # added since rebuilding breaks otherwise
+./configure "$GAP_DIR"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring cohomolo package."
+    exit 1
+fi
+$MAKE -j1
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building cohomolo package."
+    exit 1
+fi
+
 # Some GAP packages have weird permissions
 chmod -R u+rwX "$PKG_DIR"
 
-touch "$SAGE_LOCAL/bin/gap_stamp"
 

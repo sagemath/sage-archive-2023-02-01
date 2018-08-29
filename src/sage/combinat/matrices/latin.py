@@ -192,7 +192,7 @@ class LatinSquare:
         elif len(args) == 1 and isinstance(args[0], Matrix_integer_dense):
             self.square = args[0]
         else:
-            raise NotImplemented
+            raise TypeError("bad input for latin square")
 
     def dumps(self):
         """
@@ -295,7 +295,8 @@ class LatinSquare:
             sage: L = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: L.set_immutable()
             sage: L.__hash__()
-            12
+            1677951251422179082  # 64-bit
+            -479138038           # 32-bit
         """
         return hash(self.square)
 
@@ -441,7 +442,7 @@ class LatinSquare:
            right of self, and that the used symbols are in the range
            {0, 1, ..., m} (no holes in that list).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(3)
@@ -503,7 +504,7 @@ class LatinSquare:
         Returns the number of distinct symbols in the partial latin square
         self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.matrices.latin import *
             sage: back_circulant(5).nr_distinct_symbols()
@@ -1197,7 +1198,7 @@ class LatinSquare:
                 # If this is an empty cell of self then we do nothing.
                 if self[r, c] < 0: continue
 
-                for e in uniq(valsrow.keys() + valscol.keys()):
+                for e in uniq(list(valsrow) + list(valscol)):
                     # These should be constants
                     c_OFFSET  = e + c*n
                     r_OFFSET  = e + r*n + n*n
@@ -1303,13 +1304,17 @@ class LatinSquare:
 def genus(T1, T2):
     """
     Returns the genus of hypermap embedding associated with the bitrade
-    (T1, T2). Informally, we compute the [tau_1, tau_2, tau_3]
+    (T1, T2).
+
+    Informally, we compute the [tau_1, tau_2, tau_3]
     permutation representation of the bitrade. Each cycle of tau_1,
     tau_2, and tau_3 gives a rotation scheme for a black, white, and
     star vertex (respectively). The genus then comes from Euler's
-    formula. For more details see Carlo Hamalainen: Partitioning
+    formula.
+
+    For more details see Carlo Hamalainen: Partitioning
     3-homogeneous latin bitrades. To appear in Geometriae Dedicata,
-    available at http://arxiv.org/abs/0710.0938
+    available at :arxiv:`0710.0938`
 
     EXAMPLES::
 
@@ -1535,7 +1540,8 @@ def isotopism(p):
             return x
 
     # Not sure what we got!
-    raise NotImplemented
+    raise TypeError("unable to convert {!r} to isotopism".format(p))
+
 
 def cells_map_as_square(cells_map, n):
     """
@@ -2533,7 +2539,7 @@ def tau_to_bitrade(t1, t2, t3):
     convert them to an explicit latin bitrade (T1, T2). The result is
     unique up to isotopism.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.matrices.latin import *
         sage: T1 = back_circulant(5)

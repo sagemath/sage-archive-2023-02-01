@@ -637,23 +637,18 @@ Reducible types::
 """
 
 
-class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
-    def __eq__(self,other):
-        """
-        Return ``True`` iff ``self`` and ``other`` represent the same quiver
-        mutation type.
+class QuiverMutationType_abstract(UniqueRepresentation, SageObject):
+    """
+    EXAMPLES::
 
-        EXAMPLES::
-
-            sage: mut_type1 = QuiverMutationType('A',5)
-            sage: mut_type2 = QuiverMutationType('A',5)
-            sage: mut_type3 = QuiverMutationType('A',6)
-            sage: mut_type1.__eq__( mut_type2 )
-            True
-            sage: mut_type1.__eq__( mut_type3 )
-            False
-        """
-        return self is other
+        sage: mut_type1 = QuiverMutationType('A',5)
+        sage: mut_type2 = QuiverMutationType('A',5)
+        sage: mut_type3 = QuiverMutationType('A',6)
+        sage: mut_type1 == mut_type2
+        True
+        sage: mut_type1 == mut_type3
+        False
+    """
 
     def _repr_(self):
         """
@@ -797,7 +792,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             [ 0  0  0 -1  0 -1]
             [ 0  0  0  0  2  0]
         """
-        return _edge_list_to_matrix(self._digraph.edges(), self._rank, 0)
+        return _edge_list_to_matrix(self._digraph.edges(), list(range(self._rank)), [])
 
     @cached_method
     def standard_quiver(self):
@@ -1127,7 +1122,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
         self._rank = None
         self._bi_rank = None
 
-        # _graph and _digraph are initalized
+        # _graph and _digraph are initialized
         self._graph = Graph()
         self._digraph = DiGraph()
 
@@ -1675,7 +1670,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
 
     @cached_method
     def class_size(self):
-        """
+        r"""
         If it is known, the size of the mutation class of all quivers
         which are mutation equivalent to the standard quiver of
         ``self`` (up to isomorphism) is returned.
@@ -2350,7 +2345,7 @@ def _bipartite_graph_to_digraph(g):
             dg.add_edge( edge[0],edge[1],edge[2] )
         else:
             dg.add_edge( edge[1],edge[0],edge[2] )
-    for vert in g.vertices():
+    for vert in g.vertex_iterator():
         if vert not in dg.vertices():
             dg.add_vertex(vert)
     return dg
@@ -2375,7 +2370,7 @@ def _is_mutation_type(data):
         return False
 
 def _mutation_type_error(data):
-    """
+    r"""
     Output an error message because data which is not a valid quiver mutation
     type has been passed to QuiverMutationType.
 
@@ -2396,37 +2391,49 @@ def _mutation_type_error(data):
     return_str  = str(data) + ' is not a valid quiver mutation type'
     return_str += '\n            Finite types have the form [ \'?\', n ] for type ? and rank n'
     return_str += '\n            Affine type A has the form [ \'A\', [ i, j ], 1 ] for rank i+j'
-    return_str += '\n            Affine type ? has the form [ \'?\', k, \pm 1 ] for rank k+1'
+    return_str += '\n            Affine type ? has the form [ \'?\', k, \\pm 1 ] for rank k+1'
     return_str += '\n            Elliptic type ? has the form [ \'?\', k, [i, j] ] (1 <= i,j <= 3) for rank k+2'
     return_str += '\n            For correct syntax in other types, please consult the documentation.'
 
     raise ValueError(return_str)
 
 
-def _edge_list_to_matrix(edges, n, m):
-    """
+def _edge_list_to_matrix(edges, nlist, mlist):
+    r"""
     Return the matrix obtained from the edge list of a quiver.
 
     INPUT:
 
-    - ``edges``: the list of edges.
-
-    - ``n``: the number of mutable vertices of the quiver.
-
-    - ``m``: the number of frozen vertices of the quiver.
+    - ``edges`` -- the list of edges
+    - ``nlist`` -- the list of mutable vertices of the quiver
+    - ``mlist`` -- the list of frozen vertices of the quiver
 
     OUTPUT:
 
-    - An `(n+m) \times n` matrix corresponding to the edge-list.
+    An `(n+m) \times n` matrix corresponding to the edge-list.
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
         sage: G = QuiverMutationType(['A',2])._digraph
-        sage: _edge_list_to_matrix(G.edges(),2,0)
+        sage: _edge_list_to_matrix(G.edges(), [0,1], [])
         [ 0  1]
         [-1  0]
+
+        sage: G2 = DiGraph([('a', 'b', 1)])
+        sage: _edge_list_to_matrix(G2.edges(), ['a', 'b'], [])
+        [ 0  1]
+        [-1  0]
+
+        sage: G3 = DiGraph([('a', 'b', 1), ('b', 'c', 1)])
+        sage: _edge_list_to_matrix(G3.edges(), ['a', 'b'], ['c'])
+        [ 0  1]
+        [-1  0]
+        [ 0 -1]
     """
+    n = len(nlist)
+    m = len(mlist)
+    nmlist = nlist + mlist
     M = matrix(ZZ, n + m, n, sparse=True)
     for edge in edges:
         if edge[2] is None:
@@ -2434,8 +2441,8 @@ def _edge_list_to_matrix(edges, n, m):
         elif edge[2] in ZZ:
             edge = (edge[0], edge[1], (edge[2], -edge[2]))
         v1, v2, (a, b) = edge
-        if v1 < n:
-            M[v2, v1] = b
-        if v2 < n:
-            M[v1, v2] = a
+        if v1 in nlist:
+            M[nmlist.index(v2), nmlist.index(v1)] = b
+        if v2 in nlist:
+            M[nmlist.index(v1), nmlist.index(v2)] = a
     return M

@@ -57,7 +57,7 @@ class AffineGroup(UniqueRepresentation, Group):
         x \mapsto A x + b.
 
     We can also represent affine transformations as linear transformations by
-    considering `\dim(V) + 1` dimensonal space. We take the affine
+    considering `\dim(V) + 1` dimensional space. We take the affine
     transformation `(A, b)` to
 
     .. MATH::

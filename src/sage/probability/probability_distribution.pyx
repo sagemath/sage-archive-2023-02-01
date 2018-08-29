@@ -39,12 +39,14 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
+import sys
+from cysignals.memory cimport sig_malloc, sig_free
 
 import sage.plot.plot
-include "cysignals/memory.pxi"
 from sage.libs.gsl.all cimport *
 import sage.misc.prandom as random
-import sys
 from sage.modules.free_module_element import vector
 
 #TODO: Add more distributions available in gsl
@@ -92,7 +94,7 @@ cdef class ProbabilityDistribution:
 
         raise NotImplementedError("implement in derived class")
 
-    def generate_histogram_data(self, num_samples = 1000, bins = 50):
+    def generate_histogram_data(self, num_samples=1000, bins=50):
         """
         Compute a histogram of the probability distribution.
 
@@ -110,13 +112,13 @@ cdef class ProbabilityDistribution:
           ``bins``, consisting of the normalised histogram of the random
           samples. The second list is the bins.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.probability.probability_distribution import GeneralDiscreteDistribution
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
             sage: h, b = X.generate_histogram_data(bins = 10)
-            sage: h
+            sage: h  # rel tol 1e-08
             [1.6299999999999999,
              0.0,
              0.0,
@@ -130,10 +132,9 @@ cdef class ProbabilityDistribution:
             sage: b
             [0.0, 0.20000000000000001, 0.40000000000000002, 0.60000000000000009, 0.80000000000000004, 1.0, 1.2000000000000002, 1.4000000000000001, 1.6000000000000001, 1.8, 2.0]
         """
-
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
-        S = pylab.hist(l, bins, normed = True, hold = False)
+        S = pylab.hist(l, bins, normed=True)
         return [list(S[0]), list(S[1])]
 
     def generate_histogram_plot(self, name, num_samples = 1000, bins = 50):
@@ -151,7 +152,7 @@ cdef class ProbabilityDistribution:
         - ``bins`` - (optional) number of bins to divide the samples
           into.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This saves the histogram plot to
         ``my_general_distribution_plot.png`` in the temporary
@@ -164,10 +165,9 @@ cdef class ProbabilityDistribution:
             sage: file = os.path.join(SAGE_TMP, "my_general_distribution_plot")
             sage: X.generate_histogram_plot(file)
         """
-
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
-        pylab.hist(l, bins, normed = True, hold = False)
+        pylab.hist(l, bins, normed=True)
         pylab.savefig(name)
 
 
@@ -244,7 +244,7 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         """
         Set the seed for the underlying random number generator.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = SphericalDistribution(seed = 0)
             sage: T.set_seed(100)
@@ -257,7 +257,7 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         Set the gsl random number generator to be one of ``default``,
         ``luxury``, or ``taus``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = SphericalDistribution()
             sage: T.set_random_number_generator('default')
@@ -287,7 +287,7 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         """
         Get a random sample from the probability distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = SphericalDistribution(seed = 0)
             sage: T.get_random_element()  # rel tol 4e-16
@@ -305,7 +305,7 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         """
         This method resets the distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = SphericalDistribution(seed = 0)
             sage: [T.get_random_element() for _ in range(4)]  # rel tol 4e-16
@@ -552,7 +552,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         """
         Set the seed for the underlying random number generator.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = RealDistribution('gaussian', 1, rng = 'luxury', seed = 10)
             sage: T.set_seed(100)
@@ -566,7 +566,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         Set the gsl random number generator to be one of ``default``,
         ``luxury``, or ``taus``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = SphericalDistribution()
             sage: T.set_random_number_generator('default')
@@ -590,14 +590,13 @@ cdef class RealDistribution(ProbabilityDistribution):
     def __dealloc__(self):
         if self.r != NULL:
             gsl_rng_free(self.r)
-        if self.parameters != NULL:
-            sig_free(self.parameters)
+        sig_free(self.parameters)
 
     def __str__(self):
         """
         Return the name of the current distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = RealDistribution('gaussian', 1)
             sage: str(T)
@@ -612,7 +611,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         """
         Get a random sample from the probability distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = RealDistribution('gaussian', 1, seed = 0)
             sage: T.get_random_element()  # rel tol 4e-16
@@ -658,8 +657,7 @@ cdef class RealDistribution(ProbabilityDistribution):
             sage: T.set_distribution('gaussian', 1)
             sage: T.set_distribution('pareto', [0, 1])
         """
-        if self.parameters != NULL:
-            sig_free(self.parameters)
+        sig_free(self.parameters)
 
         if name == 'uniform':
           self.distribution_type = uniform
@@ -783,7 +781,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         """
         This method resets the distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = RealDistribution('gaussian', 1, seed = 10)
             sage: [T.get_random_element() for _ in range(10)]  # rel tol 4e-16
@@ -845,7 +843,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         Evaluate the cumulative distribution function of
         the probability distribution at ``x``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = RealDistribution('uniform', [0, 2])
             sage: T.cum_distribution_function(1)
@@ -881,7 +879,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         Evaluate the inverse of the cumulative distribution
         distribution function of the probability distribution at ``x``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = RealDistribution('uniform', [0, 2])
             sage: T.cum_distribution_function_inv(.5)
@@ -919,7 +917,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         distribution. Parameters to ``sage.plot.plot.plot.plot`` can be
         passed through ``*args`` and ``**kwds``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = RealDistribution('uniform', [0, 2])
             sage: P = T.plot()
@@ -1007,7 +1005,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         Given a list of probabilities P construct an instance of a gsl
         discrete random variable generator.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
@@ -1030,6 +1028,15 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
             True
             sage: one == three
             False
+
+        Testing that :trac:`24416` is fixed for when entries are larger
+        than `2^{1024}`::
+
+            sage: from collections import Counter
+            sage: X = GeneralDiscreteDistribution([1,2,2^1024])
+            sage: Counter(X.get_random_element() for _ in range(100))
+            Counter({2: 100})
+
         """
         gsl_rng_env_setup()
         self.set_random_number_generator(rng)
@@ -1040,6 +1047,10 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
         cdef int n
         n = len(P)
+
+        s = sum(P)
+        if s != 1:
+            P = [p/s for p in P]
 
         cdef double *P_vec
         P_vec = <double *> sig_malloc(n*(sizeof(double)))
@@ -1059,7 +1070,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         """
         Set the seed to be used by the random number generator.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X = GeneralDiscreteDistribution([0.3, 0.4, 0.3])
             sage: X.set_seed(1)
@@ -1074,7 +1085,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         """
         Set the random number generator to be used by gsl.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X = GeneralDiscreteDistribution([0.3, 0.4, 0.3])
             sage: X.set_random_number_generator('taus')
@@ -1100,7 +1111,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         """
         Get a random sample from the probability distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
@@ -1116,7 +1127,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         """
         This method resets the distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = GeneralDiscreteDistribution([0.1, 0.3, 0.6])
             sage: T.set_seed(0)

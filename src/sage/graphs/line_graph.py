@@ -133,12 +133,13 @@ This decomposition turns out to be very easy to implement :-)
   Characterizations of derived graphs,
   Journal of Combinatorial Theory,
   Vol. 9(2), pages 129-135, 1970
-  http://dx.doi.org/10.1016/S0021-9800(70)80019-9
+  :doi:`10.1016/S0021-9800(70)80019-9`
 
 Functions
 ---------
 """
 from __future__ import print_function
+from six import iteritems
 
 
 def is_line_graph(g, certificate = False):
@@ -333,7 +334,7 @@ def line_graph(self, labels=True):
          ((1, 3, None), (3, 4, None), None),
          ((2, 3, None), (3, 4, None), None)]
 
-    Tests:
+    TESTS:
 
     :trac:`13787`::
 
@@ -460,7 +461,7 @@ def root_graph(g, verbose = False):
 
         sage: from sage.graphs.line_graph import root_graph
         sage: root_graph(graphs.CompleteGraph(3))
-        (Complete bipartite graph: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3)})
+        (Complete bipartite graph of order 1+3: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3)})
         sage: root_graph(graphs.OctahedralGraph())
         (Complete graph: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3), 3: (1, 2), 4: (1, 3), 5: (2, 3)})
         sage: root_graph(graphs.DiamondGraph())
@@ -573,13 +574,14 @@ def root_graph(g, verbose = False):
             print("Added clique", S)
 
     # Deal with even triangles
-    for u,v,w in even_triangles:
+    for u, v, w in even_triangles:
 
-        # According to Beineke, we must go through all even triangles, and for
-        # each triangle uvw consider its three pairs of adjacent verties uv, vw,
-        # wu. For all pairs xy among those such that xy do not appear together
-        # in any clique we have found so far, we add xy to the list of cliques
-        # describing our covering.
+        # According to Beineke, we must go through all even triangles,
+        # and for each triangle uvw consider its three pairs of
+        # adjacent vertices uv, vw, wu. For all pairs xy among those
+        # such that xy do not appear together in any clique we have
+        # found so far, we add xy to the list of cliques describing
+        # our covering.
 
         for x,y in [(u,v), (v,w), (w,u)]:
 
@@ -597,7 +599,7 @@ def root_graph(g, verbose = False):
 
     # Deal with vertices contained in only one clique. All edges must be defined
     # by TWO endpoints, so we add a fake clique.
-    for x, clique_list in v_cliques.iteritems():
+    for x, clique_list in iteritems(v_cliques):
         if len(clique_list) == 1:
             clique_list.append((x,))
 
@@ -612,7 +614,7 @@ def root_graph(g, verbose = False):
     # Associates to each vertex of G its pair of coordinates in R
     vertex_to_map = {}
 
-    for v,L in v_cliques.iteritems():
+    for v, L in iteritems(v_cliques):
 
         # Add cliques to relabel dictionary
         for S in L:
@@ -624,7 +626,7 @@ def root_graph(g, verbose = False):
 
     if verbose:
         print("Final associations :")
-        for v, L in v_cliques.iteritems():
+        for v, L in iteritems(v_cliques):
             print(v, L)
 
     # We now build R

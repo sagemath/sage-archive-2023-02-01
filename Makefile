@@ -9,12 +9,27 @@
 
 default: all
 
-build: all-build
+all: base-toolchain
+	$(MAKE) all-start
+
+build: base-toolchain
+	$(MAKE) all-build
+
+start: base-toolchain
+	$(MAKE) build-start
+
+sageruntime: base-toolchain
+	$(MAKE) all-sageruntime
+
+
+# The --stop flag below is just a random flag to induce graceful
+# breakage with non-GNU versions of make.
+# See https://trac.sagemath.org/ticket/24617
 
 # Defer unknown targets to build/make/Makefile
 %::
 	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
-	$(MAKE) build/make/Makefile
+	$(MAKE) build/make/Makefile --stop
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
 
@@ -36,6 +51,13 @@ build/make/Makefile: configure build/make/deps build/pkgs/*/*
 		else \
 			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
 		fi; )
+
+# This is used to monitor progress towards Python 3 and prevent
+# regressions. The target "build" should be upgraded to reflect the
+# level of Python 3 support that is known to work.
+buildbot-python3: configure
+	./configure --with-python=3
+	$(MAKE) build
 
 # Preemptively download all standard upstream source tarballs.
 download:
@@ -71,6 +93,7 @@ distclean: build-clean
 	$(MAKE) misc-clean
 	@echo "Deleting all remaining output from build system ..."
 	rm -rf local
+	rm -f src/bin/sage-env-config
 
 # Delete all auto-generated files which are distributed as part of the
 # source tarball
@@ -129,16 +152,21 @@ ptestoptionallong: all
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d
 
-install:
+install: all
 	@echo "******************************************************************"
-	@echo "The '$@' target is no longer supported:"
-	@echo "either build SageMath in-place or use the binary packaging scripts"
+	@echo "The '$@' target is a no-op; 'make' already does 'make install'"
+	@echo "You can change the install prefix from its default"
+	@echo "(the subdirectory 'local') by using ./configure --prefix=PREFIX"
+	@echo "You can also consider using the binary packaging scripts"
 	@echo "from https://github.com/sagemath/binary-pkg"
 	@echo "******************************************************************"
-	@exit 1
 
+list:
+	@$(MAKE) --silent build/make/Makefile >&2
+	@$(MAKE) --silent -f build/make/Makefile SAGE_SPKG_INST=local $@
 
 .PHONY: default build install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
-	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong
+	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
+	buildbot-python3 list

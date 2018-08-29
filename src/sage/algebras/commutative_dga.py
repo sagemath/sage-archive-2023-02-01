@@ -1,4 +1,4 @@
-"""
+r"""
 Commutative Differential Graded Algebras
 
 An algebra is said to be *graded commutative* if it is endowed with a
@@ -71,9 +71,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six import string_types
 
-import six
+from sage.misc.six import with_metaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -86,6 +87,7 @@ from sage.categories.modules import Modules
 from sage.categories.homset import Hom
 
 from sage.algebras.free_algebra import FreeAlgebra
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
@@ -97,7 +99,11 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 
-class Differential(UniqueRepresentation, Morphism):
+
+class Differential(with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        UniqueRepresentation, Morphism
+    )):
     r"""
     Differential of a commutative graded algebra.
 
@@ -119,8 +125,6 @@ class Differential(UniqueRepresentation, Morphism):
         sage: B.differential()(x)
         x*y
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, A, im_gens):
         r"""
@@ -325,8 +329,8 @@ class Differential(UniqueRepresentation, Morphism):
         """
         A = self.domain()
         dom = A.basis(n)
-        cod = A.basis(n+1)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cod = A.basis(n + 1)
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(A.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -568,7 +572,7 @@ class Differential_multigraded(Differential):
         n = G(vector(n))
         dom = A.basis(n)
         cod = A.basis(n+self._degree_of_differential)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(self.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -840,6 +844,18 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A2 = GradedCommutativeAlgebra(GF(2), ['x', 'y'], [3, 6])
             sage: A1 is A2
             True
+
+        Testing the single generator case (:trac:`25276`)::
+
+            sage: A3.<z> = GradedCommutativeAlgebra(QQ)
+            sage: z**2 == 0
+            True
+            sage: A4.<z> = GradedCommutativeAlgebra(QQ, degrees=[4])
+            sage: z**2 == 0
+            False
+            sage: A5.<z> = GradedCommutativeAlgebra(GF(2))
+            sage: z**2 == 0
+            False
         """
         if names is None:
             if degrees is None:
@@ -847,7 +863,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             else:
                 n = len(degrees)
             names = tuple('x{}'.format(i) for i in range(n))
-        elif isinstance(names, six.string_types):
+        elif isinstance(names, string_types):
             names = tuple(names.split(','))
             n = len(names)
         else:
@@ -871,7 +887,10 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             degrees = tuple(degrees)
 
         if not R or not I:
-            F = FreeAlgebra(base, n, names)
+            if n > 1:
+                F = FreeAlgebra(base, n, names)
+            else: # n = 1
+                F = PolynomialRing(base, n, names)
             gens = F.gens()
             rels = {}
             tot_degs = [total_degree(d) for d in degrees]
@@ -879,7 +898,10 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 for j in range(i+1, len(gens)):
                     rels[gens[j]*gens[i]] = ((-1) ** (tot_degs[i] * tot_degs[j])
                                              * gens[i] * gens[j])
-            R = F.g_algebra(rels, order = TermOrder('wdegrevlex', tot_degs))
+            if n > 1:
+                R = F.g_algebra(rels, order = TermOrder('wdegrevlex', tot_degs))
+            else: # n = 1
+                R = F.quotient(rels)
             if base.characteristic() == 2:
                 I = R.ideal(0, side='twosided')
             else:
@@ -1051,7 +1073,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             el = prod([self.gen(i)**v[i] for i in range(len(v))])
             di = el.dict()
             if len(di) == 1:
-                if tuple(di.keys()[0]) == v:
+                k, = di.keys()
+                if tuple(k) == v:
                     basis.append(el)
         return basis
 
@@ -1292,13 +1315,13 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         def is_homogeneous(self, total=False):
             r"""
-            Return ``True`` if ``self`` is homogenous and ``False`` otherwise.
+            Return ``True`` if ``self`` is homogeneous and ``False`` otherwise.
 
             INPUT:
 
             - ``total`` -- boolean (default ``False``); only used in the
               multi-graded case, in which case if ``True``, check to see
-              if ``self`` is homogenenous with respect to total degree
+              if ``self`` is homogeneous with respect to total degree
 
             EXAMPLES::
 
@@ -1406,11 +1429,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 raise ValueError('This element is not homogeneous')
 
             basis = self.parent().basis(self.degree(total))
-            F = self.parent().base()
             lift = self.lift()
-            monos = self.monomials()
-            c = [lift.monomial_coefficient(x.lift()) for x in basis]
-            return c
+            return [lift.monomial_coefficient(x.lift()) for x in basis]
 
 
 class GCAlgebra_multigraded(GCAlgebra):
@@ -1483,6 +1503,10 @@ class GCAlgebra_multigraded(GCAlgebra):
 
             sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=((1,0), (0,1), (1,1)))
             sage: TestSuite(A).run()
+            sage: B.<w> = GradedCommutativeAlgebra(GF(2), degrees=((3,2)))
+            sage: TestSuite(B).run()
+            sage: C = GradedCommutativeAlgebra(GF(7), degrees=((3,2)))
+            sage: TestSuite(C).run()
         """
         total_degs = [total_degree(d) for d in degrees]
         GCAlgebra.__init__(self, base, R=R, I=I, names=names, degrees=total_degs)
@@ -2642,7 +2666,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     if degrees:
         try:
             for d in degrees:
-                _ = list(d)
+                list(d)
             # If the previous line doesn't raise an error, looks multi-graded.
             multi = True
         except TypeError:

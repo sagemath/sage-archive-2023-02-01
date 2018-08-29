@@ -329,7 +329,7 @@ from __future__ import absolute_import
 import sage.modules.matrix_morphism as matrix_morphism
 import sage.modules.free_module_morphism as free_module_morphism
 from . import vector_space_homspace
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     r"""
@@ -920,7 +920,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         r"""
         A LaTeX representation of this vector space morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))
@@ -931,7 +931,6 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             '}\n\\left(\\begin{array}{rr}\n0', '&', '1',
             '\\\\\n2', '&', '3', '\\\\\n4', '&', '5\n\\end{array}\\right)']
         """
-        from sage.misc.latex import latex
         s = ('\\text{vector space morphism from }\n', self.domain()._latex_(),
              '\\text{ to }\n', self.codomain()._latex_(),
              '\\text{ represented by the matrix }\n', self.matrix()._latex_())
@@ -941,7 +940,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         r"""
         A text representation of this vector space morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))
@@ -954,7 +953,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         """
         m = self.matrix()
         msg = ("Vector space morphism represented by the matrix:\n",
-               "{0}\n",
-               "Domain: {1}\n",
-               "Codomain: {2}")
+               "{!r}\n",
+               "Domain: {}\n",
+               "Codomain: {}")
         return ''.join(msg).format(m, self.domain(), self.codomain())

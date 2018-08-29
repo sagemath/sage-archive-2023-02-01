@@ -150,6 +150,22 @@ class CharacterArt(SageObject):
             return output + self._matrix[len(self._matrix) - 1]
         return output
 
+    def __format__(self, fmt):
+        r"""
+        Format ``self``.
+
+        EXAMPLES::
+
+            sage: M = matrix([[1,2],[3,4]])
+            sage: format(ascii_art(M))
+            '[1 2]\n[3 4]'
+            sage: format(unicode_art(M))  # py2
+            u'\u239b1 2\u239e\n\u239d3 4\u23a0'
+            sage: format(unicode_art(M))  # py3
+            '\u239b1 2\u239e\n\u239d3 4\u23a0'
+        """
+        return format(self._string_type(self), fmt)
+
     def get_baseline(self):
         r"""
         Return the line where the baseline is, for example::

@@ -264,7 +264,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
     @cached_method
     def level(self):
-        """
+        r"""
         Return the level of ``self``.
 
         The level of a highest weight representation `V_{\Lambda}` is
@@ -325,7 +325,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         return "Integrable representation of %s with highest weight %s"%(self._cartan_type, self._Lam)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
@@ -368,7 +368,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             [   0    0   -1    1 -1/2]
             [   0    0    0 -1/2    1]
 
-        .. WARNING:
+        .. WARNING::
 
             If ``qelt1`` or ``qelt1`` accidentally gets coerced into
             the extended weight lattice, this will return an answer,
@@ -389,7 +389,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         Symmetric form between an element of the weight and root lattices
         associated to ``self``.
 
-        .. WARNING:
+        .. WARNING::
 
             If ``qelt`` accidentally gets coerced into the extended weight
             lattice, this will return an answer, and it will be wrong. To make
@@ -892,7 +892,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         return tuple(ret)
 
     def string(self, max_weight, depth=12):
-        """
+        r"""
         Return the list of multiplicities `m(\Lambda - k \delta)` in
         ``self``, where `\Lambda` is ``max_weight`` and `k` runs from `0`
         to ``depth``.

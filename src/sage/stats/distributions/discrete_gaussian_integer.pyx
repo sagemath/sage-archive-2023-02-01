@@ -11,7 +11,7 @@ AUTHORS:
 
 - Martin Albrecht (2014-06-28): initial version
 
-EXAMPLE:
+EXAMPLES:
 
 We construct a sampler for the distribution `D_{3,c}` with width `σ=3` and center `c=0`::
 
@@ -29,7 +29,8 @@ precisely we have to normalise by dividing by the overall probability over all
 integers. We use the fact that hitting anything more than 6 standard deviations
 away is very unlikely and compute::
 
-    sage: norm_factor = sum([exp(-x^2/(2*sigma^2)) for x in range(-6*sigma,sigma*6+1)])
+    sage: bound = (6*sigma).floor()
+    sage: norm_factor = sum([exp(-x^2/(2*sigma^2)) for x in range(-bound,bound+1)])
     sage: norm_factor
     7.519...
 
@@ -107,9 +108,10 @@ REFERENCES:
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
+
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN
@@ -363,7 +365,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
         r"""
         Flush the internal cache of random bits.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 

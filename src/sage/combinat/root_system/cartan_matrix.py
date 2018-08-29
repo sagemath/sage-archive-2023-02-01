@@ -24,10 +24,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import add_metaclass
 
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.classcall_metaclass import typecall
@@ -39,6 +40,8 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
 from sage.graphs.digraph import DiGraph
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     r"""
     A (generalized) Cartan matrix.
@@ -197,8 +200,6 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         :meth:`row_with_indices()` and :meth:`column_with_indices()`
         respectively.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, data=None, index_set=None,
                               cartan_type=None, cartan_type_check=True):
@@ -263,8 +264,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             if dynkin_diagram is not None:
                 n = dynkin_diagram.rank()
                 index_set = dynkin_diagram.index_set()
+                oir = dynkin_diagram.odd_isotropic_roots()
                 reverse = {a: i for i,a in enumerate(index_set)}
-                data = {(i, i): 2 for i in range(n)}
+                data = {(i, i): 2 if index_set[i] not in oir else 0
+                        for i in range(n)}
                 for (i,j,l) in dynkin_diagram.edge_iterator():
                     data[(reverse[j], reverse[i])] = -l
             else:
@@ -285,12 +288,48 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
         # We can do the Cartan type initialization later as this is not
         #   a unique representation
-        mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, False)
+        mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, True)
         # FIXME: We have to initialize the CartanMatrix part separately because
         #   of the __cinit__ of the matrix. We should get rid of this workaround
         mat._CM_init(cartan_type, index_set, cartan_type_check)
         mat._subdivisions = subdivisions
         return mat
+
+    def matrix_space(self, nrows=None, ncols=None, sparse=None):
+        r"""
+        Return a matrix space over the integers.
+
+        INPUT:
+
+        - ``nrows`` - number of rows
+
+        - ``ncols`` - number of columns
+
+        - ``sparse`` - (boolean) sparseness
+
+        EXAMPLES::
+
+            sage: cm = CartanMatrix(['A', 3])
+            sage: cm.matrix_space()
+            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+            sage: cm.matrix_space(2, 2)
+            Full MatrixSpace of 2 by 2 sparse matrices over Integer Ring
+            sage: cm[:2,1:]   # indirect doctest
+            [-1  0]
+            [ 2 -1]
+        """
+        if nrows is None:
+            nrows = self.nrows()
+        if ncols is None:
+            ncols = self.ncols()
+        if sparse is None:
+            sparse = True
+
+        if nrows == self.nrows() and ncols == self.ncols() and sparse:
+            return self.parent()
+        else:
+            from sage.matrix.matrix_space import MatrixSpace
+            return MatrixSpace(ZZ, nrows, ncols, sparse is None or bool(sparse))
 
     def _CM_init(self, cartan_type, index_set, cartan_type_check):
         """
@@ -671,11 +710,11 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     def is_finite(self):
         """
         Return ``True`` if ``self`` is a finite type or ``False`` otherwise.
-        
+
         A generalized Cartan matrix is finite if the determinant of all its
-        principal submatrices (see :meth:`principal_submatrices`) is positive. 
-        Such matrices have a positive definite symmetrized matrix. Note that a 
-        finite matrix may consist of multiple blocks of Cartan matrices each 
+        principal submatrices (see :meth:`principal_submatrices`) is positive.
+        Such matrices have a positive definite symmetrized matrix. Note that a
+        finite matrix may consist of multiple blocks of Cartan matrices each
         having finite Cartan type.
 
         EXAMPLES::
@@ -693,16 +732,16 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if self._cartan_type is None:
             if not self.is_symmetrizable():
                 return False
-            return self.symmetrized_matrix().is_positive_definite() 
+            return self.symmetrized_matrix().is_positive_definite()
         return self._cartan_type.is_finite()
 
     @cached_method
     def is_affine(self):
         """
         Return ``True`` if ``self`` is an affine type or ``False`` otherwise.
-        
-        A generalized Cartan matrix is affine if all of its indecomposable 
-        blocks are either finite (see :meth:`is_finite`) or have zero 
+
+        A generalized Cartan matrix is affine if all of its indecomposable
+        blocks are either finite (see :meth:`is_finite`) or have zero
         determinant with all proper principal minors positive.
 
         EXAMPLES::
@@ -722,26 +761,26 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 return False
             for b in self.indecomposable_blocks():
                 if b.det() < 0 or not all(
-                    a.det() > 0 for a in b.principal_submatrices(proper=True)): 
+                    a.det() > 0 for a in b.principal_submatrices(proper=True)):
                     return False
             return True
         return self._cartan_type.is_affine()
-    
+
     @cached_method
     def is_hyperbolic(self, compact=False):
         """
-        Return if ``True`` if ``self`` is a (compact) hyperbolic type 
+        Return if ``True`` if ``self`` is a (compact) hyperbolic type
         or ``False`` otherwise.
-        
+
         An indecomposable generalized Cartan matrix is hyperbolic if it has
         negative determinant and if any proper connected subdiagram of its
         Dynkin diagram is of finite or affine type. It is compact hyperbolic
         if any proper connected subdiagram has finite type.
-        
+
         INPUT:
 
-        - ``compact`` -- if ``True``, check if matrix is compact hyperbolic  
-        
+        - ``compact`` -- if ``True``, check if matrix is compact hyperbolic
+
         EXAMPLES::
 
             sage: M = CartanMatrix([[2,-2,0],[-2,2,-1],[0,-1,2]])
@@ -758,7 +797,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         if not self.is_indefinite() or not self.is_indecomposable():
             return False
-        
+
         D = self.dynkin_diagram()
         verts = tuple(D.vertex_iterator())
         for v in verts:
@@ -769,15 +808,15 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             elif not subg.is_finite() and not subg.is_affine():
                 return False
         return True
-    
+
     @cached_method
     def is_lorentzian(self):
         """
         Return ``True`` if ``self`` is a Lorentzian type or ``False`` otherwise.
-        
+
         A generalized Cartan matrix is Lorentzian if it has negative determinant
         and exactly one negative eigenvalue.
-        
+
         EXAMPLES::
 
             sage: M = CartanMatrix([[2,-3],[-3,2]])
@@ -790,12 +829,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if self.det() >= 0:
             return False
         return sum(1 for x in self.eigenvalues() if x < 0) == 1
-        
-    @cached_method        
+
+    @cached_method
     def is_indefinite(self):
         """
         Return if ``self`` is an indefinite type or ``False`` otherwise.
-        
+
         EXAMPLES::
 
            sage: M = CartanMatrix([[2,-3],[-3,2]])
@@ -806,12 +845,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
            False
         """
         return not self.is_finite() and not self.is_affine()
-                
+
     @cached_method
     def is_indecomposable(self):
         """
         Return if ``self`` is an indecomposable matrix or ``False`` otherwise.
-        
+
         EXAMPLES::
 
             sage: M = CartanMatrix(['A',5])
@@ -828,11 +867,11 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     def principal_submatrices(self, proper=False):
         """
         Return a list of all principal submatrices of ``self``.
-        
+
         INPUT:
 
-        - ``proper`` -- if ``True``, return only proper submatrices 
-        
+        - ``proper`` -- if ``True``, return only proper submatrices
+
         EXAMPLES::
 
             sage: M = CartanMatrix(['A',2])
@@ -843,7 +882,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             ]
             sage: M.principal_submatrices(proper=True)
             [[], [2], [2]]
-            
+
         """
         iset = list(range(self.ncols()))
         ret = []
@@ -851,12 +890,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             if not proper or (proper and l != iset):
                 ret.append(self.matrix_from_rows_and_columns(l,l))
         return ret
-    
+
     @cached_method
     def indecomposable_blocks(self):
         """
         Return a tuple of all indecomposable blocks of ``self``.
-        
+
         EXAMPLES::
 
             sage: M = CartanMatrix(['A',2])
@@ -868,7 +907,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M = CartanMatrix([['A',2,1],['A',3,1]])
             sage: M.indecomposable_blocks()
             (
-            [ 2 -1  0 -1]            
+            [ 2 -1  0 -1]
             [-1  2 -1  0]  [ 2 -1 -1]
             [ 0 -1  2 -1]  [-1  2 -1]
             [-1  0 -1  2], [-1 -1  2]

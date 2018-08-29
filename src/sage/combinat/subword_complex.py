@@ -472,7 +472,7 @@ class SubwordComplexFacet(Simplex, Element):
         r"""
         Return the positive roots of the root configuration of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: W = ReflectionGroup(['A',2])                          # optional - gap3
             sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3
@@ -550,7 +550,7 @@ class SubwordComplexFacet(Simplex, Element):
             if coefficients is not None:
                 coeff = {I[i]: coefficients[i]
                          for i in range(len(coefficients))}
-                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda}
+                Lambda = {li: coeff[li] * Lambda[li] for li in Lambda.keys()}
             Q = self.parent().word()
             V_weights = []
             pi = W.one()
@@ -980,6 +980,7 @@ class SubwordComplexFacet(Simplex, Element):
         """
         return self.plot().show(*kwds, **args)
 
+
 class SubwordComplex(UniqueRepresentation, SimplicialComplex):
     r"""
     Fix a Coxeter system `(W,S)`. The subword complex
@@ -1020,6 +1021,22 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
 
     REFERENCES: [KnuMil]_, [PilStu]_
+
+    TESTS::
+
+        sage: W = ReflectionGroup(['A',2])                          # optional - gap3
+        sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3
+        sage: SC1 = SubwordComplex([1,2,1,2,1], w)                  # optional - gap3
+        sage: SC2 = SubwordComplex([1,2,1,2,1], w)                  # optional - gap3
+        sage: SC1 == SC2                                            # optional - gap3
+        True
+
+        sage: W = CoxeterGroup(['A',2])
+        sage: w = W.from_reduced_word([1,2,1])
+        sage: SC1 = SubwordComplex([1,2,1,2,1], w)
+        sage: SC2 = SubwordComplex([1,2,1,2,1], w)
+        sage: SC1 == SC2
+        True
     """
 
     # standard functions
@@ -1155,32 +1172,6 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         else:
             return 'Subword complex of type {} for Q = {} and pi = {}'.format(self.cartan_type(), self._Q, self._pi.reduced_word())
 
-    def __eq__(self, other):
-        r"""
-        Compare the subword complexes ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- another subword complex.
-
-        EXAMPLE::
-
-            sage: W = ReflectionGroup(['A',2])                          # optional - gap3
-            sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3
-            sage: SC1 = SubwordComplex([1,2,1,2,1], w)                  # optional - gap3
-            sage: SC2 = SubwordComplex([1,2,1,2,1], w)                  # optional - gap3
-            sage: SC1 == SC2                                            # optional - gap3
-            True
-
-            sage: W = CoxeterGroup(['A',2])
-            sage: w = W.from_reduced_word([1,2,1])
-            sage: SC1 = SubwordComplex([1,2,1,2,1], w)
-            sage: SC2 = SubwordComplex([1,2,1,2,1], w)
-            sage: SC1 == SC2
-            True
-        """
-        return self is other
-
     def __call__(self, F, facet_test=True):
         r"""
         Create a facet of ``self``.
@@ -1275,7 +1266,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
             sage: SC.group()
-            Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+            Finite Coxeter group over Integer Ring with Coxeter matrix:
             [1 3]
             [3 1]
         """

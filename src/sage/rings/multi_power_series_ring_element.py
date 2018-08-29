@@ -155,16 +155,16 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems, integer_types
 
-from sage.rings.power_series_ring_element import PowerSeries
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
+
+from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.rings.infinity import infinity, is_Infinite
+from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
-
-from sage.rings.integer import Integer
-from sage.rings.finite_rings.integer_mod_ring import Zmod
-
-from sage.rings.infinity import infinity, is_Infinite
+from sage.rings.power_series_ring_element import PowerSeries
 
 
 def is_MPowerSeries(f):
@@ -186,9 +186,7 @@ def is_MPowerSeries(f):
         sage: is_PowerSeries(1 - v + v^2 +O(v^3))
         True
     """
-
     return isinstance(f, MPowerSeries)
-
 
 
 class MPowerSeries(PowerSeries):
@@ -284,7 +282,7 @@ class MPowerSeries(PowerSeries):
 
     Convert elements from polynomial rings::
 
-        sage: R = PolynomialRing(ZZ,5,T.gens())
+        sage: R = PolynomialRing(ZZ,5,T.variable_names())
         sage: t = R.gens()
         sage: r = -t[2]*t[3] + t[3]^2 + t[4]^2
         sage: T(r)
@@ -522,7 +520,7 @@ class MPowerSeries(PowerSeries):
             return self
 
         y = 0
-        for (m,c) in self.dict().iteritems():
+        for m, c in iteritems(self.dict()):
                 y += c*prod([x[i]**m[i] for i in range(n) if m[i] != 0])
         if self.prec() == infinity:
             return y
@@ -582,10 +580,19 @@ class MPowerSeries(PowerSeries):
             sage: f._latex_()
             '- t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
             2 t_{1} t_{2}^{12} + 2 t_{0}^{7} t_{1}^{5} t_{2}^{2}
-            + O(t0, t1, t2)^{15}'
+            + O(t_{0}, t_{1}, t_{2})^{15}'
+
+        TESTS:
+
+        Check that :trac:`25156` is fixed::
+
+            sage: R.<x1,y1> = PowerSeriesRing(QQ, ('x', 'y'))
+            sage: element = 1 + y1^10 + x1^5
+            sage: element._latex_()
+            '1 + x_{1}^{5} + y_{1}^{10}'
         """
         if self._prec == infinity:
-            return "%s" % self._value()
+            return "%s" % self._value()._latex_()
         return "%(val)s + O(%(gens)s)^{%(prec)s}" \
                %{'val':self._value()._latex_(),
                  'gens':', '.join(g._latex_() for g in self.parent().gens()),
@@ -1081,7 +1088,7 @@ class MPowerSeries(PowerSeries):
             sage: g.polynomial() == f.polynomial() % 2
             True
         """
-        if isinstance(other,(int,Integer,long)):
+        if isinstance(other, integer_types + (Integer,)):
             return self.change_ring(Zmod(other))
         raise NotImplementedError("Mod on multivariate power series ring elements not defined except modulo an integer.")
 
@@ -1185,7 +1192,7 @@ class MPowerSeries(PowerSeries):
             sage: f.monomials()
             []
         """
-        return self.coefficients().keys()
+        return list(self.coefficients())
 
     def coefficients(self):
         """
@@ -1204,7 +1211,7 @@ class MPowerSeries(PowerSeries):
             sage: g = f^2 + f - 2; g
             3*s + 3*t + s^2 + 5*s*t + t^2 + O(s, t)^3
             sage: cd = g.coefficients()
-            sage: g2 = sum(k*v for (k,v) in cd.iteritems()); g2
+            sage: g2 = sum(k*v for (k,v) in cd.items()); g2
             3*s + 3*t + s^2 + 5*s*t + t^2
             sage: g2 == g.truncate()
             True
@@ -1280,7 +1287,7 @@ class MPowerSeries(PowerSeries):
             -x^3*y^12*z^21 - 1/4*y^3*z^36 + 1/2*x^21*y^15*z^6 + 2/3*y^18*z^24 + O(x, y, z)^45
         """
         cd = self.coefficients()
-        Vs = sum(v*k**n for (k,v) in cd.iteritems())
+        Vs = sum(v * k**n for k, v in iteritems(cd))
         return Vs.add_bigoh(self.prec()*n)
 
     def prec(self):
@@ -1647,7 +1654,7 @@ class MPowerSeries(PowerSeries):
                 sage: (a^2).integral(a)
                 Traceback (most recent call last):
                 ...
-                ZeroDivisionError: Inverse does not exist.
+                ZeroDivisionError: inverse of Mod(0, 3) does not exist
         """
         from sage.misc.derivative import derivative_parse
         res = self
@@ -1674,7 +1681,7 @@ class MPowerSeries(PowerSeries):
         TESTS:
 
         We try to recognize variables even if they are not recognized as
-        genrators of the rings::
+        generators of the rings::
 
             sage: T.<a,b> = PowerSeriesRing(QQ,2)
             sage: a.is_gen()
@@ -1706,7 +1713,7 @@ class MPowerSeries(PowerSeries):
         xxe = xx.exponents()[0]
         pos = [i for i, c in enumerate(xxe) if c != 0][0]  # get the position of the variable
         res = {mon.eadd(xxe): R(co / (mon[pos]+1))
-               for mon, co in self.dict().iteritems()}
+               for mon, co in iteritems(self.dict())}
         return P( res ).add_bigoh(self.prec()+1)
 
     def ogf(self):
@@ -1739,7 +1746,7 @@ class MPowerSeries(PowerSeries):
         """
         raise NotImplementedError("egf")
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Method from univariate power series not yet implemented
 
@@ -1747,12 +1754,12 @@ class MPowerSeries(PowerSeries):
 
             sage: T.<a,b> = PowerSeriesRing(ZZ,2)
             sage: f = a + b + a*b + T.O(5)
-            sage: f._pari_()
+            sage: f.__pari__()
             Traceback (most recent call last):
             ...
-            NotImplementedError: _pari_
+            NotImplementedError: __pari__
         """
-        raise NotImplementedError("_pari_")
+        raise NotImplementedError("__pari__")
 
 
 
@@ -1907,7 +1914,7 @@ class MPowerSeries(PowerSeries):
             sage: exp(g)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Symbolic Ring' and
+            TypeError: unsupported operand parent(s) for *: 'Symbolic Ring' and
             'Power Series Ring in Tbg over Multivariate Polynomial Ring in a, b
             over Rational Field'
 
@@ -1996,7 +2003,7 @@ class MPowerSeries(PowerSeries):
             sage: log(g)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '-': 'Symbolic Ring' and 'Power
+            TypeError: unsupported operand parent(s) for -: 'Symbolic Ring' and 'Power
             Series Ring in Tbg over Multivariate Polynomial Ring in a, b over Rational Field'
 
         Another workaround for this limitation is to change base ring

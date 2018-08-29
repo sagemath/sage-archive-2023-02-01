@@ -22,12 +22,14 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-include "sage/ext/cdefs.pxi"
-include "cysignals/memory.pxi"
+from __future__ import absolute_import, print_function
+
+from libc.math cimport sqrt
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.arith.all import binomial, gcd
+from sage.libs.gmp.mpz cimport *
 from sage.rings.rational_field import RationalField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
@@ -313,8 +315,8 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
 
         rts = RRx(fcoeff).roots()
 
-        if len(rts) > 0:
-            rts = [rts[i][0] for i in range(len(rts))]
+        if rts:
+            rts = [rtsi[0] for rtsi in rts]
             z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
 
     if not z4minmax:
@@ -450,7 +452,7 @@ def easy_is_irreducible_py(f):
 cdef double eps_global
 eps_global = 10.**(-4)
 
-from totallyreal_phc import __lagrange_bounds_phc
+from .totallyreal_phc import __lagrange_bounds_phc
 
 cdef class tr_data:
     r"""
@@ -818,7 +820,7 @@ cdef class tr_data:
                     elif k == n-5 and phc:
                         # New bounds using phc/Lagrange multiplier in degree 4.
                         bminmax = __lagrange_bounds_phc(n, 4, [self.a[i] for i from 0 <= i <= n])
-                        if len(bminmax) > 0:
+                        if bminmax:
                             self.b_lower = bminmax[0]
                             self.b_upper = bminmax[1]
                         else:

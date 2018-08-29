@@ -1590,6 +1590,19 @@ class GenusSymbol_global_ring(object):
     - ``A`` -- a symmetric matrix with integer coefficients
     - ``max_elem_divisors`` -- the input precision for the valuation of a
       maximal p-elementary divisor. (OPTIONAL)
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+        sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
+        sage: G = GenusSymbol_global_ring(A); G
+        Genus of
+        [2 0 0 0]
+        [0 4 0 0]
+        [0 0 6 0]
+        [0 0 0 8]
+        Genus symbol at 2:    [2^-2 4^1 8^1]_6
+        Genus symbol at 3:     1^3 3^-1
     """
 
     def __init__(self, A, max_elem_divisors=None):
@@ -1604,17 +1617,9 @@ class GenusSymbol_global_ring(object):
             sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: G = GenusSymbol_global_ring(A);G
-            Genus of
-            [2 0 0 0]
-            [0 4 0 0]
-            [0 0 6 0]
-            [0 0 0 8]
-            Genus symbol at 2:    [2^-2 4^1 8^1]_6
-            Genus symbol at 3:     1^3 3^-1
+            sage: G = GenusSymbol_global_ring(A)
             sage: G == loads(dumps(G))
             True
-
         """
         D = A.determinant()
         D = 2*D

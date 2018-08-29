@@ -261,7 +261,10 @@ class LieSubset(Parent, UniqueRepresentation):
                 sage: S(x)._bracket_(S(y))
                 [x, y]
             """
-            return type(self)(self.parent(), self.value.bracket(x.value))
+            P = self.parent()
+            self_lift = P.lift(self)
+            x_lift = P.lift(x)
+            return P.retract(P.ambient().bracket(self_lift, x_lift))
 
 
 class LieSubset_with_gens(LieSubset):
@@ -564,7 +567,7 @@ class LieSubalgebra_finite_dimensional_with_basis(LieSubset_with_gens):
             [0 0 3]
         """
         m = self.ambient().module()
-        ambientbasis = [X.value.to_vector() for X in self.basis()]
+        ambientbasis = [self.lift(X).to_vector() for X in self.basis()]
         return m.submodule_with_basis(ambientbasis)
 
     class Element(LieSubset.Element):
@@ -601,7 +604,7 @@ class LieSubalgebra_finite_dimensional_with_basis(LieSubset_with_gens):
                 (0, 2, 3)
             """
             sm = self.parent().ambient_submodule()
-            return sm.coordinate_vector(self.value.to_vector())
+            return sm.coordinate_vector(self.parent().lift(self).to_vector())
 
         def monomial_coefficients(self, copy=True):
             r"""

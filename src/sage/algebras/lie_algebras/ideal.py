@@ -265,7 +265,7 @@ class LieIdeal_finite_dimensional_with_basis(LieSubalgebra_finite_dimensional_wi
         """
         R = self.base_ring()
         for Y in self.basis():
-            Y = Y.value
+            Y = self.lift(Y)
             k, c = Y.leading_item()
 
             if R.is_field():

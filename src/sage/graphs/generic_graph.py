@@ -3344,17 +3344,18 @@ class GenericGraph(GenericGraph_pyx):
                                     w_to_root.append(s)
                                     s = tree[s]
 
-                                u_to_root = []
+                                v_to_root = []
                                 s = v
                                 while s is not None:
-                                    u_to_root.append(s)
+                                    v_to_root.append(s)
                                     s = tree[s]
 
-                                while u_to_root and w_to_root and u_to_root[-1] == w_to_root[-1]:
-                                    r = u_to_root.pop()
+                                # Remove the common part of v -> root and w -> root
+                                while v_to_root and w_to_root and v_to_root[-1] == w_to_root[-1]:
+                                    r = v_to_root.pop()
                                     w_to_root.pop()
 
-                                cycle = u_to_root + [r] + w_to_root[::-1]
+                                cycle = v_to_root + [r] + w_to_root[::-1]
 
                                 return False, cycle
 

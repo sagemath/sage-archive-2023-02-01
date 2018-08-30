@@ -576,13 +576,8 @@ class FractionField_generic(ring.Field):
         Check that :trac:`24539` is fixed::
 
             sage: tau = polygen(QQ, 'tau')
-            sage: R = PolynomialRing(CyclotomicField(2), 'z').fraction_field()(
-            ....:     tau/(1+tau))
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot convert tau/(tau + 1)/1 to an element of Fraction
-            Field of Univariate Polynomial Ring in z over Cyclotomic Field of
-            order 2 and degree 1
+            sage: PolynomialRing(CyclotomicField(2), 'z').fraction_field()(tau/(1+tau))
+            z/(z + 1)
 
         Check that :trac:`26150` is fixed::
 

@@ -2925,6 +2925,8 @@ class TriconnectivitySPQR:
 
         # Label used for virtual edges, incremented at every new virtual edge
         self.virtual_edge_num = 0
+        # Virtual edges are stored in a set
+        self.virtual_edges = set()
 
         self.new_path = False # Boolean used to store if new path is started
 
@@ -3026,6 +3028,15 @@ class TriconnectivitySPQR:
         c = _Component(edges, type_c)
         self.components_list.append(c)
         return c
+
+    def __new_virtual_edge(self, u, v):
+        """
+        Return a new virtual edge between `u` and `v`.
+        """
+        e = (u, v, "newVEdge"+str(self.virtual_edge_num))
+        self.virtual_edge_num += 1
+        self.virtual_edges.add(e)
+        return e
 
     def __high(self, v):
         """
@@ -3148,10 +3159,9 @@ class TriconnectivitySPQR:
                         self.graph_copy.delete_edge(sorted_edges.get_data())
 
                         # Add virtual edge to graph_copy
-                        newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1],
-                                        "newVEdge"+str(self.virtual_edge_num))
+                        newVEdge = self.__new_virtual_edge(sorted_edges.get_data()[0],
+                                                               sorted_edges.get_data()[1])
                         self.graph_copy.add_edge(newVEdge)
-                        self.virtual_edge_num += 1
 
                         # mark unseen for newVEdge
                         self.edge_status[newVEdge] = 0
@@ -3165,10 +3175,8 @@ class TriconnectivitySPQR:
                 self.graph_copy.delete_edge(sorted_edges.get_data())
 
                 # Add virtual edge to graph_copy
-                newVEdge = (sorted_edges.get_data()[0], sorted_edges.get_data()[1],
-                                "newVEdge"+str(self.virtual_edge_num))
+                newVEdge = self.__new_virtual_edge(sorted_edges.get_data()[0], sorted_edges.get_data()[1])
                 self.graph_copy.add_edge(newVEdge)
-                self.virtual_edge_num += 1
                 self.edge_status[newVEdge] = 0
 
                 comp.append(newVEdge)
@@ -3421,9 +3429,8 @@ class TriconnectivitySPQR:
                             else:
                                 x = e2[1] # target
 
-                            e_virt = tuple([v, x, "newVEdge"+str(self.virtual_edge_num)])
+                            e_virt = self.__new_virtual_edge(v, x)
                             self.graph_copy.add_edge(e_virt)
-                            self.virtual_edge_num += 1
                             self.degree[v] -= 1
                             self.degree[x] -= 1
 
@@ -3491,9 +3498,8 @@ class TriconnectivitySPQR:
                                     self.degree[x] -= 1
                                     self.degree[xy_target] -= 1
 
-                            e_virt = tuple([self.node_at[a], self.node_at[b], "newVEdge"+str(self.virtual_edge_num)])
+                            e_virt = self.__new_virtual_edge(self.node_at[a], self.node_at[b])
                             self.graph_copy.add_edge(e_virt)
-                            self.virtual_edge_num += 1
                             comp.finish_tric_or_poly(e_virt)
                             self.components_list.append(comp)
                             comp = None
@@ -3501,9 +3507,8 @@ class TriconnectivitySPQR:
 
                         if e_ab is not None:
                             comp = _Component([e_ab, e_virt], type_c=0)
-                            e_virt = tuple([v, x, "newVEdge"+str(self.virtual_edge_num)])
+                            e_virt = self.__new_virtual_edge(v, x)
                             self.graph_copy.add_edge(e_virt)
-                            self.virtual_edge_num += 1
                             comp.add_edge(e_virt)
                             self.degree[x] -= 1
                             self.degree[v] -= 1
@@ -3549,9 +3554,8 @@ class TriconnectivitySPQR:
                         self.degree[self.node_at[xx]] -= 1
                         self.degree[self.node_at[y]] -= 1
 
-                    e_virt = tuple([v, self.node_at[self.lowpt1[w]], "newVEdge"+str(self.virtual_edge_num)])
+                    e_virt = self.__new_virtual_edge(v, self.node_at[self.lowpt1[w]])
                     self.graph_copy.add_edge(e_virt) # Add virtual edge to graph
-                    self.virtual_edge_num += 1
                     comp.finish_tric_or_poly(e_virt) # Add virtual edge to component
                     self.components_list.append(comp)
                     comp = None
@@ -3568,9 +3572,8 @@ class TriconnectivitySPQR:
 
                         comp_bond.add_edge(eh)
                         comp_bond.add_edge(e_virt)
-                        e_virt = (v, self.node_at[self.lowpt1[w]], "newVEdge"+str(self.virtual_edge_num))
+                        e_virt = self.__new_virtual_edge(v, self.node_at[self.lowpt1[w]])
                         self.graph_copy.add_edge(e_virt)
-                        self.virtual_edge_num += 1
                         comp_bond.add_edge(e_virt)
                         if eh in self.in_high:
                             self.in_high[e_virt] = self.in_high[eh]
@@ -3598,9 +3601,8 @@ class TriconnectivitySPQR:
                     else:
                         self.adj[v].remove(it)
                         comp_bond = _Component([e_virt], type_c=0)
-                        e_virt = (self.node_at[self.lowpt1[w]], v, "newVEdge"+str(self.virtual_edge_num))
+                        e_virt = self.__new_virtual_edge(self.node_at[self.lowpt1[w]], v)
                         self.graph_copy.add_edge(e_virt)
-                        self.virtual_edge_num += 1
                         comp_bond.add_edge(e_virt)
 
                         eh = self.tree_arc[v];
@@ -3781,7 +3783,7 @@ class TriconnectivitySPQR:
 
             # Add an edge to each node containing the same virtual edge
             for e in self.comp_list_new[i]:
-                if e[2] and isinstance(e[2], str) and e[2].startswith("newVEdge"):
+                if e in self.virtual_edges:
                     if e in partner_nodes:
                         for j in partner_nodes[e]:
                             self.spqr_tree.add_edge(int_to_vertex[i], int_to_vertex[j])

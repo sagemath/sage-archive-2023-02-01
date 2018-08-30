@@ -2791,7 +2791,7 @@ class TriconnectivitySPQR:
 
         sage: G = Graph([(0, 1, '01'), (0, 4, '04'), (1, 2, '12'), (1, 5, '15'),
         ....: (2, 3, '23'), (2, 6, '26'), (3, 7, '37'), (4, 5, '45'),
-        ....: (5, 6, '56'), (6, 7, '67')])
+        ....: (5, 6, '56'), (6, 7, 67)])
         sage: T = TriconnectivitySPQR(G).get_spqr_tree()
         sage: H = spqr_tree_to_graph(T)
         sage: set(G.edges()) == set(H.edges())
@@ -3781,7 +3781,7 @@ class TriconnectivitySPQR:
 
             # Add an edge to each node containing the same virtual edge
             for e in self.comp_list_new[i]:
-                if e[2] and "newVEdge" in e[2]:
+                if e[2] and isinstance(e[2], str) and e[2].startswith("newVEdge"):
                     if e in partner_nodes:
                         for j in partner_nodes[e]:
                             self.spqr_tree.add_edge(int_to_vertex[i], int_to_vertex[j])

@@ -315,7 +315,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         INPUT:
 
         - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
-          system into the returned number field. Note that computing this embedding might be expensive.
+          system into the returned number field or finite field. Note that computing this embedding might be expensive.
 
         - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
           fields and also the resulting number field. Note that this is not implemented for finite fields and has
@@ -331,6 +331,8 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
+        Note that the number of critical points is 2d-2, but (1:0) has multiplicity 2 in this case
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([1/3*x^3 + x*y^2, y^3], domain=P)
             sage: f.critical_points()
@@ -340,8 +342,6 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             sage: g = f.change_ring(N)
             sage: g.critical_points()
             [(-a : 1), (a : 1), (1 : 0)]
-
-            Note that the number of critical points is 2d-2, but (1:0) has multiplicity 2 in this case
 
         ::
 
@@ -410,7 +410,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
           ``False`` specifies to find number field over which all periodic points of the ``n``-th iterate are defined
 
         - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
-          system into the returned number field. Note that computing this embedding might be expensive.
+          system into the returned number field or finite field. Note that computing this embedding might be expensive.
 
         - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
           fields and also the resulting number field. Note that this is not implemented for finite fields and has
@@ -472,7 +472,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             raise ValueError('`n` must be >= 1')
         space = ds.domain().ambient_space()
         if space.dimension() != 1:
-            raise NotImplementedError("not implemented for affine or projective spaces of degree >1")
+            raise NotImplementedError("not implemented for affine or projective spaces of dimension >1")
         if space.is_projective():
             ds = ds.dehomogenize(1)
         CR = space.coordinate_ring()
@@ -516,7 +516,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         - ``n`` -- a positive integer
 
         - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
-          system into the returned number field. Note that computing this embedding might be expensive.
+          system into the returned number field or finite field. Note that computing this embedding might be expensive.
 
         - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
           fields and also the resulting number field. Note that this is not implemented for finite fields and has
@@ -561,7 +561,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             raise ValueError('`n` must be >= 1')
         space = ds.domain().ambient_space()
         if space.dimension() != 1:
-            raise NotImplementedError("not implemented for affine or projective spaces of degree >1")
+            raise NotImplementedError("not implemented for affine or projective spaces of dimension >1")
         try:
             point = space(point)
         except TypeError:

@@ -633,7 +633,7 @@ class FractionField_generic(ring.Field):
             try:
                 x = x0.numerator()*y0.denominator()
                 y = y0.numerator()*x0.denominator()
-            except (AttributeError, TypeError):
+            except (AttributeError, TypeError, ValueError):
                 raise TypeError("cannot convert {!r}/{!r} to an element of {}".format(
                                 x0, y0, self))
             try:

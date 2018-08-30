@@ -2625,12 +2625,15 @@ class _Component:
         - `type_c` -- type of the component (0, 1, or 2).
         """
         self.edge_list = _LinkedList()
+        self.vertices = set()
         for e in edge_list:
-            self.edge_list.append(_LinkedListNode(e))
+            self.add_edge(e)
         self.component_type = type_c
 
     def add_edge(self, e):
         self.edge_list.append(_LinkedListNode(e))
+        self.vertices.add(e[0])
+        self.vertices.add(e[1])
 
     def finish_tric_or_poly(self, e):
         r"""
@@ -2641,7 +2644,7 @@ class _Component:
         depending on the number of edges belonging to it.
         """
         self.add_edge(e)
-        if self.edge_list.get_length() > 4:
+        if self.edge_list.get_length() > len(self.vertices):
             self.component_type = 2
         else:
             self.component_type = 1
@@ -2746,7 +2749,7 @@ class TriconnectivitySPQR:
         Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
         Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
         Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
-        Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
+        Triconnected:  [(1, 13, None), (2, 13, None), (3, 13, None), (3, 1, 'newVEdge11'), (2, 3, None), (1, 2, None)]
 
     An example from [Gut2001]_::
 
@@ -2765,7 +2768,7 @@ class TriconnectivitySPQR:
         sage: tric.print_triconnected_components()
         Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge0')]
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge1')]
-        Polygon:  [(4, 5, None), (1, 5, 'newVEdge1'), (3, 4, None), (1, 2, None), (2, 3, 'newVEdge0')]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge1'), (3, 4, None), (2, 3, 'newVEdge0'), (1, 2, None)]
 
     An example of a triconnected graph::
 
@@ -2782,7 +2785,7 @@ class TriconnectivitySPQR:
         sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
-        Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, None)]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (2, 3, None), (1, 2, None)]
 
     Edge labels are preserved by the construction::
 
@@ -2977,12 +2980,11 @@ class TriconnectivitySPQR:
         self.__path_search(self.start_vertex)
 
         # last split component
-        c = _Component([],0)
-        while self.e_stack:
-            c.add_edge(self.__estack_pop())
-        c.component_type = 2 if c.edge_list.get_length() > 4 else 1
-        self.components_list.append(c)
-        c = None
+        if self.e_stack:
+            e = self.__estack_pop()
+            c = _Component(self.e_stack, 0)
+            c.finish_tric_or_poly(e)
+            self.components_list.append(c)
 
         self.__assemble_triconnected_components()
 
@@ -3813,7 +3815,7 @@ class TriconnectivitySPQR:
             Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
             Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
             Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
-            Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
+            Triconnected:  [(1, 13, None), (2, 13, None), (3, 13, None), (3, 1, 'newVEdge11'), (2, 3, None), (1, 2, None)]
         """
         # The types are {0: "Bond", 1: "Polygon", 2: "Triconnected"}
         prefix = ["Bond", "Polygon", "Triconnected"]
@@ -3838,7 +3840,7 @@ class TriconnectivitySPQR:
             [('Polygon', [(4, 5, None), (0, 4, None), (1, 5, None), (1, 0, 'newVEdge1')]),
             ('Polygon', [(6, 7, None), (0, 6, None), (1, 7, None), (1, 0, 'newVEdge3')]),
             ('Bond', [(1, 0, 'newVEdge1'), (1, 0, 'newVEdge3'), (1, 0, 'newVEdge4')]),
-            ('Polygon', [(1, 3, None), (1, 0, 'newVEdge4'), (0, 2, None), (2, 3, None)])]
+            ('Polygon', [(1, 3, None), (1, 0, 'newVEdge4'), (2, 3, None), (0, 2, None)])]
         """
         comps = []
         # The types are {0: "Bond", 1: "Polygon", 2: "Triconnected"}

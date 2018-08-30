@@ -115,6 +115,13 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
             sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
             sage: hash(G) == hash(G3)  # todo: Should be True!
             False
+
+    TESTS::
+
+            sage: G = SymmetricGroup(6)
+            sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
+            sage: G == G3
+            True
     """
     @weak_cached_function
     def __classcall__(cls, *args, **kwds):
@@ -133,21 +140,6 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
                 domain = FiniteEnumeratedSet(domain)
             kwds['domain'] = domain
         return super(PermutationGroup_unique, cls).__classcall__(cls, *args, **kwds)
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(6)
-            sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
-            sage: G == G3
-            True
-
-        .. WARNING::
-
-            The hash currently is broken for this comparison.
-        """
-        return super(CachedRepresentation, self).__eq__(other)
 
 
 class PermutationGroup_symalt(PermutationGroup_unique):

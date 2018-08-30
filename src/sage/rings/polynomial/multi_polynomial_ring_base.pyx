@@ -938,7 +938,10 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         counts, total = self._precomp_counts(n, degree)
 
-        if terms > total:
+        # Note that 'terms' could be None while 'total' is a
+        # nonnegative integer, so the comparison 'terms > total' could
+        # fail in Python 3.
+        if terms and terms > total:
             terms = total
 
         if terms is None:

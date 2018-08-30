@@ -593,13 +593,17 @@ class FractionField_generic(ring.Field):
         if y is None:
             if isinstance(x, Element) and x.parent() is self:
                 return x
-            else:
-                y = self.one()
-
-        try:
-            return self._element_class(self, x, y, coerce=coerce)
-        except (TypeError, ValueError):
-            pass
+            base_ring_one = self.base_ring().one()
+            try:
+                return self._element_class(self, x, base_ring_one, coerce=coerce)
+            except (TypeError, ValueError):
+                pass
+            y = self._element_class(self, base_ring_one, base_ring_one, coerce=False)
+        else:
+            try:
+                return self._element_class(self, x, y, coerce=coerce)
+            except (TypeError, ValueError):
+                pass
 
         if isinstance(x, six.string_types):
             from sage.misc.sage_eval import sage_eval

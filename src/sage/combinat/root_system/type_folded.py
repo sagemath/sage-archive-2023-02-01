@@ -252,7 +252,7 @@ class CartanTypeFolded(UniqueRepresentation, SageObject):
 
     @cached_method
     def folding_orbit(self):
-        """
+        r"""
         Return the orbits under the automorphism `\sigma` as a
         dictionary (of tuples).
 

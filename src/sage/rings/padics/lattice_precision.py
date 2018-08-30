@@ -396,6 +396,49 @@ class pRational:
             val = self._valuation - other._valuation
         return self.__class__(self.p, self.x / other.x, self.exponent - other.exponent, valuation=val)
 
+    def _quo_rem(self, other):
+        """
+        Quotient with remainder.
+
+        Returns a pair `q`, `r` where `r` has the p-adic expansion of this element,
+        truncated at the valuation of other.
+
+        EXAMPLES::
+
+            sage: from sage.rings.padics.lattice_precision import pRational
+            sage: a = pRational(2, 123456, 3)
+            sage: b = pRational(2, 654321, 2)
+            sage: q,r = a._quo_rem(b); q, r
+            (2^7 * 643/218107, 0)
+            sage: q*b+r - a
+            0
+            sage: q,r = b._quo_rem(a); q, r
+            (5111/1929, 2^2 * 113)
+            sage: q*a+r - b
+            2^2 * 0
+        """
+        other.normalize()
+        ox = other.x
+        if ox == 0:
+            raise ZeroDivisionError
+        self.normalize()
+        oval = other.exponent
+        sx = self.x
+        sval = self.exponent
+        diff = sval - oval
+        if sx == 0:
+            return (self.__class__(self.p, 0, 0, valuation=Infinity),
+                    self.__class__(self.p, 0, 0, valuation=Infinity))
+        elif sval >= oval:
+            return (self.__class__(self.p, sx / ox, diff, valuation=diff),
+                    self.__class__(self.p, 0, 0, valuation=Infinity))
+        else:
+            pd = self.p**(-diff)
+            sred = sx % pd
+            return (self.__class__(self.p, (sx - sred)/(pd*ox), 0),
+                    self.__class__(self.p, sred, sval, valuation=sval))
+
+
     def __lshift__(self, n):
         r"""
         Return the product of this element by ``p^n``.

@@ -96,12 +96,13 @@ from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
     MaximaAbstractElement, MaximaAbstractFunctionElement,
     MaximaAbstractElementFunction)
 from sage.docs.instancedoc import instancedoc
+from sage.env import MAXIMA_FAS
 
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
 ecl_eval("(setf *load-verbose* NIL)")
-ecl_eval("(require 'maxima)")
+ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
 ecl_eval("(in-package :maxima)")
 ecl_eval("(setq $nolabels t))")
 ecl_eval("(defvar *MAXIMA-LANG-SUBDIR* NIL)")

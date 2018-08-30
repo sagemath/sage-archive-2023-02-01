@@ -495,4 +495,16 @@ Test ``atexit`` support in the doctesting framework::
     ....:     os.unlink(F)
     ....: except OSError:
     ....:     pass
+
+Test the ``--memlimit`` option and ``# optional - memlimit``
+(but only on Linux)::
+
+    sage: from platform import system
+    sage: ok = True
+    sage: if system() == "Linux":
+    ....:     P = subprocess.Popen(["sage", "-t", "--warn-long", "0", "--memlimit=2000", "memlimit.rst"], stdout=subprocess.PIPE, **kwds)
+    ....:     out, err = P.communicate()
+    ....:     ok = ("MemoryError: failed to allocate" in out)
+    sage: ok or out
+    True
 """

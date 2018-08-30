@@ -3787,7 +3787,7 @@ class CompleteDyckWords(DyckWords):
         """
         l = [0] * sum(len(v) for v in ncp)
         for v in ncp:
-            l[v[-1] - 1] = len(v)
+            l[max(v) - 1] = len(v)
 
         res = []
         for i in l:

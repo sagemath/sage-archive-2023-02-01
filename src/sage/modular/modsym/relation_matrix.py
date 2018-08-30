@@ -58,8 +58,10 @@ from sage.modular.modsym.manin_symbol_list import ManinSymbolList
 # which is defined below.  See the comment at the beginning
 # of that function for an overall description of the algorithm.
 ######################################################################
+
+
 def modS_relations(syms):
-    """
+    r"""
     Compute quotient of Manin symbols by the S relations.
 
     Here S is the 2x2 matrix [0, -1; 1, 0].
@@ -130,8 +132,9 @@ def modS_relations(syms):
     misc.verbose("finished creating S relations",tm)
     return rels
 
+
 def modI_relations(syms, sign):
-    """
+    r"""
     Compute quotient of Manin symbols by the I relations.
 
     INPUT:

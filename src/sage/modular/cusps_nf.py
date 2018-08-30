@@ -334,7 +334,7 @@ class NFCuspsSpace(ParentWithBase):
         return "Set of all cusps of %s" % self.number_field()
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of self.
 
         EXAMPLES::
@@ -344,7 +344,7 @@ class NFCuspsSpace(ParentWithBase):
             sage: latex(kCusps) # indirect doctest
             \mathbf{P}^1(\Bold{Q}[a]/(a^{2} + 5))
         """
-        return "\\mathbf{P}^1(%s)" % self.number_field()._latex_()
+        return r"\mathbf{P}^1(%s)" % self.number_field()._latex_()
 
     def __call__(self, x):
         """

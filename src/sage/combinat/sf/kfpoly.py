@@ -59,20 +59,34 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
         sage: q = PolynomialRing(QQ,'q').gen()
         sage: KostkaFoulkesPolynomial([2,2],[2,1,1],q)
         q
+
+    TESTS::
+
+        sage: KostkaFoulkesPolynomial([2,4],[2,2])
+        Traceback (most recent call last):
+        ...
+        ValueError: mu must be a partition
+        sage: KostkaFoulkesPolynomial([2,2],[2,4])
+        Traceback (most recent call last):
+        ...
+        ValueError: nu must be a partition
+        sage: KostkaFoulkesPolynomial([3,2],[2,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: mu and nu must be partitions of the same size
     """
     if mu not in _Partitions:
         raise ValueError("mu must be a partition")
     if nu not in _Partitions:
         raise ValueError("nu must be a partition")
-
     if sum(mu) != sum(nu):
         raise ValueError("mu and nu must be partitions of the same size")
-
     return kfpoly(mu, nu, t)
+
 
 def kfpoly(mu, nu, t=None):
     r"""
-    Returns the Kostka-Foulkes polynomial `K_{\mu, \nu}(t)`
+    Return the Kostka-Foulkes polynomial `K_{\mu, \nu}(t)`
     by generating all rigging sequences for the shape `\mu`, and then
     selecting those of content `\nu`.
 
@@ -98,11 +112,14 @@ def kfpoly(mu, nu, t=None):
         t^2
         sage: kfpoly([1,1,1,1], [2,2])
         0
+
+    TESTS::
+
+        sage: kfpoly([], [])
+        1
     """
     if mu == nu:
         return 1
-    elif mu == []:
-        return 0
 
     if t is None:
         t = polygen(ZZ, 't')
@@ -111,8 +128,8 @@ def kfpoly(mu, nu, t=None):
 
     f = lambda x: weight(x, t) if x[0] == nuc else 0
 
-    res = sum(f(rg) for rg in riggings(mu))
-    return res
+    return sum(f(rg) for rg in riggings(mu))
+
 
 def schur_to_hl(mu, t=None):
     r"""
@@ -277,6 +294,7 @@ def compat(n, mu, nu):
 
     return [] # _Partitions([])
 
+
 def dom(mup, snu):
     """
     Return ``True`` if ``sum(mu[:i+1]) >= snu[i]`` for all
@@ -302,6 +320,11 @@ def dom(mup, snu):
         False
         sage: dom([3,2,1],[4,4,4])
         False
+
+    TESTS::
+
+        sage: dom([],[])
+        True
     """
     if not mup: # mup is empty:
         return not snu # True if and only if snu is empty
@@ -322,7 +345,8 @@ def dom(mup, snu):
             if sa < snu[pos]:
                 return False
             pos += 1
-    return all(sa >= snu[j] for j in range(pos,l))
+    return all(sa >= snu[j] for j in range(pos, l))
+
 
 def weight(rg, t=None):
     r"""

@@ -18,6 +18,7 @@ Here is some terminology used in this file:
 
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.plot.plot import graphics_array
 
 class FinitePosets(CategoryWithAxiom):
     r"""
@@ -1344,6 +1345,36 @@ class FinitePosets(CategoryWithAxiom):
             pan_orbits = self.panyushev_orbits(element_constructor = list)
             return [[element_constructor(self.order_ideal(oideal)) for oideal in orbit] for orbit in pan_orbits]
 
+        def rowmotion_orbits_plots(self):
+            r"""
+            Return plots of the rowmotion orbits of order ideals in ``self``.
+
+            The rowmotion orbit of an order ideal is its orbit under
+            rowmotion (see :meth:`rowmotion`).
+
+            EXAMPLES::
+
+                sage: P = Poset( {1: [2, 3], 2: [], 3: [], 4: [2]} )
+                sage: P.rowmotion_orbits_plots()
+                Graphics Array of size 2 x 5
+                sage: P = Poset({})
+                sage: P.rowmotion_orbits_plots()
+                Graphics Array of size 2 x 1
+
+            """
+            plot_of_orb_plots=[]
+            max_orbit_size = 0            
+            for orb in self.rowmotion_orbits():
+                orb_plots=[]
+                if len(orb) > max_orbit_size:
+                    max_orbit_size = len(orb)                
+                for oi in orb:
+                    oiplot = self.order_ideal_plot(oi)
+                    orb_plots.append(oiplot)
+                plot_of_orb_plots.append(orb_plots)    
+            return graphics_array(plot_of_orb_plots, ncols = max_orbit_size)
+
+
         def toggling_orbits(self, vs, element_constructor = set):
             r"""
             Return the orbits of order ideals in ``self`` under the
@@ -1397,6 +1428,36 @@ class FinitePosets(CategoryWithAxiom):
                     OI.remove( A )
                 orbits.append([element_constructor(_) for _ in orbit])
             return orbits
+
+        def toggling_orbits_plots(self, vs):
+            r"""
+            Return plots of the orbits of order ideals in ``self`` under the
+            operation of toggling the vertices ``vs[0], vs[1], ...``
+            in this order.
+
+            See :meth:`toggling_orbits` for more information.
+
+            EXAMPLES::
+
+                sage: P = Poset( {1: [2, 3], 2: [], 3: [], 4: [2]} )
+                sage: P.toggling_orbits_plots([1,2,3,4])
+                Graphics Array of size 2 x 5
+                sage: P = Poset({})
+                sage: P.toggling_orbits_plots([])
+                Graphics Array of size 2 x 1
+
+            """
+            plot_of_orb_plots=[]  
+            max_orbit_size = 0             
+            for orb in self.toggling_orbits(vs):
+                orb_plots=[]
+                if len(orb) > max_orbit_size:
+                    max_orbit_size = len(orb)                
+                for oi in orb:
+                    oiplot = self.order_ideal_plot(oi)
+                    orb_plots.append(oiplot)
+                plot_of_orb_plots.append(orb_plots)    
+            return graphics_array(plot_of_orb_plots, ncols = max_orbit_size)
 
         def panyushev_orbit_iter(self, antichain, element_constructor=set, stop=True, check=True):
             r"""

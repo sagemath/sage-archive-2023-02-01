@@ -1219,7 +1219,7 @@ cdef class UnderscoreSageMorphism(Morphism):
             Symbolic Ring
         """
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(t), R))
 
     cpdef Element _call_(self, a):

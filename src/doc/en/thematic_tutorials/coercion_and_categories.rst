@@ -512,7 +512,7 @@ inheritance still works, by virtue of a ``__getattr__`` method.
     It is strongly recommended to use the category framework both in Python
     and in Cython.
 
-Let us see whether there is any gain in chosing the category of quotient
+Let us see whether there is any gain in choosing the category of quotient
 fields instead of the category of fields::
 
     sage: QuotientFields().parent_class, QuotientFields().element_class

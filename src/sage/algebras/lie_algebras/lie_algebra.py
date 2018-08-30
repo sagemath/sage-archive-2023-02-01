@@ -196,7 +196,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         h*e = e*h + 2*e
         h*f = f*h - 2*f
 
-    For convienence, there are two shorthand notations for computing
+    For convenience, there are two shorthand notations for computing
     Lie brackets::
 
         sage: L([h,e])

@@ -373,7 +373,7 @@ cdef class LibSingularOptions(LibSingularOptions_abstract):
       is stopped if the total (weighted) degree exceeds ``deg_bound``.
       ``deg_bound`` should not be used for a global ordering with
       inhomogeneous input. Reset this bound by setting ``deg_bound``
-      to 0. The exact meaning of "degree" depends on the ring odering
+      to 0. The exact meaning of "degree" depends on the ring ordering
       and the command: ``slimgb`` uses always the total degree with
       weights 1, ``std`` does so for block orderings, only.
 

@@ -125,7 +125,7 @@ cdef extern from "linbox/solutions/det.h":
 
 
 ###############################################################################
-# end of LinBox declarations -- begining of the code                          #
+# end of LinBox declarations -- beginning of the code                         #
 ###############################################################################
 
 

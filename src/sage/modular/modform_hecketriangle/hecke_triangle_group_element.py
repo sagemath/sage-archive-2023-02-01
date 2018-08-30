@@ -527,7 +527,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             raise NotImplementedError
 
     # We cache this method since the calculation is rather long and the
-    # result is beeing reused:
+    # result is being reused:
     # - For block decompositions
     # - For calculating reduced (and simple) elements (and all dependent methods)
     @cached_method
@@ -636,7 +636,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     # TODO: allow output as word?
     # We cache this method since the calculation is rather long and the
-    # data is beeing reused when working with primitive representatives
+    # data is being reused when working with primitive representatives
     # and conjugacy classes.
     @cached_method
     def _primitive_block_decomposition_data(self):
@@ -2487,7 +2487,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         ``self``, denoted by ``[gamma]`` is `Hecke-symmetric`:
         I.e. if ``[gamma] == [gamma^(-1)]``.
 
-        This is equivalent to ``self.simple_fixed_point_set()`` beeing
+        This is equivalent to ``self.simple_fixed_point_set()`` being
         equal with it's `Hecke-conjugated` set (where each fixed point
         is replaced by the other (`Hecke-conjugated`) fixed point.
 

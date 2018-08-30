@@ -310,28 +310,31 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         r"""
         Return smallest extension of the base field which contains the critical points
 
-        Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
+        Ambient space of dynamical system must be either the affine line or projective
+        line over a number field or finite field.
 
         INPUT:
 
-        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
-          system into the returned number field or finite field. Note that computing this embedding might be expensive.
+        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an
+          embedding of base field of dynamical system into the returned number field or
+          finite field. Note that computing this embedding might be expensive.
 
-        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
-          fields and also the resulting number field. Note that this is not implemented for finite fields and has
-          no effect
+        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify
+          intermediate fields and also the resulting number field. Note that this
+          is not implemented for finite fields and has no effect
 
-        - ``names`` -- (optional) string to be used as generator for returned number field or finite field
+        - ``names`` -- (optional) string to be used as generator for returned number field
+          or finite field
 
         OUTPUT:
 
         If ``return_embedding`` is ``False``, the field of definition as an absolute number
-        field or finite field.  If ``return_embedding`` is ``True``, a tuple ``(K, phi)`` where ``phi``
-        is an embedding of the base field in ``K``.
+        field or finite field.  If ``return_embedding`` is ``True``, a tuple
+        ``(K, phi)`` where ``phi`` is an embedding of the base field in ``K``.
 
-        EXAMPLES::
+        EXAMPLES:
 
-        Note that the number of critical points is 2d-2, but (1:0) has multiplicity 2 in this case
+        Note that the number of critical points is 2d-2, but (1:0) has multiplicity 2 in this case::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([1/3*x^3 + x*y^2, y^3], domain=P)
@@ -397,32 +400,38 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
     def field_of_definition_periodic(self, n, formal=False, return_embedding=False, simplify_all=False, names='a'):
         r"""
-        Return smallest extension of the base field which contains all fixed points of the ``n``-th iterate
+        Return smallest extension of the base field which contains all fixed points
+        of the ``n``-th iterate
 
-        Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
+        Ambient space of dynamical system must be either the affine line
+        or projective line over a number field or finite field.
 
         INPUT:
 
         - ``n`` -- a positive integer
 
-        - ``formal`` -- (default: ``False``) boolean; ``True`` signals to return number field over which
-          the formal periodic points are defined, where a formal periodic point is a root of the ``n``-th dynatomic polynomial.
-          ``False`` specifies to find number field over which all periodic points of the ``n``-th iterate are defined
+        - ``formal`` -- (default: ``False``) boolean; ``True`` signals to return number
+          field or finite field over which the formal periodic points are defined, where a
+          formal periodic point is a root of the ``n``-th dynatomic polynomial.
+          ``False`` specifies to find number field or finite field over which all periodic
+          points of the ``n``-th iterate are defined
 
-        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
-          system into the returned number field or finite field. Note that computing this embedding might be expensive.
+        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return
+          an embedding of base field of dynamical system into the returned number
+          field or finite field. Note that computing this embedding might be expensive.
 
-        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
-          fields and also the resulting number field. Note that this is not implemented for finite fields and has
-          no effect
+        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify
+          intermediate fields and also the resulting number field. Note that this
+          is not implemented for finite fields and has no effect
 
-        - ``names`` -- (optional) string to be used as generator for returned number field or finite field
+        - ``names`` -- (optional) string to be used as generator for returned number
+          field or finite field
 
         OUTPUT:
 
-        If ``return_embedding`` is ``False``, the field of definition as an absolute number
-        field or finite field.  If ``return_embedding`` is ``True``, a tuple ``(K, phi)`` where ``phi``
-        is an embedding of the base field in ``K``.
+        If ``return_embedding`` is ``False``, the field of definition as an absolute
+        number field or finite field.  If ``return_embedding`` is ``True``, a tuple
+        ``(K, phi)`` where ``phi`` is an embedding of the base field in ``K``.
 
         EXAMPLES::
 
@@ -505,9 +514,11 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
     def field_of_definition_preimage(self, point, n, return_embedding=False, simplify_all=False, names='a'):
         r"""
-        Return smallest extension of the base field which contains the ``n``-th preimages of ``point``
+        Return smallest extension of the base field which contains the
+        ``n``-th preimages of ``point``
 
-        Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
+        Ambient space of dynamical system must be either the affine line or
+        projective line over a number field or finite field.
 
         INPUT:
 
@@ -515,20 +526,22 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
         - ``n`` -- a positive integer
 
-        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
-          system into the returned number field or finite field. Note that computing this embedding might be expensive.
+        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return
+          an embedding of base field of dynamical system into the returned number
+          field or finite field. Note that computing this embedding might be expensive.
 
-        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
-          fields and also the resulting number field. Note that this is not implemented for finite fields and has
-          no effect
+        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify
+          intermediate fields and also the resulting number field. Note that this
+          is not implemented for finite fields and has no effect
 
-        - ``names`` -- (optional) string to be used as generator for returned number field or finite field
+        - ``names`` -- (optional) string to be used as generator for returned
+          number field or finite field
 
         OUTPUT:
 
-        If ``return_embedding`` is ``False``, the field of definition as an absolute number
-        field or finite field.  If ``return_embedding`` is ``True``, a tuple ``(K, phi)`` where ``phi``
-        is an embedding of the base field in ``K``.
+        If ``return_embedding`` is ``False``, the field of definition as an absolute
+        number field or finite field.  If ``return_embedding`` is ``True``, a tuple
+        ``(K, phi)`` where ``phi`` is an embedding of the base field in ``K``.
 
         EXAMPLES::
 

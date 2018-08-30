@@ -68,13 +68,13 @@ class SageSphinxLogger(object):
             re.compile('^Running Sphinx v'),
             re.compile('^loading intersphinx inventory from '),
             re.compile('^loading pickled environment... done'),
-            re.compile('^loading cross citations... done \([0-9]* citations\).'),
+            re.compile(r'^loading cross citations... done \([0-9]* citations\).'),
             re.compile('^Compiling a sub-document'),
             re.compile('^updating environment: 0 added, 0 changed, 0 removed'),
             re.compile('^looking for now-outdated files... none found'),
-            re.compile('^building \[.*\]: targets for 0 source files that are out of date'),
-            re.compile('^building \[.*\]: targets for 0 po files that are out of date'),
-            re.compile('^building \[.*\]: targets for 0 mo files that are out of date'),
+            re.compile(r'^building \[.*\]: targets for 0 source files that are out of date'),
+            re.compile(r'^building \[.*\]: targets for 0 po files that are out of date'),
+            re.compile(r'^building \[.*\]: targets for 0 mo files that are out of date'),
             re.compile('^pickling environment... done'),
             re.compile('^dumping object inventory... done'),
             # We still have "Build finished."
@@ -89,12 +89,12 @@ class SageSphinxLogger(object):
             re.compile('^linking _static directory'),
             re.compile('^copying static files... done'),
             re.compile('^copying extra files... done'),
-            re.compile('^loading translations \[.*\]... done'),
+            re.compile(r'^loading translations \[.*\]... done'),
             re.compile('^Compiling the master document'),
             re.compile('^Saved pickle file: citations.pickle'),
-            re.compile('^writing output... \[.*\] '),
-            re.compile('^copying images... \[.*\] '),
-            re.compile('^reading sources... \[.*\] '),
+            re.compile(r'^writing output... \[.*\] '),
+            re.compile(r'^copying images... \[.*\] '),
+            re.compile(r'^reading sources... \[.*\] '),
             re.compile('language "hu" not supported'),
             re.compile('^$'),
             re.compile('^WARNING:$'),
@@ -103,7 +103,7 @@ class SageSphinxLogger(object):
         # We fail whenever a line starts with "WARNING:", however, we ignore
         # these warnings, as they are not relevant.
         self._ignored_warnings = (
-            re.compile('WARNING: favicon file \'favicon.ico\' does not exist'),
+            re.compile("WARNING: favicon file 'favicon.ico' does not exist"),
             re.compile('WARNING: html_static_path entry .* does not exist'),
             re.compile('WARNING: while setting up extension'),
             re.compile('WARNING: Any IDs not assiend for figure node'),
@@ -122,7 +122,7 @@ class SageSphinxLogger(object):
             # citations and the search index.
             ignored = (
                 re.compile('WARNING: citation not found:'),
-                re.compile('WARNING: search index couldn\'t be loaded, but not all documents will be built: the index will be incomplete.')
+                re.compile("WARNING: search index couldn't be loaded, but not all documents will be built: the index will be incomplete.")
                 )
             self._ignored_warnings += ignored
             self._useless_chatter += ignored

@@ -666,6 +666,28 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         return  not (self == other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: Rx.<x> = PolynomialRing(QQ)
+            sage: Ry.<y> = PolynomialRing(QQ)
+            sage: hash(Rx) == hash(Ry)
+            False
+            sage: Qx = Rx.quotient(x^2+1)
+            sage: Qy = Ry.quotient(y^2+1)
+            sage: hash(Qx) == hash(Qy)
+            False
+            sage: hash(Qx) == hash(Qx)
+            True
+            sage: Qz = Rx.quotient(x^2+1)
+            sage: hash(Qz) == hash(Qx)
+            True
+        """
+        return hash((self.polynomial_ring(), self.modulus()))
+
     def _singular_init_(self, S=None):
         """
         Represent ``self`` in the Singular interface.

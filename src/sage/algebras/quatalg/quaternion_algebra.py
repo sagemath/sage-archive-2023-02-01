@@ -1789,17 +1789,7 @@ class QuaternionOrder(Algebra):
 
 
 class QuaternionFractionalIdeal(Ideal_fractional):
-    def __hash__(self):
-        r"""
-        Stupid constant hash function!
-
-        TESTS::
-
-            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
-            sage: hash(R.right_ideal(R.basis()))
-            0
-        """
-        return 0
+    pass
 
 
 class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
@@ -2150,6 +2140,23 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             False
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: I = QuaternionAlgebra(-11,-1).maximal_order().unit_ideal()
+            sage: hash(I) == hash(I)
+            True
+
+        TESTS::
+
+            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
+            sage: H = hash(R.right_ideal(R.basis()))
+        """
+        return hash(self.__basis)
 
     def basis_matrix(self):
         r"""

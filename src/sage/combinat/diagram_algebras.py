@@ -1278,9 +1278,9 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
         Partition diagrams of order 3/2
         sage: pd.list()
         [{{-2, -1, 1, 2}},
+         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1, 1}},
          {{-2, -1, 2}, {1}},
-         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1}, {1}}]
 
     TESTS::
@@ -1332,14 +1332,14 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd = da.BrauerDiagrams(2); bd
         Brauer diagrams of order 2
         sage: bd.list()
-        [{{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
+        [{{-2, -1}, {1, 2}}, {{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}]
 
         sage: bd = da.BrauerDiagrams(5/2); bd
         Brauer diagrams of order 5/2
         sage: bd.list()
-        [{{-3, 3}, {-2, 1}, {-1, 2}},
-         {{-3, 3}, {-2, 2}, {-1, 1}},
-         {{-3, 3}, {-2, -1}, {1, 2}}]
+        [{{-3, 3}, {-2, -1}, {1, 2}},
+         {{-3, 3}, {-2, 1}, {-1, 2}},
+         {{-3, 3}, {-2, 2}, {-1, 1}}]
 
     TESTS::
 
@@ -1551,16 +1551,16 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         sage: td = da.TemperleyLiebDiagrams(3); td
         Temperley Lieb diagrams of order 3
         sage: td.list()
-        [{{-3, 1}, {-2, -1}, {2, 3}},
-         {{-3, 3}, {-2, 2}, {-1, 1}},
-         {{-3, 3}, {-2, -1}, {1, 2}},
+        [{{-3, 3}, {-2, -1}, {1, 2}},
+         {{-3, 1}, {-2, -1}, {2, 3}},
          {{-3, -2}, {-1, 1}, {2, 3}},
-         {{-3, -2}, {-1, 3}, {1, 2}}]
+         {{-3, -2}, {-1, 3}, {1, 2}},
+         {{-3, 3}, {-2, 2}, {-1, 1}}]
 
         sage: td = da.TemperleyLiebDiagrams(5/2); td
         Temperley Lieb diagrams of order 5/2
         sage: td.list()
-        [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
+        [{{-3, 3}, {-2, -1}, {1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}]
 
     TESTS::
 
@@ -1638,9 +1638,9 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
         Planar diagrams of order 3/2
         sage: pld.list()
         [{{-2, -1, 1, 2}},
+         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1, 1}},
          {{-2, -1, 2}, {1}},
-         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1}, {1}}]
 
     TESTS::

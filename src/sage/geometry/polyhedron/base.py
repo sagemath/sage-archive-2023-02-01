@@ -1368,11 +1368,9 @@ class Polyhedron_base(Element):
             from operator import itemgetter
             length_left = max(lengths, key=itemgetter(0))[0]
             length_middle = max(lengths, key=itemgetter(1))[1]
-            # Add one character in case of shift
+            length_right = max(lengths, key=itemgetter(2))[2]
             if shift:
-                length_right = max(lengths, key=itemgetter(2))[2] + 1
-            else:
-                length_right = max(lengths, key=itemgetter(2))[2] 
+                length_right += 1
             if latex:
                 h_line = "{:>" + "{}".format(length_left) + "} & {:" + \
                          "{}".format(length_middle) + "} & {:" + \

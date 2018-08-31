@@ -2074,6 +2074,35 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         K = polymake(self.base_ring())
         return '"Matrix<{}>"'.format(K)
 
+    def _random_nonzero_element(self, *args, **kwds):
+        """
+        Return a random non-zero matrix
+
+        This function repeatedly calls ``random_element`` until a non-zero
+        matrix is obtained.
+
+        INPUT:
+
+        - ``*args``, ``**kwds`` - Parameters that can be forwarded to the 
+          ``random_element`` method
+        
+        OUTPUT:
+
+        - Random non-zero matrix
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(ZZ, 4)
+            sage: M._random_nonzero_element()
+            [ -8   2   0   0]
+            [  1  -1   2   1]
+            [-95  -1  -2 -12]
+            [  0   0   1  -1]
+        """
+        rand_matrix = self.random_element(*args, **kwds)
+        while rand_matrix.is_zero():
+            rand_matrix = self.random_element(*args, **kwds)
+        return rand_matrix
 
 def dict_to_list(entries, nrows, ncols):
     r"""

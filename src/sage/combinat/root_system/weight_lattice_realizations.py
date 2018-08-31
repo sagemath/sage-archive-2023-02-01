@@ -129,7 +129,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
         @abstract_method
         def fundamental_weight(self, i):
-            """
+            r"""
             Returns the `i^{th}` fundamental weight
 
             INPUT:
@@ -188,7 +188,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
           return False
 
         def __init_extra__(self):
-            """
+            r"""
             Registers the embedding of the weight lattice into ``self``
 
             Also registers the embedding of the weight space over the same
@@ -511,8 +511,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
             return f(self.rho()).reduced_word()
 
         def dynkin_diagram_automorphism_of_alcove_morphism(self, f):
-            """
-            Returns the Dynkin diagram automorphism induced by an alcove morphism
+            r"""
+            Return the Dynkin diagram automorphism induced by an alcove morphism
 
             INPUT:
 
@@ -582,7 +582,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             return permutation
 
         def reduced_word_of_translation(self, t):
-            """
+            r"""
             Given an element of the root lattice, this returns a reduced
             word `i_1,...,i_k` such that the Weyl group element `s_{i_1}
             \circ \dots \circ s_{i_k}` implements the "translation"

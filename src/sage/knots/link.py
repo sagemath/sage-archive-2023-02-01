@@ -2484,13 +2484,13 @@ class Link(object):
 
             sage: g = BraidGroup(2).gen(0)
             sage: K = Knot(g^5)
-            sage: K.homfly_polynomial()   # optional - libhomfly
+            sage: K.homfly_polynomial()
             L^-4*M^4 - 4*L^-4*M^2 + 3*L^-4 - L^-6*M^2 + 2*L^-6
 
         The Hopf link::
 
             sage: L = Link([[1,3,2,4],[4,2,3,1]])
-            sage: L.homfly_polynomial('x', 'y')  # optional - libhomfly
+            sage: L.homfly_polynomial('x', 'y')
             -x^-1*y + x^-1*y^-1 + x^-3*y^-1
 
         Another version of the Hopf link where the orientation
@@ -2498,18 +2498,18 @@ class Link(object):
         and `y \mapsto M`::
 
             sage: L = Link([[1,4,2,3], [4,1,3,2]])
-            sage: L.homfly_polynomial()  # optional - libhomfly
+            sage: L.homfly_polynomial()
             L^3*M^-1 - L*M + L*M^-1
             sage: L = Link([[1,4,2,3], [4,1,3,2]])
-            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
+            sage: L.homfly_polynomial('a', 'z', 'az')
             a^3*z^-1 - a*z - a*z^-1
 
         The figure-eight knot::
 
             sage: L = Link([[2,1,4,5], [5,6,7,3], [6,4,1,9], [9,2,3,7]])
-            sage: L.homfly_polynomial()  # optional - libhomfly
+            sage: L.homfly_polynomial()
             -L^2 + M^2 - 1 - L^-2
-            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
+            sage: L.homfly_polynomial('a', 'z', 'az')
             a^2 - z^2 - 1 + a^-2
 
         The "monster" unknot::
@@ -2517,17 +2517,17 @@ class Link(object):
             sage: L = Link([[3,1,2,4], [8,9,1,7], [5,6,7,3], [4,18,6,5],
             ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
             ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
-            sage: L.homfly_polynomial()  # optional - libhomfly
+            sage: L.homfly_polynomial()
             1
 
         The knot `9_6`::
 
             sage: B = BraidGroup(3)
             sage: K = Knot(B([-1,-1,-1,-1,-1,-1,-2,1,-2,-2]))
-            sage: K.homfly_polynomial()  # optional - libhomfly
+            sage: K.homfly_polynomial()
             L^10*M^4 - L^8*M^6 - 3*L^10*M^2 + 4*L^8*M^4 + L^6*M^6 + L^10
              - 3*L^8*M^2 - 5*L^6*M^4 - L^8 + 7*L^6*M^2 - 3*L^6
-            sage: K.homfly_polynomial('a', 'z', normalization='az')  # optional - libhomfly
+            sage: K.homfly_polynomial('a', 'z', normalization='az')
             -a^10*z^4 + a^8*z^6 - 3*a^10*z^2 + 4*a^8*z^4 + a^6*z^6 - a^10
              + 3*a^8*z^2 + 5*a^6*z^4 - a^8 + 7*a^6*z^2 + 3*a^6
 
@@ -2537,13 +2537,13 @@ class Link(object):
 
             sage: L = Link([[[1, -1], [2, -2]], [1, 1]])
             sage: L2 = Link([[1, 3, 2, 4], [2, 3, 1, 4]])
-            sage: L2.homfly_polynomial()  # optional - libhomfly
+            sage: L2.homfly_polynomial()
             -L*M^-1 - L^-1*M^-1
-            sage: L.homfly_polynomial()  # optional - libhomfly
+            sage: L.homfly_polynomial()
             -L*M^-1 - L^-1*M^-1
-            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
+            sage: L.homfly_polynomial('a', 'z', 'az')
             a*z^-1 - a^-1*z^-1
-            sage: L2.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
+            sage: L2.homfly_polynomial('a', 'z', 'az')
             a*z^-1 - a^-1*z^-1
 
         REFERENCES:

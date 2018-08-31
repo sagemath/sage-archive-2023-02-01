@@ -1509,21 +1509,17 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:             b = K(a)
             ....:             try:
             ....:                 L = b.nth_root(e, all=True)
-            ....:                 if len(L) > 0:
+            ....:                 if L:
             ....:                     c = b.nth_root(e)
             ....:             except Exception:
             ....:                 L = [-1]
             ....:             M = b._nth_root_naive(e)
             ....:             if sorted(L) != M:
             ....:                 print("mod(%s, %s).nth_root(%s,all=True), mod(%s, %s)._nth_root_naive(%s)" % (a,n,e,a,n,e))
-            ....:             if len(L) > 0 and (c not in L):
+            ....:             if L and (c not in L):
             ....:                 print("mod(%s, %s).nth_root(%s), mod(%s, %s).nth_root(%s,all=True)" % (a,n,e,a,n,e))
         """
-        L = []
-        for a in self.parent():
-            if a**n == self:
-                L.append(a)
-        return L
+        return [a for a in self.parent() if a**n == self]
 
     def _balanced_abs(self):
         """
@@ -4370,7 +4366,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
     """
     def __init__(self, R):
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), R))
 
     cpdef Element _call_(self, x):

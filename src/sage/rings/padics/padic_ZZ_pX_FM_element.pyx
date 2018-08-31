@@ -1286,6 +1286,15 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             []
             sage: list(A(0,4).expansion())
             []
+
+        Check that :trac:`25879` has been resolved::
+
+            sage: K = ZpCA(3,5)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: a.residue()
+            0
+
         """
         if lift_mode == 'teichmuller':
             zero = self.parent()(0)
@@ -1293,6 +1302,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             zero = []
         else:
             zero = Integer(0)
+        ordp = self.valuation()
         if n in ('simple', 'smallest', 'teichmuller'):
             deprecation(14825, "Interface to expansion has changed; first argument now n")
             lift_mode = n
@@ -1300,7 +1310,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         elif isinstance(n, slice):
             return self.slice(n.start, n.stop, n.step)
         elif n is not None:
-            if self.is_zero() or n >= self.prime_pow.ram_prec_cap:
+            if self.is_zero() or n >= self.prime_pow.ram_prec_cap or n < ordp:
                 return zero
         if self.is_zero():
             return []
@@ -1315,7 +1325,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 return self.teichmuller_expansion(n)
         else:
             raise ValueError("lift mode must be one of 'simple', 'smallest' or 'teichmuller'")
-        ordp = self.valuation()
         if n is not None:
             try:
                 return ulist[n - ordp]

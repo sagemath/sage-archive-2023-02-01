@@ -108,41 +108,42 @@ def is_NumberFieldElement(x):
     """
     return isinstance(x, NumberFieldElement)
 
+
 def __create__NumberFieldElement_version0(parent, poly):
     """
     Used in unpickling elements of number fields pickled under very old Sage versions.
 
-    EXAMPLES::
+    TESTS::
 
         sage: k.<a> = NumberField(x^3 - 2)
         sage: R.<z> = QQ[]
         sage: sage.rings.number_field.number_field_element.__create__NumberFieldElement_version0(k, z^2 + z + 1)
+        doctest:...: DeprecationWarning: __create__NumberFieldElement_version0() is deprecated
+        See https://trac.sagemath.org/25848 for details.
         a^2 + a + 1
     """
+    from sage.misc.superseded import deprecation
+    deprecation(25848, '__create__NumberFieldElement_version0() is deprecated')
     return NumberFieldElement(parent, poly)
+
 
 def __create__NumberFieldElement_version1(parent, cls, poly):
     """
-    Used in unpickling elements of number fields.
+    Used in unpickling elements of number fields pickled under old Sage versions.
 
-    EXAMPLES:
-
-    Since this is just used in unpickling, we unpickle.
-
-    ::
+    TESTS::
 
         sage: k.<a> = NumberField(x^3 - 2)
-        sage: loads(dumps(a+1)) == a + 1 # indirect doctest
-        True
-
-    This also gets called for unpickling order elements; we check that
-    :trac:`6462` is fixed::
-
-        sage: L = NumberField(x^3 - x - 1,'a'); OL = L.maximal_order(); w = OL.0
-        sage: loads(dumps(w)) == w # indirect doctest
-        True
+        sage: R.<z> = QQ[]
+        sage: sage.rings.number_field.number_field_element.__create__NumberFieldElement_version1(k, type(a), z^2 + z + 1)
+        doctest:...: DeprecationWarning: __create__NumberFieldElement_version1() is deprecated
+        See https://trac.sagemath.org/25848 for details.
+        a^2 + a + 1
     """
+    from sage.misc.superseded import deprecation
+    deprecation(25848, '__create__NumberFieldElement_version1() is deprecated')
     return cls(parent, poly)
+
 
 def _inverse_mod_generic(elt, I):
     r"""
@@ -414,18 +415,30 @@ cdef class NumberFieldElement(FieldElement):
         """
         Used in pickling number field elements.
 
-        Note for developers: If this is changed, please also change the doctests of __create__NumberFieldElement_version1.
-
         EXAMPLES::
 
             sage: k.<a> = NumberField(x^3 - 17*x^2 + 1)
             sage: t = a.__reduce__(); t
-            (<built-in function __create__NumberFieldElement_version1>, (Number Field in a with defining polynomial x^3 - 17*x^2 + 1, <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>, x))
+            (<type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>,
+             (Number Field in a with defining polynomial x^3 - 17*x^2 + 1, x))
             sage: t[0](*t[1]) == a
             True
+
+        ::
+
+            sage: k.<a> = NumberField(x^3 - 2)
+            sage: loads(dumps(a+1)) == a + 1 # indirect doctest
+            True
+
+        This also gets called for unpickling order elements; we check that
+        :trac:`6462` is fixed::
+
+            sage: L = NumberField(x^3 - x - 1,'a'); OL = L.maximal_order(); w = OL.0
+            sage: loads(dumps(w)) == w # indirect doctest
+            True
         """
-        return __create__NumberFieldElement_version1, \
-               (self.parent(), type(self), self.polynomial())
+        args = (self.parent(), self.polynomial())
+        return type(self), args
 
     def _repr_(self):
         """

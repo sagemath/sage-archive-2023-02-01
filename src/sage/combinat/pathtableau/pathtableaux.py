@@ -2,7 +2,9 @@ r"""
 Path Tableaux
 
 This is an abstract base class for using local rules to construct rectification
-and the action of the cactus group. This is an effective version
+and the action of the cactus group, [Wes2017]_
+
+This is an effective version
 of the Henriques-Kamnitzer construction of the action of the cactus
 group on tensor powers of a crystal. This is a generalisation of
 the Fomin growth rules which are an effective version of the operations

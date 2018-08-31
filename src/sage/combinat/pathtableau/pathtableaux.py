@@ -39,7 +39,7 @@ from sage.structure.parent import Parent
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
     @abstract_method(optional=False)
-    def _rule_(self,p):
+    def _rule(self,p):
         """
         This is an abstract method. It must be overwritten.
         This rule provides the functionality. It is called in
@@ -108,7 +108,7 @@ class PathTableau(ClonableList):
             raise ValueError("%d is not a valid integer" % i)
 
         result = list(self)
-        result[i] = self._rule_(self[i-1:i+2])
+        result[i] = self._rule(self[i-1:i+2])
 
         return self.parent()(result)
 
@@ -124,7 +124,7 @@ class PathTableau(ClonableList):
         """
         result = list(self)
         for i in range(1,len(result)-1):
-            result[i] = self._rule_(result[i-1:i+2])
+            result[i] = self._rule(result[i-1:i+2])
         return self.parent()(result)
 
     def evacuation(self):
@@ -189,11 +189,11 @@ class PathTableau(ClonableList):
 
         for i in range(1,n):
             if display:
-                print path[n-i:n+m-i]
+                print(path[n-i:n+m-i])
             for j in range(m-1):
                 path = path._local_rule(n+j-i)
         if display:
-            print path[:m]
+            print(path[:m])
 
 
         return (self.parent()(path[:m]),self.parent()(path[m-1:]))

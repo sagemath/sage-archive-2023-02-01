@@ -177,16 +177,16 @@ class CatalanTableau(PathTableau):
                 raise ValueError( "%s is not a Dyck path" % (str(self)) )
 
     @staticmethod
-    def _rule_(x):
+    def _rule(x):
         """
         Overwrites the abstract method.
 
         EXAMPLES::
 
             sage: T = CatalanTableau([0,1,2,3,2,3])
-            sage: T._rule_([1,2,1])
+            sage: T._rule([1,2,1])
             0
-            sage: T._rule_([0,1,0])
+            sage: T._rule([0,1,0])
             1
         """
         return abs(x[0]-x[1]+x[2])

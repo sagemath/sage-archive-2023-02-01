@@ -38,8 +38,9 @@ from sage.structure.parent import Parent
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
+    @staticmethod
     @abstract_method(optional=False)
-    def _rule(self,p):
+    def _rule(p):
         """
         This is an abstract method. It must be overwritten.
         This rule provides the functionality. It is called in
@@ -92,7 +93,7 @@ class PathTableau(ClonableList):
 
     def _local_rule(self,i):
         """
-        This is the local that is used for the remaining constructions.
+        This is the local rule that is used for the remaining constructions.
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
         `i`-th and `(i+1)`-term and applies the rule. It then replaces

@@ -341,14 +341,14 @@ class ParametrizedSurface3D(SageObject):
         """
         self.equation = tuple(equation)
 
-        if variables[0]:
+        if len(variables[0]):
             self.variables_range = (variables[0][1:3], variables[1][1:3])
-            self.variables_list  = (variables[0][0], variables[1][0])
+            self.variables_list = (variables[0][0], variables[1][0])
         else:
             self.variables_range = None
             self.variables_list = variables
 
-        self.variables = {1:self.variables_list[0],2:self.variables_list[1]}
+        self.variables = {1:self.variables_list[0], 2:self.variables_list[1]}
         self.name = name
 
     def _latex_(self):

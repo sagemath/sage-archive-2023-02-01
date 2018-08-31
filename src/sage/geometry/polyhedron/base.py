@@ -1281,7 +1281,7 @@ class Polyhedron_base(Element):
         else:
             return self._Hrepresentation[index]
 
-    def Hrepresentation_str(self, separator='\n', latex=False, style='>=', **kwds):
+    def Hrepresentation_str(self, separator='\n', latex=False, style='>=', align=None, **kwds):
         r"""
         Return a human-readable string representation of the Hrepresentation of this
         polyhedron.
@@ -1294,6 +1294,11 @@ class Polyhedron_base(Element):
 
         - ``style`` -- either ``"positive"`` (making all coefficients positive)
                        or ``"<="``, or ``">="``. Default is ``">="``.
+
+        - ``align`` -- a boolean or ``None''. Default is ``None`` in which case
+                       ``align`` is ``True`` if ``separator`` is the newline character.
+                       If set, then the lines of the output string are aligned
+                       by the comparison symbol by padding blanks.
 
         Keyword parameters of
         :meth:`~sage.geometry.polyhedron.representation.Hrepresentation.repr_pretty`
@@ -1359,11 +1364,12 @@ class Polyhedron_base(Element):
             See https://trac.sagemath.org/24837 for details.
             ' x0 >=  0 \n-x0 >= -1 '
         """
-
         pretty_hs = [h.repr_pretty(split=True, latex=latex, style=style, **kwds) for h in self.Hrepresentation()]
         shift = any(pretty_h[2].startswith('-') for pretty_h in pretty_hs)
 
-        if separator == "\n":
+        if align is None:
+            align = separator == "\n"
+        if align:
             lengths  = [(len(s[0]), len(s[1]), len(s[2])) for s in pretty_hs]
             from operator import itemgetter
             length_left = max(lengths, key=itemgetter(0))[0]

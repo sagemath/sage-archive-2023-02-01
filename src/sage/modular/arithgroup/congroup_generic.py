@@ -254,6 +254,19 @@ class CongruenceSubgroupBase(ArithmeticSubgroup):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(CongruenceSubgroup(3,[ [1,1,0,1] ])) == hash(Gamma1(3))
+            True
+            sage: hash(CongruenceSubgroup(3,[ [1,1,0,1] ])) == hash(Gamma(3))
+            False
+        """
+        return hash((self.level(), self.index()))
+
 
 class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
     r"""

@@ -990,7 +990,7 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
     A binary form defining the periodic points is associated to ``f``.
     From this polynomial a bound on the search space can be determined.
 
-    ``f`` should already me a minimal model or finding the orbit
+    ``f`` should already be a minimal model or finding the orbit
     representatives may give wrong results.
 
     INPUT:
@@ -1076,7 +1076,6 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
             gn = g.nth_iterate_map(n)
             pts_poly = y*gn[0] - x*gn[1]
         d = ZZ(pts_poly.degree())
-        # repeated_roots = (max([ex for p,ex in pts_poly.factor()]) > 1)
         max_mult = max([ex for p,ex in pts_poly.factor()])
         while ((d < 3) or (max_mult >= d/2) and (n < 5)):
             n = n+1
@@ -1087,7 +1086,6 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
                 pts_poly = y*gn[0] - x*gn[1]
             d = ZZ(pts_poly.degree())
             max_mult = max([ex for p,ex in pts_poly.factor()])
-            # repeated_roots = (max([ex for p,ex in pts_poly.factor()]) > 1)
         assert(n<=4), "n > 4, failed to find usable poly"
 
         R = get_bound_dynamical(pts_poly, g, m=n, dynatomic=dynatomic, prec=prec, emb=emb)
@@ -1118,15 +1116,15 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
         TI = matrix(ZZ,2,2,[1,-1,0,1])
 
         count = 0
-        pts = [[G, red_g, v0, rep, M*MG, coshdelta(v0), 0]]  #label - 0:None, 1:S, 2:T, 3:T^(-1)
+        pts = [[G, red_g, v0, rep, M*MG, coshdelta(v0), 0]]  # label - 0:None, 1:S, 2:T, 3:T^(-1)
         if current_min is None:
             current_min = [G, red_g, v0, rep, M*MG, coshdelta(v0)]
         while pts != []:
             G, g, v, rep, M, D, label = pts.pop()
-            #apply ST and keep z, Sz
+            # apply ST and keep z, Sz
             if D > R:
                 break #all remaining pts are too far away
-            #check if it is smaller. If so, we can improve the bound
+            # check if it is smaller. If so, we can improve the bound
             count += 1
             new_size = e**g.global_height(prec=prec)
             if new_size < current_size:
@@ -1138,19 +1136,23 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
                 if new_R < R:
                     R = new_R
 
-            #add new points to check
-            if label != 1 and min((rep+1).norm(), (rep-1).norm()) >= 1: #don't undo S
-                #do inversion if outside "bad" domain
+            # add new points to check
+            if label != 1 and min((rep+1).norm(), (rep-1).norm()) >= 1: # don't undo S
+                # the 2nd condition is equivalent to |\Re(-1/rep)| <= 1/2
+                # this means that rep can have resulted from an inversion step in
+                # the shift-and-invert procedure, so don't invert
+
+                # do inversion
                 z = -1/v
                 new_pt = [G.subs({x:-y, y:x}), g.conjugate(S), z, -1/rep, M*S, coshdelta(z), 1]
                 pts = insert_item(pts, new_pt, 5)
-            if label != 3:  #don't undo T on g
-                #do right shift
+            if label != 3:  # don't undo T on g
+                # do right shift
                 z = v-1
                 new_pt = [G.subs({x:x+y}), g.conjugate(TI), z, rep-1, M*TI, coshdelta(z), 2]
                 pts = insert_item(pts, new_pt, 5)
-            if label != 2:  #don't undo TI on g
-                #do left shift
+            if label != 2:  # don't undo TI on g
+                # do left shift
                 z = v+1
                 new_pt = [G.subs({x:x-y}), g.conjugate(T), z, rep+1, M*T, coshdelta(z), 3]
                 pts = insert_item(pts, new_pt, 5)

@@ -42,19 +42,19 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
 from sage.symbolic.constants import e
 
-def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
+def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     """
-    Return the `z_0` covariant and Julia invariant from Cremona-Stoll [CS2003]_.
+    Return the covariant and Julia invariant from Cremona-Stoll [CS2003]_.
 
     In [CS2003]_ and [HS2018]_ the Julia invariant is denoted as `\Theta(F)`
     or `R(F, z(F))`. Note that you may get faster convergence if you first move
-    `z_0(F)` to the fundamental domain before computing the true invariant
+    `z_0(F)` to the fundamental domain before computing the true covariant
 
     INPUT:
 
     - ``F`` -- binary form of degree at least 3 with no multiple roots
 
-    - ``z0_inv`` -- boolean, compute only the `z_0` invariant. Otherwise, solve
+    - ``z0_cov`` -- boolean, compute only the `z_0` invariant. Otherwise, solve
       the minimization problem
 
     - ``prec``-- positive integer. precision to use in CC
@@ -72,7 +72,7 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
         sage: R.<x,y> = QQ[]
         sage: F = 19*x^8 - 262*x^7*y + 1507*x^6*y^2 - 4784*x^5*y^3 + 9202*x^4*y^4\
         ....: - 10962*x^3*y^5 + 7844*x^2*y^6 - 3040*x*y^7 + 475*y^8
-        sage: covariant_z0(F, prec=80, z0_inv=True)
+        sage: covariant_z0(F, prec=80, z0_cov=True)
         (1.3832330115323681438175 + 0.31233552177413614978744*I,
          3358.4074848663492819259)
         sage: F = -x^8 + 6*x^7*y - 7*x^6*y^2 - 12*x^5*y^3 + 27*x^4*y^4\
@@ -84,17 +84,17 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
     ::
 
         sage: R.<x,y> = QQ[]
-        sage: covariant_z0(x^3 + 2*x^2*y - 3*x*y^2, z0_inv=True)[0]
+        sage: covariant_z0(x^3 + 2*x^2*y - 3*x*y^2, z0_cov=True)[0]
         0.230769230769231 + 0.799408065031789*I
-        sage: -1/covariant_z0(-y^3 + 2*y^2*x + 3*y*x^2, z0_inv=True)[0]
+        sage: -1/covariant_z0(-y^3 + 2*y^2*x + 3*y*x^2, z0_cov=True)[0]
         0.230769230769231 + 0.799408065031789*I
 
     ::
 
         sage: R.<x,y> = QQ[]
-        sage: covariant_z0(2*x^2*y - 3*x*y^2, z0_inv=True)[0]
+        sage: covariant_z0(2*x^2*y - 3*x*y^2, z0_cov=True)[0]
         0.750000000000000 + 1.29903810567666*I
-        sage: -1/covariant_z0(-x^3 - x^2*y + 2*x*y^2, z0_inv=True)[0] + 1
+        sage: -1/covariant_z0(-x^3 - x^2*y + 2*x*y^2, z0_cov=True)[0] + 1
         0.750000000000000 + 1.29903810567666*I
 
     ::
@@ -111,7 +111,7 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
         Traceback (most recent call last):
         ...
         ValueError: must be at least degree 3
-        sage: covariant_z0((x+y)^3, z0_inv=True)
+        sage: covariant_z0((x+y)^3, z0_cov=True)
         Traceback (most recent call last):
         ...
         ValueError: cannot have multiple roots for z0 invariant
@@ -160,7 +160,7 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
     roots = f.roots()
     if (max([ex for p,ex in roots]) > 1)\
       or (f.degree() < d-1):
-        if z0_inv:
+        if z0_cov:
             raise ValueError('cannot have multiple roots for z0 invariant')
         else:
             # just need a starting point for Newton's method
@@ -175,13 +175,10 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
     n = ZZ(f.degree())
     PR = PolynomialRing(K,'x,y')
     x,y = PR.gens()
-    Q  = []
     # finds Stoll and Cremona's Q_0
-    for j in range(len(roots)):
-        k = (1/(dF(roots[j]).abs()**(2/(n-2)))) * ((x-(roots[j]*y)) * (x-(roots[j].conjugate()*y)))
-        Q.append(k)
+    q  = sum([(1/(dF(r).abs()**(2/(n-2)))) * ((x-(r*y)) * (x-(r.conjugate()*y)))\
+              for r in roots])
     # this is Q_0 , always positive def as long as F has distinct roots
-    q = sum([Q[i] for i in range(len(Q))])
     A = q.monomial_coefficient(x**2)
     B = q.monomial_coefficient(x*y)
     C = q.monomial_coefficient(y**2)
@@ -193,8 +190,8 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
     if z.imag() < 0:
         z = (-B - ((B**2)-(4*A*C)).sqrt())/(2*A)
 
-    if z0_inv:
-        FM = f #for Julia's invariant
+    if z0_cov:
+        FM = f # for Julia's invariant
     else:
         # solve the minimization problem for 'true' covariant
         CF = ComplexIntervalField(prec=prec) # keeps trac of our precision error
@@ -209,15 +206,15 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
         for p,e in L1:
             if e >= d/2:
                 raise ValueError('cannot have a root with multiplicity >= %s/2'%d)
-            for l in range(e):
+            for _ in range(e):
                 L.append(p)
         RCF = PolynomialRing(CF, 'u,t')
         a = RCF(0)
         c = RCF(0)
         u,t = RCF.gens()
-        for j in range(len(L)):
-            a += u**2/((t-L[j]) * (t-L[j].conjugate()) + u**2)
-            c += (t-L[j].real())/((t-L[j]) * (t-L[j].conjugate()) + u**2)
+        for l in L:
+            a += u**2/((t-l) * (t-l.conjugate()) + u**2)
+            c += (t-l.real())/((t-l) * (t-l.conjugate()) + u**2)
         # Newton's Method, to find solutions. Error bound is less than diameter of our z
         err = z.diameter()
         zz = z.diameter()
@@ -252,7 +249,7 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
     uF = z.imag()
     th = FM.lc().abs()**2
     for r,ex in FM.roots():
-        for k in range(ex):
+        for _ in range(ex):
             th = th * ((((r-tF).abs())**2 + uF**2)/uF)
 
     # undo shift and invert (if needed)
@@ -264,7 +261,7 @@ def covariant_z0(F, z0_inv=False, prec=53, emb=None, error_limit = 0.000001):
 
 #// compute inverse of eps_F
 #from Michael Stoll
-def epsinv(F, target, prec=53, target_tol = 0.001, z = None, emb=None):
+def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
     """
     Compute a bound on the hyperbolic distance.
 
@@ -301,17 +298,18 @@ def epsinv(F, target, prec=53, target_tol = 0.001, z = None, emb=None):
         return (z.norm() + 1)/(2*z.imag())
 
     def RQ(delta):
+        # this is the quotient R(F_0,z)/R(F_0,z(F)) for a generic z
+        # at distance delta from j. See Lemma 4.2 in [HS2018].
         cd = cosh(delta).n(prec=prec)
         sd = sinh(delta).n(prec=prec)
         return prod([cd + (cost*phi[0] + sint*phi[1])*sd for phi in phis])
 
     def epsF(delta):
-        pol = RQ(delta);
+        pol = RQ(delta) #get R quotient in terms of z
         S = PolynomialRing(C, 'v')
-        g = S([(i-d)*pol[i-d] for  i in range(2*d+1)])
+        g = S([(i-d)*pol[i-d] for  i in range(2*d+1)]) # take derivative
         drts = [e for e in g.roots(ring=C, multiplicities=False) if (e.norm()-1).abs() < 0.1]
-        #print(("A", pol))
-        #print([pol(r/r.abs()).real() for r in drts])
+        # find min
         return min([pol(r/r.abs()).real() for r in drts])
 
     C = ComplexField(prec=prec)
@@ -345,45 +343,46 @@ def epsinv(F, target, prec=53, target_tol = 0.001, z = None, emb=None):
     t = PR.gen(0)
     # compute phi_1, ..., phi_k
     # first find F_0 and its roots
+    # this change of variables on f moves z(f) to j, i.e. produces F_0
     rts = f(z.imag()*t + z.real()).roots(ring=C)
-    phis = []
+    phis = [] # stereographic projection of roots
     for r,e in rts:
         phis.extend([[2*r.real()/(r.norm()+1), (r.norm()-1)/(r.norm()+1)]])
-    if d != f.degree():
+    if d != f.degree(): # include roots at infinity
         phis.extend([(d-f.degree())*[0,1]])
+
+    # for writing RQ in terms of generic z to minimize
     LC = LaurentSeriesRing(C, 'u', default_prec=2*d+2)
     u = LC.gen(0)
-    cost = (u + u**(-1))/2;
-    sint = (u - u**(-1))/(2*C.gen(0));
-    # first find an interval containing the desired value, then use regula falsi on log eps_F
-    #d -> delta value in interval [0,1]?
-    #v in value in interval [1,epsF(1)]
-    dl = R(0.0); vl = R(1.0);
-    du = R(1.0); vu = epsF(du);
+    cost = (u + u**(-1))/2
+    sint = (u - u**(-1))/(2*C.gen(0))
+
+    # first find an interval containing the desired value
+    # then use regula falsi on log eps_F
+    # d -> delta value in interval [0,1]
+    # v in value in interval [1,epsF(1)]
+    dl = R(0.0); vl = R(1.0)
+    du = R(1.0); vu = epsF(du)
     while vu < target:
-        #compute the next value of epsF for delta = 2*delta
-        dl = du; vl = vu;
-        du *= 2; vu = epsF(du);
+        # compute the next value of epsF for delta = 2*delta
+        dl = du; vl = vu
+        du *= 2; vu = epsF(du)
     # now dl < delta <= du
-    #print(("B",dl,du,vl,vu))
     logt = target.log()
     l2 = (vu.log() -logt).n(prec=prec)
     l1 = (vl.log()-logt).n(prec=prec)
     dn = (dl*l2 - du*l1)/(l2 - l1)
-    #print(("C",dn))
-    vn = epsF(dn);
-    #print(("d",vn))
-    dl = du; vl = vu;
-    du = dn; vu = vn;
+    vn = epsF(dn)
+    dl = du; vl = vu
+    du = dn; vu = vn
     while (du-dl).abs() >= target_tol or max(vl, vu) < target:
-        #print((dl,du,vl,vu))
         l2 = (vu.log() -logt).n(prec=prec)
         l1 = (vl.log()-logt).n(prec=prec)
         dn = (dl*l2 - du*l1)/(l2 - l1)
-        vn = epsF(dn);
-        dl = du; vl = vu;
-        du = dn; vu = vn;
-    return max(dl, du);
+        vn = epsF(dn)
+        dl = du; vl = vu
+        du = dn; vu = vn
+    return max(dl, du)
 
 ###################
 def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
@@ -568,7 +567,11 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
 
         #add new points to check
         if label != 1 and min((rep+1).norm(), (rep-1).norm()) >= 1: #don't undo S
-            #do inversion if outside "bad" domain
+            # the 2nd condition is equivalent to |\Re(-1/rep)| <= 1/2
+            # this means that rep can have resulted from an inversion step in
+            # the shift-and-invert procedure, so don't invert
+
+            # do inversion
             z = -1/v
             new_pt = [G.subs({x:-y, y:x}), z, -1/rep, M*S, coshdelta(z), 1]
             pts = insert_item(pts, new_pt, 4)

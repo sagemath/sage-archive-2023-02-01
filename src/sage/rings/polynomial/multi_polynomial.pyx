@@ -2073,10 +2073,11 @@ cdef class MPolynomial(CommutativeRingElement):
 
         A portion of the algorithm uses Newton's method to find a solution to
         a system of equations. If Newton's method fails to converge to a point
-        in the upper half plane, the function will use the less precise `Q_0`
-        covariant as defined in [CS2003]_. Additionally, if this polynomial has
+        in the upper half plane, the function will use the less precise `z_0`
+        covariant from the `Q_0` form as defined on page 7 of [CS2003]_.
+        Additionally, if this polynomial has
         a root with multiplicity at lease half the total degree of the polynomial,
-        then we must also use the `Q_0` covariant. See [CS2003]_ for details.
+        then we must also use the `z_0` covariant. See [CS2003]_ for details.
 
         Note that, if the covariant is within ``error_limit`` of the boundry
         but outside the fundamental domain, our function will erroneously move
@@ -2256,37 +2257,33 @@ cdef class MPolynomial(CommutativeRingElement):
         error_limit = kwds.get('error_limit', 0.000001)
         emb = kwds.get('emb', None)
 
-        #getting a numerical approximation of the roots of our polynomial
+        # getting a numerical approximation of the roots of our polynomial
         CF = ComplexIntervalField(prec=prec) # keeps trac of our precision error
         RF = RealField(prec=prec)
         R = self.parent()
         x,y = R.gens()
 
-        #finding quadratic Q_0, gives us our convariant, z_0
+        # finding quadratic Q_0, gives us our convariant, z_0
         from sage.rings.polynomial.binary_form_reduce import covariant_z0
         try:
-            z, th = covariant_z0(self, prec=prec, emb=emb, z0_inv=True)
+            z, th = covariant_z0(self, prec=prec, emb=emb, z0_cov=True)
         except ValueError:# multiple roots
             F = self.lc()*prod([p for p,e in self.factor()])
-            z, th = covariant_z0(F, prec=prec, emb=emb, z0_inv=True)
+            z, th = covariant_z0(F, prec=prec, emb=emb, z0_cov=True)
         z = CF(z)
-        # this moves z to our fundamental domain using the three steps laid
+        # this moves z_0 to our fundamental domain using the three steps laid
         # out in the algorithim by [CS2003]
         # this is found in section 5 of their paper
         M = matrix(QQ, [[1,0], [0,1]]) # used to keep track of how our z is moved.
         zc = z.center()
         while zc.real() < RF(-0.5) or zc.real() >= RF(0.5) or (zc.real() <= RF(0) and zc.abs() < RF(1))\
          or (zc.real() > RF(0) and zc.abs() <= RF(1)):
-            if zc.real() < RF(-0.5): # moves z into fundamental domain by m
-                m = zc.real().abs().round() # finds amount to move z's real part by
+            if (zc.real() < RF(-0.5)) or (zc.real() >= RF(0.5)):
+                # moves z into fundamental domain by m
+                m = zc.real().round() # finds amount to move z's real part by
                 Qm = QQ(m)
-                M = M * matrix(QQ, [[1,-Qm], [0,1]]) # move
-                z += m  # M.inverse()*z is supposed to move z by m
-            elif zc.real() >= RF(0.5): # moves z into fundamental domain by m
-                m = zc.real().round()
-                Qm = QQ(m)
-                M = M * matrix(QQ, [[1,Qm], [0,1]])  #move z
-                z -= m
+                M = M * matrix(QQ, [[1,Qm], [0,1]]) # move
+                z -= m  # M.inverse()*z is supposed to move z by m
             elif (zc.real() <= RF(0) and zc.abs() < RF(1)) or (zc.real() > RF(0) and zc.abs() <= RF(1)): # flips z
                 z = -1/z
                 M = M * matrix(QQ, [[0,-1], [1,0]])# multiply on left because we are taking inverse matrices
@@ -2307,19 +2304,15 @@ cdef class MPolynomial(CommutativeRingElement):
             # moves our z to fundamental domain as before
             while zc.real() < RF(-0.5) or zc.real() >= RF(0.5) or (zc.real() <= RF(0) and zc.abs() < RF(1))\
              or (zc.real() > RF(0) and zc.abs() <= RF(1)):
-                if zc.real() < RF(-0.5):
-                    m = zc.real().abs().round()
+                if (zc.real() < RF(-0.5)) or (zc.real() >= RF(0.5)):
+                    # moves z into fundamental domain by m
+                    m = zc.real().round() # finds amount to move z's real part by
                     Qm = QQ(m)
-                    M = M*matrix(QQ, [[1,-Qm], [0,1]])
-                    z += m  # M.inverse()*Z is supposed to move z by m
-                elif zc.real() >= RF(0.5): #else if
-                    m = zc.real().round()
-                    Qm = QQ(m)
-                    M = M * matrix(QQ, [[1,Qm], [0,1]])
-                    z -= m
-                elif (zc.real() <= RF(0) and zc.abs() < RF(1)) or (zc.real() > RF(0) and zc.abs() <= RF(1)):
+                    M = M * matrix(QQ, [[1,Qm], [0,1]]) # move
+                    z -= m  # M.inverse()*z is supposed to move z by m
+                elif (zc.real() <= RF(0) and zc.abs() < RF(1)) or (zc.real() > RF(0) and zc.abs() <= RF(1)): # flips z
                     z = -1/z
-                    M = M * matrix(QQ, [[0,-1],[ 1,0]])
+                    M = M * matrix(QQ, [[0,-1], [1,0]])# multiply on left because we are taking inverse matrices
                 zc = z.center()
 
         if return_conjugation:

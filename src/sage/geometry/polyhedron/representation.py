@@ -1408,7 +1408,8 @@ class Line(Vrepresentation):
         return Hobj.A() * self.vector()
 
 
-def repr_pretty(coefficients, type, prefix='x', indices=None, latex=False, style='>=',split=False):
+def repr_pretty(coefficients, type, prefix='x', indices=None,
+                latex=False, style='>=', split=False):
     r"""
     Return a pretty representation of equation/inequality represented
     by the coefficients.

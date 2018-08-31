@@ -17,7 +17,7 @@ REFERENCES:
     
     .. [Wes2017] Bruce Westbury.
     *Coboundary categories and local rules*,
-    :arxiv:'1705.07141
+    :arxiv:'1705.07141'
 
 AUTHORS: 
 

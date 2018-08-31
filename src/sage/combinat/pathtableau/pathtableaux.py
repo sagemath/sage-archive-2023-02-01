@@ -16,8 +16,8 @@ by jeu-de-taquin on rectangular tableaux but in general they are different.
 REFERENCES:
 
 .. [Wes2017] Bruce Westbury.
-*Coboundary categories and local rules*,
-:arxiv:'1705.07141'
+   *Coboundary categories and local rules*,
+   :arxiv:'1705.07141'
 
 AUTHORS:
 

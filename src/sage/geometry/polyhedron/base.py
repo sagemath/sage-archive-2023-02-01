@@ -1390,19 +1390,20 @@ class Polyhedron_base(Element):
         else:
             h_line = "{} {} {}"
 
-        h_list = [h_line.format(pretty_h[0], pretty_h[1], ' ' + pretty_h[2]) \
-                  if separator == "\n" and shift and not pretty_h[2].startswith('-') \
-                  else h_line.format(pretty_h[0], pretty_h[1], pretty_h[2]) \
+        def pad_non_minus(s):
+            if align and shift and not s.startswith('-'):
+                return ' ' + s
+            else:
+                return s
+        h_list = [h_line.format(pretty_h[0], pretty_h[1], pad_non_minus(pretty_h[2]))
                   for pretty_h in pretty_hs]
         pretty_print = separator.join(h_list)
 
         if not latex:
             return pretty_print
         else:
-            pretty_print = "\\begin{array}{rcl}\n" + pretty_print
-            # Does not add the 2 unnecessary backslashes:
-            pretty_print = pretty_print[:-2] + "\n\\end{array}"
-            return pretty_print
+            # below we remove the 2 unnecessary backslashes at the end of pretty_print
+            return "\\begin{array}{rcl}\n" + pretty_print[:-2] + "\n\\end{array}"
 
     repr_pretty_Hrepresentation = deprecated_function_alias(24837, Hrepresentation_str)
 

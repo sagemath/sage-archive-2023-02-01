@@ -1345,7 +1345,7 @@ class Polyhedron_base(Element):
                             x_{2} & \geq &  1
             \end{array}
             sage: c = polytopes.cube()
-            sage: c.Hrepresentation_str(separator=', ',style='positive')
+            sage: c.Hrepresentation_str(separator=', ', style='positive')
             '1 >= x2, 1 >= x1, 1 >= x0, x0 + 1 >= 0, x2 + 1 >= 0, x1 + 1 >= 0'
 
         TESTS::

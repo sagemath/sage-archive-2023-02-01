@@ -1652,7 +1652,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def H_covariant(self, as_form=False):
         """
-        Return the covariant 'H' of a binary quintic.
+        Return the covariant `H` of a binary quintic.
 
         INPUT:
 
@@ -1689,7 +1689,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def i_covariant(self, as_form=False):
         """
-        Return the covariant 'i' of a binary quintic.
+        Return the covariant `i` of a binary quintic.
 
         INPUT:
 
@@ -1723,7 +1723,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def T_covariant(self, as_form=False):
         """
-        Return the covariant 'T' of a binary quintic.
+        Return the covariant `T` of a binary quintic.
 
         INPUT:
 
@@ -1762,7 +1762,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def j_covariant(self, as_form=False):
         """
-        Return the covariant 'j' of a binary quintic.
+        Return the covariant `j` of a binary quintic.
 
         INPUT:
 
@@ -2046,7 +2046,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def A_invariant(self):
         """
-        Return the invariant 'A' of a binary quintic.
+        Return the invariant `A` of a binary quintic.
 
         OUTPUT:
 
@@ -2074,7 +2074,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def B_invariant(self):
         """
-        Return the invariant 'B' of a binary quintic.
+        Return the invariant `B` of a binary quintic.
 
         OUTPUT:
 
@@ -2106,7 +2106,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def C_invariant(self):
         """
-        Return the invariant 'C' of a binary quintic.
+        Return the invariant `C` of a binary quintic.
 
         OUTPUT:
 
@@ -2137,7 +2137,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def R_invariant(self):
         """
-        Return the invariant 'R' of a binary quintic.
+        Return the invariant `R` of a binary quintic.
 
         OUTPUT:
 
@@ -4053,14 +4053,14 @@ can then be queried for invariant and covariants. For example,
 
         - ``*args`` -- the two homogeneous variables. If only one variable is
           given, the quintic is assumed to be inhomogeneous. If no variables
-          are given, they are guessed by :meth:`~_guess_variables`.
+          are given, they are guessed.
 
         REFERENCES:
 
         - :wikipedia:`Invariant_of_a_binary_form`
         - [Cle1872]_
 
-        EXAMPLES::
+        EXAMPLES:
 
         If no variables are provided, they will be guessed::
 

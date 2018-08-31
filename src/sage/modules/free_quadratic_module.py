@@ -1221,7 +1221,7 @@ class FreeQuadraticModule_submodule_with_basis_pid(
     We compare a `\ZZ`-module to the one-dimensional space above::
 
         sage: V = A.span([[5,6,7]])
-        sage: V = V.change_ring(ZZ).scale(1/11);
+        sage: V = V.change_ring(ZZ).scale(1/11)
         sage: V < M
         True
         sage: M < V

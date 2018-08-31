@@ -3652,6 +3652,7 @@ def nth_prime(n):
         raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
     return ZZ(pari.prime(n))
 
+
 def quadratic_residues(n):
     r"""
     Return a sorted list of all squares modulo the integer `n`
@@ -3669,12 +3670,12 @@ def quadratic_residues(n):
         [0, 1, 4]
         sage: quadratic_residues(-10)
         [0, 1, 4, 5, 6, 9]
-        sage: v = quadratic_residues(1000); len(v);
+        sage: v = quadratic_residues(1000); len(v)
         159
     """
     n = abs(int(n))
-    X = sorted(set(ZZ((a*a)%n) for a in range(n // 2 + 1)))
-    return X
+    return sorted(set(ZZ((a*a) % n) for a in range(n // 2 + 1)))
+
 
 class Moebius:
     r"""

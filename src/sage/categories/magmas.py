@@ -629,7 +629,7 @@ class Magmas(Category_singleton):
                     EXAMPLES::
 
                         sage: C = Magmas().Unital().Inverse().CartesianProducts()
-                        sage: C.extra_super_categories();
+                        sage: C.extra_super_categories()
                         [Category of inverse unital magmas]
                         sage: sorted(C.axioms())
                         ['Inverse', 'Unital']
@@ -645,7 +645,7 @@ class Magmas(Category_singleton):
                 EXAMPLES::
 
                     sage: C = Magmas().Unital().CartesianProducts()
-                    sage: C.extra_super_categories();
+                    sage: C.extra_super_categories()
                     [Category of unital magmas]
                     sage: C.axioms()
                     frozenset({'Unital'})
@@ -1098,7 +1098,7 @@ class Magmas(Category_singleton):
                     sage: x * x
                     (1/4, 1, 1)
 
-                    sage: A = SymmetricGroupAlgebra(QQ, 3);
+                    sage: A = SymmetricGroupAlgebra(QQ, 3)
                     sage: x = cartesian_product([A([1,3,2]), A([2,3,1])])
                     sage: y = cartesian_product([A([1,3,2]), A([2,3,1])])
                     sage: cartesian_product([A,A]).product(x,y)

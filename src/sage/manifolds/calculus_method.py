@@ -204,7 +204,7 @@ class CalculusMethod(SageObject):
         EXAMPLES::
 
             sage: M = Manifold(2, 'M', field='complex', structure='topological')
-            sage: X = M.chart('x y');
+            sage: X = M.chart('x y')
             sage: f = x^2+sin(x)^2+cos(x)^2
             sage: from sage.manifolds.calculus_method import CalculusMethod
             sage: calc_meth = CalculusMethod(base_field_type='real')

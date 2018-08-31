@@ -578,7 +578,7 @@ def tutte_polynomial(G, edge_selector=None, cache=None):
     Verify that :trac:`18366` is fixed::
 
         sage: g = Graph(multiedges=True)
-        sage: g.add_edges([(0,1,1),(1,5,2),(5,3,3),(5,2,4),(2,4,5),(0,2,6),(0,3,7),(0,4,8),(0,5,9)]);
+        sage: g.add_edges([(0,1,1),(1,5,2),(5,3,3),(5,2,4),(2,4,5),(0,2,6),(0,3,7),(0,4,8),(0,5,9)])
         sage: g.tutte_polynomial()(1,1)
         52
         sage: g.spanning_trees_count()

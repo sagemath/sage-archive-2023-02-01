@@ -1705,7 +1705,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             True
             sage: bool(moebius_transform(A, p3) == infinity)
             True
-            sage: (x,y,z) = var('x,y,z');
+            sage: (x,y,z) = var('x,y,z')
             sage: HyperbolicGeodesicUHP._crossratio_matrix(x,y,z)
             [     y - z -x*(y - z)]
             [    -x + y  (x - y)*z]

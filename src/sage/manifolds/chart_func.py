@@ -1427,7 +1427,7 @@ class ChartFunction(AlgebraElement):
 
             sage: X.set_calculus_method('sympy')
             sage: f = X.function(x+y)
-            sage: f.exp();
+            sage: f.exp()
             exp(x + y)
             sage: exp(f) # equivalent to f.exp()
             exp(x + y)

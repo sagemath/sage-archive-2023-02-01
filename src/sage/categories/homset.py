@@ -317,7 +317,7 @@ def Hom(X, Y, category=None, check=True):
 
         sage: cls = type(Set())
         sage: S = unpickle_newobj(cls, ())  # A non parent
-        sage: H = Hom(S, S, SimplicialComplexes(), check=False);
+        sage: H = Hom(S, S, SimplicialComplexes(), check=False)
         sage: H = Hom(S, S, Sets(),                check=False)
         sage: H = Hom(S, S, ChainComplexes(QQ),    check=False)
 

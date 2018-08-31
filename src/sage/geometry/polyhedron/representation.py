@@ -1436,8 +1436,7 @@ def repr_pretty(coefficients, type, prefix='x', indices=None,
 
     OUTPUT:
 
-    If split is ``False`` (Default) returns a string. Else returns a 3-tuple
-    containing the left-hand side, the relation, and the right-hand side.
+    A string or 3-tuple of strings (depending on ``split``).
 
     EXAMPLES::
 

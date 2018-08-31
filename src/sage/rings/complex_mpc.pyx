@@ -920,7 +920,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
             sage: C = MPComplexField(prec=200, rnd='RNDUU')
             sage: b = C(393.39203845902384098234098230948209384028340)
-            sage: loads(dumps(b)) == b;
+            sage: loads(dumps(b)) == b
             True
             sage: C(1)
             1.0000000000000000000000000000000000000000000000000000000000

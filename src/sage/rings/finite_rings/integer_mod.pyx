@@ -417,7 +417,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             4
             sage: loads(a.dumps()) == a
             True
-            sage: a = Mod(-1,5^30)^25;
+            sage: a = Mod(-1,5^30)^25
             sage: loads(a.dumps()) == a
             True
         """

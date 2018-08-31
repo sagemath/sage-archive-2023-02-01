@@ -2784,16 +2784,16 @@ class HeegnerPointOnX0N(HeegnerPoint):
         """
         N = self.level()
         if Q is None:
-             Q = N
+            Q = N
         if Q == 1:
             return self  # trivial special case
-        g, u, v = xgcd(Q*Q, -N)
+        g, u, v = xgcd(Q * Q, -N)
         if g != Q:
             raise ValueError("Q must divide N and be coprime to N/Q")
         tau = self.tau()
-        WQ_tau = ((u*Q*tau + v) / (N*tau + Q))
-        return HeegnerPointOnX0N(N, self.discriminant(), self.conductor(), f=WQ_tau, check=True)
-
+        WQ_tau = ((u * Q * tau + v) / (N * tau + Q))
+        return HeegnerPointOnX0N(N, self.discriminant(), self.conductor(),
+                                 f=WQ_tau, check=True)
 
     @cached_method
     def quadratic_form(self):
@@ -5716,18 +5716,17 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         d = lcm([a.denominator() for a in w])
         return E.change_ring(GF(ell))([d*a for a in w])
 
-
     def best_heegner_D(ell_1, ell_2):
         # return the first Heegner D satisfy all hypothesis such that
         # both ell_1 and ell_2 are inert
         D = -5
         while True:
             if is_fundamental_discriminant(D) and \
-               D%ell_1 and D%ell_2 and \
+               D % ell_1 and D % ell_2 and \
                E.satisfies_heegner_hypothesis(D) and \
                is_inert(D, ell_1) and is_inert(D, ell_2) and \
                twist_is_minimal(D):
-                  return D
+                return D
             D -= 1
 
     if first_only:

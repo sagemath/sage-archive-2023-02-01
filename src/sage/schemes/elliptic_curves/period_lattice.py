@@ -1882,7 +1882,7 @@ def normalise_periods(w1, w2):
     return (a*w1+b*w2,c*w1+d*w2), abcd
 
 
-def extended_agm_iteration(a,b,c):
+def extended_agm_iteration(a, b, c):
     r"""
     Internal function for the extended AGM used in elliptic logarithm computation.
     INPUT:
@@ -1913,13 +1913,13 @@ def extended_agm_iteration(a,b,c):
     """
     if not isinstance(a, (RealNumber,ComplexNumber)):
         raise ValueError("values must be real or complex numbers")
-    eps = a.parent().one().real()>>(a.parent().precision()-10)
+    eps = a.parent().one().real() >> (a.parent().precision() - 10)
     while True:
-        a1 = (a + b)/2
-        b1 = (a*b).sqrt()
-        delta = (b**2 - a**2)/c**2
-        f = (1 + (1 + delta).sqrt())/2
-        if (f.abs()-1).abs() < eps:
-            return a,b,c
-        c*=f
-        a,b = a1,b1
+        a1 = (a + b) / 2
+        b1 = (a * b).sqrt()
+        delta = (b**2 - a**2) / c**2
+        f = (1 + (1 + delta).sqrt()) / 2
+        if (f.abs() - 1).abs() < eps:
+            return a, b, c
+        c *= f
+        a, b = a1, b1

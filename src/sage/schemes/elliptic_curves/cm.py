@@ -109,9 +109,9 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     D = Integer(D)
     if D >= 0:
-        raise ValueError("D (=%s) must be negative"%D)
-    if not (D%4 in [0,1]):
-         raise ValueError("D (=%s) must be a discriminant"%D)
+        raise ValueError("D (=%s) must be negative" % D)
+    if not (D % 4 in [0, 1]):
+        raise ValueError("D (=%s) must be a discriminant" % D)
 
     if algorithm == "arb":
         import sage.libs.arb.arith
@@ -119,11 +119,11 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     if algorithm == "magma":
         magma.eval("R<x> := PolynomialRing(IntegerRing())")
-        f = str(magma.eval("HilbertClassPolynomial(%s)"%D))
+        f = str(magma.eval("HilbertClassPolynomial(%s)" % D))
         return IntegerRing()['x'](f)
 
     if algorithm != "sage":
-        raise ValueError("%s is not a valid algorithm"%algorithm)
+        raise ValueError("%s is not a valid algorithm" % algorithm)
 
     from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
     from sage.rings.all import RR, ComplexField
@@ -166,8 +166,8 @@ def hilbert_class_polynomial(D, algorithm=None):
     pol = R(1)
     for qf in rqf:
         a, b, c = list(qf)
-        tau = (b+Dsqrt)/(a<<1)
-        pol *=  (t - elliptic_j(tau))
+        tau = (b + Dsqrt) / (a << 1)
+        pol *= (t - elliptic_j(tau))
 
     coeffs = [cof.real().round() for cof in pol.coefficients(sparse=False)]
     return IntegerRing()['x'](coeffs)
@@ -334,6 +334,8 @@ def cm_orders(h, proof=None):
 #        v = [int(a) for a in X.split()]
 #        for i in range(5):
 #            z[v[3*i]]=(v[3*i+2], v[3*i+1])
+
+
 watkins_table = {1: (163, 9), 2: (427, 18), 3: (907, 16), 4: (1555, 54), 5: (2683, 25),
                  6: (3763, 51), 7: (5923, 31), 8: (6307, 131), 9: (10627, 34), 10:
                  (13843, 87), 11: (15667, 41), 12: (17803, 206), 13: (20563, 37), 14:
@@ -361,6 +363,7 @@ watkins_table = {1: (163, 9), 2: (427, 18), 3: (907, 16), 4: (1555, 54), 5: (268
                  91: (1391083,214), 92: (1452067, 1248), 93: (1475203, 262), 94: (1587763, 509),
                  95:(1659067, 241), 96: (1684027, 3283), 97: (1842523, 185), 98: (2383747,580),
                  99: (1480627, 289), 100: (1856563, 1736)}
+
 
 def largest_fundamental_disc_with_class_number(h):
     """
@@ -400,7 +403,8 @@ def largest_fundamental_disc_with_class_number(h):
         return (Integer(B), Integer(c))
     except KeyError:
         # nobody knows, since I guess Watkins's is state of the art.
-        raise NotImplementedError("largest discriminant not known for class number %s"%h)
+        raise NotImplementedError("largest discriminant not known for class number %s" % h)
+
 
 @cached_function
 def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
@@ -712,9 +716,9 @@ def is_cm_j_invariant(j, method='new'):
 
     # it looks like cm by disc cmd * f**2 where f divides cmf
 
-    if cmd%4!=1:
-        cmd = cmd*4
-        cmf = cmf//2
+    if cmd % 4 != 1:
+        cmd = cmd * 4
+        cmf = cmf // 2
 
     # Now we must check if h(cmd*f**2)==h for f|cmf; if so we check
     # whether j is a root of the associated Hilbert class polynomial.
@@ -723,7 +727,6 @@ def is_cm_j_invariant(j, method='new'):
         if h != d.class_number():
             continue
         pol = hilbert_class_polynomial(d)
-        if pol(j)==0:
-            return True, (cmd,f)
+        if pol(j) == 0:
+            return True, (cmd, f)
     return False, None
-

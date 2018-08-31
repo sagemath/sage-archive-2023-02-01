@@ -520,7 +520,7 @@ class Lseries_ell(SageObject):
         Rerror = RealField(24, rnd='RNDU')
 
         if self.__E.root_number() == -1:
-           return (R.zero(), Rerror.zero())
+            return (R.zero(), Rerror.zero())
 
         an = self.__E.anlist(k)  # list of Sage Integers
         pi = R.pi()
@@ -672,9 +672,9 @@ class Lseries_ell(SageObject):
         Rerror = RealField(24, rnd='RNDU')
 
         if self.__E.root_number() == 1:
-           # Order of vanishing at 1 of L(E) is even and assumed to be
-           # positive, so L'(E,1) = 0.
-           return (R.zero(), Rerror.zero())
+            # Order of vanishing at 1 of L(E) is even and assumed to be
+            # positive, so L'(E,1) = 0.
+            return (R.zero(), Rerror.zero())
 
         an = self.__E.anlist(k)  # list of Sage Integers
         pi = R.pi()

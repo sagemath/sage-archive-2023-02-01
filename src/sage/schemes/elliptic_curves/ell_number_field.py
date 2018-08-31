@@ -1969,56 +1969,56 @@ class EllipticCurve_number_field(EllipticCurve_field):
         raise ValueError("%s has no global minimal model!  For a semi-global minimal model use semi_global=True" % self)
 
     def reduction(self,place):
-       r"""
-       Return the reduction of the elliptic curve at a place of good reduction.
+        r"""
+        Return the reduction of the elliptic curve at a place of good reduction.
 
-       INPUT:
+        INPUT:
 
-       - ``place`` -- a prime ideal in the base field of the curve
+        - ``place`` -- a prime ideal in the base field of the curve
 
-       OUTPUT:
+        OUTPUT:
 
-       An elliptic curve over a finite field, the residue field of the place.
+        An elliptic curve over a finite field, the residue field of the place.
 
-       EXAMPLES::
+        EXAMPLES::
 
-           sage: K.<i> = QuadraticField(-1)
-           sage: EK = EllipticCurve([0,0,0,i,i+3])
-           sage: v = K.fractional_ideal(2*i+3)
-           sage: EK.reduction(v)
-           Elliptic Curve defined by y^2  = x^3 + 5*x + 8 over Residue field of Fractional ideal (2*i + 3)
-           sage: EK.reduction(K.ideal(1+i))
-           Traceback (most recent call last):
-           ...
-           ValueError: The curve must have good reduction at the place.
-           sage: EK.reduction(K.ideal(2))
-           Traceback (most recent call last):
-           ...
-           ValueError: The ideal must be prime.
-           sage: K=QQ.extension(x^2+x+1,"a")
-           sage: E=EllipticCurve([1024*K.0,1024*K.0])
-           sage: E.reduction(2*K)
-           Elliptic Curve defined by y^2 + (abar+1)*y = x^3 over Residue field in abar of Fractional ideal (2)
-       """
-       K = self.base_field()
-       OK = K.ring_of_integers()
-       try:
-           place = K.ideal(place)
-       except TypeError:
-           raise TypeError("The parameter must be an ideal of the base field of the elliptic curve")
-       if not place.is_prime():
-           raise ValueError("The ideal must be prime.")
-       disc = self.discriminant()
-       if not K.ideal(disc).valuation(place) == 0:
-           local_data=self.local_data(place)
-           if local_data.has_good_reduction():
-               Fv = OK.residue_field(place)
-               return local_data.minimal_model().change_ring(Fv)
-           raise ValueError("The curve must have good reduction at the place.")
-       Fv = OK.residue_field(place)
-       return self.change_ring(Fv)
+            sage: K.<i> = QuadraticField(-1)
+            sage: EK = EllipticCurve([0,0,0,i,i+3])
+            sage: v = K.fractional_ideal(2*i+3)
+            sage: EK.reduction(v)
+            Elliptic Curve defined by y^2  = x^3 + 5*x + 8 over Residue field of Fractional ideal (2*i + 3)
+            sage: EK.reduction(K.ideal(1+i))
+            Traceback (most recent call last):
+            ...
+            ValueError: The curve must have good reduction at the place.
+            sage: EK.reduction(K.ideal(2))
+            Traceback (most recent call last):
+            ...
+            ValueError: The ideal must be prime.
+            sage: K=QQ.extension(x^2+x+1,"a")
+            sage: E=EllipticCurve([1024*K.0,1024*K.0])
+            sage: E.reduction(2*K)
+            Elliptic Curve defined by y^2 + (abar+1)*y = x^3 over Residue field in abar of Fractional ideal (2)
+        """
+        K = self.base_field()
+        OK = K.ring_of_integers()
+        try:
+            place = K.ideal(place)
+        except TypeError:
+            raise TypeError("The parameter must be an ideal of the base field of the elliptic curve")
+        if not place.is_prime():
+            raise ValueError("The ideal must be prime.")
+        disc = self.discriminant()
+        if not K.ideal(disc).valuation(place) == 0:
+            local_data = self.local_data(place)
+            if local_data.has_good_reduction():
+                Fv = OK.residue_field(place)
+                return local_data.minimal_model().change_ring(Fv)
+            raise ValueError("The curve must have good reduction at the place.")
+        Fv = OK.residue_field(place)
+        return self.change_ring(Fv)
 
-    def _torsion_bound(self,number_of_places = 20):
+    def _torsion_bound(self, number_of_places = 20):
         r"""
         An upper bound on the order of the torsion subgroup.
 
@@ -3966,7 +3966,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         iso2 = EQ2.change_ring(K).isomorphism_to(self)
         gens1 = [iso1(P) for P in EQ1.gens(**kwds)]
         gens2 = [iso2(P) for P in EQ2.gens(**kwds)]
-        gens = self.saturation(gens1+gens2, max_prime=2)[0]
+        gens = self.saturation(gens1 + gens2, max_prime=2)[0]
         self.__gens = gens
         return gens
-

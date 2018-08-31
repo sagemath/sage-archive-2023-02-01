@@ -1432,7 +1432,7 @@ def repr_pretty(coefficients, type, prefix='x', indices=None,
                    the relation, and the right-hand side of the object.
 
     - ``style`` -- either ``"positive"`` (making all coefficients positive), or
-      ``"<="``, or ``">="``.
+                   ``"<="`` or ``">="``.
 
     OUTPUT:
 

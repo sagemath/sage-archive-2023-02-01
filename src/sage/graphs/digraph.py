@@ -1479,8 +1479,8 @@ class DiGraph(GenericGraph):
         The minimum feedback edge set of a digraph is a set of edges that
         intersect all the circuits of the digraph.  Equivalently, a minimum
         feedback arc set of a DiGraph is a set `S` of arcs such that the digraph
-        `G-S` is acyclic. For more information, see the `Wikipedia article on
-        feedback arc sets <http://en.wikipedia.org/wiki/Feedback_arc_set>`_.
+        `G-S` is acyclic. For more information, see
+        :wikipedia:`Feedback_arc_set`.
 
         INPUT:
 

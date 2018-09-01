@@ -42,10 +42,9 @@ from sage.misc.abstract_method import abstract_method
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-#from sage.combinat.partition import Partition, _Partitions
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class PathTableau(ClonableList):
+class PathTableau(ClonableList,Element):
     @staticmethod
     @abstract_method(optional=False)
     def _rule(p):
@@ -439,11 +438,11 @@ class PathTableau(ClonableList):
         return G
 
 class PathTableaux(UniqueRepresentation,Parent):
-#
-#    def __init__(self):
-#        Parent.__init__(self, category = Sets())
-#
+
+    def __init__(self):
+        Parent.__init__(self, category = Sets())
+
     def _element_constructor_(self, *args, **keywords):
         return self.element_class(self, *args, **keywords)
-#
-#    Element = PathTableau
+
+    Element = PathTableau

@@ -1449,6 +1449,22 @@ class BipartiteGraph(Graph):
             sage: G.allow_multiple_edges(True)
             sage: G.matching(use_edge_labels=True, value_only=True)
             444
+
+        Empty bipartite graph and bipartite graphs without edges::
+
+            sage: B = BipartiteGraph()
+            sage: algorithms = ["Hopcroft-Karp", "Eppstein", "Edmonds", "LP"]
+            sage: all(B.matching(algorithm=algo) == [] for algo in algorithms)
+            True
+            sage: all(B.matching(algorithm=algo, value_only=True) == 0 for algo in algorithms)
+            True
+            sage: B.add_vertex(1, left=True)
+            sage: B.add_vertex(2, left=True)
+            sage: B.add_vertex(3, right=True)
+            sage: all(B.matching(algorithm=algo) == [] for algo in algorithms)
+            True
+            sage: all(B.matching(algorithm=algo, value_only=True) == 0 for algo in algorithms)
+            True
         """
         if algorithm is None:
             algorithm = "Edmonds" if use_edge_labels else "Hopcroft-Karp"
@@ -1457,21 +1473,22 @@ class BipartiteGraph(Graph):
             if use_edge_labels:
                 raise ValueError('use_edge_labels can not be used with ' +
                                  '"Hopcroft-Karp" or "Eppstein"')
-            import networkx
-            # NetworkX matching algorithms for bipartite graphs may fail when
-            # the graph is not connected
-            if not self.is_connected():
-                CC = [g for g in self.connected_components_subgraphs() if g.order() > 1]
-            else:
-                CC = [self]
             d = []
-            for g in CC:
-                h = g.networkx_graph()
-                if algorithm == "Hopcroft-Karp":
-                    m = networkx.bipartite.hopcroft_karp_matching(h)
+            if self.size():
+                import networkx
+                # NetworkX matching algorithms for bipartite graphs may fail
+                # when the graph is not connected
+                if not self.is_connected():
+                    CC = [g for g in self.connected_components_subgraphs() if g.size()]
                 else:
-                    m = networkx.bipartite.eppstein_matching(h)
-                d.extend((u, v, g.edge_label(u,v)) for u,v in m.items() if u < v)
+                    CC = [self]
+                for g in CC:
+                    h = g.networkx_graph()
+                    if algorithm == "Hopcroft-Karp":
+                        m = networkx.bipartite.hopcroft_karp_matching(h)
+                    else:
+                        m = networkx.bipartite.eppstein_matching(h)
+                    d.extend((u, v, g.edge_label(u,v)) for u,v in m.items() if u < v)
 
             if value_only:
                 return Integer(len(d))

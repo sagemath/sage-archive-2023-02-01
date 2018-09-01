@@ -968,8 +968,7 @@ def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
 
     REFERENCE:
 
-    .. [GQwiki] `Generalized quadrangle
-      <http://en.wikipedia.org/wiki/Generalized_quadrangle>`__
+    .. [GQwiki] :wikipedia:`Generalized_quadrangle`
 
     .. [PT09] \S. Payne, J. A. Thas.
       Finite generalized quadrangles.

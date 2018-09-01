@@ -42,6 +42,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.structure.element import Element
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList,Element):

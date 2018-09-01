@@ -29,7 +29,7 @@ AUTHORS:
 
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.combinat.pathtableau.pathtableaux import PathTableau, PathTableaux
+from sage.combinat.pathtableaux.pathtableau import PathTableau, PathTableaux
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.skew_tableau import SkewTableau

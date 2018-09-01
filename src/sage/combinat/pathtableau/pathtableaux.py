@@ -131,10 +131,11 @@ class PathTableau(ClonableList):
             sage: t.promotion()
             [0, 1, 2, 1, 0, 1, 0]
         """
-        result = list(self)
-        for i in range(1,len(result)-1):
-            result[i] = self._rule(result[i-1:i+2])
-        return self.parent()(result)
+        with self.clone() as result:
+            for i in range(1,len(result)-1):
+                result[i] = self._rule(result[i-1:i+2])
+
+        return result
 
     def evacuation(self):
         """

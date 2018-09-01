@@ -562,8 +562,8 @@ def tarjan_strongly_connected_components(G):
     subtree rooted at `v` has been fully explored, and the index of `v` equals
     the lowlink of `v`, that whole subtree is a new SCC.
 
-    For more information, see the
-    :wikipedia:`Wikipedia article on Tarjan's algorithm <Tarjan's_strongly_connected_components_algorithm>`.
+    For more information, see
+    :wikipedia:`Tarjan's_strongly_connected_components_algorithm`.
 
     EXAMPLES::
 

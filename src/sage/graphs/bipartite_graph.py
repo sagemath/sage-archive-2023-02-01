@@ -1591,6 +1591,22 @@ class BipartiteGraph(Graph):
             sage: B = BipartiteGraph(graphs.CycleGraph(4) * 2)
             sage: len(B.vertex_cover())
             4
+
+        Empty bipartite graph and bipartite graphs without edges::
+
+            sage: B = BipartiteGraph()
+            sage: algorithms = ["Konig", "Cliquer", "MILP"]
+            sage: all(B.vertex_cover(algorithm=algo) == [] for algo in algorithms)
+            True
+            sage: all(B.vertex_cover(algorithm=algo, value_only=True) == 0 for algo in algorithms)
+            True
+            sage: B.add_vertex(1, left=True)
+            sage: B.add_vertex(2, left=True)
+            sage: B.add_vertex(3, right=True)
+            sage: all(B.vertex_cover(algorithm=algo) == [] for algo in algorithms)
+            True
+            sage: all(B.vertex_cover(algorithm=algo, value_only=True) == 0 for algo in algorithms)
+            True
         """
         if not algorithm == "Konig":
             return Graph.vertex_cover(self, algorithm=algorithm, value_only=value_only,
@@ -1600,8 +1616,10 @@ class BipartiteGraph(Graph):
         if not self.is_connected():
             VC = []
             for b in self.connected_components_subgraphs():
-                if b.order() > 1:
+                if b.size():
                     VC.extend(b.vertex_cover(algorithm="Konig"))
+            if value_only:
+                return sum(VC)
             return VC
 
         M = Graph(self.matching())

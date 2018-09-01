@@ -924,7 +924,7 @@ class Tableau(ClonableList):
         """
         print(self._repr_diagram())
 
-    def plot(t,descents=False):
+    def plot(self,descents=False):
         """
         A utility to draw a picture of a standard tableau.
     
@@ -935,14 +935,14 @@ class Tableau(ClonableList):
     
         EXAMPLES::
     
-            sage: display([[1,2,4],[3]])
+            sage: Tableau([[1,2,4],[3]]).plot()
             Graphics object consisting of 11 graphics primitives
     
-            sage: display([[1,2,4],[3]],descents=True)
+            sage: Tableau([[1,2,4],[3]],descents=True).plot()
             Graphics object consisting of 12 graphics primitives
     
             sage: t = Tableau([[2,2,4],[3]])
-            sage: display(t)
+            sage: t.plot()
             Traceback (most recent call last):
             ...
             ValueError: this is only implemented for standard tableau
@@ -953,10 +953,9 @@ class Tableau(ClonableList):
         from sage.plot.line import line
         from sage.plot.text import text
     
-        t = Tableau(t)
-        if not t.is_standard():
+        if not self.is_standard():
             raise ValueError('this is only implemented for standard tableau')
-        t = StandardTableau(t)
+        t = StandardTableau(self)
     
         p = t.shape()
     

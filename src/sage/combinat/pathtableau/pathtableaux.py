@@ -116,10 +116,10 @@ class PathTableau(ClonableList):
         if not (i > 0 and i < len(self) ):
             raise ValueError("%d is not a valid integer" % i)
 
-        result = list(self)
-        result[i] = self._rule(self[i-1:i+2])
+        with self.clone() as result:
+            result[i] = self._rule(self[i-1:i+2])
 
-        return self.parent()(result)
+        return result
 
     def promotion(self):
         """

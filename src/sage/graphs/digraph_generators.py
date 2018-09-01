@@ -710,8 +710,7 @@ class DiGraphGenerators():
 
         In this digraph, there is an arc `w_1w_2` if `w_2` can be obtained from
         `w_1` by removing the leftmost letter and adding a new letter at its
-        right end.  For more information, see the
-        :wikipedia:`Wikipedia article on De Bruijn graph <De_Bruijn_graph>`.
+        right end.  For more information, see :wikipedia:`De_Bruijn_graph`.
 
         INPUT:
 
@@ -967,8 +966,7 @@ class DiGraphGenerators():
         digraph of Imase and Itoh [II83]_ of degree `d` and order
         `d^{D-1}(d+1)`.
 
-        See also the
-        :wikipedia:`Wikipedia article on Kautz Graphs <Kautz_graph>`.
+        See also :wikipedia:`Kautz_graph`.
 
         INPUT:
 

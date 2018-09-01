@@ -927,55 +927,55 @@ class Tableau(ClonableList):
     def plot(self,descents=False):
         """
         A utility to draw a picture of a standard tableau.
-    
+
         If 'descents == True' then the descents are marked.
-    
+
         INPUT:
             - a standard tableau
-    
+
         EXAMPLES::
-    
+
             sage: Tableau([[1,2,4],[3]]).plot()
             Graphics object consisting of 11 graphics primitives
-    
-            sage: Tableau([[1,2,4],[3]],descents=True).plot()
+
+            sage: Tableau([[1,2,4],[3]]).plot(descents=True)
             Graphics object consisting of 12 graphics primitives
-    
+
             sage: t = Tableau([[2,2,4],[3]])
             sage: t.plot()
             Traceback (most recent call last):
             ...
             ValueError: this is only implemented for standard tableau
-    
+
         """
-        from sage.plot.graphics import Graphics
+
         from sage.plot.polygon import polygon
         from sage.plot.line import line
         from sage.plot.text import text
-    
+
         if not self.is_standard():
             raise ValueError('this is only implemented for standard tableau')
         t = StandardTableau(self)
-    
+
         p = t.shape()
-    
+
         G = line([(0,0),(p[0],0)],axes=False,figsize=1.5)
         for i in range(len(p)):
             G += line([(0,-i-1),(p[i],-i-1)])
-    
+
         r = p.conjugate()
         G += line([(0,0),(0,-r[0])])
         for i in range(len(r)):
             G += line([(i+1,0),(i+1,-r[i])])
-    
+
         if descents:
             for i in t.standard_descents():
                 c = t.cells_containing(i)[0]
                 G += polygon([(c[1],-c[0]),(c[1]+1,-c[0]),(c[1]+1,-c[0]-1),(c[1],-c[0]-1)],rgbcolor=(1,0,1))
-    
+
         for c in t.cells():
             G += text(str(t.entry(c)),(c[1]+0.5,-c[0]-0.5))
-    
+
         return G
 
     def to_word_by_row(self):

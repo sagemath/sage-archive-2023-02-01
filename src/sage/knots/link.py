@@ -1032,7 +1032,7 @@ class Link(object):
                     G.add_edge((cr[2], cr[3], n), cr[2])
                     G.add_edge((cr[2], cr[3], n), cr[3])
             sm = set(tuple(sorted(x for x in b if isinstance(x, tuple)))
-                     for b in G.connected_components())
+                     for b in G.connected_components(sort=False))
             iindex = (writhe - ncross + 2 * sum(v)) // 2
             jmin = writhe + iindex - len(sm)
             jmax = writhe + iindex + len(sm)
@@ -2439,10 +2439,11 @@ class Link(object):
         V = G.vertices()
         setV = [set(c) for c in V]
         for i in range(len(V) - 1):
-            for j in range(i+1, len(V)):
+            for j in range(i + 1, len(V)):
                 if setV[i].intersection(setV[j]):
                     G.add_edge(V[i], V[j])
-        return [[list(i) for i in j] for j in G.connected_components()]
+        return [[list(i) for i in j]
+                for j in G.connected_components(sort=False)]
 
     def homfly_polynomial(self, var1='L', var2='M', normalization = 'lm'):
         r"""

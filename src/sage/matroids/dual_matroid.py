@@ -355,7 +355,7 @@ class DualMatroid(Matroid):
         return DualMatroid(self._matroid._minor(contractions=deletions, deletions=contractions))
 
     def dual(self):
-        """
+        r"""
         Return the dual of the matroid.
 
         Let `M` be a matroid with ground set `E`. If `B` is the set of bases

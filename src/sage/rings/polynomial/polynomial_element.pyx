@@ -8419,7 +8419,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: m = z^9;
             sage: n, d = p.rational_reconstruct(m);
             sage: print((n ,d))
-            ((1/-t)*z^4 - t*z + 1/-t, z + 1/-t)
+            (-1/t*z^4 - t*z - 1/t, z - 1/t)
             sage: print(((p*d - n) % m ).is_zero())
             True
             sage: w = PowerSeriesRing(P.fraction_field(), 'w').gen()
@@ -9041,7 +9041,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # - AttributeError in case p-th roots are not (or do not exist)
         except (NotImplementedError, AttributeError):
             F = self.factor()
-        return all([e<=1 for (f,e) in F])
+        return all(e <= 1 for (f, e) in F)
 
     def radical(self):
         """

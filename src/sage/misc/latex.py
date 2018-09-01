@@ -258,8 +258,9 @@ def builtin_constant_function(x):
         sage: sage.misc.latex.EMBEDDED_MODE = False
     """
     if EMBEDDED_MODE:
-        return "{\\rm %s}"%x
-    return "\mbox{\\rm %s}"%x
+        return "{\\rm %s}" % x
+    return "\\mbox{\\rm %s}" % x
+
 
 def None_function(x):
     r"""

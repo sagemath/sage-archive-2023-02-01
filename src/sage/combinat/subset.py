@@ -290,6 +290,21 @@ class Subsets_s(Parent):
         """
         return not self == other
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: hash(Subsets([0,1,2])) == hash(Subsets([1,2,3]))
+            False
+            sage: hash(Subsets([0,1,2])) == hash(Subsets([0,1,2]))
+            True
+            sage: hash(Subsets([0,1,2])) == hash(Subsets([0,1,2],2))
+            False
+        """
+        return hash(self._s)
+
     def _repr_(self):
         """
         TESTS::
@@ -614,6 +629,19 @@ class Subsets_sk(Subsets_s):
             True
         """
         return not self == other
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: hash(Subsets(5,3)) == hash(Subsets(5,3))
+            True
+            sage: hash(Subsets(4,2)) == hash(Subsets(5,2))
+            False
+        """
+        return hash((self._s, self._k))
 
     def cardinality(self):
         """
@@ -1376,4 +1404,3 @@ class SubsetsSorted(Subsets_s):
             [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)]
         """
         return self.element_class(sorted(set(x)))
-

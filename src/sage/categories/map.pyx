@@ -1896,7 +1896,7 @@ cdef class FormalCompositeMap(Map):
         else:
             return True
 
-        if all([f.is_surjective() for f in injectives]):
+        if all(f.is_surjective() for f in injectives):
             return False
 
         raise NotImplementedError("Not enough information to deduce injectivity.")
@@ -1962,7 +1962,7 @@ cdef class FormalCompositeMap(Map):
         else:
             return True
 
-        if all([f.is_injective() for f in surjectives]):
+        if all(f.is_injective() for f in surjectives):
             return False
 
         raise NotImplementedError("Not enough information to deduce surjectivity.")

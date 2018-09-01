@@ -40,6 +40,7 @@ from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.abstract_method import abstract_method
 from sage.structure.list_clone import ClonableList
+from sage.categories.sets_cat import Sets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element

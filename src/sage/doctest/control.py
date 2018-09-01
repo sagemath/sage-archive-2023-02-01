@@ -1158,13 +1158,13 @@ class DocTestController(SageObject):
             External software to be detected: ...
             Doctesting 1 file.
             sage -t ....py
-                [0 tests, 0.00 s]
+                [0 tests, ... s]
             ----------------------------------------------------------------------
             All tests passed!
             ----------------------------------------------------------------------
-            Total time for all tests: 0.0 seconds
-                cpu time: 0.0 seconds
-                cumulative wall time: 0.0 seconds
+            Total time for all tests: ... seconds
+                cpu time: ... seconds
+                cumulative wall time: ... seconds
             External software detected for doctesting:...
             0
 

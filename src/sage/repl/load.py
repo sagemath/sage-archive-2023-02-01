@@ -139,7 +139,7 @@ def load(filename, globals, attach=False):
 
     We load a file given at a remote URL::
 
-        sage: sage.repl.load.load('http://wstein.org/loadtest.py', globals())  # optional - internet
+        sage: sage.repl.load.load('http://www.sagemath.org/files/loadtest.py', globals())  # optional - internet
         hi from the net
         5
 
@@ -159,7 +159,7 @@ def load(filename, globals, attach=False):
 
     You can't attach remote URLs (yet)::
 
-        sage: sage.repl.load.load('http://wstein.org/loadtest.py', globals(), attach=True)  # optional - internet
+        sage: sage.repl.load.load('http://www.sagemath.org/files/loadtest.py', globals(), attach=True)  # optional - internet
         Traceback (most recent call last):
         ...
         NotImplementedError: you can't attach a URL

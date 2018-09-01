@@ -35,17 +35,23 @@ def get_remote_file(filename, verbose=True):
     # so do not import it in the module scope.
 
     # import compatible with py2 and py3
-    from six.moves.urllib.request import urlretrieve
+    from six.moves.urllib.request import urlretrieve, Request, urlopen
+    req = Request(filename, headers={"User-Agent":"sage-doctest"})
 
     global cur
     cur = 0
     if verbose:
         sys.stdout.write("Loading: [")
         sys.stdout.flush()
-        urlretrieve(filename, temp_name, report_hook)
+        #urlretrieve(filename, temp_name, report_hook)
+        content = urlopen(req, timeout=1)
+        with open(temp_name, 'w') as f:
+            f.write(content.read())
         print("]")
     else:
-        urlretrieve(filename, temp_name)
+        content = urlopen(req, timeout=1)
+        with open(temp_name, 'w') as f:
+            f.write(content.read())
     return temp_name
 
 cur = 0

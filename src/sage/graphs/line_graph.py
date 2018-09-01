@@ -32,8 +32,7 @@ Given a graph `G`, the *line graph* `L(G)` of `G` is the graph such that
 The definition is extended to directed graphs. In this situation, there is an
 arc `(e,e')` in `L(G)` if the destination of `e` is the origin of `e'`.
 
-For more information, see the :wikipedia:`Wikipedia page on line graphs
-<Line_graph>`.
+For more information, see :wikipedia:`Line_graph`.
 
 Root graph
 ----------

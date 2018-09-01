@@ -853,9 +853,7 @@ def edge_connectivity(G,
     r"""
     Returns the edge connectivity of the graph.
 
-    For more information, see the
-    `Wikipedia article on connectivity
-    <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
+    For more information, see :wikipedia:`Connectivity_(graph_theory)`.
 
     .. NOTE::
 

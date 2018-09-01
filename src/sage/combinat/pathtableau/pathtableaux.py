@@ -43,10 +43,9 @@ from sage.structure.list_clone import ClonableList
 from sage.categories.sets_cat import Sets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class PathTableau(ClonableList,Element):
+class PathTableau(ClonableList):
     @staticmethod
     @abstract_method(optional=False)
     def _rule(p):

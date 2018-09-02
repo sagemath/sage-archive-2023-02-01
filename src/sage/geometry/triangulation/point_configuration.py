@@ -504,7 +504,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         EXAMPLES::
 
-            sage: p = PointConfiguration([[1,1], [2,2], [3,3]]);
+            sage: p = PointConfiguration([[1,1], [2,2], [3,3]])
             sage: list(p)     # indirect doctest
             [P(1, 1), P(2, 2), P(3, 3)]
             sage: [ p[i] for i in range(0,p.n_points()) ]
@@ -1193,7 +1193,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         EXAMPLES::
 
-            sage: triangle = PointConfiguration([[0,0], [1,-1], [1,0], [1,1]]);
+            sage: triangle = PointConfiguration([[0,0], [1,-1], [1,0], [1,1]])
             sage: triangle.point(2)
             P(1, 0)
             sage: triangle.face_codimension(2)
@@ -1226,7 +1226,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         EXAMPLES::
 
-            sage: triangle = PointConfiguration([[-1,0], [0,0], [1,-1], [1,0], [1,1]]);
+            sage: triangle = PointConfiguration([[-1,0], [0,0], [1,-1], [1,0], [1,1]])
             sage: triangle.face_interior()
             ((1,), (3,), (0, 2, 4))
             sage: triangle.face_interior(dim=0)    # the vertices of the convex hull
@@ -1269,7 +1269,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         EXAMPLES::
 
-            sage: p = PointConfiguration([[-1,0], [0,0], [1,-1], [1,0], [1,1]]);
+            sage: p = PointConfiguration([[-1,0], [0,0], [1,-1], [1,0], [1,1]])
             sage: list(p)
             [P(-1, 0), P(0, 0), P(1, -1), P(1, 0), P(1, 1)]
             sage: q = p.exclude_points([3])

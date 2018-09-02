@@ -2688,7 +2688,7 @@ class TriconnectivitySPQR:
     This class implements the algorithm proposed by Hopcroft and Tarjan in
     [Hopcroft1973]_, and later corrected by Gutwenger and Mutzel in [Gut2001]_,
     for finding the triconnected components of a biconnected graph. It then
-    organizes these components into a SPQR-tree (See :wikipedia:`SPQR_tree`).
+    organizes these components into a SPQR-tree. See the:wikipedia:`SPQR_tree`.
 
     A SPQR-tree is a tree data structure used to represent the triconnected
     components of a biconnected (multi)graph and the 2-vertex cuts separating
@@ -2726,7 +2726,7 @@ class TriconnectivitySPQR:
 
     EXAMPLES:
 
-    :wikipedia:`SPQR_tree` reference paper example::
+    Example from the :wikipedia:`SPQR_tree`::
 
         sage: from sage.graphs.connectivity import TriconnectivitySPQR
         sage: from sage.graphs.connectivity import spqr_tree_to_graph

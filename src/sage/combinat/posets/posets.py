@@ -4157,7 +4157,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: it = posets.PentagonPoset().antichains_iterator(); it
-            <generator object antichains_iterator at ...>
+            <generator object ...antichains_iterator at ...>
             sage: next(it), next(it)
             ([], [4])
 

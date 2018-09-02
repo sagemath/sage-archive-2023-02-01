@@ -3888,7 +3888,7 @@ class FiniteWord_class(Word_class):
 
     def is_subword_of(self, other):
         r"""
-        Return ``True`` is ``self`` is a subword of ``other``, and ``False`` otherwise.
+        Return ``True`` if ``self`` is a subword of ``other``, and ``False`` otherwise.
 
         A finite word `u` is a *subword* of a finite word `v` if `u` is a
         subsequence of `v`. See Chapter 6 on Subwords in [1].

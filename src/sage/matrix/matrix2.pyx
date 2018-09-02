@@ -349,12 +349,12 @@ cdef class Matrix(Matrix1):
             sage: A = Matrix(Zmod(128), 2, 3, [23,11,22,4,1,0])
             sage: B = Matrix(Zmod(128), 2, 1, [1,0])
             sage: A.solve_right(B)
-            [  1]
-            [124]
-            [  1]
+            [  5]
+            [108]
+            [127]
             sage: B = B.column(0)
             sage: A.solve_right(B)
-            (1, 124, 1)
+            (5, 108, 127)
             sage: A = Matrix(Zmod(15), 3,4, range(12))
             sage: B = Matrix(Zmod(15), 3,3, range(3,12))
             sage: X = A.solve_right(B)
@@ -717,13 +717,12 @@ cdef class Matrix(Matrix1):
             TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 3 by 2 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 2 dense matrices over Finite Field of size 3'
 
         We illustrate various combinations of sparse and dense matrices.
-        Notice how if base rings are unequal, both operands must be sparse
-        to get a sparse result. ::
+        The usual coercion rules apply::
 
             sage: A = matrix(ZZ, 5, 6, range(30), sparse=False)
             sage: B = matrix(ZZ, 5, 6, range(30), sparse=True)
             sage: C = matrix(QQ, 5, 6, range(30), sparse=True)
-            sage: A.elementwise_product(C).is_dense()
+            sage: A.elementwise_product(C).is_sparse()
             True
             sage: B.elementwise_product(C).is_sparse()
             True
@@ -3567,9 +3566,9 @@ cdef class Matrix(Matrix1):
             True
 
             sage: X = A.right_kernel_matrix(algorithm='pari', basis='computed'); X
-            [ -3  -1   5   7   2  -3  -2]
-            [  3   1   2   5  -5   2  -6]
-            [ -4 -13   2  -7   5   7  -3]
+            [ 3  1 -5 -7 -2  3  2]
+            [ 3  1  2  5 -5  2 -6]
+            [ 4 13 -2  7 -5 -7  3]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
             True
 

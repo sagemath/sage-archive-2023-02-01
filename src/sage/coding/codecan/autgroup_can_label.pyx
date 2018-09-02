@@ -289,7 +289,7 @@ class LinearCodeAutGroupCanLabel:
             pr = PartitionRefinementLinearCode(len(col_set),
                 matrix(col_set).transpose(), P=P_refined, algorithm_type=algorithm_type)
 
-            # this command allows you some advanced debuging
+            # this command allows you some advanced debugging
             # it prints the backtrack tree -> must be activated when installing
             # pr._latex_view(title="MyTitle") #this will provide you some visual representation of what is going on
 

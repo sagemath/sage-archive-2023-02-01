@@ -1789,17 +1789,7 @@ class QuaternionOrder(Algebra):
 
 
 class QuaternionFractionalIdeal(Ideal_fractional):
-    def __hash__(self):
-        r"""
-        Stupid constant hash function!
-
-        TESTS::
-
-            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
-            sage: hash(R.right_ideal(R.basis()))
-            0
-        """
-        return 0
+    pass
 
 
 class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
@@ -2150,6 +2140,23 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             False
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: I = QuaternionAlgebra(-11,-1).maximal_order().unit_ideal()
+            sage: hash(I) == hash(I)
+            True
+
+        TESTS::
+
+            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
+            sage: H = hash(R.right_ideal(R.basis()))
+        """
+        return hash(self.__basis)
 
     def basis_matrix(self):
         r"""
@@ -2770,10 +2777,10 @@ def intersection_of_row_modules_over_ZZ(v):
         sage: v = [a,b,c]
         sage: from sage.algebras.quatalg.quaternion_algebra import intersection_of_row_modules_over_ZZ
         sage: M = intersection_of_row_modules_over_ZZ(v); M
-        [    2     0    -1    -1]
-        [   -4     1     1    -3]
-        [    3 -19/2     1     4]
-        [    2    -3    -8     4]
+        [   2    0   -1   -1]
+        [  -4    1    1   -3]
+        [  -3 19/2   -1   -4]
+        [   2   -3   -8    4]
         sage: M2 = a.row_module(ZZ).intersection(b.row_module(ZZ)).intersection(c.row_module(ZZ))
         sage: M.row_module(ZZ) == M2
         True

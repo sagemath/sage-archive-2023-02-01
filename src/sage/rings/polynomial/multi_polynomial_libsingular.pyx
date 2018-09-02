@@ -2441,8 +2441,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: u^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (u)^(1/2) does not lie in Multivariate Polynomial Ring
-            in u, v over Rational Field
+            ValueError: not a 2nd power
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
             sage: (x+y^2^15)^10
@@ -2465,8 +2464,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: (R^2 + 3)^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (R^2 + 3)^(1/2) does not lie in
-            Multivariate Polynomial Ring in R, S over Integer Ring
+            ValueError: 3 is not a 2nd power
             sage: P(2)^P(2)
             4
             sage: (R + 1)^P(2)

@@ -962,12 +962,15 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         TESTS::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
-            sage: QS3.cps() == QS3.central_orthogonal_idempotents()
+            sage: cpis = QS3.cpis()
+            doctest:...: DeprecationWarning: Method (cpis) is deprecated; use central_orthogonal_idempotents instead.
+            See http://trac.sagemath.org/25942 for details.
+            sage: cpis == QS3.central_orthogonal_idempotents()
             True
         """
         from sage.misc.superseded import deprecation
-        deprecation(25942, "This method (=cpis) is deprecated. Use central_orthogonal_idempotents instead.")
-        return central_orthogonal_idempotents(self)
+        deprecation(25942, "DeprecationWarning: Method (cpis) is deprecated; use central_orthogonal_idempotents instead.")
+        return self.central_orthogonal_idempotents()
 
     def central_orthogonal_idempotents(self):
         r"""
@@ -977,22 +980,9 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         central orthogonal idempotents found within
         :class:`sage.categories.finite_dimensional_semisimple_algebras_with_basis.FiniteDimensionalSemisimpleAlgebrasWithBasis`.
 
-        If ``self.base_ring()`` has characteristic `p > 0`, the idempotents
-        are indexed by the distinct `p`-cores `\mu` for partitions of `n`,
-        as described in Nakayama's Conjecture (now a theorem). The
-        corresponding idempotent is given by
-
-        .. MATH::
-
-            f_\mu = \sum_{\lambda\vdash n} e_\lambda
-
-        where `e_\lambda` is the classical idempotent (defined over `QQ`) and
-        the sum runs over all `\lambda` with `p`-core `\mu`.
-
         .. SEEALSO::
 
-            - :meth:`_block_ingredients`
-            - :meth:`sage.combinat.partition.Partition.core`
+            - :meth:`central_orthogonal_idempotent`
 
         EXAMPLES::
 
@@ -1036,68 +1026,164 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             ....:                     tst.append(e*e == e)
             ....:                 else:
             ....:                     tst.append(e*f == 0)
-            ....:         print "%s blocks for p=%s ... tests pass?"%( \
-            ....:                                   len(idems), p, all(tst) )
+            ....:         print("{0} blocks for p={1} ... {2}".format( len(idems), p, all(tst) ))
             sage: test_n_with_primes(5, [2,3,5,7])  # long time
-            2 blocks for p=2 ... tests pass? True
-            3 blocks for p=3 ... tests pass? True
-            3 blocks for p=5 ... tests pass? True
-            7 blocks for p=7 ... tests pass? True
+            2 blocks for p=2 ... True
+            3 blocks for p=3 ... True
+            3 blocks for p=5 ... True
+            7 blocks for p=7 ... True
         """
-        R = self.base_ring()
-        G = self._indices
-        blocks_partition = self._block_ingredients()
-        idems = []
-        for block in blocks_partition:
-            idems.append( sum(cpi_over_QQ(la) for la in block) )
-        denoms = set(R(c.denominator()) for e in idems for c in e.coefficients())
-        if not all(denoms):
-            return None
-        else:
-            return [self.sum_of_terms((G(g), R(c)) for (g, c) in iter(e)) for e in idems]
+        out = []
+        blocks = self._blocks_dictionary()
+        for key in sorted(blocks.keys(), reverse=True):
+            out.append(self.central_orthogonal_idempotent(key))
+        return out
 
-    def central_orthogonal_idempotent(self, la):
+    def central_orthogonal_idempotent(self, la, block=True):
         r"""
         Return the central idempotent for the symmetric group of
-        order `n` corresponding to the irreducible representation
-        (over `QQ`) indexed by the partition ``la``, if this
-        element is well-defined over ``self.base_ring()``.
+        order `n` corresponding to the indecomposable block to which
+        the partition ``la`` is associated.
 
-        Otherwise, return ``None``.
+        If ``self.base_ring()`` contains `QQ`, this corresponds to
+        the classical central idempotent corresponding to the
+        irreducible representation indexed by ``la``.
+
+        Alternatively, if ``self.base_ring()`` has characteristic
+        `p > 0`, then Nakayama's Conjecture provides that ``la`` is
+        associated to an idempotent `f_\mu` where `\mu` is the
+        `p`-core of ``la``. This `f_\mu` is a sum of classical
+        idempotents,
+
+        .. MATH::
+
+            f_\mu = \sum_{core(\lambda)=\mu} e_\lambda,
+
+        where the sum ranges over the partitions `\lambda` of `n`
+        with `p`-core equal to `\mu`.
+
+        INPUT:
+
+        - ``la`` -- A partition of ``self.n`` or a `p`-core of such
+          a partition, if ``self.base_ring().characteristic() == p``.
+
+        - ``block`` -- boolean (default: ``True``). When this
+          optional variable is set to ``False``, the method attempts
+          to return the classical idempotent associated to ``la``
+          (defined over `QQ`). If the corresponding coefficients are
+          not defined over ``self.base_ring()``, return ``None``.
+
+        EXAMPLES:
+
+        Asking for block idempotents in any characteristic, by
+        passing a partition of ``self.n``::
+
+            sage: S0 = SymmetricGroup(4).algebra(QQ)
+            sage: S2 = SymmetricGroup(4).algebra(GF(2))
+            sage: S3 = SymmetricGroup(4).algebra(GF(3))
+            sage: S0.central_orthogonal_idempotent([2,1,1])
+            3/8*() - 1/8*(3,4) - 1/8*(2,3) - 1/8*(2,4) - 1/8*(1,2)
+             - 1/8*(1,2)(3,4) + 1/8*(1,2,3,4) + 1/8*(1,2,4,3)
+             + 1/8*(1,3,4,2) - 1/8*(1,3) - 1/8*(1,3)(2,4)
+             + 1/8*(1,3,2,4) + 1/8*(1,4,3,2) - 1/8*(1,4)
+             + 1/8*(1,4,2,3) - 1/8*(1,4)(2,3)
+            sage: S2.central_orthogonal_idempotent([2,1,1])
+            ()
+            sage: S3.central_orthogonal_idempotent([4])
+             () + (1,2)(3,4) + (1,3)(2,4) + (1,4)(2,3)
+            sage: _ == S3.central_orthogonal_idempotent([1,1,1,1])
+            True
+
+        Asking for block idempotents in any characteristic, by
+        passing `p`-cores::
+
+            sage: S0.central_orthogonal_idempotent([1,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 1] is not a partition of integer 4
+            sage: S2.central_orthogonal_idempotent([])
+            ()
+            sage: S2.central_orthogonal_idempotent([1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1].core(2) (= [1]) is not a 2-core of a partition of 4
+            sage: S3.central_orthogonal_idempotent([1])
+            () + (1,2)(3,4) + (1,3)(2,4) + (1,4)(2,3)
+
+        Asking for classical idempotents (taking ``block=False``)::
+
+            sage: S3.central_orthogonal_idempotent([2,2], block=False) is None
+            True
+            sage: S3.central_orthogonal_idempotent([2,1,1], block=False)
+            (3,4) + (2,3) + (2,4) + (1,2) + (1,2)(3,4) + 2*(1,2,3,4)
+             + 2*(1,2,4,3) + 2*(1,3,4,2) + (1,3) + (1,3)(2,4)
+             + 2*(1,3,2,4) + 2*(1,4,3,2) + (1,4) + 2*(1,4,2,3)
+             + (1,4)(2,3)
 
         .. SEEALSO::
 
-            :meth:`~sage.combinat.symmetric_group_algebra.cpi_over_QQ`
+            - :meth:`sage.combinat.partition.Partition.core`
+            - :meth:`sage.combinat.symmetric_group_algebra.cpi_over_QQ`
         """
+        if not la in partition.Partitions():
+            raise ValueError("{0} is not a partition of a nonnegative integer".format(la))
+
         R = self.base_ring()
+        p = R.characteristic()
         G = self._indices
-        cpi = cpi_over_QQ(la)
+
+        if not block or not p:
+            if sum(la) != self.n:
+                raise ValueError("{0} is not a partition of integer {1}".format(la, self.n))
+            cpi = cpi_over_QQ(la)
+        else:
+            mu = partition.Partitions()(la).core(p)
+            try:
+                block = self._blocks_dictionary()[mu]
+                cpi = sum(cpi_over_QQ(lam) for lam in block)
+            except KeyError:
+                raise ValueError("{0}.core({1}) (= {2}) is not a {1}-core of a partition of {3}".format(la, p, mu, self.n))
+
         denoms = set(R(c.denominator()) for c in cpi.coefficients())
         if not all(denoms):
             return None
         else:
             return self.sum_of_terms((G(g), R(c)) for (g, c) in iter(cpi))
 
-    def _block_ingredients(self):
+    def _blocks_dictionary(self):
         r"""
-        Return the partitions of ``self.n``, themselves partitioned by
-        their distinct `p`-cores, where `p` is the characteristic of
-        ``self.base_ring()``
+        Return the partitions of ``self.n``, themselves partitioned
+        by their distinct `p`-cores, where `p` is the characteristic
+        of ``self.base_ring()``
 
-        If this characteristic is zero, we take the `p`-core operation
+        If the characteristic is zero, we take the `p`-core operation
         to be the identity map on partitions.
 
-        These lists of partitions, say with common `p`-core `\lambda`,
+        These lists of partitions, say with common `p`-core `\mu`,
         are components of the central orthogonal idempotent
-        corresponding to `\lambda`.
+        corresponding to `\mu`.
+
+        TESTS::
+
+            sage: B2 = SymmetricGroupAlgebra(GF(2), 4)._blocks_dictionary()
+            sage: [tuple(B2[key]) for key in sorted(B2.keys())]
+            [([4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1])]
+            sage: B3 = SymmetricGroupAlgebra(GF(3), 4)._blocks_dictionary()
+            sage: [tuple(B3[key]) for key in sorted(B3.keys())]
+            [([4], [2, 2], [1, 1, 1, 1]), ([2, 1, 1],), ([3, 1],)]
+            sage: B5 = SymmetricGroupAlgebra(GF(5), 4)._blocks_dictionary()
+            sage: [tuple(B5[key]) for key in sorted(B5.keys())]
+            [([1, 1, 1, 1],), ([2, 1, 1],), ([2, 2],), ([3, 1],), ([4],)]
+            sage: B5 == SymmetricGroupAlgebra(QQ, 4)._blocks_dictionary()
+            True
 
         .. SEEALSO::
 
-            :meth:`central_orthogonal_idempotents`
+            :meth:`central_orthogonal_idempotent`
         """
         p = self.base_ring().characteristic()
         if not p:
-            return [[la] for la in partition.Partitions(self.n)]
+            return {la:[la] for la in partition.Partitions(self.n)}
 
         blocks = {}
         for la in partition.Partitions_n(self.n):
@@ -1106,7 +1192,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
                 blocks[c].append(la)
             else:
                 blocks[c] = [la]
-        return [blocks[c] for c in sorted(blocks.keys(), reverse=True)]
+        return blocks
 
     @cached_method
     def algebra_generators(self):
@@ -1911,7 +1997,7 @@ def cpi_over_QQ(la):
          + 2*[4, 2, 3, 1] + [4, 3, 1, 2] + [4, 3, 2, 1]
     """
     if la not in partition.Partitions():
-        raise TypeError("lambda (= {0}) must be a partition of a nonnegative integer".format(la))
+        raise ValueError("{0} is not an element of Partitions of the integer 4".format(la))
     else:
         la = partition.Partitions()(la)
     n = la.size()

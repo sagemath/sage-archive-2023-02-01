@@ -2799,7 +2799,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges([(0,1,1), (0,1,2), (0,1,3)])
             sage: G.has_multiple_edges()
             True
-            sage: G.multiple_edges()
+            sage: G.multiple_edges(sort=True)
             [(0, 1, 1), (0, 1, 2), (0, 1, 3)]
             sage: G.allow_multiple_edges(False); G
             Graph on 2 vertices
@@ -2849,7 +2849,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # TODO: this should be much faster for c_graphs, but for now we just do this
         if self.allows_multiple_edges() and new is False and check:
-            for u,v,l in self.multiple_edges():
+            for u,v,l in self.multiple_edges(sort=True):
                 if not (u,v) in seen:
                     # This is the first time we see this edge
                     seen[(u,v)] = l
@@ -2867,9 +2867,17 @@ class GenericGraph(GenericGraph_pyx):
 
         self._backend.multiple_edges(new)
 
-    def multiple_edges(self, to_undirected=False, labels=True):
+    def multiple_edges(self, to_undirected=False, labels=True, sort=False):
         """
-        Returns any multiple edges in the (di)graph.
+        Return any multiple edges in the (di)graph.
+
+        INPUT:
+
+        - ``to_undirected`` -- boolean (default ``False``)
+
+        - ``labels`` -- boolean (default ``True``) whether to include labels
+
+        - ``sort`` - boolean (default ``False``) whether to sort the result
 
         EXAMPLES::
 
@@ -2882,7 +2890,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges([(0,1)]*3)
             sage: G.has_multiple_edges()
             True
-            sage: G.multiple_edges()
+            sage: G.multiple_edges(sort=True)
             [(0, 1, None), (0, 1, None), (0, 1, None)]
             sage: G.allow_multiple_edges(False); G
             Graph on 2 vertices
@@ -2900,7 +2908,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.add_edges([(0,1)]*3)
             sage: D.has_multiple_edges()
             True
-            sage: D.multiple_edges()
+            sage: D.multiple_edges(sort=True)
             [(0, 1, None), (0, 1, None), (0, 1, None)]
             sage: D.allow_multiple_edges(False); D
             Digraph on 2 vertices
@@ -2916,14 +2924,14 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G.multiple_edges()
             []
-            sage: G.multiple_edges(to_undirected=True)
+            sage: G.multiple_edges(to_undirected=True, sort=True)
             [(1, 2, 'h'), (2, 1, 'g')]
         """
         multi_edges = []
         if self._directed and not to_undirected:
             for v in self:
                 for u in self.neighbor_in_iterator(v):
-                    edges = self.edge_boundary([u], [v], labels)
+                    edges = self.edge_boundary([u], [v], labels, sort=sort)
                     if len(edges) > 1:
                         multi_edges += edges
         else:
@@ -2931,9 +2939,11 @@ class GenericGraph(GenericGraph_pyx):
             for v in self:
                 for u in self.neighbor_iterator(v):
                     if hash(u) >= hash(v):
-                        edges = self.edge_boundary([v], [u], labels)
+                        edges = self.edge_boundary([v], [u],
+                                                   labels, sort=sort)
                         if to_undirected:
-                            edges += self.edge_boundary([u],[v], labels)
+                            edges += self.edge_boundary([u],[v],
+                                                        labels, sort=sort)
                         if len(edges) > 1:
                             multi_edges += edges
         return multi_edges
@@ -10888,10 +10898,12 @@ class GenericGraph(GenericGraph_pyx):
             L.sort(key=key)
         return L
 
-    def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=True):
+    def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=False):
         """
-        Returns a list of edges `(u,v,l)` with `u` in ``vertices1``
-        and `v` in ``vertices2``. If ``vertices2`` is ``None``, then
+        Return a list of edges `(u,v,l)` with `u` in ``vertices1``
+        and `v` in ``vertices2``.
+
+        If ``vertices2`` is ``None``, then
         it is set to the complement of ``vertices1``.
 
         In a digraph, the external boundary of a vertex `v` are those
@@ -10899,10 +10911,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
-        -  ``labels`` - if ``False``, each edge is a tuple `(u,v)` of
+        -  ``labels`` -- if ``False``, each edge is a tuple `(u,v)` of
            vertices.
 
+        - ``sort`` -- boolean (default ``False``) whether to sort the result
 
         EXAMPLES::
 
@@ -10923,15 +10935,15 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph({0:[1,2], 3:[0]})
-            sage: D.edge_boundary([0])
+            sage: D.edge_boundary([0], sort=True)
             [(0, 1, None), (0, 2, None)]
-            sage: D.edge_boundary([0], labels=False)
+            sage: D.edge_boundary([0], labels=False, sort=True)
             [(0, 1), (0, 2)]
 
         TESTS::
 
             sage: G = graphs.DiamondGraph()
-            sage: G.edge_boundary([0,1])
+            sage: G.edge_boundary([0,1], sort=True)
             [(0, 2, None), (1, 2, None), (1, 3, None)]
             sage: G.edge_boundary([0], [0])
             []

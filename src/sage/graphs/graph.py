@@ -1646,8 +1646,8 @@ class Graph(GenericGraph):
 
             if self.has_multiple_edges():
                 if output == 'vertex':
-                    return (False, list(self.multiple_edges()[0][:2]))
-                edge1, edge2 = self.multiple_edges()[:2]
+                    return (False, list(self.multiple_edges(sort=True)[0][:2]))
+                edge1, edge2 = self.multiple_edges(sort=True)[:2]
                 if edge1[0] != edge2[0]:
                     return (False, [edge1, edge2])
                 return (False, [edge1, (edge2[1], edge2[0], edge2[2])])

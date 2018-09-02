@@ -3730,7 +3730,7 @@ class GenericGraph(GenericGraph_pyx):
         # (where to return?, what was the way?)
         stack = [ (start_vertex, None) ]
 
-        while len(stack) != 0:
+        while stack:
             v, e = stack.pop()
 
             degr = g.out_degree(v) if self.is_directed() else g.degree(v)
@@ -16782,7 +16782,7 @@ class GenericGraph(GenericGraph_pyx):
                     yield v
                 seen.add(v)
 
-            while len(queue) > 0:
+            while queue:
                 v, d = queue.pop(0)
                 if distance is None or d < distance:
                     for w in neighbors(v):
@@ -16890,15 +16890,15 @@ class GenericGraph(GenericGraph_pyx):
                     neighbors=self.neighbor_iterator
                 else:
                     neighbors=self.neighbor_out_iterator
-            seen=set([])
+            seen = set([])
             if isinstance(start, list):
                 # Reverse the list so that the initial vertices come out in the same order
-                queue=[(v,0) for v in reversed(start)]
+                queue = [(v, 0) for v in reversed(start)]
             else:
-                queue=[(start,0)]
+                queue = [(start, 0)]
 
-            while len(queue)>0:
-                v,d = queue.pop()
+            while queue:
+                v, d = queue.pop()
                 if v not in seen:
                     yield v
                     seen.add(v)
@@ -18710,7 +18710,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         xs = [pos[v][0] for v in pos]
         ys = [pos[v][1] for v in pos]
-        if len(xs) == 0:
+        if not xs:
             xmin = -1
             xmax =  1
             ymin = -1
@@ -20057,7 +20057,7 @@ class GenericGraph(GenericGraph_pyx):
                 dot_options.append('dir=back')
 
             s+= '  %s %s %s' % (key(u), edge_options['edge_string'], key(v))
-            if len(dot_options) > 0:
+            if dot_options:
                 s += " [" + ", ".join(dot_options)+"]"
             s+= ";\n"
         s += "}"
@@ -21236,7 +21236,7 @@ class GenericGraph(GenericGraph_pyx):
 
         output = []
         if return_group:
-            if len(a) != 0:
+            if a:
                 # We translate the integer permutations into a collection of
                 # cycles.
                 from sage.combinat.permutation import Permutation
@@ -21294,7 +21294,7 @@ class GenericGraph(GenericGraph_pyx):
             partition = [self.vertices()]
 
         for p in partition:
-            if len(p) == 0:
+            if not p:
                 continue
             d = self.degree(p[0])
             if not all(self.degree(x) == d for x in p):

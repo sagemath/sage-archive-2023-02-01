@@ -20,9 +20,21 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+
+import os
+import random
+import re
+import shutil
+import subprocess
+
 from six import iteritems, integer_types
 
 from sage.cpython.string  import str_to_bytes
+
+from sage.misc import sage_eval
+from sage.misc.cachefunc import cached_function, cached_method
+from sage.misc.sage_ostools import have_program
+from sage.misc.temporary_file import tmp_dir
 
 EMBEDDED_MODE = False
 
@@ -56,15 +68,6 @@ r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
 ''')
 
-import shutil, re
-import os.path
-import random
-import subprocess
-
-from sage.misc.temporary_file import tmp_dir
-from . import sage_eval
-from sage.misc.sage_ostools import have_program
-from sage.misc.cachefunc import cached_function, cached_method
 
 @cached_function
 def have_latex():
@@ -1774,7 +1777,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
                 s += '%s'%L
                 s += r'\end{lrbox}'
                 s += r'\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{\usebox{\pgffigure}}' + '\n'
-            elif not '\\begin{verbatim}' in L:
+            elif '\\begin{verbatim}' not in L:
                 s += '%s%s%s'%(math_left, L, math_right)
             else:
                 s += '%s'%L
@@ -1942,8 +1945,10 @@ class MathJax:
             <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
             sage: MathJax().eval(3, mode='inline')
             <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
-            sage: MathJax().eval(type(3), mode='inline')
+            sage: MathJax().eval(type(3), mode='inline')  # py2
             <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<type|\phantom{\verb!x!}\verb|'sage.rings.integer.Integer'>|</script></html>
+            sage: MathJax().eval(type(3), mode='inline')  # py3
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<class|\phantom{\verb!x!}\verb|'sage.rings.integer.Integer'>|</script></html>
         """
         # Get a regular LaTeX representation of x
         x = latex(x, combine_all=combine_all)
@@ -2677,18 +2682,6 @@ class LatexExamples():
             LaTeX example for testing display of graphs...
         """
 
-        def __init__(self):
-            """
-            See the string representation for complete documentation.
-
-            EXAMPLES::
-
-                sage: from sage.misc.latex import latex_examples
-                sage: type(latex_examples.graph())
-                <class 'sage.misc.latex.graph'>
-            """
-            pass
-
         def _repr_(self):
             """
             String representation
@@ -2758,17 +2751,6 @@ from the notebook -- you should get a nice picture.
             sage: PS
             LaTeX example for testing display of pstricks...
         """
-        def __init__(self):
-            """
-            See the string representation for complete documentation.
-
-            EXAMPLES::
-
-                sage: from sage.misc.latex import latex_examples
-                sage: type(latex_examples.pstricks())
-                <class 'sage.misc.latex.pstricks'>
-            """
-            pass
 
         def _repr_(self):
             """
@@ -2829,17 +2811,6 @@ should get a nice picture."""
             sage: K
             LaTeX example for testing display of a knot...
         """
-        def __init__(self):
-            """
-            See the string representation for complete documentation.
-
-            EXAMPLES::
-
-                sage: from sage.misc.latex import latex_examples
-                sage: type(latex_examples.knot())
-                <class 'sage.misc.latex.knot'>
-            """
-            pass
 
         def _repr_(self):
             """
@@ -2892,17 +2863,6 @@ should get a nice picture.
             sage: CD
             LaTeX example for testing display of a commutative diagram...
         """
-        def __init__(self):
-            """
-            See the string representation for complete documentation.
-
-            EXAMPLES::
-
-                sage: from sage.misc.latex import latex_examples
-                sage: type(latex_examples.diagram())
-                <class 'sage.misc.latex.diagram'>
-            """
-            pass
 
         def _repr_(self):
             """

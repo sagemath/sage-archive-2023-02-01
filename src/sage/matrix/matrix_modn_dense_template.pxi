@@ -148,7 +148,7 @@ cdef inline celement_invert(celement a, celement n):
         y_int = x_int - q * y_int
         x_int = temp
         temp = ty
-        ty = tx - q * ty;
+        ty = tx - q * ty
         tx = temp
 
     if tx < 0:

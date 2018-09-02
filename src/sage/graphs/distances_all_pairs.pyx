@@ -485,8 +485,7 @@ def is_distance_regular(G, parameters = False):
     * `c_i = |\{x:d_G(x,u)=i-1,x\in V(G)\}\cap N_G(v)\}|, \ 1\leq i\leq d,`
 
     where `d` is the diameter of the graph.  For more information on
-    distance-regular graphs, see its associated :wikipedia:`wikipedia
-    page <Distance-regular_graph>`.
+    distance-regular graphs, see :wikipedia:`Distance-regular_graph`.
 
     INPUT:
 

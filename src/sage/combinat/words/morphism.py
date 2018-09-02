@@ -1560,7 +1560,7 @@ class WordMorphism(SageObject):
             sage: tm = WordMorphism('a->ab,b->ba')
             sage: tm.is_primitive()
             True
-            sage: fibo = WordMorphism('a->ab,b->a');
+            sage: fibo = WordMorphism('a->ab,b->a')
             sage: fibo.is_primitive()
             True
             sage: m = WordMorphism('a->bb,b->aa')

@@ -1208,10 +1208,11 @@ def FuzzyBallGraph(partition, q):
 
 def FibonacciTree(n):
     r"""
-    Returns the graph of the Fibonacci Tree `F_{i}` of order `n`.
-    `F_{i}` is recursively defined as the a tree with a root vertex
-    and two attached child trees `F_{i-1}` and `F_{i-2}`, where
-    `F_{1}` is just one vertex and `F_{0}` is empty.
+    Return the graph of the Fibonacci Tree `F_{i}` of order `n`.
+
+    The Fibonacci tree `F_{i}` is recursively defined as the tree
+    with a root vertex and two attached child trees `F_{i-1}` and
+    `F_{i-2}`, where `F_{1}` is just one vertex and `F_{0}` is empty.
 
     INPUT:
 
@@ -1234,9 +1235,11 @@ def FibonacciTree(n):
 
     - Harald Schilly and Yann Laigle-Chapuy (2010-03-25)
     """
-    T = Graph(name="Fibonacci-Tree-%d"%n)
-    if n == 1: T.add_vertex(0)
-    if n < 2: return T
+    T = Graph(name="Fibonacci-Tree-%d" % n)
+    if n == 1:
+        T.add_vertex(0)
+    if n < 2:
+        return T
 
     from sage.combinat.combinat import fibonacci_sequence
     F = list(fibonacci_sequence(n + 2))
@@ -1263,7 +1266,8 @@ def FibonacciTree(n):
 
     return T
 
-def GeneralizedPetersenGraph(n,k):
+
+def GeneralizedPetersenGraph(n, k):
     r"""
     Returns a generalized Petersen graph with `2n` nodes. The variables
     `n`, `k` are integers such that `n>2` and `0<k\leq\lfloor(n-1)`/`2\rfloor`

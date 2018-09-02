@@ -208,7 +208,7 @@ def underlying_graph(G):
 
 def edge_multiplicities(G):
     r"""
-    Return the a dictionary of multiplicities of the edges in the
+    Return the dictionary of multiplicities of the edges in the
     graph `G`.
 
     EXAMPLES::

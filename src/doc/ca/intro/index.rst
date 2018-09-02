@@ -257,7 +257,7 @@ de la manera següent::
 
 Podem aplicar una funció a tots els elements d'una llista de la manera següent::
 
-    sage: map(cos, [0,pi..6*pi])
+    sage: list(map(cos, [0,pi..6*pi]))
     [1, -1, 1, -1, 1, -1, 1]
 
 

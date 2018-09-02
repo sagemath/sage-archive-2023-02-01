@@ -1254,15 +1254,15 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
     def _gap_init_(self):
         r"""
-        Return the a string representing ``self`` in GAP.
+        Return the string representing ``self`` in GAP.
 
         .. NOTE::
 
-           The order of the parent field must be `\leq 65536`.  This
-           function can be slow since elements of non-prime finite
-           fields are represented in GAP as powers of a generator for
-           the multiplicative group, so a discrete logarithm must be
-           computed.
+            The order of the parent field must be `\leq 65536`.  This
+            function can be slow since elements of non-prime finite
+            fields are represented in GAP as powers of a generator for
+            the multiplicative group, so a discrete logarithm must be
+            computed.
 
         EXAMPLES::
 

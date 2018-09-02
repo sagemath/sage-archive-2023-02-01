@@ -621,7 +621,7 @@ class DyckWord(CombinatorialElement):
         r"""
         Display a DyckWord as a lattice path in the `\ZZ^2` grid.
 
-        If the ``type`` is "N-E", then the a cell below the diagonal is
+        If the ``type`` is "N-E", then a cell below the diagonal is
         indicated by a period, whereas a cell below the path but above
         the diagonal is indicated by an x. If a list of labels is
         included, they are displayed along the vertical edges of the

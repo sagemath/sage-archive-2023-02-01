@@ -537,12 +537,12 @@ class HyperbolicIsometry(Morphism):
 
     def fixed_point_set(self):
         r"""
-        Return the a list containing the fixed point set of orientation-
+        Return a list containing the fixed point set of orientation-
         preserving isometries.
 
         OUTPUT:
 
-        - a list of hyperbolic points or a hyperbolic geodesic
+        list of hyperbolic points or a hyperbolic geodesic
 
         EXAMPLES::
 
@@ -751,14 +751,14 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
             return 2 * arccosh(tau / 2)
         raise TypeError("translation length is only defined for hyperbolic transformations")
 
-    def fixed_point_set(self): #UHP
+    def fixed_point_set(self):  # UHP
         r"""
-        Return the a list or geodesic containing the fixed point set of
+        Return a list or geodesic containing the fixed point set of
         orientation-preserving isometries.
 
         OUTPUT:
 
-        - a list of hyperbolic points or a hyperbolic geodesic
+        list of hyperbolic points or a hyperbolic geodesic
 
         EXAMPLES::
 

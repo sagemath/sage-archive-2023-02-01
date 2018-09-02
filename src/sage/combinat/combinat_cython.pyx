@@ -5,11 +5,13 @@ Currently implemented:
 
 - Stirling numbers of the second kind
 - iterators for set partitions
+- iterator for Lyndon words
 
 AUTHORS:
 
 - Fredrik Johansson (2010-10): Stirling numbers of second kind
-- Martin Rubey and Travis Scrimshaw (2018): iterators for set partitions
+- Martin Rubey and Travis Scrimshaw (2018): iterators for set partitions and
+  Lyndon words
 """
 
 cimport cython
@@ -140,6 +142,62 @@ def _stirling_number2(n, k):
     return s
 
 #####################################################################
+## Lyndon word iterator
+
+def lyndon_word_iterator(Py_ssize_t n, Py_ssize_t k):
+    r"""
+    Generate the Lyndon words of fixed length ``k`` with ``n`` letters.
+
+    The resulting Lyndon words will be words represented as lists
+    whose alphabet is ``range(n)`` (`= \{0, 1, \ldots, n-1\}`).
+
+    ALGORITHM:
+
+    The iterative FKM Algorithm 7.2 from [Rus2003]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat_cython import lyndon_word_iterator
+        sage: list(lyndon_word_iterator(4, 2))
+        [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
+        sage: list(lyndon_word_iterator(2, 4))
+        [[0, 0, 0, 1], [0, 0, 1, 1], [0, 1, 1, 1]]
+
+    TESTS::
+
+        sage: from sage.combinat.combinat_cython import lyndon_word_iterator
+        sage: list(lyndon_word_iterator(6, 1))
+        [[0], [1], [2], [3], [4], [5]]
+        sage: list(lyndon_word_iterator(5, 0))
+        []
+        sage: list(lyndon_word_iterator(1, 1000))
+        []
+        sage: list(lyndon_word_iterator(1, 1))
+        [[0]]
+    """
+    cdef Py_ssize_t i, j
+    if k == 0:
+        return
+    if k == 1:
+        for i in range(n):
+            yield [i]
+        return
+    if n == 1:
+        return
+
+    cdef list a = [0] * (k+1)
+    i = k
+    while i != 0:
+        a[i] += 1
+        for j in range(1, k-i+1):
+            a[j + i] = a[j]
+        if k == i:
+            yield a[1:]
+        i = k
+        while a[i] == n - 1:
+            i -= 1
+
+#####################################################################
 ## Set partition iterators
 
 @cython.wraparound(False)
@@ -216,8 +274,8 @@ def set_partition_iterator(base_set):
 def _set_partition_block_gen(Py_ssize_t n, Py_ssize_t k, list a):
     r"""
     Recursively generate set partitions of ``n`` with fixed block
-    size ``k`` using Algorithm 4.23 from *Combinatorial Generation*
-    by Ruskey. ``a`` is a list of size ``n``.
+    size ``k`` using Algorithm 4.23 from [Rus2003]_.
+    ``a`` is a list of size ``n``.
 
     EXAMPLES::
 

@@ -300,7 +300,6 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.subset import Subsets
 
-
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
     Construct a finite poset from various forms of input data.
@@ -1813,6 +1812,24 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.plot(element_labels=elem_labels, heights=heights)
             Graphics object consisting of 8 graphics primitives
 
+        The following checks that equal labels are allowed (:trac:`15206`)::
+
+            sage: P = Poset({1: [2,3]})
+            sage: labs = {i: P.rank(i) for i in range(1, 4)}
+            sage: labs
+            {1: 0, 2: 1, 3: 1}
+            sage: P.plot(element_labels=labs)
+            Graphics object consisting of 6 graphics primitives
+
+        The following checks that non-hashable labels are allowed (:trac:`15206`)::
+
+            sage: P = Poset({1: [2,3]})
+            sage: labs = {1: [2, 3], 2: [], 3: []}
+            sage: labs
+            {1: [2, 3], 2: [], 3: []}
+            sage: P.plot(element_labels=labs)
+            Graphics object consisting of 6 graphics primitives
+
         Plot of the empty poset::
 
             sage: P = Poset({})
@@ -1846,7 +1863,8 @@ class FinitePoset(UniqueRepresentation, Parent):
                     heights[rank_function(i)].append(i)
         # if relabeling is needed
         if label_elements and element_labels is not None:
-            relabeling = dict((self(element), label)
+            from sage.misc.element_with_label import ElementWithLabel
+            relabeling = dict((self(element), ElementWithLabel(self(element), label))
                                for (element, label) in element_labels.items())
             graph = graph.relabel(relabeling, inplace = False)
             if heights is not None:
@@ -5153,9 +5171,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return the poset with bottom and top elements adjoined.
 
-        This functions always adds two new elements to the poset, i.e.
-        it does not check if the poset already has a bottom or a
-        top element.
+        This function adds top and bottom elements to the poset.
+        It will always add elements, it does not check if the poset
+        already has a bottom or a top element.
 
         For lattices and semilattices this function returns a lattice.
 
@@ -5182,6 +5200,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[-1, 0], [0, 1], [0, 2]]
 
             sage: P = posets.PentagonPoset()  # A lattice
+            sage: P.with_bounds()
+            Finite lattice containing 7 elements
+
+            sage: P = posets.PentagonPoset(facade=False)
             sage: P.with_bounds()
             Finite lattice containing 7 elements
 
@@ -5251,10 +5273,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             ...
             ValueError: the poset already has element 4
         """
-        # TODO: Fix this to work with non-facade posets also
-        if not self._is_facade:
-            raise NotImplementedError("the function is not defined on non-facade posets")
-
         if len(labels) != 2:
             raise TypeError("labels must be a pair")
         new_min, new_max = labels
@@ -5279,20 +5297,24 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         if self.cardinality() == 0:
             if new_min is None and new_max is None:
-                return constructor()
+                return constructor(facade=self._is_facade)
             if new_min is None:
-                return constructor({new_min: []})
+                return constructor({new_min: []}, facade=self._is_facade)
             if new_max is None:
-                return constructor({new_max: []})
-            return constructor({new_min: [new_max]})
+                return constructor({new_max: []}, facade=self._is_facade)
+            return constructor({new_min: [new_max]}, facade=self._is_facade)
+        if self._is_facade:
+            D = self.hasse_diagram()
+        else:
+            # we recreate the poset, so that the elements no longer
+            # reference the original poset.
+            D = Poset(self, facade=True).hasse_diagram()
 
-        D = self.hasse_diagram()
         if new_min is not None:
             D.add_edges([(new_min, e) for e in D.sources()])
         if new_max is not None:
             D.add_edges([(e, new_max) for e in D.sinks()])
-
-        return constructor(D)
+        return constructor(D, facade=self._is_facade)
 
     def without_bounds(self):
         """

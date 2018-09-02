@@ -170,22 +170,21 @@ def local_normal_form(self, p):
                 block_size = 2
 
         ## DIAGNOSTIC
-        #print "\n Finished Step 2 \n";
-        #print "\n Q is: \n" + str(Q)  + "\n";
-        #print "  p is: " + str(p)
-        #print "  min_val is: " + str( min_val)
-        #print "  block_size is: " + str(block_size)
-        #print "\n Starting Step 3 \n"
+        #print("\n Finished Step 2 \n")
+        #print("\n Q is: \n" + str(Q)  + "\n")
+        #print("  p is: " + str(p))
+        #print("  min_val is: " + str( min_val))
+        #print("  block_size is: " + str(block_size))
+        #print("\n Starting Step 3 \n")
 
         ## Step 3: Clear out the remaining entries
         ##  ---------------------------------------
         min_scale = p ** min_val                             ## This is the minimal valuation of the Hessian matrix entries.
 
         ##DIAGNOSTIC
-        #print "Starting Step 3:"
-        #print "----------------"
-        #print "  min_scale is: " + str(min_scale)
-
+        #print("Starting Step 3:")
+        #print("----------------")
+        #print("  min_scale is: " + str(min_scale))
 
         ## Perform cancellation over Z by ensuring divisibility
         if (block_size == 1):
@@ -194,7 +193,7 @@ def local_normal_form(self, p):
                 b = Q[0, j]
                 g = GCD(a, b)
 
-                ## DIAGNSOTIC
+                ## DIAGNOSTIC
                 #print "Cancelling from a 1x1 block:"
                 #print "----------------------------"
                 #print "  Cancelling entry with index (" + str(upper_left) + ", " + str(j) + ")"

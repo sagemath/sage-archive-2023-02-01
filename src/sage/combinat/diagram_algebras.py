@@ -368,7 +368,7 @@ class AbstractPartitionDiagram(AbstractSetPartition):
         r"""
         Return the underlying implementation of the diagram.
 
-        OUPUT:
+        OUTPUT:
 
         - tuple of tuples of integers
 

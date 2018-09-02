@@ -67,6 +67,8 @@ from . import real_mpfr
 import weakref
 from cpython.object cimport Py_NE
 
+from sage.cpython.string cimport str_to_bytes
+
 from sage.libs.mpfr cimport *
 from sage.libs.mpc cimport *
 from sage.structure.parent cimport Parent
@@ -852,13 +854,15 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 if a is None:
                     mpfr_set_ui(self.value.re, 0, MPFR_RNDN)
                 else:
-                    mpfr_set_str(self.value.re, a, base, rnd_re(rnd))
+                    mpfr_set_str(self.value.re, str_to_bytes(a),
+                                 base, rnd_re(rnd))
                 # set imag part
                 if b is None:
                     if a is None:
                         raise TypeError("unable to convert {!r} to a MPComplexNumber".format(z))
                 else:
-                    mpfr_set_str(self.value.im, b, base, rnd_im(rnd))
+                    mpfr_set_str(self.value.im, str_to_bytes(b),
+                                 base, rnd_im(rnd))
                 return
             elif isinstance(z, ComplexNumber):
                 mpc_set_fr_fr(self.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)

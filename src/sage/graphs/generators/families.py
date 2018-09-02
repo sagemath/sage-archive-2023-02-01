@@ -311,35 +311,14 @@ def BarbellGraph(n1, n2):
     if n2 < 0:
         raise ValueError("invalid graph description, n2 should be >= 0")
 
-    pos_dict = {}
+    G = Graph(name="Barbell graph")
+    G.add_clique(list(range(n1)))
+    G.add_path(list(range(n1 - 1 , n1 + n2 + 1)))
+    G.add_clique(list(range(n1 + n2, n1 + n2 + n1)))
 
-    for i in range(n1):
-        x = float(cos((pi / 4) - ((2 * pi) / n1) * i) - (n2 / 2) - 1)
-        y = float(sin((pi / 4) - ((2 * pi) / n1) * i) - (n2 / 2) - 1)
-        j = n1 - 1 - i
-        pos_dict[j] = (x, y)
-    for i in range(n1, n1 + n2):
-        x = float(i - n1 - (n2 / 2) + 1)
-        y = float(i - n1 - (n2 / 2) + 1)
-        pos_dict[i] = (x, y)
-    for i in range(n1 + n2, (2 * n1) + n2):
-        x = float(
-            cos((5 * (pi / 4)) + ((2 * pi) / n1) * (i - n1 - n2))
-            + (n2 / 2) + 2)
-        y = float(
-            sin((5 * (pi / 4)) + ((2 * pi) / n1) * (i - n1 - n2))
-            + (n2 / 2) + 2)
-        pos_dict[i] = (x, y)
-
-    G = Graph(pos=pos_dict, name="Barbell graph")
-    G.add_edges(((i, j) for i in range(n1) for j in range(i + 1, n1)))
-    G.add_path(list(range(n1, n1 + n2)))
-    G.add_edges(((i, j) for i in range(n1 + n2, n1 + n2 + n1)
-                 for j in range(i + 1, n1 + n2 + n1)))
-    if n1 > 0:
-        G.add_edge(n1 - 1, n1)
-        G.add_edge(n1 + n2 - 1, n1 + n2)
-
+    G._circle_embedding(list(range(n1)), shift=1, angle=pi/4)
+    G._line_embedding(list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
+    G._circle_embedding(list(range(n1 + n2, n1 + n2 + n1)), center=(n2 + 3, n2 + 3), angle=5*pi/4)
     return G
 
 
@@ -383,7 +362,7 @@ def LollipopGraph(n1, n2):
         sage: graphs.LollipopGraph(0, 0).is_isomorphic(graphs.EmptyGraph())
         True
 
-    The input ``n1`` must be `\geq 0`::
+        The input ``n1`` must be `\geq 0`::
 
         sage: graphs.LollipopGraph(-1, randint(0, 10^6))
         Traceback (most recent call last):
@@ -403,30 +382,22 @@ def LollipopGraph(n1, n2):
     if n2 < 0:
         raise ValueError("invalid graph description, n2 should be >= 0")
 
-    pos_dict = {}
-
-    for i in range(n1):
-        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        j = n1-1-i
-        pos_dict[j] = (x,y)
-    for i in range(n1, n1+n2):
-        x = float(i - n1 - n2/2 + 1)
-        y = float(i - n1 - n2/2 + 1)
-        pos_dict[i] = (x,y)
-
-    G = Graph(pos=pos_dict, name="Lollipop graph")
-    G.add_edges(((i, j) for i in range(n1) for j in range(i + 1, n1)))
+    G = Graph(n1 + n2, name="Lollipop graph")
+    G.add_clique(list(range(n1)))
     G.add_path(list(range(n1, n1 + n2)))
     if n1 * n2 > 0:
         G.add_edge(n1 - 1, n1)
-
+    if n1 == 1:
+        G.set_pos({0:(0, 0)})
+    else:
+        G._circle_embedding(list(range(n1)), shift=1, angle=pi/4)
+    G._line_embedding(list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
     return G
 
 
 def TadpoleGraph(n1, n2):
     r"""
-    Returns a tadpole graph with n1+n2 nodes.
+    Return a tadpole graph with n1+n2 nodes.
 
     A tadpole graph is a path graph (order n2) connected to a cycle graph
     (order n1).
@@ -478,24 +449,13 @@ def TadpoleGraph(n1, n2):
     if n2 < 0:
         raise ValueError("invalid graph description, n2 should be >= 0")
 
-    pos_dict = {}
-
-    for i in range(n1):
-        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        j = n1-1-i
-        pos_dict[j] = (x,y)
-    for i in range(n1, n1+n2):
-        x = float(i - n1 - n2/2 + 1)
-        y = float(i - n1 - n2/2 + 1)
-        pos_dict[i] = (x,y)
-
-    G = Graph(pos=pos_dict, name="Tadpole graph")
+    G = Graph(n1 + n2, name="Tadpole graph")
     G.add_cycle(list(range(n1)))
     G.add_path(list(range(n1, n1 + n2)))
     if n1 * n2 > 0:
         G.add_edge(n1 - 1, n1)
-
+    G._circle_embedding(list(range(n1)), shift=1, angle=pi/4)
+    G._line_embedding(list(range(n1, n1 + n2)), first=(2, 2), last=(n2 + 1, n2 + 1))
     return G
 
 
@@ -811,13 +771,11 @@ def CirculantGraph(n, adjacency):
         (4, 5),
         (5, 6)]
     """
-    from sage.graphs.graph_plot import _circle_embedding
-
-    if not isinstance(adjacency,list):
-        adjacency=[adjacency]
+    if not isinstance(adjacency, list):
+        adjacency = [adjacency]
 
     G = Graph(n, name="Circulant graph ("+str(adjacency)+")")
-    _circle_embedding(G, list(range(n)))
+    G._circle_embedding(list(range(n)))
 
     for v in G:
         G.add_edges([(v,(v+j)%n) for j in adjacency])
@@ -1136,24 +1094,15 @@ def FriendshipGraph(n):
         G = CycleGraph(3)
         G.name("Friendship graph")
         return G
-    # build the edge and position dictionaries
-    from sage.functions.trig import cos, sin
-    from sage.rings.real_mpfr import RR
-    from sage.symbolic.constants import pi
-    N = 2*n + 1           # order of F_n
-    d = (2*pi) / (N - 1)  # angle between external nodes
-    edge_dict = {}
-    pos_dict = {}
-    for i in range(N - 2):
-        if i & 1:  # odd numbered node
-            edge_dict.setdefault(i, [i + 1, N - 1])
-        else:      # even numbered node
-            edge_dict.setdefault(i, [N - 1])
-        pos_dict.setdefault(i, [RR(cos(i*d)), RR(sin(i*d))])
-    edge_dict.setdefault(N - 2, [0, N - 1])
-    pos_dict.setdefault(N - 2, [RR(cos(d * (N-2))), RR(sin(d * (N-2)))])
-    pos_dict.setdefault(N - 1, [0, 0])
-    return Graph(edge_dict, pos=pos_dict, name="Friendship graph")
+    # build the edges and position dictionaries
+    N = 2 * n + 1           # order of F_n
+    center = 2 * n
+    G = Graph(N, name="Friendship graph")
+    for i in range(0, N - 1, 2):
+        G.add_cycle([center, i, i+1])
+    G.set_pos({center:(0, 0)})
+    G._circle_embedding(list(range(N - 1)), radius=1)
+    return G
 
 def FuzzyBallGraph(partition, q):
     r"""
@@ -1313,20 +1262,14 @@ def GeneralizedPetersenGraph(n,k):
     if k < 1 or k > (n - 1) // 2:
             raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
     pos_dict = {}
-    G = Graph()
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
-    for i in range(n, 2*n):
-        x = float(0.5*cos((pi/2) + ((2*pi)/n)*i))
-        y = float(0.5*sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
+    G = Graph(2 * n, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
     for i in range(n):
         G.add_edge(i, (i+1) % n)
         G.add_edge(i, i+n)
         G.add_edge(i+n, n + (i+k) % n)
-    return Graph(G, pos=pos_dict, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
+    G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
+    G._circle_embedding(list(range(n, 2*n)), radius=.5, angle=pi/2)
+    return G
 
 def HararyGraph( k, n ):
     r"""
@@ -1513,13 +1456,9 @@ def LCFGraph(n, shift_list, repeats):
       1965.  http://profiles.nlm.nih.gov/BB/A/B/I/U/_/bbabiu.pdf.
     """
     import networkx
-    pos_dict = {}
-    for i in range(n):
-        x = float(cos(pi/2 + ((2*pi)/n)*i))
-        y = float(sin(pi/2 + ((2*pi)/n)*i))
-        pos_dict[i] = [x,y]
-    return Graph(networkx.LCF_graph(n, shift_list, repeats),\
-                 pos=pos_dict, name="LCF Graph")
+    G = Graph(networkx.LCF_graph(n, shift_list, repeats), name="LCF Graph")
+    G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
+    return G
 
 def MycielskiGraph(k=1, relabel=True):
     r"""
@@ -2309,7 +2248,6 @@ def petersen_family(generate=False):
     if not generate:
         from sage.graphs.generators.basic import CompleteGraph, \
              CompleteBipartiteGraph, CompleteMultipartiteGraph
-        from sage.graphs.graph_plot import _circle_embedding
         l = [PetersenGraph(), CompleteGraph(6),
              CompleteMultipartiteGraph([3, 3, 1])]
         g = CompleteBipartiteGraph(4, 4)
@@ -2317,16 +2255,16 @@ def petersen_family(generate=False):
         g.name("")
         l.append(g)
         g = Graph('HKN?Yeb')
-        _circle_embedding(g, [1, 2, 4, 3, 0, 5])
-        _circle_embedding(g, [6, 7, 8], radius=.6, shift=1.25)
+        g._circle_embedding([1, 2, 4, 3, 0, 5])
+        g._circle_embedding([6, 7, 8], radius=.6, shift=1.25)
         l.append(g)
         g = Graph('Fs\\zw')
-        _circle_embedding(g, [1, 2, 3])
-        _circle_embedding(g, [4, 5, 6], radius=.7)
+        g._circle_embedding([1, 2, 3])
+        g._circle_embedding([4, 5, 6], radius=.7)
         g.get_pos()[0] = (0, 0)
         l.append(g)
         g = Graph('GYQ[p{')
-        _circle_embedding(g, [1, 4, 6, 0, 5, 7, 3], shift=0.25)
+        g._circle_embedding([1, 4, 6, 0, 5, 7, 3], shift=0.25)
         g.get_pos()[2] = (0, 0)
         l.append(g)
         return l
@@ -2729,8 +2667,6 @@ def RingedTree(k, vertex_labels = True):
     if k<1:
         raise ValueError('The number of levels must be >= 1.')
 
-    from sage.graphs.graph_plot import _circle_embedding
-
     # Creating the Balanced tree, which contains most edges already
     g = BalancedTree(2,k-1)
     g.name('Ringed Tree on '+str(k)+' levels')
@@ -2745,7 +2681,7 @@ def RingedTree(k, vertex_labels = True):
         # And set the vertices' positions
         radius = i if i <= 1 else 1.5**i
         shift = -2**(i-2)+.5 if i > 1 else 0
-        _circle_embedding(g, vertices, radius = radius, shift = shift)
+        g._circle_embedding(vertices, radius = radius, shift = shift)
 
     # Specific position for the central vertex
     g.get_pos()[0] = (0,0.2)

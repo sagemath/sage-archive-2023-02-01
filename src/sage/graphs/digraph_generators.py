@@ -431,9 +431,7 @@ class DiGraphGenerators():
             for j in range(i+1, n):
                 g.add_edge(i, j)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(g, list(range(n)))
+        g._circle_embedding(list(range(n)))
 
         return g
 
@@ -481,9 +479,7 @@ class DiGraphGenerators():
                 else:
                     g.add_edge(j, i)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(g, list(range(n)))
+        g._circle_embedding(list(range(n)))
 
         return g
 
@@ -620,9 +616,7 @@ class DiGraphGenerators():
 
         G.add_edges((u,v) for u in range(n) for v in range(n) if u!=v)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
 
         return G
 
@@ -681,7 +675,6 @@ class DiGraphGenerators():
             ...
             ValueError: The list must contain only relative integers.
         """
-        from sage.graphs.graph_plot import _circle_embedding
         from sage.rings.integer_ring import ZZ
 
         # Bad input and loops
@@ -692,9 +685,9 @@ class DiGraphGenerators():
             if (i%n) == 0:
                 loops = True
 
-        G=DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
+        G = DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
 
-        _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
         for v in range(n):
             G.add_edges([(v,(v+j)%n) for j in integers])
 
@@ -1435,9 +1428,7 @@ class DiGraphGenerators():
             if coin>=2:
                 G.add_edge(v,u)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
 
         return G
 

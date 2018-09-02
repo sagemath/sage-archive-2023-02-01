@@ -1674,7 +1674,7 @@ class DyckWord(CombinatorialElement):
             sage: dw.tamari_interval(DyckWord([1,1,0,0,1,1,0,0]))
             Traceback (most recent call last):
             ...
-            ValueError: The two Dyck words are not comparable on the Tamari lattice.
+            ValueError: the two Dyck words are not comparable on the Tamari lattice
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
         return TamariIntervalPosets.from_dyck_words(self, other)

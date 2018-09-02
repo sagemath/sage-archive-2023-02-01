@@ -257,10 +257,6 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
         f = SetMorphism(H, self.retract)
         self.register_conversion(f)
 
-        H = Hom(self, L)
-        f = SetMorphism(H, self.lift)
-        L.register_conversion(f)
-
     def _repr_(self):
         r"""
         Return the string representation of ``self``.

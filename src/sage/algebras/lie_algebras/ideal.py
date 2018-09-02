@@ -141,10 +141,21 @@ class LieIdeal_finite_dimensional_with_basis(LieSubalgebra_finite_dimensional_wi
             sage: L.ideal([X, Y])
             Ideal (X, Y) of Abelian Lie algebra on 2 generators (X, Y) over Rational Field
         """
-        gens = self.gens()
-        if len(gens) == 1:
-            gens = "(%s)" % gens[0]
-        return "Ideal %s of %s" % (gens, self.ambient())
+        return "Ideal %s of %s" % (self._repr_short(), self.ambient())
+
+    def _repr_short(self):
+        """
+        Represent the list of generators.
+
+        EXAMPLES::
+
+            sage: L.<X,Y> = LieAlgebra(QQ, abelian=True)
+            sage: L.ideal([X, Y])._repr_short()
+            '(X, Y)'
+            sage: L.ideal(X)._repr_short()
+            '(X)'
+        """
+        return '(%s)' % (', '.join(str(X) for X in self.gens()))
 
     # for submodule computations, the order of the basis is reversed so that
     # the pivot elements in the echelon form are the leading terms

@@ -586,7 +586,7 @@ class CycleIndexSeries(LazyPowerSeries):
             yield self.coefficient(i).coefficient([1]*i)
 
     def __invert__(self):
-        """
+        r"""
         Return the multiplicative inverse of ``self``.
 
         This algorithm is derived from [BLL]_.
@@ -701,7 +701,7 @@ class CycleIndexSeries(LazyPowerSeries):
             n += 1
 
     def arithmetic_product(self, g, check_input = True):
-        """
+        r"""
         Return the arithmetic product of ``self`` with ``g``.
 
         For species `M` and `N` such that `M[\\varnothing] = N[\\varnothing] = \\varnothing`,
@@ -1289,9 +1289,10 @@ def ExponentialCycleIndexSeries(R = RationalField()):
     CIS = CycleIndexSeriesRing(R)
     return CIS(_exp_gen(R))
 
+
 @cached_function
 def _cl_term(n, R = RationalField()):
-    """
+    r"""
     Compute the order-n term of the cycle index series of the virtual species `\Omega`,
     the compositional inverse of the species `E^{+}` of nonempty sets.
 
@@ -1301,8 +1302,7 @@ def _cl_term(n, R = RationalField()):
         sage: [_cl_term(i) for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
-
-    n = Integer(n) #check that n is an integer
+    n = Integer(n)  # check that n is an integer
 
     p = SymmetricFunctions(R).power()
 
@@ -1310,12 +1310,13 @@ def _cl_term(n, R = RationalField()):
     if n == 1:
         res = p([1])
     elif n > 1:
-        res = 1/n * ((-1)**(n-1) * p([1])**n - sum(d * p([Integer(n/d)]).plethysm(_cl_term(d, R)) for d in divisors(n)[:-1]))
+        res = 1/n * ((-1)**(n-1) * p([1])**n - sum(d * p([n // d]).plethysm(_cl_term(d, R)) for d in divisors(n)[:-1]))
 
     return res
 
+
 def _cl_gen (R = RationalField()):
-    """
+    r"""
     Produce a generator which yields the terms of the cycle index series of the virtual species
     `\Omega`, the compositional inverse of the species `E^{+}` of nonempty sets.
 
@@ -1328,9 +1329,10 @@ def _cl_gen (R = RationalField()):
     """
     return (_cl_term(i, R) for i in _integers_from(0))
 
+
 @cached_function
 def LogarithmCycleIndexSeries(R = RationalField()):
-    """
+    r"""
     Return the cycle index series of the virtual species `\Omega`, the compositional inverse
     of the species `E^{+}` of nonempty sets.
 

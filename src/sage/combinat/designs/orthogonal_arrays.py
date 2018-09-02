@@ -61,14 +61,14 @@ from builtins import zip
 from six import itervalues, iteritems
 from six.moves import range
 
-from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from .designs_pyx import is_orthogonal_array
 from .group_divisible_designs import GroupDivisibleDesign
 from .designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
 
-def transversal_design(k,n,resolvable=False,check=True,existence=False):
+
+def transversal_design(k, n, resolvable=False, check=True, existence=False):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -347,8 +347,6 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
     if existence and _OA_cache_get(k,n) is not None:
         return _OA_cache_get(k,n)
 
-    may_be_available = _OA_cache_construction_available(k,n) is not False
-
     if n == 1:
         if existence:
             return True
@@ -380,6 +378,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
         raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
 
     return TransversalDesign(TD,k,n,check=check)
+
 
 class TransversalDesign(GroupDivisibleDesign):
     r"""
@@ -451,7 +450,8 @@ class TransversalDesign(GroupDivisibleDesign):
         """
         return "Transversal Design TD({},{})".format(self._k,self._n)
 
-def is_transversal_design(B,k,n, verbose=False):
+
+def is_transversal_design(B, k, n, verbose=False):
     r"""
     Check that a given set of blocks ``B`` is a transversal design.
 
@@ -871,7 +871,6 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
         return _OA_cache_get(k,n)
 
     from .block_design import projective_plane
-    from .latin_squares import mutually_orthogonal_latin_squares
     from .database import OA_constructions, MOLS_constructions, QDM
     from .orthogonal_arrays_find_recursive import find_recursive_construction
     from .difference_matrices import difference_matrix
@@ -1359,7 +1358,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         OA = [B[:-1] for B in OA]
 
     elif max_hole==1 and orthogonal_array(k,n,existence=True):
-        OA = orthogonal_array(k,n)
+        OA = orthogonal_array(k, n)
         try:
             independent_set = OA_find_disjoint_blocks(OA,k,n,number_of_holes)
         except ValueError:
@@ -1664,7 +1663,6 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
        The Australasian Journal of Combinatorics, vol 10 (1994)
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
-    from sage.rings.integer import Integer
     from itertools import combinations
     from .designs_pyx import is_difference_matrix
 
@@ -1862,10 +1860,9 @@ def OA_from_Vmt(m,t,V):
 
         sage: _ = designs.orthogonal_arrays.build(6,46) # indirect doctest
     """
-    from sage.rings.finite_rings.finite_field_constructor import FiniteField
-    q = m*t+1
     Fq, M = QDM_from_Vmt(m,t,V)
     return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
+
 
 def QDM_from_Vmt(m,t,V):
     r"""

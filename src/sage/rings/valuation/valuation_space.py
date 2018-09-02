@@ -1039,7 +1039,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Return an estimate on the coefficient size of ``x``.
 
             The number returned is an estimate on the factor between the number of
-            Bits used by ``x`` and the minimal number of bits used by an element
+            bits used by ``x`` and the minimal number of bits used by an element
             congruent to ``x``.
 
             This is used by :meth:`simplify` to decide whether simplification of

@@ -1428,6 +1428,10 @@ class FriCASElement(ExpectElement):
         # now translate domains which cannot be coerced to InputForm,
         # or where we do not need it.
         head = str(domain.car())
+        if head == "Record":
+            fields = fricas("[string symbol(e.2) for e in rest destruct %s]"%domain._name).sage()
+            return {field: self.elt(field).sage() for field in fields}
+
         if head == "List":
             n = P.get_integer('#(%s)' %self._name)
             return [P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)]

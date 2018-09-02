@@ -88,7 +88,49 @@ from sage.rings.real_mpfr import RealField
 
 maxima = Maxima()
 
-def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False):
+def fricas_desolve(de, dvar, ivar, ics):
+    """
+    Solve a ODE via FriCAS.
+
+    TESTS:
+
+    A 3rd order linear equation::
+
+        sage: y = function("y")(x)
+        sage: de = x^3*diff(y, x, 3) + x^2*diff(y, x, 2) - 2*x*diff(y, x) + 2*y - 2*x^4
+        sage: Y = desolve(de, y, algorithm="fricas"); Y                         # optional - fricas
+        (2*x^3 - 3*x^2 + 1)*_C0/x + (x^3 - 1)*_C1/x + (x^3 - 3*x^2 - 1)*_C2/x + 1/15*(x^5 - 10*x^3 + 20*x^2 + 4)/x
+        sage: de.substitute_function(y.operator(), lambda x: Y).simplify_full() # optional - fricas
+        0
+
+    With initial conditions::
+
+        sage: Y = desolve(de, y, ics=[1,3,7], algorithm="fricas"); Y            # optional - fricas
+        1/15*(x^5 + 15*x^3 + 50*x^2 - 21)/x
+
+    A non-linear equation::
+
+        sage: de = diff(y, x) == y/(x+y*log(y))
+        sage: Y = desolve(de, y, algorithm="fricas"); Y                         # optional - fricas
+        1/2*(log(y(x))^2*y(x) - 2*x)/y(x)
+
+    """
+    from sage.interfaces.fricas import fricas
+    if ics is None:
+        y = fricas(de).solve(dvar.operator(), ivar).sage()
+    else:
+        eq = fricas.equation(ivar, ics[0])
+        y = fricas(de).solve(dvar.operator(), eq, ics[1:]).sage()
+
+    if isinstance(y, dict):
+        basis = y["basis"]
+        particular = y["particular"]
+        return particular + sum(var("_C"+str(i))*v for i, v in enumerate(basis))
+    else:
+        return y
+
+
+def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False, algorithm=None):
     r"""
     Solves a 1st or 2nd order linear ODE via Maxima, including IVP and BVP.
 
@@ -452,6 +494,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         if len(ivars) != 1:
             raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
+    if algorithm == "fricas":
+        return fricas_desolve(de, dvar, ivar, ics)
+
+    elif algorithm is not None and algorithm != "maxima":
+        raise ValueError("Unknown algorithm: %s" % algorithm)
+
     de00 = de._maxima_()
     P = de00.parent()
     dvar_str=P(dvar.operator()).str()
@@ -1767,5 +1815,3 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
         res[i] = [RealField(ceil(digits*log(10,2)))(_) for _ in res[i].split(' ') if len(_) > 2]
     shutil.rmtree(tempdir)
     return res
-
-

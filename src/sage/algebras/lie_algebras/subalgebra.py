@@ -21,6 +21,7 @@ from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.categories.sets_cat import Sets
+from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.sets.family import Family
@@ -644,6 +645,38 @@ class LieSubalgebra_finite_dimensional_with_basis(LieSubset_with_gens):
         m = self.ambient().module()
         ambientbasis = [self.lift(X).to_vector() for X in self.basis()]
         return m.submodule_with_basis(ambientbasis)
+
+    @cached_method
+    def is_ideal(self, A):
+        """
+        Return if ``self`` is an ideal of ``A``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z': 1}})
+            sage: S1 = L.subalgebra([x])
+            sage: S1.is_ideal(L)
+            False
+            sage: S2 = L.subalgebra([x, y])
+            sage: S2.is_ideal(L)
+            True
+            sage: S3 = L.subalgebra([y, z])
+            sage: S3.is_ideal(L)
+            True
+        """
+        if A == self:
+            return True
+        if A not in LieAlgebras(self.base_ring()).FiniteDimensional().WithBasis():
+            raise NotImplementedError("A must be a finite dimensional"
+                                      " Lie algebra with basis")
+        B = self.basis()
+        AB = A.basis()
+        try:
+            b_mat = matrix(A.base_ring(), [A.bracket(b, ab).to_vector()
+                                           for b in B for ab in AB])
+        except (ValueError, TypeError):
+            return False
+        return b_mat.row_space().is_submodule(self.ambient_submodule())
 
     class Element(LieSubset.Element):
 

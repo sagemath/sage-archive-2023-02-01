@@ -289,3 +289,23 @@ class LieIdeal_finite_dimensional_with_basis(LieSubalgebra_finite_dimensional_wi
                     pass
 
         return X
+
+    @cached_method
+    def is_ideal(self, A):
+        """
+        Return if ``self`` is an ideal of ``A``.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x': 1}})
+            sage: I = L.ideal(x)
+            sage: I.is_ideal(L)
+            True
+            sage: I.is_ideal(I)
+            True
+            sage: L.is_ideal(I)
+            False
+        """
+        if A == self.ambient():
+            return True
+        return super(LieIdeal_finite_dimensional_with_basis, self).is_ideal(A)

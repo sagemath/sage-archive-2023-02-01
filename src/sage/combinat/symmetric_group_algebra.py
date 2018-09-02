@@ -8,26 +8,27 @@ Symmetric Group Algebra
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+import itertools
+import six
 from six.moves import range
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 from sage.combinat.free_module import CombinatorialFreeModule
+from sage.combinat.permutation import Permutation, Permutations, from_permutation_group_element
+from sage.combinat.permutation_cython import (left_action_same_n, right_action_same_n)
+from sage.combinat import partition
+from sage.combinat.tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.algebras.group_algebra import GroupAlgebra_class
 from sage.categories.weyl_groups import WeylGroups
 from sage.categories.algebras import Algebras
-from sage.combinat.permutation import Permutation, Permutations, from_permutation_group_element
-from sage.combinat import partition
-from sage.combinat.tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, PolynomialRing
 from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-import itertools
-from sage.combinat.permutation_cython import (left_action_same_n, right_action_same_n)
-import six
 
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
@@ -955,23 +956,6 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
                 dct[p_ret] += coeff
         return RSm._from_dict(dct)
 
-    def cpis(self):
-        """
-        Return the primitive central orthogonal idempotents for ``self``.
-
-        TESTS::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
-            sage: cpis = QS3.cpis()
-            doctest:...: DeprecationWarning: Method (cpis) is deprecated; use central_orthogonal_idempotents instead.
-            See http://trac.sagemath.org/25942 for details.
-            sage: cpis == QS3.central_orthogonal_idempotents()
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(25942, "DeprecationWarning: Method (cpis) is deprecated; use central_orthogonal_idempotents instead.")
-        return self.central_orthogonal_idempotents()
-
     def central_orthogonal_idempotents(self):
         r"""
         Return the primitive central orthogonal idempotents for ``self``.
@@ -1149,6 +1133,9 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             return None
         else:
             return self.sum_of_terms((G(g), R(c)) for (g, c) in iter(cpi))
+
+    cpis = deprecated_function_alias(25942, central_orthogonal_idempotents)
+    cpi = deprecated_function_alias(25942, central_orthogonal_idempotent)
 
     def _blocks_dictionary(self):
         r"""

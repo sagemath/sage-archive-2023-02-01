@@ -473,10 +473,11 @@ def is_distance_regular(G, parameters = False):
     r"""
     Tests if the graph is distance-regular
 
-    A graph `G` is distance-regular if for any integers `j,k` the value
-    of `|\{x:d_G(x,u)=j,x\in V(G)\} \cap \{y:d_G(y,v)=j,y\in V(G)\}|` is constant
-    for any two vertices `u,v\in V(G)` at distance `i` from each other.
-    In particular `G` is regular, of degree `b_0` (see below), as one can take `u=v`.
+    A graph `G` is distance-regular if for any integers `j,k` the value of
+    `|\{x:d_G(x,u)=j,x\in V(G)\} \cap \{y:d_G(y,v)=j,y\in V(G)\}|` is constant
+    for any two vertices `u,v\in V(G)` at distance `i` from each other.  In
+    particular `G` is regular, of degree `b_0` (see below), as one can take
+    `u=v`.
 
     Equivalently a graph is distance-regular if there exist integers `b_i,c_i`
     such that for any two vertices `u,v` at distance `i` we have
@@ -485,13 +486,13 @@ def is_distance_regular(G, parameters = False):
     * `c_i = |\{x:d_G(x,u)=i-1,x\in V(G)\}\cap N_G(v)\}|, \ 1\leq i\leq d,`
 
     where `d` is the diameter of the graph.  For more information on
-    distance-regular graphs, see :wikipedia:`Distance-regular_graph`.
+    distance-regular graphs, see the :wikipedia:`Distance-regular_graph`.
 
     INPUT:
 
     - ``parameters`` (boolean) -- if set to ``True``, the function returns the
-      pair ``(b,c)`` of lists of integers instead of ``True`` (see the definition
-      above). Set to ``False`` by default.
+      pair ``(b,c)`` of lists of integers instead of ``True`` (see the
+      definition above). Set to ``False`` by default.
 
     .. SEEALSO::
 
@@ -1436,7 +1437,7 @@ def floyd_warshall(gg, paths = True, distances = False):
     Computes the shortest path/distances between all pairs of vertices.
 
     For more information on the Floyd-Warshall algorithm, see
-    :wikipedia:`Floyd-Warshall_algorithm`
+    the :wikipedia:`Floyd-Warshall_algorithm`.
 
     INPUT:
 
@@ -1451,10 +1452,10 @@ def floyd_warshall(gg, paths = True, distances = False):
     OUTPUT:
 
         Depending on the input, this function return the dictionary of paths,
-        the dictionary of distances, or a pair of dictionaries
-        ``(distances, paths)`` where ``distance[u][v]`` denotes the distance of a
-        shortest path from `u` to `v` and ``paths[u][v]`` denotes an inneighbor
-        `w` of `v` such that `dist(u,v)= 1 + dist(u,w)`.
+        the dictionary of distances, or a pair of dictionaries ``(distances,
+        paths)`` where ``distance[u][v]`` denotes the distance of a shortest
+        path from `u` to `v` and ``paths[u][v]`` denotes an inneighbor `w` of
+        `v` such that `dist(u,v)= 1 + dist(u,w)`.
 
     .. WARNING::
 

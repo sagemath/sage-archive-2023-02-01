@@ -504,6 +504,8 @@ def AztecDiamondGraph(n):
     """
     Return the Aztec Diamond graph of order ``n``.
 
+    See the :wikipedia:`Aztec_diamond` for more information.
+
     EXAMPLES::
 
         sage: graphs.AztecDiamondGraph(2)
@@ -518,10 +520,6 @@ def AztecDiamondGraph(n):
         sage: G = graphs.AztecDiamondGraph(3)
         sage: sum(1 for p in G.perfect_matchings())
         64
-
-    REFERENCE:
-
-    - :wikipedia:`Aztec_diamond`
     """
     from sage.graphs.generators.basic import Grid2dGraph
     if n:
@@ -678,7 +676,7 @@ def chang_graphs():
 
     Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
     called the Chang graphs. The fourth is the line graph of `K_8`. For more
-    information about the Chang graphs, see :wikipedia:`Chang_graphs` or
+    information about the Chang graphs, see the :wikipedia:`Chang_graphs` or
     https://www.win.tue.nl/~aeb/graphs/Chang.html.
 
     EXAMPLES: check that we get 4 non-isomorphic s.r.g.'s with the
@@ -1047,7 +1045,7 @@ def FriendshipGraph(n):
     joining `n \geq 1` copies of `C_3` at a common vertex. If `n = 1`,
     then `F_1` is isomorphic to `C_3` (the triangle graph). If `n = 2`,
     then `F_2` is the butterfly graph, otherwise known as the bowtie
-    graph. For more information, see :wikipedia:`Friendship_graph`.
+    graph. For more information, see the :wikipedia:`Friendship_graph`.
 
     INPUT:
 

@@ -36,7 +36,7 @@ edge between any two elements that are comparable. Co-comparability graph are
 complements of such graphs, i.e. graphs built from a poset by adding an edge
 between any two incomparable elements.
 
-For more information on comparability graphs, see
+For more information on comparability graphs, see the
 :wikipedia:`Comparability_graph`.
 
 **Permutation graphs**
@@ -54,7 +54,8 @@ Definitions:
 - A graph is a permutation graph if it is both a comparability graph and a
   co-comparability graph.
 
-For more information on permutation graphs, see :wikipedia:`Permutation_graph`.
+For more information on permutation graphs, see the
+:wikipedia:`Permutation_graph`.
 
 
 Recognition algorithm for comparability graphs

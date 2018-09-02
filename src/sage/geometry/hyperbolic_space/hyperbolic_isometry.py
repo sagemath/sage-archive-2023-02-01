@@ -444,7 +444,7 @@ class HyperbolicIsometry(Morphism):
 
     def preserves_orientation(self):
         r"""
-        Return ``True`` if ``self`` is orientation preserving and ``False``
+        Return ``True`` if ``self`` is orientation-preserving and ``False``
         otherwise.
 
         EXAMPLES::
@@ -537,8 +537,8 @@ class HyperbolicIsometry(Morphism):
 
     def fixed_point_set(self):
         r"""
-        Return a list containing the fixed point set of orientation-
-        preserving isometries.
+        Return a list containing the fixed point set of
+        orientation-preserving isometries.
 
         OUTPUT:
 
@@ -659,7 +659,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
 
     def preserves_orientation(self): #UHP
         r"""
-        Return ``True`` if ``self`` is orientation preserving and ``False``
+        Return ``True`` if ``self`` is orientation-preserving and ``False``
         otherwise.
 
         EXAMPLES::
@@ -1076,7 +1076,7 @@ def moebius_transform(A, z):
                 return infinity
             return a/c
         if a*d - b*c < 0:
-            w = z.conjugate() # Reverses orientation
+            w = z.conjugate()  # Reverses orientation
         else:
             w = z
         if c*z + d == 0:

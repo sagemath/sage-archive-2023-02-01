@@ -195,6 +195,22 @@ class IntegerLists(Parent):
         """
         return not self == other
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+            sage: D = IntegerListsLex(2, max_length=3)
+            sage: hash(C) == hash(C)
+            True
+        """
+        a = self._element_constructor_
+        if ismethod(a):
+            a = get_method_function(a)
+        return hash((self.__class__, a))
+
     def __iter__(self):
         """
         Return an iterator for the elements of ``self``.

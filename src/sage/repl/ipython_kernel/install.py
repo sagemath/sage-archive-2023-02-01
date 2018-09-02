@@ -134,6 +134,8 @@ class SageKernelSpec(object):
             sage: jsmol = os.path.join(spec.nbextensions_dir, 'jsmol')
             sage: os.path.isdir(jsmol)
             True
+            sage: os.path.isfile(os.path.join(jsmol, "JSmol.min.js"))
+            True
         """
         src = os.path.join(JSMOL_DIR)
         dst = os.path.join(self.nbextensions_dir, 'jsmol')

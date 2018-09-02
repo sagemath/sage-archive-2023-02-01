@@ -688,9 +688,9 @@ class LiE(ExtraTabCompletion, Expect):
             sage: lie.get('x')       # optional - lie
             '2'
         """
-        cmd = '%s=%s'%(var,value)
+        cmd = '%s=%s' % (var,value)
         out = self.eval(cmd)
-        i = min( out.find('not defined'), out.find('\(in'), out.find('Argument types') )
+        i = min( out.find('not defined'), out.find(r'\(in'), out.find('Argument types') )
         if i != -1:
             raise RuntimeError(out)
 
@@ -705,7 +705,7 @@ class LiE(ExtraTabCompletion, Expect):
             '2'
 
         """
-        s = self.eval('%s'%var)
+        s = self.eval('%s' % var)
         return s
 
     def get_using_file(self, var):

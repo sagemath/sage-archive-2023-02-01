@@ -752,7 +752,7 @@ class Function_lambert_w(BuiltinFunction):
 
         Check that :trac:`25987` is fixed::
 
-            sage: lambert_w(x)._fricas_()
+            sage: lambert_w(x)._fricas_()                                       # optional - fricas
             lambertW(x)
 
             sage: fricas(lambert_w(x)).eval(x = -1/e)                           # optional - fricas

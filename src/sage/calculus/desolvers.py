@@ -128,30 +128,55 @@ def fricas_desolve(de, dvar, ics, ivar):
 
 def fricas_desolve_system(des, dvars, ics, ivar):
     """
-    Solve a system of ODEs using FriCAS.
+    Solve a system of first order ODEs using FriCAS.
+
+    EXAMPLES::
+
+        sage: t = var('t')
+        sage: x = function('x')(t)
+        sage: y = function('y')(t)
+        sage: de1 = diff(x,t) + y - 1 == 0
+        sage: de2 = diff(y,t) - x + 1 == 0
+        sage: desolve_system([de1, de2], [x, y], algorithm="fricas")            # optional - fricas
+        [x(t) == _C0*cos(t) + cos(t)^2 + _C1*sin(t) + sin(t)^2,
+         y(t) == -_C1*cos(t) + _C0*sin(t) + 1]
+
+        sage: desolve_system([de1, de2], [x,y], [0,1,2], algorithm="fricas")    # optional - fricas
+        [x(t) == cos(t)^2 + sin(t)^2 - sin(t), y(t) == cos(t) + 1]
 
     TESTS::
 
         sage: from sage.calculus.desolvers import fricas_desolve_system
         sage: t = var('t')
         sage: x = function('x')(t)
+        sage: fricas_desolve_system([diff(x,t) + 1 == 0], [x], None, t)         # optional - fricas
+        [x(t) == _C0 - t]
+
         sage: y = function('y')(t)
         sage: de1 = diff(x,t) + y - 1 == 0
         sage: de2 = diff(y,t) - x + 1 == 0
-        sage: fricas_desolve_system([de1, de2], [x, y], None, t)
-        {'basis': [(cos(t), sin(t)), (sin(t), -cos(t))],
-         'particular': (cos(t)^2 + sin(t)^2, 1)}
+        sage: sol = fricas_desolve_system([de1,de2], [x,y], [0,1,-1], t); sol   # optional - fricas
+        [x(t) == cos(t)^2 + sin(t)^2 + 2*sin(t), y(t) == -2*cos(t) + 1]
 
     """
     from sage.interfaces.fricas import fricas
     from sage.symbolic.ring import SR
-    dvars = [dvar.operator() for dvar in dvars]
-    if ics is None:
-        y = fricas(des).solve(dvars, ivar).sage()
-    else:
-        raise NotImplementedError("Solving systems of differential equations with initial conditions using FriCAS is not yet implemented")
+    ops = [dvar.operator() for dvar in dvars]
+    y = fricas(des).solve(ops, ivar).sage()
+    basis = y["basis"]
+    particular = y["particular"]
+    pars = [SR.var("_C"+str(i)) for i in range(len(basis))]
+    solv = particular + sum(p*v for p, v in zip(pars, basis))
 
-    return y
+    if ics is None:
+        sols = solv
+    else:
+        ics0 = ics[0]
+        eqs = [val == sol.subs({ivar: ics0}) for val, sol in zip(ics[1:], solv)]
+        pars_values = solve(eqs, pars, solution_dict=True)
+        sols = [sol.subs(pars_values[0]) for sol in solv]
+
+    return [dvar == sol for dvar, sol in zip(dvars, sols)]
 
 def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False, algorithm=None):
     r"""
@@ -847,8 +872,8 @@ def desolve_system(des, vars, ics=None, ivar=None, algorithm=None):
     The same system solved using FriCAS::
 
         sage: desolve_system([de1, de2], [x,y], algorithm='fricas')             # optional - fricas
-        {'basis': [(cos(t), sin(t)), (sin(t), -cos(t))],
-         'particular': (cos(t)^2 + sin(t)^2, 1)}
+        [x(t) == _C0*cos(t) + cos(t)^2 + _C1*sin(t) + sin(t)^2,
+         y(t) == -_C1*cos(t) + _C0*sin(t) + 1]
 
     Now we give some initial conditions::
 

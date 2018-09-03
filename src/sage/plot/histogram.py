@@ -63,7 +63,7 @@ class Histogram(GraphicPrimitive):
         if options.get('range', None):
             # numpy.histogram performs type checks on "range" so this must be
             # actual floats
-            options['range'] = map(float, options['range'])
+            options['range'] = [float(x) for x in options['range']]
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):

@@ -80,7 +80,6 @@ from sage.symbolic.ring import is_SymbolicVariable
 from sage.calculus.functional import diff
 from sage.misc.functional import N
 from sage.misc.decorators import rename_keyword
-from tempfile import mkdtemp
 import shutil
 import os
 from sage.rings.real_mpfr import RealField

@@ -1408,6 +1408,7 @@ class FriCASElement(ExpectElement):
         from sage.symbolic.ring import SR
         from sage.symbolic.all import I
         from sage.matrix.constructor import matrix
+        from sage.modules.free_module_element import vector
         from sage.structure.factorization import Factorization
         from sage.misc.sage_eval import sage_eval
 
@@ -1435,6 +1436,10 @@ class FriCASElement(ExpectElement):
         if head == "List":
             n = P.get_integer('#(%s)' %self._name)
             return [P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)]
+
+        if head == "Vector":
+            n = P.get_integer('#(%s)' %self._name)
+            return vector([P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)])
 
         if head == "Matrix":
             base_ring = self._get_sage_type(domain[1])

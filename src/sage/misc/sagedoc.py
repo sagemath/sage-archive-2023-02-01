@@ -922,7 +922,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                 if re.search(path_re, filename):
                     if multiline:
                         line = open(filename).read()
-                        if re.search(string, line, flags):
+                        if re.search(regexp, line, flags):
                             match_list = line
                         else:
                             match_list = None
@@ -935,7 +935,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                     else:
                         match_list = [(lineno, line) for lineno, line in
                                       enumerate(open(filename).read().splitlines(True))
-                                      if re.search(string, line, flags)]
+                                      if re.search(regexp, line, flags)]
                         for extra in extra_regexps:
                             if extra:
                                 match_list = [s for s in match_list

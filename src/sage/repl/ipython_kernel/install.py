@@ -269,8 +269,7 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec(prefix=tmp_dir())
-            sage: spec.update()
+            sage: SageKernelSpec.update(prefix=tmp_dir())
 
         """
         instance = cls(*args, **kwds)

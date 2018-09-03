@@ -1184,9 +1184,10 @@ class FreeQuadraticModule_ambient_field(
 #
 ###############################################################################
 
+
 class FreeQuadraticModule_submodule_with_basis_pid(
     free_module.FreeModule_submodule_with_basis_pid, FreeQuadraticModule_generic_pid):
-    """
+    r"""
     An `R`-submodule of `K^n` with distinguished basis, where `K` is
     the fraction field of a principal ideal domain `R`.
 

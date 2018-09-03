@@ -369,8 +369,7 @@ class BackendIPythonCommandline(BackendIPython):
         if not jdata.is_jvm_available() and not DOCTEST_MODE:
             raise RuntimeError('jmol cannot run, no suitable java version found')
         launch_script = output_jmol.launch_script_filename()
-        from sage.env import SAGE_LOCAL
-        jmol_cmd = os.path.join(SAGE_LOCAL, 'bin', 'jmol')
+        jmol_cmd = 'jmol'
         if not DOCTEST_MODE:
             os.system('{0} {1} 2>/dev/null 1>/dev/null &'
                       .format(jmol_cmd, launch_script))

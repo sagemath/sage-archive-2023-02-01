@@ -1426,18 +1426,36 @@ def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
         sage: g = graphs.PathGraph(5)
         sage: _line_embedding(g, [0, 2, 4, 1, 3], first=(-1, -1), last=(1, 1))
         sage: g.show()
+
+    TESTS::
+
+        sage: from sage.graphs.graph_plot import _line_embedding
+        sage: g = Graph(1)
+        sage: _line_embedding(g, [0], first=(-1, -1), last=(1, 1))
+        sage: g.get_pos()
+        {0: (0, 0)}
+        sage: g = Graph()
+        sage: _line_embedding(g, g.vertices(), first=(-1, -1), last=(1, 1))
+        sage: g.get_pos()
+        {}
     """
-    n = len(vertices) - 1.
-
-    fx, fy = first
-    dx = (last[0] - first[0])/n
-    dy = (last[1] - first[1])/n
-
     d = g.get_pos()
     if d is None:
         d = {}
+
+    n = len(vertices) - 1.
+
+    if n:
+        fx, fy = first
+        dx = (last[0] - first[0])/n
+        dy = (last[1] - first[1])/n
+    else:
+        fx, fy = (first[0] + last[0])/2, (first[1] + last[1])/2
+        dx = dy = 0
 
     for v in vertices:
         d[v] = (fx, fy)
         fx += dx
         fy += dy
+
+    g.set_pos(d)

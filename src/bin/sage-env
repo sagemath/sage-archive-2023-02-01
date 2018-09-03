@@ -615,6 +615,16 @@ SAGE_NUM_THREADS_PARALLEL=${sage_num_threads_array[1]}
 export SAGE_NUM_THREADS
 export SAGE_NUM_THREADS_PARALLEL
 
+# Multithreading in OpenBLAS does not seem to play well with Sage's attempts to
+# spawn new processes, see #26118. Apparently, OpenBLAS sets the thread
+# affinity and, e.g., parallel doctest jobs, remain on the same core.
+# Disabling that thread-affinity with OPENBLAS_MAIN_FREE=1 leads to hangs in
+# some computations.
+# So we disable OpenBLAS' threading completely; we might loose some performance
+# here but strangely the opposite seems to be the case. Note that callers such
+# as LinBox use a single-threaded OpenBLAS anyway.
+export OPENBLAS_NUM_THREADS=1
+
 if [ "$MAKE" = "" ]; then
     MAKE="make"
 fi

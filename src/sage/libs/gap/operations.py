@@ -22,7 +22,7 @@ OPERATIONS = libgap.get_global('OPERATIONS')
 NameFunction = libgap.function_factory('NameFunction')
 
 
-NAME_RE = re.compile('(Setter|Getter|Tester)\((.*)\)')
+NAME_RE = re.compile(r'(Setter|Getter|Tester)\((.*)\)')
 
 
 class OperationInspector(SageObject):

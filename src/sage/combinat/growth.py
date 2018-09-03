@@ -4048,7 +4048,8 @@ class RuleDomino(Rule):
         [   2  3,   3  3 ]
 
         sage: l = {pi: Domino(pi) for pi in SignedPermutations(4)}
-        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
+        sage: S = Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()])
+        sage: S.cardinality()
         384
 
     Check the color-to-spin property for all permutations of size 4::

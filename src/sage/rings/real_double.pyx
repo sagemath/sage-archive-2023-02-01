@@ -665,7 +665,7 @@ cdef class RealDoubleField_class(Field):
         # collect real roots and conjugate pairs of non-real roots
         real_roots = [(r, e) for r, e in roots if r.imag().is_zero()]
         non_real_roots = {r: e for r, e in roots if not r.imag().is_zero()}
-        assert all([non_real_roots[r.conj()] == e for r, e in non_real_roots.items()]), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
+        assert all(non_real_roots[r.conj()] == e for r, e in non_real_roots.items()), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
         non_real_roots = [(r, e) for r, e in non_real_roots.items() if r.imag() > 0]
 
         # turn the roots into irreducible factors
@@ -2703,7 +2703,7 @@ cdef class ToRDF(Morphism):
         """
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, RDF))
 

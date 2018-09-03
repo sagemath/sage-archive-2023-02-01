@@ -110,8 +110,9 @@ def CongruenceSubgroup_constructor(*args):
     else:
         return CongruenceSubgroupFromGroup(GG)
 
+
 def is_CongruenceSubgroup(x):
-    """
+    r"""
     Return True if x is of type CongruenceSubgroup.
 
     Note that this may be False even if `x` really is a congruence subgroup --
@@ -138,6 +139,7 @@ def is_CongruenceSubgroup(x):
         False
     """
     return isinstance(x, CongruenceSubgroupBase)
+
 
 class CongruenceSubgroupBase(ArithmeticSubgroup):
 

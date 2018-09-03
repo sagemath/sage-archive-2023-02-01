@@ -149,7 +149,7 @@ cdef extern from "<limits.h>":
     const long LONG_MAX  # Work around https://github.com/cython/cython/pull/2016
 
 from cysignals.memory cimport check_allocarray, check_malloc, sig_free
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
 import operator
 import sys
@@ -754,7 +754,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: n = 5
             sage: t = n.__reduce__(); t
-            (<built-in function make_integer>, ('5',))
+            (<cyfunction make_integer at ...>, ('5',))
             sage: t[0](*t[1])
             5
             sage: loads(dumps(n)) == n
@@ -768,17 +768,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # tuple as input. All kinds of problems happen
         # if we don't do this.
         return sage.rings.integer.make_integer, (self.str(32),)
-
-    cdef _reduce_set(self, s):
-        """
-        Set this integer from a string in base 32.
-
-        .. NOTE::
-
-           Integers are supposed to be immutable, so you should not
-           use this function.
-        """
-        mpz_set_str(self.value, str_to_bytes(s), 32)
 
     def __index__(self):
         """
@@ -3954,7 +3943,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def coprime_integers(self, m):
         """
-        Return the positive integers `< m` that are coprime to
+        Return the non-negative integers `< m` that are coprime to
         this integer.
 
         EXAMPLES::
@@ -3973,15 +3962,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: for n in srange(-6,7):
-            ....:     for m in range(1,abs(n)+3):
-            ....:         assert n.coprime_integers(m) == [k for k in srange(1,m) if gcd(k,n) == 1]
+            sage: 0.coprime_integers(10^100)
+            [1]
+            sage: 1.coprime_integers(10^100)
+            Traceback (most recent call last):
+            ...
+            OverflowError: bound is too large
+            sage: for n in srange(-6, 7):
+            ....:     for m in range(-1, 10):
+            ....:         assert n.coprime_integers(m) == [k for k in srange(0, m) if gcd(k, n) == 1]
 
         AUTHORS:
 
         - Naqi Jaffery (2006-01-24): examples
 
-        - David Roe (2017-10-02): Now uses sieving for larger inputs
+        - David Roe (2017-10-02): Use sieving
+
+        - Jeroen Demeyer (2018-06-25): allow returning zero (only relevant for 1.coprime_integers(n))
 
         ALGORITHM:
 
@@ -3990,32 +3987,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Then return a list of integers corresponding to the unset bits.
         """
         cdef Integer sieve, p, slf, mInteger = Integer(m)
-        if mpz_cmp_ui(mInteger.value, 1) <= 0:
-            return []
-        if mpz_sgn(self.value) == 0:
-            return [one]
-        if mpz_fits_slong_p(mInteger.value) == 0:
-            raise ValueError("m is too large")
-        cdef long mlong = mpz_get_si(mInteger.value)
+        cdef long k
         cdef unsigned long ilong, plong
+
+        # Trivial case m <= 0
+        if mpz_sgn(mInteger.value) <= 0:
+            return []
+
+        # Handle 0.coprime_integers(n) first because it's the only case
+        # where very large n are allowed
+        if mpz_sgn(self.value) == 0:
+            if mpz_cmp_ui(mInteger.value, 1) <= 0:
+                return []
+            return [one]
+
+        if mpz_fits_slong_p(mInteger.value) == 0:
+            raise OverflowError("bound is too large")
+        cdef long mlong = mpz_get_si(mInteger.value)
         if mpz_cmpabs_ui(self.value, 1) == 0:
-            return [Integer(ilong) for ilong in range(1, mlong)]
+            return [smallInteger(k) for k in range(mlong)]
         if (mpz_cmpabs(self.value, mInteger.value) >= 0 and
             (mpz_sgn(self.value) > 0 and self.is_prime() or
              mpz_sgn(self.value) < 0 and (-self).is_prime())):
-            return [Integer(ilong) for ilong in range(1, mlong)]
+            return [smallInteger(k) for k in range(1, mlong)]
         sieve = PY_NEW(Integer)
-        p = one
         slf = PY_NEW(Integer)
         mpz_set(slf.value, self.value)
+        p = one
+
         while True:
+            sig_check()
             p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
             if mpz_cmp_si(p.value, mlong) >= 0:
                 # p is larger than m, so no more primes are needed.
                 break
-            sig_on()
             ilong = plong = mpz_get_ui(p.value)
-            while ilong < mlong:
+            while ilong < <unsigned long>mlong:
                 # Set bits in sieve at each multiple of p
                 mpz_setbit(sieve.value, ilong)
                 ilong += plong
@@ -4023,12 +4030,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_divexact_ui(slf.value, slf.value, plong)
             while mpz_divisible_ui_p(slf.value, plong):
                 mpz_divexact_ui(slf.value, slf.value, plong)
-            sig_off()
             # If we have found all factors, we break
             if mpz_cmpabs_ui(slf.value, 1) == 0:
                 break
-        return [Integer(ilong) for ilong in range(1, mlong)
-                if mpz_tstbit(sieve.value, ilong) == 0]
+        return [smallInteger(k) for k in range(1, mlong)
+                if mpz_tstbit(sieve.value, k) == 0]
 
     def divides(self, n):
         """
@@ -6542,13 +6548,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a.inverse_mod(1890)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
-            sage: a = Integer(19)**100000
-            sage: b = a*a
-            sage: c = a.inverse_mod(b)
+            ZeroDivisionError: inverse of Mod(189, 1890) does not exist
+            sage: a = Integer(19)**100000  # long time
+            sage: c = a.inverse_mod(a*a)   # long time
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(..., ...) does not exist
 
         We check that :trac:`10625` is fixed::
 
@@ -6557,7 +6562,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         We check that :trac:`9955` is fixed::
 
-            sage: Rational(3)%Rational(-1)
+            sage: Rational(3) % Rational(-1)
             0
         """
         cdef int r
@@ -6571,7 +6576,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r = mpz_invert(ans.value, self.value, m.value)
         sig_off()
         if r == 0:
-            raise ZeroDivisionError("Inverse does not exist.")
+            raise ZeroDivisionError(f"inverse of Mod({self}, {m}) does not exist")
         return ans
 
     def gcd(self, n):
@@ -7012,6 +7017,8 @@ def GCD_list(v):
 
     return z
 
+
+@cython.binding(True)
 def make_integer(s):
     """
     Create a Sage integer from the base-32 Python *string* s. This is
@@ -7028,8 +7035,9 @@ def make_integer(s):
         TypeError: expected str...Integer found
     """
     cdef Integer r = PY_NEW(Integer)
-    r._reduce_set(s)
+    mpz_set_str(r.value, str_to_bytes(s), 32)
     return r
+
 
 cdef class int_to_Z(Morphism):
     """
@@ -7080,7 +7088,7 @@ cdef class int_to_Z(Morphism):
             Set of Morphisms from Set of Python objects of class 'int' to Integer Ring in Category of sets
         """
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
 
     cpdef Element _call_(self, a):
@@ -7126,7 +7134,7 @@ cdef class long_to_Z(Morphism):
     """
     def __init__(self):
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
 
     cpdef Element _call_(self, a):

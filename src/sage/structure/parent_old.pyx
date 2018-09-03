@@ -31,9 +31,9 @@ from __future__ import absolute_import, print_function
 
 cimport sage.structure.sage_object as sage_object
 import operator
-from .parent import Set_PythonType, Set_PythonType_class
 from .coerce cimport py_scalar_parent
 from sage.ext.stdsage cimport HAS_DICTIONARY
+from sage.sets.pythonclass cimport Set_PythonType, Set_PythonType_class
 
 from cpython.object cimport *
 from cpython.bool cimport *

@@ -950,8 +950,8 @@ class PiecewisePolynomial:
             return Piecewise(new_pieces)
 
     def convolution(self, other):
-        """
-        Returns the convolution function,
+        r"""
+        Return the convolution function,
         `f*g(t)=\int_{-\infty}^\infty f(u)g(t-u)du`, for compactly
         supported `f,g`.
         

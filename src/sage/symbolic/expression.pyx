@@ -132,6 +132,13 @@ Check the fix for :trac:`25251` and :trac:`25252`::
     sqrt(2)*((I - 1)*sqrt(2) - 2)
     sage: (1 + exp(I*pi/4)) * exp(I*pi/4)
     -(1/4*I + 1/4)*sqrt(2)*(-(I + 1)*sqrt(2) - 2)
+
+Test if :trac:`24883` is fixed::
+
+    sage: a = exp(I*pi/4) + 1
+    sage: b = 1 - exp(I*pi/4)
+    sage: a*b
+    1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 """
 
 #*****************************************************************************
@@ -1456,6 +1463,19 @@ cdef class Expression(CommutativeRingElement):
         """
         from sage.symbolic.expression_conversions import sympy_converter
         return sympy_converter(self)
+
+    def _fricas_init_(self):
+        """
+        Return a FriCAS version of this object.
+
+        EXAMPLES::
+
+            sage: pi._fricas_()                                                 # optional - fricas
+            %pi
+
+        """
+        from sage.symbolic.expression_conversions import fricas_converter
+        return fricas_converter(self)
 
     def _algebraic_(self, field):
         """
@@ -4109,7 +4129,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g = derivative(f, x); g # this is a complex expression
             -1/2*((x^2 + 1)*x/(x^2 - 1)^2 - x/(x^2 - 1))/((x^2 + 1)/(x^2 - 1))^(3/4)
             sage: g.factor()
-            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/(x^2 - 1))^(3/4))
+            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/((x + 1)*(x - 1)))^(3/4))
 
         ::
 
@@ -11134,22 +11154,24 @@ cdef class Expression(CommutativeRingElement):
             sage: (f(x).diff(x)^2-1).factor()
             (diff(f(x), x) + 1)*(diff(f(x), x) - 1)
         """
-        from sage.calculus.calculus import symbolic_expression_from_maxima_string, symbolic_expression_from_string
-        if len(dontfactor) > 0:
+        from sage.calculus.calculus import symbolic_expression_from_maxima_string
+        cdef GEx x
+        cdef bint b
+        if dontfactor:
             m = self._maxima_()
             name = m.name()
-            varstr = ','.join(['_SAGE_VAR_'+str(v) for v in dontfactor])
-            cmd = 'block([dontfactor:[%s]],factor(%s))'%(varstr, name)
+            varstr = ','.join(['_SAGE_VAR_' + str(v) for v in dontfactor])
+            cmd = 'block([dontfactor:[%s]],factor(%s))' % (varstr, name)
             return symbolic_expression_from_maxima_string(cmd)
+        sig_on()
+        try:
+            b = g_factor(self._gobj, x)
+        finally:
+            sig_off()
+        if b:
+            return new_Expression_from_GEx(self._parent, x)
         else:
-            try:
-                from sage.rings.all import QQ
-                f = self.polynomial(QQ)
-                w = repr(f.factor())
-                return symbolic_expression_from_string(w)
-            except (TypeError, NotImplementedError):
-                pass
-            return self.parent()(self._maxima_().factor())
+            return self
 
     def factor_list(self, dontfactor=[]):
         """

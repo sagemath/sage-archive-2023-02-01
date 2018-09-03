@@ -30,6 +30,7 @@ from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
 from sage.structure.element import coerce_binop
 
+
 class LieAlgebras(Category_over_base_ring):
     """
     The category of Lie algebras.
@@ -91,6 +92,29 @@ class LieAlgebras(Category_over_base_ring):
         # Also this doesn't inherit the ability to add axioms like Associative
         #   and Unital, both of which do not make sense for Lie algebras
         return [Modules(self.base_ring())]
+
+    class SubcategoryMethods:
+        def Nilpotent(self):
+            r"""
+            Return the full subcategory of nilpotent objects of ``self``.
+
+            A Lie algebra `L` is nilpotent if there exist an integer `s` such
+            that all iterated brackets of `L` of length more than `s` vanish.
+            The integer `s` is called the nilpotency step.
+            For instance any abelian Lie algebra is nilpotent of step 1.
+
+            EXAMPLES::
+
+                sage: LieAlgebras(QQ).Nilpotent()
+                Category of nilpotent Lie algebras over Rational Field
+                sage: LieAlgebras(QQ).WithBasis().Nilpotent()
+                Category of nilpotent lie algebras with basis over Rational Field
+            """
+            return self._with_axiom("Nilpotent")
+
+    Graded = LazyImport('sage.categories.graded_lie_algebras',
+                        'GradedLieAlgebras',
+                        as_name='Graded')
 
     # TODO: Find some way to do this without copying most of the logic.
     def _repr_object_names(self):
@@ -175,6 +199,40 @@ class LieAlgebras(Category_over_base_ring):
             if self.base_ring() in Sets().Finite():
                 return [Sets().Finite()]
             return []
+
+    class Nilpotent(CategoryWithAxiom_over_base_ring):
+        r"""
+        Category of nilpotent Lie algebras.
+
+        TESTS::
+
+            sage: C = LieAlgebras(QQ).Nilpotent()
+            sage: TestSuite(C).run()
+        """
+        class ParentMethods:
+            @abstract_method
+            def step(self):
+                r"""
+                Return the nilpotency step of ``self``.
+
+                EXAMPLES::
+
+                    sage: h = lie_algebras.Heisenberg(ZZ, oo)
+                    sage: h.step()
+                    2
+                """
+
+            def is_nilpotent(self):
+                r"""
+                Return ``True`` since ``self`` is nilpotent.
+
+                EXAMPLES::
+
+                    sage: h = lie_algebras.Heisenberg(ZZ, oo)
+                    sage: h.is_nilpotent()
+                    True
+                """
+                return True
 
     class ParentMethods:
         #@abstract_method

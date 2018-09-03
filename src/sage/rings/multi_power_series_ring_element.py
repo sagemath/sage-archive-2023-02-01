@@ -1654,7 +1654,7 @@ class MPowerSeries(PowerSeries):
                 sage: (a^2).integral(a)
                 Traceback (most recent call last):
                 ...
-                ZeroDivisionError: Inverse does not exist.
+                ZeroDivisionError: inverse of Mod(0, 3) does not exist
         """
         from sage.misc.derivative import derivative_parse
         res = self

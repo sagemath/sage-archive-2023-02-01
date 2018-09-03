@@ -161,6 +161,7 @@ def fricas_desolve_system(des, dvars, ics, ivar):
     """
     from sage.interfaces.fricas import fricas
     from sage.symbolic.ring import SR
+    from sage.symbolic.relation import solve
     ops = [dvar.operator() for dvar in dvars]
     y = fricas(des).solve(ops, ivar).sage()
     basis = y["basis"]

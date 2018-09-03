@@ -34,7 +34,7 @@ from sage.rings.all import Rational, Integer, ZZ, QQ
 from sage.rings.infinity import Infinity, InfinityRing
 
 from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.fast_methods import Singleton
 from sage.structure.element import Element, is_InfinityElement
 from sage.structure.richcmp import richcmp
 
@@ -988,7 +988,7 @@ class Cusp(Element):
         return Cusp(a, b, check=False)
 
 
-class Cusps_class(Parent, UniqueRepresentation):
+class Cusps_class(Singleton, Parent):
     """
     The set of cusps.
 

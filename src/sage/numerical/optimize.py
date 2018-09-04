@@ -77,6 +77,24 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
 
         sage: plot(f,2,2.01)
         Graphics object consisting of 1 graphics primitive
+
+    The following example was added due to ticket 4942 and demonstrates that
+    the function need not be defined at the endpoints::
+
+        sage: find_root(x^2*log(x,2)-1,0, 2)
+        1.414213562373...
+        
+    The following is an example, again from ticket 4942 where Brent's method
+    fails. Currently no other method is implemented, but at least we 
+    acknowledge the fact that the algorithm fails::
+
+        sage: find_root(1/(x-1)+1,0, 2) 
+        0.0 
+        sage: find_root(1/(x-1)+1,0.00001, 2)
+        Traceback (most recent call last):
+           ...
+        RuntimeError: Brent's method failed to find a zero for f on the interval
+
     """
     try:
         return f.find_root(a=a,b=b,xtol=xtol,rtol=rtol,maxiter=maxiter,full_output=full_output)
@@ -87,6 +105,14 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         a, b = b, a
     left = f(a)
     right = f(b)
+    # Fixing ticket 4942 - if the answer on any of the endpoints is NaN, 
+    # we move the endpoint by steps of size xtol until it is no longer the case
+    while (left != left): # left is NaN
+        a += xtol
+        left = f(a)
+    while (right != right): # right is NaN
+        b -= xtol
+        right = f(b)
     if left > 0 and right > 0:
         # Refine further -- try to find a point where this
         # function is negative in the interval
@@ -115,8 +141,15 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         a = s
 
     import scipy.optimize
-    return scipy.optimize.brentq(f, a, b,
+    root = scipy.optimize.brentq(f, a, b,
                                  full_output=full_output, xtol=xtol, rtol=rtol, maxiter=maxiter)
+    # A check following ticket 4942, to ensure we actually found a root
+    # Maybe should use a different tolerance here?
+    # The idea is to take roughly the derivative and multiply by estimated
+    # value of the root
+    if (abs(f(root)) > max(abs(root * rtol * (right - left) / (b - a)), 1e-6)):
+        raise RuntimeError("Brent's method failed to find a zero for f on the interval")
+    return root
 
 def find_local_maximum(f, a, b, tol=1.48e-08, maxfun=500):
     """

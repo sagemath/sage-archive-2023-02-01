@@ -94,8 +94,8 @@ from cysignals.memory cimport check_malloc, check_allocarray, sig_malloc, sig_fr
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
-from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
-    fflas_right, vector, list as std_list
+from sage.libs.linbox.fflas cimport FFLAS_TRANSPOSE, FflasNoTrans, FflasTrans, \
+    FflasRight, vector, list as std_list
 
 cimport sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ArithIntObj
@@ -181,7 +181,7 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     cdef size_t* Q = <size_t*>check_allocarray(ncols, sizeof(size_t))
 
     if nrows*ncols > 1000: sig_on()
-    cdef Py_ssize_t r = Mod_echelon(F[0], nrows, ncols, <ModFieldElement*>entries, ncols, P, Q)
+    cdef Py_ssize_t r = ReducedRowEchelonForm(F[0], nrows, ncols, <ModField.Element*>entries, ncols, P, Q)
     if nrows*ncols > 1000: sig_off()
 
     for i in range(nrows):
@@ -190,7 +190,7 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
         if i<r:
             (entries + i*(ncols+1))[0] = 1
 
-    Mod_applyp(F[0], fflas_right, fflas_no_trans, nrows, 0, r, <ModFieldElement*>entries, ncols, Q)
+    applyP(F[0], FflasRight, FflasNoTrans, nrows, 0, r, <ModField.Element*>entries, ncols, Q)
 
     cdef list pivots = [int(Q[i]) for i in range(r)]
 
@@ -216,7 +216,7 @@ cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_
     # TODO: can we avoid this copy?
     for i in range(nrows):
         for j in range(ncols):
-            A.setEntry(i, j, <ModFieldElement>entries[i*ncols+j])
+            A.setEntry(i, j, <ModField.Element>entries[i*ncols+j])
 
     cdef int r = EF.rowReducedEchelon(E[0], A[0])
     for i in range(nrows):
@@ -252,7 +252,7 @@ cdef inline int linbox_rank(celement modulus, celement* entries, Py_ssize_t nrow
     cdef celement *cpy = linbox_copy(modulus, entries, nrows, ncols)
 
     if nrows*ncols > 1000: sig_on()
-    r = ModRank(F[0], nrows, ncols, <ModFieldElement*>cpy, ncols)
+    r = Rank(F[0], nrows, ncols, <ModField.Element*>cpy, ncols)
     if nrows*ncols > 1000: sig_off()
     sig_free(cpy)
     del F
@@ -265,7 +265,7 @@ cdef inline celement linbox_det(celement modulus, celement* entries, Py_ssize_t 
     cdef ModField *F = new ModField(<long>modulus)
     cdef celement *cpy = linbox_copy(modulus, entries, nrows, ncols)
     if nrows*ncols > 1000: sig_on()
-    d =  <celement>ModDet(F[0], nrows, ncols, <ModFieldElement*>cpy, ncols)
+    d =  <celement>Det(F[0], nrows, ncols, <ModField.Element*>cpy, ncols)
     if nrows*ncols > 1000: sig_off()
     sig_free(cpy)
     del F
@@ -276,29 +276,29 @@ cdef inline int linbox_matrix_matrix_multiply(celement modulus, celement* ans, c
     C = A*B
     """
     cdef ModField *F = new ModField(<long>modulus)
-    cdef ModFieldElement one, mone, zero
+    cdef ModField.Element one, mone, zero
     F[0].init(one, <int>1)
     F[0].init(zero, <int>0)
     if m*n*k > 100000: sig_on()
-    Mod_fgemm(F[0], fflas_no_trans, fflas_no_trans, m, n, k,
-              one, <ModFieldElement*>A, k, <ModFieldElement*>B, n, zero,
-              <ModFieldElement*>ans, n)
+    fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k,
+              one, <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
+              <ModField.Element*>ans, n)
     if m*n*k > 100000: sig_off()
     del F
 
-cdef inline int linbox_matrix_vector_multiply(celement modulus, celement* C, celement* A, celement* b, Py_ssize_t m, Py_ssize_t n, fflas_trans_enum trans):
+cdef inline int linbox_matrix_vector_multiply(celement modulus, celement* C, celement* A, celement* b, Py_ssize_t m, Py_ssize_t n, FFLAS_TRANSPOSE trans):
     """
     C = A*v
     """
     cdef ModField *F = new ModField(<long>modulus)
-    cdef ModFieldElement one, mone, zero
+    cdef ModField.Element one, mone, zero
     F.init(one, <int>1)
     F.init(zero, <int>0)
 
-    Mod_fgemv(F[0], trans,  m, n,
-              one, <ModFieldElement*>A, n,
-              <ModFieldElement*>b, 1,
-              zero, <ModFieldElement*>C, 1)
+    fgemv(F[0], trans,  m, n,
+              one, <ModField.Element*>A, n,
+              <ModField.Element*>b, 1,
+              zero, <ModField.Element*>C, 1)
     del F
 
 cdef inline linbox_minpoly(celement modulus, Py_ssize_t nrows, celement* entries):
@@ -307,10 +307,10 @@ cdef inline linbox_minpoly(celement modulus, Py_ssize_t nrows, celement* entries
     """
     cdef Py_ssize_t i
     cdef ModField *F = new ModField(<long>modulus)
-    cdef vector[ModFieldElement] *minP = new vector[ModFieldElement]()
+    cdef vector[ModField.Element] *minP = new vector[ModField.Element]()
 
     if nrows*nrows > 1000: sig_on()
-    Mod_MinPoly(F[0], minP[0], nrows, <ModFieldElement*>entries, nrows)
+    MinPoly(F[0], minP[0], nrows, <ModField.Element*>entries, nrows)
     if nrows*nrows > 1000: sig_off()
 
     l = []
@@ -332,7 +332,7 @@ cdef inline linbox_charpoly(celement modulus, Py_ssize_t nrows, celement* entrie
     cdef celement *cpy = linbox_copy(modulus, entries, nrows, nrows)
 
     if nrows*nrows > 1000: sig_on()
-    Mod_CharPoly(R[0], P, nrows, <ModFieldElement*>cpy, nrows)
+    CharPoly(R[0], P, nrows, <ModField.Element*>cpy, nrows)
     if nrows*nrows > 1000: sig_off()
 
     sig_free(cpy)
@@ -1214,7 +1214,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         for i in range(self._nrows):
             _b[i] = <celement>b._entries[i]
 
-        linbox_matrix_vector_multiply(self.p, _c, self._entries, _b, self._nrows, self._ncols, fflas_trans)
+        linbox_matrix_vector_multiply(self.p, _c, self._entries, _b, self._nrows, self._ncols, FflasTrans)
 
         for i in range(self._ncols):
             c._entries[i] = <mod_int>_c[i]
@@ -1268,7 +1268,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         for i in range(self._ncols):
             _b[i] = <celement>b._entries[i]
 
-        linbox_matrix_vector_multiply(self.p, _c, self._entries, _b, self._nrows, self._ncols, fflas_no_trans)
+        linbox_matrix_vector_multiply(self.p, _c, self._entries, _b, self._nrows, self._ncols, FflasNoTrans)
 
         for i in range(self._nrows):
             c._entries[i] = <mod_int>_c[i]

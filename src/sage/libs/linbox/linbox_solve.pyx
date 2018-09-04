@@ -1,10 +1,8 @@
-# distutils: extra_compile_args = LINBOX_CFLAGS
-# distutils: libraries = LINBOX_LIBRARIES
-# distutils: library_dirs = LINBOX_LIBDIR
-# distutils: language = c++
-
 r"""
-Linbox interface
+Deprecated linbox interface
+
+This module is a work around the compilation problems encountered
+in :trac:`24544`.
 """
 
 ## NOTE: The sig_on()/sig_off() stuff can't go in here -- it has to be in the
@@ -14,6 +12,7 @@ Linbox interface
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
 from sage.misc.misc import verbose, get_verbose
+from sage.modules.vector_modn_sparse cimport set_entry
 
 ##########################################################################
 ## Sparse matrices modulo p.
@@ -25,7 +24,9 @@ cdef extern from "linbox/linbox-sage.h":
         int (*get "operator[]") (size_t i)
         int (*size)()
 
-    int linbox_modn_sparse_matrix_rank(unsigned long modulus, size_t nrows, size_t ncols, void* rows, int reorder) #, int **pivots)
+
+    int linbox_modn_sparse_matrix_rank(unsigned long modulus, size_t nrows, size_t ncols, void
+* rows, int reorder) #, int **pivots)
     vector_uint linbox_modn_sparse_matrix_solve(unsigned long modulus, size_t numrows, size_t numcols, void *a,  void *b, int method)
 
 cdef class Linbox_modn_sparse:
@@ -35,15 +36,6 @@ cdef class Linbox_modn_sparse:
         self.ncols = ncols
         self.modulus = modulus
 
-    cdef object rank(self, int gauss):
-        #cdef int *_pivots
-        cdef int r
-        r = linbox_modn_sparse_matrix_rank(self.modulus, self.nrows, self.ncols, self.rows, gauss)
-
-        #pivots = [_pivots[i] for i in range(r)]
-        #free(_pivots)
-        return r#, pivots
-
     cdef void solve(self, c_vector_modint **x, c_vector_modint *b, int method):
         """
         """
@@ -52,4 +44,3 @@ cdef class Linbox_modn_sparse:
 
         for i from 0 <= i < X.size():
             set_entry(x[0], i, X.get(i))
-

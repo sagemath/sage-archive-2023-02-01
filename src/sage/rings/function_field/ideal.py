@@ -120,7 +120,7 @@ class FunctionFieldIdeal(AlgebraElement):
             sage: K.<x> = FunctionField(GF(7))
             sage: O = K.equation_order()
             sage: I = O.ideal(x^3+1)
-            sage: isinstance(I, sage.rings.function_field.function_field_ideal.FunctionFieldIdeal)
+            sage: isinstance(I, sage.rings.function_field.ideal.FunctionFieldIdeal)
             True
         """
         AlgebraElement.__init__(self, ring.ideal_monoid())
@@ -514,7 +514,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
             sage: O = L.equation_order()
             sage: I = O.ideal(y)
             sage: type(I)
-            <class 'sage.rings.function_field.function_field_ideal.FunctionFieldIdeal_module'>
+            <class 'sage.rings.function_field.ideal.FunctionFieldIdeal_module'>
         """
         FunctionFieldIdeal.__init__(self, ring)
 
@@ -978,7 +978,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: O = L.maximal_order()
             sage: I = O.ideal(y)
             sage: type(I)
-            <class 'sage.rings.function_field.function_field_ideal.FunctionFieldIdeal_global'>
+            <class 'sage.rings.function_field.ideal.FunctionFieldIdeal_global'>
         """
         FunctionFieldIdeal.__init__(self, ring)
 
@@ -2204,7 +2204,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite):
             sage: O = L.equation_order()
             sage: I = O.ideal(y)
             sage: type(I)
-            <class 'sage.rings.function_field.function_field_ideal.FunctionFieldIdeal_module'>
+            <class 'sage.rings.function_field.ideal.FunctionFieldIdeal_module'>
         """
         FunctionFieldIdealInfinite.__init__(self, ring)
 

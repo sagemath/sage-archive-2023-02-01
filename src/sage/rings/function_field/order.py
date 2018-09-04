@@ -100,7 +100,7 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.euclidean_domains import EuclideanDomains
 
-from .function_field_ideal import (
+from .ideal import (
     IdealMonoid,
     FunctionFieldIdeal,
     FunctionFieldIdeal_module,
@@ -266,7 +266,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
             Traceback (most recent call last):
             ...
             ValueError: Basis [1, x, x^2, x^3, x^4] is not linearly independent
-            sage: sage.rings.function_field.function_field_order.FunctionFieldOrder_basis([y,y,y^3,y^4,y^5])
+            sage: sage.rings.function_field.order.FunctionFieldOrder_basis([y,y,y^3,y^4,y^5])
             Traceback (most recent call last):
             ...
             ValueError: Basis [y, y, y^3, y^4, 2*x*y + (x^4 + 1)/x] is not linearly independent
@@ -526,7 +526,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
         sage: O = L.equation_order(); O
         Order in Function field in y defined by y^4 + x*y + 4*x + 1
         sage: type(O)
-        <class 'sage.rings.function_field.function_field_order.FunctionFieldOrder_basis_with_category'>
+        <class 'sage.rings.function_field.order.FunctionFieldOrder_basis_with_category'>
 
     The basis only defines an order if the module it generates is closed under
     multiplication and contains the identity element (only checked when
@@ -550,7 +550,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
         Traceback (most recent call last):
         ...
         ValueError: Basis [1, x, x^2, x^3, x^4] is not linearly independent
-        sage: sage.rings.function_field.function_field_order.FunctionFieldOrder_basis([y,y,y^3,y^4,y^5])
+        sage: sage.rings.function_field.order.FunctionFieldOrder_basis([y,y,y^3,y^4,y^5])
         Traceback (most recent call last):
         ...
         ValueError: Basis [y, y, y^3, y^4, 2*x*y + (x^4 + 1)/x] is not linearly independent
@@ -861,7 +861,7 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
             if not f.denominator() in self.function_field().constant_base_field():
                 raise TypeError("%r is not an element of %r"%(f,self))
             f = f.element()
-        from .function_field_element import FunctionFieldElement_rational
+        from .element import FunctionFieldElement_rational
         return FunctionFieldElement_rational(self, self._ring(f))
 
     def ideal_with_gens_over_base(self, gens):
@@ -2046,7 +2046,7 @@ class FunctionFieldMaximalOrderInfinite_rational(FunctionFieldMaximalOrderInfini
         f = f.element()
         if f.denominator().degree() < f.numerator().degree():
             raise TypeError("%r is not an element of %r"%(f,self))
-        from .function_field_element import FunctionFieldElement_rational
+        from .element import FunctionFieldElement_rational
         return FunctionFieldElement_rational(self, f)
 
 class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite):

@@ -10,9 +10,9 @@ a divisor, are available for global function fields.
    :maxdepth: 1
 
    sage/rings/function_field/function_field
-   sage/rings/function_field/function_field_element
-   sage/rings/function_field/function_field_order
-   sage/rings/function_field/function_field_ideal
+   sage/rings/function_field/element
+   sage/rings/function_field/order
+   sage/rings/function_field/ideal
    sage/rings/function_field/maps
    sage/rings/function_field/constructor
 

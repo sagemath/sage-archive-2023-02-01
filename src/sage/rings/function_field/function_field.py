@@ -150,7 +150,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
 
-from .function_field_element import (
+from .element import (
     FunctionFieldElement,
     FunctionFieldElement_rational,
     FunctionFieldElement_polymod,
@@ -415,7 +415,7 @@ class FunctionField(Field):
             ...
             ValueError: The identity element must be in the module spanned by basis [x, x*y + x^2, 2/3*y^2]
         """
-        from .function_field_order import FunctionFieldOrder_basis
+        from .order import FunctionFieldOrder_basis
         return FunctionFieldOrder_basis([self(a) for a in basis], check=check)
 
     def order(self, x, check=True):
@@ -513,7 +513,7 @@ class FunctionField(Field):
             if not isinstance(basis, (list,tuple)):
                 basis = (basis,)
         basis = [self(g) for g in basis]
-        from .function_field_order import FunctionFieldOrderInfinite_basis
+        from .order import FunctionFieldOrderInfinite_basis
         return FunctionFieldOrderInfinite_basis(basis, check=check)
 
     def order_infinite(self, x, check=True):
@@ -595,7 +595,7 @@ class FunctionField(Field):
             sage: M.has_coerce_map_from(L)
             True
         """
-        from .function_field_order import FunctionFieldOrder
+        from .order import FunctionFieldOrder
         if isinstance(source, FunctionFieldOrder):
             K = source.fraction_field()
             if K is self:
@@ -2517,7 +2517,7 @@ class FunctionField_global(FunctionField_polymod):
             sage: L.maximal_order()
             Maximal order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
-        from .function_field_order import FunctionFieldMaximalOrder_global
+        from .order import FunctionFieldMaximalOrder_global
         model, from_model, to_model = self.monic_integral_model('z')
         basis = [from_model(g) for g in model.maximal_order().basis()]
         return FunctionFieldMaximalOrder_global(self, basis)
@@ -2539,7 +2539,7 @@ class FunctionField_global(FunctionField_polymod):
             sage: L.maximal_order_infinite()
             Maximal infinite order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
-        from .function_field_order import FunctionFieldMaximalOrderInfinite_global
+        from .order import FunctionFieldMaximalOrderInfinite_global
         M, from_M, to_M = self._inversion_isomorphism()
         basis = [from_M(g) for g in M.maximal_order().basis()]
         return FunctionFieldMaximalOrderInfinite_global(self, basis)
@@ -2626,7 +2626,7 @@ class FunctionField_global_integral(FunctionField_global):
             sage: F.equation_order()
             Order in Function field in y defined by y^3 + x^6 + x^4 + x^2
         """
-        from .function_field_order import FunctionFieldOrder_basis
+        from .order import FunctionFieldOrder_basis
         a = self.gen()
         basis = [a**i for i in range(self.degree())]
         return FunctionFieldOrder_basis(basis)
@@ -2649,7 +2649,7 @@ class FunctionField_global_integral(FunctionField_global):
         in some algorithms.
         """
         from sage.matrix.constructor import matrix
-        from .function_field_order import FunctionFieldMaximalOrder_global
+        from .order import FunctionFieldMaximalOrder_global
 
         from sage.libs.singular.function import singular_function, lib
         from sage.env import SAGE_EXTCODE
@@ -2773,7 +2773,7 @@ class FunctionField_global_integral(FunctionField_global):
             sage: F.equation_order_infinite()
             Infinite order in Function field in y defined by y^3 + x^6 + x^4 + x^2
         """
-        from .function_field_order import FunctionFieldOrderInfinite_basis
+        from .order import FunctionFieldOrderInfinite_basis
         b = self.primitive_integal_element_infinite()
         basis = [b**i for i in range(self.degree())]
         return FunctionFieldOrderInfinite_basis(basis)
@@ -3403,7 +3403,7 @@ class RationalFunctionField(FunctionField):
             sage: K.equation_order()
             Maximal order of Rational function field in t over Rational Field
         """
-        from .function_field_order import FunctionFieldMaximalOrder_rational
+        from .order import FunctionFieldMaximalOrder_rational
         return FunctionFieldMaximalOrder_rational(self)
 
     equation_order = maximal_order
@@ -3424,7 +3424,7 @@ class RationalFunctionField(FunctionField):
             sage: K.equation_order_infinite()
             Maximal infinite order of Rational function field in t over Rational Field
         """
-        from .function_field_order import FunctionFieldMaximalOrderInfinite_rational
+        from .order import FunctionFieldMaximalOrderInfinite_rational
         return FunctionFieldMaximalOrderInfinite_rational(self)
 
     equation_order_infinite = maximal_order_infinite

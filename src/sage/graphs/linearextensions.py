@@ -22,7 +22,9 @@ acyclic graph::
     sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
     sage: D.is_directed_acyclic()
     True
-    sage: sorted(LinearExtensions(D))
+    sage: LinearExtensions(D).list()
+    doctest:...: DeprecationWarning: LinearExtensions is deprecated; use LinearExtensionsOfPoset or DiGraph.topological_sort_generator instead
+    See https://trac.sagemath.org/25864 for details.
     [[0, 1, 2, 3, 4],
      [0, 1, 2, 4, 3],
      [0, 2, 1, 3, 4],
@@ -50,10 +52,9 @@ the graph, the linear extensions are known as topological sorts ::
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.structure.parent import Parent
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.combinat.combinat import CombinatorialClass
 
-class LinearExtensions(Parent):
+class LinearExtensionsOld(CombinatorialClass):
     def __init__(self, dag):
         r"""
         Creates an object representing the class of all linear extensions
@@ -64,6 +65,9 @@ class LinearExtensions(Parent):
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)
+            doctest:...: DeprecationWarning: LinearExtensions is deprecated; use LinearExtensionsOfPoset or DiGraph.topological_sort_generator instead
+            See https://trac.sagemath.org/25864 for details.
+
             sage: l == loads(dumps(l))
             True
 
@@ -80,7 +84,6 @@ class LinearExtensions(Parent):
         """
         from sage.combinat.posets.posets import Poset
         self._dag = Poset(dag) # this returns a copy
-        Parent.__init__(self, category = FiniteEnumeratedSets())
 
     def _repr_(self):
         """
@@ -89,20 +92,24 @@ class LinearExtensions(Parent):
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: LinearExtensions(D)
+            doctest:...: DeprecationWarning: LinearExtensions is deprecated; use LinearExtensionsOfPoset or DiGraph.topological_sort_generator instead
+            See https://trac.sagemath.org/25864 for details.
             Linear extensions of Finite poset containing 5 elements
 
         """
         return "Linear extensions of %s"%self._dag
 
-    def __iter__(self):
+    def list(self):
         """
-        Iterate over the linear extensions of the directed acyclic graph.
+        Returns a list of the linear extensions of the directed acyclic graph.
 
         EXAMPLES::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
-            sage: sorted(LinearExtensions(D))
+            sage: LinearExtensions(D).list()
+            doctest:...: DeprecationWarning: LinearExtensions is deprecated; use LinearExtensionsOfPoset or DiGraph.topological_sort_generator instead
+            See https://trac.sagemath.org/25864 for details.
             [[0, 1, 2, 3, 4],
              [0, 1, 2, 4, 3],
              [0, 2, 1, 3, 4],
@@ -130,5 +137,61 @@ class LinearExtensions(Parent):
         """
         from sage.combinat.combinat_cython import linear_extension_iterator
         elts = list(self._dag)
-        for e in linear_extension_iterator(self._dag._hasse_diagram):
-            yield [elts[i] for i in e]
+        return sorted([[elts[i] for i in e] for e in linear_extension_iterator(self._dag._hasse_diagram)])
+
+def LinearExtensions(dag):
+    r"""
+    ``LinearExtensions`` is deprecated; use
+    :class:`sage.combinat.posets.LinearExtensionsOfPoset` or :meth:`sage.graphs.digraph.DiGraph.topological_sort_generator` instead.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.posets.linear_extensions import LinearExtensionsOfPoset
+        sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+        sage: LinearExtensionsOfPoset(Poset(D)).list()
+        [[0, 1, 2, 3, 4],
+         [0, 2, 1, 3, 4],
+         [0, 2, 1, 4, 3],
+         [0, 2, 4, 1, 3],
+         [0, 1, 2, 4, 3]]
+
+        sage: D.topological_sort_generator()
+        [[0, 1, 2, 3, 4],
+         [0, 1, 2, 4, 3],
+         [0, 2, 1, 3, 4],
+         [0, 2, 1, 4, 3],
+         [0, 2, 4, 1, 3]]
+
+        sage: D = DiGraph({ "a":["b","c"], "b":["d"], "c":["d","e"] })
+        sage: LinearExtensionsOfPoset(Poset(D)).list()
+        [['a', 'b', 'c', 'd', 'e'],
+         ['a', 'c', 'b', 'd', 'e'],
+         ['a', 'c', 'b', 'e', 'd'],
+         ['a', 'c', 'e', 'b', 'd'],
+         ['a', 'b', 'c', 'e', 'd']]
+
+        sage: D.topological_sort_generator()
+        [['a', 'b', 'c', 'd', 'e'],
+         ['a', 'b', 'c', 'e', 'd'],
+         ['a', 'c', 'b', 'd', 'e'],
+         ['a', 'c', 'b', 'e', 'd'],
+         ['a', 'c', 'e', 'b', 'd']]
+
+    TESTS::
+
+        sage: from sage.graphs.linearextensions import LinearExtensions
+        sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+        sage: LinearExtensions(D).list()
+        doctest:...: DeprecationWarning: LinearExtensions is deprecated; use LinearExtensionsOfPoset or DiGraph.topological_sort_generator instead
+        See https://trac.sagemath.org/25864 for details.
+        [[0, 1, 2, 3, 4],
+         [0, 1, 2, 4, 3],
+         [0, 2, 1, 3, 4],
+         [0, 2, 1, 4, 3],
+         [0, 2, 4, 1, 3]]
+
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(25864, "LinearExtensions is deprecated; use LinearExtensionsOfPoset or DiGraph.topological_sort_generator instead")
+
+    return LinearExtensionsOld(dag)

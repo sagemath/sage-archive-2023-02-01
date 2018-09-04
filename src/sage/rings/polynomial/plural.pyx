@@ -132,7 +132,7 @@ from sage.rings.polynomial.multi_polynomial_ideal import NCPolynomialIdeal
 
 from sage.rings.polynomial.polydict import ETuple
 from sage.rings.ring import check_default_category
-from sage.structure.element cimport CommutativeRingElement, Element, ModuleElement
+from sage.structure.element cimport CommutativeRingElement, Element, ModuleElement, RingElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
@@ -461,6 +461,30 @@ cdef class NCPolynomialRing_plural(Ring):
 
             sage: P._element_constructor_(0)
             0
+
+        From the parent free algebra::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ,3)
+            sage: G = F.g_algebra({y*x: -x*y})
+            sage: G._element_constructor_(y*x)
+            -x*y
+
+        From another free algebra::
+
+            sage: A.<a,b> = FreeAlgebra(QQ, 2)
+            sage: G._element_constructor_(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to construct an element of this ring
+
+        From another g-algebra::
+
+            sage: B = A.g_algebra({b*a: -a*b})
+            sage: abar, bbar = B.gens()
+            sage: G._element_constructor_(bbar)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to construct an element of this ring
         """
 
         if element == 0:
@@ -485,6 +509,8 @@ cdef class NCPolynomialRing_plural(Ring):
             elif element.parent() == self:
                 # is this safe?
                 _p = p_Copy((<NCPolynomial_plural>element)._poly, _ring)
+            else:
+                raise ValueError("unable to construct an element of this ring")
 
         elif isinstance(element, CommutativeRingElement):
             # base ring elements
@@ -509,6 +535,13 @@ cdef class NCPolynomialRing_plural(Ring):
                 _n = sa2si(element,_ring)
                 _p = p_NSet(_n, _ring)
 
+        elif isinstance(element, RingElement):
+            # the parent free algebra
+            if element.parent() == self.free_algebra():
+                return element(self.gens())
+            else:
+                raise ValueError("unable to construct an element of this ring")
+
         # Accepting int
         elif isinstance(element, int):
             if isinstance(base_ring, FiniteField_prime_modn):
@@ -527,7 +560,7 @@ cdef class NCPolynomialRing_plural(Ring):
                 _p = p_NSet(_n, _ring)
 
         else:
-            raise NotImplementedError("not able to interprete "+repr(element) +
+            raise NotImplementedError("not able to interpret "+repr(element) +
                                       " of type "+ repr(type(element)) +
                                       " as noncommutative polynomial")  ### ??????
         return new_NCP(self,_p)
@@ -548,9 +581,23 @@ cdef class NCPolynomialRing_plural(Ring):
            sage: P._coerce_map_from_(ZZ)
            True
        """
-
        if self.base_ring().has_coerce_map_from(S):
            return True
+
+    def free_algebra(self):
+        """
+        The free algebra of which this is the quotient.
+
+        EXAMPLES::
+
+           sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+           sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+           sage: B = P.free_algebra()
+           sage: A == B
+           True
+        """
+        from sage.algebras.free_algebra import FreeAlgebra
+        return FreeAlgebra(self.base_ring(), names=self.variable_names(), order=self.term_order())
 
     def __hash__(self):
         """
@@ -2656,6 +2703,49 @@ cdef class NCPolynomial_plural(RingElement):
             return True
         else:
             return False
+
+    def __call__(self, *x, **kwds):
+        """
+        EXAMPLES::
+
+            sage: F.<x,y,z>=FreeAlgebra(QQ,3)
+            sage: G = F.g_algebra({y*x: -x*y})
+            sage: G.inject_variables()
+            Defining x, y, z
+            sage: a = x+y+x*y
+            sage: a.subs(x=0, y=1)
+            1
+            sage: a.subs(x=y,y=x) == x + y - x*y
+            True
+        """
+        # Modified version of method from algebras/free_algebra_element.py.
+        if isinstance(x[0], tuple):
+            x = x[0]
+
+        if len(x) != self.parent().ngens():
+            raise ValueError("must specify as many values as generators in parent")
+
+        # I don't start with 0, because I don't want to preclude evaluation with
+        # arbitrary objects (e.g. matrices) because of funny coercion.
+
+        result = None
+        for m in self.monomials():
+            c = self.monomial_coefficient(m)
+            summand = None
+            for (elt, pow) in zip(x, m.exponents()[0]):
+                if summand is None:
+                    summand = elt**pow
+                else:
+                    summand *= elt**pow
+
+            if result is None:
+                result = c*summand
+            else:
+                result += c*summand
+
+        if result is None:
+            return self.parent()(0)
+        return result
 
 
 #####################################################################

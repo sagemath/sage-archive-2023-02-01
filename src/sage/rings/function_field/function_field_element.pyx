@@ -794,6 +794,12 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def valuation(self, v):
         """
+        Return the valuation of the element with respect to a prime element.
+
+        INPUT:
+
+        - ``v`` -- a prime element of the function field
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -810,7 +816,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def is_square(self):
         """
-        Returns whether self is a square.
+        Return whether the element is a square.
 
         EXAMPLES::
 
@@ -889,6 +895,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             -1/2*x + 1/2
             sage: (t*(x+1) - 1) in I
             True
+
         """
         assert  len(I.gens()) == 1
         f = I.gens()[0]._x

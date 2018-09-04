@@ -443,10 +443,9 @@ class Graph(GenericGraph):
     r"""
     Undirected graph.
 
-    A graph is a set of vertices connected by edges. See also the
-    :wikipedia:`Wikipedia article on graphs <Graph_(mathematics)>`. For a
-    collection of pre-defined graphs, see the
-    :mod:`~sage.graphs.graph_generators` module.
+    A graph is a set of vertices connected by edges. See the
+    :wikipedia:`Graph_(mathematics)` for more information. For a collection of
+    pre-defined graphs, see the :mod:`~sage.graphs.graph_generators` module.
 
     A :class:`Graph` object has many methods whose list can be obtained by
     typing ``g.<tab>`` (i.e. hit the 'tab' key) or by reading the documentation
@@ -1750,7 +1749,7 @@ class Graph(GenericGraph):
         A graph is called *cactus graph* if it is connected and every pair of
         simple cycles have at most one common vertex.
 
-        There are other definitions, see :wikipedia:`Cactus_graph`.
+        There are other definitions, see the :wikipedia:`Cactus_graph`.
 
         EXAMPLES::
 
@@ -1891,7 +1890,7 @@ class Graph(GenericGraph):
         A cograph is defined recursively: the single-vertex graph is
         cograph, complement of cograph is cograph, and disjoint union
         of two cographs is cograph. There are many other
-        characterizations, see :wikipedia:`Cograph`.
+        characterizations, see the :wikipedia:`Cograph`.
 
         EXAMPLES::
 
@@ -1940,8 +1939,8 @@ class Graph(GenericGraph):
         every vertex is an apex. The null graph is also counted as an apex graph
         even though it has no vertex to remove.  If the graph is not connected,
         we say that it is apex if it has at most one non planar connected
-        component and that this component is apex.  See :wikipedia:`the
-        wikipedia article on Apex graph <Apex_graph>` for more information.
+        component and that this component is apex.  See the :wikipedia:`Apex_graph`
+        for more information.
 
         .. SEEALSO::
 
@@ -2009,8 +2008,8 @@ class Graph(GenericGraph):
         every vertex is an apex. The null graph is also counted as an apex graph
         even though it has no vertex to remove.  If the graph is not connected,
         we say that it is apex if it has at most one non planar connected
-        component and that this component is apex.  See :wikipedia:`the
-        wikipedia article on Apex graph <Apex_graph>` for more information.
+        component and that this component is apex.  See the
+        :wikipedia:`Apex_graph` for more information.
 
         .. SEEALSO::
 
@@ -3143,11 +3142,9 @@ class Graph(GenericGraph):
         automorphism `\phi` of `G` such that `\phi(uv)=u'v'` (note this does not
         necessarily mean that `\phi(u)=u'` and `\phi(v)=v'`).
 
-        See :wikipedia:`the wikipedia article on edge-transitive graphs
-        <Edge-transitive_graph>` for more information.
-
         .. SEEALSO::
 
+          - :wikipedia:`Edge-transitive_graph`
           - :meth:`~Graph.is_arc_transitive`
           - :meth:`~Graph.is_half_transitive`
           - :meth:`~Graph.is_semi_symmetric`
@@ -3191,11 +3188,9 @@ class Graph(GenericGraph):
         `\phi_1(v)=v'`, as well as another automorphism `\phi_2` of `G` such
         that `\phi_2(u)=v'` and `\phi_2(v)=u'`
 
-        See :wikipedia:`the wikipedia article on arc-transitive graphs
-        <arc-transitive_graph>` for more information.
-
         .. SEEALSO::
 
+          - :wikipedia:`arc-transitive_graph`
           - :meth:`~Graph.is_edge_transitive`
           - :meth:`~Graph.is_half_transitive`
           - :meth:`~Graph.is_semi_symmetric`
@@ -3229,11 +3224,9 @@ class Graph(GenericGraph):
         A graph is half-transitive if it is both vertex and edge transitive
         but not arc-transitive.
 
-        See :wikipedia:`the wikipedia article on half-transitive graphs
-        <half-transitive_graph>` for more information.
-
         .. SEEALSO::
 
+          - :wikipedia:`half-transitive_graph`
           - :meth:`~Graph.is_edge_transitive`
           - :meth:`~Graph.is_arc_transitive`
           - :meth:`~Graph.is_semi_symmetric`
@@ -3269,11 +3262,9 @@ class Graph(GenericGraph):
         A graph is semi-symmetric if it is regular, edge-transitive but not
         vertex-transitive.
 
-        See :wikipedia:`the wikipedia article on semi-symmetric graphs
-        <Semi-symmetric_graph>` for more information.
-
         .. SEEALSO::
 
+          - :wikipedia:`Semi-symmetric_graph`
           - :meth:`~Graph.is_edge_transitive`
           - :meth:`~Graph.is_arc_transitive`
           - :meth:`~Graph.is_half_transitive`
@@ -4411,8 +4402,7 @@ class Graph(GenericGraph):
         Return a maximum weighted matching of the graph
         represented by the list of its edges.
 
-        For more information, see the `Wikipedia article on matchings
-        <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
+        For more information, see the :wikipedia:`Matching_(graph_theory)`.
 
         Given a graph `G` such that each edge `e` has a weight `w_e`,
         a maximum matching is a subset `S` of the edges of `G` of
@@ -4602,8 +4592,7 @@ class Graph(GenericGraph):
         Saying that a graph can be `k`-colored is equivalent to saying that it
         has a homomorphism to `K_k`, the complete graph on `k` elements.
 
-        For more information, see the `Wikipedia article on graph homomorphisms
-        <Graph_homomorphism>`_.
+        For more information, see the :wikipedia:`Graph_homomorphism`.
 
         INPUT:
 
@@ -4715,7 +4704,7 @@ class Graph(GenericGraph):
 
             \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1
 
-        For more information, see :wikipedia:`Fractional_coloring`.
+        For more information, see the :wikipedia:`Fractional_coloring`.
 
         ALGORITHM:
 
@@ -5077,20 +5066,17 @@ class Graph(GenericGraph):
         once the vertices of each `S_h` have been merged to create
         a new graph `G'`, this new graph contains `H` as a subgraph.
 
-        For more information, see the
-        `Wikipedia article on graph minor <http://en.wikipedia.org/wiki/Minor_%28graph_theory%29>`_.
+        For more information, see the :wikipedia:`Minor_(graph_theory)`.
 
         INPUT:
 
         - ``H`` -- The minor to find for in the current graph.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -6341,7 +6327,7 @@ class Graph(GenericGraph):
 
         A minimum vertex cover of a graph is a set `S` of vertices such that
         each edge is incident to at least one element of `S`, and such that `S`
-        is of minimum cardinality. For more information, see
+        is of minimum cardinality. For more information, see the
         :wikipedia:`Vertex_cover`.
 
         Equivalently, a vertex cover is defined as the complement of an
@@ -7014,7 +7000,7 @@ class Graph(GenericGraph):
           This operation can be useful to filter or to study some properties of
           the graphs. For instance, when you compute the 2-core of graph G, you
           are cutting all the vertices which are in a tree part of graph.  (A
-          tree is a graph with no loops). [WPkcore]_
+          tree is a graph with no loops). See the :wikipedia:`K-core`.
 
           [PSW1996]_ defines a `k`-core of `G` as the largest subgraph (it is
           unique) of `G` with minimum degree at least `k`.
@@ -7064,9 +7050,6 @@ class Graph(GenericGraph):
              this second meaning, see :meth:`Graph.has_homomorphism_to`.
 
         REFERENCE:
-
-        .. [WPkcore] K-core. Wikipedia. (2007). [Online] Available:
-          :wikipedia:`K-core`
 
         .. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
           Emergence of a Giant k-Core in a Random
@@ -7194,8 +7177,7 @@ class Graph(GenericGraph):
 
         For more information on modular decomposition, in particular
         for an explanation of the terms "Parallel," "Prime" and
-        "Series," see the `Wikipedia article on modular decomposition
-        <http://en.wikipedia.org/wiki/Modular_decomposition>`_.
+        "Series," see the :wikipedia:`Modular_decomposition`.
 
         You may also be interested in the survey from Michel Habib and
         Christophe Paul entitled "A survey on Algorithmic aspects of
@@ -7634,11 +7616,10 @@ class Graph(GenericGraph):
         easy to determine the maximum flow between any pair of vertices :
         it is the minimal label on the edges of the unique path between them.
 
-        Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree
-        with the same set of vertices, and such that the maximum flow
-        between any two vertices is the same in `G` as in `T`. See the
-        `Wikipedia article on Gomory-Hu tree <http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree>`_.
-        Note that, in general, a graph admits more than one Gomory-Hu tree.
+        Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree with the same
+        set of vertices, and such that the maximum flow between any two vertices
+        is the same in `G` as in `T`. See the :wikipedia:`Gomory–Hu_tree`.  Note
+        that, in general, a graph admits more than one Gomory-Hu tree.
 
         See also 15.4 (Gomory-Hu trees) from [SchrijverCombOpt]_.
 
@@ -7989,7 +7970,7 @@ class Graph(GenericGraph):
         This is a polynomial in one variable with integer coefficients. The
         Ihara zeta function itself is the inverse of this polynomial.
 
-        See :wikipedia:`Ihara zeta function`.
+        See the :wikipedia:`Ihara zeta function` for more information.
 
         ALGORITHM:
 

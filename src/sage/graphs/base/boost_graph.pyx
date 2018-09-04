@@ -330,7 +330,7 @@ cpdef dominator_tree(g, root, return_dict=False, reverse=False):
     `n` is the unique node that strictly dominates `n` but does not dominate
     any other node that dominates `n`. A dominator tree is a tree where each
     node's children are those nodes it immediately dominates. For more
-    information, see :wikipedia:`Dominator_(graph_theory)`.
+    information, see the :wikipedia:`Dominator_(graph_theory)`.
 
     If the graph is connected and undirected, the parent of a vertex `v` is:
 

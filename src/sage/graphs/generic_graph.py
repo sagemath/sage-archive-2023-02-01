@@ -1892,7 +1892,7 @@ class GenericGraph(GenericGraph_pyx):
         loop will correspond to a zero column. In particular, it is not possible
         to recover the loops of an oriented graph from its incidence matrix.
 
-        See :wikipedia:`Incidence_matrix` for more information.
+        See the :wikipedia:`Incidence_matrix` for more information.
 
         INPUT:
 
@@ -5137,7 +5137,7 @@ class GenericGraph(GenericGraph_pyx):
         be seen as a measure of non-planarity; a planar graph has
         crossing number zero.
 
-        See :wikipedia:`Crossing_number` for more information.
+        See the :wikipedia:`Crossing_number` for more information.
 
         EXAMPLES::
 
@@ -5458,8 +5458,7 @@ class GenericGraph(GenericGraph_pyx):
         find a tree of minimum weight connecting the given set of
         vertices, which is then called a Steiner Tree.
 
-        `Wikipedia article on Steiner Trees
-        <http://en.wikipedia.org/wiki/Steiner_tree_problem>`_.
+        See the :wikipedia:`Steiner_tree_problem` for more information.
 
         INPUT:
 
@@ -5812,9 +5811,7 @@ class GenericGraph(GenericGraph_pyx):
         A minimum edge cut between two vertices `s` and `t` of self
         is a set `A` of edges of minimum weight such that the graph
         obtained by removing `A` from the graph is disconnected. For more
-        information, see the
-        `Wikipedia article on cuts
-        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
+        information, see the :wikipedia:`Cut_(graph_theory)`.
 
         INPUT:
 
@@ -6054,11 +6051,10 @@ class GenericGraph(GenericGraph_pyx):
         Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
         represented by a list of vertices.
 
-        A vertex cut between two non-adjacent vertices is a set `U`
-        of vertices of self such that the graph obtained by removing
-        `U` from self is disconnected. For more information, see the
-        `Wikipedia article on cuts
-        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
+        A vertex cut between two non-adjacent vertices is a set `U` of vertices
+        of self such that the graph obtained by removing `U` from self is
+        disconnected. For more information, see the
+        :wikipedia:`Cut_(graph_theory)`.
 
         INPUT:
 
@@ -6322,9 +6318,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
         r"""
-        Returns a maximum edge cut of the graph. For more information, see the
-        `Wikipedia article on cuts
-        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
+        Returns a maximum edge cut of the graph.
+
+        For more information, see the :wikipedia:`Cut_(graph_theory)`.
 
         INPUT:
 
@@ -7746,7 +7742,8 @@ class GenericGraph(GenericGraph_pyx):
         The minimum feedback vertex set of a (di)graph is a set of vertices that
         intersect all of its cycles.  Equivalently, a minimum feedback vertex
         set of a (di)graph is a set `S` of vertices such that the digraph `G-S`
-        is acyclic. For more information, see :wikipedia:`Feedback_vertex_set`.
+        is acyclic. For more information, see the
+        :wikipedia:`Feedback_vertex_set`.
 
         INPUT:
 
@@ -7974,9 +7971,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
         represented by an optimal valuation of the edges. For more
-        information, see the
-        `Wikipedia article on maximum flow
-        <http://en.wikipedia.org/wiki/Max_flow>`_.
+        information, see the :wikipedia:`Max_flow`.
 
         As an optimization problem, is can be expressed this way :
 
@@ -8296,7 +8291,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Furthermore, a (di)graph admits a `k`-NZF if and only if it
         is bridgeless and every bridgeless graph admits a `6`-NZF [Sey1981]_.
-        See :wikipedia:`Nowhere-zero_flow` for more details.
+        See the :wikipedia:`Nowhere-zero_flow` for more details.
 
         ALGORITHM:
 
@@ -8677,9 +8672,7 @@ class GenericGraph(GenericGraph_pyx):
         this version of it is NP-Complete to solve when the flows
         are required to be integer.
 
-        For more information, see the
-        :wikipedia:`Wikipedia page on multicommodity flows
-        <Multi-commodity_flow_problem>`.
+        For more information, see the :wikipedia:`Multi-commodity_flow_problem`.
 
         INPUT:
 
@@ -9091,14 +9084,13 @@ class GenericGraph(GenericGraph_pyx):
     def dominating_set(self, independent=False, total=False, value_only=False, solver=None, verbose=0):
         r"""
         Returns a minimum dominating set of the graph
-        represented by the list of its vertices. For more information, see the
-        `Wikipedia article on dominating sets
-        <http://en.wikipedia.org/wiki/Dominating_set>`_.
+        represented by the list of its vertices.
 
-        A minimum dominating set `S` of a graph `G` is
-        a set of its vertices of minimal cardinality such
-        that any vertex of `G` is in `S` or has one of its neighbors
-        in `S`.
+        For more information, see the :wikipedia:`Dominating_set`.
+
+        A minimum dominating set `S` of a graph `G` is a set of its vertices of
+        minimal cardinality such that any vertex of `G` is in `S` or has one of
+        its neighbors in `S`.
 
         As an optimization problem, it can be expressed as:
 
@@ -12600,9 +12592,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Tests whether the graph is circulant.
 
-        For more information on circulant graphs, see the
-        :wikipedia:`Wikipedia page on circulant graphs
-        <Circulant_graph>`.
+        For more information, see :wikipedia:`Circulant_graph`.
 
         INPUT:
 
@@ -12729,7 +12719,7 @@ class GenericGraph(GenericGraph_pyx):
         an interval on the real line so that there is an edge in the graph
         iff the corresponding intervals intersects.
 
-        See :wikipedia:`Interval_graph` for more information.
+        See the :wikipedia:`Interval_graph` for more information.
 
         INPUT:
 
@@ -16901,9 +16891,7 @@ class GenericGraph(GenericGraph_pyx):
 
         A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth
         First Search used for the recognition of Chordal Graphs. For more
-        information, see the
-        `Wikipedia article on Lex-BFS
-        <http://en.wikipedia.org/wiki/Lexicographic_breadth-first_search>`_.
+        information, see the :wikipedia:`Lexicographic_breadth-first_search`.
 
         INPUT:
 
@@ -17553,7 +17541,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The tensor product is also known as the categorical product and the
         kronecker product (refering to the kronecker matrix product). See
-        :wikipedia:`Wikipedia article on the Kronecker product <Kronecker_product>`.
+        the :wikipedia:`Kronecker_product`.
 
         EXAMPLES::
 
@@ -21662,7 +21650,7 @@ class GenericGraph(GenericGraph_pyx):
         class by some canonization function `c`. If `G` and `H` are graphs,
         then `G \cong c(G)`, and `c(G) == c(H)` if and only if `G \cong H`.
 
-        See :wikipedia:`Graph_canonization`.
+        See the :wikipedia:`Graph_canonization` for more information.
 
         INPUT:
 

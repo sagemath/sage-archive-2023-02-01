@@ -896,7 +896,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
     r"""
     A ring homomorphism that is a coercion.
 
-    .. WARNING:;
+    .. WARNING::
 
         This class is obsolete. Set the category of your morphism to a
         subcategory of ``Rings`` instead.

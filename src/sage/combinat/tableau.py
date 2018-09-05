@@ -7044,15 +7044,10 @@ class RowStandardTableaux_shape(RowStandardTableaux):
         for row in self.shape:
             relations += [(m+i,m+i+1) for i in range(row-1)]
             m += row
-#        print("iterating through %s"%self.shape)
         P = Poset((range(1,self.shape.size()+1), relations))
         L = P.linear_extensions()
-#        print("covers: %s"%P.cover_relations())
-#        print("exts: %s"%[e for e in L])
-#        print("ext2: %s"%[e for e in L])
         # now run through the linear extensions and return the corresponding tableau
         for lin in L:
-#            print("l-ext %s"%lin)
             linear_tab = list(permutation.Permutation(lin).inverse())
             tab = [linear_tab[partial_sums[i]:partial_sums[i+1]]
                    for i in range(len(self.shape))]

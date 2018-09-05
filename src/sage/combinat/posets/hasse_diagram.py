@@ -111,17 +111,17 @@ class HasseDiagram(DiGraph):
 
     def linear_extensions(self):
         r"""
-        Return all linear extensions
+        Return an iterator over all linear extensions.
 
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
-            sage: H.linear_extensions()
+            sage: sorted(H.linear_extensions())
             [[0, 1, 2, 3], [0, 2, 1, 3]]
         """
         from sage.combinat.combinat_cython import linear_extension_iterator
-        return sorted(linear_extension_iterator(self))
+        return linear_extension_iterator(self)
 
     def greedy_linear_extensions_iterator(self):
         r"""

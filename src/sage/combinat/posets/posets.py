@@ -6244,7 +6244,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.graphs.graph import Graph
         # Direct implementation, no optimizations
-        L = sorted(self.linear_extensions())
+        L = list(self.linear_extensions())
         G = Graph()
         G.add_vertices(L)
         for i in range(len(L)):

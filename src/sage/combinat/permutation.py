@@ -3923,7 +3923,7 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3])) # indirect doctest
+            sage: sorted(Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3]))) # indirect doctest
             [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
         """
         if len(self) != len(other) :
@@ -3948,7 +3948,7 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3]))
+            sage: sorted(Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3])))
             [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
 
         TESTS::
@@ -3957,9 +3957,9 @@ class Permutation(CombinatorialElement):
             [[]]
             sage: Permutation([3, 1, 2]).right_permutohedron_interval(Permutation([3, 1, 2]))
             [[3, 1, 2]]
-            sage: Permutation([1, 3, 2, 4]).right_permutohedron_interval(Permutation([3, 4, 2, 1]))
+            sage: sorted(Permutation([1, 3, 2, 4]).right_permutohedron_interval(Permutation([3, 4, 2, 1])))
             [[1, 3, 2, 4], [1, 3, 4, 2], [3, 1, 2, 4], [3, 1, 4, 2], [3, 2, 1, 4], [3, 2, 4, 1], [3, 4, 1, 2], [3, 4, 2, 1]]
-            sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3]))
+            sage: sorted(Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3])))
             [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
             sage: Permutation([2, 5, 4, 1, 3]).right_permutohedron_interval(Permutation([2, 1, 4, 5, 3]))
             Traceback (most recent call last):
@@ -3971,7 +3971,7 @@ class Permutation(CombinatorialElement):
             ValueError: len([2, 4, 1, 3]) and len([2, 1, 4, 5, 3]) must be equal
         """
         P = Permutations()
-        return sorted(P(p) for p in self.right_permutohedron_interval_iterator(other))
+        return [P(p) for p in self.right_permutohedron_interval_iterator(other)]
 
     def permutohedron_join(self, other, side="right"):
         r"""
@@ -5046,11 +5046,11 @@ class Permutation(CombinatorialElement):
 
             sage: Permutation([]).shifted_shuffle(Permutation([]))
             [[]]
-            sage: Permutation([1, 2, 3]).shifted_shuffle(Permutation([1]))
+            sage: sorted(Permutation([1, 2, 3]).shifted_shuffle(Permutation([1])))
             [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [4, 1, 2, 3]]
-            sage: Permutation([1, 2]).shifted_shuffle(Permutation([2, 1]))
+            sage: sorted(Permutation([1, 2]).shifted_shuffle(Permutation([2, 1])))
             [[1, 2, 4, 3], [1, 4, 2, 3], [1, 4, 3, 2], [4, 1, 2, 3], [4, 1, 3, 2], [4, 3, 1, 2]]
-            sage: Permutation([1]).shifted_shuffle([1])
+            sage: sorted(Permutation([1]).shifted_shuffle([1]))
             [[1, 2], [2, 1]]
             sage: len(Permutation([3, 1, 5, 4, 2]).shifted_shuffle(Permutation([2, 1, 4, 3])))
             126
@@ -5219,7 +5219,7 @@ class Permutations(UniqueRepresentation, Parent):
 
         sage: p = Permutations(recoils=[2,1]); p
         Standard permutations whose recoils composition is [2, 1]
-        sage: p.list()
+        sage: sorted(p)
         [[1, 3, 2], [3, 1, 2]]
 
     ::

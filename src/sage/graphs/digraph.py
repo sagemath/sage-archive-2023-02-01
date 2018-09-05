@@ -2930,9 +2930,9 @@ class DiGraph(GenericGraph):
 
     def topological_sort_generator(self):
         """
-        Returns a list of all topological sorts of the digraph if it is
-        acyclic, and raises a TypeError if the digraph contains a directed
-        cycle.
+        Return an iterator over all topological sorts of the digraph if
+        it is acyclic, and raises a TypeError if the digraph contains
+        a directed cycle.
 
         A topological sort is an ordering of the vertices of the digraph
         such that each vertex comes before all of its successors. That is,
@@ -2956,7 +2956,7 @@ class DiGraph(GenericGraph):
 
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: D.plot(layout='circular').show()
-            sage: D.topological_sort_generator()
+            sage: sorted(D.topological_sort_generator())
             [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
 
         ::
@@ -2967,11 +2967,8 @@ class DiGraph(GenericGraph):
             ....:         if sort.index(u) > sort.index(v):
             ....:             print("This should never happen.")
         """
-        from sage.combinat.combinat_cython import linear_extension_iterator
         from sage.combinat.posets.posets import Poset
-        P = Poset(self)
-        elts = list(P)
-        return sorted([[elts[i] for i in e] for e in linear_extension_iterator(P._hasse_diagram)])
+        return Poset(self).linear_extensions()
 
     ### Visualization
 

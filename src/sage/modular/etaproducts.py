@@ -680,6 +680,7 @@ def num_cusps_of_width(N, d):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import num_cusps_of_width
         sage: [num_cusps_of_width(18,d) for d in divisors(18)]
         [1, 1, 2, 2, 1, 1]
         sage: num_cusps_of_width(4,8)
@@ -845,11 +846,12 @@ def qexp_eta(ps_ring, prec):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import qexp_eta
         sage: qexp_eta(ZZ[['q']], 100)
         1 - q - q^2 + q^5 + q^7 - q^12 - q^15 + q^22 + q^26 - q^35 - q^40 + q^51 + q^57 - q^70 - q^77 + q^92 + O(q^100)
     """
     prec = Integer(prec)
-    assert prec>0, "prec must be a positive integer"
+    assert prec > 0, "prec must be a positive integer"
     v = [Integer(0)] * prec
     pm = Integer(1)
     v[0] = pm
@@ -863,6 +865,7 @@ def qexp_eta(ps_ring, prec):
     except IndexError:
         pass
     return ps_ring(v, prec=prec)
+
 
 def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     r"""
@@ -904,6 +907,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import eta_poly_relations
         sage: t = EtaProduct(26, {2:2,13:2,26:-2,1:-2})
         sage: u = EtaProduct(26, {2:4,13:2,26:-4,1:-2})
         sage: eta_poly_relations([t, u], 3)

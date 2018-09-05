@@ -182,8 +182,9 @@ def transvectant(f, g, h=1, scale='default'):
       the first transvectant is returned.
 
     - ``scale`` -- the scaling factor applied to the result. Possible values
-      are 'default' and 'none'. If it is not specified, the scaling factor is
-      the one that appears in the output example below.
+      are ``'default'`` and ``'none'``. The ``'default'`` scaling factor is
+      the one that appears in the output statement below, if the scaling
+      factor is ``'none'`` the quotient of factorials is left out.
 
     OUTPUT:
 
@@ -209,8 +210,8 @@ def transvectant(f, g, h=1, scale='default'):
 
     The default scaling will yield an error for fields of positive
     characteristic below `d_f!` or `d_g!` as the denominator of the scaling
-    factor will not be invertible in that case. The scale argument 'none'
-    can be used to compute the transvectant in this case.::
+    factor will not be invertible in that case. The scale argument ``'none'``
+    can be used to compute the transvectant in this case::
 
         sage: R.<a0,a1,a2,a3,a4,a5,x0,x1> = GF(5)[]
         sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
@@ -222,9 +223,9 @@ def transvectant(f, g, h=1, scale='default'):
         sage: transvectant(f, f, 4, scale='none').form()
         -a3^2*x0^2 + a2*a4*x0^2 + a2*a3*x0*x1 - a1*a4*x0*x1 - a2^2*x1^2 + a1*a3*x1^2
 
-    The additional factors that appear when scale='none' is used can be seen
-    if we consider the same transvectant over the rationals and compare it to
-    the scaled version::
+    The additional factors that appear when ``scale='none'`` is used can be
+    seen if we consider the same transvectant over the rationals and compare
+    it to the scaled version::
 
         sage: R.<a0,a1,a2,a3,a4,a5,x0,x1> = QQ[]
         sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
@@ -1656,13 +1657,13 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
 
-        The H-covariant of the binary quintic as polynomial or as binary form.
+        The `H`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1693,13 +1694,13 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
 
-        The i-covariant of the binary quintic as polynomial or as binary form.
+        The `i`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1727,13 +1728,13 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
 
-        The T-covariant of the binary quintic as polynomial or as binary form.
+        The `T`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1766,13 +1767,13 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
 
-        The j-covariant of the binary quintic as polynomial or as binary form.
+        The `j`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1809,8 +1810,8 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
@@ -1848,8 +1849,8 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
@@ -1888,8 +1889,8 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
@@ -1930,8 +1931,8 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
@@ -1970,8 +1971,8 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
@@ -2010,8 +2011,8 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``as_form`` -- if `as_form` is `False`, the result will be returned
-          as polynomial (default). If it is `True` the result is returned as
+        - ``as_form`` -- if ``as_form`` is ``False``, the result will be returned
+          as polynomial (default). If it is ``True`` the result is returned as
           an object of the class :class:`AlgebraicForm`.
 
         OUTPUT:
@@ -2050,7 +2051,7 @@ class BinaryQuintic(AlgebraicForm):
 
         OUTPUT:
 
-        The A-invariant of the binary quintic.
+        The `A`-invariant of the binary quintic.
 
         EXAMPLES::
 
@@ -2078,7 +2079,7 @@ class BinaryQuintic(AlgebraicForm):
 
         OUTPUT:
 
-        The B-invariant of the binary quintic.
+        The `B`-invariant of the binary quintic.
 
         EXAMPLES::
 
@@ -2110,7 +2111,7 @@ class BinaryQuintic(AlgebraicForm):
 
         OUTPUT:
 
-        The C-invariant of the binary quintic.
+        The `C`-invariant of the binary quintic.
 
         EXAMPLES::
 
@@ -2141,7 +2142,7 @@ class BinaryQuintic(AlgebraicForm):
 
         OUTPUT:
 
-        The R-invariant of the binary quintic.
+        The `R`-invariant of the binary quintic.
 
         EXAMPLES::
 
@@ -2212,7 +2213,7 @@ class BinaryQuintic(AlgebraicForm):
 
     @cached_method
     def arithmetic_invariants(self):
-        """
+        r"""
         Return a set of generating arithmetic invariants of a binary quintic.
 
         An arithmetic invariants is an invariant whose coefficients are
@@ -2226,7 +2227,7 @@ class BinaryQuintic(AlgebraicForm):
 
         .. MATH::
 
-           \begin{aligned}
+            \begin{aligned}
             I_4 & = 2^{-1} \cdot 5^4 \cdot A \\
             I_8 & = 5^5 \cdot (2^{-1} \cdot 47 \cdot A^2 - 2^2 \cdot B) \\
             I_{12} & = 5^{10} \cdot (2^{-1} \cdot 3 \cdot A^3

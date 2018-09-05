@@ -23,7 +23,7 @@ from sage.combinat.tableau import Tableau, StandardTableaux_size, StandardTablea
 from sage.algebras.group_algebra import GroupAlgebra_class
 from sage.categories.weyl_groups import WeylGroups
 from sage.categories.algebras import Algebras
-from sage.interfaces.all import gap
+from sage.libs.gap.libgap import libgap
 from sage.rings.all import QQ, PolynomialRing
 from sage.arith.all import factorial
 from sage.matrix.all import matrix
@@ -1997,7 +1997,7 @@ def cpi_over_QQ(la):
         la = _Partitions(la)
     n = la.size()
 
-    character_table = eval(gap.eval("Display(Irr(SymmetricGroup(%d)));"%n))
+    character_table = [c.sage() for c in libgap.Irr(libgap.SymmetricGroup(n))]
 
     Pn = Partitions_n(n)
     C = Pn.cardinality()
@@ -2012,19 +2012,6 @@ def cpi_over_QQ(la):
         coeff = big_coeff * character_row[indices[g.cycle_type()]]
         dct[g] = coeff
     return SymmetricGroupAlgebra(QQ, n)._from_dict(dct)
-    #np = Partitions_n(n).list()
-    #np.reverse()
-    #la_index = np.index(la)
-
-    #big_coeff = character_table[la_index][0] / factorial(n)
-
-    #character_row = character_table[la_index]
-    #P = Permutations(n)
-    #dct = {}
-    #for g in P:
-    #    coeff = big_coeff * character_row[np.index(g.cycle_type())]
-    #    dct[P(g)] = coeff
-    #return SymmetricGroupAlgebra(QQ, n)._from_dict(dct)
 
 
 epsilon_ik_cache = {}

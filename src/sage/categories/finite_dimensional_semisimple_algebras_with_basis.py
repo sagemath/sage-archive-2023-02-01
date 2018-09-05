@@ -86,10 +86,14 @@ class FiniteDimensionalSemisimpleAlgebrasWithBasis(CategoryWithAxiom_over_base_r
             acts on `V_i` as multiplication by the `i`th power of a
             cube root of unity::
 
-                sage: A3 = AlternatingGroup(3).algebra(QQbar)
+                sage: P.<x> = QQ[]
+                sage: QP = QuotientRing(P, P.ideal(x^2+x+1))
+                sage: A3 = AlternatingGroup(3).algebra(QP)
                 sage: idempotents = A3.central_orthogonal_idempotents()
-                sage: idempotents[0]
-                1/3*() + 1/3*(1,2,3) + 1/3*(1,3,2)
+                sage: idempotents
+                (1/3*() + 1/3*(1,2,3) + 1/3*(1,3,2),
+                 1/3*() + (-1/3*xbar-1/3)*(1,2,3) + 1/3*xbar*(1,3,2),
+                 1/3*() + 1/3*xbar*(1,2,3) + (-1/3*xbar-1/3)*(1,3,2))
                 sage: A3.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True
 

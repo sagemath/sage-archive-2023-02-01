@@ -11,6 +11,7 @@ EXAMPLES:
 
 A minimal example of a module::
 
+    sage: from sage.structure.richcmp import richcmp
     sage: class MyElement(sage.structure.element.ModuleElement):
     ....:     def __init__(self, parent, x):
     ....:         self.x = x

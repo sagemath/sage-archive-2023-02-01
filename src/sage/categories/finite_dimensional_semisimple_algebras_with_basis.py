@@ -68,32 +68,27 @@ class FiniteDimensionalSemisimpleAlgebrasWithBasis(CategoryWithAxiom_over_base_r
             idempotents of ``self``.
 
             *Central orthogonal idempotents* of an algebra `A`
-            are idempotents `(e_1, \dots, e_n)` in the center
+            are idempotents `(e_1, \ldots, e_n)` in the center
             of `A` such that `e_i e_j = 0` whenever `i \neq j`.
 
             With the maximality condition, they sum up to `1`
             and are uniquely determined (up to order).
-
-            INPUT:
-
-            - ``self`` -- a semisimple algebra.
 
             EXAMPLES:
 
             For the algebra of the (abelian) alternating group `A_3`,
             we recover three idempotents corresponding to the three
             one-dimensional representations `V_i` on which `(1,2,3)`
-            acts on `V_i` as multiplication by the `i`th power of a
+            acts on `V_i` as multiplication by the `i`-th power of a
             cube root of unity::
 
-                sage: P.<x> = QQ[]
-                sage: QP = QuotientRing(P, P.ideal(x^2+x+1))
-                sage: A3 = AlternatingGroup(3).algebra(QP)
+                sage: R = CyclotomicField(3)
+                sage: A3 = AlternatingGroup(3).algebra(R)
                 sage: idempotents = A3.central_orthogonal_idempotents()
                 sage: idempotents
                 (1/3*() + 1/3*(1,2,3) + 1/3*(1,3,2),
-                 1/3*() + (-1/3*xbar-1/3)*(1,2,3) + 1/3*xbar*(1,3,2),
-                 1/3*() + 1/3*xbar*(1,2,3) + (-1/3*xbar-1/3)*(1,3,2))
+                 1/3*() - (1/3*zeta3+1/3)*(1,2,3) - (-1/3*zeta3)*(1,3,2),
+                 1/3*() - (-1/3*zeta3)*(1,2,3) - (1/3*zeta3+1/3)*(1,3,2))
                 sage: A3.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True
 

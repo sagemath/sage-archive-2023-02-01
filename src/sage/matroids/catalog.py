@@ -155,7 +155,7 @@ def R6():
 
 
 def Fano():
-    """
+    r"""
     Return the Fano matroid, represented over `GF(2)`.
 
     The Fano matroid, or Fano plane, or `F_7`, is a 7-element matroid of
@@ -774,7 +774,7 @@ def CompleteGraphic(n):
 
 
 def Wheel(n, field=None, ring=None):
-    """
+    r"""
     Return the rank-`n` wheel.
 
     INPUT:
@@ -979,7 +979,7 @@ def PG(n, q, x=None):
 
 
 def AG(n, q, x=None):
-    """
+    r"""
     Return the affine geometry of dimension ``n`` over the finite field of
     order ``q``.
 
@@ -1233,7 +1233,7 @@ def TicTacToe():
 
 
 def Q10():
-    """
+    r"""
     Return the matroid `Q_{10}`, represented over `\GF{4}`.
 
     `Q_{10}` is a 10-element, rank-5, self-dual matroid. It is representable
@@ -1273,7 +1273,7 @@ def Q10():
 
 
 def N1():
-    """
+    r"""
     Return the matroid `N_1`, represented over `\GF{3}`.
 
     `N_1` is an excluded minor for the dyadic matroids. See [Oxl2011]_, p. 554.
@@ -1300,7 +1300,7 @@ def N1():
 
 
 def N2():
-    """
+    r"""
     Return the matroid `N_2`, represented over `\GF{3}`.
 
     `N_2` is an excluded minor for the dyadic matroids. See [Oxl2011]_, p. 554.

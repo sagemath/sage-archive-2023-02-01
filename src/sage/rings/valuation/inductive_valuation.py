@@ -30,7 +30,7 @@ An introduction is also given in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************
-#       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2016-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -122,7 +122,7 @@ class InductiveValuation(DevelopingValuation):
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
             sage: h = v.equivalence_reciprocal(f); h
-            (2 + O(3^5))
+            2 + O(3^5)
             sage: v.is_equivalent(f*h, 1)
             True
 
@@ -245,9 +245,9 @@ class InductiveValuation(DevelopingValuation):
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
-            (3^2 + O(3^7))
+            3^2 + O(3^7)
             sage: v.equivalence_unit(-2)
-            (3^-2 + O(3^3))
+            3^-2 + O(3^3)
 
         Note that this might fail for negative ``s`` if the domain is not
         defined over a field::
@@ -712,6 +712,15 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: eta2
             [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ]
 
+        Check that :trac:`26066` has been resolved::
+
+            sage: R.<x> = QQ[]
+            sage: v = QQ.valuation(2)
+            sage: v = GaussValuation(R, v).augmentation(x+1, 1/2)
+            sage: f = x^4 - 30*x^2 - 75
+            sage: v.mac_lane_step(f)
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 3/4 ]]
+
         """
         G = self.domain().coerce(G)
 
@@ -771,18 +780,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert len(F) == 1
                     break
 
-                if phi == self.phi():
-                    # a factor phi in the equivalence decomposition means that we
-                    # found an actual factor of G, i.e., we can set
-                    # v(phi)=infinity
-                    # However, this should already have happened in the last step
-                    # (when this polynomial had -infinite slope in the Newton
-                    # polygon.)
-                    if self.is_gauss_valuation(): # unless in the first step
-                        pass
-                    else:
-                        continue
-
                 verbose("Determining the augmentation of %s for %s"%(self, phi), level=11)
                 old_mu = self(phi)
                 w = self.augmentation(phi, old_mu, check=False)
@@ -823,7 +820,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                                       for j,val in enumerate(w_valuations)]
                     base = self
                     if phi.degree() == base.phi().degree():
-                        # very frequently, the degree of the key polynomials
+                        # very frequently, the degrees of the key polynomials
                         # stagnate for a bit while the valuation of the key
                         # polynomial is slowly increased.
                         # In this case, we can drop previous key polynomials
@@ -832,6 +829,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                         assert new_mu > self(phi)
                         if not base.is_gauss_valuation():
                             base = base._base_valuation
+                    # phi has already been simplified internally by the
+                    # equivalence_decomposition method but we can now possibly
+                    # simplify it further as we know exactly up to which
+                    # precision it needs to be defined.
+                    phi = base.simplify(phi, new_mu, force=True)
                     w = base.augmentation(phi, new_mu, check=False)
                     assert slope is -infinity or 0 in w.newton_polygon(G).slopes(repetition=False)
 
@@ -842,7 +844,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert degree_bound >= phi.degree()
                     ret.append((w, degree_bound, multiplicities[slope], w_coefficients, new_valuations))
 
-        assert ret
+        assert ret, "a MacLane step produced no augmentations"
         if not report_degree_bounds_and_caches:
             ret = [v for v,_,_,_,_ in ret]
         return ret
@@ -1191,7 +1193,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: V = v1.mac_lane_step(G)
             sage: v2 = V[0]
             sage: F = v2.equivalence_decomposition(G); F
-            (-19683) * (x^4 + 2*x^2 + 2*alpha + 3)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha + 3)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + 3*alpha + 3)^3
+            (x^4 + 2*alpha + 1)^3 * (x^4 + 1/2*alpha^4 + alpha + 1)^3 * (x^4 + 1/2*alpha^4 + 3*alpha + 1)^3
             sage: v2.is_equivalent(F.prod(), G)
             True
 
@@ -1211,7 +1213,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             v = self.extension(domain)
             ret = v.equivalence_decomposition(v.domain()(f))
             return Factorization([(self._eliminate_denominators(g), e)
-                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()))
+                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()), sort=False)
 
         valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations, degree_bound=degree_bound)
         F = F.factor()
@@ -1240,7 +1242,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             for g,e in F:
                 v_g = self(g)
                 unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g*e, effective_degree=0)
-            unit = self.simplify(unit, effective_degree=0)
+            unit = self.simplify(unit, effective_degree=0, force=True)
 
         if phi_divides:
             for i,(g,e) in enumerate(F):

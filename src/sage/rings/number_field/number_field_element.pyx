@@ -3488,7 +3488,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: ((a-b)/2).is_integral()
             False
         """
-        return all([a in ZZ for a in self.absolute_minpoly()])
+        return all(a in ZZ for a in self.absolute_minpoly())
 
     def matrix(self, base=None):
         r"""

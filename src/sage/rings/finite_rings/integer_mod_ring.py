@@ -538,7 +538,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
-    def extension(self, poly, name=None, names=None, embedding=None):
+    def extension(self, poly, name=None, names=None, **kwds):
         """
         Return an algebraic extension of ``self``. See
         :meth:`sage.rings.ring.CommutativeRing.extension()` for more
@@ -554,7 +554,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return self
 
         from sage.rings.ring import CommutativeRing
-        return CommutativeRing.extension(self, poly, name, names, embedding)
+        return CommutativeRing.extension(self, poly, name, names, **kwds)
 
     @cached_method
     def is_prime_field(self):

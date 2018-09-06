@@ -1105,8 +1105,8 @@ class IncidenceStructure(object):
             sizes = PositiveIntegers()
         elif sizes in PositiveIntegers():
             sizes = (sizes,)
-        V = map(Set,self)
-        return Graph([V,lambda x,y: len(x&y) in sizes],loops=False)
+        V = [Set(v)  for v in self]
+        return Graph([V, lambda x,y: len(x & y) in sizes], loops=False)
 
     def incidence_matrix(self):
         r"""

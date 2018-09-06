@@ -498,7 +498,7 @@ A simple transducer (binary inverter)
 -------------------------------------
 
 Let's build a simple transducer, which rewrites a binary word by
-iverting each bit::
+inverting each bit::
 
     sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
     ....:     initial_states=['A'], final_states=['A'])

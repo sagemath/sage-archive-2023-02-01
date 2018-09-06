@@ -463,7 +463,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         return q_factorial(self.degree(), parameter)
 
     def conjugacy_classes_representatives(self):
-        """
+        r"""
         Return a complete list of representatives of conjugacy classes in
         a permutation group `G`.
 
@@ -568,7 +568,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         return SymmetricGroupConjugacyClass(self, g)
 
     def algebra(self, base_ring, category=None):
-        """
+        r"""
         Return the symmetric group algebra associated to ``self``.
 
         INPUT:
@@ -625,6 +625,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             return super(SymmetricGroup, self).algebra(base_ring)
 
     Element = SymmetricGroupElement
+
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -1368,7 +1369,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 
 class DihedralGroup(PermutationGroup_unique):
     def __init__(self, n):
-        """
+        r"""
         The Dihedral group of order `2n` for any integer `n\geq 1`.
 
         INPUT:
@@ -2692,10 +2693,10 @@ class PSL(PermutationGroup_plg):
         return "The projective special linear group of degree %s over %s"%(self._n, self.base_ring())
 
     def ramification_module_decomposition_hurwitz_curve(self):
-        """
+        r"""
         Helps compute the decomposition of the ramification module
         for the Hurwitz curves X (over CC say) with automorphism group
-        G = PSL(2,q), q a "Hurwitz prime" (ie, p is $\pm 1 \pmod 7$).
+        G = PSL(2,q), q a "Hurwitz prime" (ie, p is `\pm 1 \pmod 7`).
         Using this computation and Borne's formula helps determine the
         G-module structure of the RR spaces of equivariant
         divisors can be determined explicitly.

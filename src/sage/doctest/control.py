@@ -82,12 +82,13 @@ class DocTestDefaults(SageObject):
         self.nthreads = 1
         self.serial = False
         self.timeout = -1
+        self.memlimit = 0
         self.all = False
         self.logfile = None
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(['sage']) | auto_optional_tags
+        self.optional = set(['sage', 'dochtml']) | auto_optional_tags
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -351,9 +352,15 @@ class DocTestController(SageObject):
                     if not optionaltag_regex.search(o):
                         raise ValueError('invalid optional tag {!r}'.format(o))
 
-                options.optional |= auto_optional_tags
+                if "sage" in options.optional:
+                    options.optional |= auto_optional_tags
 
         self.options = options
+
+        if options.memlimit > 0:
+            # Allow tests that require a virtual memory limit to be set
+            options.optional.add('memlimit')
+
         self.files = args
         if options.logfile:
             try:
@@ -749,7 +756,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: sorted(DC.sources[0].options.optional)  # abs tol 1
-            ['guava', 'magma', 'py3']
+            ['guava', 'magma']
 
         We check that files are skipped appropriately::
 
@@ -976,7 +983,7 @@ class DocTestController(SageObject):
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(), [])
             sage: DC._optional_tags_string()
-            'sage'
+            'dochtml,sage'
             sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
             sage: DC._optional_tags_string()
             'all'
@@ -1009,7 +1016,7 @@ class DocTestController(SageObject):
         for o in ("all", "sagenb", "long", "force_lib", "verbose", "failed", "new"):
             if o in opt:
                 cmd += "--%s "%o
-        for o in ("timeout", "randorder", "stats_path"):
+        for o in ("timeout", "memlimit", "randorder", "stats_path"):
             if o in opt:
                 cmd += "--%s=%s "%(o, opt[o])
         if "optional" in opt:

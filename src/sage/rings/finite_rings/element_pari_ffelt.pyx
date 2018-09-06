@@ -198,7 +198,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sage: k(R(1/5))
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: Inverse does not exist.
+        ZeroDivisionError: inverse of Mod(0, 5) does not exist
 
     Gap elements can also be coerced into finite fields::
 

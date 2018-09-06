@@ -6548,13 +6548,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a.inverse_mod(1890)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
-            sage: a = Integer(19)**100000
-            sage: b = a*a
-            sage: c = a.inverse_mod(b)
+            ZeroDivisionError: inverse of Mod(189, 1890) does not exist
+            sage: a = Integer(19)**100000  # long time
+            sage: c = a.inverse_mod(a*a)   # long time
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(..., ...) does not exist
 
         We check that :trac:`10625` is fixed::
 
@@ -6563,7 +6562,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         We check that :trac:`9955` is fixed::
 
-            sage: Rational(3)%Rational(-1)
+            sage: Rational(3) % Rational(-1)
             0
         """
         cdef int r
@@ -6577,7 +6576,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r = mpz_invert(ans.value, self.value, m.value)
         sig_off()
         if r == 0:
-            raise ZeroDivisionError("Inverse does not exist.")
+            raise ZeroDivisionError(f"inverse of Mod({self}, {m}) does not exist")
         return ans
 
     def gcd(self, n):

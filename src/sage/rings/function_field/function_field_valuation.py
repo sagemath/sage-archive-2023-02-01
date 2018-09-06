@@ -69,6 +69,13 @@ Run test suite for valuations that do not correspond to a classical place::
     sage: w = K.valuation(v)
     sage: TestSuite(w).run() # long time
 
+Run test suite for a non-classical valuation that does not correspond to an
+affinoid contained in the unit disk::
+
+    sage: w = K.valuation((w, K.hom(K.gen()/2), K.hom(2*K.gen()))); w
+    2-adic valuation (in Rational function field in x over Rational Field after x |--> 1/2*x)
+    sage: TestSuite(w).run() # long time
+
 Run test suite for some other classical places over large ground fields::
 
     sage: K.<t> = FunctionField(GF(3))
@@ -362,13 +369,8 @@ class FunctionFieldValuationFactory(UniqueFactory):
             raise ValueError("from_valuation_domain must map from %r to %r but %r maps from %r to %r"%(valuation.domain(), domain, from_valuation_domain, from_valuation_domain.domain(), from_valuation_domain.codomain()))
 
         if domain is domain.base():
-            # over rational function fields, we only support the map x |--> 1/x with another rational function field
             if valuation.domain() is not valuation.domain().base() or valuation.domain().constant_base_field() != domain.constant_base_field():
                 raise NotImplementedError("maps must be isomorphisms with a rational function field over the same base field, not with %r"%(valuation.domain(),))
-            if to_valuation_domain != domain.hom([~valuation.domain().gen()]):
-                raise NotImplementedError("to_valuation_domain must be the map %r not %r"%(domain.hom([~valuation.domain().gen()]), to_valuation_domain))
-            if from_valuation_domain != valuation.domain().hom([~domain.gen()]):
-                raise NotImplementedError("from_valuation_domain must be the map %r not %r"%(valuation.domain().hom([domain.gen()]), from_valuation_domain))
             if domain != valuation.domain():
                 # make it harder to create different representations of the same valuation
                 # (nothing bad happens if we did, but >= and <= are only implemented when this is the case.)
@@ -408,10 +410,12 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         if isinstance(valuation, tuple) and len(valuation) == 3:
             valuation, to_valuation_domain, from_valuation_domain = valuation
-            if domain is domain.base() and valuation.domain() is valuation.domain().base() and to_valuation_domain == domain.hom([~valuation.domain().gen()]) and from_valuation_domain == valuation.domain().hom([~domain.gen()]):
-                # valuation on the rational function field after x |--> 1/x
+            if domain is domain.base() and valuation.domain() is valuation.domain().base():
                 if valuation == valuation.domain().valuation(valuation.domain().gen()):
-                    # the classical valuation at the place 1/x
+                    if to_valuation_domain != domain.hom([~valuation.domain().gen()]) or from_valuation_domain != valuation.domain().hom([~domain.gen()]):
+                        raise ValueError("the only allowed automorphism for classical valuations is the automorphism x |--> 1/x")
+                    # valuation on the rational function field after x |--> 1/x,
+                    # i.e., the classical valuation at infinity
                     return parent.__make_element_class__(InfiniteRationalFunctionFieldValuation)(parent)
 
                 from sage.structure.dynamic_class import dynamic_class
@@ -671,7 +675,7 @@ class ClassicalFunctionFieldValuation_base(DiscreteFunctionFieldValuation_base):
         super(ClassicalFunctionFieldValuation_base, self)._ge_(other)
 
 
-class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
+class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
     r"""
     Base class for function field valuation induced by a valuation on the
     underlying polynomial ring.
@@ -688,8 +692,8 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
             sage: K.<x> = FunctionField(QQ)
             sage: v = K.valuation(x) # indirect doctest
-            sage: from sage.rings.function_field.function_field_valuation import InducedFunctionFieldValuation_base
-            sage: isinstance(v, InducedFunctionFieldValuation_base)
+            sage: from sage.rings.function_field.function_field_valuation import InducedRationalFunctionFieldValuation_base
+            sage: isinstance(v, InducedRationalFunctionFieldValuation_base)
             True
             
         """
@@ -841,7 +845,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             W = self._base_valuation.extensions(L._ring)
             return [L.valuation(w) for w in W]
 
-        return super(InducedFunctionFieldValuation_base, self).extensions(L)
+        return super(InducedRationalFunctionFieldValuation_base, self).extensions(L)
 
     def _call_(self, f):
         r"""
@@ -895,10 +899,101 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         """
         if ring.is_subring(self._base_valuation.domain()):
             return self._base_valuation.restriction(ring)
-        return super(InducedFunctionFieldValuation_base, self).restriction(ring)
+        return super(InducedRationalFunctionFieldValuation_base, self).restriction(ring)
+
+    def simplify(self, f, error=None, force=False):
+        r"""
+        Return a simplified version of ``f``.
+
+        Produce an element which differs from ``f`` by an element of
+        valuation strictly greater than the valuation of ``f`` (or strictly
+        greater than ``error`` if set.)
+        
+        If ``force`` is not set, then expensive simplifications may be avoided.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = K.valuation(2)
+            sage: f = (x + 1)/(x - 1)
+
+        As the coefficients of this fraction are small, we do not simplify as
+        this could be very costly in some cases::
+
+            sage: v.simplify(f)
+            (x + 1)/(x - 1)
+
+        However, simplification can be forced::
+
+            sage: v.simplify(f, force=True)
+            3
+
+        """
+        f = self.domain().coerce(f)
+
+        if error is None:
+            # if the caller was sure that we should simplify, then we should try to do the best simplification possible
+            error = self(f) if force else self.upper_bound(f)
+
+        from sage.all import infinity
+        if error is infinity:
+            return f
+
+        numerator = f.numerator()
+        denominator = f.denominator()
+
+        v_numerator = self._base_valuation(numerator)
+        v_denominator = self._base_valuation(denominator)
+
+        if v_numerator - v_denominator > error:
+            return self.domain().zero()
+
+        if error == -infinity:
+            # This case is not implemented yet, so we just return f which is always safe.
+            return f
+
+        numerator = self.domain()(self._base_valuation.simplify(numerator, error=error+v_denominator, force=force))
+        denominator = self.domain()(self._base_valuation.simplify(denominator, error=max(v_denominator, error - v_numerator + 2*v_denominator), force=force))
+
+        ret = numerator/denominator
+        assert self(ret - f) > error
+        return ret
+
+    def _relative_size(self, f):
+        r"""
+        Return an estimate on the coefficient size of ``f``.
+
+        The number returned is an estimate on the factor between the number of
+        bits used by ``f`` and the minimal number of bits used by an element
+        congruent to ``f``.
+
+        This can be used by :meth:`simplify` to decide whether simplification
+        of coefficients is going to lead to a significant shrinking of the
+        coefficients of ``f``.
+
+        EXAMPLES:: 
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = K.valuation(0)
+            sage: f = (x + 1024)/(x - 1024)
+
+        Here we report a small size, as the numerator and the denominator
+        independently can not be simplified much::
+
+            sage: v._relative_size(f)
+            1
+
+        However, a forced simplification, finds that we could have saved many
+        more bits::
+
+            sage: v.simplify(f, force=True)
+            -1
+
+        """
+        return max(self._base_valuation._relative_size(f.numerator()), self._base_valuation._relative_size(f.denominator()))
 
 
-class FiniteRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
+class FiniteRationalFunctionFieldValuation(InducedRationalFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
     r"""
     Valuation of a finite place of a function field.
 
@@ -937,12 +1032,12 @@ class FiniteRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, C
             True
     
         """
-        InducedFunctionFieldValuation_base.__init__(self, parent, base_valuation)
+        InducedRationalFunctionFieldValuation_base.__init__(self, parent, base_valuation)
         ClassicalFunctionFieldValuation_base.__init__(self, parent)
         RationalFunctionFieldValuation_base.__init__(self, parent)
 
 
-class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
+class NonClassicalRationalFunctionFieldValuation(InducedRationalFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
     r"""
     Valuation induced by a valuation on the underlying polynomial ring which is
     non-classical.
@@ -972,7 +1067,7 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
             True
 
         """
-        InducedFunctionFieldValuation_base.__init__(self, parent, base_valuation)
+        InducedRationalFunctionFieldValuation_base.__init__(self, parent, base_valuation)
         RationalFunctionFieldValuation_base.__init__(self, parent)
 
 

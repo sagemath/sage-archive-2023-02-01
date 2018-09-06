@@ -87,6 +87,7 @@ from sage.categories.modules import Modules
 from sage.categories.homset import Hom
 
 from sage.algebras.free_algebra import FreeAlgebra
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
@@ -843,6 +844,18 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A2 = GradedCommutativeAlgebra(GF(2), ['x', 'y'], [3, 6])
             sage: A1 is A2
             True
+
+        Testing the single generator case (:trac:`25276`)::
+
+            sage: A3.<z> = GradedCommutativeAlgebra(QQ)
+            sage: z**2 == 0
+            True
+            sage: A4.<z> = GradedCommutativeAlgebra(QQ, degrees=[4])
+            sage: z**2 == 0
+            False
+            sage: A5.<z> = GradedCommutativeAlgebra(GF(2))
+            sage: z**2 == 0
+            False
         """
         if names is None:
             if degrees is None:
@@ -874,7 +887,10 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             degrees = tuple(degrees)
 
         if not R or not I:
-            F = FreeAlgebra(base, n, names)
+            if n > 1:
+                F = FreeAlgebra(base, n, names)
+            else: # n = 1
+                F = PolynomialRing(base, n, names)
             gens = F.gens()
             rels = {}
             tot_degs = [total_degree(d) for d in degrees]
@@ -882,7 +898,10 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 for j in range(i+1, len(gens)):
                     rels[gens[j]*gens[i]] = ((-1) ** (tot_degs[i] * tot_degs[j])
                                              * gens[i] * gens[j])
-            R = F.g_algebra(rels, order = TermOrder('wdegrevlex', tot_degs))
+            if n > 1:
+                R = F.g_algebra(rels, order = TermOrder('wdegrevlex', tot_degs))
+            else: # n = 1
+                R = F.quotient(rels)
             if base.characteristic() == 2:
                 I = R.ideal(0, side='twosided')
             else:
@@ -1484,6 +1503,10 @@ class GCAlgebra_multigraded(GCAlgebra):
 
             sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=((1,0), (0,1), (1,1)))
             sage: TestSuite(A).run()
+            sage: B.<w> = GradedCommutativeAlgebra(GF(2), degrees=((3,2)))
+            sage: TestSuite(B).run()
+            sage: C = GradedCommutativeAlgebra(GF(7), degrees=((3,2)))
+            sage: TestSuite(C).run()
         """
         total_degs = [total_degree(d) for d in degrees]
         GCAlgebra.__init__(self, base, R=R, I=I, names=names, degrees=total_degs)

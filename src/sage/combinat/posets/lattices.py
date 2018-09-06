@@ -1772,24 +1772,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not certificate and not self.is_atomic():
             return False
 
-        n = self.cardinality()
         H = self._hasse_diagram
         mt = H._meet
-        jn = H._join
-        bottom = 0
-
-        for top in range(n):
-            interval = H.principal_order_ideal(top)
-            for e in interval:
-                for f in interval:
-                    if mt[e, f] == bottom and jn[e, f] == top:
-                        break
-                else:
-                    if certificate:
-                        return (False, (self._vertex_to_element(top),
-                                        self._vertex_to_element(e)))
-                    return False
-
+        n = H.order()-1
+        for e in range(2, n+1):
+            t = n
+            for lc in H.neighbors_in(e):
+                t = mt[t, lc]
+                if t == 0:
+                    break
+            else:
+                if certificate:
+                    return (False, (self[e], self[t]))
+                return False
         return (True, None) if certificate else True
 
     def breadth(self, certificate=False):
@@ -3955,8 +3950,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if len(A) == 1:
             for a in A[0]:
                 if len(a) > 1:
-                    return (False, (self._vertex_to_element(a[0]),
-                                    self._vertex_to_element(a[1])))
+                    x, y = min(a), max(a)
+                    return (False, (self._vertex_to_element(x),
+                                    self._vertex_to_element(y)))
 
         H_closure = H.transitive_closure()
         a0 = [min(v) for v in A[0]]
@@ -4283,6 +4279,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return ok
         for c in H.congruences_iterator():
             cong = list(c)
+            if len(cong) in [1, H.order()]:
+                continue
+            if not certificate:
+                if any(len(x) != len(cong[0]) for x in cong):
+                    return False
             d = H.subgraph(cong[0])
             for part in cong:
                 if not H.subgraph(part).is_isomorphic(d):
@@ -4418,8 +4419,16 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: [posets.ChainPoset(i).is_regular() for i in range(5)]
             [True, True, True, False, False]
         """
+        ok = (True, None) if certificate else True
+
         H = self._hasse_diagram
+        if H.order() < 3:
+            return ok
         for cong in H.congruences_iterator():
+            x = iter(cong.root_to_elements_dict().values())
+            ell = len(next(x))
+            if all(len(p) == ell for p in x):
+                continue
             for part in cong:
                 if H.congruence([part]) != cong:
                     if certificate:
@@ -4428,9 +4437,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                                 (SetPartition([[self._vertex_to_element(v) for v in p] for p in cong]),
                                  [self._vertex_to_element(v) for v in part]))
                     return False
-        if certificate:
-            return (True, None)
-        return True
+        return ok
 
     def is_simple(self, certificate=False):
         """
@@ -4609,7 +4616,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                   6: [8], 3: [9], 7: [10], 8: [10], 9:[10]})
             sage: cong = L.congruence([[1, 2]])
             sage: cong[0]
-            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+            frozenset({1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 
         .. SEEALSO:: :meth:`quotient`
 

@@ -4180,8 +4180,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         lattices. The same reference gives a test for being constructible by
         convex or by any subset.
         """
-        from sage.combinat.set_partition import SetPartition
-
         if type not in ['interval', 'lower', 'upper', 'convex', 'any']:
             raise ValueError("type must be one of 'interval', 'lower', 'upper', 'convex' or 'any'")
 
@@ -4197,7 +4195,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             found = set()
             for v in H:
                 if H.out_degree(v) == 1:
-                    S = SetPartition(H.congruence([[v, next(H.neighbor_out_iterator(v))]]))
+                    S = frozenset(map(frozenset, H.congruence([[v, next(H.neighbor_out_iterator(v))]])))
                     if S in found:
                         return False
                     found.add(S)
@@ -4208,7 +4206,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             found = set()
             for v in H:
                 if H.in_degree(v) == 1:
-                    S = SetPartition(H.congruence([[v, next(H.neighbor_in_iterator(v))]]))
+                    S = frozenset(map(frozenset, H.congruence([[v, next(H.neighbor_in_iterator(v))]])))
                     if S in found:
                         return False
                     found.add(S)

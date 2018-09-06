@@ -2,8 +2,10 @@ from sage.structure.element cimport Element
 from sage.structure.element cimport CommutativeAlgebraElement
 
 from sage.rings.infinity import Infinity
-
 from sage.rings.integer_ring import ZZ
+
+from sage.structure.element import coerce_binop
+
 
 cdef class TateAlgebraElement(CommutativeAlgebraElement):
     def __init__(self, parent, x, prec=None, reduce=True):
@@ -163,6 +165,24 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     def add_bigoh(self, n):
         return self._parent(self, prec=n)
 
+    def precision_absolute(self):
+        return self._prec
+
+    def valuation(self):
+        cap = self._parent.precision_cap()
+        if self.is_zero():
+            return cap
+        else:
+            parent = self._parent
+            log_radii = parent.log_radii()
+            ngens = parent.ngens()
+            lt = self._coefficients()[0]
+            val = lt[1].valuation() - sum(lt[0][i]*log_radii[i] for i in range(ngens))
+            return min(cap, val)
+
+    def precision_relative(self):
+        return self._prec - self.valuation()
+
     def leading_term(self):
         if self.is_zero():
             return self._parent(0)
@@ -182,24 +202,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         lt = self._coefficients()[0]
         poly = self._parent._polynomial_ring.monomial(*lt[0])
         return self._parent(poly)
-
-    def precision_absolute(self):
-        return self._prec
-
-    def valuation(self):
-        cap = self._parent.precision_cap()
-        if self.is_zero():
-            return cap
-        else:
-            parent = self._parent
-            log_radii = parent.log_radii()
-            ngens = parent.ngens()
-            lt = self._coefficients()[0]
-            val = lt[1].valuation() - sum(lt[0][i]*log_radii[i] for i in range(ngens))
-            return min(cap, val)
-
-    def precision_relative(self):
-        return self._prec - self.valuation()
 
     def weierstrass_degree(self):
         v = self.valuation()
@@ -276,3 +278,24 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     def reduce(self, I):
         g = I.groebner_basis()
         return self.quo_rem(g)
+
+    @coerce_binop
+    def Spoly(self, other):
+        if self.is_zero() or other.is_zero():
+            raise ValueError("Cannot compute the S-polynomial of zero")
+        parent = self._parent
+        S = parent._polynomial_ring
+        se, sc = self._coefficients()[0]
+        oe, oc = other._coefficients()[0]
+        spoly = self._poly
+        opoly = other.polynomial()
+        for i in range(parent.ngens()):
+            if se[i] > oe[i]:
+                opoly *= S.gen(i) ** (se[i] - oe[i])
+            elif se[i] < oe[i]:
+                spoly *= S.gen(i) ** (oe[i] - se[i])
+        if sc.valuation() > oc.valuation():
+            opoly *= sc // oc
+        else:
+            spoly *= oc // sc
+        return parent(spoly-opoly, min(self._prec, other.precision_absolute()))

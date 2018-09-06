@@ -34,7 +34,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
 
         - ``names`` - names of the indeterminates
 
-        - ``log-radii`` - (default: 1) the value(s) -log(ri). If only
+        - ``log-radii`` - (default: ``0``) the value(s) -log(ri). If only
           one number l is given, all ri's are defined with -log(ri)=l.
 
         - ``prec`` - the default precision used if an exact object
@@ -45,9 +45,11 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
           ring, if any. Otherwise, it will be set to the global
           default (20).
 
-        - ``order`` - (default: ``degrevlex``) the monomial ordering used to break ties when comparing terms with the same coefficient valuation
+        - ``order`` - (default: ``degrevlex``) the monomial ordering 
+          used to break ties when comparing terms with the same 
+          coefficient valuation
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
@@ -120,6 +122,10 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
                     if self._log_radii[i] != R.log_radii()[i] * ratio:
                         return False
                 return True
+
+    def _ideal_class_(self, n):
+        from sage.rings.tate_algebra_ideal import TateAlgebraIdeal
+        return TateAlgebraIdeal
 
     #def _pushout_(self, R):
     #    if not isinstance(R, TateAlgebra):  # should we allow PolynomialRing as well?

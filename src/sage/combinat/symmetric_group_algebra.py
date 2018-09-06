@@ -13,6 +13,7 @@ import six
 from six.moves import range
 
 from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -23,7 +24,6 @@ from sage.combinat.tableau import Tableau, StandardTableaux_size, StandardTablea
 from sage.algebras.group_algebra import GroupAlgebra_class
 from sage.categories.weyl_groups import WeylGroups
 from sage.categories.algebras import Algebras
-from sage.libs.gap.libgap import libgap
 from sage.rings.all import QQ, PolynomialRing
 from sage.arith.all import factorial
 from sage.matrix.all import matrix
@@ -284,6 +284,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             self.n = W.degree()
         else:
             self.n = W.cartan_type().rank() + 1
+        self._idempotent_cache = {}
         category = category.Unital().FiniteDimensional().WithBasis().Cellular()
         GroupAlgebra_class.__init__(self, R, W, prefix='',
                                     latex_prefix='', category=category)
@@ -1018,8 +1019,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             - :meth:`central_orthogonal_idempotent`
         """
         out = []
-        blocks = self._blocks_dictionary()
-        for key in sorted(blocks, reverse=True):
+        for key in sorted(self._blocks_dictionary, reverse=True):
             out.append(self.central_orthogonal_idempotent(key))
         return out
 
@@ -1029,13 +1029,13 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         corresponding to the indecomposable block to which the partition
         ``la`` is associated.
 
-        If ``self.base_ring()`` contains `QQ`, this corresponds to the
+        If ``self.base_ring()`` contains `\QQ`, this corresponds to the
         classical central idempotent corresponding to the irreducible
         representation indexed by ``la``.
 
         Alternatively, if ``self.base_ring()`` has characteristic `p > 0`,
-        then [Mur1983]_, Theorem 2.8 provides that ``la`` is associated to
-        an idempotent `f_\mu` where `\mu` is the `p`-core of ``la``.
+        then Theorem 2.8 in [Mur1983]_ provides that ``la`` is associated
+        to an idempotent `f_\mu`, where `\mu` is the `p`-core of ``la``.
         This `f_\mu` is a sum of classical idempotents,
 
         .. MATH::
@@ -1045,19 +1045,14 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         where the sum ranges over the partitions `\lambda` of `n` with
         `p`-core equal to `\mu`.
 
-        REFERENCES:
-
-        .. [Mur1983] G. E. Murphy. *The idempotents of the symmetric group
-           and Nakayama's conjecture*. J. Algebra **81** (1983). 258-265.
-
         INPUT:
 
         - ``la`` -- a partition of ``self.n`` or a
           ``self.base_ring().characteristic()``-core of such
           a partition
 
-        - ``block`` -- boolean (default: ``True``); when ``False``, this
-          returns the classical idempotent associated to ``la``
+        - ``block`` -- boolean (default: ``True``); when ``False``,
+          this returns the classical idempotent associated to ``la``
           (defined over `\QQ`)
 
         OUTPUT:
@@ -1082,10 +1077,12 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
              + 1/8*(1,4,2,3) - 1/8*(1,4)(2,3)
             sage: S2.central_orthogonal_idempotent([2,1,1])
             ()
-            sage: S3.central_orthogonal_idempotent([4])
+            sage: idem = S3.central_orthogonal_idempotent([4]); idem
              () + (1,2)(3,4) + (1,3)(2,4) + (1,4)(2,3)
-            sage: _ == S3.central_orthogonal_idempotent([1,1,1,1])
+            sage: idem == S3.central_orthogonal_idempotent([1,1,1,1])
             True
+            sage: S3.central_orthogonal_idempotent([2,2])
+            () + (1,2)(3,4) + (1,3)(2,4) + (1,4)(2,3)
 
         Asking for block idempotents in any characteristic, by
         passing `p`-cores::
@@ -1102,6 +1099,8 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             ValueError: the 2-core of [1] is not a 2-core of a partition of 4
             sage: S3.central_orthogonal_idempotent([1])
             () + (1,2)(3,4) + (1,3)(2,4) + (1,4)(2,3)
+            sage: S3.central_orthogonal_idempotent([7])
+            () + (1,2)(3,4) + (1,3)(2,4) + (1,4)(2,3)
 
         Asking for classical idempotents::
 
@@ -1116,35 +1115,61 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         .. SEEALSO::
 
             - :meth:`sage.combinat.partition.Partition.core`
-            - :meth:`sage.combinat.symmetric_group_algebra.cpi_over_QQ`
         """
-        if not la in _Partitions:
-            raise ValueError("{0} is not a partition of a nonnegative integer".format(la))
-
+        la = _Partitions(la)
         R = self.base_ring()
         p = R.characteristic()
-        G = self._indices
 
         if not block or not p:
-            if sum(la) != self.n:
+            if la in self._idempotent_cache:
+                return self._idempotent_cache[la]
+            if la.size() != self.n:
                 raise ValueError("{0} is not a partition of integer {1}".format(la, self.n))
-            cpi = cpi_over_QQ(la)
         else:
-            mu = _Partitions(la).core(p)
-            if mu in self._blocks_dictionary():
-                cpi = sum(cpi_over_QQ(lam) for lam in self._blocks_dictionary()[mu])
-            else:
+            mu = la.core(p)
+            if mu in self._idempotent_cache:
+                return self._idempotent_cache[mu]
+            if mu not in self._blocks_dictionary:
                 raise ValueError("the {1}-core of {0} is not a {1}-core of a partition of {2}".format(la, p, self.n))
 
-        denoms = set(R(c.denominator()) for c in cpi.coefficients())
-        if not all(denoms):
-            return None
+        from sage.libs.gap.libgap import libgap
+        from sage.data_structures.blas_dict import iaxpy
+        G = self._indices
+        character_table = [c.sage() for c in libgap.Irr(libgap.SymmetricGroup(self.n))]
+        Pn = Partitions_n(self.n)
+        C = Pn.cardinality()
+        # We get the indices of the partitions in the reverse lex order
+        #   (i.e., reverse of the iteration order of partitions).
+        indices = {lam: C-1-i for i,lam in enumerate(Pn)}
+
+        def cpi_over_QQ(lam):
+            lam_index = indices[lam]
+            big_coeff = character_table[lam_index][0] / factorial(self.n)
+            character_row = character_table[lam_index]
+            return {g: big_coeff * character_row[indices[g.cycle_type()]]
+                    for g in G}
+
+        if not block or not p:
+            cpi = cpi_over_QQ(la)
         else:
-            return self.sum_of_terms((G(g), R(c)) for (g, c) in iter(cpi))
+            cpi = {}
+            for lam in self._blocks_dictionary[mu]:
+                iaxpy(1, cpi_over_QQ(lam), cpi)
+
+        if not all(R(cpi[g].denominator()) for g in cpi):
+            return None
+
+        ret = self.element_class(self, {g: R(cpi[g]) for g in cpi if R(cpi[g])})
+        if not block or not p:
+            self._idempotent_cache[la] = ret
+        else:
+            self._idempotent_cache[mu] = ret
+        return ret
 
     cpis = deprecated_function_alias(25942, central_orthogonal_idempotents)
     cpi = deprecated_function_alias(25942, central_orthogonal_idempotent)
 
+    @lazy_attribute
     def _blocks_dictionary(self):
         r"""
         Return the partitions of ``self.n``, themselves partitioned
@@ -1160,16 +1185,16 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
         TESTS::
 
-            sage: B2 = SymmetricGroupAlgebra(GF(2), 4)._blocks_dictionary()
+            sage: B2 = SymmetricGroupAlgebra(GF(2), 4)._blocks_dictionary
             sage: [tuple(B2[key]) for key in sorted(B2)]
             [([4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1])]
-            sage: B3 = SymmetricGroupAlgebra(GF(3), 4)._blocks_dictionary()
+            sage: B3 = SymmetricGroupAlgebra(GF(3), 4)._blocks_dictionary
             sage: [tuple(B3[key]) for key in sorted(B3)]
             [([4], [2, 2], [1, 1, 1, 1]), ([2, 1, 1],), ([3, 1],)]
-            sage: B5 = SymmetricGroupAlgebra(GF(5), 4)._blocks_dictionary()
+            sage: B5 = SymmetricGroupAlgebra(GF(5), 4)._blocks_dictionary
             sage: [tuple(B5[key]) for key in sorted(B5)]
             [([1, 1, 1, 1],), ([2, 1, 1],), ([2, 2],), ([3, 1],), ([4],)]
-            sage: B5 == SymmetricGroupAlgebra(QQ, 4)._blocks_dictionary()
+            sage: B5 == SymmetricGroupAlgebra(QQ, 4)._blocks_dictionary
             True
 
         .. SEEALSO::
@@ -1178,7 +1203,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         """
         p = self.base_ring().characteristic()
         if not p:
-            return {la:[la] for la in Partitions_n(self.n)}
+            return {la: [la] for la in Partitions_n(self.n)}
 
         blocks = {}
         for la in Partitions_n(self.n):
@@ -1946,72 +1971,6 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             return z
         else:
             return z.map_support(lambda x: x.inverse())
-
-@cached_function(key=lambda x: _Partitions(x))
-def cpi_over_QQ(la):
-    """
-    Return the primitive central idempotent for the symmetric group
-    algebra over `QQ` of order ``n`` corresponding to the
-    irreducible representation indexed by the partition ``la``.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.symmetric_group_algebra import cpi_over_QQ
-        sage: e = cpi_over_QQ([2,1]); e
-        2/3*[1, 2, 3] - 1/3*[2, 3, 1] - 1/3*[3, 1, 2]
-        sage: cpi_over_QQ([3])
-        1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
-        sage: cpi_over_QQ([1,1,1])
-        1/6*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] - 1/6*[3, 2, 1]
-
-        sage: cpi_over_QQ(Partition([]))
-        []
-
-    TESTS::
-
-        sage: cpi_over_QQ([1,3])
-        Traceback (most recent call last):
-        ...
-        ValueError: [1, 3] is not an element of Partitions
-        sage: e = cpi_over_QQ([3,1]); e
-        3/8*[1, 2, 3, 4] + 1/8*[1, 2, 4, 3] + 1/8*[1, 3, 2, 4]
-        + 1/8*[1, 4, 3, 2] + 1/8*[2, 1, 3, 4] - 1/8*[2, 1, 4, 3]
-        - 1/8*[2, 3, 4, 1] - 1/8*[2, 4, 1, 3] - 1/8*[3, 1, 4, 2]
-        + 1/8*[3, 2, 1, 4] - 1/8*[3, 4, 1, 2] - 1/8*[3, 4, 2, 1]
-        - 1/8*[4, 1, 2, 3] + 1/8*[4, 2, 3, 1] - 1/8*[4, 3, 1, 2]
-        - 1/8*[4, 3, 2, 1]
-
-        sage: QS4_Z3 = SymmetricGroupAlgebra(GF(3), 4)
-        sage: e in QS4_Z3
-        False
-        sage: QS4_Z3.sum_of_terms((g, GF(3)(c)) for (g, c) in iter(e))
-        2*[1, 2, 4, 3] + 2*[1, 3, 2, 4] + 2*[1, 4, 3, 2]
-         + 2*[2, 1, 3, 4] + [2, 1, 4, 3] + [2, 3, 4, 1]
-         + [2, 4, 1, 3] + [3, 1, 4, 2] + 2*[3, 2, 1, 4]
-         + [3, 4, 1, 2] + [3, 4, 2, 1] + [4, 1, 2, 3]
-         + 2*[4, 2, 3, 1] + [4, 3, 1, 2] + [4, 3, 2, 1]
-    """
-    if la not in _Partitions:
-        raise ValueError("{0} is not an element of Partitions".format(la))
-    else:
-        la = _Partitions(la)
-    n = la.size()
-
-    character_table = [c.sage() for c in libgap.Irr(libgap.SymmetricGroup(n))]
-
-    Pn = Partitions_n(n)
-    C = Pn.cardinality()
-    indices = {lam: C-1-i for i,lam in enumerate(Pn)}
-    la_index = indices[la]
-
-    big_coeff = character_table[la_index][0] / factorial(n)
-
-    character_row = character_table[la_index]
-    dct = {}
-    for g in Permutations(n):
-        coeff = big_coeff * character_row[indices[g.cycle_type()]]
-        dct[g] = coeff
-    return SymmetricGroupAlgebra(QQ, n)._from_dict(dct)
 
 
 epsilon_ik_cache = {}

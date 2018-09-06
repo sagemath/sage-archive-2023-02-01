@@ -499,7 +499,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: v
             [1, 5, 3, 4]
             sage: type(v[2])
-            <class 'sage.rings.integer.Integer'>
+            <type 'sage.rings.integer.Integer'>
         """
         self._require_mutable()
         if isinstance(n, slice):
@@ -553,7 +553,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: v = Sequence([1/3,2,3,4])
             sage: v.append(4)
             sage: type(v[4])
-            <class 'sage.rings.rational.Rational'>
+            <type 'sage.rings.rational.Rational'>
         """
         self._require_mutable()
         y = self.__universe(x)
@@ -624,7 +624,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         INPUT:
 
         - ``key`` - see Python ``list sort``
-        
+
         - ``reverse`` - see Python ``list sort``
 
         EXAMPLES::
@@ -791,7 +791,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             True
             sage: a[0] = 100
             sage: type(a[0])
-            <class 'sage.rings.rational.Rational'>
+            <type 'sage.rings.rational.Rational'>
             sage: a.set_immutable()
             sage: a[0] = 50
             Traceback (most recent call last):

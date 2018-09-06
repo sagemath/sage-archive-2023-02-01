@@ -1142,19 +1142,32 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         #   (i.e., reverse of the iteration order of partitions).
         indices = {lam: C-1-i for i,lam in enumerate(Pn)}
 
-        def cpi_over_QQ(lam):
-            lam_index = indices[lam]
-            big_coeff = character_table[lam_index][0] / factorial(self.n)
-            character_row = character_table[lam_index]
-            return {g: big_coeff * character_row[indices[g.cycle_type()]]
-                    for g in G}
-
         if not block or not p:
-            cpi = cpi_over_QQ(la)
+            la_index = indices[la]
+            big_coeff = character_table[la_index][0] / factorial(self.n)
+            character_row = character_table[lam_index]
+            cpi = {g: big_coeff * character_row[indices[g.cycle_type()]]
+                    for g in G}
         else:
+            # We compute the cycle types of the permutations
+            cycles = {}
+            for g in G:
+                ind = indices[g.cycle_type()]
+                if ind in cycles:
+                    cycles[ind].append(g)
+                else:
+                    cycles[ind] = [g]
+
+            denom = factorial(self.n)
             cpi = {}
             for lam in self._blocks_dictionary[mu]:
-                iaxpy(1, cpi_over_QQ(lam), cpi)
+                lam_index = indices[lam]
+                big_coeff = character_table[lam_index][0] / denom
+                character_row = character_table[lam_index]
+                iaxpy(1,
+                     {g: big_coeff * character_row[ind]
+                      for ind in cycles for g in cycles[ind]},
+                     cpi)
 
         if not all(R(cpi[g].denominator()) for g in cpi):
             return None

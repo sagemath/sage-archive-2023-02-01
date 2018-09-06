@@ -108,13 +108,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return self.valuation() >= prec
 
     def inverse_of_unit(self):
-        exp, c = self._coefficients()[0]
-        if max(exp) != 0:
+        if not self.is_unit():
             raise ValueError("This series in not invertible")
+        exp, c = self._coefficients()[0]
         parent = self._parent
-        base = parent.base_ring()
-        if not base.is_field() and c.valuation() > 0:
-            raise ValueError("This series is not invertible")
         v, c = c.val_unit()
         cap = parent.precision_cap()
         inv = parent(c.inverse_of_unit(), prec=cap)
@@ -126,6 +123,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return inv << v
 
     def is_unit(self):
+        if self.is_zero():
+            return False
         exp, c = self._coefficients()[0]
         if max(exp) != 0:
             return False
@@ -166,10 +165,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     def leading_term(self):
         if self.is_zero():
-            return self.__class__(0)
+            return self._parent(0)
         lt = self._coefficients()[0]
         poly = self._parent._polynomial_ring.monomial(*lt[0])
-        return lt[1] * self._parent(poly)
+        return self._parent(lt[1] * poly)
 
     def leading_coefficient(self):
         if self.is_zero():
@@ -179,7 +178,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         
     def leading_monomial(self):
         if self.is_zero():
-            return self.base_ring(0)
+            return self._parent(0)
         lt = self._coefficients()[0]
         poly = self._parent._polynomial_ring.monomial(*lt[0])
         return self._parent(poly)
@@ -229,13 +228,15 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     def quo_rem(self, *divisors):
         parent = self._parent
         nvars = parent.ngens()
-        q = [ parent(0) ] * len(divisors)
-        r = parent(0)
-        ltds = [ d._lt() for d in divisors ]
+        ltds = [ d._coefficients()[0] for d in divisors ]
         # TODO: do everything on self._poly
-        while not self.is_zero():
-            lt = self._lt()
-            found = False
+        cap = parent.precision_cap()
+        f = self.add_bigoh(cap)
+        q = [ parent(0, cap - d.valuation()) for d in divisors ]
+        r = parent(0, cap)
+        while not f.is_zero():
+            lt = f._coefficients()[0]
+            found = False; i = 0
             while not found and i < len(divisors):
                 ltd = ltds[i]
                 is_divisible = ltd[1].valuation() <= lt[1].valuation()
@@ -250,11 +251,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             if found:
                 exponent = ( lt[0][j] - ltd[0][j] for j in range(nvars) )
                 factor = (lt[1]//ltd[1]) * parent._polynomial_ring.monomial(*exponent)
-                self -= factor * divisors[i]
+                factor = parent(factor)
+                f -= factor * divisors[i]
                 q[i] += factor
             else:
-                self -= self.leading_term()
-                r += self.leading_term()
+                lt = f.leading_term()
+                f -= lt; r += lt
         return q, r
 
     def __mod__(self, divisors):

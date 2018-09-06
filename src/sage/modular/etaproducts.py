@@ -814,6 +814,7 @@ class CuspFamily(SageObject):
         else:
             return "(c_{%s%s})" % (self.width(), ((self.label and (","+self.label)) or ""))
 
+
 def qexp_eta(ps_ring, prec):
     r"""
     Return the q-expansion of `\eta(q) / q^{1/24}`, where
@@ -823,15 +824,13 @@ def qexp_eta(ps_ring, prec):
 
         \eta(q) = q^{1/24}\prod_{n=1}^\infty (1-q^n),
 
-
     as an element of ps_ring, to precision prec.
 
     INPUT:
 
-    -  ``ps_ring`` - (PowerSeriesRing): a power series ring
+    -  ``ps_ring`` -- (PowerSeriesRing): a power series ring
 
-    -  ``prec`` - (integer): the number of terms to compute.
-
+    -  ``prec`` -- (integer): the number of terms to compute
 
     OUTPUT: An element of ps_ring which is the q-expansion of
     `\eta(q)/q^{1/24}` truncated to prec terms.
@@ -851,7 +850,8 @@ def qexp_eta(ps_ring, prec):
         1 - q - q^2 + q^5 + q^7 - q^12 - q^15 + q^22 + q^26 - q^35 - q^40 + q^51 + q^57 - q^70 - q^77 + q^92 + O(q^100)
     """
     prec = Integer(prec)
-    assert prec > 0, "prec must be a positive integer"
+    if not prec > 0:
+        raise ValueError("prec must be a positive integer")
     v = [Integer(0)] * prec
     pm = Integer(1)
     v[0] = pm

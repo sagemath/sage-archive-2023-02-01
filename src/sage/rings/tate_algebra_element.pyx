@@ -7,21 +7,28 @@ from sage.rings.integer_ring import ZZ
 
 cdef class TateAlgebraElement(CommutativeAlgebraElement):
     def __init__(self, parent, x, prec=None, reduce=True):
-        cdef TateAlgebraElement other
+        cdef TateAlgebraElement xc
         CommutativeAlgebraElement.__init__(self, parent)
         self._prec = Infinity
         S = parent._polynomial_ring
         if isinstance(x, TateAlgebraElement):
-            other = <TateAlgebraElement>x
-            if x.parent() is parent:
-                self._poly = other._poly
-                self._prec = other._prec
-            else:
-                self._poly = S(other._poly)
-                if other._prec is Infinity:
+            xc = <TateAlgebraElement>x
+            xparent = x.parent()
+            if xparent is parent:
+                self._poly = xc._poly
+                self._prec = xc._prec
+            elif xparent.variable_names() == parent.variable_names():
+                ratio = parent._base.absolute_e() / xparent.base_ring().absolute_e()
+                for i in range(parent.ngens()):
+                    if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
+                        raise ValueError("Cannot restrict to a bigger domain")
+                self._poly = S(xc._poly)
+                if xc._prec is Infinity:
                     self._prec = Infinity
                 else:
-                    self._prec = other._prec * S.absolute_e() // x.base_ring().absolute_e()
+                    self._prec = (xc._prec * ratio).ceil()
+            else:
+                raise TypeError("Variable names do not match")
         else:
             self._poly = S(x)
         if prec is not None:
@@ -101,21 +108,37 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return self.valuation() >= prec
 
     def inverse_of_unit(self):
-        c, exp = self._coefficients()[0]
+        exp, c = self._coefficients()[0]
         if max(exp) != 0:
             raise ValueError("This series in not invertible")
-        base = self.base_ring()
+        parent = self._parent
+        base = parent.base_ring()
         if not base.is_field() and c.valuation() > 0:
             raise ValueError("This series is not invertible")
         v, c = c.val_unit()
-        inv = self(c.inverse_of_unit())
-        cap = self._parent.precision_cap()
+        cap = parent.precision_cap()
+        inv = parent(c.inverse_of_unit(), prec=cap)
         x = self.add_bigoh(cap)
         prec = 1
         while prec < cap:
             prec *= 2
-            inv = 2*inv - self*inv^2
+            inv = 2*inv - self*inv*inv
         return inv << v
+
+    def is_unit(self):
+        exp, c = self._coefficients()[0]
+        if max(exp) != 0:
+            return False
+        base = self.base_ring()
+        if not base.is_field() and c.valuation() > 0:
+            return False
+        return True
+
+    def restriction(self, log_radii):
+        parent = self._parent
+        from sage.rings.tate_algebra import TateAlgebra
+        ring = TateAlgebra(self.base_ring(), parent.variable_names(), log_radii, parent.precision_cap(), parent.term_order())
+        return ring(self)
 
     def dict(self):
         return self._poly.dict()

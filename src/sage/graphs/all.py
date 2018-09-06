@@ -14,7 +14,6 @@ import sage.graphs.lovasz_theta
 import sage.graphs.partial_cube
 from . import graph_list as graphs_list
 lazy_import("sage.graphs", "graph_coloring")
-from sage.graphs.cliquer import *
 from .graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")
 
@@ -28,4 +27,20 @@ Test that sagenb.misc.support is not imported (see :trac:`22941`)::
     sage: import sage.graphs.graph_editor
     sage: 'sagenb.misc.support' in sys.modules
     False
+
+Test that methods all_max_clique, max_clique and clique_number from
+sage.graphs.cliquer are no longer in the global namespace (:trac:`26200`)::
+
+    sage: all_max_clique(Graph())
+    Traceback (most recent call last):
+    ...
+    NameError: name 'all_max_clique' is not defined
+    sage: max_clique(Graph())
+    Traceback (most recent call last):
+    ...
+    NameError: name 'max_clique' is not defined
+    sage: clique_number(Graph())
+    Traceback (most recent call last):
+    ...
+    NameError: name 'clique_number' is not defined
 """

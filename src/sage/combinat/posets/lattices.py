@@ -4180,22 +4180,40 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         lattices. The same reference gives a test for being constructible by
         convex or by any subset.
         """
+        from sage.combinat.set_partition import SetPartition
+
         if type not in ['interval', 'lower', 'upper', 'convex', 'any']:
             raise ValueError("type must be one of 'interval', 'lower', 'upper', 'convex' or 'any'")
 
         if self.cardinality() < 5:
             return True
 
-        if type == 'interval':
-            return (len(self.join_irreducibles()) ==
-                    len(self.meet_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
+        if (type == 'interval' and len(self.join_irreducibles()) !=
+            len(self.meet_irreducibles())):
+            return False
+
+        if type == 'upper' or type == 'interval':
+            H = self._hasse_diagram
+            found = set()
+            for v in H:
+                if H.out_degree(v) == 1:
+                    S = SetPartition(H.congruence([[v, next(H.neighbor_out_iterator(v))]]))
+                    if S in found:
+                        return False
+                    found.add(S)
+            return True
+
         if type == 'lower':
-            return (len(self.join_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
-        if type == 'upper':
-            return (len(self.meet_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
+            H = self._hasse_diagram
+            found = set()
+            for v in H:
+                if H.in_degree(v) == 1:
+                    S = SetPartition(H.congruence([[v, next(H.neighbor_in_iterator(v))]]))
+                    if S in found:
+                        return False
+                    found.add(S)
+            return True
+
         if type == 'convex':
             return self._hasse_diagram.is_congruence_normal()
         # type == 'any'

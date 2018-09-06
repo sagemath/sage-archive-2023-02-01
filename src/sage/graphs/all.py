@@ -14,6 +14,9 @@ import sage.graphs.lovasz_theta
 import sage.graphs.partial_cube
 from . import graph_list as graphs_list
 lazy_import("sage.graphs", "graph_coloring")
+lazy_import("sage.graphs.cliquer", ['all_max_clique', 'max_clique',
+                                    'clique_number'],
+            deprecation=26200)
 from .graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")
 
@@ -32,15 +35,15 @@ Test that methods all_max_clique, max_clique and clique_number from
 sage.graphs.cliquer are no longer in the global namespace (:trac:`26200`)::
 
     sage: all_max_clique(Graph())
-    Traceback (most recent call last):
-    ...
-    NameError: name 'all_max_clique' is not defined
+    doctest:...: DeprecationWarning: Importing all_max_clique from here is deprecated. If you need to use it, please import it directly from sage.graphs.cliquer
+    See https://trac.sagemath.org/26200 for details.
+    [[]]
     sage: max_clique(Graph())
-    Traceback (most recent call last):
-    ...
-    NameError: name 'max_clique' is not defined
+    doctest:...: DeprecationWarning: Importing max_clique from here is deprecated. If you need to use it, please import it directly from sage.graphs.cliquer
+    See https://trac.sagemath.org/26200 for details.
+    []
     sage: clique_number(Graph())
-    Traceback (most recent call last):
-    ...
-    NameError: name 'clique_number' is not defined
+    doctest:...: DeprecationWarning: Importing clique_number from here is deprecated. If you need to use it, please import it directly from sage.graphs.cliquer
+    See https://trac.sagemath.org/26200 for details.
+    0
 """

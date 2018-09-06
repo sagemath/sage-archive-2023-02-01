@@ -16,6 +16,64 @@ DEFAULT_CAP = 20
 
 class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
     def __init__(self, base, names, log_radii=QQ(0), prec=None, order='degrevlex'):
+        r"""
+        Create a Tate series ring over a given complete discrete valuation
+        ring.
+
+        Given a complete discrete valuation ring R, variables
+        X1,...,Xk and weights r1,..., rn in RR_{>0}, the Tate algebra
+        R{X1,...,Xk} is the algebra of power series with coefficients
+        a_{i1,...,in} in R and such that
+        |a_{i1,...,in}|*r1^i1*...*rn^in tends to 0 as i1,...,in go
+        towards infinity.
+
+        
+        INPUT:
+
+        - ``base`` - a complete discrete valuation ring or field
+
+        - ``names`` - names of the indeterminates
+
+        - ``log-radii`` - (default: 1) the value(s) -log(ri). If only
+          one number l is given, all ri's are defined with -log(ri)=l.
+
+        - ``prec`` - the default precision used if an exact object
+          must be changed to an approximate object in order to do an
+          arithmetic operation. If left as ``None``, it will be set to
+          the default precision of the base ring, if any. Otherwise,
+          it will be set to the default cap in precision of the base
+          ring, if any. Otherwise, it will be set to the global
+          default (20).
+
+        - ``order`` - (default: ``degrevlex``) the monomial ordering used to break ties when comparing terms with the same coefficient valuation
+
+        EXAMPLES ::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+
+        ::
+        
+            sage: A.<x,y> = TateAlgebra(R, order='lex'); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+
+        The term ordering is used to determine how series are
+        displayed. Terms are compared first according to the valuation
+        of their coefficient, and ties are broken using the monomial
+        ordering.
+
+            sage: A.term_order()
+            Lexicographic term order
+            sage: f = 2 + y^5 + x^2; f
+            (...0000000001)*x^2 + (...0000000001)*y^5 + (...00000000010)
+            sage: B.<x,y> = TateAlgebra(R); B
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 1
+            sage: B.term_order()
+            Degree reverse lexicographic term order
+            sage: B(f)
+            (...0000000001)*y^5 + (...0000000001)*x^2 + (...00000000010)
+
+        """
         if base not in CompleteDiscreteValuationRings() and base not in CompleteDiscreteValuationFields():
             raise TypeError("The base ring must be a complete discrete valuation ring or field")
         if isinstance(names, (list, tuple)):

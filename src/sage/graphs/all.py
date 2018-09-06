@@ -32,7 +32,7 @@ Test that sagenb.misc.support is not imported (see :trac:`22941`)::
     False
 
 Test that methods all_max_clique, max_clique and clique_number from
-sage.graphs.cliquer are no longer in the global namespace (:trac:`26200`)::
+sage.graphs.cliquer are deprecated from the global namespace (:trac:`26200`)::
 
     sage: all_max_clique(Graph())
     doctest:...: DeprecationWarning: Importing all_max_clique from here is deprecated. If you need to use it, please import it directly from sage.graphs.cliquer

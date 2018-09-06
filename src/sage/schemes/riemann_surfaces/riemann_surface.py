@@ -299,9 +299,9 @@ def differential_basis_baker(f):
         if len(B.monomials()) > 1:
             return None
     from sage.geometry.polyhedron.constructor import Polyhedron
-    D = { (k[0],k[1]): v for k,v in f.dict().iteritems()}
+    D = { (k[0],k[1]): v for k,v in f.dict().items() }
     P = Polyhedron(D)
-    kT=k['t']
+    kT = k['t']
     #here we check the additional genericity conditions: that the polynomials
     #along the edges of the newton polygon are square-free.
     for e in P.bounded_edges():

@@ -129,7 +129,6 @@ class Tarball(object):
         """
         Test whether the checksum of the downloaded file is correct.
         """
-        return True
         sha1 = self._compute_sha1()
         return sha1 == self.package.sha1
 

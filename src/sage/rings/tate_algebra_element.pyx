@@ -1,78 +1,180 @@
+from sage.structure.element cimport Element
 from sage.structure.element cimport CommutativeAlgebraElement
+
 from sage.rings.infinity import Infinity
 
 from sage.rings.integer_ring import ZZ
 
 cdef class TateAlgebraElement(CommutativeAlgebraElement):
     def __init__(self, parent, x, prec=None, reduce=True):
+        cdef TateAlgebraElement other
         CommutativeAlgebraElement.__init__(self, parent)
         self._prec = Infinity
-        self._start = Infinity
         S = parent._polynomial_ring
         if isinstance(x, TateAlgebraElement):
+            other = <TateAlgebraElement>x
             if x.parent() is parent:
-                self._poly = x._poly
-                self._prec = x._prec
+                self._poly = other._poly
+                self._prec = other._prec
             else:
-                self._poly = S(x._poly)
-                self._prec = x._prec * S.absolute_e() // x.base_ring().absolute_e()
+                self._poly = S(other._poly)
+                if other._prec is Infinity:
+                    self._prec = Infinity
+                else:
+                    self._prec = other._prec * S.absolute_e() // x.base_ring().absolute_e()
         else:
             self._poly = S(x)
         if prec is not None:
             self._prec = min(self._prec, prec)
         if reduce:
             self._poly = self._poly.map_coefficients(lambda c: c.add_bigoh(self._prec))
+        self._coeffs = None
+
+    def _repr_(self):
+        base = self._parent.base_ring()
+        nvars = self._parent.ngens()
+        vars = self._parent.variable_names()
+        s = ""
+        for (e,c) in self._coefficients():
+            if c.valuation() >= self._prec:
+                continue
+            s += " + (%s)" % c
+            for i in range(nvars):
+                if e[i] == 1:
+                    s += "*%s" % vars[i]
+                elif e[i] > 1:
+                    s += "*%s^%s" % (vars[i], e[i])
+        if self._prec is not Infinity:
+            # Only works with padics...
+            s += " + %s" % base.change(show_prec="bigoh")(0, self._prec)
+        if s == "":
+            return "0"
+        return s[3:]
 
     def polynomial(self):
         return self._poly
 
-    def _add_(self, other):
-        return self.__class__()(self._poly + other.polynomial(), min(self._prec, other.precision_absolute()))
+    cpdef _add_(self, other):
+        return self._parent(self._poly + other.polynomial(), min(self._prec, other.precision_absolute()))
 
-    def _neg_(self, other):
-        return self.__class__()(-self._poly, self._prec, reduce=False)
+    cpdef _neg_(self):
+        return self._parent(-self._poly, self._prec, reduce=False)
 
-    def _sub_(self, other):
-        return self.__class__()(self._poly - other.polynomial(), min(self._prec, other.precision_absolute()))
+    cpdef _sub_(self, other):
+        return self._parent(self._poly - other.polynomial(), min(self._prec, other.precision_absolute()))
 
-    def _mul_(self, other):
+    cpdef _mul_(self, other):
         prec = min(self._prec + other.valuation(), other.precision_absolute() + self.valuation())
-        return self.__class__()(self._poly * other.polynomial(), prec)
+        return self._parent(self._poly * other.polynomial(), prec)
 
-    def is_zero(self):
-        # This assumes that self._poly is reduced
-        return self._poly == 0
+    cpdef _lmul_(self, Element right):
+        other = self._parent._base(right)
+        prec = self._prec + other.valuation()
+        return self._parent(self._poly * other, prec)
+
+    def _lshift(self, n):
+        parent = self._parent
+        base = parent.base_ring()
+        if base.is_field():
+            poly = self._poly.map_coefficients(lambda c: c << n)
+            return parent(poly, self._prec + n, reduce=False)
+        else:
+            coeffs = { }
+            field = base.fraction_field()
+            ngens = parent.ngens()
+            for exp, c in self._poly.dict().iteritems():
+                minval = sum([ exp[i] * parent.log_radii()[i] for i in range(parent.ngens()) ]).ceil()
+                coeffs[exp] = field(base(c) >> (minval-n)) << minval
+            return parent(coeffs, self._prec + n, reduce=False)
+
+    def __lshift__(self, n):
+        return self._lshift(n)
+
+    def __rshift__(self, n):
+        return self._lshift(-n)
+
+    def is_zero(self, prec=None):
+        if prec is None:
+            # This assumes that self._poly is reduced
+            return self._poly == 0
+        else:
+            return self.valuation() >= prec
 
     def inverse_of_unit(self):
-        pass
+        c, exp = self._coefficients()[0]
+        if max(exp) != 0:
+            raise ValueError("This series in not invertible")
+        base = self.base_ring()
+        if not base.is_field() and c.valuation() > 0:
+            raise ValueError("This series is not invertible")
+        v, c = c.val_unit()
+        inv = self(c.inverse_of_unit())
+        cap = self._parent.precision_cap()
+        x = self.add_bigoh(cap)
+        prec = 1
+        while prec < cap:
+            prec *= 2
+            inv = 2*inv - self*inv^2
+        return inv << v
 
-    @cached_method
-    def _lt(self):
+    def dict(self):
+        return self._poly.dict()
+
+    def _coefficients(self):
+        if self._coeffs is not None:
+            return self._coeffs
         if self.is_zero():
-            return ((ZZ(0),) * self.ngens(), self.base_ring()(0))
-        terms = list(self._poly.dict().iteritems())
-        T = self._parent._order
-        sortkey = lambda c: (-c[1].valuation(), T.sortkey(c[0]))
-        return max(terms, key=sortkey)
-  
+            self._coeffs = []
+        else:
+            parent = self._parent
+            self._coeffs = list(self.dict().iteritems())
+            log_radii = parent.log_radii()
+            ngens = parent.ngens()
+            T = parent.term_order()
+            sortkey = lambda c: (-c[1].valuation() + sum(c[0][i]*log_radii[i] for i in range(ngens)), T.sortkey(c[0]))
+            self._coeffs.sort(key=sortkey, reverse=True)
+        return self._coeffs
+
+    def coefficients(self):
+        return [ c for (c,exp) in self._coefficients ]
+
+    def add_bigoh(self, n):
+        return self._parent(self, prec=n)
+
     def leading_term(self):
-        lt = self._lt()
+        if self.is_zero():
+            return self.__class__(0)
+        lt = self._coefficients()[0]
         poly = self._parent._polynomial_ring.monomial(*lt[0])
-        return lt[1] * self.__class__(poly)
+        return lt[1] * self._parent(poly)
 
     def leading_coefficient(self):
-        lt = self._lt()
+        if self.is_zero():
+            return self.base_ring(0)
+        lt = self._coefficients()[0]
         return lt[1]
         
     def leading_monomial(self):
-        lt = self._lt()
-        return self._parent._polynomial_ring.monomial(*lt[0])
+        if self.is_zero():
+            return self.base_ring(0)
+        lt = self._coefficients()[0]
+        poly = self._parent._polynomial_ring.monomial(*lt[0])
+        return self._parent(poly)
 
     def precision_absolute(self):
         return self._prec
 
     def valuation(self):
-        return self.leading_coefficient().valuation()
+        cap = self._parent.precision_cap()
+        if self.is_zero():
+            return cap
+        else:
+            parent = self._parent
+            log_radii = parent.log_radii()
+            ngens = parent.ngens()
+            lt = self._coefficients()[0]
+            val = lt[1].valuation() - sum(lt[0][i]*log_radii[i] for i in range(ngens))
+            return min(cap, val)
 
     def precision_relative(self):
         return self._prec - self.valuation()
@@ -92,10 +194,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self.weierstrass_degrees()
 
     def residue(self, n=1):
+        for r in self._parent.radii():
+            if r != 1:
+                raise NotImplementedError("Residues are only implemented for radius 1")
         try:
             Rn = self.base_ring().residue_ring(n)
         except (AttributeError, NotImplementedError):
-            Rn = self.base_ring().change(type="fixed-mod", prec=n)
+            Rn = self.base_ring().change(field=False, type="fixed-mod", prec=n)
         return self._poly.change_ring(Rn)
 
     def quo_rem(self, *divisors):

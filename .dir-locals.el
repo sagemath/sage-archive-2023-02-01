@@ -3,9 +3,7 @@
 
 ((nil
   ;; Use space instead of tabs for indentation
-  (indent-tabs-mode . nil)
- )
+  (indent-tabs-mode . nil))
  (makefile-mode
   ;; But use tabs in Makefiles
-  (indent-tabs-mode . t))
- )
+  (indent-tabs-mode . t)))

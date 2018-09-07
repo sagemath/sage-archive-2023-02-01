@@ -207,6 +207,9 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
     def log_radii(self):
         return self._log_radii
 
+    def monoid_of_terms(self):
+        return self._parent_terms
+
     def term_order(self):
         return self._order
 

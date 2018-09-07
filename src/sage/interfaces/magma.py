@@ -2777,29 +2777,6 @@ def magma_console():
     console('sage-native-execute magma')
 
 
-def magma_version():
-    """
-    Return the version of Magma that you have in your PATH on your
-    computer.
-
-    OUTPUT:
-
-
-    -  ``numbers`` - 3-tuple: major, minor, etc.
-
-    -  ``string`` - version as a string
-
-
-    EXAMPLES::
-
-        sage: magma_version()       # random, optional - magma
-        ((2, 14, 9), 'V2.14-9')
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(20388, 'This function has been deprecated. Use magma.version() instead.')
-    return magma.version()
-
-
 class MagmaGBLogPrettyPrinter:
     """
     A device which filters Magma Groebner basis computation logs.
@@ -2883,6 +2860,8 @@ class MagmaGBLogPrettyPrinter:
             Highest degree reached during computation:  3.
         """
         self.verbosity = verbosity
+        if style not in ['sage', 'magma']:
+            raise ValueError('style must be sage or magma')
         self.style = style
 
         self.curr_deg = 0    # current degree

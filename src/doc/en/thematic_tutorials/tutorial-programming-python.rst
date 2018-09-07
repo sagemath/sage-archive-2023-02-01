@@ -711,8 +711,7 @@ braces, ``{}``, with comma-separated entries given in the form
 A second method is to use the constructor :class:`dict` which admits a
 list (or actually any iterable) of 2-tuples *(key, value)*::
 
-    sage: dd = dict((i,i^2) for i in xrange(10))  # py2
-    sage: dd = dict((i,i^2) for i in range(10))  # py3
+    sage: dd = dict((i,i^2) for i in range(10))
     sage: dd
     {0: 0, 1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81}
 

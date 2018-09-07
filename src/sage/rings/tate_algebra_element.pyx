@@ -1,10 +1,83 @@
 from sage.structure.element cimport Element
+from sage.structure.element cimport MonoidElement
 from sage.structure.element cimport CommutativeAlgebraElement
 
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
 
 from sage.structure.element import coerce_binop
+
+
+cdef class TateAlgebraTerm(MonoidElement):
+    def __init__(self, parent, coeff, exponent):
+        MonoidElement.__init__(self, parent)
+        self._field = parent.base_ring().fraction_field()
+        self._coeff = self._field(coeff)
+        if isinstance(exponent, (list, tuple)):
+            if len(exponent) != parent._ngens:
+                raise ValueError("The number of exponents does not match the number of variables")
+            self._exponent = tuple([ ZZ(e) for e in exponent ])
+        else:
+            self._exponent = (ZZ(exponent),) * parent._ngens
+
+    def _repr_(self):
+        parent = self._parent
+        s = "(%s)" % self._coeff
+        for i in range(parent._ngens):
+            if self._exponent[i] == 1:
+                s += "*%s" % parent._names[i]
+            elif self._exponent[i] > 1:
+                s += "*%s^%s" % (parent._names[i], self._exponent[i])
+        return s
+
+    def coefficient(self):
+        return self._coeff
+
+    def exponent(self):
+        return self._exponent
+
+    def _mul_(self, other):
+        exponent = tuple([ self._exponent[i] + other.exponent()[i] for i in range(self._parent._ngens) ])
+        return self._parent(self._coeff * other.coefficient(), exponent)
+
+    def valuation(self):
+        return self._coefficient.valuation() - sum(self._exponent[i]*self._log_radii[i] for i in range(self._parent._ngens))
+
+    @coerce_binop
+    def gcd(self, other):
+        exponent = tuple([ min(self._exponent[i], other.exponent()[i]) for i in range(self._parent._ngens) ])
+        val = min(self._coeff.valuation(), other.coefficient().valuation())
+        return self._parent(self._field.uniformizer_pow(val), exponent)
+
+    @coerce_binop
+    def lcm(self, other):
+        exponent = tuple([ max(self._exponent[i], other.exponent()[i]) for i in range(self._parent._ngens) ])
+        val = max(self._coeff.valuation(), other.coefficient().valuation())
+        return self._parent(self._field.uniformizer_pow(val), exponent)
+
+    @coerce_binop
+    def is_divisible_by(self, other):
+        if self.valuation() < other.valuation():
+            return False
+        for i in range(self._parent._ngens):
+            if self._exponent[i] < other.exponent()[i]:
+                return False
+        return True
+
+    def divides(self, other):
+        return other.is_divisible_by(self)
+
+    @coerce_binop
+    def __floordiv__(self, other):
+        parent = self._parent
+        if not parent.base_ring().is_field() and self.valuation() > other.valuation():
+            raise ValueError("The division is not exact")
+        exponent = [ ]
+        for i in range(parent._ngens):
+            if self._exponent[i] < other._exponent[i]:
+                raise ValueError("The division is not exact")
+            exponent.append(self._exponent[i] - other.exponent()[i])
+        return parent(self._coeff / other.coefficient(), tuple(exponent))
 
 
 cdef class TateAlgebraElement(CommutativeAlgebraElement):

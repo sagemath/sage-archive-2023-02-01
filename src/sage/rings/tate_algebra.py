@@ -1,18 +1,58 @@
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.monoids.monoid import Monoid_class
 from sage.rings.ring import CommutativeAlgebra
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
+from sage.categories.monoids import Monoids
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.tate_algebra_element import TateAlgebraTerm
 from sage.rings.tate_algebra_element import TateAlgebraElement
 
 from sage.categories.pushout import pushout
 
 DEFAULT_CAP = 20
+
+class TateTermMonoid(Monoid_class, UniqueRepresentation):
+    def __init__(self, base, names, log_radii, order):
+        # This function is not exposed to the user
+        # so we do not check the inputs
+        self.element_class = TateAlgebraTerm
+        Monoid_class.__init__(self, names)
+        self._base = base
+        self._names = names
+        self._ngens = len(self._names)
+        self._log_radii = log_radii
+        self._order = order
+
+    def _repr_(self):
+        if self._ngens == 0:
+            return "Monoid of terms over %s" % self._base
+        vars = ""
+        for i in range(self._ngens):
+            vars += ", %s (val >= %s)" % (self._names[i], -self._log_radii[i])
+        return "Monoid of terms in %s over %s" % (vars[2:], self._base)
+
+    def base_ring(self):
+        return self._base
+
+    def variable_names(self):
+        return self._names
+
+    def log_radii(self):
+        return self._log_radii
+
+    def term_order(self):
+        return self._order
+
+    def ngens(self):
+        return self._ngens
+
+
 
 class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
     def __init__(self, base, names, log_radii=QQ(0), prec=None, order='degrevlex'):
@@ -86,11 +126,11 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         self.element_class = TateAlgebraElement
         CommutativeAlgebra.__init__(self, base, names, category=CommutativeAlgebras(base))
         if not isinstance(log_radii, (list, tuple)):
-            self._log_radii = [ QQ(log_radii) ] * self._ngens
+            self._log_radii = (QQ(log_radii),) * self._ngens
         elif len(log_radii) != self._ngens:
             raise ValueError("The number of radii does not match the number of variables")
         else:
-            self._log_radii = [ QQ(r) for r in log_radii ]
+            self._log_radii = ( QQ(r) for r in log_radii )
         field = base.fraction_field()
         self._polynomial_ring = PolynomialRing(field, names, order=order)
         self._names = self._polynomial_ring.variable_names()
@@ -106,6 +146,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
                     self._cap = DEFAULT_CAP
         else:
             self._cap = ZZ(prec)
+        self._parent_terms = TateTermMonoid(self._base, self._names, self._log_radii, self._order)
 
     def _an_element_(self):
         return self.element_class(0)
@@ -114,7 +155,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         base = self._base
         if base.has_coerce_map_from(R):
             return True
-        if isinstance(R, TateAlgebra):
+        if isinstance(R, (TateTermMonoid, TateAlgebra)):
             Rbase = R.base_ring()
             if base.has_coerce_map_from(Rbase) and self._names == R.variable_names() and self._order == R.term_order():
                 ratio = base.absolute_e() // Rbase.absolute_e()
@@ -153,8 +194,12 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         return self._ngens
 
     def _repr_(self):
-        vars = ", ".join(self._names)
-        return "Tate Algebra in %s over %s" % (vars, self.base_ring())
+        if self._ngens == 0:
+            return "Tate Algebra over %s" % self._base
+        vars = ""
+        for i in range(self._ngens):
+            vars += ", %s (val >= %s)" % (self._names[i], -self._log_radii[i])
+        return "Tate Algebra in %s over %s" % (vars[2:], self._base)
 
     def variable_names(self):
         return self._names

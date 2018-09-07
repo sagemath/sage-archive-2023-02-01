@@ -8,7 +8,30 @@ from sage.structure.element import coerce_binop
 
 
 cdef class TateAlgebraElement(CommutativeAlgebraElement):
+r"""
+Define the class for Tate series, elements of Tate algebras.
+
+Given a complete discrete valuation ring `R`, variables `X_1,\dots,X_k`
+and convergence radii `r_,\dots, r_n` in `\mathbb{R}_{>0}`, a Tate series is an
+element of the Tate algebra `R{X_1,\dots,X_k}`, that is a power series with
+coefficients `a_{i_1,\dots,i_n}` in `R` and such that
+`|a_{i_1,\dots,i_n}|*r_1^{-i_1}*\dots*r_n^{-i_n}` tends to 0 as
+`i_1,\dots,i_n` go towards infinity.
+
+INPUT:
+
+- 
+
+
+"""
     def __init__(self, parent, x, prec=None, reduce=True):
+        r"""
+        Initialize a Tate algebra element
+
+        TESTS::
+
+        
+        """
         cdef TateAlgebraElement xc
         CommutativeAlgebraElement.__init__(self, parent)
         self._prec = Infinity

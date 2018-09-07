@@ -568,7 +568,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         - ``other`` -- anything.
 
-        .. Note ::
+        .. NOTE::
+
             Two lattice polytopes are equal if they have the same vertices
             listed in the same order.
 

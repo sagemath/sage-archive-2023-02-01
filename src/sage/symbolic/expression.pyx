@@ -11733,8 +11733,18 @@ cdef class Expression(CommutativeRingElement):
             -0.588532743981862...
             sage: sin(x).find_root(-1,1)
             0.0
-            sage: (1/tan(x)).find_root(3,3.5)
+
+        This example was ixed along with ticket 4942 - 
+        there was an error in the example
+        pi is a root for tan(x), but an asymptote to 1/tan(x)
+        added an example to show handling of both cases::
+        
+            sage: (tan(x)).find_root(3,3.5)
             3.1415926535...
+            sage: (1/tan(x)).find_root(3, 3.5)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Brent's method failed to find a zero for f on the interval
 
         An example with a square root::
 

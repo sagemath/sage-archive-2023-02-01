@@ -141,15 +141,20 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         a = s
 
     import scipy.optimize
-    root = scipy.optimize.brentq(f, a, b,
+    brentqRes = scipy.optimize.brentq(f, a, b,
                                  full_output=full_output, xtol=xtol, rtol=rtol, maxiter=maxiter)
     # A check following ticket 4942, to ensure we actually found a root
     # Maybe should use a different tolerance here?
     # The idea is to take roughly the derivative and multiply by estimated
     # value of the root
+    root = 0
+    if (full_output):
+        root = brentqRes[0]
+    else:
+        root = brentqRes
     if (abs(f(root)) > max(abs(root * rtol * (right - left) / (b - a)), 1e-6)):
         raise RuntimeError("Brent's method failed to find a zero for f on the interval")
-    return root
+    return brentqRes
 
 def find_local_maximum(f, a, b, tol=1.48e-08, maxfun=500):
     """

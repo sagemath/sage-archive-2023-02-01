@@ -11744,7 +11744,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (1/tan(x)).find_root(3, 3.5)
             Traceback (most recent call last):
             ...
-            RuntimeError: Brent's method failed to find a zero for f on the interval
+            NotImplementedError: Brent's method failed to find a zero for f on the interval
 
         An example with a square root::
 

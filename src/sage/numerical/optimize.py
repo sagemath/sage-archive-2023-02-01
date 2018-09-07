@@ -82,7 +82,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
     the function need not be defined at the endpoints::
 
         sage: find_root(x^2*log(x,2)-1,0, 2)
-        1.414213562373...
+        1.41421356237...
         
     The following is an example, again from ticket 4942 where Brent's method
     fails. Currently no other method is implemented, but at least we 
@@ -93,7 +93,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         sage: find_root(1/(x-1)+1,0.00001, 2)
         Traceback (most recent call last):
            ...
-        RuntimeError: Brent's method failed to find a zero for f on the interval
+        NotImplementedError: Brent's method failed to find a zero for f on the interval
 
     """
     try:
@@ -105,14 +105,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         a, b = b, a
     left = f(a)
     right = f(b)
-    # Fixing ticket 4942 - if the answer on any of the endpoints is NaN, 
-    # we move the endpoint by steps of size xtol until it is no longer the case
-    while (left != left): # left is NaN
-        a += xtol
-        left = f(a)
-    while (right != right): # right is NaN
-        b -= xtol
-        right = f(b)
+   
     if left > 0 and right > 0:
         # Refine further -- try to find a point where this
         # function is negative in the interval
@@ -140,6 +133,20 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
             raise RuntimeError("f appears to have no zero on the interval")
         a = s
 
+    # Fixing ticket 4942 - if the answer on any of the endpoints is NaN, 
+    # we restrict to looking between minimum and maximum values in the segment
+    # Note - this could be used in all cases, but it requires some more 
+    # computation
+
+    if (left != left) or (right != right):
+        minval, s_1 = find_local_minimum(f, a, b)
+        maxval, s_2 = find_local_maximum(f, a, b)
+        if ((minval > 0) or (maxval < 0) or 
+           (minval != minval) or (maxval != maxval)):
+            raise RuntimeError("f appears to have no zero on the interval")
+        a = min(s_1, s_2)
+        b = max(s_1, s_2)
+
     import scipy.optimize
     brentqRes = scipy.optimize.brentq(f, a, b,
                                  full_output=full_output, xtol=xtol, rtol=rtol, maxiter=maxiter)
@@ -153,7 +160,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
     else:
         root = brentqRes
     if (abs(f(root)) > max(abs(root * rtol * (right - left) / (b - a)), 1e-6)):
-        raise RuntimeError("Brent's method failed to find a zero for f on the interval")
+        raise NotImplementedError("Brent's method failed to find a zero for f on the interval")
     return brentqRes
 
 def find_local_maximum(f, a, b, tol=1.48e-08, maxfun=500):

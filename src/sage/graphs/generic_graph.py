@@ -3778,12 +3778,12 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``weight_function`` (function) - a function that inputs an edge ``e``
-          and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
-          and ``v`` are vertices, ``l`` is a label (that can be of any kind).
-          The ``weight_function`` can be used to transform the label into a
-          weight (note that, if the weight returned is not convertible to a
-          float, an error is raised). In particular:
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``e`` and outputs its weight. An edge has the form ``(u,v,l)``,
+          where ``u`` and ``v`` are vertices, ``l`` is a label (that can be of
+          any kind).  The ``weight_function`` can be used to transform the label
+          into a weight (note that, if the weight returned is not convertible to
+          a float, an error is raised). In particular:
 
           - if ``weight_function`` is not ``None``, the weight of an edge ``e``
             is ``weight_function(e)``;
@@ -13613,10 +13613,10 @@ class GenericGraph(GenericGraph_pyx):
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Floyd-Warshall-Cython'`` otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -13717,10 +13717,10 @@ class GenericGraph(GenericGraph_pyx):
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'`` otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -13919,10 +13919,10 @@ class GenericGraph(GenericGraph_pyx):
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'``, otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -14012,10 +14012,10 @@ class GenericGraph(GenericGraph_pyx):
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'``, otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -14120,10 +14120,10 @@ class GenericGraph(GenericGraph_pyx):
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'``, otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -14492,10 +14492,10 @@ class GenericGraph(GenericGraph_pyx):
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'``, otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -14701,10 +14701,10 @@ class GenericGraph(GenericGraph_pyx):
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'`` otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -15155,8 +15155,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path(self, u, v, by_weight=False, algorithm=None,
-                      weight_function=None, check_weight=True,
-                      bidirectional=None):
+                      weight_function=None, check_weight=True):
         r"""
         Returns a list of vertices representing some shortest path from u
         to v: if there is no path from u to v, the list is empty.
@@ -15205,18 +15204,13 @@ class GenericGraph(GenericGraph_pyx):
               weights before running the algorithm. If there are, the user
               should explicitly input ``algorithm='Bellman-Ford_Boost'``.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
-
-        - ``bidirectional`` - Deprecated and replaced by Algorithm: now it has
-          no effect. Before, if it was True, the algorithm would expand vertices
-          from ``u`` and ``v`` at the same time, making two spheres of half the
-          usual radius.
 
         EXAMPLES::
 
@@ -15295,10 +15289,6 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is None and by_weight:
             weight_function = lambda e:e[2]
 
-        if bidirectional is not None:
-            deprecation(18938, "Variable 'bidirectional' is deprecated and " +
-                        "replaced by 'algorithm'.")
-
         if u == v: # to avoid a NetworkX bug
             return [u]
 
@@ -15328,8 +15318,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path_length(self, u, v, by_weight=False, algorithm=None,
-                             weight_function=None, check_weight=True,
-                             bidirectional=None, weight_sum=None):
+                             weight_function=None, check_weight=True):
         r"""
         Returns the minimal length of a path from u to v.
 
@@ -15378,23 +15367,13 @@ class GenericGraph(GenericGraph_pyx):
               weights before running the algorithm. If there are, the user
               should explicitly input ``algorithm='Bellman-Ford_Boost'``.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
-
-        - ``bidirectional`` - Deprecated and replaced by Algorithm: now it has
-          no effect. Before, if it was True, the algorithm would expand vertices
-          from ``u`` and ``v`` at the same time, making two spheres of half the
-          usual radius.
-
-        - ``weight_sum`` - Deprecated: now it has no effect. Before, it was used
-          to decide if the algorithm should return the number of edges in the
-          shortest path or the length of the (weighted) path. Now it has the
-          same value as ``by_weight``.
 
         EXAMPLES:
 
@@ -15465,9 +15444,6 @@ class GenericGraph(GenericGraph_pyx):
         if not self.has_vertex(v):
             raise ValueError("vertex '{}' is not in the (di)graph".format(v))
 
-        if weight_sum is not None:
-            deprecation(18938, "Now weight_sum is replaced by by_weight.")
-
         if u == v: # to avoid a NetworkX bug
             return 0
 
@@ -15482,10 +15458,6 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
             return self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)[v]
-
-        if bidirectional is not None:
-            deprecation(18938, "Variable 'bidirectional' is deprecated and " +
-                        "replaced by 'algorithm'.")
 
         if by_weight:
             if algorithm == 'BFS_Bid':
@@ -15592,10 +15564,10 @@ class GenericGraph(GenericGraph_pyx):
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Bellman-Ford_Boost'`` otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -15769,10 +15741,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
           weighted; if ``False``, all edges have weight 1.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         EXAMPLES:
 
@@ -15821,8 +15793,7 @@ class GenericGraph(GenericGraph_pyx):
             return len(path) - 1
 
     def shortest_path_lengths(self, u, by_weight=False, algorithm=None,
-                              weight_function=None, check_weight=True,
-                              weight_sums=None):
+                              weight_function=None, check_weight=True):
         r"""
         Computes the length of a shortest path from u to any other vertex.
 
@@ -15859,17 +15830,13 @@ class GenericGraph(GenericGraph_pyx):
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Bellman-Ford_Boost'`` otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
-
-        - ``weight_sums`` - Deprecated: now this variable has no effect. Before,
-          it was used to decide whether the number of edges or the sum of their
-          lengths was outputted. Now we use variable ``by_weight`` to decide.
 
         EXAMPLES:
 
@@ -15921,9 +15888,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: d1 == d2 == d3 == d4
             True
         """
-        if weight_sums is not None:
-            deprecation(18938, "Now weight_sums is replaced by by_weight.")
-
         if weight_function is not None:
             by_weight = True
         elif by_weight:
@@ -15971,8 +15935,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path_all_pairs(self, by_weight=False, algorithm=None,
-                                weight_function=None, check_weight=True,
-                                default_weight=None):
+                                weight_function=None, check_weight=True):
         r"""
         Computes a shortest path between each pair of vertices.
 
@@ -16008,17 +15971,13 @@ class GenericGraph(GenericGraph_pyx):
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Floyd-Warshall-Cython'`` otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
-
-        - ``default_weight`` - Deprecated: now it has no effect. Before, it was
-          used to assign a weight to edges with no label. Now it has been
-          replaced by ``weight_function``.
 
         OUTPUT:
 
@@ -16091,27 +16050,6 @@ class GenericGraph(GenericGraph_pyx):
             1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
             2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
             3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3},
-            4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
-
-        Now, ``default_weight`` does not work anymore::
-
-            sage: G.shortest_path_all_pairs(by_weight = True, default_weight=200)
-            Traceback (most recent call last):
-            ...
-            ValueError: The weight function cannot find the weight of (0, 1, None).
-
-        It can be replaced by choosing an appropriate weight_function::
-
-            sage: G.shortest_path_all_pairs(weight_function=lambda e:(e[2] if e[2] is not None else 200))
-            ({0: {0: 0, 1: 200, 2: 5, 3: 4, 4: 2},
-            1: {0: 200, 1: 0, 2: 200, 3: 201, 4: 202},
-            2: {0: 5, 1: 200, 2: 0, 3: 1, 4: 3},
-            3: {0: 4, 1: 201, 2: 1, 3: 0, 4: 2},
-            4: {0: 2, 1: 202, 2: 3, 3: 2, 4: 0}},
-            {0: {0: None, 1: 0, 2: 3, 3: 4, 4: 0},
-            1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
-            2: {0: 4, 1: 2, 2: None, 3: 2, 4: 3},
-            3: {0: 4, 1: 2, 2: 3, 3: None, 4: 3},
             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
 
         Checking that distances are equal regardless of the algorithm used::
@@ -16235,10 +16173,6 @@ class GenericGraph(GenericGraph_pyx):
             ...
             RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
         """
-        if default_weight is not None:
-            deprecation(18938, "Variable default_weight is deprecated: hence," +
-                        " it is ignored. Please, use weight_function, instead.")
-
         if weight_function is not None:
             by_weight = True
         elif by_weight:
@@ -16400,10 +16334,10 @@ class GenericGraph(GenericGraph_pyx):
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'``, otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -16513,10 +16447,10 @@ class GenericGraph(GenericGraph_pyx):
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'``, otherwise.
 
-        - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-          is automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` (function) - a function that takes as input an
+          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+          ``by_weight`` is automatically set to ``True``. If ``None`` and
+          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.

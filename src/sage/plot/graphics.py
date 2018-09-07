@@ -1943,7 +1943,7 @@ class Graphics(WithEqualityById, SageObject):
         of length two is used. Otherwise, a warning is raised::
 
             sage: plot(x, -4, 4, title='Plot x', title_pos=0.05)
-            doctest:...: RichReprWarning: Exception in _rich_repr_ while displaying object: 'title_pos' must be a list or tuple of two real numbers.
+            doctest:...: ...RichReprWarning: Exception in _rich_repr_ while displaying object: 'title_pos' must be a list or tuple of two real numbers.
             Graphics object consisting of 1 graphics primitive
 
         TESTS:
@@ -2517,7 +2517,7 @@ class Graphics(WithEqualityById, SageObject):
         ``typeset`` must not be set to an arbitrary string::
 
             sage: plot(x, typeset='garbage')
-            doctest:...: RichReprWarning: Exception in _rich_repr_ while
+            doctest:...: ...RichReprWarning: Exception in _rich_repr_ while
             displaying object: typeset must be set to one of 'default',
             'latex', or 'type1'; got 'garbage'.
             Graphics object consisting of 1 graphics primitive

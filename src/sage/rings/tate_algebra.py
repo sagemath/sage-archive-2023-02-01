@@ -66,7 +66,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         sage: f = 2 + y^5 + x^2; f
         (...0000000001)*x^2 + (...0000000001)*y^5 + (...00000000010)
         sage: B.<x,y> = TateAlgebra(R); B
-        Tate Algebra in x, y over 2-adic Ring with capped relative precision 1
+        Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
         sage: B.term_order()
         Degree reverse lexicographic term order
         sage: B(f)
@@ -90,7 +90,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
 
     With the precision cap of the base ring:
 
-        S.<t> = LaurentSeriesRing(QQ,default_prec=15); S
+        sage: S.<t> = LaurentSeriesRing(QQ,default_prec=15); S
         Laurent Series Ring in t over Rational Field
         sage: B.<x,y> = TateAlgebra(S); B
         Tate Algebra in x, y over Laurent Series Ring in t over Rational Field

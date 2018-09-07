@@ -1120,10 +1120,16 @@ class Graphics(WithEqualityById, SageObject):
 
         It does not accept any argument (:trac:`19539`)::
 
-            sage: S.plot(1)
+            sage: S.plot(1)  # py2
             Traceback (most recent call last):
             ...
             TypeError: plot() takes exactly 1 argument (2 given)
+
+            sage: S.plot(1)  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: plot() takes 1 positional argument but 2 were given
+
             sage: S.plot(hey="hou")
             Traceback (most recent call last):
             ...
@@ -1589,7 +1595,7 @@ class Graphics(WithEqualityById, SageObject):
 
         You can add a title to a plot::
 
-            sage: show(plot(sin,-4,4), title='A plot of $\sin(x)$')
+            sage: show(plot(sin,-4,4), title=r'A plot of $\sin(x)$')
 
         You can also provide the position for the title to the plot. In the
         plot below the title is placed on the bottom left of the figure.::
@@ -1624,7 +1630,7 @@ class Graphics(WithEqualityById, SageObject):
         background. This behavior can be recovered by passing in certain
         ``legend_options``::
 
-            sage: p = plot(sin(x), legend_label='$\sin(x)$')
+            sage: p = plot(sin(x), legend_label=r'$\sin(x)$')
             sage: p.show(legend_options={'back_color': (0.9,0.9,0.9),
             ....:                        'shadow': False})
 

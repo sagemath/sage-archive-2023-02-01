@@ -34,6 +34,8 @@ A minimal example of a module::
     ....:     def __eq__(self, other):
     ....:         if not isinstance(other, MyModule): return False
     ....:         return self.base_ring() == other.base_ring()
+    ....:     def __hash__(self):
+    ....:         return hash(self.base_ring())
 
     sage: M = MyModule(QQ)
     sage: M(1)

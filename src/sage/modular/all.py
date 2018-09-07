@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+from sage.misc.lazy_import import lazy_import
+
 from .quatalg.all import *
 
 from .modsym.all import *
@@ -27,7 +29,11 @@ from .dims import (dimension_cusp_forms,
 
 from .buzzard import buzzard_tpslopes
 
-from .etaproducts import *
+from .etaproducts import (EtaGroup, EtaProduct, EtaGroupElement,
+                          AllCusps, CuspFamily)
+lazy_import("sage.modular.etaproducts", ['num_cusps_of_width', 'qexp_eta',
+                                         'eta_poly_relations'],
+            deprecation=26196)
 
 from .overconvergent.all import *
 
@@ -38,3 +44,5 @@ from .cusps_nf import NFCusp, NFCusps, NFCusps_clear_cache, Gamma0_NFCusps
 from .btquotients.all import *
 
 from .pollack_stevens.all import *
+
+del absolute_import

@@ -223,7 +223,7 @@ from .expect import console, Expect, ExpectElement, ExpectFunction, FunctionElem
 PROMPT = ">>>"
 
 SAGE_REF = "_sage_ref"
-SAGE_REF_RE = re.compile('%s\d+' % SAGE_REF)
+SAGE_REF_RE = re.compile(r'%s\d+' % SAGE_REF)
 
 from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
@@ -2205,7 +2205,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         return self.__gen_names
 
     def evaluate(self, *args):
-        """
+        r"""
         Evaluate self at the inputs.
 
         INPUT:
@@ -2805,10 +2805,10 @@ class MagmaGBLogPrettyPrinter:
     A device which filters Magma Groebner basis computation logs.
     """
     cmd_inpt = re.compile("^>>>$")
-    app_inpt = re.compile("^Append\(~_sage_, 0\);$")
+    app_inpt = re.compile(r"^Append\(~_sage_, 0\);$")
 
-    deg_curr = re.compile("^Basis length\: (\d+), queue length\: (\d+), step degree\: (\d+), num pairs\: (\d+)$")
-    pol_curr = re.compile("^Number of pair polynomials\: (\d+), at (\d+) column\(s\), .*")
+    deg_curr = re.compile(r"^Basis length\: (\d+), queue length\: (\d+), step degree\: (\d+), num pairs\: (\d+)$")
+    pol_curr = re.compile(r"^Number of pair polynomials\: (\d+), at (\d+) column\(s\), .*")
 
     def __init__(self, verbosity=1, style='magma'):
         """

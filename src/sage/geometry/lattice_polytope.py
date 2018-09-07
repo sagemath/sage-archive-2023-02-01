@@ -132,7 +132,7 @@ from sage.rings.all import Integer, ZZ, QQ
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import *
+from sage.structure.richcmp import richcmp_method, richcmp
 
 from copy import copy
 import collections
@@ -463,7 +463,7 @@ def is_LatticePolytope(x):
     """
     return isinstance(x, LatticePolytopeClass)
 
-
+@richcmp_method
 class LatticePolytopeClass(SageObject, collections.Hashable):
     r"""
     Create a lattice polytope.
@@ -560,7 +560,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         return self._contains(point)
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare ``self`` with ``other``.
 
@@ -568,14 +568,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         - ``other`` -- anything.
 
-        OUTPUT:
-
-        - ``True`` if ``other`` is a :class:`lattice polytope
-          <LatticePolytopeClass>` equal to ``self``, ``False`` otherwise.
-
-        .. NOTE::
-
-            Two lattice polytopes are equal if they have the same vertices 
+        .. Note ::
+            Two lattice polytopes are equal if they have the same vertices
             listed in the same order.
 
         TESTS::
@@ -593,19 +587,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             False
             sage: p1 == 0
             False
-        """
-        return (isinstance(other, LatticePolytopeClass)
-                and self._vertices == other._vertices)
-
-    def __lt__(self, other):
-        r"""
-        Return if this element is less than ``other``.
-
-        TESTS::
-
-            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
             sage: p1 < p2
             False
             sage: p2 < p1
@@ -614,18 +595,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             False
             sage: p3 < p1
             True
-        """
-        return richcmp(self._vertices, other._vertices, op_LT)
-
-    def __le__(self, other):
-        r"""
-        Return if this element is less than or equal to ``other``.
-
-        TESTS::
-
-            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
             sage: p1 <= p2
             True
             sage: p2 <= p1
@@ -634,18 +603,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             False
             sage: p3 <= p1
             True
-        """
-        return richcmp(self._vertices, other._vertices, op_LE)
-
-    def __gt__(self, other):
-        r"""
-        Return if this element is greater than ``other``.
-
-        TESTS::
-
-            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
             sage: p1 > p2
             False
             sage: p2 > p1
@@ -654,18 +611,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             True
             sage: p3 > p1
             False
-        """
-        return richcmp(self._vertices, other._vertices, op_GT)
-
-    def __ge__(self, other):
-        r"""
-        Return if this element is greater than or equal to ``other``.
-
-        TESTS::
-
-            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
             sage: p1 >= p2
             True
             sage: p2 >= p1
@@ -675,7 +620,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p3 >= p1
             False
         """
-        return richcmp(self._vertices, other._vertices, op_GE)
+        if not isinstance(other, LatticePolytopeClass):
+            return NotImplemented
+        return richcmp(self._vertices, other._vertices, op)
 
     @cached_method
     def __hash__(self):
@@ -694,42 +641,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         # FIXME: take into account other things that may be preset?..
         return hash(self._vertices)
-
-    def __ne__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        INPUT:
-
-        - ``other`` -- anything.
-
-        OUTPUT:
-
-        - ``False`` if ``other`` is a :class:`lattice polytope
-          <LatticePolytopeClass>` equal to ``self``, ``True`` otherwise.
-
-        .. NOTE::
-
-            Two lattice polytopes are if they have the same vertices listed in
-            the same order.
-
-        TESTS::
-
-            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
-            sage: p1 != p1
-            False
-            sage: p1 != p2
-            False
-            sage: p1 is p2
-            False
-            sage: p1 != p3
-            True
-            sage: p1 != 0
-            True
-        """
-        return not (self == other)
 
     def __reduce__(self):
         r"""

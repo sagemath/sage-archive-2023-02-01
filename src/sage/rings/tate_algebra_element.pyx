@@ -53,6 +53,16 @@ cdef class TateAlgebraTerm(MonoidElement):
         return self._coeff.valuation() - sum(self._exponent[i]*parent._log_radii[i] for i in range(parent._ngens))
 
     @coerce_binop
+    def is_coprime_with(self, other):
+        for i in range(self._parent.ngens()):
+            if self._exponent[i] > 0 and other.exponent()[i] > 0:
+                return False
+        if self._parent.base_ring().is_field():
+            return True
+        else:
+            return self.valuation() == 0 or other.valuation() == 0
+
+    @coerce_binop
     def gcd(self, other):
         exponent = self._exponent.emin(other.exponent())
         val = min(self._coeff.valuation(), other.coefficient().valuation())

@@ -28,17 +28,25 @@ class TateAlgebraIdeal(Ideal_generic):
         return gb
 
     def _groebner_basis_buchberger(self):
+        from heapq import heappush, heappop
         gb = list(self.gens())
-        S = [ ]
+        S = [ ]; ind = 0
         for i in range(len(gb)):
             for j in range(i+1, len(gb)):
-                S.append(gb[i].Spoly(gb[j]))
+                if not gb[i].leading_term().is_coprime_with(gb[j].leading_term()):
+                    s = gb[i].Spoly(gb[j])
+                    heappush(S,(s.leading_term(), ind, s))
+                    ind += 1
         while S:
-            f = S.pop()
+            _, _, f = heappop(S)
             _, r = f.quo_rem(gb, integral=True)
+            print len(S), ":", r
             if not r.is_zero():
                 for g in gb:
-                    S.append(g.Spoly(r))
+                    if not g.leading_term().is_coprime_with(r.leading_term()):
+                        s = g.Spoly(r)
+                        heappush(S,(s.leading_term(), ind, s))
+                        ind += 1
                 gb.append(r)
         return gb
 

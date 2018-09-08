@@ -208,7 +208,7 @@ FRICAS_SINGLE_LINE_START = 3 # where the output starts when it fits next to the 
 FRICAS_MULTI_LINE_START = 2  # and when it doesn't
 FRICAS_LINE_LENGTH = 80      # length of a line, should match the line length in sage
 # the following messages have, unfortunately, no markup.
-FRICAS_WHAT_OPERATIONS_STRING = "Operations whose names satisfy the above pattern\(s\):"
+FRICAS_WHAT_OPERATIONS_STRING = r"Operations whose names satisfy the above pattern\(s\):"
 FRICAS_ERROR_IN_LIBRARY_CODE = ">> Error detected within library code:"
 
 # only the last command should be necessary to make the interface
@@ -227,8 +227,8 @@ FRICAS_INIT_CODE = (
 "               (princ #\\Newline))))")
 
 FRICAS_LINENUMBER_OFF_CODE = ")lisp (setf |$IOindex| NIL)"
-FRICAS_FIRST_PROMPT = "\(1\) -> "
-FRICAS_LINENUMBER_OFF_PROMPT = "\(NIL\) -> "
+FRICAS_FIRST_PROMPT = r"\(1\) -> "
+FRICAS_LINENUMBER_OFF_PROMPT = r"\(NIL\) -> "
 
 class FriCAS(ExtraTabCompletion, Expect):
     """
@@ -344,7 +344,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             True
         """
         output = self.eval(")what operations", reformat=False)
-        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\n(.*)\n\|startKeyedMsg\|", output, flags = re.DOTALL)
+        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + r"\n(.*)\n\|startKeyedMsg\|", output, flags = re.DOTALL)
         l = m.groups()[0].split()
         return l
 
@@ -511,7 +511,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         """
         # otherwise there might be a message
-        m = re.search("\|startKeyedMsg\|\n(.*)\n\|endOfKeyedMsg\|", output, flags = re.DOTALL)
+        m = re.search(r"\|startKeyedMsg\|\n(.*)\n\|endOfKeyedMsg\|", output, flags = re.DOTALL)
         if m:
             replacements = [('|startKeyedMsg|\n', ''),
                             ('|endOfKeyedMsg|', '')]
@@ -568,7 +568,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         output = self.eval(str(var), reformat=False)
         # if there is AlgebraOutput we ask no more
-        m = re.search("\|startAlgebraOutput\|\n(.*)\n\|endOfAlgebraOutput\|", output, flags = re.DOTALL)
+        m = re.search(r"\|startAlgebraOutput\|\n(.*)\n\|endOfAlgebraOutput\|", output, flags = re.DOTALL)
         if m:
             lines = m.groups()[0].split("\n")
             if max(len(line) for line in lines) < FRICAS_LINE_LENGTH:
@@ -1012,12 +1012,12 @@ class FriCASElement(ExpectElement):
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
             \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
         """
-        replacements = [('\sp ', '^'),
-                        ('\sp{', '^{'),
-                        ('\sb ', '_'),
-                        ('\sb{', '_{')]
+        replacements = [(r'\sp ', '^'),
+                        (r'\sp{', '^{'),
+                        (r'\sb ', '_'),
+                        (r'\sb{', '_{')]
         P = self._check_valid()
-        s = P.get_string("first tex(%s)" %self._name)
+        s = P.get_string("first tex(%s)" % self._name)
         for old, new in replacements:
             s = s.replace(old, new)
         return s
@@ -1084,7 +1084,7 @@ class FriCASElement(ExpectElement):
         raise NotImplementedError("The translation of FriCAS type %s to sage is not yet implemented." %domain)
 
     def _sage_expression(self, unparsed_InputForm):
-        """
+        r"""
         Convert an expression to an element of the Symbolic Ring.
 
         This does not depend on `self`.  Instead, for practical
@@ -1266,8 +1266,8 @@ class FriCASElement(ExpectElement):
         return ex.subs(rootOf_ev)
 
     def _sage_(self):
-        """
-        Convert self to a Sage object.
+        r"""
+        Convert ``self`` to a Sage object.
 
         EXAMPLES:
 

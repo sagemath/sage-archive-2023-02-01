@@ -1150,9 +1150,10 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
                               extra3=extra3, extra4=extra4, extra5=extra5,
                               **kwds)
 
+
 def search_doc(string, extra1='', extra2='', extra3='', extra4='',
                extra5='', **kwds):
-    """
+    r"""
     Search Sage HTML documentation for lines containing ``string``. The
     search is case-insensitive by default.
 

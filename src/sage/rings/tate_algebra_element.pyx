@@ -7,18 +7,20 @@ from sage.rings.integer_ring import ZZ
 
 from sage.structure.element import coerce_binop
 
+from sage.rings.polynomial.polydict cimport ETuple
+
 
 cdef class TateAlgebraTerm(MonoidElement):
     def __init__(self, parent, coeff, exponent):
         MonoidElement.__init__(self, parent)
         self._field = parent.base_ring().fraction_field()
         self._coeff = self._field(coeff)
-        if isinstance(exponent, (list, tuple)):
-            if len(exponent) != parent._ngens:
-                raise ValueError("The number of exponents does not match the number of variables")
-            self._exponent = tuple([ ZZ(e) for e in exponent ])
+        if isinstance(exponent, ETuple):
+            self._exponent = exponent
         else:
-            self._exponent = (ZZ(exponent),) * parent._ngens
+            self._exponent = ETuple(exponent)
+        if len(self._exponent) != parent.ngens():
+            raise ValueError("The length of the exponent does not match the number of variables")
 
     def _repr_(self):
         parent = self._parent
@@ -36,30 +38,48 @@ cdef class TateAlgebraTerm(MonoidElement):
     def exponent(self):
         return self._exponent
 
-    def _mul_(self, other):
-        exponent = tuple([ self._exponent[i] + other.exponent()[i] for i in range(self._parent._ngens) ])
+    cpdef _mul_(self, other):
+        exponent = self._exponent.eadd(other.exponent())
         return self._parent(self._coeff * other.coefficient(), exponent)
 
+    cpdef int _cmp_(self, other) except -2:
+        c = cmp(-self.valuation(), -other.valuation())
+        if c: return c
+        T = self._parent.term_order()
+        return cmp(T.sortkey(self._exponent), T.sortkey(other.exponent()))
+
     def valuation(self):
-        return self._coefficient.valuation() - sum(self._exponent[i]*self._log_radii[i] for i in range(self._parent._ngens))
+        parent = self._parent
+        return self._coeff.valuation() - sum(self._exponent[i]*parent._log_radii[i] for i in range(parent._ngens))
+
+    @coerce_binop
+    def is_coprime_with(self, other):
+        for i in range(self._parent.ngens()):
+            if self._exponent[i] > 0 and other.exponent()[i] > 0:
+                return False
+        if self._parent.base_ring().is_field():
+            return True
+        else:
+            return self.valuation() == 0 or other.valuation() == 0
 
     @coerce_binop
     def gcd(self, other):
-        exponent = tuple([ min(self._exponent[i], other.exponent()[i]) for i in range(self._parent._ngens) ])
+        exponent = self._exponent.emin(other.exponent())
         val = min(self._coeff.valuation(), other.coefficient().valuation())
         return self._parent(self._field.uniformizer_pow(val), exponent)
 
     @coerce_binop
     def lcm(self, other):
-        exponent = tuple([ max(self._exponent[i], other.exponent()[i]) for i in range(self._parent._ngens) ])
+        exponent = self._exponent.emax(other.exponent())
         val = max(self._coeff.valuation(), other.coefficient().valuation())
         return self._parent(self._field.uniformizer_pow(val), exponent)
 
     @coerce_binop
-    def is_divisible_by(self, other):
-        if self.valuation() < other.valuation():
+    def is_divisible_by(self, other, integral=False):
+        parent = self._parent
+        if (integral or not parent.base_ring().is_field()) and self.valuation() < other.valuation():
             return False
-        for i in range(self._parent._ngens):
+        for i in range(parent._ngens):
             if self._exponent[i] < other.exponent()[i]:
                 return False
         return True
@@ -69,15 +89,15 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     @coerce_binop
     def __floordiv__(self, other):
-        parent = self._parent
-        if not parent.base_ring().is_field() and self.valuation() > other.valuation():
+        parent = self.parent()
+        if not parent.base_ring().is_field() and self.valuation() < other.valuation():
             raise ValueError("The division is not exact")
         exponent = [ ]
         for i in range(parent._ngens):
-            if self._exponent[i] < other._exponent[i]:
+            if self.exponent()[i] < other.exponent()[i]:
                 raise ValueError("The division is not exact")
-            exponent.append(self._exponent[i] - other.exponent()[i])
-        return parent(self._coeff / other.coefficient(), tuple(exponent))
+        exponent = self.exponent().esub(other.exponent())
+        return parent(self.coefficient() / other.coefficient(), ETuple(exponent))
 
 
 cdef class TateAlgebraElement(CommutativeAlgebraElement):
@@ -121,19 +141,25 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("Cannot restrict to a bigger domain")
                 self._poly = S(xc._poly)
-                if xc._prec is Infinity:
-                    self._prec = Infinity
-                else:
+                if xc._prec is not Infinity:
                     self._prec = (xc._prec * ratio).ceil()
             else:
                 raise TypeError("Variable names do not match")
+        elif isinstance(x, TateAlgebraTerm):
+            xparent = x.parent()
+            if xparent.variable_names() == parent.variable_names():
+                ratio = parent._base.absolute_e() / xparent.base_ring().absolute_e()
+                for i in range(parent.ngens()):
+                    if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
+                        raise ValueError("Cannot restrict to a bigger domain")
+                self._poly = x.coefficient() * S.monomial(*x.exponent())
         else:
             self._poly = S(x)
         if prec is not None:
             self._prec = min(self._prec, prec)
         if reduce:
             self._poly = self._poly.map_coefficients(lambda c: c.add_bigoh(self._prec))
-        self._coeffs = None
+        self._terms = None
 
     def _repr_(self):
         r"""
@@ -158,15 +184,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
         s = ""
-        for (e,c) in self._coefficients():
-            if c.valuation() >= self._prec:
+        for t in self.terms():
+            if t.valuation() >= self._prec:
                 continue
-            s += " + (%s)" % c
-            for i in range(nvars):
-                if e[i] == 1:
-                    s += "*%s" % vars[i]
-                elif e[i] > 1:
-                    s += "*%s^%s" % (vars[i], e[i])
+            s += " + %s" % t
         if self._prec is not Infinity:
             # Only works with padics...
             s += " + %s" % base.change(show_prec="bigoh")(0, self._prec)
@@ -463,7 +484,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         if not self.is_unit():
             raise ValueError("This series in not invertible")
-        exp, c = self._coefficients()[0]
+        t = self.leading_term()
+        c = t.coefficient()
         parent = self._parent
         v, c = c.val_unit()
         cap = parent.precision_cap()
@@ -503,11 +525,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         if self.is_zero():
             return False
-        exp, c = self._coefficients()[0]
-        if max(exp) != 0:
+        t = self.leading_term()
+        if max(t.exponent()) != 0:
             return False
         base = self.base_ring()
-        if not base.is_field() and c.valuation() > 0:
+        if not base.is_field() and t.valuation() > 0:
             return False
         return True
 
@@ -552,23 +574,20 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return self._poly.dict()
 
-    def _coefficients(self):
-        if self._coeffs is not None:
-            return self._coeffs
+    def terms(self):
+        if self._terms is not None:
+            return self._terms
         if self.is_zero():
-            self._coeffs = []
+            self._terms = []
         else:
             parent = self._parent
-            self._coeffs = list(self.dict().iteritems())
-            log_radii = parent.log_radii()
-            ngens = parent.ngens()
-            T = parent.term_order()
-            sortkey = lambda c: (-c[1].valuation() + sum(c[0][i]*log_radii[i] for i in range(ngens)), T.sortkey(c[0]))
-            self._coeffs.sort(key=sortkey, reverse=True)
-        return self._coeffs
+            parent_terms = parent.monoid_of_terms()
+            self._terms = [ parent_terms(c,e) for (e,c) in self.dict().iteritems() ]
+            self._terms.sort(reverse=True)
+        return self._terms
 
     def coefficients(self):
-        return [ c for (c,exp) in self._coefficients ]
+        return [ t.coefficient() for t in self.terms() ]
 
     def add_bigoh(self, n):
         return self._parent(self, prec=n)
@@ -581,36 +600,26 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if self.is_zero():
             return cap
         else:
-            parent = self._parent
-            log_radii = parent.log_radii()
-            ngens = parent.ngens()
-            lt = self._coefficients()[0]
-            val = lt[1].valuation() - sum(lt[0][i]*log_radii[i] for i in range(ngens))
-            return min(cap, val)
+            return min(self.leading_term().valuation(), cap)
 
     def precision_relative(self):
         return self._prec - self.valuation()
 
     def leading_term(self):
         if self.is_zero():
-            return self._parent(0)
-        lt = self._coefficients()[0]
-        poly = self._parent._polynomial_ring.monomial(*lt[0])
-        return self._parent(lt[1] * poly)
+            return None
+        return self.terms()[0]
 
     def leading_coefficient(self):
         if self.is_zero():
             return self.base_ring(0)
-        lt = self._coefficients()[0]
-        return lt[1]
-        
-    def leading_monomial(self):
-        if self.is_zero():
-            return self._parent(0)
-        lt = self._coefficients()[0]
-        poly = self._parent._polynomial_ring.monomial(*lt[0])
-        return self._parent(poly)
+        return self.leading_term().coefficient()
 
+    def monic(self):
+        c = self.leading_coefficient()
+        poly = ~c * self._poly
+        return self._parent(poly, self._prec - c.valuation())
+        
     def weierstrass_degree(self):
         v = self.valuation()
         return self.residue(v+1).degree()
@@ -626,8 +635,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self.weierstrass_degrees()
 
     def residue(self, n=1):
-        for r in self._parent.radii():
-            if r != 1:
+        for r in self._parent.log_radii():
+            if r != 0:
                 raise NotImplementedError("Residues are only implemented for radius 1")
         try:
             Rn = self.base_ring().residue_ring(n)
@@ -635,52 +644,41 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             Rn = self.base_ring().change(field=False, type="fixed-mod", prec=n)
         return self._poly.change_ring(Rn)
 
-    def quo_rem(self, *divisors):
+    def quo_rem(self, divisors, integral=False):
         parent = self._parent
         nvars = parent.ngens()
-        ltds = [ d._coefficients()[0] for d in divisors ]
+        if not isinstance(divisors, (list, tuple)):
+            divisors = [ divisors ]
+        ltds = [ d.leading_term() for d in divisors ]
         # TODO: do everything on self._poly
         cap = parent.precision_cap()
         f = self.add_bigoh(cap)
         q = [ parent(0, cap - d.valuation()) for d in divisors ]
         r = parent(0, cap)
         while not f.is_zero():
-            lt = f._coefficients()[0]
-            found = False; i = 0
-            while not found and i < len(divisors):
-                ltd = ltds[i]
-                is_divisible = ltd[1].valuation() <= lt[1].valuation()
-                j = 0
-                while is_divisible and j < nvars:
-                    is_divisible = ltd[0][j] <= lt[0][j]
-                    j += 1
-                if is_divisible:
-                    found = True
+            lt = f.leading_term()
+            for i in range(len(divisors)):
+                if lt.is_divisible_by(ltds[i], integral=integral):
+                    factor = lt // ltds[i]
+                    f -= factor * divisors[i]
+                    q[i] += factor
                     break
-                i += 1
-            if found:
-                exponent = ( lt[0][j] - ltd[0][j] for j in range(nvars) )
-                factor = (lt[1]//ltd[1]) * parent._polynomial_ring.monomial(*exponent)
-                factor = parent(factor)
-                f -= factor * divisors[i]
-                q[i] += factor
             else:
-                lt = f.leading_term()
                 f -= lt; r += lt
         return q, r
 
     def __mod__(self, divisors):
         if not isinstance(divisors, (list, tuple)):
             divisors = [ divisors ]
-        _, r = self.quo_rem(*divisors)
+        _, r = self.quo_rem(divisors)
         return r
 
     def __floordiv__(self, divisors):
+        q, _ = self.quo_rem(divisors)
         if not isinstance(divisors, (list, tuple)):
-            q, _ = self.quo_rem(divisors)
             return q[0]
         else:
-            q, _ = self.quo_rem(*divisors)
+            q, _ = self.quo_rem(divisors)
             return q
 
     def reduce(self, I):
@@ -691,19 +689,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     def Spoly(self, other):
         if self.is_zero() or other.is_zero():
             raise ValueError("Cannot compute the S-polynomial of zero")
-        parent = self._parent
-        S = parent._polynomial_ring
-        se, sc = self._coefficients()[0]
-        oe, oc = other._coefficients()[0]
-        spoly = self._poly
-        opoly = other.polynomial()
-        for i in range(parent.ngens()):
-            if se[i] > oe[i]:
-                opoly *= S.gen(i) ** (se[i] - oe[i])
-            elif se[i] < oe[i]:
-                spoly *= S.gen(i) ** (oe[i] - se[i])
-        if sc.valuation() > oc.valuation():
-            opoly *= sc // oc
-        else:
-            spoly *= oc // sc
-        return parent(spoly-opoly, min(self._prec, other.precision_absolute()))
+        st = self.leading_term()
+        ot = other.leading_term()
+        t = st.lcm(ot)
+        return (t//st)*self - (t//ot)*other

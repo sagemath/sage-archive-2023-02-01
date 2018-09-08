@@ -88,27 +88,25 @@ from sage.rings.real_mpfr import RealField
 maxima = Maxima()
 
 def fricas_desolve(de, dvar, ics, ivar):
-    """
+    r"""
     Solve an ODE using FriCAS.
 
     EXAMPLES::
 
         sage: x = var('x')
         sage: y = function('y')(x)
-        sage: desolve(diff(y,x) + y - 1, y, algorithm="fricas")                 # optional - fricas
+        sage: desolve(diff(y,x) + y - 1, y, algorithm="fricas")             # optional - fricas
         _C0*e^(-x) + 1
 
-        sage: desolve(diff(y, x) + y == y^3*sin(x), y, algorithm="fricas")      # optional - fricas
+        sage: desolve(diff(y, x) + y == y^3*sin(x), y, algorithm="fricas")  # optional - fricas
         -1/5*(2*cos(x)*y(x)^2 + 4*sin(x)*y(x)^2 - 5)*e^(-2*x)/y(x)^2
 
     TESTS::
 
         sage: from sage.calculus.desolvers import fricas_desolve
-        sage: Y = fricas_desolve(diff(y,x) + y - 1, y, [42,1783], x)            # optional - fricas
-        sage: Y.subs(x=42)                                                      # optional - fricas
+        sage: Y = fricas_desolve(diff(y,x) + y - 1, y, [42,1783], x)  # optional - fricas
+        sage: Y.subs(x=42)                                            # optional - fricas
         1783
-
-
     """
     from sage.interfaces.fricas import fricas
     from sage.symbolic.ring import SR
@@ -126,7 +124,7 @@ def fricas_desolve(de, dvar, ics, ivar):
         return y
 
 def fricas_desolve_system(des, dvars, ics, ivar):
-    """
+    r"""
     Solve a system of first order ODEs using FriCAS.
 
     EXAMPLES::
@@ -136,11 +134,11 @@ def fricas_desolve_system(des, dvars, ics, ivar):
         sage: y = function('y')(t)
         sage: de1 = diff(x,t) + y - 1 == 0
         sage: de2 = diff(y,t) - x + 1 == 0
-        sage: desolve_system([de1, de2], [x, y], algorithm="fricas")            # optional - fricas
+        sage: desolve_system([de1, de2], [x, y], algorithm="fricas")          # optional - fricas
         [x(t) == _C0*cos(t) + cos(t)^2 + _C1*sin(t) + sin(t)^2,
          y(t) == -_C1*cos(t) + _C0*sin(t) + 1]
 
-        sage: desolve_system([de1, de2], [x,y], [0,1,2], algorithm="fricas")    # optional - fricas
+        sage: desolve_system([de1, de2], [x,y], [0,1,2], algorithm="fricas")  # optional - fricas
         [x(t) == cos(t)^2 + sin(t)^2 - sin(t), y(t) == cos(t) + 1]
 
     TESTS::
@@ -148,13 +146,14 @@ def fricas_desolve_system(des, dvars, ics, ivar):
         sage: from sage.calculus.desolvers import fricas_desolve_system
         sage: t = var('t')
         sage: x = function('x')(t)
-        sage: fricas_desolve_system([diff(x,t) + 1 == 0], [x], None, t)         # optional - fricas
+        sage: fricas_desolve_system([diff(x,t) + 1 == 0], [x], None, t)   # optional - fricas
         [x(t) == _C0 - t]
 
         sage: y = function('y')(t)
         sage: de1 = diff(x,t) + y - 1 == 0
         sage: de2 = diff(y,t) - x + 1 == 0
-        sage: sol = fricas_desolve_system([de1,de2], [x,y], [0,1,-1], t); sol   # optional - fricas
+        sage: sol = fricas_desolve_system([de1,de2], [x,y], [0,1,-1], t)  # optional - fricas
+        sage: sol                                                         # optional - fricas
         [x(t) == cos(t)^2 + sin(t)^2 + 2*sin(t), y(t) == -2*cos(t) + 1]
 
     """
@@ -178,17 +177,18 @@ def fricas_desolve_system(des, dvars, ics, ivar):
 
     return [dvar == sol for dvar, sol in zip(dvars, sols)]
 
-def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False, algorithm=None):
+def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
+            algorithm="maxima"):
     r"""
     Solve a 1st or 2nd order linear ODE, including IVP and BVP.
 
     INPUT:
 
-    - ``de`` - an expression or equation representing the ODE
+    - ``de`` -- an expression or equation representing the ODE
 
-    - ``dvar`` - the dependent variable (hereafter called `y`)
+    - ``dvar`` -- the dependent variable (hereafter called `y`)
 
-    - ``ics`` - (optional) the initial or boundary conditions
+    - ``ics`` -- (optional) the initial or boundary conditions
 
       - for a first-order equation, specify the initial `x` and `y`
 
@@ -201,11 +201,11 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
       - gives an error if the solution is not SymbolicEquation (as happens for
         example for a Clairaut equation)
 
-    - ``ivar`` - (optional) the independent variable (hereafter called
+    - ``ivar`` -- (optional) the independent variable (hereafter called
       `x`), which must be specified if there is more than one
-      independent variable in the equation.
+      independent variable in the equation
 
-    - ``show_method`` - (optional) if true, then Sage returns pair
+    - ``show_method`` -- (optional) if ``True``, then Sage returns pair
       ``[solution, method]``, where method is the string describing
       the method which has been used to get a solution (Maxima uses the
       following order for first order equations: linear, separable,
@@ -215,17 +215,16 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
       this property is not recognized by Maxima and the equation is solved
       as exact.
 
-    - ``contrib_ode`` - (optional) if true, ``desolve`` allows to solve
+    - ``contrib_ode`` -- (optional) if ``True``, ``desolve`` allows to solve
       Clairaut, Lagrange, Riccati and some other equations. This may take
       a long time and is thus turned off by default.  Initial conditions
       can be used only if the result is one SymbolicEquation (does not
       contain a singular solution, for example).
 
-    - ``algorithm`` - (optional, default None) -- one of
+    - ``algorithm`` -- (default: ``'maxima'``) one of
 
-      - 'maxima' - use maxima (the default)
-
-      - 'fricas' - use FriCAS (the optional fricas spkg has to be installed)
+      * ``'maxima'`` - use maxima
+      * ``'fricas'`` - use FriCAS (the optional fricas spkg has to be installed)
 
     OUTPUT:
 
@@ -367,7 +366,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
     conditions, but you cannot put (sometimes desired) the initial
     condition at `x=0`, since this point is a singular point of the
     equation. Anyway, if the solution should be bounded at `x=0`, then
-    _K2=0.::
+    ``_K2=0``. ::
 
         sage: desolve(x^2*diff(y,x,x)+x*diff(y,x)+(x^2-4)*y==0,y)
         _K1*bessel_J(2, x) + _K2*bessel_Y(2, x)
@@ -379,7 +378,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         ...
         NotImplementedError, "Maxima was unable to solve this ODE. Consider to set option contrib_ode to True."
 
-    Another difficult ODE with error - moreover, it takes a long time ::
+    Another difficult ODE with error - moreover, it takes a long time::
 
         sage: desolve(sqrt(y)*diff(y,x)+e^(y)+cos(x)-sin(x+y)==0,y,contrib_ode=True) # not tested
 
@@ -395,7 +394,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
 
     These two examples produce an error (as expected, Maxima 5.18 cannot
     solve equations from initial conditions). Maxima 5.18
-    returns false answer in this case!::
+    returns false answer in this case! ::
 
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y,[0,1,2]).expand() # not tested
         Traceback (click to the left for traceback)
@@ -469,24 +468,25 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,[0,3,pi/2,2],show_method=True)
         [(2*x*(2*e^(1/2*pi) - 3)/pi + 3)*e^(-x), 'constcoeff']
 
-    Using algorithm='fricas' we can invoke FriCAS' differential
-    equation solver.  For example, it can solve higher order linear
-    equations::
+    Using ``algorithm='fricas'`` we can invoke the differential
+    equation solver from FriCAS.  For example, it can solve higher
+    order linear equations::
 
         sage: de = x^3*diff(y, x, 3) + x^2*diff(y, x, 2) - 2*x*diff(y, x) + 2*y - 2*x^4
-        sage: Y = desolve(de, y, algorithm="fricas"); Y                         # optional - fricas
-        (2*x^3 - 3*x^2 + 1)*_C0/x + (x^3 - 1)*_C1/x + (x^3 - 3*x^2 - 1)*_C2/x + 1/15*(x^5 - 10*x^3 + 20*x^2 + 4)/x
+        sage: Y = desolve(de, y, algorithm="fricas"); Y               # optional - fricas
+        (2*x^3 - 3*x^2 + 1)*_C0/x + (x^3 - 1)*_C1/x
+         + (x^3 - 3*x^2 - 1)*_C2/x + 1/15*(x^5 - 10*x^3 + 20*x^2 + 4)/x
 
     The initial conditions are then interpreted as `[x_0, y(x_0),
-    y'(x_0), \dots, y^(n)(x_0)]`::
+    y'(x_0), \ldots, y^(n)(x_0)]`::
 
-        sage: Y = desolve(de, y, ics=[1,3,7], algorithm="fricas"); Y            # optional - fricas
+        sage: Y = desolve(de, y, ics=[1,3,7], algorithm="fricas"); Y  # optional - fricas
         1/15*(x^5 + 15*x^3 + 50*x^2 - 21)/x
 
     FriCAS can also solve some non-linear equations::
 
-        sage: de = diff(y, x) == y/(x+y*log(y))
-        sage: Y = desolve(de, y, algorithm="fricas"); Y                         # optional - fricas
+        sage: de = diff(y, x) == y / (x+y*log(y))
+        sage: Y = desolve(de, y, algorithm="fricas"); Y               # optional - fricas
         1/2*(log(y(x))^2*y(x) - 2*x)/y(x)
 
     TESTS:
@@ -544,15 +544,11 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         sage: desolve(diff(y, x) == sqrt(abs(y)), dvar=y, ivar=x)
         sqrt(-y(x))*(sgn(y(x)) - 1) + (sgn(y(x)) + 1)*sqrt(y(x)) == _C + x
 
-
     AUTHORS:
 
     - David Joyner (1-2006)
-
     - Robert Bradshaw (10-2008)
-
     - Robert Marik (10-2009)
-
     """
     if is_SymbolicEquation(de):
         de = de.lhs() - de.rhs()
@@ -567,10 +563,11 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         if len(ivars) != 1:
             raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
+
     if algorithm == "fricas":
         return fricas_desolve(de, dvar, ics, ivar)
-    elif algorithm is not None and algorithm != "maxima":
-        raise ValueError("Unknown algorithm: %s" % algorithm)
+    elif algorithm != "maxima":
+        raise ValueError("unknown algorithm %s" % algorithm)
 
     de00 = de._maxima_()
     P = de00.parent()
@@ -833,30 +830,30 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
 
 
 def desolve_system(des, vars, ics=None, ivar=None, algorithm=None):
-    """
-    Solve a system of any size of 1st order ODEs. Initial conditions are optional.
+    r"""
+    Solve a system of any size of 1st order ODEs. Initial conditions
+    are optional.
 
     One dimensional systems are passed to :meth:`desolve_laplace`.
 
     INPUT:
 
-    - ``des`` - list of ODEs
+    - ``des`` -- list of ODEs
 
-    - ``vars`` - list of dependent variables
+    - ``vars`` -- list of dependent variables
 
-    - ``ics`` - (optional) list of initial values for ``ivar`` and ``vars``.
-      If ``ics`` is defined, it should provide initial conditions for each variable,
-      otherwise an exception would be raised.
+    - ``ics`` -- (optional) list of initial values for ``ivar`` and ``vars``;
+      if ``ics`` is defined, it should provide initial conditions for each
+      variable, otherwise an exception would be raised
 
-    - ``ivar`` - (optional) the independent variable, which must be
+    - ``ivar`` -- (optional) the independent variable, which must be
       specified if there is more than one independent variable in the
-      equation.
+      equation
 
-    - ``algorithm`` - (optional, default None) -- one of
+    - ``algorithm`` -- (default: ``'maxima'``) one of
 
-      - 'maxima' - use maxima (the default)
-
-      - 'fricas' - use FriCAS (the optional fricas spkg has to be installed)
+      * ``'maxima'`` - use maxima
+      * ``'fricas'`` - use FriCAS (the optional fricas spkg has to be installed)
 
     EXAMPLES::
 
@@ -871,7 +868,7 @@ def desolve_system(des, vars, ics=None, ivar=None, algorithm=None):
 
     The same system solved using FriCAS::
 
-        sage: desolve_system([de1, de2], [x,y], algorithm='fricas')             # optional - fricas
+        sage: desolve_system([de1, de2], [x,y], algorithm='fricas')  # optional - fricas
         [x(t) == _C0*cos(t) + cos(t)^2 + _C1*sin(t) + sin(t)^2,
          y(t) == -_C1*cos(t) + _C0*sin(t) + 1]
 
@@ -937,7 +934,6 @@ def desolve_system(des, vars, ics=None, ivar=None, algorithm=None):
         ...
         ValueError: Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = [1, 1], vars = [x1(t), x2(t)]
 
-
     AUTHORS:
 
     - Robert Bradshaw (10-2008)
@@ -947,7 +943,7 @@ def desolve_system(des, vars, ics=None, ivar=None, algorithm=None):
         if len(ics) != (len(vars) + 1):
             raise ValueError("Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = {0}, vars = {1}".format(ics, vars))
 
-    if len(des)==1 and algorithm is None:
+    if len(des) == 1 and algorithm == "maxima":
         return desolve_laplace(des[0], vars[0], ics=ics, ivar=ivar)
     ivars = set([])
     for i, de in enumerate(des):
@@ -962,8 +958,8 @@ def desolve_system(des, vars, ics=None, ivar=None, algorithm=None):
 
     if algorithm == "fricas":
         return fricas_desolve_system(des, vars, ics, ivar)
-    elif algorithm is not None and algorithm != "maxima":
-        raise ValueError("Unknown algorithm: %s" % algorithm)
+    elif algorithm != "maxima":
+        raise ValueError("unknown algorithm %s" % algorithm)
 
     dvars = [v._maxima_() for v in vars]
     if ics is not None:

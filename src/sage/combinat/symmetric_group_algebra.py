@@ -1145,9 +1145,9 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         if not block or not p:
             la_index = indices[la]
             big_coeff = character_table[la_index][0] / factorial(self.n)
-            character_row = character_table[lam_index]
+            character_row = character_table[la_index]
             cpi = {g: big_coeff * character_row[indices[g.cycle_type()]]
-                    for g in G}
+                   for g in G}
         else:
             # We compute the cycle types of the permutations
             cycles = {}

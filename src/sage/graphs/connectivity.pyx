@@ -3536,6 +3536,14 @@ class TriconnectivitySPQR:
                         w = x
                         wnum = self.newnum[w]
 
+                    # update the values used in the while loop check
+                    temp_node = self.adj[w].get_head()
+                    temp = temp_node.get_data()
+                    if temp in self.reverse_edges:
+                        temp_target = temp[0]
+                    else:
+                        temp_target = temp[1]
+
                 # start type-1 check
                 if self.lowpt2[w] >= vnum and self.lowpt1[w] < vnum and \
                     (self.parent[v] != self.start_vertex or outv >= 2):

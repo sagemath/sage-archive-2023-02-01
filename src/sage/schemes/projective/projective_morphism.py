@@ -1731,16 +1731,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^3 : 3*x^2*y + y^3)
-            ,
+                    (x^3 + 3*x*y^2 : y^3) ,
             <BLANKLINE>
-            [ -1   0]
-            [221  -1]
+            [  0  -1]
+            [  1 221]
             )
         """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.reduced_form instead")
-        return self.as_dynamical_system().reduced_form(prec, return_conjugation, error_limit)
+        return self.as_dynamical_system().reduced_form(prec=prec,\
+            return_conjugation=return_conjugation, error_limit=error_limit)
 
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):

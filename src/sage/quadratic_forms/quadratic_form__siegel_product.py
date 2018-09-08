@@ -85,15 +85,14 @@ def siegel_product(self, u):
     ## DIAGNOSTIC
     verbose("n = " + str(n))
     verbose("d = " + str(d))
-    verbose("In siegel_product:  d = ", d, "\n");
-
+    verbose("In siegel_product:  d = " + str(d) + "\n");
 
     ## Product of "bad" places to omit
     S = 2 * d * u
 
     ## DIAGNOSTIC
     verbose("siegel_product Break 1. \n")
-    verbose(" u = ", u, "\n")
+    verbose(" u = " + str(u) + "\n")
 
 
     ## Make the odd generic factors
@@ -170,9 +169,7 @@ def siegel_product(self, u):
         verbose(" u = " +str(u) + "\n")
         verbose(" include = " + str(include) + "\n")
 
-
         include *= Q_normal.local_density(p, u)
-
 
         ## DIAGNOSTIC
         #cout << " Including the p = " << p << " factor: " << local_density(Q_normal, p, u) << endl;

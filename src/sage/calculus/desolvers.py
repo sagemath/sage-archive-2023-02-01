@@ -829,7 +829,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
     return soln
 
 
-def desolve_system(des, vars, ics=None, ivar=None, algorithm=None):
+def desolve_system(des, vars, ics=None, ivar=None, algorithm="maxima"):
     r"""
     Solve a system of any size of 1st order ODEs. Initial conditions
     are optional.

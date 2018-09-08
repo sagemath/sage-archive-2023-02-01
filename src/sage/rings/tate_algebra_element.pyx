@@ -1,4 +1,5 @@
 from sage.structure.element cimport Element
+from sage.structure.element cimport MonoidElement
 from sage.structure.element cimport CommutativeAlgebraElement
 
 from sage.rings.infinity import Infinity
@@ -7,23 +8,95 @@ from sage.rings.integer_ring import ZZ
 from sage.structure.element import coerce_binop
 
 
+cdef class TateAlgebraTerm(MonoidElement):
+    def __init__(self, parent, coeff, exponent):
+        MonoidElement.__init__(self, parent)
+        self._field = parent.base_ring().fraction_field()
+        self._coeff = self._field(coeff)
+        if isinstance(exponent, (list, tuple)):
+            if len(exponent) != parent._ngens:
+                raise ValueError("The number of exponents does not match the number of variables")
+            self._exponent = tuple([ ZZ(e) for e in exponent ])
+        else:
+            self._exponent = (ZZ(exponent),) * parent._ngens
+
+    def _repr_(self):
+        parent = self._parent
+        s = "(%s)" % self._coeff
+        for i in range(parent._ngens):
+            if self._exponent[i] == 1:
+                s += "*%s" % parent._names[i]
+            elif self._exponent[i] > 1:
+                s += "*%s^%s" % (parent._names[i], self._exponent[i])
+        return s
+
+    def coefficient(self):
+        return self._coeff
+
+    def exponent(self):
+        return self._exponent
+
+    def _mul_(self, other):
+        exponent = tuple([ self._exponent[i] + other.exponent()[i] for i in range(self._parent._ngens) ])
+        return self._parent(self._coeff * other.coefficient(), exponent)
+
+    def valuation(self):
+        return self._coefficient.valuation() - sum(self._exponent[i]*self._log_radii[i] for i in range(self._parent._ngens))
+
+    @coerce_binop
+    def gcd(self, other):
+        exponent = tuple([ min(self._exponent[i], other.exponent()[i]) for i in range(self._parent._ngens) ])
+        val = min(self._coeff.valuation(), other.coefficient().valuation())
+        return self._parent(self._field.uniformizer_pow(val), exponent)
+
+    @coerce_binop
+    def lcm(self, other):
+        exponent = tuple([ max(self._exponent[i], other.exponent()[i]) for i in range(self._parent._ngens) ])
+        val = max(self._coeff.valuation(), other.coefficient().valuation())
+        return self._parent(self._field.uniformizer_pow(val), exponent)
+
+    @coerce_binop
+    def is_divisible_by(self, other):
+        if self.valuation() < other.valuation():
+            return False
+        for i in range(self._parent._ngens):
+            if self._exponent[i] < other.exponent()[i]:
+                return False
+        return True
+
+    def divides(self, other):
+        return other.is_divisible_by(self)
+
+    @coerce_binop
+    def __floordiv__(self, other):
+        parent = self._parent
+        if not parent.base_ring().is_field() and self.valuation() > other.valuation():
+            raise ValueError("The division is not exact")
+        exponent = [ ]
+        for i in range(parent._ngens):
+            if self._exponent[i] < other._exponent[i]:
+                raise ValueError("The division is not exact")
+            exponent.append(self._exponent[i] - other.exponent()[i])
+        return parent(self._coeff / other.coefficient(), tuple(exponent))
+
+
 cdef class TateAlgebraElement(CommutativeAlgebraElement):
-r"""
-Define the class for Tate series, elements of Tate algebras.
+    r"""
+    Define the class for Tate series, elements of Tate algebras.
 
-Given a complete discrete valuation ring `R`, variables `X_1,\dots,X_k`
-and convergence radii `r_,\dots, r_n` in `\mathbb{R}_{>0}`, a Tate series is an
-element of the Tate algebra `R{X_1,\dots,X_k}`, that is a power series with
-coefficients `a_{i_1,\dots,i_n}` in `R` and such that
-`|a_{i_1,\dots,i_n}|*r_1^{-i_1}*\dots*r_n^{-i_n}` tends to 0 as
-`i_1,\dots,i_n` go towards infinity.
+    Given a complete discrete valuation ring `R`, variables `X_1,\dots,X_k`
+    and convergence radii `r_,\dots, r_n` in `\mathbb{R}_{>0}`, a Tate series is an
+    element of the Tate algebra `R{X_1,\dots,X_k}`, that is a power series with
+    coefficients `a_{i_1,\dots,i_n}` in `R` and such that
+    `|a_{i_1,\dots,i_n}|*r_1^{-i_1}*\dots*r_n^{-i_n}` tends to 0 as
+    `i_1,\dots,i_n` go towards infinity.
 
-INPUT:
+    INPUT:
 
-- 
+    - ???
 
 
-"""
+    """
     def __init__(self, parent, x, prec=None, reduce=True):
         r"""
         Initialize a Tate algebra element
@@ -63,6 +136,24 @@ INPUT:
         self._coeffs = None
 
     def _repr_(self):
+        r"""
+        Return a printable representation of a Tate series
+
+        The terms are ordered with decreasing term order (increasing valuation of the coefficients, then the monomial order of the parent algebra).
+
+        EXAMPLES::
+        
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: x + 2*x^2 + x^3
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: A(x+2*x^2+x^3,prec=5)
+            (...00001)*x^3 + (...00001)*x + (...00010)*x^2 + O(2^5)
+
+        """
+        
         base = self._parent.base_ring()
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
@@ -84,18 +175,142 @@ INPUT:
         return s[3:]
 
     def polynomial(self):
+        r"""
+        Return a polynomial representation of the Tate series.
+
+        For series which are not polynomials, the output corresponds to ???
+        """
+        # TODO: should we make sure that the result is reduced in some cases?
         return self._poly
 
     cpdef _add_(self, other):
+        r"""
+        Add a Tate series to the Tate series
+
+        The precision of the output is adjusted to the minimum of both precisions.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: g = A(x + 2*y^2,prec=5); g
+            (...00001)*x + (...00010)*y^2 + O(2^5)
+            sage: h=f+g; h # indirect doctest
+            (...00001)*x^3 + (...00010)*x^2 + (...00010)*y^2 + (...00010)*x + O(2^5)
+
+        ::
+
+            sage: f.precision_absolute()
+            +Infinity
+            sage: g.precision_absolute()
+            5
+            sage: h.precision_absolute()
+            5
+
+
+        """
+        # TODO: g = x + 2*y^2 + O(2^5) fails coercing O(2^5) into R, is that normal? If we force conversion with R(O(2^5)) the result is a Tate series with precision infinity... it's understandable but confusing, no? 
         return self._parent(self._poly + other.polynomial(), min(self._prec, other.precision_absolute()))
 
     cpdef _neg_(self):
+        r"""
+        Return the opposite of the Tate series
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: -f # indirect doctest
+            (...1111111111)*x^3 + (...1111111111)*x + (...11111111110)*x^2
+
+
+        """
+
         return self._parent(-self._poly, self._prec, reduce=False)
 
     cpdef _sub_(self, other):
+        r"""
+        Return the difference of the Tate series and another
+
+        The precision of the output is adjusted to the minimum of both precisions.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: g = A(x + 2*y^2,prec=5); g
+            (...00001)*x + (...00010)*y^2 + O(2^5)
+            sage: h=f-g; h # indirect doctest
+            (...00001)*x^3 + (...00010)*x^2 + (...00010)*y^2 + (...00010)*x + O(2^5)
+
+        ::
+
+            sage: f.precision_absolute()
+            +Infinity
+            sage: g.precision_absolute()
+            5
+            sage: h.precision_absolute()
+            5
+
+        ::
+
+        #TODO: the result doesn't seem correct:
+
+            sage: h1=f+g; h1
+            (...00001)*x^3 + (...00010)*x^2 + (...00010)*y^2 + (...00010)*x + O(2^5)
+            sage: h2=f-g; h2
+            (...00001)*x^3 + (...00010)*x^2 + (...11110)*y^2 + O(2^5)
+            sage: h1+h2
+            (...00010)*x^3 + (...00010)*x + (...00100)*x^2 + O(2^5)
+            sage: f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+
+        """
+    
         return self._parent(self._poly - other.polynomial(), min(self._prec, other.precision_absolute()))
 
     cpdef _mul_(self, other):
+        r"""
+        Return the product of the Tate series and another.
+
+        The precision is adjusted to match the best precision on the output.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: f = 2*x + 4*x^2 + 2*x^3; f
+            (...00000000010)*x^3 + (...00000000010)*x + (...000000000100)*x^2
+            g = A(x + 2*x^2, prec=5); g
+            (...00001)*x + (...00010)*x^2 + O(2^5)
+            sage: h = f*g; h
+            (...001010)*x^4 + (...000010)*x^2 + (...000100)*x^5 + (...001000)*x^3 + O(2^6)
+
+        ::
+
+            sage: f.precision_absolute()
+            +Infinity
+            sage: g.precision_absolute()
+            5
+            sage: h.precision_absolute()
+            6
+
+
+        """
         prec = min(self._prec + other.valuation(), other.precision_absolute() + self.valuation())
         return self._parent(self._poly * other.polynomial(), prec)
 

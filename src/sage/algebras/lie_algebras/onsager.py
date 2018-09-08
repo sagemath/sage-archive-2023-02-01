@@ -214,7 +214,7 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
 
             sage: O = lie_algebras.OnsagerAlgebra(QQ)
             sage: O.lie_algebra_generators()
-            Finite family {'A1': A[1], 'A0': A[0]}
+            Finite family {'A0': A[0], 'A1': A[1]}
         """
         d = {"A0": self.basis()[0,0], "A1": self.basis()[0,1]}
         return Family(self._names, d.__getitem__)

@@ -789,7 +789,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: R.<x,y,z> = QQ[]
             sage: W = DifferentialWeylAlgebra(R)
             sage: W.algebra_generators()
-            Finite family {'dz': dz, 'dx': dx, 'dy': dy, 'y': y, 'x': x, 'z': z}
+            Finite family {'x': x, 'y': y, 'z': z, 'dx': dx, 'dy': dy, 'dz': dz}
         """
         d = {x: self.gen(i) for i,x in enumerate(self.variable_names())}
         return Family(self.variable_names(), lambda x: d[x])
@@ -807,7 +807,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
             sage: W.variables()
-            Finite family {'y': y, 'x': x, 'z': z}
+            Finite family {'x': x, 'y': y, 'z': z}
         """
         N = self.variable_names()[:self._n]
         d = {x: self.gen(i) for i,x in enumerate(N) }
@@ -826,7 +826,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
             sage: W.differentials()
-            Finite family {'dz': dz, 'dx': dx, 'dy': dy}
+            Finite family {'dx': dx, 'dy': dy, 'dz': dz}
         """
         N = self.variable_names()[self._n:]
         d = {x: self.gen(self._n+i) for i,x in enumerate(N) }

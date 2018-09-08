@@ -139,6 +139,8 @@ from .cartesian_product import CartesianProduct
 
 from .set_partition import SetPartition, SetPartitions
 from .set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
+lazy_import('sage.combinat.multiset_partition_ordered', ['OrderedMultisetPartitionIntoSets',
+                                                         'OrderedMultisetPartitionsIntoSets'])
 from .subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from .necklace import Necklaces

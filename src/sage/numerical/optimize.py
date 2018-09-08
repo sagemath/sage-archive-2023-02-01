@@ -19,7 +19,7 @@ from sage.misc.decorators import rename_keyword
 
 
 def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
-    """
+    r"""
     Numerically find a root of ``f`` on the closed interval `[a,b]`
     (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
     Note: this function only works in fixed (machine) precision, it is not
@@ -492,9 +492,9 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     return vector(RDF, min)
 
 
-def linear_program(c,G,h,A=None,b=None,solver=None):
-    """
-    Solves the dual linear programs:
+def linear_program(c, G, h, A=None, b=None, solver=None):
+    r"""
+    Solve the dual linear programs:
 
     - Minimize  `c'x` subject to `Gx + s = h`, `Ax = b`, and `s \geq 0` where
       `'` denotes transpose.

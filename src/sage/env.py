@@ -1,4 +1,4 @@
-"""
+r"""
 Sage Runtime Environment
 
 AUTHORS:
@@ -167,14 +167,13 @@ _add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polyt
 _add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
 _add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
 _add_variable_or_fallback('COMBINATORIAL_DESIGN_DATA_DIR', opj('$SAGE_SHARE', 'combinatorial_designs'))
-_add_variable_or_fallback('CREMONA_MINI_DATA_DIR', opj('$SAGE_SHARE','cremona'))
+_add_variable_or_fallback('CREMONA_MINI_DATA_DIR', opj('$SAGE_SHARE', 'cremona'))
 _add_variable_or_fallback('CREMONA_LARGE_DATA_DIR', opj('$SAGE_SHARE', 'cremona'))
 _add_variable_or_fallback('JMOL_DIR', opj('$SAGE_SHARE', 'jmol'))
-_add_variable_or_fallback('JSMOL_DIR', SAGE_ENV['JMOL_DIR'])
+_add_variable_or_fallback('JSMOL_DIR', opj('$SAGE_SHARE', 'jsmol'))
 _add_variable_or_fallback('MATHJAX_DIR', opj('$SAGE_SHARE', 'mathjax'))
 _add_variable_or_fallback('THREEJS_DIR', opj('$SAGE_SHARE', 'threejs'))
-_add_variable_or_fallback('ECLDIR', opj('$SAGE_LOCAL', 'lib', 'ecl'))
-_add_variable_or_fallback('MAXIMA_FAS', opj(SAGE_ENV['ECLDIR'], 'maxima.fas'))
+_add_variable_or_fallback('MAXIMA_FAS', None)
 
 
 # locate singular shared object
@@ -226,6 +225,7 @@ _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version, site
+
 
 def sage_include_directories(use_sources=False):
     """

@@ -1630,7 +1630,7 @@ methods ``foo`` in `C_1` and `C_2` must have the same semantic. Code
 should not rely on any specific order, as it is subject to later
 change. Whenever one of the implementations is preferred in some common
 subcategory of `C_1` and `C_2`, for example for efficiency reasons,
-the ambiguity should be resolved explicitly by definining a
+the ambiguity should be resolved explicitly by defining a
 method ``foo`` in this category. See the method ``some_elements`` in
 the code of the category :class:`FiniteCoxeterGroups` for an example.
 

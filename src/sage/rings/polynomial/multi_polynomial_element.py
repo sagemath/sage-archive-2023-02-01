@@ -56,7 +56,7 @@ from __future__ import absolute_import
 from six.moves import range
 from six import iteritems, integer_types
 
-from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
+from sage.structure.element import CommutativeRingElement, coerce_binop
 from sage.misc.all import prod
 import sage.rings.integer
 from . import polydict
@@ -1641,13 +1641,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
         return MPolynomial_polydict(self.parent(), d)
 
-    def factor(self, proof=True):
+    def factor(self, proof=None):
         r"""
         Compute the irreducible factorization of this polynomial.
 
         INPUT:
 
-        - ``proof'' - insist on provably correct results (default: ``True``)
+        - ``proof'' - insist on provably correct results (default: ``True``
+          unless explicitly disabled for the ``"polynomial"`` subsystem with
+          :class:`sage.structure.proof.proof.WithProof`.)
 
         TESTS:
 
@@ -1677,10 +1679,25 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         Check that we prohibit too large moduli, :trac:`11829`::
 
             sage: R.<x,y> = GF(previous_prime(2^31))[]
-            sage: factor(x+y+1,proof=False)
+            sage: factor(x+y+1)
             Traceback (most recent call last):
             ...
             NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
+
+        Check that the global proof flag for polynomials is honored::
+
+            sage: R.<x,y> = QQbar[]
+            sage: f = x^2 + y^2
+            sage: with proof.WithProof('polynomial', True):
+            ....:     f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Provably correct factorization not implemented. Disable this error by wrapping your code in a `with proof.WithProof('polynomial', False):` block.
+            sage: with proof.WithProof('polynomial', False):
+            ....:     f.factor()
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this ring to a Singular ring defined
 
         We check that the original issue in :trac:`7554` is fixed::
 
@@ -1711,6 +1728,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f = z^4 - 6*z + 3
             sage: f.factor()
             (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+
+        We check a case that failed with an exception at some point::
+
+            sage: k.<u> = GF(4)
+            sage: R.<v> = k[]
+            sage: l.<v> = R.quo(v^3 + v + 1)
+            sage: R.<x,y> = l[]
+            sage: f = y^3 + x^3 + (u + 1)*x
+            sage: f.factor()
+            x^3 + y^3 + (u + 1)*x
 
         """
         R = self.parent()
@@ -1743,8 +1770,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if base_ring.is_finite():
             if base_ring.characteristic() > 1<<29:
                 raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
+
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(subsystem="polynomial")
         if proof:
-            raise NotImplementedError("proof = True factorization not implemented.  Call factor with proof=False.")
+            raise NotImplementedError("Provably correct factorization not implemented. Disable this error by wrapping your code in a `with proof.WithProof('polynomial', False):` block.")
 
         R._singular_().set_ring()
         S = self._singular_().factorize()

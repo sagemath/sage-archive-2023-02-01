@@ -33,8 +33,8 @@ def JohnsonGraph(n, k):
     Johnson graphs are a special class of undirected graphs defined from systems
     of sets. The vertices of the Johnson graph `J(n,k)` are the `k`-element
     subsets of an `n`-element set; two vertices are adjacent when they meet in a
-    `(k-1)`-element set. For more information about Johnson graphs, see the
-    corresponding :wikipedia:`Wikipedia page <Johnson_graph>`.
+    `(k-1)`-element set. See the :wikipedia:`Johnson_graph` for more
+    information.
 
     EXAMPLES:
 
@@ -504,6 +504,8 @@ def AztecDiamondGraph(n):
     """
     Return the Aztec Diamond graph of order ``n``.
 
+    See the :wikipedia:`Aztec_diamond` for more information.
+
     EXAMPLES::
 
         sage: graphs.AztecDiamondGraph(2)
@@ -518,10 +520,6 @@ def AztecDiamondGraph(n):
         sage: G = graphs.AztecDiamondGraph(3)
         sage: sum(1 for p in G.perfect_matchings())
         64
-
-    REFERENCE:
-
-    - :wikipedia:`Aztec_diamond`
     """
     from sage.graphs.generators.basic import Grid2dGraph
     if n:
@@ -678,7 +676,7 @@ def chang_graphs():
 
     Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
     called the Chang graphs. The fourth is the line graph of `K_8`. For more
-    information about the Chang graphs, see :wikipedia:`Chang_graphs` or
+    information about the Chang graphs, see the :wikipedia:`Chang_graphs` or
     https://www.win.tue.nl/~aeb/graphs/Chang.html.
 
     EXAMPLES: check that we get 4 non-isomorphic s.r.g.'s with the
@@ -1006,8 +1004,7 @@ def FoldedCubeGraph(n):
     `2^{n-1}` vertices by adding an edge between opposed vertices. This
     second construction is the one produced by this method.
 
-    For more information on folded cube graphs, see the corresponding
-    :wikipedia:`Wikipedia page <Folded_cube_graph>`.
+    See the :wikipedia:`Folded_cube_graph` for more information.
 
     EXAMPLES:
 
@@ -1048,7 +1045,7 @@ def FriendshipGraph(n):
     joining `n \geq 1` copies of `C_3` at a common vertex. If `n = 1`,
     then `F_1` is isomorphic to `C_3` (the triangle graph). If `n = 2`,
     then `F_2` is the butterfly graph, otherwise known as the bowtie
-    graph. For more information, see :wikipedia:`Friendship_graph`.
+    graph. For more information, see the :wikipedia:`Friendship_graph`.
 
     INPUT:
 
@@ -2192,8 +2189,7 @@ def line_graph_forbidden_subgraphs():
     r"""
     Returns the 9 forbidden subgraphs of a line graph.
 
-    `Wikipedia article on the line graphs
-    <http://en.wikipedia.org/wiki/Line_graph>`_
+    See the :wikipedia:`Line_graph` for more information.
 
     The graphs are returned in the ordering given by the Wikipedia
     drawing, read from left to right and from top to bottom.
@@ -2983,12 +2979,11 @@ def TuranGraph(n,r):
     r"""
     Returns the Turan graph with parameters `n, r`.
 
-    Turan graphs are complete multipartite graphs with `n` vertices and
-    `r` subsets, denoted `T(n,r)`, with the property that the sizes of the
-    subsets are as close to equal as possible. The graph `T(n,r)` will have
-    `n \pmod r` subsets of size `\lfloor n/r \rfloor` and `r - (n \pmod r)` subsets of
-    size `\lceil n/r \rceil`. For more information about Turan graphs, see the
-    corresponding :wikipedia:`Wikipedia page <Turan_graph>`
+    Turan graphs are complete multipartite graphs with `n` vertices and `r`
+    subsets, denoted `T(n,r)`, with the property that the sizes of the subsets
+    are as close to equal as possible. The graph `T(n,r)` will have `n \pmod r`
+    subsets of size `\lfloor n/r \rfloor` and `r - (n \pmod r)` subsets of size
+    `\lceil n/r \rceil`. See the :wikipedia:`Turan_graph` for more information.
 
     INPUT:
 

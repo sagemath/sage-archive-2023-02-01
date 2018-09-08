@@ -483,6 +483,18 @@ cdef class IdentityMorphism(Morphism):
         """
         return True
 
+    def section(self):
+        """
+        Return a section of this morphism.
+
+        EXAMPLES::
+
+            sage: T = Hom(ZZ, ZZ).identity()
+            sage: T.section() is T
+            True
+        """
+        return self
+
     def is_surjective(self):
         r"""
         Return whether this morphism is surjective.

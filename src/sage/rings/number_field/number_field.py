@@ -235,7 +235,7 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
 
-def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None):
+def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None, **kwds):
     r"""
     Return *the* number field (or tower of number fields) defined by the
     irreducible ``polynomial``.
@@ -264,6 +264,10 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
           :class:`structure.NumberFieldStructure` (default: ``None``),
           internally used to pass in additional structural information, e.g.,
           about the field from which this field is created as a subfield.
+
+    We accept ``implementation`` and ``prec`` attributes for compatibility
+    with :class:`~sage.categories.pushout.AlgebraicExtensionFunctor`
+    but we ignore them as they are not used.
 
     EXAMPLES::
 
@@ -537,6 +541,11 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     """
     if names is not None:
         name = names
+    for key, val in kwds.items():
+        if key not in ['implementation', 'prec']:
+            raise TypeError("NumberField() got an unexpected keyword argument '%s'"%key)
+        if not (val is None or isinstance(val, list) and all(c is None for c in val)):
+            raise NotImplementedError("Number field with prescribed %s is not implemented"%key)
     if isinstance(polynomial, (list,tuple)):
         return NumberFieldTower(polynomial, names=name, check=check, embeddings=embedding, latex_names=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structures=structure)
 
@@ -2382,7 +2391,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             (False, [])
 
             sage: k = NumberField(x^2 - x - 1, 'b')
-            sage: ky.<y> = k[];
+            sage: ky.<y> = k[]
             sage: l = NumberField(y, 'a')
             sage: k.is_isomorphic(l, True)
             (True, [-x, x + 1])
@@ -3509,10 +3518,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if B<2:
             return []
 
+        from sage.rings.fast_arith import prime_range
         if self is QQ:
-            return arith.primes(B+1)
+            #return arith.primes(B+1)
+            return prime_range(B+1, algorithm="pari_isprime")
         else:
-            P = [pp for p in arith.primes(B+1) for pp in self.primes_above(p)]
+            #P = [pp for p in arith.primes(B+1) for pp in self.primes_above(p)]
+            P = [pp for p in prime_range(B+1, algorithm="pari_isprime") for pp in self.primes_above(p)]
             P = [p for p in P if p.norm() <= B]
             P.sort(key=lambda P: (P.norm(),P))
             return P
@@ -3559,11 +3571,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if B < 2:
             return
 
+        from sage.rings.fast_arith import prime_range
         if self is QQ:
-            for p in arith.primes(B+1):
+            #for p in arith.primes(B+1):
+            for p in prime_range(B+1,algorithm="pari_isprime"):
                 yield p
         else:
-            for p in arith.primes(B+1):
+            #for p in arith.primes(B+1):
+            for p in prime_range(B+1,algorithm="pari_isprime"):
                 for pp in self.primes_above(p):
                     if pp.norm() <= B:
                         yield pp
@@ -4494,7 +4509,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
              -1,
              2/13*a^2 + 1/13*a - 755/13,
              1/13*a^2 - 19/13*a - 7/13,
-             2/13*a^2 + 53/13*a - 92/13,
+             -1/13*a^2 + 45/13*a - 97/13,
              2/13*a^2 + 40/13*a - 27/13]
 
         Verify that :trac:`16708` is fixed::
@@ -6344,7 +6359,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
             sage: K = NumberField(A, 'a')
             sage: K.units()
-            (1/275*a^3 - 7/55*a^2 + 6/11*a - 3,)
+            (8/275*a^3 - 12/55*a^2 + 15/11*a - 3,)
 
         For big number fields, provably computing the unit group can
         take a very long time.  In this case, one can ask for the
@@ -6514,7 +6529,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^3 + 3)
             sage: U = K.unit_group(proof=False)
-            sage: U == K.S_unit_group(proof=False)
+            sage: U.is_isomorphic(K.S_unit_group(proof=False))
             True
 
         The value of `S` may be specified as a list of prime ideals,
@@ -6691,7 +6706,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             # Factor the n-th cyclotomic polynomial over K.
             f = K.pari_polynomial('y')
             factors = f.nffactor(pari.polcyclo(n)).component(1)
-            roots = [K(-g.polcoeff(0)) for g in factors if g.poldegree() == 1]
+            roots = [K(-g.polcoef(0)) for g in factors if g.poldegree() == 1]
             if all:
                 return roots
             if roots:
@@ -7851,11 +7866,11 @@ class NumberField_absolute(NumberField_generic):
             sage: K.maximal_order([3]).basis()
             [1/3*a^2 + 1/3*a + 1/3, a, a^2]
             sage: K.maximal_order([2]).basis()
-            [1, a, a^2]
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
             sage: K.maximal_order([p]).basis()
-            [1, a, a^2]
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
             sage: K.maximal_order([q]).basis()
-            [1, a, a^2]
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
             sage: K.maximal_order([p,3]).basis()
             [1/3*a^2 + 1/3*a + 1/3, a, a^2]
 

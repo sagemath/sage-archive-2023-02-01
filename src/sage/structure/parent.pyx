@@ -2301,7 +2301,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                       From: Number Field in a with defining polynomial x^2 + 1/2
                       To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
             sage: MatrixSpace(L, 2, 2).coerce_map_from(L)
-            Call morphism:
+            Coercion map:
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
             sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
@@ -2859,7 +2859,7 @@ cdef class EltPair:
             sage: K.<a> = Qq(9)
             sage: E = EllipticCurve_from_j(0).base_extend(K)
             sage: E.get_action(ZZ)
-            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over 3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
         """
         return hash((id(self.x), id(self.y), id(self.tag)))
 

@@ -103,7 +103,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
     TESTS::
 
         sage: n = 63
-        sage: m = 3;
+        sage: m = 3
         sage: K.<a> = GF(2^n, impl='pari_ffelt')
         sage: f = conway_polynomial(2, n)
         sage: f(a) == 0
@@ -198,7 +198,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sage: k(R(1/5))
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: Inverse does not exist.
+        ZeroDivisionError: inverse of Mod(0, 5) does not exist
 
     Gap elements can also be coerced into finite fields::
 

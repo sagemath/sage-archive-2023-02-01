@@ -375,7 +375,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: gap._eval_line('while(1=1) do i:=1;; od;', wait_for_prompt=False);
+            sage: gap._eval_line('while(1=1) do i:=1;; od;', wait_for_prompt=False)
             ''
             sage: rc = gap.interrupt(timeout=1)
             sage: [ gap(i) for i in range(10) ]   # check that it is still working
@@ -1555,7 +1555,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
-                'toric', 'laguna', 'braid']:
+                'toric', 'laguna', 'braid', 'polycyclic', 'nq']:
         # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:
             g.load_package(pkg, verbose=verbose)

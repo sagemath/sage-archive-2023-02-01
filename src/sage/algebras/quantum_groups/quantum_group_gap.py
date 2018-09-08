@@ -31,6 +31,7 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.libs.gap.libgap import libgap
+from sage.features.gap import GapPackage
 from sage.graphs.digraph import DiGraph
 from sage.rings.rational_field import QQ
 from sage.categories.algebras import Algebras
@@ -364,6 +365,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
             sage: TestSuite(Q).run()  # long time  # optional - gap_packages
         """
         self._cartan_type = cartan_type
+        GapPackage("QuaGroup", spkg="gap_packages").require()
         libgap.LoadPackage('QuaGroup')
         R = libgap.eval('RootSystem("%s",%s)'%(cartan_type.type(), cartan_type.rank()))
         Q = self._cartan_type.root_system().root_lattice()
@@ -854,7 +856,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
             return self.__class__(self.parent(), self._libgap * other._libgap)
 
         def bar(self):
-            """
+            r"""
             Return the bar involution on ``self``.
 
             The bar involution is defined by
@@ -1547,11 +1549,9 @@ class QuantumGroupModule(Parent, UniqueRepresentation):
             sage: V = Q.highest_weight_module([1,0])  # optional - gap_packages
             sage: T = tensor([V,V])  # optional - gap_packages
             sage: S = T.highest_weight_decomposition()[0]  # optional - gap_packages
-            sage: latex(S)  # optional - gap_packages
-            \begin{tikzpicture}...
-            %%
+            sage: latex(S)  # optional - gap_packages  # random (depends on dot2tex)
+            \begin{tikzpicture}
             ...
-            %
             \end{tikzpicture}
         """
         from sage.misc.latex import latex

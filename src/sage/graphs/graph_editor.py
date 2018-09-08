@@ -48,7 +48,7 @@ def graph_to_js(g):
         'num_vertices=3;edges=[[0,1],[0,2]];pos=[[0.75,0.5],[1.0,0.0],[0.0,1.0]];'
     """
     string = ''
-    vertex_list = g.get_vertices().keys()
+    vertex_list = list(g.get_vertices())
     string += 'num_vertices=' + str(len(vertex_list)) + ';'
     string += 'edges=['
     for i, e in enumerate(g.edges()):

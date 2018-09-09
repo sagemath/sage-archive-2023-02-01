@@ -524,7 +524,8 @@ nonnegative integers up to :math:`10000000`.
 
 ::
 
-    sage: v = (n^2 for n in xrange(10000000))
+    sage: v = (n^2 for n in xrange(10000000))  # py2
+    sage: v = (n^2 for n in range(10000000))  # py3
     sage: next(v)
     0
     sage: next(v)

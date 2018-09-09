@@ -101,6 +101,16 @@ class LieIdeal_finite_dimensional_with_basis(LieSubalgebra_finite_dimensional_wi
 
         sage: I =  L.ideal(X + Y)
         sage: TestSuite(I).run()
+
+    Verify that an ideal of a nilpotent Lie algebra is nilpotent::
+
+        sage: L = LieAlgebra(QQ, 3, step=4)
+        sage: x,y,z = L.homogeneous_component_basis(1)
+        sage: I = L.ideal(z)
+        sage: I in LieAlgebras(QQ).Nilpotent()
+        True
+        sage: I.step()
+        3
     """
 
     @staticmethod
@@ -126,6 +136,9 @@ class LieIdeal_finite_dimensional_with_basis(LieSubalgebra_finite_dimensional_wi
             gens = (ambient.zero(),)
 
         cat = LieAlgebras(ambient.base_ring()).FiniteDimensional().WithBasis()
+        if ambient in LieAlgebras(ambient.base_ring()).Nilpotent():
+            cat = cat.Nilpotent()
+
         category = cat.Subobjects().or_subcategory(category)
 
         sup = super(LieIdeal_finite_dimensional_with_basis, cls)

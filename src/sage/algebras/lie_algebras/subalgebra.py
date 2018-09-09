@@ -80,6 +80,16 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
 
         sage: S =  L.subalgebra(X + Y)
         sage: TestSuite(S).run()
+
+    Verify that a subalgebra of a nilpotent Lie algebra is nilpotent::
+
+        sage: L = LieAlgebra(QQ, 3, step=4)
+        sage: x,y,z = L.homogeneous_component_basis(1)
+        sage: S = L.subalgebra([x, y])
+        sage: S in LieAlgebras(QQ).Nilpotent()
+        True
+        sage: S.step()
+        4
     """
 
     @staticmethod
@@ -121,6 +131,9 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
             ambient = ambient.ambient()
 
         cat = LieAlgebras(ambient.base_ring()).FiniteDimensional().WithBasis()
+        if ambient in LieAlgebras(ambient.base_ring()).Nilpotent():
+            cat = cat.Nilpotent()
+
         category = cat.Subobjects().or_subcategory(category)
 
         sup = super(LieSubalgebra_finite_dimensional_with_basis, cls)

@@ -1320,6 +1320,14 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
         sage: from sage.graphs.graph_coloring import linear_arboricity
         sage: sorted([linear_arboricity(G, value_only=True) for G in graphs(4)])
         [0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2]
+
+    Test parameter ``hex_color`` (:trac:`26228`)::
+
+        sage: from sage.graphs.graph_coloring import linear_arboricity
+        sage: g = graphs.GridGraph([4,4])
+        sage: d = linear_arboricity(g, hex_colors=True)
+        sage: sorted(col for col,E in d.items())
+        ['#00ffff', '#ff0000']
     """
     g._scream_if_not_simple()
     from sage.rings.integer import Integer
@@ -1409,7 +1417,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
                 add((u,v),i)
 
     if hex_colors:
-        return dict(zip(rainbow(len(classes)), classes))
+        return dict(zip(rainbow(len(answer)), answer))
     else:
         return answer
 
@@ -1523,6 +1531,14 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
         sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
         sage: sorted([acyclic_edge_coloring(G, value_only=True) for G in graphs(4)])
         [2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5]
+
+    Test parameter ``hex_color`` (:trac:`26228`)::
+
+        sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
+        sage: g = graphs.CompleteGraph(4)
+        sage: d = acyclic_edge_coloring(g, hex_colors=True)
+        sage: sorted(col for col,E in d.items())
+        ['#0066ff', '#00ff66', '#cbff00', '#cc00ff', '#ff0000']
     """
     g._scream_if_not_simple(allow_multiple_edges=True)
 
@@ -1616,7 +1632,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
                 add((u,v),i)
 
     if hex_colors:
-        return dict(zip(rainbow(len(classes)),classes))
+        return dict(zip(rainbow(len(answer)),answer))
     else:
         return answer
 

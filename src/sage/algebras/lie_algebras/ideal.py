@@ -213,6 +213,9 @@ class LieIdeal_finite_dimensional_with_basis(LieSubalgebra_finite_dimensional_wi
         m = L.module()
         B = m.basis()
 
+        # use ambient module in case L is an ideal or subalgebra
+        m = m.ambient_module()
+
         sm = m.submodule([self._to_m(X) for X in self.gens()])
         d = 0
 
@@ -225,6 +228,19 @@ class LieIdeal_finite_dimensional_with_basis(LieSubalgebra_finite_dimensional_wi
 
         return Family(reversed([self.element_class(self, self._from_m(v))
                                 for v in sm.echelonized_basis()]))
+
+    def lie_algebra_generators(self):
+        r"""
+        Return the generating set of ``self`` as a Lie algebra.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z': 1}})
+            sage: S = L.ideal(x)
+            sage: S.lie_algebra_generators()
+            Family (x, z)
+        """
+        return self.basis()
 
     def reduce(self, X):
         r"""

@@ -753,6 +753,122 @@ def format_src(s):
 
     return s
 
+# The next two functions provide lists of the Sage documentation
+# languages and documents, and they should provide good answers even
+# if the Sage source is not present: if SAGE_DOC_SRC and/or sage_setup
+# are missing.
+
+# The doctest here will fail if we add (or remove) a language. In that
+# case, change 'HARDCODED_LANGUAGES'.
+HARDCODED_LANGUAGES = ['ca', 'de', 'en', 'es', 'fr', 'hu', 'it', 'ja',
+                       'pt', 'ru', 'tr']
+def documentation_languages():
+    """
+    Return the languages in which the Sage documentation is built.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import documentation_languages, HARDCODED_LANGUAGES
+        sage: set(documentation_languages()) == set(HARDCODED_LANGUAGES)
+        True
+    """
+    # In sage_setup.docbuild.build_options, LANGUAGES is constructed
+    # using the contents of SAGE_DOC_SRC, so only try to import it if
+    # SAGE_DOC_SRC exists.
+    if os.path.isdir(SAGE_DOC_SRC):
+        # Furthermore, sage_setup may not exist, for example in some
+        # distros.
+        try:
+            from sage_setup.docbuild.build_options import LANGUAGES
+        except ImportError:
+            LANGUAGES = HARDCODED_LANGUAGES
+        return LANGUAGES
+    return HARDCODED_LANGUAGES
+
+# The doctest here will fail if we add a document. In that case,
+# change 'HARDCODED_DOCUMENTS'.
+HARDCODED_DOCUMENTS = ['ca/intro', 'de/a_tour_of_sage',
+                     'de/thematische_anleitungen',
+                     'de/tutorial', 'en/a_tour_of_sage', 'en/constructions',
+                     'en/developer', 'en/faq', 'en/installation', 'en/prep',
+                     'en/reference', 'en/thematic_tutorials', 'en/tutorial',
+                     'en/website', 'es/a_tour_of_sage', 'es/tutorial',
+                     'fr/a_tour_of_sage', 'fr/tutorial', 'hu/a_tour_of_sage',
+                     'it/a_tour_of_sage', 'ja/a_tour_of_sage', 'ja/tutorial',
+                     'pt/a_tour_of_sage', 'pt/tutorial', 'ru/tutorial',
+                     'tr/a_tour_of_sage']
+def documentation_documents():
+    """
+    List of each document which should be built as part of the
+    documentation.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import documentation_documents, HARDCODED_DOCUMENTS
+        sage: set(documentation_documents()) == set(HARDCODED_DOCUMENTS)
+        True
+    """
+    # sage_setup may not exist, for example in some distros.
+    try:
+        from sage_setup.docbuild.build_options import OMIT
+    except ImportError:
+        OMIT = ['introspect']
+    # Construct the list of documents, minus the omitted ones
+    if os.path.isdir(SAGE_DOC_SRC):
+        documents = []
+        for L in documentation_languages():
+            documents += [os.path.join(L, dir) for dir
+                          in os.listdir(os.path.join(SAGE_DOC_SRC, L))
+                          if dir not in OMIT]
+    else:
+        documents = HARDCODED_DOCUMENTS
+    return documents
+
+def is_documentation_built(skip_languages=[], verbose=False):
+    """
+    Return ``True`` if it appears that the html version of the
+    documentation has been built.
+
+    INPUT:
+
+    - ``skip_languages`` (optional, default ``[]``) -- don't check to
+      see if documentation in these languages is present
+    - ``verbose`` (optional, default ``False``) -- if ``True``, print
+      the missing documents. (If nothing missing, don't print
+      anything.)
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import is_documentation_built
+        sage: is_documentation_built() # optional - dochtml
+        True
+        sage: is_documentation_built(['en']) # optional - dochtml
+        True
+        sage: is_documentation_built(['en', 'es']) # optional - dochtml
+        True
+    """
+    lang = [L for L in documentation_languages() if L not in skip_languages]
+    # Construct the list of documents, minus anything in a skipped language.
+    documents = []
+    for d in documentation_documents():
+        include = True
+        for L in skip_languages:
+            if d.startswith(L):
+                include = False
+        if include:
+            documents.append(d)
+    # Check to see if any documents are missing.  This just
+    # checks to see if the appropriate output directory exists,
+    # not that it contains a complete build of the docs.
+    base_path = os.path.join(SAGE_DOC, 'html')
+    missing = [os.path.join(base_path, doc)
+               for doc in documents if not
+               os.path.isdir(os.path.join(base_path, doc))]
+    if verbose and len(missing) > 0:
+        print(missing)
+    return len(missing) == 0
+
+
 ###############################
 
 def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
@@ -821,7 +937,6 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         ....:                    interact=True)  # long time
         misc/sagedoc.py:...:        def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     """
-
     # process keyword arguments
     interact = kwargs.get('interact', True)
     path_re = kwargs.get('path_re', '')
@@ -846,57 +961,6 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         exts = ['html']
         title = 'Documentation'
         base_path = os.path.join(SAGE_DOC, 'html')
-        doc_path = SAGE_DOC_SRC
-
-        from sage_setup.docbuild.build_options import LANGUAGES, OMIT
-        # List of languages
-        lang = LANGUAGES
-        # Documents in SAGE_DOC_SRC/LANG/ to omit
-        omit = OMIT
-
-        # List of documents, minus the omitted ones
-        documents = []
-        for L in lang:
-            documents += [os.path.join(L, dir) for dir
-                          in os.listdir(os.path.join(doc_path, L))
-                          if dir not in omit]
-
-        # Check to see if any documents are missing.  This just
-        # checks to see if the appropriate output directory exists,
-        # not that it contains a complete build of the docs.
-        missing = [os.path.join(base_path, doc)
-                   for doc in documents if not
-                   os.path.exists(os.path.join(base_path, doc))]
-        num_missing = len(missing)
-        if num_missing > 0:
-            print("""Warning, the following Sage documentation hasn't been built,
-so documentation search results may be incomplete:
-""")
-            for s in missing:
-                print(s)
-            if num_missing > 1:
-                print("""
-You can build these with 'sage -docbuild DOCUMENT html',
-where DOCUMENT is one of""", end=' ')
-                for s in missing:
-                    if s.find('en') != -1:
-                        print("'{}',".format(os.path.split(s)[-1]), end=' ')
-                    else:
-                        print("'{}',".format(os.path.join(
-                            os.path.split(os.path.split(s)[0])[-1],
-                            os.path.split(s)[-1])), end=' ')
-                print("""
-or you can use 'sage -docbuild all html' to build all of the missing documentation.""")
-            else:
-                s = missing[0]
-                if s.find('en') != -1:
-                    s = os.path.split(s)[-1]
-                else:
-                    s = os.path.join(
-                        os.path.split(os.path.split(s)[0])[-1],
-                        os.path.split(s)[-1])
-                print("""
-You can build this with 'sage -docbuild {} html'.""".format(s))
 
     strip = len(base_path)
     results = []

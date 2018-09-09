@@ -1472,50 +1472,6 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             lift = self.lift()
             return [lift.monomial_coefficient(x.lift()) for x in basis]
 
-        def _im_gens_(self, codomain, im_gens):
-            """
-            Return the image of ``self`` in ``codomain`` under the map that
-            sends ``self.parent().gens()`` to ``im_gens``.
-
-            INPUT:
-
-            - ``codomain`` -- a graded commutative algebra
-
-            - ``im_gens`` -- a tuple of elements `f(x)` in
-              ``codomain``, one for each `x` in
-              ``self.parent().gens()``, that defines a homomorphism
-              `f` from ``self.parent()`` to ``codomain``
-
-            OUTPUT:
-
-            The image of ``self`` in ``codomain`` under the above
-            homomorphism `f`.
-
-            EXAMPLES::
-
-                sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ)
-                sage: H = Hom(A,A)
-                sage: f = H([y,x,x])
-                sage: f(x)
-                y
-                sage: f(3*x*y)
-                -3*x*y
-                sage: f(y*z)
-                0
-                sage: f(1)
-                1
-            """
-            # This is not meant to be called directly, but rather
-            # through the ``_call_`` method for morphisms. So no
-            # error checking (e.g., whether each element of im_gens is
-            # in codomain) is done here.
-            result = codomain.zero()
-            for mono, coeff in self.dict().iteritems():
-                term = prod([gen**x for (x, gen) in zip(mono, im_gens)],
-                            codomain.one())
-                result += coeff*term
-            return result
-
 
 class GCAlgebra_multigraded(GCAlgebra):
     """
@@ -2929,8 +2885,26 @@ class GCAlgebraMorphism(RingHomomorphism_im_gens):
             y
             sage: g(x*y)
             y^2
+
+            sage: B.<x,y,z> = GradedCommutativeAlgebra(QQ)
+            sage: H = Hom(B,B)
+            sage: f = H([y,x,x])
+            sage: f(x)
+            y
+            sage: f(3*x*y)
+            -3*x*y
+            sage: f(y*z)
+            0
+            sage: f(1)
+            1
         """
-        return x._im_gens_(self.codomain(), self.im_gens())
+        codomain = self.codomain()
+        result = codomain.zero()
+        for mono, coeff in x.dict().iteritems():
+            term = prod([gen**y for (y, gen) in zip(mono, self.im_gens())],
+                        codomain.one())
+            result += coeff*term
+        return result
 
     def is_graded(self, total=False):
         """

@@ -2744,7 +2744,7 @@ cdef class NCPolynomial_plural(RingElement):
                 result += c*summand
 
         if result is None:
-            return self.parent()(0)
+            return self.parent().zero()
         return result
 
 

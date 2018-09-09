@@ -72,27 +72,8 @@ class FreeMonoid(Monoid_class, UniqueRepresentation):
     def __classcall_private__(cls, index_set=None, names=None,
                               commutative=False, **kwds):
         r"""
-        Return a free monoid on `n` generators or with the generators
-        indexed by a set `I`.
-
-        We construct free monoids by specifing either:
-
-        - the number of generators and/or the names of the generators
-        - the indexing set for the generators
-
-        INPUT:
-
-        - ``index_set`` -- an indexing set for the generators; if an
-          integer, than this becomes `\{0, 1, \ldots, n-1\}`
-
-        -  ``names`` -- names of generators
-
-        - ``commutative`` -- (default: ``False``) whether the free
-          monoid is commutative or not
-
-        OUTPUT:
-
-        A free monoid.
+        Construct a free monoid or a free abelian monoid, depending on the
+        input. Also, normalize the input.
 
         EXAMPLES::
 
@@ -100,18 +81,13 @@ class FreeMonoid(Monoid_class, UniqueRepresentation):
             Free monoid on 5 generators (a, b, c, d, e)
             sage: FreeMonoid(index_set=ZZ)
             Free monoid indexed by Integer Ring
-
             sage: F.<x,y,z> = FreeMonoid(abelian=True); F
             Free abelian monoid on 3 generators (x, y, z)
             sage: FreeMonoid(index_set=ZZ, commutative=True)
             Free abelian monoid indexed by Integer Ring
-
-        TESTS::
-
             sage: FreeMonoid(index_set=ZZ, names='x,y,z')
             Free monoid indexed by Integer Ring
         """
-
         if 'abelian' in kwds:
             commutative = kwds.pop('abelian')
 
@@ -141,17 +117,29 @@ class FreeMonoid(Monoid_class, UniqueRepresentation):
 
     Element = FreeMonoidElement
 
-    def __init__(self, n, names=None):
+    def __init__(self, index_set, names=None, **kwds):
         """
-        Create free monoid on `n` generators.
+        Return a free monoid on `n` generators or with the generators
+        indexed by a set `I`.
+
+        We construct free monoids by specifing either:
+
+        - the number of generators and/or the names of the generators
+        - the indexing set for the generators
 
         INPUT:
 
-        -  ``n`` - integer
+        - ``index_set`` -- an indexing set for the generators; if an
+          integer `n`, than this becomes `\{0, 1, \ldots, n-1\}`
 
-        -  ``names`` - (optional) variable name or list of
-           variable names
+        -  ``names`` -- names of generators
 
+        - ``commutative`` -- (default: ``False``) whether the free
+          monoid is commutative or not
+
+        OUTPUT:
+
+        A free monoid.
 
         EXAMPLES::
 
@@ -164,11 +152,25 @@ class FreeMonoid(Monoid_class, UniqueRepresentation):
             sage: F
             Free monoid on 3 generators (a0, a1, a2)
 
-        ::
+            sage: F.<a,b,c,d,e> = FreeMonoid(); F
+            Free monoid on 5 generators (a, b, c, d, e)
+            sage: FreeMonoid(index_set=ZZ)
+            Free monoid indexed by Integer Ring
+
+            sage: F.<x,y,z> = FreeMonoid(abelian=True); F
+            Free abelian monoid on 3 generators (x, y, z)
+            sage: FreeMonoid(index_set=ZZ, commutative=True)
+            Free abelian monoid indexed by Integer Ring
+
+        TESTS::
 
             sage: M = FreeMonoid(3, names=['a','b','c'])
             sage: TestSuite(M).run()
         """
+        # The variable name 'index_set' is meaningful for
+        # __classcall_private__. Once you reach this point, it should
+        # be an integer.
+        n = index_set
         if not isinstance(n, integer_types + (Integer,)):
             raise TypeError("n (=%s) must be an integer."%n)
         if n < 0:

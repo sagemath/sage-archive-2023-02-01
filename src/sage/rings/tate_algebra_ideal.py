@@ -40,7 +40,7 @@ class TateAlgebraIdeal(Ideal_generic):
         while S:
             _, _, f = heappop(S)
             _, r = f.quo_rem(gb, integral=True)
-            print len(S), ":", r
+            #print len(S), ":", r
             if not r.is_zero():
                 for g in gb:
                     if not g.leading_term().is_coprime_with(r.leading_term()):

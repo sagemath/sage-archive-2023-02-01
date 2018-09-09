@@ -3,6 +3,7 @@ from sage.monoids.monoid import Monoid_class
 from sage.rings.ring import CommutativeAlgebra
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.padics.padic_generic import pAdicGeneric
 
 from sage.categories.monoids import Monoids
 from sage.categories.commutative_algebras import CommutativeAlgebras
@@ -13,7 +14,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.tate_algebra_element import TateAlgebraTerm
 from sage.rings.tate_algebra_element import TateAlgebraElement
 
-from sage.categories.pushout import pushout
+from sage.rings.polynomial.polydict import ETuple
 
 DEFAULT_CAP = 20
 
@@ -26,7 +27,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
         self._base = base
         self._names = names
         self._ngens = len(self._names)
-        self._log_radii = log_radii
+        self._log_radii = ETuple(log_radii)
         self._order = order
 
     def _repr_(self):
@@ -44,7 +45,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
         return self._names
 
     def log_radii(self):
-        return self._log_radii
+        return tuple(self._log_radii)
 
     def term_order(self):
         return self._order
@@ -116,8 +117,10 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
             (...0000000001)*y^5 + (...0000000001)*x^2 + (...00000000010)
 
         """
-        if base not in CompleteDiscreteValuationRings() and base not in CompleteDiscreteValuationFields():
-            raise TypeError("The base ring must be a complete discrete valuation ring or field")
+        if not isinstance(base, pAdicGeneric):
+            raise TypeError("The base ring must be a p-adic ring or field")
+        #if base not in CompleteDiscreteValuationRings() and base not in CompleteDiscreteValuationFields():
+        #    raise TypeError("The base ring must be a complete discrete valuation ring or field")
         if isinstance(names, (list, tuple)):
             names = [ str(var) for var in names ]
         else:
@@ -126,16 +129,17 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         self.element_class = TateAlgebraElement
         CommutativeAlgebra.__init__(self, base, names, category=CommutativeAlgebras(base))
         if not isinstance(log_radii, (list, tuple)):
-            self._log_radii = (QQ(log_radii),) * self._ngens
+            log_radii = tuple([QQ(log_radii)] * self._ngens)
         elif len(log_radii) != self._ngens:
             raise ValueError("The number of radii does not match the number of variables")
         else:
-            self._log_radii = ( QQ(r) for r in log_radii )
+            log_radii = tuple([ QQ(r) for r in log_radii ])
+        self._log_radii = ETuple(log_radii)
         field = base.fraction_field()
         self._polynomial_ring = PolynomialRing(field, names, order=order)
         self._names = self._polynomial_ring.variable_names()
         self._order = self._polynomial_ring.term_order()
-        self._gens = tuple([ self((field(1) << self._log_radii[i].ceil()) * self._polynomial_ring.gen(i)) for i in range(self._ngens) ])
+        self._gens = tuple([ self((field(1) << log_radii[i].ceil()) * self._polynomial_ring.gen(i)) for i in range(self._ngens) ])
         if prec is None:
             try:
                 self._cap = base.precision_cap()
@@ -146,7 +150,8 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
                     self._cap = DEFAULT_CAP
         else:
             self._cap = ZZ(prec)
-        self._parent_terms = TateTermMonoid(self._base, self._names, self._log_radii, self._order)
+        self._parent_terms = TateTermMonoid(self._base, self._names, log_radii, self._order)
+        self._oneterm = self._parent_terms(field(1), ETuple([0]*self._ngens))
 
     def _an_element_(self):
         return self.element_class(0)
@@ -205,7 +210,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         return self._names
 
     def log_radii(self):
-        return self._log_radii
+        return tuple(self._log_radii)
 
     def monoid_of_terms(self):
         return self._parent_terms

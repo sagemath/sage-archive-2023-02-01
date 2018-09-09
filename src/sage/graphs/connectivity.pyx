@@ -2631,15 +2631,12 @@ class _Component:
         - `type_c` -- type of the component (0, 1, or 2).
         """
         self.edge_list = _LinkedList()
-        self.vertices = set()
         for e in edge_list:
             self.add_edge(e)
         self.component_type = type_c
 
     def add_edge(self, e):
         self.edge_list.append(_LinkedListNode(e))
-        self.vertices.add(e[0])
-        self.vertices.add(e[1])
 
     def finish_tric_or_poly(self, e):
         r"""
@@ -2650,7 +2647,7 @@ class _Component:
         depending on the number of edges belonging to it.
         """
         self.add_edge(e)
-        if self.edge_list.get_length() > len(self.vertices):
+        if self.edge_list.get_length() > 3:
             self.component_type = 2
         else:
             self.component_type = 1

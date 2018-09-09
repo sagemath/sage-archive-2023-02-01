@@ -34,110 +34,10 @@ from .monoid import Monoid_class
 
 from sage.combinat.words.finite_word import FiniteWord_class
 
-from sage.structure.factory import UniqueFactory
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.decorators import rename_keyword
 from sage.rings.all import ZZ
 
-
-class FreeMonoidFactory(UniqueFactory):
-    """
-    Create the free monoid in `n` generators.
-
-    INPUT:
-
-    -  ``n`` - integer
-
-    -  ``names`` - names of generators
-
-    OUTPUT: free monoid
-
-    EXAMPLES::
-
-        sage: FreeMonoid(0,'')
-        Free monoid on 0 generators ()
-        sage: F.<a,b,c,d,e> = FreeMonoid(5); F
-        Free monoid on 5 generators (a, b, c, d, e)
-        sage: F(1)
-        1
-        sage: mul([ a, b, a, c, b, d, c, d ], F(1))
-        a*b*a*c*b*d*c*d
-    """
-    def create_key(self, n, names):
-        n = int(n)
-        names = normalize_names(n, names)
-        return (n, names)
-    def create_object(self, version, key, **kwds):
-        return FreeMonoid_class(*key)
-
-FreeMonoid_factory = FreeMonoidFactory("sage.monoids.free_monoid.FreeMonoid_factory")
-
-@rename_keyword(deprecation=15289, n="index_set")
-def FreeMonoid(index_set=None, names=None, commutative=False, **kwds):
-    r"""
-    Return a free monoid on `n` generators or with the generators indexed by
-    a set `I`.
-
-    We construct free monoids by specifing either:
-
-    - the number of generators and/or the names of the generators
-    - the indexing set for the generators
-
-    INPUT:
-
-    - ``index_set`` -- an indexing set for the generators; if an integer,
-      than this becomes `\{0, 1, \ldots, n-1\}`
-
-    -  ``names`` -- names of generators
-
-    - ``commutative`` -- (default: ``False``) whether the free monoid is
-      commutative or not
-
-    OUTPUT:
-
-    A free monoid.
-
-    EXAMPLES::
-
-        sage: F.<a,b,c,d,e> = FreeMonoid(); F
-        Free monoid on 5 generators (a, b, c, d, e)
-        sage: FreeMonoid(index_set=ZZ)
-        Free monoid indexed by Integer Ring
-
-        sage: F.<x,y,z> = FreeMonoid(abelian=True); F
-        Free abelian monoid on 3 generators (x, y, z)
-        sage: FreeMonoid(index_set=ZZ, commutative=True)
-        Free abelian monoid indexed by Integer Ring
-
-    TESTS::
-
-        sage: FreeMonoid(index_set=ZZ, names='x,y,z')
-        Free monoid indexed by Integer Ring
-    """
-    if 'abelian' in kwds:
-        commutative = kwds.pop('abelian')
-
-    if commutative:
-        from sage.monoids.free_abelian_monoid import FreeAbelianMonoid
-        return FreeAbelianMonoid(index_set, names, **kwds)
-
-    if isinstance(index_set, str): # Swap args (this works if names is None as well)
-        names, index_set = index_set, names
-
-    if index_set is None and names is not None:
-        if isinstance(names, str):
-            index_set = names.count(',')
-        else:
-            index_set = len(names)
-
-    if index_set not in ZZ:
-        if names is not None:
-            names = normalize_names(-1, names)
-        from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
-        return IndexedFreeMonoid(index_set, names=names, **kwds)
-
-    if names is None:
-        raise ValueError("names must be specified")
-    return FreeMonoid_factory(index_set, names)
 
 def is_FreeMonoid(x):
     """
@@ -159,16 +59,88 @@ def is_FreeMonoid(x):
         sage: is_FreeMonoid(FreeAbelianMonoid(index_set=ZZ))
         False
     """
-    if isinstance(x, FreeMonoid_class):
+    if isinstance(x, FreeMonoid):
         return True
     from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
     return isinstance(x, IndexedFreeMonoid)
 
-class FreeMonoid_class(Monoid_class):
+class FreeMonoid(Monoid_class, UniqueRepresentation):
     """
     The free monoid on `n` generators.
     """
+    @staticmethod
+    def __classcall_private__(cls, index_set=None, names=None,
+                              commutative=False, **kwds):
+        r"""
+        Return a free monoid on `n` generators or with the generators
+        indexed by a set `I`.
+
+        We construct free monoids by specifing either:
+
+        - the number of generators and/or the names of the generators
+        - the indexing set for the generators
+
+        INPUT:
+
+        - ``index_set`` -- an indexing set for the generators; if an
+          integer, than this becomes `\{0, 1, \ldots, n-1\}`
+
+        -  ``names`` -- names of generators
+
+        - ``commutative`` -- (default: ``False``) whether the free
+          monoid is commutative or not
+
+        OUTPUT:
+
+        A free monoid.
+
+        EXAMPLES::
+
+            sage: F.<a,b,c,d,e> = FreeMonoid(); F
+            Free monoid on 5 generators (a, b, c, d, e)
+            sage: FreeMonoid(index_set=ZZ)
+            Free monoid indexed by Integer Ring
+
+            sage: F.<x,y,z> = FreeMonoid(abelian=True); F
+            Free abelian monoid on 3 generators (x, y, z)
+            sage: FreeMonoid(index_set=ZZ, commutative=True)
+            Free abelian monoid indexed by Integer Ring
+
+        TESTS::
+
+            sage: FreeMonoid(index_set=ZZ, names='x,y,z')
+            Free monoid indexed by Integer Ring
+        """
+
+        if 'abelian' in kwds:
+            commutative = kwds.pop('abelian')
+
+        if commutative:
+            from sage.monoids.free_abelian_monoid import FreeAbelianMonoid
+            return FreeAbelianMonoid(index_set, names, **kwds)
+
+        if isinstance(index_set, str): # Swap args (this works if names is None as well)
+            names, index_set = index_set, names
+
+        if index_set is None and names is not None:
+            if isinstance(names, str):
+                index_set = names.count(',')
+            else:
+                index_set = len(names)
+
+        if index_set not in ZZ:
+            if names is not None:
+                names = normalize_names(-1, names)
+            from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
+            return IndexedFreeMonoid(index_set, names=names, **kwds)
+
+        if names is None:
+            raise ValueError("names must be specified")
+        names = normalize_names(index_set, names)
+        return super(FreeMonoid, cls).__classcall__(cls, index_set, names)
+
     Element = FreeMonoidElement
+
     def __init__(self, n, names=None):
         """
         Create free monoid on `n` generators.

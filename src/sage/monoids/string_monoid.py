@@ -20,7 +20,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 
-from .free_monoid import FreeMonoid_class
+from .free_monoid import FreeMonoid
 from .string_monoid_element import StringMonoidElement
 from .string_ops import strip_encoding
 
@@ -195,7 +195,7 @@ def AlphabeticStrings():
 #*****************************************************************************
 
 
-class StringMonoid_class(FreeMonoid_class):
+class StringMonoid_class(FreeMonoid):
     r"""
     A free string monoid on `n` generators.
     """
@@ -221,8 +221,8 @@ class StringMonoid_class(FreeMonoid_class):
         """
         # Names must be alphabetical -- omitted since printing is
         # defined locally.
-        # FreeMonoid_class.__init__(self, n, names = alphabet)
-        FreeMonoid_class.__init__(self, n)
+        # FreeMonoid.__init__(self, n, names = alphabet)
+        FreeMonoid.__init__(self, n)
         self._alphabet = alphabet
 
     def __contains__(self, x):

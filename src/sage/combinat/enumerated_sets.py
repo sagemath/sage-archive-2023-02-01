@@ -95,6 +95,8 @@ Subsets and set partitions
 - :ref:`sage.combinat.set_partition_ordered`
 - :ref:`sage.combinat.set_partition`
 - :ref:`sage.combinat.diagram_algebras`
+- :class:`~sage.combinat.multiset_partition_ordered.OrderedMultisetPartitionsIntoSets`,
+  :class:`~sage.combinat.multiset_partition_ordered.OrderedMultisetPartitionIntoSets`
 
 Trees
 -----

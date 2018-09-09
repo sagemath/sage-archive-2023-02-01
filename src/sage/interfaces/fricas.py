@@ -1173,6 +1173,11 @@ class FriCASElement(ExpectElement):
             sage: dilog(1.0)
             1.64493406684823
 
+        Check that :trac:`25987` is fixed::
+
+            sage: integrate(lambert_w(x), x, algorithm="fricas")                # optional - fricas
+            (x*lambert_w(x)^2 - x*lambert_w(x) + x)/lambert_w(x)
+
         Check that :trac:`25838` is fixed::
 
             sage: F = function('f'); f = SR.var('f')
@@ -1193,16 +1198,17 @@ class FriCASElement(ExpectElement):
             a
             sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas tol 0.1
             193.020947266268 - 8.73114913702011e-11*I
-
         """
         from sage.calculus.calculus import symbolic_expression_from_string
+        from sage.calculus.functional import diff
         from sage.libs.pynac.pynac import symbol_table, register_symbol
         from sage.symbolic.all import I
-        from sage.functions.log import dilog
-        from sage.calculus.functional import diff
+        from sage.functions.log import dilog, lambert_w
+        register_symbol(lambda f,x: diff(f, x), {'fricas':'D'})
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
-        register_symbol(lambda f,x: diff(f, x), {'fricas':'D'})
+        register_symbol(lambda z: lambert_w(z), {'fricas':'lambertW'})
+
 
         def explicitely_not_implemented(*args):
             raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %args)

@@ -602,8 +602,17 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
                 Family (Y, Z)
                 sage: S2(2*Y + 9*Z).to_vector()
                 (0, 2, 9)
+
+            TESTS::
+
+                sage: L.<X,Y> = LieAlgebra(ZZ, abelian=True)
+                sage: S = L.subalgebra(X)
+                sage: S(X).to_vector() in S.module()
+                True
+                sage: S(X).to_vector().parent() is S.module()
+                True
             """
-            return self.value.to_vector()
+            return self.parent().module()(self.value.to_vector())
 
         def monomial_coefficients(self, copy=True):
             r"""

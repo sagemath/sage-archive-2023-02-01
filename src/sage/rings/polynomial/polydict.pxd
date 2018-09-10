@@ -13,6 +13,7 @@ cdef class ETuple:
     cpdef ETuple emin(ETuple self, ETuple self)
     cpdef ETuple emax(ETuple self, ETuple self)
     cpdef ETuple eadd_p(ETuple self, int other, int pos)
+    cpdef int dotprod(ETuple self, ETuple other)
     cpdef ETuple escalar_div(ETuple self, int n)
     cpdef bint is_constant(ETuple self)
     cpdef bint is_multiple_of(ETuple self, int n)

@@ -1554,6 +1554,20 @@ cdef class ETuple:
                 result._nonzero += 1
         return result
 
+    cpdef int dotprod(ETuple self, ETuple other):
+        if self._length != other._length:
+            raise ArithmeticError
+
+        cdef size_t ind1 = 0
+        cdef size_t ind2 = 0
+        cdef size_t index
+        cdef int exp1
+        cdef int exp2
+        cdef int result = 0
+        while dual_etuple_iter(self, other, &ind1, &ind2, &index, &exp1, &exp2):
+            result += exp1 * exp2
+        return result
+
     cpdef ETuple escalar_div(ETuple self, int n):
         r"""
         Divide each exponent by ``n``.

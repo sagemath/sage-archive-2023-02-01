@@ -1173,6 +1173,9 @@ ext_modules = [
     Extension('sage.rings.tate_algebra_element',
               sources = ['sage/rings/tate_algebra_element.pyx']),
 
+    Extension('sage.rings.tate_algebra_ideal',
+              sources = ['sage/rings/tate_algebra_ideal.pyx']),
+
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx'],
               libraries=['ntl']),

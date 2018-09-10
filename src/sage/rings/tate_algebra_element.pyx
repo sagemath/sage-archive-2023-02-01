@@ -253,15 +253,15 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         base = parent.base_ring()
         if base.is_field():
             poly = self._poly.map_coefficients(lambda c: c << n)
-            return parent(poly, self._prec + n, reduce=False)
+            return parent(poly, self._prec + n)
         else:
             coeffs = { }
             field = base.fraction_field()
             ngens = parent.ngens()
             for exp, c in self._poly.dict().iteritems():
-                minval = sum([ exp[i] * parent.log_radii()[i] for i in range(parent.ngens()) ]).ceil()
+                minval = ZZ(sum([ exp[i] * parent.log_radii()[i] for i in range(parent.ngens()) ])).ceil()
                 coeffs[exp] = field(base(c) >> (minval-n)) << minval
-            return parent(coeffs, self._prec + n, reduce=False)
+            return parent(coeffs, self._prec + n)
 
     def __lshift__(self, n):
         return self._lshift(n)
@@ -408,34 +408,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                     q[i] += factor
                     break
             else:
-                if r.is_zero():
-                    cap = min(cap, lt.valuation() + 1)
                 f -= lt; r += lt
-        return q, r
-
-    def quo_rem_relprec(self, divisors):
-        parent = self._parent
-        nvars = parent.ngens()
-        if not isinstance(divisors, (list, tuple)):
-            divisors = [ divisors ]
-        ltds = [ d.leading_term() for d in divisors ]
-        cap = parent.precision_cap()
-        f = self
-        q = [ parent(0) ] * len(divisors)
-        r = parent(0)
-        while not f.is_zero(cap):
-            lt = f.leading_term()
-            for i in range(len(divisors)):
-                if lt.is_divisible_by(ltds[i], integral=True):
-                    factor = lt // ltds[i]
-                    f -= factor * divisors[i]
-                    q[i] += factor
-                    break
-            else:
-                if r.is_zero():
-                    cap = min(cap, lt.valuation() + 1)
-                f -= lt; r += lt
-        return q, r
+        return q, f+r
 
     def __mod__(self, divisors):
         if not isinstance(divisors, (list, tuple)):

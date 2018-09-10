@@ -218,6 +218,10 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
         self._ambient = ambient
         self._gens = gens
         self._is_ideal = ideal
+
+        # set initial index set to match the length of gens
+        self._indices = range(len(gens))
+
         sup = super(LieSubalgebra_finite_dimensional_with_basis, self)
         sup.__init__(ambient.base_ring(), category=category)
 
@@ -592,8 +596,10 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
                         for v in B for w in SB]
             sm = m.submodule(sm.basis() + brackets)
 
-        return Family(reversed([self.element_class(self, self._from_m(v))
-                                for v in sm.echelonized_basis()]))
+        basis = Family(reversed([self.element_class(self, self._from_m(v))
+                                 for v in sm.echelonized_basis()]))
+        self._indices = range(len(basis))
+        return basis
 
     def from_vector(self, v):
         r"""

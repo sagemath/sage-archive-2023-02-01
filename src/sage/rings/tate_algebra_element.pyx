@@ -543,10 +543,18 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-        
-        
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2
+            sage: f.restriction(-1)
+            (...0000000001)*x + (...00000000010)*x^2
+            sage: g = f.restriction(-1)
+            sage: g.parent()
+            Tate Algebra in x (val >= 1), y (val >= 1) over 2-adic Ring with capped relative precision 10
+          
         """
-        # TODO: Seems broken
         parent = self._parent
         from sage.rings.tate_algebra import TateAlgebra
         ring = TateAlgebra(self.base_ring(), parent.variable_names(), log_radii, parent.precision_cap(), parent.term_order())
@@ -575,6 +583,20 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self._poly.dict()
 
     def terms(self):
+        r"""
+        Return the sorted list of terms of a Tate series
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2
+            sage: f.terms()
+            [(...0000000001)*x, (...00000000010)*x^2]
+
+        """
         if self._terms is not None:
             return self._terms
         if self.is_zero():
@@ -587,12 +609,82 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self._terms
 
     def coefficients(self):
+        r"""
+        Return the list of coefficients of the Tate series
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2
+            sage: f.coefficients()
+            [...0000000001, ...00000000010]
+
+        """
         return [ t.coefficient() for t in self.terms() ]
 
     def add_bigoh(self, n):
+        r"""
+        Truncate the Tate series to `O(\pi^n)` where `\pi` is the uniformizer
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = (x + 2*x^2) << 5; f
+            (...000000000100000)*x + (...0000000001000000)*x^2
+            sage: g = f.add_bigoh(5); g
+            O(2^5)
+            sage: g = f.add_bigoh(6); g
+            (...100000)*x + O(2^6)
+            sage: g.precision_absolute()
+            6
+            sage: g.parent().precision_cap()
+            10
+
+        """
         return self._parent(self, prec=n)
 
     def precision_absolute(self):
+        r"""
+        Return the precision with which terms of the Tate series is known
+
+        If a term is not part of the terms of the series, then the valuation of
+        its coefficient is at least the absolute precision.
+
+        However, individual coefficients may be known with more or less
+        precision.
+
+        EXAMPLES::
+        
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2; f
+            (...0000000001)*x + (...00000000010)*x^2
+            sage: f.precision_absolute()
+            +Infinity
+            sage: g = f.add_bigoh(5); g
+            (...00001)*x + (...00010)*x^2 + O(2^5)
+            sage: g.precision_absolute()
+            5
+
+        The absolute precision may be higher than the precision of the known
+        coefficients.
+
+            sage: g = f.add_bigoh(20); g
+            (...0000000001)*x + (...00000000010)*x^2 + O(2^20)
+            sage: g.precision_absolute()
+            20
+            sage: g.parent().base_ring().precision_cap()
+            10
+
+        """
         return self._prec
 
     def valuation(self):

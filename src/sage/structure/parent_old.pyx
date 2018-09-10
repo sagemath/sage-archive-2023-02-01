@@ -106,12 +106,11 @@ cdef class Parent(parent.Parent):
         """
         TESTS::
 
-            sage: Cusps.coerce_map_from_c(QQ)
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: Ck = NFCusps(k)
+            sage: Ck.coerce_map_from_c(k)
             doctest:...: DeprecationWarning: coerce_map_from_c is deprecated
             See https://trac.sagemath.org/25236 for details.
-            Call morphism:
-              From: Rational Field
-              To:   Set P^1(QQ) of all cusps
 
         Check to make sure that we handle coerce maps from Python
         native types correctly::
@@ -312,10 +311,12 @@ cdef class Parent(parent.Parent):
 
         TESTS::
 
-            sage: Cusps.has_coerce_map_from_c(QQ)
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: Ck = NFCusps(k)
+            sage: Ck.has_coerce_map_from_c(k)
             doctest:...: DeprecationWarning: has_coerce_map_from_c is deprecated
             See https://trac.sagemath.org/25236 for details.
-            True
+            False
         """
         from sage.misc.superseded import deprecation
         deprecation(25236, "has_coerce_map_from_c is deprecated")

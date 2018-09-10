@@ -1660,7 +1660,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
 
                 sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
                 sage: Ht = Sym.macdonald().Ht()
-                sage: t = Ht.t; q = Ht.q;
+                sage: t = Ht.t; q = Ht.q
                 sage: s = Sym.schur()
                 sage: a = sum(Ht(p) for p in Partitions(3))
                 sage: Ht(0).nabla()

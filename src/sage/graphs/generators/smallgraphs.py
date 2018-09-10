@@ -628,7 +628,7 @@ def HallJankoGraph(from_string=True):
     r"""
     Return the Hall-Janko graph.
 
-    For more information on the Hall-Janko graph, see
+    For more information on the Hall-Janko graph, see the
     :wikipedia:`Hall-Janko_graph`.
 
     The construction used to generate this graph in Sage is by a 100-point
@@ -763,7 +763,7 @@ def Balaban10Cage(embedding=1):
     Return the Balaban 10-cage.
 
     The Balaban 10-cage is a 3-regular graph with 70 vertices and 105 edges. See
-    :wikipedia:`Balaban_10-cage`.
+    the :wikipedia:`Balaban_10-cage`.
 
     The default embedding gives a deeper understanding of the graph's
     automorphism group. It is divided into 4 layers (each layer being a set of
@@ -848,7 +848,7 @@ def Balaban11Cage(embedding = 1):
     r"""
     Return the Balaban 11-cage.
 
-    For more information, see :wikipedia:`Balaban_11-cage`.
+    For more information, see the :wikipedia:`Balaban_11-cage`.
 
     INPUT:
 
@@ -1037,7 +1037,7 @@ def BidiakisCube():
     r"""
     Return the Bidiakis cube.
 
-    For more information, see :wikipedia:`Bidiakis_cube`.
+    For more information, see the :wikipedia:`Bidiakis_cube`.
 
     EXAMPLES:
 
@@ -1096,7 +1096,7 @@ def BiggsSmithGraph(embedding=1):
     r"""
     Return the Biggs-Smith graph.
 
-    For more information, see :wikipedia:`Biggs-Smith_graph`.
+    For more information, see the :wikipedia:`Biggs-Smith_graph`.
 
     INPUT:
 
@@ -1275,7 +1275,7 @@ def BrinkmannGraph():
     r"""
     Return the Brinkmann graph.
 
-    For more information, see :wikipedia:`Brinkmann_graph`.
+    For more information, see the :wikipedia:`Brinkmann_graph`.
 
     EXAMPLES:
 
@@ -1783,7 +1783,8 @@ def ChvatalGraph():
 
     Chvatal graph is one of the few known graphs to satisfy Grunbaum's
     conjecture that for every m, n, there is an m-regular, m-chromatic graph of
-    girth at least n. For more information, see :wikipedia:`Chv%C3%A1tal_graph`.
+    girth at least n. For more information, see the
+    :wikipedia:`Chv%C3%A1tal_graph`.
 
     EXAMPLES:
 
@@ -1831,7 +1832,7 @@ def ClebschGraph():
     r"""
     Return the Clebsch graph.
 
-    See :wikipedia:`Clebsch_graph`.
+    See the :wikipedia:`Clebsch_graph` for more information.
 
     EXAMPLES::
 
@@ -1950,7 +1951,7 @@ def DurerGraph():
     r"""
     Return the Dürer graph.
 
-    For more information, see :wikipedia:`D%C3%BCrer_graph`.
+    For more information, see the :wikipedia:`D%C3%BCrer_graph`.
 
     EXAMPLES:
 
@@ -2331,7 +2332,7 @@ def ErreraGraph():
     r"""
     Return the Errera graph.
 
-    For more information, see :wikipedia:`Errera_graph`.
+    For more information, see the :wikipedia:`Errera_graph`.
 
     EXAMPLES:
 
@@ -2427,7 +2428,7 @@ def FlowerSnark():
     A flower snark has 20 vertices. It is part of the class of biconnected cubic
     graphs with edge chromatic number = 4, known as snarks. (i.e.: the Petersen
     graph). All snarks are not Hamiltonian, non-planar and have Petersen graph
-    graph minors. See :wikipedia:`Flower_snark`.
+    graph minors. See the :wikipedia:`Flower_snark`.
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the nodes are drawn 0-14 on the
@@ -2528,7 +2529,7 @@ def FranklinGraph():
     r"""
     Return the Franklin graph.
 
-    For more information, see :wikipedia:`Franklin_graph`.
+    For more information, see the :wikipedia:`Franklin_graph`.
 
     EXAMPLES:
 
@@ -2598,7 +2599,7 @@ def FruchtGraph():
     Return a Frucht Graph.
 
     A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic identity
-    graph. It is planar and it is Hamiltonian. See :wikipedia:`Frucht_graph`.
+    graph. It is planar and it is Hamiltonian. See the :wikipedia:`Frucht_graph`.
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the first seven nodes are on the
@@ -2639,7 +2640,7 @@ def GoldnerHararyGraph():
     r"""
     Return the Goldner-Harary graph.
 
-    For more information, see :wikipedia:`Goldner%E2%80%93Harary_graph`.
+    For more information, see the :wikipedia:`Goldner%E2%80%93Harary_graph`.
 
     EXAMPLES:
 
@@ -2755,7 +2756,7 @@ def GrotzschGraph():
     Return the Grötzsch graph.
 
     The Grötzsch graph is an example of a triangle-free graph with chromatic
-    number equal to 4. For more information, see
+    number equal to 4. For more information, see the
     :wikipedia:`Gr%C3%B6tzsch_graph`.
 
     EXAMPLES:
@@ -2833,7 +2834,8 @@ def HeawoodGraph():
     The Heawood graph is a cage graph that has 14 nodes. It is a cubic symmetric
     graph. (See also the Möbius-Kantor graph). It is nonplanar and
     Hamiltonian. It has diameter = 3, radius = 3, girth = 6, chromatic number =
-    2. It is 4-transitive but not 5-transitive. See :wikipedia:`Heawood_graph`.
+    2. It is 4-transitive but not 5-transitive. See the
+    :wikipedia:`Heawood_graph`.
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the nodes are positioned in a
@@ -2869,7 +2871,7 @@ def HerschelGraph():
     r"""
     Return the Herschel graph.
 
-    For more information, see :wikipedia:`Herschel_graph`.
+    For more information, see the :wikipedia:`Herschel_graph`.
 
     EXAMPLES:
 
@@ -2950,7 +2952,7 @@ def HigmanSimsGraph(relabel=True):
 
     The construction used here follows [Haf2004]_.
 
-    See also :wikipedia:`Higman–Sims_graph`.
+    See also the :wikipedia:`Higman–Sims_graph`.
 
     INPUT:
 
@@ -3097,7 +3099,8 @@ def HoffmanSingletonGraph():
     A Moore graph is a graph with diameter `d` and girth `2d + 1`. This implies
     that the graph is regular, and distance regular.
 
-    For more details, see [GR2001]_ and :wikipedia:`Hoffman–Singleton_graph`.
+    For more details, see [GR2001]_ and the
+    :wikipedia:`Hoffman–Singleton_graph`.
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. A novel algorithm written by Tom Boothby gives
@@ -3262,7 +3265,7 @@ def KrackhardtKiteGraph():
 
     The Krackhardt kite graph was originally developed by David Krackhardt for
     the purpose of studying social networks (see [Kre2002]_ and
-    :wikipedia:`Krackhardt_kite_graph`). It is used to show the distinction
+    the :wikipedia:`Krackhardt_kite_graph`). It is used to show the distinction
     between: degree centrality, betweeness centrality, and closeness
     centrality. For more information read the plotting section below in
     conjunction with the example.

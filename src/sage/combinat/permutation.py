@@ -2522,14 +2522,14 @@ class Permutation(CombinatorialElement):
 
         TESTS::
 
-            sage: all( P.fundamental_transformation_inverse() \
-            ....:       .fundamental_transformation() == P
-            ....:      for P in Permutations(4))
+            sage: all(P.fundamental_transformation_inverse().
+            ....:     fundamental_transformation() == P
+            ....:     for P in Permutations(4))
             True
 
-            sage: all( P.fundamental_transformation() \
-            ....:       .fundamental_transformation_inverse() == P
-            ....:      for P in Permutations(3))
+            sage: all(P.fundamental_transformation().
+            ....:     fundamental_transformation_inverse() == P
+            ....:     for P in Permutations(3))
             True
 
         Border cases::

@@ -861,9 +861,7 @@ def edge_connectivity(G,
     r"""
     Returns the edge connectivity of the graph.
 
-    For more information, see the
-    `Wikipedia article on connectivity
-    <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
+    For more information, see the :wikipedia:`Connectivity_(graph_theory)`.
 
     .. NOTE::
 
@@ -1188,8 +1186,8 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
     r"""
     Return the vertex connectivity of the graph.
 
-    For more information, see :wikipedia:`Connectivity_(graph_theory)` and
-    :wikipedia:`K-vertex-connected_graph`.
+    For more information, see the :wikipedia:`Connectivity_(graph_theory)` and
+    the :wikipedia:`K-vertex-connected_graph`.
 
     .. NOTE::
 
@@ -2101,7 +2099,7 @@ def spqr_tree(G):
     unique decomposition into 3-connected blocks, cycles and cocycles. The
     cocycles are dipole graphs with one edge per real edge between the included
     vertices and one additional (virtual) edge per connected component resulting
-    from deletion of the vertices in the cut. See :wikipedia:`SPQR_tree`.
+    from deletion of the vertices in the cut. See the :wikipedia:`SPQR_tree`.
 
     OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
     and the subgraph of three-blocks in the decomposition.

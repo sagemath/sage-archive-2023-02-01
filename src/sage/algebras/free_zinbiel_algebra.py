@@ -200,7 +200,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         if R not in Rings:
             raise TypeError("argument R must be a ring")
         indices = Words(Alphabet(n, names=names))
-        cat = MagmaticAlgebras(R).WithBasis()
+        cat = MagmaticAlgebras(R).WithBasis().Graded()
         self._n = n
         CombinatorialFreeModule.__init__(self, R, indices, prefix='Z',
                                          category=cat)
@@ -247,11 +247,11 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
     def change_ring(self, R):
         """
-        Return the free Zinbiel algebra in the same variables over `R`.
+        Return the free Zinbiel algebra in the same variables over ``R``.
 
         INPUT:
 
-        - `R` -- a ring
+        - ``R`` -- a ring
 
         EXAMPLES::
 
@@ -350,13 +350,10 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             return self.monomial(x)
         try:
             P = x.parent()
-            if isinstance(P, FreeZinbielAlgebra):
-                if P is self:
-                    return x
-                if self._coerce_map_from_(P):
-                    return self.element_class(self, x.monomial_coefficients())
         except AttributeError:
             raise TypeError('not able to convert this to this algebra')
+        if isinstance(P, FreeZinbielAlgebra) and self._coerce_map_from_(P):
+            return self.element_class(self, x.monomial_coefficients(copy=False))
         else:
             raise TypeError('not able to convert this to this algebra')
         # Ok, not a Zinbiel algebra element (or should not be viewed as one).
@@ -425,11 +422,9 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         """
         # free Zinbiel algebras in a subset of variables
         # over any base that coerces in:
-        if isinstance(R, FreeZinbielAlgebra):
-            if all(x in self.variable_names() for x in R.variable_names()):
-                if self.base_ring().has_coerce_map_from(R.base_ring()):
-                    return True
-        return False
+        return (isinstance(R, FreeZinbielAlgebra)
+                and all(x in self.variable_names() for x in R.variable_names())
+                and self.base_ring().has_coerce_map_from(R.base_ring()))
 
     def construction(self):
         """
@@ -528,7 +523,7 @@ class ZinbielFunctor(ConstructionFunctor):
 
         def action(x):
             return codom._from_dict({a: f(b)
-                                     for a, b in iteritems(x.monomial_coefficients())})
+                                     for a, b in iteritems(x.monomial_coefficients(copy=False))})
         return dom.module_morphism(function=action, codomain=codom)
 
     def __eq__(self, other):
@@ -549,6 +544,19 @@ class ZinbielFunctor(ConstructionFunctor):
             return False
         return self.vars == other.vars
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: F = algebras.FreeZinbiel(ZZ, 'x,y,z').construction()[0]
+            sage: G = algebras.FreeZinbiel(QQ, 'x,y,z').construction()[0]
+            sage: hash(F) == hash(G)
+            True
+        """
+        return hash(repr(self))
+    
     def __mul__(self, other):
         """
         If two Zinbiel functors are given in a row, form a single

@@ -54,8 +54,8 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         sage: f = (x+17)*(x-3)*(x-1/8)^3
         sage: find_root(f, 0,4)
         2.999999999999995
-        sage: find_root(f, 0,1)  # note -- precision of answer isn't very good on some machines.
-        0.124999...
+        sage: find_root(f, 0,1)  # abs tol 1e-6 (note -- precision of answer isn't very good on some machines)
+        0.124999
         sage: find_root(f, -20,-10)
         -17.0
 
@@ -78,13 +78,13 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         sage: plot(f,2,2.01)
         Graphics object consisting of 1 graphics primitive
 
-    The following example was added due to ticket 4942 and demonstrates that
+    The following example was added due to :trac:`4942` and demonstrates that
     the function need not be defined at the endpoints::
 
-        sage: find_root(x^2*log(x,2)-1,0, 2)
-        1.41421356237...
+        sage: find_root(x^2*log(x,2)-1,0, 2)  # abs tol 1e-6
+        1.41421356237   
         
-    The following is an example, again from ticket 4942 where Brent's method
+    The following is an example, again from :trac:`4942` where Brent's method
     fails. Currently no other method is implemented, but at least we 
     acknowledge the fact that the algorithm fails::
 
@@ -92,8 +92,16 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         0.0 
         sage: find_root(1/(x-1)+1,0.00001, 2)
         Traceback (most recent call last):
-           ...
+        ...
         NotImplementedError: Brent's method failed to find a zero for f on the interval
+
+    An example of a function which evaluates to NaN on the entire interval::
+
+        sage: f(x) = 0.0 / max(0, x)
+        sage: find_root(f, -1, 0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: f appears to have no zero on the interval
 
     """
     try:
@@ -133,7 +141,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
             raise RuntimeError("f appears to have no zero on the interval")
         a = s
 
-    # Fixing ticket 4942 - if the answer on any of the endpoints is NaN, 
+    # Fixing :trac:`4942` - if the answer on any of the endpoints is NaN, 
     # we restrict to looking between minimum and maximum values in the segment
     # Note - this could be used in all cases, but it requires some more 
     # computation
@@ -150,16 +158,16 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
     import scipy.optimize
     brentqRes = scipy.optimize.brentq(f, a, b,
                                  full_output=full_output, xtol=xtol, rtol=rtol, maxiter=maxiter)
-    # A check following ticket 4942, to ensure we actually found a root
+    # A check following :trac:`4942`, to ensure we actually found a root
     # Maybe should use a different tolerance here?
     # The idea is to take roughly the derivative and multiply by estimated
     # value of the root
     root = 0
-    if (full_output):
+    if full_output:
         root = brentqRes[0]
     else:
         root = brentqRes
-    if (abs(f(root)) > max(abs(root * rtol * (right - left) / (b - a)), 1e-6)):
+    if abs(f(root)) > max(abs(root * rtol * (right - left) / (b - a)), 1e-6):
         raise NotImplementedError("Brent's method failed to find a zero for f on the interval")
     return brentqRes
 

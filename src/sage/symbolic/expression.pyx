@@ -11734,7 +11734,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x).find_root(-1,1)
             0.0
 
-        This example was ixed along with ticket 4942 - 
+        This example was fixed along with :trac:`4942` - 
         there was an error in the example
         pi is a root for tan(x), but an asymptote to 1/tan(x)
         added an example to show handling of both cases::

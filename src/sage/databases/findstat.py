@@ -312,7 +312,7 @@ FINDSTAT_SEPARATOR_REFERENCES = "\n"
 # the format string for using POST
 # WARNING: we use cgi.escape to avoid injection problems, thus we expect double quotes as field delimiters.
 FINDSTAT_POST_HEADER = """
-<script src="http://www.google.com/jsapi"></script>
+<script src="https://www.google.com/jsapi"></script>
 <script>
     google.load("jquery", "1.3.2");
 </script>
@@ -1830,7 +1830,7 @@ class FindStatStatistic(SageObject):
         assert set(args.keys()) == FINDSTAT_EDIT_FIELDS, "It appears that the list of required post variables for editing a statistic has changed.  Please update FindStatStatistic.submit()."
 
         # write the file
-        f = tempfile.NamedTemporaryFile(delete=False)
+        f = tempfile.NamedTemporaryFile(suffix='.html', delete=False)
         verbose("Created temporary file %s" % f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
         if self.id() == 0:

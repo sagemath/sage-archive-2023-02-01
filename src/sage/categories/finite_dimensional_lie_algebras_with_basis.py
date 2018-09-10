@@ -599,7 +599,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: C = LieAlgebras(QQ).FiniteDimensional().WithBasis()
                 sage: C = C.Subobjects().Graded().Stratified()
                 sage: S = L.subalgebra([x, y], category=C)
-                sage: S.basis().list()
+                sage: S.basis().list() # required to initialize _indices
                 [X_1, X_2, X_12]
                 sage: S.homogeneous_component_basis(2).list()
                 [X_12]
@@ -636,6 +636,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: C = LieAlgebras(QQ).FiniteDimensional().WithBasis()
                 sage: C = C.Subobjects().Graded().Stratified()
                 sage: I = L.ideal([x, y], category=C)
+                sage: I.basis().list() # required to initialize _indices
+                [x, y]
                 sage: I.homogeneous_component_basis(1).list()
                 [x, y]
             """

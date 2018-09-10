@@ -138,7 +138,30 @@ cdef class TateAlgebraTerm(MonoidElement):
 
 
 cdef class TateAlgebraElement(CommutativeAlgebraElement):
-    def __init__(self, parent, x, prec=None):
+    r"""
+    Define the class for Tate series, elements of Tate algebras.
+
+    Given a complete discrete valuation ring `R`, variables `X_1,\dots,X_k`
+    and convergence radii `r_,\dots, r_n` in `\mathbb{R}_{>0}`, a Tate series is an
+    element of the Tate algebra `R{X_1,\dots,X_k}`, that is a power series with
+    coefficients `a_{i_1,\dots,i_n}` in `R` and such that
+    `|a_{i_1,\dots,i_n}|*r_1^{-i_1}*\dots*r_n^{-i_n}` tends to 0 as
+    `i_1,\dots,i_n` go towards infinity.
+
+    INPUT:
+
+    - ???
+
+
+    """
+    def __init__(self, parent, x, prec=None, reduce=True):
+        r"""
+        Initialize a Tate algebra element
+
+        TESTS::
+
+        
+        """
         cdef TateAlgebraElement xc
         CommutativeAlgebraElement.__init__(self, parent)
         self._prec = Infinity
@@ -192,7 +215,24 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         self._poly = self._parent._polynomial_ring(coeffs)
 
     def _repr_(self):
-        self._normalize()
+        r"""
+        Return a printable representation of a Tate series
+
+        The terms are ordered with decreasing term order (increasing valuation of the coefficients, then the monomial order of the parent algebra).
+
+        EXAMPLES::
+        
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: x + 2*x^2 + x^3
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: A(x+2*x^2+x^3,prec=5)
+            (...00001)*x^3 + (...00001)*x + (...00010)*x^2 + O(2^5)
+
+        """
+        
         base = self._parent.base_ring()
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
@@ -209,23 +249,98 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return s[3:]
 
     def polynomial(self):
+        r"""
+        Return a polynomial representation of the Tate series.
+
+        For series which are not polynomials, the output corresponds to ???
+        """
+        # TODO: should we make sure that the result is reduced in some cases?
         return self._poly
 
     cpdef _add_(self, other):
-        cdef TateAlgebraElement ans = self._new_c()
-        ans._poly = self._poly + (<TateAlgebraElement>other)._poly
-        ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
-        if self._prec != (<TateAlgebraElement>other)._prec:
-            ans._normalize()
-        return ans
++        r"""
+        Add a Tate series to the Tate series
+
+        The precision of the output is adjusted to the minimum of both precisions.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: g = A(x + 2*y^2,prec=5); g
+            (...00001)*x + (...00010)*y^2 + O(2^5)
+            sage: h=f+g; h # indirect doctest
+            (...00001)*x^3 + (...00010)*x^2 + (...00010)*y^2 + (...00010)*x + O(2^5)
+
+        ::
+
+            sage: f.precision_absolute()
+            +Infinity
+            sage: g.precision_absolute()
+            5
+            sage: h.precision_absolute()
+            5
+
+
+        """
+        # TODO: g = x + 2*y^2 + O(2^5) fails coercing O(2^5) into R, is that normal? If we force conversion with R(O(2^5)) the result is a Tate series with precision infinity... it's understandable but confusing, no? 
+        return self._parent(self._poly + other.polynomial(), min(self._prec, other.precision_absolute()))
 
     cpdef _neg_(self):
+        r"""
+        Return the opposite of the Tate series
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: -f # indirect doctest
+            (...1111111111)*x^3 + (...1111111111)*x + (...11111111110)*x^2
+
+
+        """
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = -self._poly
         ans._prec = self._prec
         return ans
 
     cpdef _sub_(self, other):
+        r"""
+        Return the difference of the Tate series and another
+
+        The precision of the output is adjusted to the minimum of both precisions.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: g = A(x + 2*y^2,prec=5); g
+            (...00001)*x + (...00010)*y^2 + O(2^5)
+            sage: h=f-g; h # indirect doctest
+            (...00001)*x^3 + (...00010)*x^2 + (...00010)*y^2 + (...00010)*x + O(2^5)
+
+        ::
+
+            sage: f.precision_absolute()
+            +Infinity
+            sage: g.precision_absolute()
+            5
+            sage: h.precision_absolute()
+            5
+        """
+    
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly - (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
@@ -234,6 +349,35 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return ans
 
     cpdef _mul_(self, other):
+        r"""
+        Return the product of the Tate series and another.
+
+        The precision is adjusted to match the best precision on the output.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            sage: f = 2*x + 4*x^2 + 2*x^3; f
+            (...00000000010)*x^3 + (...00000000010)*x + (...000000000100)*x^2
+            g = A(x + 2*x^2, prec=5); g
+            (...00001)*x + (...00010)*x^2 + O(2^5)
+            sage: h = f*g; h # indirect doctest
+            (...001010)*x^4 + (...000010)*x^2 + (...000100)*x^5 + (...001000)*x^3 + O(2^6)
+
+        ::
+
+            sage: f.precision_absolute()
+            +Infinity
+            sage: g.precision_absolute()
+            5
+            sage: h.precision_absolute()
+            6
+
+
+        """
         cdef TateAlgebraElement ans = self._new_c()
         a = self._prec + (<TateAlgebraElement>other).valuation()
         b = self.valuation() + (<TateAlgebraElement>other)._prec
@@ -243,12 +387,48 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return ans
 
     cpdef _lmul_(self, Element right):
+        r"""
+        Multiply the series by an element of the base ring.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: R(2)*f # indirect doctest
+            (...00000000010)*x^3 + (...00000000010)*x + (...000000000100)*x^2
+            sage: R(6)*f # indirect doctest
+            (...00000000110)*x^3 + (...00000000110)*x + (...000000001100)*x^2
+
+        """
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly * right
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
         return ans
 
     def _lshift(self, n):
+        r"""
+        Multiply the series by the `n`'th power of the uniformizer `\pi`.
+
+        INPUT::
+
+        - ``n`` - an integer (not necessarily non-negative)
+
+
+        EXAMPLES::
+
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: f << 2 # indirect doctest
+            (...000000000100)*x^3 + (...000000000100)*x + (...0000000001000)*x^2
+
+        If the base ring is not a field and we're shifting by a negative number of digits, the result is truncated -- that is, the output is the result of the integer division of the Tate series by `\pi^n`.
+
+            sage: f << -1 # indirect doctest
+            (...0000000001)*x^2
+        """
         parent = self._parent
         base = parent.base_ring()
         if base.is_field():
@@ -264,17 +444,108 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return parent(coeffs, self._prec + n)
 
     def __lshift__(self, n):
+        r"""
+        Multiply the series by the `n`'th power of the uniformizer `\pi`.
+
+        INPUT::
+
+        - ``n`` - an integer (not necessarily non-negative)
+
+
+        EXAMPLES::
+
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: f << 2 # indirect doctest
+            (...000000000100)*x^3 + (...000000000100)*x + (...0000000001000)*x^2
+
+        If the base ring is not a field and we're shifting by a negative number of digits, the result is truncated -- that is, the output is the result of the integer division of the Tate series by `\pi^n`.
+
+            sage: f << -1 # indirect doctest
+            (...0000000001)*x^2
+        """
+        
         return self._lshift(n)
 
     def __rshift__(self, n):
+        r"""
+        Divide the series by the `n`'th power of the uniformizer `\pi`.
+
+        If the base ring is not a field and ``n`` is positive, the result is truncated -- that is, the output is the result of the integer division of the Tate series by `\pi^n`.
+
+
+        INPUT:
+
+        - ``n`` - an integer (not necessarily non-negative)
+
+
+        EXAMPLES::
+
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: f >> -2 # indirect doctest
+            (...000000000100)*x^3 + (...000000000100)*x + (...0000000001000)*x^2
+            sage: f >> 1 # indirect doctest
+            (...0000000001)*x^2
+        """
         return self._lshift(-n)
 
     def is_zero(self, prec=None):
+        r"""
+        Test whether the Tate algebra is 0.
+
+        INPUT:
+
+        - prec - (default: None) an integer which, if specifies, determines the precision of the test.
+
+        EXAMPLES::
+
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: f.is_zero()
+            False
+            sage: g = f << 4; g
+            (...00000000010000)*x^3 + (...00000000010000)*x + (...000000000100000)*x^2
+            sage: g.is_zero()
+            False
+            sage: g.is_zero(5)
+            False
+            sage: g.is_zero(4)
+            True
+        
+        """
         if prec is None:
             prec = self._prec
         return self.valuation() >= prec
 
     def inverse_of_unit(self):
+        r"""
+        Returns the inverse of the Tate series if invertible.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = A(1); f
+            (...0000000001)
+            sage: f.inverse_of_unit()
+            (...0000000001) + O(2^10)
+            sage: f = 2*x +1; f
+            (...0000000001) + (...00000000010)*x
+            sage: f.inverse_of_unit()
+            (...0000000001) + (...1111111110)*x + (...0000000100)*x^2 + (...1111111000)*x^3 + (...0000010000)*x^4 + (...1111100000)*x^5 + (...0001000000)*x^6 + (...1110000000)*x^7 + (...0100000000)*x^8 + (...1000000000)*x^9 + O(2^10)
+            sage: f = 1+x; f
+            (...0000000001)*x + (...0000000001)
+            sage: f.inverse_of_unit()
+            Traceback (most recent call last)
+            ...        
+            ValueError: This series in not invertible
+        
+        """
         if not self.is_unit():
             raise ValueError("This series in not invertible")
         t = self.leading_term()
@@ -291,6 +562,31 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return inv << v
 
     def is_unit(self):
+        r"""
+        Test whether the Tate series is invertible.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = 1; f
+            1
+            sage: f = A(1); f
+            (...0000000001)
+            sage: f.is_unit()
+            True
+            sage: f = 2*x +1; f
+            (...0000000001) + (...000000000100)*x
+            sage: f.is_unit()
+            True
+            sage: f = 1+x; f
+            (...00000000010)*x + (...0000000001)
+            sage: f.is_unit()
+            False
+
+        """
         if self.is_zero():
             return False
         t = self.leading_term()
@@ -302,12 +598,46 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return True
 
     def restriction(self, log_radii):
+        r"""
+        Restrict the Tate series to a series converging on a smaller domain
+
+        INPUT:
+
+        - ``log_radii`` - the logs of the wanted convergence radii (see the definition of the class for the possible specifications)
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2
+            sage: f.restriction(-1)
+            (...0000000001)*x + (...00000000010)*x^2
+            sage: g = f.restriction(-1)
+            sage: g.parent()
+            Tate Algebra in x (val >= 1), y (val >= 1) over 2-adic Ring with capped relative precision 10
+          
+        """
         parent = self._parent
         from sage.rings.tate_algebra import TateAlgebra
         ring = TateAlgebra(self.base_ring(), parent.variable_names(), log_radii, parent.precision_cap(), parent.term_order())
         return ring(self)
 
     def terms(self):
+        r"""
+        Return the sorted list of terms of a Tate series
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2
+            sage: f.terms()
+            [(...0000000001)*x, (...00000000010)*x^2]
+        """
         if not self._is_normalized:
             self._normalize()
             self._terms = None
@@ -329,12 +659,82 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self._terms
 
     def coefficients(self):
+        r"""
+        Return the list of coefficients of the Tate series
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2
+            sage: f.coefficients()
+            [...0000000001, ...00000000010]
+
+        """
         return [ t.coefficient() for t in self.terms() ]
 
     def add_bigoh(self, n):
+        r"""
+        Truncate the Tate series to `O(\pi^n)` where `\pi` is the uniformizer
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = (x + 2*x^2) << 5; f
+            (...000000000100000)*x + (...0000000001000000)*x^2
+            sage: g = f.add_bigoh(5); g
+            O(2^5)
+            sage: g = f.add_bigoh(6); g
+            (...100000)*x + O(2^6)
+            sage: g.precision_absolute()
+            6
+            sage: g.parent().precision_cap()
+            10
+
+        """
         return self._parent(self, prec=n)
 
     def precision_absolute(self):
+        r"""
+        Return the precision with which terms of the Tate series is known
+
+        If a term is not part of the terms of the series, then the valuation of
+        its coefficient is at least the absolute precision.
+
+        However, individual coefficients may be known with more or less
+        precision.
+
+        EXAMPLES::
+        
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x + 2*x^2; f
+            (...0000000001)*x + (...00000000010)*x^2
+            sage: f.precision_absolute()
+            +Infinity
+            sage: g = f.add_bigoh(5); g
+            (...00001)*x + (...00010)*x^2 + O(2^5)
+            sage: g.precision_absolute()
+            5
+
+        The absolute precision may be higher than the precision of the known
+        coefficients.
+
+            sage: g = f.add_bigoh(20); g
+            (...0000000001)*x + (...00000000010)*x^2 + O(2^20)
+            sage: g.precision_absolute()
+            20
+            sage: g.parent().base_ring().precision_cap()
+            10
+
+        """
         return self._prec
 
     cpdef valuation(self):

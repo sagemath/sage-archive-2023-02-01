@@ -20,12 +20,9 @@ from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrap
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
-from sage.categories.sets_cat import Sets
-from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.sets.family import Family
-from sage.structure.element import coercion_model, have_same_parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -279,7 +276,7 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
         """
         if isinstance(x, tuple) and len(x) == 2:
             return self(x[0])._bracket_(self(x[1]))
-        super(LieSubalgebra_finite_dimensional_with_basis, self)
+        sup = super(LieSubalgebra_finite_dimensional_with_basis, self)
         return sup.__getitem__(x)
 
     def _repr_(self):

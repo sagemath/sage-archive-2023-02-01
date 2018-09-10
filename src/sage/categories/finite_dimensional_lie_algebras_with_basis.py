@@ -609,8 +609,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: I.reduce(p1 + p2 + q1 + q2 + z)
                 2*p1 + 2*q1
             """
-            from sage.algebras.lie_algebras.ideal import LieIdeal_finite_dimensional_with_basis
-            return LieIdeal_finite_dimensional_with_basis(self, gens)
+            from sage.algebras.lie_algebras.subalgebra import LieSubalgebra_finite_dimensional_with_basis
+            return LieSubalgebra_finite_dimensional_with_basis(self, gens,
+                                                               ideal=True)
 
         @cached_method
         def is_ideal(self, A):

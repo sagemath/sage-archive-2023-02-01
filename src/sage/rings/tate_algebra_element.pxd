@@ -22,6 +22,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     cdef _poly
     cdef _prec
     cdef list _terms
+    cdef bint _is_normalized
 
     cdef _normalize(self)
     cdef TateAlgebraElement _new_c(self)

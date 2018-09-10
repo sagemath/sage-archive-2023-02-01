@@ -171,15 +171,17 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             self._poly = S(x)
         if prec is not None:
             self._prec = min(self._prec, prec)
-        #self._normalize()
+        self._normalize()
         self._terms = None
 
     cdef TateAlgebraElement _new_c(self):
         cdef TateAlgebraElement ans = TateAlgebraElement.__new__(TateAlgebraElement)
         ans._parent = self._parent
+        ans._is_normalized = False
         return ans
 
     cdef _normalize(self):
+        self._is_normalized = True
         if self._prec is Infinity: return
         cdef TateAlgebraTerm t
         cdef dict coeffs = self._poly.dict()
@@ -306,8 +308,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return ring(self)
 
     def terms(self):
-        self._normalize()
-        self._terms = None
+        if not self._is_normalized:
+            self._normalize()
+            self._terms = None
         return self._terms_c()
 
     cdef list _terms_c(self):
@@ -396,7 +399,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         f = self.add_bigoh(cap)
         q = [ parent(0, cap - d.valuation()) for d in divisors ]
         r = parent(0, cap)
-        while not f.is_zero():
+        while not f.is_zero(cap):
             lt = f.leading_term()
             for i in range(len(divisors)):
                 if lt.is_divisible_by(ltds[i], integral=integral):
@@ -405,6 +408,32 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                     q[i] += factor
                     break
             else:
+                if r.is_zero():
+                    cap = min(cap, lt.valuation() + 1)
+                f -= lt; r += lt
+        return q, r
+
+    def quo_rem_relprec(self, divisors):
+        parent = self._parent
+        nvars = parent.ngens()
+        if not isinstance(divisors, (list, tuple)):
+            divisors = [ divisors ]
+        ltds = [ d.leading_term() for d in divisors ]
+        cap = parent.precision_cap()
+        f = self
+        q = [ parent(0) ] * len(divisors)
+        r = parent(0)
+        while not f.is_zero(cap):
+            lt = f.leading_term()
+            for i in range(len(divisors)):
+                if lt.is_divisible_by(ltds[i], integral=True):
+                    factor = lt // ltds[i]
+                    f -= factor * divisors[i]
+                    q[i] += factor
+                    break
+            else:
+                if r.is_zero():
+                    cap = min(cap, lt.valuation() + 1)
                 f -= lt; r += lt
         return q, r
 

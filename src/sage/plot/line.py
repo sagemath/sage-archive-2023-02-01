@@ -503,11 +503,8 @@ def line2d(points, **options):
     from sage.plot.plot import xydata_from_point_list
     from sage.rings.all import CC, CDF
     points = list(points) # make sure points is a python list
-    if points in CC or points in CDF:
-        pass
-    else:
-        if len(points) == 0:
-            return Graphics()
+    if len(points) == 0:
+        return Graphics()
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

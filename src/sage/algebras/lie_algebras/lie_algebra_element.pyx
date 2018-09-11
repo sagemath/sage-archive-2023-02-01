@@ -528,6 +528,12 @@ cdef class LieSubalgebraElementWrapper(LieAlgebraElementWrapper):
     def __init__(self, parent, value):
         """
         Initialize ``self``.
+
+        TESTS::
+
+            sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z': 1}})
+            sage: S = L.subalgebra([X, Y])
+            sage: TestSuite(S(X)).run()
         """
         LieAlgebraElementWrapper.__init__(self, parent, value)
         self._monomial_coefficients = None

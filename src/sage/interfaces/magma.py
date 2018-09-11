@@ -1651,6 +1651,71 @@ class Magma(ExtraTabCompletion, Expect):
         """
         return int(self.eval('GetVerbose("%s")' % type))
 
+    def set_nthreads(self, n):
+        """
+        Set the number of threads used for parallelized algorithms in Magma.
+
+        INPUT:
+
+        - ``n`` - number of threads
+
+        EXAMPLES::
+
+            sage: magma.set_nthreads(2)                #optional - magma
+            sage: magma.get_nthreads()                 #optional - magma
+            2
+        """
+        self.SetNthreads(n)
+
+    def SetNthreads(self, n):
+        """
+        Set the number of threads used for parallelized algorithms in Magma.
+
+        INPUT:
+
+        - ``n`` - number of threads
+
+        .. note::
+
+           This method is provided to be consistent with the Magma
+           naming convention.
+
+        EXAMPLES::
+
+            sage: magma.SetNthreads(2)                 #optional - magma
+            sage: magma.GetNthreads()                  #optional - magma
+            2
+        """
+        self.eval('SetNthreads(%d)' % (n))
+
+    def get_nthreads(self):
+        """
+        Get the number of threads used in Magma.
+
+        EXAMPLES::
+
+            sage: magma.set_nthreads(2)                #optional - magma
+            sage: magma.get_nthreads()                 #optional - magma
+            2
+        """
+        return self.GetNthreads()
+
+    def GetNthreads(self):
+        """
+        Get the number of threads used in Magma.
+
+        .. note::
+
+           This method is provided to be consistent with the Magma
+           naming convention.
+
+        EXAMPLES::
+
+            sage: magma.SetNthreads(2)                 #optional - magma
+            sage: magma.GetNthreads()                  #optional - magma
+            2
+        """
+        return int(self.eval('GetNthreads()'))
 
 @instancedoc
 class MagmaFunctionElement(FunctionElement):

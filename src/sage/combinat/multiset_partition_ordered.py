@@ -301,9 +301,9 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
 
             sage: OMP_n = OrderedMultisetPartitionsIntoSets(4)
             sage: OMP_X = OrderedMultisetPartitionsIntoSets([1,1,2])
-            sage: OMP_A = OrderedMultisetPartitionsIntoSets(2, 3)
+            sage: OMP_Ad = OrderedMultisetPartitionsIntoSets(2, 3)
             sage: mu = [[1], [1, 2]]
-            sage: OMP_n(mu) == OMP_X(mu) == OMP_A(mu)
+            sage: OMP_n(mu) == OMP_X(mu) == OMP_Ad(mu)
             True
             sage: OMP_n(mu) == mu
             False
@@ -958,7 +958,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             C = [sorted(upper)+sorted(lower)] + C
         return tuple(map(tuple,C))
 
-    def to_tableau(self):
+    def to_tableaux_words(self):
         r"""
         Return a sequence of lists corresponding to row words
         of (skew-)tableaux.
@@ -975,7 +975,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
         EXAMPLES::
 
             sage: co = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
-            sage: OrderedMultisetPartitionIntoSets(co).to_tableau()
+            sage: OrderedMultisetPartitionIntoSets(co).to_tableaux_words()
             [[5, 1], [3, 1], [6], [5, 4, 2], [1, 4, 3, 4, 2, 1, 2]]
         """
         if not self:
@@ -1130,7 +1130,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
 
     - ``weight=X``     (list or dictionary `X`) specifies the multiset for `c`
     - ``size=n``       (integer `n`) specifies the size of `c`
-    - ``alphabet=S``   (iterable `S`) specifies allowable elements for the blocks of `c`
+    - ``alphabet=A``   (iterable `A`) specifies allowable elements for the blocks of `c`
     - ``length=k``     (integer `k`) specifies the number of blocks in the partition
     - ``min_length=k`` (integer `k`) specifies minimum number of blocks in the partition
     - ``max_length=k`` (integer `k`) specifies maximum number of blocks in the partition
@@ -1204,55 +1204,19 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: [[3,2],[2]] in OrderedMultisetPartitionsIntoSets(5)
         False
 
-    Specifying optional arguments:
+    .. RUBRIC:: Optional keyword arguments
 
-    - The options ``length``, ``min_length``, and ``max_length`` can be
-      used to set length constraints on the ordered multiset partitions.
-      For example, the ordered multiset partitions of 4 of length equal
-      to, at least, and at most 2 are given by::
+    Passing keyword arguments that are incompatible with required requirements
+    results in an error; otherwise, the collection of ordered multiset partitions
+    is restricted accordingly:
 
-        sage: OrderedMultisetPartitionsIntoSets(4, length=2).list()
-        [[{3}, {1}], [{1,2}, {1}], [{2}, {2}], [{1}, {3}], [{1}, {1,2}]]
-        sage: OrderedMultisetPartitionsIntoSets(4, min_length=3).list()
-        [[{2}, {1}, {1}], [{1}, {2}, {1}], [{1}, {1}, {2}], [{1}, {1}, {1}, {1}]]
-        sage: OrderedMultisetPartitionsIntoSets(4, max_length=2).list()
-        [[{4}], [{1,3}], [{3}, {1}], [{1,2}, {1}], [{2}, {2}], [{1}, {3}], [{1}, {1,2}]]
+    *The ``weight`` keyword:*
 
-    - The option ``alphabet`` constrains which integers appear across all blocks of
-      the ordered multiset partition. For example, the ordered multiset partitions of 4
-      are listed for different choices of alphabet below. Note that ``alphabet``
-      is allowed to be an integer or an iterable::
-
-        sage: OMPs = OrderedMultisetPartitionsIntoSets
-        sage: OMPs(4, alphabet=3).list()
-        [[{1,3}],
-         [{3}, {1}],
-         [{1,2}, {1}],
-         [{2}, {2}],
-         [{2}, {1}, {1}],
-         [{1}, {3}],
-         [{1}, {1,2}],
-         [{1}, {2}, {1}],
-         [{1}, {1}, {2}],
-         [{1}, {1}, {1}, {1}]]
-        sage: OMPs(4, alphabet=3) == OMPs(4, alphabet=[1,2,3])
-        True
-        sage: OMPs(4, alphabet=[3]).list()
-        []
-        sage: OMPs(4, alphabet=[1,3]).list()
-        [[{1,3}], [{3}, {1}], [{1}, {3}], [{1}, {1}, {1}, {1}]]
-        sage: OMPs(4, alphabet=[2]).list()
-        [[{2}, {2}]]
-        sage: OMPs(4, alphabet=[1,2]).list()
-        [[{1,2}, {1}], [{2}, {2}], [{2}, {1}, {1}], [{1}, {1,2}],
-         [{1}, {2}, {1}], [{1}, {1}, {2}], [{1}, {1}, {1}, {1}]]
-        sage: OMPs(4, alphabet=4).list() == OMPs(4).list()
-        True
-
-    - The option ``weight`` specifies which multiset `X` is to be considered, if it was
-      not passed as one of the required arguments for ``OrderedMultisetPartitionsIntoSets``.
-      In principle, it is a dictionary, but weak compositions are also allowed.
-      For example, the ordered multiset partitions of 4 are listed by weight below::
+    This is used to specify which multiset `X` is to be considered,
+    if this multiset was not passed as one of the required arguments for
+    ``OrderedMultisetPartitionsIntoSets``. In principle, it is a dictionary,
+    but weak compositions are also allowed. For example, the ordered multiset
+    partitions of 4 are listed by weight below::
 
         sage: OrderedMultisetPartitionsIntoSets(4, weight=[0,0,0,1])
         Ordered Multiset Partitions of integer 4 with constraint: weight={4: 1}
@@ -1273,14 +1237,66 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitionsIntoSets(4, weight=[4]).list()
         [[{1}, {1}, {1}, {1}]]
 
-      This option is ignored if a multiset `X` is passed as a required argument::
+    *The ``size`` keyword:*
 
-        sage: OrderedMultisetPartitionsIntoSets([1,4], weight={1:3, 2:1}).list()
-        [[{1}, {4}], [{1,4}], [{4}, {1}]]
+    This is used to constrain the sum of entries across all blocks of the ordered
+    multiset partition. (This size is not pre-determined when alphabet `A` and
+    order `d` are passed as required arguments.) For example, the ordered multiset
+    partitions of order 3 over the alphabet `[1,2,4]` that have size equal to 5
+    are as follows::
 
-    - The (max/min) ``order`` options place constraints on ordered multiset partitions
-      when the multiset `X` is not given as required argument or via the ``weight``
-      keyword. The ordered multiset partitions of integer 4 are listed by order below::
+        sage: OMPs = OrderedMultisetPartitionsIntoSets
+        sage: OMPs([1,2,4], 3, size=5).list()
+        [[{1,2}, {2}], [{2}, {1,2}], [{2}, {2}, {1}],
+         [{2}, {1}, {2}], [{1}, {2}, {2}]]
+
+    *The ``alphabet`` option:*
+
+    This is used to constrain which integers appear across all blocks of the
+    ordered multiset partition. For example, the ordered multiset partitions
+    of 4 are listed for different choices of alphabet below. Note that
+    ``alphabet`` is allowed to be an integer or an iterable::
+
+        sage: OMPs = OrderedMultisetPartitionsIntoSets
+        sage: OMPs(4, alphabet=3).list()
+        [[{1,3}], [{3}, {1}],
+         [{1,2}, {1}], [{2}, {2}],
+         [{2}, {1}, {1}], [{1}, {3}],
+         [{1}, {1,2}], [{1}, {2}, {1}],
+         [{1}, {1}, {2}], [{1}, {1}, {1}, {1}]]
+        sage: OMPs(4, alphabet=3) == OMPs(4, alphabet=[1,2,3])
+        True
+        sage: OMPs(4, alphabet=[3]).list()
+        []
+        sage: OMPs(4, alphabet=[1,3]).list()
+        [[{1,3}], [{3}, {1}], [{1}, {3}], [{1}, {1}, {1}, {1}]]
+        sage: OMPs(4, alphabet=[2]).list()
+        [[{2}, {2}]]
+        sage: OMPs(4, alphabet=[1,2]).list()
+        [[{1,2}, {1}], [{2}, {2}], [{2}, {1}, {1}], [{1}, {1,2}],
+         [{1}, {2}, {1}], [{1}, {1}, {2}], [{1}, {1}, {1}, {1}]]
+        sage: OMPs(4, alphabet=4).list() == OMPs(4).list()
+        True
+
+    *The ``length``, ``min_length``, and ``max_length`` options:*
+
+    These are used to constrain the number of blocks within the ordered multiset
+    partitions. For example, the ordered multiset partitions of 4 of length
+    exactly 2, at least 2, and at most 2 are given by::
+
+        sage: OrderedMultisetPartitionsIntoSets(4, length=2).list()
+        [[{3}, {1}], [{1,2}, {1}], [{2}, {2}], [{1}, {3}], [{1}, {1,2}]]
+        sage: OrderedMultisetPartitionsIntoSets(4, min_length=3).list()
+        [[{2}, {1}, {1}], [{1}, {2}, {1}], [{1}, {1}, {2}], [{1}, {1}, {1}, {1}]]
+        sage: OrderedMultisetPartitionsIntoSets(4, max_length=2).list()
+        [[{4}], [{1,3}], [{3}, {1}], [{1,2}, {1}], [{2}, {2}], [{1}, {3}],
+         [{1}, {1,2}]]
+
+    *The ``order``, ``min_order``, and ``max_order`` options:*
+
+    These are used to constrain the number of elements across all blocks of the
+    ordered multiset partitions. For example, the ordered multiset partitions
+    of integer 4 are listed by order below::
 
         sage: OrderedMultisetPartitionsIntoSets(4, order=1).list()
         [[{4}]]
@@ -1291,24 +1307,11 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitionsIntoSets(4, order=4).list()
         [[{1}, {1}, {1}, {1}]]
 
-      And here is a use of ``max_order``, giving the ordered multiset partitions of
-      integer 4 with order 1 or 2::
+    And here is a use of ``max_order``, giving the ordered multiset partitions of
+    integer 4 with order 1 or 2::
 
         sage: OrderedMultisetPartitionsIntoSets(4, max_order=2).list()
         [[{4}], [{1,3}], [{3}, {1}], [{2}, {2}], [{1}, {3}]]
-
-      An explicit use of keyword ``order`` is ignored if the order is also implicitly
-      provided by the user via other required (or keyword argument ``weight``). In
-      each example below, the order must be 3, so the call ``order=2`` is ignored::
-
-        sage: OrderedMultisetPartitionsIntoSets([1,1,4], order=2).list()
-        [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
-        sage: OrderedMultisetPartitionsIntoSets([1,4], 3, order=2).list()
-        [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
-         [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}],
-         [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
-        sage: OrderedMultisetPartitionsIntoSets(6, weight=[2,0,0,1], order=2).list()
-        [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
 
     TESTS::
 
@@ -1346,6 +1349,44 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             sage: OrderedMultisetPartitionsIntoSets([2,4], 3, min_length=2)
             Ordered Multiset Partitions of order 3 over alphabet {2, 4}
              with constraint: min_length=2
+
+        TESTS:
+
+        The alphabet and order keywords cannot be used if they are also passed
+        as required arguments, even if the values are compatible::
+
+            sage: OrderedMultisetPartitionsIntoSets([1,2,4], 4, alphabet=[2,4], order=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot pass alphabet as first argument and keyword argument
+            sage: OrderedMultisetPartitionsIntoSets([1,2,4], 4, order=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot pass order as second argument and keyword argument
+
+        The weight, size, and order keywords cannot be used if a multiset is
+        passed as a required argument, even if the values are compatible::
+
+            sage: OrderedMultisetPartitionsIntoSets([1,1,4], weight={1:3, 2:1}).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot pass multiset as first argument and weight as keyword argument
+            sage: OrderedMultisetPartitionsIntoSets([1,1,4], size=6).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot pass multiset as first argument and size as keyword argument
+            sage: OrderedMultisetPartitionsIntoSets([1,1,4], weight={1:3, 2:1}, order=2).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot pass multiset as first argument and {'order', 'weight'} as keyword arguments
+
+        The size keyword cannot be used if it is also passed as a required argument,
+        even if the value is compatible::
+
+            sage: OrderedMultisetPartitionsIntoSets(5, size=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot pass size as first argument and keyword argument
         """
         constraints = dict(constraints)
         if "weight" in constraints:
@@ -1373,14 +1414,16 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             if alph in ZZ:
                 alph = range(1,alph+1)
             if (alph and len(set(alph)) == len(alph)) and (order in ZZ and order >= 0):
-                constraints.pop("alphabet", None)
-                constraints.pop("order", None)
+                if "alphabet" in constraints:
+                    raise ValueError("cannot pass alphabet as first argument and keyword argument")
+                elif "order" in constraints:
+                    raise ValueError("cannot pass order as second argument and keyword argument")
                 if constraints == {}:
-                    return OrderedMultisetPartitionsIntoSets_A(frozenset(alph), order)
+                    return OrderedMultisetPartitionsIntoSets_Ad(frozenset(alph), order)
                 else:
-                    return OrderedMultisetPartitionsIntoSets_A_constraints(frozenset(alph), order, **constraints)
+                    return OrderedMultisetPartitionsIntoSets_Ad_constraints(frozenset(alph), order, **constraints)
             elif frozenset(alph) == frozenset() and order == 0:
-                return OrderedMultisetPartitionsIntoSets_A_constraints(frozenset(alph), order, **constraints)
+                return OrderedMultisetPartitionsIntoSets_Ad_constraints(frozenset(alph), order, **constraints)
             else:
                 raise ValueError("alphabet=%s must be a nonempty set and order=%s must be a nonnegative integer" % (alph, order))
 
@@ -1392,10 +1435,15 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                     tmp[i] = tmp.get(i, 0) + 1
                 X = tmp
             if isinstance(X, dict):
-                constraints.pop("size", None)
-                constraints.pop("weight", None)
-                constraints.pop("alphabet", None)
-                constraints.pop("order", None)
+                over_determined = set(["size", "weight", "alphabet", "order", "min_order", "max_order"]).intersection(set(constraints))
+                if over_determined:
+                    if len(over_determined) > 1:
+                        suff = "s"
+                        offenses = str(Set(over_determined))
+                    else:
+                        suff = ""
+                        offenses = str(over_determined.pop())
+                    raise ValueError("cannot pass multiset as first argument and %s as keyword argument%s" % (offenses, suff))
                 X_items = tuple(iteritems(X))
                 if constraints == {}:
                     return OrderedMultisetPartitionsIntoSets_X(X_items)
@@ -1403,16 +1451,33 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                     return OrderedMultisetPartitionsIntoSets_X_constraints(X_items, **constraints)
 
             elif X in ZZ and X >= 0:
-                constraints.pop("size", None)
+                if "size" in constraints:
+                    raise ValueError("cannot pass size as first argument and keyword argument")
                 if constraints == {}:
                     return OrderedMultisetPartitionsIntoSets_n(X)
                 else:
                     return OrderedMultisetPartitionsIntoSets_n_constraints(X, **constraints)
 
             else:
+                # zero arguments are passed?
                 raise ValueError("%s must be a nonnegative integer or a list or dictionary representing a multiset" % X)
 
-        else: # generic parent
+        elif len(args) > 2:
+            raise ValueError("OrderedMultisetPartitonsIntoSets takes 1, 2, or 3 arguments")
+        else:
+            # try to do better than a generic parent
+            if "weight" in constraints:
+                X = constraints.pop("weight")
+                return OrderedMultisetPartitionsIntoSets(dict(X), **constraints)
+            elif "size" in constraints:
+                n = constraints.pop("size")
+                return OrderedMultisetPartitionsIntoSets(n, **constraints)
+            elif "alphabet" in constraints and "order" in constraints:
+                A = constraints.pop("alphabet")
+                d = constraints.pop("order")
+                return OrderedMultisetPartitionsIntoSets(A, d, **constraints)
+
+            # generic parent
             return OrderedMultisetPartitionsIntoSets_all_constraints(**constraints)
 
     def __init__(self, is_finite=None, **constraints):
@@ -1430,20 +1495,20 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6, 'size': 17}
 
             sage: c = {"length":4, "min_length":5, "max_order":6, "order":5, "alphabet":4}
+            sage: OrderedMultisetPartitionsIntoSets(**c).full_constraints
+            {'alphabet': frozenset({1, 2, 3, 4}), 'length': 4, 'order': 5}
             sage: OrderedMultisetPartitionsIntoSets(**c).constraints
-            {'alphabet': frozenset({1, 2, 3, 4}), 'length': 4, 'order': 5}
-            sage: OrderedMultisetPartitionsIntoSets(4, 5, **c).constraints
             {'length': 4}
-            sage: OrderedMultisetPartitionsIntoSets(4, 5, **c).full_constraints
-            {'alphabet': frozenset({1, 2, 3, 4}), 'length': 4, 'order': 5}
+            sage: OrderedMultisetPartitionsIntoSets(4, 5, **c).constraints
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot pass alphabet as first argument and keyword argument
 
             sage: c = {"weight":[2,2,0,3], "min_length":5, "max_order":6, "order":5, "alphabet":4}
             sage: OrderedMultisetPartitionsIntoSets(**c).constraints
-            {'min_length': 5, 'weight': {1: 2, 2: 2, 4: 3}}
-            sage: OrderedMultisetPartitionsIntoSets([1,1,2,2,4,4,4], **c).constraints
-            {'min_length': 5}
-            sage: OrderedMultisetPartitionsIntoSets([1,1,2,2,4,4,4], **c).full_constraints
-            {'min_length': 5, 'weight': {1: 2, 2: 2, 4: 3}}
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot pass multiset as first argument and {'alphabet', 'order', 'max_order'} as keyword arguments
         """
         constraints = dict(constraints)
 
@@ -1635,8 +1700,8 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                               ((2,4), (3,), (3,)), ((2,4), (1,), (2,4))}
             sage: any(OMPs._satisfies_constraints(x) for x in failures)
             False
-            sage: c = {"max_length":4, "order":6, "weight":{1:2, 2:1, 4:2}}
-            sage: OMPs = OrderedMultisetPartitionsIntoSets(**c) # order constraint is ignored
+            sage: c = {"max_length":4, "weight":{1:2, 2:1, 4:2}}
+            sage: OMPs = OrderedMultisetPartitionsIntoSets(**c)
             sage: OMPs._satisfies_constraints([{2,4}, {1}, {1,4}])
             True
             sage: failures = {((2,), (4,), (1,), (1,), (4,)), ((1,), (1,), (2,4), (2,4))}
@@ -1826,6 +1891,59 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                             yield self.element_class(self, co)
                     n += 1
 
+    def subset(self, size):
+        """
+        Return a subset of all ordered multiset partitions.
+
+        INPUT:
+
+        - ``size`` -- an integer representing a slice of all ordered
+          multiset partitions
+
+        The slice alluded to above is taken with respect to length, or
+        to order, or to size, depending on the constraints of  ``self``.
+
+        EXAMPLES::
+
+            sage: C = OrderedMultisetPartitionsIntoSets(weight={2:2, 3:1, 5:1})
+            sage: C.subset(3)
+            Ordered Multiset Partitions of multiset {{2, 2, 3, 5}} with constraint: length=3
+            sage: C = OrderedMultisetPartitionsIntoSets(weight={2:2, 3:1, 5:1}, min_length=2)
+            sage: C.subset(3)
+            Ordered Multiset Partitions of multiset {{2, 2, 3, 5}} with constraint: length=3
+            sage: C = OrderedMultisetPartitionsIntoSets(alphabet=[2,3,5])
+            sage: C.subset(3)
+            Ordered Multiset Partitions of order 3 over alphabet {2, 3, 5}
+            sage: C = OrderedMultisetPartitionsIntoSets(order=5)
+            sage: C.subset(3)
+            Ordered Multiset Partitions of integer 3 with constraint: order=5
+            sage: C = OrderedMultisetPartitionsIntoSets(alphabet=[2,3,5], order=5, length=3)
+            sage: C.subset(3)
+            Ordered Multiset Partitions of order 3 over alphabet {2, 3, 5} with constraint: length=3
+            sage: C = OrderedMultisetPartitionsIntoSets()
+            sage: C.subset(3)
+            Ordered Multiset Partitions of integer 3
+            sage: C.subset(3) == OrderedMultisetPartitionsIntoSets(3)
+            True
+        """
+        fc = self.full_constraints
+
+        # slice by 'length'
+        if "weight" in fc:
+            return OrderedMultisetPartitionsIntoSets(fc["weight"], length=size, **self.constraints)
+        elif "alphabet" in fc and "size" in fc:
+            add_length = dict(self.constraints)
+            add_length["length"] = size
+            return OrderedMultisetPartitionsIntoSets(fc["alphabet"], fc["order"], **add_length)
+
+        # slice by 'order'
+        if "alphabet" in fc:
+            no_alpha = {k: v for (k, v) in iteritems(self.constraints) if k is not "alphabet"}
+            return OrderedMultisetPartitionsIntoSets(fc["alphabet"], size, **no_alpha)
+
+        # slice by 'size'
+        return OrderedMultisetPartitionsIntoSets(size, **self.constraints)
+
 ###############
 
 class OrderedMultisetPartitionsIntoSets_all_constraints(OrderedMultisetPartitionsIntoSets):
@@ -1840,7 +1958,7 @@ class OrderedMultisetPartitionsIntoSets_all_constraints(OrderedMultisetPartition
         True
 
         sage: OrderedMultisetPartitionsIntoSets(weight=[2,0,1], length=2)
-        Ordered Multiset Partitions with constraints: length=2, weight={1: 2, 3: 1}
+        Ordered Multiset Partitions of multiset {{1, 1, 3}} with constraint: length=2
 
     TESTS::
 
@@ -1855,11 +1973,11 @@ class OrderedMultisetPartitionsIntoSets_all_constraints(OrderedMultisetPartition
         sage: D3 = OrderedMultisetPartitionsIntoSets(5, weight={1:2, 3:1}, length=2)
         sage: D4 = OrderedMultisetPartitionsIntoSets([1,3], 3, weight={1:2, 3:1}, length=2)
         sage: D5 = OrderedMultisetPartitionsIntoSets([1,3], 3, size=5, length=2)
-        sage: all(C != D for D in [D1,D2,D3,D4,D5])
+        sage: all(C != D for D in [D1, D2, D3, D4, D5])
         True
-        sage: all(Set(C) == Set(D) for D in [D1,D2,D3,D4,D5])
+        sage: all(Set(C) == Set(D) for D in [D1, D2, D3, D4, D5])
         True
-        sage: E = OrderedMultisetPartitionsIntoSets({1:2, 3:1}, size=5, min_length=2)
+        sage: E = OrderedMultisetPartitionsIntoSets({1:2, 3:1}, min_length=2)
         sage: Set(C) == Set(E)
         False
     """
@@ -1876,40 +1994,6 @@ class OrderedMultisetPartitionsIntoSets_all_constraints(OrderedMultisetPartition
              alphabet={'a', 1}, max_order=5, min_length=3
         """
         return "Ordered Multiset Partitions" + self._constraint_repr_()
-
-    def subset(self, size):
-        """
-        Return a subset of all ordered multiset partitions.
-
-        INPUT:
-
-        - ``size`` -- an integer representing a slice of all ordered
-          multiset partitions
-
-        The slice alluded to above is taken with respect to length, or
-        to order or to size, depending on the constraints of  ``self``.
-
-        EXAMPLES::
-
-            sage: C = OrderedMultisetPartitionsIntoSets(weight={2:2, 3:1, 5:1})
-            sage: C.subset(3)
-            Ordered Multiset Partitions of multiset {{2, 2, 3, 5}} with constraint: length=3
-            sage: C = OrderedMultisetPartitionsIntoSets(alphabet=[2,3,5])
-            sage: C.subset(3)
-            Ordered Multiset Partitions of order 3 over alphabet {2, 3, 5}
-            sage: C = OrderedMultisetPartitionsIntoSets()
-            sage: C.subset(3)
-            Ordered Multiset Partitions of integer 3
-            sage: C.subset(3) == OrderedMultisetPartitionsIntoSets(3)
-            True
-        """
-        fc = self.full_constraints
-        if "weight" in fc:
-            return OrderedMultisetPartitionsIntoSets(fc["weight"], length=size, **self.constraints)
-        elif "alphabet" in fc:
-            return OrderedMultisetPartitionsIntoSets(fc["alphabet"], size, **self.constraints)
-        else:
-            return OrderedMultisetPartitionsIntoSets(size, **self.constraints)
 
 ###############
 
@@ -1999,16 +2083,15 @@ class OrderedMultisetPartitionsIntoSets_n(OrderedMultisetPartitionsIntoSets):
                     out.append([a//2, a//2-1, 1])
         return self.element_class(self, map(frozenset, out))
 
-    def random_element(self):
+    def random_element_fast(self):
         """
         Return a random element of ``self``.
 
-        This method generates a random composition and then
-        then creates new blocks after positions that are not ascents.
+        This method does not return elements of ``self`` with uniform probability,
+        but it does cover all elements. The scheme is as follows:
 
-        .. TODO::
-
-            Make sure this generates every element.
+        - produce a random composition `C`;
+        - choose a random partition of `c` into distinct parts for each `c` in `C`.
 
         EXAMPLES::
 
@@ -2016,9 +2099,18 @@ class OrderedMultisetPartitionsIntoSets_n(OrderedMultisetPartitionsIntoSets):
             [{1,2}, {1}, {1}]
             sage: OrderedMultisetPartitionsIntoSets(5).random_element()  # random
             [{2}, {1,2}]
+
+            sage: OMP = OrderedMultisetPartitionsIntoSets(5)
+            sage: d = {}
+            sage: for _ in range(1100):
+            ....:     x = OMP.random_element_fast()
+            ....:     d[x] = d.get(x, 0) + 1
+            sage: d.values()  # random
+            [72, 73, 162, 78, 135, 75, 109, 65, 135, 134, 62]
         """
         C = Compositions(self._n).random_element()
-        co = _break_at_descents(C)
+        co = [IntegerListsLex(c, min_part=1, max_part=c,
+                              min_slope=1).random_element() for c in C]
         return self.element_class(self, map(frozenset, co))
 
     def __iter__(self):
@@ -2186,20 +2278,16 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
         elt.extend(co[i+1:])
         return self.element_class(self, map(frozenset, elt))
 
-    def random_element(self):
+    def random_element_fast(self):
         """
         Return a random element of ``self``.
 
-        This method:
+        This method does not return elements of ``self`` with uniform probability,
+        but it does cover all elements. The scheme is as follows:
 
-        - generates a random permutation of the multiset, then
-        - creates new blocks after positions that are not ascents to
-          build ``fat``, then
-        - takes a random element of ``fat.finer()``.
-
-        .. TODO::
-
-            Make sure this generates every element.
+        - produce a random permutation `p` of the multiset;
+        - create blocks of an OMP `fat` by breaking `p` after non-ascents;
+        - take a random element of ``fat.finer()``.
 
         EXAMPLES::
 
@@ -2207,6 +2295,14 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
             [{1}, {1,3}]
             sage: OrderedMultisetPartitionsIntoSets([1,1,3]).random_element()  # random
             [{3}, {1}, {1}]
+
+            sage: OMP = OrderedMultisetPartitionsIntoSets([1,1,3,3])
+            sage: d = {}
+            sage: for _ in range(1e00):
+            ....:     x = OMP.random_element_fast()
+            ....:     d[x] = d.get(x, 0) + 1
+            sage: d.values()  # random
+            [102, 25, 76, 24, 66, 88, 327, 27, 83, 83, 239, 72, 88]
         """
         if not self._Xtup:
             return self.element_class(self, [])
@@ -2214,7 +2310,7 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
         alpha = Permutations_mset(self._Xtup).random_element()
         co = _break_at_descents(alpha)
         finer = self.element_class(self, map(frozenset,co)).finer()
-        return finer.pop()
+        return FiniteEnumeratedSets()(finer).random_element()
 
     def __iter__(self):
         """
@@ -2249,7 +2345,7 @@ class OrderedMultisetPartitionsIntoSets_X_constraints(OrderedMultisetPartitionsI
             sage: C = OrderedMultisetPartitionsIntoSets([1,1,2,4], length=3)
             sage: TestSuite(C).run()
 
-            sage: C = OrderedMultisetPartitionsIntoSets([1,1,2,4], weight=[3,0,1], max_length=3) # weight ignored
+            sage: C = OrderedMultisetPartitionsIntoSets([1,1,2,4], max_length=3)
             sage: TestSuite(C).run()
         """
         self._X = X
@@ -2275,7 +2371,7 @@ class OrderedMultisetPartitionsIntoSets_X_constraints(OrderedMultisetPartitionsI
 
 ###############
 
-class OrderedMultisetPartitionsIntoSets_A(OrderedMultisetPartitionsIntoSets):
+class OrderedMultisetPartitionsIntoSets_Ad(OrderedMultisetPartitionsIntoSets):
     """
     Class of ordered multiset partitions of specified order `d`
     over a fixed alphabet `A`.
@@ -2318,7 +2414,7 @@ class OrderedMultisetPartitionsIntoSets_A(OrderedMultisetPartitionsIntoSets):
 
     def _an_element_(self):
         """
-        Return a typical element of ``OrderedMultisetPartitionIntoSets_A``.
+        Return a typical element of ``OrderedMultisetPartitionIntoSets_Ad``.
 
         EXAMPLES::
 
@@ -2329,23 +2425,30 @@ class OrderedMultisetPartitionsIntoSets_A(OrderedMultisetPartitionsIntoSets):
         co = [Subsets_sk(self._alphabet, a).an_element() for a in alpha]
         return self.element_class(self, map(frozenset, co))
 
-    def random_element(self):
+    def random_element_fast(self):
         r"""
         Return a random element of ``self``.
 
-        This method:
+        This method does not return elements of ``self`` with uniform probability,
+        but it does cover all elements. The scheme is as follows:
 
-        - generates a random permutation of the multiset, then
-        - creates new blocks after positions that are not ascents
-          to build ``fat``, then
-        - takes a random element of ``fat.finer()``.
+        - produce a random composition `C`;
+        - choose random subsets of ``self._alphabet`` of size `c` for each `c` in `C`.
 
         EXAMPLES::
 
-            sage: OrderedMultisetPartitionsIntoSets([1,4], 3).random_element()  # random
+            sage: OrderedMultisetPartitionsIntoSets([1,4], 3).random_element_fast()  # random
             [{4}, {1,4}]
-            sage: OrderedMultisetPartitionsIntoSets([1,3], 4).random_element()  # random
+            sage: OrderedMultisetPartitionsIntoSets([1,3], 4).random_element_fast()  # random
             [{1,3}, {1}, {3}]
+
+            sage: OMP = OrderedMultisetPartitionsIntoSets([2,3,4], 2)
+            sage: d = {}
+            sage: for _ in range(1200):
+            ....:     x = OMP.random_element_fast()
+            ....:     d[x] = d.get(x, 0) + 1
+            sage: d.values()  # random
+            [192, 68, 73, 61, 69, 60, 77, 204, 210, 66, 53, 67]
         """
         if not self._alphabet:
             return self.element_class(self, [])
@@ -2399,14 +2502,14 @@ class OrderedMultisetPartitionsIntoSets_A(OrderedMultisetPartitionsIntoSets):
                 deg += prod(binomial(len(self._alphabet), a) for a in alpha)
         return ZZ(deg)
 
-class OrderedMultisetPartitionsIntoSets_A_constraints(OrderedMultisetPartitionsIntoSets):
+class OrderedMultisetPartitionsIntoSets_Ad_constraints(OrderedMultisetPartitionsIntoSets):
     """
     Class of ordered multiset partitions of specified order `d`
     over a fixed alphabet `A` satisfying constraints.
     """
     def __init__(self, A, d, **constraints):
         """
-        Mimic class ``OrderedMultisetPartitionsIntoSets_A`` to initialize.
+        Mimic class ``OrderedMultisetPartitionsIntoSets_Ad`` to initialize.
 
         EXAMPLES::
 
@@ -3006,9 +3109,9 @@ def _to_minimaj_blocks(T):
         sage: from sage.combinat.multiset_partition_ordered import _to_minimaj_blocks
         sage: co = OrderedMultisetPartitionsIntoSets(14).an_element(); co
         [{2,3}, {2,3}, {4}]
-        sage: co.to_tableau()
+        sage: co.to_tableaux_words()
         [[3, 2], [], [3, 2, 4]]
-        sage: _to_minimaj_blocks(co.to_tableau()) == co.minimaj_blocks()
+        sage: _to_minimaj_blocks(co.to_tableaux_words()) == co.minimaj_blocks()
         True
     """
     mu = [(i,) for i in T[-1]]
@@ -3094,7 +3197,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         self._OMPs = OrderedMultisetPartitionsIntoSets(n, ell, length=k)
         self.module_generators = []
         for co in self._OMPs:
-            t = co.to_tableau()
+            t = co.to_tableaux_words()
             word = T(*[B(a) for a in _concatenate(t)])
             blocks = [len(h) for h in t]
             breaks = tuple([0]+running_total(blocks))
@@ -3131,7 +3234,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             ...
             EmptySetError
         """
-        t = self._OMPs.an_element().to_tableau()
+        t = self._OMPs.an_element().to_tableaux_words()
         breaks = tuple([0]+running_total([len(h) for h in t]))
         B,T = self._BT
         return self.element_class(self, (T(*[B(a) for a in _concatenate(t)]), breaks))
@@ -3159,7 +3262,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         #   + all letters smaller or equal to ``self._n``.
         x = list(x)
         if x in self:
-            t = self._OMPs(x).to_tableau()
+            t = self._OMPs(x).to_tableaux_words()
             breaks = tuple([0]+running_total([len(h) for h in t]))
             B,T = self._BT
             return self.element_class(self, (T(*[B(a) for a in _concatenate(t)]), breaks))
@@ -3205,7 +3308,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             sage: B = crystals.Minimaj(3,6,3)
             sage: b = B.an_element(); b
             ((3, 1, 2), (2, 1), (1,))
-            sage: t = b.to_tableau(); t
+            sage: t = b.to_tableaux_words(); t
             [[1], [2, 1], [], [3, 2, 1]]
             sage: B.from_tableau(t)
             ((3, 1, 2), (2, 1), (1,))
@@ -3215,9 +3318,9 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         TESTS::
 
             sage: B = crystals.Minimaj(3,6,3)
-            sage: all(mu == B.from_tableau(mu.to_tableau()) for mu in B)
+            sage: all(mu == B.from_tableau(mu.to_tableaux_words()) for mu in B)
             True
-            sage: t = B.an_element().to_tableau()
+            sage: t = B.an_element().to_tableaux_words()
             sage: B1 = crystals.Minimaj(3,6,2)
             sage: B1.from_tableau(t)
             Traceback (most recent call last):
@@ -3319,9 +3422,9 @@ class MinimajCrystal(UniqueRepresentation, Parent):
                 sage: b._minimaj_blocks_from_word_pair()
                 ((2, 3, 1), (1,), (1,))
             """
-            return _to_minimaj_blocks(self.to_tableau())
+            return _to_minimaj_blocks(self.to_tableaux_words())
 
-        def to_tableau(self):
+        def to_tableaux_words(self):
             r"""
             Return the image of the ordered multiset partition ``self`` under
             the minimaj bijection `\varphi` of [BCHOPSY2017]_.
@@ -3331,12 +3434,12 @@ class MinimajCrystal(UniqueRepresentation, Parent):
                 sage: B = crystals.Minimaj(4,5,3)
                 sage: b = B.an_element(); b
                 ((2, 3, 1), (1,), (1,))
-                sage: b.to_tableau()
+                sage: b.to_tableaux_words()
                 [[1], [3], [2, 1, 1]]
 
                 sage: b = B([[1,3,4], [3], [3]]); b
                 ((4, 1, 3), (3,), (3,))
-                sage: b.to_tableau()
+                sage: b.to_tableaux_words()
                 [[3, 1], [], [4, 3, 3]]
             """
             w, breaks = self.value

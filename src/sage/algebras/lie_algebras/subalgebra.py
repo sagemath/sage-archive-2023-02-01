@@ -16,7 +16,7 @@ AUTHORS:
 #                 https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrapper
+from sage.algebras.lie_algebras.lie_algebra_element import LieSubalgebraElementWrapper
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
@@ -737,7 +737,8 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
 
     def reduce(self, X):
         r"""
-        Reduce an element of the ambient Lie algebra modulo ``self``.
+        Reduce an element of the ambient Lie algebra modulo the
+        ideal ``self``.
 
         INPUT:
 
@@ -799,105 +800,6 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
 
         return X
 
-    class Element(LieAlgebraElementWrapper):
-        r"""
-        Wrap an element of the ambient Lie algebra as an element.
-        """
+    class Element(LieSubalgebraElementWrapper):
+        pass
 
-        def __getitem__(self, i):
-            r"""
-            Return the coefficient of ``self`` indexed by ``i``.
-
-            EXAMPLES::
-
-                sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z': 1}})
-                sage: S = L.subalgebra([X, Y])
-                sage: el = S(2*Y + 9*Z)
-                sage: el[1]
-                2
-                sage: el[2]
-                9
-            """
-            try:
-                return self.monomial_coefficients()[i]
-            except KeyError:
-                return self.parent().base_ring().zero()
-
-        def _bracket_(self, x):
-            """
-            Return the Lie bracket ``[self, x]``.
-
-            Assumes ``x`` and ``self`` have the same parent.
-
-            INPUT:
-
-            - ``x`` -- an element of the same Lie subalgebra as ``self``
-
-            EXAMPLES::
-
-                sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z': 1}})
-                sage: S = L.subalgebra([X, Y])
-                sage: S(X)._bracket_(S(Y))
-                Z
-            """
-            P = self.parent()
-            self_lift = self.value
-            x_lift = x.value
-            return P.retract(self_lift._bracket_(x_lift))
-
-        def to_vector(self):
-            r"""
-            Return the vector in ``g.module()`` corresponding to the
-            element ``self`` of ``g`` (where ``g`` is the parent of ``self``).
-
-            EXAMPLES::
-
-                sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z': 3}})
-                sage: S = L.subalgebra([X, Y])
-                sage: S.basis()
-                Family (X, Y, 3*Z)
-                sage: S(2*Y + 9*Z).to_vector()
-                (0, 2, 9)
-                sage: S2 = L.subalgebra([Y, Z])
-                sage: S2.basis()
-                Family (Y, Z)
-                sage: S2(2*Y + 9*Z).to_vector()
-                (0, 2, 9)
-
-            TESTS::
-
-                sage: L.<X,Y> = LieAlgebra(ZZ, abelian=True)
-                sage: S = L.subalgebra(X)
-                sage: S(X).to_vector() in S.module()
-                True
-                sage: S(X).to_vector().parent() is S.module()
-                True
-            """
-            return self.parent().module()(self.value.to_vector())
-
-        def monomial_coefficients(self, copy=True):
-            r"""
-            Return a dictionary whose keys are indices of basis elements
-            in the support of ``self`` and whose values are the
-            corresponding coefficients.
-
-            INPUT:
-
-            - ``copy`` -- (default: ``True``) if ``self`` is internally
-              represented by a dictionary ``d``, then make a copy of ``d``;
-              if ``False``, then this can cause undesired behavior by
-              mutating ``d``
-
-            EXAMPLES::
-
-                sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z': 3}})
-                sage: S = L.subalgebra([X, Y])
-                sage: S(2*Y + 9*Z).monomial_coefficients()
-                {1: 2, 2: 3}
-                sage: S2 = L.subalgebra([Y, Z])
-                sage: S2(2*Y + 9*Z).monomial_coefficients()
-                {0: 2, 1: 9}
-            """
-            sm = self.parent().module()
-            v = sm.coordinate_vector(self.to_vector())
-            return {k: v[k] for k in range(len(v)) if not v[k].is_zero()}

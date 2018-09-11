@@ -12,6 +12,13 @@
 #
 #*****************************************************************************
 
+r"""Compute Hilbert series of monomial ideals
+
+This implementation was provided at :trac:`26243` and is supposed to be a way
+out when Singular fails with an int overflow, which will regularly be the case
+in any example with more than 34 variables.
+"""
+
 from sage.all import Integer, ZZ, QQ, PolynomialRing
 from sage.stats.basic_stats import median
 from sage.rings.polynomial.polydict cimport ETuple
@@ -328,6 +335,11 @@ cpdef HilbertBaseCase(dict D, tuple w):
 cdef make_children(dict D, tuple w):
     """
     Create child nodes in ``D`` that allow to compute the first Hilbert series of ``D['Id']``
+
+    Basically, the first Hilbert series of ``D['Id']`` will be
+    ``D['LMult']`` times the first Hilbert series of ``D['Left']['Id']``,
+    possibly plus ``D['RMult']`` times the first Hilbet series of ``D['Right']['Id']``
+    if ``D['Right']`` is not None.
     """
     cdef list Id = D['Id']
     cdef size_t j,m
@@ -427,8 +439,7 @@ def first_hilbert_series(I, grading=None, return_grading=False):
 
     INPUT:
 
-    ``I``: an ideal or its name in singular, weighted homogeneous with respect
-           to the degree of the ring variables.
+    ``I``: a monomial ideal (possibly defined in singular).
     ``grading`` (optional): A list or tuple of integers used as degree weights
     ``return_grading`` (optional, default False): Whether to return the grading.
 
@@ -444,8 +455,10 @@ def first_hilbert_series(I, grading=None, return_grading=False):
         sage: I = singular.ideal(['x^2','y^2','z^2'])
         sage: first_hilbert_series(I)
         -t^6 + 3*t^4 - 3*t^2 + 1
-        sage: first_hilbert_series(I.name())
-        -t^6 + 3*t^4 - 3*t^2 + 1
+        sage: first_hilbert_series(I,return_grading=True)
+        (-t^6 + 3*t^4 - 3*t^2 + 1, (1, 1, 1))
+        sage: first_hilbert_series(I,grading=(1,2,3))
+        -t^12 + t^10 + t^8 - t^4 - t^2 + 1
 
     """
     cdef dict AN
@@ -523,6 +536,41 @@ def first_hilbert_series(I, grading=None, return_grading=False):
 def hilbert_poincare_series(I, grading=None):
     r"""
     Return the Hilbert Poincaré series of the given monomial ideal.
+
+    INPUT::
+
+    - ``I`` -- a monomial ideal (possibly defined in Singular)
+    - ``grading`` (optional) -- a tuple of degree weights
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.hilbert import hilbert_poincare_series
+        sage: R = PolynomialRing(QQ,'x',9)
+        sage: I = [m.lm() for m in ((matrix(R,3,R.gens())^2).list()*R).groebner_basis()]*R
+        sage: hilbert_poincare_series(I)
+        (t^7 - 3*t^6 + 2*t^5 + 2*t^4 - 2*t^3 + 6*t^2 + 5*t + 1)/(t^4 - 4*t^3 + 6*t^2 - 4*t + 1)
+        sage: hilbert_poincare_series((R*R.gens())^2, grading=range(1,10))
+        t^9 + t^8 + t^7 + t^6 + t^5 + t^4 + t^3 + t^2 + t + 1
+
+    The following example is taken from :trac:`20145`::
+
+        sage: n=4;m=11;P = PolynomialRing(QQ,n*m,"x"); x = P.gens(); M = Matrix(n,x)
+        sage: from sage.rings.polynomial.hilbert import first_hilbert_series
+        sage: I = P.ideal(M.minors(2))
+        sage: J = P*[m.lm() for m in I.groebner_basis()]
+        sage: hilbert_poincare_series(J).numerator()
+        120*t^3 + 135*t^2 + 30*t + 1
+        sage: hilbert_poincare_series(J).denominator().factor()
+        (t - 1)^14
+
+    This example exceeds the current capabilities of Singular::
+
+        sage: J.hilbert_numerator()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: error in Singular function call 'hilb':
+        int overflow in hilb 1
+
     """
     HP,grading = first_hilbert_series(I, grading=grading, return_grading=True)
     # If grading was None, but the ideal lives in Singular, then grading is now

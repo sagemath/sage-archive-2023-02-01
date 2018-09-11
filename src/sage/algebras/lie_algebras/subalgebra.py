@@ -21,8 +21,10 @@ from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.modules.free_module_element import vector
 from sage.sets.family import Family
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -424,6 +426,22 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
         R = self.ambient().base_ring()
         return self.ambient().from_vector(vector(R, reversed(v)))
 
+    @lazy_attribute
+    def _indices(self):
+        r"""
+        Return the set of indices for the basis of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, abelian=True)
+            sage: S = L.subalgebra([x, y])
+            sage: S._indices
+            {0, 1}
+            sage: [S.basis()[k] for k in S._indices]
+            [x, y]
+        """
+        return FiniteEnumeratedSet(self.basis().keys())
+
     @cached_method
     def zero(self):
         r"""
@@ -590,10 +608,8 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
                         for v in B for w in SB]
             sm = m.submodule(sm.basis() + brackets)
 
-        basis = Family(reversed([self.element_class(self, self._from_m(v))
-                                 for v in sm.echelonized_basis()]))
-        self._indices = range(len(basis))
-        return basis
+        return Family(reversed([self.element_class(self, self._from_m(v))
+                                for v in sm.echelonized_basis()]))
 
     def from_vector(self, v):
         r"""

@@ -590,17 +590,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 1 0 0]
                 [0 0 0 0 1]
 
-            TESTS:
-
-            Test passing an extra category to a subalgebra::
+            Passing an extra category to a subalgebra::
 
                 sage: L = LieAlgebra(QQ, 3, step=2)
                 sage: x,y,z = L.homogeneous_component_basis(1)
                 sage: C = LieAlgebras(QQ).FiniteDimensional().WithBasis()
                 sage: C = C.Subobjects().Graded().Stratified()
                 sage: S = L.subalgebra([x, y], category=C)
-                sage: S.basis().list() # required to initialize _indices
-                [X_1, X_2, X_12]
                 sage: S.homogeneous_component_basis(2).list()
                 [X_12]
             """
@@ -628,16 +624,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: I.reduce(p1 + p2 + q1 + q2 + z)
                 2*p1 + 2*q1
 
-            TESTS:
-
-            Test passing an extra category to an ideal::
+            Passing an extra category to an ideal::
 
                 sage: L.<x,y,z> = LieAlgebra(QQ, abelian=True)
                 sage: C = LieAlgebras(QQ).FiniteDimensional().WithBasis()
                 sage: C = C.Subobjects().Graded().Stratified()
                 sage: I = L.ideal([x, y], category=C)
-                sage: I.basis().list() # required to initialize _indices
-                [x, y]
                 sage: I.homogeneous_component_basis(1).list()
                 [x, y]
             """

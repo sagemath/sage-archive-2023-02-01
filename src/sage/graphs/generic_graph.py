@@ -11028,7 +11028,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return self._backend.iterator_edges(vertices, labels)
 
-    def edges_incident(self, vertices=None, labels=True, sort=True):
+    def edges_incident(self, vertices=None, labels=True, sort=False):
         """
         Returns incident edges to some vertices.
 

@@ -2,6 +2,7 @@ from sage.structure.element cimport RingElement
 from sage.structure.element cimport MonoidElement
 from sage.structure.element cimport CommutativeAlgebraElement
 
+from sage.rings.polynomial.polydict cimport PolyDict
 from sage.rings.polynomial.polydict cimport ETuple
 
 
@@ -19,8 +20,8 @@ cdef class TateAlgebraTerm(MonoidElement):
 
 
 cdef class TateAlgebraElement(CommutativeAlgebraElement):
-    cdef _poly
     cdef _prec
+    cdef PolyDict _poly
     cdef list _terms
     cdef bint _is_normalized
 
@@ -28,5 +29,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     cdef TateAlgebraElement _new_c(self)
     cdef list _terms_c(self)
     cpdef valuation(self)
+    cdef _term_mul_c(self, TateAlgebraTerm term)
+    cdef _positive_lshift_c(self, n)
+    cdef _lshift_c(self, n)
+    cpdef monic(self)
+    cdef TateAlgebraElement _mod_c(TateAlgebraElement self, list divisors)
     cdef TateAlgebraElement _Spoly_c(self, TateAlgebraElement other)
 

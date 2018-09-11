@@ -4,9 +4,11 @@ from sage.structure.element cimport CommutativeAlgebraElement
 
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 from sage.structure.element import coerce_binop
 
+from sage.rings.polynomial.polydict cimport PolyDict
 from sage.rings.polynomial.polydict cimport ETuple
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
@@ -165,7 +167,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement xc
         CommutativeAlgebraElement.__init__(self, parent)
         self._prec = Infinity
-        S = parent._polynomial_ring
         if isinstance(x, TateAlgebraElement):
             xc = <TateAlgebraElement>x
             xparent = x.parent()
@@ -177,7 +178,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("Cannot restrict to a bigger domain")
-                self._poly = S(xc._poly)
+                self._poly = xc._poly
                 if xc._prec is not Infinity:
                     self._prec = (xc._prec * ratio).ceil()
             else:
@@ -189,9 +190,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("Cannot restrict to a bigger domain")
-                self._poly = x.coefficient() * S.monomial(*x.exponent())
+                self._poly = PolyDict({(<TateAlgebraTerm>x)._exponent: (<TateAlgebraTerm>x)._coeff})
         else:
-            self._poly = S(x)
+            poly = parent._polynomial_ring(x)
+            self._poly = PolyDict(x.dict())
         if prec is not None:
             self._prec = min(self._prec, prec)
         self._normalize()
@@ -206,13 +208,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     cdef _normalize(self):
         self._is_normalized = True
         if self._prec is Infinity: return
-        cdef TateAlgebraTerm t
-        cdef dict coeffs = self._poly.dict()
         cdef int v
-        for (e,c) in coeffs.iteritems():
+        for (e,c) in self._poly.__repn.iteritems():
             v = (<ETuple>self._parent._log_radii).dotprod(<ETuple>e)
-            coeffs[e] = coeffs[e].add_bigoh((self._prec - v).ceil())
-        self._poly = self._parent._polynomial_ring(coeffs)
+            self._poly.__repn[e] = self._poly.__repn[e].add_bigoh((self._prec - v).ceil())
 
     def _repr_(self):
         r"""
@@ -231,8 +230,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: A(x+2*x^2+x^3,prec=5)
             (...00001)*x^3 + (...00001)*x + (...00010)*x^2 + O(2^5)
 
-        """
-        
+        """        
         base = self._parent.base_ring()
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
@@ -255,10 +253,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         For series which are not polynomials, the output corresponds to ???
         """
         # TODO: should we make sure that the result is reduced in some cases?
-        return self._poly
+        return self._parent._polynomial_ring(self._poly)
 
     cpdef _add_(self, other):
-+        r"""
+        r"""
         Add a Tate series to the Tate series
 
         The precision of the output is adjusted to the minimum of both precisions.
@@ -284,11 +282,14 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             5
             sage: h.precision_absolute()
             5
-
-
         """
         # TODO: g = x + 2*y^2 + O(2^5) fails coercing O(2^5) into R, is that normal? If we force conversion with R(O(2^5)) the result is a Tate series with precision infinity... it's understandable but confusing, no? 
-        return self._parent(self._poly + other.polynomial(), min(self._prec, other.precision_absolute()))
+        cdef TateAlgebraElement ans = self._new_c()
+        ans._poly = self._poly + (<TateAlgebraElement>other)._poly
+        ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
+        if self._prec != (<TateAlgebraElement>other)._prec:
+            ans._normalize()
+        return ans
 
     cpdef _neg_(self):
         r"""
@@ -304,8 +305,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: -f # indirect doctest
             (...1111111111)*x^3 + (...1111111111)*x + (...11111111110)*x^2
-
-
         """
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = -self._poly
@@ -340,7 +339,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: h.precision_absolute()
             5
         """
-    
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly - (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
@@ -375,8 +373,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             5
             sage: h.precision_absolute()
             6
-
-
         """
         cdef TateAlgebraElement ans = self._new_c()
         a = self._prec + (<TateAlgebraElement>other).valuation()
@@ -403,11 +399,28 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         """
         cdef TateAlgebraElement ans = self._new_c()
-        ans._poly = self._poly * right
+        ans._poly = self._poly.scalar_lmult(right)
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
         return ans
 
-    def _lshift(self, n):
+    cdef _term_mul_c(self, TateAlgebraTerm term):
+        cdef TateAlgebraElement ans = self._new_c()
+        ans._poly = self._poly.term_lmult(term._exponent, term._coeff)
+        ans._prec = self._prec + term._valuation_c()
+        return ans
+
+    cdef _positive_lshift_c(self, n):
+        cdef dict coeffs = { }
+        cdef ETuple e
+        cdef Element c
+        cdef TateAlgebraElement ans = self._new_c()
+        for (e,c) in self._poly.__repn.iteritems():
+            coeffs[e] = c << n
+        ans._poly = PolyDict(coeffs, self._poly.__zero)
+        ans._prec = self._prec + n
+        return ans
+
+    cdef _lshift_c(self, n):
         r"""
         Multiply the series by the `n`'th power of the uniformizer `\pi`.
 
@@ -429,19 +442,25 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f << -1 # indirect doctest
             (...0000000001)*x^2
         """
+        cdef dict coeffs = { }
+        cdef ETuple e
+        cdef Element c
+        cdef TateAlgebraElement ans = self._new_c()
         parent = self._parent
         base = parent.base_ring()
         if base.is_field():
-            poly = self._poly.map_coefficients(lambda c: c << n)
-            return parent(poly, self._prec + n)
+            for (e,c) in self._poly.__repn.iteritems():
+                coeffs[e] = c << n
+            ans._prec = self._prec + n
         else:
-            coeffs = { }
             field = base.fraction_field()
             ngens = parent.ngens()
-            for exp, c in self._poly.dict().iteritems():
-                minval = ZZ(sum([ exp[i] * parent.log_radii()[i] for i in range(parent.ngens()) ])).ceil()
-                coeffs[exp] = field(base(c) >> (minval-n)) << minval
-            return parent(coeffs, self._prec + n)
+            for (e,c) in self._poly.__repn.iteritems():
+                minval = ZZ(e.dotprod(<ETuple>parent._log_radii)).ceil()
+                coeffs[e] = field(base(c) >> (minval-n)) << minval
+            ans._prec = max(ZZ(0), self._prec - n)
+        ans._poly = PolyDict(coeffs, self._poly.__zero)
+        return ans
 
     def __lshift__(self, n):
         r"""
@@ -465,8 +484,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f << -1 # indirect doctest
             (...0000000001)*x^2
         """
-        
-        return self._lshift(n)
+        return (<TateAlgebraElement>self)._lshift_c(n)
 
     def __rshift__(self, n):
         r"""
@@ -490,7 +508,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f >> 1 # indirect doctest
             (...0000000001)*x^2
         """
-        return self._lshift(-n)
+        return (<TateAlgebraElement>self)._lshift_c(-n)
 
     def is_zero(self, prec=None):
         r"""
@@ -519,6 +537,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if prec is None:
             prec = self._prec
         return self.valuation() >= prec
+
+    def __eq__(self, other):
+        return (self - other).is_zero()
 
     def inverse_of_unit(self):
         r"""
@@ -649,7 +670,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraTerm oneterm = self._parent._oneterm
         cdef TateAlgebraTerm term
         self._terms = []
-        for (e,c) in self._poly.dict().iteritems():
+        for (e,c) in self._poly.__repn.iteritems():
             term = oneterm._new_c()
             term._coeff = c
             term._exponent = e
@@ -760,11 +781,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         else:
             return self.base_ring()(0)
 
-    def monic(self):
+    cpdef monic(self):
+        cdef TateAlgebraElement ans = self._new_c()
         c = self.leading_coefficient()
-        poly = ~c * self._poly
-        return self._parent(poly, self._prec - c.valuation())
-        
+        ans._poly = self._poly.scalar_lmult(~c)
+        ans._prec = self._prec - c.valuation()
+        return ans
+
     def weierstrass_degree(self):
         v = self.valuation()
         return self.residue(v+1).degree()
@@ -789,35 +812,46 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             Rn = self.base_ring().change(field=False, type="fixed-mod", prec=n)
         return self._poly.change_ring(Rn)
 
-    def quo_rem(self, divisors, integral=False):
-        parent = self._parent
-        nvars = parent.ngens()
-        if not isinstance(divisors, (list, tuple)):
-            divisors = [ divisors ]
-        ltds = [ d.leading_term() for d in divisors ]
-        cap = parent.precision_cap()
-        f = self.add_bigoh(cap)
-        q = [ parent(0, cap - d.valuation()) for d in divisors ]
-        r = parent(0, cap)
-        while not f.is_zero(cap):
-            lt = f.leading_term()
+    cdef TateAlgebraElement _mod_c(TateAlgebraElement self, list divisors):
+        cdef dict coeffs = { }
+        cdef TateAlgebraElement f = self._new_c()
+        cdef TateAlgebraTerm lt
+        cdef list ltds = [ (<TateAlgebraElement>d)._terms_c()[0] for d in divisors ]
+        cdef list terms = self._terms_c()
+        cdef int index = 0
+
+        f._poly = PolyDict(self._poly.__repn)
+        f._prec = self._prec
+        while len(terms) > index:
+            lt = terms[index]
+            if lt._valuation_c() >= f._prec:
+                break
             for i in range(len(divisors)):
-                if lt.is_divisible_by(ltds[i], integral=integral):
-                    factor = lt // ltds[i]
-                    f -= factor * divisors[i]
-                    q[i] += factor
+                if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=True):
+                    factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
+                    f = f - (<TateAlgebraElement>divisors[i])._term_mul_c(factor)
+                    terms = f._terms_c()
+                    index = 0
                     break
             else:
-                f -= lt; r += lt
-        return q, f+r
+                if coeffs.has_key(lt._exponent):
+                    coeffs[lt._exponent] += lt._coeff
+                else:
+                    coeffs[lt._exponent] = lt._coeff
+                del f._poly.__repn[lt._exponent]
+                index += 1
+        f._poly += PolyDict(coeffs, self._poly.__zero)
+        f._terms = None
+        return f
 
     def __mod__(self, divisors):
         if not isinstance(divisors, (list, tuple)):
             divisors = [ divisors ]
-        _, r = self.quo_rem(divisors)
+        r = (<TateAlgebraElement>self)._mod_c(divisors)
         return r
 
     def __floordiv__(self, divisors):
+        raise NotImplementedError
         q, _ = self.quo_rem(divisors)
         if not isinstance(divisors, (list, tuple)):
             return q[0]
@@ -840,4 +874,4 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraTerm st = self._terms_c()[0]
         cdef TateAlgebraTerm ot = other._terms_c()[0]
         cdef TateAlgebraTerm t = st._lcm_c(ot)
-        return (t._floordiv_c(st))*self - (t._floordiv_c(ot))*other
+        return self._term_mul_c(t._floordiv_c(st)) - other._term_mul_c(t._floordiv_c(ot))

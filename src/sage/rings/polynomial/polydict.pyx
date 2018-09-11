@@ -746,6 +746,15 @@ cdef class PolyDict:
                 v[e] = s*c
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
+    def term_lmult(self, exponent, s):
+        v = {}
+        # if s is 0, then all the products will be zero
+        if not s == self.__zero:
+            for e, c in self.__repn.iteritems():
+                v[e.eadd(exponent)] = s*c
+        return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
+
+
     def __sub__(PolyDict self, PolyDict  other):
         """
         Subtract two PolyDict's.

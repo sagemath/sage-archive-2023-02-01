@@ -158,12 +158,13 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         self._ngens = len(names)
         self.element_class = TateAlgebraElement
         CommutativeAlgebra.__init__(self, base, names, category=CommutativeAlgebras(base))
+        # TODO: allow log_radii in QQ (but ETuple does not support this)
         if not isinstance(log_radii, (list, tuple)):
-            log_radii = tuple([QQ(log_radii)] * self._ngens)
+            log_radii = tuple([ZZ(log_radii)] * self._ngens)
         elif len(log_radii) != self._ngens:
             raise ValueError("The number of radii does not match the number of variables")
         else:
-            log_radii = tuple([ QQ(r) for r in log_radii ])
+            log_radii = tuple([ ZZ(r) for r in log_radii ])
         self._log_radii = ETuple(log_radii)
         field = base.fraction_field()
         self._polynomial_ring = PolynomialRing(field, names, order=order)
@@ -183,14 +184,14 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         self._parent_terms = TateTermMonoid(self._base, self._names, log_radii, self._order)
         self._oneterm = self._parent_terms(field(1), ETuple([0]*self._ngens))
 
-    # def _an_element_(self):
-    #     r"""
-    #     Return an element of the Tate series algebra
+    def _an_element_(self):
+        r"""
+        Return an element of the Tate series algebra
 
-    #     EXAMPLES::
+        EXAMPLES::
          
-    #     """
-    #     return self.element_class(0)
+        """
+        return self.element_class(0)
 
     def _coerce_map_from_(self, R):
         r"""

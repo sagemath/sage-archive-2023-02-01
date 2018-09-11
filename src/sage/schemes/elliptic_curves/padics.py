@@ -61,7 +61,7 @@ def __check_padic_hypotheses(self, p):
     """
     p = rings.Integer(p)
     if not p.is_prime():
-        raise ValueError("p = (%s) must be prime"%p)
+        raise ValueError("p = (%s) must be prime" % p)
     if p == 2:
         raise ValueError("p must be odd")
     if self.conductor() % p == 0 or self.ap(p) % p == 0:
@@ -76,8 +76,8 @@ def _normalize_padic_lseries(self, p, normalize, implementation, precision):
     TESTS::
 
         sage: from sage.schemes.elliptic_curves.padics import _normalize_padic_lseries
-        sage: u = _normalize_padic_lseries(None, 5, None, None, 'sage', 10)
-        sage: v = _normalize_padic_lseries(None, 5, "L_ratio", None, 'sage', 10)
+        sage: u = _normalize_padic_lseries(None, 5, None, 'sage', 10)
+        sage: v = _normalize_padic_lseries(None, 5, "L_ratio", 'sage', 10)
         sage: u == v
         True
      """

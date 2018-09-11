@@ -535,7 +535,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
     def __getitem__(self, x):
         """
-        If `x` is a pair `(a, b)`, return the Lie bracket `[a, b]`.
+        If ``x`` is a pair `(a, b)`, return the Lie bracket `[a, b]
+        (including if `a` or `b` are Lie (sub)algebras, in which case the
+        corresponding ideal is constructed).
         Otherwise try to return the `x`-th element of ``self``.
 
         EXAMPLES::
@@ -543,8 +545,33 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             sage: L.<x,y> = LieAlgebra(QQ, representation="polynomial")
             sage: L[x, [y, x]]
             -x^2*y + 2*x*y*x - y*x^2
+
+            sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
+            sage: L[L, L]
+            Ideal () of Abelian Lie algebra on 2 generators (x, y) over Rational Field
+
+            sage: L = lie_algebras.Heisenberg(QQ, 1)
+            sage: Z = L[L, L]; Z
+            Ideal (z) of Heisenberg algebra of rank 1 over Rational Field
+            sage: L[Z, L]
+            Ideal () of Heisenberg algebra of rank 1 over Rational Field
+
+            sage: p,q,z = L.basis(); (p, q, z)
+            (p1, q1, z)
+            sage: L[p, L]
+            Ideal (p1) of Heisenberg algebra of rank 1 over Rational Field
+            sage: L[L, p+q]
+            Ideal (p1 + q1) of Heisenberg algebra of rank 1 over Rational Field
         """
         if isinstance(x, tuple) and len(x) == 2:
+            # Check if we need to construct an ideal
+            if x[0] in LieAlgebras:
+                if x[1] in LieAlgebras:
+                    return x[0].product_space(x[1])
+                return x[0].ideal(x[1])
+            elif x[1] in LieAlgebras:
+                return x[1].ideal(x[0])
+            # Otherwise it is the bracket of two elements
             return self(x[0])._bracket_(self(x[1]))
         return super(LieAlgebra, self).__getitem__(x)
 

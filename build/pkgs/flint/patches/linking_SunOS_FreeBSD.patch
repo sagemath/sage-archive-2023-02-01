@@ -19,7 +19,7 @@ index 424ab0a..959a650 100755
  # sometimes LDCONFIG is not to be found in the path. Look at some common places.
  case "$OS" in
 -   MINGW*|CYGWIN*|Darwin)
-+   MINGW*|CYGWIN*|Darwin|FreeBSD|SunOS)
++   MINGW*|CYGWIN*|Darwin|FreeBSD)
        LDCONFIG="true";;
     *)
        if [ -z "$LDCONFIG" ]; then

@@ -2572,7 +2572,7 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^10 - x - 1)
-            sage: long(a)
+            sage: long(a)  # py2
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce nonconstant polynomial to long

@@ -1004,28 +1004,173 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         r"""
         Return the Weierstrass degree of the Tate series
 
-        The Weierstrass degree is the degree of the polynomial defined by the
+        The Weierstrass degree is the total degree of the polynomial defined by the
         terms with least valuation in the series.
 
         EXAMPLES::
 
-        
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x*y + 2*x^4 + y; f
+            (...0000000001)*x*y + (...0000000001)*y + (...00000000010)*x^4
+            sage: f.valuation()
+            0
+            sage: f.residue(1)
+            x*y + y
+            sage: f.weierstrass_degree()
+            2
         
         """
         v = self.valuation()
         return self.residue(v+1).degree()
 
     def degree(self):
+        r"""
+        Return the Weierstrass degree of the Tate series
+
+        The Weierstrass degree is the total degree of the polynomial defined by
+        the terms with least valuation in the series.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x*y + 2*x^4 + y; f
+            (...0000000001)*x*y + (...0000000001)*y + (...00000000010)*x^4
+            sage: f.valuation()
+            0
+            sage: f.residue(1)
+            x*y + y
+            sage: f.degree()
+            2
+        
+        """
+        
         return self.weierstrass_degree()
 
     def weierstrass_degrees(self):
+        r"""
+        Return the Weierstrass degrees of the Tate series
+
+        The Weierstrass degrees are the partial degrees of the polynomial
+        defined by the terms with least valuation in the series.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x^2 + y^2 + 2*x^3 + y; f
+            (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
+            sage: f.valuation()
+            0
+            sage: f.residue(1)
+            x^2 + y^2 + y
+            sage: f.weierstrass_degrees()
+            (2, 2)
+        
+        """
         v = self.valuation()
         return self.residue(v+1).degrees()
 
     def degrees(self):
+        r"""
+        Return the Weierstrass degrees of the Tate series
+
+        The Weierstrass degrees are the partial degrees of the polynomial
+        defined by the terms with least valuation in the series.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x^2 + y^2 + 2*x^3 + y; f
+            (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
+            sage: f.valuation()
+            0
+            sage: f.residue(1)
+            x^2 + y^2 + y
+            sage: f.weierstrass_degrees()
+            (2, 2)
+            sage: f.degrees()
+            (2, 2)
+        
+        """
+
         return self.weierstrass_degrees()
 
     def residue(self, n=1):
+        r"""
+        Return the residue of the Tate series in some quotient of the base ring
+
+        If `\pi` is the uniformizer of the base ring `R`, the `n`'th residue of
+        a series `f` is the image of `f` in `A / \pi^n A`.
+
+        If `n=1`, the output is a polynomial with coefficients in the residue
+        field. Otherwise, it is a polynomial with coefficients in the ring `R /
+        \pi^n R`.
+
+        Note that by definition of Tate series, the output is always a polynomial.
+
+        INPUT:
+
+        - ``n`` - (default: 1) the power of the uniformizer defining the modulo
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x^2 + y^2 + 2*x^3 + y; f
+            (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
+            sage: f.valuation()
+            0
+            sage: f.residue()
+            x^2 + y^2 + y
+            sage: f.residue().parent()
+            Multivariate Polynomial Ring in x, y over Ring of integers modulo 2
+            sage: f.residue(2)
+            2*x^3 + x^2 + y^2 + y
+            sage: f.residue(2).parent()
+            Multivariate Polynomial Ring in x, y over Ring of integers modulo 4
+
+
+        The residue can only be computed for series with non-negative valuation.
+        
+            sage: A.<x,y> = TateAlgebra(R.fraction_field()); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: f = x^2 + y^2 + 2*x^3 + y; f
+            (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
+            sage: f.residue()
+            x^2 + y^2 + y
+            sage: g = f >> 2; g
+            (...00000000.01)*x^2 + (...00000000.01)*y^2 + (...00000000.01)*y + (...000000000.1)*x^3
+            sage: g.residue()
+            Traceback (most recent call last)
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue.
+
+        The residue is not implemented for series with convergence radius different from 1.
+
+            sage: A.<x,y> = TateAlgebra(R, log_radii=(2,-1)); A
+            Tate Algebra in x (val >= -2), y (val >= 1) over 2-adic Ring with capped relative precision 10
+            sage: f = x^2 + y^2 + 2*x^3 + y; f
+            (...00000000010000)*x^2 + (...00000000.01)*y^2 + (...000000000.1)*y + (...00000000010000000)*x^3
+            sage: f.residue()
+            Traceback (most recent call last)
+            ...
+            NotImplementedError: Residues are only implemented for radius 1
+
+        """
+        
         for r in self._parent.log_radii():
             if r != 0:
                 raise NotImplementedError("Residues are only implemented for radius 1")
@@ -1037,6 +1182,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return poly.change_ring(Rn)
 
     cdef TateAlgebraElement _mod_c(TateAlgebraElement self, list divisors):
+        # TODO: ???
+    
         cdef dict coeffs = { }
         cdef TateAlgebraElement f = self._new_c()
         cdef TateAlgebraTerm lt

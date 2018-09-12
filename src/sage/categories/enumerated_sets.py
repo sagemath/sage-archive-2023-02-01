@@ -814,7 +814,7 @@ class EnumeratedSets(CategoryWithAxiom):
             TESTS::
 
                 sage: super(Parent, C)._an_element_
-                Cached version of <function _an_element_from_iterator at ...>
+                Cached version of <function ..._an_element_from_iterator at ...>
             """
             it = iter(self)
             try:
@@ -887,10 +887,10 @@ class EnumeratedSets(CategoryWithAxiom):
                 Image of Symmetric group of order 3! as a permutation group by *.reduced_word()
                 sage: R.cardinality()
                 6
-                sage: R.list()
-                [[], [1], [2, 1], [1, 2], [2], [1, 2, 1]]
-                sage: [ r for r in R]
-                [[], [1], [2, 1], [1, 2], [2], [1, 2, 1]]
+                sage: sorted(R.list())
+                [[], [1], [1, 2], [1, 2, 1], [2], [2, 1]]
+                sage: sorted([ r for r in R])
+                [[], [1], [1, 2], [1, 2, 1], [2], [2, 1]]
 
             .. warning::
 
@@ -898,10 +898,10 @@ class EnumeratedSets(CategoryWithAxiom):
                 repeated elements::
 
                     sage: P = SymmetricGroup(3)
-                    sage: P.list()
-                    [(), (1,2), (1,2,3), (1,3,2), (2,3), (1,3)]
-                    sage: P.map(attrcall('length')).list()
-                    [0, 1, 2, 2, 1, 3]
+                    sage: sorted(P.list())
+                    [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+                    sage: sorted(P.map(attrcall('length')).list())
+                    [0, 1, 1, 2, 2, 3]
 
             .. warning::
 
@@ -1018,9 +1018,10 @@ class EnumeratedSets(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: F = FiniteSemigroups().example(('a','b','c'))
-                sage: L = list(F); L
-                ['a', 'b', 'c', 'ac', 'ab', 'ba', 'bc', 'cb', 'ca',
-                 'acb', 'abc', 'bca', 'cba', 'bac', 'cab']
+                sage: L = list(F)
+                sage: sorted(L)
+                ['a', 'ab', 'abc', 'ac', 'acb', 'b', 'ba', 'bac',
+                 'bc', 'bca', 'c', 'ca', 'cab', 'cb', 'cba']
                 sage: L[7].rank()
                 7
             """

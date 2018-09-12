@@ -36,8 +36,8 @@ fi
 
 
 # Note: We need to take care to specify the full path to Sage's Python here
-# since when we run it through sage-flock, $SAGE_LOCAL/bin may be removed from
-# the $PATH; https://trac.sagemath.org/ticket/18438
+# to emphasize that this command hould use it, and not the system Python;
+# see https://trac.sagemath.org/ticket/18438
 if [ "$SAGE_PYTHON3" = yes ]; then
     PYTHON="$SAGE_LOCAL/bin/python3"
     PIP=pip3

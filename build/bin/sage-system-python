@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Run the system python.
 #
@@ -8,6 +8,6 @@
 #
 # See https://trac.sagemath.org/ticket/18438
 
-export PATH="$SAGE_ORIG_PATH"
+PYTHON="$(PATH="$SAGE_ORIG_PATH" command -v python)"
 
-exec python $@
+exec "$PYTHON" "$@"

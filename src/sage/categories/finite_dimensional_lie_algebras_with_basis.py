@@ -330,7 +330,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: L.structure_coefficients()
                 Finite family {}
                 sage: L.structure_coefficients(True)
-                Finite family {(0, 1): (0, 0, 0), (1, 2): (0, 0, 0), (0, 2): (0, 0, 0)}
+                Finite family {(0, 1): (0, 0, 0), (0, 2): (0, 0, 0), (1, 2): (0, 0, 0)}
 
             ::
 
@@ -338,15 +338,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S = GroupAlgebra(G, QQ)
                 sage: L = LieAlgebra(associative=S)
                 sage: L.structure_coefficients()
-                Finite family {((1,2), (1,3,2)): (2,3) - (1,3),
-                               ((1,3,2), (1,3)): (2,3) - (1,2),
-                               ((1,2), (1,2,3)): -(2,3) + (1,3),
-                               ((1,2,3), (1,3)): -(2,3) + (1,2),
-                               ((2,3), (1,3)): -(1,2,3) + (1,3,2),
-                               ((1,2), (2,3)): -(1,2,3) + (1,3,2),
-                               ((1,3,2), (2,3)): (1,2) - (1,3),
-                               ((1,2), (1,3)): (1,2,3) - (1,3,2),
-                               ((1,2,3), (2,3)): -(1,2) + (1,3)}
+                Finite family {((2,3), (1,3)): -(1,2,3) + (1,3,2),
+                 ((1,2), (2,3)): -(1,2,3) + (1,3,2),
+                 ((1,2), (1,2,3)): -(2,3) + (1,3),
+                 ((1,2), (1,3,2)): (2,3) - (1,3),
+                 ((1,2), (1,3)): (1,2,3) - (1,3,2),
+                 ((1,2,3), (2,3)): -(1,2) + (1,3),
+                 ((1,2,3), (1,3)): -(2,3) + (1,2),
+                 ((1,3,2), (2,3)): (1,2) - (1,3),
+                 ((1,3,2), (1,3)): (2,3) - (1,2)}
             """
             d = {}
             B = self.basis()

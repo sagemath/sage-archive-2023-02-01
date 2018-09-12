@@ -25,10 +25,21 @@ from sage.rings.polynomial.polydict cimport ETuple
 from sage.interfaces.singular import Singular
 
 from cysignals.memory cimport sig_malloc
+from cpython.list cimport PyList_GET_ITEM
 
 # Global definition
 PR = PolynomialRing(ZZ,'t')
 t = PR('t')
+
+cdef class Node:
+    """A node of a binary tree
+
+    It has slots for data that allow to recursively compute
+    the first Hilbert series of a monomial ideal.
+    """
+    cdef Node Back, Left, Right
+    cdef list Id
+    cdef object LMult, RMult, LeftFHS
 
 ###
 #   cdef functions concerning algebraic properties of monomials
@@ -43,7 +54,7 @@ cdef inline bint divides(ETuple m1, ETuple m2):
         # Trivially m1 cannot divide m2
         return False
     cdef size_t m2nz2 = 2*m2._nonzero
-    for ind1 from 0 <= ind1 < 2*m1._nonzero by 2:
+    for ind1 in range(0, 2*m1._nonzero, 2):
         pos1 = m1._data[ind1]
         exp1 = m1._data[ind1+1]
         # Because of the above trivial test, m2._nonzero>0.
@@ -107,7 +118,7 @@ cdef ETuple divide_by_var(ETuple m1, size_t index):
     cdef size_t i,j
     cdef int exp1
     cdef ETuple result
-    for i from 0 <= i < 2*m1._nonzero by 2:
+    for i in range(0,2*m1._nonzero,2):
         if m1._data[i] == index:
             result = <ETuple>m1._new()
             result._data = <int*>sig_malloc(sizeof(int)*m1._nonzero*2)
@@ -115,17 +126,17 @@ cdef ETuple divide_by_var(ETuple m1, size_t index):
             if exp1>1:
                 # division doesn't change the number of nonzero positions
                 result._nonzero = m1._nonzero
-                for j from 0 <= j < 2*m1._nonzero by 2:
+                for j in range(0, 2*m1._nonzero, 2):
                     result._data[j] = m1._data[j]
                     result._data[j+1] = m1._data[j+1]
                 result._data[i+1] = exp1-1
             else:
                 # var(index) disappears from m1
                 result._nonzero = m1._nonzero-1
-                for j from 0 <= j < i by 2:
+                for j in range(0, i, 2):
                     result._data[j] = m1._data[j]
                     result._data[j+1] = m1._data[j+1]
-                for j from i+2 <= j < 2*m1._nonzero by 2:
+                for j in range(i+2, 2*m1._nonzero, 2):
                     result._data[j-2] = m1._data[j]
                     result._data[j-1] = m1._data[j+1]
             return result
@@ -135,8 +146,8 @@ cpdef inline size_t total_unweighted_degree(ETuple m):
     "Return the sum of the entries"
     cdef size_t degree = 0
     cdef size_t i
-    for i from 0 <= i < 2*m._nonzero by 2:
-        degree += m._data[i+1]
+    for i in range(1,2*m._nonzero,2):
+        degree += m._data[i]
     return degree
 
 cdef size_t quotient_degree(ETuple m1, ETuple m2, tuple w) except 0:
@@ -190,10 +201,10 @@ cdef inline size_t degree(ETuple m, tuple w):
     cdef size_t i
     cdef size_t deg = 0
     if w is None:
-        for i from 0 <= i < 2*m._nonzero by 2:
+        for i in range(0, 2*m._nonzero, 2):
             deg += m._data[i+1]
     else:
-        for i from 0 <= i < 2*m._nonzero by 2:
+        for i in range(0, 2*m._nonzero, 2):
             deg += m._data[i+1]*w[m._data[i]]
     return deg
 
@@ -205,7 +216,7 @@ cdef inline bint indivisible_in_list(ETuple m, list L, size_t i):
     "Is m divisible by any monomial in L[:i]?"
     cdef size_t j
     for j in range(i):
-        if divides(L[j],m):
+        if divides(<ETuple>PyList_GET_ITEM(L,j),m):
             return False
     return True
 
@@ -232,14 +243,15 @@ cdef inline list interred(list L):
         return []
     L.sort(key=total_unweighted_degree)
     cdef size_t i
+    cdef ETuple m
     cdef list result = [L[0]]
     for i in range(1,len(L)):
-        m = L[i]
+        m = <ETuple>PyList_GET_ITEM(L,i)
         if indivisible_in_list(m, L, i):
             result.append(m)
     return result
 
-cdef quotient(list L, ETuple m):
+cdef list quotient(list L, ETuple m):
     "Return the quotient of the ideal represented by L and the monomial represented by m"
     cdef ETuple m_i
     cdef list result = list(L)
@@ -247,7 +259,7 @@ cdef quotient(list L, ETuple m):
         result.append(divide_by_gcd(m_i,m))
     return interred(result)
 
-cdef quotient_by_var(list L, size_t index):
+cdef list quotient_by_var(list L, size_t index):
     "Return the quotient of the ideal represented by L and the variable number ``index``"
     cdef ETuple m_i,m_j
     cdef list result = list(L) # creates a copy
@@ -257,26 +269,21 @@ cdef quotient_by_var(list L, size_t index):
             result.append(m_j)
     return interred(result)
 
-cdef ETuple sum_from_list(list L, size_t l):
-    """Compute the vector sum of the ETuples in L in a balanced way.
-
-    For efficiency, the length of L must be provided as second parameter.
-    """
-    cdef ETuple m1,m2
+cdef ETuple sum_from_list(list L, size_t s, size_t l):
+    "Compute the vector sum of the ETuples in L[s:s+l] in a balanced way."
     if l==1:
-        m1 = L[0]
-        return L[0]
+        return <ETuple>PyList_GET_ITEM(L,s)
     if l==2:
-        m1,m2=L
-        return m1.eadd(m2)
+        return (<ETuple>PyList_GET_ITEM(L,s)).eadd(<ETuple>PyList_GET_ITEM(L,s+1))
     cdef size_t l2 = l//2
-    m1 = sum_from_list(L[:l2], l2)
-    m2 = sum_from_list(L[l2:], l-l2)
+    cdef ETuple m1,m2
+    m1 = sum_from_list(L, s, l2)
+    m2 = sum_from_list(L, s+l2, l-l2)
     return m1.eadd(m2)
 
-cpdef HilbertBaseCase(dict D, tuple w):
+cpdef HilbertBaseCase(Node D, tuple w):
     """
-    Try to compute the first Hilbert series of ``D['Id']``, or return ``NotImplemented``.
+    Try to compute the first Hilbert series of ``D.Id``, or return ``NotImplemented``.
 
     The second parameter is a tuple of integers, the degree weights to be used.
 
@@ -285,36 +292,35 @@ cpdef HilbertBaseCase(dict D, tuple w):
     is returned.
 
     """
-    cdef list Id = D['Id']
     cdef size_t i,j
     cdef int e
     # First, the easiest cases:
-    if len(Id)==0:
+    if not D.Id:
         return PR(1)
-    cdef ETuple m = Id[-1]
+    cdef ETuple m = <ETuple>PyList_GET_ITEM(D.Id,len(D.Id)-1)
     if m._nonzero == 0:
         return PR(0)
 
-    # Second, another reasy case: Id is generated by variables.
-    # Id is sorted ascendingly. Hence, if the last generator is a single
+    # Second, another reasy case: D.Id is generated by variables.
+    # D.Id is sorted ascendingly. Hence, if the last generator is a single
     # variable, then ALL are.
     if m._nonzero==1 and m._data[1]==1:
-        return PR.prod([(1-t**degree(m,w)) for m in Id])
+        return PR.prod([(1-t**degree(m,w)) for m in D.Id])
 
     # Thirdly, we test for proper powers of single variables.
     cdef bint easy = True
-    for i,m in enumerate(Id):
+    for i,m in enumerate(D.Id):
         if m._nonzero > 1: # i.e., the generator contains more than a single var
             easy = False
             break
     if easy:
         # The ideal is generated by some powers of single variables, i.e., it splits.
-        return PR.prod([(1-t**degree(m,w)) for m in Id])
+        return PR.prod([(1-t**degree(m,w)) for m in D.Id])
 
     easy = True
     cdef list v
-    for j in range(i+1,len(Id)):
-        m = Id[j]
+    for j in range(i+1,len(D.Id)):
+        m = <ETuple>PyList_GET_ITEM(D.Id,j)
         if m._nonzero>1: # i.e., another generator contains more than a single var
             easy = False
             break
@@ -323,25 +329,25 @@ cpdef HilbertBaseCase(dict D, tuple w):
         # The ideal only has a single non-simple power, in position i.
         # Since the ideal is interreduced and all other monomials are
         # simple powers, we have the following formula
-        m = Id[i]
+        m = <ETuple>PyList_GET_ITEM(D.Id,i)
         Factor = PR.one()
-        for m2 in Id:
+        for j in range(len(D.Id)):
+            m2 = <ETuple>PyList_GET_ITEM(D.Id,j)
             if m is not m2:
                 Factor *= (1-t**quotient_degree(m2,m,w))
-        return PR.prod([(1-t**degree(m2,w)) for m2 in Id if m2 is not m]) - t**degree(m,w)*Factor
+        return PR.prod([(1-t**degree(m2,w)) for m2 in D.Id if m2 is not m]) - t**degree(m,w)*Factor
     # We are in a truly difficult case and give up for now...
     return NotImplemented
 
-cdef make_children(dict D, tuple w):
+cdef make_children(Node D, tuple w):
     """
-    Create child nodes in ``D`` that allow to compute the first Hilbert series of ``D['Id']``
+    Create child nodes in ``D`` that allow to compute the first Hilbert series of ``D.Id``
 
-    Basically, the first Hilbert series of ``D['Id']`` will be
-    ``D['LMult']`` times the first Hilbert series of ``D['Left']['Id']``,
-    possibly plus ``D['RMult']`` times the first Hilbet series of ``D['Right']['Id']``
-    if ``D['Right']`` is not None.
+    Basically, the first Hilbert series of ``D.Id`` will be
+    ``D.LMult`` times the first Hilbert series of ``D.Left.Id``,
+    possibly plus ``D.RMult`` times the first Hilbet series of ``D.Right.Id``
+    if ``D.Right`` is not None.
     """
-    cdef list Id = D['Id']
     cdef size_t j,m
     cdef int i,ii
     # Determine the variable that appears most often in the monomials.
@@ -349,10 +355,10 @@ cdef make_children(dict D, tuple w):
     # guaranteed to appear in a composed monomial.
     # We will raise it to a reasonably high power that still guarantees that
     # many monomials will be divisible by it.
-    cdef ETuple all_exponents = sum_from_list(Id, len(Id))
+    cdef ETuple all_exponents = sum_from_list(D.Id, 0, len(D.Id))
     m = 0
     cdef list max_exponents = []
-    for i from 0 <= i < 2*all_exponents._nonzero by 2:
+    for i in range(0, 2*all_exponents._nonzero, 2):
         j = all_exponents._data[i+1]
         if j>m:
             max_exponents = [all_exponents._data[i]]
@@ -370,46 +376,53 @@ cdef make_children(dict D, tuple w):
     # - max_exponents = [j1,...,jk]
     #   => cut = prod([var(j1),...,var(jk)]) or something of that type.
     if m == 1:
-        all_exponents = Id[-1]  # Id is sorted, which means that the last generator is decomposable
+        # D.Id is sorted, which means that the last generator is decomposable
+        all_exponents = <ETuple>PyList_GET_ITEM(D.Id,len(D.Id)-1)
         j = all_exponents._data[2*all_exponents._nonzero-2]
         cut = all_exponents._new()
         cut._nonzero = 1
         cut._data = <int*>sig_malloc(sizeof(int)*2)
         cut._data[0] = j
         cut._data[1] = 1
-        # var(j) *only* appears in Id[-1]. Hence, Id+var(j) will be a split case,
-        # with var(j) and Id[:-1]. So, we do the splitting right now.
-        # Only the last generator contains var(j). Hence, Id/var(j) is obtained
-        # from Id by adding the quotient of its last generator divided by var(j),
+        # var(j) *only* appears in D.Id[-1]. Hence, D.Id+var(j) will be a split case,
+        # with var(j) and D.Id[:-1]. So, we do the splitting right now.
+        # Only the last generator contains var(j). Hence, D.Id/var(j) is obtained
+        # from D.Id by adding the quotient of its last generator divided by var(j),
         # of course followed by interreduction.
-        D['LMult'] = 1-t**degree(cut,w)
-        D['Left']  = {'Id':Id[:-1], 'Back':D}
-        Id2 = Id[:-1]
-        Id2.append(divide_by_var(Id[-1],j))
-        D['Right'] = {'Id':interred(Id2), 'Back':D}
-        D['RMult'] = 1-D['LMult']
+        D.LMult = 1-t**degree(cut,w)
+        D.Left  = Node.__new__(Node)
+        D.Left.Id = D.Id[:len(D.Id)-1]
+        D.Left.Back = D
+        Id2 = D.Id[:len(D.Id)-1]
+        Id2.append(divide_by_var(<ETuple>PyList_GET_ITEM(D.Id,len(D.Id)-1),j))
+        D.Right = Node.__new__(Node)
+        D.Right.Id = interred(Id2)
+        D.Right.Back = D
+        D.RMult = 1-D.LMult
     else:
         j = max_exponents[0]
-        e = median([mon[j] for mon in Id if mon[j]])
+        e = median([mon[j] for mon in D.Id if mon[j]])
         cut = all_exponents._new()
         cut._nonzero = 1
         cut._data = <int*>sig_malloc(sizeof(int)*2)
         cut._data[0] = j
         cut._data[1] = e
         try:
-            i = Id.index(cut)
+            i = D.Id.index(cut)
         except ValueError:
             i = -1
         if i>=0:
-            # var(j)**e is a generator. Hence, e is the maximal exponent of var(j) in Id, by
-            # Id being interreduced. But it also is the truncated median, hence, there cannot
+            # var(j)**e is a generator. Hence, e is the maximal exponent of var(j) in D.Id, by
+            # D.Id being interreduced. But it also is the truncated median, hence, there cannot
             # be smaller exponents (for otherwise the median would be strictly smaller than the maximum).
             # Conclusion: var(j) only appears in the generator var(j)**e -- we have a split case.
-            Id2 = list(Id)
+            Id2 = list(D.Id)
             Id2.pop(i)
-            D['LMult'] = 1-t**degree(cut,w)
-            D['Left']  = {'Id':Id2, 'Back':D}
-            D['Right'] = None
+            D.LMult = 1-t**degree(cut,w)
+            D.Left  = Node.__new__(Node)
+            D.Left.Id = Id2
+            D.Left.Back = D
+            D.Right = None
         else:
             cut = all_exponents._new()
             cut._nonzero = 1
@@ -417,18 +430,26 @@ cdef make_children(dict D, tuple w):
             cut._data[0] = j
             cut._data[1] = e
             if e>1:
-                D['LMult'] = 1
-                Id2 = list(Id)
+                D.LMult = 1
+                Id2 = list(D.Id)
                 Id2.append(cut)
-                D['Left']  = {'Id':interred(Id2), 'Back':D}
-                D['Right'] = {'Id':quotient(Id,cut), 'Back':D}
+                D.Left  = Node.__new__(Node)
+                D.Left.Id = interred(Id2)
+                D.Left.Back = D
+                D.Right = Node.__new__(Node)
+                D.Right.Id = quotient(D.Id,cut)
+                D.Right.Back = D
             else:
-                # m>1, therefore var(j) cannot be a generator (Id is interreduced).
-                # Id+var(j) will be a split case. So, we do the splitting right now.
-                D['LMult'] = 1-t**(1 if w is None else w[j])
-                D['Left']  = {'Id':[mon for mon in Id if mon[j]==0], 'Back':D}
-                D['Right'] = {'Id':quotient_by_var(Id,j), 'Back':D}
-            D['RMult'] = t**(e if w is None else e*w[j])
+                # m>1, therefore var(j) cannot be a generator (D.Id is interreduced).
+                # D.Id+var(j) will be a split case. So, we do the splitting right now.
+                D.LMult = 1-t**(1 if w is None else w[j])
+                D.Left  = Node.__new__(Node)
+                D.Left.Id = [mon for mon in D.Id if mon[j]==0]
+                D.Left.Back = D
+                D.Right = Node.__new__(Node)
+                D.Right.Id = quotient_by_var(D.Id,j)
+                D.Right.Back = D
+            D.RMult = t**(e if w is None else e*w[j])
 #~     else:
 #~         # It may be a good idea to form the product of some of the most frequent
 #~         # variables. But this isn't implemented yet. TODO?
@@ -461,7 +482,7 @@ def first_hilbert_series(I, grading=None, return_grading=False):
         -t^12 + t^10 + t^8 - t^4 - t^2 + 1
 
     """
-    cdef dict AN
+    cdef Node AN
     # The "active node". If a recursive computation is needed, it will be equipped
     # with a 'Left' and a 'Right' child node, and some 'Multipliers'. Later, the first Hilbert
     # series of the left child node will be stored in 'LeftFHS', and together with
@@ -496,7 +517,9 @@ def first_hilbert_series(I, grading=None, return_grading=False):
         else:
             w = None
 
-    AN = {'Id':interred(I), 'Back':None}
+    AN = Node.__new__(Node)
+    AN.Id = interred(I)
+    AN.Back = None
 
     # Invariant of this function:
     # At each point, fhs will either be NotImplemented or the first Hilbert series of AN.
@@ -506,32 +529,32 @@ def first_hilbert_series(I, grading=None, return_grading=False):
     while True:
         if fhs is NotImplemented:
             make_children(AN, w)
-            AN = AN['Left']
+            AN = AN.Left
 #~             Tiefe += 1
 #~             MaximaleTiefe = max(MaximaleTiefe, Tiefe)
             fhs = HilbertBaseCase(AN, w)
         else:
-            if AN['Back'] is None: # We are back on top, i.e., fhs is the First Hilber Series of I
+            if AN.Back is None: # We are back on top, i.e., fhs is the First Hilber Series of I
 #~                 print 'Maximal depth of recursion:', MaximaleTiefe
                 if return_grading:
                     return fhs, w
                 else:
                     return fhs
-            if AN is AN['Back']['Left']: # We store fhs and proceed to the sibling
+            if AN is AN.Back.Left: # We store fhs and proceed to the sibling
                 # ... unless there is no sibling
-                if AN['Back']['Right'] is None:
-                    AN = AN['Back']
-                    fhs *= AN['LMult']
+                if AN.Back.Right is None:
+                    AN = AN.Back
+                    fhs *= AN.LMult
                 else:
-                    AN['Back']['LeftFHS'] = fhs
-                    AN = AN['Back']['Right']
-                    AN['Back']['Left'] = None
+                    AN.Back.LeftFHS = fhs
+                    AN = AN.Back.Right
+                    AN.Back.Left = None
                     fhs = HilbertBaseCase(AN, w)
             else: # FHS of the left sibling is stored, of the right sibling is known.
-                AN = AN['Back']
-                AN['Right'] = None
+                AN = AN.Back
+                AN.Right = None
 #~                 Tiefe -= 1
-                fhs = AN['LMult']*AN['LeftFHS'] + AN['RMult']*fhs
+                fhs = AN.LMult*AN.LeftFHS + AN.RMult*fhs
 
 def hilbert_poincare_series(I, grading=None):
     r"""

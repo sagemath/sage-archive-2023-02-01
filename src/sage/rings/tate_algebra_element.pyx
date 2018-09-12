@@ -404,6 +404,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return ans
 
     cdef _term_mul_c(self, TateAlgebraTerm term):
+        r"""
+        Multiply the series by a Tate term
+        """
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly.term_lmult(term._exponent, term._coeff)
         ans._prec = self._prec + term._valuation_c()

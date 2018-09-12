@@ -169,7 +169,6 @@ from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
 from sage.arith.all import binomial, rising_factorial, factorial
 from sage.symbolic.constants import pi
-from sage.symbolic.all import I
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.ring import SR
 from sage.structure.element import get_coercion_model
@@ -183,9 +182,9 @@ from functools import reduce
 from .gamma import gamma
 from .other import sqrt, real_part
 from .log import exp, log
-from .trig import sin
 from .hyperbolic import cosh, sinh
 from .error import erf
+
 
 def rational_param_as_tuple(x):
     r"""

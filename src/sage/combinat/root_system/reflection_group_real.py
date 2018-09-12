@@ -409,7 +409,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
         if len(self._type) == 1:
             ct = self._type[0]
             C = CartanType([ct['series'], ct['rank']])
-            return C.relabel({ i+1 : ii for i,ii in enumerate(self.index_set()) })
+            CG = C.coxeter_graph()
+            G = self.coxeter_diagram()
+            return C.relabel(G.is_isomorphic(CG, certificate=True))
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 
@@ -580,6 +582,25 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [(3/4, 1/2, 1/4), (1/2, 1, 1/2), (1/4, 1/2, 3/4)]
         """
         return self.fundamental_weights()[i]
+
+    @cached_method
+    def coxeter_diagram(self):
+        """
+        Return the Coxeter diagram associated to ``self``.
+
+        EXAMPLES::
+
+            sage: G = ReflectionGroup(['A',3])                          # optional - gap3
+            sage: G.coxeter_matrix()                                    # optional - gap3
+        """
+        V = self.index_set()
+        S = self.simple_reflections()
+        V = Graph(V)
+        for i,j in subsets(V):
+            o = (S[i]*S[j]).order()
+            if o >= 3:
+                G.add_edge(i,j,o)
+        return G
 
     @cached_method
     def coxeter_matrix(self):

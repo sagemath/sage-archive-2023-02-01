@@ -671,7 +671,6 @@ class CoxeterMatrix(CoxeterType):
         """
         return self._matrix._latex_()
 
-
     def __iter__(self):
         """
         Return an iterator for the rows of the Coxeter matrix.

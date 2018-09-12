@@ -9465,7 +9465,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: TestSuite(k).run()
             Failure in _test_gcd_vs_xgcd:
             ...
-            AssertionError: The methods gcd and xgcd disagree on Cyclotomic Field of order 3 and degree 2:
+            AssertionError:... The methods gcd and xgcd disagree on Cyclotomic Field of order 3 and degree 2:
               gcd(0,2) = 1
              xgcd(0,2) = (2, 0, 1)
             ------------------------------------------------------------

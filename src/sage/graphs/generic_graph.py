@@ -11030,24 +11030,24 @@ class GenericGraph(GenericGraph_pyx):
 
     def edges_incident(self, vertices=None, labels=True, sort=False):
         """
-        Returns incident edges to some vertices.
+        Return incident edges to some vertices.
 
-        If ``vertices` is a vertex, then it returns the list of edges incident to
-        that vertex. If ``vertices`` is a list of vertices then it returns the
-        list of all edges adjacent to those vertices. If ``vertices``
-        is None, returns a list of all edges in graph. For digraphs, only
-        lists outward edges.
+        If ``vertices` is a vertex, then it returns the list of edges
+        incident to that vertex. If ``vertices`` is a list of vertices
+        then it returns the list of all edges adjacent to those
+        vertices. If ``vertices`` is ``None``, it returns a list of all edges
+        in graph. For digraphs, only lists outward edges.
 
         INPUT:
 
-        - ``vertices`` - object (default: None) - a vertex, a list of vertices
-          or None.
+        - ``vertices`` -- object (default: ``None``) - a vertex, a list
+          of vertices or ``None``.
 
-        -  ``labels`` - bool (default: True) - if False, each edge is a tuple
-           (u,v) of vertices.
+        - ``labels`` -- boolean (default: ``True``) - if ``False``, each
+           edge is a tuple (u,v) of vertices.
 
-        - ``sort`` - bool (default: True) - if True the returned list is sorted.
-
+        - ``sort`` -- boolean (default: ``False``) - if ``True`` the
+          returned list is sorted.
 
         EXAMPLES::
 

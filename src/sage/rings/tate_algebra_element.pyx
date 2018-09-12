@@ -406,6 +406,20 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     cdef _term_mul_c(self, TateAlgebraTerm term):
         r"""
         Multiply the series by a Tate term
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: t = (3*x^2).terms()[0]; t
+            (...0000000011)*x^2
+            sage: f = x^4 + 4*x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
+            sage: t*f # indirect doctest
+            (...0000000011)*x^6 + (...0000000011)*x^2 + (...000000001100)*x^3*y
+        
         """
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly.term_lmult(term._exponent, term._coeff)
@@ -413,6 +427,25 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return ans
 
     cdef _positive_lshift_c(self, n):
+        r"""
+        Multiply the series by the positive `n`'th power of the uniformizer of
+        the base ring.
+        
+        INPUT::
+
+        - ``n`` - a non-negative integer
+
+
+        EXAMPLES::
+
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: f << 2 # indirect doctest
+            (...000000000100)*x^3 + (...000000000100)*x + (...0000000001000)*x^2
+
+        """
+        
         cdef dict coeffs = { }
         cdef ETuple e
         cdef Element c
@@ -425,7 +458,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     cdef _lshift_c(self, n):
         r"""
-        Multiply the series by the `n`'th power of the uniformizer `\pi`.
+        Multiply the series by the `n`'th power of the uniformizer of the base ring.
 
         INPUT::
 
@@ -440,10 +473,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f << 2 # indirect doctest
             (...000000000100)*x^3 + (...000000000100)*x + (...0000000001000)*x^2
 
-        If the base ring is not a field and we're shifting by a negative number of digits, the result is truncated -- that is, the output is the result of the integer division of the Tate series by `\pi^n`.
+        If the base ring is not a field and we're shifting by a negative number
+        of digits, the result is truncated -- that is, the output is the result
+        of the integer division of the Tate series by `\pi^n`.
 
             sage: f << -1 # indirect doctest
             (...0000000001)*x^2
+
         """
         cdef dict coeffs = { }
         cdef ETuple e
@@ -482,7 +518,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f << 2 # indirect doctest
             (...000000000100)*x^3 + (...000000000100)*x + (...0000000001000)*x^2
 
-        If the base ring is not a field and we're shifting by a negative number of digits, the result is truncated -- that is, the output is the result of the integer division of the Tate series by `\pi^n`.
+        If the base ring is not a field and we're shifting by a negative number
+        of digits, the result is truncated -- that is, the output is the result
+        of the integer division of the Tate series by `\pi^n`.
 
             sage: f << -1 # indirect doctest
             (...0000000001)*x^2
@@ -493,7 +531,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         r"""
         Divide the series by the `n`'th power of the uniformizer `\pi`.
 
-        If the base ring is not a field and ``n`` is positive, the result is truncated -- that is, the output is the result of the integer division of the Tate series by `\pi^n`.
+        If the base ring is not a field and ``n`` is positive, the result is
+        truncated -- that is, the output is the result of the integer division
+        of the Tate series by `\pi^n`.
 
 
         INPUT:
@@ -519,7 +559,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         INPUT:
 
-        - prec - (default: None) an integer which, if specifies, determines the precision of the test.
+        - ``prec`` - (default: None) an integer which, if specifies, determines the precision of the test.
 
         EXAMPLES::
 
@@ -542,6 +582,28 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self.valuation() >= prec
 
     def __eq__(self, other):
+        r"""
+        Test whether the Tate algebra is equal to another
+
+        INPUT:
+
+        - ``other`` - the Tate algebra to compare with
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x^4 + 4*x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
+            sage: g = f + 2
+            sage: f == g # indirect doctest
+            False
+            sage: f == (g-2) # indirect doctest
+            True
+
+        """
         return (self - other).is_zero()
 
     def inverse_of_unit(self):
@@ -627,7 +689,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``log_radii`` - the logs of the wanted convergence radii (see the definition of the class for the possible specifications)
+        - ``log_radii`` - the logs of the wanted convergence radii (see the
+          definition of the class for the possible specifications)
 
         EXAMPLES::
 
@@ -762,6 +825,43 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self._prec
 
     cpdef valuation(self):
+        r"""
+        Return the valuation of the Tate series
+
+        The valuation of a Tate series `f` over a discrete valuation ring `R`
+        with uniformizer `\pi`, is the min of the valuations of the coefficients
+        of `f`.  Equivalently, it is the largest `n` such that `\pi^n` divides
+        `f` in the integer ring of `R`.  Equivalently, it is the valuation of
+        the leading coefficient of `f`.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x^4 + 4*x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
+            sage: f.valuation()
+            0
+            sage: g = 2*f; g
+            (...00000000010)*x^4 + (...00000000010) + (...0000000001000)*x*y
+            sage: g.valuation()
+            1
+
+        If the base ring is a field, the valuation may be negative. The
+        valuation is non-negative if and only if all coefficients of the series
+        are integers.
+
+            sage: A.<x,y> = TateAlgebra(R.fraction_field()); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: f = x^4 + 4*x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
+            sage: g = f*(1/2); g
+            (...000000000.1)*x^4 + (...000000000.1) + (...00000000010)*x*y
+            sage: g.valuation()
+            -1
+        """
         cdef TateAlgebraTerm t
         cdef list terms = self._terms_c()
         if terms:
@@ -770,14 +870,93 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return self._prec
 
     def precision_relative(self):
+        """
+        Return the relative precision of the Tate series
+
+        The relative precision is defined as the difference between the absolute
+        precision and the valuation of the series.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R.fraction_field()); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: f = x^4 + 4*x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
+            sage: f.precision_absolute()
+            +Infinity
+            sage: f.precision_relative()
+            +Infinity
+            sage: g = f.add_bigoh(5)
+            sage: g.precision_absolute()
+            5
+            sage: g.valuation()
+            0
+            sage: g.precision_relative()
+            5
+            sage: h = g + 1/2 ; h
+            (...00001.1) + (...00001)*x^4 + (...00100)*x*y + O(2^5)
+            sage: h.precision_absolute()
+            5
+            sage: h.valuation()
+            -1
+            sage: h.precision_relative()
+            6
+        """
         return self._prec - self.valuation()
 
     def leading_term(self):
+        r"""
+        Return the leading term of the Tate series
+
+        The leading term of a series is the largest term for the order relation
+        defined as follows: `a \cdot X^A < b \cdot X^B \iff \mathrm{val}(a) <
+        \mathrm{val}(b)` or `\mathrm{val}(a) = \mathrm{val}(b)` and `A < B` for
+        the monomial order of the Tate algebra.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x^4 + x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001)*x*y + (...0000000001)
+            sage: f.leading_term()
+            (...0000000001)*x^4
+            sage: g = f + x^4; g
+            (...0000000001)*x*y + (...0000000001) + (...0000000010)*x^4
+            sage: g.leading_coefficient()
+            ...0000000001
+        """
+        # TODO: Examples showing that the order may change when restricting
         terms = self.terms()
         if terms:
             return terms[0]
 
     def leading_coefficient(self):
+        """
+        Return the leading coefficient of the Tate series
+
+        The leading coefficient of a series is the coefficient of its leading term.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = x^4 + x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001)*x*y + (...0000000001)
+            sage: f.leading_coefficient()
+            ...0000000001
+            sage: g = f + x^4; g
+            (...0000000001)*x*y + (...0000000001) + (...0000000010)*x^4
+            sage: g.leading_coefficient()
+            ...0000000001
+        
+        """
         terms = self.terms()
         if terms:
             return terms[0].coefficient()
@@ -785,6 +964,36 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return self.base_ring()(0)
 
     cpdef monic(self):
+        r"""
+        Make the Tate series monic
+
+        The Tate series is multiplied by the inverse of its leading
+        coefficient. The output is a monic series, that is a series with leading
+        coefficient 1.
+
+        By definition of the leading term, if the series had integer
+        coefficients, so does its monic counterpart.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: f = 2*x*y + 4*x^4 + 6; f
+            (...00000000010)*x*y + (...00000000110) + (...000000000100)*x^4
+            sage: f.valuation()
+            1
+            sage: f.leading_coefficient()
+            ...00000000010
+            sage: g = f.monic(); g
+            (...0000000001)*x*y + (...0000000011) + (...00000000010)*x^4
+            sage: g.leading_coefficient()
+            ...0000000001
+            sage: g.valuation()
+            0
+        
+        """
         cdef TateAlgebraElement ans = self._new_c()
         c = self.leading_coefficient()
         ans._poly = self._poly.scalar_lmult(~c)
@@ -792,6 +1001,17 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return ans
 
     def weierstrass_degree(self):
+        r"""
+        Return the Weierstrass degree of the Tate series
+
+        The Weierstrass degree is the degree of the polynomial defined by the
+        terms with least valuation in the series.
+
+        EXAMPLES::
+
+        
+        
+        """
         v = self.valuation()
         return self.residue(v+1).degree()
 

@@ -193,7 +193,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 self._poly = PolyDict({(<TateAlgebraTerm>x)._exponent: (<TateAlgebraTerm>x)._coeff})
         else:
             poly = parent._polynomial_ring(x)
-            self._poly = PolyDict(x.dict())
+            self._poly = PolyDict(poly.dict())
         if prec is not None:
             self._prec = min(self._prec, prec)
         self._normalize()

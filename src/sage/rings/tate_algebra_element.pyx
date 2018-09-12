@@ -810,7 +810,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             Rn = self.base_ring().residue_ring(n)
         except (AttributeError, NotImplementedError):
             Rn = self.base_ring().change(field=False, type="fixed-mod", prec=n)
-        return self._poly.change_ring(Rn)
+        poly = self._parent._polynomial_ring(self._poly)
+        return poly.change_ring(Rn)
 
     cdef TateAlgebraElement _mod_c(TateAlgebraElement self, list divisors):
         cdef dict coeffs = { }

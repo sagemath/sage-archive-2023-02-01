@@ -22,7 +22,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
@@ -127,7 +127,7 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
     - Chris Wuthrich - initial implementation over number fields.
     - John Cremona - additional features and unification.
     """
-    def __init__(self, E, algorithm=None):
+    def __init__(self, E):
         r"""
         Initialization function for EllipticCurveTorsionSubgroup class
 
@@ -154,10 +154,6 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
             sage: T == loads(dumps(T))  # known bug, see http://trac.sagemath.org/sage_trac/ticket/11599#comment:7
             True
         """
-        if algorithm is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(20219, "the keyword 'algorithm' is deprecated and no longer used")
-
         self.__E = E
         self.__K = E.base_field()
 

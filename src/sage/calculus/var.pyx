@@ -130,7 +130,7 @@ def var(*args, **kwds):
     return v
 
 
-def function(s, *args, **kwds):
+def function(s, **kwds):
     r"""
     Create a formal symbolic function with the name *s*.
 
@@ -358,8 +358,10 @@ def function(s, *args, **kwds):
 def clear_vars():
     """
     Delete all 1-letter symbolic variables that are predefined at
-    startup of Sage.  Any one-letter global variables that are not
-    symbolic variables are not cleared.
+    startup of Sage.
+
+    Any one-letter global variables that are not symbolic variables
+    are not cleared.
 
     EXAMPLES::
 

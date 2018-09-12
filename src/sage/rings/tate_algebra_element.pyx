@@ -1025,14 +1025,17 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     def degrees(self):
         return self.weierstrass_degrees()
 
-    def residue(self, n=1):
+    def residue(self, n=None):
         for r in self._parent.log_radii():
             if r != 0:
                 raise NotImplementedError("Residues are only implemented for radius 1")
-        try:
-            Rn = self.base_ring().residue_ring(n)
-        except (AttributeError, NotImplementedError):
-            Rn = self.base_ring().change(field=False, type="fixed-mod", prec=n)
+        if n is None:
+            Rn = self.base_ring().residue_field()
+        else:
+            try:
+                Rn = self.base_ring().residue_ring(n)
+            except (AttributeError, NotImplementedError):
+                Rn = self.base_ring().change(field=False, type="fixed-mod", prec=n)
         poly = self._parent._polynomial_ring(self._poly)
         return poly.change_ring(Rn)
 

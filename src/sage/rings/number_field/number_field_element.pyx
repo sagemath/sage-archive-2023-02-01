@@ -5186,7 +5186,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
 
 
 
-class CoordinateFunction:
+class CoordinateFunction(object):
     r"""
     This class provides a callable object which expresses
     elements in terms of powers of a fixed field generator `\alpha`.
@@ -5197,7 +5197,7 @@ class CoordinateFunction:
         sage: f = (a + 1).coordinates_in_terms_of_powers(); f
         Coordinate function that writes elements in terms of the powers of a + 1
         sage: f.__class__
-        <class sage.rings.number_field.number_field_element.CoordinateFunction at ...>
+        <class 'sage.rings.number_field.number_field_element.CoordinateFunction'>
         sage: f(a)
         [-1, 1]
         sage: f == loads(dumps(f))

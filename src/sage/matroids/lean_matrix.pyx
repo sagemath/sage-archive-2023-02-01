@@ -3293,8 +3293,8 @@ cdef class RationalMatrix(LeanMatrix):
         """
         return "RationalMatrix instance with {} rows and {} columns".format(self._nrows, self._ncols)
 
-    cdef inline mpq_t get(self, long r, long c):   # Not a Sage matrix operation
-        return self._entries[r * self._ncols + c]
+    cdef inline long index(self, long r, long c):   # Not a Sage matrix operation
+        return r * self._ncols + c
 
     cdef inline void set(self, long r, long c, mpq_t x):   # Not a Sage matrix operation
         mpq_set(self._entries[r * self._ncols + c], x)
@@ -3320,15 +3320,15 @@ cdef class RationalMatrix(LeanMatrix):
             True
         """
         cdef Rational z = Rational.__new__(Rational)
-        mpq_set(z.value, self.get(r, c))
+        mpq_set(z.value, self._entries[self.index(r, c)])
         return z
 
     cdef int set_unsafe(self, long r, long c, x) except -1:
-        self.set(r, c, (<Rational>x).value)
+        self.set(r, c, (<Rational> x).value)
         return 0
 
     cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
-        return mpq_sgn(self.get(r, c)) != 0
+        return mpq_sgn(self._entries[self.index(r, c)]) != 0
 
     cdef LeanMatrix copy(self):   # Deprecated Sage matrix operation
         cdef RationalMatrix M = RationalMatrix(self._nrows, self._ncols)
@@ -3413,7 +3413,7 @@ cdef class RationalMatrix(LeanMatrix):
         cdef long k
         cdef long res = 0
         for k in range(self._ncols):
-            if mpq_sgn(self.get(i, k)) != 0:
+            if mpq_sgn(self._entries[self.index(i, k)]) != 0:
                 res += 1
         return res
 
@@ -3427,7 +3427,7 @@ cdef class RationalMatrix(LeanMatrix):
         mpq_init(t)
         mpq_set_si(z.value, 0, 1)
         for k in range(self._ncols):
-            mpq_mul(t, self.get(i, k), self.get(j, k))
+            mpq_mul(t, self._entries[self.index(i, k)], self._entries[self.index(j, k)])
             mpq_add(z.value, z.value, t)
         mpq_clear(t)
         return z
@@ -3440,9 +3440,9 @@ cdef class RationalMatrix(LeanMatrix):
         if s is None:
             for i in range(self._ncols):
                 # In place addition for position (x, i)
-                mpq_add(self.get(x, i), self.get(x, i), self.get(y, i))
+                mpq_add(self._entries[self.index(x, i)], self._entries[self.index(x, i)], self._entries[self.index(y, i)])
         else:
-            return self.add_multiple_of_row_mpq(x, y, (<Rational?> s).value, col_start)
+            return self.add_multiple_of_row_mpq(x, y, Rational(s).value, col_start)
 
     cdef int add_multiple_of_row_mpq(self, long x, long y, mpq_t s, bint col_start) except -1:
         cdef long i
@@ -3450,9 +3450,9 @@ cdef class RationalMatrix(LeanMatrix):
         mpq_init(t)
 
         for i in range(self._ncols):
-            mpq_mul(t, s, self.get(y, i))
+            mpq_mul(t, s, self._entries[self.index(y, i)])
             # In place addition for position (x, i)
-            mpq_add(self.get(x, i), self.get(x, i), t)
+            mpq_add(self._entries[self.index(x, i)], self._entries[self.index(x, i)], t)
         mpq_clear(t)
         return 0
 
@@ -3478,13 +3478,13 @@ cdef class RationalMatrix(LeanMatrix):
         if s == 1:
             # Nothing to do
             return 0
-        return self.rescale_row_mpq(x, (<Rational?> s).value, col_start)
+        return self.rescale_row_mpq(x, Rational(s).value, col_start)
 
     cdef int rescale_row_mpq(self, long x, mpq_t s, bint col_start) except -1:
         cdef long i
         for i in range(self._ncols):
             # This is inplace multiplication
-            mpq_mul(self.get(x, i), s, self.get(x, i))
+            mpq_mul(self._entries[self.index(x, i)], s, self._entries[self.index(x, i)])
         return 0
 
     cdef int rescale_column_c(self, long y, s, bint start_row) except -1:
@@ -3495,13 +3495,13 @@ cdef class RationalMatrix(LeanMatrix):
         if s == 1:
             # Nothing to do
             return 0
-        return self.rescale_column_mpq(y, (<Rational?> s).value, start_row)
+        return self.rescale_column_mpq(y, Rational(s).value, start_row)
 
     cdef int rescale_column_mpq(self, long y, mpq_t s, bint start_row) except -1:
         cdef long j
         for j in range(self._nrows):
             # This is inplace multiplication
-            mpq_mul(self.get(j, y), self.get(j, y), s)
+            mpq_mul(self._entries[self.index(j, y)], self._entries[self.index(j, y)], s)
         return 0
 
     cdef int pivot(self, long x, long y) except -1:   # Not a Sage matrix operation
@@ -3509,22 +3509,19 @@ cdef class RationalMatrix(LeanMatrix):
         Row-reduce to make column ``y`` have a ``1`` in row ``x`` and zeroes
         elsewhere.
 
-        Assumption (not checked): the entry in row ``x``, column ``y`` is
-        invertible (so 1 or -1) to start with.
-
         .. NOTE::
 
             This is different from what matroid theorists tend to call a
             pivot, as it does not involve a column exchange!
         """
         cdef long i, j
-        cdef mpq_t s, t
+        cdef mpq_t t
         mpq_init(t)
-        self.rescale_row_mpq(x, self.get(x, y), 0)
+        mpq_inv(t, self._entries[self.index(x, y)])
+        self.rescale_row_mpq(x, t, 0)
         for i in range(self._nrows):
-            s = self.get(i, y)
-            if mpq_sgn(s) != 0 and i != x:
-                mpq_neg(t, s)
+            if mpq_sgn(self._entries[self.index(i, y)]) != 0 and i != x:
+                mpq_neg(t, self._entries[self.index(i, y)])
                 self.add_multiple_of_row_mpq(i, x, t, 0)
         mpq_clear(t)
         return 0
@@ -3535,7 +3532,7 @@ cdef class RationalMatrix(LeanMatrix):
         """
         cdef long j
         cdef list res = []
-        for j from r * self._ncols <= j < (r + 1) * self._ncols:
+        for j in range(r * self._ncols, (r + 1) * self._ncols):
             if mpq_sgn(self._entries[j]) != 0:
                 res.append(j - r * self._ncols)
         return res
@@ -3549,7 +3546,7 @@ cdef class RationalMatrix(LeanMatrix):
         A = RationalMatrix(self._ncols, self._nrows)
         for i in range(self._nrows):
             for j in range(self._ncols):
-                A.set(j, i, self.get(i, j))
+                A.set(j, i, self._entries[self.index(i, j)])
         return A
 
     cdef LeanMatrix _matrix_times_matrix_(self, LeanMatrix other):
@@ -3557,18 +3554,19 @@ cdef class RationalMatrix(LeanMatrix):
         Return the product ``self * other``.
         """
         cdef RationalMatrix A, ot
-        cdef long i, j, t
-        cdef mpq_t s, temp
-        mpq_init(temp)
+        cdef long i, j, t, ind
+        cdef mpq_t s
+        mpq_init(s)
         ot = <RationalMatrix> other
         A = RationalMatrix(self._nrows, ot._ncols)
         for i in range(A._nrows):
             for j in range(A._ncols):
-                s = A.get(i, j) # We do all operations inplace on s
+                ind = A.index(i, j)
+                # We do all operations inplace on A._entries[ind]
                 for t in range(self._ncols):
-                    mpq_mul(temp, self.get(i, t), ot.get(t, j))
-                    mpq_add(s, s, temp)
-        mpq_clear(temp)
+                    mpq_mul(s, self._entries[self.index(i, t)], ot._entries[ot.index(t, j)])
+                    mpq_add(A._entries[ind], A._entries[ind], s)
+        mpq_clear(s)
         return A
 
     cdef list gauss_jordan_reduce(self, columns):   # Not a Sage matrix operation
@@ -3585,17 +3583,17 @@ cdef class RationalMatrix(LeanMatrix):
         for c in columns:
             is_pivot = False
             for row in range(r, self._nrows):
-                if mpq_sgn(self.get(row, c)) != 0:
+                if mpq_sgn(self._entries[self.index(row, c)]) != 0:
                     is_pivot = True
                     p = row
                     break
             if is_pivot:
                 self.swap_rows_c(p, r)
-                mpq_inv(a, self.get(r, c))
+                mpq_inv(a, self._entries[self.index(r, c)])
                 self.rescale_row_mpq(r, a, 0)
                 for row in range(self._nrows):
-                    if row != r and mpq_sgn(self.get(row, c)) != 0:
-                        mpq_neg(a, self.get(row, c))
+                    if row != r and mpq_sgn(self._entries[self.index(row, c)]) != 0:
+                        mpq_neg(a, self._entries[self.index(row, c)])
                         self.add_multiple_of_row_mpq(row, r, a, 0)
                 P.append(c)
                 r += 1

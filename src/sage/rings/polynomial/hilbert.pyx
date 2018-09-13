@@ -53,176 +53,6 @@ cdef class Node:
         fmpz_poly_clear(self.RMult)
         fmpz_poly_clear(self.LeftFHS)
 
-#~ # Global definition
-#~ PR = PolynomialRing(ZZ,'t')
-#~ t = PR('t')
-
-###
-#   cdef functions concerning algebraic properties of monomials
-###
-
-cdef inline bint divides(ETuple m1, ETuple m2):
-    "Whether m1 divides m2, i.e., no entry of m1 exceeds m2."
-    cdef size_t ind1     # will be increased in 2-steps
-    cdef size_t ind2 = 0 # will be increased in 2-steps
-    cdef int pos1, exp1
-    if m1._nonzero > m2._nonzero:
-        # Trivially m1 cannot divide m2
-        return False
-    cdef size_t m2nz2 = 2*m2._nonzero
-    for ind1 in range(0, 2*m1._nonzero, 2):
-        pos1 = m1._data[ind1]
-        exp1 = m1._data[ind1+1]
-        # Because of the above trivial test, m2._nonzero>0.
-        # So, m2._data[ind2] initially makes sense.
-        while m2._data[ind2] < pos1:
-            ind2 += 2
-            if ind2 >= m2nz2:
-                return False
-        if m2._data[ind2] > pos1 or m2._data[ind2+1] < exp1:
-            # Either m2 has no exponent at position pos1 or the exponent is less than in m1
-            return False
-    return True
-
-cdef ETuple divide_by_gcd(ETuple m1, ETuple m2):
-    """Return ``m1/gcd(m1,m2)``.
-
-    The entries of the result are the maximum of 0 and
-    the difference of the corresponding entries of ``m1`` and ``m2``.
-    """
-    cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in 2-steps.
-    cdef size_t ind2 = 0
-    cdef int exponent
-    cdef int position
-    cdef size_t m1nz = 2*m1._nonzero
-    cdef size_t m2nz = 2*m2._nonzero
-    cdef ETuple result = <ETuple>m1._new()
-    result._nonzero = 0
-    result._data = <int*>sig_malloc(sizeof(int)*m1._nonzero*2)
-    while ind1 < m1nz:
-        position = m1._data[ind1]
-        exponent = m1._data[ind1+1]
-        while ind2 < m2nz and m2._data[ind2] < position:
-            ind2 += 2
-        if ind2 == m2nz:
-            while ind1 < m1nz:
-                result._data[2*result._nonzero] = m1._data[ind1]
-                result._data[2*result._nonzero+1] = m1._data[ind1+1]
-                result._nonzero += 1
-                ind1 += 2
-            return result
-        if m2._data[ind2] > position:
-            # m2[position] == 0
-            result._data[2*result._nonzero] = position
-            result._data[2*result._nonzero+1] = exponent
-            result._nonzero += 1
-        elif m2._data[ind2+1] < exponent:
-            # There is a positive difference that we have to insert
-            result._data[2*result._nonzero] = position
-            result._data[2*result._nonzero+1] = exponent - m2._data[ind2+1]
-            result._nonzero += 1
-        ind1 += 2
-    return result
-
-cdef ETuple divide_by_var(ETuple m1, size_t index):
-    """Return division of ``m1`` by ``var(index)``, or None.
-
-    If ``m1[Index]==0`` then None is returned. Otherwise, an :class:`~sage.rings.polynomial.polydict.ETuple`
-    is returned that is zero in positition ``index`` and coincides with ``m1``
-    in the other positions.
-    """
-    cdef size_t i,j
-    cdef int exp1
-    cdef ETuple result
-    for i in range(0,2*m1._nonzero,2):
-        if m1._data[i] == index:
-            result = <ETuple>m1._new()
-            result._data = <int*>sig_malloc(sizeof(int)*m1._nonzero*2)
-            exp1 = m1._data[i+1]
-            if exp1>1:
-                # division doesn't change the number of nonzero positions
-                result._nonzero = m1._nonzero
-                for j in range(0, 2*m1._nonzero, 2):
-                    result._data[j] = m1._data[j]
-                    result._data[j+1] = m1._data[j+1]
-                result._data[i+1] = exp1-1
-            else:
-                # var(index) disappears from m1
-                result._nonzero = m1._nonzero-1
-                for j in range(0, i, 2):
-                    result._data[j] = m1._data[j]
-                    result._data[j+1] = m1._data[j+1]
-                for j in range(i+2, 2*m1._nonzero, 2):
-                    result._data[j-2] = m1._data[j]
-                    result._data[j-1] = m1._data[j+1]
-            return result
-    return None
-
-cpdef inline size_t total_unweighted_degree(ETuple m):
-    "Return the sum of the entries"
-    cdef size_t degree = 0
-    cdef size_t i
-    for i in range(1,2*m._nonzero,2):
-        degree += m._data[i]
-    return degree
-
-cdef size_t quotient_degree(ETuple m1, ETuple m2, tuple w) except 0:
-    cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in double steps.
-    cdef size_t ind2 = 0
-    cdef int exponent
-    cdef int position
-    cdef size_t m1nz = 2*m1._nonzero
-    cdef size_t m2nz = 2*m2._nonzero
-
-    cdef size_t deg = 0
-    if w is None:
-        while ind1 < m1nz:
-            position = m1._data[ind1]
-            exponent = m1._data[ind1+1]
-            while ind2 < m2nz and m2._data[ind2] < position:
-                ind2 += 2
-            if ind2 == m2nz:
-                while ind1 < m1nz:
-                    deg += m1._data[ind1+1]
-                    ind1 += 2
-                return deg
-            if m2._data[ind2] > position:
-                # m2[position] = 0
-                deg += exponent
-            elif m2._data[ind2+1] < exponent:
-                # There is a positive difference that we have to insert
-                deg += (exponent - m2._data[ind2+1])
-            ind1 += 2
-        return deg
-    while ind1 < m1nz:
-        position = m1._data[ind1]
-        exponent = m1._data[ind1+1]
-        while ind2 < m2nz and m2._data[ind2] < position:
-            ind2 += 2
-        if ind2 == m2nz:
-            while ind1 < m1nz:
-                deg += m1._data[ind1+1] * w[m1._data[ind1]]
-                ind1 += 2
-            return deg
-        if m2._data[ind2] > position:
-            # m2[position] = 0
-            deg += exponent * w[position]
-        elif m2._data[ind2+1] < exponent:
-            # There is a positive difference that we have to insert
-            deg += (exponent - m2._data[ind2+1]) * w[position]
-        ind1 += 2
-    return deg
-
-cdef inline size_t degree(ETuple m, tuple w):
-    cdef size_t i
-    cdef size_t deg = 0
-    if w is None:
-        for i in range(0, 2*m._nonzero, 2):
-            deg += m._data[i+1]
-    else:
-        for i in range(0, 2*m._nonzero, 2):
-            deg += m._data[i+1]*w[m._data[i]]
-    return deg
 
 ###
 #   cdef functions related with lists of monomials
@@ -232,7 +62,7 @@ cdef inline bint indivisible_in_list(ETuple m, list L, size_t i):
     "Is m divisible by any monomial in L[:i]?"
     cdef size_t j
     for j in range(i):
-        if divides(<ETuple>PyList_GET_ITEM(L,j),m):
+        if (<ETuple>PyList_GET_ITEM(L,j)).divides(m):
             return False
     return True
 
@@ -257,7 +87,7 @@ cdef inline list interred(list L):
     # that appears later in L.
     if not L:
         return []
-    L.sort(key=total_unweighted_degree)
+    L.sort(key=ETuple.unweighted_degree)
     cdef size_t i
     cdef ETuple m
     cdef list result = [L[0]]
@@ -269,18 +99,19 @@ cdef inline list interred(list L):
 
 cdef list quotient(list L, ETuple m):
     "Return the quotient of the ideal represented by L and the monomial represented by m"
-    cdef ETuple m_i
     cdef list result = list(L)
-    for m_i in L:
-        result.append(divide_by_gcd(m_i,m))
+    cdef size_t i
+    for i in range(len(L)):
+        result.append((<ETuple>PyList_GET_ITEM(L,i)).divide_by_gcd(m))
     return interred(result)
 
 cdef list quotient_by_var(list L, size_t index):
     "Return the quotient of the ideal represented by L and the variable number ``index``"
-    cdef ETuple m_i,m_j
+    cdef ETuple m_j
     cdef list result = list(L) # creates a copy
-    for m_i in L:
-        m_j = divide_by_var(m_i,index)
+    cdef size_t i
+    for i in range(len(L)):
+        m_j = (<ETuple>PyList_GET_ITEM(L,i)).divide_by_var(index)
         if m_j is not None:
             result.append(m_j)
     return interred(result)
@@ -327,8 +158,7 @@ cdef bint HilbertBaseCase(Polynomial_integer_dense_flint fhs, Node D, tuple w):
         fmpz_poly_set_coeff_si(poly_tmp, 0, 1)
         fmpz_poly_set_coeff_si(fhs.__poly, 0, 1) # = PR(1)
         for i in range(len(D.Id)):
-            m = <ETuple>PyList_GET_ITEM(D.Id, i)
-            exp = degree(m,w)
+            exp = (<ETuple>PyList_GET_ITEM(D.Id, i)).weighted_degree(w)
             fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
             fmpz_poly_mul(fhs.__poly, fhs.__poly, poly_tmp)
             fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
@@ -337,7 +167,8 @@ cdef bint HilbertBaseCase(Polynomial_integer_dense_flint fhs, Node D, tuple w):
 
     # Thirdly, we test for proper powers of single variables.
     cdef bint easy = True
-    for i,m in enumerate(D.Id):
+    for i in range(len(D.Id)):
+        m = <ETuple>PyList_GET_ITEM(D.Id, i) # will be used later when we are breaking
         if m._nonzero > 1: # i.e., the generator contains more than a single var
             easy = False
             break
@@ -347,8 +178,7 @@ cdef bint HilbertBaseCase(Polynomial_integer_dense_flint fhs, Node D, tuple w):
         fmpz_poly_set_coeff_si(poly_tmp, 0, 1)
         fmpz_poly_set_coeff_si(fhs.__poly, 0, 1) # = PR(1)
         for i in range(len(D.Id)):
-            m = <ETuple>PyList_GET_ITEM(D.Id, i)
-            exp = degree(m,w)
+            exp = (<ETuple>PyList_GET_ITEM(D.Id, i)).weighted_degree(w)
             fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
             fmpz_poly_mul(fhs.__poly, fhs.__poly, poly_tmp)
             fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
@@ -359,8 +189,7 @@ cdef bint HilbertBaseCase(Polynomial_integer_dense_flint fhs, Node D, tuple w):
     cdef ETuple m2
     cdef list v
     for j in range(i+1,len(D.Id)):
-        m2 = <ETuple>PyList_GET_ITEM(D.Id,j)
-        if m2._nonzero>1: # i.e., another generator contains more than a single var
+        if (<ETuple>PyList_GET_ITEM(D.Id,j))._nonzero>1: # i.e., another generator contains more than a single var
             easy = False
             break
     cdef fmpz_poly_t FirstSummand, SecondSummand
@@ -372,18 +201,18 @@ cdef bint HilbertBaseCase(Polynomial_integer_dense_flint fhs, Node D, tuple w):
         fmpz_poly_init(SecondSummand)
         fmpz_poly_set_coeff_si(poly_tmp, 0, 1)
         fmpz_poly_set_coeff_si(FirstSummand, 0, 1)
-        fmpz_poly_set_coeff_si(SecondSummand, degree(m,w), -1)
+        fmpz_poly_set_coeff_si(SecondSummand, m.weighted_degree(w), -1)
         # Since the ideal is interreduced and all other monomials are
         # simple powers, we have the following formula:
 #~         return prod([(1-t**degree(m2,w)) for m2 in D.Id if m2 is not m]) - t**degree(m,w)*prod((1-t**quotient_degree(m2,m,w)) for m2 in D.Id if m is not m2)
         for j in range(len(D.Id)):
             if i != j:
                 m2 = <ETuple>PyList_GET_ITEM(D.Id,j)
-                exp = degree(m2,w)
+                exp = m2.weighted_degree(w)
                 fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
                 fmpz_poly_mul(FirstSummand, FirstSummand, poly_tmp)
                 fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
-                exp = quotient_degree(m2,m,w)
+                exp = m2.weighted_quotient_degree(m,w)
                 fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
                 fmpz_poly_mul(SecondSummand, SecondSummand, poly_tmp)
                 fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
@@ -448,17 +277,17 @@ cdef make_children(Node D, tuple w):
         # of course followed by interreduction.
         #D.LMult = 1-t**degree(cut,w)
         fmpz_poly_set_coeff_si(D.LMult, 0, 1)
-        fmpz_poly_set_coeff_si(D.LMult, degree(cut,w), -1)
+        fmpz_poly_set_coeff_si(D.LMult, cut.weighted_degree(w), -1)
         D.Left  = Node.__new__(Node)
         D.Left.Id = D.Id[:len(D.Id)-1]
         D.Left.Back = D
         Id2 = D.Id[:len(D.Id)-1]
-        Id2.append(divide_by_var(<ETuple>PyList_GET_ITEM(D.Id,len(D.Id)-1),j))
+        Id2.append((<ETuple>PyList_GET_ITEM(D.Id,len(D.Id)-1)).divide_by_var(j))
         D.Right = Node.__new__(Node)
         D.Right.Id = interred(Id2)
         D.Right.Back = D
         #D.RMult = 1-D.LMult
-        fmpz_poly_set_coeff_si(D.RMult, degree(cut,w), 1)
+        fmpz_poly_set_coeff_si(D.RMult, cut.weighted_degree(w), 1)
     else:
         j = max_exponents[0]
         e = median([mon[j] for mon in D.Id if mon[j]])
@@ -480,7 +309,7 @@ cdef make_children(Node D, tuple w):
             Id2.pop(i)
             # D.LMult = 1-t**degree(cut,w)
             fmpz_poly_set_coeff_si(D.LMult, 0, 1)
-            fmpz_poly_set_coeff_si(D.LMult, degree(cut,w), -1)
+            fmpz_poly_set_coeff_si(D.LMult, cut.weighted_degree(w), -1)
             D.Left  = Node.__new__(Node)
             D.Left.Id = Id2
             D.Left.Back = D

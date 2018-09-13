@@ -822,6 +822,7 @@ def random_vector(ring, degree=None, *args, **kwds):
     entries = [ring.random_element(*args, **kwds) for _ in range(degree)]
     return vector(ring, degree, entries, sparse)
 
+
 cdef class FreeModuleElement(Vector):   # abstract base class
     """
     An element of a generic free module.
@@ -4562,7 +4563,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 e = entries_dict
                 entries_dict = {}
                 try:
-                    for k, x in e.iteritems():
+                    for k, x in e.items():
                         x = coefficient_ring(x)
                         if x:
                             entries_dict[k] = x
@@ -4752,8 +4753,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.items()
-            <dictionary-itemiterator object at ...>
+            sage: next(v.items())
+            (0, 1)
             sage: list(v.items())
             [(0, 1), (1, 2/3), (2, pi)]
 
@@ -4764,7 +4765,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
-        return self._entries.iteritems()
+        return iter(self._entries.iteritems())
 
     iteritems = items
 

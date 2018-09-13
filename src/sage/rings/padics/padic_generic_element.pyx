@@ -786,7 +786,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p = R.prime()
         pow = self.add_bigoh(prec)
         arg = pow
-        v = self.valuation()
         denom = 1; trunc = prec
         if R.absolute_degree() == 1:
             # Special code for Zp and Qp

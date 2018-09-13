@@ -1528,7 +1528,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
     def _cache_key(self):
         r"""
-        Return a hash of self, for using in caching.
+        Return a hash of ``self``, for using in caching.
 
         EXAMPLES::
 
@@ -1541,8 +1541,10 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: Y._cache_key() == X._cache_key() # optional - magma
             False
         """
-
         return hash((self._p, self._Nminus, self._Nplus, self._character, self._use_magma))
+
+    __hash__ = _cache_key
+
     def _repr_(self):
         r"""
         Return the representation of self as a string.

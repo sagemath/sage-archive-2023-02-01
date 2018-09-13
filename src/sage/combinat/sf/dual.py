@@ -735,7 +735,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
                 sage: h = m.dual_basis(scalar=zee)
                 sage: a = h([2,1])
                 sage: a.scalar_hl(a)
-                (t + 2)/(-t^4 + 2*t^3 - 2*t + 1)
+                (-t - 2)/(t^4 - 2*t^3 + 2*t - 1)
             """
             return self._dual.scalar_hl(x)
 

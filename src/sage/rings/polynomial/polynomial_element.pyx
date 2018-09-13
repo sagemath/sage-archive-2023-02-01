@@ -2329,7 +2329,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: kk.<a,b> = GF(2)[]
             sage: k.<y,w> = kk.quo(a^2+a+1)
-            sage: K.<T> = k[] 
+            sage: K.<T> = k[]
             sage: (T*y)^21
             T^21
         """
@@ -7716,10 +7716,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 coeffs = self.list()
                 D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
                 if D > 0:
-                    l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1), 
-                         ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)] 
+                    l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1),
+                         ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)]
                 elif D < 0:
-                    l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1), 
+                    l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1),
                          ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
                 else:
                     l = [(-coeffs[1]/2/coeffs[2]), 2]
@@ -8102,7 +8102,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             P(x) = Q(x + q/x) x^{\deg(Q)} R(x).
 
-        In this relation, `Q` has all roots in the real interval 
+        In this relation, `Q` has all roots in the real interval
         `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
         circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.
 
@@ -8419,7 +8419,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: m = z^9;
             sage: n, d = p.rational_reconstruct(m);
             sage: print((n ,d))
-            ((1/-t)*z^4 - t*z + 1/-t, z + 1/-t)
+            (-1/t*z^4 - t*z - 1/t, z - 1/t)
             sage: print(((p*d - n) % m ).is_zero())
             True
             sage: w = PowerSeriesRing(P.fraction_field(), 'w').gen()
@@ -9041,7 +9041,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # - AttributeError in case p-th roots are not (or do not exist)
         except (NotImplementedError, AttributeError):
             F = self.factor()
-        return all([e<=1 for (f,e) in F])
+        return all(e <= 1 for (f, e) in F)
 
     def radical(self):
         """
@@ -10049,6 +10049,81 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 q = mi * (mp1 * q - p._mul_trunc_(q._power_trunc(mp1, i), i))
             return q.inverse_series_trunc(prec)
 
+    @coerce_binop
+    def divides(self, p):
+        r"""
+        Return `True` if this polynomial divides `p`.
+
+        This method is only implemented for polynomials over an integral domain.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: (2*x + 1).divides(4*x**2 - 1)
+            True
+            sage: (2*x + 1).divides(4*x**2 + 1)
+            False
+            sage: (2*x + 1).divides(R(0))
+            True
+            sage: R(0).divides(2*x + 1)
+            False
+            sage: R(0).divides(R(0))
+            True
+            sage: S.<y> = R[]
+            sage: p = x * y**2 + (2*x + 1) * y + x + 1
+            sage: q = (x + 1) * y + (3*x + 2)
+            sage: q.divides(p)
+            False
+            sage: q.divides(p * q)
+            True
+            sage: R.<x> = Zmod(6)[]
+            sage: p = 4*x + 3
+            sage: q = 5*x**2 + x + 2
+            sage: p.divides(q)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: divisibility test only implemented for polynomials over an integral domain
+
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(ZZ, implementation="NTL")
+            sage: (2*x + 1).divides(4*x**2 + 1)
+            False
+            sage: K.<z> = GF(4)
+            sage: R.<x> = K[]
+            sage: S.<y> = R[]
+            sage: p = ((3*z + 2)*x + 2*z - 1) * y + 2*x + z
+            sage: q = y^2 + z*y*x + 2*y + z
+            sage: p.divides(q), p.divides(p*q)
+            (False, True)
+            sage: R.<x,y> = GF(2)[]
+            sage: S.<z> = R[]
+            sage: p = (x+y+1) * z + x*y
+            sage: q = (y^2-x^2) * z^2 + z + x-y
+            sage: p.divides(q), p.divides(p*q)
+            (False, True)
+        """
+        if not self.base_ring().is_integral_domain():
+            raise NotImplementedError("divisibility test only implemented for polynomials over an integral domain")
+
+        if p.is_zero(): return True          # everything divides 0
+        if self.is_zero(): return False      # 0 only divides 0
+        try:
+            if self.is_unit(): return True   # units divide everything
+        except NotImplementedError:
+            if self.is_one(): return True    # if is_unit is not implemented
+
+        if self.degree() > p.degree():
+            return False
+
+        if not self.leading_coefficient().divides(p.leading_coefficient()):
+            return False
+
+        try:
+            return (p % self).is_zero()      # if quo_rem is defined
+        except ArithmeticError:
+            return False                     # if division is not exact
+
     def specialization(self, D=None, phi=None):
         r"""
         Specialization of this polynomial.
@@ -10236,7 +10311,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1/3*x^3 + x
         """
         raise NotImplementedError
-
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

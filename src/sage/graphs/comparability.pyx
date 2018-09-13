@@ -256,7 +256,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
       sage: is_comparability(g)
       False
       sage: is_comparability(g, no_certificate = True)
-      (False, [9, 6, 1, 0, 4, 9])
+      (False, [0, 4, 9, 6, 1, 0])
 
     But the Bull graph is::
 
@@ -351,12 +351,12 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
 
       sage: from sage.graphs.comparability import greedy_is_comparability_with_certificate as is_comparability
       sage: is_comparability(graphs.CycleGraph(5), certificate = True)
-      (False, [3, 4, 0, 1, 2, 3])
+      (False, [1, 2, 3, 4, 0, 1])
       sage: g = graphs.PetersenGraph()
       sage: is_comparability(g)
       False
       sage: is_comparability(g, certificate = True)
-      (False, [9, 6, 1, 0, 4, 9])
+      (False, [0, 4, 9, 6, 1, 0])
 
     But the Bull graph is::
 

@@ -689,10 +689,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - Xavier Caruso (2018-08): extend to any p-adic rings and fields
           and implement several algorithms.
 
-        REFERENCES:
-
-        .. [Conr] Keith Conrad, "Artin-Hasse-Type Series and Roots of Unity",
-           http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/AHrootofunity.pdf
         """
         if self.valuation() < 1:
             raise ValueError("Artin-Hasse exponential does not converge on this input")

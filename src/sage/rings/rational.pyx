@@ -524,11 +524,12 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: v[3/2]
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 3/2 to an integer
         """
         if self.denominator() == 1:
             return int(self)
-        raise TypeError("rational is not an integer")
+
+        raise TypeError(f"unable to convert rational {self} to an integer")
 
     cdef __set_value(self, x, unsigned int base):
         cdef int n
@@ -972,7 +973,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: q.__mpz__()  # optional - gmpy2
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 1/4 to an integer
 
         TESTS::
 
@@ -982,7 +983,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             NotImplementedError: gmpy2 is not installed
         """
         if self.denominator() != 1:
-            raise TypeError("rational is not an integer")
+            raise TypeError(f"unable to convert rational {self} to an integer")
         return self.numerator().__mpz__()
 
     def __mpq__(self):

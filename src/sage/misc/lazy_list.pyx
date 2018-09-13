@@ -702,7 +702,7 @@ cdef class lazy_list_generic(object):
             sage: g.get(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 1/2 to an integer
         """
         if i < 0:
             raise ValueError("indices must be non-negative")

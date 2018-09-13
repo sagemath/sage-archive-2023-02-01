@@ -2044,7 +2044,7 @@ done from the right side.""")
             sage: (QQ^3).gen(4/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 4/3 to an integer
         """
         if i < 0 or i >= self.rank():
             raise ValueError("Generator %s not defined." % i)
@@ -5179,7 +5179,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: (QQ^3).gen(4/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 4/3 to an integer
 
         Check that :trac:`10262` and :trac:`13304` are fixed
         (coercions involving :class:`FreeModule_ambient` used to take

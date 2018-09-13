@@ -82,7 +82,7 @@ cdef class SparseEntry:
         sage: SparseEntry(1/3, 2/3, x)
         Traceback (most recent call last):
         ...
-        TypeError: rational is not an integer
+        TypeError: unable to convert rational 1/3 to an integer
     """
 
     def __init__(self, i, j, entry):

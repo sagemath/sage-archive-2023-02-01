@@ -268,6 +268,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         if op == op_GE:
             return c >= 0
 
+    cpdef TateAlgebraTerm monic(self):
+        cdef TateAlgebraTerm ans = self._new_c()
+        ans._coeff = self._parent.base_ring().fraction_field()(1)
+        ans._exponent = self._exponent
+        return ans
+
     def valuation(self):
         return ZZ(self._valuation_c())
 
@@ -949,6 +955,19 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         self._terms.sort(reverse=True)
         return self._terms
 
+    def monomials(self):
+        if not self._is_normalized:
+            self._normalize()
+        cdef TateAlgebraTerm oneterm = self._parent._oneterm
+        cdef TateAlgebraTerm term
+        monomials = []
+        for (e,c) in self._poly.__repn.iteritems():
+            term = oneterm._new_c()
+            term._coeff = oneterm._coeff
+            term._exponent = e
+            monomials.append(term)
+        return monomials
+
     def coefficients(self):
         r"""
         Return the list of coefficients of the Tate series
@@ -1168,6 +1187,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return terms[0].coefficient()
         else:
             return self.base_ring()(0)
+
+    def leading_monomial(self):
+        terms = self.terms()
+        if terms:
+            return terms[0].monic()
+        else:
+            raise ValueError("zero has no leading monomial")
 
     cpdef monic(self):
         r"""

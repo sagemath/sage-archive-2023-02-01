@@ -691,7 +691,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         REFERENCES:
 
-        .. [Conr] K. Conrad, *Artin-Hasse-Type Series and Roots of Unity*
+        .. [Conr] Keith Conrad, "Artin-Hasse-Type Series and Roots of Unity",
            http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/AHrootofunity.pdf
         """
         if self.valuation() < 1:
@@ -735,7 +735,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         INPUT:
 
-        - ``prec`` -- an integer, this precision at which the
+        - ``prec`` -- an integer, the precision at which the
           result should be computed
 
         - ``exp_algorithm`` -- a string, the algorithm called
@@ -761,7 +761,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         When we are working over `\ZZ_2` or `\QQ_2` and `x` is congruent to `2`
         modulo `4`, then `x` and `x^2/2` are not in the domain of convergence of
         the exponential. However, `\exp(x + x^2/2)` does converge. 
-        In this case, the Artin-Hasse exponential of `x`, denotes by `AH(x)`, is
+        In this case, the Artin-Hasse exponential of `x`, denoted by `AH(x)`, is
 
         .. MATH::
 
@@ -792,22 +792,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
         arg = pow
         v = self.valuation()
         denom = 1; trunc = prec
-        vmax = prec // p
         if R.absolute_degree() == 1:
             # Special code for Zp and Qp
-            while v <= vmax:
+            while pow != 0:
                 trunc += 1
                 pow = (pow**p).add_bigoh(trunc)
                 denom *= p
                 arg += pow/denom
-                v *= p
             AH = arg.exp(algorithm=exp_algorithm)
             if p == 2 and self.add_bigoh(2) == 2:
                 AH = -AH
         else:
             e = R.absolute_e()
             ep = e // (p-1)
-            while v <= vmax:
+            while pow != 0:
                 trunc += e
                 pow = (pow**p).add_bigoh(trunc)
                 denom *= p
@@ -815,7 +813,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 if s.valuation() <= ep:
                     raise NotImplementedError("One factor of the Artin-Hasse exponential does not converge")
                 arg += s
-                v *= p
             AH = arg.exp(algorithm=exp_algorithm)
         return AH
 
@@ -857,7 +854,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         # We compute the Artin-Hasse series at the requested precision
         L = _AHE_coefficients(p, prec, 1 + (prec-1)//e)
-        # We evaluate it using Hörner algorithm
+        # We evaluate it using Horner algorithm
         y = R(0)
         x = self.add_bigoh(prec)
         for i in range(prec-1, -1, -1):
@@ -913,7 +910,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         ep = e // (p-1)
         startprec = min(prec, ep+1)
         L = _AHE_coefficients(p, startprec, 1)
-        # We evaluate it using Hörner algorithm
+        # We evaluate it using Horner algorithm
         y = R(0)
         x = self.add_bigoh(startprec)
         for i in range(startprec-1, -1, -1):

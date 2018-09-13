@@ -4406,9 +4406,9 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D1 == D2
             True
         """
-        return isinstance(other, LinearCodeSyndromeDecoder)\
-                and self.code() == other.code()\
-                and self.maximum_error_weight() == other.maximum_error_weight()
+        return (isinstance(other, LinearCodeSyndromeDecoder) and
+                self.code() == other.code() and
+                self.maximum_error_weight() == other.maximum_error_weight())
 
     def __hash__(self):
         """
@@ -4495,7 +4495,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: H = Matrix(K,[[1,2,1],[2*a+1,a,1]])
             sage: C = codes.from_parity_check_matrix(H)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
-            sage: D.syndrome_table()         
+            sage: D.syndrome_table()
              {(0, 0): (0, 0, 0),
               (0, 1): (0, 1, 0),
               (0, 2): (0, 2, 0),

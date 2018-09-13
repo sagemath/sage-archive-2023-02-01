@@ -203,6 +203,9 @@ TESTS::
 #******************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
+
+import inspect
+
 from six.moves import range
 from six import iteritems
 
@@ -226,6 +229,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
 from sage.misc.cachefunc import cached_method
+from sage.misc.sageinspect import sage_getargspec
 from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.randstate import current_randstate
 from sage.features.gap import GapPackage
@@ -304,13 +308,12 @@ def _explain_constructor(cl):
         sage: _explain_constructor(cl)
         "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
     """
-    import inspect
     if inspect.isclass(cl):
-        argspec = inspect.getargspec(cl.__init__)
+        argspec = sage_getargspec(cl.__init__)
         skip = 2 # skip the self and code arguments
     else:
         # Not a class, assume it's a factory function posing as a class
-        argspec = inspect.getargspec(cl)
+        argspec = sage_getargspec(cl)
         skip = 1 # skip code argument
     if argspec.defaults:
         args = argspec.args[skip:-len(argspec.defaults)]

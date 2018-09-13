@@ -2992,7 +2992,7 @@ cdef class IntegerMatrix(LeanMatrix):
             for i from 0 <= i < self._ncols:
                 self.set(x, i, self.get(x, i) + self.get(y, i))
         else:
-            sval = int(s)
+            sval = s
             for i from 0 <= i < self._ncols:
                 self.set(x, i, self.get(x, i) + sval * self.get(y, i))
         return 0
@@ -3017,7 +3017,7 @@ cdef class IntegerMatrix(LeanMatrix):
         compatibility, and is ignored.
         """
         cdef long i
-        cdef int sval = int(s)
+        cdef int sval = s
         for i from 0 <= i < self._ncols:
             self.set(x, i, sval * self.get(x, i))
         return 0
@@ -3028,7 +3028,7 @@ cdef class IntegerMatrix(LeanMatrix):
         compatibility, and is ignored.
         """
         cdef long j
-        cdef int sval = int(s)
+        cdef int sval = s
         for j from 0 <= j < self._nrows:
             self.set(j, y, self.get(j, y) * sval)
         return 0

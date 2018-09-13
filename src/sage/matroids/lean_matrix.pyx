@@ -2844,7 +2844,7 @@ cdef class IntegerMatrix(LeanMatrix):
         """
         return "IntegerMatrix instance with " + str(self._nrows) + " rows and " + str(self._ncols) + " columns"
 
-    cdef inline get(self, long r, long c):   # Not a Sage matrix operation
+    cdef inline int get(self, long r, long c):   # Not a Sage matrix operation
         return self._entries[r * self._ncols + c]
 
     cdef inline void set(self, long r, long c, int x):   # Not a Sage matrix operation
@@ -2877,7 +2877,7 @@ cdef class IntegerMatrix(LeanMatrix):
         return 0
 
     cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
-        return self.get(r, c)
+        return self.get(r, c) != 0
 
     cdef LeanMatrix copy(self):   # Deprecated Sage matrix operation
         cdef IntegerMatrix M = IntegerMatrix(self._nrows, self._ncols)
@@ -2982,12 +2982,14 @@ cdef class IntegerMatrix(LeanMatrix):
         ignored.
         """
         cdef long i
+        cdef int sval
         if s is None:
             for i from 0 <= i < self._ncols:
                 self.set(x, i, self.get(x, i) + self.get(y, i))
         else:
+            sval = int(s)
             for i from 0 <= i < self._ncols:
-                self.set(x, i, self.get(x, i) + s * self.get(y, i))
+                self.set(x, i, self.get(x, i) + sval * self.get(y, i))
         return 0
 
     cdef int swap_rows_c(self, long x, long y) except -1:
@@ -3010,8 +3012,9 @@ cdef class IntegerMatrix(LeanMatrix):
         compatibility, and is ignored.
         """
         cdef long i
+        cdef int sval = int(s)
         for i from 0 <= i < self._ncols:
-            self.set(x, i, s * self.get(x, i))
+            self.set(x, i, sval * self.get(x, i))
         return 0
 
     cdef int rescale_column_c(self, long y, s, bint start_row) except -1:
@@ -3020,8 +3023,9 @@ cdef class IntegerMatrix(LeanMatrix):
         compatibility, and is ignored.
         """
         cdef long j
+        cdef int sval = int(s)
         for j from 0 <= j < self._nrows:
-            self.set(j, y, self.get(j, y) * s)
+            self.set(j, y, self.get(j, y) * sval)
         return 0
 
     cdef int pivot(self, long x, long y) except -1:   # Not a Sage matrix operation

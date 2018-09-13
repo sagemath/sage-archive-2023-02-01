@@ -14,7 +14,59 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
 
 cdef class TateAlgebraTerm(MonoidElement):
+    r"""
+    Class for Tate algebra terms
+
+    A term in `R{X_1,\dots,X_n}` is the product of a coefficient in `R` and a
+    monomial in the variables `X_1,\dots,X_n`.
+
+    Those terms form a partially ordered monoid, with term multiplication and the
+    term order of the parent Tate algebra.
+
+    INPUT:
+
+    - ``coeff`` - the coefficient of the term, in `R`
+
+    - ``exponent`` - a tuple of length ``n`` giving the exponents of the monomial part of the term
+    
+    EXAMPLES::
+
+        sage: R = Zp(2, print_mode='digits',prec=10); R
+        2-adic Ring with capped relative precision 10
+        sage: A.<x,y> = TateAlgebra(R); A
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+        sage: T = A.monoid_of_terms(); T
+        Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+        sage: T(2,(1,1))
+        (...00000000010)*x*y
+        sage: T(0,(1,1))
+        (0)*x*y
+
+    """
     def __init__(self, parent, coeff, exponent):
+        """
+        Initialize a Tate algebra term
+
+        INPUT:
+
+        - ``coeff`` - the coefficient of the term, in `R`
+
+        - ``exponent`` - a tuple of length ``n`` giving the exponents of the monomial part of the term
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T(2,(1,1))
+            (...00000000010)*x*y
+            sage: T(0,(1,1))
+            (0)*x*y
+
+        """
         MonoidElement.__init__(self, parent)
         field = parent.base_ring().fraction_field()
         self._coeff = field(coeff)
@@ -26,11 +78,34 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("The length of the exponent does not match the number of variables")
 
     cdef TateAlgebraTerm _new_c(self):
+        r"""
+        ???
+        """
         cdef TateAlgebraTerm ans = TateAlgebraTerm.__new__(TateAlgebraTerm)
         ans._parent = self._parent
         return ans
 
     def _repr_(self):
+        r"""
+        Give a printable representation of the Tate algebra term
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T(2,(1,1)) # indirect doctest
+            (...00000000010)*x*y
+            sage: print(T(0,(1,1))) # indirect doctest
+            (0)*x*y
+            sage: T(2,(1,0)) # indirect doctest
+            (...00000000010)*x
+
+        
+        """
         parent = self._parent
         s = "(%s)" % self._coeff
         for i in range(parent._ngens):
@@ -41,18 +116,115 @@ cdef class TateAlgebraTerm(MonoidElement):
         return s
 
     def coefficient(self):
+        r"""
+        Return the coefficient of the Tate algebra term
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: t = T(2,(1,1))
+            sage: t.coefficient()
+            ...00000000010
+        
+        """
         return self._coeff
 
     def exponent(self):
+        r"""
+        Return the exponents of the Tate algebra term
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: t = T(2,(1,1))
+            sage: t.exponent()
+            (1, 1)
+        
+        """
+
         return self._exponent
 
     cpdef _mul_(self, other):
+        r"""
+        Multiply the Tate algebra term with another term
+
+        INPUT:
+
+        - ``other`` - a Tate algebra term to multiply with
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: s = T(2,(1,1)); s
+            (...00000000010)*x*y
+            sage: t = T(3,(2,1)); t
+            (...0000000011)*x^2*y
+            sage: s*t  # indirect doctest
+            (...00000000110)*x^3*y^2
+        
+        """
         cdef TateAlgebraTerm ans = self._new_c()
         ans._exponent = self._exponent.eadd((<TateAlgebraTerm>other)._exponent)
         ans._coeff = self._coeff * (<TateAlgebraTerm>other)._coeff
         return ans
 
     cpdef int _cmp_(self, other) except -2:
+        r"""
+        Compare the Tate algebra term with another
+
+        The term `a*X^A` is smaller than the term `b*X^B` if `a` has larger
+        valuation than `b`, or if `a` and `b` have the same valuation and `A` is
+        smaller than `B` for the Tate algebra monomial order.
+
+        INPUT:
+
+        - ``other`` - a Tate algebra term to compare with
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: T.term_order()
+            Degree reverse lexicographic term order
+            sage: s = T(1,(2,2)); s
+            (...0000000001)*x^2*y^2
+            sage: t = T(1,(1,3)); t
+            (...0000000001)*x*y^3
+            sage: s < t # indirect doctest
+            False
+            sage: s > t # indirect doctest
+            True
+
+        ..TODO:: fix this
+        
+            sage: ss = T(3,(2,2)); ss
+            (...0000000011)*x^2*y^2
+            sage: s < ss # indirect doctest
+            True
+            sage: s > ss # indirect doctest
+            False
+        
+        
+        """
         cdef int c
         c = cmp(-(<TateAlgebraTerm>self)._valuation_c(), 
                 -(<TateAlgebraTerm>other)._valuation_c())

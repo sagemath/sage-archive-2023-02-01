@@ -2751,7 +2751,7 @@ cdef class IntegerMatrix(LeanMatrix):
     - ``nrows`` -- number of rows
     - ``ncols`` -- number of columns
     - ``M`` -- (default: ``None``) a ``Matrix`` or ``GenericMatrix`` of
-      dimensions at most ``m*n``.
+      dimensions at most ``m*n``
 
     .. NOTE::
 
@@ -2761,8 +2761,13 @@ cdef class IntegerMatrix(LeanMatrix):
         parts of Sage, use ``Matrix(A)`` instead.
 
         This class is mainly intended for use with the RegularMatroid class,
-        so entries are assumed to be small integers. No
-        overflow checking takes place!
+        so entries are assumed to be `\pm 1` or `0`. No overflow checking
+        takes place!
+
+    .. WARNING::
+
+        All entries for this matrix are assumed to be either `0`, `+1`,
+        or `-1`.
 
     EXAMPLES::
 

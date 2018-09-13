@@ -43,7 +43,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         (0)*x*y
 
     """
-    def __init__(self, parent, coeff, exponent):
+    def __init__(self, parent, coeff, exponent=None):
         """
         Initialize a Tate algebra term
 
@@ -69,13 +69,27 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         MonoidElement.__init__(self, parent)
         field = parent.base_ring().fraction_field()
-        self._coeff = field(coeff)
-        if isinstance(exponent, ETuple):
-            self._exponent = exponent
+        if isinstance(coeff, TateAlgebraElement):
+            coeff = coeff.leading_term()
+        if isinstance(coeff, TateAlgebraTerm):
+            if coeff.parent().variable_names() != self._parent.variable_names():
+                raise ValueError("The variable names do not match")
+            self._coeff = field((<TateAlgebraTerm>coeff)._coeff)
+            self._exponent = (<TateAlgebraTerm>coeff)._exponent
         else:
-            self._exponent = ETuple(exponent)
+            if coeff.is_zero():
+                raise ValueError("A term cannot be zero")
+            self._coeff = field(coeff)
+            self._exponent = ETuple([0] * parent.ngens())
+        if exponent is not None:
+            if not isinstance(exponent, ETuple):
+                exponent = ETuple(exponent)
+            self._exponent = self._exponent.eadd(exponent)
         if len(self._exponent) != parent.ngens():
             raise ValueError("The length of the exponent does not match the number of variables")
+        for i in self._exponent.nonzero_positions():
+            if self._exponent[i] < 0:
+                raise ValueError("Only nonnegative exponents are allowed")
 
     cdef TateAlgebraTerm _new_c(self):
         r"""
@@ -1106,6 +1120,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         terms = self.terms()
         if terms:
             return terms[0]
+        else:
+            raise ValueError("zero has no leading term")
 
     def leading_coefficient(self):
         """

@@ -1433,7 +1433,7 @@ class DiGraph(GenericGraph):
             sage: T.sinks()
             [1]
         """
-        return [x for x in self if self.out_degree(x)==0]
+        return sorted([x for x in self if self.out_degree(x)==0])
 
     def degree_polynomial(self):
         r"""

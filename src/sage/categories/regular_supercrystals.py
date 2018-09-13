@@ -366,16 +366,16 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: T = B.tensor(B)
                 sage: T.lowest_weight_vectors()
-                ([3, 3], [3, 2])
+                ([3, 2], [3, 3])
 
             We give an example from [BKK2000]_ that has fake
             lowest weight vectors::
 
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: B.lowest_weight_vectors()
-                ([[-1, 1, 2], [1, 2], [2]],
-                 [[-2, 1, 2], [-1, 2], [1]],
-                 [[-2, 1, 2], [-1, 2], [2]])
+                ([[-2, 1, 2], [-1, 2], [1]],
+                 [[-2, 1, 2], [-1, 2], [2]],
+                 [[-1, 1, 2], [1, 2], [2]])
                 sage: B.genuine_lowest_weight_vectors()
                 ([[-1, 1, 2], [1, 2], [2]],)
             """
@@ -479,9 +479,9 @@ class RegularSuperCrystals(Category_singleton):
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: for b in B.lowest_weight_vectors():
                 ....:     print("{} {}".format(b, b.is_genuine_lowest_weight()))
-                [[-1, 1, 2], [1, 2], [2]] True
                 [[-2, 1, 2], [-1, 2], [1]] False
                 [[-2, 1, 2], [-1, 2], [2]] False
+                [[-1, 1, 2], [1, 2], [2]] True
                 sage: [b for b in B if b.is_genuine_lowest_weight([-1,0])]
                 [[[-2, -1, 1], [-1, 1], [1]],
                  [[-2, -1, 1], [-1, 1], [2]],

@@ -363,7 +363,7 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: polygons.__iter__()
-            <generator object _iterate_Polyhedron at 0x...>
+            <generator object ..._iterate_Polyhedron at 0x...>
         """
         iterator = self._iterate()
         return iterator(None, None, None)

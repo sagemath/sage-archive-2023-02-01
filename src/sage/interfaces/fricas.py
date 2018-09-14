@@ -199,7 +199,7 @@ from __future__ import print_function
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import SAGE_TMP_INTERFACE
-from sage.env import DOT_SAGE
+from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
 from sage.docs.instancedoc import instancedoc
 import re
 
@@ -602,6 +602,24 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: s = "unparse((-1234567890123456789012345678901234567890123456789012345678901234567890*n::EXPR INT)::INFORM)"
             sage: fricas.get_string(s)                                                       # optional - fricas
             '(-1234567890123456789012345678901234567890123456789012345678901234567890)*n'
+
+        Check that :trac:`25628` is fixed::
+
+            sage: var("a b"); f = 1/(1+a*cos(x))                                # optional - fricas
+            (a, b)
+            sage: lF = integrate(f, x, algorithm="fricas")                      # optional - fricas
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: f = 1/(b*x^2+a); lF = integrate(f, x, algorithm="fricas"); lF # optional - fricas
+            [1/2*log((2*a*b*x + (b*x^2 - a)*sqrt(-a*b))/(b*x^2 + a))/sqrt(-a*b),
+             arctan(sqrt(a*b)*x/a)/sqrt(a*b)]
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+
         """
         # strip removes leading and trailing whitespace, after that
         # we can assume that the first and the last character are
@@ -1020,12 +1038,12 @@ class FriCASElement(ExpectElement):
             sage: fricas(0)._get_sage_type(m)                                   # optional - fricas
             Rational Field
         """
-        from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
+        from sage.rings.all import ZZ, QQbar, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
-        from sage.matrix.constructor import matrix
 
         # first implement domains without arguments
         head = str(domain.car())
@@ -1049,6 +1067,9 @@ class FriCASElement(ExpectElement):
 
         if head == "IntegerMod":
             return Integers(domain[1].integer().sage())
+
+        if head == "PrimeField":
+            return FiniteField(domain[1].integer().sage())
 
         if head == "Fraction":
             return FractionField(self._get_sage_type(domain[1]))
@@ -1105,14 +1126,14 @@ class FriCASElement(ExpectElement):
              0.451026811796262,
              0.732815101786507,
              0.837981225008390,
-             NaN,
-             NaN,
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I,
              1.11976951499863,
              0.451026811796262,
              0.732815101786507,
              0.837981225008390,
-             NaN,
-             NaN]
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I]
             sage: l = [tanh, sinh, cosh, coth, sech, csch, asinh, acosh, atanh, acoth, asech, acsch, arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch]
             sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
             [0.716297870199024,
@@ -1152,24 +1173,97 @@ class FriCASElement(ExpectElement):
             sage: dilog(1.0)
             1.64493406684823
 
+        Check that :trac:`25987` is fixed::
+
+            sage: integrate(lambert_w(x), x, algorithm="fricas")                # optional - fricas
+            (x*lambert_w(x)^2 - x*lambert_w(x) + x)/lambert_w(x)
+
+        Check that :trac:`25838` is fixed::
+
+            sage: F = function('f'); f = SR.var('f')
+            sage: FF = fricas(F(f)); FF                                         # optional - fricas
+            f(f)
+            sage: FF.D(f).sage()                                                # optional - fricas
+            diff(f(f), f)
+            sage: bool(FF.D(f).integrate(f).sage() == F(f))                     # optional - fricas
+            True
+
+        Check that :trac:`25602` is fixed::
+
+            sage: r = fricas.integrate(72000/(1+x^5),x).sage()                  # optional - fricas
+            sage: n(r.subs(x=5)-r.subs(x=3))                                    # optional - fricas tol 0.1
+            193.020947266210
+
+            sage: var("a"); r = fricas.integrate(72000*a^8/(a^5+x^5),x).sage()  # optional - fricas
+            a
+            sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas tol 0.1
+            193.020947266268 - 8.73114913702011e-11*I
         """
         from sage.calculus.calculus import symbolic_expression_from_string
+        from sage.calculus.functional import diff
         from sage.libs.pynac.pynac import symbol_table, register_symbol
         from sage.symbolic.all import I
-        from sage.functions.log import dilog
+        from sage.functions.log import dilog, lambert_w
+        register_symbol(lambda f,x: diff(f, x), {'fricas':'D'})
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
+        register_symbol(lambda z: lambert_w(z), {'fricas':'lambertW'})
+
+
+        def explicitely_not_implemented(*args):
+            raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %args)
+        register_symbol(explicitely_not_implemented, {'fricas':'rootOfADE'})
+        register_symbol(explicitely_not_implemented, {'fricas':'rootOfRec'})
+
+        rootOf = dict() # (variable, polynomial)
+        rootOf_ev = dict() # variable -> (complex) algebraic number
+        def convert_rootOf(x, y):
+            if y in rootOf:
+                assert rootOf[y] == x
+            else:
+                rootOf[y] = x
+            return y
+        register_symbol(convert_rootOf, {'fricas':'rootOf'})
 
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
-                        ('::Symbol', ' ')]
+                        ('::Symbol', ' '),
+                        ('%', '_')] # this last one is a workaround - python does not allow % in variable names
         for old, new in replacements:
             s = s.replace(old, new)
+
         try:
-            return symbolic_expression_from_string(s, symbol_table["fricas"])
+            ex = symbolic_expression_from_string(s, symbol_table["fricas"])
         except (SyntaxError, TypeError):
             raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %s)
 
+        from sage.rings.all import QQbar, PolynomialRing
+        i = 0
+        while rootOf:
+            (var, poly) = rootOf.items()[i]
+            pvars = poly.variables()
+            rvars = [v for v in pvars if v not in rootOf_ev] # remaining variables
+            uvars = [v for v in rvars if v in rootOf] # variables to evaluate
+            if len(uvars) == 1:
+                assert uvars[0] == var
+                # substitute known roots
+                poly = poly.subs(rootOf_ev)
+                evars = [v for v in rvars if v not in rootOf] # extraneous variables
+                assert set(evars) == set(poly.variables()).difference([var])
+                if evars:
+                    # we just need any root per FriCAS specification
+                    rootOf_ev[var] = poly.roots(var, multiplicities=False)[0]
+                else:
+                    R = PolynomialRing(QQbar, "x")
+                    # PolynomialRing does not accept variable names with leading underscores
+                    poly = R(poly.subs({var:R.gen()}))
+                    # we just need any root per FriCAS specification
+                    rootOf_ev[var] = poly.roots(multiplicities=False)[0].radical_expression()
+                del rootOf[var]
+                i = 0
+            else:
+                i += 1
+        return ex.subs(rootOf_ev)
 
     def _sage_(self):
         """
@@ -1209,6 +1303,11 @@ class FriCASElement(ExpectElement):
 
             sage: fricas("((42^17)^1783)::IntegerMod(5^(5^5))").sage() == Integers(5^(5^5))((42^17)^1783) # optional - fricas
             True
+
+        Matrices over a prime field::
+
+            sage: fricas("matrix [[1::PF 3, 2],[2, 0]]").sage().parent()        # optional - fricas
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
 
         We can also convert FriCAS's polynomials to Sage polynomials::
 
@@ -1310,9 +1409,7 @@ class FriCASElement(ExpectElement):
             <BLANKLINE>
                Cannot convert the value from type Any to InputForm .
         """
-        from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
-        from sage.rings.fraction_field import FractionField
-        from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.all import ZZ, PolynomialRing, RDF
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.symbolic.all import I
@@ -1387,7 +1484,7 @@ class FriCASElement(ExpectElement):
             s = unparsed_InputForm[:-len("::AlgebraicNumber()")]
             return sage_eval("QQbar(" + s + ")")
 
-        if head == "IntegerMod":
+        if head == "IntegerMod" or head == "PrimeField":
             # one might be tempted not to go via InputForm here, but
             # it turns out to be safer to do it.
             n = unparsed_InputForm[len("index("):]

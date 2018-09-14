@@ -1245,7 +1245,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: Se1 =  C.semidirect_product(D, id1)
             sage: id2 = (D.gens(), [(C.gens(),C.gens()),(C.gens(),C.gens())])
             sage: Se2 =  D.semidirect_product(C ,id2)
-            sage: Dp1 = C.direct_product(D);
+            sage: Dp1 = C.direct_product(D)
             sage: Dp1.is_isomorphic(Se1), Dp1.is_isomorphic(Se2)
             (True, True)
 

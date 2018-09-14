@@ -1208,7 +1208,7 @@ class FreeLieAlgebraElement(LieAlgebraElement):
             [([x, y], -1), (x, 1)]
         """
         k = lambda x: (-x[0]._grade, x[0]) if isinstance(x[0], GradedLieBracket) else (-1, x[0])
-        return sorted(self._monomial_coefficients.iteritems(), key=k)
+        return sorted((<dict>self._monomial_coefficients).iteritems(), key=k)
 
     def _bracket_(self, y):
         """

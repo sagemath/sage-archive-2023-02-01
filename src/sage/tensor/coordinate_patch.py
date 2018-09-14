@@ -275,6 +275,4 @@ class CoordinatePatch(Parent):
             sage: latex(S) == S._latex_()
             True
         """
-        return "\\mathbb{\RR}^%s" % self.dim()
-
-
+        return "\\mathbb{\\RR}^%s" % self.dim()

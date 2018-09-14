@@ -29,7 +29,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
+
+cimport cython
+from cysignals.signals cimport sig_check
+from cpython.array cimport array
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
@@ -41,67 +46,6 @@ from sage.rings.integer cimport Integer
 
 # Copied from sage.misc.fast_methods, used in __hash__() below.
 cdef int SIZEOF_VOID_P_SHIFT = 8*sizeof(void *) - 4
-
-cdef class FiniteFieldIterator:
-    r"""
-    An iterator over a finite field. This should only be used when the field
-    is an extension of a smaller field which already has a separate iterator
-    function.
-    """
-    cdef object iter
-    cdef FiniteField parent
-
-    def __init__(self,FiniteField parent):
-        r"""
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt')) # indirect doctest
-            sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
-            True
-            sage: k = iter(FiniteField(16, 'a', impl='ntl')) # indirect doctest
-            sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
-            True
-        """
-        self.parent = parent
-        self.iter = iter(self.parent.vector_space())
-
-    def __next__(self):
-        r"""
-        Return the next element in the iterator.
-
-        EXAMPLES::
-
-            sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt'))
-            sage: next(k) # indirect doctest
-            0
-        """
-        return self.parent(next(self.iter))
-
-    def __iter__(self):
-        """
-        Return ``self`` since this is an iterator class.
-
-        EXAMPLES::
-
-            sage: K.<a> = GF(7^4)
-            sage: K.list()[:7]
-            [0, a, a^2, a^3, 2*a^2 + 3*a + 4, 2*a^3 + 3*a^2 + 4*a, 3*a^3 + a^2 + 6*a + 1]
-            sage: K.<a> = GF(5^9)
-            sage: for x in K:
-            ....:     if x == a+3: break
-            ....:     print(x)
-            0
-            1
-            2
-            3
-            4
-            a
-            a + 1
-            a + 2
-        """
-        return self
 
 
 cdef class FiniteField(Field):
@@ -346,24 +290,101 @@ cdef class FiniteField(Field):
         sib.cache(self, v, name)
         return v
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def __iter__(self):
         """
-        Return an iterator over the elements of this finite field. This generic
-        implementation uses the fairly simple :class:`FiniteFieldIterator`
-        class; derived classes may implement their own more sophisticated
-        replacements.
+        Iterate over all elements of this finite field.
 
         EXAMPLES::
 
-            sage: k = FiniteField(8, 'a', impl='pari_ffelt')
-            sage: i = iter(k); i # indirect doctest
-            <sage.rings.finite_rings.finite_field_base.FiniteFieldIterator object at ...>
-            sage: next(i)
-            0
-            sage: list(k) # indirect doctest
-            [0, 1, a, a + 1, a^2, a^2 + 1, a^2 + a, a^2 + a + 1]
+            sage: k.<a> = FiniteField(9, impl="pari")
+            sage: list(k)
+            [0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2]
+
+        Partial iteration of a very large finite field::
+
+            sage: p = next_prime(2^64)
+            sage: k.<a> = FiniteField(p^2, impl="pari")
+            sage: it = iter(k); it
+            <generator object at ...>
+            sage: [next(it) for i in range(10)]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+        TESTS:
+
+        Check that the generic implementation works in all cases::
+
+            sage: L = []
+            sage: from sage.rings.finite_rings.finite_field_base import FiniteField
+            sage: for impl in ("givaro", "pari", "ntl"):
+            ....:     k = GF(8, impl=impl, names="z")
+            ....:     print(list(FiniteField.__iter__(k)))
+            [0, 1, z, z + 1, z^2, z^2 + 1, z^2 + z, z^2 + z + 1]
+            [0, 1, z, z + 1, z^2, z^2 + 1, z^2 + z, z^2 + z + 1]
+            [0, 1, z, z + 1, z^2, z^2 + 1, z^2 + z, z^2 + z + 1]
         """
-        return FiniteFieldIterator(self)
+        cdef Py_ssize_t n = self.degree()
+        cdef unsigned long lim  # maximum value for coefficients
+        try:
+            lim = (<unsigned long>self.characteristic()) - 1
+        except OverflowError:
+            # If the characteristic is too large to represent in an
+            # "unsigned long", it is reasonable to assume that we won't
+            # be able to iterate over all elements. Typically n >= 2,
+            # so that would mean >= 2^64 elements on a 32-bit system.
+            # Just in case that we iterate to the end anyway, we raise
+            # an exception at the end.
+            lim = <unsigned long>(-1)
+
+        elt = self.zero()
+        one = self.one()
+        x = self.gen()
+
+        # coeffs[] is an array of coefficients of the current finite
+        # field element (as unsigned longs)
+        #
+        # Stack represents an element
+        #   sum_{i=0}^{n-1}  coeffs[i] x^i
+        # as follows:
+        #   stack[k] = sum_{i=k}^{n-1} coeffs[i] x^(i-k)
+        #
+        # This satisfies the recursion
+        #   stack[k-1] = x * stack[k] + coeffs[k-1]
+        #
+        # Finally, elt is a shortcut for stack[k]
+        #
+        cdef list stack = [elt] * n
+        cdef array coeffsarr = array('L', [0] * n)
+        cdef unsigned long* coeffs = coeffsarr.data.as_ulongs
+
+        yield elt  # zero
+        cdef Py_ssize_t k = 0
+        while k < n:
+            # Find coefficients of next element
+            coeff = coeffs[k]
+            if coeff >= lim:
+                # We cannot increase coeffs[k], so we wrap around to 0
+                # and try to increase the next coefficient
+                coeffs[k] = 0
+                k += 1
+                continue
+            coeffs[k] = coeff + 1
+
+            # Now compute and yield the finite field element
+            sig_check()
+            elt = stack[k] + one
+            stack[k] = elt
+            # Fix lower elements of stack, until k == 0
+            while k > 0:
+                elt *= x
+                k -= 1
+                stack[k] = elt
+
+            yield elt
+
+        if lim == <unsigned long>(-1):
+            raise NotImplementedError("iterating over all elements of a large finite field is not supported")
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
@@ -1263,7 +1284,7 @@ cdef class FiniteField(Field):
             sage: K.<a> = Qq(49); k = K.residue_field()
             sage: k.convert_map_from(K)
             Reduction morphism:
-              From: Unramified Extension in a defined by x^2 + 6*x + 3 with capped relative precision 20 over 7-adic Field
+              From: 7-adic Unramified Extension Field in a defined by x^2 + 6*x + 3
               To:   Finite Field in a0 of size 7^2
 
         Check that :trac:`8240 is resolved::
@@ -1271,7 +1292,7 @@ cdef class FiniteField(Field):
             sage: R.<a> = Zq(81); k = R.residue_field()
             sage: k.convert_map_from(R)
             Reduction morphism:
-              From: Unramified Extension in a defined by x^4 + 2*x^3 + 2 with capped relative precision 20 over 3-adic Ring
+              From: 3-adic Unramified Extension Ring in a defined by x^4 + 2*x^3 + 2
               To:   Finite Field in a0 of size 3^4
         """
         from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
@@ -1392,7 +1413,7 @@ cdef class FiniteField(Field):
                 if modulus.change_ring(self).is_irreducible():
                     E = GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
                 else:
-                    E = Field.extension(self, modulus, name=name, embedding=embedding)
+                    E = Field.extension(self, modulus, name=name, embedding=embedding, **kwds)
         elif isinstance(modulus, (int, Integer)):
             E = GF(self.order()**modulus, name=name, **kwds)
             if E is self:
@@ -1409,7 +1430,7 @@ cdef class FiniteField(Field):
                 except AssertionError: # coercion already exists
                     pass
         else:
-            E = Field.extension(self, modulus, name=name, embedding=embedding)
+            E = Field.extension(self, modulus, name=name, embedding=embedding, **kwds)
         if map:
             return (E, E.coerce_map_from(self))
         else:

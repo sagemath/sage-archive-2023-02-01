@@ -23,7 +23,7 @@ from .representation import Inequality, Equation, Vertex, Ray, Line
 
 
 def Polyhedra(base_ring, ambient_dim, backend=None):
-    """
+    r"""
     Construct a suitable parent class for polyhedra
 
     INPUT:
@@ -548,7 +548,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             return Polyhedra(base_ring, self.ambient_dim())
 
     def _coerce_base_ring(self, other):
-        """
+        r"""
         Return the common base rincg for both ``self`` and ``other``.
 
         This method is not part of the coercion framework, but only a

@@ -167,14 +167,6 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
     export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
 fi
 
-for dir in "$SAGE_SPKG_INST" "$SAGE_SPKG_SCRIPTS"; do
-    mkdir -p "$dir"
-    if [ $? -ne 0 ]; then
-        error_msg "Error creating directory $dir"
-        exit 1
-    fi
-done
-
 
 # Remove '.' from PYTHONPATH, which may also come from SAGE_PATH, to avoid
 # trouble with setuptools / easy_install (cf. #10192, #10176):
@@ -563,11 +555,13 @@ fi
 # Setup directories
 ##################################################################
 
-mkdir -p "$SAGE_BUILD_DIR"
-if [ $? -ne 0 ]; then
-    error_msg "Error creating directory $SAGE_BUILD_DIR"
-    exit 1
-fi
+for dir in "$SAGE_SPKG_INST" "$SAGE_SPKG_SCRIPTS" "$SAGE_BUILD_DIR"; do
+    mkdir -p "$dir"
+    if [ $? -ne 0 ]; then
+        error_msg "Error creating directory $dir"
+        exit 1
+    fi
+done
 
 # Trac #5852: check write permissions
 if [ ! -w "$SAGE_BUILD_DIR" ]; then
@@ -846,6 +840,9 @@ export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
 # end of spkg-install.
 export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_LOCAL}"
 
+# First uninstall the previous version of this package, if any
+sage-spkg-uninstall "$PKG_BASE"
+
 
 if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
@@ -868,17 +865,16 @@ else
     fi
 fi
 
-# We are now ready to install the new package files into $SAGE_LOCAL, so first
-# uninstall the previous version of this package, if any
-sage-spkg-uninstall "$PKG_BASE"
-
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_DESTDIR installation was not used
 echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
 if [ -d "$SAGE_DESTDIR" ]; then
-    PREFIX="${SAGE_DESTDIR_LOCAL%/}/"
+    # Some `find` implementations will put superfluous slashes in the
+    # output if we give them a directory name with a slash; so make sure
+    # any trailing slash is removed; https://trac.sagemath.org/ticket/26013
+    PREFIX="${SAGE_DESTDIR_LOCAL%/}"
 
-    rm -f "$PREFIX"lib/*.la
+    rm -f "$PREFIX"/lib/*.la
     if [ $? -ne 0 ]; then
         error_msg "Error deleting unnecessary libtool archive files"
         exit 1
@@ -889,7 +885,7 @@ if [ -d "$SAGE_DESTDIR" ]; then
     FIRST=1
     old_IFS="$IFS"; IFS=$'\n'
     for filename in $(find "$PREFIX" -type f -o -type l | sort); do
-        filename="${filename#$PREFIX}"
+        filename="${filename#$PREFIX/}"
         if [ $FIRST -eq 1 ]; then
             FILE_LIST="\"$filename\""
             FIRST=0
@@ -900,7 +896,7 @@ if [ -d "$SAGE_DESTDIR" ]; then
         if [ ! -d "$SAGE_LOCAL/$(dirname "$filename")" ]; then
             $SAGE_SUDO mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
         fi
-        $SAGE_SUDO mv "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
+        $SAGE_SUDO mv "$PREFIX/$filename" "${SAGE_LOCAL%/}/$filename"
         if [ $? -ne 0 ]; then
             error_msg "Error moving files for $PKG_NAME."
             exit 1

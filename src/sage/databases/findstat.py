@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 FindStat - the Combinatorial Statistic Finder.
 
@@ -193,7 +194,6 @@ from collections import OrderedDict
 import re
 import webbrowser
 import tempfile
-import time
 import inspect
 import json
 import cgi
@@ -1014,6 +1014,7 @@ class FindStatStatistic(SageObject):
 
             sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values() # optional -- internet
             0: (St000012: The area of a Dyck path., [], 14)
+            ...
         """
         self._query = "data"
 
@@ -2194,8 +2195,8 @@ class FindStatCollection(Element):
 
     def to_string(self):
         r"""
-        Return a function that returns the FindStat normal
-        representation given an object.
+        Return a function that returns a FindStat representation given an
+        object.
 
         OUTPUT:
 
@@ -2208,19 +2209,20 @@ class FindStatCollection(Element):
             sage: p = Poset((range(3), [[0, 1], [1, 2]]))                       # optional -- internet
             sage: c = FindStatCollection("Posets")                              # optional -- internet
             sage: c.to_string()(p)                                              # optional -- internet
-            '([(0, 2), (2, 1)], 3)'
+            '([(0, 1), (1, 2)], 3)'
+
         """
         return self._to_str
 
     def from_string(self):
         r"""
-        Return a function that returns the object given the FindStat
-        normal representation.
+        Return a function that returns the object given a FindStat
+        representation.
 
         OUTPUT:
 
         The function that produces the sage object given its FindStat
-        normal representation as a string.
+        representation as a string.
 
         EXAMPLES::
 
@@ -2384,7 +2386,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
              None,
              lambda x: x.num_verts(),
              lambda x, l: x.num_verts() in l,
-             lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
+             lambda X: str((sorted(X.edges(False)), X.num_verts())),
              lambda x: (lambda E, V: Graph([list(range(V)), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
         6:  [None, None, None, Composition,           Compositions,            None,
              lambda x: x.size(),
@@ -2419,7 +2421,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
         14: [None, None, None, FinitePoset,           posets,                  None,
              lambda x: x.cardinality(),
              lambda x, l: x.cardinality() in l,
-             lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
+             lambda X: str((sorted(X._hasse_diagram.cover_relations()), len(X._hasse_diagram.vertices()))),
              lambda x: (lambda R, E: Poset((list(range(E)), R)))(*literal_eval(x))],
         19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x),
              None,

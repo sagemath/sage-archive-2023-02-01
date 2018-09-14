@@ -324,7 +324,7 @@ cdef class Riemann_Map:
         adp = abs(dp)
         sadp = np.sqrt(adp)
         h = 1 / (TWOPI * I) * ((dp / adp) / (self.a - cp))
-        hconj = np.array(map(np.complex.conjugate, h), dtype=COMPLEX)
+        hconj = h.conjugate()
         g = -sadp * hconj
         normalized_dp=dp/adp
         C = I / N * sadp # equivalent to -TWOPI / N * 1 / (TWOPI * I) * sadp

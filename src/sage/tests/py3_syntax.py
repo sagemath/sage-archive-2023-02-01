@@ -179,7 +179,8 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
             sage: py3_syntax = Python3SyntaxTest()
             sage: py3_syntax.test(src.name)
             Invalid Python 3 syntax found:
-            Missing parentheses in call to 'print' (...py, line 1)
+            Missing parentheses in call to 'print'.
+            Did you mean print("invalid print statement")? (...py, line 1)
             sage: os.unlink(src.name)
         """
 

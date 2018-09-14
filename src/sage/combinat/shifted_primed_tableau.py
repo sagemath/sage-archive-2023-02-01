@@ -27,8 +27,6 @@ from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.integer_vector import IntegerVectors
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
-from sage.rings.rational import Rational
-from sage.rings.integer_ring import ZZ
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute
@@ -261,6 +259,18 @@ class ShiftedPrimedTableau(ClonableArray):
             False
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: t = ShiftedPrimedTableau([[1,"2p"]])
+            sage: hash(t) == hash(ShiftedPrimedTableaux([2])([[1,3/2]]))
+            True
+        """
+        return hash((self._skew, tuple(self)))
 
     def _repr_(self):
         """
@@ -913,7 +923,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if T[r][c].is_primed():
             T = [[elt.increase_half() if elt is not None else elt
                   for elt in row] for row in T]
-            T = map(list, zip(*T))
+            T = [list(z) for z in zip(*T)]
             r, c = c, r
         h, l = len(T), len(T[0])
 
@@ -946,7 +956,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if r > c:
             T = [[elt.decrease_half() if elt is not None else elt
                   for elt in row] for row in T]
-            T = map(list, zip(*T))
+            T = [list(z) for z in zip(*T)]
 
         T = [tuple(elt for elt in row if elt is not None) for row in T]
         return type(self)(self.parent(), T, check=False, preprocessed=True)
@@ -1005,7 +1015,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if T[r][c].is_primed():
             T = [[elt.increase_half() if elt is not None else elt
                   for elt in row] for row in T]
-            T = map(list, zip(*T))
+            T = [list(z) for z in zip(*T)]
             r, c = c, r
 
         if (c == 0 or T[r][c-1] is None or T[r][c-1] <= ind_e):
@@ -1032,7 +1042,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if r > c:
             T = [[elt.decrease_half() if elt is not None else elt
                   for elt in row] for row in T]
-            T = map(list, zip(*T))
+            T = [list(z) for z in zip(*T)]
 
         T = [tuple(elt for elt in row if elt is not None) for row in T]
         return type(self)(self.parent(), T, check=False, preprocessed=True)

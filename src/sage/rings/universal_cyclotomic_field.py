@@ -147,11 +147,19 @@ Check that :trac:`17117` is fixed::
     sage: imag(e3)
     -1/2*E(12)^7 + 1/2*E(12)^11
 
+Check that :trac:`25686` is fixed::
+
+    sage: UCF = UniversalCyclotomicField()
+    sage: UCF.is_finite()
+    False
+
 AUTHORS:
 
 - Christian Stump (2013): initial Sage version (see :trac:`8327`)
 
 - Vincent Delecroix (2015): complete rewriting using libgap (see :trac:`18152`)
+
+- Sebastian Oehms (2018): deleting the method is_finite since it returned the wrong result (see :trac:`25686`)
 """
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
@@ -1115,21 +1123,6 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         return (self.zero(), self.one(), -self.one(),
                 self.gen(3, 1),
                 self.gen(7, 1) - self(2) / self(3) * self.gen(7, 2))
-
-    def is_finite(self):
-        r"""
-        Return ``True``.
-
-        EXAMPLES::
-
-            sage: UniversalCyclotomicField().is_finite()
-            True
-
-        .. TODO::
-
-            this method should be provided by the category.
-        """
-        return True
 
     def _repr_(self):
         r"""

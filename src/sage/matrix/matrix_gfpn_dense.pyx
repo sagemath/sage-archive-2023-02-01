@@ -917,8 +917,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         Rescale row number `i` in-place by multiplication with the scalar `s`.
 
-        The argument ``start_col`` is ignored. The scalar `s` is
-        converted into the base ring.
+        The scalar `s` is converted into the base ring.
 
         EXAMPLES::
 
@@ -945,14 +944,54 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [    3*x 3*x + 1 3*x + 2 3*x + 3 3*x + 4]
             [4*x + 2       2   x + 2 2*x + 2 3*x + 2]
 
+        TESTS:
+
+        The following tests against bugs fixed in :trac:`25490`. It shows
+        that the optional argument ``start_col`` is correctly dealt with,
+        in an example where several marks are packed into one byte, and
+        so that temporarily the current field and row size are changed.
+        ::
+
+            sage: L.<y> = GF(9)
+            sage: N = MatrixSpace(L,5,5)((3*sorted(list(L)))[:25])
+            sage: N
+            [      0       1       2       y   y + 1]
+            [  y + 2     2*y 2*y + 1 2*y + 2       0]
+            [      1       2       y   y + 1   y + 2]
+            [    2*y 2*y + 1 2*y + 2       0       1]
+            [      2       y   y + 1   y + 2     2*y]
+            sage: M = MatrixSpace(K,1,25)(sorted(list(K)))
+            sage: N.rescale_row(1,1/y,1)
+            sage: N
+            [      0       1       2       y   y + 1]
+            [  y + 2       2   y + 1     2*y       0]
+            [      1       2       y   y + 1   y + 2]
+            [    2*y 2*y + 1 2*y + 2       0       1]
+            [      2       y   y + 1   y + 2     2*y]
+
         """
-        if start_col != 0 or self.Data == NULL:
-            raise ValueError("We can only rescale a full row of a non-empty matrix")
-        FfMulRow(MatGetPtr(self.Data, i), FfFromInt(self._converter.field_to_int(self._base_ring(s))))
+        if self.Data == NULL or start_col >= self.Data.Noc:
+            return
+        FfSetField(self.Data.Field)
+        cdef FEL c = FfFromInt(self._converter.field_to_int(self._base_ring(s)))
+        cdef ssize_t byte_offset = start_col//MPB     # how many full bytes will remain unchanged?
+        cdef ssize_t remains = start_col % MPB        # how many cols have to be treated separately?
+        cdef ssize_t noc                              # what bunch of cols will be treated together?
+        cdef int j
+        cdef PTR row_head = MatGetPtr(self.Data, i) + byte_offset
+        if remains:
+            for j in range(remains,MPB):
+                FfInsert(row_head, j, FfMul(FfExtract(row_head,j), c))
+            byte_offset += 1
+            row_head    += 1
+        noc = self.Data.Noc - byte_offset*MPB
+        if noc:
+            FfSetNoc(noc)
+            FfMulRow(row_head, c)
 
     cdef add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, multiple, Py_ssize_t start_col):
         """
-        Add the ``multiple``-fold of row ``row_from`` in-place to row ``row_to``.
+        Add the ``multiple``-fold of row ``row_from`` in-place to row ``row_to``, beginning with ``start_col``
 
         EXAMPLES::
 
@@ -972,10 +1011,53 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [    3*x 3*x + 1 3*x + 2 3*x + 3 3*x + 4]
             [    4*x 4*x + 1 4*x + 2 4*x + 3 4*x + 4]
 
+        TESTS:
+
+        The following tests against bugs fixed at :trac:`25490`. It demonstrates
+        that the optional argument ``start_col`` is correctly dealt with,
+        in a situation where several marks are packed into one byte
+        and the current field and row size are temporarily changed.
+        ::
+
+            sage: L.<y> = GF(9)
+            sage: N = MatrixSpace(L,5,5)((3*sorted(list(L)))[:25])
+            sage: N
+            [      0       1       2       y   y + 1]
+            [  y + 2     2*y 2*y + 1 2*y + 2       0]
+            [      1       2       y   y + 1   y + 2]
+            [    2*y 2*y + 1 2*y + 2       0       1]
+            [      2       y   y + 1   y + 2     2*y]
+            sage: M = MatrixSpace(K,1,25)(sorted(list(K)))
+            sage: N.add_multiple_of_row(2,1,-N[2,1]/N[1,1],1)
+            sage: N
+            [      0       1       2       y   y + 1]
+            [  y + 2     2*y 2*y + 1 2*y + 2       0]
+            [      1       0       2 2*y + 1   y + 2]
+            [    2*y 2*y + 1 2*y + 2       0       1]
+            [      2       y   y + 1   y + 2     2*y]
+            sage: y-(2*y+1)/y
+            2
+
         """
-        if start_col != 0 or self.Data == NULL:
-            raise ValueError("We can only rescale a full row of a non-empty matrix")
-        FfAddMulRow(MatGetPtr(self.Data, row_to), MatGetPtr(self.Data, row_from), FfFromInt(self._converter.field_to_int(self._base_ring(multiple))))
+        if self.Data == NULL or start_col >= self.Data.Noc:
+            return
+        FfSetField(self.Data.Field)
+        cdef FEL c = FfFromInt(self._converter.field_to_int(self._base_ring(multiple)))
+        cdef ssize_t byte_offset = start_col//MPB     # how many full bytes will remain unchanged?
+        cdef ssize_t remains = start_col % MPB        # how many cols have to be treated separately?
+        cdef ssize_t noc                              # what bunch of cols will be treated together?
+        cdef PTR row_to_head = MatGetPtr(self.Data, row_to)+byte_offset
+        cdef PTR row_from_head = MatGetPtr(self.Data, row_from)+byte_offset
+        if remains:
+            for j in range(remains,MPB):
+                FfInsert(row_to_head, j, FfAdd(FfExtract(row_to_head,j), FfMul(FfExtract(row_from_head,j), c)))
+            byte_offset += 1
+            row_to_head   += 1
+            row_from_head += 1
+        noc = self.Data.Noc - byte_offset*MPB
+        if noc:
+            FfSetNoc(noc)
+            FfAddMulRow(row_to_head, row_from_head, c)
 
     cdef swap_rows_c(self, Py_ssize_t row1, Py_ssize_t row2):
         """
@@ -1000,6 +1082,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [    4*x 4*x + 1 4*x + 2 4*x + 3 4*x + 4]
 
         """
+        if not self.Data:
+            raise ValueError("This matrix is empty")
+        FfSetField(self.Data.Field)
+        FfSetNoc(self.Data.Noc)
         FfSwapRows(MatGetPtr(self.Data, row1), MatGetPtr(self.Data, row2))
 
     def trace(self):

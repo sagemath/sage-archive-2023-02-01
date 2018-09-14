@@ -339,7 +339,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``algorithm`` - determines which algorithm to use, options are:
 
-          - 'pari' - use the ``matkerint()`` function from the PARI library
+          - 'pari' - use the :pari:`matkerint` function from the PARI library
           - 'padic' - use the p-adic algorithm from the IML library
           - 'default' - use a heuristic to decide which of the two above
             routines is fastest.  This is the default value.
@@ -369,7 +369,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             'computed-pari-int'
             sage: X = result[1]; X
             [ 26 -31  30 -21  -2  10]
-            [ 47  13 -48  14  11 -18]
+            [-47 -13  48 -14 -11  18]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 

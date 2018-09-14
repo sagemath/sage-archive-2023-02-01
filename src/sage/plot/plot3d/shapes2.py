@@ -991,7 +991,7 @@ class Line(PrimitiveObject):
         return cmds
 
     def corners(self, corner_cutoff=None, max_len=None):
-        """
+        r"""
         Figure out where the curve turns too sharply to pretend it is
         smooth.
 

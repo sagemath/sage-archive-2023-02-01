@@ -374,6 +374,13 @@ class InstanceTester(unittest.TestCase):
         Testing utilities for Rational Field
     """
 
+    # On Python 3 this attribute defaults to True, causing the AssertionErrors
+    # output by failed test cases to produce longer error messages than the
+    # default error messages on Python 2.  So for backwards compatibility of
+    # existing test cases we disable these "long messages" (which don't gain us
+    # all that much anyways)
+    longMessage = False
+
     def __init__(self, instance, elements = None, verbose = False, prefix = "", max_runs = 4096, max_samples = None, **options):
         """
         A gadget attached to an instance providing it with testing utilities.
@@ -510,7 +517,7 @@ class InstanceTester(unittest.TestCase):
 
             sage: tester = InstanceTester(ZZ)
             sage: ZZ.some_elements()             # yikes, shamelessly trivial ...
-            <generator object _some_elements_from_iterator at 0x...>
+            <generator object ..._some_elements_from_iterator at 0x...>
             sage: list(tester.some_elements())
             [0, 1, -1, 2, -2, ..., 49, -49, 50]
 

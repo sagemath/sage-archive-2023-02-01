@@ -40,13 +40,17 @@ Index
     :delim: |
 
     :meth:`is_strongly_regular` | Tests if a graph is strongly regular
+    :meth:`triangles_count` | Return the number of triangles containing `v`, for every `v`
+    :meth:`connected_subgraph_iterator` | Iterator over the induced connected subgraphs of order at most `k`
 
 Functions
 ---------
 """
 include "sage/data_structures/binary_matrix.pxi"
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
-cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
+
+cdef dict dense_graph_init(binary_matrix_t m, g, translation=False, force_undirected=False):
     r"""
     Initializes the binary matrix from a Sage (di)graph.
 
@@ -58,10 +62,13 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
 
     - ``translation`` (boolean) -- whether to return a dictionary associating to
       each vertex its corresponding integer in the binary matrix.
+
+    - ``force_undirected`` (boolean) -- whether to consider the graph as
+      undirected or not.
     """
     cdef dict d_translation
     from sage.graphs.graph import Graph
-    cdef int is_undirected = isinstance(g, Graph)
+    cdef bint is_undirected = isinstance(g, Graph) or force_undirected
     cdef int n = g.order()
 
     binary_matrix_init(m, n, n)
@@ -104,7 +111,7 @@ def is_strongly_regular(g, parameters = False):
     By convention, the complete graphs, the graphs with no edges
     and the empty graph are not strongly regular.
 
-    See :wikipedia:`Strongly regular graph`
+    See the :wikipedia:`Strongly regular graph`.
 
     INPUT:
 
@@ -279,3 +286,201 @@ def triangles_count(G):
     sig_free(count)
 
     return ans
+
+def connected_subgraph_iterator(G, k=None, bint vertices_only=False):
+    r"""
+    Iterator over the induced connected subgraphs of order at most `k`.
+
+    This method implements a iterator over the induced connected subgraphs of
+    the input (di)graph. An induced subgraph of a graph is another graph, formed
+    from a subset of the vertices of the graph and all of the edges connecting
+    pairs of vertices in that subset (:wikipedia:`Induced_subgraph`).
+
+    As for method :meth:`sage.graphs.generic_graph.connected_components`, edge
+    orientation is ignored. Hence, the directed graph with a single arc `0 \to
+    1` is considered connected.
+
+    INPUT:
+
+    - ``G`` -- a :class:`Graph` or a :class:`DiGraph`; loops and multiple edges
+      are allowed
+
+    - ``k`` -- (optional) integer; maximum order of the connected subgraphs to
+      report; by default, the method iterates over all connected subgraphs
+      (equivalent to ``k == n``)
+
+    - ``vertices_only`` -- (default: ``False``) boolean; whether to return
+      (Di)Graph or list of vertices
+
+    EXAMPLES::
+
+        sage: G = DiGraph([(1, 2), (2, 3), (3, 4), (4, 2)])
+        sage: list(G.connected_subgraph_iterator())
+        [Subgraph of (): Digraph on 1 vertex,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 3 vertices,
+         Subgraph of (): Digraph on 4 vertices,
+         Subgraph of (): Digraph on 3 vertices,
+         Subgraph of (): Digraph on 1 vertex,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 3 vertices,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 1 vertex,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 1 vertex]
+        sage: list(G.connected_subgraph_iterator(vertices_only=True))
+        [[1], [1, 2], [1, 2, 3], [1, 2, 3, 4], [1, 2, 4],
+         [2], [2, 3], [2, 3, 4], [2, 4], [3], [3, 4], [4]]
+        sage: list(G.connected_subgraph_iterator(k=2))
+        [Subgraph of (): Digraph on 1 vertex,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 1 vertex,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 1 vertex,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 1 vertex]
+        sage: list(G.connected_subgraph_iterator(k=2, vertices_only=True))
+        [[1], [1, 2], [2], [2, 3], [2, 4], [3], [3, 4], [4]]
+
+        sage: G = DiGraph([(1, 2), (2, 1)])
+        sage: list(G.connected_subgraph_iterator())
+        [Subgraph of (): Digraph on 1 vertex,
+         Subgraph of (): Digraph on 2 vertices,
+         Subgraph of (): Digraph on 1 vertex]
+        sage: list(G.connected_subgraph_iterator(vertices_only=True))
+        [[1], [1, 2], [2]]
+
+    TESTS:
+
+    The Path Graph of order `n` has `n (n + 1) / 2` connected subgraphs::
+
+        sage: G = graphs.PathGraph(10)
+        sage: len(list(G.connected_subgraph_iterator(vertices_only=True)))
+        55
+        sage: len(list(G.connected_subgraph_iterator(vertices_only=False)))
+        55
+
+    The Complete Graph of order `n` has `2^n - 1` connected subgraphs::
+
+        sage: G = graphs.CompleteGraph(5)
+        sage: len(list(G.connected_subgraph_iterator(vertices_only=False))) == 2**G.order() - 1
+        True
+        sage: G = graphs.CompleteGraph(6)
+        sage: len(list(G.connected_subgraph_iterator(vertices_only=True))) == 2**G.order() - 1
+        True
+
+    Checks that it works with general graphs and corner cases::
+
+        sage: G = DiGraph([(1, 2), (1, 2)], multiedges=True)
+        sage: len(list(G.connected_subgraph_iterator()))
+        3
+        sage: len(list(G.connected_subgraph_iterator(k=0)))
+        0
+        sage: len(list(G.connected_subgraph_iterator(vertices_only=True)))
+        3
+
+        sage: G = Graph([(1, 2), (1, 1)], loops=True)
+        sage: len(list(G.connected_subgraph_iterator(vertices_only=False)))
+        3
+        sage: G = Graph([(1, 2), (1, 2), (1, 1)], loops=True, multiedges=True)
+        sage: len(list(G.connected_subgraph_iterator()))
+        3
+        sage: len(list(G.connected_subgraph_iterator(k=1)))
+        2
+        sage: len(list(G.connected_subgraph_iterator(vertices_only=True)))
+        3
+    """
+    cdef Py_ssize_t mk = G.order() if k is None else k
+    cdef Py_ssize_t n = G.order()
+    if not n or mk < 1:
+        return
+
+    cdef list int_to_vertex = G.vertices()
+    cdef binary_matrix_t DG
+    sig_on()
+    dense_graph_init(DG, G, translation=False, force_undirected=True)
+
+    # We use a stack of bitsets. We need 3 bitsets per level with at most n + 1
+    # levels, so 3 * n + 3 bitsets. We also need 1 bitset that we create at the
+    # same time, so we need overall 3 * n + 4 bitsets
+    cdef binary_matrix_t stack
+    binary_matrix_init(stack, 3 * n + 4, n)
+    sig_off()
+
+    cdef bitset_t current  # current subset of vertices
+    cdef bitset_t left     # remaining vertices to consider
+    cdef bitset_t boundary # neighbors of the current subset
+    # candidate vertices for extending the current subset, i.e., vertices that
+    # are both in left and in boundary
+    cdef bitset_t candidates = stack.rows[3 * n + 3]
+
+    cdef Py_ssize_t l = 0
+    cdef Py_ssize_t u, v, a
+
+    # We first generate subsets containing vertex 0, then the subsets containing
+    # vertex 1 but not vertex 0 since we have already generated all subsets
+    # containing 0, then subsets containing 2 but not 0 or 1, etc.
+    for u in range(n):
+        sig_check()
+
+        if vertices_only:
+            yield [int_to_vertex[u]]
+        else:
+            yield G.subgraph([int_to_vertex[u]])
+
+        # We initialize the loop with vertices u in current, {u+1, ..., n-1}
+        # in left, and N(u) in boundary
+        bitset_clear(stack.rows[0])
+        bitset_add(stack.rows[0], u)
+        bitset_set_first_n(stack.rows[1], u+1)
+        bitset_complement(stack.rows[1], stack.rows[1])
+        bitset_copy(stack.rows[2], DG.rows[u])
+        l = 0
+
+        while l >= 0:
+            sig_check()
+
+            # We take the values at the top of the stack
+            current = stack.rows[l]
+            left = stack.rows[l + 1]
+            boundary = stack.rows[l + 2]
+
+            bitset_and(candidates, left, boundary)
+
+            # Search for a candidate vertex v
+            v = bitset_next(candidates, u+1)
+            if v >= 0 and bitset_len(current) < mk:
+                # We select vertex v
+                bitset_discard(left, v)
+
+                # Since we have not modified l, the bitsets for iterating without
+                # v are already at the top of the stack, with correct values
+
+                # We also build the subset with v and so we add values at the
+                # top of the stack
+                l += 3
+                bitset_copy(stack.rows[l], current)
+                bitset_add(stack.rows[l], v)
+                bitset_copy(stack.rows[l + 1], left)
+                bitset_union(stack.rows[l + 2], boundary, DG.rows[v])
+
+                # We yield that new subset
+                if vertices_only:
+                    yield [int_to_vertex[a] for a in range(u, n)
+                           if bitset_in(stack.rows[l], a)]
+                else:
+                    yield G.subgraph([int_to_vertex[a] for a in range(u, n)
+                                      if bitset_in(stack.rows[l], a)])
+
+            else:
+                # We cannot extend the current subset, either due to a lack of
+                # candidate (v == -1), or because the current subset has maximum
+                # size. We pop
+                l -= 3
+
+    sig_on()
+    binary_matrix_free(stack)
+    binary_matrix_free(DG)
+    sig_off()
+

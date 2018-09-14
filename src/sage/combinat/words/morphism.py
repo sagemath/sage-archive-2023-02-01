@@ -214,7 +214,7 @@ class PeriodicPointIterator(object):
             sage: s = WordMorphism('a->bacca,b->cba,c->aab')
             sage: p = PeriodicPointIterator(s, ['a','b','c'])
             sage: p.get_iterator(0)
-            <generator object get_iterator at ...>
+            <generator object ...get_iterator at ...>
         """
         j = (i-1)%len(self._cycle)
         for a in self._image(self._cycle[j]):
@@ -886,9 +886,9 @@ class WordMorphism(SageObject):
             s += r"\begin{array}{l}" + '\n'
             lines = []
             for a in A:
-                lines.append(r"%s \mapsto %s"% (a, self.image(a)))
+                lines.append(r"%s \mapsto %s" % (a, self.image(a)))
             s += '\\\\\n'.join(lines)
-            s += '\n' + "\end{array}"
+            s += '\n' + r"\end{array}"
             return LatexExpr(s)
         else:
             raise ValueError('unknown latex_layout(=%s)' % latex_layout)
@@ -999,7 +999,7 @@ class WordMorphism(SageObject):
             return self
 
         else:
-            nexp = int(exp / 2)
+            nexp = int(exp // 2)
             over = exp % 2
             res = (self * self) ** nexp
             if over == 1:
@@ -1560,7 +1560,7 @@ class WordMorphism(SageObject):
             sage: tm = WordMorphism('a->ab,b->ba')
             sage: tm.is_primitive()
             True
-            sage: fibo = WordMorphism('a->ab,b->a');
+            sage: fibo = WordMorphism('a->ab,b->a')
             sage: fibo.is_primitive()
             True
             sage: m = WordMorphism('a->bb,b->aa')

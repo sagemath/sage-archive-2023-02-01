@@ -1051,7 +1051,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt.tamari_interval(BinaryTree([[None,[]],[]]))
             Traceback (most recent call last):
             ...
-            ValueError: The two binary trees are not comparable on the Tamari lattice.
+            ValueError: the two binary trees are not comparable on the Tamari lattice
 
         TESTS:
 
@@ -2013,8 +2013,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [        o     o           o   o        ]
             [             / \                       ]
             [            o   o                      ]
-            sage: ascii_art(filter(lambda node: node.label() is not None,
-            ....:     b.canonical_labelling().in_order_traversal_iter()))
+            sage: ascii_art([node for node in
+            ....:     b.canonical_labelling().in_order_traversal_iter()
+            ....:     if node.label() is not None])
             [ 1,   _2_    , 3,   4  , 5 ]
             [     /   \         / \     ]
             [    1     4       3   5    ]
@@ -2123,8 +2124,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:    l.append(leaf)
             ....:    leaf = chr( ord(leaf)+1 )
             sage: n_action = lambda node: l.append( node.label() )
-            sage: b = BinaryTree([[None,[]],[[[],[]],[]]]).\
-            ....:     canonical_labelling()
+            sage: b = BinaryTree([[None,[]],[[[],[]],[]]])
+            sage: b = b.canonical_labelling()
             sage: b.in_order_traversal(n_action, l_action)
             sage: l
             ['a', 1, 'b', 2, 'c', 3, 'd', 4, 'e', 5, 'f', 6, 'g', 7, 'h', 8,
@@ -3672,7 +3673,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             False
             sage: BinaryTree([[[[],[]],[[],[]]], []]).is_full()
             True
-            sage: ascii_art(filter(lambda bt: bt.is_full(), BinaryTrees(5)))
+            sage: ascii_art([bt for bt in BinaryTrees(5) if bt.is_full()])
             [   _o_    ,     _o_   ]
             [  /   \        /   \  ]
             [ o     o      o     o ]
@@ -3838,7 +3839,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: lst = lambda i: filter(lambda bt: bt.is_perfect(), BinaryTrees(i))
+            sage: def lst(i):
+            ....:     return [bt for bt in BinaryTrees(i) if bt.is_perfect()]
             sage: for i in range(8): ascii_art(lst(i)) # long time
             [  ]
             [ o ]
@@ -3893,7 +3895,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: lst = lambda i: filter(lambda bt: bt.is_complete(), BinaryTrees(i))
+            sage: def lst(i):
+            ....:     return [bt for bt in BinaryTrees(i) if bt.is_complete()]
             sage: for i in range(8): ascii_art(lst(i)) # long time
             [  ]
             [ o ]

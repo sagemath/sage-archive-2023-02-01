@@ -404,7 +404,7 @@ class QSystem(CombinatorialFreeModule):
         return tuple(self.algebra_generators())
 
     def dimension(self):
-        """
+        r"""
         Return the dimension of ``self``, which is `\infty`.
 
         EXAMPLES::

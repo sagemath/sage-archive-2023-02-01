@@ -110,7 +110,7 @@ class IndefiniteIntegral(BuiltinFunction):
             return f.derivative(diff_param).integral(x)
 
     def _print_latex_(self, f, x):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.symbolic.integration.integral import indefinite_integral

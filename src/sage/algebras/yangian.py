@@ -617,7 +617,7 @@ class Yangian(CombinatorialFreeModule):
         return GradedYangianLoop(self)
 
     def dimension(self):
-        """
+        r"""
         Return the dimension of ``self``, which is `\infty`.
 
         EXAMPLES::
@@ -732,7 +732,7 @@ class Yangian(CombinatorialFreeModule):
                 for x in range(2, b[0]+1))
 
     def coproduct_on_basis(self, m):
-        """
+        r"""
         Return the coproduct on the basis element indexed by ``m``.
 
         The coproduct `\Delta\colon Y(\mathfrak{gl}_n) \longrightarrow
@@ -904,7 +904,7 @@ class YangianLevel(Yangian):
         return self._level
 
     def defining_polynomial(self, i, j, u=None):
-        """
+        r"""
         Return the defining polynomial of ``i`` and ``j``.
 
         The defining polynomial is given by:
@@ -928,7 +928,7 @@ class YangianLevel(Yangian):
         return sum(self.gen(k, i, j) * u**(ell-k) for k in range(ell+1))
 
     def quantum_determinant(self, u=None):
-        """
+        r"""
         Return the quantum determinant of ``self``.
 
         The quantum determinant is defined by:

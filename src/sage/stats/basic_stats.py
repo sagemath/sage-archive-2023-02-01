@@ -183,7 +183,7 @@ def std(v, bias=False):
         sage: std([])
         NaN
         sage: std([I, sqrt(2), 3/5])
-        sqrt(1/450*(10*sqrt(2) - 5*I - 3)^2 + 1/450*(5*sqrt(2) - 10*I + 3)^2 + 1/450*(5*sqrt(2) + 5*I - 6)^2)
+        1/15*sqrt(1/2)*sqrt((10*sqrt(2) - 5*I - 3)^2 + (5*sqrt(2) - 10*I + 3)^2 + (5*sqrt(2) + 5*I - 6)^2)
         sage: std([RIF(1.0103, 1.0103), RIF(2)])
         0.6998235813403261?
         sage: import numpy

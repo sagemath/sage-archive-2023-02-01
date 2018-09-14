@@ -419,8 +419,8 @@ class Permutation(CombinatorialElement):
         sage: Permutation( [[], []] )
         []
 
-    .. automethod:: _left_to_right_multiply_on_right
-    .. automethod:: _left_to_right_multiply_on_left
+    .. automethod:: Permutation.left_action_product
+    .. automethod:: Permutation.right_action_product
     """
     @staticmethod
     def __classcall_private__(cls, l, check_input = True):
@@ -2522,14 +2522,14 @@ class Permutation(CombinatorialElement):
 
         TESTS::
 
-            sage: all( P.fundamental_transformation_inverse() \
-            ....:       .fundamental_transformation() == P
-            ....:      for P in Permutations(4))
+            sage: all(P.fundamental_transformation_inverse().
+            ....:     fundamental_transformation() == P
+            ....:     for P in Permutations(4))
             True
 
-            sage: all( P.fundamental_transformation() \
-            ....:       .fundamental_transformation_inverse() == P
-            ....:      for P in Permutations(3))
+            sage: all(P.fundamental_transformation().
+            ....:     fundamental_transformation_inverse() == P
+            ....:     for P in Permutations(3))
             True
 
         Border cases::
@@ -7208,6 +7208,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
 
     while G.size() > 0:
         matching = G.matching(use_edge_labels=True)
+        matching = [(min(u,v), max(u, v), w) for u,v,w in matching]
 
         # This minimum is strictly larger than 0
         minimum = min([x[2] for x in matching])

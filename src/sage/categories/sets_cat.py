@@ -1559,14 +1559,15 @@ class Sets(Category_singleton):
                 sage: A.category()
                 Category of finite group algebras over Rational Field
                 sage: a = A.an_element(); a
-                () + 4*(1,2,3,4) + 2*(1,4)(2,3)
+                () + 3*(1,2,3,4) + (1,3) + 2*(1,4)(2,3)
 
             This space is endowed with an algebra structure, obtained
             by extending by bilinearity the multiplication of `G` to a
             multiplication on `RG`::
 
                 sage: a * a
-                5*() + 8*(2,4) + 8*(1,2,3,4) + 8*(1,3) + 16*(1,3)(2,4) + 4*(1,4)(2,3)
+                6*() + 6*(2,4) + 3*(1,2)(3,4) + 8*(1,2,3,4) + 8*(1,3)
+                 + 9*(1,3)(2,4) + 2*(1,4,3,2) + 7*(1,4)(2,3)
 
             If `S` is a :class:`monoid <Monoids>`, the result is its
             monoid algebra `KS`::

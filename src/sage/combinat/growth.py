@@ -2516,7 +2516,7 @@ class RuleLLMS(Rule):
             sage: LLMS3.forward_rule(Z, None, Z, None, Z, 1)
             (None, [1], 0)
 
-            sage: Y = Core([3,1,1], 3);
+            sage: Y = Core([3,1,1], 3)
             sage: LLMS3.forward_rule(Y, None, Y, None, Y, 1)
             (None, [4, 2, 1, 1], 3)
 
@@ -3564,7 +3564,7 @@ class RuleYoungFibonacci(Rule):
         TESTS::
 
             sage: YF = GrowthDiagram.rules.YoungFibonacci()
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = YF(w);
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = YF(w)
             sage: GrowthDiagram(YF, labels=G.out_labels()).to_word() == w  # indirect doctest
             True
         """
@@ -4022,7 +4022,7 @@ class RuleDomino(Rule):
 
         sage: pi = [3,-1,2,4,-5]
         sage: G = Domino(pi)
-        sage: G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         True
 
     Negating all signs transposes all the partitions::
@@ -4048,12 +4048,13 @@ class RuleDomino(Rule):
         [   2  3,   3  3 ]
 
         sage: l = {pi: Domino(pi) for pi in SignedPermutations(4)}
-        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
+        sage: S = Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()])
+        sage: S.cardinality()
         384
 
     Check the color-to-spin property for all permutations of size 4::
 
-        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: all(list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         ....:     for G in l.values())
         True
 

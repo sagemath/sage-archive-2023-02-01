@@ -484,7 +484,7 @@ class Groups(CategoryWithAxiom):
     Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras', at_startup=True)
 
     class Commutative(CategoryWithAxiom):
-        """
+        r"""
         Category of commutative (abelian) groups.
 
         A group `G` is *commutative* if `xy = yx` for all `x,y \in G`.

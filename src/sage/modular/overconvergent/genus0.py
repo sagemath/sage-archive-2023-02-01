@@ -356,7 +356,7 @@ class OverconvergentModularFormsSpace(Module):
             sage: OverconvergentModularForms(3, 2, 1/40, base_ring=L)
             Traceback (most recent call last):
             ...
-            ValueError: no element of base ring (=Eisenstein Extension ...) has normalised valuation 3/20
+            ValueError: no element of base ring (=3-adic Eisenstein Extension ...) has normalised valuation 3/20
         """
 
         p = ZZ(self.prime())
@@ -418,7 +418,7 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: M = OverconvergentModularForms(2, 0, 1/2, base_ring = Qp(2))
             sage: M.base_extend(Qp(2).extension(x^2 - 2, names="w"))
-            Space of 2-adic 1/2-overconvergent modular forms of weight-character 0 over Eisenstein Extension ...
+            Space of 2-adic 1/2-overconvergent modular forms of weight-character 0 over 2-adic Eisenstein Extension ...
             sage: M.base_extend(QQ)
             Traceback (most recent call last):
             ...
@@ -527,11 +527,15 @@ class OverconvergentModularFormsSpace(Module):
 
     def __hash__(self):
         """
-        Return the hash of self.
+        Return the hash of ``self``.
 
         EXAMPLES::
 
-            sage: h = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h1 = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h2 = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h3 = hash(OverconvergentModularForms(3, 0, 1/2))
+            sage: h1 == h2 and h1 != h3
+            True
         """
         return hash(self._params())
 
@@ -545,7 +549,12 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: L.<w> = Qp(7).extension(x^2 - 7)
             sage: OverconvergentModularForms(7, 0, 1/4, base_ring=L)._params()
-            (7, 0, 1/4, Eisenstein Extension ..., 20, Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1)
+            (7,
+             0,
+             1/4,
+             7-adic Eisenstein Extension Field in w defined by x^2 - 7,
+             20,
+             Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1)
 
         """
         return (self.prime(), self.weight().k(), self.radius(), self.base_ring(), self.prec(), self.weight().chi())
@@ -558,7 +567,13 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: L.<w> = Qp(7).extension(x^2 - 7)
             sage: OverconvergentModularForms(7, 0, 1/4, base_ring=L).__reduce__()
-            (<function OverconvergentModularForms at ...>, (7, 0, 1/4, Eisenstein Extension ..., 20, Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1))
+            (<function OverconvergentModularForms at ...>,
+             (7,
+              0,
+              1/4,
+              7-adic Eisenstein Extension Field in w defined by x^2 - 7,
+              20,
+              Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1))
 
         """
         return (OverconvergentModularForms, self._params())

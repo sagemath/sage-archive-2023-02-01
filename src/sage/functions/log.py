@@ -22,7 +22,6 @@ from sage.rings.complex_double import CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.rational import Rational
 
 class Function_exp(GinacFunction):
     r"""
@@ -518,17 +517,17 @@ class Function_polylog(GinacFunction):
 
             sage: BF = RealBallField(100)
             sage: polylog(2, BF(1/3))
-            [0.36621322997706348761674629766 +/- 4.51e-30]
+            [0.36621322997706348761674629766... +/- ...]
             sage: polylog(2, BF(4/3))
-            nan
+            [2.27001825336107090380391448586 +/- 5.64e-30] + [-0.90377988538400159956755721265 +/- 8.39e-30]*I
             sage: parent(_)
-            Real ball field with 100 bits of precision
+            Complex ball field with 100 bits of precision
             sage: polylog(2, CBF(1/3))
-            [0.366213229977063 +/- 5.85e-16]
+            [0.366213229977063 +/- ...]
             sage: parent(_)
             Complex ball field with 53 bits of precision
             sage: polylog(2, CBF(1))
-            [1.644934066848226 +/- 6.59e-16]
+            [1.644934066848226 +/- ...]
             sage: parent(_)
             Complex ball field with 53 bits of precision
         """
@@ -607,7 +606,7 @@ class Function_dilog(GinacFunction):
             sage: dilog(1)
             1/6*pi^2
             sage: dilog(1.)
-            1.64493406684823 
+            1.64493406684823
             sage: dilog(1).n()
             1.64493406684823
             sage: float(dilog(1))
@@ -748,12 +747,31 @@ class Function_lambert_w(BuiltinFunction):
             0.567143290409784
             sage: lambert_w(x, x)._sympy_()
             LambertW(x, x)
+
+        TESTS:
+
+        Check that :trac:`25987` is fixed::
+
+            sage: lambert_w(x)._fricas_()                                       # optional - fricas
+            lambertW(x)
+
+            sage: fricas(lambert_w(x)).eval(x = -1/e)                           # optional - fricas
+            - 1
+
+        The two-argument form of Lambert's function is not supported
+        by FriCAS, so we return a generic operator::
+
+            sage: var("n")
+            n
+            sage: lambert_w(n, x)._fricas_()                                    # optional - fricas
+            generalizedLambertW(n,x)
         """
         BuiltinFunction.__init__(self, "lambert_w", nargs=2,
                                  conversions={'mathematica': 'ProductLog',
                                               'maple': 'LambertW',
                                               'matlab': 'lambertw',
                                               'maxima': 'generalized_lambert_w',
+                                              'fricas': "((n,z)+->(if n=0 then lambertW(z) else operator('generalizedLambertW)(n,z)))",
                                               'sympy': 'LambertW'})
 
     def __call__(self, *args, **kwds):
@@ -871,7 +889,7 @@ class Function_lambert_w(BuiltinFunction):
             return mpmath_utils.call(mpmath.lambertw, z, n, parent=R)
 
     def _derivative_(self, n, z, diff_param=None):
-        """
+        r"""
         The derivative of `W_n(x)` is `W_n(x)/(x \cdot W_n(x) + x)`.
 
         EXAMPLES::
@@ -945,7 +963,7 @@ class Function_lambert_w(BuiltinFunction):
             return "lambert_w(%s, %s)" % (n, z)
 
     def _print_latex_(self, n, z):
-        """
+        r"""
         Custom _print_latex_ method to avoid printing the branch
         number if it is zero.
 
@@ -1090,7 +1108,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
     .. MATH::
 
         H_{n}=H_{n,1}=\sum_{k=1}^n\frac{1}{k}
-        
+
         H_{n,m}=\sum_{k=1}^n\frac{1}{k^m}
 
     They are also well-defined for complex argument, through:

@@ -44,21 +44,21 @@ cpdef int64_t prime_pi(int64_t n, method=None) except -1:
 
         sage: from sage.interfaces.primecount import prime_pi # optional - primecount
 
-        sage: prime_pi(1000)                     # optional - primecount
-        168
-        sage: prime_pi(1000, "deleglise_rivat")  # optional - primecount
-        168
-        sage: prime_pi(1000, "legendre")         # optional - primecount
-        168
-        sage: prime_pi(1000, "lehmer")           # optional - primecount
-        168
-        sage: prime_pi(1000, "lmo")              # optional - primecount
-        168
-        sage: prime_pi(1000, "meissel")          # optional - primecount
-        168
-        sage: prime_pi(1000, "primesieve")       # optional - primecount
-        168
-        sage: prime_pi(1000, "youpi")            # optional - primecount
+        sage: prime_pi(1000) == 168                     # optional - primecount
+        True
+        sage: prime_pi(1000, "deleglise_rivat") == 168  # optional - primecount
+        True
+        sage: prime_pi(1000, "legendre") == 168         # optional - primecount
+        True
+        sage: prime_pi(1000, "lehmer") == 168           # optional - primecount
+        True
+        sage: prime_pi(1000, "lmo") == 168              # optional - primecount
+        True
+        sage: prime_pi(1000, "meissel") == 168          # optional - primecount
+        True
+        sage: prime_pi(1000, "primesieve") == 168       # optional - primecount
+        True
+        sage: prime_pi(1000, "youpi")                   # optional - primecount
         Traceback (most recent call last):
         ...
         ValueError: unknown method 'youpi'
@@ -125,8 +125,8 @@ cpdef int64_t nth_prime(int64_t n) except -1:
 
         sage: from sage.interfaces.primecount import nth_prime # optional - primecount
 
-        sage: nth_prime(168)   # optional - primecount
-        997
+        sage: nth_prime(168) == 997  # optional - primecount
+        True
     """
     if n <= 0:
         raise ValueError("n must be positive")
@@ -148,10 +148,10 @@ cpdef int64_t phi(int64_t x, int64_t a):
 
          sage: from sage.interfaces.primecount import phi # optional - primecount
 
-         sage: phi(1000, 3) # optional - primecount
-         266
-         sage: phi(2**30, 100) # optional - primecount
-         95446716
+         sage: phi(1000, 3) == 266 # optional - primecount
+         True
+         sage: phi(2**30, 100) == 95446716 # optional - primecount
+         True
     """
     return primecount.phi(x, a)
 

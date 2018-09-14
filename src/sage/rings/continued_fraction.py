@@ -523,7 +523,7 @@ class ContinuedFraction_base(SageObject):
         s = str(v[0]) + '\n'
         for i in range(1, min(len(v) - 1, nterms)):
             s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s\n' % v[i]
-        s += '+ \\frac{\\displaystyle 1}{\\displaystyle \dots'
+        s += '+ \\frac{\\displaystyle 1}{\\displaystyle \\dots'
         s += '}' * (len(v) - 1)
         return s
 

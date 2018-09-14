@@ -1278,8 +1278,9 @@ class VermaModuleHomset(Homset):
 
     Element = VermaModuleMorphism
 
+
 def _convert_wt_to_root(wt):
-    """
+    r"""
     Helper function to express ``wt`` as a linear combination
     of simple roots.
 

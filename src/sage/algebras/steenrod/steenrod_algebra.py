@@ -892,11 +892,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             s = comm_long_mono_to_string(t, p, generic=self._generic)
         elif basis.find('comm') >= 0:
             s = comm_mono_to_string(t, generic=self._generic)
-        s = s.translate(None, "{}")
+        s = s.replace('{', '').replace('}', '')
         return s
 
     def _latex_term(self, t):
-        """
+        r"""
         LaTeX representation of the monomial specified by the tuple ``t``.
 
         INPUT:
@@ -1057,8 +1057,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         defined on them.  If you want to use operations like this on
         elements of some A[n], then convert them back to elements of A::
 
-            sage: A[5].basis()
-            Finite family {(5,): milnor[(5,)], (2, 1): milnor[(2, 1)]}
+            sage: sorted(A[5].basis())
+            [milnor[(2, 1)], milnor[(5,)]]
             sage: a = list(A[5].basis())[1]
             sage: a  # not in A, doesn't print like an element of A
             milnor[(5,)]
@@ -2270,11 +2270,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                         or t[i] < 2**self.profile(i+1)
                         for i in range(len(t))])
         # p odd:
-        if any([self.profile(i,1) != 2 for i in t[0]]):
+        if any(self.profile(i, 1) != 2 for i in t[0]):
             return False
-        return all([self.profile(i+1,0) == Infinity
-                    or t[1][i] < p**self.profile(i+1,0)
-                    for i in range(len(t[1]))])
+        return all(self.profile(i + 1,0) == Infinity
+                   or t[1][i] < p**self.profile(i + 1,0)
+                   for i in range(len(t[1])))
 
     def P(self, *nums):
         r"""

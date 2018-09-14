@@ -164,8 +164,7 @@ class ConstructionFunctor(Functor):
         """
         Equality here means that they are mathematically equivalent, though they may have
         specific implementation data. This method will usually be overloaded in subclasses.
-        by default, only the types of the functors are compared. Also see the \code{merge}
-        function.
+        by default, only the types of the functors are compared. Also see the :meth:`merge` function.
 
         TESTS::
 
@@ -216,7 +215,7 @@ class ConstructionFunctor(Functor):
         """
         s = str(type(self))
         import re
-        return re.sub("<.*'.*\.([^.]*)'>", "\\1", s)
+        return re.sub(r"<.*'.*\.([^.]*)'>", "\\1", s)
 
     def merge(self, other):
         """
@@ -2311,9 +2310,9 @@ class CompletionFunctor(ConstructionFunctor):
         sage: R1.<a> = Zp(5,prec=20)[]
         sage: R2 = Qp(5,prec=40)
         sage: R2(1) + a
-        (1 + O(5^20))*a + (1 + O(5^40))
+        (1 + O(5^20))*a + 1 + O(5^40)
         sage: 1/2 + a
-        (1 + O(5^20))*a + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + 2*5^10 + 2*5^11 + 2*5^12 + 2*5^13 + 2*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 2*5^18 + 2*5^19 + O(5^20))
+        (1 + O(5^20))*a + 3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + 2*5^10 + 2*5^11 + 2*5^12 + 2*5^13 + 2*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 2*5^18 + 2*5^19 + O(5^20)
 
     """
     rank = 4
@@ -2487,7 +2486,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: R1.<a> = Zp(5,prec=20)[]
             sage: R2 = Qp(5,prec=40)
             sage: R2(1)+a         # indirect doctest
-            (1 + O(5^20))*a + (1 + O(5^40))
+            (1 + O(5^20))*a + 1 + O(5^40)
             sage: R3 = RealField(30)
             sage: R4 = RealField(50)
             sage: R3(1) + R4(1)   # indirect doctest
@@ -2578,7 +2577,7 @@ class CompletionFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: F1 = Qp(5).construction()[0]
+            sage: F1 = Zp(5).construction()[0]
             sage: F2 = QQ.construction()[0]
             sage: F1.commutes(F2)
             True
@@ -2602,14 +2601,15 @@ class CompletionFunctor(ConstructionFunctor):
             True
 
         The following was fixed in :trac:`15329` (it used to result
-        in an infinite recursion)::
+        in an infinite recursion. In :trac:`23218` the construction
+        of `p`-adic fields changed, so there is no longer an
+        Ambiguous base extension error raised)::
 
             sage: from sage.categories.pushout import pushout
             sage: pushout(Qp(7),RLF)
             Traceback (most recent call last):
             ...
-            CoercionException: ('Ambiguous Base Extension', 7-adic Field with capped relative precision 20, Real Lazy Field)
-
+            CoercionException: Don't know how to apply Completion[+Infinity, prec=+Infinity] to 7-adic Ring with capped relative precision 20
         """
         return isinstance(other,FractionField)
 
@@ -2853,7 +2853,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
     rank = 3
 
     def __init__(self, polys, names, embeddings=None, structures=None,
-                 cyclotomic=None, **kwds):
+                 cyclotomic=None, precs=None, implementations=None, **kwds):
         """
         INPUT:
 
@@ -2875,6 +2875,13 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         - ``cyclotomic`` -- (optional) integer. If it is provided,
           application of the functor to the rational field yields a
           cyclotomic field, rather than just a number field.
+
+        - ``precs`` -- (optional) list of integers. If it is provided,
+          it is used to determine the precision of p-adic extensions.
+
+        - ``implementations`` -- (optional) list of strings.
+          If it is provided, it is used to determine an implementation in the
+          p-adic case.
 
         - ``**kwds`` -- further keywords; when the functor is applied
           to a ring `R`, these are passed to the ``extension()``
@@ -2959,6 +2966,10 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             embeddings = [None] * n
         if structures is None:
             structures = [None] * n
+        if precs is None:
+            precs = [None] * n
+        if implementations is None:
+            implementations = [None] * n
         if not (len(names) == len(embeddings) == len(structures) == n):
             raise ValueError("All arguments must be of the same length")
         self.polys = list(polys)
@@ -2966,6 +2977,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         self.embeddings = list(embeddings)
         self.structures = list(structures)
         self.cyclotomic = int(cyclotomic) if cyclotomic is not None else None
+        self.precs = list(precs)
+        self.implementations = list(implementations)
         self.kwds = kwds
 
     def _apply_functor(self, R):
@@ -2989,7 +3002,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: R.<a> = K[]
             sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
             sage: AEF(K)
-            Eisenstein Extension in a defined by a^2 - 3 with capped relative precision 6 over 3-adic Field
+            3-adic Eisenstein Extension Field in a defined by a^2 - 3
 
         """
         from sage.all import QQ, ZZ, CyclotomicField
@@ -3000,9 +3013,11 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
             return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0],
-                               structure=self.structures[0], **self.kwds)
+                               structure=self.structures[0], prec=self.precs[0],
+                               implementation=self.implementations[0], **self.kwds)
         return R.extension(self.polys, names=self.names, embedding=self.embeddings,
-                           structure=self.structures, **self.kwds)
+                           structure=self.structures, prec=self.precs,
+                           implementation=self.implementations, **self.kwds)
 
     def __eq__(self, other):
         """
@@ -3018,7 +3033,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
         return (self.polys == other.polys and
                 self.embeddings == other.embeddings and
-                self.structures == other.structures)
+                self.structures == other.structures and
+                self.precs == other.precs)
 
     def __ne__(self, other):
         """
@@ -3191,7 +3207,10 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                 raise CoercionException("Overlapping names (%s,%s)" % (self.names, other.names))
             return AlgebraicExtensionFunctor(self.polys + other.polys, self.names + other.names,
                                              self.embeddings + other.embeddings,
-                                             self.structures + other.structures, **self.kwds)
+                                             self.structures + other.structures,
+                                             precs=self.precs + other.precs,
+                                             implementations=self.implementations + other.implementations,
+                                             **self.kwds)
         elif isinstance(other, CompositeConstructionFunctor) \
               and isinstance(other.all[-1], AlgebraicExtensionFunctor):
             return CompositeConstructionFunctor(other.all[:-1], self * other.all[-1])
@@ -3223,7 +3242,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         if n == 1:
             return [self]
         return [AlgebraicExtensionFunctor([self.polys[i]], [self.names[i]], [self.embeddings[i]],
-                                          [self.structures[i]], **self.kwds)
+                                          [self.structures[i]], precs=[self.precs[i]],
+                                          implementations=[self.implementations[i]], **self.kwds)
                 for i in range(n)]
 
 

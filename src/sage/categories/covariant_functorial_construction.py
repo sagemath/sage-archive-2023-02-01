@@ -415,7 +415,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             return cls.default_super_categories(category, *args)
 
     def __init__(self, category, *args):
-        """
+        r"""
         TESTS::
 
             sage: from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
@@ -493,7 +493,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         return "%s of %s"%(Category._repr_object_names(self), self.base_category()._repr_object_names())
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(Semigroups().Subquotients())   # indirect doctest
@@ -514,7 +514,7 @@ class CovariantConstructionCategory(FunctorialConstructionCategory):
 
     @classmethod
     def default_super_categories(cls, category, *args):
-        """
+        r"""
         Return the default super categories of `F_{Cat}(A,B,...)` for
         `A,B,...` parents in `Cat`.
 

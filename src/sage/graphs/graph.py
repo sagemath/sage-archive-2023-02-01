@@ -83,6 +83,8 @@ AUTHORS:
 
 - Amritanshu Prasad (2014-08): added clique polynomial
 
+- Julian Rüth (2018-06-21): upgrade to NetworkX 2
+
 Graph Format
 ------------
 
@@ -409,12 +411,17 @@ Methods
 -------
 """
 
-#*****************************************************************************
-#      Copyright (C) 2006 - 2007 Robert L. Miller <rlmillster@gmail.com>
+
+# ****************************************************************************
+#       Copyright (C) 2006-2007 Robert L. Miller <rlmillster@gmail.com>
+#                          2018 Julian Rüth <julian.rueth@fsfe.org>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
 import six
@@ -436,10 +443,9 @@ class Graph(GenericGraph):
     r"""
     Undirected graph.
 
-    A graph is a set of vertices connected by edges. See also the
-    :wikipedia:`Wikipedia article on graphs <Graph_(mathematics)>`. For a
-    collection of pre-defined graphs, see the
-    :mod:`~sage.graphs.graph_generators` module.
+    A graph is a set of vertices connected by edges. See the
+    :wikipedia:`Graph_(mathematics)` for more information. For a collection of
+    pre-defined graphs, see the :mod:`~sage.graphs.graph_generators` module.
 
     A :class:`Graph` object has many methods whose list can be obtained by
     typing ``g.<tab>`` (i.e. hit the 'tab' key) or by reading the documentation
@@ -687,7 +693,7 @@ class Graph(GenericGraph):
 
        There are also list functions to take care of lists of graphs::
 
-           sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\N\n'
+           sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\\N\n'
            sage: graphs_list.from_sparse6(s)
            [Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices, Looped multi-graph on 10 vertices]
 
@@ -1199,7 +1205,7 @@ class Graph(GenericGraph):
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(data.nodes())
-            self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+            self.add_edges((u,v,r(l)) for u,v,l in data.edges(data=True))
         elif format == 'igraph':
             if data.is_directed():
                 raise ValueError("An *undirected* igraph graph was expected. "+
@@ -1291,7 +1297,7 @@ class Graph(GenericGraph):
 
     @doc_index("Basic methods")
     def graph6_string(self):
-        """
+        r"""
         Return the graph6 representation of the graph as an ASCII string.
 
         This is only valid for simple (no loops, no multiple edges) graphs
@@ -1541,7 +1547,7 @@ class Graph(GenericGraph):
     ### Properties
     @doc_index("Graph properties")
     def is_tree(self, certificate=False, output='vertex'):
-        """
+        r"""
         Tests if the graph is a tree
 
         The empty graph is defined to be not a tree.
@@ -1639,8 +1645,8 @@ class Graph(GenericGraph):
 
             if self.has_multiple_edges():
                 if output == 'vertex':
-                    return (False, list(self.multiple_edges()[0][:2]))
-                edge1, edge2 = self.multiple_edges()[:2]
+                    return (False, list(self.multiple_edges(sort=True)[0][:2]))
+                edge1, edge2 = self.multiple_edges(sort=True)[:2]
                 if edge1[0] != edge2[0]:
                     return (False, [edge1, edge2])
                 return (False, [edge1, (edge2[1], edge2[0], edge2[2])])
@@ -1743,7 +1749,7 @@ class Graph(GenericGraph):
         A graph is called *cactus graph* if it is connected and every pair of
         simple cycles have at most one common vertex.
 
-        There are other definitions, see :wikipedia:`Cactus_graph`.
+        There are other definitions, see the :wikipedia:`Cactus_graph`.
 
         EXAMPLES::
 
@@ -1884,7 +1890,7 @@ class Graph(GenericGraph):
         A cograph is defined recursively: the single-vertex graph is
         cograph, complement of cograph is cograph, and disjoint union
         of two cographs is cograph. There are many other
-        characterizations, see :wikipedia:`Cograph`.
+        characterizations, see the :wikipedia:`Cograph`.
 
         EXAMPLES::
 
@@ -1933,8 +1939,8 @@ class Graph(GenericGraph):
         every vertex is an apex. The null graph is also counted as an apex graph
         even though it has no vertex to remove.  If the graph is not connected,
         we say that it is apex if it has at most one non planar connected
-        component and that this component is apex.  See :wikipedia:`the
-        wikipedia article on Apex graph <Apex_graph>` for more information.
+        component and that this component is apex.  See the :wikipedia:`Apex_graph`
+        for more information.
 
         .. SEEALSO::
 
@@ -2002,8 +2008,8 @@ class Graph(GenericGraph):
         every vertex is an apex. The null graph is also counted as an apex graph
         even though it has no vertex to remove.  If the graph is not connected,
         we say that it is apex if it has at most one non planar connected
-        component and that this component is apex.  See :wikipedia:`the
-        wikipedia article on Apex graph <Apex_graph>` for more information.
+        component and that this component is apex.  See the
+        :wikipedia:`Apex_graph` for more information.
 
         .. SEEALSO::
 
@@ -2454,87 +2460,6 @@ class Graph(GenericGraph):
             start += 2
 
         return True
-
-    @doc_index("Graph properties")
-    def is_bipartite(self, certificate = False):
-        """
-        Returns ``True`` if graph `G` is bipartite, ``False`` if not.
-
-        Traverse the graph G with breadth-first-search and color nodes.
-
-        INPUT:
-
-        - ``certificate`` -- whether to return a certificate (``False`` by
-          default). If set to ``True``, the certificate returned in a proper
-          2-coloring when `G` is bipartite, and an odd cycle otherwise.
-
-        EXAMPLES::
-
-            sage: graphs.CycleGraph(4).is_bipartite()
-            True
-            sage: graphs.CycleGraph(5).is_bipartite()
-            False
-            sage: graphs.RandomBipartite(100,100,0.7).is_bipartite()
-            True
-
-        A random graph is very rarely bipartite::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.is_bipartite()
-            False
-            sage: false, oddcycle = g.is_bipartite(certificate = True)
-            sage: len(oddcycle) % 2
-            1
-        """
-        color = {}
-
-        # For any uncolored vertex in the graph (to ensure we do the right job
-        # when the graph is not connected !)
-        for u in self:
-            if u in color:
-                continue
-
-            # Let us run a BFS starting from u
-            queue = [u]
-            color[u] = 1
-            while queue:
-                v = queue.pop(0)
-                c = 1-color[v]
-                for w in self.neighbor_iterator(v):
-
-                    # If the vertex has already been colored
-                    if w in color:
-
-                        # The graph is not bipartite !
-                        if color[w] == color[v]:
-
-                            # Should we return an odd cycle ?
-                            if certificate:
-
-                                # We build the first half of the cycle, i.e. a
-                                # u-w path
-                                cycle = self.shortest_path(u,w)
-
-                                # The second half is a v-u path, but there may
-                                # be common vertices in the two paths. But we
-                                # can avoid that !
-
-                                for v in self.shortest_path(v,u):
-                                    if v in cycle:
-                                        return False, cycle[cycle.index(v):]
-                                    else:
-                                        cycle.append(v)
-                            else:
-                                return False
-
-                    # We color a new vertex
-                    else:
-                        color[w] = c
-                        queue.append(w)
-        if certificate:
-            return True, color
-        else:
-            return True
 
     @doc_index("Graph properties")
     def is_triangle_free(self, algorithm='bitset'):
@@ -3207,7 +3132,7 @@ class Graph(GenericGraph):
 
     @doc_index("Graph properties")
     def is_edge_transitive(self):
-        """
+        r"""
         Returns true if self is an edge transitive graph.
 
         A graph is edge-transitive if its automorphism group acts transitively
@@ -3217,11 +3142,9 @@ class Graph(GenericGraph):
         automorphism `\phi` of `G` such that `\phi(uv)=u'v'` (note this does not
         necessarily mean that `\phi(u)=u'` and `\phi(v)=v'`).
 
-        See :wikipedia:`the wikipedia article on edge-transitive graphs
-        <Edge-transitive_graph>` for more information.
-
         .. SEEALSO::
 
+          - :wikipedia:`Edge-transitive_graph`
           - :meth:`~Graph.is_arc_transitive`
           - :meth:`~Graph.is_half_transitive`
           - :meth:`~Graph.is_semi_symmetric`
@@ -3254,7 +3177,7 @@ class Graph(GenericGraph):
 
     @doc_index("Graph properties")
     def is_arc_transitive(self):
-        """
+        r"""
         Returns true if self is an arc-transitive graph
 
         A graph is arc-transitive if its automorphism group acts transitively on
@@ -3265,11 +3188,9 @@ class Graph(GenericGraph):
         `\phi_1(v)=v'`, as well as another automorphism `\phi_2` of `G` such
         that `\phi_2(u)=v'` and `\phi_2(v)=u'`
 
-        See :wikipedia:`the wikipedia article on arc-transitive graphs
-        <arc-transitive_graph>` for more information.
-
         .. SEEALSO::
 
+          - :wikipedia:`arc-transitive_graph`
           - :meth:`~Graph.is_edge_transitive`
           - :meth:`~Graph.is_half_transitive`
           - :meth:`~Graph.is_semi_symmetric`
@@ -3303,11 +3224,9 @@ class Graph(GenericGraph):
         A graph is half-transitive if it is both vertex and edge transitive
         but not arc-transitive.
 
-        See :wikipedia:`the wikipedia article on half-transitive graphs
-        <half-transitive_graph>` for more information.
-
         .. SEEALSO::
 
+          - :wikipedia:`half-transitive_graph`
           - :meth:`~Graph.is_edge_transitive`
           - :meth:`~Graph.is_arc_transitive`
           - :meth:`~Graph.is_semi_symmetric`
@@ -3343,11 +3262,9 @@ class Graph(GenericGraph):
         A graph is semi-symmetric if it is regular, edge-transitive but not
         vertex-transitive.
 
-        See :wikipedia:`the wikipedia article on semi-symmetric graphs
-        <Semi-symmetric_graph>` for more information.
-
         .. SEEALSO::
 
+          - :wikipedia:`Semi-symmetric_graph`
           - :meth:`~Graph.is_edge_transitive`
           - :meth:`~Graph.is_arc_transitive`
           - :meth:`~Graph.is_half_transitive`
@@ -4485,8 +4402,7 @@ class Graph(GenericGraph):
         Return a maximum weighted matching of the graph
         represented by the list of its edges.
 
-        For more information, see the `Wikipedia article on matchings
-        <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
+        For more information, see the :wikipedia:`Matching_(graph_theory)`.
 
         Given a graph `G` such that each edge `e` has a weight `w_e`,
         a maximum matching is a subset `S` of the edges of `G` of
@@ -4585,8 +4501,7 @@ class Graph(GenericGraph):
             ....: , (1,2,3), (1,3,3), (2,3,3)]
             sage: g = Graph(edge_list, loops=True, multiedges=True)
             sage: g.matching(use_edge_labels=True)
-            [(0, 3, 3), (1, 2, 6)]
-
+            [(1, 2, 6), (0, 3, 3)]
 
         TESTS:
 
@@ -4621,18 +4536,18 @@ class Graph(GenericGraph):
             g = networkx.Graph()
             if use_edge_labels:
                 for u, v in W:
-                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
+                    g.add_edge(u, v, weight=W[u, v])
             else:
                 for u, v in L:
                     g.add_edge(u, v)
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum(W[u, v] for u, v in six.iteritems(d) if u < v)
+                    return sum(W[min(u, v), max(u, v)] for u, v in d)
                 else:
-                    return Integer(len(d) // 2)
+                    return Integer(len(d))
             else:
-                return [(u, v, L[u, v]) for u, v in six.iteritems(d) if u < v]
+                return [(u, v, L[min(u, v), max(u, v)]) for u, v in d]
 
         elif algorithm == "LP":
             g = self
@@ -4677,8 +4592,7 @@ class Graph(GenericGraph):
         Saying that a graph can be `k`-colored is equivalent to saying that it
         has a homomorphism to `K_k`, the complete graph on `k` elements.
 
-        For more information, see the `Wikipedia article on graph homomorphisms
-        <Graph_homomorphism>`_.
+        For more information, see the :wikipedia:`Graph_homomorphism`.
 
         INPUT:
 
@@ -4790,7 +4704,7 @@ class Graph(GenericGraph):
 
             \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1
 
-        For more information, see :wikipedia:`Fractional_coloring`.
+        For more information, see the :wikipedia:`Fractional_coloring`.
 
         ALGORITHM:
 
@@ -5152,20 +5066,17 @@ class Graph(GenericGraph):
         once the vertices of each `S_h` have been merged to create
         a new graph `G'`, this new graph contains `H` as a subgraph.
 
-        For more information, see the
-        `Wikipedia article on graph minor <http://en.wikipedia.org/wiki/Minor_%28graph_theory%29>`_.
+        For more information, see the :wikipedia:`Minor_(graph_theory)`.
 
         INPUT:
 
         - ``H`` -- The minor to find for in the current graph.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -6261,7 +6172,7 @@ class Graph(GenericGraph):
         return networkx.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques)
 
     @doc_index("Clique-related methods")
-    def cliques_get_max_clique_graph(self, name=''):
+    def cliques_get_max_clique_graph(self):
         """
         Return the clique graph.
 
@@ -6276,10 +6187,6 @@ class Graph(GenericGraph):
             Currently only implemented for undirected graphs. Use to_undirected
             to convert a digraph to an undirected graph.
 
-        INPUT:
-
-        -  ``name`` - The name of the new graph.
-
         EXAMPLES::
 
             sage: (graphs.ChvatalGraph()).cliques_get_max_clique_graph()
@@ -6292,7 +6199,7 @@ class Graph(GenericGraph):
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
         import networkx
-        return Graph(networkx.make_max_clique_graph(self.networkx_graph(copy=False), name=name, create_using=networkx.MultiGraph()))
+        return Graph(networkx.make_max_clique_graph(self.networkx_graph(copy=False), create_using=networkx.MultiGraph()))
 
     @doc_index("Clique-related methods")
     def cliques_get_clique_bipartite(self, **kwds):
@@ -6420,7 +6327,7 @@ class Graph(GenericGraph):
 
         A minimum vertex cover of a graph is a set `S` of vertices such that
         each edge is incident to at least one element of `S`, and such that `S`
-        is of minimum cardinality. For more information, see
+        is of minimum cardinality. For more information, see the
         :wikipedia:`Vertex_cover`.
 
         Equivalently, a vertex cover is defined as the complement of an
@@ -6547,6 +6454,12 @@ class Graph(GenericGraph):
             [1]
             sage: G.vertex_cover(reduction_rules=False)
             [1]
+
+        Ticket :trac:`25988` is fixed::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(6))
+            sage: B.vertex_cover(algorithm='Cliquer', reduction_rules=True)
+            [1, 3, 5]
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         g = self
@@ -6563,7 +6476,8 @@ class Graph(GenericGraph):
             # belongs to an optimal vertex cover
 
             # We first take a copy of the graph without multiple edges, if any.
-            g = copy(self)
+            g = Graph(data=self.edges(), format='list_of_edges',
+                          multiedges=self.allows_multiple_edges())
             g.allow_multiple_edges(False)
 
             degree_at_most_two = {u for u in g if g.degree(u) <= 2}
@@ -7066,7 +6980,7 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def cores(self, k = None, with_labels=False):
-        """
+        r"""
         Return the core number for each vertex in an ordered list.
 
         (for homomorphisms cores, see the :meth:`Graph.has_homomorphism_to`
@@ -7086,7 +7000,7 @@ class Graph(GenericGraph):
           This operation can be useful to filter or to study some properties of
           the graphs. For instance, when you compute the 2-core of graph G, you
           are cutting all the vertices which are in a tree part of graph.  (A
-          tree is a graph with no loops). [WPkcore]_
+          tree is a graph with no loops). See the :wikipedia:`K-core`.
 
           [PSW1996]_ defines a `k`-core of `G` as the largest subgraph (it is
           unique) of `G` with minimum degree at least `k`.
@@ -7136,9 +7050,6 @@ class Graph(GenericGraph):
              this second meaning, see :meth:`Graph.has_homomorphism_to`.
 
         REFERENCE:
-
-        .. [WPkcore] K-core. Wikipedia. (2007). [Online] Available:
-          :wikipedia:`K-core`
 
         .. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
           Emergence of a Giant k-Core in a Random
@@ -7261,13 +7172,12 @@ class Graph(GenericGraph):
 
         These modules being of special interest, the disjoint union of
         graphs is called a Parallel composition, and the complement of
-        a disjoint union is called a Parallel composition. A graph
+        a disjoint union is called a Series composition. A graph
         whose only modules are singletons is called Prime.
 
         For more information on modular decomposition, in particular
         for an explanation of the terms "Parallel," "Prime" and
-        "Serie," see the `Wikipedia article on modular decomposition
-        <http://en.wikipedia.org/wiki/Modular_decomposition>`_.
+        "Series," see the :wikipedia:`Modular_decomposition`.
 
         You may also be interested in the survey from Michel Habib and
         Christophe Paul entitled "A survey on Algorithmic aspects of
@@ -7706,11 +7616,10 @@ class Graph(GenericGraph):
         easy to determine the maximum flow between any pair of vertices :
         it is the minimal label on the edges of the unique path between them.
 
-        Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree
-        with the same set of vertices, and such that the maximum flow
-        between any two vertices is the same in `G` as in `T`. See the
-        `Wikipedia article on Gomory-Hu tree <http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree>`_.
-        Note that, in general, a graph admits more than one Gomory-Hu tree.
+        Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree with the same
+        set of vertices, and such that the maximum flow between any two vertices
+        is the same in `G` as in `T`. See the :wikipedia:`Gomory–Hu_tree`.  Note
+        that, in general, a graph admits more than one Gomory-Hu tree.
 
         See also 15.4 (Gomory-Hu trees) from [SchrijverCombOpt]_.
 
@@ -7865,7 +7774,7 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def kirchhoff_symanzik_polynomial(self, name='t'):
-        """
+        r"""
         Return the Kirchhoff-Symanzik polynomial of a graph.
 
         This is a polynomial in variables `t_e` (each of them representing an
@@ -7873,7 +7782,7 @@ class Graph(GenericGraph):
 
         .. MATH::
 
-            \Psi_G(t) = \sum_{\substack{T\subseteq V \\ \text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
+            \Psi_G(t) = \sum_{\substack{T\subseteq V \\ \text{a spanning tree}}} \prod_{e \not\in E(T)} t_e
 
         This is also called the first Symanzik polynomial or the Kirchhoff
         polynomial.
@@ -7892,7 +7801,7 @@ class Graph(GenericGraph):
             3.1 of [Marcolli2009]_.
 
             As an intermediate step, one computes a cycle basis `\mathcal C` of
-            `G` and a rectangular `|\mathcal C| \\times |E(G)|` matrix with
+            `G` and a rectangular `|\mathcal C| \times |E(G)|` matrix with
             entries in `\{-1,0,1\}`, which describes which edge belong to which
             cycle of `\mathcal C` and their respective orientations.
 
@@ -8061,7 +7970,7 @@ class Graph(GenericGraph):
         This is a polynomial in one variable with integer coefficients. The
         Ihara zeta function itself is the inverse of this polynomial.
 
-        See :wikipedia:`Ihara zeta function`.
+        See the :wikipedia:`Ihara zeta function` for more information.
 
         ALGORITHM:
 

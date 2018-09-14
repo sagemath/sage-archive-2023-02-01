@@ -18,7 +18,7 @@ sage: 1/(a+1)
 sage: 1/a
 Traceback (most recent call last):
 ...
-ZeroDivisionError: Inverse does not exist.
+ZeroDivisionError: inverse of Mod(3, 15) does not exist
 sage: z=lift(a); y=ZZ(a); y, type(y), y==z
 (3, <type 'sage.rings.integer.Integer'>, True)
 sage: [Mod(x,15).additive_order() for x in range(0,15)]

@@ -2071,6 +2071,11 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             ...
             NameError: name 'K' is not defined
 
+        Finite quotients of ZZ::
+
+            sage: R = Zmod(137)
+            sage: magma(R).sage()  # optional - magma
+            Ring of integers modulo 137
         """
         z, preparse = self.Sage(nvals=2)
         s = str(z)
@@ -2275,7 +2280,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: V                                             # optional - magma
             Full Vector space of degree 2 over GF(3)
             sage: w = V.__iter__(); w                           # optional - magma
-            <generator object __iter__ at ...>
+            <generator object ...__iter__ at ...>
             sage: next(w)                                       # optional - magma
             (0 0)
             sage: next(w)                                       # optional - magma

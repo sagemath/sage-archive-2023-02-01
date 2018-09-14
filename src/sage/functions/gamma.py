@@ -737,7 +737,7 @@ class Function_psi1(GinacFunction):
             sage: psi(x)._sympy_()
             polygamma(0, x)
         """
-        GinacFunction.__init__(self, "psi", nargs=1, latex_name='\psi',
+        GinacFunction.__init__(self, "psi", nargs=1, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 maxima='psi[0]',
                                                 sympy='digamma'))
@@ -788,7 +788,7 @@ class Function_psi2(GinacFunction):
             sage: psi(2, x)._sympy_()
             polygamma(2, x)
         """
-        GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
+        GinacFunction.__init__(self, "psi", nargs=2, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 sympy='polygamma',
                                                 giac='Psi'))

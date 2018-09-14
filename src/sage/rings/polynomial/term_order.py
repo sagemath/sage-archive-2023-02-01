@@ -823,21 +823,39 @@ class TermOrder(SageObject):
         """
         self.__dict__ = other.__dict__.copy()
 
-    def __getattr__(self,name):
+    @property
+    def sortkey(self):
         """
-        Return the correct ``compare_tuples/greater_tuple/sortkey function``.
+        The default ``sortkey`` method for this term order.
 
         EXAMPLES::
 
-            sage: TermOrder('lex').sortkey
-            <bound method TermOrder.sortkey_lex of Lexicographic term order>
+            sage: O = TermOrder()
+            sage: O.sortkey.__func__ is O.sortkey_lex.__func__
+            True
+            sage: O = TermOrder('deglex')
+            sage: O.sortkey.__func__ is O.sortkey_deglex.__func__
+            True
         """
-        if name == 'greater_tuple':
-            return getattr(self, 'greater_tuple_' + self._name)
-        elif name == 'sortkey':
-            return getattr(self, 'sortkey_' + self._name)
-        else:
-            raise AttributeError(name)
+
+        return getattr(self, 'sortkey_' + self._name)
+
+    @property
+    def greater_tuple(self):
+        """
+        The default ``greater_tuple`` method for this term order.
+
+        EXAMPLES::
+
+            sage: O = TermOrder()
+            sage: O.greater_tuple.__func__ is O.greater_tuple_lex.__func__
+            True
+            sage: O = TermOrder('deglex')
+            sage: O.greater_tuple.__func__ is O.greater_tuple_deglex.__func__
+            True
+        """
+
+        return getattr(self, 'greater_tuple_' + self._name)
 
     def sortkey_matrix(self, f):
         """

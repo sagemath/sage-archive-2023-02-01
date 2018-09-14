@@ -36,7 +36,6 @@ def Genus(A):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import Genus
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: Genus(A)
         Genus of
@@ -64,7 +63,6 @@ def LocalGenusSymbol(A, p):
     EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.genus import LocalGenusSymbol
-
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: LocalGenusSymbol(A, 2)
         Genus symbol at 2:    [1^2]_2
@@ -97,15 +95,12 @@ def is_GlobalGenus(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
-        sage: from sage.quadratic_forms.genera.genus import Genus, is_GlobalGenus
+        sage: from sage.quadratic_forms.genera.genus import is_GlobalGenus
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: G = Genus(A)
         sage: is_GlobalGenus(G)
         True
-
-        sage: from sage.quadratic_forms.genera.genus import Genus,is_GlobalGenus
         sage: G=Genus(matrix.diagonal([2,2,2,2]))
         sage: G._local_symbols[0]._symbol=[[0,2,3,0,0],[1,2,5,1,0]]
         sage: G._representative=None
@@ -114,7 +109,7 @@ def is_GlobalGenus(G):
 
     """
     D = G.determinant()
-    r, s = G.signature_pair_of_matrix()
+    r, s = G.signature_pair()
     oddity = r - s
     for loc in G._local_symbols:
         p = loc._prime
@@ -158,7 +153,7 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import LocalGenusSymbol
+        sage: from sage.quadratic_forms.genera.genus import LocalGenusSymbol, is_2_adic_genus
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2)
@@ -511,7 +506,7 @@ def basis_complement(B):
 
 
 
-def signature_pair_of_matrix(A):
+def signature_pair(A):
     """
     Computes the signature pair `(p, n)` of a non-degenerate symmetric
     matrix, where
@@ -529,27 +524,27 @@ def signature_pair_of_matrix(A):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import signature_pair_of_matrix
+        sage: from sage.quadratic_forms.genera.genus import signature_pair
 
         sage: A = Matrix(ZZ, 2, 2, [-1,0,0,3])
-        sage: signature_pair_of_matrix(A)
+        sage: signature_pair(A)
         (1, 1)
 
         sage: A = Matrix(ZZ, 2, 2, [-1,1,1,7])
-        sage: signature_pair_of_matrix(A)
+        sage: signature_pair(A)
         (1, 1)
 
         sage: A = Matrix(ZZ, 2, 2, [3,1,1,7])
-        sage: signature_pair_of_matrix(A)
+        sage: signature_pair(A)
         (2, 0)
 
         sage: A = Matrix(ZZ, 2, 2, [-3,1,1,-11])
-        sage: signature_pair_of_matrix(A)
+        sage: signature_pair(A)
         (0, 2)
 
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,1])
-        sage: signature_pair_of_matrix(A)
+        sage: signature_pair(A)
         Traceback (most recent call last):
         ...
         ArithmeticError: given matrix is not invertible
@@ -1341,7 +1336,6 @@ class Genus_Symbol_p_adic_ring(object):
             [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]]
             sage: type(G2.symbol_tuple_list())
             <... 'list'>
-
         """
         return copy.deepcopy(self._symbol)
 
@@ -1351,7 +1345,8 @@ class Genus_Symbol_p_adic_ring(object):
 
         OUTPUT:
 
-        A non-negative
+        A non-negative integer
+
         EXAMPLES::
 
             sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
@@ -1370,7 +1365,6 @@ class Genus_Symbol_p_adic_ring(object):
             [[0, 3, 1], [1, 1, -1]]
             sage: G3.number_of_blocks()
             2
-
         """
         return len(self._symbol)
 
@@ -1440,6 +1434,7 @@ class Genus_Symbol_p_adic_ring(object):
         """
         return sum([ s[1] for s in self._symbol ])
 
+    dim = dimension
     rank = dimension
 
     def excess(self):
@@ -1625,7 +1620,7 @@ class GenusSymbol_global_ring(object):
         D = 2*D
         prms = [ p[0] for p in D.factor() ]
         self._representative = A
-        self._signature = signature_pair_of_matrix(A)
+        self._signature = signature_pair(A)
         self._local_symbols = []
         for p in prms:
             if max_elem_divisors is None:
@@ -1787,16 +1782,15 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: G = Genus(Matrix(ZZ,2,[2,1,1,2]))
             sage: G.is_even()
             True
         """
         return self._local_symbols[0].is_even()
 
-    def signature_pair_of_matrix(self):
+    def signature_pair(self):
         """
-        Return the signature pair (p, n) of the (non-degenerate)
+        Return the signature pair `(p, n)` of the (non-degenerate)
         global genus symbol, where p is the number of positive
         eigenvalues and n is the number of negative eigenvalues.
 
@@ -1806,15 +1800,31 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
-
-            sage: A = DiagonalQuadraticForm(ZZ, [1,-2,3,4,8,-11]).Hessian_matrix()
-            sage: GS = GenusSymbol_global_ring(A)
-            sage: GS.signature_pair_of_matrix()
+            sage: A = matrix.diagonal(ZZ, [1,-2,3,4,8,-11])
+            sage: GS = Genus(A)
+            sage: GS.signature_pair()
             (4, 2)
-
         """
         return self._signature
+
+    signature_pair_of_matrix = signature_pair
+
+    def signature(self):
+        r"""
+        Return the signature of this genus.
+
+        The signature is `p - n` where `p` is the number of positive eigenvalues
+        and `n` the number of negative eigenvalues.
+
+        EXAMPLES::
+
+            sage: A = matrix.diagonal(ZZ, [1,-2,3,4,8,-11])
+            sage: GS = Genus(A)
+            sage: GS.signature()
+            2
+        """
+        p, n = self.signature_pair()
+        return p - n
 
     def determinant(self):
         """
@@ -1829,14 +1839,13 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
-            sage: A = DiagonalQuadraticForm(ZZ, [1,-2,3,4]).Hessian_matrix()
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: A = matrix.diagonal(ZZ, [1,-2,3,4])
+            sage: GS = Genus(A)
             sage: GS.determinant()
-            -384
+            -24
         """
-        r, s = self.signature_pair_of_matrix()
-        return (-1)**s*prod([ G.determinant() for G in self._local_symbols ])
+        p, n = self.signature_pair()
+        return (-1)**n*prod([ G.determinant() for G in self._local_symbols ])
 
     det = determinant
 
@@ -1846,14 +1855,15 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
             sage: G = Genus(A)
             sage: G.dimension()
             2
         """
-        p, n = self.signature_pair_of_matrix()
+        p, n = self.signature_pair()
         return p + n
+
+    dim = dimension
 
     def discriminant_form(self):
         r"""
@@ -1861,9 +1871,8 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
             sage: A = matrix.diagonal(ZZ, [2,-4,6,8])
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS = Genus(A)
             sage: GS.discriminant_form()
             Finite quadratic module over Integer Ring with invariants (2, 2, 4, 24)
             Gram matrix of the quadratic form with values in Q/2Z:
@@ -1872,7 +1881,7 @@ class GenusSymbol_global_ring(object):
             [   0    0  7/4    0]
             [   0    0    0 7/24]
             sage: A = matrix.diagonal(ZZ, [1,-4,6,8])
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS = Genus(A)
             sage: GS.discriminant_form()
             Finite quadratic module over Integer Ring with invariants (2, 4, 24)
             Gram matrix of the quadratic form with values in Q/Z:

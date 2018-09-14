@@ -2890,10 +2890,10 @@ cdef class PlusMinusOneMatrix(LeanMatrix):
         Change number of rows to ``k``. Preserves data.
         """
         cdef long l = self._ncols * (self._nrows - k)
-        if l > 0:
+        if l < 0:
             sig_realloc(self._entries, self._ncols * k * sizeof(int))
             memset(self._entries + self._nrows * self._ncols, 0, l * self._ncols * sizeof(int))
-        elif l < 0:
+        elif l > 0:
             sig_realloc(self._entries, self._ncols * k * sizeof(int))
         self._nrows = k
         return 0
@@ -3332,19 +3332,27 @@ cdef class RationalMatrix(LeanMatrix):
 
     cdef LeanMatrix copy(self):   # Deprecated Sage matrix operation
         cdef RationalMatrix M = RationalMatrix(self._nrows, self._ncols)
-        memcpy(M._entries, self._entries, self._nrows * self._ncols * sizeof(mpq_t))
+        cdef long i
+        for i in range(self._nrows * self._ncols):
+            mpq_set(M._entries[i], self._entries[i])
         return M
 
     cdef int resize(self, long k) except -1:   # Not a Sage matrix operation
         """
         Change number of rows to ``k``. Preserves data.
         """
-        cdef long l = self._ncols * (self._nrows - k)
-        if l > 0:
-            sig_realloc(self._entries, self._ncols * k * sizeof(mpq_t))
-            memset(self._entries + self._nrows * self._ncols, 0, l * self._ncols * sizeof(mpq_t))
-        elif l < 0:
-            sig_realloc(self._entries, self._ncols * k * sizeof(mpq_t))
+        if self._nrows == k:
+            # Nothing to do
+            return 0
+
+        cdef long i
+        if self._nrows > k:
+            for i in range(self._nrows * self._ncols, k * self._ncols):
+                mpq_init(self._entries[i])
+        else:
+            for i in range(k * self._ncols, self._nrows * self._ncols):
+                mpq_clear(self._entries[i])
+        sig_realloc(self._entries, self._ncols * k * sizeof(mpq_t))
         self._nrows = k
         return 0
 
@@ -3354,9 +3362,13 @@ cdef class RationalMatrix(LeanMatrix):
         dimensions!
         """
         cdef RationalMatrix A
+        cdef long i
+        cdef long l = self._nrows * self._ncols
         A = RationalMatrix(self._nrows + M.nrows(), self._ncols)
-        memcpy(A._entries, self._entries, self._nrows * self._ncols * sizeof(mpq_t))
-        memcpy(A._entries + self._nrows * self._ncols, (<RationalMatrix>M)._entries, M.nrows() * M.ncols() * sizeof(mpq_t))
+        for i in range(l):
+            mpq_set(A._entries[i], self._entries[i])
+        for i in range(M.nrows() * M.ncols()):
+            mpq_set(A._entries[l+i], (<RationalMatrix>M)._entries[i])
         return A
 
     cdef LeanMatrix augment(self, LeanMatrix M):
@@ -3364,20 +3376,22 @@ cdef class RationalMatrix(LeanMatrix):
         Warning: assumes ``M`` is a RationalMatrix instance!
         """
         cdef RationalMatrix A
-        cdef long i
+        cdef long i, j
         cdef long Mn = M.ncols()
         A = RationalMatrix(self._nrows, self._ncols + Mn)
         for i in range(self._nrows):
-            memcpy(A._entries + i * A._ncols, self._entries + i * self._ncols, self._ncols * sizeof(mpq_t))
-            memcpy(A._entries + (i * A._ncols + self._ncols), (<RationalMatrix>M)._entries + i * Mn, Mn * sizeof(mpq_t))
+            for j in range(self._ncols):
+                mpq_set(A._entries[A.index(i,j)], self._entries[self.index(i,j)])
+                mpq_set(A._entries[i*A._ncols + self._ncols + j], (<RationalMatrix>M)._entries[i*Mn + j])
         return A
 
     cdef LeanMatrix prepend_identity(self):   # Not a Sage matrix operation
         cdef RationalMatrix A = RationalMatrix(self._nrows, self._ncols + self._nrows)
-        cdef long i
+        cdef long i, j
         for i in range(self._nrows):
-            mpq_set_si(A._entries[i * A._ncols + i], 1, 1)
-            memcpy(A._entries + (i * A._ncols + self._nrows), self._entries + i * self._ncols, self._ncols * sizeof(mpq_t))
+            mpq_set_si(A._entries[A.index(i,i)], 1, 1)
+            for j in range(self._ncols):
+                mpq_set(A._entries[A.index(i,self._nrows+j)], self._entries[self.index(i,j)])
         return A
 
     cpdef base_ring(self):

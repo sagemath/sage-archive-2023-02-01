@@ -1004,12 +1004,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             -s[2, 2, 2]
             sage: list(SymmetricGroup(5).character_table()[-2])
             [4, 2, 0, 1, -1, 0, -1]
-            sage: list(reversed([st([1]).eval_at_permutation_roots(rho) \
+            sage: list(reversed([st([1]).eval_at_permutation_roots(rho)
             ....:   for rho in Partitions(5)]))
             [4, 2, 0, 1, -1, 0, -1]
         """
         from .character import irreducible_character_basis
         return irreducible_character_basis(self, 'st')
+
     st = irreducible_symmetric_group_character
 
     def induced_trivial_character(self):

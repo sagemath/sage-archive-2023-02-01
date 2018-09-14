@@ -558,7 +558,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
 
         EXAMPLES::
 
-            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x);
+            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x)
             sage: theta = x + 2*x*i + 3*j + (x-2)*k
             sage: type(theta)
             <... 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_generic'>

@@ -1337,6 +1337,28 @@ class FiniteWord_class(Word_class):
         """
         return self.suffix_tree().factor_iterator(n)
 
+    def factor_complexity(self, n):
+        r"""
+        Return the number of distinct factors of length ``n`` of ``self``.
+
+        INPUT:
+
+        - ``n`` -- the length of the factors.
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: [w.factor_complexity(i) for i in range(20)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:1000]
+            sage: [w.factor_complexity(i) for i in range(20)]
+            [1, 2, 4, 6, 10, 12, 16, 20, 22, 24, 28, 32, 36, 40, 42, 44, 46, 48, 52, 56]
+        """
+        return len(list(self.factor_iterator(n)))
+
     def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
         Return the set of factors (of length ``n``) of ``self``.
@@ -3097,6 +3119,28 @@ class FiniteWord_class(Word_class):
         LPS = self.lps_lengths(f)
         return set(self[i-LPS[i] : i] for i in range(len(self)+1))
 
+    def palindromic_complexity(self, n):
+        r"""
+        Return the number of distinct palindromic factors of length ``n`` of ``self``.
+
+        INPUT:
+
+        - ``n`` -- the length of the factors.
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: [w.palindromic_complexity(i) for i in range(20)]
+            [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:1000]
+            sage: [w.palindromic_complexity(i) for i in range(20)]
+            [1, 2, 2, 2, 2, 0, 4, 0, 4, 0, 4, 0, 4, 0, 2, 0, 2, 0, 4, 0]
+        """
+        return len([x for x in self.palindromes() if len(x)==n])    
+
     def palindrome_prefixes(self):
         r"""
         Return a list of all palindrome prefixes of ``self``.
@@ -3888,7 +3932,7 @@ class FiniteWord_class(Word_class):
 
     def is_subword_of(self, other):
         r"""
-        Return ``True`` is ``self`` is a subword of ``other``, and ``False`` otherwise.
+        Return ``True`` if ``self`` is a subword of ``other``, and ``False`` otherwise.
 
         A finite word `u` is a *subword* of a finite word `v` if `u` is a
         subsequence of `v`. See Chapter 6 on Subwords in [1].

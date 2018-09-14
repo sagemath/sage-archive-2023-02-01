@@ -197,14 +197,14 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
                 self._evaluation_points = common_points[:len(evaluation_points)]
                 self._column_multipliers = common_points[len(evaluation_points):]
             except (TypeError, ValueError) as e:
-                raise ValueError("Failed converting all evaluation points and column multipliers to the same field (%s)" % e.message)
+                raise ValueError("Failed converting all evaluation points and column multipliers to the same field (%s)" % e)
         else:
             try:
                 self._evaluation_points = vector(evaluation_points)
                 F = self._evaluation_points.base_ring()
                 self._column_multipliers = vector(F, [F.one()] * len(self._evaluation_points))
             except (TypeError, ValueError) as e:
-                raise ValueError("Failed converting all evaluation points to the same field (%s)" % e.message)
+                raise ValueError("Failed converting all evaluation points to the same field (%s)" % e)
 
         if not F.is_finite() or not F.is_field():
             raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
@@ -230,7 +230,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: n, k = 40, 12
             sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C1.__eq__(C2)
+            sage: C1 == C2
             True
         """
         return isinstance(other, GeneralizedReedSolomonCode) \
@@ -240,6 +240,23 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
                 and self.evaluation_points() == other.evaluation_points() \
                 and self.column_multipliers() == other.column_multipliers()
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: n, k = 40, 12
+            sage: C1 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: C2 = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: hash(C1) == hash(C2)
+            True
+        """
+        return hash((self.base_field(), self.length(), self.dimension(),
+                     tuple(self.evaluation_points()),
+                     tuple(self.column_multipliers())))
+    
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -1443,7 +1460,7 @@ class GRSGaoDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D1 = codes.decoders.GRSGaoDecoder(C)
             sage: D2 = codes.decoders.GRSGaoDecoder(C)
-            sage: D1.__eq__(D2)
+            sage: D1 == D2
             True
             sage: D1 is D2
             False
@@ -1451,6 +1468,22 @@ class GRSGaoDecoder(Decoder):
         return (isinstance(other, GRSGaoDecoder)
                 and self.code() == other.code()
                 and self.input_space() == other.input_space())
+
+    def __hash__(self):
+        """
+        Return the hash of self.
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: n, k = 40, 12
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: D1 = codes.decoders.GRSGaoDecoder(C)
+            sage: D2 = codes.decoders.GRSGaoDecoder(C)
+            sage: hash(D1) == hash(D2)
+            True
+        """
+        return hash((self.code(), self.input_space()))
 
     def _repr_(self):
         r"""

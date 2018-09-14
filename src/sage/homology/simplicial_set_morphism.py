@@ -417,8 +417,6 @@ class SimplicialSetMorphism(Morphism):
             sage: one
             Simplicial set endomorphism of S^5
               Defn: Identity map
-            sage: one._dictionary
-            {v_0: v_0, sigma_5: sigma_5}
 
         TESTS:
 

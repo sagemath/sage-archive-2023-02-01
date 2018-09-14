@@ -856,7 +856,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-           sage: rlist = P._ringlist();
+           sage: rlist = P._ringlist()
            sage: Q = P._list_to_ring(rlist)
            sage: Q # indirect doctest
            <noncommutative RingWrap>
@@ -889,7 +889,7 @@ cdef class NCPolynomialRing_plural(Ring):
 #
 #            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 #            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-#            sage: rlist = P._ringlist();
+#            sage: rlist = P._ringlist()
 #            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 #            sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')
 #            sage: I = H.ideal([H.gen(i) ^2 for i in [0, 1]]).twostd()

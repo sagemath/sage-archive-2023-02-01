@@ -84,7 +84,7 @@ class Graphics(WithEqualityById, SageObject):
     Here we make a graphic of embedded isosceles triangles, coloring
     each one with a different color as we go::
 
-        sage: h=10; c=0.4; p=0.5;
+        sage: h=10; c=0.4; p=0.5
         sage: G = Graphics()
         sage: for x in srange(1,h+1):
         ....:     l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
@@ -1934,12 +1934,11 @@ class Graphics(WithEqualityById, SageObject):
             Graphics object consisting of 1 graphics primitive
 
         When using ``title_pos``, it must be ensured that a list or a tuple
-        of length two is used. Otherwise, an error is raised.::
+        of length two is used. Otherwise, a warning is raised::
 
-            sage; plot(x, -4, 4, title='Plot x', title_pos=0.05)
-            Traceback (most recent call last):
-            ...
-            ValueError: 'title_pos' must be a list or tuple of two real numbers.
+            sage: plot(x, -4, 4, title='Plot x', title_pos=0.05)
+            doctest:...: RichReprWarning: Exception in _rich_repr_ while displaying object: 'title_pos' must be a list or tuple of two real numbers.
+            Graphics object consisting of 1 graphics primitive
 
         TESTS:
 

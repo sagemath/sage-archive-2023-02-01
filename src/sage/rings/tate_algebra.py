@@ -1,4 +1,4 @@
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.factory import UniqueFactory
 from sage.monoids.monoid import Monoid_class
 from sage.rings.ring import CommutativeAlgebra
 from sage.rings.integer_ring import ZZ
@@ -10,16 +10,54 @@ from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
+from sage.structure.category_object import normalize_names
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.tate_algebra_element import TateAlgebraTerm
 from sage.rings.tate_algebra_element import TateAlgebraElement
 
 from sage.rings.polynomial.polydict import ETuple
 
-DEFAULT_CAP = 20
 
-class TateTermMonoid(Monoid_class, UniqueRepresentation):
-    def __init__(self, base, names, log_radii, order):
+# Factory
+#########
+
+class TateAlgebraFactory(UniqueFactory):
+    """
+    Doctest here.
+    """
+    def create_key(self, base, prec=None, log_radii=ZZ(0), names=None, order='degrevlex'):
+        if not isinstance(base, pAdicGeneric):
+            raise TypeError("The base ring must be a p-adic field")
+        # TODO: allow for arbitrary CDVF
+        base = base.fraction_field()
+        if names is None:
+            raise ValueError("You must specify the names of the variables")
+        names = normalize_names(-1, names)
+        ngens = len(names)
+        if not isinstance(log_radii, (list, tuple)):
+            log_radii = [ZZ(log_radii)] * ngens
+        elif len(log_radii) != ngens:
+            raise ValueError("The number of radii does not match the number of variables")
+        else:
+            log_radii = [ ZZ(r) for r in log_radii ]
+        order = TermOrder(order, ngens)
+        if prec is None:
+            prec = base.precision_cap()
+        key = (base, prec, tuple(log_radii), names, order)
+        return key
+
+    def create_object(self, version, key):
+        (base, prec, log_radii, names, order) = key
+        return TateAlgebra_generic(base, prec, log_radii, names, order)
+
+TateAlgebra = TateAlgebraFactory("TateAlgebra")
+
+# Parent for terms
+##################
+
+class TateTermMonoid(Monoid_class):
+    def __init__(self, base, log_radii, names, order):
         # This function is not exposed to the user
         # so we do not check the inputs
         self.element_class = TateAlgebraTerm
@@ -54,8 +92,10 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
         return self._ngens
 
 
+# Tate algebras
+###############
 
-class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
+class TateAlgebra_generic(CommutativeAlgebra):
     r"""Create a Tate series ring over a given complete discrete valuation
     ring.
 
@@ -140,49 +180,36 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
 
     """
 
-    def __init__(self, base, names, log_radii=QQ(0), prec=None, order='degrevlex'):
+    def __init__(self, field, prec, log_radii, names, order, integral=False):
         """
         Initialize the Tate algebra
 
         TESTS::
         
         """
-        if not isinstance(base, pAdicGeneric):
-            raise TypeError("The base ring must be a p-adic ring or field")
-        #if base not in CompleteDiscreteValuationRings() and base not in CompleteDiscreteValuationFields():
-        #    raise TypeError("The base ring must be a complete discrete valuation ring or field")
-        if isinstance(names, (list, tuple)):
-            names = [ str(var) for var in names ]
-        else:
-            names = [ str(names) ]
-        self._ngens = len(names)
         self.element_class = TateAlgebraElement
+        self._field = field
+        self._cap = prec
+        self._log_radii = ETuple(log_radii)  # TODO: allow log_radii in QQ (but ETuple does not support this)
+        self._names = names
+        self._ngens = len(names)
+        self._order = order
+        self._integral = integral
+        if integral:
+            base = field.integer_ring()
+        else:
+            base = field
         CommutativeAlgebra.__init__(self, base, names, category=CommutativeAlgebras(base))
-        # TODO: allow log_radii in QQ (but ETuple does not support this)
-        if not isinstance(log_radii, (list, tuple)):
-            log_radii = tuple([ZZ(log_radii)] * self._ngens)
-        elif len(log_radii) != self._ngens:
-            raise ValueError("The number of radii does not match the number of variables")
-        else:
-            log_radii = tuple([ ZZ(r) for r in log_radii ])
-        self._log_radii = ETuple(log_radii)
-        field = base.fraction_field()
         self._polynomial_ring = PolynomialRing(field, names, order=order)
-        self._names = self._polynomial_ring.variable_names()
-        self._order = self._polynomial_ring.term_order()
-        self._gens = tuple([ self((field(1) << log_radii[i].ceil()) * self._polynomial_ring.gen(i)) for i in range(self._ngens) ])
-        if prec is None:
-            try:
-                self._cap = base.precision_cap()
-            except AttributeError:
-                try:
-                    self._cap = base.default_prec()
-                except AttributeError:
-                    self._cap = DEFAULT_CAP
+        one = field(1)
+        if integral:
+            self._gens = [ self((one << log_radii[i].ceil()) * self._polynomial_ring.gen(i)) for i in range(self._ngens) ]
+            self._integer_ring = self
         else:
-            self._cap = ZZ(prec)
-        self._parent_terms = TateTermMonoid(self._base, self._names, log_radii, self._order)
-        self._oneterm = self._parent_terms(field(1), ETuple([0]*self._ngens))
+            self._gens = [ self(g) for g in self._polynomial_ring.gens() ]
+            self._integer_ring = TateAlgebra_generic(field, prec, log_radii, names, order, integral=True)
+        self._parent_terms = TateTermMonoid(base, log_radii, names, order)
+        self._oneterm = self._parent_terms(one, ETuple([0]*self._ngens))
 
     def _an_element_(self):
         r"""
@@ -263,7 +290,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         base = self._base
         if base.has_coerce_map_from(R):
             return True
-        if isinstance(R, (TateTermMonoid, TateAlgebra)):
+        if isinstance(R, (TateTermMonoid, TateAlgebra_generic)):
             Rbase = R.base_ring()
             if base.has_coerce_map_from(Rbase) and self._names == R.variable_names() and self._order == R.term_order():
                 ratio = base.absolute_e() // Rbase.absolute_e()
@@ -297,7 +324,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
         return TateAlgebraIdeal
 
     #def _pushout_(self, R):
-    #    if not isinstance(R, TateAlgebra):  # should we allow PolynomialRing as well?
+    #    if not isinstance(R, TateAlgebra_generic):  # should we allow PolynomialRing as well?
     #        return None
     #    if self._names != R.variable_names():
     #        return None
@@ -310,15 +337,15 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
     #    Rratio = base.absolute_e() // Rbase.absolute_e()
     #    log_radii = tuple([ min(self._log_radii[i] * Sratio, R.log_radii()[i] * Rratio) for i in range(self._ngens) ])
     #    cap = min(self._cap * Sratio, R.precision_cap() * Rratio)
-    #    return TateAlgebra(base, self._names, log_radii, cap, self._order)
+    #    return TateAlgebra_generic(base, self._names, log_radii, cap, self._order)
 
     def gen(self, n=0):
         r"""
-        Return the ``n``'th generator of the algebra
+        Returns the ``n``'th generator of the algebra
 
         INPUT:
 
-        - ``n`` - (default: 0) the generator to return
+        - ``n`` - (default: ``0``) the generator to return
 
         EXAMPLES::
 
@@ -335,14 +362,17 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
             sage: A.gen(2)
             Traceback (most recent call last):
             ...
-            IndexError: tuple index out of range
+            ValueError: Generator not defined
         
         """
-        return self._gens[n]
+        try:
+            return self._gens[n]
+        except IndexError:
+            raise ValueError("Generator not defined")
 
     def gens(self):
         r"""
-        Return the list of generators of the algebra
+        Returns the list of generators of the algebra.
 
         EXAMPLES::
 
@@ -354,11 +384,11 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
             ((...0000000001)*x, (...0000000001)*y)
         
         """
-        return self._gens
+        return tuple(self._gens)
 
     def ngens(self):
         """
-        Return the number of generators of the algebra
+        Returns the number of generators of this algebra
 
         EXAMPLES::
 
@@ -374,7 +404,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
 
     def _repr_(self):
         """
-        Return a printable representation of the algebra
+        Returns a printable representation of this algebra.
 
         EXAMPLES::
 
@@ -384,12 +414,13 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
             Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
             
         """
-        if self._ngens == 0:
-            return "Tate Algebra over %s" % self._base
         vars = ""
         for i in range(self._ngens):
             vars += ", %s (val >= %s)" % (self._names[i], -self._log_radii[i])
-        return "Tate Algebra in %s over %s" % (vars[2:], self._base)
+        if self._integral:
+            return "Integer ring of the Tate Algebra in %s over %s" % (vars[2:], self._field)
+        else:
+            return "Tate Algebra in %s over %s" % (vars[2:], self._field)
 
     def variable_names(self):
         """
@@ -409,7 +440,7 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
 
     def log_radii(self):
         """
-        Return the list of the logs of the convergence radii of the series of the
+        Returns the list of the logs of the convergence radii of the series of the
         algebra.
 
         EXAMPLES::
@@ -430,15 +461,17 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
             [1, -1]
 
         """
-        
         return self._log_radii
+
+    def integer_ring(self):
+        return self._integer_ring
 
     def monoid_of_terms(self):
         return self._parent_terms
 
     def term_order(self):
         """
-        Return the monomial order used in the algebra
+        Returns the monomial order used in this algebra.
 
         EXAMPLES::
 
@@ -446,8 +479,6 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
             Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
-
-        
         """
         return self._order
 
@@ -463,13 +494,12 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
             Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
             sage: A.precision_cap()
             10
-        
         """
         return self._cap
 
     def characteristic(self):
         """
-        Return the characteristic of the base ring
+        Returns the characteristic of this algebra.
 
         EXAMPLES::
 
@@ -489,10 +519,10 @@ class TateAlgebra(CommutativeAlgebra, UniqueRepresentation):
             Tate Algebra in x, y over Laurent Series Ring in t over Finite Field of size 2
             sage: BB.characteristic()
             2
-
         """
-        
         return self.base_ring().characteristic()
 
     #def ideal(self, gens):
     #    pass
+
+

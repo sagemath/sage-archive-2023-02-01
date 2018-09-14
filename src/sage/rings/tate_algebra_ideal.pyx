@@ -116,7 +116,7 @@ class TateAlgebraIdeal(Ideal_generic):
     def _contains_ideal(self, I):
         rgb = self.groebner_basis()
         for f in I.gens():
-            if not (f % rgb).is_zero():
+            if not f in self:
                 return False
         return True
 

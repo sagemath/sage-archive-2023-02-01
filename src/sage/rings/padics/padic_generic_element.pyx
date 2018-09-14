@@ -918,15 +918,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # We compute b = 1 + x + x^p/p + x^(p^2)/p^2 + ...
         pow = self.add_bigoh(prec)
         b = 1 + pow
-        v = self.valuation()
         denom = 1; trunc = prec
-        vmax = max(ep, prec // p)
-        while v <= vmax:
+        while pow != 0:
             trunc += e
             pow = (pow**p).add_bigoh(trunc)
             denom *= p
             b += pow/denom
-            v *= p
         # We iterate the Newton scheme: y_(n+1) = y_n * (b - log(y_n))
         curprec = startprec
         while curprec < prec:

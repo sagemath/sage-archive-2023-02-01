@@ -95,6 +95,7 @@ from sage.modules.free_module_element import vector
 from sage.arith.all import lcm, gcd
 
 from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
@@ -800,7 +801,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
         """
         return self._module
 
-class FunctionFieldMaximalOrder(FunctionFieldOrder):
+class FunctionFieldMaximalOrder(FunctionFieldOrder, UniqueRepresentation):
     """
     Base class of maximal orders of function fields.
     """
@@ -1125,16 +1126,13 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
     """
     Maximal orders of global function fields.
     """
-    def __init__(self, field, basis):
+    def __init__(self, field):
         """
         Initialize.
 
         INPUT:
 
         - ``field`` -- function field to which this maximal order belongs
-
-        - ``basis`` -- basis of this maximal order as a module over the base
-          maximal order
 
         EXAMPLES::
 
@@ -1144,6 +1142,13 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
             Maximal order of Function field in y defined by y^4 + x*y + 4*x + 1
         """
         FunctionFieldMaximalOrder.__init__(self, field)
+
+        from .function_field import FunctionField_global_integral
+        if isinstance(field, FunctionField_global_integral):
+            basis = field._maximal_order_basis()
+        else:
+            model, from_model, to_model = field.monic_integral_model('z')
+            basis = [from_model(g) for g in model._maximal_order_basis()]
 
         V, fr, to = field.vector_space()
         R = field.base_field().maximal_order()
@@ -2053,15 +2058,13 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
     """
     Maximal infinite orders of global function fields.
     """
-    def __init__(self, field, basis):
+    def __init__(self, field):
         """
         Initialize.
 
         INPUT:
 
         - ``field`` -- function field
-
-        - ``basis`` -- list of elements of the function field
 
         EXAMPLES::
 
@@ -2077,13 +2080,16 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
         """
         FunctionFieldOrderInfinite.__init__(self, field)
 
-        V, fr, to = field.vector_space()
+        M, from_M, to_M = field._inversion_isomorphism()
+        basis = [from_M(g) for g in M.maximal_order().basis()]
+
+        V, from_V, to_V = field.vector_space()
         R = field.base_field().maximal_order_infinite()
 
         self._basis = tuple(basis)
-        self._module = V.span_of_basis([to(v) for v in basis])
+        self._module = V.span_of_basis([to_V(v) for v in basis])
         self._module_base_ring = R
-        self._to_module = to
+        self._to_module = to_V
 
     def _element_constructor_(self, f):
         """

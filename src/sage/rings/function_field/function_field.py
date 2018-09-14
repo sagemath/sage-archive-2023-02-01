@@ -138,7 +138,6 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_import import lazy_import
 
 from sage.interfaces.all import singular
 
@@ -155,6 +154,12 @@ from .element import (
     FunctionFieldElement_rational,
     FunctionFieldElement_polymod,
     FunctionFieldElement_global)
+
+from .order import (
+    FunctionFieldOrder_basis,
+    FunctionFieldOrderInfinite_basis,
+    FunctionFieldMaximalOrder_global,
+    FunctionFieldMaximalOrderInfinite_global)
 
 def is_FunctionField(x):
     """
@@ -2498,26 +2503,21 @@ class FunctionField_global(FunctionField_polymod):
         FunctionField_polymod.__init__(self, polynomial, names,
                                        element_class=FunctionFieldElement_global)
 
-        self._cache = {}
-
-    @cached_method
     def maximal_order(self):
         """
         Return the maximal order of the function field.
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: L.maximal_order()
-            Maximal order of Function field in y defined by y^2 + y + (x^2 + 1)/x
+            sage: K.<x> = FunctionField(GF(2));
+            sage: R.<t> = PolynomialRing(K);
+            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18);
+            sage: O = F.maximal_order()
+            sage: O.basis()
+            (1, 1/x^4*y, 1/x^11*y^2 + 1/x^2, 1/x^15*y^3 + 1/x^6*y)
         """
-        from .order import FunctionFieldMaximalOrder_global
-        model, from_model, to_model = self.monic_integral_model('z')
-        basis = [from_model(g) for g in model.maximal_order().basis()]
-        return FunctionFieldMaximalOrder_global(self, basis)
+        return FunctionFieldMaximalOrder_global(self)
 
-    @cached_method
     def maximal_order_infinite(self):
         """
         Return the maximal infinite order of the function field.
@@ -2534,10 +2534,7 @@ class FunctionField_global(FunctionField_polymod):
             sage: L.maximal_order_infinite()
             Maximal infinite order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
-        from .order import FunctionFieldMaximalOrderInfinite_global
-        M, from_M, to_M = self._inversion_isomorphism()
-        basis = [from_M(g) for g in M.maximal_order().basis()]
-        return FunctionFieldMaximalOrderInfinite_global(self, basis)
+        return FunctionFieldMaximalOrderInfinite_global(self)
 
     @cached_method
     def _inversion_isomorphism(self):
@@ -2609,42 +2606,22 @@ class FunctionField_global_integral(FunctionField_global):
     which is integral over the maximal order of the base rational function
     field with a finite constant field.
     """
-    @cached_method
-    def equation_order(self):
+    def _maximal_order_basis(self):
         """
-        Return the equation order of the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-            sage: F.equation_order()
-            Order in Function field in y defined by y^3 + x^6 + x^4 + x^2
-        """
-        from .order import FunctionFieldOrder_basis
-        a = self.gen()
-        basis = [a**i for i in range(self.degree())]
-        return FunctionFieldOrder_basis(basis)
-
-    @cached_method
-    def maximal_order(self):
-        """
-        Return the maximal order of the function field.
+        Return a basis of the maximal order of the function field.
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2));
             sage: R.<t> = PolynomialRing(K);
             sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18);
-            sage: O = F.maximal_order()
-            sage: O.basis()
-            (1, 1/x^4*y, 1/x^11*y^2 + 1/x^2, 1/x^15*y^3 + 1/x^6*y)
+            sage: F._maximal_order_basis()
+            [1, 1/x^4*y, 1/x^11*y^2 + 1/x^2, 1/x^15*y^3 + 1/x^6*y]
 
         The basis of the maximal order *always* starts with 1. This is assumed
         in some algorithms.
         """
         from sage.matrix.constructor import matrix
-        from .order import FunctionFieldMaximalOrder_global
 
         from sage.libs.singular.function import singular_function, lib
         from sage.env import SAGE_EXTCODE
@@ -2724,7 +2701,23 @@ class FunctionField_global_integral(FunctionField_global):
         _mat.reverse_rows_and_columns()
 
         basis = [fr_V(v) / l for v in _mat if not v.is_zero()]
-        return FunctionFieldMaximalOrder_global(self, basis)
+        return basis
+
+    @cached_method
+    def equation_order(self):
+        """
+        Return the equation order of the function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: F.equation_order()
+            Order in Function field in y defined by y^3 + x^6 + x^4 + x^2
+        """
+        a = self.gen()
+        basis = [a**i for i in range(self.degree())]
+        return FunctionFieldOrder_basis(basis)
 
     @cached_method
     def primitive_integal_element_infinite(self):
@@ -2753,6 +2746,7 @@ class FunctionField_global_integral(FunctionField_global):
                   if f[i] != 0])
         return y*x**(-cf)
 
+    @cached_method
     def equation_order_infinite(self):
         """
         Return the infinite equation order of the function field.
@@ -2768,7 +2762,6 @@ class FunctionField_global_integral(FunctionField_global):
             sage: F.equation_order_infinite()
             Infinite order in Function field in y defined by y^3 + x^6 + x^4 + x^2
         """
-        from .order import FunctionFieldOrderInfinite_basis
         b = self.primitive_integal_element_infinite()
         basis = [b**i for i in range(self.degree())]
         return FunctionFieldOrderInfinite_basis(basis)

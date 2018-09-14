@@ -32,6 +32,7 @@ m4_pushdef([SPKG_NAME], [$1])
 m4_pushdef([SPKG_INSTALL_VAR], [sage_spkg_install_]SPKG_NAME)
 m4_pushdef([SPKG_REQUIRE_VAR], [sage_require_]SPKG_NAME)
 # BEGIN SAGE_SPKG_CONFIGURE_]m4_toupper($1)[
+AC_MSG_NOTICE([=== checking whether to install the $1 SPKG ===])
 m4_ifval(
 [$2],
 [AS_VAR_SET_IF(SPKG_INSTALL_VAR, [], SPKG_INSTALL_VAR[=no])],

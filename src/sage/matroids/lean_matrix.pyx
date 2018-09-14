@@ -3350,7 +3350,7 @@ cdef class RationalMatrix(LeanMatrix):
 
     cdef LeanMatrix stack(self, LeanMatrix M):
         """
-        Warning: assumes ``M`` is an IntegerMatrix instance of right
+        Warning: assumes ``M`` is an RationalMatrix instance of right
         dimensions!
         """
         cdef RationalMatrix A
@@ -3361,7 +3361,7 @@ cdef class RationalMatrix(LeanMatrix):
 
     cdef LeanMatrix augment(self, LeanMatrix M):
         """
-        Warning: assumes ``M`` is a GenericMatrix instance!
+        Warning: assumes ``M`` is a RationalMatrix instance!
         """
         cdef RationalMatrix A
         cdef long i
@@ -3373,7 +3373,7 @@ cdef class RationalMatrix(LeanMatrix):
         return A
 
     cdef LeanMatrix prepend_identity(self):   # Not a Sage matrix operation
-        cdef RationalMatrix A = RationalMatrix(self._nrows, self._ncols + self._nrows, ring=self._base_ring)
+        cdef RationalMatrix A = RationalMatrix(self._nrows, self._ncols + self._nrows)
         cdef long i
         for i in range(self._nrows):
             mpq_set_si(A._entries[i * A._ncols + i], 1, 1)

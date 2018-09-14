@@ -364,13 +364,6 @@ AS_IF([echo "$ac_pwd" |grep " " >/dev/null],
 
 SAGE_CHECK_OSX_SUPPORTED()
 
-# if GCC needs to be installed GFORTRAN shouldn't be installed.
-# if GCC is already installed GFORTRAN shouldn't be installed either.
-# GCC will provide GFORTRAN in both cases.
-if test x$sage_spkg_install_gcc = xyes -o x$SAGE_INSTALL_GCC = xexists ; then
-    sage_spkg_install_gfortran=no
-fi
-
 ###############################################################################
 # Collect substitutions for build/make/Makefile.in
 ###############################################################################

@@ -4,7 +4,7 @@ SAGE_SPKG_CONFIGURE([gfortran], [
 
     # Special case: If we are already installing gcc then don't install
     # gfortran since it's included
-    if test "x$sage_spkg_install_gcc" = "xyes"; then
+    if test "x$sage_spkg_install_gcc" = "xyes" -o x$SAGE_INSTALL_GCC = xexists; then
         sage_spkg_install_gfortran=no
     else
         # Check that the Fortran compiler accepts free-format source code (as

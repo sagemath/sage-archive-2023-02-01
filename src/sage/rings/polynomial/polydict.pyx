@@ -1292,7 +1292,19 @@ cdef class ETuple:
     # additional methods
 
     cpdef size_t unweighted_degree(self):
-        "Return the sum of the entries"
+        r""""Sum of entries
+
+        ASSUMPTION:
+
+        All entries are non-negative.
+
+        EXAMPLES::
+
+             sage: from sage.rings.polynomial.polydict import ETuple
+             sage: e = ETuple([1,1,0,2,0])
+             sage: e.unweighted_degree()
+             4
+        """
         cdef size_t degree = 0
         cdef size_t i
         for i in range(1,2*self._nonzero,2):
@@ -1302,6 +1314,17 @@ cdef class ETuple:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef size_t weighted_degree(self, tuple w):
+        r"""Weighted some of entries
+
+        INPUT:
+
+        w - tuple of non-negative integers.
+
+        ASSUMPTIONS:
+
+        w has the same length as self, and the entries of self
+        and w are non-negative.
+        """
         cdef size_t i
         cdef size_t deg = 0
         assert len(w) == self._length
@@ -1310,6 +1333,10 @@ cdef class ETuple:
         return deg
 
     cdef size_t unweighted_quotient_degree(self, ETuple other):
+        r"""Degree of self divided by its gcd with other
+
+        It amounts to counting the non-negative entries of self.esub(other)
+        """
         cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in double steps.
         cdef size_t ind2 = 0
         cdef int exponent
@@ -1340,6 +1367,18 @@ cdef class ETuple:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef size_t weighted_quotient_degree(self, ETuple other, tuple w):
+        r"""Weighted degree of self divided by its gcd with other
+
+        INPUT:
+
+        other - an ETuple
+        w - tuple of non-negative integers.
+
+        ASSUMPTIONS:
+
+        w and other have the same length as self, and the entries of self, other
+        and w are non-negative.
+        """        
         cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in double steps.
         cdef size_t ind2 = 0
         cdef size_t exponent
@@ -1673,7 +1712,7 @@ cdef class ETuple:
         return result
 
     cdef ETuple divide_by_gcd(self, ETuple other):
-        """Return ``self/gcd(self,other)``.
+        """`self/gcd(self,other)``
 
         The entries of the result are the maximum of 0 and
         the difference of the corresponding entries of ``self`` and ``other``.

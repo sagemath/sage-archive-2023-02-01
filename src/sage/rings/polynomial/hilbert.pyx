@@ -69,15 +69,15 @@ cdef inline bint indivisible_in_list(ETuple m, list L, size_t i):
 cdef inline list interred(list L):
     """Return interreduction of a list of monomials.
 
-    NOTE::
+    NOTE:
 
-        The given list will be sorted in-place
+    The given list will be sorted in-place
 
-    INPUT::
+    INPUT:
 
     A list of :class:`~sage.rings.polynomial.polydict.ETuple`.
 
-    OUTPUT::
+    OUTPUT:
 
     The interreduced list, where we interprete each ETuple as
     a monomial in a multivariate ring.
@@ -262,7 +262,7 @@ cdef make_children(Node D, tuple w):
 
     Basically, the first Hilbert series of ``D.Id`` will be
     ``D.LMult`` times the first Hilbert series of ``D.Left.Id``,
-    possibly plus ``D.RMult`` times the first Hilbet series of ``D.Right.Id``
+    possibly plus ``D.RMult`` times the first Hilbert series of ``D.Right.Id``
     if ``D.Right`` is not None.
     """
     cdef size_t j,m
@@ -426,6 +426,7 @@ def first_hilbert_series(I, grading=None, return_grading=False):
         1
         sage: first_hilbert_series(singular(I))
         1
+        sage: I = 1*R
         sage: first_hilbert_series(I)
         0
         sage: first_hilbert_series(singular(I))

@@ -54,7 +54,7 @@ def LocalGenusSymbol(A, p):
     INPUT:
 
     - ``A`` -- a symmetric, non-singular matrix with coefficients in `\ZZ`
-    - ``p`` -- an integer prime `p > 0`
+    - ``p`` -- a prime number
 
     OUTPUT:
 
@@ -85,8 +85,7 @@ def LocalGenusSymbol(A, p):
 
 def is_GlobalGenus(G):
     """
-    Given a genus symbol `G` (specified by a collection of local symbols),
-    return ``True`` if `G` represents the genus of a global quadratic form or lattice.
+    Return if `G` represents the genus of a global quadratic form or lattice.
 
     INPUT:
 
@@ -427,7 +426,8 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
     .. NOTE::
 
-        See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
+        See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
+        and examples.
 
     .. TODO::
 
@@ -576,9 +576,10 @@ def p_adic_symbol(A, p, val):
     INPUT:
 
     - ``A`` -- symmetric matrix with integer coefficients
-    - ``p`` -- prime number > 0
-    - ``val`` -- integer >= 0; valuation of the maximal elementary divisor of `A`
-      needed to obtain enough precision. Calculation is modulo `p` to the ``val+3``.
+    - ``p`` -- prime number
+    - ``val`` -- non-negative integer; valuation of the maximal elementary
+      divisor of `A` needed to obtain enough precision.
+      Calculation is modulo `p` to the ``val+3``.
 
     OUTPUT:
 
@@ -818,7 +819,7 @@ def two_adic_symbol(A, val):
     INPUT:
 
     - ``A`` -- symmetric matrix with integer coefficients, non-degenerate
-    - ``val`` -- integer >=0; valuation of maximal 2-elementary divisor
+    - ``val`` -- non-negative integer; valuation of maximal `2`-elementary divisor
 
     OUTPUT:
 
@@ -923,14 +924,16 @@ class Genus_Symbol_p_adic_ring(object):
     Reference: [Co1999]_ Conway and Sloane 3rd edition, Chapter 15, Section 7.
 
 
-    WARNING/NOTE: This normalization seems non-standard, and we
-    should review this entire class to make sure that we have our
-    doubling conventions straight throughout!  This is especially
-    noticeable in the determinant and excess methods!!
+    .. WARNING::
+
+        This normalization seems non-standard, and we
+        should review this entire class to make sure that we have our
+        doubling conventions straight throughout!  This is especially
+        noticeable in the determinant and excess methods!!
 
     INPUT:
 
-    - ``prime`` -- a prime integer `> 0`
+    - ``prime`` -- a prime number
     - ``symbol`` -- the list of invariants for Jordan blocks `A_t,...,A_t` given
       as a list of lists of integers
     """
@@ -1213,7 +1216,8 @@ class Genus_Symbol_p_adic_ring(object):
 
         .. NOTE::
 
-            See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
+            See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
+            and examples.
 
         .. TODO::
 
@@ -1349,8 +1353,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         OUTPUT:
 
-        integer >= 0
-
+        A non-negative
         EXAMPLES::
 
             sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
@@ -1415,7 +1418,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         OUTPUT:
 
-        an integer ``>= 0``
+        an non-negative integer
 
         EXAMPLES::
 
@@ -1439,9 +1442,6 @@ class Genus_Symbol_p_adic_ring(object):
         """
         return sum([ s[1] for s in self._symbol ])
 
-    # TODO:
-    # DELETE rank() IN FAVOR OF THE dimension() ... why?
-
     rank = dimension
 
     def excess(self):
@@ -1450,9 +1450,11 @@ class Genus_Symbol_p_adic_ring(object):
         matrix is the symmetric matrix A.  When p = 2 the p-excess is
         called the oddity.
 
-        WARNING/NOTE: This normalization seems non-standard, and we
-        should review this entire class to make sure that we have our
-        doubling conventions straight throughout!
+        .. WARNING::
+
+            This normalization seems non-standard, and we
+            should review this entire class to make sure that we have our
+            doubling conventions straight throughout!
 
         REFERENCE:
 
@@ -1528,7 +1530,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         OUTPUT:
 
-        a list of integers >= 0
+        a list of non-negative integers
 
         EXAMPLES::
 
@@ -1558,7 +1560,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         OUTPUT:
 
-        a list of integers >= 0
+        a list of non-negative integers
 
         EXAMPLES::
 
@@ -1834,7 +1836,6 @@ class GenusSymbol_global_ring(object):
             sage: GS = GenusSymbol_global_ring(A)
             sage: GS.determinant()
             -384
-
         """
         r, s = self.signature_pair_of_matrix()
         return (-1)**s*prod([ G.determinant() for G in self._local_symbols ])

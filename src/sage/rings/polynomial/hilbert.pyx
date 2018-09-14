@@ -157,11 +157,18 @@ cdef bint HilbertBaseCase(Polynomial_integer_dense_flint fhs, Node D, tuple w):
         fmpz_poly_init(poly_tmp)
         fmpz_poly_set_coeff_si(poly_tmp, 0, 1)
         fmpz_poly_set_coeff_si(fhs.__poly, 0, 1) # = PR(1)
-        for i in range(len(D.Id)):
-            exp = (<ETuple>PyList_GET_ITEM(D.Id, i)).weighted_degree(w)
-            fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
-            fmpz_poly_mul(fhs.__poly, fhs.__poly, poly_tmp)
-            fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
+        if w is None:
+            for i in range(len(D.Id)):
+                exp = (<ETuple>PyList_GET_ITEM(D.Id, i)).unweighted_degree()
+                fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
+                fmpz_poly_mul(fhs.__poly, fhs.__poly, poly_tmp)
+                fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
+        else:
+            for i in range(len(D.Id)):
+                exp = (<ETuple>PyList_GET_ITEM(D.Id, i)).weighted_degree(w)
+                fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
+                fmpz_poly_mul(fhs.__poly, fhs.__poly, poly_tmp)
+                fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
         fmpz_poly_clear(poly_tmp)
         return True # PR.prod([(1-t**degree(m,w)) for m in D.Id])
 
@@ -177,11 +184,18 @@ cdef bint HilbertBaseCase(Polynomial_integer_dense_flint fhs, Node D, tuple w):
         fmpz_poly_init(poly_tmp)
         fmpz_poly_set_coeff_si(poly_tmp, 0, 1)
         fmpz_poly_set_coeff_si(fhs.__poly, 0, 1) # = PR(1)
-        for i in range(len(D.Id)):
-            exp = (<ETuple>PyList_GET_ITEM(D.Id, i)).weighted_degree(w)
-            fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
-            fmpz_poly_mul(fhs.__poly, fhs.__poly, poly_tmp)
-            fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
+        if w is None:
+            for i in range(len(D.Id)):
+                exp = (<ETuple>PyList_GET_ITEM(D.Id, i)).unweighted_degree()
+                fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
+                fmpz_poly_mul(fhs.__poly, fhs.__poly, poly_tmp)
+                fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
+        else:
+            for i in range(len(D.Id)):
+                exp = (<ETuple>PyList_GET_ITEM(D.Id, i)).weighted_degree(w)
+                fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
+                fmpz_poly_mul(fhs.__poly, fhs.__poly, poly_tmp)
+                fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
         fmpz_poly_clear(poly_tmp)
         return True # PR.prod([(1-t**degree(m,w)) for m in D.Id])
 
@@ -201,21 +215,38 @@ cdef bint HilbertBaseCase(Polynomial_integer_dense_flint fhs, Node D, tuple w):
         fmpz_poly_init(SecondSummand)
         fmpz_poly_set_coeff_si(poly_tmp, 0, 1)
         fmpz_poly_set_coeff_si(FirstSummand, 0, 1)
-        fmpz_poly_set_coeff_si(SecondSummand, m.weighted_degree(w), -1)
-        # Since the ideal is interreduced and all other monomials are
-        # simple powers, we have the following formula:
-#~         return prod([(1-t**degree(m2,w)) for m2 in D.Id if m2 is not m]) - t**degree(m,w)*prod((1-t**quotient_degree(m2,m,w)) for m2 in D.Id if m is not m2)
-        for j in range(len(D.Id)):
-            if i != j:
-                m2 = <ETuple>PyList_GET_ITEM(D.Id,j)
-                exp = m2.weighted_degree(w)
-                fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
-                fmpz_poly_mul(FirstSummand, FirstSummand, poly_tmp)
-                fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
-                exp = m2.weighted_quotient_degree(m,w)
-                fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
-                fmpz_poly_mul(SecondSummand, SecondSummand, poly_tmp)
-                fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
+        if w is None:
+            fmpz_poly_set_coeff_si(SecondSummand, m.unweighted_degree(), -1)
+            # Since the ideal is interreduced and all other monomials are
+            # simple powers, we have the following formula:
+    #~         return prod([(1-t**degree(m2,w)) for m2 in D.Id if m2 is not m]) - t**degree(m,w)*prod((1-t**quotient_degree(m2,m,w)) for m2 in D.Id if m is not m2)
+            for j in range(len(D.Id)):
+                if i != j:
+                    m2 = <ETuple>PyList_GET_ITEM(D.Id,j)
+                    exp = m2.unweighted_degree()
+                    fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
+                    fmpz_poly_mul(FirstSummand, FirstSummand, poly_tmp)
+                    fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
+                    exp = m2.unweighted_quotient_degree(m)
+                    fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
+                    fmpz_poly_mul(SecondSummand, SecondSummand, poly_tmp)
+                    fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
+        else:
+            fmpz_poly_set_coeff_si(SecondSummand, m.weighted_degree(w), -1)
+            # Since the ideal is interreduced and all other monomials are
+            # simple powers, we have the following formula:
+    #~         return prod([(1-t**degree(m2,w)) for m2 in D.Id if m2 is not m]) - t**degree(m,w)*prod((1-t**quotient_degree(m2,m,w)) for m2 in D.Id if m is not m2)
+            for j in range(len(D.Id)):
+                if i != j:
+                    m2 = <ETuple>PyList_GET_ITEM(D.Id,j)
+                    exp = m2.weighted_degree(w)
+                    fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
+                    fmpz_poly_mul(FirstSummand, FirstSummand, poly_tmp)
+                    fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
+                    exp = m2.weighted_quotient_degree(m,w)
+                    fmpz_poly_set_coeff_si(poly_tmp, exp, -1)
+                    fmpz_poly_mul(SecondSummand, SecondSummand, poly_tmp)
+                    fmpz_poly_set_coeff_si(poly_tmp, exp, 0)
         fmpz_poly_clear(poly_tmp)
         fmpz_poly_add(fhs.__poly, fhs.__poly, FirstSummand)
         fmpz_poly_add(fhs.__poly, fhs.__poly, SecondSummand)
@@ -254,6 +285,7 @@ cdef make_children(Node D, tuple w):
     cdef size_t e # will be the exponent, if the monomial used for cutting is power of a variable
     cdef ETuple cut,mon
     cdef list Id2
+    cdef size_t cut_deg
     # Cases:
     # - m==1, which means that all variables occur at most once.
     #   => we cut by a variable that appears in a decomposable generator
@@ -270,6 +302,10 @@ cdef make_children(Node D, tuple w):
         cut._data = <int*>sig_malloc(sizeof(int)*2)
         cut._data[0] = j
         cut._data[1] = 1
+        if w is None:
+            cut_deg = cut.unweighted_degree()
+        else:
+            cut_deg = cut.weighted_degree(w)
         # var(j) *only* appears in D.Id[-1]. Hence, D.Id+var(j) will be a split case,
         # with var(j) and D.Id[:-1]. So, we do the splitting right now.
         # Only the last generator contains var(j). Hence, D.Id/var(j) is obtained
@@ -277,7 +313,7 @@ cdef make_children(Node D, tuple w):
         # of course followed by interreduction.
         #D.LMult = 1-t**degree(cut,w)
         fmpz_poly_set_coeff_si(D.LMult, 0, 1)
-        fmpz_poly_set_coeff_si(D.LMult, cut.weighted_degree(w), -1)
+        fmpz_poly_set_coeff_si(D.LMult, cut_deg, -1)
         D.Left  = Node.__new__(Node)
         D.Left.Id = D.Id[:len(D.Id)-1]
         D.Left.Back = D
@@ -287,7 +323,7 @@ cdef make_children(Node D, tuple w):
         D.Right.Id = interred(Id2)
         D.Right.Back = D
         #D.RMult = 1-D.LMult
-        fmpz_poly_set_coeff_si(D.RMult, cut.weighted_degree(w), 1)
+        fmpz_poly_set_coeff_si(D.RMult, cut_deg, 1)
     else:
         j = max_exponents[0]
         e = median([mon[j] for mon in D.Id if mon[j]])
@@ -296,6 +332,10 @@ cdef make_children(Node D, tuple w):
         cut._data = <int*>sig_malloc(sizeof(int)*2)
         cut._data[0] = j
         cut._data[1] = e
+        if w is None:
+            cut_deg = cut.unweighted_degree()
+        else:
+            cut_deg = cut.weighted_degree(w)
         try:
             i = D.Id.index(cut)
         except ValueError:
@@ -309,7 +349,7 @@ cdef make_children(Node D, tuple w):
             Id2.pop(i)
             # D.LMult = 1-t**degree(cut,w)
             fmpz_poly_set_coeff_si(D.LMult, 0, 1)
-            fmpz_poly_set_coeff_si(D.LMult, cut.weighted_degree(w), -1)
+            fmpz_poly_set_coeff_si(D.LMult, cut_deg, -1)
             D.Left  = Node.__new__(Node)
             D.Left.Id = Id2
             D.Left.Back = D
@@ -392,8 +432,8 @@ def first_hilbert_series(I, grading=None, return_grading=False):
         0
 
     """
-    from sage.all import ZZ
-    PR = ZZ['t']
+    from sage.all import ZZ, PolynomialRing
+    PR = PolynomialRing(ZZ,'t')
     cdef Node AN
     # The "active node". If a recursive computation is needed, it will be equipped
     # with a 'Left' and a 'Right' child node, and some 'Multipliers'. Later, the first Hilbert
@@ -518,17 +558,19 @@ def hilbert_poincare_series(I, grading=None):
         int overflow in hilb 1
 
     """
-    from sage.all import ZZ
-    PR = ZZ['t']
-    t = PR.gen()
+    cdef Polynomial_integer_dense_flint HP
     HP,grading = first_hilbert_series(I, grading=grading, return_grading=True)
+    PR = HP._parent
+
     # If grading was None, but the ideal lives in Singular, then grading is now
     # the degree vector of Singular's basering.
-    # Otherwise, it my still be None.
+    # Otherwise, it may still be None.
     if grading is None:
-        HS = HP/((1-t)**I.ring().ngens())
+        if HP.leading_coefficient()>=0:
+            return HP/((1-PR.gen())**I.ring().ngens())
+        return (-HP)/(-((1-PR.gen())**I.ring().ngens()))
     else:
-        HS = HP/PR.prod([(1-t**d) for d in grading])
-    if HS.denominator().leading_coefficient()<0:
-        return (-HS.numerator()/(-HS.denominator()))
-    return HS
+        t = PR.gen()
+        if HP.leading_coefficient()>=0:
+            return HP/PR.prod([(1-t**d) for d in grading])
+        return (-HP)/(-PR.prod([(1-t**d) for d in grading]))

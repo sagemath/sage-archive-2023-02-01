@@ -40,6 +40,7 @@ from __future__ import print_function, absolute_import
 
 from libc.string cimport memcpy
 from cpython.dict cimport *
+cimport cython
 from cpython.object cimport (PyObject_RichCompare, Py_EQ, Py_NE,
                              Py_LT, Py_LE, Py_GT, Py_GE)
 from cysignals.memory cimport sig_malloc, sig_free
@@ -1298,18 +1299,17 @@ cdef class ETuple:
             degree += self._data[i]
         return degree
 
-    cpdef size_t weighted_degree(self, tuple w):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef size_t weighted_degree(self, tuple w):
         cdef size_t i
         cdef size_t deg = 0
-        if w is None:
-            for i in range(0, 2*self._nonzero, 2):
-                deg += self._data[i+1]
-        else:
-            for i in range(0, 2*self._nonzero, 2):
-                deg += self._data[i+1]*w[self._data[i]]
+        assert len(w) == self._length
+        for i in range(0, 2*self._nonzero, 2):
+            deg += <size_t>self._data[i+1]*<size_t>w[self._data[i]]
         return deg
 
-    cpdef size_t weighted_quotient_degree(self, ETuple other, tuple w) except? 0:
+    cdef size_t unweighted_quotient_degree(self, ETuple other):
         cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in double steps.
         cdef size_t ind2 = 0
         cdef int exponent
@@ -1318,25 +1318,6 @@ cdef class ETuple:
         cdef size_t othernz = 2*other._nonzero
 
         cdef size_t deg = 0
-        if w is None:
-            while ind1 < selfnz:
-                position = self._data[ind1]
-                exponent = self._data[ind1+1]
-                while ind2 < othernz and other._data[ind2] < position:
-                    ind2 += 2
-                if ind2 == othernz:
-                    while ind1 < selfnz:
-                        deg += self._data[ind1+1]
-                        ind1 += 2
-                    return deg
-                if other._data[ind2] > position:
-                    # other[position] = 0
-                    deg += exponent
-                elif other._data[ind2+1] < exponent:
-                    # There is a positive difference that we have to insert
-                    deg += (exponent - other._data[ind2+1])
-                ind1 += 2
-            return deg
         while ind1 < selfnz:
             position = self._data[ind1]
             exponent = self._data[ind1+1]
@@ -1344,15 +1325,46 @@ cdef class ETuple:
                 ind2 += 2
             if ind2 == othernz:
                 while ind1 < selfnz:
-                    deg += self._data[ind1+1] * w[self._data[ind1]]
+                    deg += self._data[ind1+1]
                     ind1 += 2
                 return deg
             if other._data[ind2] > position:
                 # other[position] = 0
-                deg += exponent * w[position]
+                deg += exponent
             elif other._data[ind2+1] < exponent:
                 # There is a positive difference that we have to insert
-                deg += (exponent - other._data[ind2+1]) * w[position]
+                deg += (exponent - other._data[ind2+1])
+            ind1 += 2
+        return deg
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef size_t weighted_quotient_degree(self, ETuple other, tuple w):
+        cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in double steps.
+        cdef size_t ind2 = 0
+        cdef size_t exponent
+        cdef int position
+        cdef size_t selfnz = 2*self._nonzero
+        cdef size_t othernz = 2*other._nonzero
+
+        cdef size_t deg = 0
+        assert len(w)==self._length
+        while ind1 < selfnz:
+            position = self._data[ind1]
+            exponent = self._data[ind1+1]
+            while ind2 < othernz and other._data[ind2] < position:
+                ind2 += 2
+            if ind2 == othernz:
+                while ind1 < selfnz:
+                    deg += <size_t>self._data[ind1+1] * <size_t>w[self._data[ind1]]
+                    ind1 += 2
+                return deg
+            if other._data[ind2] > position:
+                # other[position] = 0
+                deg += exponent * <size_t>w[position]
+            elif other._data[ind2+1] < exponent:
+                # There is a positive difference that we have to insert
+                deg += <size_t>(exponent - other._data[ind2+1]) * <size_t>w[position]
             ind1 += 2
         return deg
 
@@ -1660,7 +1672,7 @@ cdef class ETuple:
                 result._nonzero += 1
         return result
 
-    cpdef ETuple divide_by_gcd(self, ETuple other):
+    cdef ETuple divide_by_gcd(self, ETuple other):
         """Return ``self/gcd(self,other)``.
 
         The entries of the result are the maximum of 0 and
@@ -1700,7 +1712,7 @@ cdef class ETuple:
             ind1 += 2
         return result
 
-    cpdef ETuple divide_by_var(self, size_t index):
+    cdef ETuple divide_by_var(self, size_t index):
         """Return division of ``self`` by ``var(index)``, or None.
 
         If ``self[Index]==0`` then None is returned. Otherwise, an :class:`~sage.rings.polynomial.polydict.ETuple`
@@ -1734,7 +1746,7 @@ cdef class ETuple:
                 return result
         return None
 
-    cpdef bint divides(self, ETuple other):
+    cdef bint divides(self, ETuple other):
         "Whether self divides other, i.e., no entry of self exceeds other."
         cdef size_t ind1     # will be increased in 2-steps
         cdef size_t ind2 = 0 # will be increased in 2-steps

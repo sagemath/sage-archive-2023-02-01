@@ -1557,7 +1557,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         A degenerate case with the degree 1 cyclotomic field::
 
-            sage: A = matrix(CyclotomicField(1),2,3,[1,2,3,4,5,6]);
+            sage: A = matrix(CyclotomicField(1),2,3,[1,2,3,4,5,6])
             sage: A.echelon_form()
             [ 1  0 -1]
             [ 0  1  2]

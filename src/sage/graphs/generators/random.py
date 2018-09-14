@@ -179,68 +179,242 @@ def RandomBarabasiAlbert(n, m, seed=None):
     import networkx
     return Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
 
-def RandomBipartite(n1, n2, p):
+def RandomBipartite(n1, n2, p, set_position=False):
     r"""
-    Returns a bipartite graph with `n1+n2` vertices
-    such that any edge from `[n1]` to `[n2]` exists
-    with probability `p`.
+    Returns a bipartite graph with `n1+n2` vertices such that any edge
+    from `[n1]` to `[n2]` exists with probability `p`.
 
     INPUT:
 
-        - ``n1, n2`` : Cardinalities of the two sets
-        - ``p``   : Probability for an edge to exist
+    - ``n1, n2`` -- Cardinalities of the two sets
 
+    - ``p`` -- Probability for an edge to exist
+
+    - ``set_position`` -- boolean (default ``False``); if set to ``True``, we
+      assign positions to the vertices so that the set of cardinality `n1` is
+      on the line `y=1` and the set of cardinality `n2` is on the line `y=0`.
 
     EXAMPLES::
 
-        sage: g=graphs.RandomBipartite(5,2,0.5)
+        sage: g = graphs.RandomBipartite(5, 2, 0.5)
         sage: g.vertices()
         [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1)]
 
     TESTS::
 
-        sage: g=graphs.RandomBipartite(5,-3,0.5)
+        sage: g = graphs.RandomBipartite(5, -3, 0.5)
         Traceback (most recent call last):
         ...
         ValueError: n1 and n2 should be integers strictly greater than 0
-        sage: g=graphs.RandomBipartite(5,3,1.5)
+        sage: g = graphs.RandomBipartite(5, 3, 1.5)
         Traceback (most recent call last):
         ...
-        ValueError: Parameter p is a probability, and so should be a real value between 0 and 1
+        ValueError: parameter p is a probability, and so should be a real value between 0 and 1
 
     :trac:`12155`::
 
-        sage: graphs.RandomBipartite(5,6,.2).complement()
-        complement(Random bipartite graph of size 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
+        sage: graphs.RandomBipartite(5, 6, .2).complement()
+        complement(Random bipartite graph of order 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
+
+    Test assigned positions::
+
+        sage: graphs.RandomBipartite(1, 2, .1, set_position=True).get_pos()
+        {(0, 0): (1, 1), (1, 0): (0, 0), (1, 1): (2.0, 0.0)}
+        sage: graphs.RandomBipartite(2, 1, .1, set_position=True).get_pos()
+        {(0, 0): (0, 1), (0, 1): (2.0, 1.0), (1, 0): (1, 0)}
+        sage: graphs.RandomBipartite(2, 2, .1, set_position=True).get_pos()
+        {(0, 0): (0, 1), (0, 1): (2.0, 1.0), (1, 0): (0, 0), (1, 1): (2.0, 0.0)}
+        sage: graphs.RandomBipartite(2, 2, .1, set_position=False).get_pos()
+
     """
-    if not (p>=0 and p<=1):
-        raise ValueError("Parameter p is a probability, and so should be a real value between 0 and 1")
-    if not (n1>0 and n2>0):
+    if not (p >= 0 and p <= 1):
+        raise ValueError("parameter p is a probability, and so should be a real value between 0 and 1")
+    if not (n1 > 0 and n2 > 0):
         raise ValueError("n1 and n2 should be integers strictly greater than 0")
 
     from numpy.random import uniform
 
-    g=Graph(name="Random bipartite graph of size "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
+    g=Graph(name="Random bipartite graph of order "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
 
-    S1=[(0,i) for i in range(n1)]
-    S2=[(1,i) for i in range(n2)]
+    S1 = [(0,i) for i in range(n1)]
+    S2 = [(1,i) for i in range(n2)]
     g.add_vertices(S1)
     g.add_vertices(S2)
 
     for w in range(n2):
         for v in range(n1):
-            if uniform()<=p :
-                g.add_edge((0,v),(1,w))
+            if uniform() <= p :
+                g.add_edge((0, v), (1, w))
 
-    pos = {}
-    for i in range(n1):
-        pos[(0,i)] = (0, i/(n1-1.0))
-    for i in range(n2):
-        pos[(1,i)] = (1, i/(n2-1.0))
-
-    g.set_pos(pos)
+    # We now assign positions to vertices:
+    # - vertices in S1 are placed on the line from (0, 1) to (max(n1, n2), 1)
+    # - vertices in S2 are placed on the line from (0, 0) to (max(n1, n2), 0)
+    # If S1 or S2 has a single vertex, it is centered in the line.
+    if set_position:
+        from sage.graphs.graph_plot import _line_embedding
+        nmax = max(n1, n2)
+        _line_embedding(g, S1, first=(0, 1), last=(nmax, 1))
+        _line_embedding(g, S2, first=(0, 0), last=(nmax, 0))
 
     return g
+
+def RandomRegularBipartite(n1, n2, d1, set_position=False):
+    r"""
+    Return a random regular bipartite graph on `n1 + n2` vertices.
+
+    The bipartite graph has `n1 * d1` edges. Hence, `n2` must divide `n1 * d1`.
+    Each vertex of the set of cardinality `n1` has degree `d1` (which can be at
+    most `n2`) and each vertex in the set of cardinality `n2` has degree 
+    `(n1 * d1) / n2`. The bipartite graph has no multiple edges.
+
+    This generator implements an algorithm inspired by that of [MW1990]_ for 
+    the uniform generation of random regular bipartite graphs. It performs well
+    when `d1 = o(n2^{1/3})` or (`n2 - d1 = o(n2^{1/3})`). In other cases, the
+    running time can be huge. Note that the currently implemented algorithm
+    does not generate uniformly random graphs.
+
+    INPUT:
+
+    - ``n1, n2`` -- number of vertices in each side
+
+    - ``d1`` -- degree of the vertices in the set of cardinality `n1`.
+
+    - ``set_position`` -- boolean (default ``False``); if set to ``True``, we
+      assign positions to the vertices so that the set of cardinality `n1` is 
+      on the line `y=1` and the set of cardinality `n2` is on the line `y=0`.
+
+    EXAMPLES::
+
+        sage: g = graphs.RandomRegularBipartite(4, 6, 3)
+        sage: g.order(), g.size()
+        (10, 12)
+        sage: set(g.degree())
+        {2, 3}
+
+        sage: graphs.RandomRegularBipartite(1, 2, 2, set_position=True).get_pos()
+        {0: (1, 1), 1: (0, 0), 2: (2.0, 0.0)}
+        sage: graphs.RandomRegularBipartite(2, 1, 1, set_position=True).get_pos()
+        {0: (0, 1), 1: (2.0, 1.0), 2: (1, 0)}
+        sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=True).get_pos()
+        {0: (0, 1), 1: (3.0, 1.0), 2: (0, 0), 3: (1.5, 0.0), 4: (3.0, 0.0)}
+        sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=False).get_pos()
+
+    TESTS:
+
+    Giving invalid parameters::
+
+        sage: graphs.RandomRegularBipartite(0, 2, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n1 and n2 must be integers greater than 0
+        sage: graphs.RandomRegularBipartite(2, 3, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the product n1 * d1 must be a multiple of n2
+        sage: graphs.RandomRegularBipartite(1, 1, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: d1 must be less than or equal to n2
+    """
+    if n1 < 1 or n2 < 1:
+        raise ValueError("n1 and n2 must be integers greater than 0")
+    if d1 > n2:
+        raise ValueError("d1 must be less than or equal to n2")
+    d2 = (n1 * d1) // n2
+    if n1 * d1 != n2 * d2:
+        raise ValueError("the product n1 * d1 must be a multiple of n2")
+
+    complement = False
+    if d1 > n2/2 or d2 > n1/2:
+        # We build the complement graph instead
+        complement = True
+        d1 = n2 - d1
+        d2 = n1 - d2
+
+    E = set()
+    F = set()
+
+    if d1:
+        from sage.misc.prandom import shuffle, choice
+
+        M1 = n1 * d1 * (d1 - 1)
+        M2 = n2 * d2 * (d2 - 1)
+        M = n1 * d1 + n2 * d2
+        UB_parallel = (M1 * M2) / M**2
+
+        # We create a set of n1 * d1 random edges with possible repetitions. We
+        # require that the number of repeated edges is bounded and that an edge
+        # can be repeated only once.
+        L = [u for u in range(n1) for i in range(d1)]
+        R = [u for u in range(n1, n1 + n2) for i in range(d2)]
+        restart = True
+        while restart:
+            restart = False
+            shuffle(R)
+            E = set()
+            F = set()
+            for e in zip(L, R):
+                if e in E:
+                    if e in F:
+                        # We have more than 2 times e => restart
+                        restart = True
+                        break
+                    else:
+                        F.add(e)
+                    if len(F) >= UB_parallel:
+                        # We have too many parallel edges
+                        restart = True
+                        break
+                else:
+                    E.add(e)
+
+    # We remove multiple edges by applying random forward d-switching. That is,
+    # given edge e that is repeated twice, we select single edges f and g with
+    # no common end points, and then create 4 new edges. We forbid creating new
+    # multiple edges.
+    while F:
+        # random forward d-switching
+        e = F.pop()
+        E.discard(e)
+        TE = tuple(E.difference(F))
+        # We select 2 vertex disjoint edges
+        while True:
+            f = choice(TE)
+            if e[0] == f[0] or e[1] == f[1]:
+                continue
+            g = choice(TE)
+            if e[0] != g[0] and e[1] != g[1] and f[0] != g[0] and f[1] != g[1]:
+                new_edges = [(f[0], e[1]), (e[0], f[1]), (e[0], g[1]), (g[0], e[1])]
+                if not E.intersection(new_edges):
+                    # We are not creating new parallel edges.
+                    # To generate uniformly random graphs we would have to
+                    # implement a probabilistic restart of the whole algorithm
+                    # here, see [MW1990].
+                    break
+        E.discard(f)
+        E.discard(g)
+        E.update(new_edges)
+
+    if complement:
+        from sage.graphs.generators.basic import CompleteBipartiteGraph
+        E = E.symmetric_difference(CompleteBipartiteGraph(n1, n2).edges(labels=False))
+        d1, d2 = n2 - d1, n1 - d2
+
+    name = "Random regular bipartite graph of order {}+{} and degrees {} and {}".format(n1, n2, d1, d2)
+    G = Graph(list(E), name=name)
+
+    # We now assign positions to vertices:
+    # - vertices 0,..,n1-1 are placed on the line (0, 1) to (max(n1, n2), 1)
+    # - vertices n1,..,n1+n2-1 are placed on the line (0, 0) to (max(n1, n2), 0)
+    # If n1 (or n2) is 1, the vertex is centered in the line.
+    if set_position:
+        from sage.graphs.graph_plot import _line_embedding
+        nmax = max(n1, n2)
+        _line_embedding(G, list(range(n1)), first=(0, 1), last=(nmax, 1))
+        _line_embedding(G, list(range(n1, n1+n2)), first=(0, 0), last=(nmax, 0))
+
+    return G
+
 
 def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
     r"""
@@ -347,7 +521,6 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
         ...
         ValueError: the maximum number `kmax` of vertices in a block must be >= `k`
     """
-    import itertools
     from sage.misc.prandom import choice
     from sage.sets.disjoint_set import DisjointSet
 

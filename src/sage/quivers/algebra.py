@@ -405,7 +405,7 @@ class PathAlgebra(CombinatorialFreeModule):
             OQ = other._quiver
             SQ = self._quiver
             SQE = self._semigroup._sorted_edges
-            if all(v in SQ for v in OQ.vertices()) and all(e in SQE for e in other._semigroup._sorted_edges):
+            if all(v in SQ for v in OQ.vertex_iterator()) and all(e in SQE for e in other._semigroup._sorted_edges):
                 return True
         if self._semigroup.has_coerce_map_from(other):
             return True

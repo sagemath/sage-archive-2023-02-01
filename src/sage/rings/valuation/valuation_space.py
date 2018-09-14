@@ -1039,7 +1039,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Return an estimate on the coefficient size of ``x``.
 
             The number returned is an estimate on the factor between the number of
-            Bits used by ``x`` and the minimal number of bits used by an element
+            bits used by ``x`` and the minimal number of bits used by an element
             congruent to ``x``.
 
             This is used by :meth:`simplify` to decide whether simplification of
@@ -1558,6 +1558,18 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if self.domain() not in Fields():
                     return
                 raise
+
+            try:
+                r = self.residue_ring()
+            except Exception:
+                # If the residue ring can not be constructed for some reason
+                # then we do not check its relation to the residue field.
+                # _test_residue_ring() is responible for checking whether the
+                # residue ring should be constructible or not.
+                pass
+            else:
+                # the residue ring must coerce into the residue field
+                tester.assertTrue(self.residue_field().has_coerce_map_from(r))
 
             c = self.residue_field().characteristic()
             if c != 0:

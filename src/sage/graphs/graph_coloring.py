@@ -347,8 +347,9 @@ from sage.numerical.mip import MIPSolverException
 def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None, verbose = 0):
     r"""
     Computes the chromatic number of the given graph or tests its
-    `k`-colorability. See :wikipedia:`Graph_coloring` for
-    further details on graph coloring.
+    `k`-colorability.
+
+    See the :wikipedia:`Graph_coloring` for further details on graph coloring.
 
     INPUT:
 

@@ -308,7 +308,7 @@ class ClusterComplex(SubwordComplex):
         EXAMPLES::
 
             sage: ClusterComplex(['A', 2]).cyclic_rotation()
-            <function act at ...>
+            <function ...act at ...>
         """
         W = self._W
         w = self._w0

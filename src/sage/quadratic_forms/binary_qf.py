@@ -646,9 +646,9 @@ class BinaryQF(SageObject):
         r"""
         Return if this form is reducible and cache the result.
 
-        A binary form `q` is called reducible if it is the product of two
-        linear forms `q = (a x + b y) ( c x + d y)`.
-        Or equivalently if its discriminant is a square.
+        A binary form `q` is called reducible if it is the product of
+        two linear forms `q = (a x + b y) (c x + d y)`, or
+        equivalently if its discriminant is a square.
 
         EXAMPLES::
 
@@ -776,7 +776,7 @@ class BinaryQF(SageObject):
             sage: g.is_reduced()
             True
 
-            sage: q = BinaryQF(1,0,-1)
+            sage: q = BinaryQF(1, 0, -1)
             sage: q.reduced_form()
             x^2 + 2*x*y
 
@@ -944,7 +944,7 @@ class BinaryQF(SageObject):
             raise ValueError("%s must be indefinite and reduced" % self)
         if self.discriminant().is_square():
             # Buchmann/Vollmer assume the discriminant to be non-square
-            raise NotImplementedError('computation of cycles is only '
+            raise NotImplementedError('computation of cycles is only ' +
                     'implemented for non-square discrimiants')
         if proper:
             # Prop 6.10.5 in Buchmann Vollmer

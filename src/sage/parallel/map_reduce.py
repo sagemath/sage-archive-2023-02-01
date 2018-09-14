@@ -342,7 +342,7 @@ instance of :class:`RESetMapReduce`) by a bunch of **worker** objects
 Each running map reduce instance work on a :class:`RecursivelyEnumeratedSet of
 forest type<sage.combinat.backtrack.SearchForest>` called here `C` and is
 coordinated by a :class:`RESetMapReduce` object called the **master**. The
-master is in charge of lauching the work, gathering the results and cleaning
+master is in charge of launching the work, gathering the results and cleaning
 up at the end of the computation. It doesn't perform any computation
 associated to the generation of the element `C` nor the computation of the
 mapped function. It however occasionally perform a reduce, but most reducing
@@ -1097,7 +1097,10 @@ class RESetMapReduce(object):
         TESTS::
 
             sage: from sage.parallel.map_reduce import RESetMapReduce
-            sage: S = RESetMapReduce(roots=[])
+            sage: def children(x):
+            ....:    sleep(0.5)
+            ....:    return []
+            sage: S = RESetMapReduce(roots=[1], children=children)
             sage: S.setup_workers(2)
             sage: S.start_workers()
             sage: all(w.is_alive() for w in S._workers)

@@ -951,7 +951,7 @@ def is_complete_multipartite(int v,int k,int l,int mu):
 
         sage: t = is_complete_multipartite(5,5,5,5); t
         sage: t = is_complete_multipartite(11,8,4,8); t
-        sage: t = is_complete_multipartite(20,16,12,16);
+        sage: t = is_complete_multipartite(20,16,12,16)
         sage: g = t[0](*t[1:]); g
         Multipartite Graph with set sizes [4, 4, 4, 4, 4]: Graph on 20 vertices
         sage: g.is_strongly_regular(parameters=True)
@@ -1624,10 +1624,10 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
 
         sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
         sage: t = is_switch_OA_srg(5,5,5,5); t
-        sage: t = is_switch_OA_srg(170, 78, 35, 36);
+        sage: t = is_switch_OA_srg(170, 78, 35, 36)
         sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
         (170, 78, 35, 36)
-        sage: t = is_switch_OA_srg(290, 136,  63,  64);
+        sage: t = is_switch_OA_srg(290, 136,  63,  64)
         sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
         (290, 136, 63, 64)
         sage: is_switch_OA_srg(626, 300, 143, 144)
@@ -3243,8 +3243,8 @@ cdef load_brouwer_database():
         return
     import json
 
-    from sage.env import SAGE_SHARE
-    with open(SAGE_SHARE+"/graphs/brouwer_srg_database.json",'r') as datafile:
+    from sage.env import GRAPHS_DATA_DIR
+    with open(GRAPHS_DATA_DIR+"/brouwer_srg_database.json",'r') as datafile:
         _brouwer_database = {(v,k,l,mu):{'status':status,'comments':comments}
                              for (v,k,l,mu,status,comments) in json.load(datafile)}
 

@@ -407,21 +407,6 @@ cdef class LazyImport(object):
         """
         return hash(self.get_object())
 
-    def __cmp__(left, right):
-        """
-        Removed by :trac:`21247` (for compatibility with Python 3)
-
-        TESTS::
-
-            sage: lazy_import('sage.all', ['ZZ', 'QQ'])
-            sage: cmp(ZZ, QQ)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: old-style comparisons are not supported for lazily imported objects (see https://trac.sagemath.org/ticket/21247)
-        """
-        raise NotImplementedError("old-style comparisons are not supported "
-            "for lazily imported objects (see https://trac.sagemath.org/ticket/21247)")
-
     def __richcmp__(left, right, int op):
         """
         TESTS::

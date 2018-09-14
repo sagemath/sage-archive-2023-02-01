@@ -549,15 +549,15 @@ class DiscreteValuation(DiscretePseudoValuation):
 
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2 ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + 1 + O(2^10)) = 1/2 ]]
             sage: v.mac_lane_approximants(G, required_precision = infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2, v((1 + O(2^10))*x^2 + (1 + O(2^10))) = +Infinity ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + 1 + O(2^10)) = 1/2, v((1 + O(2^10))*x^2 + 1 + O(2^10)) = +Infinity ]]
 
             sage: G = x^4 + 2*x^3 + 2*x^2 - 2*x + 2
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4 ]]
             sage: v.mac_lane_approximants(G, required_precision=infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + (2 + O(2^11))) = +Infinity ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + 2 + O(2^11)) = +Infinity ]]
 
         The factorization of primes in the Gaussian integers can be read off
         the Mac Lane approximants::
@@ -577,8 +577,8 @@ class DiscreteValuation(DiscretePseudoValuation):
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
             sage: v0.mac_lane_approximants(G, required_precision = 10)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 3626068) = 10 ],
-             [ Gauss valuation induced by 5-adic valuation, v(x + 6139557) = 10 ]]
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 3116/237) = 10 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x - 3116/237) = 10 ]]
 
         The same example over the 5-adic numbers. In the quadratic extension
         `\QQ[x]/(x^2+1)`, 5 factors `-(x - 2)(x + 2)`, this behaviour can be
@@ -589,24 +589,24 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ])
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + O(5^4)) = 1 ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + O(5^4)) = 1 ])
             sage: w1, w2 = v.mac_lane_approximants(G, required_precision = 2); w1,w2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ])
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + 5 + O(5^4)) = 2 ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + O(5^4)) = 2 ])
 
         Note how the latter give a better approximation to the factors of `x^2 + 1`::
 
             sage: v1.phi() * v2.phi() - G
-            (O(5^4))*x^2 + (5 + O(5^4))*x + (5 + O(5^4))
+            O(5^4)*x^2 + (5 + O(5^4))*x + 5 + O(5^4)
             sage: w1.phi() * w2.phi() - G
-            (O(5^4))*x^2 + (5^2 + O(5^4))*x + (5^3 + O(5^4))
+            O(5^4)*x^2 + (5^2 + O(5^4))*x + 5^3 + O(5^4)
 
         In this example, the process stops with a factorization of `x^2 + 1`::
 
             sage: v.mac_lane_approximants(G, required_precision=infinity)
-            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
+            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) = +Infinity ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)) = +Infinity ]]
 
         This obviously cannot happen over the rationals where we only get an
         approximate factorization::
@@ -615,10 +615,11 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x>=QQ[]
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
             sage: v.mac_lane_approximants(G, required_precision=5)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 1068) = 6 ],
-             [ Gauss valuation induced by 5-adic valuation, v(x + 2057) = 5 ]]
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 79/3) = 5 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x - 79/3) = 5 ]]
 
         Initial versions ran into problems with the trivial residue field
         extensions in this case::
@@ -630,7 +631,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: G = 3^3*T^3*(alpha^4 - alpha)^2 - (4*alpha^3 - 1)^3
             sage: G = G/G.leading_coefficient()
             sage: K.valuation().mac_lane_approximants(G)
-            [[ Gauss valuation induced by 3-adic valuation, v((...1)*T + (...2)) = 1/9, v((...1)*T^9 + (...20)*T^8 + (...210)*T^7 + (...20)*T^6 + (...20)*T^5 + (...10)*T^4 + (...220)*T^3 + (...20)*T^2 + (...110)*T + (...122)) = 55/27 ]]
+            [[ Gauss valuation induced by 3-adic valuation, v(...1*T + ...2) = 1/9, v(...1*T^9 + ...20*T^8 + ...210*T^7 + ...20*T^6 + ...20*T^5 + ...10*T^4 + ...220*T^3 + ...20*T^2 + ...110*T + ...122) = 55/27 ]]
 
         A similar example::
 
@@ -654,9 +655,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             1/3
             sage: G=Delta.change_ring(K) 
             sage: vK.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 3/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + theta^4 + theta^3 + 1) = 5/3 ]]
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 1/2*theta^4 + 3*theta + 1) = 3/2 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 1/2*theta^4 + theta + 1) = 3/2 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*theta + 1) = 3/2 ]]
 
         An easy case that produced the wrong error at some point::
 
@@ -693,7 +694,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x> = QQ[]
             sage: f = x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 +17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116
             sage: v.mac_lane_approximants(f)
-            [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 6) = 3/2, v(x^12 + 24*x^9 + 216*x^6 + 864*x^3 + 2025) = 13/2, v(x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 + 17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116) = +Infinity ]]
+            [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 - 3) = 3/2, v(x^12 - 3*x^9 + 54*x^6 + 27/2*x^3 + 405/2) = 13/2, v(x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 + 17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116) = +Infinity ]]
 
         """
         R = G.parent()
@@ -958,21 +959,20 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v.montes_factorization(G)
-            ((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) * ((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)))
+            ((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) * ((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))
 
         The computation might not terminate over incomplete fields (in
         particular because the factors can not be represented there)::
 
             sage: R.<x> = QQ[]
             sage: v = QQ.valuation(2)
-            sage: v.montes_factorization(x^2 + 1)
-            x^2 + 1
+            sage: v.montes_factorization(x^6 - 1)
+            (x - 1) * (x + 1) * (x^2 - x + 1) * (x^2 + x + 1)
 
-            sage: v.montes_factorization(x^2 - 1)
-            (x - 1) * (x + 1)
+            sage: v.montes_factorization(x^7 - 1) # not tested, does not terminate
 
-            sage: v.montes_factorization(x^2 - 1, required_precision=5)
-            (x + 1) * (x + 31)
+            sage: v.montes_factorization(x^7 - 1, required_precision=5)
+            (x - 1) * (x^3 - 5*x^2 - 6*x - 1) * (x^3 + 6*x^2 + 5*x - 1)
 
         TESTS:
 
@@ -986,7 +986,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: f = (x^6+2)^25 + 5
             sage: v = R.valuation()
             sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
-            ((1 + O(5^20))*x^50 + (2*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (2 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (2*5 + O(5^20))*x^5 + (5 + O(5^20))*x + 3 + 5 + O(5^20)) * ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (3 + 4*5 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (3*5 + O(5^20))*x^5 + (4*5 + O(5^20))*x + 3 + 5 + O(5^20)) * ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^40 + (3*5 + O(5^20))*x^30 + (4*5 + O(5^20))*x^20 + (5 + O(5^20))*x^10 + 3 + 5 + O(5^20))
+            (x^50 + 2*5*x^45 + 5*x^40 + 5*x^30 + 2*x^25 + 3*5*x^20 + 2*5*x^10 + 2*5*x^5 + 5*x + 3 + 5) * (x^50 + 3*5*x^45 + 5*x^40 + 5*x^30 + (3 + 4*5)*x^25 + 3*5*x^20 + 2*5*x^10 + 3*5*x^5 + 4*5*x + 3 + 5) * (x^50 + 3*5*x^40 + 3*5*x^30 + 4*5*x^20 + 5*x^10 + 3 + 5)
 
         In this case, ``f`` factors into degrees 1, 2, and 5 over a totally ramified extension::
 
@@ -997,7 +997,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: f = (x^3 + 5)*(x^5 + w) + 625
             sage: v = R.valuation()
             sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
-            ((1 + O(w^60))*x + 4*w + O(w^60)) * ((1 + O(w^60))*x^2 + (w + O(w^60))*x + w^2 + O(w^60)) * ((1 + O(w^60))*x^5 + w + O(w^60))
+            ((1 + O(w^60))*x + 4*w + O(w^61)) * ((1 + O(w^60))*x^2 + (w + O(w^61))*x + w^2 + O(w^62)) * ((1 + O(w^60))*x^5 + w + O(w^61))
 
         REFERENCES:
 

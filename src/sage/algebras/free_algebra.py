@@ -194,7 +194,7 @@ class FreeAlgebraFactory(UniqueFactory):
 
     By :trac:`7797`, we provide a different implementation of free
     algebras, based on Singular's "letterplace rings". Our letterplace
-    wrapper allows for chosing positive integral degree weights for the
+    wrapper allows for choosing positive integral degree weights for the
     generators of the free algebra. However, only (weighted) homogenous
     elements are supported. Of course, isomorphic algebras in different
     implementations are not identical::

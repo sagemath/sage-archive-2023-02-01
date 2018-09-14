@@ -154,7 +154,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
             sage: W = FreeQuadraticModule(ZZ, 2, 2*matrix.identity(2))
             sage: V = (1/2) * W
             sage: T = TorsionQuadraticModule(V,W)
-            sage: x = T.gen(0);
+            sage: x = T.gen(0)
             sage: x
             (1, 0)
             sage: x.quadratic_product()
@@ -411,11 +411,11 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: T.brown_invariant()
             Traceback (most recent call last):
             ...
-            ValueError: The torsion quadratic form must have values in\QQ / 2\ZZ
+            ValueError: the torsion quadratic form must have values in QQ / 2 ZZ
         """
         if self._modulus_qf != 2:
-            raise ValueError("The torsion quadratic form must have values in"
-                            "\QQ / 2\ZZ")
+            raise ValueError("the torsion quadratic form must have values in "
+                             "QQ / 2 ZZ")
         from sage.quadratic_forms.genera.normal_form import collect_small_blocks
         brown = IntegerModRing(8).zero()
         for p in self.annihilator().gen().prime_divisors():

@@ -833,7 +833,7 @@ class Tableau(ClonableList):
 
         EXAMPLES::
 
-            sage: t = Tableau([[1,2,3],[4,5]]);
+            sage: t = Tableau([[1,2,3],[4,5]])
             sage: for s in t.components(): print(s.to_list())
             [[1, 2, 3], [4, 5]]
         """
@@ -1054,14 +1054,15 @@ class Tableau(ClonableList):
             [((0, 1), (0, 2)), ((1, 0), (1, 1)), ((1, 1), (0, 0)), ((2, 1), (1, 0))]
         """
         inversions = []
+        previous_row = None
         for i, row in enumerate(self):
             for j, entry in enumerate(row):
-                #c is in position (i,j)
-                #Find the d that satisfy condition 1
+                # c is in position (i,j)
+                # find the d that satisfy condition 1
                 for k in range(j+1, len(row)):
                     if entry > row[k]:
                         inversions.append( ((i,j),(i,k)) )
-                #Find the d that satisfy condition 2
+                # find the d that satisfy condition 2
                 if i == 0:
                     continue
                 for k in range(j):
@@ -4459,7 +4460,7 @@ class RowStandardTableau(Tableau):
         False
         sage: u.parent()
         Row standard tableaux of size 3
-        sage: u = RowStandardTableaux(3)(u);
+        sage: u = RowStandardTableaux(3)(u)
         sage: u.parent()
         Row standard tableaux of size 3
         sage: isinstance(u, Tableau)
@@ -7413,8 +7414,8 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
 
         EXAMPLES::
 
-            sage: StandardTableaux(5).random_element() # random
-            [[1, 4, 5], [2], [3]]
+            sage: StandardTableaux(10).random_element() # random
+            [[1, 3, 6], [2, 5, 7], [4, 8], [9], [10]]
             sage: StandardTableaux(0).random_element()
             []
             sage: StandardTableaux(1).random_element()
@@ -7454,8 +7455,10 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
         # singletons (corresponding to the fixed points of the
         # involution) and pairs (forming a perfect matching on the
         # remaining values).
-        permutation_cycle_rep = [(fixed_point,) for fixed_point in fixed_point_positions] + \
-                                list(PerfectMatchings(set(range(1, self.size + 1)) - set(fixed_point_positions)).random_element())
+        matching = PerfectMatchings(set(range(1, self.size + 1))
+                                    - set(fixed_point_positions)).random_element()
+        permutation_cycle_rep = ([(fixed_point,) for fixed_point in fixed_point_positions]
+                                 + [(a,b) for a,b in matching])
         return from_cycles(self.size, permutation_cycle_rep).robinson_schensted()[0]
 
 
@@ -7718,13 +7721,10 @@ class StandardTableaux_shape(StandardTableaux):
             sage: StandardTableaux([]).random_element()
             []
         """
-
         p = self.shape
-
         t = [[None]*n for n in p]
 
-
-        #Get the cells in the
+        # Get the cells in the Young diagram
         cells = []
         for i in range(len(p)):
             for j in range(p[i]):
@@ -7732,31 +7732,24 @@ class StandardTableaux_shape(StandardTableaux):
 
         m = sum(p)
         while m > 0:
-
-            #Choose a cell at random
+            # Choose a cell at random
             cell = random.choice(cells)
 
-
-            #Find a corner
+            # Find a corner
             inner_corners = p.corners()
             while cell not in inner_corners:
                 hooks = []
-                for k in range(cell[1], p[cell[0]]):
+                for k in range(cell[1] + 1, p[cell[0]]):
                     hooks.append((cell[0], k))
-                for k in range(cell[0], len(p)):
+                for k in range(cell[0] + 1, len(p)):
                     if p[k] > cell[1]:
                         hooks.append((k, cell[1]))
-
                 cell = random.choice(hooks)
 
-
-            #Assign m to cell
+            # Assign m to cell
             t[cell[0]][cell[1]] = m
-
             p = p.remove_cell(cell[0])
-
             cells.remove(cell)
-
             m -= 1
 
         return self.element_class(self, t)

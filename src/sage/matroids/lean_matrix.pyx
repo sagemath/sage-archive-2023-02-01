@@ -3212,7 +3212,7 @@ cdef class RationalMatrix(LeanMatrix):
         EXAMPLES::
 
             sage: from sage.matroids.lean_matrix import RationalMatrix
-            sage: A = RationalMatrix(2, 2, Matrix(GF(4, 'x'), [[0, 0], [0, 0]]))
+            sage: A = RationalMatrix(2, 2, Matrix(GF(5), [[0, 0], [0, 0]]))
             sage: A.nrows()
             2
         """
@@ -3238,21 +3238,20 @@ cdef class RationalMatrix(LeanMatrix):
             sage: A == B
             True
 
-            sage: A = RationalMatrix(2, 2, IntegerMatrix(2, 2, [[-1, 0], [0, 1]]))
+            sage: IM = IntegerMatrix(2, 2, Matrix([[-1, 0], [0, 1]]))
+            sage: A = RationalMatrix(2, 2, IM)
             sage: B = RationalMatrix(2, 2, Matrix(QQ, [[-1, 0], [0, 1]]))
             sage: A == B
             True
         """
         cdef long i, j
-        cdef IntegerMatrix IM
         if M is not None:
             if isinstance(M, RationalMatrix):
-                for i in range(M.nrows()):
-                    memcpy(self._entries + i * self._ncols, (<RationalMatrix>M)._entries + i * (<RationalMatrix>M)._ncols, (<IntegerMatrix>M)._ncols * sizeof(mpq_t))
+                for i in range((<RationalMatrix>M)._nrows * (<RationalMatrix>M)._ncols):
+                    mpq_set(self._entries[i], (<RationalMatrix>M)._entries[i])
             if isinstance(M, IntegerMatrix):
-                IM = <IntegerMatrix> M
-                for i in range(IM._nrows * IM._ncols):
-                    mpq_set_si(self._entries[i], IM._entries[i], 0)
+                for i in range((<IntegerMatrix> M)._nrows * (<IntegerMatrix> M)._ncols):
+                    mpq_set_si(self._entries[i], (<IntegerMatrix> M)._entries[i], 1)
             elif isinstance(M, LeanMatrix):
                 for i in range(M.nrows()):
                     for j in range(M.ncols()):
@@ -3324,7 +3323,7 @@ cdef class RationalMatrix(LeanMatrix):
         return z
 
     cdef int set_unsafe(self, long r, long c, x) except -1:
-        self.set(r, c, (<Rational> x).value)
+        self.set(r, c, Rational(x).value)
         return 0
 
     cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation

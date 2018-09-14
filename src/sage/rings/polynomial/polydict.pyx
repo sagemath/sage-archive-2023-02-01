@@ -41,8 +41,7 @@ from __future__ import print_function, absolute_import
 from libc.string cimport memcpy
 from cpython.dict cimport *
 cimport cython
-from cpython.object cimport (PyObject_RichCompare, Py_EQ, Py_NE,
-                             Py_LT, Py_LE, Py_GT, Py_GE)
+from cpython.object cimport (Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
 from cysignals.memory cimport sig_malloc, sig_free
 from sage.structure.richcmp cimport rich_to_bool
 
@@ -159,17 +158,78 @@ cdef class PolyDict:
         repn = frozenset((tuple(key), val) for key, val in self.__repn.items())
         return hash((type(self), repn, self.__zero))
 
-    def __richcmp__(PolyDict self, PolyDict right, int op):
-        return PyObject_RichCompare(self.__repn, right.__repn, op)
+    def __richcmp__(PolyDict left, PolyDict right, int op):
+        """
+        Implement the ``__richcmp__`` protocol for `PolyDict`s.
 
-    def rich_compare(PolyDict self, PolyDict other, int op, key):
-        if key is not None:
+        Uses `PolyDict.rich_compare` without a key  (so only ``==`` and ``!=``
+        are supported on Python 3; on Python 2 this will fall back on Python 2
+        default comparison behavior).
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import PolyDict
+            sage: p1 = PolyDict({(0,): 1})
+            sage: p2 = PolyDict({(0,): 2})
+            sage: p1 == p2
+            False
+            sage: p1 < p2  # py2 - random
+            False
+            sage: p1 < p2  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: '<' not supported between instances of
+            'sage.rings.polynomial.polydict.PolyDict' and
+            'sage.rings.polynomial.polydict.PolyDict'
+        """
+        try:
+            return left.rich_compare(right, op)
+        except TypeError:
+            return NotImplemented
+
+    def rich_compare(PolyDict self, PolyDict other, int op, sortkey=None):
+        """
+        Compare two `PolyDict`s.  If a ``sortkey`` argument is given it should
+        be a sort key used to specify a term order.
+
+        If not sort key is provded than only comparison by equality (``==`` or
+        ``!=``) is supported.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import PolyDict
+            sage: from sage.structure.richcmp import op_EQ, op_NE, op_LT
+            sage: p1 = PolyDict({(0,): 1})
+            sage: p2 = PolyDict({(0,): 2})
+            sage: p1.rich_compare(PolyDict({(0,): 1}), op_EQ)
+            True
+            sage: p1.rich_compare(p2, op_EQ)
+            False
+            sage: p1.rich_compare(p2, op_NE)
+            True
+            sage: p1.rich_compare(p2, op_LT)
+            Traceback (most recent call last):
+            ...
+            TypeError: ordering of PolyDicts requires a sortkey
+
+            sage: O = TermOrder()
+            sage: p1.rich_compare(p2, op_LT, O.sortkey)
+            True
+
+            sage: p3 = PolyDict({(3, 2, 4): 1, (3, 2, 5): 2})
+            sage: p4 = PolyDict({(3, 2, 4): 1, (3, 2, 3): 2})
+            sage: p3.rich_compare(p4, op_LT, O.sortkey)
+            False
+        """
+        if sortkey is not None:
             # start with biggest
-            left = iter(sorted(self.__repn, key=key, reverse=True))
-            right = iter(sorted(other.__repn, key=key, reverse=True))
+            left = iter(sorted(self.__repn, key=sortkey, reverse=True))
+            right = iter(sorted(other.__repn, key=sortkey, reverse=True))
+        elif not (op == Py_EQ or op == Py_NE):
+            raise TypeError("ordering of PolyDicts requires a sortkey")
         else:
-            # in despair, do that
-            raise ValueError('no key provided')
+            return (op == Py_EQ) == (self.__repn == other.__repn)
+
 
         for m in left:
             try:
@@ -178,8 +238,8 @@ cdef class PolyDict:
                 return rich_to_bool(op, 1)  # left has terms, right does not
 
             # first compare the leading monomials
-            keym = key(m)
-            keyn = key(n)
+            keym = sortkey(m)
+            keyn = sortkey(n)
             if keym > keyn:
                 return rich_to_bool(op, 1)
             elif keym < keyn:

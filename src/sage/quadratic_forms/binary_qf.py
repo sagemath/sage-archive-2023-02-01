@@ -197,12 +197,12 @@ class BinaryQF(SageObject):
             sage: (R[1] * R[1] * R[1]).reduced_form()
             x^2 + x*y + 6*y^2
             sage: q1 = BinaryQF(1, 1, 4)
-            sage: M = Matrix(ZZ, [[1,3], [0,1]]);
+            sage: M = Matrix(ZZ, [[1,3], [0,1]])
             sage: q1*M
             x^2 + 7*x*y + 16*y^2
             sage: q1.matrix_action_right(M)
             x^2 + 7*x*y + 16*y^2
-            sage: N = Matrix(ZZ, [[1,0], [1,0]]);
+            sage: N = Matrix(ZZ, [[1,0], [1,0]])
             sage: q1*(M*N) == q1.matrix_action_right(M).matrix_action_right(N)
             True
         """
@@ -682,7 +682,7 @@ class BinaryQF(SageObject):
             sage: red == f*trans
             True
 
-            sage: f = BinaryQF(0,5,24)
+            sage: f = BinaryQF(0, 5, 24)
             sage: red, trans = f._reduce_indef(transformation=True)
             sage: red == f*trans
             True
@@ -718,7 +718,7 @@ class BinaryQF(SageObject):
                         q, r = a.quo_rem(-b)
                         q = -q
                     if transformation:
-                        T = Matrix(ZZ, 2, 2, [1, 0,-q, 1])
+                        T = Matrix(ZZ, 2, 2, [1, 0, -q, 1])
                         U = U * T
                     Q = BinaryQF(r, b, c)
         if transformation:
@@ -779,6 +779,22 @@ class BinaryQF(SageObject):
             sage: q = BinaryQF(1,0,-1)
             sage: q.reduced_form()
             x^2 + 2*x*y
+
+            sage: BinaryQF(1, 9, 4).reduced_form(transformation=True)
+            (
+                                 [ 0 -1]
+            4*x^2 + 7*x*y - y^2, [ 1  2]
+            )
+            sage: BinaryQF(3, 7, -2).reduced_form(transformation=True)
+            (
+                                   [1 0]
+            3*x^2 + 7*x*y - 2*y^2, [0 1]
+            )
+            sage: BinaryQF(-6, 6, -1).reduced_form(transformation=True)
+            (
+                                  [ 0 -1]
+            -x^2 + 2*x*y + 2*y^2, [ 1 -4]
+            )
         """
         if self.is_reduced():
             if transformation:
@@ -801,9 +817,12 @@ class BinaryQF(SageObject):
                     'quadratic forms is not implemented in Sage')
             return self._reduce_indef(transformation)
         elif algorithm == 'pari':
-            if transformation or self.is_reducible():
+            if transformation:
                 raise NotImplementedError('transformation=True is not '
                                         'supported using PARI')
+            elif self.is_reducible():
+                raise NotImplementedError('reducible forms are not '
+                                          'supported using PARI')
             return BinaryQF(self.__pari__().qfbred())
         else:
             raise ValueError('unknown implementation for binary quadratic form '
@@ -871,7 +890,6 @@ class BinaryQF(SageObject):
         c = self._c
         Q = BinaryQF(-a, b, -c)
         return Q
-
 
     def cycle(self, proper=False):
         """
@@ -1115,15 +1133,15 @@ class BinaryQF(SageObject):
             return selfred in proper_cycle
 
         # Else we're dealing with definite forms.
-        if not proper:
-            raise NotImplementedError("improper equivalence of "
-                "definite forms is not supported")
         if self.is_posdef() and not other.is_posdef():
             return False
         if self.is_negdef() and not other.is_negdef():
             return False
         Q1 = self.reduced_form()
         Q2 = other.reduced_form()
+        if not proper:
+            Q1e = BinaryQF(self._c, self._b, self._a).reduced_form()
+            return Q1 == Q2 or Q1e == Q2
         return Q1 == Q2
 
     @cached_method
@@ -1131,7 +1149,8 @@ class BinaryQF(SageObject):
         r"""
         Return if ``self`` is reduced.
 
-        Let `f = a x^2 + b xy + c y^2` be a binary quadratic form.
+        Let `f = a x^2 + b xy + c y^2` be a binary quadratic form of
+        discrimininant `D`.
 
         - If `f` is positive definite (`D < 0` and `a > 0`), then `f`
           is reduced if and only if `|b|\leq a \leq c`, and `b\geq 0`
@@ -1164,10 +1183,14 @@ class BinaryQF(SageObject):
             sage: Q.is_reduced()
             True
 
-        An example using an indefinite form::
+        Examples using indefinite forms::
 
             sage: f = BinaryQF(-1, 2, 2)
             sage: f.is_reduced()
+            True
+            sage: BinaryQF(1, 9, 4).is_reduced()
+            False
+            sage: BinaryQF(1, 5, -1).is_reduced()
             True
 
         """

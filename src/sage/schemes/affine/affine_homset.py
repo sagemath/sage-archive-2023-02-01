@@ -356,7 +356,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: K.<v> = QuadraticField(3)
             sage: A.<x,y> = AffineSpace(K, 2)
             sage: X = A.subscheme([x^3 - v^2*y, y - v*x^2 + 3])
-            sage: L = X(K).numerical_points(F=RR); L
+            sage: L = X(K).numerical_points(F=RR); L  # abs tol 1e-14
             [(-1.18738247880014, -0.558021142104134),
              (1.57693558184861, 1.30713548084184),
              (4.80659931965815, 37.0162574656220)]

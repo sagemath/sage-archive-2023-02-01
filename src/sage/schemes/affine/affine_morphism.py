@@ -306,12 +306,12 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(P, P)
             sage: f = H([x^2+y^2, y^2/(1+x)])
             sage: [t.op_list() for g in f._fastpolys for t in g]
-            [[('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2),
-            'mul', 'add', ('load_const', 1), ('load_arg', 0), ('ipow', 2), 'mul',
+            [[('load_const', 0), ('load_const', 1), ('load_arg', ...), ('ipow', 2),
+            'mul', 'add', ('load_const', 1), ('load_arg', ...), ('ipow', 2), 'mul',
             'add', 'return'], [('load_const', 0), ('load_const', 1), ('load_arg',
-            1), ('ipow', 2), 'mul', 'add', 'return'], [('load_const', 0),
+            ...), ('ipow', 2), 'mul', 'add', 'return'], [('load_const', 0),
             ('load_const', 1), 'add', 'return'], [('load_const', 0), ('load_const',
-            1), ('load_arg', 0), ('ipow', 1), 'mul', 'add', ('load_const', 1),
+            1), ('load_arg', ...), ('ipow', 1), 'mul', 'add', ('load_const', 1),
             'add', 'return']]
         """
         polys = self._polys

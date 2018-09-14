@@ -2754,6 +2754,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _richcmp_(self, right, int op):
         """
+        Compare two polynomials in a `LaurentPolynomialRing` based on the term
+        order from the parent ring.  If the parent ring does not specify a term
+        order then only comparison by equality is supported.
+
         EXAMPLES::
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
@@ -2770,7 +2774,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             self._compute_polydict()
         if (<LaurentPolynomial_mpair> right)._prod is None:
             (<LaurentPolynomial_mpair> right)._compute_polydict()
-        return richcmp(self._prod, (<LaurentPolynomial_mpair>right)._prod, op)
+
+        try:
+            sortkey = self.parent().term_order().sortkey
+        except AttributeError:
+            sortkey = None
+
+        return self._prod.rich_compare((<LaurentPolynomial_mpair>right)._prod,
+                                       op, sortkey)
 
     def exponents(self):
         """

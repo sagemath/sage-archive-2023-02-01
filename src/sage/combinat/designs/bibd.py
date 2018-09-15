@@ -1290,8 +1290,9 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
         """
         return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(),set(self.block_sizes()))
 
+
 class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
-    r""""
+    r"""
     Balanced Incomplete Block Design (BIBD)
 
     INPUT:

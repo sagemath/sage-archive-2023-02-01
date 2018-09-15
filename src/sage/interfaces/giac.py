@@ -11,7 +11,7 @@ supporting "giac --sage" ( roughly after 0.9.1 ). In this case you do not have
 to install any  optional Sage packages. If giac is not already installed, you can
 download binaries or sources or spkg (follow the sources link) from the homepage:
 
-Homepage <http://www-fourier.ujf-grenoble.fr/~parisse/giac.html>
+Homepage <https://www-fourier.ujf-grenoble.fr/~parisse/giac.html>
 
 Type ``giac.[tab]`` for a list of all the functions
 available from your Giac install. Type
@@ -219,7 +219,7 @@ For more details, see the documentation for ``._sage_()``.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #############################################################################
 from __future__ import print_function
 
@@ -1034,15 +1034,15 @@ class GiacElement(ExpectElement):
         r"""
         Convert a giac expression back to a Sage expression, if possible.
 
-        NOTES:
+        .. NOTE::
 
-        This method works successfully when Giac returns a result
-        or list of results that consist only of:
-        - numbers, i.e. integers, floats, complex numbers;
-        - functions and named constants also present in Sage, where:
-            - Sage knows how to translate the function or constant's name
-            from Giac's naming scheme through the symbols_table, or
-            - you provide a translation dictionary ``locals``.
+            This method works successfully when Giac returns a result
+            or list of results that consist only of:
+            - numbers, i.e. integers, floats, complex numbers;
+            - functions and named constants also present in Sage, where:
+                - Sage knows how to translate the function or constant's name
+                from Giac's naming scheme through the symbols_table, or
+                - you provide a translation dictionary ``locals``.
 
         New conversions can be added using Pynac's ``register_symbol``.
         This is the recommended approach for library code.

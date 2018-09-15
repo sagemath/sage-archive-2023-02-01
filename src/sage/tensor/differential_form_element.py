@@ -7,7 +7,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010 Joris Vankerschaver <joris.vankerschaver@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -19,8 +19,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 
@@ -369,7 +369,7 @@ class DifferentialForm(AlgebraElement):
         True
 
 
-    NOTES:
+    .. NOTE::
 
         Differential forms are stored behind the screens as dictionaries,
         where the keys are the subscripts of the non-zero components, and

@@ -2254,9 +2254,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: LatticePoset({}).is_atomic()
             True
 
-        NOTES:
+        .. NOTE::
 
-        See [EnumComb1]_, Section 3.3 for a discussion of atomic lattices.
+            See [EnumComb1]_, Section 3.3 for a discussion of atomic lattices.
 
         .. SEEALSO::
 

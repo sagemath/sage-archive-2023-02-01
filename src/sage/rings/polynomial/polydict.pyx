@@ -1118,9 +1118,15 @@ cdef class ETuple:
             d = [self[ind] for ind from start <= ind < stop]
             return ETuple(d)
         else:
-            return self.get_exp(i)
+            for ind in range(0, 2*self._nonzero, 2):
+                if self._data[ind] == i:
+                    return self._data[ind+1]
+                elif self._data[ind] > i:
+                    # the indices are sorted in _data, we are beyond, so quit
+                    return 0
+            return 0
 
-    cdef size_t get_exp(ETuple self, size_t i):
+    cdef size_t get_exp(ETuple self, int i):
         """
         Return the exponent for the ``i``-th variable.
         """
@@ -1298,7 +1304,8 @@ cdef class ETuple:
     # additional methods
 
     cpdef size_t unweighted_degree(self):
-        r""""Sum of entries
+        r"""
+        Return the sum of entries.
 
         ASSUMPTION:
 
@@ -1313,29 +1320,30 @@ cdef class ETuple:
         """
         cdef size_t degree = 0
         cdef size_t i
-        for i in range(1,2*self._nonzero,2):
+        for i in range(1, 2*self._nonzero, 2):
             degree += self._data[i]
         return degree
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef size_t weighted_degree(self, tuple w):
-        r"""Weighted some of entries
+        r"""
+        Return the weighted sum of entries.
 
         INPUT:
 
-        w - tuple of non-negative integers.
+        - ``w`` -- tuple of non-negative integers
 
         ASSUMPTIONS:
 
-        w has the same length as self, and the entries of self
-        and w are non-negative.
+        ``w`` has the same length as ``self``, and the entries of ``self``
+        and ``w`` are non-negative.
         """
         cdef size_t i
         cdef size_t deg = 0
         assert len(w) == self._length
         for i in range(0, 2*self._nonzero, 2):
-            deg += <size_t>self._data[i+1]*<size_t>w[self._data[i]]
+            deg += <size_t> self._data[i+1] * <size_t> w[self._data[i]]
         return deg
 
     cdef size_t unweighted_quotient_degree(self, ETuple other):

@@ -19,6 +19,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.categories.algebras import Algebras
 from sage.categories.cartesian_product import cartesian_product
+from sage.categories.rings import Rings
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.sets.family import Family
@@ -31,7 +32,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
 
     Let `R` be a commutative ring. The *universal Askey-Wilson* algebra
     is an associative unital algebra `\Delta_q` over `R[q,q^-1]` given
-    by the generators `A,B,C,\alpha,\beta,\gamma` that satisfy the
+    by the generators `A, B, C, \alpha, \beta, \gamma` that satisfy the
     following relations:
 
     .. MATH::
@@ -86,12 +87,17 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
 
     INPUT:
 
-    - ``R`` -- a ring
+    - ``R`` -- a commutative ring
     - ``q`` -- (optional) the parameter `q`; must be invertable in ``R``
 
     If ``q`` is not specified, then ``R`` is taken to be the base
     ring of a Laurent polynomial ring with variable `q`. Otherwise
     the element ``q`` must be an element of ``R``.
+
+    .. NOTE::
+
+        No check is performed to ensure ``q`` is not a root of unity,
+        which may lead to violations of the results in [Terwilliger2011]_.
 
     EXAMPLES:
 
@@ -127,7 +133,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
     We check the elements `\alpha`, `\beta`, and `\gamma`
     are in the center::
 
-        sage: all(x * g == g * x for g in AW.algebra_generators() for x in [a,b,g])
+        sage: all(x * gen == gen * x for gen in AW.algebra_generators() for x in [a,b,g])
         True
 
     We verify that the :meth:`Casimir element <casimir_element>`
@@ -208,12 +214,28 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
             sage: AW2 = algebras.AskeyWilson(R, q)
             sage: AW1 is AW2
             True
+
+            sage: AW = algebras.AskeyWilson(ZZ, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: q cannot be 0
+
+            sage: AW = algebras.AskeyWilson(ZZ, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: q=3 is not invertible in Integer Ring
         """
         if q is None:
             R = LaurentPolynomialRing(R, 'q')
             q = R.gen()
         else:
             q = R(q)
+        if q == 0:
+            raise ValueError("q cannot be 0")
+        if 1/q not in R:
+            raise ValueError("q={} is not invertible in {}".format(q, R))
+        if R not in Rings().Commutative():
+            raise ValueError("{} is not a commutative ring".format(R))
         return super(AskeyWilsonAlgebra, cls).__classcall__(cls, R, q)
 
     def __init__(self, R, q):
@@ -226,7 +248,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
             sage: TestSuite(AW).run()  # long time
         """
         self._q = q
-        cat = Algebras(R).WithBasis()
+        cat = Algebras(Rings().Commutative()).WithBasis()
         indices = cartesian_product([NonNegativeIntegers()]*6)
         CombinatorialFreeModule.__init__(self, R, indices, prefix='AW',
                                          sorting_key=_basis_key,
@@ -422,7 +444,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
         We check that the Casimir element is in the center::
 
             sage: Omega = AW.casimir_element()
-            sage: all(Omega * g == g * Omega for g in AW.algebra_generators())
+            sage: all(Omega * gen == gen * Omega for gen in AW.algebra_generators())
             True
         """
         q = self._q
@@ -478,6 +500,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
              - (q^-3-q^-1-2*q+2*q^3+q^5-q^7)*a^2*b^3*g^2
         """
         I = self._indices
+        # Commute the central parts to the right
         lhs = list(x[:3])
         rhs = list(y)
         for i in range(3,6):
@@ -487,6 +510,8 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
         if sum(rhs[:3]) == 0:
             return self.monomial(I(lhs + rhs[3:]))
 
+        # We recurse using the PBW-type basis property:
+        #   that YX = XY + lower order terms (see Theorem 4.1 in Terwilliger).
         q = self._q
         if lhs[2] > 0: # lhs has a C
             if rhs[0] > 0: # rhs has an A to commute with C
@@ -548,7 +573,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
 
             sage: AW = algebras.AskeyWilson(QQ)
             sage: rho = AW.permutation_automorphism()
-            sage: [rho(g) for g in AW.algebra_generators()]
+            sage: [rho(gen) for gen in AW.algebra_generators()]
             [B, C, A, b, g, a]
 
             sage: AW.an_element()
@@ -559,7 +584,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
              + (q^-2-1-q^2+q^4)*b*g + B
 
             sage: r3 = rho * rho * rho
-            sage: [r3(g) for g in AW.algebra_generators()]
+            sage: [r3(gen) for gen in AW.algebra_generators()]
             [A, B, C, a, b, g]
             sage: r3(AW.an_element()) == AW.an_element()
             True
@@ -589,7 +614,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
 
             sage: AW = algebras.AskeyWilson(QQ)
             sage: sigma = AW.reflection_automorphism()
-            sage: [sigma(g) for g in AW.algebra_generators()]
+            sage: [sigma(gen) for gen in AW.algebra_generators()]
             [B, A, -q*A*B - q^2*C + q*g, b, a, g]
 
             sage: AW.an_element()
@@ -604,7 +629,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
              + (q-3*q^5+3*q^9-q^13)*B*a - (q^2-q^4-2*q^6+2*q^8+q^10-q^12)*a*b + B
 
             sage: s2 = sigma * sigma
-            sage: [s2(g) for g in AW.algebra_generators()]
+            sage: [s2(gen) for gen in AW.algebra_generators()]
             [A, B, C, a, b, g]
             sage: s2(AW.an_element()) == AW.an_element()
             True
@@ -616,6 +641,125 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
         return AlgebraMorphism(self, [B,A,Cp,b,a,g], codomain=self)
 
     sigma = reflection_automorphism
+
+    def loop_representation(self):
+        r"""
+        Return the map `\pi` from ``self`` to `2 \times 2` matrices
+        over `R[\lambda,\lambda^{-1}]`, where `F` is the fraction field
+        of the base ring of ``self``.
+
+        Let `AW` be the Askey-Wilson algebra over `R`, and let `F` be
+        the fraction field of `R`. Let `M` be the space of `2 \times 2`
+        matrices over `F[\lambda, \lambda^{-1}]`. Consider the following
+        elements of `M`:
+
+        .. MATH::
+
+            \mathcal{A} = \begin{pmatrix}
+                \lambda & 1 - \lambda^{-1} \\ 0 & \lambda^{-1}
+            \end{pmatrix},
+            \qquad
+            \mathcal{B} = \begin{pmatrix}
+                \lambda^{-1} 0 \\ \lambda - 1 & \lambda
+            \end{pmatrix},
+            \qquad
+            \mathcal{C} = \begin{pmatrix}
+                1 & \lambda - 1 \\ 1 - \lambda^{-1} & \lambda + \lambda^{-1} - 1
+            \end{pmatrix}.
+
+        From Lemma 3.11 of [Terwilliger2011]_, we define a
+        representation `\pi: AW \to M` by
+
+        .. MATH::
+
+            A \mapsto q \mathcal{A} + q^{-1} \mathcal{A}^{-1},
+            \qquad
+            B \mapsto q \mathcal{B} + q^{-1} \mathcal{B}^{-1},
+            \qquad
+            C \mapsto q \mathcal{C} + q^{-1} \mathcal{C}^{-1},
+            \qquad
+            \alpha, \beta, \gamma \mapsto \nu I,
+
+        where `\nu = (q^2 + q^-2)(\lambda + \lambda^{-1})
+        + (\lambda + \lambda^{-1})^2`.
+
+        We call this representation the *loop representation* as
+        it is a representation using the loop group
+        `SL_2(F[\lambda,\lambda^{-1}])`.
+
+        EXAMPLES::
+
+            sage: AW = algebras.AskeyWilson(QQ)
+            sage: q = AW.q()
+            sage: pi = AW.loop_representation()
+            sage: A,B,C,a,b,g = [pi(gen) for gen in AW.algebra_generators()]
+            sage: A
+            [                1/q*lambda^-1 + q*lambda ((-q^2 + 1)/q)*lambda^-1 + ((q^2 - 1)/q)]
+            [                                       0                 q*lambda^-1 + 1/q*lambda]
+            sage: B
+            [             q*lambda^-1 + 1/q*lambda                                     0]
+            [((-q^2 + 1)/q) + ((q^2 - 1)/q)*lambda              1/q*lambda^-1 + q*lambda]
+            sage: C
+            [1/q*lambda^-1 + ((q^2 - 1)/q) + 1/q*lambda      ((q^2 - 1)/q) + ((-q^2 + 1)/q)*lambda]
+            [  ((q^2 - 1)/q)*lambda^-1 + ((-q^2 + 1)/q)    q*lambda^-1 + ((-q^2 + 1)/q) + q*lambda]
+            sage: a
+            [lambda^-2 + ((q^4 + 1)/q^2)*lambda^-1 + 2 + ((q^4 + 1)/q^2)*lambda + lambda^2                                                                             0]
+            [                                                                            0 lambda^-2 + ((q^4 + 1)/q^2)*lambda^-1 + 2 + ((q^4 + 1)/q^2)*lambda + lambda^2]
+            sage: a == b
+            True
+            sage: a == g
+            True
+
+            sage: AW.an_element()
+            (q^-3+3+2*q+q^2)*a*b*g^3 + q*A*C^2*b + 3*q^2*B*a^2*g + A
+            sage: x = pi(AW.an_element())
+            sage: y = (q^-3+3+2*q+q^2)*a*b*g^3 + q*A*C^2*b + 3*q^2*B*a^2*g + A
+            sage: x == y
+            True
+
+        We check the defining relations of the Askey-Wilson algebra::
+
+            sage: A + (q*B*C - q^-1*C*B) / (q^2 - q^-2) == a / (q + q^-1)
+            True
+            sage: B + (q*C*A - q^-1*A*C) / (q^2 - q^-2) == b / (q + q^-1)
+            True
+            sage: C + (q*A*B - q^-1*B*A) / (q^2 - q^-2) == g / (q + q^-1)
+            True
+
+        We check Lemma 3.12 in [Terwilliger2011]_::
+
+            sage: M = pi.codomain()
+            sage: la = M.base_ring().gen()
+            sage: p = M([[0,-1],[1,1]])
+            sage: s = M([[0,1],[la,0]])
+            sage: rho = AW.rho()
+            sage: sigma = AW.sigma()
+            sage: all(p*pi(gen)*~p == pi(rho(gen)) for gen in AW.algebra_generators())
+            True
+            sage: all(s*pi(gen)*~s == pi(sigma(gen)) for gen in AW.algebra_generators())
+            True
+        """
+        from sage.matrix.matrix_space import MatrixSpace
+        q = self._q
+        base = LaurentPolynomialRing(self.base_ring().fraction_field(), 'lambda')
+        la = base.gen()
+        inv = ~la
+        M = MatrixSpace(base, 2)
+        A = M([[la,1-inv],[0,inv]])
+        Ai = M([[inv,inv-1],[0,la]])
+        B = M([[inv,0],[la-1,la]])
+        Bi = M([[la,0],[1-la,inv]])
+        C = M([[1,1-la],[inv-1,la+inv-1]])
+        Ci = M([[la+inv-1,la-1],[1-inv,1]])
+        mu = la + inv
+        nu = (self._q**2 + self._q**-2) * mu + mu**2
+        nuI = M(nu)
+        category = Algebras(Rings().Commutative())
+        return AlgebraMorphism(self, [q*A + q**-1*Ai, q*B + q**-1*Bi, q*C + q**-1*Ci,
+                                      nuI, nuI, nuI],
+                               codomain=M, category=category)
+
+    pi = loop_representation
 
 def _basis_key(t):
     """
@@ -663,7 +807,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity):
             sage: TestSuite(sigma).run()
         """
         if category is None:
-            category = Algebras(domain.base_ring()).WithBasis()
+            category = Algebras(Rings().Commutative()).WithBasis()
         self._on_generators = tuple(on_generators)
         ModuleMorphismByLinearity.__init__(self, domain=domain, codomain=codomain,
                                            position=position, category=category)

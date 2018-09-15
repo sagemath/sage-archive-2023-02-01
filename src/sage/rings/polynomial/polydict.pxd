@@ -28,3 +28,5 @@ cdef class ETuple:
     cpdef list nonzero_values(ETuple self, bint sort=*)
     cpdef ETuple reversed(ETuple self)
     cdef ETuple _new(ETuple self)
+    cdef size_t get_exp(ETuple self, size_t i)
+

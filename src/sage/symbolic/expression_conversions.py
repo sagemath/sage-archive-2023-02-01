@@ -815,7 +815,7 @@ class SympyConverter(Converter):
             sage: df_sage = f_sage.diff(x, 2, y, 1); df_sage
             diff(f_sage(x, y), x, x, y)
             sage: df_sympy = df_sage._sympy_(); df_sympy
-            Derivative(f_sage(x, y), x, x, y)
+            Derivative(f_sage(x, y), (x, 2), y)
             sage: df_sympy == f_sympy.diff(x, 2, y, 1)
             True
         """

@@ -138,9 +138,9 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     linear eqs.), return the right-hand side only. The possible
     constant solutions of separable ODEs are omitted.
 
-    NOTES:
+    .. NOTE::
 
-    Use ``desolve? <tab>`` if the output in the Sage notebook is truncated.
+        Use ``desolve? <tab>`` if the output in the Sage notebook is truncated.
 
     EXAMPLES::
 

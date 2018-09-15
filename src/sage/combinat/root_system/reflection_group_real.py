@@ -402,16 +402,16 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W.cartan_type()                                       # optional - gap3
             ['A', 3]
 
-            sage: W = ReflectionGroup(['A',3], ['B',2])                 # optional - gap3
+            sage: W = ReflectionGroup(['A',3], ['B',3])                 # optional - gap3
             sage: W.cartan_type()                                       # optional - gap3
-            A3xB2
+            A3xB3 relabelled by {1: 3, 2: 2, 3: 1}                      
         """
         if len(self._type) == 1:
             ct = self._type[0]
             C = CartanType([ct['series'], ct['rank']])
-            CG = C.coxeter_graph()
+            CG = C.coxeter_diagram()
             G = self.coxeter_diagram()
-            return C.relabel(G.is_isomorphic(CG, certificate=True))
+            return C.relabel(CG.is_isomorphic(G, edge_labels=True, certificate=True)[1])
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 
@@ -590,13 +590,16 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: G = ReflectionGroup(['A',3])                          # optional - gap3
-            sage: G.coxeter_matrix()                                    # optional - gap3
+            sage: G = ReflectionGroup(['B',3])                          # optional - gap3
+            sage: sorted(G.coxeter_diagram().edges(labels=True))        # optional - gap3
+            [(1, 2, 4), (2, 3, 3)]
         """
+        from sage.graphs.graph import Graph
+        from itertools import combinations
         V = self.index_set()
         S = self.simple_reflections()
-        V = Graph(V)
-        for i,j in subsets(V):
+        G = Graph([V,[]],format='vertices_and_edges')
+        for i,j in combinations(V,2):
             o = (S[i]*S[j]).order()
             if o >= 3:
                 G.add_edge(i,j,o)

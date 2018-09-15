@@ -3679,6 +3679,18 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
               From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
               To:   Algebraic Real Field
               Defn: a |--> 7.237653139801104?)
+            sage: elt == rt
+            False
+            sage: hom(elt) == rt
+            True
+
+        Creating an element of an embedded number field::
+
+            sage: (nf, elt, hom) = rt.as_number_field_element(embedded=True)
+            sage: elt
+            a^2 - 5*a - 19
+            sage: elt == rt
+            True
             sage: hom(elt) == rt
             True
 

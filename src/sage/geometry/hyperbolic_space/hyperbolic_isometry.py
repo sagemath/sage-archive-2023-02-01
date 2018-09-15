@@ -1059,7 +1059,7 @@ def moebius_transform(A, z):
     The matrix can be symbolic or can be a matrix over the real
     or complex numbers, but must be provably invertible::
 
-        sage: a,b,c,d = var('a,b,c,d');
+        sage: a,b,c,d = var('a,b,c,d')
         sage: moebius_transform(matrix(2,[a,b,c,d]),I)
         (I*a + b)/(I*c + d)
         sage: moebius_transform(matrix(2,[1,b,c,b*c+1]),I)

@@ -48,6 +48,7 @@ import errno
 import doctest
 import traceback
 import tempfile
+from dis import findlinestarts
 import gc
 import six
 
@@ -525,6 +526,21 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: DTR.run(doctests[0], clear_globs=False) # indirect doctest
             TestResults(failed=0, attempted=4)
+
+        TESTS:
+
+        Check that :trac:`26038` is fixed::
+
+            sage: a = 1
+            ....: b = 2
+            Traceback (most recent call last):
+            ...
+            SyntaxError: doctest is not a single statement
+            sage: a = 1
+            ....: @syntax error
+            Traceback (most recent call last):
+            ...
+            SyntaxError: invalid syntax
         """
         # Ensure that injecting globals works as expected in doctests
         set_globals(test.globs)
@@ -598,8 +614,28 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                 # Compile mode "single" is meant for running a single
                 # statement like on the Python command line. It implies
                 # in particular that the resulting value will be printed.
-                return compile(example.source, filename, "single",
+                code = compile(example.source, filename, "single",
                                compileflags, 1)
+
+                # Python 2 ignores everything after the first complete
+                # statement in the source code. To verify that we really
+                # have just a single statement and nothing more, we also
+                # compile in "exec" mode and verify that the line
+                # numbers are the same.
+                execcode = compile(example.source, filename, "exec",
+                                   compileflags, 1)
+
+                # findlinestarts() returns pairs (index, lineno) where
+                # "index" is the index in the bytecode where the line
+                # number changes to "lineno".
+                linenumbers1 = set(lineno for (index, lineno)
+                                   in findlinestarts(code))
+                linenumbers2 = set(lineno for (index, lineno)
+                                   in findlinestarts(execcode))
+                if linenumbers1 != linenumbers2:
+                    raise SyntaxError("doctest is not a single statement")
+
+                return code
 
             if not self.options.gc:
                 pass

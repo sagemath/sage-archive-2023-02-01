@@ -214,7 +214,7 @@ class PeriodicPointIterator(object):
             sage: s = WordMorphism('a->bacca,b->cba,c->aab')
             sage: p = PeriodicPointIterator(s, ['a','b','c'])
             sage: p.get_iterator(0)
-            <generator object get_iterator at ...>
+            <generator object ...get_iterator at ...>
         """
         j = (i-1)%len(self._cycle)
         for a in self._image(self._cycle[j]):
@@ -1560,7 +1560,7 @@ class WordMorphism(SageObject):
             sage: tm = WordMorphism('a->ab,b->ba')
             sage: tm.is_primitive()
             True
-            sage: fibo = WordMorphism('a->ab,b->a');
+            sage: fibo = WordMorphism('a->ab,b->a')
             sage: fibo.is_primitive()
             True
             sage: m = WordMorphism('a->bb,b->aa')

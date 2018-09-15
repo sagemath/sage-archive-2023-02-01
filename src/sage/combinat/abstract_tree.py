@@ -2278,7 +2278,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def as_digraph(self):
         """
-        Returns a directed graph version of ``self``.
+        Return a directed graph version of ``self``.
 
         .. WARNING::
 
@@ -2293,7 +2293,7 @@ class AbstractLabelledTree(AbstractTree):
            sage: t1.as_digraph()
            Digraph on 3 vertices
 
-           sage: t = BinaryTree([[None, None],[[],None]]);
+           sage: t = BinaryTree([[None, None],[[],None]])
            sage: lt = t.canonical_labelling()
            sage: lt.as_digraph()
            Digraph on 4 vertices

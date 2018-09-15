@@ -285,7 +285,7 @@ class FiniteFieldFactory(UniqueFactory):
 
         sage: K.<a> = GF(5^40)
         sage: a.multiplicative_order()
-        4547473508864641189575195312
+        189478062869360049565633138
         sage: a.is_square()
         True
         sage: K.<b> = GF(5^40, modulus="primitive")

@@ -101,10 +101,10 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: M = WordQuasiSymmetricFunctions(QQ).M()
             sage: elt = M[[1,2]] * M[[1]]; elt
             M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
-            sage: M.options.display = "tight";
+            sage: M.options.display = "tight"
             sage: elt
             M[{1,2},{3}] + M[{1,2,3}] + M[{3},{1,2}]
-            sage: M.options.display = "compact";
+            sage: M.options.display = "compact"
             sage: elt
             M[12.3] + M[123] + M[3.12]
             sage: osp = OrderedSetPartition([[2,4], [1,3,7],[5,6]])
@@ -136,13 +136,13 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: M = WordQuasiSymmetricFunctions(QQ).M()
             sage: elt = M[[1,2]]*M[[1]]; elt
             M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
-            sage: M.options.objects = "words";
+            sage: M.options.objects = "words"
             sage: elt
             M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
-            sage: M.options.display = "tight";
+            sage: M.options.display = "tight"
             sage: elt
             M[1,1,2] + M[1,1,1] + M[2,2,1]
-            sage: M.options.display = "compact";
+            sage: M.options.display = "compact"
             sage: elt
             M[112] + M[111] + M[221]
             sage: osp = OrderedSetPartition([[2,4], [1,3,7],[5,6]])

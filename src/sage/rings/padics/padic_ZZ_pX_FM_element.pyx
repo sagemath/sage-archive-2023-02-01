@@ -226,7 +226,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 L = []
                 x = x.lift().lift()
                 for i from 0 <= i <= x.poldegree():
-                    L.append(Integer(x.polcoeff(i)))
+                    L.append(Integer(x.polcoef(i)))
                 x = L
             else:
                 raise TypeError("unsupported coercion from pari: only p-adics, integers, rationals, polynomials and pol_mods allowed")
@@ -902,7 +902,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def add_bigoh(self, absprec):
         """
-        Returns a new element truncated modulo \pi^absprec.
+        Return a new element truncated modulo \pi^absprec.
+
         This is only implemented for unramified extension at
         this point.
 
@@ -917,7 +918,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         EXAMPLES::
 
             sage: R=Zp(7,4,'fixed-mod')
-            sage: a = R(1+7+7^2);
+            sage: a = R(1+7+7^2)
             sage: a.add_bigoh(1)
             1
         """

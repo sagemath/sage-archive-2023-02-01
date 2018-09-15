@@ -973,6 +973,9 @@ class WordGenerator(object):
         words `K_{a,b}` and `K_{b,a}` are the unique two words over `A`
         that are fixed by `\Delta`.
 
+        Also note that the Kolakoski word is also known as the
+        Oldenburger word.
+
         INPUT:
 
         -  ``alphabet`` - (default: (1,2)) an iterable of two positive

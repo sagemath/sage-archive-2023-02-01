@@ -1,7 +1,5 @@
 cd src
 
-# Install a flat package (not an egg), which is the same as how pip
-# installs packages.
 sdh_pip_install .
 
 # let sagenb use mathjax

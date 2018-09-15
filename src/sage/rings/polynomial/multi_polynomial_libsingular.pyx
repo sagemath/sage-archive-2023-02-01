@@ -739,7 +739,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
         See :trac:`5292`::
 
-            sage: R.<x> = QQ[]; S.<q,t> = QQ[]; F = FractionField(S);
+            sage: R.<x> = QQ[]; S.<q,t> = QQ[]; F = FractionField(S)
             sage: x in S
             False
             sage: x in F
@@ -2021,7 +2021,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             True
             sage: p is q
             False
-            sage: lst = [p,q];
+            sage: lst = [p,q]
             sage: matrix(ZZ, 2, 2, lambda i,j: bool(lst[i]==lst[j]))
             [1 1]
             [1 1]
@@ -2441,8 +2441,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: u^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (u)^(1/2) does not lie in Multivariate Polynomial Ring
-            in u, v over Rational Field
+            ValueError: not a 2nd power
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
             sage: (x+y^2^15)^10
@@ -2465,8 +2464,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: (R^2 + 3)^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (R^2 + 3)^(1/2) does not lie in
-            Multivariate Polynomial Ring in R, S over Integer Ring
+            ValueError: 3 is not a 2nd power
             sage: P(2)^P(2)
             4
             sage: (R + 1)^P(2)
@@ -3383,7 +3381,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             x^10000
             no overflow
 
-            sage: n=1000;
+            sage: n = 1000
             sage: try:
             ....:     f = x^n
             ....:     f.subs(x = x^n)

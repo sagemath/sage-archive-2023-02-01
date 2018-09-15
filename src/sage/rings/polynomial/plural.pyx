@@ -108,6 +108,7 @@ from cysignals.memory cimport sig_malloc, sig_free
 from sage.cpython.string cimport bytes_to_str
 
 from sage.categories.algebras import Algebras
+from sage.cpython.string cimport char_to_str
 
 # singular rings
 
@@ -670,10 +671,10 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: y*x
             -x*y
         """
-        # TODO: print the relations
-        varstr = ", ".join([bytes_to_str(rRingVar(i, self._ring))
-                            for i in range(self.__ngens) ])
-        return "Noncommutative Multivariate Polynomial Ring in %s over %s, nc-relations: %s" % (varstr, self.base_ring(), self.relations())
+        varstr = ", ".join([char_to_str(rRingVar(i, self._ring))
+                            for i in range(self.__ngens)])
+        return (f"Noncommutative Multivariate Polynomial Ring in {varstr} "
+                f"over {self.base_ring()}, nc-relations: {self.relations()}")
 
     def _ringlist(self):
         """
@@ -855,7 +856,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-           sage: rlist = P._ringlist();
+           sage: rlist = P._ringlist()
            sage: Q = P._list_to_ring(rlist)
            sage: Q # indirect doctest
            <noncommutative RingWrap>
@@ -888,7 +889,7 @@ cdef class NCPolynomialRing_plural(Ring):
 #
 #            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 #            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-#            sage: rlist = P._ringlist();
+#            sage: rlist = P._ringlist()
 #            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 #            sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')
 #            sage: I = H.ideal([H.gen(i) ^2 for i in [0, 1]]).twostd()
@@ -1770,10 +1771,10 @@ cdef class NCPolynomial_plural(RingElement):
         rChangeCurrRing(_ring)
         if _ring.CanShortOut:
             _ring.ShortOut = 1
-            s = p_String(self._poly, _ring, _ring)
+            s = char_to_str(p_String(self._poly, _ring, _ring))
             _ring.ShortOut = 0
         else:
-            s = p_String(self._poly, _ring, _ring)
+            s = char_to_str(p_String(self._poly, _ring, _ring))
         return s
 
     def _latex_(self):
@@ -2684,7 +2685,7 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
 
 cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     """
-    Construct MPolynomialRing_libsingular from ringWrap, assumming the ground field to be base_ring
+    Construct MPolynomialRing_libsingular from ringWrap, assuming the ground field to be base_ring
 
     EXAMPLES::
 
@@ -2740,9 +2741,10 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
 
     return self
 
+
 cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
     """
-    Construct NCPolynomialRing_plural from ringWrap, assumming the ground field to be base_ring
+    Construct NCPolynomialRing_plural from ringWrap, assuming the ground field to be base_ring
 
     EXAMPLES::
 

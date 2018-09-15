@@ -175,6 +175,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_circular_planar` | Test whether the graph is circular planar (outerplanar)
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
+    :meth:`~GenericGraph.is_bipartite` | Test whether the given graph is bipartite.
     :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.
     :meth:`~GenericGraph.is_interval` | Check whether the graph is an interval graph.
     :meth:`~GenericGraph.is_gallai_tree` | Return whether the current graph is a Gallai tree.
@@ -253,6 +254,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.min_spanning_tree` | Return the edges of a minimum spanning tree.
     :meth:`~GenericGraph.spanning_trees_count` | Return the number of spanning trees in a graph.
     :meth:`~GenericGraph.dominator_tree`    | Returns a dominator tree of the graph.
+    :meth:`~GenericGraph.connected_subgraph_iterator` | Iterator over the induced connected subgraphs of order at most `k`
 
 **Plot/embedding-related methods:**
 
@@ -1890,7 +1892,7 @@ class GenericGraph(GenericGraph_pyx):
         loop will correspond to a zero column. In particular, it is not possible
         to recover the loops of an oriented graph from its incidence matrix.
 
-        See :wikipedia:`Incidence_matrix` for more information.
+        See the :wikipedia:`Incidence_matrix` for more information.
 
         INPUT:
 
@@ -2797,7 +2799,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges([(0,1,1), (0,1,2), (0,1,3)])
             sage: G.has_multiple_edges()
             True
-            sage: G.multiple_edges()
+            sage: G.multiple_edges(sort=True)
             [(0, 1, 1), (0, 1, 2), (0, 1, 3)]
             sage: G.allow_multiple_edges(False); G
             Graph on 2 vertices
@@ -2847,7 +2849,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # TODO: this should be much faster for c_graphs, but for now we just do this
         if self.allows_multiple_edges() and new is False and check:
-            for u,v,l in self.multiple_edges():
+            for u,v,l in self.multiple_edges(sort=True):
                 if not (u,v) in seen:
                     # This is the first time we see this edge
                     seen[(u,v)] = l
@@ -2865,9 +2867,17 @@ class GenericGraph(GenericGraph_pyx):
 
         self._backend.multiple_edges(new)
 
-    def multiple_edges(self, to_undirected=False, labels=True):
+    def multiple_edges(self, to_undirected=False, labels=True, sort=False):
         """
-        Returns any multiple edges in the (di)graph.
+        Return any multiple edges in the (di)graph.
+
+        INPUT:
+
+        - ``to_undirected`` -- boolean (default ``False``)
+
+        - ``labels`` -- boolean (default ``True``) whether to include labels
+
+        - ``sort`` - boolean (default ``False``) whether to sort the result
 
         EXAMPLES::
 
@@ -2880,7 +2890,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges([(0,1)]*3)
             sage: G.has_multiple_edges()
             True
-            sage: G.multiple_edges()
+            sage: G.multiple_edges(sort=True)
             [(0, 1, None), (0, 1, None), (0, 1, None)]
             sage: G.allow_multiple_edges(False); G
             Graph on 2 vertices
@@ -2898,7 +2908,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.add_edges([(0,1)]*3)
             sage: D.has_multiple_edges()
             True
-            sage: D.multiple_edges()
+            sage: D.multiple_edges(sort=True)
             [(0, 1, None), (0, 1, None), (0, 1, None)]
             sage: D.allow_multiple_edges(False); D
             Digraph on 2 vertices
@@ -2914,14 +2924,14 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G.multiple_edges()
             []
-            sage: G.multiple_edges(to_undirected=True)
+            sage: G.multiple_edges(to_undirected=True, sort=True)
             [(1, 2, 'h'), (2, 1, 'g')]
         """
         multi_edges = []
         if self._directed and not to_undirected:
             for v in self:
                 for u in self.neighbor_in_iterator(v):
-                    edges = self.edge_boundary([u], [v], labels)
+                    edges = self.edge_boundary([u], [v], labels, sort=sort)
                     if len(edges) > 1:
                         multi_edges += edges
         else:
@@ -2929,9 +2939,11 @@ class GenericGraph(GenericGraph_pyx):
             for v in self:
                 for u in self.neighbor_iterator(v):
                     if hash(u) >= hash(v):
-                        edges = self.edge_boundary([v], [u], labels)
+                        edges = self.edge_boundary([v], [u],
+                                                   labels, sort=sort)
                         if to_undirected:
-                            edges += self.edge_boundary([u],[v], labels)
+                            edges += self.edge_boundary([u],[v],
+                                                        labels, sort=sort)
                         if len(edges) > 1:
                             multi_edges += edges
         return multi_edges
@@ -3251,6 +3263,128 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return Rational(self.size())/Rational((n**2 - n)/2)
 
+    def is_bipartite(self, certificate = False):
+        """
+        Returns ``True`` if graph `G` is bipartite, ``False`` if not.
+
+        Traverse the graph G with breadth-first-search and color nodes.
+
+        INPUT:
+
+        - ``certificate`` -- whether to return a certificate (``False`` by
+          default). If set to ``True``, the certificate returned in a proper
+          2-coloring when `G` is bipartite, and an odd cycle otherwise.
+
+        EXAMPLES::
+
+            sage: graphs.CycleGraph(4).is_bipartite()
+            True
+            sage: graphs.CycleGraph(5).is_bipartite()
+            False
+            sage: graphs.RandomBipartite(100,100,0.7).is_bipartite()
+            True
+
+        A random graph is very rarely bipartite::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_bipartite()
+            False
+            sage: false, oddcycle = g.is_bipartite(certificate = True)
+            sage: len(oddcycle) % 2
+            1
+
+        The method works identically with oriented graphs::
+
+            sage: g = DiGraph({0: [1, 2, 3], 2: [1], 3: [4]})
+            sage: g.is_bipartite()
+            False
+            sage: false, oddcycle = g.is_bipartite(certificate = True)
+            sage: len(oddcycle) % 2
+            1
+
+            sage: graphs.CycleGraph(4).random_orientation().is_bipartite()
+            True
+            sage: graphs.CycleGraph(5).random_orientation().is_bipartite()
+            False
+
+        TESTS::
+
+            sage: G = Graph(loops=True)
+            sage: G.add_edge(0, 0)
+            sage: G.is_bipartite()
+            False
+            sage: G.is_bipartite(certificate = True)
+            (False, [0])
+        """
+        if self.has_loops():
+            if certificate:
+                return (False, [self.loops()[0][0]])
+            else:
+                return False
+
+        color = {}
+        tree = {}  # inheritance of colors along the DFS to recover an odd
+                   # cycle when certificate=True
+
+        # For any uncolored vertex in the graph (to ensure we do the right job
+        # when the graph is not connected !)
+        for u in self:
+            if u in color:
+                continue
+
+            # Let us run a BFS starting from u
+            queue = [u]
+            color[u] = 1
+            tree[u] = None
+            while queue:
+                v = queue.pop(0)
+                c = 1-color[v]
+                for w in self.neighbor_iterator(v):
+
+                    # If the vertex has already been colored
+                    if w in color:
+
+                        # The graph is not bipartite !
+                        if color[w] == color[v]:
+
+                            # Should we return an odd cycle ?
+                            if certificate:
+                                w_to_root = []
+                                s = w
+                                while s is not None:
+                                    w_to_root.append(s)
+                                    s = tree[s]
+
+                                v_to_root = []
+                                s = v
+                                while s is not None:
+                                    v_to_root.append(s)
+                                    s = tree[s]
+
+                                # Remove the common part of v -> root and w -> root
+                                while v_to_root and w_to_root and v_to_root[-1] == w_to_root[-1]:
+                                    r = v_to_root.pop()
+                                    w_to_root.pop()
+
+                                cycle = v_to_root + [r] + w_to_root[::-1]
+
+                                return False, cycle
+
+                            else:
+                                return False
+
+                    # We color a new vertex
+                    else:
+                        color[w] = c
+                        tree[w] = v
+                        queue.append(w)
+
+        if certificate:
+            return True, color
+        else:
+            return True
+
+
     def is_eulerian(self, path=False):
         r"""
         Return true if the graph has a (closed) tour that visits each edge exactly
@@ -3520,7 +3654,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: g=graphs.CycleGraph(5);
+            sage: g = graphs.CycleGraph(5)
             sage: g.eulerian_circuit()
             [(0, 4, None), (4, 3, None), (3, 2, None), (2, 1, None), (1, 0, None)]
             sage: g.eulerian_circuit(labels=False)
@@ -3596,7 +3730,7 @@ class GenericGraph(GenericGraph_pyx):
         # (where to return?, what was the way?)
         stack = [ (start_vertex, None) ]
 
-        while len(stack) != 0:
+        while stack:
             v, e = stack.pop()
 
             degr = g.out_degree(v) if self.is_directed() else g.degree(v)
@@ -5003,7 +5137,7 @@ class GenericGraph(GenericGraph_pyx):
         be seen as a measure of non-planarity; a planar graph has
         crossing number zero.
 
-        See :wikipedia:`Crossing_number` for more information.
+        See the :wikipedia:`Crossing_number` for more information.
 
         EXAMPLES::
 
@@ -5324,8 +5458,7 @@ class GenericGraph(GenericGraph_pyx):
         find a tree of minimum weight connecting the given set of
         vertices, which is then called a Steiner Tree.
 
-        `Wikipedia article on Steiner Trees
-        <http://en.wikipedia.org/wiki/Steiner_tree_problem>`_.
+        See the :wikipedia:`Steiner_tree_problem` for more information.
 
         INPUT:
 
@@ -5678,9 +5811,7 @@ class GenericGraph(GenericGraph_pyx):
         A minimum edge cut between two vertices `s` and `t` of self
         is a set `A` of edges of minimum weight such that the graph
         obtained by removing `A` from the graph is disconnected. For more
-        information, see the
-        `Wikipedia article on cuts
-        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
+        information, see the :wikipedia:`Cut_(graph_theory)`.
 
         INPUT:
 
@@ -5920,11 +6051,10 @@ class GenericGraph(GenericGraph_pyx):
         Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
         represented by a list of vertices.
 
-        A vertex cut between two non-adjacent vertices is a set `U`
-        of vertices of self such that the graph obtained by removing
-        `U` from self is disconnected. For more information, see the
-        `Wikipedia article on cuts
-        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
+        A vertex cut between two non-adjacent vertices is a set `U` of vertices
+        of self such that the graph obtained by removing `U` from self is
+        disconnected. For more information, see the
+        :wikipedia:`Cut_(graph_theory)`.
 
         INPUT:
 
@@ -6188,9 +6318,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
         r"""
-        Returns a maximum edge cut of the graph. For more information, see the
-        `Wikipedia article on cuts
-        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
+        Returns a maximum edge cut of the graph.
+
+        For more information, see the :wikipedia:`Cut_(graph_theory)`.
 
         INPUT:
 
@@ -7612,7 +7742,8 @@ class GenericGraph(GenericGraph_pyx):
         The minimum feedback vertex set of a (di)graph is a set of vertices that
         intersect all of its cycles.  Equivalently, a minimum feedback vertex
         set of a (di)graph is a set `S` of vertices such that the digraph `G-S`
-        is acyclic. For more information, see :wikipedia:`Feedback_vertex_set`.
+        is acyclic. For more information, see the
+        :wikipedia:`Feedback_vertex_set`.
 
         INPUT:
 
@@ -7840,9 +7971,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
         represented by an optimal valuation of the edges. For more
-        information, see the
-        `Wikipedia article on maximum flow
-        <http://en.wikipedia.org/wiki/Max_flow>`_.
+        information, see the :wikipedia:`Max_flow`.
 
         As an optimization problem, is can be expressed this way :
 
@@ -8162,7 +8291,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Furthermore, a (di)graph admits a `k`-NZF if and only if it
         is bridgeless and every bridgeless graph admits a `6`-NZF [Sey1981]_.
-        See :wikipedia:`Nowhere-zero_flow` for more details.
+        See the :wikipedia:`Nowhere-zero_flow` for more details.
 
         ALGORITHM:
 
@@ -8543,9 +8672,7 @@ class GenericGraph(GenericGraph_pyx):
         this version of it is NP-Complete to solve when the flows
         are required to be integer.
 
-        For more information, see the
-        :wikipedia:`Wikipedia page on multicommodity flows
-        <Multi-commodity_flow_problem>`.
+        For more information, see the :wikipedia:`Multi-commodity_flow_problem`.
 
         INPUT:
 
@@ -8957,14 +9084,13 @@ class GenericGraph(GenericGraph_pyx):
     def dominating_set(self, independent=False, total=False, value_only=False, solver=None, verbose=0):
         r"""
         Returns a minimum dominating set of the graph
-        represented by the list of its vertices. For more information, see the
-        `Wikipedia article on dominating sets
-        <http://en.wikipedia.org/wiki/Dominating_set>`_.
+        represented by the list of its vertices.
 
-        A minimum dominating set `S` of a graph `G` is
-        a set of its vertices of minimal cardinality such
-        that any vertex of `G` is in `S` or has one of its neighbors
-        in `S`.
+        For more information, see the :wikipedia:`Dominating_set`.
+
+        A minimum dominating set `S` of a graph `G` is a set of its vertices of
+        minimal cardinality such that any vertex of `G` is in `S` or has one of
+        its neighbors in `S`.
 
         As an optimization problem, it can be expressed as:
 
@@ -10764,10 +10890,12 @@ class GenericGraph(GenericGraph_pyx):
             L.sort(key=key)
         return L
 
-    def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=True):
+    def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=False):
         """
-        Returns a list of edges `(u,v,l)` with `u` in ``vertices1``
-        and `v` in ``vertices2``. If ``vertices2`` is ``None``, then
+        Return a list of edges `(u,v,l)` with `u` in ``vertices1``
+        and `v` in ``vertices2``.
+
+        If ``vertices2`` is ``None``, then
         it is set to the complement of ``vertices1``.
 
         In a digraph, the external boundary of a vertex `v` are those
@@ -10775,10 +10903,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
-        -  ``labels`` - if ``False``, each edge is a tuple `(u,v)` of
+        -  ``labels`` -- if ``False``, each edge is a tuple `(u,v)` of
            vertices.
 
+        - ``sort`` -- boolean (default ``False``) whether to sort the result
 
         EXAMPLES::
 
@@ -10799,15 +10927,15 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph({0:[1,2], 3:[0]})
-            sage: D.edge_boundary([0])
+            sage: D.edge_boundary([0], sort=True)
             [(0, 1, None), (0, 2, None)]
-            sage: D.edge_boundary([0], labels=False)
+            sage: D.edge_boundary([0], labels=False, sort=True)
             [(0, 1), (0, 2)]
 
         TESTS::
 
             sage: G = graphs.DiamondGraph()
-            sage: G.edge_boundary([0,1])
+            sage: G.edge_boundary([0,1], sort=True)
             [(0, 2, None), (1, 2, None), (1, 3, None)]
             sage: G.edge_boundary([0], [0])
             []
@@ -12237,18 +12365,6 @@ class GenericGraph(GenericGraph_pyx):
         of edges in the graph ) but this implementation is not linear because of
         the complexity of Lex BFS.
 
-        .. NOTE::
-
-            Because of a past bug (:trac:`11735`, :trac:`11961`), the
-            first implementation (algorithm A) of this method
-            sometimes returned as certificates subgraphs which were
-            **not** holes. Since then, this bug has been fixed and the
-            values are now double-checked before being returned, so
-            that the algorithm only returns correct values or raises
-            an exception. In the case where an exception is raised,
-            the user is advised to switch to the other algorithm. And
-            to **please** report the bug :-)
-
         EXAMPLES:
 
         The lexicographic product of a Path and a Complete Graph
@@ -12476,9 +12592,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Tests whether the graph is circulant.
 
-        For more information on circulant graphs, see the
-        :wikipedia:`Wikipedia page on circulant graphs
-        <Circulant_graph>`.
+        For more information, see :wikipedia:`Circulant_graph`.
 
         INPUT:
 
@@ -12605,7 +12719,7 @@ class GenericGraph(GenericGraph_pyx):
         an interval on the real line so that there is an edge in the graph
         iff the corresponding intervals intersects.
 
-        See :wikipedia:`Interval_graph` for more information.
+        See the :wikipedia:`Interval_graph` for more information.
 
         INPUT:
 
@@ -16646,7 +16760,7 @@ class GenericGraph(GenericGraph_pyx):
                     yield v
                 seen.add(v)
 
-            while len(queue) > 0:
+            while queue:
                 v, d = queue.pop(0)
                 if distance is None or d < distance:
                     for w in neighbors(v):
@@ -16754,15 +16868,15 @@ class GenericGraph(GenericGraph_pyx):
                     neighbors=self.neighbor_iterator
                 else:
                     neighbors=self.neighbor_out_iterator
-            seen=set([])
+            seen = set([])
             if isinstance(start, list):
                 # Reverse the list so that the initial vertices come out in the same order
-                queue=[(v,0) for v in reversed(start)]
+                queue = [(v, 0) for v in reversed(start)]
             else:
-                queue=[(start,0)]
+                queue = [(start, 0)]
 
-            while len(queue)>0:
-                v,d = queue.pop()
+            while queue:
+                v, d = queue.pop()
                 if v not in seen:
                     yield v
                     seen.add(v)
@@ -16777,9 +16891,7 @@ class GenericGraph(GenericGraph_pyx):
 
         A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth
         First Search used for the recognition of Chordal Graphs. For more
-        information, see the
-        `Wikipedia article on Lex-BFS
-        <http://en.wikipedia.org/wiki/Lexicographic_breadth-first_search>`_.
+        information, see the :wikipedia:`Lexicographic_breadth-first_search`.
 
         INPUT:
 
@@ -17429,7 +17541,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The tensor product is also known as the categorical product and the
         kronecker product (refering to the kronecker matrix product). See
-        :wikipedia:`Wikipedia article on the Kronecker product <Kronecker_product>`.
+        the :wikipedia:`Kronecker_product`.
 
         EXAMPLES::
 
@@ -18574,7 +18686,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         xs = [pos[v][0] for v in pos]
         ys = [pos[v][1] for v in pos]
-        if len(xs) == 0:
+        if not xs:
             xmin = -1
             xmax =  1
             ymin = -1
@@ -19921,7 +20033,7 @@ class GenericGraph(GenericGraph_pyx):
                 dot_options.append('dir=back')
 
             s+= '  %s %s %s' % (key(u), edge_options['edge_string'], key(v))
-            if len(dot_options) > 0:
+            if dot_options:
                 s += " [" + ", ".join(dot_options)+"]"
             s+= ";\n"
         s += "}"
@@ -21100,7 +21212,7 @@ class GenericGraph(GenericGraph_pyx):
 
         output = []
         if return_group:
-            if len(a) != 0:
+            if a:
                 # We translate the integer permutations into a collection of
                 # cycles.
                 from sage.combinat.permutation import Permutation
@@ -21158,7 +21270,7 @@ class GenericGraph(GenericGraph_pyx):
             partition = [self.vertices()]
 
         for p in partition:
-            if len(p) == 0:
+            if not p:
                 continue
             d = self.degree(p[0])
             if not all(self.degree(x) == d for x in p):
@@ -21538,7 +21650,7 @@ class GenericGraph(GenericGraph_pyx):
         class by some canonization function `c`. If `G` and `H` are graphs,
         then `G \cong c(G)`, and `c(G) == c(H)` if and only if `G \cong H`.
 
-        See :wikipedia:`Graph_canonization`.
+        See the :wikipedia:`Graph_canonization` for more information.
 
         INPUT:
 
@@ -22049,7 +22161,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import is_cut_vertex
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
-
+    from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
 
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),

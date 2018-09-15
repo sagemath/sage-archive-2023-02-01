@@ -373,7 +373,7 @@ def test_relation_maxima(relation):
 
         sage: from sage.symbolic.relation import test_relation_maxima
         sage: k = var('k')
-        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+        sage: pol = 1/(k-1) - 1/k -1/k/(k-1)
         sage: test_relation_maxima(pol == 0)
         True
         sage: f = sin(x)^2 + cos(x)^2 - 1
@@ -479,17 +479,15 @@ def test_relation_maxima(relation):
         True
         sage: forget()
         
-    In case one of the solutions while solving an equation is a real number::
-        
-        sage: var('K, d, R')
-        (K, d, R)
-        sage: assume(K>0)
-        sage: assume(K, 'noninteger')
-        sage: assume(R>0)
-        sage: assume(R<1)
-        sage: assume(d<R)
+    In case an equation is to be solved for non-integers, ''assume()''
+    is used::
+    
+        sage: k = var('k')
+        sage: assume(k,'noninteger')
+        sage: solve([k^3==1],k)
+        [k == 1/2*I*sqrt(3) - 1/2, k == -1/2*I*sqrt(3) - 1/2]
         sage: assumptions()
-        [K > 0, K is noninteger, R > 0, R < 1, d < R]
+        [k is noninteger]
     """
     m = relation._maxima_()
 
@@ -714,8 +712,8 @@ def solve(f, *args, **kwds):
         x: -2, y: 4
 
     If there is a parameter in the answer, that will show up as
-    a new variable.  In the following example, ``r1`` is a real free
-    variable (because of the ``r``)::
+    a new variable.  In the following example, ``r1`` is an arbitrary
+    constant (because of the ``r``)::
 
         sage: forget()
         sage: x, y = var('x,y')
@@ -764,7 +762,7 @@ def solve(f, *args, **kwds):
 
         sage: var('s,j,b,m,g')
         (s, j, b, m, g)
-        sage: sys = [ m*(1-s) - b*s*j, b*s*j-g*j ];
+        sage: sys = [ m*(1-s) - b*s*j, b*s*j-g*j ]
         sage: solve(sys,s,j)
         [[s == 1, j == 0], [s == g/b, j == (b - g)*m/(b*g)]]
         sage: solve(sys,(s,j))
@@ -895,7 +893,7 @@ def solve(f, *args, **kwds):
         sage: (r[0][x], r[0][y])
         (2*lambert_w(1/2), 1)
         sage: solve(-2*x**3 + 4*x**2 - 2*x + 6 > 0, x, algorithm='sympy')
-        [x < (1/6*sqrt(77) + 79/54)^(1/3) + 1/9/(1/6*sqrt(77) + 79/54)^(1/3) + 2/3]
+        [x < 1/3*(1/2)^(1/3)*(9*sqrt(77) + 79)^(1/3) + 2/3*(1/2)^(2/3)/(9*sqrt(77) + 79)^(1/3) + 2/3]
         sage: solve(sqrt(2*x^2 - 7) - (3 - x),x,algorithm='sympy')
         [x == -8, x == 2]
         sage: solve(sqrt(2*x + 9) - sqrt(x + 1) - sqrt(x + 4),x,algorithm='sympy')
@@ -1088,7 +1086,7 @@ def solve(f, *args, **kwds):
                     l = []
                     for d in ret:
                         r = {}
-                        for (v,ex) in d.iteritems():
+                        for (v, ex) in d.items():
                             r[v._sage_()] = ex._sage_()
                         l.append(r)
                     return l
@@ -1099,7 +1097,7 @@ def solve(f, *args, **kwds):
                 l = []
                 for sol in ret:
                     r = {}
-                    for (v,ex) in sol.iteritems():
+                    for (v, ex) in sol.items():
                         r[v._sage_()] = ex._sage_()
                     l.append(r)
                 return l
@@ -1116,7 +1114,7 @@ def solve(f, *args, **kwds):
             s = m.to_poly_solve(variables)
         except TypeError as mess: # if that gives an error, raise an error.
             if "Error executing code in Maxima" in str(mess):
-                raise ValueError("Sage is unable to determine whether the system %s can be solved for %s"%(f,args))
+                raise ValueError("Sage is unable to determine whether the system %s can be solved for %s" % (f, args))
             else:
                 raise
 
@@ -1360,7 +1358,7 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
     if to_check:
         for ix, soln in reversed(list(enumerate(X))):
             if soln.lhs().is_symbol():
-                if any([a.contradicts(soln) for a in to_check]):
+                if any(a.contradicts(soln) for a in to_check):
                     del X[ix]
                     if multiplicities:
                         del ret_multiplicities[ix]

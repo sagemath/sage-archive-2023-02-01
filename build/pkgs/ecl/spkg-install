@@ -1,22 +1,5 @@
 cd src
 
-if [ -z "$CFLAG64" ] ; then
-    CFLAG64=-m64
-fi
-
-if [ -z "$CXXFLAG64" ] ; then
-    CXXFLAG64=-m64
-fi
-
-
-# Compile for 64-bit if SAGE64 is set to 'yes'
-if [ "x$SAGE64" = "xyes" ]  ; then
-    echo "Building a 64-bit version of ECL"
-    CFLAGS="$CFLAGS $CFLAG64"
-    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"
-fi
-
 if [ "x$SAGE_DEBUG" = "xyes" ] ; then
     CFLAGS="-g -O0 $CFLAGS"
     CXXFLAGS="-g -O0 $CXXFLAGS"
@@ -43,16 +26,6 @@ echo "Using LDFLAGS=$LDFLAGS"
 echo "configure scripts and/or makefiles might override these later"
 echo ""
 
-
-if [ "`uname -sm`" = "SunOS i86pc" ] && [ "x$SAGE64" = xyes ]; then
-    # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
-    # and Solaris 10 on x64.
-    # The option is only given if all the following are true
-    # 1) Solaris, Solaris Express or OpenSolaris (SunOS)
-    # 2) Intel or AMD CPU
-    # 3) 64-bit build
-    ECL_CONFIGURE="--with-dffi=no $ECL_CONFIGURE"
-fi
 
 # Use newer version of config.guess and config.sub (see Trac #19732)
 cp "$SAGE_ROOT"/config/config.* src

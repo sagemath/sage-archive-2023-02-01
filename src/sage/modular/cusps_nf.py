@@ -107,10 +107,10 @@ def NFCusps_clear_list_reprs_cache():
         sage: N = k.ideal(a+1)
         sage: sage.modular.cusps_nf.list_of_representatives(N)
         (Fractional ideal (1), Fractional ideal (17, a - 5))
-        sage: sage.modular.cusps_nf._list_reprs_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._list_reprs_cache)
         [Fractional ideal (a + 1)]
         sage: sage.modular.cusps_nf.NFCusps_clear_list_reprs_cache()
-        sage: sage.modular.cusps_nf._list_reprs_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._list_reprs_cache)
         []
     """
     global _list_reprs_cache
@@ -136,7 +136,7 @@ def list_of_representatives(N):
     EXAMPLES::
 
         sage: sage.modular.cusps_nf.NFCusps_clear_list_reprs_cache()
-        sage: sage.modular.cusps_nf._list_reprs_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._list_reprs_cache)
         []
 
     ::
@@ -151,7 +151,7 @@ def list_of_representatives(N):
 
     The output of ``list_of_representatives`` has been cached::
 
-        sage: sage.modular.cusps_nf._list_reprs_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._list_reprs_cache)
         [Fractional ideal (713, a + 208)]
         sage: sage.modular.cusps_nf._list_reprs_cache[N]
         (Fractional ideal (1),
@@ -175,10 +175,10 @@ def NFCusps_clear_cache():
         sage: k.<a> = NumberField(x^3 + 51)
         sage: kCusps = NFCusps(k); kCusps
         Set of all cusps of Number Field in a with defining polynomial x^3 + 51
-        sage: sage.modular.cusps_nf._nfcusps_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._nfcusps_cache)
         [Number Field in a with defining polynomial x^3 + 51]
         sage: NFCusps_clear_cache()
-        sage: sage.modular.cusps_nf._nfcusps_cache.keys()
+        sage: sorted(sage.modular.cusps_nf._nfcusps_cache)
         []
     """
     global _nfcusps_cache
@@ -334,7 +334,7 @@ class NFCuspsSpace(ParentWithBase):
         return "Set of all cusps of %s" % self.number_field()
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of self.
 
         EXAMPLES::
@@ -344,7 +344,7 @@ class NFCuspsSpace(ParentWithBase):
             sage: latex(kCusps) # indirect doctest
             \mathbf{P}^1(\Bold{Q}[a]/(a^{2} + 5))
         """
-        return "\\mathbf{P}^1(%s)" % self.number_field()._latex_()
+        return r"\mathbf{P}^1(%s)" % self.number_field()._latex_()
 
     def __call__(self, x):
         """
@@ -1352,6 +1352,5 @@ def units_mod_ideal(I):
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
     from sage.misc.mrange import xmrange
-    from sage.misc.all import prod
 
     return [k.prod(u**e for u, e in zip(ulist, ei)) for ei in xmrange(elist)]

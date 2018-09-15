@@ -289,7 +289,8 @@ class Giac(Expect):
 
     ::
 
-      sage: R.<a,b>=QQ[];f=(2+a+b);p=giac.gcd(f^3+5*f^5,f^2+f^5);p;R(p);
+      sage: R.<a,b> = QQ[]; f = (2+a+b)
+      sage: p = giac.gcd(f^3+5*f^5,f^2+f^5); p; R(p)
       a^2+2*a*b+4*a+b^2+4*b+4
       a^2 + 2*a*b + b^2 + 4*a + 4*b + 4
 
@@ -870,13 +871,12 @@ class GiacElement(ExpectElement):
         """
         return hash(giac.eval('string(%s);'%self.name()))
 
-
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare equality between self and other, using giac.
 
         These examples are optional, and require Giac to be installed. You
-        don't need to install any Sage packages for this.
+        do not need to install any Sage packages for this.
 
         EXAMPLES::
 
@@ -946,7 +946,6 @@ class GiacElement(ExpectElement):
             True
         """
         return self.parent()._tab_completion()
-
 
     def __len__(self):
         """

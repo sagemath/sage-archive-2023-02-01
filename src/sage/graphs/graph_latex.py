@@ -1344,6 +1344,18 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
+        Check that :trac:`25120` is fixed::
+
+            sage: G = Graph([(0,1)])
+            sage: G.set_latex_options(edge_colors = {(0,1): 'red'})
+            sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            ...
+            \draw [red,] (node_0) ... (node_1);
+            ...
+            \end{tikzpicture}
+
+
         .. NOTE::
 
             There is a lot of overlap between what tkz_picture and
@@ -1355,6 +1367,19 @@ class GraphLatex(SageObject):
 
         options = self.__graphlatex_options.copy()
         options.update(self._options)
+
+        # NOTE: the edge_labels option for graphviz_string is opposite
+        # see https://trac.sagemath.org/ticket/25120
+        if 'edge_colors' in options:
+            edge_colors = options['edge_colors']
+            new_edge_colors = {}
+            for edge,col in edge_colors.items():
+                if col in new_edge_colors:
+                    new_edge_colors[col].append(edge)
+                else:
+                    new_edge_colors[col] = [edge]
+            options['edge_colors'] = new_edge_colors
+
         dotdata = self._graph.graphviz_string(labels="latex", **options)
         import dot2tex
         return dot2tex.dot2tex(dotdata,
@@ -1857,18 +1882,18 @@ class GraphLatex(SageObject):
             vertex_label_color_names = {}
             for u in vertex_list:
                 vertex_color_names[ u ] = 'c' + prefix + str(index_of_vertex[ u ])
-                s += ['\definecolor{', vertex_color_names[ u ], '}{rgb}', '{']
+                s += [r'\definecolor{', vertex_color_names[ u ], '}{rgb}', '{']
                 s += [str(round( v_color[u][0],4)), ',']
                 s += [str(round( v_color[u][1],4)), ',']
                 s += [str(round( v_color[u][2],4)), '}\n']
                 vertex_fill_color_names[ u ] = 'cf' + prefix + str(index_of_vertex[ u ])
-                s += ['\definecolor{', vertex_fill_color_names[ u ], '}{rgb}', '{']
+                s += [r'\definecolor{', vertex_fill_color_names[ u ], '}{rgb}', '{']
                 s += [str(round( vf_color[u][0],4)), ',']
                 s += [str(round( vf_color[u][1],4)), ',']
                 s += [str(round( vf_color[u][2],4)), '}\n']
                 if vertex_labels:
                     vertex_label_color_names[u] = 'cl' + prefix + str(index_of_vertex[ u ])
-                    s += ['\definecolor{', vertex_label_color_names[ u ], '}{rgb}{']
+                    s += [r'\definecolor{', vertex_label_color_names[ u ], '}{rgb}{']
                     s += [str(round( vl_color[u][0],4)), ',']
                     s += [str(round( vl_color[u][1],4)), ',']
                     s += [str(round( vl_color[u][2],4)), '}\n']
@@ -1879,19 +1904,19 @@ class GraphLatex(SageObject):
             for e in self._graph.edges():
                 edge = (e[0], e[1])
                 edge_color_names[edge] = 'c' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
-                s += ['\definecolor{', edge_color_names[edge], '}{rgb}{']
+                s += [r'\definecolor{', edge_color_names[edge], '}{rgb}{']
                 s += [str(round( e_color[edge][0],4)), ',']
                 s += [str(round( e_color[edge][1],4)), ',']
                 s += [str(round( e_color[edge][2],4)), '}\n']
                 if edge_fills:
                     edge_fill_color_names[edge] = 'cf' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
-                    s += ['\definecolor{', edge_fill_color_names[edge], '}{rgb}{']
+                    s += [r'\definecolor{', edge_fill_color_names[edge], '}{rgb}{']
                     s += [str(round( ef_color[edge][0],4)), ',']
                     s += [str(round( ef_color[edge][1],4)), ',']
                     s += [str(round( ef_color[edge][2],4)), '}\n']
                 if edge_labels:
                     edge_label_color_names[edge] = 'cl' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
-                    s += ['\definecolor{', edge_label_color_names[edge], '}{rgb}{']
+                    s += [r'\definecolor{', edge_label_color_names[edge], '}{rgb}{']
                     s += [str(round( el_color[edge][0],4)), ',']
                     s += [str(round( el_color[edge][1],4)), ',']
                     s += [str(round( el_color[edge][2],4)), '}\n']
@@ -1927,9 +1952,9 @@ class GraphLatex(SageObject):
             # but may be ignored by the style, so not apparent
             if vertex_labels or not customized:
                 if vertex_labels_math and not (isinstance(u, str) and u[0] == '$' and u[-1] == '$'):
-                    lab = '\hbox{$%s$}' % latex(u)
+                    lab = r'\hbox{$%s$}' % latex(u)
                 else:
-                    lab = '\hbox{%s}' % u
+                    lab = r'\hbox{%s}' % u
                 s += ['L=', lab, ',']
             scaled_pos = translate(pos[u])
             s += ['x=', str(round(scale * scaled_pos[0],4)), units, ',']
@@ -1973,9 +1998,9 @@ class GraphLatex(SageObject):
                     s += ['},']
                     el = self._graph.edge_label(edge[0],edge[1])
                     if edge_labels_math and not (isinstance(el, str) and el[0] == '$' and el[-1] == '$'):
-                        lab = '\hbox{$%s$}' % latex(el)
+                        lab = r'\hbox{$%s$}' % latex(el)
                     else:
-                        lab = '\hbox{%s}' % el
+                        lab = r'\hbox{%s}' % el
                     s += ['label=', lab, ',']
             s += [']']
             if not loop:

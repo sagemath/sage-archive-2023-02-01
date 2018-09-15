@@ -1290,5 +1290,5 @@ def unpickleFiniteField_ntl_gf2eElement(parent, elem):
     """
     return parent(elem)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_ntl_gf2e', 'unpickleFiniteField_ntl_gf2eElement', unpickleFiniteField_ntl_gf2eElement)

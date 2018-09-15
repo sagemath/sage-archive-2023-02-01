@@ -82,6 +82,10 @@ class EllipticCurveFactory(UniqueFactory):
       the polynomial coefficients, see
       :func:`EllipticCurve_from_Weierstrass_polynomial`.
 
+    - ``EllipticCurve(cubic, point)``: The elliptic curve defined by a
+      plane cubic (homogeneous polynomial in three variables), with a
+      rational point.
+
     Instead of giving the coefficients as a *list* of length 2 or 5,
     one can also give a *tuple*.
 
@@ -152,13 +156,21 @@ class EllipticCurveFactory(UniqueFactory):
 
     We can also create elliptic curves by giving the Weierstrass equation::
 
-        sage: x, y = var('x,y')
-        sage: EllipticCurve(y^2 + y ==  x^3 + x - 9)
+        sage: R2.<x,y> = PolynomialRing(QQ,2)
+        sage: EllipticCurve(y^2 + y - ( x^3 + x - 9 ))
         Elliptic Curve defined by y^2 + y = x^3 + x - 9 over Rational Field
 
         sage: R.<x,y> = GF(5)[]
         sage: EllipticCurve(x^3 + x^2 + 2 - y^2 - y*x)
         Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 + 2 over Finite Field of size 5
+
+    We can also create elliptic curves by giving a smooth plane cubic with a rational point::
+
+        sage: R3.<x,y,z> = PolynomialRing(QQ,3)
+        sage: F = x^3+y^3+30*z^3
+        sage: P = [1,-1,0]
+        sage: EllipticCurve(F,P)
+        Elliptic Curve defined by y^2 - 270*y = x^3 - 24300 over Rational Field
 
     We can explicitly specify the `j`-invariant::
 
@@ -400,8 +412,8 @@ class EllipticCurveFactory(UniqueFactory):
             if y is None:
                 x = coefficients_from_Weierstrass_polynomial(x)
             else:
-                # TODO:  This function coefficients_from_cubic() is not defined anywhere!
-                x = coefficients_from_cubic(x, y, morphism=False)
+                # x is a cubic, y a rational point
+                x = EllipticCurve_from_cubic(x, y, morphism=False).ainvs()
 
         if isinstance(x, string_types):
             # Interpret x as a Cremona or LMFDB label.
@@ -580,7 +592,7 @@ def EllipticCurve_from_c4c6(c4, c6):
 
 
 def EllipticCurve_from_j(j, minimal_twist=True):
-    """
+    r"""
     Return an elliptic curve with given `j`-invariant.
 
     INPUT:
@@ -630,9 +642,9 @@ def EllipticCurve_from_j(j, minimal_twist=True):
        sage: E = EllipticCurve_from_j(2^256+1,minimal_twist=False)
        sage: E.j_invariant() == 2^256+1
        True
-
     """
     return EllipticCurve(coefficients_from_j(j, minimal_twist))
+
 
 def coefficients_from_j(j, minimal_twist=True):
     """
@@ -1014,7 +1026,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         sage: R.<x,y,z> = K[]
         sage: cubic = x^3+t*y^3+(1+t)*z^3
         sage: EllipticCurve_from_cubic(cubic,[1,1,-1], morphism=False)
-        Elliptic Curve defined by y^2 + ((-236196*t^6-708588*t^5-1180980*t^4-1180980*t^3-708588*t^2-236196*t)/(-1458*t^6-17496*t^5+4374*t^4+29160*t^3+4374*t^2-17496*t-1458))*x*y + ((-459165024*t^14-5969145312*t^13-34207794288*t^12-113872925952*t^11-244304490582*t^10-354331909458*t^9-354331909458*t^8-244304490582*t^7-113872925952*t^6-34207794288*t^5-5969145312*t^4-459165024*t^3)/(-1458*t^14-58320*t^13-841266*t^12-5137992*t^11-11773350*t^10-7709904*t^9+12627738*t^8+25789104*t^7+12627738*t^6-7709904*t^5-11773350*t^4-5137992*t^3-841266*t^2-58320*t-1458))*y = x^3 + ((-118098*t^12-708588*t^11+944784*t^10+11219310*t^9+27871128*t^8+36374184*t^7+27871128*t^6+11219310*t^5+944784*t^4-708588*t^3-118098*t^2)/(-54*t^12-1296*t^11-7452*t^10+6048*t^9+25758*t^8-3888*t^7-38232*t^6-3888*t^5+25758*t^4+6048*t^3-7452*t^2-1296*t-54))*x^2 over Rational function field in t over Rational Field
+        Elliptic Curve defined by y^2 + ((162*t^6+486*t^5+810*t^4+810*t^3+486*t^2+162*t)/(t^6+12*t^5-3*t^4-20*t^3-3*t^2+12*t+1))*x*y + ((314928*t^14+4094064*t^13+23462136*t^12+78102144*t^11+167561379*t^10+243026001*t^9+243026001*t^8+167561379*t^7+78102144*t^6+23462136*t^5+4094064*t^4+314928*t^3)/(t^14+40*t^13+577*t^12+3524*t^11+8075*t^10+5288*t^9-8661*t^8-17688*t^7-8661*t^6+5288*t^5+8075*t^4+3524*t^3+577*t^2+40*t+1))*y = x^3 + ((2187*t^12+13122*t^11-17496*t^10-207765*t^9-516132*t^8-673596*t^7-516132*t^6-207765*t^5-17496*t^4+13122*t^3+2187*t^2)/(t^12+24*t^11+138*t^10-112*t^9-477*t^8+72*t^7+708*t^6+72*t^5-477*t^4-112*t^3+138*t^2+24*t+1))*x^2 over Rational function field in t over Rational Field
 
 
     TESTS:
@@ -1032,7 +1044,6 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
     """
     from sage.schemes.curves.constructor import Curve
     from sage.matrix.all import Matrix
-    from sage.modules.all import vector
     from sage.schemes.elliptic_curves.weierstrass_transform import \
         WeierstrassTransformationWithInverse
 

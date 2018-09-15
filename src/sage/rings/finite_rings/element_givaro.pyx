@@ -306,7 +306,7 @@ cdef class Cache_givaro(SageObject):
 
             sage: P.<x> = PowerSeriesRing(GF(3^3, 'a'))
             sage: P.random_element(5)
-            2*a + 2 + (a^2 + a + 2)*x + (2*a + 1)*x^2 + (2*a^2 + a)*x^3 + 2*a^2*x^4 + O(x^5)
+            a^2 + (2*a^2 + a)*x + x^2 + (2*a^2 + 2*a + 2)*x^3 + (a^2 + 2*a + 2)*x^4 + O(x^5)
         """
         cdef int seed = current_randstate().c_random()
         cdef int res
@@ -680,7 +680,7 @@ cdef class Cache_givaro(SageObject):
 
         ret = ""
         for i in range(self.exponent()):
-            coeff = quo%b
+            coeff = quo % b
             if coeff != 0:
                 if i>0:
                     if coeff==1:
@@ -693,7 +693,7 @@ cdef class Cache_givaro(SageObject):
                         ret = coeff + variable + " + " + ret
                 else:
                     ret = str(coeff) + " + " + ret
-            quo = quo/b
+            quo = quo // b
         if ret == '':
             return "0"
         return ret[:-3]
@@ -1089,7 +1089,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         if self.element == cache.objectptr.one:
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         elif self.element % 2 == 0:
-            return make_FiniteField_givaroElement(cache, self.element/2)
+            return make_FiniteField_givaroElement(cache, self.element // 2)
         elif cache.objectptr.characteristic() == 2:
             return make_FiniteField_givaroElement(cache, (cache.objectptr.cardinality() - 1 + self.element)/2)
         elif extend:
@@ -1519,9 +1519,9 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         b   = int(cache.characteristic())
         ret = []
         for i in range(K.degree()):
-            coeff = quo%b
+            coeff = quo % b
             ret.append(coeff)
-            quo = quo/b
+            quo = quo // b
         if not name is None and K.variable_name() != name:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(K.prime_subfield(), name)(ret)
@@ -1717,9 +1717,9 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         ret = []
         for i in range(k.degree()):
-            coeff = quo%b
+            coeff = quo % b
             ret.append(coeff)
-            quo = quo/b
+            quo = quo // b
         if reverse:
             ret = list(reversed(ret))
         return k.vector_space()(ret)
@@ -1746,7 +1746,7 @@ def unpickle_FiniteField_givaroElement(parent, int x):
     """
     return make_FiniteField_givaroElement(parent._cache, x)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_givaro', 'unpickle_FiniteField_givaroElement', unpickle_FiniteField_givaroElement)
 
 cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givaro cache, int x):

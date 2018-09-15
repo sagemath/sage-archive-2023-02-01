@@ -556,7 +556,6 @@ def _multiply_point(E, R, P, m):
 
     # now walk through list and compute g(k)
     g = {0 : R(0), 1 : R(1), 2 : R(-1), 3 : B8, 4 : B6**2 - B4*B8}
-    last = [0, 1, 2, 3, 4]     # last few k
     for i in reversed(intervals):
         k = i[0]
         while k < i[1]:
@@ -590,7 +589,6 @@ def _multiply_point(E, R, P, m):
     omega = (t1 + (a1 * theta + a3 * psi_m * psi_m) * psi_m) / -2
 
     return theta, omega, psi_m * d
-
 
 
 def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
@@ -1074,22 +1072,21 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
         raise NotImplementedError("p (=%s) must be at least 5" % p)
 
     N = int(N)
-    if N <= 2:
-        # a few special cases for small N
-        if N < 1:
-            raise ValueError("N (=%s) must be at least 1" % prec)
 
-        if N == 1:
-            # return simply t + O(t^2)
-            K = Qp(p, 2)
-            return PowerSeriesRing(K, "t")([K(0), K(1, 1)], prec=2)
+    # a few special cases for small N
+    if N < 1:
+        raise ValueError("N (=%s) must be at least 1" % N)
 
+    if N == 1:
+        # return simply t + O(t^2)
+        K = Qp(p, 2)
+        return PowerSeriesRing(K, "t")([K(0), K(1, 1)], prec=2)
 
-        if N == 2:
-            # return t + a_1/2 t^2 + O(t^3)
-            K = Qp(p, 3)
-            return PowerSeriesRing(K, "t")([K(0), K(1, 2),
-                                            K(self.a1()/2, 1)], prec=3)
+    if N == 2:
+        # return t + a_1/2 t^2 + O(t^3)
+        K = Qp(p, 3)
+        return PowerSeriesRing(K, "t")([K(0), K(1, 2),
+                                        K(self.a1()/2, 1)], prec=3)
 
     if self.discriminant().valuation(p) != 0:
         raise NotImplementedError("equation of curve must be minimal at p")
@@ -1503,7 +1500,8 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
             eq = self.tate_curve(p)
             return  eq.E2(prec=prec)
 
-    frob_p = self.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))
+    X = self.minimal_model().short_weierstrass_model()
+    frob_p = X.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))
 
     frob_p_n = frob_p**prec
 
@@ -1514,7 +1512,6 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
               + O(p**prec)
 
     # Take into account the coordinate change.
-    X = self.minimal_model().short_weierstrass_model()
     fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
     # todo: here I should be able to write:
     #  return E2_of_X / fudge_factor
@@ -1526,9 +1523,11 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
     fudge_factor_inverse = Qp(p, prec=(E2_of_X.precision_absolute() + 1))(1 / fudge_factor)
     return output_ring(E2_of_X * fudge_factor_inverse)
 
+
 def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
     r"""
-    Returns the matrix of Frobenius on the Monsky Washnitzer cohomology of the elliptic curve.
+    Returns the matrix of Frobenius on the Monsky Washnitzer cohomology of
+    the short Weierstrass model of the minimal model of the elliptic curve.
 
     INPUT:
 
@@ -1583,10 +1582,15 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         sage: E.matrix_of_frobenius(3,6)
         [                      2*3 + 3^5 + O(3^6)             2*3 + 2*3^2 + 2*3^3 + O(3^6)]
         [              2*3 + 3^2 + 2*3^5 + O(3^6) 2 + 2*3^2 + 2*3^3 + 2*3^4 + 3^5 + O(3^6)]
-
     """
-    # TODO change the basis back to the original equation.
-    # TODO, add lots of comments like the above
+    p = Integer(p)
+    prec = int(prec)
+
+    if p < 3:
+        raise NotImplementedError("p (=%s) must be at least 3" % p)
+    if prec < 1:
+        raise ValueError("prec (=%s) must be at least 1" % prec)
+
     if check_hypotheses:
         p = __check_padic_hypotheses(self, p)
 
@@ -1598,24 +1602,12 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
     if algorithm not in ["standard", "sqrtp"]:
         raise ValueError("unknown algorithm '%s'" % algorithm)
 
-    # todo: maybe it would be good if default prec was None, and then
-    # it selects an appropriate precision based on how large the prime
-    # is
-
     # for p = 3, we create the corresponding hyperelliptic curve
     # and call matrix of frobenius on it
-
     if p == 3:
         from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
         f,g = self.hyperelliptic_polynomials()
         return HyperellipticCurve(f + (g/2)**2).matrix_of_frobenius(p,prec)
-
-    if p < 3:
-        raise NotImplementedError("p (=%s) must be at least 3" % p)
-
-    prec = int(prec)
-    if prec < 1:
-        raise ValueError("prec (=%s) must be at least 1" % prec)
 
     # To run matrix_of_frobenius(), we need to have the equation in the
     # form y^2 = x^3 + ax + b, whose discriminant is invertible mod p.
@@ -1631,7 +1623,8 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
 
     # todo: The following strategy won't work at all for p = 2, 3.
 
-    X=self.minimal_model().short_weierstrass_model()
+    # TODO change the basis back to the original equation.
+    X = self.minimal_model().short_weierstrass_model()
 
     assert X.discriminant().valuation(p) == 0, "Something's gone wrong. " \
            "The discriminant of the Weierstrass model should be a unit " \
@@ -1649,13 +1642,11 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
             trace = self.ap(p)
 
         base_ring = rings.Integers(p**adjusted_prec)
-        output_ring = rings.pAdicField(p, prec)
 
         R, x = rings.PolynomialRing(base_ring, 'x').objgen()
         Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
         frob_p = sage.schemes.hyperelliptic_curves.monsky_washnitzer.matrix_of_frobenius(
                          Q, p, adjusted_prec, trace)
-
 
     else:   # algorithm == "sqrtp"
         p_to_prec = p**prec
@@ -1667,9 +1658,6 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         # and we don't want to get caught with our pants down...
         trace = self.ap(p)
         check = True
-
-
-    # return frob_p ## why was this here ?
 
     if check:
         trace_of_frobenius = frob_p.trace().lift() % p**prec
@@ -1740,11 +1728,10 @@ def _brent(F, p, N):
         ....:                "incorrect precision output"
     """
     Rx = F.parent()           # Rx = power series ring over Z/p^{N-1} Z
-    R = Rx.base_ring()        # R = Z/p^{N-1} Z
     Qx = PowerSeriesRing(RationalField(), "x")
 
     # initial approximation:
-    G = Rx(1)
+    G = Rx.one()
 
     # loop over an appropriate increasing sequence of lengths s
     for s in misc.newton_method_sizes(N):

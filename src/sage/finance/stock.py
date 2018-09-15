@@ -375,10 +375,9 @@ class Stock:
         if enddate is None:
             enddate = date.today().strftime("%b+%d,+%Y")
 
-        cid = self.cid
         symbol = self.symbol
 
-        if self.cid=='':
+        if self.cid == '':
             if ':' in symbol:
                 R = self._get_data('', startdate, enddate, histperiod)
             else:
@@ -597,7 +596,6 @@ class Stock:
             ]
         """
         R = R.splitlines()
-        headings = R[0].split(',')
         hist_data = []
         for x in reversed(R[1:]):
             try:

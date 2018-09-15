@@ -1,4 +1,4 @@
-"""
+r"""
 Families
 
 A Family is an associative container which models a family
@@ -92,7 +92,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
 
     Instead of a list you can as well pass any iterable object::
 
-        sage: f = Family(2*i+1 for i in [1,2,3]);
+        sage: f = Family(2*i+1 for i in [1,2,3])
         sage: f
         Family (3, 5, 7)
 
@@ -433,7 +433,7 @@ class AbstractFamily(Parent):
         return []
 
     def zip(self, f, other, name=None):
-        """
+        r"""
         Given two families with same index set `I` (and same hidden
         keys if relevant), returns the family
         `( f(self[i], other[i]) )_{i \in I}`
@@ -453,7 +453,7 @@ class AbstractFamily(Parent):
         return Family(self.keys(), lambda i: f(self[i],other[i]), hidden_keys=self.hidden_keys(), name=name)
 
     def map(self, f, name=None):
-        """
+        r"""
         Returns the family `( f(\mathtt{self}[i]) )_{i \in I}`, where
         `I` is the index set of self.
 
@@ -881,7 +881,7 @@ class LazyFamily(AbstractFamily):
         Check for :trac:`5538`::
 
             sage: l = [3,4,7]
-            sage: f = LazyFamily(l, lambda i: 2*i);
+            sage: f = LazyFamily(l, lambda i: 2*i)
             sage: l[1] = 18
             sage: f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
@@ -948,7 +948,6 @@ class LazyFamily(AbstractFamily):
             sage: f == g
             True
         """
-        from sage.misc.fpickle import pickle_function
         if not isinstance(other, self.__class__):
             return False
         if not self.set == other.set:
@@ -1383,7 +1382,7 @@ class EnumeratedFamily(LazyFamily):
         EXAMPLES::
 
             sage: from sage.sets.family import EnumeratedFamily
-            sage: f = EnumeratedFamily(Permutations(3));
+            sage: f = EnumeratedFamily(Permutations(3))
             sage: f[1]
             [1, 3, 2]
         """
@@ -1394,7 +1393,7 @@ class EnumeratedFamily(LazyFamily):
         EXAMPLES::
 
             sage: from sage.sets.family import EnumeratedFamily
-            sage: f = EnumeratedFamily(Permutations(3));
+            sage: f = EnumeratedFamily(Permutations(3))
             sage: f.__getstate__()
             {'enumset': Standard permutations of 3}
             sage: loads(dumps(f)) == f
@@ -1407,7 +1406,7 @@ class EnumeratedFamily(LazyFamily):
         EXAMPLES::
 
             sage: from sage.sets.family import EnumeratedFamily
-            sage: f = EnumeratedFamily(Permutations(0));
+            sage: f = EnumeratedFamily(Permutations(0))
             sage: f.__setstate__({'enumset': Permutations(3)})
             sage: f
             Family (Standard permutations of 3)

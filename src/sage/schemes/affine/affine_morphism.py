@@ -262,7 +262,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return False
         if self.parent() != right.parent():
             return False
-        return all([self[i] == right[i] for i in range(len(self._polys))])
+        return all(self[i] == right[i] for i in range(len(self._polys)))
 
     def __ne__(self, right):
         """
@@ -291,7 +291,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return True
         if self.parent() != right.parent():
             return True
-        if all([self[i] == right[i] for i in range(len(self._polys))]):
+        if all(self[i] == right[i] for i in range(len(self._polys))):
             return False
         return True
 
@@ -563,7 +563,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
             F = [S(f/gc) for f in F]
-        except (AttributeError, ValueError, NotImplementedError, TypeError): #no gcd
+        except (AttributeError, ValueError, NotImplementedError, TypeError, ArithmeticError): #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]
@@ -600,7 +600,18 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([x^2])
             sage: type(f.as_dynamical_system())
             <class 'sage.dynamics.arithmetic_dynamics.affine_ds.DynamicalSystem_affine_finite_field'>
+
+        ::
+
+            sage: P.<x,y> = AffineSpace(RR, 2)
+            sage: f = DynamicalSystem([x^2 + y^2, y^2], P)
+            sage: g = f.as_dynamical_system()
+            sage: g is f
+            True
         """
+        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
+        if isinstance(self, DynamicalSystem):
+            return self
         if not self.domain() == self.codomain():
             raise TypeError("must be an endomorphism")
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
@@ -846,7 +857,7 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
             sage: f(P).weil_restriction() == F(Q)
             True
         """
-        if any([isinstance(f,FractionFieldElement) for f in self]):
+        if any(isinstance(f, FractionFieldElement) for f in self):
             raise TypeError("coordinate functions must be polynomials")
 
         DS = self.domain()

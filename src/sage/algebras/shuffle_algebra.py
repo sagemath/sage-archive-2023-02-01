@@ -20,7 +20,6 @@ from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.coalgebras_with_basis import CoalgebrasWithBasis
-from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.words.words import Words
@@ -30,6 +29,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.sets.family import Family
+
 
 class ShuffleAlgebra(CombinatorialFreeModule):
     r"""
@@ -285,13 +285,13 @@ class ShuffleAlgebra(CombinatorialFreeModule):
                         ((w, self.one_basis()), 1),
                         ((self.one_basis(), w), 1) ], distinct=True)
 
-        B = self.basis()
         result = self.coproduct_on_basis(Word([w[0]]))
         for i in w[1:]:
             result = self.tensor_square().sum_of_terms([
-                    ((Word(v1)*Word(u1), Word(v2)*Word(u2)), coeff1 * coeff2)
-                    for ((u1,u2),coeff1) in self.coproduct_on_basis(Word([i]))
-                    for ((v1,v2),coeff2) in result ])
+                    ((Word(v1) * Word(u1), Word(v2) * Word(u2)),
+                     coeff1 * coeff2)
+                    for ((u1, u2), coeff1) in self.coproduct_on_basis(Word([i]))
+                    for ((v1, v2), coeff2) in result])
         return result
 
     def coproduct(self, S):

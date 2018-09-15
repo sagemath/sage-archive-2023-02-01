@@ -28,7 +28,7 @@ from sage.sets.family import Family
 import sage.data_structures.blas_dict as blas
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
+from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 import six
@@ -470,7 +470,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
              ((0, 0, 0), (0, 0, 0)),
              ((0, 0, 1), (1, 0, 0))]
         """
-        return self.__monomials.keys()
+        return list(self.__monomials)
 
     # This is essentially copied from
     #   sage.combinat.free_module.CombinatorialFreeModuleElement
@@ -583,7 +583,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: W1 is W2
             True
         """
-        if isinstance(R, (PolynomialRing_general, MPolynomialRing_generic)):
+        if isinstance(R, (PolynomialRing_general, MPolynomialRing_base)):
             if names is None:
                 names = R.variable_names()
                 R = R.base_ring()

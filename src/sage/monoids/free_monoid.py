@@ -35,9 +35,9 @@ from .monoid import Monoid_class
 from sage.combinat.words.finite_word import FiniteWord_class
 
 from sage.structure.factory import UniqueFactory
-from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import rename_keyword
 from sage.rings.all import ZZ
+
 
 class FreeMonoidFactory(UniqueFactory):
     """

@@ -1219,7 +1219,7 @@ class RubiksCube(SageObject):
             sage: RubiksCube().move("R*U") == RubiksCube("R*U")
             True
         """
-        if not isinstance(g, self._group._element_class()):
+        if not isinstance(g, self._group.element_class):
             g = self._group.move(g)[0]
         return RubiksCube(self._state * g, self._history + [g], self.colors)
 

@@ -1319,19 +1319,6 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
         """
         return self._index_set_inverse[i]
 
-    def _element_class(self):
-        r"""
-        A temporary workaround for compatibility with Sage's
-        permutation groups.
-
-        TESTS::
-
-            sage: W = WeylGroup(['B',3], implementation="permutation")
-            sage: W._element_class() is W.element_class
-            True
-        """
-        return self.element_class
-
     class Element(RealReflectionGroupElement):
         def _repr_(self):
             """

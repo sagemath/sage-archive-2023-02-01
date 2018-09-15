@@ -115,7 +115,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         sage: B                                                              # optional - internet
         Incidence structure with 66 points and 143 blocks
         sage: B.blocks()                                                     # optional - internet
-        [[0, 1, 2, 3, 4, 65], [0, 5, 24, 25, 39, 57], [0, 6, 27, 38, 44, 55], ...
+        [[0, 1, 2, 3, 4, 65], [0, 5, 22, 32, 38, 58], [0, 6, 21, 30, 43, 48], ...
         sage: designs.balanced_incomplete_block_design(66, 6, use_LJCR=True)  # optional - internet
         Incidence structure with 66 points and 143 blocks
         sage: designs.balanced_incomplete_block_design(216, 6)
@@ -763,8 +763,9 @@ def _relabel_bibd(B,n,p=None):
     d[p] = n-1
     return [[d[x] for x in X] for X in B]
 
+
 def PBD_4_5_8_9_12(v, check=True):
-    """
+    r"""
     Return a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
 
     A `(v,\{4,5,8,9,12\})`-PBD exists if and only if `v\equiv 0,1 \pmod 4`. The

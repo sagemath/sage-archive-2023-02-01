@@ -57,7 +57,7 @@ def is_Scheme(x):
 
 
 class Scheme(Parent):
-    """
+    r"""
     The base class for all schemes.
 
     INPUT:
@@ -183,7 +183,7 @@ class Scheme(Parent):
         """
         Extend the base of the scheme.
 
-        Derived clases must override this method.
+        Derived classes must override this method.
 
         EXAMPLES::
 

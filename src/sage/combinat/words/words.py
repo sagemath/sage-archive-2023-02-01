@@ -57,7 +57,7 @@ from sage.rings.all import Infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-from sage.plot.misc import rename_keyword
+from sage.misc.decorators import rename_keyword
 
 
 def Words(alphabet=None, length=None, finite=True, infinite=True):
@@ -136,9 +136,9 @@ class AbstractLanguage(Parent):
             True
 
             sage: Words('abc').sortkey_letters
-            <bound method FiniteOrInfiniteWords._sortkey_trivial ...>
+            <bound method FiniteOrInfiniteWords._sortkey_trivial of ...>
             sage: Words('bac').sortkey_letters
-            <bound method FiniteOrInfiniteWords._sortkey_letters ...>
+            <bound method FiniteOrInfiniteWords._sortkey_letters of ...>
         """
         if isinstance(alphabet, (int, Integer)):
             from sage.sets.integer_range import IntegerRange
@@ -2352,7 +2352,7 @@ class Words_all(FiniteOrInfiniteWords):
         pass
 
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.words.words", "Words_over_OrderedAlphabet", FiniteOrInfiniteWords)
 register_unpickle_override("sage.combinat.words.words", "Words_over_Alphabet", FiniteOrInfiniteWords)
 register_unpickle_override("sage.combinat.words.words", "FiniteWords_length_k_over_OrderedAlphabet", Words_n)

@@ -56,7 +56,7 @@ from sage.schemes.generic.morphism import (SchemeMorphism,
                                            SchemeMorphism_point)
 from sage.structure.element import AdditiveGroupElement
 from sage.structure.sequence import Sequence
-from sage.structure.richcmp import rich_to_bool, richcmp, op_EQ, op_NE
+from sage.structure.richcmp import richcmp, op_EQ, op_NE
 
 #*******************************************************************
 # Projective varieties
@@ -67,7 +67,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     INPUT:
 
-    -  ``X`` -- a homset of a subscheme of an ambient projective space over a field `K`.
+    -  ``X`` -- a homset of a subscheme of an ambient projective space over a ring `K`.
 
     - ``v`` -- a list or tuple of coordinates in `K`.
 

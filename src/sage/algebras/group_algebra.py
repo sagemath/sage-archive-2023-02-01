@@ -43,8 +43,9 @@ from sage.categories.sets_cat import Sets
 from sage.categories.morphism import SetMorphism
 from sage.combinat.free_module import CombinatorialFreeModule
 
+
 def GroupAlgebra(G, R=IntegerRing()):
-    """
+    r"""
     Return the group algebra of `G` over `R`.
 
     INPUT:
@@ -62,7 +63,7 @@ def GroupAlgebra(G, R=IntegerRing()):
         sage: A = GroupAlgebra(G, R); A
         Algebra of Dihedral group of order 6 as a permutation group over Rational Field
         sage: a = A.an_element(); a
-        () + 4*(1,2,3) + 2*(1,3)
+        () + (1,2) + 3*(1,2,3) + 2*(1,3)
 
     This space is endowed with an algebra structure, obtained by extending
     by bilinearity the multiplication of `G` to a multiplication on `RG`::
@@ -70,7 +71,7 @@ def GroupAlgebra(G, R=IntegerRing()):
         sage: A in Algebras
         True
         sage: a * a
-        5*() + 8*(2,3) + 8*(1,2) + 8*(1,2,3) + 16*(1,3,2) + 4*(1,3)
+        6*() + 9*(2,3) + 8*(1,2) + 8*(1,2,3) + 11*(1,3,2) + 7*(1,3)
 
     :func:`GroupAlgebra` is just a short hand for a more general
     construction that covers, e.g., monoid algebras, additive group
@@ -175,21 +176,6 @@ class GroupAlgebra_class(CombinatorialFreeModule):
 
             sage: ZG.coerce_map_from(QG)
 
-        This coercion when restricting the group is unexpected::
-
-            sage: QH.coerce_map_from(QG)
-            Generic morphism:
-              From: Algebra of Dihedral group of order 6 as a permutation group over Rational Field
-              To:   Algebra of Cyclic group of order 3 as a permutation group over Rational Field
-
-        but is induced by the partial coercion at the level of
-        the groups::
-
-            sage: H.coerce_map_from(G)
-            Call morphism:
-              From: Dihedral group of order 6 as a permutation group
-              To:   Cyclic group of order 3 as a permutation group
-
         There is no coercion for additive groups since ``+`` could mean
         both the action (i.e., the group operation) or adding a term::
 
@@ -216,6 +202,6 @@ class GroupAlgebra_class(CombinatorialFreeModule):
                 return SetMorphism(S.Hom(self, category=self.category() | S.category()),
                                    lambda x: self.sum_of_terms( (hom_G(g), hom_K(c)) for g,c in x ))
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.algebras.group_algebras', 'GroupAlgebra',  GroupAlgebra_class)
 

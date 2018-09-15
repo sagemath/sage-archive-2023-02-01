@@ -17,6 +17,7 @@ from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
 
 from .expnums import expnums
 
+from sage.combinat.chas.all import *
 from sage.combinat.crystals.all import *
 from .rigged_configurations.all import *
 
@@ -47,6 +48,9 @@ lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 #RSK
 from .rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse
 
+#HillmanGrassl
+lazy_import("sage.combinat.hillman_grassl", ["WeakReversePlanePartition", "WeakReversePlanePartitions"])
+
 #PerfectMatchings
 from .perfect_matching import PerfectMatching, PerfectMatchings
 
@@ -62,8 +66,9 @@ from .partition import Partition, Partitions, PartitionsInBox,\
      OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
      PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
 
-from sage.combinat.partition_tuple import PartitionTuple, PartitionTuples
-from .skew_partition import SkewPartition, SkewPartitions
+lazy_import('sage.combinat.partition_tuple', ['PartitionTuple', 'PartitionTuples'])
+lazy_import('sage.combinat.partition_kleshchev', ['KleshchevPartitions'])
+lazy_import('sage.combinat.skew_partition', ['SkewPartition', 'SkewPartitions'])
 
 #Partition algebra
 from .partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
@@ -84,14 +89,15 @@ from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarity
 from .core import Core, Cores
 
 #Tableaux
-from .tableau import Tableau, SemistandardTableau, StandardTableau, \
-        Tableaux, StandardTableaux, SemistandardTableaux
+lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", 
+                                     "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
 from .ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from .composition_tableau import CompositionTableau, CompositionTableaux
 
-from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
+lazy_import('sage.combinat.tableau_tuple',['TableauTuple', 'StandardTableauTuple', 'RowStandardTableauTuple',
+                                           'TableauTuples', 'StandardTableauTuples', 'RowStandardTableauTuples'])
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
                                          'LittlewoodRichardsonTableaux'])
@@ -139,6 +145,7 @@ from .necklace import Necklaces
 from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from .dyck_word import DyckWords, DyckWord
 from .sloane_functions import sloane
+from .superpartition import SuperPartition, SuperPartitions
 
 from .root_system.all import *
 from .sf.all import *

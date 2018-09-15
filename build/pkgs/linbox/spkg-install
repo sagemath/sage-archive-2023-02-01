@@ -9,17 +9,6 @@ cd src/
 # disabled.  Therefore, disable it always.
 export CPPFLAGS="$CPPFLAGS -DDISABLE_COMMENTATOR"
 
-if [ "$SAGE64" = yes ]; then
-    echo "Building a 64-bit version of LinBox."
-    if [ -z "$CFLAG64" ]; then
-        CFLAG64=-m64
-    fi
-    CFLAGS="$CFLAGS $CFLAG64"
-    CXXFLAGS="$CXXFLAGS $CFLAG64"
-    CPPFLAGS="$CPPFLAGS $CFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"
-fi
-
 ###############################################################################
 # Configure, build and install LinBox:
 ###############################################################################

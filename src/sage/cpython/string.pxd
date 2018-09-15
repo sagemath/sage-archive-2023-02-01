@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #*****************************************************************************
 #       Copyright (C) 2017 Erik M. Bray <erik.bray@lri.fr>
 #
@@ -8,37 +7,25 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 
-from libc.string cimport strlen
-
-from cpython.bytes cimport PyBytes_AS_STRING, PyBytes_FromString
-from cpython.unicode cimport PyUnicode_Decode, PyUnicode_AsEncodedString
+from cpython.version cimport PY_MAJOR_VERSION
 
 
-cdef extern from "Python.h":
-    # Missing from cpython.unicode in Cython 0.27.3
-    char* PyUnicode_AsUTF8(object s)
+cdef extern from "string_impl.h":
+    str _cstr_to_str(const char* c, encoding, errors)
+    bytes _str_to_bytes(s, encoding, errors)
 
 
 cdef inline str char_to_str(const char* c, encoding=None, errors=None):
-    IF PY_MAJOR_VERSION <= 2:
-        return <str>PyBytes_FromString(c)
-    ELSE:
-        cdef const char* err
-        cdef const char* enc
-
-        if errors is None:
-            err = NULL  # implies "strict"
-        else:
-            err = PyUnicode_AsUTF8(errors)
-
-        if encoding is None:
-            enc = NULL  # default to utf-8
-        else:
-            enc = PyUnicode_AsUTF8(encoding)
-
-        return PyUnicode_Decode(c, strlen(c), enc, err)
+    r"""
+    Convert a C string to a Python ``str``.
+    """
+    # Implemented in C to avoid relying on PY_MAJOR_VERSION
+    # compile-time variable. We keep the Cython wrapper to deal with
+    # the default arguments.
+    return _cstr_to_str(c, encoding, errors)
 
 
 cpdef inline str bytes_to_str(b, encoding=None, errors=None):
@@ -64,14 +51,13 @@ cpdef inline str bytes_to_str(b, encoding=None, errors=None):
         ...
         TypeError: expected bytes, list found
     """
-    if not isinstance(b, bytes):
+    if type(b) is not bytes:
         raise TypeError(f"expected bytes, {type(b).__name__} found")
 
-    IF PY_MAJOR_VERSION <= 2:
+    if PY_MAJOR_VERSION <= 2:
         return <str>b
-    ELSE:
-        return char_to_str(PyBytes_AS_STRING(b), encoding=encoding,
-                           errors=errors)
+    else:
+        return _cstr_to_str(<bytes>b, encoding, errors)
 
 
 cpdef inline bytes str_to_bytes(s, encoding=None, errors=None):
@@ -100,39 +86,7 @@ cpdef inline bytes str_to_bytes(s, encoding=None, errors=None):
         ...
         TypeError: expected str ... list found
     """
-    cdef const char* err
-    cdef const char* enc
-
-    IF PY_MAJOR_VERSION <= 2:
-        # Make this check explicit to avoid obscure error message below
-        if isinstance(s, str):
-            # On Python 2 str is already bytes so this should be a no-op
-            return <bytes>s
-        elif not isinstance(s, unicode):
-            raise TypeError(
-                    f"expected str or unicode, {type(s).__name__} found")
-
-        if errors is None:
-            err = NULL  # implies "strict"
-        else:
-            err = errors
-
-        if encoding is None:
-            enc = 'utf-8'
-        else:
-            enc = encoding
-    ELSE:
-        if not isinstance(s, str):
-            raise TypeError(f"expected str, {type(s).__name__} found")
-
-        if errors is None:
-            err = NULL  # implies "strict"
-        else:
-            err = PyUnicode_AsUTF8(errors)
-
-        if encoding is None:
-            enc = NULL  # default to utf-8
-        else:
-            enc = PyUnicode_AsUTF8(encoding)
-
-    return <bytes>PyUnicode_AsEncodedString(s, enc, err)
+    # Implemented in C to avoid relying on PY_MAJOR_VERSION
+    # compile-time variable. We keep the Cython wrapper to deal with
+    # the default arguments.
+    return _str_to_bytes(s, encoding, errors)

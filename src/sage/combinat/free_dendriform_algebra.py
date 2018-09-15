@@ -26,12 +26,12 @@ from sage.categories.pushout import (ConstructionFunctor,
                                      CompositeConstructionFunctor,
                                      IdentityConstructionFunctor)
 from sage.categories.rings import Rings
-from sage.categories.magmas import Magmas
 from sage.categories.functor import Functor
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.categories.rings import Rings
 from sage.sets.family import Family
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.structure.parent', 'CoercionException')
 
 
 class FreeDendriformAlgebra(CombinatorialFreeModule):

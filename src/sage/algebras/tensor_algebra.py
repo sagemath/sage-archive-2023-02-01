@@ -537,7 +537,7 @@ class TensorAlgebra(CombinatorialFreeModule):
             return self.term(m, R.one())
 
     def coproduct_on_basis(self, m):
-        """
+        r"""
         Return the coproduct of the simple tensor indexed by ``m``.
 
         EXAMPLES::

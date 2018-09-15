@@ -41,7 +41,6 @@ from six import integer_types
 
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
-from sage.misc.misc import is_iterator
 
 from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
@@ -622,7 +621,7 @@ class Set_object(Set_generic):
 
         OUTPUT:
 
-        True if the set is empty, false if otherwise.
+        True if the set is empty, False if otherwise.
 
         EXAMPLES::
 
@@ -919,8 +918,12 @@ class Set_object_enumerated(Set_object):
             False
             sage: Set(QQ) == Set(ZZ)
             False
+            sage: Set([1]) == set([1])
+            True
         """
         if not isinstance(other, Set_object_enumerated):
+            if isinstance(other, (set, frozenset)):
+                return self.set() == other
             return NotImplemented
         if self.set() == other.set():
             return rich_to_bool(op, 0)

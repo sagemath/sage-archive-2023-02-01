@@ -277,7 +277,7 @@ class ConwayPolynomials(collections.Mapping):
         """
         if p not in self._store:
             return []
-        return self._store[p].keys()
+        return list(self._store[p])
 
     def __reduce__(self):
         """

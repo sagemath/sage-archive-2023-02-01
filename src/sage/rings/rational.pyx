@@ -52,6 +52,7 @@ TESTS::
 
 from __future__ import absolute_import
 
+cimport cython
 from cpython cimport *
 from cpython.object cimport Py_EQ, Py_NE
 
@@ -507,7 +508,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             sage: a = 3/5
             sage: a.__reduce__()
-            (<built-in function make_rational>, ('3/5',))
+            (<cyfunction make_rational at ...>, ('3/5',))
         """
         return sage.rings.rational.make_rational, (self.str(32),)
 
@@ -528,35 +529,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         if self.denominator() == 1:
             return int(self)
         raise TypeError("rational is not an integer")
-
-    def _reduce_set(self, s):
-        """
-        Used in setting a rational number when unpickling. Do not call this
-        from external code since it violates immutability.
-
-        INPUT:
-
-        -  ``s`` - string representation of rational in base 32
-
-        EXAMPLES::
-
-            sage: a = -17/3730; _, (s,) = a.__reduce__(); s
-            '-h/3ki'
-            sage: b = 2/3; b._reduce_set('-h/3ki'); b
-            -17/3730
-
-            sage: Rational(pari(-345/7687))
-            -345/7687
-            sage: Rational(pari(-345))
-            -345
-            sage: Rational(pari('Mod(2,3)'))
-            2
-            sage: Rational(pari('x'))
-            Traceback (most recent call last):
-            ...
-            TypeError: Unable to coerce PARI x to an Integer
-        """
-        mpq_set_str(self.value, str_to_bytes(s), 32)
 
     cdef __set_value(self, x, unsigned int base):
         cdef int n
@@ -956,6 +928,19 @@ cdef class Rational(sage.structure.element.FieldElement):
                 return "-\\frac{%s}{%s}"%(-self.numer(), self.denom())
             else:
                return "\\frac{%s}{%s}"%(self.numer(), self.denom())
+
+    def _symbolic_(self, sring):
+        """
+        Return this rational as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(QQ(7)/3); ex
+            7/3
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
 
     def _sympy_(self):
         """
@@ -1706,7 +1691,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
-    def is_padic_square(self, p):
+    def is_padic_square(self, p, check=True):
         """
         Determines whether this rational number is a square in `\QQ_p` (or in
         `R` when ``p = infinity``).
@@ -1714,6 +1699,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         -  ``p`` - a prime number, or ``infinity``
+
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         EXAMPLES::
 
@@ -1741,7 +1728,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         ## Check that p is prime
         from .integer_ring import ZZ
         p = ZZ(p)
-        if not p.is_prime():
+        if check and not p.is_prime():
             raise ValueError('p must be "infinity" or a positive prime number.')
 
         ## Deal with finite primes
@@ -3589,7 +3576,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return True
 
-    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500
     is_integer = is_integral
 
 
@@ -4047,6 +4034,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     return ldexp(d, shift)
 
 
+@cython.binding(True)
 def make_rational(s):
     """
     Make a rational number from ``s`` (a string in base 32)
@@ -4065,8 +4053,9 @@ def make_rational(s):
         -7/15
     """
     r = Rational()
-    r._reduce_set(s)
+    mpq_set_str(r.value, str_to_bytes(s), 32)
     return r
+
 
 cdef class Z_to_Q(Morphism):
     r"""
@@ -4206,7 +4195,7 @@ cdef class int_to_Q(Morphism):
         """
         from . import rational_field
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
 
     cpdef Element _call_(self, a):
@@ -4266,7 +4255,7 @@ cdef class long_to_Q(Morphism):
         """
         from . import rational_field
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(
             Set_PythonType(long), rational_field.QQ))
 

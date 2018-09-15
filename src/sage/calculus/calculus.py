@@ -231,7 +231,7 @@ Another example::
     sage: f(x=3)
     arcsinh(1)
     sage: f.derivative(x)
-    1/3/sqrt(1/9*x^2 + 1)
+    1/sqrt(x^2 + 9)
 
 We compute the length of the parabola from 0 to 2::
 
@@ -762,7 +762,7 @@ def nintegral(ex, x, a, b,
     Now numerically integrating, we see why the answer is wrong::
 
         sage: f.nintegrate(x,0,1)
-        (-480.0000000000001, 5.32907051820075e-12, 21, 0)
+        (-480.0000000000001, 5.32907051820075...e-12, 21, 0)
 
     It is just because every floating point evaluation of return -480.0
     in floating point.
@@ -1509,20 +1509,26 @@ def laplace(ex, t, s, algorithm='maxima'):
     Testing SymPy::
 
         sage: laplace(t^n, t, s, algorithm='sympy')
-        (s^(-n)*gamma(n + 1)/s, 0, -re(n) < 1)
-        
+        (gamma(n + 1)/(s*s^n), 0, -re(n) < 1)
+
     Testing Maxima::
 
         sage: laplace(t^n, t, s, algorithm='maxima')
-        s^(-n - 1)*gamma(n + 1)    
-            
-    Testing expression that is not parsed from SymPy to Sage::
+        s^(-n - 1)*gamma(n + 1)
+
+    Check that :trac:`24212` is fixed::
 
         sage: laplace(cos(t^2), t, s, algorithm='sympy')
+        (-1/2*sqrt(pi)*(sqrt(2)*cos(1/4*s^2)*fresnel_sin(1/2*sqrt(2)*s/sqrt(pi)) -
+        sqrt(2)*fresnel_cos(1/2*sqrt(2)*s/sqrt(pi))*sin(1/4*s^2) - cos(1/4*pi + 1/4*s^2)),
+        0, True)
+
+    Testing result from SymPy that Sage doesn't know how to handle::
+
+        sage: laplace(cos(-1/t), t, s, algorithm='sympy')
         Traceback (most recent call last):
         ...
-        AttributeError: Unable to convert SymPy result (=sqrt(pi)*(sqrt(2)*sin(s**2/4)*fresnelc(sqrt(2)*s/(2*sqrt(pi))) - 
-        sqrt(2)*cos(s**2/4)*fresnels(sqrt(2)*s/(2*sqrt(pi))) + cos(s**2/4 + pi/4))/2) into Sage
+        AttributeError: Unable to convert SymPy result (=meijerg(((), ()), ((-1/2, 0, 1/2), (0,)), s**2/16)/4) into Sage
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
@@ -1948,20 +1954,21 @@ import six
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
-maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
+maxima_qp = re.compile(r"\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
-maxima_var = re.compile("[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
+maxima_var = re.compile(r"[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
 
-sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
+sci_not = re.compile(r"(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
-polylog_ex = re.compile('li\[([^\[\]]*)\]\(')
+polylog_ex = re.compile(r'li\[([^\[\]]*)\]\(')
 
-maxima_polygamma = re.compile("psi\[([^\[\]]*)\]\(")  # matches psi[n]( where n is a number
+maxima_polygamma = re.compile(r"psi\[([^\[\]]*)\]\(")  # matches psi[n]( where n is a number
 
-maxima_hyper = re.compile("\%f\[\d+,\d+\]")  # matches %f[m,n]
+maxima_hyper = re.compile(r"\%f\[\d+,\d+\]")  # matches %f[m,n]
+
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
-    """
+    r"""
     Given a string representation of a Maxima expression, parse it and
     return the corresponding Sage symbolic expression.
 
@@ -2101,7 +2108,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     while True:
         olds = s
         s = polylog_ex.sub('polylog(\\1,', s)
-        s = maxima_polygamma.sub('psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
+        s = maxima_polygamma.sub(r'psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
         if s == olds: break
 
     if equals_sub:

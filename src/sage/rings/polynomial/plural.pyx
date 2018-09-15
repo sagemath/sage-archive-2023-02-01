@@ -105,8 +105,10 @@ TESTS::
 from __future__ import print_function, absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
+from sage.cpython.string cimport bytes_to_str
 
 from sage.categories.algebras import Algebras
+from sage.cpython.string cimport char_to_str
 
 # singular rings
 
@@ -126,7 +128,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import is_IntegerRing
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
-from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
 from sage.rings.polynomial.multi_polynomial_ideal import NCPolynomialIdeal
 
 from sage.rings.polynomial.polydict import ETuple
@@ -136,6 +137,7 @@ from sage.structure.factory import UniqueFactory
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.rings.polynomial.term_order import TermOrder
+
 
 class G_AlgFactory(UniqueFactory):
     """
@@ -174,8 +176,8 @@ class G_AlgFactory(UniqueFactory):
         return NCPolynomialRing_plural(base_ring, names, c, d, order,
                                        category, check)
 
-    def create_key_and_extra_args(self, base_ring, c,d, names=None, order=None,
-                                  category=None,check=None):
+    def create_key_and_extra_args(self, base_ring, c, d, names=None, order=None,
+                                  category=None, check=None):
         """
         Create a unique key for g-algebras.
 
@@ -215,14 +217,16 @@ class G_AlgFactory(UniqueFactory):
         d.set_immutable()
 
         # Get the correct category
-        category=check_default_category(Algebras(base_ring),category)
+        category = check_default_category(Algebras(base_ring), category)
 
         # Extra arg
         if check is None:
-            return (base_ring,names,c,d,order,category),{}
-        return (base_ring,names,c,d,order,category),{'check':check}
+            return (base_ring, names, c, d, order, category), {}
+        return (base_ring, names, c, d, order, category), {'check':check}
+
 
 g_Algebra = G_AlgFactory('sage.rings.polynomial.plural.g_Algebra')
+
 
 cdef class NCPolynomialRing_plural(Ring):
     """
@@ -246,7 +250,7 @@ cdef class NCPolynomialRing_plural(Ring):
         True
 
     """
-    def __init__(self, base_ring, names, c, d, order, category, check = True):
+    def __init__(self, base_ring, names, c, d, order, category, check=True):
         """
         Construct a noncommutative polynomial G-algebra subject to the following conditions:
 
@@ -372,7 +376,7 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: loads(dumps(g)) == g
             True
         """
-        return g_Algebra, (self.base_ring(),self._c,self._d,
+        return g_Algebra, (self.base_ring(), self._c, self._d,
                             self.variable_names(),
                             self.term_order(),
                             self.category())
@@ -474,7 +478,6 @@ cdef class NCPolynomialRing_plural(Ring):
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 
-
         if isinstance(element, NCPolynomial_plural):
 
             if element.parent() is <object>self:
@@ -509,9 +512,9 @@ cdef class NCPolynomialRing_plural(Ring):
         # Accepting int
         elif isinstance(element, int):
             if isinstance(base_ring, FiniteField_prime_modn):
-                _p = p_ISet(int(element) % _ring.cf.ch,_ring)
+                _p = p_ISet(int(element) % _ring.cf.ch, _ring)
             else:
-                _n = sa2si(base_ring(element),_ring)
+                _n = sa2si(base_ring(element), _ring)
                 _p = p_NSet(_n, _ring)
 
         # and longs
@@ -548,8 +551,6 @@ cdef class NCPolynomialRing_plural(Ring):
 
        if self.base_ring().has_coerce_map_from(S):
            return True
-
-
 
     def __hash__(self):
         """
@@ -670,10 +671,10 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: y*x
             -x*y
         """
-#TODO: print the relations
-        varstr = ", ".join([ rRingVar(i,self._ring)  for i in range(self.__ngens) ])
-        return "Noncommutative Multivariate Polynomial Ring in %s over %s, nc-relations: %s"%(varstr,self.base_ring(), self.relations())
-
+        varstr = ", ".join([char_to_str(rRingVar(i, self._ring))
+                            for i in range(self.__ngens)])
+        return (f"Noncommutative Multivariate Polynomial Ring in {varstr} "
+                f"over {self.base_ring()}, nc-relations: {self.relations()}")
 
     def _ringlist(self):
         """
@@ -701,7 +702,7 @@ cdef class NCPolynomialRing_plural(Ring):
         result = ringlist(self, ring=self)
         return result
 
-    def relations(self, add_commutative = False):
+    def relations(self, add_commutative=False):
         """
         Return the relations of this g-algebra.
 
@@ -855,7 +856,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-           sage: rlist = P._ringlist();
+           sage: rlist = P._ringlist()
            sage: Q = P._list_to_ring(rlist)
            sage: Q # indirect doctest
            <noncommutative RingWrap>
@@ -888,7 +889,7 @@ cdef class NCPolynomialRing_plural(Ring):
 #
 #            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 #            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-#            sage: rlist = P._ringlist();
+#            sage: rlist = P._ringlist()
 #            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 #            sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')
 #            sage: I = H.ideal([H.gen(i) ^2 for i in [0, 1]]).twostd()
@@ -999,7 +1000,7 @@ cdef class NCPolynomialRing_plural(Ring):
         if not g._poly:
             raise ZeroDivisionError
 
-        res = pDivide(f._poly,g._poly)
+        res = pMDivide(f._poly, g._poly)
         if coeff:
             if (r.cf.type == n_unknown) or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
                 n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
@@ -1188,17 +1189,16 @@ cdef class NCPolynomialRing_plural(Ring):
         cdef poly *flt
 
         if not m:
-            return f,f
+            return (f, f)
 
         for g in G:
-            if isinstance(g, NCPolynomial_plural) \
-                   and (<NCPolynomial_plural>g) \
-                   and p_LmDivisibleBy((<NCPolynomial_plural>g)._poly, m, r):
-                flt = pDivide(f._poly, (<NCPolynomial_plural>g)._poly)
-                #p_SetCoeff(flt, n_Div( p_GetCoeff(f._poly, r) , p_GetCoeff((<NCPolynomial_plural>g)._poly, r), r), r)
-                p_SetCoeff(flt, n_Init(1, r), r)
-                return new_NCP(self,flt), g
-        return self._zero_element,self._zero_element
+            if isinstance(g, NCPolynomial_plural) and g:
+                h = <NCPolynomial_plural>g
+                if p_LmDivisibleBy(h._poly, m, r):
+                    flt = pMDivide(f._poly, h._poly)
+                    p_SetCoeff(flt, n_Init(1, r), r)
+                    return (new_NCP(self,flt), h)
+        return (self._zero_element, self._zero_element)
 
     def monomial_pairwise_prime(self, NCPolynomial_plural g, NCPolynomial_plural h):
         """
@@ -1315,6 +1315,7 @@ cdef class NCPolynomialRing_plural(Ring):
           tempvector = addwithcarry(tempvector, maxvector, pos, _ring)
           M.append(new_NCP(self, p_Copy(tempvector,_ring)))
         return M
+
 
 def unpickle_NCPolynomial_plural(NCPolynomialRing_plural R, d):
     """
@@ -1770,10 +1771,10 @@ cdef class NCPolynomial_plural(RingElement):
         rChangeCurrRing(_ring)
         if _ring.CanShortOut:
             _ring.ShortOut = 1
-            s = p_String(self._poly, _ring, _ring)
+            s = char_to_str(p_String(self._poly, _ring, _ring))
             _ring.ShortOut = 0
         else:
-            s = p_String(self._poly, _ring, _ring)
+            s = char_to_str(p_String(self._poly, _ring, _ring))
         return s
 
     def _latex_(self):
@@ -2684,7 +2685,7 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
 
 cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     """
-    Construct MPolynomialRing_libsingular from ringWrap, assumming the ground field to be base_ring
+    Construct MPolynomialRing_libsingular from ringWrap, assuming the ground field to be base_ring
 
     EXAMPLES::
 
@@ -2740,9 +2741,10 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
 
     return self
 
+
 cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
     """
-    Construct NCPolynomialRing_plural from ringWrap, assumming the ground field to be base_ring
+    Construct NCPolynomialRing_plural from ringWrap, assuming the ground field to be base_ring
 
     EXAMPLES::
 

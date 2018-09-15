@@ -103,12 +103,15 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import StringIO
+from six.moves import copyreg
+import six
 
 from sage.arith.all import gcd
 from sage.combinat.posets.posets import FinitePoset
 from sage.env import POLYTOPE_DATA_DIR
 from sage.geometry.cone import _ambient_space_point, integral_length
-from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
+from sage.geometry.hasse_diagram import lattice_from_incidences
 from sage.geometry.point_collection import PointCollection,\
     is_PointCollection, read_palp_point_collection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
@@ -132,12 +135,14 @@ from sage.structure.sage_object import SageObject
 
 from copy import copy
 import collections
-from six.moves import copyreg
 import os
 import subprocess
 import warnings
-from six import StringIO
 from functools import reduce
+from io import IOBase
+
+if not six.PY2:
+    file = IOBase
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):
@@ -295,7 +300,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
         skip_palp_matrix(f, n)
         data = read_palp_point_collection(data)
         f.close()
-    if isinstance(data, (file, StringIO)):
+    if isinstance(data, (file, IOBase, StringIO)):
         data = read_palp_point_collection(data)
     if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
         try:
@@ -1874,7 +1879,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: square = LatticePolytope([(0,0), (1,0), (1,1), (0,1)])
             sage: L = square.face_lattice()
             sage: L
-            Finite poset containing 10 elements with distinguished linear extension
+            Finite lattice containing 10 elements with distinguished linear extension
 
         To see all faces arranged by dimension, you can do this::
 
@@ -1948,7 +1953,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: superp = LatticePolytope([(1,2,3,4), (5,6,7,8),
             ....:                           (1,2,4,8), (1,3,9,7)])
             sage: superp.face_lattice()
-            Finite poset containing 16 elements with distinguished linear extension
+            Finite lattice containing 16 elements with distinguished linear extension
             sage: superp.face_lattice().top()
             3-d lattice polytope in 4-d lattice M
             sage: p = superp.facets()[0]
@@ -1981,7 +1986,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                                             ambient_vertex_indices=vertices,
                                             ambient_facet_indices=facets)
 
-            return Hasse_diagram_from_incidences(
+            return lattice_from_incidences(
                 vertex_to_facets, facet_to_vertices, LPFace, key = id(self))
         else:
             # Get face lattice as a sublattice of the ambient one
@@ -4335,7 +4340,7 @@ class NefPartition(SageObject,
         result = r"\text{Nef-partition } "
         for i, part in enumerate(self.parts()):
             if i != 0:
-                result += " \sqcup "
+                result += r" \sqcup "
             result += r"\{" + ", ".join("%d" % v for v in part) + r"\}"
         try:
             # We may or may not know the type of the partition
@@ -4968,9 +4973,9 @@ def _palp(command, polytopes, reduce_dimension=False):
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE,
                      close_fds=True)
-    stdin, stdout, stderr = (p.stdin, p.stdout, p.stderr)
+    stderr = p.stderr
     err = stderr.read()
-    if len(err) > 0:
+    if len(err):
         raise RuntimeError(("Error executing \"%s\" for a polytope sequence!"
             + "\nOutput:\n%s") % (command, err))
     os.remove(input_file_name)
@@ -4979,6 +4984,7 @@ def _palp(command, polytopes, reduce_dimension=False):
     except OSError:
         pass
     return output_file_name
+
 
 def _palp_canonical_order(V, PM_max, permutations):
     r"""
@@ -5035,14 +5041,15 @@ def _palp_canonical_order(V, PM_max, permutations):
             S_max[i], S_max[k] = S_max[k], S_max[i]
             p_c = PermutationGroupElement((1 + i, 1 + k))*p_c
     # Create array of possible NFs.
-    permutations = [p_c*k[1] for k in permutations.values()]
-    Vs = [(V.column_matrix().with_permuted_columns(k).hermite_form(), k) 
-          for k in permutations]
+    permutations = [p_c * l[1] for l in permutations.values()]
+    Vs = [(V.column_matrix().with_permuted_columns(sig).hermite_form(), sig) 
+          for sig in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
     vertices = [V.module()(_) for _ in Vmin[0].columns()]
     for v in vertices:
         v.set_immutable()
     return (PointCollection(vertices, V.module()), Vmin[1])
+
 
 def _palp_convert_permutation(permutation):
     r"""

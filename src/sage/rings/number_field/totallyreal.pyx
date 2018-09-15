@@ -483,12 +483,12 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [[ZZ(counts[i]) for i in range(4)],
-                [[ZZ(s[0]), map(QQ, s[1].polrecip().Vec())] for s in S]]
+                [[ZZ(s[0]), [QQ(x) for x in s[1].polrecip().Vec()]] for s in S]]
     elif return_pari_objects:
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]
+        return [[ZZ(s[0]), Px([QQ(x) for x in s[1].list()])]
                 for s in S]
 
 def weed_fields(S, Py_ssize_t lenS=0):

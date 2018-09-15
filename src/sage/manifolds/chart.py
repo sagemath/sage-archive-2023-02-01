@@ -1530,12 +1530,12 @@ class RealChart(Chart):
             coord_var = SR.var(coord_symb, domain='real',
                                latex_name=coord_latex)
             assume(coord_var, 'real')
-            if xmin != -Infinity:
+            if not (xmin == -Infinity):
                 if xmin_included:
                     assume(coord_var >= xmin)
                 else:
                     assume(coord_var > xmin)
-            if xmax != Infinity:
+            if not (xmax == Infinity):
                 if xmax_included:
                     assume(coord_var <= xmax)
                 else:
@@ -2867,9 +2867,6 @@ class CoordChange(SageObject):
 
         """
         from sage.symbolic.relation import solve
-        from sage.manifolds.utilities import simplify_chain_real, \
-                                             simplify_chain_generic
-
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:
@@ -2908,7 +2905,7 @@ class CoordChange(SageObject):
                                                             for i in range(n1)]
             for transf in x2_to_x1:
                 try:
-                    transf = self.simplify(transf)
+                    transf = self._chart2.simplify(transf)
                 except AttributeError:
                     pass
         else:
@@ -2921,7 +2918,7 @@ class CoordChange(SageObject):
                 x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
                 for transf in x2_to_x1:
                     try:
-                        transf = self.simplify(transf)
+                        transf = self._chart2.simplify(transf)
                     except AttributeError:
                         pass
                 if self._chart1.valid_coordinates(*x2_to_x1):
@@ -3000,7 +2997,7 @@ class CoordChange(SageObject):
             for i in range(n1):
                 print("  {} == {}".format(x1[i], self._chart1.simplify(self._inverse(*(self(*x1)))[i])))
             for i in range(n1):
-                print("  {} == {}".format(x2[i], self._chart1.simplify(self(*(self._inverse(*x2)))[i])))
+                print("  {} == {}".format(x2[i], self._chart2.simplify(self(*(self._inverse(*x2)))[i])))
 
     def __mul__(self, other):
         r"""

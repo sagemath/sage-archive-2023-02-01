@@ -302,7 +302,7 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def one_basis(self):
-        """
+        r"""
         Return the basis index of the element `1` of
         `\operatorname{gr} A`.
 

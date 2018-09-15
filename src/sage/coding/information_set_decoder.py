@@ -849,7 +849,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         else:
             raise ValueError("Unknown ISD algorithm '{}'."
                             " The known algorithms are {}."\
-                            .format(algorithm, algorithm_names.keys()))
+                            .format(algorithm, sorted(algorithm_names)))
 
     _known_algorithms = {
         "Lee-Brickell": LeeBrickellISDAlgorithm

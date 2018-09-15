@@ -339,7 +339,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
                 if not one == 1:
                     raise TypeError("Argument P (= %s) does not define a probability function")
             else:
-                if not Abs(one-1) < 2^(-codomain.precision()+1):
+                if not abs(one - 1) < 2 ** (-codomain.precision() + 1):
                     raise TypeError("Argument P (= %s) does not define a probability function")
         ProbabilitySpace_generic.__init__(self, X, codomain)
         DiscreteRandomVariable.__init__(self, self, P, codomain, check)

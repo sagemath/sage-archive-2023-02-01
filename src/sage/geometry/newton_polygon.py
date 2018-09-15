@@ -484,7 +484,7 @@ class NewtonPolygon_element(Element):
                      + line([(xend+0.5, yend + 0.5*self.last_slope()), (xend+1, yend+self.last_slope())], linestyle="--", **kwargs)
 
     def reverse(self, degree=None):
-        """
+        r"""
         Returns the symmetric of ``self``
 
         INPUT:
@@ -526,7 +526,7 @@ class NewtonPolygon_element(Element):
 
 
 class ParentNewtonPolygon(Parent, UniqueRepresentation):
-    """
+    r"""
     Construct a Newton polygon.
 
     INPUT:
@@ -678,7 +678,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         return self(Polyhedron(base_ring=self.base_ring(), ambient_dim=2))
 
     def _element_constructor_(self, arg, sort_slopes=True, last_slope=Infinity):
-        """
+        r"""
         INPUT:
 
         - ``arg`` -- an argument describing the Newton polygon

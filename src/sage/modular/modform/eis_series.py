@@ -17,9 +17,8 @@ from six import integer_types
 from sage.misc.all import verbose, cputime
 import sage.modular.dirichlet as dirichlet
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
-from sage.rings.all import Integer, CyclotomicField, ZZ, QQ, Integer
+from sage.rings.all import Integer, CyclotomicField, ZZ, QQ
 from sage.arith.all import bernoulli, divisors, is_squarefree, lcm
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.power_series_ring import PowerSeriesRing
 from .eis_series_cython import eisenstein_series_poly, Ek_ZZ
 
@@ -194,12 +193,9 @@ def __common_minimal_basering(chi, psi):
     psi = psi.change_ring(K)
     return chi, psi
 
-#def prim(eps):
-#    print "making eps with modulus %s primitive"%eps.modulus()
-#    return eps.primitive_character()
 
 def __find_eisen_chars(character, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of the given weight and character.
 
     EXAMPLES::
@@ -256,7 +252,6 @@ def __find_eisen_chars(character, k):
     #
     # See [Miyake, Modular Forms] Lemma 7.1.1.
 
-    K = G.base_ring()
     C = {}
 
     t0 = cputime()
@@ -289,8 +284,9 @@ def __find_eisen_chars(character, k):
                                 params.append( (chi0,psi0,t) )
     return params
 
+
 def __find_eisen_chars_gammaH(N, H, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of weight `k` on
     `\Gamma_H(N)`.
 
@@ -306,8 +302,9 @@ def __find_eisen_chars_gammaH(N, H, k):
             params += __find_eisen_chars(chi, k)
     return params
 
+
 def __find_eisen_chars_gamma1(N, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of weight `k` on
     `\Gamma_1(N)`.
 
@@ -418,8 +415,6 @@ def eisenstein_series_lseries(weight, prec=53,
     """
     f = eisenstein_series_qexp(weight,prec)
     from sage.lfunctions.all import Dokchitser
-    from sage.symbolic.constants import pi
-    key = (prec, max_imaginary_part, max_asymp_coeffs)
     j = weight
     L = Dokchitser(conductor = 1,
                    gammaV = [0,1],

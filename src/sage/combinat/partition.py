@@ -1428,7 +1428,7 @@ class Partition(CombinatorialElement):
     def k_rim(ptn, k):
         r""" Return the ``k``-rim of ``ptn`` as a list of integer coordinates.
 
-        The `k`-rim of a partition is the "line between" (or "intersection of") the `k`-boundary and the `k`-interior.  (Section 2.3 of [genocchi]_)
+        The `k`-rim of a partition is the "line between" (or "intersection of") the `k`-boundary and the `k`-interior.  (Section 2.3 of [HM2011]_)
 
         It will be output as an ordered list of integer coordinates, where the origin is `(0, 0)`.  It will start at the top-left of the `k`-rim (using French convention) and end at the bottom-right.
 
@@ -1481,7 +1481,7 @@ class Partition(CombinatorialElement):
     def k_row_lengths(ptn, k):
         r""" Given a partition, return it's `k`-row-shape.
 
-        This is equivalent to taking the `k`-boundary of the partition and then returning the row-shape of that.  We do *not* discard rows of length 0.  (Section 2.2 of [mem]_)
+        This is equivalent to taking the `k`-boundary of the partition and then returning the row-shape of that.  We do *not* discard rows of length 0.  (Section 2.2 of [LLMS2013]_)
 
         EXAMPLES::
 

@@ -419,6 +419,14 @@ REFERENCES:
              J. Reine Angew. Math., **655** (2011), 61-87.
              :mathscinet:`MR2806105`
 
+.. [BMPS2018] Jonah Blasiak, Jennifer Morse, Anna Pun, and Daniel Summers.
+              *Catalan functions and k-schur positivity*
+              :arxiv:`1804.03701`
+
+.. [BMPS2018b] Jonah Blasiak, Jennifer Morse, Anna Pun, and Daniel Summers.
+               *Skew-linked Catalan functions and k-schur positivity.*
+               Not to be confused with 'Catalan functions and k-schur positivity.'
+
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
             Poincaré homology 3-sphere", Experiment. Math. 9 (2000),
@@ -1124,6 +1132,10 @@ REFERENCES:
              *Young Tableaux*.
              Cambridge University Press, 1997.
 
+.. [Fun2012] Alex Fun.
+         *Raising operators and the Littlewood-Richardson polynomials*
+         :arxiv:`1203.4729`
+
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
             Mathematicae. **155** (2004), no. 3, pp. 515-536.
@@ -1356,6 +1368,10 @@ REFERENCES:
              and fibrations of toric Calabi-Yau
              hypersurfaces. *Adv. Theor. Math. Phys.*,
              6(3):457-506, 2002. :arxiv:`math/0010082v2` [math.AG].
+
+.. [HM2011] Florent Hivert and Olivier Mallet. `Combinatorics of k-shapes
+            and Genocchi numbers <https://www.lri.fr/~hivert/PAPER/kshapes.pdf>`_,
+            in FPSAC 2011, Reykjav´k, Iceland DMTCS proc. AO, 2011, 493-504.
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
@@ -1834,6 +1850,10 @@ REFERENCES:
 .. [LLZ2014] \K. Lee, \L. Li, and \A. Zelevinsky, *Greedy elements in rank 2
              cluster algebras*, Selecta Math. 20 (2014), 57-82.
 
+.. [LLMS2013] Thomas Lam, Luc Lapointe, Jennifer Morse, and Mark Shimozono (2013).
+              *The poset of k-shapes and branching rules for k-Schur functions*
+              <http://breakfreerun.org/index.php/ebooks/the-poset-of-k-shapes-and-branching-rules-for-k-schur-functions>`_. Memoirs of the American Mathematical Society, 223(1050), 1-113. DOI: 10.1090/S0065-9266-2012-00655-1
+
 .. [LLMSSZ2013] Thomas Lam, Luc Lapointe, Jennifer Morse, Anne
                 Schilling, Mark Shimozono and Mike Zabrocki.
                 *k-Schur functions and affine Schubert calculus*.
@@ -1846,6 +1866,10 @@ REFERENCES:
 .. [LMR2010] \N. Linial, R. Meshulam and M. Rosenthal, "Sum complexes
              -- a new family of hypertrees", Discrete & Computational
              Geometry, 2010, Volume 44, Number 3, Pages 622-636
+
+.. [LN2014] Alain Lascoux and Hiroshi Naruse.
+            *Finite sum Cauchy identity for dual Grothendieck polynomials*
+            <https://www.projecteuclid.org/download/pdf_1/euclid.pja/1407415930>`_.
 
 .. [Lod1995] Jean-Louis Loday. *Cup-product for Leibniz cohomology and
              dual Leibniz algebras*. Math. Scand., pp. 189--196

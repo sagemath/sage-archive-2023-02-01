@@ -379,7 +379,7 @@ class Function_erfc(BuiltinFunction):
     .. MATH::
 
         \frac{2}{\sqrt{\pi}} \int_t^\infty e^{-x^2} dx.
-    
+
     EXAMPLES::
 
         sage: erfc(6)
@@ -393,6 +393,14 @@ class Function_erfc(BuiltinFunction):
         0.520499877813047
         sage: erf(0.5)
         0.520499877813047
+
+    TESTS:
+
+    Check that :trac:`25991` is fixed::
+
+            sage: erfc(x)._fricas_()                                            # optional - fricas
+            - erf(x) + 1
+
     """
     def __init__(self):
         r"""
@@ -407,7 +415,7 @@ class Function_erfc(BuiltinFunction):
                                  latex_name=r"\operatorname{erfc}",
                                  conversions=dict(maxima='erfc',
                                                   sympy='erfc',
-                                                  fricas='erfc',
+                                                  fricas='(x+->1-erf(x))',
                                                   giac='erfc'))
 
     def _eval_(self, x):
@@ -493,7 +501,7 @@ class Function_erfinv(BuiltinFunction):
             sage: _ = var('z,t')
             sage: PDF = exp(-x^2 /2)/sqrt(2*pi)
             sage: integralExpr = integrate(PDF,x,z,oo).subs(z==log(t))
-            sage: y = solve(integralExpr==z,t)[0].rhs().subs(z==1/4)    
+            sage: y = solve(integralExpr==z,t)[0].rhs().subs(z==1/4)
             sage: y
             e^(sqrt(2)*erfinv(1/2))
             sage: y.n()
@@ -750,4 +758,3 @@ class Function_Fresnel_cos(BuiltinFunction):
         return cos(pi*x**2/2)
 
 fresnel_cos = Function_Fresnel_cos()
-

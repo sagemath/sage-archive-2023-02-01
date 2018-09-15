@@ -1207,10 +1207,16 @@ class MatrixSpace(UniqueRepresentation, Parent):
             729
             sage: 3^(2*3)
             729
-            sage: len(MatrixSpace(GF(2003),3,2))
+
+            sage: len(MatrixSpace(GF(2003),3,2))  # py2
             Traceback (most recent call last):
             ...
             OverflowError: long int too large to convert to int
+            sage: len(MatrixSpace(GF(2003),3,2))  # py3
+            Traceback (most recent call last):
+            ...
+            OverflowError: cannot fit 'int' into an index-sized integer
+
             sage: len(MatrixSpace(QQ,3,2))
             Traceback (most recent call last):
             ...

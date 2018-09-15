@@ -234,7 +234,7 @@ class HeisenbergAlgebra_fd(object):
 
             sage: H = lie_algebras.Heisenberg(QQ, 1)
             sage: H.lie_algebra_generators()
-            Finite family {'q1': q1, 'p1': p1}
+            Finite family {'p1': p1, 'q1': q1}
             sage: H = lie_algebras.Heisenberg(QQ, 0)
             sage: H.lie_algebra_generators()
             Finite family {'z': z}
@@ -258,7 +258,7 @@ class HeisenbergAlgebra_fd(object):
 
             sage: H = lie_algebras.Heisenberg(QQ, 1)
             sage: H.basis()
-            Finite family {'q1': q1, 'p1': p1, 'z': z}
+            Finite family {'p1': p1, 'q1': q1, 'z': z}
         """
         d = {}
         for i in range(1, self._n+1):

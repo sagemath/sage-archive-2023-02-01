@@ -3699,7 +3699,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 To:   Algebraic Real Field
                 Defn: a |--> 1.732050807568878?)
         """
-        return number_field_elements_from_algebraics(self, minimal=minimal)
+        return number_field_elements_from_algebraics(self, minimal=minimal, embedded=embedded, prec=prec)
 
     def exactify(self):
         """

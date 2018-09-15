@@ -183,6 +183,15 @@ def init_sage():
     from sage.repl.rich_output.backend_doctest import BackendDoctest
     dm.switch_backend(BackendDoctest())
 
+    # IPython's pretty printer sorts the repr of dicts by their keys by default
+    # (or their keys' str() if they are not otherwise orderable).  However, it
+    # disables this for CPython 3.6+ opting to instead display dicts' "natural"
+    # insertion order, which is preserved in those versions).  This makes for
+    # inconsistent results with Python 2 tests that return dicts, so here we
+    # force the Python 2 style dict printing
+    import IPython.lib.pretty
+    IPython.lib.pretty.DICT_IS_ORDERED = False
+
     # Switch on extra debugging
     from sage.structure.debug_options import debug
     debug.refine_category_hash_check = True

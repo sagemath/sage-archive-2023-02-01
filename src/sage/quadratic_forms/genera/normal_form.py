@@ -1434,8 +1434,8 @@ def _two_adic_normal_forms(G, partial=False):
             if not partial:
                 Dk, B1k = _homogeneous_normal_form(Dk, wk)
                 B[h[i]:h[i+1],:] = B1k * B[h[i]:h[i+1], :]
-            UVlist.append(range(h[i], h[i+1] - wk))
-            Wlist.append(range(h[i+1]-wk, h[i+1]))
+            UVlist.append(list(range(h[i], h[i+1] - wk)))
+            Wlist.append(list(range(h[i+1]-wk, h[i+1])))
         else:
             UVlist.append([])
             Wlist.append([])

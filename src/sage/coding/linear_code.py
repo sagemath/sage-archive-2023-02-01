@@ -203,6 +203,9 @@ TESTS::
 #******************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
+
+import inspect
+
 from six.moves import range
 from six import iteritems
 
@@ -226,6 +229,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
 from sage.misc.cachefunc import cached_method
+from sage.misc.sageinspect import sage_getargspec
 from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.randstate import current_randstate
 from sage.features.gap import GapPackage
@@ -304,13 +308,12 @@ def _explain_constructor(cl):
         sage: _explain_constructor(cl)
         "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
     """
-    import inspect
     if inspect.isclass(cl):
-        argspec = inspect.getargspec(cl.__init__)
+        argspec = sage_getargspec(cl.__init__)
         skip = 2 # skip the self and code arguments
     else:
         # Not a class, assume it's a factory function posing as a class
-        argspec = inspect.getargspec(cl)
+        argspec = sage_getargspec(cl)
         skip = 1 # skip code argument
     if argspec.defaults:
         args = argspec.args[skip:-len(argspec.defaults)]
@@ -4403,9 +4406,9 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D1 == D2
             True
         """
-        return isinstance(other, LinearCodeSyndromeDecoder)\
-                and self.code() == other.code()\
-                and self.maximum_error_weight() == other.maximum_error_weight()
+        return (isinstance(other, LinearCodeSyndromeDecoder) and
+                self.code() == other.code() and
+                self.maximum_error_weight() == other.maximum_error_weight())
 
     def __hash__(self):
         """
@@ -4492,7 +4495,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: H = Matrix(K,[[1,2,1],[2*a+1,a,1]])
             sage: C = codes.from_parity_check_matrix(H)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
-            sage: D.syndrome_table()         
+            sage: D.syndrome_table()
              {(0, 0): (0, 0, 0),
               (0, 1): (0, 1, 0),
               (0, 2): (0, 2, 0),

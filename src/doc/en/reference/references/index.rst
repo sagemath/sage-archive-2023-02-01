@@ -792,6 +792,9 @@ REFERENCES:
             error-correcting codes from game theory*, IEEE
             Trans. Infor. Theory **32** (1986) 337-348.
 
+.. [CS2003] \John E. Cremona and Michael Stoll. On The Reduction Theory of Binary Forms.
+            Journal für die reine und angewandte Mathematik, 565 (2003), 79-99.
+
 .. [Cu1984] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
             group `M_{12}`, and the kitten. *Computational group
             theory*, ed. M. Atkinson, Academic Press, 1984.
@@ -1314,6 +1317,10 @@ REFERENCES:
 
 .. [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
 
+.. [Gut2001] Carsten Gutwenger and Petra Mutzel. *A Linear Time Implementation
+             of SPQR-Trees*, International Symposium on Graph Drawing,
+             (2001) 77-90
+
 .. [GW1999] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum
             affine algebras and affine Kazhdan-Lusztig polyonmials*.
             Int. Math. Res. Notices **5** (1999), 251-275.
@@ -1394,6 +1401,9 @@ REFERENCES:
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
+
+.. [Hopcroft1973] J. E. Hopcroft and R. E. Tarjan. *Dividing a Graph into
+                  Triconnected Components*, SIAM J. Comput., 2(3), 135–158
 
 .. [Hopkins2017] Sam Hopkins,
                  *RSK via local transformations*,
@@ -2169,6 +2179,9 @@ REFERENCES:
 .. [Mu1997] Murty, M. Ram. *Congruences between modular forms*. In "Analytic
             Number Theory" (ed. Y. Motohashi), London Math. Soc. Lecture Notes
             247 (1997), 313-320, Cambridge Univ. Press.
+
+.. [Mur1983] \G. E. Murphy. *The idempotents of the symmetric group
+             and Nakayama's conjecture*. J. Algebra **81** (1983). 258-265.
 
 .. [MV2010] \D. Micciancio, P. Voulgaris. *A Deterministic Single
             Exponential Time Algorithm for Most Lattice Problems based

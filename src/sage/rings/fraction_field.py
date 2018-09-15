@@ -628,12 +628,32 @@ class FractionField_generic(ring.Field):
             v = self._element_class(self, x.variable(), 1)
             x = sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
 
+        def resolve_fractions(x, y):
+            xn = x.numerator()
+            xd = x.denominator()
+            yn = y.numerator()
+            yd = y.denominator()
+            try:
+                return (xn * yd, yn * xd)
+            except (AttributeError, TypeError, ValueError):
+                pass
+            try:
+                P = yd.parent()
+                return (P(xn) * yd, yn * P(xd))
+            except (AttributeError, TypeError, ValueError):
+                pass
+            try:
+                P = xd.parent()
+                return (xn * P(yd), P(yn) * xd)
+            except (AttributeError, TypeError, ValueError):
+                pass
+            raise TypeError
+
         while True:
             x0, y0 = x, y
             try:
-                x = x0.numerator()*y0.denominator()
-                y = y0.numerator()*x0.denominator()
-            except (AttributeError, TypeError, ValueError):
+                x, y = resolve_fractions(x0, y0)
+            except (AttributeError, TypeError):
                 raise TypeError("cannot convert {!r}/{!r} to an element of {}".format(
                                 x0, y0, self))
             try:

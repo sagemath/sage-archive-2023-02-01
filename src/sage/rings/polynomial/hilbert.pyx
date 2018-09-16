@@ -578,11 +578,13 @@ def hilbert_poincare_series(I, grading=None):
 
     This example exceeds the current capabilities of Singular::
 
-        sage: J.hilbert_numerator()
+        sage: singular(J).std().hilb(1)
         Traceback (most recent call last):
         ...
-        RuntimeError: error in Singular function call 'hilb':
-         int overflow in hilb 1
+        TypeError: Singular error:
+        ? int overflow in hilb 1
+        ? error occurred in or before STDIN line 413: `def sage...=hilb(sage...,sage...);`
+
     """
     cdef Polynomial_integer_dense_flint HP
     HP, grading = first_hilbert_series(I, grading=grading, return_grading=True)

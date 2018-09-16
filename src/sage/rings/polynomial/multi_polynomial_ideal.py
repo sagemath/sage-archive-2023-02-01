@@ -2403,13 +2403,14 @@ class MPolynomialIdeal_singular_repr(
         if not self.is_homogeneous():
             raise TypeError("Ideal must be homogeneous.")
 
-        import sage.libs.singular.function_factory
-        hilbPoly = sage.libs.singular.function_factory.ff.poly__lib.hilbPoly
-
-        hp = hilbPoly(self)
-        t = ZZ['t'].gen()
-        fp = ZZ(len(hp)-1).factorial()
-        return sum(ZZ(hp[i]) * t ** i for i in range(len(hp))) / fp
+        from sage.misc.misc_c import prod
+        hilbert_poincare = self.hilbert_series()
+        denom = hilbert_poincare.denominator().factor()
+        second_hilbert = hilbert_poincare.numerator()*denom.unit()
+        t = second_hilbert.parent().gen()
+        s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
+        coefs = second_hilbert.list()
+        return sum([coefs[n]*prod([s-1+t-n-nu for nu in range(s-1)]) for n in range(len(coefs))])/ZZ(s-1).factorial()
 
     @require_field
     def hilbert_series(self, singular=singular_default, grading=None):
@@ -2427,7 +2428,8 @@ class MPolynomialIdeal_singular_repr(
         This power series can be expressed as
         `HS(t) = Q(t)/(1-t)^n` where `Q(t)` is a polynomial
         over `Z` and `n` the number of variables in
-        `R`. This method returns `Q(t)/(1-t)^n`.
+        `R`. This method returns `Q(t)/(1-t)^n`, normalised so
+        that the leading monomial of the numerator is positive.
 
         An optional ``grading`` can be given, in which case
         the graded (or weighted) Hilbert series is given.
@@ -2437,7 +2439,7 @@ class MPolynomialIdeal_singular_repr(
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I.hilbert_series()
-            (-t^4 - t^3 - t^2 - t - 1)/(-t^2 + 2*t - 1)
+            (t^4 + t^3 + t^2 + t + 1)/(t^2 - 2*t + 1)
             sage: R.<a,b> = PolynomialRing(QQ)
             sage: J = R.ideal([a^2*b,a*b^2])
             sage: J.hilbert_series()
@@ -2465,15 +2467,14 @@ class MPolynomialIdeal_singular_repr(
         if not self.is_homogeneous():
             raise TypeError("Ideal must be homogeneous.")
 
-        t = ZZ['t'].gen()
-        n = self.ring().ngens()
+        from sage.rings.polynomial.hilbert import hilbert_poincare_series
 
-        if grading is None:
-            return self.hilbert_numerator(singular) / (1-t)**n
+        if grading is not None:
+            if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
+                raise TypeError("Grading must be a list or a tuple of integers.")
+        gb = MPolynomialIdeal(self.ring(), [mon.lm() for mon in self.groebner_basis()])
 
-        # The check that ``grading`` is valid input is done by ``hilbert_numerator()``
-        return (self.hilbert_numerator(singular, grading)
-                / prod((1 - t**a) for a in grading))
+        return hilbert_poincare_series(gb, grading)
 
     @require_field
     def hilbert_numerator(self, singular=singular_default, grading=None):
@@ -2515,22 +2516,14 @@ class MPolynomialIdeal_singular_repr(
         if not self.is_homogeneous():
             raise TypeError("Ideal must be homogeneous.")
 
-        import sage.libs.singular.function_factory
-        hilb = sage.libs.singular.function_factory.ff.hilb
+        from sage.rings.polynomial.hilbert import first_hilbert_series
 
-        gb = self.groebner_basis()
-        t = ZZ['t'].gen()
-        n = self.ring().ngens()
-        gb = MPolynomialIdeal(self.ring(), gb)
         if grading is not None:
             if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
                 raise TypeError("Grading must be a list or a tuple of integers.")
+        gb = MPolynomialIdeal(self.ring(), [mon.lm() for mon in self.groebner_basis()])
 
-            hs = hilb(gb, 1, tuple(grading), attributes={gb: {'isSB': 1}})
-        else:
-            hs = hilb(gb, 1, attributes={gb: {'isSB': 1}})
-        return sum(ZZ(hs[i]) * t ** i for i in range(len(hs)-1))
-
+        return first_hilbert_series(gb, grading)
 
     @require_field
     def _normal_basis_libsingular(self):

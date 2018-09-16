@@ -177,6 +177,18 @@ class Polyhedron_normaliz(Polyhedron_base):
             self._init_Hrepresentation_from_normaliz()
 
     def _init_from_normaliz_data(self, data, verbose=False):
+        """
+        Construct polyhedron from normaliz ``data`` (a dictionary).
+
+        TESTS::
+
+            sage: p = Polyhedron(backend='normaliz', ambient_dim=2)                           # optional - pynormaliz
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
+            sage: data = {'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]} # optional - pynormaliz
+            sage: Polyhedron_normaliz._init_from_normaliz_data(p, data)                       # optional - pynormaliz
+            sage: p.inequalities_list()                                                       # optional - pynormaliz
+            [[0, -1, 2], [0, 2, -1]]
+        """
         import PyNormaliz
         if verbose:
             print("# Calling PyNormaliz.NmzCone(**{})".format(data))
@@ -410,7 +422,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         TESTS::
 
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz    # optional - pynormaliz
-            sage: data = {'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]],} # optional - pynormaliz
+            sage: data = {'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]} # optional - pynormaliz
             sage: nmz_cone = Polyhedron_normaliz._make_normaliz_cone(data,verbose=False)       # optional - pynormaliz
             sage: from PyNormaliz import NmzResult                                             # optional - pynormaliz
             sage: NmzResult(nmz_cone, "ExtremeRays")                                           # optional - pynormaliz

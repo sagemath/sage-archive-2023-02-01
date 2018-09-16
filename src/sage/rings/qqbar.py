@@ -2121,7 +2121,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
     Also note that the exact answer depends on a Pari function that
     gives different answers for 32-bit and 64-bit machines::
 
-        sage: number_field_elements_from_algebraics(rt2c)
+        sage: number_field_elements_from_algebraics(rt2c)   # random
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field

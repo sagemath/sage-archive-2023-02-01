@@ -397,7 +397,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         return cls(parent, None, None, normaliz_cone=normaliz_cone)
 
     @staticmethod
-    def _make_normaliz_cone(data,verbose=False):
+    def _make_normaliz_cone(data, verbose=False):
         r"""
         Returns a normaliz cone from ``data``.
 
@@ -409,6 +409,12 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS::
 
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz    # optional - pynormaliz
+            sage: data = {'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]],} # optional - pynormaliz
+            sage: nmz_cone = Polyhedron_normaliz._make_normaliz_cone(data,verbose=False)       # optional - pynormaliz
+            sage: from PyNormaliz import NmzResult                                             # optional - pynormaliz
+            sage: NmzResult(nmz_cone, "ExtremeRays")                                           # optional - pynormaliz
+            [[1L, 2L, 0L], [2L, 1L, 0L]]
         """
         import PyNormaliz
         if verbose:

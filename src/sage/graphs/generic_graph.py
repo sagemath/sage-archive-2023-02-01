@@ -7354,34 +7354,30 @@ class GenericGraph(GenericGraph_pyx):
         #####################
 
         if self.order() == 2:
-            u,v = self.vertices()
+            uu,vv = self.vertices()
             if self.is_directed():
-                if self.has_edge(u,v) and self.has_edge(v,u):
+                if self.has_edge(uu, vv) and self.has_edge(vv, uu):
                     if self.has_multiple_edges():
                         if maximize:
-                            edges = [(u,v,max(self.edge_label(u,v), key=weight)),
-                                    (v,u,max(self.edge_label(v,u), key=weight))]
+                            edges = [(uu, vv, max(self.edge_label(uu, vv), key=weight)),
+                                     (vv, uu, max(self.edge_label(vv, uu), key=weight))]
                         else:
-                            edges = [(u,v,min(self.edge_label(u,v), key=weight)),
-                                    (v,u,min(self.edge_label(v,u), key=weight))]
+                            edges = [(uu, vv, min(self.edge_label(uu, vv), key=weight)),
+                                     (vv, uu, min(self.edge_label(vv, uu), key=weight))]
                     else:
-                        edges = [(u,v,self.edge_label(u,v)),
-                                 (v,u,self.edge_label(v,u))]
-                    answer = self.subgraph(edges = edges, immutable = False)
+                        edges = [(uu, vv, self.edge_label(uu, vv)),
+                                 (vv, uu, self.edge_label(vv, uu))]
+                    answer = self.subgraph(edges=edges, immutable=self.is_immutable())
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
-                    if self.is_immutable():
-                        answer = answer.copy(immutable = True)
                     return answer
             else:
-                if self.has_multiple_edges() and len(self.edge_label(u,v)) > 1:
+                if self.has_multiple_edges() and len(self.edge_label(uu, vv)) > 1:
                     edges = self.edges()
                     edges.sort(key=weight)
-                    answer = self.subgraph(edges = edges[:2], immutable = False)
+                    answer = self.subgraph(edges=edges[:2], immutable=self.is_immutable())
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
-                    if self.is_immutable():
-                        answer = answer.copy(immutable = True)
                     return answer
 
             raise EmptySetError("the given graph is not Hamiltonian")

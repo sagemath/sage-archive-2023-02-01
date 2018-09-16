@@ -5714,10 +5714,15 @@ class GenericGraph(GenericGraph_pyx):
 
         epsilon = 1/(3*(Integer(self.order())))
 
-        if self.is_directed():
-            # Does nothing to an edge.. Useful when out of "if self.directed"
-            S = lambda x_y: x_y
+        def S(e):
+            if self.is_directed():
+                return e
+            else:
+                # Turn an edge to a frozenset to ensure that (u, v) and (v, u)
+                # represent the same edge.
+                return frozenset(e)
 
+        if self.is_directed():
             # An edge belongs to at most one arborescence
             for e in self.edge_iterator(labels=False):
                 p.add_constraint(p.sum(edges[j,e] for j in colors), max=1)
@@ -5750,10 +5755,6 @@ class GenericGraph(GenericGraph_pyx):
                 classes = [D.copy() for j in colors]
 
         else:
-            # Turn an edge to a frozenset to ensure that (u, v) and (v, u)
-            # represent the same edge.
-            S = lambda x_y: frozenset(x_y)
-
             # An edge belongs to at most one arborescence
             for e in self.edge_iterator(labels=False):
                 p.add_constraint(p.sum(edges[j,S(e)] for j in colors), max=1)
@@ -6785,7 +6786,8 @@ class GenericGraph(GenericGraph_pyx):
         else:
             # f_edge_used calls edge_used through a frozenset of u and v
             # to avoid having two different variables
-            f_edge_used = lambda u, v: edge_used[frozenset((u,v))]
+            def f_edge_used(u, v):
+                return edge_used[frozenset((u,v))]
 
             # A vertex is used if one of its incident edges is
             for v in self:
@@ -7486,7 +7488,8 @@ class GenericGraph(GenericGraph_pyx):
 
                 from sage.graphs.all import Graph
                 b = p.new_variable(binary = True)
-                B = lambda u,v : b[frozenset((u,v))]
+                def B(u,v):
+                    return b[frozenset((u,v))]
 
                 # Objective function
                 if use_edge_labels:
@@ -7546,20 +7549,26 @@ class GenericGraph(GenericGraph_pyx):
         eps = 1/(2*Integer(g.order()))
         x = next(g.vertex_iterator())
 
+        def R(x, y):
+            if g.is_directed():
+                return (x, y)
+            else:
+                # reorders the edge as it can appear in the two different ways
+                return frozenset((x, y))
+
+        def E(u, v):
+            """
+            Return the f variable corresponding to arc u,v
+            """
+            return f[R(u, v)]
 
         if g.is_directed():
-            # Does nothing. Useful outside the "if g.is_directed()"
-            R = lambda x,y : (x,y)
-
-            # returns the variable corresponding to arc u,v
-            E = lambda u,v : f[u,v]
-
             # All the vertices have in-degree 1 and out-degree 1
             for v in g:
-                p.add_constraint(p.sum(f[u,v] for u in g.neighbor_in_iterator(v)),
+                p.add_constraint(p.sum(E(u,v) for u in g.neighbor_in_iterator(v)),
                                  min=1, max=1)
 
-                p.add_constraint(p.sum(f[v,u] for u in g.neighbor_out_iterator(v)),
+                p.add_constraint(p.sum(E(v,u) for u in g.neighbor_out_iterator(v)),
                                  min=1, max=1)
 
             # r is greater than f
@@ -7567,25 +7576,19 @@ class GenericGraph(GenericGraph_pyx):
             for u,v in g.edge_iterator(labels=None):
                 if g.has_edge(v,u):
                     if vertex_to_int[u] < vertex_to_int[v]:
-                        p.add_constraint( r[u,v] + r[v,u]- f[u,v] - f[v,u], min=0)
+                        p.add_constraint( r[u,v] + r[v,u]- E(u,v) - E(v,u), min=0)
 
                         # no 2-cycles
-                        p.add_constraint( f[u,v] + f[v,u], max=1)
+                        p.add_constraint( E(u,v) + E(v,u), max=1)
 
                 else:
-                    p.add_constraint( r[u,v] + r[v,u] - f[u,v], min=0)
+                    p.add_constraint( r[u,v] + r[v,u] - E(u,v), min=0)
 
             # defining the answer when g is directed
             from sage.graphs.all import DiGraph
             tsp = DiGraph()
 
         else:
-            # reorders the edge as they can appear in the two different ways
-            R = lambda x,y : frozenset((x,y))
-
-            # returns the variable corresponding to arc u,v
-            E = lambda u,v : f[R(u,v)]
-
             # All the vertices have degree 2
             for v in g:
                 p.add_constraint(p.sum( E(u,v) for u in g.neighbor_iterator(v)),

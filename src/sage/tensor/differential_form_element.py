@@ -816,7 +816,7 @@ class DifferentialForm(AlgebraElement):
             sage: f[1] = 1
             sage: f[2] = 0
             sage: f._dump_all()
-            {(2,): 0, (0,): 0, (1,): 1}
+            {(0,): 0, (1,): 1, (2,): 0}
             sage: f._cleanup()
             sage: f._dump_all()
             {(1,): 1}
@@ -853,7 +853,7 @@ class DifferentialForm(AlgebraElement):
             sage: f
             e^cos(x)*dy + sin(log(y))*dz
             sage: f._dump_all()
-            {(2,): sin(log(y)), (1,): e^cos(x)}
+            {(1,): e^cos(x), (2,): sin(log(y))}
             sage: g = DifferentialForm(F, 2)
             sage: g[1, 2] = x+y+z
             sage: g
@@ -862,8 +862,8 @@ class DifferentialForm(AlgebraElement):
             {(1, 2): x + y + z}
 
         """
-        print(self._components)
-
+        from pprint import pprint
+        pprint(self._components)
 
     def diff(self):
         r"""

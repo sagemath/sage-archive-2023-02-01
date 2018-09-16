@@ -11,7 +11,7 @@ do :
     :widths: 30, 70
     :delim: |
 
-    :meth:`all_graph_colorings` | Compute all `n`-colorings a graph
+    :meth:`all_graph_colorings` | Computes all `n`-colorings a graph
     :meth:`first_coloring` | Returns the first vertex coloring found
     :meth:`number_of_n_colorings` | Computes the number of `n`-colorings of a graph
     :meth:`numbers_of_colorings` | Computes the number of colorings of a graph
@@ -66,7 +66,7 @@ from sage.numerical.mip import MIPSolverException
 
 def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_dict=False):
     r"""
-    Compute all `n`-colorings of a graph.
+    Computes all `n`-colorings of a graph.
 
     This method casts the graph coloring problem into an exact cover problem,
     and passes this into an implementation of the Dancing Links algorithm

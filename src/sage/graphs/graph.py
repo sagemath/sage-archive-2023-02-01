@@ -3576,7 +3576,11 @@ class Graph(GenericGraph):
         # Whether an edge adjacent to a vertex u counts positively or
         # negatively. To do so, we first fix an arbitrary extremity per edge uv.
         ext = {frozenset(e):e[0] for e in self.edge_iterator(labels=False)}
-        outgoing = lambda u,e,variable : variable if u == ext[frozenset(e)] else (1-variable)
+        def outgoing(u, e, variable):
+            if u == ext[frozenset(e)]:
+                return variable
+            else:
+                return 1-variable
 
         for u in self:
             p.add_constraint(p.sum(weight(e) * outgoing(u, e, orientation[frozenset(e)])
@@ -4778,7 +4782,8 @@ class Graph(GenericGraph):
 
         # One variable per edge
         b = M.new_variable(binary=True, nonnegative=True)
-        B = lambda e : b[frozenset(e)]
+        def B(e):
+            return b[frozenset(e)]
 
         # We want to select at most one incident edge per vertex (matching)
         for u in self.vertex_iterator():
@@ -4790,7 +4795,8 @@ class Graph(GenericGraph):
 
         # One variable per edge
         r = p.new_variable(nonnegative=True)
-        R = lambda e : r[frozenset(e)]
+        def R(e):
+            return r[frozenset(e)]
 
         # We want to maximize the sum of weights on the edges
         p.set_objective( p.sum( R(e) for e in self.edge_iterator(labels=False)))
@@ -5144,7 +5150,8 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(solver=solver)
 
         # Make an edge a frozenset to avoid confusion between (u, v) and (v, u)
-        S = lambda e: frozenset(e)
+        def S(e):
+            return frozenset(e)
 
         # rs = Representative set of a vertex
         # for h in H, v in G is such that rs[h,v] == 1 if and only if v
@@ -5779,13 +5786,16 @@ class Graph(GenericGraph):
 
         flow = p.new_variable(binary=True)
 
-        # This lambda function returns the balance of flow
-        # corresponding to commodity C at vertex v v
+        # These functions return the balance of flow corresponding to
+        # commodity C at vertex v
+        def flow_in(C, v):
+            return p.sum( flow[C,(v,u)] for u in G.neighbor_iterator(v) )
 
-        flow_in = lambda C, v : p.sum( flow[C,(v,u)] for u in G.neighbor_iterator(v) )
-        flow_out = lambda C, v : p.sum( flow[C,(u,v)] for u in G.neighbor_iterator(v) )
+        def flow_out(C, v):
+            return p.sum( flow[C,(u,v)] for u in G.neighbor_iterator(v) )
 
-        flow_balance = lambda C, v : flow_in(C,v) - flow_out(C,v)
+        def flow_balance(C, v):
+            return flow_in(C,v) - flow_out(C,v)
 
         for h1,h2 in H.edge_iterator(labels = False):
 
@@ -7396,6 +7406,7 @@ class Graph(GenericGraph):
             raise NotImplementedError('this method only works for polyhedral graphs')
 
         from sage.numerical.mip import MixedIntegerLinearProgram
+        from sage.numerical.mip import MIPSolverException
         # For a description of the algorithm see paper by Rivin and:
         # https://www.ics.uci.edu/~eppstein/junkyard/uninscribable/
         # In order to simulate strict inequalities in the following LP, we
@@ -7439,7 +7450,6 @@ class Graph(GenericGraph):
         for ieq in inequality_constraints:
             M.add_constraint(M.sum(e_var[fe] for fe in ieq) - c[0] >= 1)
 
-        from sage.numerical.mip import MIPSolverException
         try:
             solution = M.solve(log=verbose)
         except MIPSolverException as msg:

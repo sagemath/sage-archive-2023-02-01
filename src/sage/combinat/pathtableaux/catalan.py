@@ -174,9 +174,8 @@ class CatalanTableau(PathTableau):
            raise ValueError( "%s has a negative entry" % (str(self)) )
         for i in range(n-1):
             if abs(self[i+1]-self[i]) != 1:
-                raise ValueError( "%s is not a Dyck path" % (str(self)) )
+                raise ValueError( "%s is not a Dyck path" % str(self) )
 
-    @staticmethod
     def _rule(x):
         """
         Overwrites the abstract method.
@@ -191,6 +190,15 @@ class CatalanTableau(PathTableau):
         """
         return abs(x[0]-x[1]+x[2])
 
+        _conversions = [ "to_DyckWord",
+                         "to_standard_tableau",
+                         "to_tableau",
+                         "to_noncrossing_partition",
+                         "to_binary_tree",
+                         "to_ordered_tree",
+                         "to_to_non_decreasing_parking_function",
+                         "to_alternating_sign_matrix" ]
+
     def is_skew(self):
         """
         Return ``True`` if ``self`` is skew and ``False`` if not.
@@ -204,6 +212,9 @@ class CatalanTableau(PathTableau):
             True
         """
         return self[0] != 0
+
+    def to_DyckWord(self):
+        return DyckWord(heights_sequence = list(self))
 
     def descents(self):
         """
@@ -222,62 +233,9 @@ class CatalanTableau(PathTableau):
 
         return result
 
-    def to_word(self):
-        """
-        Return the word in the alphabet `\{0,1\}` associated to ``self``.
 
-        EXAMPLES::
 
-            sage: CatalanTableau([1,0,1,2,1]).to_word()
-            [0, 1, 1, 0]
-        """
-        return [ (self[i+1]-self[i]+1)/2 for i in range(self.size()-1) ]
 
-    def to_perfect_matching(self):
-        """
-        Return the perfect matching associated to ``self``.
-
-        EXAMPLES::
-
-            sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
-            [(0, 5), (1, 2), (3, 4), (6, 7)]
-        """
-        w = self.to_word()
-        y = DyckWord(w)
-        pairs = set()
-        for i, a in enumerate(y):
-            c = y.associated_parenthesis(i)
-            if i < c:
-                pairs.add((i,c))
-        return PerfectMatching(pairs)
-
-    def to_tableau(self):
-        """
-        Return the skew tableau associated to ``self``.
-
-        EXAMPLES::
-
-           sage: T = CatalanTableau([0,1,2,3,2,3])
-           sage: T.to_tableau()
-           [[0, 1, 2, 4], [3]]
-        """
-        w = self.to_word()
-        top = [ i for i, a in enumerate(w) if a == 1 ]
-        bot = [ i for i, a in enumerate(w) if a == 0 ]
-        return SkewTableau([[None]*self[0]+top,bot])
-
-    def show(self):
-        """
-        Return the plot of the Dyck path associated to ``self``.
-
-        EXAMPLES::
-
-            sage: T = CatalanTableau([0,1,2,3,2,3])
-            sage: T.show()
-            Graphics object consisting of 1 graphics primitive
-        """
-        from sage.plot.line import line
-        return line([ (i,a) for i, a in enumerate(self)])
 
 #class PathTableaux(UniqueRepresentation,Parent):
 #

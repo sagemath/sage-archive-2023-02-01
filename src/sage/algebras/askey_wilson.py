@@ -606,7 +606,9 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
             \qquad
             C \mapsto C + \frac{AB - BA}{q-q^{-1}}
             = C - qAB - (1+q^2) C + q \gamma,
-            \qquad
+
+        .. MATH::
+
             \alpha \mapsto \beta \mapsto \alpha,
             \gamma \mapsto \gamma.
 
@@ -660,7 +662,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
             \end{pmatrix},
             \qquad
             \mathcal{B} = \begin{pmatrix}
-                \lambda^{-1} 0 \\ \lambda - 1 & \lambda
+                \lambda^{-1} & 0 \\ \lambda - 1 & \lambda
             \end{pmatrix},
             \qquad
             \mathcal{C} = \begin{pmatrix}
@@ -677,7 +679,9 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
             B \mapsto q \mathcal{B} + q^{-1} \mathcal{B}^{-1},
             \qquad
             C \mapsto q \mathcal{C} + q^{-1} \mathcal{C}^{-1},
-            \qquad
+
+        .. MATH::
+
             \alpha, \beta, \gamma \mapsto \nu I,
 
         where `\nu = (q^2 + q^-2)(\lambda + \lambda^{-1})

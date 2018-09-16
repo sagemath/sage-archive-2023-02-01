@@ -2406,7 +2406,7 @@ class MPolynomialIdeal_singular_repr(
         from sage.misc.misc_c import prod
         hilbert_poincare = self.hilbert_series()
         denom = hilbert_poincare.denominator().factor()
-        second_hilbert = hilbert_poincare.numerator()*denom.unit()
+        second_hilbert = hilbert_poincare.numerator()
         t = second_hilbert.parent().gen()
         s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
         coefs = second_hilbert.list()

@@ -270,7 +270,7 @@ In case that Python code calls ``x._add_(y)`` directly,
 continue down the MRO and find the ``_add_`` method in the category.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006-2016 ...
 #       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
@@ -278,8 +278,8 @@ continue down the MRO and find the ``_add_`` method in the category.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, division, print_function
 
@@ -380,7 +380,6 @@ cdef class Element(SageObject):
     .. automethod:: __sub__
     .. automethod:: __neg__
     .. automethod:: __mul__
-    .. automethod:: __div__
     .. automethod:: __truediv__
     .. automethod:: __floordiv__
     .. automethod:: __mod__
@@ -849,13 +848,6 @@ cdef class Element(SageObject):
 
             sage: (0).n(algorithm='foo')
             0.000000000000000
-
-        The ``.N`` method is a deprecated alias::
-
-            sage: 0.N()
-            doctest:...: DeprecationWarning: N is deprecated. Please use n instead.
-            See http://trac.sagemath.org/13055 for details.
-            0.000000000000000
         """
         from sage.arith.numerical_approx import numerical_approx_generic
         if prec is None:
@@ -872,8 +864,6 @@ cdef class Element(SageObject):
             0.666666666666667
         """
         return self.numerical_approx(prec, digits, algorithm)
-
-    N = deprecated_function_alias(13055, n)
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -2598,9 +2588,9 @@ cdef class RingElement(ModuleElement):
             sage: p(2, 1/2)
             sqrt(2)
 
-        TESTS::
+        TESTS:
 
-        These aren't testing this code, but they are probably good to have around::
+        These are not testing this code, but they are probably good to have around::
 
             sage: 2r**(SR(2)-1-1r)
             1

@@ -1114,10 +1114,11 @@ def edge_connectivity(G,
                 return 1.0
 
 
-    if g.is_directed():
-        reorder_edge = lambda x,y : (x,y)
-    else:
-        reorder_edge = lambda x,y : frozenset((x,y))
+    def reorder_edge(x, y):
+        if g.is_directed():
+            return (x,y)
+        else:
+            return frozenset((x,y))
 
     from sage.numerical.mip import MixedIntegerLinearProgram
 

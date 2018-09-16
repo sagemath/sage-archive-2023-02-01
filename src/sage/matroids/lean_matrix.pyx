@@ -2949,8 +2949,8 @@ cdef class PlusMinusOneMatrix(LeanMatrix):
 
         EXAMPLES::
 
-            sage: from sage.matroids.lean_matrix import IntegerMatrix
-            sage: A = IntegerMatrix(3, 4)
+            sage: from sage.matroids.lean_matrix import PlusMinusOneMatrix
+            sage: A = PlusMinusOneMatrix(3, 4)
             sage: A.characteristic()
             0
         """
@@ -3232,13 +3232,13 @@ cdef class RationalMatrix(LeanMatrix):
 
         EXAMPLES::
 
-            sage: from sage.matroids.lean_matrix import RationalMatrix, IntegerMatrix
+            sage: from sage.matroids.lean_matrix import RationalMatrix, PlusMinusOneMatrix
             sage: A = RationalMatrix(2, 2, Matrix(GF(3), [[0, 0], [0, 0]]))
             sage: B = RationalMatrix(2, 2)
             sage: A == B
             True
 
-            sage: IM = IntegerMatrix(2, 2, Matrix([[-1, 0], [0, 1]]))
+            sage: IM = PlusMinusOneMatrix(2, 2, Matrix([[-1, 0], [0, 1]]))
             sage: A = RationalMatrix(2, 2, IM)
             sage: B = RationalMatrix(2, 2, Matrix(QQ, [[-1, 0], [0, 1]]))
             sage: A == B
@@ -3249,9 +3249,9 @@ cdef class RationalMatrix(LeanMatrix):
             if isinstance(M, RationalMatrix):
                 for i in range((<RationalMatrix>M)._nrows * (<RationalMatrix>M)._ncols):
                     mpq_set(self._entries[i], (<RationalMatrix>M)._entries[i])
-            if isinstance(M, IntegerMatrix):
-                for i in range((<IntegerMatrix> M)._nrows * (<IntegerMatrix> M)._ncols):
-                    mpq_set_si(self._entries[i], (<IntegerMatrix> M)._entries[i], 1)
+            if isinstance(M, PlusMinusOneMatrix):
+                for i in range((<PlusMinusOneMatrix> M)._nrows * (<PlusMinusOneMatrix> M)._ncols):
+                    mpq_set_si(self._entries[i], (<PlusMinusOneMatrix> M)._entries[i], 1)
             elif isinstance(M, LeanMatrix):
                 for i in range(M.nrows()):
                     for j in range(M.ncols()):

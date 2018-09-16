@@ -3681,6 +3681,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
               Defn: a |--> 7.237653139801104?)
             sage: elt == rt
             False
+            sage: AA(elt)
+            Traceback (most recent call last):
+            ...
+            ValueError: need a real or complex embedding to convert a non rational element of a number field into an algebraic number
             sage: hom(elt) == rt
             True
 
@@ -3691,6 +3695,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             a^2 - 5*a - 19
             sage: elt == rt
             True
+            sage: AA(elt)
+            -2.804642726932742?
+            sage: RR(elt)
+            -2.804642726932742
             sage: hom(elt) == rt
             True
 

@@ -403,9 +403,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         INPUT:
 
-        - ``data`` -- a dictionary.
+        - ``data`` -- a dictionary
 
-        - ``verbose`` -- a boolean (default: ``False``).
+        - ``verbose`` -- a boolean (default: ``False``)
 
         TESTS::
 
@@ -468,7 +468,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         INPUT:
 
-        - ``data`` -- a dictionary of PyNormaliz cone input properties.
+        - ``data`` -- a dictionary of PyNormaliz cone input properties
 
         - ``file_output`` (string; optional) -- a filename to which the
           representation should be written. If set to ``None`` (default),

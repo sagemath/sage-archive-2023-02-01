@@ -21,6 +21,8 @@
 # is set
 test -z "$SAGE_ROOT" || cd "$SAGE_ROOT"
 
+export PATH="$SAGE_ROOT/build/bin:$PATH"
+
 PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
@@ -56,7 +58,7 @@ bootstrap () {
 
 # Bootstrap by downloading the auto-generated files
 bootstrap-download () {
-    build/bin/sage-download-file configure-$CONFVERSION.tar.gz
+    sage-download-file configure-$CONFVERSION.tar.gz
     if [ $? -ne 0 ]; then
         echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
         exit 1

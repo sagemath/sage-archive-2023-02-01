@@ -2421,13 +2421,18 @@ class MPolynomialIdeal_singular_repr(
             sage: J.hilbert_polynomial(algorithm = 'singular') == J.hilbert_polynomial()
             True
 
-        However, Singular has limitations making it fail in bigger examples::
+        Here is a bigger examples::
 
             sage: n = 4; m = 11; P = PolynomialRing(QQ, n * m, "x"); x = P.gens(); M = Matrix(n, x)
             sage: Minors = P.ideal(M.minors(2))
             sage: hp = Minors.hilbert_polynomial(); hp
             1/21772800*t^13 + 61/21772800*t^12 + 1661/21772800*t^11 + 26681/21772800*t^10 + 93841/7257600*t^9 + 685421/7257600*t^8 + 1524809/3110400*t^7 + 39780323/21772800*t^6 + 6638071/1360800*t^5 + 12509761/1360800*t^4 + 2689031/226800*t^3 + 1494509/151200*t^2 + 12001/2520*t + 1
-            sage: Minors.hilbert_polynomial(algorithm = 'singular')
+
+        Because Singular uses 32-bit integers, the above example would fail with Singular.
+        We don't test it here, as it has a side-effect on other tests that is not
+        understood yet (see :trac:`26300`)::
+
+            sage: Minors.hilbert_polynomial(algorithm = 'singular')    # not tested
             Traceback (most recent call last):
             ...
             RuntimeError: error in Singular function call 'hilbPoly':
@@ -2436,7 +2441,7 @@ class MPolynomialIdeal_singular_repr(
             expected intvec-expression. type 'help intvec;'
 
         Note that in this example, the Hilbert polynomial gives the coefficients of
-        the Hilbert-Poincaré series in any degree::
+        the Hilbert-Poincaré series in all degrees::
 
             sage: P = PowerSeriesRing(QQ, 't', default_prec = 50)
             sage: hs = Minors.hilbert_series()

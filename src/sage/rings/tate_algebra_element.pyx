@@ -1,3 +1,6 @@
+from sage.structure.element import coerce_binop
+from sage.structure.richcmp import op_EQ, op_NE, op_LT, op_GT, op_LE, op_GE
+
 from sage.structure.element cimport Element
 from sage.structure.element cimport MonoidElement
 from sage.structure.element cimport CommutativeAlgebraElement
@@ -5,8 +8,6 @@ from sage.structure.element cimport CommutativeAlgebraElement
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-
-from sage.structure.element import coerce_binop
 
 from sage.rings.polynomial.polydict cimport PolyDict
 from sage.rings.polynomial.polydict cimport ETuple
@@ -197,7 +198,17 @@ cdef class TateAlgebraTerm(MonoidElement):
         ans._coeff = self._coeff * (<TateAlgebraTerm>other)._coeff
         return ans
 
-    cpdef int _cmp_(self, other) except -2:
+    #cdef int _cmp_(self, other) except -2:
+    #    cdef TateAlgebraTerm s = <TateAlgebraTerm>self
+    #    cdef TateAlgebraTerm o = <TateAlgebraTerm>other
+    #    c = -cmp(s._valuation_c(), o._valuation_c())
+    #    if c: return c
+    #    skey = s._parent.term_order().sortkey
+    #    c = cmp(skey(s._exponent), skey(o._exponent))
+    #    if c: return c
+    #    return cmp(s._coeff, o._coeff)
+
+    cpdef _richcmp_(self, other, int op):
         r"""
         Compare the Tate algebra term with another
 
@@ -233,22 +244,35 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: ss = T(3,(2,2)); ss
             (...0000000011)*x^2*y^2
             sage: s < ss # indirect doctest
-            True
+            False
             sage: s > ss # indirect doctest
             False
         
-        
         """
-        cdef int c
-        c = cmp(-(<TateAlgebraTerm>self)._valuation_c(), 
-                -(<TateAlgebraTerm>other)._valuation_c())
-        if c: return c
-        T = (<TateAlgebraTerm>self)._parent.term_order()
-        c = cmp(T.sortkey((<TateAlgebraTerm>self)._exponent), 
-                T.sortkey((<TateAlgebraTerm>other)._exponent))
-        if c: return c
-        return cmp((<TateAlgebraTerm>self)._coeff, 
-                   (<TateAlgebraTerm>other)._coeff)
+        cdef TateAlgebraTerm s = <TateAlgebraTerm>self
+        cdef TateAlgebraTerm o = <TateAlgebraTerm>other
+        if op == op_EQ:
+            return s._coeff == o._coeff and s._exponent == o._exponent
+        if op == op_NE:
+            return s._coeff != o._coeff or s._exponent != o._exponent
+        c = -cmp(s._valuation_c(), o._valuation_c())
+        if not c:
+            skey = s._parent.term_order().sortkey
+            c = cmp(skey(s._exponent), skey(o._exponent))
+        if op == op_LT:
+            return c < 0
+        if op == op_LE:
+            return c <= 0
+        if op == op_GT:
+            return c > 0
+        if op == op_GE:
+            return c >= 0
+
+    cpdef TateAlgebraTerm monic(self):
+        cdef TateAlgebraTerm ans = self._new_c()
+        ans._coeff = self._parent.base_ring().fraction_field()(1)
+        ans._exponent = self._exponent
+        return ans
 
     def valuation(self):
         return ZZ(self._valuation_c())
@@ -931,6 +955,19 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         self._terms.sort(reverse=True)
         return self._terms
 
+    def monomials(self):
+        if not self._is_normalized:
+            self._normalize()
+        cdef TateAlgebraTerm oneterm = self._parent._oneterm
+        cdef TateAlgebraTerm term
+        monomials = []
+        for (e,c) in self._poly.__repn.iteritems():
+            term = oneterm._new_c()
+            term._coeff = oneterm._coeff
+            term._exponent = e
+            monomials.append(term)
+        return monomials
+
     def coefficients(self):
         r"""
         Return the list of coefficients of the Tate series
@@ -1150,6 +1187,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return terms[0].coefficient()
         else:
             return self.base_ring()(0)
+
+    def leading_monomial(self):
+        terms = self.terms()
+        if terms:
+            return terms[0].monic()
+        else:
+            raise ValueError("zero has no leading monomial")
 
     cpdef monic(self):
         r"""

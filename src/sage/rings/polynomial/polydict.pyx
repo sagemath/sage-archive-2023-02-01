@@ -237,8 +237,8 @@ cdef class PolyDict:
 
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
-            sage: f.coefficients()
-            [3, 2, 4]
+            sage: sorted(f.coefficients())
+            [2, 3, 4]
         """
         return list(self.__repn.values())
 
@@ -1003,7 +1003,7 @@ cdef class ETuple:
                 self._data[2*ind] = index
                 self._data[2*ind+1] = exp
                 ind += 1
-        elif isinstance(data, list) or isinstance(data, tuple):
+        elif isinstance(data, (list, tuple)):
             self._length = len(data)
             self._nonzero = 0
             for v in data:
@@ -1576,7 +1576,7 @@ cdef class ETuple:
         Checking that memory allocation works fine::
 
             sage: from sage.rings.polynomial.polydict import ETuple
-            sage: t = ETuple(range(2048))
+            sage: t = ETuple(list(range(2048)))
             sage: for n in range(1,9):
             ....:     t = t.escalar_div(n)
             sage: assert t.is_constant()

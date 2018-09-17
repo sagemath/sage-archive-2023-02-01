@@ -4065,8 +4065,8 @@ can then be queried for invariant and covariants. For example,
         INPUT:
 
         - ``quintic`` -- a homogeneous polynomial of degree five in two
-        variables or an inhomegeneous polynomial of degree at most five in one
-        variable.
+          variables or an inhomegeneous polynomial of degree at most five in one
+          variable.
 
         - ``*args`` -- the two homogeneous variables. If only one variable is
           given, the polynomial `quintic` is assumed to be inhomogeneous. If

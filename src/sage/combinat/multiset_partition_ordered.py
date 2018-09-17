@@ -966,7 +966,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
 
         OUTPUT:
 
-        The minimaj bijection `\varphi` of Benkart et al. [BCHOPSY2017]_
+        The minimaj bijection `\phi` of [BCHOPSY2017]_
         applied to ``self``.
 
         .. TODO::
@@ -1423,11 +1423,11 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                 elif "order" in constraints:
                     raise ValueError("cannot pass order as second argument and keyword argument")
                 if constraints == {}:
-                    return OrderedMultisetPartitionsIntoSets_Ad(frozenset(alph), order)
+                    return OrderedMultisetPartitionsIntoSets_alph_d(frozenset(alph), order)
                 else:
-                    return OrderedMultisetPartitionsIntoSets_Ad_constraints(frozenset(alph), order, **constraints)
+                    return OrderedMultisetPartitionsIntoSets_alph_d_constraints(frozenset(alph), order, **constraints)
             elif frozenset(alph) == frozenset() and order == 0:
-                return OrderedMultisetPartitionsIntoSets_Ad_constraints(frozenset(alph), order, **constraints)
+                return OrderedMultisetPartitionsIntoSets_alph_d_constraints(frozenset(alph), order, **constraints)
             else:
                 raise ValueError("alphabet=%s must be a nonempty set and order=%s must be a nonnegative integer" % (alph, order))
 
@@ -2376,7 +2376,7 @@ class OrderedMultisetPartitionsIntoSets_X_constraints(OrderedMultisetPartitionsI
 
 ###############
 
-class OrderedMultisetPartitionsIntoSets_Ad(OrderedMultisetPartitionsIntoSets):
+class OrderedMultisetPartitionsIntoSets_alph_d(OrderedMultisetPartitionsIntoSets):
     """
     Class of ordered multiset partitions into sets of specified order `d`
     over a fixed alphabet `A`.
@@ -2419,7 +2419,7 @@ class OrderedMultisetPartitionsIntoSets_Ad(OrderedMultisetPartitionsIntoSets):
 
     def _an_element_(self):
         """
-        Return a typical element of ``OrderedMultisetPartitionIntoSets_Ad``.
+        Return a typical element of ``OrderedMultisetPartitionIntoSets_alph_d``.
 
         EXAMPLES::
 
@@ -2507,14 +2507,14 @@ class OrderedMultisetPartitionsIntoSets_Ad(OrderedMultisetPartitionsIntoSets):
                 deg += prod(binomial(len(self._alphabet), a) for a in alpha)
         return ZZ(deg)
 
-class OrderedMultisetPartitionsIntoSets_Ad_constraints(OrderedMultisetPartitionsIntoSets):
+class OrderedMultisetPartitionsIntoSets_alph_d_constraints(OrderedMultisetPartitionsIntoSets):
     """
     Class of ordered multiset partitions into sets of specified order `d`
     over a fixed alphabet `A` satisfying constraints.
     """
     def __init__(self, A, d, **constraints):
         """
-        Mimic class ``OrderedMultisetPartitionsIntoSets_Ad`` to initialize.
+        Mimic class ``OrderedMultisetPartitionsIntoSets_alph_d`` to initialize.
 
         EXAMPLES::
 
@@ -3114,7 +3114,7 @@ def _to_minimaj_blocks(T):
 
     OUTPUT:
 
-    The minimaj bijection `\varphi^{-1}` of [BCHOPSY2017]_ applied to ``T``.
+    The minimaj bijection `\phi^{-1}` of [BCHOPSY2017]_ applied to ``T``.
 
     EXAMPLES::
 
@@ -3150,12 +3150,8 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
         Elements are not stored internally as ordered multiset partitions
         into sets, but as certain (pairs of) words stemming from the minimaj
-        bijection `\varphi` of [BCHOPSY2017]_. See :class:`crystals.Minimaj.Element`
+        bijection `\phi` of [BCHOPSY2017]_. See :class:`crystals.Minimaj.Element`
         for further details.
-
-    REFERENCES:
-
-    - [BCHOPSY2017]_
 
     AUTHORS:
 
@@ -3311,7 +3307,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
     def from_tableau(self, t):
         r"""
-        Return the bijection `\varphi^{-1}` of [BCHOPSY2017]_ applied to ``t``.
+        Return the bijection `\phi^{-1}` of [BCHOPSY2017]_ applied to ``t``.
 
         INPUT: ``t`` -- a sequence of column tableaux and a ribbon tableau
 
@@ -3378,7 +3374,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
               letters `1` up to ``self.parent().n``;
             - ``breaks`` is a list of de-concatenation points to turn ``w``
               into a list of row words of (skew-)tableaux that represent
-              `b` under the minimaj bijection `\varphi` of [BCHOPSY2017]_.
+              `b` under the minimaj bijection `\phi` of [BCHOPSY2017]_.
 
             The pair ``(w, breaks)`` may be recovered via ``b.value``.
         """
@@ -3439,7 +3435,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         def to_tableaux_words(self):
             r"""
             Return the image of the ordered multiset partition into sets ``self``
-            under the minimaj bijection `\varphi` of [BCHOPSY2017]_.
+            under the minimaj bijection `\phi` of [BCHOPSY2017]_.
 
             EXAMPLES::
 

@@ -769,11 +769,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     def __eq__(self, other):
         r"""
-        Test whether the Tate algebra is equal to another
+        Test whether the Tate series is equal to another
 
         INPUT:
 
-        - ``other`` - the Tate algebra to compare with
+        - ``other`` - the Tate series to compare with
 
         EXAMPLES::
 

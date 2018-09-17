@@ -2399,6 +2399,17 @@ class MPolynomialIdeal_singular_repr(
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I.hilbert_polynomial()
             5*t - 5
+
+        Of course, the Hilbert polynomial of a zero-dimensional ideal
+        is zero::
+
+            sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5, y^3-2*x*z^2+x*y,x^4+x*y-y*z^2])
+            sage: J = P*[m.lm() for m in I.groebner_basis()]
+            sage: J.dimension()
+            0
+            sage: J.hilbert_polynomial()
+            0
+
         """
         if not self.is_homogeneous():
             raise TypeError("Ideal must be homogeneous.")
@@ -2408,9 +2419,14 @@ class MPolynomialIdeal_singular_repr(
         denom = hilbert_poincare.denominator().factor()
         second_hilbert = hilbert_poincare.numerator()
         t = second_hilbert.parent().gen()
-        s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
+        if len(denom):
+            s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
+        else:
+            return t.parent().zero()
         coefs = second_hilbert.list()
-        return sum([coefs[n]*prod([s-1+t-n-nu for nu in range(s-1)]) for n in range(len(coefs))])/ZZ(s-1).factorial()
+        out = sum([coefs[n]*prod([s-1+t-n-nu for nu in range(s-1)]) for n in range(len(coefs))])/ZZ(s-1).factorial()
+        assert out.leading_coefficient()>=0
+        return out
 
     @require_field
     def hilbert_series(self, singular=singular_default, grading=None):

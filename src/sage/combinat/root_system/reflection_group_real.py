@@ -596,14 +596,15 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         from sage.graphs.graph import Graph
         from itertools import combinations
+
         V = self.index_set()
         S = self.simple_reflections()
-        G = Graph([V,[]],format='vertices_and_edges')
-        for i,j in combinations(V,2):
+        E = []
+        for i,j in combinations(V, 2):
             o = (S[i]*S[j]).order()
             if o >= 3:
-                G.add_edge(i,j,o)
-        return G
+                E.append((i,j,o))
+        return Graph([V,E], format='vertices_and_edges', immutable=True)
 
     @cached_method
     def coxeter_matrix(self):

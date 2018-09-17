@@ -2087,7 +2087,7 @@ class OrderedMultisetPartitionsIntoSets_n(OrderedMultisetPartitionsIntoSets):
                     out.append([a//2, a//2-1, 1])
         return self.element_class(self, map(frozenset, out))
 
-    def random_element_fast(self):
+    def random_element(self):
         """
         Return a random element of ``self``.
 
@@ -2107,7 +2107,7 @@ class OrderedMultisetPartitionsIntoSets_n(OrderedMultisetPartitionsIntoSets):
             sage: OMP = OrderedMultisetPartitionsIntoSets(5)
             sage: d = {}
             sage: for _ in range(1100):
-            ....:     x = OMP.random_element_fast()
+            ....:     x = OMP.random_element()
             ....:     d[x] = d.get(x, 0) + 1
             sage: d.values()  # random
             [72, 73, 162, 78, 135, 75, 109, 65, 135, 134, 62]
@@ -2214,7 +2214,7 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
 
         TESTS::
 
-            sage: from sage.combinat.multiset_partition_ordered import OrderedMultisetPartitionsIntoSets_X as OMPX
+            sage: from sage.combinat.multiset_partition_into_sets_ordered import OrderedMultisetPartitionsIntoSets_X as OMPX
             sage: [[2,1], [1,3]] in OMPX(((1,2), (2,1), (3,1)))
             True
             sage: co = OrderedMultisetPartitionIntoSets([[2,1], [1,3]])
@@ -2283,7 +2283,7 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
         elt.extend(co[i+1:])
         return self.element_class(self, map(frozenset, elt))
 
-    def random_element_fast(self):
+    def random_element(self):
         """
         Return a random element of ``self``.
 
@@ -2304,7 +2304,7 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
             sage: OMP = OrderedMultisetPartitionsIntoSets([1,1,3,3])
             sage: d = {}
             sage: for _ in range(1e00):
-            ....:     x = OMP.random_element_fast()
+            ....:     x = OMP.random_element()
             ....:     d[x] = d.get(x, 0) + 1
             sage: d.values()  # random
             [102, 25, 76, 24, 66, 88, 327, 27, 83, 83, 239, 72, 88]
@@ -2430,7 +2430,7 @@ class OrderedMultisetPartitionsIntoSets_alph_d(OrderedMultisetPartitionsIntoSets
         co = [Subsets_sk(self._alphabet, a).an_element() for a in alpha]
         return self.element_class(self, map(frozenset, co))
 
-    def random_element_fast(self):
+    def random_element(self):
         r"""
         Return a random element of ``self``.
 
@@ -2442,15 +2442,15 @@ class OrderedMultisetPartitionsIntoSets_alph_d(OrderedMultisetPartitionsIntoSets
 
         EXAMPLES::
 
-            sage: OrderedMultisetPartitionsIntoSets([1,4], 3).random_element_fast()  # random
+            sage: OrderedMultisetPartitionsIntoSets([1,4], 3).random_element()  # random
             [{4}, {1,4}]
-            sage: OrderedMultisetPartitionsIntoSets([1,3], 4).random_element_fast()  # random
+            sage: OrderedMultisetPartitionsIntoSets([1,3], 4).random_element()  # random
             [{1,3}, {1}, {3}]
 
             sage: OMP = OrderedMultisetPartitionsIntoSets([2,3,4], 2)
             sage: d = {}
             sage: for _ in range(1200):
-            ....:     x = OMP.random_element_fast()
+            ....:     x = OMP.random_element()
             ....:     d[x] = d.get(x, 0) + 1
             sage: d.values()  # random
             [192, 68, 73, 61, 69, 60, 77, 204, 210, 66, 53, 67]
@@ -2567,7 +2567,7 @@ def _get_multiset(co):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _get_multiset
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _get_multiset
         sage: L = ((1,), (1, 6), (6, 7), (1,), (1, 3))
         sage: _get_multiset(L)
         (1, 1, 1, 1, 3, 6, 6, 7)
@@ -2581,7 +2581,7 @@ def _get_weight(lst):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _get_weight
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _get_weight
         sage: L = (1, 1, 1, 3, 1, 6, 6, 7)
         sage: _get_weight(L)
         {1: 4, 3: 1, 6: 2, 7: 1}
@@ -2597,7 +2597,7 @@ def _has_nonempty_sets(x):
 
     TESTS::
 
-        sage: from sage.combinat.multiset_partition_ordered import _has_nonempty_sets
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _has_nonempty_sets
         sage: _has_nonempty_sets([[2,4], {1}, (1,4)])
         True
         sage: _has_nonempty_sets([[2,4], {}, (1,4)])
@@ -2615,7 +2615,7 @@ def _union_of_sets(list_of_sets):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _union_of_sets
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _union_of_sets
         sage: L = ([1,2,3], Set([1,5,6]), [], range(5,8))
         sage: _union_of_sets(L)
         frozenset({1, 2, 3, 5, 6, 7})
@@ -2628,7 +2628,7 @@ def _concatenate(list_of_iters):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _concatenate
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _concatenate
         sage: L = ([1,2,3], Set([4,5,6]), [], range(7,11))
         sage: _concatenate(L)
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
@@ -2648,7 +2648,7 @@ def _is_finite(constraints):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _is_finite
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _is_finite
         sage: W = {"weight": {1:3, 2:3, 4:1}, "length": 5}
         sage: S = {"size": 44, "min_length": 5}
         sage: AO = {"alphabet": range(44), "max_order": 5}
@@ -2683,7 +2683,7 @@ def _base_iterator(constraints):
     If key ``weight`` is present, ignore all other constraints
     (passes to ``_iterator_weight``)::
 
-        sage: from sage.combinat.multiset_partition_ordered import _base_iterator
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _base_iterator
         sage: OMP = OrderedMultisetPartitionIntoSets
         sage: constraints = {"weight": {1:3, 2:3, 4:1}, "length": 5}
         sage: it = _base_iterator(constraints)
@@ -2771,7 +2771,7 @@ def _iterator_weight(weight):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _iterator_weight
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _iterator_weight
         sage: weight = {1:2, 'b':1}
         sage: OMP = OrderedMultisetPartitionsIntoSets(weight)
         sage: l = list(_iterator_weight(weight))
@@ -2839,7 +2839,7 @@ def _iterator_size(size, length=None, alphabet=None):
 
     TESTS::
 
-        sage: from sage.combinat.multiset_partition_ordered import _iterator_size
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _iterator_size
         sage: OMP = OrderedMultisetPartitionsIntoSets(3)
         sage: map(OMP, _iterator_size(3))
         [[{3}], [{1,2}], [{2}, {1}], [{1}, {2}], [{1}, {1}, {1}]]
@@ -2888,7 +2888,7 @@ def _iterator_order(A, d, lengths=None):
 
     TESTS::
 
-        sage: from sage.combinat.multiset_partition_ordered import _iterator_order
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _iterator_order
         sage: OMP = OrderedMultisetPartitionsIntoSets([1,4], 3)
         sage: map(OMP, _iterator_order({1,4}, 3))
         [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
@@ -2943,7 +2943,7 @@ def _descents(w):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _descents
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _descents
         sage: _descents([1, 2, 3, 2, 2, 1, 4, 3]) == [2, 4, 6]
         True
         sage: _descents([])
@@ -2969,7 +2969,7 @@ def _break_at_descents(alpha, weak=True):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _break_at_descents
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _break_at_descents
         sage: _break_at_descents([1, 2, 3, 2, 2, 1, 4, 3])
         [[1, 2, 3], [2], [2], [1, 4], [3]]
         sage: _break_at_descents([1, 2, 3, 2, 2, 1, 4, 3], weak=False)
@@ -3005,7 +3005,7 @@ def _refine_block(S, strong=False):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _refine_block
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _refine_block
         sage: _refine_block([1, 2], strong=True)
         [(frozenset({1}), frozenset({2})), (frozenset({1, 2}),)]
 
@@ -3057,7 +3057,7 @@ def _is_initial_segment(lst):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _is_initial_segment
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _is_initial_segment
         sage: _is_initial_segment([1, 2, 3])
         False
         sage: _is_initial_segment([0, 1, 2, 3])
@@ -3077,7 +3077,7 @@ def _split_block(S, k=2):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _split_block
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _split_block
         sage: S = [1, 2, 3]
         sage: _split_block(S, 1)
         [(frozenset({1, 2, 3}),)]
@@ -3118,7 +3118,7 @@ def _to_minimaj_blocks(T):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import _to_minimaj_blocks
+        sage: from sage.combinat.multiset_partition_into_sets_ordered import _to_minimaj_blocks
         sage: co = OrderedMultisetPartitionsIntoSets(14).an_element(); co
         [{2,3}, {2,3}, {4}]
         sage: co.to_tableaux_words()

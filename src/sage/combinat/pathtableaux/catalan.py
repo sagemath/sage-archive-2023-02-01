@@ -30,6 +30,7 @@ AUTHORS:
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.combinat.pathtableaux.pathtableau import PathTableau, PathTableaux
+from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.skew_tableau import SkewTableau
@@ -176,6 +177,7 @@ class CatalanTableau(PathTableau):
             if abs(self[i+1]-self[i]) != 1:
                 raise ValueError( "%s is not a Dyck path" % str(self) )
 
+    @staticmethod
     def _rule(x):
         """
         Overwrites the abstract method.
@@ -189,15 +191,6 @@ class CatalanTableau(PathTableau):
             1
         """
         return abs(x[0]-x[1]+x[2])
-
-        _conversions = [ "to_DyckWord",
-                         "to_standard_tableau",
-                         "to_tableau",
-                         "to_noncrossing_partition",
-                         "to_binary_tree",
-                         "to_ordered_tree",
-                         "to_to_non_decreasing_parking_function",
-                         "to_alternating_sign_matrix" ]
 
     def is_skew(self):
         """
@@ -213,7 +206,17 @@ class CatalanTableau(PathTableau):
         """
         return self[0] != 0
 
+    @combinatorial_map(name='to Dyck word')
     def to_DyckWord(self):
+        """
+        Converts ``self`` to a Dyck word.
+
+        EXAMPLES::
+
+            sage: c = CatalanTableau([0,1,2,1,0])
+            sage: c.to_DyckWord()
+            [1, 1, 0, 0]
+        """
         return DyckWord(heights_sequence = list(self))
 
     def descents(self):
@@ -233,20 +236,7 @@ class CatalanTableau(PathTableau):
 
         return result
 
-
-
-
-
-#class PathTableaux(UniqueRepresentation,Parent):
-#
-#    def __init__(self):
-#        Parent.__init__(self, category = Sets())
-#
-#    def _element_constructor_(self, *args, **keywords):
-#        return self.element_class(self, *args, **keywords)
-#
-#    Element = PathTableau
-
-class CatalanTableaux(PathTableaux):
+class CatalanTableaux(PathTableaux)
 
     Element = CatalanTableau
+

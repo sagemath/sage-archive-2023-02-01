@@ -39,10 +39,15 @@ AUTHORS:
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
 from sage.structure.list_clone import ClonableList
 from sage.categories.sets_cat import Sets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_graded
+from sage.rings.integer import Integer
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
@@ -58,6 +63,90 @@ class PathTableau(ClonableList):
         of length three is an involution: apply the rule to a list
         and replace the middle term with the output.
         """
+
+    def __getattr__(self,name):
+        """
+        A magic method. If the method meth:`name' is not defined then
+        this converts ``self`` and tries to apply the method on the result.
+
+        TESTS::
+
+            sage: c = CatalanTableau([0,1,2,1,0])
+            sage: c.plot()
+            Graphics object consisting of 1 graphics primitive
+            sage: c._latex_()
+            '\\vcenter{\\hbox{$\\begin{tikzpicture}[scale=1]\n  \\draw[dotted] (0, 0) grid (4, 2);\n  \\draw[rounded corners=1, color=black, line width=2] (0, 0) -- (1, 1) -- (2, 2) -- (3, 1) -- (4, 0);\n\\end{tikzpicture}$}}'
+            sage: c.major_index()
+            0
+            sage: c.associated_parenthesis(2)
+            1
+            sage: c.nonsense()
+            ...
+            AttributeError: unable to find method nonsense
+
+        """
+        for x in self.parent()._conversions:
+            try:
+                return getattr(getattr(self,x)(),name)
+            except:
+                pass
+
+        raise AttributeError("unable to find method "+name)
+
+    def _test_conversions(self):
+        """
+        Test that the conversions work.
+
+        TESTS::
+
+            sage: c = CatalanTableau([0,1,2,1,0])
+            sage: c._test_conversions()
+            to_DyckWord
+            (())
+            <BLANKLINE>
+            to_standard_tableau
+            [[1, 2], [3, 4]]
+            <BLANKLINE>
+            to_binary_tree
+            [[., .], .]
+            <BLANKLINE>
+            to_noncrossing_partition
+            [[1, 2]]
+            <BLANKLINE>
+            to_ordered_tree
+            [[[]]]
+            <BLANKLINE>
+            to_non_decreasing_parking_function
+            [1, 1]
+            <BLANKLINE>
+            to_alternating_sign_matrix
+            [0 1]
+            [1 0]
+
+        """
+        for x in self.parent()._conversions:
+            print x, "\n", getattr(self,x)(), "\n"
+
+    def _test_getattr(self):
+        """
+        sage: c = CatalanTableau([0,1,0])
+        sage: c._test_getattr()
+        to_DyckWord
+        ...
+            transpose
+
+        """
+
+        for x in self.parent()._conversions:
+            print x
+            c = getattr(self,x)()
+            v = [ a for a in dir(c) if not a in dir(self) ]
+            for a in v:
+                try:
+                    getattr(self,a)()
+                    print("    "+a)
+                except:
+                    pass
 
 ################################# Book Keeping ################################
 
@@ -423,6 +512,17 @@ class PathTableau(ClonableList):
             [0 1 1 1 0 0 1 1 1 1 1 0 1 1]
             [0 1 0 1 1 1 0 1 1 1 1 1 0 1]
             [0 0 0 0 1 0 1 0 0 1 1 1 1 0]
+            sage: s = CatalanTableau([0,1,2,3,2,1,0])
+            sage: sorted(s.dual_equivalence_graph().edges())
+            [([0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 2, 1, 0], '4,7'),
+             ([0, 1, 0, 1, 0, 1, 0], [0, 1, 2, 1, 0, 1, 0], '2,5'),
+             ([0, 1, 0, 1, 0, 1, 0], [0, 1, 2, 1, 2, 1, 0], '2,7'),
+             ([0, 1, 0, 1, 2, 1, 0], [0, 1, 2, 1, 0, 1, 0], '2,6'),
+             ([0, 1, 0, 1, 2, 1, 0], [0, 1, 2, 1, 2, 1, 0], '1,4'),
+             ([0, 1, 0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0], '2,7'),
+             ([0, 1, 2, 1, 0, 1, 0], [0, 1, 2, 1, 2, 1, 0], '4,7'),
+             ([0, 1, 2, 1, 0, 1, 0], [0, 1, 2, 3, 2, 1, 0], '3,7'),
+             ([0, 1, 2, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0], '3,6')]
 
         """
         from sage.graphs.graph import Graph
@@ -440,172 +540,4 @@ class PathTableau(ClonableList):
 
 class PathTableaux(UniqueRepresentation,Parent):
 
-    @staticmethod
-    def __classcall_private__(cls, n=None, straight=True):
-        """
-        Choose the correct parent based upon input.
-
-        EXAMPLES::
-
-            sage: DW1 = DyckWords(3,3)
-            sage: DW2 = DyckWords(3)
-            sage: DW1 is DW2
-            True
-        """
-        if not n is None:
-            straight=True
-
-        if not straight:
-            return PathTableaux_all()
-
-        if n is None:
-            return PathTableaux_straight()
-
-        n = ZZ(n)
-        if n < 0:
-            raise ValueError("n (= %s) must be nonnegative" % n)
-
-        return PathTableaux_size(n)
-
     Element = PathTableau
-
-########################################################################
-
-class PathTableaux_all(PathTableaux):
-
-    pass
-
-########################################################################
-
-class PathTableaux_straight(PathTableaux):
-    """
-    Paths starting with the empty path.
-    """
-    def __init__(self):
-        r"""
-        TESTS:
-
-            sage: TestSuite(DyckWords(4,2)).run()
-        """
-
-        PathTableaux.__init__(self, category=InfiniteEnumeratedSets())
-
-    def __contains__(self, x):
-        r"""
-        EXAMPLES::
-
-        """
-        return not x.is_skew()
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: PathTableaux_straight()
-            Paths starting with the empty path.
-        """
-        return "Paths starting with the empty path."
-
-    @cached_method
-    def elements(self):
-        r"""
-        Returns the elements of ``self``
-
-        Those are constructed as the elements below the maximal
-        elements of ``self`` in Bruhat order.
-
-        OUTPUT: a :class:`RecursivelyEnumeratedSet_generic` object
-
-        EXAMPLES::
-
-            sage: PF = WeylGroup(['A',3]).pieri_factors()
-            sage: [w.reduced_word() for w in PF.elements()]
-            [[3, 2, 1], [2, 1], [3, 1], [3, 2], [2], [1], [3], []]
-
-        .. SEEALSO:: :meth:`maximal_elements`
-
-        .. TODO::
-
-            Possibly remove this method and instead have this class
-            inherit from :class:`RecursivelyEnumeratedSet_generic`.
-        """
-        return RecursivelyEnumeratedSet(PathTableau([]),
-                _successors, structure='graded',
-                enumeration='naive')
-
-    def __iter__(self):
-        r"""
-        Returns an iterator over the elements of ``self``
-
-        EXAMPLES::
-
-        """
-        return iter(self.elements())
-
-
-
-########################################################################
-
-class PathTableau_size(PathTableau_straight):
-    """
-    Paths of length n starting with the empty path.
-    """
-    def __init__(self, n):
-        r"""
-        TESTS::
-
-            sage: TestSuite(DyckWords(4,2)).run()
-        """
-        self.n = ZZ(n)
-
-        PathTableaux.__init__(self, category=FiniteEnumeratedSets())
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: PathTableaux(4)
-            Paths of length 4 starting with the empty path.
-        """
-        return "Paths of length %s starting with the empty path." % self.n
-
-    def __contains__(self, x):
-        r"""
-        EXAMPLES::
-
-        """
-        return not x.is_skew() and x.size() == n
-
-    def __iter__(self):
-        r"""
-        Return an iterator for Dyck words with ``k1`` opening and ``k2``
-        closing parentheses.
-
-        EXAMPLES::
-
-            sage: list(DyckWords(0))
-            [[]]
-            sage: list(DyckWords(1))
-            [[1, 0]]
-            sage: list(DyckWords(2))
-            [[1, 0, 1, 0], [1, 1, 0, 0]]
-        111111    sage: len(DyckWords(5))
-            42
-            sage: list(DyckWords(3,2))
-            [[1, 0, 1, 0, 1],
-             [1, 0, 1, 1, 0],
-             [1, 1, 0, 0, 1],
-             [1, 1, 0, 1, 0],
-             [1, 1, 1, 0, 0]]
-        """
-        if self.k1 == 0:
-            yield self.element_class(self, [])
-        elif self.k2 == 0:
-            yield self.element_class(self, [open_symbol]*self.k1)
-        else:
-            for w in DyckWordBacktracker(self.k1, self.k2):
-                yield self.element_class(self, w)
-
-class PathTableaux_size(PathTableaux_straight):
-
-    Element = PathTableau_size

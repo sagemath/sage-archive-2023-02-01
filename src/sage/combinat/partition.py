@@ -331,7 +331,8 @@ from sage.rings.all import QQ, NN, ZZ, IntegerModRing
 
 # HELPERS
 def is_weakly_decreasing(li):
-    r""" Return whether every term in the iterable ``li`` is greater than or equal to the following term.
+    r"""
+    Return whether every term in the iterable ``li`` is greater than or equal to the following term.
 
     Used internally to check when a :class:`Partition`, :class:`Composition`, or list is weakly decreasing.
 
@@ -349,7 +350,8 @@ def is_weakly_decreasing(li):
 
 
 def is_strictly_decreasing(li):
-    r""" Return whether every term in the iterable ``li`` is greater than the following term.
+    r"""
+    Return whether every term in the iterable ``li`` is greater than the following term.
 
     Used internally to check when a :class:`Partition`, :class:`Composition`, or list is strictly decreasing.
 
@@ -367,7 +369,8 @@ def is_strictly_decreasing(li):
 
 
 def _is_sequence(obj):
-    r""" Helper function for internal use.
+    r"""
+    Helper function for internal use.
 
     Return whether ``obj`` is one of our allowed 'compositions'.
 
@@ -387,7 +390,8 @@ def _is_sequence(obj):
 
 
 def k_rectangle_dimension_list(k):
-    r""" Return the list of dimension pairs `(h, w)` such that `h + w = k + 1`.
+    r"""
+    Return the list of dimension pairs `(h, w)` such that `h + w = k + 1`.
 
     This exists mainly as a helper function for :meth:`partition.has_rectangle` and :meth:`k_shape.is_reducible`.
 
@@ -1330,7 +1334,8 @@ class Partition(CombinatorialElement):
         return (-1)**(self.size()-self.length())
 
     def k_size(ptn, k):
-        r""" Given a partition ``ptn`` and a ``k``, return the size of the `k`-boundary.
+        r"""
+        Given a partition ``ptn`` and a ``k``, return the size of the `k`-boundary.
 
         This is the same as the length method :meth:`sage.combinat.core.Core.length` of the :class:`sage.combinat.core.Core` object, with the exception that here we don't require ``ptn`` to be a `k+1`-core.
 
@@ -1354,7 +1359,8 @@ class Partition(CombinatorialElement):
         return ptn.k_boundary(k).size()
 
     def boundary(ptn):
-        r""" Return the integer coordinates of points on the boundary of ``ptn``.
+        r"""
+        Return the integer coordinates of points on the boundary of ``ptn``.
 
         The boundary of a partition is the set `\{ \text{NE}(d) \mid \forall d\:\text{diagonal} \}`.  That is, for every diagonal line `y = x + b` where `b \in \mathbb{Z}`, we find the northeasternmost (NE) point on that diagonal which is also in the Ferrer's diagram (here, the Ferrer's diagram is interpreted as 1 x 1 cells in the Euclidean plane).
 
@@ -1387,6 +1393,7 @@ class Partition(CombinatorialElement):
             [(3, 0), (3, 1), (2, 1), (1, 1), (1, 2), (0, 2)]
 
         TESTS::
+
         p = Partition([1])
         a(boundary(p), [(1,0), (1,1), (0,1)])
 
@@ -1426,7 +1433,8 @@ class Partition(CombinatorialElement):
         return bdy
 
     def k_rim(ptn, k):
-        r""" Return the ``k``-rim of ``ptn`` as a list of integer coordinates.
+        r"""
+        Return the ``k``-rim of ``ptn`` as a list of integer coordinates.
 
         The `k`-rim of a partition is the "line between" (or "intersection of") the `k`-boundary and the `k`-interior.  (Section 2.3 of [HM2011]_)
 
@@ -1479,7 +1487,8 @@ class Partition(CombinatorialElement):
         return rim
 
     def k_row_lengths(ptn, k):
-        r""" Given a partition, return it's `k`-row-shape.
+        r"""
+        Given a partition, return it's `k`-row-shape.
 
         This is equivalent to taking the `k`-boundary of the partition and then returning the row-shape of that.  We do *not* discard rows of length 0.  (Section 2.2 of [LLMS2013]_)
 
@@ -1499,7 +1508,8 @@ class Partition(CombinatorialElement):
 
 
     def k_column_lengths(ptn, k):
-        r""" Given a partition, return it's `k`-column-shape.
+        r"""
+        Given a partition, return it's `k`-column-shape.
 
         This is the 'column' analog of :meth:`k_row_lengths`.
 
@@ -1519,7 +1529,8 @@ class Partition(CombinatorialElement):
 
 
     def has_rectangle(ptn, h, w):
-        r""" A partition ``ptn`` has an `h` x `w` rectangle if it's Ferrer's diagram has `h` (*or more*) rows of length `w` (*exactly*).
+        r"""
+        A partition ``ptn`` has an `h` x `w` rectangle if it's Ferrer's diagram has `h` (*or more*) rows of length `w` (*exactly*).
 
         EXAMPLES::
 
@@ -1563,7 +1574,8 @@ class Partition(CombinatorialElement):
 
 
     def has_k_rectangle(ptn, k):
-        r""" A partition ``ptn`` has a `k`-rectangle if it's Ferrer's diagram contains `k-i+1` rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
+        r"""
+        A partition ``ptn`` has a `k`-rectangle if it's Ferrer's diagram contains `k-i+1` rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
 
         This is mainly a helper function for :meth:`is_k_reducible` and :meth:`is_k_irreducible`, the only difference between this function and :meth:`is_k_reducible` being that this function allows any partition as input while :meth:`is_k_reducible` requires the input to be `k`-bounded.
 
@@ -1606,7 +1618,8 @@ class Partition(CombinatorialElement):
 
 
     def is_k_bounded(ptn, k):
-        r""" Returns ``True`` if and only if the partition ``ptn`` is bounded by ``k``.
+        r"""
+        Returns ``True`` if and only if the partition ``ptn`` is bounded by ``k``.
 
         EXAMPLES::
 
@@ -1625,7 +1638,8 @@ class Partition(CombinatorialElement):
 
 
     def is_k_reducible(ptn, k):
-        r""" A `k`-bounded partition is `k`-*reducible* if it's Ferrer's diagram contains `k-i+1` rows (or more) of length `i` (exactly) for some `i \in [1, k]`.
+        r"""
+        A `k`-bounded partition is `k`-*reducible* if it's Ferrer's diagram contains `k-i+1` rows (or more) of length `i` (exactly) for some `i \in [1, k]`.
 
         (Also, a `k`-bounded partition is `k`-reducible if and only if it is not `k`-irreducible.)
 
@@ -1651,7 +1665,8 @@ class Partition(CombinatorialElement):
 
 
     def is_k_irreducible(ptn, k):
-        r""" A `k`-bounded partition is `k`-*irreducible* if it's Ferrer's diagram does *not* contain `k-i+1` rows (or more) of length `i` (exactly) for every `i \in [1, k]`.
+        r"""
+        A `k`-bounded partition is `k`-*irreducible* if it's Ferrer's diagram does *not* contain `k-i+1` rows (or more) of length `i` (exactly) for every `i \in [1, k]`.
 
         (Also, a `k`-bounded partition is `k`-irreducible if and only if it is not `k`-reducible.)
 
@@ -1675,7 +1690,8 @@ class Partition(CombinatorialElement):
 
 
     def is_symmetric(ptn):
-        r"""Given a partition ``ptn``, detect if ``ptn`` equals its own transpose.
+        r"""
+        Given a partition ``ptn``, detect if ``ptn`` equals its own transpose.
 
         EXAMPLES::
 
@@ -1688,7 +1704,8 @@ class Partition(CombinatorialElement):
 
 
     def next_within_bounds(p, min=[], max=None, type=None):
-        r"""Get the next partition lexicographically that contains min and is contained in max.
+        r"""
+        Get the next partition lexicographically that contains min and is contained in max.
 
         INPUTS:
 
@@ -1736,17 +1753,17 @@ class Partition(CombinatorialElement):
             raise ValueError('Input parameter ``max`` must be a Partition, a list, or ``None``.')
         # make sure min <= p <= max
         if max is not None:
-            assert Partition(max).contains(Partition(p))
-        assert Partition(p).contains(Partition(min))
+            assert _Partitions(max).contains(_Partitions(p))
+        assert _Partitions(p).contains(_Partitions(min))
         # check for empty max
-        if max is not None and Partition(max).is_empty():
+        if max is not None and _Partitions(max).is_empty():
             return None
         # convert partitions to lists to make them mutable
         p = list(p)
         min = list(min)
         # if there is no max, the next partition just tacks a '1' on to the end!
         if max is None:
-            return Partition(p + [1])
+            return _Partitions(p + [1])
         # extend p and min to include 0's at the end
         p = p + [0] * (len(max) - len(p))
         min = min + [0] * (len(max) - len(min))
@@ -1774,11 +1791,12 @@ class Partition(CombinatorialElement):
                 else:
                     next_p[r] = min[r]
                     continue
-        return Partition(next_p)
+        return _Partitions(next_p)
 
 
     def is_k_core(ptn, k):
-        r""" Returns a boolean saying whether or not the Partition ``ptn`` is a ``k``-core.
+        r"""
+        Returns a boolean saying whether or not the Partition ``ptn`` is a ``k``-core.
 
         EXAMPLES:
 
@@ -1793,7 +1811,7 @@ class Partition(CombinatorialElement):
 
             :meth:`Core`
         """
-        ptn = Partition(ptn)
+        ptn = _Partitions(ptn)
         for row_hook_lengths in ptn.hook_lengths():
             for hook_length in row_hook_lengths:
                 if hook_length == k:
@@ -1802,7 +1820,8 @@ class Partition(CombinatorialElement):
 
 
     def to_k_core(ptn, k):
-        r""" Shift the rows of ``ptn`` minimally in order to create a `k`-core.
+        r"""
+        Shift the rows of ``ptn`` minimally in order to create a `k`-core.
 
         Returns a :class:`Partition` object, not a :class:`Core` object.
 
@@ -1839,7 +1858,7 @@ class Partition(CombinatorialElement):
             if core == []:
                 core.insert(0, part)
             else:
-                core_ptn = Partition(core)
+                core_ptn = _Partitions(core)
                 last_hook_lengths = core_ptn.hook_lengths()[0]
                 # this loop could be done away with to make the program more efficient.  You can actually calculate the correct shift amount by looking for k in new_hook_lengths and seeing how much you need to shift.
                 minimum_shift = part - previous_part
@@ -1858,7 +1877,7 @@ class Partition(CombinatorialElement):
                     raise error
             previous_part = part
             previous_core_len = len(core)
-        core = Partition(core)
+        core = _Partitions(core)
         if not core.is_k_core(k):
             raise error
         return core
@@ -3099,7 +3118,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).degree(7)
             0
 
-        Therefore,  the Gram determinant of `S(5,3)` when the Hecke parameter
+        Therefore, the Gram determinant of `S(5,3)` when the Hecke parameter
         `q` is "generic" is
 
         .. MATH::
@@ -3139,7 +3158,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).prime_degree(7)
             0
 
-        THerefore, the Gram determinant of `S(5,3)` when `q = 1` is
+        Therefore, the Gram determinant of `S(5,3)` when `q = 1` is
         `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
         """
         ps = [p]

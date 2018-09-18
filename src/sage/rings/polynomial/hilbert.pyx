@@ -550,7 +550,7 @@ def hilbert_poincare_series(I, grading=None):
     r"""
     Return the Hilbert Poincaré series of the given monomial ideal.
 
-    INPUT::
+    INPUT:
 
     - ``I`` -- a monomial ideal (possibly defined in Singular)
     - ``grading`` -- (optional) a tuple of degree weights

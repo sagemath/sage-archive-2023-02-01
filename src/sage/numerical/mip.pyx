@@ -732,7 +732,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         self._backend.problem_name(name)
 
-    def new_variable(self, real=False, binary=False, integer=False, nonnegative=False, name=""):
+    def new_variable(self, real=False, binary=False, integer=False, nonnegative=False, name="",
+                     indices='dynamic'):
         r"""
         Return a new :class:`MIPVariable` instance.
 
@@ -767,6 +768,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
           is only useful when exporting the linear program to a file
           using ``write_mps`` or ``write_lp``, and has no other
           effect.
+
+        - ``indices`` -- If "dynamic" (the default), components of this
+          variable can be indexed by arbitrary keys and are created
+          dynamically on access.
+          Otherwise, ``indices`` must be an iterable of keys.
+          Components corresponding to these keys are created in order,
+          and access to components with other keys will raise an
+          error.
 
         OUTPUT:
 
@@ -857,7 +866,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
                       vtype,
                       name=name,
                       lower_bound=0 if (nonnegative or binary) else None,
-                      upper_bound=1 if binary else None)
+                      upper_bound=1 if binary else None,
+                           indices=indices)
 
     def default_variable(self):
         """
@@ -2886,7 +2896,8 @@ cdef class MIPVariable(SageObject):
         You should not instantiate this class directly. Instead, use
         :meth:`MixedIntegerLinearProgram.new_variable`.
     """
-    def __init__(self, mip, vtype, name="", lower_bound=0, upper_bound=None):
+    def __init__(self, mip, vtype, name="", lower_bound=0, upper_bound=None,
+                 indices='dynamic'):
         r"""
         Constructor for ``MIPVariable``.
 
@@ -2907,6 +2918,14 @@ cdef class MIPVariable(SageObject):
           bound on the variable. Set to ``None`` to indicate that the
           variable is unbounded.
 
+        - ``indices`` -- If "dynamic" (the default), components of this
+          variable can be indexed by arbitrary keys and are created
+          dynamically on access.
+          Otherwise, ``indices`` must be an iterable of keys.
+          Components corresponding to these keys are created in order,
+          and access to components with other keys will raise an
+          error.
+
         For more informations, see the method
         ``MixedIntegerLinearProgram.new_variable``.
 
@@ -2922,6 +2941,11 @@ cdef class MIPVariable(SageObject):
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
         self._name = name
+        self._dynamic_indices = True
+        if indices != 'dynamic':
+            for i in indices:
+                self[i]                   # creates component
+            self._dynamic_indices = False
 
     def __copy__(self):
         r"""
@@ -2969,21 +2993,51 @@ cdef class MIPVariable(SageObject):
 
     def __getitem__(self, i):
         r"""
-        Returns the symbolic variable corresponding to the key.
+        Returns the variable component corresponding to the key.
 
-        Returns the element asked, otherwise creates it.
+        Returns the component asked.
 
-        EXAMPLES::
+        Otherwise, if ``self`` was created with indices='dynamic',
+        creates the component.
+
+        EXAMPLES:
+
+        Dynamic indices::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
             sage: v[0]
             x_0
+
+        Static indices::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x = p.new_variable(indices=range(7))
+            sage: p.number_of_variables()
+            7
+            sage: x[3]
+            x_3
+            sage: x[11]
+            Traceback (most recent call last):
+            ...
+            IndexError: 11 does not index a component of MIPVariable of dimension 1
+
+        Indices can be more than just integers::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: indices = ( (i,j) for i in range(6) for j in range(4) )
+            sage: x = p.new_variable(indices=indices)
+            sage: p.number_of_variables()
+            24
+            sage: x[(2, 3)]
+            x_11
         """
         cdef int j
         if i in self._dict:
             return self._dict[i]
+        if not self._dynamic_indices:
+            raise IndexError("{} does not index a component of {}".format(i, self))
         zero = self._p._backend.zero()
         name = self._name + "[" + str(i) + "]" if self._name else None
         j = self._p._backend.add_variable(
@@ -3028,10 +3082,23 @@ cdef class MIPVariable(SageObject):
             2
             sage: q.number_of_variables()
             2
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: pv = p.new_variable(indices=[3, 7])
+            sage: q = copy(p)
+            sage: qv = pv.copy_for_mip(q)
+            sage: qv[3]
+            x_0
+            sage: qv[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: 5 does not index a component of MIPVariable of dimension 1
+
         """
         cdef MIPVariable cp = type(self)(mip, self._vtype, self._name,
                                          self._lower_bound, self._upper_bound)
         cp._dict = copy(self._dict)
+        cp._dynamic_indices = self._dynamic_indices
         return cp
 
     def set_min(self, min):

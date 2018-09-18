@@ -29,6 +29,9 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
 from sage.rings.all import ZZ, QQ, RDF
 
+from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
+from sage.combinat.permutation import Permutation
+
 decode_type_number = {
     libGAP_T_INT: 'T_INT (integer)',
     libGAP_T_INTPOS: 'T_INTPOS (positive integer)',
@@ -2786,7 +2789,7 @@ cdef class GapElement_Permutation(GapElement):
         <type 'sage.libs.gap.element.GapElement_Permutation'>
     """
 
-    def sage(self):
+    def sage(self, parent=None):
         r"""
         Return the Sage equivalent of the :class:`GapElement`
 
@@ -2795,15 +2798,26 @@ cdef class GapElement_Permutation(GapElement):
             sage: perm_gap = libgap.eval('(1,5,2)(4,3,8)');  perm_gap
             (1,5,2)(3,8,4)
             sage: perm_gap.sage()
+            [5, 1, 8, 3, 2, 6, 7, 4]
+            sage: type(_)
+            <class 'sage.combinat.permutation.StandardPermutations_all_with_category.element_class'>
+            sage: perm_gap.sage(PermutationGroup([(1,2),(1,2,3,4,5,6,7,8)]))
             (1,5,2)(3,8,4)
             sage: type(_)
             <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
         """
-        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+        cdef PermutationGroupElement one_c
+
         libgap = self.parent()
-        return PermutationGroupElement(libgap.ListPerm(self).sage())
+        lst = libgap.ListPerm(self)
 
-
+        if parent is None:
+            return Permutation(lst.sage(), check_input=False)
+        else:
+            # TODO: test that the parent is fine
+            one = parent.one()
+            one_c = one
+            return one_c._generate_new_GAP(lst)
 
 ############################################################################
 ### GapElement_Record ######################################################

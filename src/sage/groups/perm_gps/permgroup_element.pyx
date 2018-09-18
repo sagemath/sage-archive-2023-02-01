@@ -77,6 +77,9 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
+from sage.libs.gap.element cimport GapElement_List
+from sage.libs.gap.gap_includes cimport libGAP_Obj, libGAP_INT_INTOBJ, libGAP_ELM_LIST
+
 import operator
 
 from sage.rings.fast_arith cimport arith_llong
@@ -867,6 +870,59 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             prod.perm[i] = right.perm[left.perm[i]]
         return prod
 
+    cpdef _generate_new(self, list v):
+        """
+        EXAMPLES::
+
+            sage: P = PermutationGroup([(1,2),(1,2,3,4)])
+            sage: one = P.one()
+            sage: one._generate_new([])
+            ()
+            sage: one._generate_new([4,3,2,1])
+            (1,4)(2,3)
+        """
+        cdef PermutationGroupElement new = self._new_c()
+        cdef int i, j, vn = len(v)
+        assert(vn <= self.n)
+        for i from 0 <= i < vn:
+            j = v[i]
+            new.perm[i] = j - 1
+        for i from vn <= i < self.n:
+            new.perm[i] = i
+        return new
+
+    cpdef _generate_new_GAP(self, lst_in):
+        """
+        EXAMPLES::
+
+            sage: from sage.libs.gap.libgap import libgap
+
+            sage: P = PermutationGroup([(1,2),(1,2,3,4)])
+            sage: one = P.one()
+            sage: perm = libgap.eval('[]')
+            sage: one._generate_new_GAP(perm)
+            ()
+            sage: perm = libgap.eval('[4,3,2,1]')
+            sage: one._generate_new_GAP(perm)
+            (1,4)(2,3)
+        """
+        cdef GapElement_List lst = <GapElement_List> lst_in
+        cdef libGAP_Obj obj = lst.value
+
+        cdef PermutationGroupElement tmp = <PermutationGroupElement> self
+
+        cdef PermutationGroupElement new = tmp._new_c()
+        cdef int i, j, vn = lst.__len__()
+
+        assert(vn <= tmp.n)
+
+        for i from 0 <= i < vn:
+            j = libGAP_INT_INTOBJ(libGAP_ELM_LIST(obj, i+1))
+            new.perm[i] = j-1
+        for i from vn <= i < tmp.n:
+            new.perm[i] = i
+        return new
+
     def __invert__(self):
         """
         Return the inverse of this permutation.
@@ -1567,4 +1623,3 @@ cdef bint is_valid_permutation(int* perm, int n):
         perm[i] = -1-perm[i]
 
     return True
-

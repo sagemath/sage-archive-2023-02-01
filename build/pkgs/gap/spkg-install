@@ -98,27 +98,26 @@ rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst
 # When configuring with and without libgap, a couple different .o
 # files are built differently by the current gap build system. So we
 # need to reconfigure with --enable-libgap and for safety we make a
-# full clean
+# full clean --- PROBABLY NOT NEEDED ANYMORE - checking...
 
-$MAKE clean
-echo "Configuring libGAP..."
-./configure \
-    --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
-    --with-gmp="$SAGE_LOCAL" \
-    --enable-libgap \
-    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS"
+# $MAKE clean
+# echo "Configuring libGAP..."
+# ./configure \
+#    --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
+#    --with-gmp="$SAGE_LOCAL" \
+#    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error configuring libGAP."
     exit 1
 fi
 echo "Building libGAP..."
-$MAKE libgap
+$MAKE libgap.la
 if [ $? -ne 0 ]; then
     echo >&2 "Error building libGAP."
     exit 1
 fi
 echo "Installing libGAP..."
-$MAKE install-libgap
+$MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing libGAP."
     exit 1

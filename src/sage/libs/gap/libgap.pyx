@@ -372,7 +372,7 @@ class Gap(Parent):
             return make_GapElement_Record(self, make_gap_record(x))
         elif isinstance(x, bool):
             # attention: must come before int
-            return make_GapElement_Boolean(self, libGAP_True if x else libGAP_False)
+            return make_GapElement_Boolean(self, GAP_True if x else GAP_False)
         elif isinstance(x, int):
             return make_GapElement_Integer(self, make_gap_integer(x))
         elif isinstance(x, basestring):

@@ -17965,7 +17965,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: f = G._color_by_label(as_function=True)
             sage: [f(1), f(2), f(3)]
-            ['#ff0000', '#00ff00', '#0000ff']
+            ['#0000ff', '#ff0000', '#00ff00']
             sage: f = G._color_by_label({1: "blue", 2: "red", 3: "green"}, as_function=True)
             sage: [f(1), f(2), f(3)]
             ['blue', 'red', 'green']
@@ -17979,9 +17979,9 @@ class GenericGraph(GenericGraph_pyx):
         The default output is a dictionary assigning edges to colors::
 
             sage: G._color_by_label()
-            {'#0000ff': [((1,3,2,4), (1,4)(2,3), 3), ...],
-             '#00ff00': [((1,3,2,4), (1,2,4), 2), ...],
-             '#ff0000': [((1,3,2,4), (1,3)(2,4), 1), ...]}
+            {'#0000ff': [((1,3,2,4), (1,3)(2,4), 1), ...],
+             '#00ff00': [((1,3,2,4), (1,4)(2,3), 3), ...],
+             '#ff0000': [((1,3,2,4), (1,2,4), 2), ...]}
 
             sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})
             {'blue': [((1,3,2,4), (1,3)(2,4), 1), ...],

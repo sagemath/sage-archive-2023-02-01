@@ -979,12 +979,12 @@ class Magmas(Category_singleton):
                 sage: G=AlternatingGroup(3)
                 sage: T=G.multiplication_table()
                 sage: T.column_keys()
-                ((), (1,2,3), (1,3,2))
+                ((), (1,3,2), (1,2,3))
                 sage: sorted(T.translation().items())
-                [('a', ()), ('b', (1,2,3)), ('c', (1,3,2))]
+                [('a', ()), ('b', (1,3,2)), ('c', (1,2,3))]
                 sage: T.change_names(['x', 'y', 'z'])
                 sage: sorted(T.translation().items())
-                [('x', ()), ('y', (1,2,3)), ('z', (1,3,2))]
+                [('x', ()), ('y', (1,3,2)), ('z', (1,2,3))]
                 sage: T
                 *  x y z
                  +------

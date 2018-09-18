@@ -601,18 +601,17 @@ class WordMorphism(SageObject):
         L = [str(lettre) + '->' + image.string_rep() for lettre,image in six.iteritems(self._morph)]
         return ', '.join(sorted(L))
 
-    def __call__(self, w, order=1, datatype='iter'):
+    def __call__(self, w, order=1, datatype=None):
         r"""
         Returns the image of ``w`` under self to the given order.
 
         INPUT:
 
         -  ``w`` - word or sequence in the domain of self
+
         -  ``order`` - integer or plus ``Infinity`` (default: 1)
-        - ``datatype`` - (default: ``'iter'``) ``'list'``, ``'str'``,
-          ``'tuple'``, ``'iter'``. The datatype of the output
-          (note that only list, str and tuple allows the word to be
-          pickled and saved).
+
+        - ``datatype`` - deprecated
 
         OUTPUT:
 
@@ -670,61 +669,23 @@ class WordMorphism(SageObject):
             sage: m(w)
             word: 0110101011010110101011010101101011010101...
 
-        The default datatype of the output is an iterable which
-        can be saved (for finite word only)::
-
-            sage: m = WordMorphism('a->ab,b->ba')
-            sage: w = m('aabb')
-            sage: type(w)
-            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
-            sage: w == loads(dumps(w))
-            True
-            sage: save(w, filename=os.path.join(SAGE_TMP, 'test.sobj'))
-
-        One may impose the datatype of the resulting word::
-
-            sage: w = m('aaab',datatype='list')
-            sage: type(w)
-            <class 'sage.combinat.words.word.FiniteWord_list'>
-            sage: w = m('aaab',datatype='str')
-            sage: type(w)
-            <class 'sage.combinat.words.word.FiniteWord_str'>
-            sage: w = m('aaab',datatype='tuple')
-            sage: type(w)
-            <class 'sage.combinat.words.word.FiniteWord_tuple'>
-
-        To use str datatype for the output word, the domain and codomain
-        alphabet must consist of str objects::
-
-            sage: m = WordMorphism({0:[0,1],1:[1,0]})
-            sage: w = m([0],4); type(w)
-            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
-            sage: w = m([0],4,datatype='list'); type(w)
-            <class 'sage.combinat.words.word.FiniteWord_list'>
-            sage: w = m([0],4,datatype='str')
-            Traceback (most recent call last):
-            ...
-            ValueError: 0 not in alphabet!
-            sage: w = m([0],4,datatype='tuple'); type(w)
-            <class 'sage.combinat.words.word.FiniteWord_tuple'>
-
         The word must be in the domain of self::
 
             sage: tm('0021')
             Traceback (most recent call last):
             ...
-            KeyError: '0'
+            ValueError: 0 not in alphabet!
 
-        The order must be a positive integer or plus Infinity::
+        The order must be a non-negative integer or plus Infinity::
 
             sage: tm('a', -1)
             Traceback (most recent call last):
             ...
-            TypeError: order (-1) must be a positive integer or plus Infinity
+            TypeError: order (-1) must be a non-negative integer or plus Infinity
             sage: tm('a', 6.7)
             Traceback (most recent call last):
             ...
-            TypeError: order (6.70000000000000) must be a positive integer or plus Infinity
+            TypeError: order (6.70000000000000) must be a non-negative integer or plus Infinity
 
         Only the first letter is considered for infinitely iterated image of
         a word under a morphism::
@@ -767,27 +728,87 @@ class WordMorphism(SageObject):
             sage: m = WordMorphism('a->,b->')
             sage: m('')
             word:
+
+        The default datatype when the input is a finite word is another
+        finite word::
+
+            sage: w = m('aabb')
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_char'>
+
+            sage: w == loads(dumps(w))
+            True
+            sage: save(w, filename=os.path.join(SAGE_TMP, 'test.sobj'))
+
+        The ``datatype`` argument is deprecated::
+
+            sage: m = WordMorphism('a->ab,b->ba')
+            sage: w = m('aaab',datatype='list')
+            doctest:warning
+            ...
+            DeprecationWarning: the "datatype" argument is deprecated
+            See http://trac.sagemath.org/26307 for details.
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+            sage: w = m('aaab',datatype='str')
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_str'>
+            sage: w = m('aaab',datatype='tuple')
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
+
+        To use str datatype for the output word, the domain and codomain
+        alphabet must consist of str objects::
+
+            sage: m = WordMorphism({0:[0,1],1:[1,0]})
+            sage: w = m([0],4); type(w)
+            <class 'sage.combinat.words.word.FiniteWord_char'>
+            sage: w = m([0],4,datatype='list')
+            doctest:warning
+            ...
+            DeprecationWarning: the "datatype" argument is deprecated
+            See http://trac.sagemath.org/26307 for details.
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_list'>
+            sage: w = m([0],4,datatype='str')
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 not in alphabet!
+            sage: w = m([0],4,datatype='tuple'); type(w)
+            <class 'sage.combinat.words.word.FiniteWord_tuple'>
         """
+        if datatype is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(26307, 'the "datatype" argument is deprecated')
+
         if order == 1:
+            D = self.domain()
+            C = self.codomain()
             if isinstance(w, (tuple,str,list)):
-                length = 'finite'
-            elif isinstance(w, FiniteWord_class):
-                #Is it really a good thing to precompute the length?
-                length = sum(self._morph[a].length() * b for (a,b) in six.iteritems(w.evaluation_dict()))
-            elif hasattr(w, '__iter__'):
-                length = Infinity
+                w = D(w)
+
+            if isinstance(w, FiniteWord_class):
+                im = C()
+                for a in w:
+                    im += self._morph[a]
+                if datatype is not None:
+                    return C(im, datatype=datatype)
+                else:
+                    return im
+
+            if hasattr(w, '__iter__'):
                 datatype = 'iter'
             elif w in self._domain.alphabet():
                 return self._morph[w]
             else:
                 raise TypeError("Don't know how to handle an input (=%s) that is not iterable or not in the domain alphabet."%w)
-            parent = self.codomain()
+
+            # here we assume (maybe wrongly) that the length is infinite
+            parent = self.codomain().shift()
             iterator = (x for y in w for x in self._morph[y])
-            if length == Infinity:
-                parent = parent.shift()
-                return parent(iterator, datatype)
-            else:
-                return parent(iterator, length=length, datatype=datatype)
+            parent = parent.shift()
+            return parent(iterator)
+
         elif order is Infinity:
             if isinstance(w, (tuple,str,list,FiniteWord_class)):
                 if len(w) == 0:
@@ -804,12 +825,15 @@ class WordMorphism(SageObject):
             else:
                 raise TypeError("Don't know how to handle an input (=%s) that is not iterable or not in the domain alphabet."%w)
             return self.fixed_point(letter=letter)
+
         elif isinstance(order, (int,Integer)) and order > 1:
-            return self(self(w, order-1),datatype=datatype)
+            return self(self(w, order-1), datatype=datatype)
+
         elif order == 0:
             return self._domain(w)
+
         else:
-            raise TypeError("order (%s) must be a positive integer or plus Infinity" % order)
+            raise TypeError("order (%s) must be a non-negative integer or plus Infinity" % order)
 
     def latex_layout(self, layout=None):
         r"""

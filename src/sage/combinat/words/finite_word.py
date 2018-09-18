@@ -3427,7 +3427,7 @@ class FiniteWord_class(Word_class):
             sage: w.palindromic_closure(f=f, side='left')
             Traceback (most recent call last):
             ...
-            KeyError: 'b'
+            ValueError: b not in alphabet!
 
         REFERENCES:
 

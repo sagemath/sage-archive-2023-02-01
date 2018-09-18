@@ -1751,9 +1751,9 @@ class Partition(CombinatorialElement):
         """
         # validate inputs
         if not isinstance(min, (list, Partition)):
-            raise ValueError('Input parameter ``min`` must be a Partition or a list.')
+            raise ValueError('input parameter ``min`` must be a Partition or a list')
         if not (isinstance(max, (list, Partition)) or max is None):
-            raise ValueError('Input parameter ``max`` must be a Partition, a list, or ``None``.')
+            raise ValueError('input parameter ``max`` must be a Partition, a list, or ``None``')
         # make sure min <= self <= max
         if max is not None:
             assert _Partitions(max).contains(_Partitions(self))
@@ -1779,7 +1779,7 @@ class Partition(CombinatorialElement):
             elif type in (None, 'weak', 'weakly decreasing'):
                 return a < b
             else:
-                raise ValueError('Unrecognized partition type.')
+                raise ValueError('unrecognized partition type')
         for r in range(len(p) - 1, -1, -1):
             if r == 0:
                 if (max is None or p[r] < max[r]):
@@ -1855,7 +1855,7 @@ class Partition(CombinatorialElement):
             [5, 3, 1]
         """
         error = ValueError(
-            'The minimal-row-shifting algorithm applied to the partition {} does not produce a {}-core.'.format(self, k))
+            'the minimal-row-shifting algorithm applied to the partition {} does not produce a {}-core'.format(self, k))
         core = []
         for part in reversed(self):
             if core == []:

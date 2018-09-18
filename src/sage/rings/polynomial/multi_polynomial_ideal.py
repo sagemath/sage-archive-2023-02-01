@@ -4119,7 +4119,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         dreg = 0
         s = prod([1-z**d for d in degs]) / (1-z)**n
         for dreg in range(sum(degs)):
-            if s[dreg] < 0:
+            if s[dreg] <= 0:
                 return ZZ(dreg)
         else:
             raise ValueError("BUG: Could not compute the degree of semi-regularity")

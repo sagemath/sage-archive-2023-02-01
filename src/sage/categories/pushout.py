@@ -6,6 +6,7 @@ from six.moves import range
 import six
 
 from sage.misc.lazy_import import lazy_import
+from sage.structure.coerce_exceptions import CoercionException
 from .functor import Functor, IdentityFunctor_generic
 
 lazy_import('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups')
@@ -14,9 +15,8 @@ lazy_import('sage.categories.groups', 'Groups')
 lazy_import('sage.categories.objects', 'Objects')
 lazy_import('sage.categories.rings', 'Rings', at_startup=True)
 
-lazy_import('sage.structure.parent', 'CoercionException')
-
 # TODO, think through the rankings, and override pushout where necessary.
+
 
 class ConstructionFunctor(Functor):
     """
@@ -104,10 +104,10 @@ class ConstructionFunctor(Functor):
         Compose ``self`` and ``other`` to a composite construction
         functor, unless one of them is the identity.
 
-        NOTE:
+        .. NOTE::
 
-        The product is in functorial notation, i.e., when applying the
-        product to an object, the second factor is applied first.
+            The product is in functorial notation, i.e., when applying the
+            product to an object, the second factor is applied first.
 
         TESTS::
 
@@ -139,11 +139,11 @@ class ConstructionFunctor(Functor):
         """
         Composition of two construction functors, ordered by their ranks.
 
-        NOTE:
+        .. NOTE::
 
-        - This method seems not to be used in the coercion model.
+            - This method seems not to be used in the coercion model.
 
-        - By default, the functor with smaller rank is applied first.
+            - By default, the functor with smaller rank is applied first.
 
         TESTS::
 
@@ -196,12 +196,28 @@ class ConstructionFunctor(Functor):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import IdentityConstructionFunctor
+            sage: I = IdentityConstructionFunctor()
+            sage: F = QQ.construction()[0]
+            sage: hash(I) == hash(F)
+            False
+            sage: hash(I) == hash(I)
+            True
+        """
+        return hash(repr(self))
+
     def _repr_(self):
         """
-        NOTE:
+        .. NOTE::
 
-        By default, it returns the name of the construction functor's class.
-        Usually, this method will be overloaded.
+            By default, it returns the name of the construction
+            functor's class.  Usually, this method will be overloaded.
 
         TESTS::
 
@@ -221,10 +237,10 @@ class ConstructionFunctor(Functor):
         """
         Merge ``self`` with another construction functor, or return None.
 
-        NOTE:
+        .. NOTE::
 
-        The default is to merge only if the two functors coincide. But this
-        may be overloaded for subclasses, such as the quotient functor.
+            The default is to merge only if the two functors coincide. But this
+            may be overloaded for subclasses, such as the quotient functor.
 
         EXAMPLES::
 
@@ -494,14 +510,16 @@ class CompositeConstructionFunctor(ConstructionFunctor):
         """
         return not (self == other)
 
+    __hash__ = ConstructionFunctor.__hash__
+
     def __mul__(self, other):
         """
         Compose construction functors to a composit construction functor, unless one of them is the identity.
 
-        NOTE:
+        .. NOTE::
 
-        The product is in functorial notation, i.e., when applying the product to an object
-        then the second factor is applied first.
+            The product is in functorial notation, i.e., when applying the product to an object
+            then the second factor is applied first.
 
         EXAMPLES::
 
@@ -647,6 +665,8 @@ class IdentityConstructionFunctor(ConstructionFunctor):
             True
         """
         return not (self == other)
+
+    __hash__ = ConstructionFunctor.__hash__
 
     def __mul__(self, other):
         """
@@ -897,6 +917,8 @@ class PolynomialFunctor(ConstructionFunctor):
         """
         return not (self == other)
 
+    __hash__ = ConstructionFunctor.__hash__
+
     def merge(self, other):
         """
         Merge ``self`` with another construction functor, or return None.
@@ -937,6 +959,7 @@ class PolynomialFunctor(ConstructionFunctor):
 
         """
         return "Poly[%s]" % self.var
+
 
 class MultiPolynomialFunctor(ConstructionFunctor):
     """
@@ -1039,6 +1062,8 @@ class MultiPolynomialFunctor(ConstructionFunctor):
         """
         return not (self == other)
 
+    __hash__ = ConstructionFunctor.__hash__
+
     def __mul__(self, other):
         """
         If two MPoly functors are given in a row, form a single MPoly functor
@@ -1125,7 +1150,6 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             MPoly[x,y,z,t]
         """
         return "MPoly[%s]" % ','.join(self.vars)
-
 
 
 class InfinitePolynomialFunctor(ConstructionFunctor):
@@ -1307,6 +1331,8 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             True
         """
         return not(self == other)
+
+    __hash__ = ConstructionFunctor.__hash__
 
     def __mul__(self, other):
         """
@@ -1491,10 +1517,10 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             True
 
         """
-        if len(self._gens)==1:
+        if len(self._gens) == 1:
             return [self]
-        return [InfinitePolynomialFunctor((x,), self._order, self._imple) for x in reversed(self._gens)]
-
+        return [InfinitePolynomialFunctor((x,), self._order, self._imple)
+                for x in reversed(self._gens)]
 
 
 class MatrixFunctor(ConstructionFunctor):
@@ -1603,6 +1629,8 @@ class MatrixFunctor(ConstructionFunctor):
         """
         return not (self == other)
 
+    __hash__ = ConstructionFunctor.__hash__
+
     def merge(self, other):
         """
         Merging is only happening if both functors are matrix functors of the same dimension.
@@ -1631,6 +1659,7 @@ class MatrixFunctor(ConstructionFunctor):
             return None
         else:
             return MatrixFunctor(self.nrows, self.ncols, self.is_sparse and other.is_sparse)
+
 
 class LaurentPolynomialFunctor(ConstructionFunctor):
     """
@@ -1756,6 +1785,8 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
             True
         """
         return not (self == other)
+
+    __hash__ = ConstructionFunctor.__hash__
 
     def merge(self, other):
         """
@@ -1918,6 +1949,8 @@ class VectorFunctor(ConstructionFunctor):
         """
         return not (self == other)
 
+    __hash__ = ConstructionFunctor.__hash__
+
     def merge(self, other):
         """
         Two constructors of free modules merge, if the module ranks and the inner products coincide. If both
@@ -1981,6 +2014,7 @@ class VectorFunctor(ConstructionFunctor):
             return None
         else:
             return VectorFunctor(self.n, self.is_sparse and other.is_sparse, self.inner_product_matrix)
+
 
 class SubspaceFunctor(ConstructionFunctor):
     """
@@ -2157,6 +2191,8 @@ class SubspaceFunctor(ConstructionFunctor):
         """
         return not (self == other)
 
+    __hash__ = ConstructionFunctor.__hash__
+
     def merge(self, other):
         """
         Two Subspace Functors are merged into a construction functor of the sum of two subspaces.
@@ -2216,6 +2252,7 @@ class SubspaceFunctor(ConstructionFunctor):
             return SubspaceFunctor(S)
         else:
             return None
+
 
 class FractionField(ConstructionFunctor):
     """
@@ -2472,6 +2509,8 @@ class CompletionFunctor(ConstructionFunctor):
         """
         return not (self == other)
 
+    __hash__ = ConstructionFunctor.__hash__
+
     def merge(self, other):
         """
         Two Completion functors are merged, if they are equal. If the precisions of
@@ -2611,7 +2650,8 @@ class CompletionFunctor(ConstructionFunctor):
             ...
             CoercionException: Don't know how to apply Completion[+Infinity, prec=+Infinity] to 7-adic Ring with capped relative precision 20
         """
-        return isinstance(other,FractionField)
+        return isinstance(other, FractionField)
+
 
 class QuotientFunctor(ConstructionFunctor):
     """
@@ -2770,6 +2810,8 @@ class QuotientFunctor(ConstructionFunctor):
         """
         return not (self == other)
 
+    __hash__ = ConstructionFunctor.__hash__
+
     def merge(self, other):
         """
         Two quotient functors with coinciding names are merged by taking the gcd of their moduli.
@@ -2812,6 +2854,7 @@ class QuotientFunctor(ConstructionFunctor):
         # GF(p) has a coercion from Integers(p). Hence, merging should
         # yield a field if either self or other yields a field.
         return QuotientFunctor(gcd, names=self.names, as_field=self.as_field or other.as_field)
+
 
 class AlgebraicExtensionFunctor(ConstructionFunctor):
     """
@@ -3048,6 +3091,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             False
         """
         return not (self == other)
+
+    __hash__ = ConstructionFunctor.__hash__
 
     def merge(self,other):
         """
@@ -3322,6 +3367,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
         # if isinstance(other,AlgebraicExtensionFunctor):
         #     return self
 
+
 class PermutationGroupFunctor(ConstructionFunctor):
 
     rank = 10
@@ -3394,6 +3440,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
         new_domain = FiniteEnumeratedSet(sorted(new_domain))
         return PermutationGroupFunctor(self.gens() + other.gens(),
                                        new_domain)
+
 
 class BlackBoxConstructionFunctor(ConstructionFunctor):
     """
@@ -3488,6 +3535,8 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
             False
         """
         return not (self == other)
+
+    __hash__ = ConstructionFunctor.__hash__
 
 
 def pushout(R, S):

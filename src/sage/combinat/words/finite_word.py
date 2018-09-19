@@ -6213,7 +6213,7 @@ class FiniteWord_class(Word_class):
         else:
             return self
 
-    def abelian_vector(self, alphabet=None):
+    def abelian_vector(self):
         r"""
         Return the abelian vector of ``self`` counting the occurrences of each letter.
 
@@ -6223,7 +6223,6 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``self`` -- word having a parent on a finite alphabet
-        - ``alphabet`` -- *DEPRECATED*
 
         OUTPUT:
 
@@ -6239,17 +6238,7 @@ class FiniteWord_class(Word_class):
             sage: W().abelian_vector()
             [0, 0]
 
-        The argument ``alphabet`` is deprecated::
-
-            sage: Word('aabaa').abelian_vector('abc')
-            doctest:...: DeprecationWarning: The argument alphabet of
-            methods abelian_vector and parikh_vector is deprecated and will
-            be removed in a future version of Sage. In order to fix this,
-            you must define your word on a parent with a finite alphabet.
-            See http://trac.sagemath.org/17058 for details.
-            [4, 1, 0]
-
-        You may fix the above deprecated use of the ``alphabet`` argument this way::
+        The result depends on the alphabet of the parent::
 
             sage: W = Words('abc')
             sage: W('aabaa').abelian_vector()
@@ -6265,24 +6254,14 @@ class FiniteWord_class(Word_class):
             word with a parent on a finite alphabet or use
             evaluation_dict() instead
         """
-        if alphabet is None:
-            if self.parent().alphabet().cardinality() is Infinity:
-                raise TypeError("The alphabet of the parent is infinite; define "
-                        "the word with a parent on a finite alphabet or use "
-                        "evaluation_dict() instead")
-            alphabet = self.parent().alphabet()
-        else:
-            from sage.misc.superseded import deprecation
-            deprecation(17058, "The argument alphabet of methods abelian_vector "
-                        "and parikh_vector is deprecated and will be "
-                        "removed in a future version of Sage. In order to "
-                        "fix this, you must define your word on a parent "
-                        "with a finite alphabet.")
-
+        alphabet = self.parent().alphabet()
+        if alphabet.cardinality() is Infinity:
+            raise TypeError("The alphabet of the parent is infinite; define "
+                    "the word with a parent on a finite alphabet or use "
+                    "evaluation_dict() instead")
         ev_dict = self.evaluation_dict()
-        return [ev_dict.get(a,0) for a in alphabet]
+        return [ev_dict.get(a, 0) for a in alphabet]
 
-    parikh_vector = deprecated_function_alias(17058, abelian_vector)
     evaluation = abelian_vector
 
     def robinson_schensted(self):

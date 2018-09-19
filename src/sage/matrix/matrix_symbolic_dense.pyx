@@ -488,18 +488,18 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         if mp is None:
             mp = self._maxima_lib_().jordan().minimalPoly().expand()
             d = mp.hipow('x')
-            mp = [mp.coeff('x', i) for i in xrange(0, d + 1)]
+            mp = [mp.coeff('x', i) for i in xrange(int(d) + 1)]
             mp = PolynomialRing(self.base_ring(), 'x')(mp)
             self.cache('minpoly', mp)
         return mp.change_variable_name(var)
 
     def fcp(self, var='x'):
         """
-        Return the factorization of the characteristic polynomial of self.
+        Return the factorization of the characteristic polynomial of ``self``.
 
         INPUT:
 
-        - ``var`` - (default: 'x') name of variable of charpoly
+        - ``var`` -- (default: 'x') name of variable of charpoly
 
         EXAMPLES::
 

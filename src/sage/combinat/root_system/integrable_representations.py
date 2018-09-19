@@ -264,7 +264,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
     @cached_method
     def level(self):
-        """
+        r"""
         Return the level of ``self``.
 
         The level of a highest weight representation `V_{\Lambda}` is

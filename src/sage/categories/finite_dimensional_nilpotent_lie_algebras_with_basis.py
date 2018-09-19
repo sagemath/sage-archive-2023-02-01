@@ -21,6 +21,7 @@ from __future__ import print_function
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
 
+
 class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     r"""
     Category of finite dimensional nilpotent Lie algebras with basis.
@@ -48,6 +49,7 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
     _base_category_class_and_axiom = (LieAlgebras.FiniteDimensional.WithBasis, "Nilpotent")
 
     class ParentMethods:
+
         def _test_nilpotency(self, **options):
             r"""
             Tests that ``self`` is nilpotent and has the correct step.
@@ -114,4 +116,3 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
                 True
             """
             return True
-

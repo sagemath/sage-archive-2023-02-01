@@ -1764,11 +1764,11 @@ end_scene""" % (render_params.antialiasing,
             sage: Q = P.plot().all[-1]
             sage: Q.stl_ascii_string().splitlines()[:6]
             ['solid surface',
-            'facet normal 0.8506508083520398 -0.0 0.5257311121191338',
-            '    outer loop',
-            '        vertex 1.2360679775 -0.472135955 0.0',
-            '        vertex 1.2360679775 0.472135955 0.0',
-            '        vertex 0.7639320225 0.7639320225 0.7639320225']
+             'facet normal 0.5257311121191338 0.8506508083520398 -0.0',
+             '    outer loop',
+             '        vertex 0.0 1.2360679775 -0.472135955',
+             '        vertex 0.0 1.2360679775 0.472135955',
+             '        vertex 0.7639320225 0.7639320225 0.7639320225']
         """
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)

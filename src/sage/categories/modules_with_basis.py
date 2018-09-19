@@ -2155,7 +2155,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: A.an_element()
                     B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
                     sage: B.an_element()
-                    B[()] + B[(1,2)] + 3*B[(1,2,3)] + 2*B[(1,3)]
+                    B[()] + B[(1,2)] + 3*B[(1,2,3)] + 2*B[(1,3,2)]
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest
                     2*B[(0, word: )] + 2*B[(0, word: a)] + 3*B[(0, word: b)]
                 """

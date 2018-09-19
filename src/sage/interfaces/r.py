@@ -671,10 +671,11 @@ class R(ExtraTabCompletion, Expect):
             ImportError: ...
         """
         ret = self.eval('require("%s")' % library_name)
-        try:
-            ret = ret.decode('utf-8')
-        except UnicodeDecodeError:
-            ret = ret.decode('latin-1')
+        if six.PY2:
+            try:
+                ret = ret.decode('utf-8')
+            except UnicodeDecodeError:
+                ret = ret.decode('latin-1')
         # try hard to parse the message string in a locale-independent way
         if ' library(' in ret:       # locale-independent key-word
             raise ImportError("%s"%ret)

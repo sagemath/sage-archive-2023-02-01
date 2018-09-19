@@ -2814,10 +2814,7 @@ cdef class GapElement_Permutation(GapElement):
         if parent is None:
             return Permutation(lst.sage(), check_input=False)
         else:
-            # TODO: test that the parent is fine
-            one = parent.one()
-            one_c = one
-            return one_c._generate_new_GAP(lst)
+            return parent.one()._generate_new_GAP(lst)
 
 ############################################################################
 ### GapElement_Record ######################################################

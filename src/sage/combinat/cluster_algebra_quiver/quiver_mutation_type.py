@@ -2323,14 +2323,13 @@ def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
 
 def _bipartite_graph_to_digraph(g):
     """
-    Return a digraph obtained from a bipartite graph g by choosing one
+    Return a digraph obtained from a bipartite graph ``g`` by choosing one
     set of the bipartition to be the set of sinks and the other to be the
     set of sources.
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type \
-              import _bipartite_graph_to_digraph
+        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _bipartite_graph_to_digraph
         sage: G = Graph([(1,2)])
         sage: _bipartite_graph_to_digraph(G)
         Digraph on 2 vertices
@@ -2342,9 +2341,9 @@ def _bipartite_graph_to_digraph(g):
     dg = DiGraph()
     for edge in g.edges():
         if edge[0] in order[0]:
-            dg.add_edge( edge[0],edge[1],edge[2] )
+            dg.add_edge( edge[0], edge[1], edge[2] )
         else:
-            dg.add_edge( edge[1],edge[0],edge[2] )
+            dg.add_edge( edge[1], edge[0], edge[2] )
     for vert in g.vertex_iterator():
         if vert not in dg.vertices():
             dg.add_vertex(vert)

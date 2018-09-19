@@ -668,6 +668,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: unit = UK.exp(vec)
             sage: UK.log(unit)
             (13, 6, 7, 8, 9, 10)
+            sage: u = UK.gens()[-1]
             sage: UK.exp(UK.log(u)) == u.value()
             True
 

@@ -129,7 +129,7 @@ class IntegerLists(Parent):
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: D = IntegerListsLex(2, length=3); L = D.list();
+            sage: D = IntegerListsLex(2, length=3); L = D.list()
             sage: E = IntegerListsLex(2, min_length=3)
             sage: F = IntegerListsLex(2, length=3, element_constructor=list)
             sage: G = IntegerListsLex(4, length=3)
@@ -186,7 +186,7 @@ class IntegerLists(Parent):
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: D = IntegerListsLex(2, length=3); L = D.list();
+            sage: D = IntegerListsLex(2, length=3); L = D.list()
             sage: E = IntegerListsLex(2, max_length=3)
             sage: C != D
             False

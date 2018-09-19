@@ -339,18 +339,18 @@ class Texture_class(WithEqualityById, SageObject):
             sage: Texture((1, .5, 0)).hex_rgb()
             'ff7f00'
         """
-        return "%02x%02x%02x" % tuple(int(255*s) for s in self.color)
+        return "%02x%02x%02x" % tuple(int(255 * s) for s in self.color)
 
     def tachyon_str(self):
         r"""
-        Converts Texture object to string suitable for Tachyon ray tracer.
+        Convert Texture object to string suitable for Tachyon ray tracer.
 
         EXAMPLES::
 
             sage: from sage.plot.plot3d.texture import Texture
             sage: t = Texture(opacity=0.6)
             sage: t.tachyon_str()
-            'Texdef texture...\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.6\n   Color 0.4 0.4 1.0\n   TexFunc 0'
+            'Texdef texture...\n  Ambient 0.33333333333... Diffuse 0.66666666666... Specular 0.0 Opacity 0.6\n   Color 0.4 0.4 1.0\n   TexFunc 0'
         """
         total_color = float(sum(self.ambient) + sum(self.diffuse) + sum(self.specular))
         if total_color == 0:

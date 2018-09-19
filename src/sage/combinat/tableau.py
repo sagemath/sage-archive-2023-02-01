@@ -833,7 +833,7 @@ class Tableau(ClonableList):
 
         EXAMPLES::
 
-            sage: t = Tableau([[1,2,3],[4,5]]);
+            sage: t = Tableau([[1,2,3],[4,5]])
             sage: for s in t.components(): print(s.to_list())
             [[1, 2, 3], [4, 5]]
         """
@@ -4460,7 +4460,7 @@ class RowStandardTableau(Tableau):
         False
         sage: u.parent()
         Row standard tableaux of size 3
-        sage: u = RowStandardTableaux(3)(u);
+        sage: u = RowStandardTableaux(3)(u)
         sage: u.parent()
         Row standard tableaux of size 3
         sage: isinstance(u, Tableau)

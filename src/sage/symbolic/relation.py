@@ -373,7 +373,7 @@ def test_relation_maxima(relation):
 
         sage: from sage.symbolic.relation import test_relation_maxima
         sage: k = var('k')
-        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+        sage: pol = 1/(k-1) - 1/k -1/k/(k-1)
         sage: test_relation_maxima(pol == 0)
         True
         sage: f = sin(x)^2 + cos(x)^2 - 1
@@ -762,7 +762,7 @@ def solve(f, *args, **kwds):
 
         sage: var('s,j,b,m,g')
         (s, j, b, m, g)
-        sage: sys = [ m*(1-s) - b*s*j, b*s*j-g*j ];
+        sage: sys = [ m*(1-s) - b*s*j, b*s*j-g*j ]
         sage: solve(sys,s,j)
         [[s == 1, j == 0], [s == g/b, j == (b - g)*m/(b*g)]]
         sage: solve(sys,(s,j))

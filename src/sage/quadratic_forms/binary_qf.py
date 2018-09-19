@@ -197,12 +197,12 @@ class BinaryQF(SageObject):
             sage: (R[1] * R[1] * R[1]).reduced_form()
             x^2 + x*y + 6*y^2
             sage: q1 = BinaryQF(1, 1, 4)
-            sage: M = Matrix(ZZ, [[1,3], [0,1]]);
+            sage: M = Matrix(ZZ, [[1,3], [0,1]])
             sage: q1*M
             x^2 + 7*x*y + 16*y^2
             sage: q1.matrix_action_right(M)
             x^2 + 7*x*y + 16*y^2
-            sage: N = Matrix(ZZ, [[1,0], [1,0]]);
+            sage: N = Matrix(ZZ, [[1,0], [1,0]])
             sage: q1*(M*N) == q1.matrix_action_right(M).matrix_action_right(N)
             True
         """

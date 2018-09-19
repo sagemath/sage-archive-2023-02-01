@@ -3722,7 +3722,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.nops()
             38
 
-            sage: x,y,z = var('x y z');
+            sage: x,y,z = var('x y z')
             sage: print((-x+z)*(3*x-3*z))
             -3*(x - z)^2
 
@@ -9997,28 +9997,31 @@ cdef class Expression(CommutativeRingElement):
         except RuntimeError:
             return self
         ops = self.operands()
+
         if op == hypergeometric_M or op == hypergeometric_U:
             return self.generalized().simplify_hypergeometric(algorithm)
+
+        if algorithm not in ('maxima', 'sage'):
+            raise NotImplementedError(
+                    "unknown algorithm: '{}'".format(algorithm))
+
+        simplify = lambda o: o.simplify_hypergeometric(algorithm)
+
         if op == hypergeometric:
+            a = [simplify(o) for o in ops[0].operands()]
+            b = [simplify(o) for o in ops[1].operands()]
+            t = simplify(ops[2])
+
             if algorithm == 'maxima':
-                return (self.parent()
-                        (maxima.hgfred(map(lambda o: o.simplify_hypergeometric(algorithm),
-                                           ops[0].operands()),
-                                       map(lambda o: o.simplify_hypergeometric(algorithm),
-                                           ops[1].operands()),
-                                       ops[2].simplify_hypergeometric(algorithm))))
+                R = self.parent()
+                return R(maxima.hgfred(a, b, t))
             elif algorithm == 'sage':
-                return (closed_form
-                        (hypergeometric(map(lambda o: o.simplify_hypergeometric(algorithm),
-                                            ops[0].operands()),
-                                        map(lambda o: o.simplify_hypergeometric(algorithm),
-                                            ops[1].operands()),
-                                        ops[2].simplify_hypergeometric(algorithm))))
-            else:
-                raise NotImplementedError('unknown algorithm')
+                return closed_form(hypergeometric(a, b, t))
+
         if not op:
             return self
-        return op(*map(lambda o: o.simplify_hypergeometric(algorithm), ops))
+
+        return op(*(simplify(o) for o in ops))
 
     hypergeometric_simplify = simplify_hypergeometric
 
@@ -10192,7 +10195,7 @@ cdef class Expression(CommutativeRingElement):
         # better not call this unless your variables really are real
         # anyway.
         for v in self.variables():
-            assume(v, 'real');
+            assume(v, 'real')
 
         # This will round trip through Maxima, essentially performing
         # self.simplify() in the process.

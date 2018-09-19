@@ -36,8 +36,7 @@ Sage's manuals are written in `ReST <http://docutils.sourceforge.net/rst.html>`_
   ``SAGE_ROOT/src/doc/en``.
 
 - Some documents have been **translated** into other languages. In order to
-  access them, change en/ into fr/,es/, de/... See
-  :ref:`section-manuals-names` and :ref:`section-new-translation`.
+  access them, change en/ into fr/,es/, de/... See :ref:`section-manuals-names`.
 
 .. _section-manuals-edit:
 
@@ -214,25 +213,6 @@ the exact same thing::
 To specify the French version of the tutorial, you would simply run::
 
     sage --docbuild fr/tutorial html
-
-.. _section-new-translation:
-
-Adding a New Translation
-------------------------
-
-If you want to translate one of Sage's manuals to a new language,
-please go ahead! You will need to add the document name to the list
-``HARDCODED_DOCUMENTS`` in ``SAGE_ROOT/src/sage/misc/sagedoc.py``.  If
-you are adding a language which is not yet represented in Sage's
-documentation, you will need to add its two letter code to the list
-``HARDCODED_LANGUAGES`` in the same file.
-
-For example, if you translate the Sage tutorial to Turkish, you will
-need to add ``'tr/tutorial'`` to ``HARDCODED_DOCUMENTS``. If you
-translate the tutorial into Arabic, you will have to add
-``'ar/tutorial'`` to ``HARDCODED_DOCUMENTS``, and since Sage has no
-documentation in Arabic (yet), you will also have to add ``'ar'`` to
-``HARDCODED_LANGUAGES``.
 
 
 Syntax Highlighting Cython Code

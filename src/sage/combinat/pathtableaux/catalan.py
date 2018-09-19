@@ -40,7 +40,6 @@ from sage.rings.integer import Integer
 ###############################################################################
 
 """
-
 Here we illustrate the slogan that promotion = rotation.
 
 EXAMPLES::
@@ -72,9 +71,9 @@ EXAMPLES::
       .  .  .  .  0  1  2  1  0  1  0
       .  .  .  .  .  0  1  0  1  2  1  0
       .  .  .  .  .  .  0  1  2  3  2  1  0
-
     sage: TestSuite(t).run()
 """
+
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class CatalanTableau(PathTableau):
@@ -99,7 +98,7 @@ class CatalanTableau(PathTableau):
         [0, 1, 2, 1, 0]
 
         sage: p = PerfectMatching([(1,2),(3,4)])
-        sage: CatalanTableau(p)
+        sage: #CatalanTableau(p)
         [1, 0, 1, 0]
 
         sage: t = Tableau([[1,2],[3,4]])
@@ -125,7 +124,7 @@ class CatalanTableau(PathTableau):
                 raise ValueError("the perfect matching must be non crossing")
 
         if isinstance(ot, Tableau):
-            if len(ot) == 2:
+            if len(ot) <= 2:
                 if ot.is_standard():
                     u = [1] * ot.size()
                     for i in ot[1]:
@@ -134,7 +133,18 @@ class CatalanTableau(PathTableau):
                 else:
                     raise ValueError("the tableau must be standard")
             else:
-                raise ValueError("the tableau must have two rows")
+                raise ValueError("the tableau must have at most two rows")
+
+        if isinstance(ot, SkewTableau):
+            if len(ot) <= 2:
+                # The check that ot is standard is not implemented
+                u = [1] * ot.size()
+                for i in ot[1]:
+                    if i is not None:
+                        u[i-1] = 0
+                w = DyckWord(u).heights()
+            else:
+                raise ValueError("the skew tableau must have at most two rows")
 
         if isinstance(ot, (list,tuple)):
             try:
@@ -148,28 +158,7 @@ class CatalanTableau(PathTableau):
         return CatalanTableaux()(w)
 
     def check(self):
-        """
-        Overwrites the abstract method.
 
-        This checks that heights are nonnegative and that succesive heights
-        differ by `+1` or `-1`.
-
-        EXAMPLES::
-
-            sage: CatalanTableau([0,1,2,3,2,3])
-            [0, 1, 2, 3, 2, 3]
-
-            sage: CatalanTableau([0,1,0,-1,0])
-            Traceback (most recent call last):
-            ...
-            ValueError: [0, 1, 0, -1, 0] has a negative entry
-
-            sage: CatalanTableau([0,1,3,3,2,3])
-            Traceback (most recent call last):
-            ...
-            ValueError: [0, 1, 3, 3, 2, 3] is not a Dyck path
-
-        """
         n = len(self)
         if any(a < 0 for a in self):
            raise ValueError( "%s has a negative entry" % (str(self)) )
@@ -273,11 +262,11 @@ class CatalanTableau(PathTableau):
 
            sage: T = CatalanTableau([0,1,2,3,2,3])
            sage: T.to_tableau()
-           [[0, 1, 2, 4], [3]]
+           [[1, 2, 3, 5], [4]]
         """
         w = self.to_word()
-        top = [ i for i, a in enumerate(w) if a == 1 ]
-        bot = [ i for i, a in enumerate(w) if a == 0 ]
+        top = [ i+1 for i, a in enumerate(w) if a == 1 ]
+        bot = [ i+1 for i, a in enumerate(w) if a == 0 ]
         return SkewTableau([[None]*self[0]+top,bot])
 
 class CatalanTableaux(PathTableaux):
@@ -288,7 +277,7 @@ class CatalanTableaux(PathTableaux):
                      "to_noncrossing_partition",
                      "to_binary_tree",
                      "to_ordered_tree",
-                     "to_to_non_decreasing_parking_function",
+                     "to_non_decreasing_parking_function",
                      "to_alternating_sign_matrix" ]
 
     Element = CatalanTableau

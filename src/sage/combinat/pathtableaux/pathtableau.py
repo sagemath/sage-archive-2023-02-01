@@ -81,6 +81,7 @@ class PathTableau(ClonableList):
             sage: c.associated_parenthesis(2)
             1
             sage: c.nonsense()
+            Traceback (most recent call last):
             ...
             AttributeError: unable to find method nonsense
 
@@ -93,25 +94,28 @@ class PathTableau(ClonableList):
 
         raise AttributeError("unable to find method "+name)
 
-    def _test_conversions(self):
+    def _check_conversions(self):
         """
         Test that the conversions work.
 
-        TESTS::
+        TESTS:
 
             sage: c = CatalanTableau([0,1,2,1,0])
-            sage: c._test_conversions()
+            sage: c._check_conversions()
             to_DyckWord
             (())
             <BLANKLINE>
             to_standard_tableau
             [[1, 2], [3, 4]]
             <BLANKLINE>
-            to_binary_tree
-            [[., .], .]
+            to_tableau
+            [[1, 2], [3, 4]]
             <BLANKLINE>
             to_noncrossing_partition
             [[1, 2]]
+            <BLANKLINE>
+            to_binary_tree
+            [[., .], .]
             <BLANKLINE>
             to_ordered_tree
             [[[]]]
@@ -122,15 +126,15 @@ class PathTableau(ClonableList):
             to_alternating_sign_matrix
             [0 1]
             [1 0]
-
+            <BLANKLINE>
         """
         for x in self.parent()._conversions:
             print x, "\n", getattr(self,x)(), "\n"
 
-    def _test_getattr(self):
+    def _check_getattr(self):
         """
         sage: c = CatalanTableau([0,1,0])
-        sage: c._test_getattr()
+        sage: c._check_getattr()
         to_DyckWord
         ...
             transpose
@@ -542,4 +546,5 @@ class PathTableaux(UniqueRepresentation,Parent):
 
     _conversions = []
 
-    Element = PathTableau
+    def _element_constructor_(self, *args, **keywords):
+        return self.element_class(self, *args, **keywords)

@@ -412,7 +412,7 @@ class OrePolynomial1(AlgebraElement):
             res += temp
         return res
 
-    def div_euc(self, other):
+    def div_euc(self, other, left=False):
         q = OrePolynomial1(self._parent, [0])
         r = self
         if other.is_zero():
@@ -425,7 +425,10 @@ class OrePolynomial1(AlgebraElement):
             tempt = tempr[dr]/tempother[dother]
             t = OrePolynomial1(self._parent, [0 for _ in range(dr - dother)] + [tempt])
             q = q+t
-            r = r-t*other
+            if left:
+                r = r-other*t
+            else:
+                r = r-t*other
         return q, r
     
 

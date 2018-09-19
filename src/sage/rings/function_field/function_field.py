@@ -194,6 +194,12 @@ class FunctionField(Field):
     """
     Abstract base class for all function fields.
 
+    INPUT:
+
+    - ``base_field`` -- field; the base of this function field
+
+    - ``names`` -- string that gives the name of the generator
+
     EXAMPLES::
 
         sage: K.<x> = FunctionField(QQ)
@@ -203,12 +209,6 @@ class FunctionField(Field):
     def __init__(self, base_field, names, category=FunctionFields()):
         """
         Initialize.
-
-        INPUT:
-
-        - ``base_field`` -- field; the base of this function field
-
-        - ``names`` -- string that gives the name of the generator
 
         TESTS::
 
@@ -886,6 +886,14 @@ class FunctionField_polymod(FunctionField):
     Function fields defined by a univariate polynomial, as an extension of the
     base field.
 
+    INPUT:
+
+    - ``polynomial`` -- univariate polynomial over a function field
+
+    - ``names`` -- tuple of length 1 or string; variable names
+
+    - ``category`` -- category (default: category of function fields)
+
     EXAMPLES:
 
     We make a function field defined by a degree 5 polynomial over the
@@ -926,14 +934,14 @@ class FunctionField_polymod(FunctionField):
 
     ::
 
-        sage: K.<x>=FunctionField(QQ)
+        sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
-        sage: L.<y>=K.extension(x^2-y^2)
-        sage: (y-x)*(y+x)
+        sage: L.<y> = K.extension(x^2 - y^2)
+        sage: (y - x)*(y + x)
         0
-        sage: 1/(y-x)
+        sage: 1/(y - x)
         1
-        sage: y-x==0; y+x==0
+        sage: y - x == 0; y + x == 0
         False
         False
     """
@@ -942,14 +950,6 @@ class FunctionField_polymod(FunctionField):
         Create a function field defined as an extension of another function
         field by adjoining a root of a univariate polynomial.
 
-        INPUT:
-
-        - ``polynomial`` -- univariate polynomial over a function field
-
-        - ``names`` -- tuple of length 1 or string; variable names
-
-        - ``category`` -- category (default: category of function fields)
-
         EXAMPLES:
 
         We create an extension of a function field::
@@ -957,11 +957,7 @@ class FunctionField_polymod(FunctionField):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L = K.extension(y^5 - x^3 - 3*x + x*y); L
             Function field in y defined by y^5 + x*y - x^3 - 3*x
-
-        Note the type::
-
-            sage: type(L)
-            <class 'sage.rings.function_field.function_field.FunctionField_polymod_with_category'>
+            sage: TestSuite(L).run()  # long time
 
         We can set the variable name, which doesn't have to be y::
 
@@ -1403,7 +1399,7 @@ class FunctionField_polymod(FunctionField):
             sage: L.degree(M)
             Traceback (most recent call last):
             ...
-            ValueError: base must be None or the rational function field
+            ValueError: base must be the rational function field itself
 
         """
         if base is None:
@@ -2481,23 +2477,23 @@ class FunctionField_polymod(FunctionField):
 class FunctionField_global(FunctionField_polymod):
     """
     Global function fields.
+
+    INPUT:
+
+    - ``polynomial`` -- monic irreducible and separable polynomial
+
+    - ``names`` -- name of the generator of the function field
+
+    EXAMPLES::
+
+        sage: K.<x>=FunctionField(GF(5)); _.<Y>=K[]
+        sage: L.<y>=K.extension(Y^3-(x^3-1)/(x^3-2))
+        sage: L
+        Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
     """
     def __init__(self, polynomial, names):
         """
-        Initialize the function field.
-
-        INPUT:
-
-        - ``polynomial`` -- monic irreducible and separable polynomial
-
-        - ``names`` -- name of the generator of the function field
-
-        EXAMPLES::
-
-            sage: K.<x>=FunctionField(GF(5)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3-(x^3-1)/(x^3-2))
-            sage: L
-            Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+        Initialize.
         """
         FunctionField_polymod.__init__(self, polynomial, names,
                                        element_class=FunctionFieldElement_global)
@@ -2767,8 +2763,13 @@ class FunctionField_global_integral(FunctionField_global):
 
 class RationalFunctionField(FunctionField):
     """
-    Rational function field `K(t)` in one variable, over an arbitrary
-    base field.
+    Rational function field in one variable, over an arbitrary base field.
+
+    INPUT:
+
+    - ``constant_field`` -- arbitrary field
+
+    - ``names`` -- string or tuple of length 1
 
     EXAMPLES::
 
@@ -2807,12 +2808,6 @@ class RationalFunctionField(FunctionField):
             category=FunctionFields()):
         """
         Create a rational function field in one variable.
-
-        INPUT:
-
-        - ``constant_field`` -- arbitrary field
-
-        - ``names`` -- string or tuple of length 1
 
         EXAMPLES::
 
@@ -3209,14 +3204,12 @@ class RationalFunctionField(FunctionField):
         from .maps import MapVectorSpaceToFunctionField, MapFunctionFieldToVectorSpace
         if base is None:
             base = self
-        if base is not self:
-            raise ValueError("base must be the rational function field or None")
+        elif base is not self:
+            raise ValueError("base must be the rational function field itself")
         V = base**1
         from_V = MapVectorSpaceToFunctionField(V, self)
         to_V   = MapFunctionFieldToVectorSpace(self, V)
         return (V, from_V, to_V)
-
-
 
     def random_element(self, *args, **kwds):
         """
@@ -3251,8 +3244,8 @@ class RationalFunctionField(FunctionField):
         """
         if base is None:
             base = self
-        if base is not self:
-            raise ValueError("base must be None or the rational function field")
+        elif base is not self:
+            raise ValueError("base must be the rational function field itself")
         from sage.rings.integer_ring import ZZ
         return ZZ(1)
 

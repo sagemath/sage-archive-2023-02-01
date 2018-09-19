@@ -285,9 +285,9 @@ fi
 AC_CHECK_PROG(found_latex, latex, yes, no)
 if test x$found_latex != xyes
 then
-    AC_MSG_WARN([You do not have 'latex', which is recommended, but not])
-    AC_MSG_WARN([required. Latex is only really used for building pdf])
-    AC_MSG_WARN([documents and for %latex mode in the AC_PACKAGE_NAME notebook.])
+    AC_MSG_NOTICE([You do not have 'latex', which is recommended, but not])
+    AC_MSG_NOTICE([required. Latex is only really used for building pdf])
+    AC_MSG_NOTICE([documents and for %latex mode in the AC_PACKAGE_NAME notebook.])
 fi
 
 # Check that perl is available, with version 5.8.0 or later.

@@ -362,14 +362,14 @@ cdef class Iterator(object):
         cdef list elts = [W.one()]
 
         for i in range(1, self.n):
-            coset_reps = reduced_coset_repesentatives(W, self.order[:i],
-                                                      self.order[:i-1], True)
+            coset_reps = reduced_coset_representatives(W, self.order[:i],
+                                                       self.order[:i-1], True)
             elts = [_new_mul_(<PermutationGroupElement>w, <PermutationGroupElement>v)
                     for w in elts for v in coset_reps]
         # the list ``elts`` now contains all prods of red coset reps
 
-        coset_reps = reduced_coset_repesentatives(W, self.order,
-                                                  self.order[:len(self.order)-1], True)
+        coset_reps = reduced_coset_representatives(W, self.order,
+                                                   self.order[:len(self.order)-1], True)
 
         for w in elts:
             for v in coset_reps:
@@ -499,7 +499,7 @@ cpdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S
             si = <PermutationGroupElement>(S[i])
             w = _new_mul_(w, si)
 
-cdef list reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small,
+cdef list reduced_coset_representatives(W, list parabolic_big, list parabolic_small,
                                        bint right):
     cdef tuple S = tuple(W.simple_reflections())
     cdef int N = W.number_of_reflections()
@@ -550,7 +550,8 @@ def parabolic_iteration_application(W, f):
         True
     """
     cdef int i
-    cdef list coset_reps = [reduced_coset_repesentatives(W, range(i+1), range(i), True)
+    cdef list coset_reps = [reduced_coset_representatives(W, list(range(i+1)),
+                                                          list(range(i)), True)
                             for i in range(W.rank())]
 
     parabolic_recursive(W.one(), coset_reps, f)

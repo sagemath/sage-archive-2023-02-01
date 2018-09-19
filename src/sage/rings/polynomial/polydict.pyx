@@ -1554,6 +1554,46 @@ cdef class ETuple:
                 result._nonzero += 1
         return result
 
+    cpdef ETuple escalar_div(ETuple self, int n):
+        r"""
+        Divide each exponent by ``n``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: ETuple([1,0,2]).escalar_div(2)
+            (0, 0, 1)
+            sage: ETuple([0,3,12]).escalar_div(3)
+            (0, 1, 4)
+
+            sage: ETuple([1,5,2]).escalar_div(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+
+        TESTS:
+
+        Checking that memory allocation works fine::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: t = ETuple(range(2048))
+            sage: for n in range(1,9):
+            ....:     t = t.escalar_div(n)
+            sage: assert t.is_constant()
+        """
+        if not n:
+            raise ZeroDivisionError
+        cdef size_t i, j
+        cdef ETuple result = self._new()
+        result._data = <int*> sig_malloc(sizeof(int) * 2 * self._nonzero)
+        result._nonzero = 0
+        for i in range(self._nonzero):
+            result._data[2 * result._nonzero + 1] = self._data[2 * i + 1] / n
+            if result._data[2 * result._nonzero + 1]:
+                result._data[2 * result._nonzero] = self._data[2 * i]
+                result._nonzero += 1
+        return result
+
     cpdef bint is_constant(ETuple self):
         """
         Return if all exponents are zero in the tuple.
@@ -1569,6 +1609,29 @@ cdef class ETuple:
             True
         """
         return self._nonzero == 0
+
+    cpdef bint is_multiple_of(ETuple self, int n):
+        r"""
+        Test whether each entry is a multiple of ``n``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+
+            sage: ETuple([0,0]).is_multiple_of(3)
+            True
+            sage: ETuple([0,3,12,0,6]).is_multiple_of(3)
+            True
+            sage: ETuple([0,0,2]).is_multiple_of(3)
+            False
+        """
+        if not n:
+            raise ValueError('n should not be zero')
+        cdef int i
+        for i in range(self._nonzero):
+            if self._data[2 * i + 1] % n:
+                return False
+        return True
 
     cpdef list nonzero_positions(ETuple self, bint sort=False):
         """

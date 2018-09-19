@@ -32,6 +32,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+
 from six.moves import range
 
 import itertools
@@ -323,7 +324,7 @@ class ClusterSeed(SageObject):
             self._user_labels_prefix = user_labels_prefix
 
             # initialize the rest
- 
+
             self._C = matrix.identity(self._n)
             self._use_c_vec = True
 
@@ -759,7 +760,7 @@ class ClusterSeed(SageObject):
 
         - ``user_labels`` -- The labels that need sanitizing
         - ``user_labels_prefix`` -- (default:'x') The prefix to use for labels if integers given for labels
- 
+
         EXAMPLES::
 
             sage: S = ClusterSeed(['A', 4]); S._init_vars
@@ -815,7 +816,7 @@ class ClusterSeed(SageObject):
         else:
             raise ValueError("the input 'user_labels' must be a dictionary or a list")
 
-        if len(self._init_vars.keys()) != self._n + self._m:
+        if len(self._init_vars) != self._n + self._m:
             raise ValueError("the number of user-defined labels is not the"
                              " number of exchangeable and frozen variables")
 
@@ -1309,7 +1310,7 @@ class ClusterSeed(SageObject):
             (x0*x2 + x1 + 1)/(x0*x1)
         """
         if self._use_fpolys:
-            IE = self._init_exch.values()
+            IE = list(self._init_exch.values())
             if (k in range(self._n)) or (k in IE):
                 if k in range(self._n):
                     pass
@@ -1382,7 +1383,7 @@ class ClusterSeed(SageObject):
             y0 + 1
         """
         if self._use_fpolys:
-            IE = self._init_exch.values()
+            IE = list(self._init_exch.values())
         else:
             IE = []
 
@@ -1435,7 +1436,7 @@ class ClusterSeed(SageObject):
             [y0 + 1, 1]
         """
         if self._use_fpolys:
-            IE = self._init_exch.values()
+            IE = list(self._init_exch.values())
             if k in range(self._n):
                 pass
             elif k in IE:
@@ -2609,7 +2610,7 @@ class ClusterSeed(SageObject):
     def cluster_index(self, cluster_str):
         r"""
         Return the index of a cluster if ``use_fpolys`` is on.
-        
+
         INPUT:
 
         - ``cluster_str`` -- the string to look for in the cluster
@@ -3103,7 +3104,7 @@ class ClusterSeed(SageObject):
             [ 0  0  1  0  0]
             [ 0  0  0  1  0]
             [ 0  0  0  0  1]
- 
+
             sage: S = ClusterSeed(['A', 4], user_labels=['a', 'b', 'c', 'd'])
             sage: T = S.principal_extension()
             sage: T.cluster()
@@ -3253,12 +3254,12 @@ class ClusterSeed(SageObject):
             sage: T.reset_cluster()
             sage: T.cluster()
             [x0, x1, x2]
- 
+
             sage: S = ClusterSeed(['B',3],user_labels=[[1,2],[2,3],[3,4]],user_labels_prefix='p')
             sage: S.mutate([0,1])
             sage: S.cluster()
             [(p_2_3 + 1)/p_1_2, (p_1_2*p_3_4^2 + p_2_3 + 1)/(p_1_2*p_2_3), p_3_4]
- 
+
             sage: S.reset_cluster()
             sage: S.cluster()
             [p_1_2, p_2_3, p_3_4]
@@ -3275,7 +3276,7 @@ class ClusterSeed(SageObject):
             self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
         if self._use_fpolys:
             self.set_cluster(self._R.gens(), force=True)
- 
+
     def reset_coefficients( self ):
         r"""
         Resets the coefficients of ``self`` to the frozen variables but keeps the current cluster.
@@ -3489,7 +3490,7 @@ class ClusterSeed(SageObject):
             gets_bigger = False
 
             # set the keys
-            keys = clusters.keys()
+            keys = list(clusters)
 
             # Our keys are cluster variables, so for each cluster:
             for key in keys:
@@ -4440,7 +4441,7 @@ class ClusterSeed(SageObject):
         Returns an element in the upper cluster algebra. Depending on the input it may or may not be irreducible.
 
         EXAMPLES::
-        
+
             sage: B=matrix([[0,3,-3],[-3,0,3],[3,-3,0],[1,0,0],[0,1,0],[0,0,1]])
             sage: C=ClusterSeed(B)
             sage: C.get_upper_cluster_algebra_element([1,1,0])
@@ -4465,7 +4466,7 @@ class ClusterSeed(SageObject):
             sage: C.get_upper_cluster_algebra_element([1,1,1])
             x0^4*x1^2*x2^3 + x0^2*x1^3*x2^4
 
-        
+
         REFERENCES:
 
         .. [LeeLiM] Lee-Li-Mills, A combinatorial formula for certain elements in the upper cluster algebra, :arxiv:`1409.8177`
@@ -4558,7 +4559,7 @@ class ClusterSeed(SageObject):
             [1, 0, 1, 1]],
             [[0, 0, 0, 0], [0, 0, 0, 1]]]
 
-        
+
             sage: B=matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
             sage: C=ClusterSeed(B)
             sage: v=_vector_decomposition([2,-1,3,-2],4)
@@ -4599,7 +4600,7 @@ class ClusterSeed(SageObject):
             while len(p) < len(vd[0][0]):
                 p.append(0)
             psetvect.append(p)
-            
+
         for a in vd:
             negative = False
             for m in range(len(a)):
@@ -4645,7 +4646,7 @@ class ClusterSeed(SageObject):
             sage: c = C._compute_compatible_vectors(v)
             sage: C._produce_upper_cluster_algebra_element(v,c)
             (x0^2*x1^3*x4*x5^2*x6*x7^2 + x0*x1^2*x2*x3*x4*x5*x6*x7 + 2*x0^2*x1^2*x4*x5^2*x6*x7 + x0^2*x1^2*x4*x5^2*x7^2 + x0*x1*x2*x3*x4*x5*x6 + x0^2*x1*x4*x5^2*x6 + x0*x1^2*x2*x3*x5*x7 + 2*x0*x1*x2*x3*x4*x5*x7 + 2*x0^2*x1*x4*x5^2*x7 + x1*x2^2*x3^2 + x2^2*x3^2*x4 + x0*x1*x2*x3*x5 + 2*x0*x2*x3*x4*x5 + x0^2*x4*x5^2)/(x0*x1^2*x2*x3^2)
-            
+
             sage: B = matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
             sage: C = ClusterSeed(B)
             sage: v = _vector_decomposition([2,-1,3,-2],4)
@@ -4869,9 +4870,9 @@ def get_green_vertices(C):
     INPUT:
 
     - ``C`` -- The C matrix to check
- 
+
     EXAMPLES::
- 
+
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import get_green_vertices
         sage: S = ClusterSeed(['A',4]); S.mutate([1,2,3,2,0,1,2,0,3])
         sage: get_green_vertices(S.c_matrix())
@@ -4931,7 +4932,7 @@ def _vector_decomposition(a, length):
         sage: _vector_decomposition([3,2,3,4],4)
         [[(1, 1, 1, 1), 2], [(1, 0, 1, 1), 1], [(0, 0, 0, 1), 1]]
     """
-    
+
     multiList = []
     a_plus=[]
     for i in range(len(a)):
@@ -5015,7 +5016,7 @@ def _power_set(n):
 
         sage: _power_set(2)
         [[0, 0], [0, 1], [1, 0], [1, 1]]
-    
+
         sage: _power_set(5)
         [[0, 0, 0, 0, 0],
         [0, 0, 0, 0, 1],
@@ -5070,7 +5071,7 @@ def _multi_concatenate(l1, l2):
     OUTPUT:
 
     A 2-dimensional array.
-    
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate

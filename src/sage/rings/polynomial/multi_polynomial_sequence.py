@@ -129,7 +129,7 @@ easily::
     sage: A.rank()
     4056
     sage: A[4055]*v
-    (k002*k003)
+    (k001*k003)
 
 TESTS::
 

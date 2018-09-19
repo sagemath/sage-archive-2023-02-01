@@ -35,12 +35,12 @@ class CartanType(SageObject, CartanType_abstract):
 
     INPUT:
 
-    - ``types`` - a list of simple Cartan types
+    - ``types`` -- a list of simple Cartan types
 
     EXAMPLES::
 
-        sage: [t1,t2]=[CartanType(x) for x in ['A',1],['B',2]]
-        sage: CartanType([t1,t2])
+        sage: t1, t2 = [CartanType(x) for x in (['A',1], ['B',2])]
+        sage: CartanType([t1, t2])
         A1xB2
         sage: t = CartanType("A2xB2")
 

@@ -1151,7 +1151,7 @@ class ColorsDict(dict):
             True
         """
         methods = ['__dir__', '__getattr__']
-        return dir(super(ColorsDict, self)) + methods + self.keys()
+        return dir(super(ColorsDict, self)) + methods + sorted(self)
 
 colors = ColorsDict()
 
@@ -1285,7 +1285,7 @@ def float_to_integer(r, g, b):
     """
     r, g, b = map(mod_one, (r, g, b))
     return int(r * 255) << 16 | int(g * 255) << 8 | int(b * 255)
-    
+
 
 def rainbow(n, format='hex'):
     """
@@ -1392,13 +1392,46 @@ def get_cmap(cmap):
         return cmap
 
     elif isinstance(cmap, six.string_types):
-        if not cmap in cm.datad.keys():
+        if not cmap in cm.datad:
             raise RuntimeError("Color map %s not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)" % cmap)
         return cm.__dict__[cmap]
 
     elif isinstance(cmap, (list, tuple)):
         cmap = [rgbcolor(_) for _ in cmap]
         return ListedColormap(cmap)
+
+
+def check_color_data(cfcm):
+    """
+    Make sure that the arguments are in order (coloring function, colormap).
+
+    This will allow users to use both possible orders.
+
+    EXAMPLES::
+
+        sage: from sage.plot.colors import check_color_data
+        sage: cf = lambda x,y : (x+y) % 1
+        sage: cm = colormaps.autumn
+        sage: check_color_data((cf, cm)) == (cf, cm)
+        True
+        sage: check_color_data((cm, cf)) == (cf, cm)
+        True
+
+    TESTS::
+
+        sage: check_color_data(('a', 33))
+        Traceback (most recent call last):
+        ...
+        ValueError: color data must be (color function, colormap)
+    """
+    cf, cm = cfcm
+    from matplotlib.colors import Colormap
+    if isinstance(cm, Colormap):
+        return cf, cm
+    elif isinstance(cf, Colormap):
+        return cm, cf
+    else:
+        raise ValueError('color data must be (color function, colormap)')
 
 
 class Colormaps(collections.MutableMapping):
@@ -1441,7 +1474,7 @@ class Colormaps(collections.MutableMapping):
         if not cm:
             from matplotlib import cm
         if not self.maps:
-            for cmap in cm.datad.keys():
+            for cmap in cm.datad:
                 self.maps[cmap] = cm.__getattribute__(cmap)
 
     def __dir__(self):
@@ -1464,7 +1497,7 @@ class Colormaps(collections.MutableMapping):
         methods = ['load_maps', '__dir__', '__len__', '__iter__',
                    '__contains__', '__getitem__', '__getattr__',
                    '__setitem__', '__delitem__']
-        return dir(super(Colormaps, self)) + methods + self.keys()
+        return dir(super(Colormaps, self)) + methods + sorted(self)
 
     def __len__(self):
         """

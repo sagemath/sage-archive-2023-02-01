@@ -1,4 +1,4 @@
-"""
+r"""
 `p`-Adic Base Generic
 
 A superclass for implementations of `\mathbb{Z}_p` and `\mathbb{Q}_p`.

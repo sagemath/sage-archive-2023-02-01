@@ -680,7 +680,7 @@ cdef class Cache_givaro(SageObject):
 
         ret = ""
         for i in range(self.exponent()):
-            coeff = quo%b
+            coeff = quo % b
             if coeff != 0:
                 if i>0:
                     if coeff==1:
@@ -693,7 +693,7 @@ cdef class Cache_givaro(SageObject):
                         ret = coeff + variable + " + " + ret
                 else:
                     ret = str(coeff) + " + " + ret
-            quo = quo//b
+            quo = quo // b
         if ret == '':
             return "0"
         return ret[:-3]
@@ -1519,9 +1519,9 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         b   = int(cache.characteristic())
         ret = []
         for i in range(K.degree()):
-            coeff = quo%b
+            coeff = quo % b
             ret.append(coeff)
-            quo = quo/b
+            quo = quo // b
         if not name is None and K.variable_name() != name:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(K.prime_subfield(), name)(ret)
@@ -1717,9 +1717,9 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         ret = []
         for i in range(k.degree()):
-            coeff = quo%b
+            coeff = quo % b
             ret.append(coeff)
-            quo = quo/b
+            quo = quo // b
         if reverse:
             ret = list(reversed(ret))
         return k.vector_space()(ret)

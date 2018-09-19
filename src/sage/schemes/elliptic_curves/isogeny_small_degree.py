@@ -639,20 +639,19 @@ def isogenies_sporadic_Q(E, l=None, minimal_models=True):
         sage: isogenies_sporadic_Q(E,163)
         [Isogeny of degree 163 from Elliptic Curve defined by y^2 = x^3 - 34790720*x - 78984748304 over Rational Field to Elliptic Curve defined by y^2 = x^3 - 924354639680*x + 342062961763303088 over Rational Field]
     """
-    F = E.base_field()
     j = E.j_invariant()
     j = QQ(j)
-    if (j not in sporadic_j
-        or (l is not None and sporadic_j[j] != l)):
+    if (j not in sporadic_j or (l is not None and sporadic_j[j] != l)):
         return []
 
+    F = E.base_field()
     data = _sporadic_Q_data(j)
     Ew = E.short_weierstrass_model()
     E_to_Ew = E.isomorphism_to(Ew)
     c4, c6 = Ew.c_invariants()
-    (a4,a6), f = data
-    d = (c6*a4)/(18*c4*a6) # twisting factor
-    R = PolynomialRing(F,'X')
+    (a4, a6), f = data
+    d = (c6*a4)/(18*c4*a6)  # twisting factor
+    R = PolynomialRing(F, 'X')
     n = len(f)
     ker = R([d**(n-i-1) * f[i] for i in range(n)])
     from sage.rings.number_field.number_field_base import is_NumberField
@@ -708,7 +707,7 @@ def isogenies_2(E, minimal_models=True):
 
 
 def isogenies_3(E, minimal_models=True):
-    """
+    r"""
     Return a list of all 3-isogenies with domain ``E``.
 
     INPUT:
@@ -748,7 +747,7 @@ def isogenies_3(E, minimal_models=True):
     f3 = E.division_polynomial(3)
     x3 = sorted(f3.roots(multiplicities=False))
     x = f3.parent().gen()
-    ff = [x-x3i for x3i in x3]
+    ff = [x - x3i for x3i in x3]
     from sage.rings.number_field.number_field_base import is_NumberField
     model = "minimal" if minimal_models and is_NumberField(E.base_field()) else None
     isogs = [E.isogeny(f, model=model) for f in ff]
@@ -757,7 +756,8 @@ def isogenies_3(E, minimal_models=True):
 # 6 special cases: `l` = 5, 7, 13 and `j` = 0, 1728.
 
 def isogenies_5_0(E, minimal_models=True):
-    r"""Returns a list of all the 5-isogenies  with domain ``E`` when the
+    r"""
+    Return a list of all the 5-isogenies  with domain ``E`` when the
     j-invariant is 0.
 
     INPUT:
@@ -1378,6 +1378,7 @@ def isogenies_13_1728(E, minimal_models=True):
 
 # List of primes l for which X_0(l) is (hyper)elliptic and X_0^+(l) has genus 0
 
+
 hyperelliptic_primes = [11, 17, 19, 23, 29, 31, 41, 47, 59, 71]
 
 @cached_function
@@ -1523,6 +1524,7 @@ def _hyperelliptic_isogeny_data(l):
         data['beta'] = Zu([0, 12150, -163215, 1115640, -5311143, 18820224, -50700172, 99823812, -102454041, -183909134, 1354660714, -4462311942, 10695310224, -20015395554, 28262441676, -23240987282, -17879387475, 124501604946, -315187724212, 564766450688, -765154573538, 705985549104, -115433273216, -1206098873334, 3175185881748, -5228317292044, 6292310032120, -5077451367560, 719644756530, 6451571564682, -14460150103020, 19999710623352, -19681838601268, 11819712227412, 2180981559572, -17790742756618, 29025463386612, -31179247603548, 23207078145510, -8345354986332, -7468523752270, 18486966963350, -21719818051100, 17831212433536, -10100011266030, 2336962513536, 2906983627184, -4989755986066, 4711466210012, -3361479243242, 1952316811463, -948555371584, 389878900245, -136099552242, 40341734984, -10121407164, 2136756509, -376218102, 54551634, -6399080, 591884, -41538, 2078, -66, 1])
         #beta factors as (u - 3) * (u - 2) * (u - 1) * u * (u + 1) * (u**2 - 5*u + 5) * (u**2 - 3*u + 1) * (u**2 - 2*u - 1) * (u**2 - u - 1) * (u**3 - 5*u**2 + 5*u - 3) * (u**3 - 4*u**2 - 1) * (u**3 - 2*u**2 - 1) * (u**4 - 6*u**3 + 7*u**2 + 6*u - 9) * (u**4 - 5*u**3 + 4*u**2 + u + 3) * (u**4 - 5*u**3 + 6*u**2 - 3*u + 5) * (u**4 - 4*u**3 + u**2 - 4*u + 1) * (u**4 - 4*u**3 + 2*u**2 - u + 1) * (u**4 - 2*u**3 - 3*u**2 - 2*u - 1) * (u**4 - 2*u**3 + u - 1) * (u**6 - 5*u**5 + 8*u**4 - 7*u**3 + 6*u**2 - 3*u + 1) * (u**8 - 6*u**7 + 9*u**6 - 2*u**5 + 2*u**3 - 9*u**2 + 2*u - 1)
         return data
+
 
 @cached_function
 def Psi2(l):

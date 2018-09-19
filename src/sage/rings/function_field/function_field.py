@@ -32,7 +32,7 @@ simple arithmetic in it::
     sage: y^3
     2*x*y + (x^4 + 1)/x
     sage: a = 1/y; a
-    (4*x/(4*x^4 + 4))*y^2 + 2*x^2/(4*x^4 + 4)
+    (x/(x^4 + 1))*y^2 + 3*x^2/(x^4 + 1)
     sage: a * y
     1
 
@@ -46,7 +46,7 @@ that arithmetic with a tower of three fields is fully supported::
     sage: t^2
     x*y
     sage: 1/t
-    ((1/(x^4 + 1))*y^2 + 2*x/(4*x^4 + 4))*t
+    ((1/(x^4 + 1))*y^2 + 3*x/(x^4 + 1))*t
     sage: M.base_field()
     Function field in y defined by y^3 + 3*x*y + (4*x^4 + 4)/x
     sage: M.base_field().base_field()
@@ -100,7 +100,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2011-2017 Julian Rüth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2018 Julian Rüth <julian.rueth@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -221,7 +221,7 @@ class FunctionField(Field):
             1/x^2,
             x/(x^2 - 1),
             x/(x^2 + 1),
-            x/(2*x^2 + 2),
+            1/2*x/(x^2 + 1),
             0,
             1/x,
             ...]
@@ -234,14 +234,13 @@ class FunctionField(Field):
            [1,
             y,
             1/x*y,
-            ((1/4*x + 1/4)/(1/4*x^2 - 1/2*x + 1/4))*y - 1/2*x/(1/4*x^2 - 1/2*x + 1/4),
-            -1/-x,
+            ((x + 1)/(x^2 - 2*x + 1))*y - 2*x/(x^2 - 2*x + 1),
+            1/x,
             (1/(x - 1))*y,
             (1/(x + 1))*y,
-            (1/(2*x + 2))*y,
+            (1/2/(x + 1))*y,
             0,
             ...]
-
         """
         elements = []
 
@@ -778,7 +777,7 @@ class FunctionField_polymod(FunctionField):
         sage: M.<z> = L.extension(z^2 + y*z + y); M
         Function field in z defined by z^2 + y*z + y
         sage: 1/z
-        ((x/(-x^4 - 1))*y^4 - 2*x^2/(-x^4 - 1))*z - 1
+        ((-x/(x^4 + 1))*y^4 + 2*x^2/(x^4 + 1))*z - 1
         sage: z * (1/z)
         1
 
@@ -1438,12 +1437,12 @@ class FunctionField_polymod(FunctionField):
         We define an interesting element of the function field::
 
             sage: a = 1/L.0; a
-            (-x/(-x^4 - 1))*y^4 + 2*x^2/(-x^4 - 1)
+            (x/(x^4 + 1))*y^4 - 2*x^2/(x^4 + 1)
 
         We convert it to the vector space, and get a vector over the base field::
 
             sage: to_V(a)
-            (2*x^2/(-x^4 - 1), 0, 0, 0, -x/(-x^4 - 1))
+            (-2*x^2/(x^4 + 1), 0, 0, 0, x/(x^4 + 1))
 
         We convert to and back, and get the same element::
 
@@ -2057,6 +2056,220 @@ class FunctionField_polymod(FunctionField):
         """
         N, f, t = self.simple_model()
         return f(N.gen())
+
+    @cached_method
+    def separable_model(self, names=None):
+        r"""
+        Return a function field isomorphic to this field which is a separable
+        extension of a rational function field.
+
+        INPUT:
+
+        - ``names`` -- a tuple of two strings or ``None`` (default: ``None``);
+          the second entry will be used as the variable name of the rational
+          function field, the first entry will be used as the variable name of
+          its separable extension. If ``None``, then the variable names will be
+          chosen automatically.
+
+        OUTPUT:
+
+        A triple ``(F,f,t)`` where ``F`` is a function field, ``f`` is an
+        isomorphism from ``F`` to this function field, and ``t`` is the inverse
+        of ``f``.
+
+        ALGORITHM:
+
+        Suppose that the constant base field is perfect. If this is a monic
+        integral inseparable extension of a rational function field, then the
+        defining polynomial is separable if we swap the variables (Proposition
+        4.8 in Chapter VIII of [Lang2002]_.)
+        The algorithm reduces to this case with :meth:`monic_integral_model`.
+
+        REFERENCES:
+
+        .. [Lang2002] Serge Lang. Algebra. Springer, 2002.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3)
+            sage: L.separable_model(('t','w'))
+            (Function field in t defined by t^3 + w^2,
+             Function Field morphism:
+               From: Function field in t defined by t^3 + w^2
+               To:   Function field in y defined by y^2 + x^3
+               Defn: t |--> x
+                     w |--> y,
+             Function Field morphism:
+               From: Function field in y defined by y^2 + x^3
+               To:   Function field in t defined by t^3 + w^2
+               Defn: y |--> w
+                     x |--> t)
+
+        This also works for non-integral polynomials::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2/x - x^2)
+            sage: L.separable_model()
+            (Function field in y_ defined by y_^3 + x_^2,
+             Function Field morphism:
+               From: Function field in y_ defined by y_^3 + x_^2
+               To:   Function field in y defined by 1/x*y^2 + x^2
+               Defn: y_ |--> x
+                     x_ |--> y,
+             Function Field morphism:
+               From: Function field in y defined by 1/x*y^2 + x^2
+               To:   Function field in y_ defined by y_^3 + x_^2
+               Defn: y |--> x_
+                     x |--> y_)
+
+        If the base field is not perfect this is only implemented in trivial cases::
+
+            sage: k.<t> = FunctionField(GF(2))
+            sage: k.is_perfect()
+            False
+            sage: K.<x> = FunctionField(k)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 - t)
+            sage: L.separable_model()
+            (Function field in y defined by y^3 + t,
+             Function Field endomorphism of Function field in y defined by y^3 + t
+               Defn: y |--> y
+                     x |--> x,
+             Function Field endomorphism of Function field in y defined by y^3 + t
+               Defn: y |--> y
+                     x |--> x)
+
+        Some other cases for which a separable model could be constructed are
+        not supported yet::
+
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - t)
+            sage: L.separable_model()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: constructing a separable model is only implemented for function fields over a perfect constant base field
+
+        TESTS:
+
+        Check that this also works in characteristic zero::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3)
+            sage: L.separable_model()
+            (Function field in y defined by y^2 - x^3,
+             Function Field endomorphism of Function field in y defined by y^2 - x^3
+               Defn: y |--> y
+                     x |--> x,
+             Function Field endomorphism of Function field in y defined by y^2 - x^3
+               Defn: y |--> y
+                     x |--> x)
+
+        Check that this works for towers of inseparable extensions::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+            sage: M.separable_model()
+            (Function field in z_ defined by z_ + x_^4,
+             Function Field morphism:
+               From: Function field in z_ defined by z_ + x_^4
+               To:   Function field in z defined by z^2 + y
+               Defn: z_ |--> x
+                     x_ |--> z,
+             Function Field morphism:
+               From: Function field in z defined by z^2 + y
+               To:   Function field in z_ defined by z_ + x_^4
+               Defn: z |--> x_
+                     y |--> x_^2
+                     x |--> x_^4)
+
+        Check that this also works if only the first extension is inseparable::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3 - y)
+            sage: M.separable_model()
+            (Function field in z_ defined by z_ + x_^6, Function Field morphism:
+               From: Function field in z_ defined by z_ + x_^6
+               To:   Function field in z defined by z^3 + y
+               Defn: z_ |--> x
+                     x_ |--> z, Function Field morphism:
+               From: Function field in z defined by z^3 + y
+               To:   Function field in z_ defined by z_ + x_^6
+               Defn: z |--> x_
+                     y |--> x_^3
+                     x |--> x_^6)
+
+        """
+        if names is None:
+            pass
+        elif not isinstance(names, tuple):
+            raise TypeError("names must be a tuple consisting of two strings")
+        elif len(names) != 2:
+            raise ValueError("must provide exactly two variable names")
+
+        if self.base_ring() is not self.rational_function_field():
+            L, from_L, to_L = self.simple_model()
+            K, from_K, to_K = L.separable_model(names=names)
+            f = K.hom([from_L(from_K(K.gen())), from_L(from_K(K.base_field().gen()))])
+            t = self.hom([to_K(to_L(k.gen())) for k in self._intermediate_fields(self.rational_function_field())])
+            return K, f, t
+
+        if self.polynomial().gcd(self.polynomial().derivative()).is_one():
+            # the model is already separable
+            if names is None:
+                names = self.variable_name(), self.base_field().variable_name()
+            return self.change_variable_name(names)
+
+        if not self.constant_base_field().is_perfect():
+            raise NotImplementedError("constructing a separable model is only implemented for function fields over a perfect constant base field")
+
+        if names is None:
+            names = (self.variable_name()+"_", self.rational_function_field().variable_name()+"_")
+
+        L, from_L, to_L = self.monic_integral_model()
+
+        if L.polynomial().gcd(L.polynomial().derivative()).is_one():
+            # L is separable
+            ret, ret_to_L, L_to_ret = L.change_variable_name(names)
+            f = ret.hom([from_L(ret_to_L(ret.gen())), from_L(ret_to_L(ret.base_field().gen()))])
+            t = self.hom([L_to_ret(to_L(self.gen())), L_to_ret(to_L(self.base_field().gen()))])
+            return ret, f, t
+        else:
+            # otherwise, the polynomial of L must be separable in the other variable
+            from .constructor import FunctionField
+            K = FunctionField(self.constant_base_field(), names=(names[1],))
+            # construct a field isomorphic to L on top of K
+
+            # turn the minpoly of K into a bivariate polynomial
+            if names[0] == names[1]:
+                raise ValueError("names of generators must be distinct")
+            from sage.rings.all import PolynomialRing
+            R = PolynomialRing(self.constant_base_field(), names=names)
+            S = R.remove_var(names[1])
+            f = R( L.polynomial().change_variable_name(names[1]).map_coefficients(
+                     lambda c:c.numerator().change_variable_name(names[0]), S))
+            f = f.polynomial(R.gen(0)).change_ring(K)
+            f /= f.leading_coefficient()
+            # f must be separable in the other variable (otherwise it would factor)
+            assert f.gcd(f.derivative()).is_one()
+
+            ret = K.extension(f, names=(names[0],))
+            # isomorphisms between L and ret are given by swapping generators
+            ret_to_L = ret.hom( [L(L.base_field().gen()), L.gen()] )
+            L_to_ret = L.hom( [ret(K.gen()), ret.gen()] )
+            # compose with from_L and to_L to get the desired isomorphisms between self and ret
+            f = ret.hom( [from_L(ret_to_L(ret.gen())), from_L(ret_to_L(ret.base_field().gen()))] )
+            t = self.hom( [L_to_ret(to_L(self.gen())), L_to_ret(to_L(self.base_field().gen()))] )
+            return ret, f, t
 
     def change_variable_name(self, name):
         r"""

@@ -332,7 +332,8 @@ class R(ExtraTabCompletion, Expect):
                   prompt = '> ', #default, later comes the change
 
                   # This is the command that starts up your program
-                  command = "R --vanilla --quiet",
+                  # See #25806 for the --no-readline switch which fixes hangs for some
+                  command = "R --no-readline --vanilla --quiet",
 
                   server=server,
                   server_tmpdir=server_tmpdir,
@@ -636,9 +637,9 @@ class R(ExtraTabCompletion, Expect):
             sage: rstr.startswith('R version')
             True
         """
-        major_re = re.compile('^major\s*(\d.*?)$', re.M)
-        minor_re = re.compile('^minor\s*(\d.*?)$', re.M)
-        version_string_re = re.compile('^version.string\s*(R.*?)$', re.M)
+        major_re = re.compile(r'^major\s*(\d.*?)$', re.M)
+        minor_re = re.compile(r'^minor\s*(\d.*?)$', re.M)
+        version_string_re = re.compile(r'^version.string\s*(R.*?)$', re.M)
 
         s = self.eval('version')
 
@@ -1255,11 +1256,11 @@ class R(ExtraTabCompletion, Expect):
 
 
 # patterns for _sage_()
-rel_re_param = re.compile('\s([\w\.]+)\s=')
-rel_re_range = re.compile('([\d]+):([\d]+)')
-rel_re_integer = re.compile('([^\d])([\d]+)L')
-rel_re_terms = re.compile('terms\s*=\s*(.*?),')
-rel_re_call = re.compile('call\s*=\s*(.*?)\),')
+rel_re_param = re.compile(r'\s([\w\.]+)\s=')
+rel_re_range = re.compile(r'([\d]+):([\d]+)')
+rel_re_integer = re.compile(r'([^\d])([\d]+)L')
+rel_re_terms = re.compile(r'terms\s*=\s*(.*?),')
+rel_re_call = re.compile(r'call\s*=\s*(.*?)\),')
 
 
 @instancedoc
@@ -1676,7 +1677,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         """
         from re import compile as re_compile
         from re import split   as re_split
-        splt = re_compile('(c\(|\(|\))') # c( or ( or )
+        splt = re_compile(r'(c\(|\(|\))') # c( or ( or )
         lvl = 0
         ret = []
         for token in re_split(splt, exp):
@@ -1821,12 +1822,12 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
         # Change 'structure' to '_r_structure'
         # TODO: check that we are outside of quotes ""
-        exp = re.sub(' structure\(', ' _r_structure(', exp)
-        exp = re.sub('^structure\(', '_r_structure(', exp) #special case
+        exp = re.sub(r' structure\(', ' _r_structure(', exp)
+        exp = re.sub(r'^structure\(', '_r_structure(', exp)  # special case
 
         # Change 'list' to '_r_list'
-        exp = re.sub(' list\(', ' _r_list(', exp)
-        exp = re.sub('\(list\(', '(_r_list(', exp)
+        exp = re.sub(r' list\(', ' _r_list(', exp)
+        exp = re.sub(r'\(list\(', '(_r_list(', exp)
 
         # Change 'a:b' to 'range(a,b+1)'
         exp = rel_re_range.sub(self._subs_range, exp)

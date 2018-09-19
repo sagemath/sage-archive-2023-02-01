@@ -27,8 +27,6 @@ from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.integer_vector import IntegerVectors
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
-from sage.rings.rational import Rational
-from sage.rings.integer_ring import ZZ
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute
@@ -261,6 +259,18 @@ class ShiftedPrimedTableau(ClonableArray):
             False
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: t = ShiftedPrimedTableau([[1,"2p"]])
+            sage: hash(t) == hash(ShiftedPrimedTableaux([2])([[1,3/2]]))
+            True
+        """
+        return hash((self._skew, tuple(self)))
 
     def _repr_(self):
         """

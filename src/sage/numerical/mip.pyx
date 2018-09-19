@@ -733,7 +733,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         self._backend.problem_name(name)
 
     def new_variable(self, real=False, binary=False, integer=False, nonnegative=False, name="",
-                     indices='dynamic'):
+                     indices=None):
         r"""
         Return a new :class:`MIPVariable` instance.
 
@@ -769,13 +769,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
           using ``write_mps`` or ``write_lp``, and has no other
           effect.
 
-        - ``indices`` -- If "dynamic" (the default), components of this
-          variable can be indexed by arbitrary keys and are created
-          dynamically on access.
-          Otherwise, ``indices`` must be an iterable of keys.
-          Components corresponding to these keys are created in order,
-          and access to components with other keys will raise an
-          error.
+        - ``indices`` -- (optional) an iterable of keys; components
+           corresponding to these keys are created in order,
+           and access to components with other keys will raise an
+           error; otherwise components of this variable can be
+           indexed by arbitrary keys and are created dynamically
+           on access
 
         OUTPUT:
 
@@ -2897,7 +2896,7 @@ cdef class MIPVariable(SageObject):
         :meth:`MixedIntegerLinearProgram.new_variable`.
     """
     def __init__(self, mip, vtype, name="", lower_bound=0, upper_bound=None,
-                 indices='dynamic'):
+                 indices=None):
         r"""
         Constructor for ``MIPVariable``.
 
@@ -2918,13 +2917,12 @@ cdef class MIPVariable(SageObject):
           bound on the variable. Set to ``None`` to indicate that the
           variable is unbounded.
 
-        - ``indices`` -- If "dynamic" (the default), components of this
-          variable can be indexed by arbitrary keys and are created
-          dynamically on access.
-          Otherwise, ``indices`` must be an iterable of keys.
-          Components corresponding to these keys are created in order,
-          and access to components with other keys will raise an
-          error.
+        - ``indices`` -- (optional) an iterable of keys; components
+           corresponding to these keys are created in order,
+           and access to components with other keys will raise an
+           error; otherwise components of this variable can be
+           indexed by arbitrary keys and are created dynamically
+           on access
 
         For more informations, see the method
         ``MixedIntegerLinearProgram.new_variable``.
@@ -2942,7 +2940,7 @@ cdef class MIPVariable(SageObject):
         self._upper_bound = upper_bound
         self._name = name
         self._dynamic_indices = True
-        if indices != 'dynamic':
+        if indices is not None:
             for i in indices:
                 self[i]                   # creates component
             self._dynamic_indices = False
@@ -2997,7 +2995,7 @@ cdef class MIPVariable(SageObject):
 
         Returns the component asked.
 
-        Otherwise, if ``self`` was created with indices='dynamic',
+        Otherwise, if ``self`` was created with indices=None,
         creates the component.
 
         EXAMPLES:

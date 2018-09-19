@@ -628,7 +628,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def base_ring(self):
         r"""
-        Returns the base ring of the ideal.
+        Return the base ring of the ideal.
 
         EXAMPLES::
 

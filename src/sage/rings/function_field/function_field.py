@@ -2851,7 +2851,7 @@ class RationalFunctionField(FunctionField):
 
     def __reduce__(self):
         """
-        Returns the arguments which were used to create this instance. The
+        Return the arguments which were used to create this instance. The
         rationale for this is explained in the documentation of
         :class:`UniqueRepresentation`.
 

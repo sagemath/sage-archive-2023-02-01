@@ -157,20 +157,19 @@ def gen_rest_table_index(obj, names=None, sort=True, only_local_functions=True):
     else:
         list_of_entries = obj
 
-    fname = lambda x:names.get(x,getattr(x,"__name__",""))
+    fname = lambda x: names.get(x, getattr(x, "__name__", ""))
 
-    assert isinstance(list_of_entries,list)
+    assert isinstance(list_of_entries, list)
 
-    s = (".. csv-table::\n"
-         "   :class: contentstable\n"
-         "   :widths: 30, 70\n"
-         "   :delim: @\n\n")
+    s = [".. csv-table::",
+         "   :class: contentstable",
+         "   :widths: 30, 70",
+         "   :delim: @\n"]
 
     if sort:
         list_of_entries.sort(key=fname)
 
     for e in list_of_entries:
-
         if inspect.ismethod(e):
             link = ":meth:`~{module}.{cls}.{func}`".format(
                 module=e.im_class.__module__, cls=e.im_class.__name__,
@@ -198,9 +197,10 @@ def gen_rest_table_index(obj, names=None, sort=True, only_local_functions=True):
         else:
             desc = "NO DOCSTRING"
 
-        s += "   {} @ {}\n".format(link,desc.lstrip())
+        s.append("   {} @ {}".format(link, desc.lstrip()))
 
-    return s+'\n'
+    return '\n'.join(s) + '\n'
+
 
 def list_of_subfunctions(root, only_local_functions=True):
     r"""
@@ -234,8 +234,11 @@ def list_of_subfunctions(root, only_local_functions=True):
 
         sage: class A:
         ....:     x = staticmethod(Graph.order)
-        sage: list_of_subfunctions(A)
+        sage: list_of_subfunctions(A)  # py2
         ([<unbound method Graph.order>], {<unbound method Graph.order>: 'x'})
+        sage: list_of_subfunctions(A)  # py3
+        ([<function GenericGraph.order at 0x...>],
+         {<function GenericGraph.order at 0x...>: 'x'})
 
     """
     import inspect

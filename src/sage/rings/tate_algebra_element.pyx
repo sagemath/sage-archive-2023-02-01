@@ -389,6 +389,13 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the greatest common divisor of two Tate terms
 
+        The coefficient of the returned term is unspecified.
+
+        INPUT:
+
+        - ``other`` - the Tate term with which to compute the gcd
+
+
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits',prec=10); R
@@ -401,8 +408,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...0000000001000)*x^2*y^2
             sage: t = T(4,(1,3)); t
             (...000000000100)*x*y^3
-            sage: s.gcd(t)
-            (...000000000100)*x*y^2
+            sage: s.gcd(t).monic()
+            (...0000000001)*x*y^2
+
         
         """
         
@@ -412,6 +420,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the greatest common divisor of two Tate terms
 
+        The coefficient of the returned term is unspecified.
+
+        INPUT:
+
+        - ``other`` - the Tate term with which to compute the gcd
+        
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits',prec=10); R
@@ -424,8 +438,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...0000000001000)*x^2*y^2
             sage: t = T(4,(1,3)); t
             (...000000000100)*x*y^3
-            sage: s.gcd(t) # indirect doctest
-            (...000000000100)*x*y^2
+            sage: s.gcd(t).monic() # indirect doctest
+            (...0000000001)*x*y^2
         
         """
         
@@ -442,6 +456,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the least common multiple of two Tate terms
 
+        The coefficient of the returned term is unspecified.
+
+        INPUT:
+
+        - ``other`` - the Tate term with which to compute the lcm
+
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits',prec=10); R
@@ -454,8 +474,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...0000000001000)*x^2*y^2
             sage: t = T(4,(1,3)); t
             (...000000000100)*x*y^3
-            sage: s.lcm(t)
-            (...0000000001000)*x^2*y^3
+            sage: s.lcm(t).monic()
+            (...0000000001)*x^2*y^3
         
         """
         
@@ -465,6 +485,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the least common multiple of two Tate terms
 
+        The coefficient of the returned term is unspecified.
+
+        INPUT:
+
+        - ``other`` - the Tate term with which to compute the lcm
+
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits',prec=10); R
@@ -477,8 +503,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...0000000001000)*x^2*y^2
             sage: t = T(4,(1,3)); t
             (...000000000100)*x*y^3
-            sage: s.lcm(t) # indirect doctest
-            (...0000000001000)*x^2*y^3
+            sage: s.lcm(t).monic() # indirect doctest
+            (...0000000001)*x^2*y^3
         
         """
         cdef TateAlgebraTerm ans = self._new_c()
@@ -493,6 +519,13 @@ cdef class TateAlgebraTerm(MonoidElement):
     def is_divisible_by(self, other, integral=False):
         r"""
         Test whether the Tate term is divisible by another
+
+        INPUT:
+
+        - ``other`` - the Tate term to test divisibility with
+        
+        - ``integral`` - (default: ``False``) if ``True``, test for divisibility
+          of the coefficients in the ring of integers of the coefficient field
 
         EXAMPLES::
 
@@ -516,7 +549,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...00000000010000)
             sage: s.is_divisible_by(ttt)
             True
-        
+            sage: s.is_divisible_by(ttt,integral=True)
+            False
+
         """
         return (<TateAlgebraTerm?>other)._divides_c(self, integral)
     @coerce_binop
@@ -524,6 +559,15 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Test whether the Tate term divides another
 
+        INPUT:
+
+        - ``other`` - the Tate term to test divisibility with
+        
+        - ``integral`` - (default: ``False``) if ``True``, test for divisibility
+          of the coefficients in the ring of integers of the coefficient field
+
+        
+        
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits',prec=10); R
@@ -546,6 +590,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...00000000010000)
             sage: ttt.divides(s)
             True
+            sage: ttt.divides(s,integral=True)
+            False
+
 
         """
         
@@ -554,6 +601,13 @@ cdef class TateAlgebraTerm(MonoidElement):
     cdef bint _divides_c(self, TateAlgebraTerm other, bint integral):
         r"""
         Test whether the Tate term divides another
+
+        INPUT:
+
+        - ``other`` - the Tate term to test divisibility with
+        
+        - ``integral`` - (default: ``False``) if ``True``, test for divisibility
+          of the coefficients in the ring of integers of the coefficient field
 
         EXAMPLES::
 
@@ -577,6 +631,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...00000000010000) # indirect doctest
             sage: ttt.divides(s)
             True
+            sage: ttt.divides(s,integral=True)
+            False
 
         """
         parent = self._parent
@@ -589,6 +645,37 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     @coerce_binop
     def __floordiv__(self, other):
+        r"""
+        Returns the result of the exact division of the Tate algebra term by another
+
+        If the Tate terms are not divisible, an error is raised.
+
+        INPUT:
+
+        - ``other`` - the Tate term to divide by
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: A.integer_ring()
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: t = T(2,(2,3)); t
+            (...00000000010)*x^2*y^3
+            sage: s = T(6,(1,2)); s
+            (...00000000110)*x*y^2
+            sage: s // t # indirect doctest
+            Traceback (most recent call last)
+            ...
+            ValueError: The division is not exact
+            sage: t // s # indirect doctest
+            (...1010101011)*x*y
+        
+        """
         parent = self.parent()
         if not parent.base_ring().is_field() and self.valuation() < other.valuation():
             raise ValueError("The division is not exact")
@@ -598,6 +685,37 @@ cdef class TateAlgebraTerm(MonoidElement):
         return (<TateAlgebraTerm>self)._floordiv_c(<TateAlgebraTerm>other)
 
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other):
+        r"""
+        Returns the result of the exact division of the Tate algebra term by another
+
+        If the Tate terms are not divisible, an error is raised.
+
+        INPUT:
+
+        - ``other`` - the Tate term to divide by
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: A.integer_ring()
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: t = T(2,(2,3)); t
+            (...00000000010)*x^2*y^3
+            sage: s = T(6,(1,2)); s
+            (...00000000110)*x*y^2
+            sage: s // t # indirect doctest
+            Traceback (most recent call last)
+            ...
+            ValueError: The division is not exact
+            sage: t // s # indirect doctest
+            (...1010101011)*x*y
+        
+        """
         cdef TateAlgebraTerm ans = self._new_c()
         ans._exponent = self.exponent().esub(other.exponent())
         ans._coeff = self._coeff / other._coeff

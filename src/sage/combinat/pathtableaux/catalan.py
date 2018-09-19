@@ -236,7 +236,60 @@ class CatalanTableau(PathTableau):
 
         return result
 
-class CatalanTableaux(PathTableaux)
+    def to_word(self):
+        """
+        Return the word in the alphabet `\{0,1\}` associated to ``self``.
+
+        EXAMPLES::
+
+            sage: CatalanTableau([1,0,1,2,1]).to_word()
+            [0, 1, 1, 0]
+        """
+        return [ (self[i+1]-self[i]+1)/2 for i in range(self.size()-1) ]
+
+    def to_perfect_matching(self):
+        """
+        Return the perfect matching associated to ``self``.
+
+        EXAMPLES::
+
+            sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
+            [(0, 5), (1, 2), (3, 4), (6, 7)]
+        """
+        w = self.to_word()
+        y = DyckWord(w)
+        pairs = set()
+        for i, a in enumerate(y):
+            c = y.associated_parenthesis(i)
+            if i < c:
+                pairs.add((i,c))
+        return PerfectMatching(pairs)
+
+    def to_tableau(self):
+        """
+        Return the skew tableau associated to ``self``.
+
+        EXAMPLES::
+
+           sage: T = CatalanTableau([0,1,2,3,2,3])
+           sage: T.to_tableau()
+           [[0, 1, 2, 4], [3]]
+        """
+        w = self.to_word()
+        top = [ i for i, a in enumerate(w) if a == 1 ]
+        bot = [ i for i, a in enumerate(w) if a == 0 ]
+        return SkewTableau([[None]*self[0]+top,bot])
+
+class CatalanTableaux(PathTableaux):
+
+    _conversions = [ "to_DyckWord",
+                     "to_standard_tableau",
+                     "to_tableau",
+                     "to_noncrossing_partition",
+                     "to_binary_tree",
+                     "to_ordered_tree",
+                     "to_to_non_decreasing_parking_function",
+                     "to_alternating_sign_matrix" ]
 
     Element = CatalanTableau
 

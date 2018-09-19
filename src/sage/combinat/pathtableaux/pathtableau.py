@@ -540,4 +540,6 @@ class PathTableau(ClonableList):
 
 class PathTableaux(UniqueRepresentation,Parent):
 
+    _conversions = []
+
     Element = PathTableau

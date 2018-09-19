@@ -2793,6 +2793,9 @@ cdef class GapElement_Permutation(GapElement):
         r"""
         Return the Sage equivalent of the :class:`GapElement`
 
+        If the permutation group is given as parent, this method is
+        *much* faster.
+
         EXAMPLES::
 
             sage: perm_gap = libgap.eval('(1,5,2)(4,3,8)');  perm_gap

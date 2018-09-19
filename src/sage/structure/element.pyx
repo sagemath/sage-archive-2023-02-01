@@ -514,14 +514,14 @@ cdef class Element(SageObject):
         EXAMPLES::
 
             sage: dir(1/2)
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
 
         Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
 
             sage: 1.__dir__()
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
             sage: dir(1)         # todo: not implemented
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
         from sage.cpython.getattr import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)

@@ -1739,7 +1739,7 @@ class PermutationGroup_generic(FiniteGroup):
                end;
                return CosetsStabChain(S0);
             end;""")
-            G = libgap(self) #libgap.Group(self.gens())
+            G = libgap.Group(self.gens())  # G = libgap(self)
             S = G.StabChain()
             cosets = gap_cosets(S)
             one = self.one()

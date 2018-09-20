@@ -22,9 +22,13 @@ def get_remote_file(filename, verbose=True):
 
     EXAMPLES::
 
-        sage: g = get_remote_file("http://sagemath.org/ack.html", verbose=False)   # optional - internet
-        sage: len(open(g).read())   # optional - internet; random
-        10198
+        sage: url = 'http://www.sagemath.org/files/loadtest.py'
+        sage: g = get_remote_file(url, verbose=False)      # optional - internet
+        sage: with open(g) as f: print(f.read())           # optional - internet
+        print("hi from the net")
+        <BLANKLINE>
+        print(2+3)
+
     """
     if verbose:
         print("Attempting to load remote file: " + filename)

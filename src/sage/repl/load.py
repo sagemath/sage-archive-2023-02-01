@@ -137,9 +137,9 @@ def load(filename, globals, attach=False):
         ...
         ValueError: unknown file extension '.foo' for load or attach (supported extensions: .py, .pyx, .sage, .spyx, .f, .f90, .m)
 
-    We load a file given at a remote URL::
+    We load a file given at a remote URL (not tested for security reasons)::
 
-        sage: sage.repl.load.load('http://www.sagemath.org/files/loadtest.py', globals())  # optional - internet
+        sage: sage.repl.load.load('http://www.sagemath.org/files/loadtest.py', globals())  # not tested
         hi from the net
         5
 

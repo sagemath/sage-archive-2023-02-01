@@ -1560,6 +1560,23 @@ cdef class CommutativeRing(Ring):
         return FrobeniusEndomorphism_generic(self, n)
 
 
+    def derivation_module(self, codomain=None, twist=None):
+        from sage.rings.derivation import RingDerivationModule
+        if codomain is None:
+            codomain = self
+        return RingDerivationModule(self, codomain, twist)
+
+    def derivation(self, *args, **kwds):
+        if 'twist' in kwds:
+            parent = self.derivation_module(twist=kwds['twist'])
+            del kwds['twist']
+        else:
+            parent = self.derivation_module()
+        if not args:
+            args = [self.gen()]
+        return parent(*args, **kwds)
+
+
 cdef class IntegralDomain(CommutativeRing):
     """
     Generic integral domain class.

@@ -207,6 +207,20 @@ class RingDerivationModule(Module, UniqueRepresentation):
             self.element_class = element_class
         Module.__init__(self, codomain)
 
+    def __hash__(self):
+        """
+        Returns a hash of this parent.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: M = R.derivation_module()
+            sage: hash(M)  # random
+            2727832899085333035
+
+        """
+        return hash((self._domain, self._codomain, self._twist))
+
     def _repr_(self):
         """
         Returns a string representation of this module of derivations.
@@ -393,6 +407,9 @@ class RingDerivationModule(Module, UniqueRepresentation):
         raise NotImplementedError("Generators are not implemented for twisted derivations over rings")
 
 
+# The class RingDerivation does not derive from Map (or RingMap)
+# because we don't want to see derivations as morphisms in some
+# category since they are not stable by composition.
 class RingDerivation(ModuleElement):
     """
     An abstract class for twisted and untwisted derivations over 

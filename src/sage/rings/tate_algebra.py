@@ -76,6 +76,19 @@ class TateTermMonoid(Monoid_class):
             vars += ", %s (val >= %s)" % (self._names[i], -self._log_radii[i])
         return "Monoid of terms in %s over %s" % (vars[2:], self._base)
 
+    def _coerce_map_from_(self, R):
+        base = self._base
+        if base.has_coerce_map_from(R):
+            return True
+        if isinstance(R, TateTermMonoid):
+            Rbase = R.base_ring()
+            if base.has_coerce_map_from(Rbase) and self._names == R.variable_names() and self._order == R.term_order():
+                ratio = base.absolute_e() // Rbase.absolute_e()
+                for i in range(self._ngens):
+                    if self._log_radii[i] != R.log_radii()[i] * ratio:
+                        return False
+                return True
+
     def base_ring(self):
         return self._base
 
@@ -96,7 +109,8 @@ class TateTermMonoid(Monoid_class):
 ###############
 
 class TateAlgebra_generic(CommutativeAlgebra):
-    r"""Create a Tate series ring over a given complete discrete valuation
+    r"""
+    Create a Tate series ring over a given complete discrete valuation
     ring.
 
     Given a complete discrete valuation ring `R`, variables `X_1,\dots,X_k`
@@ -136,7 +150,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
     ::
 
         sage: A.<x,y> = TateAlgebra(R, order='lex'); A
-        Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
 
     The term ordering is used to determine how series are displayed. Terms
     are compared first according to the valuation of their coefficient, and
@@ -147,7 +161,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
         sage: f = 2 + y^5 + x^2; f
         (...0000000001)*x^2 + (...0000000001)*y^5 + (...00000000010)
         sage: B.<x,y> = TateAlgebra(R); B
-        Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
         sage: B.term_order()
         Degree reverse lexicographic term order
         sage: B(f)
@@ -158,28 +172,18 @@ class TateAlgebra_generic(CommutativeAlgebra):
     global default (20).  With a given value:
 
         sage: A.<x,y> = TateAlgebra(R,prec=5); A
-        Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
         sage: A.precision_cap()
         5
 
     With the precision of the base ring:
 
         sage: A.<x,y> = TateAlgebra(R); A
-        Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
         sage: A.precision_cap()
         10
 
-    With the precision cap of the base ring:
-
-        sage: S.<t> = LaurentSeriesRing(QQ,default_prec=15); S
-        Laurent Series Ring in t over Rational Field
-        sage: B.<x,y> = TateAlgebra(S); B
-        Tate Algebra in x, y over Laurent Series Ring in t over Rational Field
-        sage: B.precision_cap()
-        15
-
     """
-
     def __init__(self, field, prec, log_radii, names, order, integral=False):
         """
         Initialize the Tate algebra
@@ -239,7 +243,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
 
         B can be coerced into A if B can be coerced into the base ring of A
 
@@ -259,7 +263,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: S.<a> = Zq(4); S
             2-adic Unramified Extension Ring in a defined by x^2 + x + 1
             sage: B.<x,y> = TateAlgebra(S); B
-            Tate Algebra in x, y over 2-adic Unramified Extension Ring in a defined by x^2 + x + 1
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Unramified Extension Field in a defined by x^2 + x + 1
             sage: B.has_coerce_map_from(A) # indirect doctest
             True
 
@@ -278,11 +282,11 @@ class TateAlgebra_generic(CommutativeAlgebra):
         If B has a different term order than A, coercion cannot happen:
 
             sage: B.<x,y> = TateAlgebra(R,order="lex"); B
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: B.has_coerce_map_from(A) # indirect doctest
             False
             sage: B.<y,x> = TateAlgebra(R); B
-            Tate Algebra in y, x over 2-adic Ring with capped relative precision 10
+            Tate Algebra in y (val >= 0), x (val >= 0) over 2-adic Field with capped relative precision 10
             sage: B.has_coerce_map_from(A) # indirect doctest
             False
 
@@ -312,7 +316,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: A._ideal_class_(3)
             <class 'sage.rings.tate_algebra_ideal.TateAlgebraIdeal'>
         
@@ -352,7 +356,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: A.gen()
             (...0000000001)*x
             sage: A.gen(0)
@@ -379,7 +383,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: A.gens()
             ((...0000000001)*x, (...0000000001)*y)
         
@@ -395,7 +399,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: A.ngens()
             2
 
@@ -411,7 +415,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             
         """
         vars = ""
@@ -431,7 +435,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: A.variable_names()
             ('x', 'y')
         
@@ -448,17 +452,17 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: A.log_radii()
-            [0, 0]
+            (0, 0)
             sage: B.<x,y> = TateAlgebra(R,log_radii=1); B
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
             sage: B.log_radii()
-            [1, 1]
+            (1, 1)
             sage: C.<x,y> = TateAlgebra(R,log_radii=(1,-1)); C
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= -1), y (val >= 1) over 2-adic Field with capped relative precision 10
             sage: C.log_radii()
-            [1, -1]
+            (1, -1)
 
         """
         return self._log_radii
@@ -478,7 +482,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
         """
         return self._order
 
@@ -491,7 +495,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: A.precision_cap()
             10
         """
@@ -506,19 +510,9 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
-            sage: S.<t> = LaurentSeriesRing(QQ); S
-            Laurent Series Ring in t over Rational Field
-            sage: B.<x,y> = TateAlgebra(S); B
-            Tate Algebra in x, y over Laurent Series Ring in t over Rational Field
-            sage: B.characteristic()
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: A.characteristic()
             0
-            sage: SS.<t> = LaurentSeriesRing(GF(2)); SS
-            Laurent Series Ring in t over Finite Field of size 2
-            sage: BB.<x,y> = TateAlgebra(SS); BB
-            Tate Algebra in x, y over Laurent Series Ring in t over Finite Field of size 2
-            sage: BB.characteristic()
-            2
         """
         return self.base_ring().characteristic()
 

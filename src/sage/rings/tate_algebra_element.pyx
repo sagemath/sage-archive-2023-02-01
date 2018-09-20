@@ -672,11 +672,8 @@ cdef class TateAlgebraTerm(MonoidElement):
 
             sage: s.is_divisible_by(tt)
             True
-            sage: s.is_divisible_by(ttt) # TODO: test fails, I don't know why
-            Traceback (most recent call last):
-            ...
-            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10'
-
+            sage: s.is_divisible_by(ttt)
+            True
 
         """
         return (<TateAlgebraTerm?>other)._divides_c(self, integral)
@@ -737,9 +734,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: tt.divides(s)
             True
             sage: tt.divides(ss)
-            Traceback (most recent call last):
-            ...
-            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10'
+            True
             sage: ttt.divides(ss)
             True
             sage: ttt.divides(sss)
@@ -804,9 +799,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: tt.divides(s) # indirect doctest
             True
             sage: tt.divides(ss) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10'
+            True
             sage: ttt.divides(ss) # indirect doctest
             True
             sage: ttt.divides(sss) # indirect doctest
@@ -986,14 +979,14 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             xc = <TateAlgebraElement>x
             xparent = x.parent()
             if xparent is parent:
-                self._poly = xc._poly
+                self._poly = PolyDict(xc._poly.__repn)
                 self._prec = xc._prec
             elif xparent.variable_names() == parent.variable_names():
                 ratio = parent._base.absolute_e() / xparent.base_ring().absolute_e()
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("Cannot restrict to a bigger domain")
-                self._poly = xc._poly
+                self._poly = PolyDict(xc._poly.__repn)
                 if xc._prec is not Infinity:
                     self._prec = (xc._prec * ratio).ceil()
             else:
@@ -1127,7 +1120,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...1111111111)*x^3 + (...1111111111)*x + (...11111111110)*x^2
         """
         cdef TateAlgebraElement ans = self._new_c()
-        ans._poly = -self._poly
+        cdef Element s = self._parent.base_ring()(-1)
+        ans._poly = self._poly.scalar_lmult(s)
         ans._prec = self._prec
         return ans
 
@@ -1457,11 +1451,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000001)
             sage: f.inverse_of_unit()
             (...0000000001) + O(2^10)
-            sage: f = 2*x +1; f
+
+            sage: f = 2*x + 1; f
             (...0000000001) + (...00000000010)*x
             sage: f.inverse_of_unit()
             (...0000000001) + (...1111111110)*x + (...0000000100)*x^2 + (...1111111000)*x^3 + (...0000010000)*x^4 + (...1111100000)*x^5 + (...0001000000)*x^6 + (...1110000000)*x^7 + (...0100000000)*x^8 + (...1000000000)*x^9 + O(2^10)
-            sage: f = 1+x; f
+
+            sage: f = 1 + x; f
             (...0000000001)*x + (...0000000001)
             sage: f.inverse_of_unit()
             Traceback (most recent call last):
@@ -1476,12 +1472,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         parent = self._parent
         v, c = c.val_unit()
         cap = parent.precision_cap()
-        inv = parent(c.inverse_of_unit(), prec=cap)
-        x = self.add_bigoh(cap)
+        inv = parent(c.inverse_of_unit()).add_bigoh(cap)
+        x = (self >> v).add_bigoh(cap)
         prec = 1
         while prec < cap:
             prec *= 2
-            inv = 2*inv - self*inv*inv
+            inv = 2*inv - x*inv*inv
         return inv << v
 
     def is_unit(self):
@@ -2046,8 +2042,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
             sage: A.<x,y> = TateAlgebra(R, log_radii=(2,-1)); A
             Tate Algebra in x (val >= -2), y (val >= 1) over 2-adic Field with capped relative precision 10
-            sage: f = x^2 + y^2 + 2*x^3 + y; f # test fails, maybe because of the printing with the log_radii
-            (...00000000010000)*x^2 + (...00000000.01)*y^2 + (...000000000.1)*y + (...00000000010000000)*x^3
+            sage: f = x^2 + y^2 + 2*x^3 + y; f
+            (...00000000010)*x^3 + (...0000000001)*x^2 + (...0000000001)*y + (...0000000001)*y^2
             sage: f.residue()
             Traceback (most recent call last):
             ...

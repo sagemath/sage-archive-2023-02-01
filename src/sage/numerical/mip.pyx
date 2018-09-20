@@ -3030,6 +3030,19 @@ cdef class MIPVariable(SageObject):
             24
             sage: x[(2, 3)]
             x_11
+
+        TESTS:
+
+        An empty list of static indices gives an error on every component access;
+        it is different from passing ``indices=None`` (the default) on init. ::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x = p.new_variable(indices=[])
+            sage: x[0]
+            Traceback (most recent call last):
+            ...
+            IndexError: 0 does not index a component of MIPVariable of dimension 1
+
         """
         cdef int j
         if i in self._dict:

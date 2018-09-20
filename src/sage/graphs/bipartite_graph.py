@@ -1425,8 +1425,8 @@ class BipartiteGraph(Graph):
 
             sage: G = graphs.CycleGraph(4)
             sage: B = BipartiteGraph([(u,v,2) for u,v in G.edges(labels=0)])
-            sage: B.matching(use_edge_labels=True)
-            [(1, 2, 2), (0, 3, 2)]
+            sage: sorted(B.matching(use_edge_labels=True))
+            [(0, 3, 2), (1, 2, 2)]
             sage: B.matching(use_edge_labels=True, value_only=True)
             4
             sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Edmonds')

@@ -634,21 +634,21 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: a = MatrixSpace(ZZ, 2, 3)(range(6)); a
             [0 1 2]
             [3 4 5]
-            sage: a.__nonzero__()
+            sage: bool(a)
             True
-            sage: (a - a).__nonzero__()
+            sage: bool(a - a)
             False
 
         ::
 
             sage: a = MatrixSpace(ZZ, 0, 3)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
             sage: a = MatrixSpace(ZZ, 3, 0)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
             sage: a = MatrixSpace(ZZ, 0, 0)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
         """
         return not fmpz_mat_is_zero(self._matrix)

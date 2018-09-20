@@ -4983,10 +4983,10 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: Word([4,4,2,5,2,1,4,1]).evaluation_sparse()
+            sage: sorted(Word([4,4,2,5,2,1,4,1]).evaluation_sparse())
             [(1, 2), (2, 2), (4, 3), (5, 1)]
-            sage: Word("abcaccab").evaluation_sparse()
-            [('a', 3), ('c', 3), ('b', 2)]
+            sage: sorted(Word("abcaccab").evaluation_sparse())
+            [('a', 3), ('b', 2), ('c', 3)]
         """
         return list(iteritems(self.evaluation_dict()))
 

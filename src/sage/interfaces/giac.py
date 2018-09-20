@@ -836,7 +836,7 @@ class GiacElement(ExpectElement):
             sage: float(giac(1/2))
             0.5
             sage: type(_)
-            <... 'float'>
+            <type 'float'>
         """
         return float(giac.eval('evalf(%s)' % self.name()))
 

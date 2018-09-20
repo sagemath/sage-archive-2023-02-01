@@ -395,13 +395,13 @@ class SageInputBuilder:
             sage: sage_input(-11r, preparse=None, verify=True)
             # Verified
             -int(11)
-            sage: sage_input(long(-5), verify=True)
+            sage: sage_input(long(-5), verify=True)  # py2
             # Verified
             -long(5)
             sage: sage_input(long(-7), preparse=False, verify=True)
             # Verified
             -7L
-            sage: sage_input(long(11), preparse=None, verify=True)
+            sage: sage_input(long(11), preparse=None, verify=True)  # py2
             # Verified
             long(11)
             sage: sage_input(long(2^70), verify=True)
@@ -410,7 +410,7 @@ class SageInputBuilder:
             sage: sage_input(-long(2^80), preparse=False, verify=True)
             # Verified
             -1208925819614629174706176
-            sage: sage_input(long(2^75), preparse=None, verify=True)
+            sage: sage_input(long(2^75), preparse=None, verify=True)  # py2
             # Verified
             long(37778931862957161709568)
             sage: sage_input(float(-infinity), preparse=True, verify=True)

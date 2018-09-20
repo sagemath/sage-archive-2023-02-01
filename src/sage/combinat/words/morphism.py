@@ -747,7 +747,8 @@ class WordMorphism(SageObject):
             doctest:warning
             ...
             DeprecationWarning: the "datatype" argument is deprecated
-            See http://trac.sagemath.org/26307 for details.
+            See https://trac.sagemath.org/26307 for details.
+
             sage: type(w)
             <class 'sage.combinat.words.word.FiniteWord_list'>
             sage: w = m('aaab',datatype='str')
@@ -767,7 +768,7 @@ class WordMorphism(SageObject):
             doctest:warning
             ...
             DeprecationWarning: the "datatype" argument is deprecated
-            See http://trac.sagemath.org/26307 for details.
+            See https://trac.sagemath.org/26307 for details.
             sage: type(w)
             <class 'sage.combinat.words.word.FiniteWord_list'>
             sage: w = m([0],4,datatype='str')

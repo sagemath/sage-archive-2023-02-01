@@ -20,7 +20,6 @@ from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStru
 from sage.categories.homset import Hom
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.morphism import SetMorphism
-from sage.matrix.constructor import matrix
 from sage.structure.indexed_generators import standardize_names_index_set
 
 
@@ -384,4 +383,3 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
 
         sup = super(LieQuotient_finite_dimensional_with_basis, self)
         return sup.from_vector(v)
-        return self.ideal([self.from_vector(v) for v in amb_mat.basis()])

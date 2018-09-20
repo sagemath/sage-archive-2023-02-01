@@ -780,13 +780,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ()
             """
             # Make sure we lift everything to the ambient space
-            try:
-                A = self._ambient
-            except AttributeError:
-                try:
-                    A = L._ambient
-                except AttributeError:
-                    A = self
+            if self in LieAlgebras(self.base_ring()).Subobjects():
+                A = self.ambient()
+            elif L in LieAlgebras(L.base_ring()).Subobjects():
+                A = L.ambient()
+            else:
+                A = self
 
             if L not in self.category():
                 # L might be a submodule of A.module()

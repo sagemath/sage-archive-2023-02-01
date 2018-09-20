@@ -246,7 +246,7 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(
             s_coeff, index_set)
 
-        self.__ambient = L
+        self._ambient = L
         self._I = I
         self._sm = sm
 
@@ -303,7 +303,7 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
             sage: Q.ambient() == L
             True
         """
-        return self.__ambient
+        return self._ambient
 
     def lift(self, X):
         r"""

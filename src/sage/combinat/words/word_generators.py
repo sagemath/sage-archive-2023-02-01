@@ -839,9 +839,7 @@ class WordGenerator(object):
 
         ::
 
-            sage: words.CharacteristicSturmianWord(1/golden_ratio^2, bits=30)
-            doctest:...: DeprecationWarning: the argument 'bits' is deprecated
-            See http://trac.sagemath.org/14567 for details.
+            sage: words.CharacteristicSturmianWord(1/golden_ratio^2)
             word: 0100101001001010010100100101001001010010...
             sage: _.length()
             +Infinity
@@ -873,10 +871,6 @@ class WordGenerator(object):
             sage: u[1:-1] == v[:-2]
             True
         """
-        if bits is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(14567, "the argument 'bits' is deprecated")
-
         if len(set(alphabet)) != 2:
             raise TypeError("alphabet does not contain two distinct elements")
 
@@ -972,6 +966,9 @@ class WordGenerator(object):
         Note that `K_{a,b} \neq K_{b,a}`. On the other hand, the
         words `K_{a,b}` and `K_{b,a}` are the unique two words over `A`
         that are fixed by `\Delta`.
+
+        Also note that the Kolakoski word is also known as the
+        Oldenburger word.
 
         INPUT:
 

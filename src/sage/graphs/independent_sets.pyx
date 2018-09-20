@@ -33,7 +33,7 @@ cdef class IndependentSets:
     r"""
     The set of independent sets of a graph.
 
-    For more information on independent sets, see
+    For more information on independent sets, see the
     :wikipedia:`Independent_set_(graph_theory)`.
 
     INPUT:

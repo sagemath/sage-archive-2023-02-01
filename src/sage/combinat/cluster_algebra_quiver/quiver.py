@@ -166,8 +166,8 @@ class ClusterQuiver(SageObject):
         sage: Q = ClusterQuiver( DiGraph([[1,2],[2,3],[3,4],[4,1]]) ); Q
         Quiver on 4 vertices
 
-        sage: Q = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']]), \
-                  frozen=['c']); Q
+        sage: Q = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']]),
+        ....:          frozen=['c']); Q
         Quiver on 5 vertices with 1 frozen vertex
         sage: Q.mutation_type()
         [ ['A', 2], ['A', 2] ]
@@ -1253,15 +1253,14 @@ class ClusterQuiver(SageObject):
         else:
             return Q
 
-
     def first_sink(self):
         r"""
-        Return the first vertex of ``self`` that is a sink
+        Return the first vertex of ``self`` that is a sink.
 
         EXAMPLES::
 
-            sage: Q = ClusterQuiver(['A',5]);
-            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([1,2,4,3,2])
             sage: Q.first_sink()
             0
         """
@@ -1271,15 +1270,14 @@ class ClusterQuiver(SageObject):
             return sinks[0]
         return None
 
-
     def sinks(self):
         r"""
-        Return all vertices of ``self`` that are sinks
+        Return all vertices of ``self`` that are sinks.
 
         EXAMPLES::
 
-            sage: Q = ClusterQuiver(['A',5]);
-            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([1,2,4,3,2])
             sage: Q.sinks()
             [0, 2]
 
@@ -1313,8 +1311,8 @@ class ClusterQuiver(SageObject):
 
         EXAMPLES::
 
-            sage: Q = ClusterQuiver(['A',5]);
-            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([1,2,4,3,2])
             sage: Q.sources()
             []
 
@@ -1389,8 +1387,8 @@ class ClusterQuiver(SageObject):
             [-1  0 -1]
             [ 0  1  0]
 
-            sage: Q2 = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']]),\
-                       frozen=['c']); Q2.b_matrix()
+            sage: Q2 = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']]),
+            ....:           frozen=['c']); Q2.b_matrix()
             [ 0  1  0  0]
             [-1  0  0  0]
             [ 0  0  0  1]

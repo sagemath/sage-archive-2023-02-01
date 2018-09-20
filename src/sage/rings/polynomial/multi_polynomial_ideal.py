@@ -389,7 +389,7 @@ class MPolynomialIdeal_magma_repr:
             sage: I = sage.rings.ideal.Cyclic(R,6)
             sage: gb = I.groebner_basis('magma:GroebnerBasis', deg_bound=4) # indirect doctest; optional - magma
             sage: len(gb)                                      # optional - magma
-            7
+            5
         """
         R   = self.ring()
         if not deg_bound:
@@ -3240,8 +3240,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         else:
             other_new = other
 
-        if set(self.gens()) == set(other_new.gens()):
-            return rich_to_bool(op, 0)
+        s_gens = self.gens()
+        o_gens = other_new.gens()
+        try:
+            if (s_gens == o_gens) or (set(s_gens) == set(o_gens)):
+                # the first clause works in the non-hashable case
+                return rich_to_bool(op, 0)
+        except TypeError:
+            pass
 
         # comparison for <=
         # needs just the Groebner basis for other

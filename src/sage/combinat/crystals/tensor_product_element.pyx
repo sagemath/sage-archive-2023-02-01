@@ -27,7 +27,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #****************************************************************************
 from __future__ import print_function, absolute_import
 
@@ -87,45 +87,6 @@ cdef class ImmutableListWithParent(ClonableArray):
         self._list = state[1]['_list']
         self._is_immutable = True
         self._hash = 0
-
-    def reversed(self):
-        """
-        Return a copy of ``self`` but in the reversed order.
-
-        EXAMPLES::
-
-            sage: b = crystals.Tableaux(['A',2], shape=[2,1]).module_generators[0]
-            sage: list(b)
-            [2, 1, 1]
-            sage: list(b.reversed())
-            doctest:warning
-            ...
-            DeprecationWarning: reversed() is deprecated; use reversed(self) instead
-            See http://trac.sagemath.org/22642 for details.
-            [1, 1, 2]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(22642, 'reversed() is deprecated; use reversed(self) instead')
-        return type(self)(self._parent, list=list(reversed(self._list)))
-
-    def set_index(self, k, value):
-        """
-        Return a sibling of ``self`` obtained by setting the
-        `k^{th}` entry of self to value.
-
-        EXAMPLES::
-
-            sage: b = crystals.Tableaux(['A',2], shape=[3]).module_generators[0]
-            sage: list(b.set_index(0, 2))
-            doctest:warning
-            ...
-            DeprecationWarning: set_index is deprecated; use _set_index instead
-            See http://trac.sagemath.org/22642 for details.
-            [2, 1, 1]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(22642, 'set_index is deprecated; use _set_index instead')
-        return self._set_index(int(k), value)
 
     cpdef _set_index(self, k, value):
         r"""

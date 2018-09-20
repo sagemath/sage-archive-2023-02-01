@@ -1479,8 +1479,8 @@ class DiGraph(GenericGraph):
         The minimum feedback edge set of a digraph is a set of edges that
         intersect all the circuits of the digraph.  Equivalently, a minimum
         feedback arc set of a DiGraph is a set `S` of arcs such that the digraph
-        `G-S` is acyclic. For more information, see the `Wikipedia article on
-        feedback arc sets <http://en.wikipedia.org/wiki/Feedback_arc_set>`_.
+        `G-S` is acyclic. For more information, see
+        the :wikipedia:`Feedback_arc_set`.
 
         INPUT:
 
@@ -3304,9 +3304,9 @@ class DiGraph(GenericGraph):
         r"""
         Return whether the current ``DiGraph`` is aperiodic.
 
-        A directed graph is aperiodic if there is no integer ``k > 1``
-        that divides the length of every cycle in the graph, cf.
-        :wikipedia:`Aperiodic_graph`.
+        A directed graph is aperiodic if there is no integer `k > 1`
+        that divides the length of every cycle in the graph. See the
+        :wikipedia:`Aperiodic_graph` for more information.
 
         EXAMPLES:
 
@@ -3335,8 +3335,8 @@ class DiGraph(GenericGraph):
         Return the period of the current ``DiGraph``.
 
         The period of a directed graph is the largest integer that
-        divides the length of every cycle in the graph, cf.
-        :wikipedia:`Aperiodic_graph`.
+        divides the length of every cycle in the graph. See the
+        :wikipedia:`Aperiodic_graph` for more information.
 
         EXAMPLES:
 

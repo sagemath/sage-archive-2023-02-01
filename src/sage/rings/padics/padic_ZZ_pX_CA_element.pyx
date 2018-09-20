@@ -327,7 +327,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 L = []
                 x = x.lift().lift()
                 for i from 0 <= i <= x.poldegree():
-                    L.append(Integer(x.polcoeff(i)))
+                    L.append(Integer(x.polcoef(i)))
                 x = L
             else:
                 raise TypeError("unsupported coercion from pari: only p-adics, integers, rationals, polynomials and pol_mods allowed")

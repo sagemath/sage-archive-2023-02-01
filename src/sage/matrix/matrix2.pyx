@@ -331,7 +331,7 @@ cdef class Matrix(Matrix1):
             sage: v = vector([3,4*x - 2])
             sage: X = A \ v
             sage: X
-            ((-8*x^2 + 4*x + 9)/(10*x^3 + x), (19*x^2 - 2*x - 3)/(10*x^3 + x))
+            ((-4/5*x^2 + 2/5*x + 9/10)/(x^3 + 1/10*x), (19/10*x^2 - 1/5*x - 3/10)/(x^3 + 1/10*x))
             sage: A * X == v
             True
 
@@ -349,12 +349,12 @@ cdef class Matrix(Matrix1):
             sage: A = Matrix(Zmod(128), 2, 3, [23,11,22,4,1,0])
             sage: B = Matrix(Zmod(128), 2, 1, [1,0])
             sage: A.solve_right(B)
-            [  1]
-            [124]
-            [  1]
+            [  5]
+            [108]
+            [127]
             sage: B = B.column(0)
             sage: A.solve_right(B)
-            (1, 124, 1)
+            (5, 108, 127)
             sage: A = Matrix(Zmod(15), 3,4, range(12))
             sage: B = Matrix(Zmod(15), 3,3, range(3,12))
             sage: X = A.solve_right(B)
@@ -717,13 +717,12 @@ cdef class Matrix(Matrix1):
             TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 3 by 2 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 2 dense matrices over Finite Field of size 3'
 
         We illustrate various combinations of sparse and dense matrices.
-        Notice how if base rings are unequal, both operands must be sparse
-        to get a sparse result. ::
+        The usual coercion rules apply::
 
             sage: A = matrix(ZZ, 5, 6, range(30), sparse=False)
             sage: B = matrix(ZZ, 5, 6, range(30), sparse=True)
             sage: C = matrix(QQ, 5, 6, range(30), sparse=True)
-            sage: A.elementwise_product(C).is_dense()
+            sage: A.elementwise_product(C).is_sparse()
             True
             sage: B.elementwise_product(C).is_sparse()
             True
@@ -2387,10 +2386,9 @@ cdef class Matrix(Matrix1):
         rationals::
 
             sage: R.<t> = QQ[]
-            sage: A = matrix(R, [[7*t^2 - t - 9, -1/4*t - 1, -17*t^2 - t + 1], \
-                                 [-t^2 + 1/4*t, t^2 + 5/7*t + 3, 1/5*t^2 +     \
-                                  1662],                                       \
-                                 [-2*t - 3, 2*t^2 + 6*t - 1/2, -1/6*t^2]])
+            sage: A = matrix(R,[[7*t^2 - t - 9, -1/4*t - 1, -17*t^2 - t + 1],
+            ....:               [-t^2 + 1/4*t, t^2 + 5/7*t + 3, 1/5*t^2 + 1662],
+            ....:               [-2*t - 3, 2*t^2 + 6*t - 1/2, -1/6*t^2]])
             sage: A
             [    7*t^2 - t - 9        -1/4*t - 1   -17*t^2 - t + 1]
             [     -t^2 + 1/4*t   t^2 + 5/7*t + 3    1/5*t^2 + 1662]
@@ -2422,20 +2420,15 @@ cdef class Matrix(Matrix1):
             sage: A._charpoly_df()
             x - 23
 
-        NOTES:
+        .. NOTE::
 
-        The key feature of this implementation is that it is division-free.
-        This means that it can be used as a generic implementation for any
-        ring (commutative and with multiplicative identity).  The algorithm
-        is described in full detail as Algorithm 3.1 in [Se02].
+            The key feature of this implementation is that it is division-free.
+            This means that it can be used as a generic implementation for any
+            ring (commutative and with multiplicative identity).  The algorithm
+            is described in full detail as Algorithm 3.1 in [Se02]_.
 
-        Note that there is a missing minus sign in front of the last term in
-        the penultimate line of Algorithm 3.1.
-
-        REFERENCES:
-
-        - [Se02] T. R. Seifullin, "Computation of determinants, adjoint
-          matrices, and characteristic polynomials without division"
+            Note that there is a missing minus sign in front of the last term in
+            the penultimate line of Algorithm 3.1.
 
         AUTHORS:
 
@@ -3567,9 +3560,9 @@ cdef class Matrix(Matrix1):
             True
 
             sage: X = A.right_kernel_matrix(algorithm='pari', basis='computed'); X
-            [ -3  -1   5   7   2  -3  -2]
-            [  3   1   2   5  -5   2  -6]
-            [ -4 -13   2  -7   5   7  -3]
+            [ 3  1 -5 -7 -2  3  2]
+            [ 3  1  2  5 -5  2 -6]
+            [ 4 13 -2  7 -5 -7  3]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
             True
 
@@ -4595,7 +4588,7 @@ cdef class Matrix(Matrix1):
 
         ::
 
-            sage: m = Matrix(Integers(5),2,2,[2,2,2,2]);
+            sage: m = Matrix(Integers(5),2,2,[2,2,2,2])
             sage: m.row_space()
             Vector space of degree 2 and dimension 1 over Ring of integers modulo 5
             Basis matrix:
@@ -4961,7 +4954,7 @@ cdef class Matrix(Matrix1):
 
         TESTS::
 
-            sage: t = matrix(QQ, 3, [3, 0, -2, 0, -2, 0, 0, 0, 0]);
+            sage: t = matrix(QQ, 3, [3, 0, -2, 0, -2, 0, 0, 0, 0])
             sage: t.decomposition_of_subspace(v, check_restrict = False) == t.decomposition_of_subspace(v)
             True
         """
@@ -6199,7 +6192,7 @@ cdef class Matrix(Matrix1):
             [13.348469228349522                0.0                 0.0]
             [               0.0 -1.348469228349534                 0.0]
             [               0.0                0.0                 0.0]
-            sage: evectors = em[1];
+            sage: evectors = em[1]
             sage: for i in range(3):
             ....:     scale = evectors[i,0].sign()
             ....:     evectors.rescale_row(i, scale)
@@ -6307,7 +6300,7 @@ cdef class Matrix(Matrix1):
             [13.348469228349522                0.0                0.0]
             [               0.0 -1.348469228349534                0.0]
             [               0.0                0.0                0.0]
-            sage: evectors = em[1];
+            sage: evectors = em[1]
             sage: for i in range(3):
             ....:     scale = evectors[0,i].sign()
             ....:     evectors.rescale_col(i, scale)
@@ -8943,12 +8936,12 @@ cdef class Matrix(Matrix1):
         Secondly, here is an example over a polynomial ring::
 
             sage: R.<t> = QQ[]
-            sage: A = matrix(R, [[-2*t^2 + t + 3/2, 7*t^2 + 1/2*t - 1,      \
-                                  -6*t^2 + t - 2/11],                       \
-                                 [-7/3*t^2 - 1/2*t - 1/15, -2*t^2 + 19/8*t, \
-                                  -10*t^2 + 2*t + 1/2],                     \
-                                 [6*t^2 - 1/2, -1/7*t^2 + 9/4*t, -t^2 - 4*t \
-                                  - 1/10]])
+            sage: A = matrix(R, [[-2*t^2 + t + 3/2, 7*t^2 + 1/2*t - 1,
+            ....:                 -6*t^2 + t - 2/11],
+            ....:                [-7/3*t^2 - 1/2*t - 1/15, -2*t^2 + 19/8*t,
+            ....:                 -10*t^2 + 2*t + 1/2],
+            ....:                [6*t^2 - 1/2, -1/7*t^2 + 9/4*t, -t^2 - 4*t
+            ....:                 - 1/10]])
             sage: A
             [       -2*t^2 + t + 3/2       7*t^2 + 1/2*t - 1       -6*t^2 + t - 2/11]
             [-7/3*t^2 - 1/2*t - 1/15         -2*t^2 + 19/8*t     -10*t^2 + 2*t + 1/2]
@@ -9003,21 +8996,22 @@ cdef class Matrix(Matrix1):
             [      0      -x]
             [     -1 sqrt(x)]
 
-        NOTES:
+        .. NOTE::
 
-        The key feature of this implementation is that it is division-free.
-        This means that it can be used as a generic implementation for any
-        ring (commutative and with multiplicative identity).  The algorithm
-        is described in full detail as Algorithm 3.1 in [Se02].
+            The key feature of this implementation is that it is division-free.
+            This means that it can be used as a generic implementation for any
+            ring (commutative and with multiplicative identity).  The algorithm
+            is described in full detail as Algorithm 3.1 in [Se02]_.
 
-        Note that this method does not utilise a lookup if the adjoint has
-        already been computed previously, and it does not cache the result.
-        This is all left to the method `adjoint`.
+            Note that this method does not utilise a lookup if the adjoint has
+            already been computed previously, and it does not cache the result.
+            This is all left to the method `adjoint`.
 
         REFERENCES:
 
-        - [Se02] T. R. Seifullin, "Computation of determinants, adjoint
-          matrices, and characteristic polynomials without division"
+        .. [Se02] \T. R. Seifullin, *Computation of determinants, adjoint
+                  matrices, and characteristic polynomials without division*
+                  :doi:`10.1023/A:1021878507303`
 
         AUTHORS:
 
@@ -9894,8 +9888,8 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: a = matrix(ZZ,4,[1, 0, 0, 0, 0, 1, 0, 0, 1, \
-            -1, 1, 0, 1, -1, 1, 2]); a
+            sage: a = matrix(ZZ,4,[1, 0, 0, 0, 0, 1, 0, 0,
+            ....:                  1, -1, 1, 0, 1, -1, 1, 2]); a
             [ 1  0  0  0]
             [ 0  1  0  0]
             [ 1 -1  1  0]
@@ -9928,7 +9922,7 @@ cdef class Matrix(Matrix1):
         Here we need to specify a field, since the eigenvalues are not defined
         in the smallest ring containing the matrix entries (:trac:`14508`)::
 
-            sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]]);
+            sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]])
             sage: c.jordan_form(CyclotomicField(3))
             [         1|         0|         0]
             [----------+----------+----------]
@@ -10235,8 +10229,8 @@ cdef class Matrix(Matrix1):
             evals = eigenvalues
         else:
             evals = A.charpoly().roots()
-        if sum([mult for (_,mult) in evals]) < n:
-            raise RuntimeError("Some eigenvalue does not exist in %s."  %(A.base_ring()))
+        if sum(mult for (_, mult) in evals) < n:
+            raise RuntimeError("Some eigenvalue does not exist in %s." % (A.base_ring()))
 
         # Compute the block information.  Here, ``blocks`` is a list of pairs,
         # each first entry a root and each second entry the size of a block.
@@ -10490,7 +10484,7 @@ cdef class Matrix(Matrix1):
             raise ValueError('matrix entries must be from a field, not {0}'.format(self.base_ring()))
 
         evals = self.charpoly().roots()
-        if sum([mult for (_,mult) in evals]) < self._nrows:
+        if sum(mult for (_, mult) in evals) < self._nrows:
             raise RuntimeError('an eigenvalue of the matrix is not contained in {0}'.format(self.base_ring()))
 
         # Obtaining a generic minimal polynomial requires much more
@@ -13147,7 +13141,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: d = matrix([[3, 0],[0,sqrt(2)]]) ;
+            sage: d = matrix([[3, 0],[0,sqrt(2)]])
             sage: b = matrix([[1, -1], [2, 2]]) ; e = b * d * b.inverse();e
             [ 1/2*sqrt(2) + 3/2 -1/4*sqrt(2) + 3/4]
             [      -sqrt(2) + 3  1/2*sqrt(2) + 3/2]
@@ -13795,17 +13789,17 @@ cdef class Matrix(Matrix1):
 
         We check some degenerate cases::
 
-            sage: m = matrix(OL, 0, 0, []); r,s,p = m._echelon_form_PID();
+            sage: m = matrix(OL, 0, 0, []); r,s,p = m._echelon_form_PID()
             sage: (r,s,p)
             ([], [], [])
             sage: r * m == s and r.det() == 1
             True
-            sage: m = matrix(OL, 0, 1, []); r,s,p = m._echelon_form_PID();
+            sage: m = matrix(OL, 0, 1, []); r,s,p = m._echelon_form_PID()
             sage: (r,s,p)
             ([], [], [])
             sage: r * m == s and r.det() == 1
             True
-            sage: m = matrix(OL, 1, 0, []); r,s,p = m._echelon_form_PID();
+            sage: m = matrix(OL, 1, 0, []); r,s,p = m._echelon_form_PID()
             sage: (r,s,p)
             ([1], [], [])
             sage: r * m == s and r.det() == 1
@@ -13813,7 +13807,7 @@ cdef class Matrix(Matrix1):
 
         A 2x2 matrix::
 
-            sage: m = matrix(OL, 2, 2, [1,0, a, 2]);
+            sage: m = matrix(OL, 2, 2, [1,0, a, 2])
             sage: r,s,p = m._echelon_form_PID(); (r,s,p)
             (
             [ 1  0]  [1 0]

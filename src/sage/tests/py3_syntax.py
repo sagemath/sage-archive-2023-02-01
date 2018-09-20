@@ -35,6 +35,8 @@ import itertools
 import subprocess
 
 from sage.env import SAGE_SRC
+from sage.cpython.string import bytes_to_str
+
 
 class SortedDirectoryWalkerABC(object):
     r"""
@@ -172,7 +174,7 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
         EXAMPLES::
 
             sage: import os, tempfile
-            sage: src = tempfile.NamedTemporaryFile(suffix='.py', delete=False)
+            sage: src = tempfile.NamedTemporaryFile(suffix='.py', mode='w+', delete=False)
             sage: _ = src.write('print "invalid print statement"')
             sage: src.close()
             sage: from sage.tests.py3_syntax import Python3SyntaxTest
@@ -216,6 +218,6 @@ sys.exit(rv)
             return
         print('Invalid Python 3 syntax found:')
         if stdout:
-            print(stdout)
+            print(bytes_to_str(stdout))
         if stderr:
-            print(stderr)
+            print(bytes_to_str(stderr))

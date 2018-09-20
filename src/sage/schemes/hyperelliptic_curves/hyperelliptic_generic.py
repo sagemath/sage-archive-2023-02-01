@@ -54,7 +54,46 @@ def is_HyperellipticCurve(C):
     """
     return isinstance(C,HyperellipticCurve_generic)
 
+
 class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
+    """
+    TESTS::
+
+        sage: P.<x> = QQ[]
+        sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
+        sage: C0 = HyperellipticCurve(f0)
+        sage: f1 = x^5 - x^3 + x - 22
+        sage: C1 = HyperellipticCurve(f1)
+        sage: C0 == C1
+        False
+        sage: C0 == C0
+        True
+
+        sage: P.<x> = QQ[]
+        sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
+        sage: C0 = HyperellipticCurve(f0)
+        sage: f1 = x^5 - x^3 + x - 22
+        sage: C1 = HyperellipticCurve(f1)
+        sage: C0 != C1
+        True
+        sage: C0 != C0
+        False
+
+        sage: P.<x> = QQ[]
+        sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
+        sage: C0 = HyperellipticCurve(f0)
+        sage: f1 = x^5 - x^3 + x - 22
+        sage: C1 = HyperellipticCurve(f1)
+        sage: Q.<y> = GF(5)[]
+        sage: f2 = y^5 - y^3 + y - 22
+        sage: C2 = HyperellipticCurve(f2)
+        sage: hash(C0) == hash(C0)
+        True
+        sage: hash(C0) == hash(C1)
+        False
+        sage: hash(C1) == hash(C2)
+        False
+    """
     def __init__(self, PP, f, h=None, names=None, genus=None):
         x, y, z = PP.gens()
         df = f.degree()
@@ -129,45 +168,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             return "Hyperelliptic Curve over %s defined by %s = %s" % (R, y**2, f(x))
         else:
             return "Hyperelliptic Curve over %s defined by %s + %s = %s" % (R, y**2, h(x)*y, f(x))
-
-    def __eq__(self, other):
-        """
-        Test of equality.
-
-        EXAMPLES::
-
-            sage: P.<x> = QQ[]
-            sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
-            sage: C0 = HyperellipticCurve(f0)
-            sage: f1 = x^5 - x^3 + x - 22
-            sage: C1 = HyperellipticCurve(f1)
-            sage: C0 == C1
-            False
-            sage: C0 == C0
-            True
-        """
-        if not isinstance(other, HyperellipticCurve_generic):
-            return False
-        return (self._hyperelliptic_polynomials ==
-                other._hyperelliptic_polynomials)
-
-    def __ne__(self, other):
-        """
-        Test of not equality.
-
-        EXAMPLES::
-
-            sage: P.<x> = QQ[]
-            sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
-            sage: C0 = HyperellipticCurve(f0)
-            sage: f1 = x^5 - x^3 + x - 22
-            sage: C1 = HyperellipticCurve(f1)
-            sage: C0 != C1
-            True
-            sage: C0 != C0
-            False
-        """
-        return not self == other
 
     def hyperelliptic_polynomials(self, K=None, var='x'):
         """
@@ -513,7 +513,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         t2  = t**2
         c = b + t2/pol_prime(b)
         c = c.add_bigoh(prec)
-        for _ in range(1 + log(prec, 2)):
+        for _ in range(int(1 + log(prec, 2))):
             c -= (pol(c) - t2)/pol_prime(c)
         return (c, t.add_bigoh(prec))
 

@@ -72,6 +72,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.element cimport coercion_model
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
+from sage.structure.sequence import Sequence
 from sage.misc.prandom import randint
 from sage.categories.rings import Rings
 from sage.categories.commutative_rings import CommutativeRings
@@ -1561,18 +1562,169 @@ cdef class CommutativeRing(Ring):
 
 
     def derivation_module(self, codomain=None, twist=None):
+        """
+        Returns the module of derivations over this ring.
+
+        INPUT:
+
+        - ``codomain`` -- an algebra over this ring or ``None``
+          (default: ``None``); if ``None``, the codomain will be
+          this ring.
+
+        - ``twist`` -- a morphism from this ring to ``codomain``
+          or ``None`` (default: ``None``); if ``None``, the coercion
+          map from this ring to ``codomain`` will be used.
+
+        .. NOTE::
+
+            A twisted derivation w.r.t. `\theta` (or a `\theta`-derivation
+            for short) is an additive map `d` satisfying the following axiom
+            for all `x, y` in the domain
+
+            .. MATH::
+
+                `d(xy) = \theta(x) d(y) + d(x) y`
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: M = R.derivation_module(); M
+            Module of derivations over Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: M.gens()
+            (d/dx, d/dy, d/dz)
+
+        We can specify a different codomain::
+
+            sage: K = R.fraction_field()
+            sage: M = R.derivation_module(K); M
+            Module of derivations from Multivariate Polynomial Ring in x, y, z over Rational Field to Fraction Field of Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: M.gen() / x
+            1/x*d/dx
+
+        or a twisting homomorphism::
+
+            sage: theta = R.hom([x^2, y^2, z^2])
+            sage: M = R.derivation_module(twist=theta); M
+            Module of twisted derivations over Multivariate Polynomial Ring in x, y, z over Rational Field (twisting morphism: x |--> x^2, y |--> y^2, z |--> z^2)
+
+        .. SEEALSO::
+
+            :meth:`derivation`, :meth:`derivation_twisted`
+
+        """
         from sage.rings.derivation import RingDerivationModule
         if codomain is None:
             codomain = self
         return RingDerivationModule(self, codomain, twist)
 
-    def derivation(self, *args, **kwds):
-        if not args:
-            args = [ self.gen() ]
-        return self.derivation_module()(*args, **kwds)
+    def derivation(self, arg=None, *args, **kwds):
+        """
+        Returns the derivation over this ring specified by ``arg``.
+
+        INPUT:
+
+        - ``arg`` - either a generator of this ring or a list of
+          elements or ``None`` (default: ``None``)
+
+        OUTPUT:
+
+        If ``arg`` is ``None``, the output is the derivation with
+        respect to the first variable.
+
+        If ``arg`` is a generator of this ring, the output is the
+        derivation with respect to this variable.
+
+        If ``arg`` is a list, the output is the derivation mapping
+        the generators or the elements of ``arg``.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: R.derivation()
+            d/dx
+
+            sage: R.derivation(y)
+            d/dy
+
+            sage: R.derivation([1,2,3])
+            d/dx + 2*d/dy + 3*d/dz
+
+        It is not possible to define derivations with respect to a 
+        polynomial which is not a variable::
+
+            sage: R.derivation(x^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: You must give a generator or a list of scalars
+
+        TESTS::
+
+            sage: R.derivation([1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of images is incorrect
+        """
+        ngens = self.ngens()
+        if arg is None:
+            images = ngens * [0]
+            images[0] = 1
+        elif isinstance(arg, (list, tuple)):
+            images = arg
+        else:
+            for i in range(ngens):
+                if arg == self.gen(i):
+                    images = ngens * [0]
+                    images[i] = 1
+                    break
+            else:
+                raise ValueError("You must give a generator or a list of scalars")
+        codomain = Sequence([self(0)] + images).universe()
+        return self.derivation_module(codomain)(images, *args, **kwds)
 
     def derivation_twisted(self, twist, *args, **kwds):
-        return self.derivation_module(twist)(twist, *args, **kwds)
+        """
+        Returns a twisted derivation over this ring.
+
+        INPUT:
+
+        - ``twist`` - an homomorphism
+
+        .. NOTE::
+
+            A twisted derivation w.r.t. `\theta` (or a `\theta`-derivation
+            for short) is an additive map `d` satisfying the following axiom
+            for all `x, y` in the domain
+
+            .. MATH::
+
+                `d(xy) = \theta(x) d(y) + d(x) y`
+
+            We observe that `\theta - id` is a `\theta`-derivation.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: theta = R.hom([x^2, y^2, z^2])
+
+        Without any further argument, the returned twisted derivation
+        is zero::
+
+            sage: f = R.derivation_twisted(theta); f
+            0
+            sage: f.parent()
+            Module of twisted derivations over Multivariate Polynomial Ring in x, y, z over Rational Field (twisting morphism: x |--> x^2, y |--> y^2, z |--> z^2)
+
+        Specifying a scalar, the returned twisted derivation is the
+        corresponding multiple of `\theta - id`::
+
+            sage: R.derivation_twisted(theta, 1)
+            [x |--> x^2, y |--> y^2, z |--> z^2] - id
+            sage: R.derivation_twisted(theta, x)
+            x*([x |--> x^2, y |--> y^2, z |--> z^2] - id)
+
+        """
+        codomain = twist.codomain()
+        return self.derivation_module(codomain, twist)(*args, **kwds)
 
 
 cdef class IntegralDomain(CommutativeRing):

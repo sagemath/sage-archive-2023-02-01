@@ -1,5 +1,111 @@
-"""
-Add doctest here
+r"""
+Derivations
+
+Let `A` be a ring and `B` be an algebra over `A`.
+A derivation `d : A \to B` is an additive map that satisfies
+the Leibniz rule
+
+.. MATH::
+
+    d(xy) = x d(y) + d(x) y.
+
+If you are given in addition a ring homomorphism `\theta : A \to B`,
+a twisted derivation w.r.t. `\theta` (or a `\theta`-derivation) is
+an additive map `d : A \to B` such that
+
+.. MATH::
+
+    d(xy) = \theta(x) d(y) + d(x) y.
+
+When `\theta` is the morphism defining the structure of `A`-algebra
+on `B`, a `\theta`-derivation is nothing but a derivation.
+One easily checks that `\theta - id` is a `\theta`-derivation.
+
+The set of derivations (resp. `\theta`-derivations) is a module 
+over `B`.
+
+
+This file provides support for derivations and twisted derivations
+over commutative rings.
+
+Given a ring `A`, the module of derivations over `A` can be created
+as follows::
+
+    sage: A.<x,y,z> = QQ[]
+    sage: M = A.derivation_module()
+    sage: M
+    Module of derivations over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+A codomain can be specified::
+
+    sage: B = A.fraction_field()
+    sage: A.derivation_module(B)
+    Module of derivations from Multivariate Polynomial Ring in x, y, z over Rational Field to Fraction Field of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+The method :meth:`gens` return generators of these modules::
+
+    sage: M.gens()
+    (d/dx, d/dy, d/dz)
+
+We can combine them in order to create all derivations::
+
+    sage: d = 2*M.gen(0) + z*M.gen(1) + (x^2 + y^2)*M.gen(2)
+    sage: d
+    2*d/dx + z*d/dy + (x^2 + y^2)*d/dz
+
+and now play with them::
+
+    sage: d(x + y + z)
+    x^2 + y^2 + z + 2
+    sage: P = A.random_element()
+    sage: Q = A.random_element()
+    sage: d(P*Q) == P*d(Q) + d(P)*Q
+    True
+
+Alternatively we can use the method :meth:`derivation` of the ring `A`
+to create derivations::
+
+    sage: A.derivation(x)
+    d/dx
+    sage: A.derivation(y)
+    d/dy
+    sage: A.derivation(z)
+    d/dz
+    sage: A.derivation([2, z, x^2+y^2])
+    2*d/dx + z*d/dy + (x^2 + y^2)*d/dz
+
+::
+
+Twisted derivations and handled similarly::
+
+    sage: theta = B.hom([B(y),B(z),B(x)])
+    sage: theta
+    Ring endomorphism of Fraction Field of Multivariate Polynomial Ring in x, y, z over Rational Field
+      Defn: x |--> y
+            y |--> z
+            z |--> x
+
+    sage: M = B.derivation_module(twist=theta)
+    sage: M
+    Module of twisted derivations over Fraction Field of Multivariate Polynomial Ring in x, y, z over Rational Field (twisting morphism: x |--> y, y |--> z, z |--> x)
+
+Over a field, one proves that every `\theta`-derivation is a multiple
+of `\theta - id`, so that::
+
+    sage: d = M.gen(); d
+    [x |--> y, y |--> z, z |--> x] - id
+
+and then::
+
+    sage: d(x)
+    -x + y
+    sage: d(y)
+    -y + z
+    sage: d(z)
+    x - z
+    sage: d(x + y + z)
+    0
+
 """
 
 #############################################################################
@@ -23,6 +129,9 @@ from sage.rings.morphism import RingMap, RingHomomorphism
 
 
 class RingDerivationModule(Module, UniqueRepresentation):
+    """
+    A class for modules of derivations over a commutative ring.
+    """
     def __init__(self, domain, codomain, twist=None, element_class=None):
         """
         Initialize this module of derivation.
@@ -296,6 +405,16 @@ class RingDerivation(ModuleElement):
 
     """
     def __call__(self, x):
+        """
+        Returns the image of ``x`` under this derivation.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: f = x*R.derivation(x) + y*R.derivation(y)
+            sage: f(x^2 + 3*x*y - y^2)
+            2*x^2 + 6*x*y - 2*y^2
+        """
         arg = self.parent().domain()(x)
         return self._call_(arg)
 
@@ -464,8 +583,10 @@ class RingDerivationWithoutTwist_im_gens(RingDerivation):
 
 
 class RingDerivationWithTwist_generic(RingDerivation):
-    """
-    The class handles 
+    r"""
+    The class handles `\theta`-derivations of the form
+    `\lambda*(\theta - id)` for a scalar `\lambda` varying
+    in the codomain of `\theta`.
     """
     def __init__(self, parent, scalar=0):
         """

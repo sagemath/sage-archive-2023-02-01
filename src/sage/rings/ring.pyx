@@ -1562,7 +1562,7 @@ cdef class CommutativeRing(Ring):
 
 
     def derivation_module(self, codomain=None, twist=None):
-        """
+        r"""
         Returns the module of derivations over this ring.
 
         INPUT:
@@ -1618,7 +1618,7 @@ cdef class CommutativeRing(Ring):
         return RingDerivationModule(self, codomain, twist)
 
     def derivation(self, arg=None, *args, **kwds):
-        """
+        r"""
         Returns the derivation over this ring specified by ``arg``.
 
         INPUT:
@@ -1682,7 +1682,7 @@ cdef class CommutativeRing(Ring):
         return self.derivation_module(codomain)(images, *args, **kwds)
 
     def derivation_twisted(self, twist, *args, **kwds):
-        """
+        r"""
         Returns a twisted derivation over this ring.
 
         INPUT:

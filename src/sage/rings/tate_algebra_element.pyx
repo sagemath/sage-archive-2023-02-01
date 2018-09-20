@@ -35,9 +35,9 @@ cdef class TateAlgebraTerm(MonoidElement):
         sage: R = Zp(2, print_mode='digits',prec=10); R
         2-adic Ring with capped relative precision 10
         sage: A.<x,y> = TateAlgebra(R); A
-        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
         sage: T = A.monoid_of_terms(); T
-        Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+        Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
         sage: T(2,(1,1))
         (...00000000010)*x*y
         sage: T(0,(1,1))
@@ -59,9 +59,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T(2,(1,1))
             (...00000000010)*x*y
             sage: T(0,(1,1))
@@ -94,7 +94,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     cdef TateAlgebraTerm _new_c(self):
         r"""
-        ???
+        TODO
         """
         cdef TateAlgebraTerm ans = TateAlgebraTerm.__new__(TateAlgebraTerm)
         ans._parent = self._parent
@@ -109,9 +109,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T(2,(1,1)) # indirect doctest
             (...00000000010)*x*y
             sage: print(T(0,(1,1))) # indirect doctest
@@ -139,13 +139,14 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
-            sage: t = T(2,(1,1))
-            sage: t.coefficient()
-            ...00000000010
-        
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: t = T(2,(1,1)); t
+            (...00000000010)*x*y
+            sage: t.coefficient() 
+            ...00000000010 
+                
         """
         return self._coeff
 
@@ -158,9 +159,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: t = T(2,(1,1))
             sage: t.exponent()
             (1, 1)
@@ -182,9 +183,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: s = T(2,(1,1)); s
             (...00000000010)*x*y
             sage: t = T(3,(2,1)); t
@@ -334,7 +335,21 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     cdef long _valuation_c(self):
         r"""
-        ???
+        Return the valuation of the coefficient of the Tate term
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: t = T(4,(2,2)); t
+            (...000000000100)*x^2*y^2
+            sage: t.valuation() # indirect doctest
+            2
+        
         """
         return (<pAdicGenericElement>self._coeff).valuation_c() - <long>self._exponent.dotprod(self._parent._log_radii)
 
@@ -342,6 +357,10 @@ cdef class TateAlgebraTerm(MonoidElement):
     def is_coprime_with(self, other):
         r"""
         Test whether the Tate term monomial is coprime with another
+
+        INPUT:
+
+        - ``other`` - the Tate term to test coprimality with
 
         EXAMPLES::
 
@@ -974,7 +993,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
             sage: x + 2*x^2 + x^3
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: A(x+2*x^2+x^3,prec=5)
@@ -1000,7 +1019,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         r"""
         Return a polynomial representation of the Tate series.
 
-        For series which are not polynomials, the output corresponds to ???
+        For series which are not polynomials, the output corresponds to ??? (TODO)
         """
         # TODO: should we make sure that the result is reduced in some cases?
         return self._parent._polynomial_ring(self._poly)
@@ -1016,7 +1035,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: g = A(x + 2*y^2,prec=5); g
@@ -1050,7 +1069,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: -f # indirect doctest
@@ -1072,7 +1091,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: g = A(x + 2*y^2,prec=5); g
@@ -1107,7 +1126,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
             sage: f = 2*x + 4*x^2 + 2*x^3; f
             (...00000000010)*x^3 + (...00000000010)*x + (...000000000100)*x^2
             g = A(x + 2*x^2, prec=5); g
@@ -1162,7 +1181,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: t = (3*x^2).terms()[0]; t
             (...0000000011)*x^2
             sage: f = x^4 + 4*x*y + 1; f
@@ -1344,7 +1363,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x^4 + 4*x*y + 1; f
             (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
             sage: g = f + 2
@@ -1365,7 +1384,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = A(1); f
             (...0000000001)
             sage: f.inverse_of_unit()
@@ -1406,7 +1425,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = 1; f
             1
             sage: f = A(1); f
@@ -1447,13 +1466,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2,prec=10,print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2
             sage: f.restriction(-1)
             (...0000000001)*x + (...00000000010)*x^2
             sage: g = f.restriction(-1)
             sage: g.parent()
-            Tate Algebra in x (val >= 1), y (val >= 1) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 1), y (val >= 1) over 2-adic Field with capped relative precision 10
           
         """
         parent = self._parent
@@ -1470,7 +1489,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2,prec=10,print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2
             sage: f.terms()
             [(...0000000001)*x, (...00000000010)*x^2]
@@ -1517,7 +1536,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2,prec=10,print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2
             sage: f.coefficients()
             [...0000000001, ...00000000010]
@@ -1534,7 +1553,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2,prec=10,print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = (x + 2*x^2) << 5; f
             (...000000000100000)*x + (...0000000001000000)*x^2
             sage: g = f.add_bigoh(5); g
@@ -1564,7 +1583,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2,prec=10,print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2; f
             (...0000000001)*x + (...00000000010)*x^2
             sage: f.precision_absolute()
@@ -1602,7 +1621,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x^4 + 4*x*y + 1; f
             (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
             sage: f.valuation()
@@ -1683,7 +1702,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x^4 + x*y + 1; f
             (...0000000001)*x^4 + (...0000000001)*x*y + (...0000000001)
             sage: f.leading_term()
@@ -1711,7 +1730,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x^4 + x*y + 1; f
             (...0000000001)*x^4 + (...0000000001)*x*y + (...0000000001)
             sage: f.leading_coefficient()
@@ -1754,7 +1773,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = 2*x*y + 4*x^4 + 6; f
             (...00000000010)*x*y + (...00000000110) + (...000000000100)*x^4
             sage: f.valuation()
@@ -1787,7 +1806,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x*y + 2*x^4 + y; f
             (...0000000001)*x*y + (...0000000001)*y + (...00000000010)*x^4
             sage: f.valuation()
@@ -1813,7 +1832,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x*y + 2*x^4 + y; f
             (...0000000001)*x*y + (...0000000001)*y + (...00000000010)*x^4
             sage: f.valuation()
@@ -1839,7 +1858,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x^2 + y^2 + 2*x^3 + y; f
             (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
             sage: f.valuation()
@@ -1865,7 +1884,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x^2 + y^2 + 2*x^3 + y; f
             (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
             sage: f.valuation()
@@ -1903,7 +1922,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x^2 + y^2 + 2*x^3 + y; f
             (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
             sage: f.valuation()
@@ -1936,7 +1955,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         The residue is not implemented for series with convergence radius different from 1.
 
             sage: A.<x,y> = TateAlgebra(R, log_radii=(2,-1)); A
-            Tate Algebra in x (val >= -2), y (val >= 1) over 2-adic Ring with capped relative precision 10
+            Tate Algebra in x (val >= -2), y (val >= 1) over 2-adic Field with capped relative precision 10
             sage: f = x^2 + y^2 + 2*x^3 + y; f
             (...00000000010000)*x^2 + (...00000000.01)*y^2 + (...000000000.1)*y + (...00000000010000000)*x^3
             sage: f.residue()
@@ -1959,7 +1978,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return poly.change_ring(Rn)
 
     cdef TateAlgebraElement _mod_c(TateAlgebraElement self, list divisors):
-        # TODO: ???
+        r"""
+        TODO
+        """
     
         cdef dict coeffs = { }
         cdef TateAlgebraElement f = self._new_c()

@@ -107,8 +107,13 @@ cdef ObjWrapper wrap_obj(Obj obj):
 
 
 # a dictionary to keep all GAP elements
+# needed for GASMAN callbacks
+#
 cdef dict owned_objects_refcount = dict()
 
+#
+# used in Sage's libgap.Gap.count_GAP_objects
+#
 cpdef get_owned_objects():
     """
     Helper to access the refcount dictionary from Python code

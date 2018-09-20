@@ -1567,14 +1567,12 @@ cdef class CommutativeRing(Ring):
         return RingDerivationModule(self, codomain, twist)
 
     def derivation(self, *args, **kwds):
-        if 'twist' in kwds:
-            parent = self.derivation_module(twist=kwds['twist'])
-            del kwds['twist']
-        else:
-            parent = self.derivation_module()
         if not args:
-            args = [self.gen()]
-        return parent(*args, **kwds)
+            args = [ self.gen() ]
+        return self.derivation_module()(*args, **kwds)
+
+    def derivation_twisted(self, twist, *args, **kwds):
+        return self.derivation_module(twist)(twist, *args, **kwds)
 
 
 cdef class IntegralDomain(CommutativeRing):

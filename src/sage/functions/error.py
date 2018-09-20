@@ -252,7 +252,7 @@ class Function_erf(BuiltinFunction):
 
             sage: gp.set_real_precision(59)  # random
             38
-            sage: print(gp.eval("1 - erfc(1)")); print(erf(1).n(200));
+            sage: print(gp.eval("1 - erfc(1)")); print(erf(1).n(200))
             0.84270079294971486934122063508260925929606699796630290845994
             0.84270079294971486934122063508260925929606699796630290845994
 
@@ -292,8 +292,9 @@ class Function_erf(BuiltinFunction):
 
 erf = Function_erf()
 
+
 class Function_erfi(BuiltinFunction):
-    """
+    r"""
     The imaginary error function.
 
     The imaginary error function is defined by
@@ -465,7 +466,7 @@ erfc = Function_erfc()
 
 
 class Function_erfinv(BuiltinFunction):
-    """
+    r"""
     The inverse error function.
 
     The inverse error function is defined by:

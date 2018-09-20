@@ -1749,9 +1749,9 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
           simplification (default: 32)
 
         - ``phiadic`` -- whether to simplify the coefficients in the
-          `\phi`-adic expansion recursively. This tends to be slower and
-          sometimes leads to very huge coefficients in the `x`-adic
-          expansion (default: ``False``.)
+          `\phi`-adic expansion recursively. This often times leads to huge
+          coefficients in the `x`-adic expansion (default: ``False``, i.e., use
+          an `x`-adic expansion.)
 
         EXAMPLES::
 
@@ -1759,8 +1759,25 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, 1/2)
-            sage: w.simplify(x^10/2 + 1, force=True) # not tested - error is incorrect
+            sage: w.simplify(x^10/2 + 1, force=True)
             (u + 1)*2^-1 + O(2^4)
+
+        Check that :trac:`25607` has been resolved, i.e., the coefficients
+        in the following example are small::`
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3 + 6)
+            sage: R.<x> = K[]
+            sage: v = GaussValuation(R, K.valuation(2))
+            sage: v = v.augmentation(x, 3/2)
+            sage: v = v.augmentation(x^2 + 8, 13/4)
+            sage: v = v.augmentation(x^4 + 16*x^2 + 32*x + 64, 20/3)
+            sage: F.<x> = FunctionField(K)
+            sage: S.<y> = F[]
+            sage: v = F.valuation(v)
+            sage: G = y^2 - 2*x^5 + 8*x^3 + 80*x^2 + 128*x + 192
+            sage: v.mac_lane_approximants(G)
+            [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 2-adic valuation, v(x) = 3/2, v(x^2 + 8) = 13/4, v(x^4 + 16*x^2 + 32*x + 64) = 20/3 ], v(y + 4*x + 8) = 31/8 ]]
 
         """
         f = self.domain().coerce(f)
@@ -1770,6 +1787,9 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
                 from itertools import islice
                 f = self.domain().change_ring(self.domain())(list(islice(self.coefficients(f), 0, effective_degree + 1, 1)))(self.phi())
 
+        if f.degree() < self.phi().degree():
+            return self._base_valuation.simplify(f, error=error, force=force, size_heuristic_bound=size_heuristic_bound, phiadic=phiadic)
+
         if not force and self._relative_size(f) < size_heuristic_bound:
             return f
 
@@ -1777,7 +1797,11 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             # if the caller was sure that we should simplify, then we should try to do the best simplification possible
             error = self(f) if force else self.upper_bound(f)
 
-        if phiadic:
+        if phiadic is None:
+            phiadic = False
+        # We ignore the user's choice when x == phi, as the non-phi-adic
+        # algorithm is the same but slower then.
+        if phiadic or self.phi() == self.phi().parent().gen():
             coefficients = list(self.coefficients(f))
             valuations = list(self.valuations(f, coefficients=coefficients))
             return self.domain().change_ring(self.domain())([
@@ -1785,7 +1809,20 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
                     else self._base_valuation.simplify(c, error=error-i*self._mu, force=force, phiadic=True) 
                     for (i,c) in enumerate(coefficients)])(self.phi())
         else:
-            return self._base_valuation.simplify(f, error=error, force=force)
+            # We iterate through the coefficients of the polynomial (in the
+            # usual x-adic way) starting from the leading coefficient and try
+            # to replace the coefficient with a simpler one recursively.
+            # This is a quite expensive operation but small coefficients can
+            # speed up the surrounding calls drastically.
+            for i in range(f.degree(), -1, -1):
+                j = i//self.phi().degree()
+                from itertools import islice
+                coefficients = list(islice(f.list(), j*self.phi().degree(), i+1))
+                g = self.domain()(coefficients)
+                ng = self._base_valuation.simplify(g, error=error-j*self._mu, force=force, phiadic=False)
+                if g != ng:
+                    f -= (g - ng)*self.phi()**j
+            return f
 
     def lower_bound(self, f):
         r"""
@@ -2053,19 +2090,19 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, infinity)
-            sage: w.simplify(x^10/2 + 1, force=True) # not tested - error incorrect
+            sage: w.simplify(x^10/2 + 1, force=True)
             (u + 1)*2^-1 + O(2^4)
 
         """
         f = self.domain().coerce(f)
 
         if error is None:
-            error = self.upper_bound(f)
+            error = self(f) if force else self.upper_bound(f)
 
         if error is infinity:
             return f
 
-        return self.domain()(self._base_valuation.simplify(next(self.coefficients(f)), error, force=force))
+        return self.domain()(self._base_valuation.simplify(next(self.coefficients(f)), error=error, force=force))
 
     def lower_bound(self, f):
         r"""

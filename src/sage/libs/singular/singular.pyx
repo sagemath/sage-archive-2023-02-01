@@ -770,6 +770,11 @@ cdef init_libsingular():
     cdef void *handle = NULL
 
     from sage.env import SINGULAR_SO
+    if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
+        raise RuntimeError(
+            "libSingular not found--a working Singular install in $SAGE_LOCAL "
+            "is required for Sage to work")
+
     lib = SINGULAR_SO
 
     if not os.path.exists(lib):

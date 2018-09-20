@@ -122,10 +122,11 @@ def get_systems(cmd):
             else:
                 i += 1
 
-    #Check to see which systems appear in the profiled run
+    # Check to see which systems appear in the profiled run
     systems_used = []
     for system in systems:
-        if any([(r in s) or (r.replace('.','/') in s) for r in systems[system] for s in strings]):
+        if any((r in s) or (r.replace('.', '/') in s)
+               for r in systems[system] for s in strings):
             systems_used.append(system)
     return systems_used
 

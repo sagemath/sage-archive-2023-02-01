@@ -47,6 +47,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.quantum_matrix_coordinate_algebra.QuantumGL>`
 - :class:`algebras.Partition <sage.combinat.diagram_algebras.PartitionAlgebra>`
 - :class:`algebras.PlanarPartition <sage.combinat.diagram_algebras.PlanarAlgebra>`
+- :class:`algebras.QuantumGroup
+  <sage.algebras.quantum_groups.quantum_group_gap.QuantumGroup>`
 - :func:`algebras.Quaternion
   <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
 - :class:`algebras.RationalCherednik
@@ -103,5 +105,6 @@ lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')
 lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra', 'Tensor')
+lazy_import('sage.algebras.quantum_groups.quantum_group_gap', 'QuantumGroup')
 lazy_import('sage.algebras.yangian', 'Yangian')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion

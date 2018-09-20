@@ -1,8 +1,5 @@
 cd src
 
-# See #22021 for issues with multithreading
-OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE USE_THREAD=0"
-
 # OpenBLAS does not build on 32bit Haswell. Upstream suggests to pass BINARY=32 to default to NEHALEM kernels
 # See https://github.com/xianyi/OpenBLAS/issues/657
 # Right now this affect all 32bit CPUs.

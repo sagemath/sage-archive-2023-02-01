@@ -228,7 +228,7 @@ from sage.modules.free_module import VectorSpace
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.randstate import current_randstate
-from sage.misc.package import is_package_installed, PackageNotFoundError
+from sage.features.gap import GapPackage
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
@@ -377,9 +377,10 @@ class AbstractLinearCode(Module):
 
     .. NOTE::
 
-        :class:`AbstractLinearCode` has generic implementations of the comparison methods ``__cmp__``
-        and ``__eq__`` which use the generator matrix and are quite slow. In subclasses you are
-        encouraged to override these functions.
+        :class:`AbstractLinearCode` has a generic implementation of the
+        method ``__eq__`` which uses the generator matrix and is quite
+        slow. In subclasses you are encouraged to override ``__eq__``
+        and ``__hash__``.
 
     .. WARNING::
 
@@ -1324,8 +1325,7 @@ class AbstractLinearCode(Module):
             ...
             NotImplementedError: the GAP algorithm that Sage is using is limited to computing with fields of size at most 256
         """
-        if not is_package_installed('gap_packages'):
-            raise PackageNotFoundError('gap_packages')
+        GapPackage("guava", spkg="gap_packages").require()
         gap.load_package("guava")
         F = self.base_ring()
         if F.cardinality() > 256:
@@ -2549,8 +2549,9 @@ class AbstractLinearCode(Module):
             NotImplementedError: the GAP algorithm that Sage is using
              is limited to computing with fields of size at most 256
         """
-        if algorithm == "guava" and not is_package_installed('gap_packages'):
-            raise PackageNotFoundError('gap_packages')
+        if algorithm == "guava":
+            GapPackage("guava", spkg="gap_packages").require()
+
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
         # This is done only if algorithm is None.
@@ -2621,8 +2622,7 @@ class AbstractLinearCode(Module):
         current_randstate().set_seed_gap()
 
         if algorithm=="guava":
-            if not is_package_installed('gap_packages'):
-                raise PackageNotFoundError('gap_packages')
+            GapPackage("guava", spkg="gap_packages").require()
             gap.load_package("guava")
             from sage.interfaces.gap import gfq_gap_to_sage
             gap.eval("G:="+Gmat)
@@ -2787,8 +2787,7 @@ class AbstractLinearCode(Module):
         n = len(G.columns())
         k = len(G.rows())
         if "gap" in algorithm:
-            if not is_package_installed('gap_packages'):
-                raise PackageNotFoundError('gap_packages')
+            GapPackage("guava", spkg="gap_packages").require()
             gap.load_package('guava')
             wts = self.weight_distribution()                          # bottleneck 1
             nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
@@ -3499,7 +3498,7 @@ class AbstractLinearCode(Module):
 
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.zeta_function()
-            (2/5*T^2 + 2/5*T + 1/5)/(2*T^2 - 3*T + 1)
+            (1/5*T^2 + 1/5*T + 1/10)/(T^2 - 3/2*T + 1/2)
         """
         P =  self.zeta_polynomial()
         q = (self.base_ring()).characteristic()
@@ -4407,6 +4406,20 @@ class LinearCodeSyndromeDecoder(Decoder):
         return isinstance(other, LinearCodeSyndromeDecoder)\
                 and self.code() == other.code()\
                 and self.maximum_error_weight() == other.maximum_error_weight()
+
+    def __hash__(self):
+        """
+        Return the hash of self.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+            sage: D1 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
+            sage: D2 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
+            sage: hash(D1) == hash(D2)
+            True
+        """
+        return hash((self.code(), self.maximum_error_weight()))
 
     def _repr_(self):
         r"""

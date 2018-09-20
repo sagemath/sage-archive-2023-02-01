@@ -1192,7 +1192,7 @@ class Polymake(ExtraTabCompletion, Expect):
             raise ValueError("Unknown polymake application '{}'".format(app))
         self._application = app
         patterns = ["{} > ".format(app),            # 0: normal prompt
-                    "{} \([0-9]+\)> ".format(app),  # 1: continuation prompt
+                    r"{} \([0-9]+\)> ".format(app),  # 1: continuation prompt
                     "Please choose ".format(app),   # 2: user input expected when requesting "help"
                     "killed by signal",             # 3: what we are looking for when interrupting a computation
                     "polymake: +ERROR: +",          # 4: error

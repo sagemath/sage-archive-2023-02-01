@@ -16,9 +16,9 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
 cdef class TateAlgebraTerm(MonoidElement):
     r"""
-    Class for Tate algebra terms
+    A class for Tate algebra terms
 
-    A term in `R{X_1,\dots,X_n}` is the product of a coefficient in `R` and a
+    A term in `R\{X_1,\dots,X_n\}` is the product of a coefficient in `R` and a
     monomial in the variables `X_1,\dots,X_n`.
 
     Those terms form a partially ordered monoid, with term multiplication and the
@@ -32,15 +32,14 @@ cdef class TateAlgebraTerm(MonoidElement):
     
     EXAMPLES::
 
-        sage: R = Zp(2, print_mode='digits',prec=10); R
-        2-adic Ring with capped relative precision 10
-        sage: A.<x,y> = TateAlgebra(R); A
-        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+        sage: R = Zp(2, print_mode='digits', prec=10)
+        sage: A.<x,y> = TateAlgebra(R)
         sage: T = A.monoid_of_terms(); T
         Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-        sage: T(2,(1,1))
+
+        sage: T(2*x*y)
         (...00000000010)*x*y
-        sage: T(0,(1,1))
+        sage: T(0)
         Traceback (most recent call last):
         ...
         ValueError: A term cannot be zero
@@ -379,7 +378,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         But coefficients play a role when we are working over
         the ring of integers of the Tate Algebra::
 
-            sage: OA = A.ring_of_integers()
+            sage: OA = A.integer_ring()
             sage: OT = OA.monoid_of_terms()
             sage: OT(s).is_coprime_with(OT(t))
             False
@@ -407,8 +406,8 @@ cdef class TateAlgebraTerm(MonoidElement):
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits', prec=10)
-            sage: A.<x,y> = TateAlgebra(R); A
-            sage: T = A.monoid_of_terms(); T
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
             sage: s = T(8*x^2*y^2); s
             (...0000000001000)*x^2*y^2
             sage: t = T(4*x*y^3); t
@@ -433,8 +432,8 @@ cdef class TateAlgebraTerm(MonoidElement):
         EXAMPLES::
 
             sage: R = Zp(2, print_mode='digits', prec=10)
-            sage: A.<x,y> = TateAlgebra(R); A
-            sage: T = A.monoid_of_terms(); T
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
             sage: s = T(8*x^2*y^2); s
             (...0000000001000)*x^2*y^2
             sage: t = T(4*x*y^3); t
@@ -677,6 +676,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
             sage: t = T(2*x^2*y^3); t
+            (...00000000010)*x^2*y^3
             sage: s = T(6*x*y^2); s
             (...00000000110)*x*y^2
             sage: t // s
@@ -707,6 +707,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
             sage: t = T(2*x^2*y^3); t
+            (...00000000010)*x^2*y^3
             sage: s = T(6*x*y^2); s
             (...00000000110)*x*y^2
             sage: t // s

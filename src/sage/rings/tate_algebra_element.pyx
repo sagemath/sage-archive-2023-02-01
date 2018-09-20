@@ -909,19 +909,75 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     INPUT:
 
-    - ``parent`` - a Tate algebra to create an element in
+    - ``parent`` - the Tate algebra to create an element in
 
-    - 
+    - ``x`` - the first terms of the series, as a multivariate polynomial
 
+    - ``prec`` - (default: None) an integer specifying the precision of the Tate
+      series. If none is provided, the precision of the parent algebra is used.
+
+    - ``reduce`` - (default: True) a boolean specifying whether the coefficients
+      should be reduced to the speficied precision
+
+    EXAMPLES::
+
+        sage: R = Zp(2,prec=10,print_mode='digits'); R
+        2-adic Ring with capped relative precision 10
+        sage: A.<x,y> = TateAlgebra(R); A
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+        sage: A(2*x+1)
+        (...0000000001) + (...00000000010)*x
+        sage: A(2*x+1,prec=5)
+        (...00001) + (...00010)*x + O(2^5)
+        sage: A(2*x+1,prec=20)
+        (...0000000001) + (...00000000010)*x + O(2^20)
+        sage: A(2^11*x+1,prec=10)
+        (...0000000001) + O(2^10)
+        sage: A(2^11*x+1,prec=10,reduce=False)
+        (...0000000001) + O(2^10)
 
     """
+
     def __init__(self, parent, x, prec=None, reduce=True):
         r"""
-        Initialize a Tate algebra element
+        Initialise a Tate algebra series.
 
-        TESTS::
+        Given a complete discrete valuation ring `R`, variables `X_1,\dots,X_k`
+        and convergence radii `r_,\dots, r_n` in `\mathbb{R}_{>0}`, a Tate series is an
+        element of the Tate algebra `R{X_1,\dots,X_k}`, that is a power series with
+        coefficients `a_{i_1,\dots,i_n}` in `R` and such that
+        `|a_{i_1,\dots,i_n}|*r_1^{-i_1}*\dots*r_n^{-i_n}` tends to 0 as
+        `i_1,\dots,i_n` go towards infinity.
 
-        
+        INPUT:
+
+        - ``parent`` - the Tate algebra to create an element in
+
+        - ``x`` - the first terms of the series, as a multivariate polynomial
+
+        - ``prec`` - (default: None) an integer specifying the precision of the Tate
+          series. If none is provided, the precision of the parent algebra is used.
+
+        - ``reduce`` - (default: True) a boolean specifying whether the coefficients
+          should be reduced to the speficied precision
+
+        EXAMPLES::
+
+            sage: R = Zp(2,prec=10,print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: A(2*x+1)
+            (...0000000001) + (...00000000010)*x
+            sage: A(2*x+1,prec=5) # indirect doctest
+            (...00001) + (...00010)*x + O(2^5)
+            sage: A(2*x+1,prec=20) # indirect doctest
+            (...0000000001) + (...00000000010)*x + O(2^20)
+            sage: A(2^11*x+1,prec=10) # indirect doctest
+            (...0000000001) + O(2^10)
+            sage: A(2^11*x+1,prec=10,reduce=False) # indirect doctest
+            (...0000000001) + O(2^10)
+
         """
         cdef TateAlgebraElement xc
         CommutativeAlgebraElement.__init__(self, parent)

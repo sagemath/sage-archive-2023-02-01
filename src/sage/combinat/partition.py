@@ -1430,7 +1430,6 @@ class Partition(CombinatorialElement):
         """
         return self.k_boundary(k).row_lengths()
 
-
     def k_column_lengths(self, k):
         r"""
         Return the ``k``-column-shape of the partition ``self``.
@@ -1450,7 +1449,6 @@ class Partition(CombinatorialElement):
             :meth:`k_row_lengths`, :meth:`k_boundary`, :meth:`SkewPartition.row_lengths`, :meth:`SkewPartition.column_lengths`
         """
         return self.k_boundary(k).column_lengths()
-
 
     def has_rectangle(self, h, w):
         r"""
@@ -1496,7 +1494,6 @@ class Partition(CombinatorialElement):
                 num_rows_of_len_w += 1
         return num_rows_of_len_w >= h
 
-
     def has_k_rectangle(self, k):
         r"""
         A partition ``self`` has a ``k``-rectangle if it's Ferrer's diagram contains `k-i+1` rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
@@ -1538,10 +1535,8 @@ class Partition(CombinatorialElement):
 
             :meth:`is_k_irreducible`, :meth:`is_k_reducible`, :meth:`has_rectangle`
         """
-        def k_rectangle_dimension_list(k):
-            return [(k-i+1, i) for i in range(1, k+1)]
-        return any(self.has_rectangle(a, b) for (a, b) in k_rectangle_dimension_list(k))
-
+        return any(self.has_rectangle(a, b) for (a, b) in
+                   [(k-i+1, i) for i in range(1, k+1)])
 
     def is_k_bounded(self, k):
         r"""
@@ -1561,7 +1556,6 @@ class Partition(CombinatorialElement):
         else:
             least_upper_bound = max(self)
         return least_upper_bound <= k
-
 
     def is_k_reducible(self, k):
         r"""
@@ -1591,7 +1585,6 @@ class Partition(CombinatorialElement):
         assert self.is_k_bounded(k)
         return self.has_k_rectangle(k)
 
-
     def is_k_irreducible(self, k):
         r"""
         Return whether the partition ``self`` is ``k``-irreducible.
@@ -1618,7 +1611,6 @@ class Partition(CombinatorialElement):
         """
         return not self.is_k_reducible(k)
 
-
     def is_symmetric(self):
         r"""
         Detect whether this partition ``self`` equals its own transpose.
@@ -1631,7 +1623,6 @@ class Partition(CombinatorialElement):
             False
         """
         return self == self.conjugate()
-
 
     def next_within_bounds(self, min=[], max=None, type=None):
         r"""
@@ -1699,7 +1690,6 @@ class Partition(CombinatorialElement):
         min = min + [0] * (len(max) - len(min))
         # finally, run the algo to find next_p
         next_p = copy(p)
-
         def condition(a, b):
             if type in ('strict', 'strictly decreasing'):
                 return a < b - 1
@@ -1722,7 +1712,6 @@ class Partition(CombinatorialElement):
                     next_p[r] = min[r]
                     continue
         return _Partitions(next_p)
-
 
     def is_k_core(self, k):
         r"""
@@ -1747,7 +1736,6 @@ class Partition(CombinatorialElement):
                 if hook_length == k:
                     return False
         return True
-
 
     def to_k_core(self, k):
         r"""

@@ -389,8 +389,11 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the greatest common divisor of two Tate terms
 
-        The coefficient of the returned term is unspecified.
-
+        If the coefficient ring is a field, the coefficient of the returned term
+        is unspecified. If the coefficient ring is a discrete valuation ring,
+        the coefficient of the returned term is the greatest common divisor of the
+        coefficients of the terms.
+        
         INPUT:
 
         - ``other`` - the Tate term with which to compute the gcd
@@ -398,6 +401,8 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         EXAMPLES::
 
+        In a Tate algebra over a field:
+        
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
@@ -411,23 +416,43 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s.gcd(t).monic()
             (...0000000001)*x*y^2
 
+        In a Tate algebra over a ring:
         
+            sage: AA = A.integer_ring(); AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: AA.base_ring()
+            2-adic Ring with capped relative precision 10
+            sage: TT = AA.monoid_of_terms()
+            sage: TT = AA.monoid_of_terms(); TT
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: ss = TT(s); ss
+            (...0000000001000)*x^2*y^2
+            sage: tt = TT(t); tt
+            (...000000000100)*x*y^3
+            sage: ss.gcd(tt)
+            (...000000000100)*x*y^2
+
         """
-        
         return self._gcd_c(other)
 
     cdef TateAlgebraTerm _gcd_c(self, TateAlgebraTerm other):
         r"""
         Return the greatest common divisor of two Tate terms
 
-        The coefficient of the returned term is unspecified.
-
+        If the coefficient ring is a field, the coefficient of the returned term
+        is unspecified. If the coefficient ring is a discrete valuation ring,
+        the coefficient of the returned term is the greatest common divisor of the
+        coefficients of the terms.
+        
         INPUT:
 
         - ``other`` - the Tate term with which to compute the gcd
-        
+
+
         EXAMPLES::
 
+        In a Tate algebra over a field:
+        
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
@@ -438,11 +463,26 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...0000000001000)*x^2*y^2
             sage: t = T(4,(1,3)); t
             (...000000000100)*x*y^3
-            sage: s.gcd(t).monic() # indirect doctest
+            sage: s.gcd(t).monic()  # indirect doctest
             (...0000000001)*x*y^2
+
+        In a Tate algebra over a ring:
+        
+            sage: AA = A.integer_ring(); AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: AA.base_ring()
+            2-adic Ring with capped relative precision 10
+            sage: TT = AA.monoid_of_terms()
+            sage: TT = AA.monoid_of_terms(); TT
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: ss = TT(s); ss
+            (...0000000001000)*x^2*y^2
+            sage: tt = TT(t); tt
+            (...000000000100)*x*y^3
+            sage: ss.gcd(tt) # indirect doctest
+            (...000000000100)*x*y^2
         
         """
-        
         cdef TateAlgebraTerm ans = self._new_c()
         ans._exponent = self._exponent.emin(other._exponent)
         if self._coeff.valuation() < other._coeff.valuation():
@@ -456,13 +496,18 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the least common multiple of two Tate terms
 
-        The coefficient of the returned term is unspecified.
-
+        If the coefficient ring is a field, the coefficient of the returned term
+        is unspecified. If the coefficient ring is a discrete valuation ring,
+        the coefficient of the returned term is the least common multiple of the
+        coefficients of the terms.
+        
         INPUT:
 
         - ``other`` - the Tate term with which to compute the lcm
 
         EXAMPLES::
+
+        In a Tate algebra over a field:
 
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
@@ -476,6 +521,23 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...000000000100)*x*y^3
             sage: s.lcm(t).monic()
             (...0000000001)*x^2*y^3
+
+        In a Tate algebra over a ring:
+        
+            sage: AA = A.integer_ring(); AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: AA.base_ring()
+            2-adic Ring with capped relative precision 10
+            sage: TT = AA.monoid_of_terms()
+            sage: TT = AA.monoid_of_terms(); TT
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: ss = TT(s); ss
+            (...0000000001000)*x^2*y^2
+            sage: tt = TT(t); tt
+            (...000000000100)*x*y^3
+            sage: ss.lcm(tt)
+            (...0000000001000)*x^2*y^3
+        
         
         """
         
@@ -485,13 +547,18 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the least common multiple of two Tate terms
 
-        The coefficient of the returned term is unspecified.
-
+        If the coefficient ring is a field, the coefficient of the returned term
+        is unspecified. If the coefficient ring is a discrete valuation ring,
+        the coefficient of the returned term is the least common multiple of the
+        coefficients of the terms.
+        
         INPUT:
 
         - ``other`` - the Tate term with which to compute the lcm
 
         EXAMPLES::
+
+        In a Tate algebra over a field:
 
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
@@ -503,8 +570,25 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...0000000001000)*x^2*y^2
             sage: t = T(4,(1,3)); t
             (...000000000100)*x*y^3
-            sage: s.lcm(t).monic() # indirect doctest
+            sage: s.lcm(t).monic()  # indirect doctest
             (...0000000001)*x^2*y^3
+
+        In a Tate algebra over a ring:
+        
+            sage: AA = A.integer_ring(); AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: AA.base_ring()
+            2-adic Ring with capped relative precision 10
+            sage: TT = AA.monoid_of_terms()
+            sage: TT = AA.monoid_of_terms(); TT
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: ss = TT(s); ss
+            (...0000000001000)*x^2*y^2
+            sage: tt = TT(t); tt
+            (...000000000100)*x*y^3
+            sage: ss.lcm(tt)  # indirect doctest
+            (...0000000001000)*x^2*y^3
+        
         
         """
         cdef TateAlgebraTerm ans = self._new_c()
@@ -529,6 +613,8 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         EXAMPLES::
 
+        In a Tate algebra over a field:
+
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
@@ -547,10 +633,37 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
             sage: ttt = T(16,(0,0)); ttt
             (...00000000010000)
+            sage: s.is_divisible_by(ttt,integral=True)
+            False
+
+        In a Tate algebra over a ring:
+
+            sage: AA = A.integer_ring(); AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: AA.base_ring()
+            2-adic Ring with capped relative precision 10
+            sage: TT = AA.monoid_of_terms()
+            sage: TT = AA.monoid_of_terms(); TT
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: ss = TT(s); ss
+            (...0000000001000)*x^2*y^2
+            sage: ttt = TT(4,(1,2)); ttt
+            (...000000000100)*x*y^2
+            sage: sss = TT(6,(2,3)); sss
+            (...00000000110)*x^2*y^3
+            sage: tt.divides(s);
+            Traceback (most recent call last)
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10'
             sage: s.is_divisible_by(ttt)
             True
             sage: s.is_divisible_by(ttt,integral=True)
             False
+            sage: ss.is_divisible_by(ttt)
+            True
+            sage: sss.is_divisible_by(ttt)
+            False
+        
 
         """
         return (<TateAlgebraTerm?>other)._divides_c(self, integral)
@@ -566,10 +679,10 @@ cdef class TateAlgebraTerm(MonoidElement):
         - ``integral`` - (default: ``False``) if ``True``, test for divisibility
           of the coefficients in the ring of integers of the coefficient field
 
-        
-        
         EXAMPLES::
 
+        In a Tate algebra over a field:
+        
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
@@ -593,9 +706,34 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: ttt.divides(s,integral=True)
             False
 
+        In a Tate algebra over a ring:
+
+            sage: AA = A.integer_ring(); AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: AA.base_ring()
+            2-adic Ring with capped relative precision 10
+            sage: TT = AA.monoid_of_terms()
+            sage: TT = AA.monoid_of_terms(); TT
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: ss = TT(s); ss
+            (...0000000001000)*x^2*y^2
+            sage: ttt = TT(4,(1,2)); ttt
+            (...000000000100)*x*y^2
+            sage: sss = TT(6,(2,3)); sss
+            (...00000000110)*x^2*y^3
+            sage: tt.divides(s);
+            Traceback (most recent call last)
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10'
+            sage: tt.divides(ss)
+            False
+            sage: ttt.divides(ss)
+            True
+            sage: ttt.divides(sss)
+            False
+
 
         """
-        
         return self._divides_c(other, integral)
 
     cdef bint _divides_c(self, TateAlgebraTerm other, bint integral):
@@ -609,8 +747,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         - ``integral`` - (default: ``False``) if ``True``, test for divisibility
           of the coefficients in the ring of integers of the coefficient field
 
+        
+        
         EXAMPLES::
 
+        In a Tate algebra over a field:
+        
             sage: R = Zp(2, print_mode='digits',prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
@@ -628,11 +770,38 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: tt.divides(s) # indirect doctest
             True
             sage: ttt = T(16,(0,0)); ttt
-            (...00000000010000) # indirect doctest
-            sage: ttt.divides(s)
+            (...00000000010000)
+            sage: ttt.divides(s) # indirect doctest
             True
-            sage: ttt.divides(s,integral=True)
+            sage: ttt.divides(s,integral=True) # indirect doctest
             False
+
+        In a Tate algebra over a ring:
+
+            sage: AA = A.integer_ring(); AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: AA.base_ring()
+            2-adic Ring with capped relative precision 10
+            sage: TT = AA.monoid_of_terms()
+            sage: TT = AA.monoid_of_terms(); TT
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
+            sage: ss = TT(s); ss
+            (...0000000001000)*x^2*y^2
+            sage: ttt = TT(4,(1,2)); ttt
+            (...000000000100)*x*y^2
+            sage: sss = TT(6,(2,3)); sss
+            (...00000000110)*x^2*y^3
+            sage: tt.divides(s); # indirect doctest
+            Traceback (most recent call last)
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10'
+            sage: tt.divides(ss) # indirect doctest
+            False
+            sage: ttt.divides(ss) # indirect doctest
+            True
+            sage: ttt.divides(sss) # indirect doctest
+            False
+
 
         """
         parent = self._parent
@@ -676,12 +845,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...1010101011)*x*y
         
         """
-        parent = self.parent()
-        if not parent.base_ring().is_field() and self.valuation() < other.valuation():
-            raise ValueError("The division is not exact")
-        for i in range(parent._ngens):
-            if self.exponent()[i] < other.exponent()[i]:
-                raise ValueError("The division is not exact")
+        if not self.is_divisible_by(other):
+            raise(ValueError("The division is not exact"))
         return (<TateAlgebraTerm>self)._floordiv_c(<TateAlgebraTerm>other)
 
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other):
@@ -735,7 +900,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     INPUT:
 
-    - ???
+    - ``parent`` - a Tate algebra to create an element in
+
+    - 
 
 
     """

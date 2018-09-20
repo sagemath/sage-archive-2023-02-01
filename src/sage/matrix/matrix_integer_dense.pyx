@@ -552,7 +552,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             for j from 0 <= j < self._ncols:
                 s = data[k]
                 k += 1
-                if fmpz_set_str(fmpz_mat_entry(self._matrix,i,j), s, 32):
+                if fmpz_set_str(fmpz_mat_entry(self._matrix, i, j), s, 32):
                     raise RuntimeError("invalid pickle data")
 
     def _unpickle_matrix_2x2_version0(self, data):

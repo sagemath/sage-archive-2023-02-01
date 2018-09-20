@@ -484,7 +484,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         if self._expect is None:
             self._start()
         E = self._expect
-        E.sendline('%s%s%s'%(s,chr(63),chr(13)))
+        E.sendline('%s%s%s' % (s, chr(63), chr(13)))
         t = E.timeout
         E.timeout=0.3  # since some things have no completion
         try:

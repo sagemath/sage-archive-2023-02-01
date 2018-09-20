@@ -184,7 +184,7 @@ def sage_input(x, preparse=True, verify=False, allow_locals=False):
     INPUT:
 
     - ``x`` - the value we want to find an input form for
-    
+
     - ``preparse`` - (default ``True``) Whether to generate code that requires
       the preparser.  With ``True``, generated code requires the preparser.
       With ``False``, generated code requires that the preparser not be used.
@@ -589,7 +589,7 @@ class SageInputBuilder:
         INPUT:
 
         - ``n`` - a Sage Integer, a Python int or a Python long
-        
+
         EXAMPLES::
 
             sage: from sage.misc.sage_input import SageInputBuilder
@@ -752,7 +752,7 @@ class SageInputBuilder:
     def import_name(self, module, name, alt_name=None):
         r"""
         INPUT:
-        
+
         - ``module``, ``name``, ``alt_name`` -- strings
 
         Creates an expression that will import a name from a module and
@@ -3187,7 +3187,7 @@ class SIE_assign(SageInputExpression):
         INPUT:
 
         - ``sib`` - a :class:`SageInputBuilder`
-        
+
         - ``lhs`` - the left-hand side of the assignment
 
         - ``rhs`` - the right-hand side of the assignment
@@ -3299,7 +3299,7 @@ class SageInputFormatter:
         INPUT:
 
         - ``e`` - a :class:`SageInputExpression`
-        
+
         - ``prec`` - an integer representing a precedence level
 
         First, we check to see if ``e`` should be replaced by a variable.
@@ -3508,7 +3508,7 @@ def verify_si_answer(x, answer, preparse):
     - ``x`` - an arbitrary Sage value
 
     - ``answer`` - a string, or a :class:`SageInputAnswer`
-    
+
     - ``preparse`` -- ``True``, ``False``, or ``None``
 
 

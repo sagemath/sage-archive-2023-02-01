@@ -3676,7 +3676,7 @@ class FiniteWord_class(Word_class):
                             m += 1
                     else:
                         m = 0
-                    current_pos = k-j+l-1  
+                    current_pos = k-j+l-1
                     pft[current_pos] = m
                     current_exp = QQ((current_pos+1, current_pos+1-m))
                     if current_exp > best_exp:
@@ -3686,7 +3686,7 @@ class FiniteWord_class(Word_class):
                         j = self.length()
                     queue.append((u, i, j, l+j-i+1))
             return best_exp
-     
+
     def is_overlap(self):
         r"""
         Return ``True`` if ``self`` is an overlap, and ``False`` otherwise.

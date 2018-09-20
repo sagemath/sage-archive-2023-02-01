@@ -245,10 +245,10 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
         sage: canonical_2_adic_compartments(G2.symbol_tuple_list())   ## No compartments here!
         []
 
-    NOTES:
+    .. NOTE::
 
-    See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
-    and examples.
+        See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
+        and examples.
     """
     symbol = genus_symbol_quintuple_list
     compartments = []
@@ -506,7 +506,7 @@ def basis_complement(B):
 
 
 
-def signature_pair(A):
+def signature_pair_of_matrix(A):
     """
     Computes the signature pair `(p, n)` of a non-degenerate symmetric
     matrix, where
@@ -524,27 +524,27 @@ def signature_pair(A):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import signature_pair
+        sage: from sage.quadratic_forms.genera.genus import signature_pair_of_matrix
 
         sage: A = Matrix(ZZ, 2, 2, [-1,0,0,3])
-        sage: signature_pair(A)
+        sage: signature_pair_of_matrix(A)
         (1, 1)
 
         sage: A = Matrix(ZZ, 2, 2, [-1,1,1,7])
-        sage: signature_pair(A)
+        sage: signature_pair_of_matrix(A)
         (1, 1)
 
         sage: A = Matrix(ZZ, 2, 2, [3,1,1,7])
-        sage: signature_pair(A)
+        sage: signature_pair_of_matrix(A)
         (2, 0)
 
         sage: A = Matrix(ZZ, 2, 2, [-3,1,1,-11])
-        sage: signature_pair(A)
+        sage: signature_pair_of_matrix(A)
         (0, 2)
 
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,1])
-        sage: signature_pair(A)
+        sage: signature_pair_of_matrix(A)
         Traceback (most recent call last):
         ...
         ArithmeticError: given matrix is not invertible
@@ -1620,7 +1620,7 @@ class GenusSymbol_global_ring(object):
         D = 2*D
         prms = [ p[0] for p in D.factor() ]
         self._representative = A
-        self._signature = signature_pair(A)
+        self._signature = signature_pair_of_matrix(A)
         self._local_symbols = []
         for p in prms:
             if max_elem_divisors is None:

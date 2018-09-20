@@ -60,7 +60,7 @@ def Genus(A, factored_determinant=None):
         D = D.factor()
     else:
         D = factored_determinant * 2
-    signature_pair = signature_pair_of_matrix(A)
+    sig_pair = signature_pair(A)
     local_symbols = []
     for f in D:
         p = f[0]
@@ -68,7 +68,7 @@ def Genus(A, factored_determinant=None):
         symbol = p_adic_symbol(A, p, val = val)
         G = Genus_Symbol_p_adic_ring(p, symbol)
         local_symbols.append(G)
-    return GenusSymbol_global_ring(signature_pair, local_symbols, representative=A)
+    return GenusSymbol_global_ring(sig_pair, local_symbols, representative=A)
 
 def LocalGenusSymbol(A, p):
     """

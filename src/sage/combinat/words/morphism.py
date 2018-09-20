@@ -2026,9 +2026,11 @@ class WordMorphism(SageObject):
 
         INPUT:
 
-        - ``n`` - non-negative integer - length of the words in the language
+        - ``n`` -- non-negative integer - length of the words in the language
 
-        - ``u`` - a word used as a seed
+        - ``u`` -- a word used as a seed
+
+        OUTPUT: a Python set
 
         TESTS::
 
@@ -2066,10 +2068,12 @@ class WordMorphism(SageObject):
 
         INPUT:
 
-        - ``n`` - non-negative integer - length of the words in the language
+        - ``n`` -- non-negative integer - length of the words in the language
 
-        - ``u`` - a word or ``None`` (optional, default ``None``) - if set to
+        - ``u`` -- a word or ``None`` (optional, default ``None``) - if set to
           ``None`` some letter of the alphabet is used
+
+        OUTPUT: a Python set
 
         EXAMPLES:
 

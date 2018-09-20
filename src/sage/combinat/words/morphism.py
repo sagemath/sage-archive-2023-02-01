@@ -2093,15 +2093,15 @@ class WordMorphism(SageObject):
             sage: s = WordMorphism({0: [0,1], 1:[0], 2:[2,0,2]})
 
             sage: u = s.fixed_point(0)
-            sage: A0 = sorted(u[:200].factor_set(5))
-            sage: B0 = sorted(s.language(5, [0]))
-            sage: A0 == B0
+            sage: A0 = u[:200].factor_set(5)
+            sage: B0 = s.language(5, [0])
+            sage: set(A0) == B0
             True
 
             sage: v = s.fixed_point(2)
-            sage: A2 = sorted(v[:200].factor_set(5))
-            sage: B2 = sorted(s.language(5, [2]))
-            sage: A2 == B2
+            sage: A2 = v[:200].factor_set(5)
+            sage: B2 = s.language(5, [2])
+            sage: set(A2) == B2
             True
 
             sage: len(A0), len(A2)
@@ -2151,7 +2151,7 @@ class WordMorphism(SageObject):
             v = im[u[0]] + im[u[1]]
             for k in range(len(v)-n+1):
                 L.add(v[k:k+n])
-        return list(L)
+        return L
 
     def conjugate(self, pos):
         r"""

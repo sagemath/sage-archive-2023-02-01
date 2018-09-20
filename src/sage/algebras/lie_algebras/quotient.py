@@ -126,7 +126,7 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
     Quotients when the base ring is not a field are not implemented::
 
         sage: L = lie_algebras.Heisenberg(ZZ, 1)
-        sage: L.quotient(ZZ.an_element())
+        sage: L.quotient(L.an_element())
         Traceback (most recent call last):
         ...
         NotImplementedError: quotients over non-fields not implemented
@@ -177,13 +177,14 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
             sage: Q1 is Q3
             True
         """
-        from sage.algebras.lie_algebras.ideal import LieIdeal_finite_dimensional_with_basis
-        if not isinstance(I, LieIdeal_finite_dimensional_with_basis):
+        from sage.algebras.lie_algebras.subalgebra import LieSubalgebra_finite_dimensional_with_basis
+        if not isinstance(I, LieSubalgebra_finite_dimensional_with_basis):
             # assume I is an element or list of elements of some lie algebra
-            if not isinstance(I, (list, tuple)):
-                ambient = I.parent()
-            else:
-                ambient = I[0].parent()
+            if ambient is None:
+                if not isinstance(I, (list, tuple)):
+                    ambient = I.parent()
+                else:
+                    ambient = I[0].parent()
             I = ambient.ideal(I)
         if ambient is None:
             ambient = I.ambient()

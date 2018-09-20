@@ -718,7 +718,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Quotients when the base ring is not a field are not implemented::
 
                 sage: L = lie_algebras.Heisenberg(ZZ, 1)
-                sage: L.quotient(ZZ.an_element())
+                sage: L.quotient(L.an_element())
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: quotients over non-fields not implemented

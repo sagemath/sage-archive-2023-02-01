@@ -328,81 +328,6 @@ from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.rings.all import QQ, NN, ZZ, IntegerModRing
 
 
-# HELPERS
-def is_weakly_decreasing(li):
-    r"""
-    Return whether every term in the iterable ``li`` is greater than or equal to the following term.
-
-    Used internally to check when a :class:`Partition`, :class:`Composition`, or list is weakly decreasing.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.partition import is_weakly_decreasing
-        sage: is_weakly_decreasing([3, 2, 1])
-        True
-        sage: is_weakly_decreasing([3, 2, 2])
-        True
-        sage: is_weakly_decreasing([3, 2, 3])
-        False
-    """
-    return all(li[i] >= li[i+1] for i in range(len(li)-1))
-
-
-def is_strictly_decreasing(li):
-    r"""
-    Return whether every term in the iterable ``li`` is greater than the following term.
-
-    Used internally to check when a :class:`Partition`, :class:`Composition`, or list is strictly decreasing.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.partition import is_strictly_decreasing
-        sage: is_strictly_decreasing([3, 2, 1])
-        True
-        sage: is_strictly_decreasing([3, 2, 2])
-        False
-        sage: is_strictly_decreasing([3, 2, 3])
-        False
-    """
-    return all(li[i] > li[i+1] for i in range(len(li)-1))
-
-
-def _is_sequence(obj):
-    r"""
-    Helper function for internal use.
-
-    Return whether ``obj`` is one of our allowed 'compositions'.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.partition import _is_sequence
-        sage: _is_sequence([3, 2, 2])
-        True
-        sage: _is_sequence(Composition([3, 2, 2]))
-        True
-        sage: _is_sequence(Partition([3, 2, 2]))
-        True
-        sage: _is_sequence(vector([3, 2, 2]))
-        False
-    """
-    return isinstance(obj, (list, Composition, Partition))
-
-
-def k_rectangle_dimension_list(k):
-    r"""
-    Return the list of dimension pairs `(h, w)` such that `h + w = k + 1`.
-
-    This exists mainly as a helper function for :meth:`partition.has_rectangle` and :meth:`k_shape.is_reducible`.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.partition import k_rectangle_dimension_list
-        sage: k_rectangle_dimension_list(3)
-        [(3, 1), (2, 2), (1, 3)]
-    """
-    return [(k-i+1, i) for i in range(1, k+1)]
-
-
 class Partition(CombinatorialElement):
     r"""
     A partition `p` of a nonnegative integer `n` is a
@@ -1613,6 +1538,8 @@ class Partition(CombinatorialElement):
 
             :meth:`is_k_irreducible`, :meth:`is_k_reducible`, :meth:`has_rectangle`
         """
+        def k_rectangle_dimension_list(k):
+            return [(k-i+1, i) for i in range(1, k+1)]
         return any(self.has_rectangle(a, b) for (a, b) in k_rectangle_dimension_list(k))
 
 

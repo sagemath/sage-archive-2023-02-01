@@ -1055,8 +1055,8 @@ class GenericCellComplex(SageObject):
 
             sage: P = SimplicialComplex([[0, 1], [1,2], [2,3]]).face_poset(); P
             Finite poset containing 7 elements
-            sage: P.list()
-            [(3,), (2,), (2, 3), (1,), (1, 2), (0,), (0, 1)]
+            sage: sorted(P.list())
+            [(0,), (0, 1), (1,), (1, 2), (2,), (2, 3), (3,)]
 
             sage: S2 = cubical_complexes.Sphere(2)
             sage: S2.face_poset()

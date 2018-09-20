@@ -389,7 +389,7 @@ class MPolynomialIdeal_magma_repr:
             sage: I = sage.rings.ideal.Cyclic(R,6)
             sage: gb = I.groebner_basis('magma:GroebnerBasis', deg_bound=4) # indirect doctest; optional - magma
             sage: len(gb)                                      # optional - magma
-            7
+            5
         """
         R   = self.ring()
         if not deg_bound:

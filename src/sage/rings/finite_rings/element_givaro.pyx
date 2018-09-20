@@ -71,6 +71,7 @@ import sage.rings.finite_rings.finite_field_constructor as finite_field
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
 from cypari2.gen cimport Gen
+from cypari2.stack cimport clear_stack
 
 from sage.structure.parent cimport Parent
 
@@ -467,7 +468,7 @@ cdef class Cache_givaro(SageObject):
 
             if typ(t) == t_INT:
                 res = self.int_to_log(itos(t))
-                sig_off()
+                clear_stack()
             elif typ(t) == t_POL:
                 res = self._zero_element
 
@@ -478,9 +479,10 @@ cdef class Cache_givaro(SageObject):
                     c = gtolong(gel(t, i+2))
                     res = self.objectptr.axpyin(res, self.int_to_log(c), x)
                     x = self.objectptr.mul(x,x,g)
-                sig_off()
+                clear_stack()
             else:
-                raise TypeError("bad PARI type %r" % e.type())
+                clear_stack()
+                raise TypeError(f"unable to convert PARI {e.type()} to {self.parent}")
 
         return make_FiniteField_givaroElement(self,res)
 

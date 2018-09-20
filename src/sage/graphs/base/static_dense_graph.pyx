@@ -111,7 +111,7 @@ def is_strongly_regular(g, parameters = False):
     By convention, the complete graphs, the graphs with no edges
     and the empty graph are not strongly regular.
 
-    See :wikipedia:`Strongly regular graph`
+    See the :wikipedia:`Strongly regular graph`.
 
     INPUT:
 

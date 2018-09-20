@@ -424,11 +424,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``right`` - a map on projective space.
+        - ``right`` -- a map on projective space
 
         OUTPUT:
 
-        - Boolean - True if ``self`` and ``right`` define the same projective map. False otherwise.
+        ``True`` if ``self`` and ``right`` define the same projective map.
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -439,7 +440,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f == g
             False
 
-            ::
+        ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: P2.<u,v> = ProjectiveSpace(CC, 1)
@@ -450,7 +451,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f == g
             False
 
-            ::
+        ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
@@ -464,8 +465,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.parent() != right.parent():
             return False
         n = len(self._polys)
-        return all(self[i] * right[j] == self[j] * right[i]
-                   for i in range(n) for j in range(i + 1, n))
+        return all(self._polys[i] * right._polys[j] == self._polys[j] * right._polys[i]
+                   for i in range(n) for j in range(i+1, n))
 
     def __ne__(self, right):
         """
@@ -473,11 +474,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``right`` -- a map on projective space.
+        - ``right`` -- a map on projective space
 
         OUTPUT:
 
-        - Boolean -- True if ``self`` and ``right`` define different projective maps. False otherwise.
+        ``True`` if ``self`` and ``right`` define different projective maps.
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -488,7 +490,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f != g
             True
 
-            ::
+        ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: H = Hom(P, P)
@@ -501,11 +503,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.parent() != right.parent():
             return True
         n = len(self._polys)
-        for i in range(0, n):
-            for j in range(i + 1, n):
-                if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                    return True
-        return False
+        return any(self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]
+                   for i in range(n) for j in range(i + 1, n))
 
     def as_dynamical_system(self):
         """
@@ -1731,16 +1730,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^3 : 3*x^2*y + y^3)
-            ,
+                    (x^3 + 3*x*y^2 : y^3) ,
             <BLANKLINE>
-            [ -1   0]
-            [221  -1]
+            [  0  -1]
+            [  1 221]
             )
         """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.reduced_form instead")
-        return self.as_dynamical_system().reduced_form(prec, return_conjugation, error_limit)
+        return self.as_dynamical_system().reduced_form(prec=prec,\
+            return_conjugation=return_conjugation, error_limit=error_limit)
 
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):

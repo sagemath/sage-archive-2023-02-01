@@ -182,7 +182,7 @@ class Converter(object):
             Traceback (most recent call last):
             ...
             NotImplementedError: composition
-            sage: c(function('f', x).diff(x))
+            sage: c(function('f')(x).diff(x))
             Traceback (most recent call last):
             ...
             NotImplementedError: derivative
@@ -346,7 +346,7 @@ class Converter(object):
         TESTS::
 
             sage: from sage.symbolic.expression_conversions import Converter
-            sage: a = function('f', x).diff(x); a
+            sage: a = function('f')(x).diff(x); a
             diff(f(x), x)
             sage: Converter().derivative(a, a.operator())
             Traceback (most recent call last):
@@ -521,7 +521,7 @@ class InterfaceInit(Converter):
 
         ::
 
-            sage: f = function('f', x)
+            sage: f = function('f')(x)
             sage: df = f.diff(x); df
             diff(f(x), x)
             sage: maxima(df)

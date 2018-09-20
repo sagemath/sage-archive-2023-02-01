@@ -15,7 +15,7 @@ Kirillov-Reshetikhin Crystals
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #****************************************************************************
 # Acknowledgment: most of the design and implementation of this
 # library is heavily inspired from MuPAD-Combinat.
@@ -951,25 +951,6 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
              [[2], [3]], [[1, 2], [2, 3]]]
         """
         return self.from_pm_diagram_to_highest_weight_vector(self.from_highest_weight_vector_to_pm_diagram(b).sigma())
-
-    def promotion_on_highest_weight_vectors(self):
-        """
-        Calculates promotion on `{2,3,...,n}` highest weight vectors.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,2)
-            sage: T = K.classical_decomposition()
-            sage: hw = [ b for b in T if all(b.epsilon(i)==0 for i in [2,3,4]) ]
-            sage: f = K.promotion_on_highest_weight_vectors()
-            doctest:...: DeprecationWarning: Call self.promotion_on_highest_weight_vector directly
-            See http://trac.sagemath.org/22429 for details.
-            sage: f(hw[0])
-            [[1, 2], [-2, -1]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(22429, "Call self.promotion_on_highest_weight_vector directly")
-        return self.promotion_on_highest_weight_vector
 
     def from_highest_weight_vector_to_pm_diagram(self, b):
         r"""

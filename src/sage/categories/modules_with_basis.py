@@ -215,7 +215,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
                 sage: F.basis()
-                Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
+                Finite family {'a': B['a'], 'b': B['b'], 'c': B['c']}
 
             ::
 

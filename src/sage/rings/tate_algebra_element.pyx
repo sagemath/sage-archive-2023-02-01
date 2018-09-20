@@ -41,7 +41,9 @@ cdef class TateAlgebraTerm(MonoidElement):
         sage: T(2,(1,1))
         (...00000000010)*x*y
         sage: T(0,(1,1))
-        (0)*x*y
+        Traceback (most recent call last):
+        ...
+        ValueError: A term cannot be zero
 
     """
     def __init__(self, parent, coeff, exponent=None):
@@ -65,7 +67,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: T(2,(1,1))
             (...00000000010)*x*y
             sage: T(0,(1,1))
-            (0)*x*y
+            Traceback (most recent call last):
+            ...
+            ValueError: A term cannot be zero
 
         """
         MonoidElement.__init__(self, parent)
@@ -114,8 +118,6 @@ cdef class TateAlgebraTerm(MonoidElement):
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T(2,(1,1)) # indirect doctest
             (...00000000010)*x*y
-            sage: print(T(0,(1,1))) # indirect doctest
-            (0)*x*y
             sage: T(2,(1,0)) # indirect doctest
             (...00000000010)*x
 
@@ -136,16 +138,16 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = Zp(2, print_mode='digits',prec=10); R
+            sage: R = Zp(2,prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
             Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T = A.monoid_of_terms(); T
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: t = T(2,(1,1)); t
-            (...00000000010)*x*y
+            (2 + O(2^11))*x*y
             sage: t.coefficient() 
-            ...00000000010 
+            2 + O(2^11)
                 
         """
         return self._coeff
@@ -441,7 +443,6 @@ cdef class TateAlgebraTerm(MonoidElement):
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: AA.base_ring()
             2-adic Ring with capped relative precision 10
-            sage: TT = AA.monoid_of_terms()
             sage: TT = AA.monoid_of_terms(); TT
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
             sage: ss = TT(s); ss
@@ -491,7 +492,6 @@ cdef class TateAlgebraTerm(MonoidElement):
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: AA.base_ring()
             2-adic Ring with capped relative precision 10
-            sage: TT = AA.monoid_of_terms()
             sage: TT = AA.monoid_of_terms(); TT
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
             sage: ss = TT(s); ss
@@ -547,7 +547,6 @@ cdef class TateAlgebraTerm(MonoidElement):
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: AA.base_ring()
             2-adic Ring with capped relative precision 10
-            sage: TT = AA.monoid_of_terms()
             sage: TT = AA.monoid_of_terms(); TT
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
             sage: ss = TT(s); ss
@@ -598,7 +597,6 @@ cdef class TateAlgebraTerm(MonoidElement):
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: AA.base_ring()
             2-adic Ring with capped relative precision 10
-            sage: TT = AA.monoid_of_terms()
             sage: TT = AA.monoid_of_terms(); TT
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
             sage: ss = TT(s); ss
@@ -640,8 +638,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T = A.monoid_of_terms(); T
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-            sage: s = T(8,(2,2)); s
-            (...0000000001000)*x^2*y^2
+            sage: s = T(4,(2,2)); s
+            (...000000000100)*x^2*y^2
             sage: t = T(4,(1,3)); t
             (...000000000100)*x*y^3
             sage: s.is_divisible_by(t)
@@ -661,31 +659,28 @@ cdef class TateAlgebraTerm(MonoidElement):
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: AA.base_ring()
             2-adic Ring with capped relative precision 10
-            sage: TT = AA.monoid_of_terms()
             sage: TT = AA.monoid_of_terms(); TT
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
             sage: ss = TT(s); ss
-            (...0000000001000)*x^2*y^2
-            sage: ttt = TT(4,(1,2)); ttt
-            (...000000000100)*x*y^2
-            sage: sss = TT(6,(2,3)); sss
-            (...00000000110)*x^2*y^3
-            sage: tt.divides(s);
-            Traceback (most recent call last)
+            (...000000000100)*x^2*y^2
+            sage: ttt = TT(8,(1,2)); ttt
+            (...0000000001000)*x*y^2
+            sage: ss.is_divisible_by(ttt)
+            False
+            
+        Conversion between ring and field can happen (TODO: under what conditions?)
+
+            sage: s.is_divisible_by(tt)
+            True
+            sage: s.is_divisible_by(ttt) # TODO: test fails, I don't know why
+            Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10'
-            sage: s.is_divisible_by(ttt)
-            True
-            sage: s.is_divisible_by(ttt,integral=True)
-            False
-            sage: ss.is_divisible_by(ttt)
-            True
-            sage: sss.is_divisible_by(ttt)
-            False
-        
+
 
         """
         return (<TateAlgebraTerm?>other)._divides_c(self, integral)
+    
     @coerce_binop
     def divides(self, other, integral=False):
         r"""
@@ -731,7 +726,6 @@ cdef class TateAlgebraTerm(MonoidElement):
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: AA.base_ring()
             2-adic Ring with capped relative precision 10
-            sage: TT = AA.monoid_of_terms()
             sage: TT = AA.monoid_of_terms(); TT
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
             sage: ss = TT(s); ss
@@ -740,18 +734,16 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...000000000100)*x*y^2
             sage: sss = TT(6,(2,3)); sss
             (...00000000110)*x^2*y^3
-            sage: tt.divides(s);
-            Traceback (most recent call last)
-            ...
-            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10'
+            sage: tt.divides(s)
+            True
             sage: tt.divides(ss)
-            False
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10'
             sage: ttt.divides(ss)
             True
             sage: ttt.divides(sss)
             False
-
-
         """
         return self._divides_c(other, integral)
 
@@ -801,7 +793,6 @@ cdef class TateAlgebraTerm(MonoidElement):
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: AA.base_ring()
             2-adic Ring with capped relative precision 10
-            sage: TT = AA.monoid_of_terms()
             sage: TT = AA.monoid_of_terms(); TT
             Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10
             sage: ss = TT(s); ss
@@ -810,17 +801,16 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...000000000100)*x*y^2
             sage: sss = TT(6,(2,3)); sss
             (...00000000110)*x^2*y^3
-            sage: tt.divides(s); # indirect doctest
-            Traceback (most recent call last)
-            ...
-            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10'
+            sage: tt.divides(s) # indirect doctest
+            True
             sage: tt.divides(ss) # indirect doctest
-            False
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10' and 'Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Ring with capped relative precision 10'
             sage: ttt.divides(ss) # indirect doctest
             True
             sage: ttt.divides(sss) # indirect doctest
             False
-
 
         """
         parent = self._parent
@@ -857,7 +847,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s = T(6,(1,2)); s
             (...00000000110)*x*y^2
             sage: s // t # indirect doctest
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: The division is not exact
             sage: t // s # indirect doctest
@@ -893,7 +883,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s = T(6,(1,2)); s
             (...00000000110)*x*y^2
             sage: s // t # indirect doctest
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: The division is not exact
             sage: t // s # indirect doctest
@@ -990,10 +980,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
         
+
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: x + 2*x^2 + x^3
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: A(x+2*x^2+x^3,prec=5)
@@ -1030,12 +1021,16 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         The precision of the output is adjusted to the minimum of both precisions.
 
+        INPUT:
+
+        - ``other`` - the Tate series to add
+
         EXAMPLES::
 
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: g = A(x + 2*y^2,prec=5); g
@@ -1044,7 +1039,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...00001)*x^3 + (...00010)*x^2 + (...00010)*y^2 + (...00010)*x + O(2^5)
 
         ::
-
+        
             sage: f.precision_absolute()
             +Infinity
             sage: g.precision_absolute()
@@ -1069,7 +1064,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: -f # indirect doctest
@@ -1091,13 +1086,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: g = A(x + 2*y^2,prec=5); g
             (...00001)*x + (...00010)*y^2 + O(2^5)
             sage: h=f-g; h # indirect doctest
-            (...00001)*x^3 + (...00010)*x^2 + (...00010)*y^2 + (...00010)*x + O(2^5)
+            (...00001)*x^3 + (...00010)*x^2 + (...11110)*y^2 + O(2^5)
 
         ::
 
@@ -1126,10 +1121,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: R = Zp(2, 10, print_mode='digits'); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x, y over 2-adic Field with capped relative precision 10
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = 2*x + 4*x^2 + 2*x^3; f
             (...00000000010)*x^3 + (...00000000010)*x + (...000000000100)*x^2
-            g = A(x + 2*x^2, prec=5); g
+            sage: g = A(x + 2*x^2, prec=5); g
             (...00001)*x + (...00010)*x^2 + O(2^5)
             sage: h = f*g; h # indirect doctest
             (...001010)*x^4 + (...000010)*x^2 + (...000100)*x^5 + (...001000)*x^3 + O(2^6)
@@ -1207,7 +1202,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<x,y> = TateAlgebra(R)
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: f << 2 # indirect doctest
@@ -1236,7 +1234,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<x,y> = TateAlgebra(R)
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: f << 2 # indirect doctest
@@ -1281,7 +1282,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<x,y> = TateAlgebra(R)
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: f << 2 # indirect doctest
@@ -1312,13 +1316,17 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<x,y> = TateAlgebra(R)
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
-            sage: f >> -2 # indirect doctest
+            sage: f << 2 # indirect doctest
             (...000000000100)*x^3 + (...000000000100)*x + (...0000000001000)*x^2
             sage: f >> 1 # indirect doctest
             (...0000000001)*x^2
+
         """
         return (<TateAlgebraElement>self)._lshift_c(-n)
 
@@ -1332,6 +1340,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x + 2*x^2 + x^3; f
             (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
             sage: f.is_zero()
@@ -1396,7 +1408,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f = 1+x; f
             (...0000000001)*x + (...0000000001)
             sage: f.inverse_of_unit()
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...        
             ValueError: This series in not invertible
         
@@ -1433,11 +1445,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f.is_unit()
             True
             sage: f = 2*x +1; f
-            (...0000000001) + (...000000000100)*x
+            (...0000000001) + (...00000000010)*x
             sage: f.is_unit()
             True
             sage: f = 1+x; f
-            (...00000000010)*x + (...0000000001)
+            (...0000000001)*x + (...0000000001)
             sage: f.is_unit()
             False
 
@@ -1477,7 +1489,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         parent = self._parent
         from sage.rings.tate_algebra import TateAlgebra
-        ring = TateAlgebra(self.base_ring(), parent.variable_names(), log_radii, parent.precision_cap(), parent.term_order())
+        ring = TateAlgebra(self.base_ring(), names=parent.variable_names(), log_radii=log_radii, prec=parent.precision_cap(), order=parent.term_order())
         return ring(self)
 
     def terms(self):
@@ -1558,7 +1570,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...000000000100000)*x + (...0000000001000000)*x^2
             sage: g = f.add_bigoh(5); g
             O(2^5)
-            sage: g = f.add_bigoh(6); g
+            sage: g = f.add_bigoh(6); g 
             (...100000)*x + O(2^6)
             sage: g.precision_absolute()
             6
@@ -1596,7 +1608,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         The absolute precision may be higher than the precision of the known
         coefficients.
 
-            sage: g = f.add_bigoh(20); g
+            sage: g = f.add_bigoh(20); g # test fails
             (...0000000001)*x + (...00000000010)*x^2 + O(2^20)
             sage: g.precision_absolute()
             20
@@ -1709,8 +1721,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000001)*x^4
             sage: g = f + x^4; g
             (...0000000001)*x*y + (...0000000001) + (...0000000010)*x^4
-            sage: g.leading_coefficient()
-            ...0000000001
+            sage: g.leading_monomial()
+            (...0000000001)*x*y
+
+        
         """
         # TODO: Examples showing that the order may change when restricting
         terms = self.terms()
@@ -1727,18 +1741,18 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: R = Zp(2, print_mode='digits',prec=10); R
+            sage: R = Zp(2,prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
             Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = x^4 + x*y + 1; f
-            (...0000000001)*x^4 + (...0000000001)*x*y + (...0000000001)
+            (1 + O(2^10))*x^4 + (1 + O(2^10))*x*y + (1 + O(2^10))
             sage: f.leading_coefficient()
-            ...0000000001
+            1 + O(2^10)
             sage: g = f + x^4; g
-            (...0000000001)*x*y + (...0000000001) + (...0000000010)*x^4
+            (1 + O(2^10))*x*y + (1 + O(2^10)) + (2 + O(2^10))*x^4
             sage: g.leading_coefficient()
-            ...0000000001
+            1 + O(2^10)
         
         """
         terms = self.terms()
@@ -1748,6 +1762,27 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             return self.base_ring()(0)
 
     def leading_monomial(self):
+        """
+        Return the leading coefficient of the Tate series
+
+        The leading monomial of a series is the monomial of its leading term.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: f = x^4 + x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001)*x*y + (...0000000001)
+            sage: f.leading_monomial()
+            (...0000000001)*x^4
+            sage: g = f + x^4; g
+            (...0000000001)*x*y + (...0000000001) + (...0000000010)*x^4
+            sage: g.leading_monomial() # TODO: should it be just x*y?
+            (...0000000001)*x*y
+
+        """
         terms = self.terms()
         if terms:
             return terms[0].monic()
@@ -1770,23 +1805,22 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: R = Zp(2, print_mode='digits',prec=10); R
+            sage: R = Zp(2,prec=10); R
             2-adic Ring with capped relative precision 10
             sage: A.<x,y> = TateAlgebra(R); A
             Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: f = 2*x*y + 4*x^4 + 6; f
-            (...00000000010)*x*y + (...00000000110) + (...000000000100)*x^4
+            (2 + O(2^11))*x*y + (2 + 2^2 + O(2^11)) + (2^2 + O(2^12))*x^4
             sage: f.valuation()
             1
             sage: f.leading_coefficient()
-            ...00000000010
+            2 + O(2^11)
             sage: g = f.monic(); g
-            (...0000000001)*x*y + (...0000000011) + (...00000000010)*x^4
+            (1 + O(2^10))*x*y + (1 + 2 + O(2^10)) + (2 + O(2^11))*x^4
             sage: g.leading_coefficient()
-            ...0000000001
+            1 + O(2^10)
             sage: g.valuation()
             0
-        
         """
         cdef TateAlgebraElement ans = self._new_c()
         c = self.leading_coefficient()
@@ -1930,7 +1964,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f.residue()
             x^2 + y^2 + y
             sage: f.residue().parent()
-            Multivariate Polynomial Ring in x, y over Ring of integers modulo 2
+            Multivariate Polynomial Ring in x, y over Finite Field of size 2
             sage: f.residue(2)
             2*x^3 + x^2 + y^2 + y
             sage: f.residue(2).parent()
@@ -1948,7 +1982,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: g = f >> 2; g
             (...00000000.01)*x^2 + (...00000000.01)*y^2 + (...00000000.01)*y + (...000000000.1)*x^3
             sage: g.residue()
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: element must have non-negative valuation in order to compute residue.
 
@@ -1956,10 +1990,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
             sage: A.<x,y> = TateAlgebra(R, log_radii=(2,-1)); A
             Tate Algebra in x (val >= -2), y (val >= 1) over 2-adic Field with capped relative precision 10
-            sage: f = x^2 + y^2 + 2*x^3 + y; f
+            sage: f = x^2 + y^2 + 2*x^3 + y; f # test fails, maybe because of the printing with the log_radii
             (...00000000010000)*x^2 + (...00000000.01)*y^2 + (...000000000.1)*y + (...00000000010000000)*x^3
             sage: f.residue()
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             NotImplementedError: Residues are only implemented for radius 1
 

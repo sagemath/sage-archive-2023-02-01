@@ -91,21 +91,24 @@ cdef class SatSolver:
         r"""
         Reads DIMAC files.
 
-        Reads in DIMAC formatted lines (lazily) from a
-        file or file object and adds the corresponding
-        clauses into this solver instance. Note that the
+        Reads in DIMAC formatted lines (lazily) from a file or file object and
+        adds the corresponding clauses into this solver instance. Note that the
         DIMACS format is not well specified, see
         http://people.sc.fsu.edu/~jburkardt/data/cnf/cnf.html,
-        http://www.satcompetition.org/2009/format-benchmarks2009.html,
-        and http://elis.dvo.ru/~lab_11/glpk-doc/cnfsat.pdf.
-        The differences were summarized in the discussion on
-        the ticket :trac:`16924`. This method assumes the following
-        DIMACS format
+        http://www.satcompetition.org/2009/format-benchmarks2009.html, and
+        http://elis.dvo.ru/~lab_11/glpk-doc/cnfsat.pdf.
+
+        The differences were summarized in the discussion on the ticket
+        :trac:`16924`. This method assumes the following DIMACS format:
 
         - Any line starting with "c" is a comment
         - Any line starting with "p" is a header
         - Any variable 1-n can be used
         - Every line containing a clause must end with a "0"
+
+        The format is extended to allow lines starting with "x" defining ``xor``
+        clauses, with the notation introduced in cryptominisat, see
+        https://www.msoos.org/xor-clauses/
 
         INPUT:
 
@@ -120,6 +123,18 @@ cdef class SatSolver:
             sage: solver.read(file_object)
             sage: solver.clauses()
             [((1, -3), False, None), ((2, 3, -1), False, None)]
+
+        With xor clauses:
+
+            sage: from six import StringIO # for python 2/3 support
+            sage: file_object = StringIO("c A sample .cnf file with xor clauses.\np cnf 3 3\n1 2 0\n3 0\nx 1 2 3 0")
+            sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat          # optional - cryptominisat
+            sage: solver = CryptoMiniSat()                                          # optional - cryptominisat
+            sage: solver.read(file_object)                                          # optional - cryptominisat
+            sage: solver.clauses()                                                  # optional - cryptominisat
+            [((1, 2), False, None), ((3,), False, None), ((1, 2, 3), True, True)]
+            sage: solver()                                                          # optional - cryptominisat
+            (None, True, True, True)
         """
         if isinstance(filename,str):
             file_object = open(filename, "r")
@@ -130,10 +145,19 @@ cdef class SatSolver:
                 continue  # comment
             if line.startswith("p"):
                 continue  # header
-            line = line.split(" ")
-            clause = [int(e) for e in line if e]
-            clause = clause[:-1] # strip trailing zero
-            self.add_clause(clause)
+            if line.startswith("x"):
+                line = line[1:].split(" ")
+                clause = [int(e) for e in line if e]
+                clause = clause[:-1] # strip trailing zero
+                try:
+                    self.add_xor_clause(clause)
+                except AttributeError:
+                    raise NotImplementedError('The solver "{}" does not support xor clauses'.format(self))
+            else:
+                line = line.split(" ")
+                clause = [int(e) for e in line if e]
+                clause = clause[:-1] # strip trailing zero
+                self.add_clause(clause)
 
     def __call__(self, assumptions=None):
         """

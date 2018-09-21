@@ -1115,7 +1115,7 @@ class DiGraphGenerators():
 
         -  ``kernel`` - the attachment kernel
 
-        -  ``seed`` - for the random number generator
+        -  ``seed`` - a ``random.Random`` seed for the random number generator
 
 
         EXAMPLES::
@@ -1131,7 +1131,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = current_randstate().python_random()
         import networkx
         return DiGraph(networkx.gn_graph(n, kernel, seed=seed))
 
@@ -1151,7 +1151,7 @@ class DiGraphGenerators():
 
         -  ``n`` - number of vertices.
 
-        -  ``seed`` - for the random number generator
+        -  ``seed`` - a ``random.Random`` seed for the random number generator
 
 
         EXAMPLES::
@@ -1167,7 +1167,7 @@ class DiGraphGenerators():
           Copying, Phys. Rev. E vol. 71 (2005), p. 036118.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = current_randstate().python_random()
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
@@ -1362,7 +1362,7 @@ class DiGraphGenerators():
 
         -  ``p`` - redirection probability
 
-        -  ``seed`` - for the random number generator.
+        -  ``seed`` - a ``random.Random`` seed for the random number generator.
 
 
         EXAMPLES::
@@ -1378,7 +1378,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = current_randstate().python_random()
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 

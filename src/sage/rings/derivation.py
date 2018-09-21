@@ -597,6 +597,20 @@ class RingDerivationWithoutTwist_im_gens(RingDerivation):
         return res
 
     def is_zero(self):
+        """
+        Return ``True`` if this derivation is zero.
+
+        EXEMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: f = R.derivation(); f
+            d/dx
+            sage: f.is_zero()
+            False
+
+            sage: (f-f).is_zero()
+            True
+        """
         for im in self._images:
             if im != 0: return False
         return True

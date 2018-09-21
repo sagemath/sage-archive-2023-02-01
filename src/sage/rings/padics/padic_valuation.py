@@ -972,7 +972,7 @@ class pAdicValuation_padic(pAdicValuation_base):
         power of the uniformizer `\pi`.
 
         For negative ``s``, it does the same but when not over a field, it
-        drops coefficients in the `\pi`-adic expension which have negative
+        drops coefficients in the `\pi`-adic expansion which have negative
         valuation.
 
         EXAMPLES::

@@ -2824,7 +2824,7 @@ class TriconnectivitySPQR:
 
         - Remove recursion in methods ``__dfs1``, ``__dfs2``, ``__path_finder``
           and ``__path_search``. This currently restricts the size of graphs as
-          maximum recusion depth might be exceeded.
+          maximum recursion depth might be exceeded.
 
         - Cythonize the code for more efficiency. Many data structures can be
           turned into integer arrays. More care is needed for the doubly linked

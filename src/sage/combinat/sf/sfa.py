@@ -3656,8 +3656,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s[2].reduced_kronecker_product(s[2])
             s[] + s[1] + s[1, 1] + s[1, 1, 1] + 2*s[2] + 2*s[2, 1] + s[2, 2] + s[3] + s[3, 1] + s[4]
 
-        Taking the reduced Kronecker product with `1 = s_{\empty}` is the
-        identity map on the ring of symmetric functions::
+        Taking the reduced Kronecker product with `1 = s_{\emptyset}`
+        is the identity map on the ring of symmetric functions::
 
             sage: all( s[Partition([])].reduced_kronecker_product(s[lam])
             ....:      == s[lam] for i in range(4)
@@ -3870,8 +3870,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: h[2].left_padded_kronecker_product(h[3])
             h[2, 1] + h[2, 1, 1] + h[3, 2]
 
-        Taking the left-padded Kronecker product with `1 = h_{\empty}` is
-        the identity map on the ring of symmetric functions::
+        Taking the left-padded Kronecker product with `1 = h_{\emptyset}`
+        is the identity map on the ring of symmetric functions::
 
             sage: all( h[Partition([])].left_padded_kronecker_product(h[lam])
             ....:      == h[lam] for i in range(4)

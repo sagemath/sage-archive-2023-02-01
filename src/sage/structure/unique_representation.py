@@ -1237,10 +1237,15 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
 
     This nice behaviour is not available when one just uses a factory::
 
-        sage: isinstance(GF(7), GF)
+        sage: isinstance(GF(7), GF)  # py2
         Traceback (most recent call last):
         ...
         TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
+        sage: isinstance(GF(7), GF)  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: isinstance() arg 2 must be a class, type, or tuple of
+        classes and types
         sage: isinstance(GF, sage.structure.factory.UniqueFactory)
         True
 

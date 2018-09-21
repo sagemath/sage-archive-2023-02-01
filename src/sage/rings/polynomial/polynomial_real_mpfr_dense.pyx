@@ -513,7 +513,7 @@ cdef class PolynomialRealDense(Polynomial):
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
-            sage: f = PolynomialRealDense(RR['x'], [pi, 0, 2, 1]);
+            sage: f = PolynomialRealDense(RR['x'], [pi, 0, 2, 1])
             sage: f.derivative()
             3.00000000000000*x^2 + 4.00000000000000*x
         """

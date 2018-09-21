@@ -805,7 +805,7 @@ def one_radical_difference_family(K, k):
     from sage.groups.generic import discrete_log
     logA = [discrete_log(a,x)%c for a in A]
 
-    # if two elments of A are equal modulo c then no tiling is possible
+    # if two elements of A are equal modulo c then no tiling is possible
     if len(set(logA)) != m:
         return None
 

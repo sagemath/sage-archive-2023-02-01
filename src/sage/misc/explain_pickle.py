@@ -76,7 +76,7 @@ produces the corresponding class.  So GLOBAL of ``sage.rings.integer``,
 ``Integer`` is approximately equivalent to ``sage.rings.integer.Integer``.
 
 However, this class lookup process can be customized (using
-sage.structure.sage_object.register_unpickle_override).  For instance,
+sage.misc.persist.register_unpickle_override).  For instance,
 if some future version of Sage renamed ``sage/rings/integer.pyx`` to
 ``sage/rings/knuth_was_here.pyx``, old pickles would no longer work unless
 register_unpickle_override was used; in that case, GLOBAL of
@@ -156,21 +156,23 @@ old pickles to work).
 
 from __future__ import absolute_import, print_function
 
-import sys
-import re
-import types
-from six import iteritems
-from six.moves import cStringIO as StringIO
-from six.moves import cPickle
 import pickletools
-from pickletools import genops
+import re
+import sys
+import types
+
 import zlib as comp
 import bz2 as comp_other
+
+from pickletools import genops
+
+from six import iteritems
 
 import sage.all
 from sage.misc.sage_input import SageInputBuilder, SageInputExpression
 from sage.misc.sage_eval import sage_eval
-from sage.structure.sage_object import unpickle_override, unpickle_global, dumps, register_unpickle_override
+from sage.misc.persist import (unpickle_override, unpickle_global, dumps,
+                               register_unpickle_override, SageUnpickler)
 
 
 try:
@@ -2435,9 +2437,7 @@ def unpickle_newobj(klass, args):
     def pers_load(id):
         return pers[int(id)]
 
-    unp = cPickle.Unpickler(StringIO(pickle))
-    unp.persistent_load = pers_load
-    return unp.load()
+    return SageUnpickler.loads(pickle, persistent_load=pers_load)
 
 
 def unpickle_build(obj, state):
@@ -2640,11 +2640,9 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     generic_res = sage_eval(generic, preparse=False)
     if verbose_eval:
         print("loading pickle with cPickle:")
-    unp = cPickle.Unpickler(StringIO(p))
-    unp.persistent_load = pers_load
-    unp.find_global = unpickle_global
+
     try:
-        cpickle_res = unp.load()
+        cpickle_res = SageUnpickler.loads(p, persistent_load=pers_load)
         cpickle_ok = True
     except Exception:
         cpickle_ok = False

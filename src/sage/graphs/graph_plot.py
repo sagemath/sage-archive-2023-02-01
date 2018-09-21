@@ -189,9 +189,7 @@ __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
-from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
-import six
 from six import text_type as str
 
 DEFAULT_SHOW_OPTIONS = {
@@ -422,7 +420,7 @@ class GraphPlot(SageObject):
 
         if 'vertex_colors' not in self._options or self._options['vertex_colors'] is None:
             if self._options['partition'] is not None:
-                from sage.plot.colors import rainbow,rgbcolor
+                from sage.plot.colors import rainbow
                 partition = self._options['partition']
                 l = len(partition)
                 R = rainbow(l)
@@ -1233,6 +1231,11 @@ class GraphPlot(SageObject):
             ....:      part_bbox = part.get_minmax_data()
             ....:      assert bbox['xmin'] <= part_bbox['xmin'] <= part_bbox['xmax'] <= bbox['xmax']
             ....:      assert bbox['ymin'] <= part_bbox['ymin'] <= part_bbox['ymax'] <= bbox['ymax']
+
+        Check that one can plot immutable graphs (:trac:`17340`)::
+
+            sage: Graph({0:[0]},immutable=True).plot()
+            Graphics object consisting of 3 graphics primitives
         """
         G = Graphics()
         options = self._options.copy()
@@ -1423,18 +1426,36 @@ def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
         sage: g = graphs.PathGraph(5)
         sage: _line_embedding(g, [0, 2, 4, 1, 3], first=(-1, -1), last=(1, 1))
         sage: g.show()
+
+    TESTS::
+
+        sage: from sage.graphs.graph_plot import _line_embedding
+        sage: g = Graph(1)
+        sage: _line_embedding(g, [0], first=(-1, -1), last=(1, 1))
+        sage: g.get_pos()
+        {0: (0, 0)}
+        sage: g = Graph()
+        sage: _line_embedding(g, g.vertices(), first=(-1, -1), last=(1, 1))
+        sage: g.get_pos()
+        {}
     """
-    n = len(vertices) - 1.
-
-    fx, fy = first
-    dx = (last[0] - first[0])/n
-    dy = (last[1] - first[1])/n
-
     d = g.get_pos()
     if d is None:
         d = {}
+
+    n = len(vertices) - 1.
+
+    if n:
+        fx, fy = first
+        dx = (last[0] - first[0])/n
+        dy = (last[1] - first[1])/n
+    else:
+        fx, fy = (first[0] + last[0])/2, (first[1] + last[1])/2
+        dx = dy = 0
 
     for v in vertices:
         d[v] = (fx, fy)
         fx += dx
         fy += dy
+
+    g.set_pos(d)

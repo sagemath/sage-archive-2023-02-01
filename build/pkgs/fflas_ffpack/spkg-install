@@ -1,13 +1,5 @@
 cd src
 
-if [ "$SAGE64" = "yes" ]; then
-   echo "64 bit build"
-   CFLAGS="-m64 $CFLAGS "; export CFLAGS
-   CXXFLAGS="-m64 $CXXFLAGS "; export CXXFLAGS
-   CPPFLAGS="-m64 $CPPFLAGS "; export CPPFLAGS
-   LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
-fi
-
 if [ "$LINBOX_BLAS" != "" ]; then
     echo "Using environment variable LINBOX_BLAS=$LINBOX_BLAS"
 elif [ "$UNAME" = "CYGWIN" ]; then

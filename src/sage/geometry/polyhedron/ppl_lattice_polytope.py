@@ -1,4 +1,4 @@
-"""
+r"""
 Fast Lattice Polytopes using PPL.
 
 The :func:`LatticePolytope_PPL` class is a thin wrapper around PPL
@@ -509,7 +509,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         return tuple(points)
 
     def vertices_saturating(self, constraint):
-        """
+        r"""
         Return the vertices saturating the constraint
 
         INPUT:
@@ -874,7 +874,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         return matrix(ZZ, fiber.vertices()).right_kernel_matrix()
 
     def base_rays(self, fiber, points):
-        """
+        r"""
         Return the primitive lattice vectors that generate the
         direction given by the base projection of points.
 
@@ -982,16 +982,15 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: Z3square = LatticePolytope_PPL((0,0), (1,2), (2,1), (3,3))
-            sage: Z3square.restricted_automorphism_group(vertex_labels=(1,2,3,4))
-            Permutation Group with generators [(2,3), (1,2)(3,4), (1,4)]
-            sage: G = Z3square.restricted_automorphism_group(); G
-            Permutation Group with generators [((1,2),(2,1)),
-            ((0,0),(1,2))((2,1),(3,3)), ((0,0),(3,3))]
-            sage: tuple(G.domain()) == Z3square.vertices()
+            sage: Z3square.restricted_automorphism_group(vertex_labels=(1,2,3,4)) == PermutationGroup([[(2,3)],[(1,2),(3,4)]])
             True
-            sage: G.orbit(Z3square.vertices()[0])
-            ((0, 0), (1, 2), (3, 3), (2, 1))
-
+            sage: G = Z3square.restricted_automorphism_group()
+            sage: G == PermutationGroup([[((1,2),(2,1))],[((0,0),(1,2)),((2,1),(3,3))],[((0,0),(3,3))]])
+            True
+            sage: set(G.domain()) == set(Z3square.vertices())
+            True
+            sage: set(map(tuple,G.orbit(Z3square.vertices()[0]))) == set([(0, 0), (1, 2), (3, 3), (2, 1)])
+            True
             sage: cell24 = LatticePolytope_PPL(
             ....: (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
             ....: (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
@@ -1060,8 +1059,9 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: G1.cardinality()
             4
 
-            sage: G2 = Z3square.restricted_automorphism_group(vertex_labels=(1,2,3,4)); G2
-            Permutation Group with generators [(2,3), (1,2)(3,4), (1,4)]
+            sage: G2 = Z3square.restricted_automorphism_group(vertex_labels=(1,2,3,4))
+            sage: G2 == PermutationGroup([[(2,3)], [(1,2),(3,4)], [(1,4)]])
+            True
             sage: G2.cardinality()
             8
 

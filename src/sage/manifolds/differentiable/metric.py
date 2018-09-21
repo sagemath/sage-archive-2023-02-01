@@ -693,7 +693,7 @@ class PseudoRiemannianMetric(TensorField):
                                                     # update of the restriction
         return self._inverse
 
-    def connection(self, name=None, latex_name=None):
+    def connection(self, name=None, latex_name=None, init_coef=True):
         r"""
         Return the unique torsion-free affine connection compatible with
         ``self``.
@@ -708,11 +708,15 @@ class PseudoRiemannianMetric(TensorField):
           Levi-Civita connection; if ``None``, it is set to ``name``, or if the
           latter is None as well, it formed from the symbol `\nabla` and the
           metric symbol
+        - ``init_coef`` -- (default: ``True``) determines whether the
+          connection coefficients are initialized, as Christoffel symbols
+          in the top charts of the domain of ``self`` (i.e. disregarding
+          the subcharts)
 
         OUTPUT:
 
         - the Levi-Civita connection, as an instance of
-          :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`.
+          :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`
 
         EXAMPLES:
 
@@ -765,7 +769,8 @@ class PseudoRiemannianMetric(TensorField):
             if name is None:
                 name = 'nabla_' + self._name
             self._connection = LeviCivitaConnection(self, name,
-                                                    latex_name=latex_name)
+                                                    latex_name=latex_name,
+                                                    init_coef=init_coef)
         return self._connection
 
     def christoffel_symbols(self, chart=None):
@@ -993,7 +998,7 @@ class PseudoRiemannianMetric(TensorField):
              2-dimensional differentiable manifold S^2
             sage: g.riemann()[:]
             [[[[0, 0], [0, 0]], [[0, sin(th)^2], [-sin(th)^2, 0]]],
-             [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
+             [[[0, -1], [1, 0]], [[0, 0], [0, 0]]]]
 
         In dimension 2, the Riemann tensor can be expressed entirely in terms of
         the Ricci scalar `r`:

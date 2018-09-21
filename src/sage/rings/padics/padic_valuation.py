@@ -35,7 +35,7 @@ overview can also be found in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013-2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -47,7 +47,6 @@ from sage.rings.valuation.value_group import DiscreteValueSemigroup
 from sage.rings.valuation.mapped_valuation import FiniteExtensionFromLimitValuation
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
-from sage.misc.fast_methods import WithEqualityById
 
 from sage.rings.all import infinity
 
@@ -324,7 +323,6 @@ class PadicValuationFactory(UniqueFactory):
         """
         from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
         from sage.rings.number_field.number_field import is_NumberField
-        from sage.rings.fraction_field import is_FractionField
         if is_NumberField(R.fraction_field()):
             L = R.fraction_field()
             G = L.relative_polynomial()
@@ -685,8 +683,6 @@ class pAdicValuation_base(DiscreteValuation):
             [2-adic valuation]
 
         """
-        from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
-        parent = DiscretePseudoValuationSpace(ring)
         approximants = approximants or self.mac_lane_approximants(ring.modulus().change_ring(self.domain()), assume_squarefree=True, require_incomparability=True)
         return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
 
@@ -769,8 +765,6 @@ class pAdicValuation_base(DiscreteValuation):
             from sage.rings.number_field.number_field import is_NumberField
             if is_NumberField(ring.fraction_field()):
                 if ring.base_ring().fraction_field() is self.domain().fraction_field():
-                    from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
-                    parent = DiscretePseudoValuationSpace(ring)
                     approximants = self.mac_lane_approximants(ring.fraction_field().relative_polynomial().change_ring(self.domain()), assume_squarefree=True, require_incomparability=True)
                     return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
                 if ring.base_ring() is not ring and self.domain().is_subring(ring.base_ring()):
@@ -927,7 +921,7 @@ class pAdicValuation_padic(pAdicValuation_base):
         v = QQ(v)
         if v not in self.value_semigroup():
             raise ValueError("%r is not in the value semigroup of %r"%(v, self))
-        v = ZZ(v * self.domain().ramification_index())
+        v = ZZ(v * self.domain().absolute_e())
         return self.domain().one() << v
 
     def _repr_(self):
@@ -997,7 +991,6 @@ class pAdicValuation_padic(pAdicValuation_base):
             y^5 + O(y^60)
 
         """
-        from sage.rings.all import ZZ
         x = self.domain().coerce(x)
         s = self.value_group()(s)
         return x << s
@@ -1189,6 +1182,18 @@ class pAdicValuation_int(pAdicValuation_base):
             sage: v.simplify(6, error=0, force=True)
             0
 
+        In this example, the usual rational reconstruction misses a good answer
+        for some moduli (because the absolute value of the numerator is not
+        bounded by the square root of the modulus)::
+
+            sage: v = QQ.valuation(2)
+            sage: v.simplify(110406, error=16, force=True)
+            562/19
+            sage: Qp(2, 16)(110406).rational_reconstruction()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: rational reconstruction of 55203 (mod 65536) does not exist
+
         """
         if not force and self._relative_size(x) <= size_heuristic_bound:
             return x
@@ -1203,23 +1208,39 @@ class pAdicValuation_int(pAdicValuation_base):
             return x
         if error < v:
             return self.domain().zero()
+
         from sage.rings.all import QQ
-        error = QQ(error).ceil()
-        
         from sage.rings.all import Qp
-        precision_ring = Qp(self.p(), error + 1 - v)
+        precision_ring = Qp(self.p(), QQ(error).floor() + 1 - v)
         reduced = precision_ring(x)
-        if error - v >= 5:
-            # If there is not much relative precision left, it is better to
-            # just go with the integer/rational lift. The rational
-            # reconstruction is likely not smaller.
-            try:
-                reconstruction = reduced.rational_reconstruction()
-                if reconstruction in self.domain():
-                    return self.domain()(reconstruction)
-            except ArithmeticError:pass
-        
-        return self.domain()(reduced.lift())
+        lift = (reduced >> v).lift()
+        best = self.domain()(lift) * self.p()**v
+
+        if self._relative_size(x) < self._relative_size(best):
+            best = x
+
+        # We implement a modified version of the usual rational reconstruction
+        # algorithm (based on the extended Euclidean algorithm) here. We do not
+        # get the uniqueness properties but we do not need them actually.
+        # This is certainly slower than the implementation in Cython.
+        from sage.categories.all import Fields
+        m = self.p()**(QQ(error).floor() + 1 - v)
+        if self.domain() in Fields():
+            r = (m, lift)
+            s = (0, 1)
+            while r[1]:
+                qq, rr = r[0].quo_rem(r[1])
+                r = r[1], rr
+                s = s[1], s[0] - qq*s[1]
+                from sage.arith.all import gcd
+                if s[1] != 0 and gcd(s[1], r[1]) == 1:
+                    rational = self.domain()(r[1]) / self.domain()(s[1]) * self.p()**v
+                    if self._relative_size(rational) < self._relative_size(best):
+                        best = rational
+
+        assert(self(x-best)>error)
+
+        return best
 
     def inverse(self, x, precision):
         r"""
@@ -1359,8 +1380,6 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
         """
         if ring is self.domain().fraction_field():
             if self.domain() is not self.domain().fraction_field():
-                base_ring = self.domain().base_ring()
-                base_valuation = self.restriction(base_ring).extension(base_ring.fraction_field())
                 G = ring.relative_polynomial()
                 approximant = self._base_valuation.change_domain(G.parent())._initial_approximation
                 return [pAdicValuation(ring, approximant)]

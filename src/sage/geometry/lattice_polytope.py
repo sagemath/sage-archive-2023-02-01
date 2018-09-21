@@ -103,12 +103,15 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import StringIO
+from six.moves import copyreg
+import six
 
 from sage.arith.all import gcd
 from sage.combinat.posets.posets import FinitePoset
 from sage.env import POLYTOPE_DATA_DIR
 from sage.geometry.cone import _ambient_space_point, integral_length
-from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
+from sage.geometry.hasse_diagram import lattice_from_incidences
 from sage.geometry.point_collection import PointCollection,\
     is_PointCollection, read_palp_point_collection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
@@ -129,15 +132,18 @@ from sage.rings.all import Integer, ZZ, QQ
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 
 from copy import copy
 import collections
-from six.moves import copyreg
 import os
 import subprocess
 import warnings
-from six import StringIO
 from functools import reduce
+from io import IOBase
+
+if not six.PY2:
+    file = IOBase
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):
@@ -295,7 +301,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
         skip_palp_matrix(f, n)
         data = read_palp_point_collection(data)
         f.close()
-    if isinstance(data, (file, StringIO)):
+    if isinstance(data, (file, IOBase, StringIO)):
         data = read_palp_point_collection(data)
     if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
         try:
@@ -457,7 +463,7 @@ def is_LatticePolytope(x):
     """
     return isinstance(x, LatticePolytopeClass)
 
-
+@richcmp_method
 class LatticePolytopeClass(SageObject, collections.Hashable):
     r"""
     Create a lattice polytope.
@@ -554,7 +560,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         return self._contains(point)
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare ``self`` with ``other``.
 
@@ -562,14 +568,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         - ``other`` -- anything.
 
-        OUTPUT:
-
-        - ``True`` if ``other`` is a :class:`lattice polytope
-          <LatticePolytopeClass>` equal to ``self``, ``False`` otherwise.
-
         .. NOTE::
 
-            Two lattice polytopes are equal if they have the same vertices 
+            Two lattice polytopes are equal if they have the same vertices
             listed in the same order.
 
         TESTS::
@@ -587,9 +588,42 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             False
             sage: p1 == 0
             False
+            sage: p1 < p2
+            False
+            sage: p2 < p1
+            False
+            sage: p1 < p3
+            False
+            sage: p3 < p1
+            True
+            sage: p1 <= p2
+            True
+            sage: p2 <= p1
+            True
+            sage: p1 <= p3
+            False
+            sage: p3 <= p1
+            True
+            sage: p1 > p2
+            False
+            sage: p2 > p1
+            False
+            sage: p1 > p3
+            True
+            sage: p3 > p1
+            False
+            sage: p1 >= p2
+            True
+            sage: p2 >= p1
+            True
+            sage: p1 >= p3
+            True
+            sage: p3 >= p1
+            False
         """
-        return (isinstance(other, LatticePolytopeClass)
-                and self._vertices == other._vertices)
+        if not isinstance(other, LatticePolytopeClass):
+            return NotImplemented
+        return richcmp(self._vertices, other._vertices, op)
 
     @cached_method
     def __hash__(self):
@@ -608,42 +642,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         # FIXME: take into account other things that may be preset?..
         return hash(self._vertices)
-
-    def __ne__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        INPUT:
-
-        - ``other`` -- anything.
-
-        OUTPUT:
-
-        - ``False`` if ``other`` is a :class:`lattice polytope
-          <LatticePolytopeClass>` equal to ``self``, ``True`` otherwise.
-
-        .. NOTE::
-
-            Two lattice polytopes are if they have the same vertices listed in
-            the same order.
-
-        TESTS::
-
-            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
-            sage: p1 != p1
-            False
-            sage: p1 != p2
-            False
-            sage: p1 is p2
-            False
-            sage: p1 != p3
-            True
-            sage: p1 != 0
-            True
-        """
-        return not (self == other)
 
     def __reduce__(self):
         r"""
@@ -1874,7 +1872,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: square = LatticePolytope([(0,0), (1,0), (1,1), (0,1)])
             sage: L = square.face_lattice()
             sage: L
-            Finite poset containing 10 elements with distinguished linear extension
+            Finite lattice containing 10 elements with distinguished linear extension
 
         To see all faces arranged by dimension, you can do this::
 
@@ -1948,7 +1946,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: superp = LatticePolytope([(1,2,3,4), (5,6,7,8),
             ....:                           (1,2,4,8), (1,3,9,7)])
             sage: superp.face_lattice()
-            Finite poset containing 16 elements with distinguished linear extension
+            Finite lattice containing 16 elements with distinguished linear extension
             sage: superp.face_lattice().top()
             3-d lattice polytope in 4-d lattice M
             sage: p = superp.facets()[0]
@@ -1981,7 +1979,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                                             ambient_vertex_indices=vertices,
                                             ambient_facet_indices=facets)
 
-            return Hasse_diagram_from_incidences(
+            return lattice_from_incidences(
                 vertex_to_facets, facet_to_vertices, LPFace, key = id(self))
         else:
             # Get face lattice as a sublattice of the ambient one
@@ -4335,7 +4333,7 @@ class NefPartition(SageObject,
         result = r"\text{Nef-partition } "
         for i, part in enumerate(self.parts()):
             if i != 0:
-                result += " \sqcup "
+                result += r" \sqcup "
             result += r"\{" + ", ".join("%d" % v for v in part) + r"\}"
         try:
             # We may or may not know the type of the partition
@@ -4968,9 +4966,9 @@ def _palp(command, polytopes, reduce_dimension=False):
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE,
                      close_fds=True)
-    stdin, stdout, stderr = (p.stdin, p.stdout, p.stderr)
+    stderr = p.stderr
     err = stderr.read()
-    if len(err) > 0:
+    if len(err):
         raise RuntimeError(("Error executing \"%s\" for a polytope sequence!"
             + "\nOutput:\n%s") % (command, err))
     os.remove(input_file_name)
@@ -4979,6 +4977,7 @@ def _palp(command, polytopes, reduce_dimension=False):
     except OSError:
         pass
     return output_file_name
+
 
 def _palp_canonical_order(V, PM_max, permutations):
     r"""
@@ -5035,14 +5034,15 @@ def _palp_canonical_order(V, PM_max, permutations):
             S_max[i], S_max[k] = S_max[k], S_max[i]
             p_c = PermutationGroupElement((1 + i, 1 + k))*p_c
     # Create array of possible NFs.
-    permutations = [p_c*k[1] for k in permutations.values()]
-    Vs = [(V.column_matrix().with_permuted_columns(k).hermite_form(), k) 
-          for k in permutations]
+    permutations = [p_c * l[1] for l in permutations.values()]
+    Vs = [(V.column_matrix().with_permuted_columns(sig).hermite_form(), sig) 
+          for sig in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
     vertices = [V.module()(_) for _ in Vmin[0].columns()]
     for v in vertices:
         v.set_immutable()
     return (PointCollection(vertices, V.module()), Vmin[1])
+
 
 def _palp_convert_permutation(permutation):
     r"""

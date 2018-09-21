@@ -1,4 +1,4 @@
-"""
+r"""
 `p`-Adic Base Leaves
 
 Implementations of `\mathbb{Z}_p` and `\mathbb{Q}_p`
@@ -106,9 +106,9 @@ it's not all that much faster than other `p`-adic types).  It does not
 track precision of elements.::
 
     sage: R = ZpFM(5, 5); a = R(4005); a
-    5 + 2*5^3 + 5^4 + O(5^5)
+    5 + 2*5^3 + 5^4
     sage: a // 5
-    1 + 2*5^2 + 5^3 + O(5^5)
+    1 + 2*5^2 + 5^3
 
 `p`-Adic rings and fields should be created using the creation
 functions ``Zp`` and ``Qp`` as above.  This will ensure that there is
@@ -133,7 +133,7 @@ can all be cast into a `p`-Adic field.::
     sage: b = R(23/15); b
     5^-1 + 3 + 3*5 + 5^2 + 3*5^3 + O(5^4)
     sage: S = Zp(5, 5, 'fixed-mod','val-unit'); c = S(Mod(75,125)); c
-    5^2 * 3 + O(5^5)
+    5^2 * 3
     sage: R(c)
     3*5^2 + O(5^5)
 
@@ -198,7 +198,6 @@ from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
                           pAdicFloatingPointRingGeneric, \
                           pAdicFloatingPointFieldGeneric, \
-                          pAdicGeneric, \
                           pAdicLatticeGeneric
 from .padic_capped_relative_element import pAdicCappedRelativeElement
 from .padic_capped_absolute_element import pAdicCappedAbsoluteElement
@@ -206,7 +205,6 @@ from .padic_fixed_mod_element import pAdicFixedModElement
 from .padic_floating_point_element import pAdicFloatingPointElement
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 
 
 class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):
@@ -277,7 +275,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
             sage: K.has_coerce_map_from(ZpCA(17,40))
             False
         """
-        #if isistance(R, pAdicRingLazy) and R.prime() == self.prime():
+        #if isinstance(R, pAdicRingLazy) and R.prime() == self.prime():
         #    return True
         if isinstance(R, pAdicRingCappedRelative) and R.prime() == self.prime():
             if R.precision_cap() < self.precision_cap():
@@ -373,7 +371,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
             sage: K.has_coerce_map_from(Zp(17,40))
             True
         """
-        #if isistance(R, pAdicRingLazy) and R.prime() == self.prime():
+        #if isinstance(R, pAdicRingLazy) and R.prime() == self.prime():
         #    return True
         if isinstance(R, pAdicRingCappedRelative) and R.prime() == self.prime():
             return True
@@ -556,7 +554,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
 
             sage: K = ZpFM(17)
             sage: K(1) + 1 #indirect doctest
-            2 + O(17^20)
+            2
             sage: K.has_coerce_map_from(ZZ)
             True
             sage: K.has_coerce_map_from(int)
@@ -574,7 +572,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             sage: K.has_coerce_map_from(Zp(17,40))
             False
         """
-        #if isistance(R, pAdicRingLazy) and R.prime() == self.prime():
+        #if isinstance(R, pAdicRingLazy) and R.prime() == self.prime():
         #    return True
         if isinstance(R, pAdicRingFixedMod) and R.prime() == self.prime():
             if R.precision_cap() > self.precision_cap():
@@ -876,7 +874,7 @@ class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
         TESTS:
 
             sage: R = ZpLC(7, label='init')
-            sage: TestSuite(R).run(skip='_test_teichmuller')
+            sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
         """
         # We need to set the subtype first, so that
         # pAdicRingBaseGeneric.__init__ can work
@@ -1004,8 +1002,8 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
 
         TESTS::
 
-            sage: R = ZpLC(7, label='init')
-            sage: TestSuite(R).run(skip='_test_teichmuller')
+            sage: R = QpLC(7, label='init')
+            sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
         """
         # We need to set the subtype first, so that
         # pAdicFieldBaseGeneric.__init__ can work

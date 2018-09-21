@@ -451,6 +451,8 @@ this data.
 - :ref:`sage.combinat.root_system.type_G`
 - :ref:`sage.combinat.root_system.type_H`
 - :ref:`sage.combinat.root_system.type_I`
+- :ref:`sage.combinat.root_system.type_super_A`
+- :ref:`sage.combinat.root_system.type_Q`
 - :ref:`sage.combinat.root_system.type_A_affine`
 - :ref:`sage.combinat.root_system.type_B_affine`
 - :ref:`sage.combinat.root_system.type_C_affine`
@@ -671,6 +673,10 @@ class CartanTypeFactory(SageObject):
                     if n >= 1:
                         from . import type_I
                         return type_I.CartanType(n)
+                if letter == "Q":
+                    if n >= 1:
+                        from . import type_Q
+                        return type_Q.CartanType(n)
 
             if len(t) == 3:
                 if t[2] == 1: # Untwisted affine
@@ -1506,7 +1512,7 @@ class CartanType_abstract(object):
         return CartanTypeFolded(self, folding_of, sigma)
 
     def _default_folded_cartan_type(self):
-        """
+        r"""
         Return the default folded Cartan type.
 
         In general, this just returns ``self`` in ``self`` with `\sigma` as
@@ -2540,7 +2546,7 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
     # mathematical methods
 
     def index_set(self):
-        """
+        r"""
         Implements :meth:`CartanType_abstract.index_set`.
 
         The index set for all standard finite Cartan types is of the form

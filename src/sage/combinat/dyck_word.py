@@ -527,7 +527,7 @@ class DyckWord(CombinatorialElement):
                 row += "| "+" ."*(n-1) + labels[-1] + "\n"
             return row
         else:
-            raise ValueError("The given type (=\s) is not valid." % type)
+            raise ValueError("The given type (=%s) is not valid." % type)
 
     def _ascii_art_(self):
         r"""
@@ -1674,7 +1674,7 @@ class DyckWord(CombinatorialElement):
             sage: dw.tamari_interval(DyckWord([1,1,0,0,1,1,0,0]))
             Traceback (most recent call last):
             ...
-            ValueError: The two Dyck words are not comparable on the Tamari lattice.
+            ValueError: the two Dyck words are not comparable on the Tamari lattice
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
         return TamariIntervalPosets.from_dyck_words(self, other)
@@ -2388,7 +2388,7 @@ class DyckWord_complete(DyckWord):
         staying above the diagonal, where `1` is an up step and `0` is
         a right step. Then each horizontal step has a co-height (`0`
         at the top and `n-1` at most at the bottom). One reads the
-        Dyck word from left to right. At the begining, all vertices
+        Dyck word from left to right. At the beginning, all vertices
         from `0` to `n+1` are available. For each horizontal step,
         one creates an edge from the vertex indexed by the co-height
         to the next available vertex. This chops out a triangle from
@@ -2489,7 +2489,7 @@ class DyckWord_complete(DyckWord):
 
         TESTS::
 
-            sage: ld=DyckWords(5);
+            sage: ld = DyckWords(5)
             sage: list(ld) == [dw.to_non_decreasing_parking_function().to_dyck_word() for dw in ld]
             True
         """
@@ -2639,7 +2639,7 @@ class DyckWord_complete(DyckWord):
             [1, 0, 1, 1, 0, 0]
             sage: DyckWord([1,1,1,0,0,0]).reverse()
             [1, 1, 1, 0, 0, 0]
-            sage: len(filter(lambda D: D.reverse() == D, DyckWords(5)))
+            sage: len([D for D in DyckWords(5) if D.reverse() == D])
             10
 
         TESTS::
@@ -3787,7 +3787,7 @@ class CompleteDyckWords(DyckWords):
         """
         l = [0] * sum(len(v) for v in ncp)
         for v in ncp:
-            l[v[-1] - 1] = len(v)
+            l[max(v) - 1] = len(v)
 
         res = []
         for i in l:
@@ -4224,7 +4224,7 @@ def pealing(D, return_touches=False):
     else:
         return D
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.dyck_word', 'DyckWord', DyckWord)
 
 # Deprecations from trac:18555. July 2016

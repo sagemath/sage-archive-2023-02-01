@@ -153,7 +153,7 @@ Here are further examples::
     1
     sage: z.length()
     2
-    sage: z.support()
+    sage: sorted(z.support())
     [[1, 1, 1], [2, 1]]
     sage: z.degree()
     3
@@ -217,7 +217,6 @@ from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
-from sage.categories.algebras import Algebras
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
@@ -1014,7 +1013,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             basis ``self``. These functions are defined below.
 
             The Carlitz-Shareshian-Wachs symmetric functions have been
-            introduced in [GriRei2014]_, Exercise 2.87, as
+            introduced in [GriRei18]_, Exercise 2.9.11, as
             refinements of a certain particular case of chromatic
             quasisymmetric functions defined by Shareshian and Wachs.
             Their definitions are as follows:
@@ -1036,7 +1035,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 X_{n, d, s} = \sum_{w \in W(n, d, s)} x_w .
 
             This is a symmetric function (according to
-            [GriRei2014]_, Exercise 2.87(b)), and for `s = 0` equals
+            [GriRei18]_, Exercise 2.9.11(b)), and for `s = 0` equals
             the `t^d`-coefficient of the descent enumerator of Smirnov
             words of length `n` (an example of a chromatic
             quasisymmetric function which happens to be symmetric --
@@ -1055,14 +1054,16 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`. These
             three power series `U_{n, d, s}`, `V_{n, d, s}` and
             `W_{n, d, s}` are symmetric functions as well
-            ([GriRei2014]_, Exercise 2.87(c)). Their sum is
+            ([GriRei18]_, Exercise 2.9.11(c)). Their sum is
             `X_{n, d, s}`.
 
             REFERENCES:
 
             .. [ShaWach2014] John Shareshian, Michelle L. Wachs.
                *Chromatic quasisymmetric functions*.
-               :arxiv:`1405.4629v1`.
+               :arxiv:`1405.4629v2`.
+
+            .. [GriRei18]_
 
             INPUT:
 
@@ -1556,7 +1557,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         self._sym = Sym
         if graded:
             cat = GradedSymmetricFunctionsBases(Sym)
-        else: # Right now, there are no non-filted bases
+        else: # Right now, there are no non-filtered bases
             cat = FilteredSymmetricFunctionsBases(Sym)
         CombinatorialFreeModule.__init__(self, Sym.base_ring(), _Partitions,
                                          category=cat,
@@ -2395,7 +2396,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
             (f \cdot g) \{ h \} = (f \{ h \}) \ast (g \{ h \})~.
 
-        .. SEEALSO:: :meth:`_inner_plethysm_pk_g`, 
+        .. SEEALSO:: :meth:`_inner_plethysm_pk_g`,
             :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.itensor`,
             :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.inner_plethysm`
 
@@ -2819,7 +2820,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).plethysm(s(0))
             s[]
 
-        Sage also handles plethsym of tensor products of symmetric functions::
+        Sage also handles plethysm of tensor products of symmetric functions::
 
             sage: s = SymmetricFunctions(QQ).s()
             sage: X = tensor([s[1],s[[]]])
@@ -4267,6 +4268,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         r"""
         Return the standard scalar product between ``self`` and ``x``.
 
+        This is also known as the "Hall inner product" or the
+        "Hall scalar product".
+
         INPUT:
 
         - ``x`` -- element of the ring of symmetric functions over the
@@ -4464,9 +4468,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             [  0   0   0   0 384]
             sage: JQ = SymmetricFunctions(QQ['t'].fraction_field()).jack().Q()
             sage: matrix([[JQ(mu).scalar_jack(JQ(nu)) for nu in Partitions(3)] for mu in Partitions(3)])
-            [(2*t^2 + 3*t + 1)/(6*t^3)                         0                         0]
-            [                        0     (t + 2)/(2*t^3 + t^2)                         0]
-            [                        0                         0     6/(t^3 + 3*t^2 + 2*t)]
+            [(1/3*t^2 + 1/2*t + 1/6)/t^3                           0                           0]
+            [                          0 (1/2*t + 1)/(t^3 + 1/2*t^2)                           0]
+            [                          0                           0       6/(t^3 + 3*t^2 + 2*t)]
         """
         parent = self.parent()
         if t is None:
@@ -5265,9 +5269,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         INPUT:
 
-        - ``nu`` -- a partition
+        - ``nu`` -- a partition or a list of integers
 
-        - ``t`` -- (default: ``None``, in which case ``t`` is used) a parameter
+        - ``t`` -- (default: ``None``, in which case ``t`` is used) an element
+          of the base ring
 
         REFERENCES:
 
@@ -5293,11 +5298,26 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(0).hl_creation_operator([2,1,1])
             0
             sage: s([3,2]).hl_creation_operator([2,1,1])
-            (t^2-t)*s[2, 2, 2, 2, 1] + t^3*s[3, 2, 2, 1, 1] + (t^3-t^2)*s[3, 2, 2, 2] + t^3*s[3, 3, 1, 1, 1] + t^4*s[3, 3, 2, 1] + t^3*s[4, 2, 1, 1, 1] + t^4*s[4, 2, 2, 1] + 2*t^4*s[4, 3, 1, 1] + t^5*s[4, 3, 2] + t^5*s[4, 4, 1] + t^4*s[5, 2, 1, 1] + t^5*s[5, 3, 1]
+            (t^2-t)*s[2, 2, 2, 2, 1] + t^3*s[3, 2, 2, 1, 1]
+             + (t^3-t^2)*s[3, 2, 2, 2] + t^3*s[3, 3, 1, 1, 1]
+             + t^4*s[3, 3, 2, 1] + t^3*s[4, 2, 1, 1, 1] + t^4*s[4, 2, 2, 1]
+             + 2*t^4*s[4, 3, 1, 1] + t^5*s[4, 3, 2] + t^5*s[4, 4, 1]
+             + t^4*s[5, 2, 1, 1] + t^5*s[5, 3, 1]
+            sage: s([3,2]).hl_creation_operator([-2])
+            (-t^2+t)*s[1, 1, 1] + (-t^2+1)*s[2, 1]
+            sage: s([3,2]).hl_creation_operator(-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: nu must be a list of integers
+            sage: s = SymmetricFunctions(FractionField(ZZ['t'])).schur()
+            sage: s[2].hl_creation_operator([3])
+            s[3, 2] + t*s[4, 1] + t^2*s[5]
 
         TESTS::
 
             sage: s(0).hl_creation_operator([1])
+            0
+            sage: s.one().hl_creation_operator([2,-1])
             0
         """
         s = self.parent().realization_of().schur()
@@ -5305,15 +5325,22 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             if hasattr(self.parent(),"t"):
                 t = self.parent().t
             else:
-                t = QQ['t'].gen()
+                t = self.parent().base_ring()('t')
         P = self.parent()
-        self = s(self)
-        return P(self*s(nu) +
-                 s.sum( s.sum_of_terms( (lam,c) for lam, c in s(mu)*s(nu) if len(lam) <= len(nu) ) *
-                        self.skew_by(s(mu).plethysm((t-1)*s([1])))
-                        for d in range(self.degree())
-                        for mu in Partitions(d+1, max_length=len(nu)) )
-                )
+        if nu in _Partitions:
+            self = s(self)
+            return P(self*s(nu) +
+                     s.sum( s.sum_of_terms( (lam,c) for lam, c in s(mu)*s(nu) if len(lam) <= len(nu) ) *
+                            self.skew_by(s(mu).plethysm((t-1)*s([1])))
+                            for d in range(self.degree())
+                            for mu in Partitions(d+1, max_length=len(nu)) ))
+        elif isinstance(nu, list) and all(isinstance(a, (int,Integer)) for a in nu):
+            return P(s.sum(t**la.size() * c * d * s(la) *
+                     s._repeated_bernstein_creation_operator_on_basis(ga, nu)
+                     for ((la,mu),c) in s(self).coproduct()
+                     for (ga, d) in s(mu).plethysm((1-t)*s[1]) ))
+        else:
+            raise ValueError("nu must be a list of integers")
 
     def eval_at_permutation_roots(self, rho):
         r"""

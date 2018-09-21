@@ -1248,7 +1248,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     # To clean the output when find_path is None or a number
     find_path = (find_path > 0)
 
-    if G.is_clique():
+    if G.is_clique(induced=False):
         # We have an hamiltonian path since n >= 2, but we have an hamiltonian
         # cycle only if n >= 3
         return find_path or n >= 3, G.vertices()

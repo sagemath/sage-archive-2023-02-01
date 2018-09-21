@@ -106,6 +106,11 @@ Or, we plot a very simple function indeed::
     
     sphinx_plot(plot3d(pi, (-1,1), (-1,1)))
 
+Transparent with fractional opacity value::
+
+    sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2), opacity=8/10)
+    Graphics3d Object
+
 .. TODO::
 
     Add support for smooth triangles.
@@ -1137,7 +1142,7 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     xmin,xmax = ranges[0][:2]
     ymin,ymax = ranges[1][:2]
 
-    opacity = kwds.get('opacity',1)
+    opacity = float(kwds.get('opacity',1))
 
     if color == "automatic":
         texture = rainbow(num_colors, 'rgbtuple')

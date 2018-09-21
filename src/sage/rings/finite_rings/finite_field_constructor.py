@@ -165,26 +165,21 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
-import random
-
-from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.structure.category_object import normalize_names
 
 from sage.rings.integer import Integer
 
-import sage.rings.polynomial.polynomial_element as polynomial_element
-import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+# the import below is just a redirection
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
 # We don't late import this because this means trouble with the Givaro library
 # On a Macbook Pro OSX 10.5.8, this manifests as a Bus Error on exiting Sage.
 # TODO: figure out why
 from .finite_field_givaro import FiniteField_givaro
-
-import sage.interfaces.gap
 
 from sage.structure.factory import UniqueFactory
 
@@ -290,7 +285,7 @@ class FiniteFieldFactory(UniqueFactory):
 
         sage: K.<a> = GF(5^40)
         sage: a.multiplicative_order()
-        4547473508864641189575195312
+        189478062869360049565633138
         sage: a.is_square()
         True
         sage: K.<b> = GF(5^40, modulus="primitive")
@@ -466,11 +461,16 @@ class FiniteFieldFactory(UniqueFactory):
         sage: pushout(K,L) is L
         True
 
+    Check that :trac:`25182` has been fixed::
+
+        sage: GF(next_prime(2^63)^6)
+        Finite Field in z6 of size 9223372036854775837^6
+
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True,
                                   prefix=None, repr=None, elem_cache=None,
-                                  structure=None):
+                                  **kwds):
         """
         EXAMPLES::
 
@@ -505,9 +505,9 @@ class FiniteFieldFactory(UniqueFactory):
             sage: GF(625, impl='givaro') is GF(625, impl='givaro', elem_cache=False)
             True
 
-        We explicitly take a ``structure`` attribute for compatibility
-        with :class:`~sage.categories.pushout.AlgebraicExtensionFunctor`
-        but we ignore it as it is not used, see :trac:`21433`::
+        We explicitly take ``structure``, ``implementation`` and ``prec`` attributes
+        for compatibility with :class:`~sage.categories.pushout.AlgebraicExtensionFunctor`
+        but we ignore them as they are not used, see :trac:`21433`::
 
             sage: GF.create_key_and_extra_args(9, 'a', structure=None)
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', 3, 2, True, None, 'poly', True), {})
@@ -516,6 +516,11 @@ class FiniteFieldFactory(UniqueFactory):
         from sage.structure.proof.all import WithProof, arithmetic
         if proof is None:
             proof = arithmetic()
+        for key, val in kwds.items():
+            if key not in ['structure', 'implementation', 'prec', 'embedding']:
+                raise TypeError("create_key_and_extra_args() got an unexpected keyword argument '%s'"%key)
+            if not (val is None or isinstance(val, list) and all(c is None for c in val)):
+                raise NotImplementedError("ring extension with prescribed %s is not implemented"%key)
         with WithProof('arithmetic', proof):
             order = Integer(order)
             if order <= 1:

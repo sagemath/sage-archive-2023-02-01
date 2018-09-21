@@ -96,7 +96,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
         sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
         sage: L.basis()
-        Finite family {'y': y, 'x': x}
+        Finite family {'x': x, 'y': y}
     """
     @staticmethod
     def __classcall_private__(cls, R, s_coeff, names=None, index_set=None, **kwds):

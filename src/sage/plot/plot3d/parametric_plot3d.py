@@ -8,10 +8,10 @@ from .parametric_surface import ParametricSurface
 from .shapes2 import line3d
 from sage.arith.srange import xsrange, srange
 from sage.structure.element import is_Vector
+from sage.misc.decorators import rename_keyword
 
-from sage.ext.fast_eval import fast_float, fast_float_constant
 
-
+@rename_keyword(alpha='opacity')
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
                       boundary_style=None, **kwds):
     r"""
@@ -163,7 +163,9 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sphinx_plot(parametric_plot3d((cos(u), sin(u)+cos(v), sin(v)), (u,0,2*pi), (v,-pi,pi),
                     color='green', opacity=0.1, plot_points=[30,30]))
 
-    One can also color the surface using a coloring function and a colormap::
+    One can also color the surface using a coloring function and a
+    colormap as follows. Note that the coloring function must take
+    values in the interval [0,1]. ::
 
         sage: u,v = var('u,v')
         sage: def cf(u,v): return sin(u+v/2)**2

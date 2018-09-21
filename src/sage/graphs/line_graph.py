@@ -32,8 +32,7 @@ Given a graph `G`, the *line graph* `L(G)` of `G` is the graph such that
 The definition is extended to directed graphs. In this situation, there is an
 arc `(e,e')` in `L(G)` if the destination of `e` is the origin of `e'`.
 
-For more information, see the :wikipedia:`Wikipedia page on line graphs
-<Line_graph>`.
+For more information, see the :wikipedia:`Line_graph`.
 
 Root graph
 ----------
@@ -461,7 +460,7 @@ def root_graph(g, verbose = False):
 
         sage: from sage.graphs.line_graph import root_graph
         sage: root_graph(graphs.CompleteGraph(3))
-        (Complete bipartite graph: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3)})
+        (Complete bipartite graph of order 1+3: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3)})
         sage: root_graph(graphs.OctahedralGraph())
         (Complete graph: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3), 3: (1, 2), 4: (1, 3), 5: (2, 3)})
         sage: root_graph(graphs.DiamondGraph())

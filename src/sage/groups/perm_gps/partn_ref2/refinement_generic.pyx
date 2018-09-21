@@ -809,7 +809,7 @@ cdef class PartitionRefinement_generic:
                 self._latex_act_node("autcut in " + refine_name)
                 return False
 
-            if len( res[1] ) > 0:
+            if res[1]:
                 self._fixed_not_minimized += res[1]
                 if self._inner_min_unminimized(inner_group_changed):
                     return True

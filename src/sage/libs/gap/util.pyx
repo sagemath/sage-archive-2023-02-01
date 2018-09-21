@@ -18,9 +18,12 @@ from cpython.exc cimport PyErr_SetObject
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_off, sig_error
 
+from .gap_includes cimport *
+from .element cimport *
+from sage.cpython.string import FS_ENCODING
+from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
-from .element cimport *
 
 
 ############################################################################
@@ -103,7 +106,8 @@ cdef ObjWrapper wrap_obj(libGAP_Obj obj):
     return result
 
 
-owned_objects_refcount = dict()
+# a dictionary to keep all GAP elements
+cdef dict owned_objects_refcount = dict()
 
 cpdef get_owned_objects():
     """
@@ -173,6 +177,9 @@ def gap_root():
     return gapdir
 
 
+# To ensure that we call initialize_libgap only once.
+cdef bint _gap_is_initialized = False
+
 cdef initialize():
     """
     Initialize the GAP library, if it hasn't already been
@@ -192,11 +199,11 @@ cdef initialize():
     cdef char* argv[14]
     argv[0] = "sage"
     argv[1] = "-l"
-    s = gap_root()
+    s = str_to_bytes(gap_root(), FS_ENCODING, "surrogateescape")
     argv[2] = s
 
     from sage.interfaces.gap import _get_gap_memory_pool_size_MB
-    memory_pool = _get_gap_memory_pool_size_MB()
+    memory_pool = str_to_bytes(_get_gap_memory_pool_size_MB())
     argv[3] = "-o"
     argv[4] = memory_pool
     argv[5] = "-s"
@@ -212,9 +219,10 @@ cdef initialize():
 
     from .saved_workspace import workspace
     workspace, workspace_is_up_to_date = workspace()
+    ws = str_to_bytes(workspace, FS_ENCODING, "surrogateescape")
     if workspace_is_up_to_date:
         argv[11] = "-L"
-        argv[12] = workspace
+        argv[12] = ws
         argv[13] = NULL
         argc = 13
 
@@ -222,7 +230,7 @@ cdef initialize():
     # The initialization just prints error and does not use the error handler
     libgap_start_interaction('')
     libgap_initialize(argc, argv)
-    gap_error_msg = str(libgap_get_output())
+    gap_error_msg = char_to_str(libgap_get_output())
     libgap_finish_interaction()
     if gap_error_msg:
         raise RuntimeError('libGAP initialization failed\n' + gap_error_msg)
@@ -299,7 +307,10 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
     initialize()
     cdef libGAP_ExecStatus status
 
-    cmd = gap_string + ';\n'
+    # Careful: We need to keep a reference to the bytes object here
+    # so that Cython doesn't dereference it before libGAP is done with
+    # its contents.
+    cmd = str_to_bytes(gap_string + ';\n')
     try:
         try:
             sig_on()
@@ -336,6 +347,12 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
 ### Helper to protect temporary objects from deletion ######################
 ############################################################################
 
+# Hold a reference (inside the GAP kernel) to obj so that it doesn't
+# get deleted this works by assigning it to a global variable. This is
+# very simple, but you can't use it to keep two objects alive. Be
+# careful.
+cdef libGAP_UInt reference_holder
+
 cdef void hold_reference(libGAP_Obj obj):
     """
     Hold a reference (inside the GAP kernel) to obj
@@ -364,7 +381,7 @@ cdef void error_handler(char* msg):
     ``sig_off`` blocks, this then jumps back to the ``sig_on`` where
     the ``RuntimeError`` we raise here will be seen.
     """
-    msg_py = msg
+    msg_py = char_to_str(msg)
     msg_py = msg_py.replace('For debugging hints type ?Recovery from NoMethodFound\n', '')
     PyErr_SetObject(RuntimeError, msg_py)
     sig_error()
@@ -480,7 +497,7 @@ def command(command_string):
     initialize()
     cdef libGAP_ExecStatus status
 
-    cmd = command_string + ';\n'
+    cmd = str_to_bytes(command_string + ';\n')
     try:
         libgap_enter()
         libgap_start_interaction(cmd)
@@ -500,7 +517,7 @@ def command(command_string):
 
         if libGAP_ReadEvalResult:
             libGAP_ViewObjHandler(libGAP_ReadEvalResult)
-            s = libgap_get_output()
+            s = char_to_str(libgap_get_output())
             print('Output follows...')
             print(s.strip())
         else:

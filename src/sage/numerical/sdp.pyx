@@ -517,8 +517,8 @@ cdef class SemidefiniteProgram(SageObject):
         """
         Construct the first `n` SDPVariables.
 
-        This method is used for the generater syntax (see below). You
-        probably shouldn't use it for anything else.
+        This method is used for the generator syntax (see below). You
+        probably should not use it for anything else.
 
         INPUT:
 

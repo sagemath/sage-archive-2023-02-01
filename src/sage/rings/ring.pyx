@@ -104,6 +104,7 @@ cdef class Ring(ParentWithGens):
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
+        running ._test_divides() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -134,7 +135,7 @@ cdef class Ring(ParentWithGens):
         sage: TestSuite(ZZ['x','y']).run()
         sage: TestSuite(ZZ['x','y']['t']).run()
 
-    Test agaings another bug fixed in :trac:`9944`::
+    Test against another bug fixed in :trac:`9944`::
 
         sage: QQ['x'].category()
         Join of Category of euclidean domains and Category of commutative algebras over
@@ -578,7 +579,7 @@ cdef class Ring(ParentWithGens):
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2-3)
             sage: L.ideal(a)
-            Principal ideal (1 + O(a^40)) of Eisenstein Extension in a defined by a^2 - 3 with capped relative precision 40 over 3-adic Field
+            Principal ideal (1 + O(a^40)) of 3-adic Eisenstein Extension Field in a defined by a^2 - 3
 
         """
         if self._zero_ideal is None:
@@ -912,7 +913,7 @@ cdef class Ring(ParentWithGens):
         """
         if self.is_zero():
             return True
-        raise NotImplementedError
+        return super(Ring, self).is_finite()
 
     def cardinality(self):
         """
@@ -1476,7 +1477,7 @@ cdef class CommutativeRing(Ring):
             self.__ideal_monoid = M
             return M
 
-    def extension(self, poly, name=None, names=None, embedding=None, structure=None):
+    def extension(self, poly, name=None, names=None, **kwds):
         """
         Algebraically extends self by taking the quotient ``self[x] / (f(x))``.
 
@@ -1520,10 +1521,11 @@ cdef class CommutativeRing(Ring):
             name = name[0]
         if name is None:
             name = str(poly.parent().gen(0))
-        if embedding is not None:
-            raise NotImplementedError("ring extension with prescripted embedding is not implemented")
-        if structure is not None:
-            raise NotImplementedError("ring extension with additional structure is not implemented")
+        for key, val in kwds.items():
+            if key not in ['structure', 'implementation', 'prec', 'embedding']:
+                raise TypeError("extension() got an unexpected keyword argument '%s'"%key)
+            if not (val is None or isinstance(val, list) and all(c is None for c in val)):
+                raise NotImplementedError("ring extension with prescripted %s is not implemented"%key)
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)
@@ -2293,7 +2295,7 @@ cdef class Algebra(Ring):
     def has_standard_involution(self):
         r"""
         Return ``True`` if the algebra has a standard involution and ``False`` otherwise.
-        This algorithm follows Algorithm 2.10 from John Voight's `Identifying the Matrix Ring`.
+        This algorithm follows Algorithm 2.10 from John Voight's *Identifying the Matrix Ring*.
         Currently the only type of algebra this will work for is a quaternion algebra.
         Though this function seems redundant, once algebras have more functionality, in particular
         have a method to construct a basis, this algorithm will have more general purpose.

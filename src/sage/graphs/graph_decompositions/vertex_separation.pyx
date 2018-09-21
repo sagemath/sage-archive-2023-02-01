@@ -256,7 +256,7 @@ REFERENCES
   computing Pathwidth*, David Coudert, Dorian Mazauric, and Nicolas Nisse. In
   Symposium on Experimental Algorithms (SEA), volume 8504 of LNCS, Copenhagen,
   Denmark, pages 46-58, June 2014,
-  http://hal.inria.fr/hal-00943549/document
+  https://hal.inria.fr/hal-00943549/document
 
 Authors
 -------
@@ -1608,7 +1608,7 @@ def vertex_separation_BAB(G,
         sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
-        raise MemoryError("Unable to allocate data strutures.")
+        raise MemoryError("Unable to allocate data structures.")
 
     cdef list best_seq = list(range(n))
     for i in xrange(n):

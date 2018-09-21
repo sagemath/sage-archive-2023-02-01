@@ -1130,7 +1130,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return ret_fpg
 
     def semidirect_product(self, H, hom, check=True, reduced=False):
-        """
+        r"""
         The semidirect product of ``self`` with ``H`` via ``hom``.
 
         If there exists a homomorphism `\phi` from a group `G` to the
@@ -1245,7 +1245,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: Se1 =  C.semidirect_product(D, id1)
             sage: id2 = (D.gens(), [(C.gens(),C.gens()),(C.gens(),C.gens())])
             sage: Se2 =  D.semidirect_product(C ,id2)
-            sage: Dp1 = C.direct_product(D);
+            sage: Dp1 = C.direct_product(D)
             sage: Dp1.is_isomorphic(Se1), Dp1.is_isomorphic(Se2)
             (True, True)
 

@@ -1,6 +1,79 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Function Fields
+
+A function field (of one variable) is a finitely generated field extension of
+transcendence degree one. In Sage, a function field can be a rational function
+field or a finite extension of a function field.
+
+EXAMPLES:
+
+We create a rational function field::
+
+    sage: K.<x> = FunctionField(GF(5^2,'a')); K
+    Rational function field in x over Finite Field in a of size 5^2
+    sage: K.genus()
+    0
+    sage: f = (x^2 + x + 1) / (x^3 + 1)
+    sage: f
+    (x^2 + x + 1)/(x^3 + 1)
+    sage: f^3
+    (x^6 + 3*x^5 + x^4 + 2*x^3 + x^2 + 3*x + 1)/(x^9 + 3*x^6 + 3*x^3 + 1)
+
+Then we create an extension of the rational function field, and do some
+simple arithmetic in it::
+
+    sage: R.<y> = K[]
+    sage: L.<y> = K.extension(y^3 - (x^3 + 2*x*y + 1/x)); L
+    Function field in y defined by y^3 + 3*x*y + (4*x^4 + 4)/x
+    sage: y^2
+    y^2
+    sage: y^3
+    2*x*y + (x^4 + 1)/x
+    sage: a = 1/y; a
+    (x/(x^4 + 1))*y^2 + 3*x^2/(x^4 + 1)
+    sage: a * y
+    1
+
+We next make an extension of the above function field, illustrating
+that arithmetic with a tower of three fields is fully supported::
+
+    sage: S.<t> = L[]
+    sage: M.<t> = L.extension(t^2 - x*y)
+    sage: M
+    Function field in t defined by t^2 + 4*x*y
+    sage: t^2
+    x*y
+    sage: 1/t
+    ((1/(x^4 + 1))*y^2 + 3*x/(x^4 + 1))*t
+    sage: M.base_field()
+    Function field in y defined by y^3 + 3*x*y + (4*x^4 + 4)/x
+    sage: M.base_field().base_field()
+    Rational function field in x over Finite Field in a of size 5^2
+
+It is also possible to construct function fields over an imperfect base field::
+
+    sage: N.<u> = FunctionField(K)
+
+and inseparable extension function fields::
+
+    sage: J.<x> = FunctionField(GF(5)); J
+    Rational function field in x over Finite Field of size 5
+    sage: T.<v> = J[]
+    sage: O.<v> = J.extension(v^5 - x); O
+    Function field in v defined by v^5 + 4*x
+
+TESTS::
+
+    sage: TestSuite(J).run()
+    sage: TestSuite(K).run(max_runs=1024) # long time (5s)
+    sage: TestSuite(L).run(max_runs=64)  # long time (10s)
+    sage: TestSuite(M).run(max_runs=32)  # long time (30s)
+    sage: TestSuite(N).run(max_runs=64, skip = '_test_derivation') # long time (8s)
+    sage: TestSuite(O).run(max_runs=128, skip = '_test_derivation') # long time (8s)
+
+    sage: TestSuite(R).run()
+    sage: TestSuite(S).run() # long time (3s)
 
 AUTHORS:
 
@@ -19,66 +92,14 @@ AUTHORS:
 - Simon King (2014-10-29): Use the same generator names for a function field
   extension and the underlying polynomial ring.
 
-EXAMPLES:
+- Kwankyu Lee (2017-04-30): added global function fields
 
-We create an extension of a rational function fields, and do some
-simple arithmetic in it::
-
-    sage: K.<x> = FunctionField(GF(5^2,'a')); K
-    Rational function field in x over Finite Field in a of size 5^2
-    sage: R.<y> = K[]
-    sage: L.<y> = K.extension(y^3 - (x^3 + 2*x*y + 1/x)); L
-    Function field in y defined by y^3 + 3*x*y + (4*x^4 + 4)/x
-    sage: y^2
-    y^2
-    sage: y^3
-    2*x*y + (x^4 + 1)/x
-    sage: a = 1/y; a
-    (4*x/(4*x^4 + 4))*y^2 + 2*x^2/(4*x^4 + 4)
-    sage: a * y
-    1
-
-We next make an extension of the above function field, illustrating
-that arithmetic with a tower of 3 fields is fully supported::
-
-    sage: S.<t> = L[]
-    sage: M.<t> = L.extension(t^2 - x*y)
-    sage: M
-    Function field in t defined by t^2 + 4*x*y
-    sage: t^2
-    x*y
-    sage: 1/t
-    ((1/(x^4 + 1))*y^2 + 2*x/(4*x^4 + 4))*t
-    sage: M.base_field()
-    Function field in y defined by y^3 + 3*x*y + (4*x^4 + 4)/x
-    sage: M.base_field().base_field()
-    Rational function field in x over Finite Field in a of size 5^2
-
-It is also possible to construct function fields over an imperfect base field::
-
-    sage: N.<u> = FunctionField(K)
-
-and function fields as inseparable extensions::
-
-    sage: R.<v> = K[]
-    sage: O.<v> = K.extension(v^5 - x)
-
-TESTS::
-
-    sage: TestSuite(K).run(max_runs=1024) # long time (5s)
-    sage: TestSuite(L).run(max_runs=64)  # long time (10s)
-    sage: TestSuite(M).run(max_runs=32)  # long time (30s)
-    sage: TestSuite(N).run(max_runs=64, skip = '_test_derivation') # long time (8s)
-    sage: TestSuite(O).run(max_runs=128, skip = '_test_derivation') # long time (8s)
-
-    sage: TestSuite(R).run()
-    sage: TestSuite(S).run() # long time (3s)
 """
 from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2011-2017 Julian Rüth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2018 Julian Rüth <julian.rueth@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -86,67 +107,93 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from sage.rings.ring import Field
-from .function_field_element import FunctionFieldElement, FunctionFieldElement_rational, FunctionFieldElement_polymod
-
 from sage.misc.cachefunc import cached_method
 
-#is needed for genus computation
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.interfaces.all import singular
 
+from sage.arith.all import lcm
+
+from sage.rings.ring import Field
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
 CAT = FunctionFields()
 
+from .function_field_element import (
+    FunctionFieldElement,
+    FunctionFieldElement_rational,
+    FunctionFieldElement_polymod,
+    FunctionFieldElement_global)
+
 def is_FunctionField(x):
     """
-    Return True if ``x`` is of function field type.
+    Return ``True`` if ``x`` is a function field.
 
     EXAMPLES::
 
         sage: from sage.rings.function_field.function_field import is_FunctionField
         sage: is_FunctionField(QQ)
         False
-        sage: is_FunctionField(FunctionField(QQ,'t'))
+        sage: is_FunctionField(FunctionField(QQ, 't'))
         True
     """
     if isinstance(x, FunctionField): return True
     return x in FunctionFields()
 
+def is_RationalFunctionField(x):
+    """
+    Return ``True`` if ``x`` is a rational function field.
+
+    EXAMPLES::
+
+        sage: from sage.rings.function_field.function_field import is_RationalFunctionField
+        sage: is_RationalFunctionField(QQ)
+        False
+        sage: is_RationalFunctionField(FunctionField(QQ, 't'))
+        True
+    """
+    return isinstance(x, RationalFunctionField)
+
 class FunctionField(Field):
     """
-    The abstract base class for all function fields.
+    Abstract base class for all function fields.
 
     EXAMPLES::
 
         sage: K.<x> = FunctionField(QQ)
-        sage: isinstance(K, sage.rings.function_field.function_field.FunctionField)
-        True
+        sage: K
+        Rational function field in x over Rational Field
     """
-    def __init__(self, base_field, names, category = CAT):
-        r"""
+    def __init__(self, base_field, names, category=CAT):
+        """
+        Initialize.
+
+        INPUT:
+
+        - ``base_field`` -- field; the base of this function field
+
+        - ``names`` -- string that gives the name of the generator
+
         TESTS::
 
             sage: K.<x> = FunctionField(QQ)
             sage: from sage.rings.function_field.function_field import FunctionField
             sage: isinstance(K, FunctionField)
             True
-
         """
         Field.__init__(self, base_field, names=names, category=category)
 
         # allow conversion into the constant base field
-        from sage.categories.homset import Hom
         from .maps import FunctionFieldConversionToConstantBaseField
         to_constant_base_field = FunctionFieldConversionToConstantBaseField(Hom(self, self.constant_base_field()))
-        # the conversion map must not keep this field alive if that is the only reference to it
+        # the conversion map must not keep the field alive if that is the only reference to it
         to_constant_base_field._make_weak_references()
         self.constant_base_field().register_conversion(to_constant_base_field)
 
     def is_perfect(self):
         r"""
-        Return whether this field is perfect, i.e., its characteristic is `p=0`
+        Return whether the field is perfect, i.e., its characteristic `p` is zero
         or every element has a `p`-th root.
 
         EXAMPLES::
@@ -155,13 +202,12 @@ class FunctionField(Field):
             True
             sage: FunctionField(GF(2), 'x').is_perfect()
             False
-
         """
         return self.characteristic() == 0
 
     def some_elements(self):
         """
-        Return some elemnts in this function field.
+        Return some elements in this function field.
 
         EXAMPLES::
 
@@ -174,7 +220,7 @@ class FunctionField(Field):
             1/x^2,
             x/(x^2 - 1),
             x/(x^2 + 1),
-            x/(2*x^2 + 2),
+            1/2*x/(x^2 + 1),
             0,
             1/x,
             ...]
@@ -187,14 +233,13 @@ class FunctionField(Field):
            [1,
             y,
             1/x*y,
-            ((1/4*x + 1/4)/(1/4*x^2 - 1/2*x + 1/4))*y - 1/2*x/(1/4*x^2 - 1/2*x + 1/4),
-            -1/-x,
+            ((x + 1)/(x^2 - 2*x + 1))*y - 2*x/(x^2 - 2*x + 1),
+            1/x,
             (1/(x - 1))*y,
             (1/(x + 1))*y,
-            (1/(2*x + 2))*y,
+            (1/2/(x + 1))*y,
             0,
             ...]
-
         """
         elements = []
 
@@ -211,7 +256,7 @@ class FunctionField(Field):
 
     def characteristic(self):
         """
-        Return the characteristic of this function field.
+        Return the characteristic of the function field.
 
         EXAMPLES::
 
@@ -230,7 +275,7 @@ class FunctionField(Field):
 
     def is_finite(self):
         """
-        Return whether this function field is finite, which it is not.
+        Return whether the function field is finite, which is false.
 
         EXAMPLES::
 
@@ -243,20 +288,36 @@ class FunctionField(Field):
         """
         return False
 
+    def is_global(self):
+        """
+        Return whether the function field is global, that is, whether
+        the constant field is finite.
+
+        EXAMPLES::
+
+            sage: R.<t> = FunctionField(QQ)
+            sage: R.is_global()
+            False
+            sage: R.<t> = FunctionField(GF(7))
+            sage: R.is_global()
+            True
+        """
+        return self.constant_base_field().is_finite()
+
     def extension(self, f, names=None):
         """
-        Create an extension L = K[y]/(f(y)) of a function field,
-        defined by a univariate polynomial in one variable over this
-        function field K.
+        Create an extension `K(y)` of this function field `K` extended with
+        a root `y` of the univariate polynomial `f` over `K`.
 
         INPUT:
 
-            - ``f`` -- a univariate polynomial over self
-            - ``names`` -- None or string or length-1 tuple
+        - ``f`` -- univariate polynomial over `K`
+
+        - ``names`` -- string or tuple of length 1 that names the variable `y`
 
         OUTPUT:
 
-            - a function field
+        - a function field
 
         EXAMPLES::
 
@@ -267,16 +328,16 @@ class FunctionField(Field):
         A nonintegral defining polynomial::
 
             sage: K.<t> = FunctionField(QQ); R.<y> = K[]
-            sage: K.extension(y^3 + (1/t)*y + t^3/(t+1))
-            Function field in y defined by y^3 + 1/t*y + t^3/(t + 1)
+            sage: K.extension(y^3 + (1/t)*y + t^3/(t+1), 'z')
+            Function field in z defined by z^3 + 1/t*z + t^3/(t + 1)
 
         The defining polynomial need not be monic or integral::
 
             sage: K.extension(t*y^3 + (1/t)*y + t^3/(t+1))
             Function field in y defined by t*y^3 + 1/t*y + t^3/(t + 1)
         """
-        from .constructor import FunctionField_polymod as FunctionField_polymod_Constructor
-        return FunctionField_polymod_Constructor(f, names)
+        from . import constructor
+        return constructor.FunctionFieldExtension(f, names)
 
     def order_with_basis(self, basis, check=True):
         """
@@ -285,15 +346,15 @@ class FunctionField(Field):
 
         INPUT:
 
-           - ``basis`` -- a list of elements of self
-           - ``check`` -- bool (default: True); if True, check that
-             the basis is really linearly independent and that the
-             module it spans is closed under multiplication, and
-             contains the identity element.
+        - ``basis`` -- list of elements of this function field
+
+        - ``check`` -- boolean (default: ``True``); if ``True``, check that the
+          basis is really linearly independent and that the module it spans is
+          closed under multiplication, and contains the identity element.
 
         OUTPUT:
 
-            - an order in this function field
+        - an order in the function field
 
         EXAMPLES::
 
@@ -329,18 +390,18 @@ class FunctionField(Field):
 
     def order(self, x, check=True):
         """
-        Return the order in this function field generated over the
-        maximal order by x or the elements of x if x is a list.
+        Return the order generated by ``x`` over the base maximal order.
 
         INPUT:
 
-           - ``x`` -- element of self, or a list of elements of self
-           - ``check`` -- bool (default: True); if True, check that
-             x really generates an order
+        - ``x`` -- element or list of elements of the function field
+
+        - ``check`` -- boolean; if ``True``, check that ``x`` really generates an order
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]; L.<y> = K.extension(y^3 + x^3 + 4*x + 1)
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 + x^3 + 4*x + 1)
             sage: O = L.order(y); O
             Order in Function field in y defined by y^3 + x^3 + 4*x + 1
             sage: O.basis()
@@ -351,7 +412,7 @@ class FunctionField(Field):
             sage: Z.basis()
             (1,)
 
-        Orders with multiple generators, not yet supported::
+        Orders with multiple generators are not yet supported::
 
             sage: Z = K.order([x,x^2]); Z
             Traceback (most recent call last):
@@ -478,8 +539,12 @@ class FunctionField(Field):
             tester.assertTrue(d(c) == 0)
 
     def _convert_map_from_(self, R):
-        r"""
+        """
         Return a conversion from ``R`` to this function field if one exists.
+
+        INPUT:
+
+        - ``R`` -- ring
 
         EXAMPLES::
 
@@ -488,7 +553,6 @@ class FunctionField(Field):
             sage: L.<y> = K.extension(y^3 + x^3 + 4*x + 1)
             sage: K(L(x)) # indirect doctest
             x
-
         """
         if isinstance(R, FunctionField_polymod):
             base_conversion = self.convert_map_from(R.base_field())
@@ -497,18 +561,18 @@ class FunctionField(Field):
                 return base_conversion * SetMorphism(R.Hom(R.base_field()), R._to_base_field)
 
     def _intermediate_fields(self, base):
-        r"""
-        Return the fields which lie in between ``base`` and this field in the
+        """
+        Return the fields which lie in between base and the function field in the
         tower of function fields.
 
         INPUT:
 
-        - ``base`` -- a function field, either this field or a field from which
+        - ``base`` -- function field, either this field or a field from which
           this field has been created as an extension
 
         OUTPUT:
 
-        A list of fields. The first entry is ``base``, the last entry is this field.
+        - a list of fields; the first entry is ``base``, the last entry is this field.
 
         EXAMPLES::
 
@@ -526,7 +590,8 @@ class FunctionField(Field):
             sage: M._intermediate_fields(L)
             [Function field in z defined by z^2 - y, Function field in y defined by y^2 - x]
             sage: M._intermediate_fields(K)
-            [Function field in z defined by z^2 - y, Function field in y defined by y^2 - x, Rational function field in x over Rational Field]
+            [Function field in z defined by z^2 - y, Function field in y defined by y^2 - x,
+            Rational function field in x over Rational Field]
 
         TESTS::
 
@@ -538,7 +603,6 @@ class FunctionField(Field):
             Traceback (most recent call last):
             ...
             TypeError: base must be a function field
-
         """
         if not is_FunctionField(base):
             raise TypeError("base must be a function field")
@@ -692,8 +756,8 @@ class FunctionField(Field):
 
 class FunctionField_polymod(FunctionField):
     """
-    A function field defined by a univariate polynomial, as an
-    extension of the base field.
+    Function fields defined by a univariate polynomial, as an extension of the
+    base field.
 
     EXAMPLES:
 
@@ -712,7 +776,7 @@ class FunctionField_polymod(FunctionField):
         sage: M.<z> = L.extension(z^2 + y*z + y); M
         Function field in z defined by z^2 + y*z + y
         sage: 1/z
-        ((x/(-x^4 - 1))*y^4 - 2*x^2/(-x^4 - 1))*z - 1
+        ((-x/(x^4 + 1))*y^4 + 2*x^2/(x^4 + 1))*z - 1
         sage: z * (1/z)
         1
 
@@ -729,7 +793,7 @@ class FunctionField_polymod(FunctionField):
 
     .. WARNING::
 
-        It is not checked if the polynomial used to define this function field is irreducible
+        It is not checked if the polynomial used to define the function field is irreducible
         Hence it is not guaranteed that this object really is a field!
         This is illustrated below.
 
@@ -746,18 +810,18 @@ class FunctionField_polymod(FunctionField):
         False
         False
     """
-    def __init__(self, polynomial, names,
-            element_class = FunctionFieldElement_polymod,
-            category=CAT):
+    def __init__(self, polynomial, names, element_class=FunctionFieldElement_polymod, category=CAT):
         """
-        Create a function field defined as an extension of another
-        function field by adjoining a root of a univariate polynomial.
+        Create a function field defined as an extension of another function
+        field by adjoining a root of a univariate polynomial.
 
         INPUT:
 
-            - ``polynomial`` -- a univariate polynomial over a function field
-            - ``names`` -- variable names (as a tuple of length 1 or string)
-            - ``category`` -- a category (defaults to category of function fields)
+        - ``polynomial`` -- univariate polynomial over a function field
+
+        - ``names`` -- tuple of length 1 or string; variable names
+
+        - ``category`` -- category (default: category of function fields)
 
         EXAMPLES:
 
@@ -791,7 +855,8 @@ class FunctionField_polymod(FunctionField):
             sage: M('x')
             Traceback (most recent call last):
             ...
-            TypeError: unable to evaluate 'x' in Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            TypeError: unable to evaluate 'x' in Fraction Field of Univariate
+            Polynomial Ring in t over Rational Field
         """
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
@@ -818,7 +883,10 @@ class FunctionField_polymod(FunctionField):
 
     def __reduce__(self):
         """
-        Returns the arguments which were used to create this instance. The rationale for this is explained in the documentation of ``UniqueRepresentation``.
+        Return the arguments which were used to create this instance.
+
+        The rationale for this is explained in the documentation of
+        :class:`UniqueRepresentation`.
 
         EXAMPLES::
 
@@ -828,12 +896,12 @@ class FunctionField_polymod(FunctionField):
             sage: clazz(*args)
             Function field in y defined by y^2 - x
         """
-        from .constructor import FunctionField_polymod as FunctionField_polymod_Constructor
-        return  FunctionField_polymod_Constructor, (self._polynomial, self._names)
+        from .constructor import FunctionFieldExtension
+        return  FunctionFieldExtension, (self._polynomial, self._names)
 
     def __hash__(self):
         """
-        Return hash of this function field.
+        Return hash of the function field.
 
         The hash value is equal to the hash of the defining polynomial.
 
@@ -843,9 +911,61 @@ class FunctionField_polymod(FunctionField):
             sage: L = K.extension(y^5 - x^3 - 3*x + x*y)
             sage: hash(L) == hash(L.polynomial())
             True
-
         """
         return self._hash
+
+    def _element_constructor_(self, x):
+        r"""
+        Make ``x`` into an element of the function field, possibly not canonically.
+
+        INPUT:
+
+        - ``x`` -- element
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
+            sage: L._element_constructor_(L.polynomial_ring().gen())
+            y
+        """
+        if isinstance(x, FunctionFieldElement):
+            return self._element_class(self, self._ring(x.element()))
+        return self._element_class(self, self._ring(x))
+
+    def gen(self, n=0):
+        """
+        Return the `n`-th generator of the function field. By default, `n` is 0; any other
+        value of `n` leads to an error. The generator is the class of `y`, if we view
+        the function field as being presented as `K[y]/(f(y))`.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
+            sage: L.gen()
+            y
+            sage: L.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: Only one generator.
+        """
+        if n != 0: raise IndexError("Only one generator.")
+        return self._gen
+
+    def ngens(self):
+        """
+        Return the number of generators of the function field over its base
+        field. This is by definition 1.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
+            sage: L.ngens()
+            1
+        """
+        return 1
 
     def _to_base_field(self, f):
         r"""
@@ -853,7 +973,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``f`` -- an element of this function field which lies in the base
+        - ``f`` -- element of the function field which lies in the base
           field.
 
         EXAMPLES::
@@ -883,7 +1003,6 @@ class FunctionField_polymod(FunctionField):
             True
             sage: z in K
             False
-
         """
         K = self.base_field()
         if f.element().is_constant():
@@ -891,12 +1010,12 @@ class FunctionField_polymod(FunctionField):
         raise ValueError("%r is not an element of the base field"%(f,))
 
     def _to_constant_base_field(self, f):
-        r"""
+        """
         Return ``f`` as an element of the :meth:`constant_base_field`.
 
         INPUT:
 
-        - ``f`` -- an element of this rational function field which is a
+        - ``f`` -- element of the rational function field which is a
           constant
 
         EXAMPLES::
@@ -919,7 +1038,6 @@ class FunctionField_polymod(FunctionField):
             True
             sage: y in QQ
             False
-
         """
         return self.base_field()._to_constant_base_field(self._to_base_field(f))
 
@@ -1021,7 +1139,7 @@ class FunctionField_polymod(FunctionField):
             if not isinstance(names, tuple):
                 names = (names,)
             if len(names) > 2:
-                raise ValueErorr("names must contain at most 2 entries")
+                raise ValueError("names must contain at most 2 entries")
 
         if self.base_field() is not self.rational_function_field():
             L,from_L,to_L = self.simple_model()
@@ -1050,14 +1168,17 @@ class FunctionField_polymod(FunctionField):
                 return ret, from_ret, to_ret
 
     def _make_monic_integral(self, f):
-        r"""
-        Let y be a root of ``f``.  This function returns a monic
-        integral polynomial g and an element d of the base field such
-        that g(y*d)=0.
+        """
+        Return a monic integral polynomial `g` and an element `d` of the base
+        field such that `g(y*d)=0` where `y` is a root of `f`.
+
+        INPUT:
+
+        - ``f`` -- polynomial
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[];
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(x^2*y^5 - 1/x)
             sage: g, d = L._make_monic_integral(L.polynomial()); g,d
             (y^5 - x^12, x^3)
@@ -1079,7 +1200,6 @@ class FunctionField_polymod(FunctionField):
             f = f / c
 
         # find lcm of denominators
-        from sage.arith.all import lcm
         # would be good to replace this by minimal...
         d = lcm([b.denominator() for b in f.list() if b])
         if d != 1:
@@ -1092,7 +1212,7 @@ class FunctionField_polymod(FunctionField):
     def constant_field(self):
         """
         Return the algebraic closure of the constant field of the base
-        field in this function field.
+        field in the function field.
 
         EXAMPLES::
 
@@ -1126,14 +1246,12 @@ class FunctionField_polymod(FunctionField):
     @cached_method(key=lambda self, base: self.base_field() if base is None else base)
     def degree(self, base=None):
         """
-        Return the degree of this function field over the function field
-        ``base``.
+        Return the degree of the function field over the function field ``base``.
 
         INPUT:
 
-        - ``base`` -- a function field (default: ``None``), a
-          function field from which this field has been constructed as a finite
-          extension.
+        - ``base`` -- a function field (default: ``None``), a function field
+          from which this field has been constructed as a finite extension.
 
         EXAMPLES::
 
@@ -1170,7 +1288,7 @@ class FunctionField_polymod(FunctionField):
 
     def _repr_(self):
         """
-        Return string representation of this function field.
+        Return the string representation of the function field.
 
         EXAMPLES::
 
@@ -1183,9 +1301,9 @@ class FunctionField_polymod(FunctionField):
 
     def base_field(self):
         """
-        Return the base field of this function field.  This function
-        field is presented as L = K[y]/(f(y)), and the base field is
-        by definition the field K.
+        Return the base field of the function field. This function field is
+        presented as `L = K[y]/(f(y))`, and the base field is by definition the
+        field `K`.
 
         EXAMPLES::
 
@@ -1198,23 +1316,24 @@ class FunctionField_polymod(FunctionField):
 
     def random_element(self, *args, **kwds):
         """
-        Create a random element of this function field.  Parameters
-        are passed onto the random_element method of the base_field.
+        Create a random element of the function field. Parameters are passed
+        onto the random_element method of the base_field.
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - (x^2 + x))
             sage: L.random_element() # random
-            ((x^2 - x + 2/3)/(x^2 + 1/3*x - 1))*y^2 + ((-1/4*x^2 + 1/2*x - 1)/(-5/2*x + 2/3))*y + (-1/2*x^2 - 4)/(-12*x^2 + 1/2*x - 1/95)
+            ((x^2 - x + 2/3)/(x^2 + 1/3*x - 1))*y^2 + ((-1/4*x^2 + 1/2*x - 1)/(-5/2*x + 2/3))*y
+            + (-1/2*x^2 - 4)/(-12*x^2 + 1/2*x - 1/95)
         """
         return self(self._ring.random_element(degree=self.degree(), *args, **kwds))
 
     def polynomial(self):
         """
-        Return the univariate polynomial that defines this function
-        field, i.e., the polynomial f(y) so that this function field
-        is of the form K[y]/(f(y)).
+        Return the univariate polynomial that defines the function field, that
+        is, the polynomial `f(y)` so that the function field is of the form
+        `K[y]/(f(y))`.
 
         EXAMPLES::
 
@@ -1230,7 +1349,7 @@ class FunctionField_polymod(FunctionField):
         Return whether the defining polynomial of the function field is
         separable, i.e., whether the gcd of the defining polynomial and its
         derivative is constant.
-        
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(5)); R.<y> = K[]
@@ -1250,9 +1369,9 @@ class FunctionField_polymod(FunctionField):
 
     def polynomial_ring(self):
         """
-        Return the polynomial ring used to represent elements of this
-        function field.  If we view this function field as being presented
-        as K[y]/(f(y)), then this function returns the ring K[y].
+        Return the polynomial ring used to represent elements of the
+        function field.  If we view the function field as being presented
+        as `K[y]/(f(y))`, then this function returns the ring `K[y]`.
 
         EXAMPLES::
 
@@ -1266,8 +1385,8 @@ class FunctionField_polymod(FunctionField):
     @cached_method(key=lambda self, base: self.base_field() if base is None else base)
     def vector_space(self, base=None):
         """
-        Return a vector space `V` and isomorphisms from this field to `V` and
-        from `V` to this field.
+        Return a vector space and isomorphisms from the field to and from the
+        vector space.
 
         This function allows us to identify the elements of this field with
         elements of a vector space over the base field, which is useful for
@@ -1281,9 +1400,11 @@ class FunctionField_polymod(FunctionField):
 
         OUTPUT:
 
-        - ``V`` -- a vector space over base field
-        - ``from_V`` -- an isomorphism from V to this field
-        - ``to_V`` -- an isomorphism from this field to V
+        - a vector space over the base function field
+
+        - an isomorphism from the vector space to the field
+
+        - an isomorphism from the field to the vector space
 
         EXAMPLES:
 
@@ -1299,11 +1420,11 @@ class FunctionField_polymod(FunctionField):
             sage: V
             Vector space of dimension 5 over Rational function field in x over Rational Field
             sage: from_V
-            Isomorphism morphism:
+            Isomorphism:
               From: Vector space of dimension 5 over Rational function field in x over Rational Field
               To:   Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
             sage: to_V
-            Isomorphism morphism:
+            Isomorphism:
               From: Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
               To:   Vector space of dimension 5 over Rational function field in x over Rational Field
 
@@ -1315,12 +1436,12 @@ class FunctionField_polymod(FunctionField):
         We define an interesting element of the function field::
 
             sage: a = 1/L.0; a
-            (-x/(-x^4 - 1))*y^4 + 2*x^2/(-x^4 - 1)
+            (x/(x^4 + 1))*y^4 - 2*x^2/(x^4 + 1)
 
         We convert it to the vector space, and get a vector over the base field::
 
             sage: to_V(a)
-            (2*x^2/(-x^4 - 1), 0, 0, 0, -x/(-x^4 - 1))
+            (-2*x^2/(x^4 + 1), 0, 0, 0, x/(x^4 + 1))
 
         We convert to and back, and get the same element::
 
@@ -1337,18 +1458,18 @@ class FunctionField_polymod(FunctionField):
 
             sage: R2.<z> = L[]; M.<z> = L.extension(z^2 -y)
             sage: M.vector_space()
-            (Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x, Isomorphism morphism:
+            (Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x, Isomorphism:
               From: Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
-              To:   Function field in z defined by z^2 - y, Isomorphism morphism:
+              To:   Function field in z defined by z^2 - y, Isomorphism:
               From: Function field in z defined by z^2 - y
               To:   Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x)
 
         We can also get the vector space of ``M`` over ``K``::
 
             sage: M.vector_space(K)
-            (Vector space of dimension 10 over Rational function field in x over Rational Field, Isomorphism morphism:
+            (Vector space of dimension 10 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 10 over Rational function field in x over Rational Field
-              To:   Function field in z defined by z^2 - y, Isomorphism morphism:
+              To:   Function field in z defined by z^2 - y, Isomorphism:
               From: Function field in z defined by z^2 - y
               To:   Vector space of dimension 10 over Rational function field in x over Rational Field)
 
@@ -1364,86 +1485,36 @@ class FunctionField_polymod(FunctionField):
 
     def maximal_order(self):
         """
-        Return the maximal_order of self.  If we view self as L =
-        K[y]/(f(y)), then this is the ring of elements of L that are
-        integral over K.
+        Return the maximal order of the function field.
 
-        EXAMPLES:
-
-        This is not yet implemented...::
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
-            sage: L.maximal_order()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: L.maximal_order()  # todo: not implemented
         """
         raise NotImplementedError
 
-    def _element_constructor_(self, x):
-        r"""
-        Make ``x`` into an element of this function field, possibly not canonically.
-
-        INPUT:
-
-            - ``x`` -- the element
-
-        OUTPUT:
-
-            ``x``, as an element of this function field
-
-        TESTS::
-
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
-            sage: L._element_constructor_(L.polynomial_ring().gen())
-            y
+    def maximal_order_infinite(self):
         """
-        if isinstance(x, FunctionFieldElement):
-            return FunctionFieldElement_polymod(self, self._ring(x.element()))
-        return FunctionFieldElement_polymod(self, self._ring(x))
-
-    def gen(self, n=0):
-        """
-        Return the ``n``-th generator of this function field. By default ``n`` is 0; any other
-        value of ``n`` leads to an error. The generator is the class of y, if we view
-        self as being presented as K[y]/(f(y)).
+        Return the maximal infinite order of the function field.
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
-            sage: L.gen()
-            y
-            sage: L.gen(1)
-            Traceback (most recent call last):
-            ...
-            IndexError: Only one generator.
+            sage: L.maximal_order_infinite()  # todo: not implemented
         """
-        if n != 0: raise IndexError("Only one generator.")
-        return self._gen
-
-    def ngens(self):
-        """
-        Return the number of generators of this function field over
-        its base field.  This is by definition 1.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
-            sage: L.ngens()
-            1
-        """
-        return 1
+        raise NotImplementedError
 
     def equation_order(self):
         """
-        If we view self as being presented as K[y]/(f(y)), then this
-        function returns the order generated by the class of y.  If f
-        is not monic, then :meth:`_make_monic_integral` is called, and instead we
-        get the order generated by some integral multiple of a root of f.
+        Return the equation order of the function field.
+
+        If we view the function field as being presented as `K[y]/(f(y))`, then
+        the order generated by the class of `y` is returned.  If `f`
+        is not monic, then :meth:`_make_monic_integral` is called, and instead
+        we get the order generated by some integral multiple of a root of `f`.
 
         EXAMPLES::
 
@@ -1468,17 +1539,17 @@ class FunctionField_polymod(FunctionField):
 
     def hom(self, im_gens, base_morphism=None):
         """
-        Create a homomorphism from self to another function field.
+        Create a homomorphism from the function field to another function field.
 
         INPUT:
 
-           - ``im_gens`` -- a list of images of the generators of self
-             and of successive base rings.
+        - ``im_gens`` -- list of images of the generators of the function field
+          and of successive base rings.
 
-           - ``base_morphism`` -- (default: None) a homomorphism of
-             the base ring, after the im_gens are used.  Thus if
-             im_gens has length 2, then base_morphism should be a morphism
-             from self.base_ring().base_ring().
+        - ``base_morphism`` -- homomorphism of the base ring, after the
+          ``im_gens`` are used.  Thus if ``im_gens`` has length 2, then
+          ``base_morphism`` should be a morphism from the base ring of the base
+          ring of the function field.
 
         EXAMPLES:
 
@@ -1590,8 +1661,9 @@ class FunctionField_polymod(FunctionField):
     @cached_method
     def genus(self):
         """
-        Return the genus of this function field
-        For now, the genus is computed using singular
+        Return the genus of the function field.
+
+        For now, the genus is computed using Singular.
 
         EXAMPLES::
 
@@ -1600,24 +1672,27 @@ class FunctionField_polymod(FunctionField):
             sage: L.genus()
             3
         """
-        # unfortunately singular can not compute the genus with the
-        # polynomial_ring()._singular_ object because genus method
-        # only accepts a ring of transcendental degree 2 over a prime
-        # field not a ring of transcendental degree 1 over a rational
-        # function field of one variable
+        # Unfortunately Singular can not compute the genus with the
+        # polynomial_ring()._singular_ object because genus method only accepts
+        # a ring of transcendental degree 2 over a prime field not a ring of
+        # transcendental degree 1 over a rational function field of one variable
 
-        if is_RationalFunctionField(self._base_field) and self._base_field.constant_field().is_prime_field():
+        if (is_RationalFunctionField(self._base_field) and
+            self._base_field.constant_field().is_prime_field()):
 
-            #Making the auxiliary ring which only has polynomials with integral coefficients.
-            tmpAuxRing = PolynomialRing(self._base_field.constant_field(), str(self._base_field.gen())+','+str(self._ring.gen()))
+            # making the auxiliary ring which only has polynomials
+            # with integral coefficients.
+            tmpAuxRing = PolynomialRing(self._base_field.constant_field(),
+                            str(self._base_field.gen())+','+str(self._ring.gen()))
             intMinPoly, d = self._make_monic_integral(self._polynomial)
             curveIdeal = tmpAuxRing.ideal(intMinPoly)
 
-            singular.lib('normal.lib') #loading genus method in singular
+            singular.lib('normal.lib') #loading genus method in Singular
             return int(curveIdeal._singular_().genus())
 
         else:
-            raise NotImplementedError("Computation of genus over this rational function field not implemented yet")
+            raise NotImplementedError("Computation of genus over the rational "
+                                      "function field not implemented yet")
 
     @cached_method
     def derivation(self):
@@ -1630,10 +1705,6 @@ class FunctionField_polymod(FunctionField):
         function field which is a finite extension of `K(x)` with `K` perfect,
         the derivations form a one-dimensional `K`-vector space generated by
         the derivation returned by this method.
-
-        OUTPUT:
-
-        - a derivation of the function field
 
         EXAMPLES::
 
@@ -1921,7 +1992,6 @@ class FunctionField_polymod(FunctionField):
         if is_RationalFunctionField(self.base_field()):
             # the extension is simple already
             if name == self.variable_name():
-                from sage.categories.homset import Hom
                 id = Hom(self,self).identity()
                 return self, id, id
             else:
@@ -1985,6 +2055,220 @@ class FunctionField_polymod(FunctionField):
         """
         N, f, t = self.simple_model()
         return f(N.gen())
+
+    @cached_method
+    def separable_model(self, names=None):
+        r"""
+        Return a function field isomorphic to this field which is a separable
+        extension of a rational function field.
+
+        INPUT:
+
+        - ``names`` -- a tuple of two strings or ``None`` (default: ``None``);
+          the second entry will be used as the variable name of the rational
+          function field, the first entry will be used as the variable name of
+          its separable extension. If ``None``, then the variable names will be
+          chosen automatically.
+
+        OUTPUT:
+
+        A triple ``(F,f,t)`` where ``F`` is a function field, ``f`` is an
+        isomorphism from ``F`` to this function field, and ``t`` is the inverse
+        of ``f``.
+
+        ALGORITHM:
+
+        Suppose that the constant base field is perfect. If this is a monic
+        integral inseparable extension of a rational function field, then the
+        defining polynomial is separable if we swap the variables (Proposition
+        4.8 in Chapter VIII of [Lang2002]_.)
+        The algorithm reduces to this case with :meth:`monic_integral_model`.
+
+        REFERENCES:
+
+        .. [Lang2002] Serge Lang. Algebra. Springer, 2002.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3)
+            sage: L.separable_model(('t','w'))
+            (Function field in t defined by t^3 + w^2,
+             Function Field morphism:
+               From: Function field in t defined by t^3 + w^2
+               To:   Function field in y defined by y^2 + x^3
+               Defn: t |--> x
+                     w |--> y,
+             Function Field morphism:
+               From: Function field in y defined by y^2 + x^3
+               To:   Function field in t defined by t^3 + w^2
+               Defn: y |--> w
+                     x |--> t)
+
+        This also works for non-integral polynomials::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2/x - x^2)
+            sage: L.separable_model()
+            (Function field in y_ defined by y_^3 + x_^2,
+             Function Field morphism:
+               From: Function field in y_ defined by y_^3 + x_^2
+               To:   Function field in y defined by 1/x*y^2 + x^2
+               Defn: y_ |--> x
+                     x_ |--> y,
+             Function Field morphism:
+               From: Function field in y defined by 1/x*y^2 + x^2
+               To:   Function field in y_ defined by y_^3 + x_^2
+               Defn: y |--> x_
+                     x |--> y_)
+
+        If the base field is not perfect this is only implemented in trivial cases::
+
+            sage: k.<t> = FunctionField(GF(2))
+            sage: k.is_perfect()
+            False
+            sage: K.<x> = FunctionField(k)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 - t)
+            sage: L.separable_model()
+            (Function field in y defined by y^3 + t,
+             Function Field endomorphism of Function field in y defined by y^3 + t
+               Defn: y |--> y
+                     x |--> x,
+             Function Field endomorphism of Function field in y defined by y^3 + t
+               Defn: y |--> y
+                     x |--> x)
+
+        Some other cases for which a separable model could be constructed are
+        not supported yet::
+
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - t)
+            sage: L.separable_model()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: constructing a separable model is only implemented for function fields over a perfect constant base field
+
+        TESTS:
+
+        Check that this also works in characteristic zero::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3)
+            sage: L.separable_model()
+            (Function field in y defined by y^2 - x^3,
+             Function Field endomorphism of Function field in y defined by y^2 - x^3
+               Defn: y |--> y
+                     x |--> x,
+             Function Field endomorphism of Function field in y defined by y^2 - x^3
+               Defn: y |--> y
+                     x |--> x)
+
+        Check that this works for towers of inseparable extensions::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+            sage: M.separable_model()
+            (Function field in z_ defined by z_ + x_^4,
+             Function Field morphism:
+               From: Function field in z_ defined by z_ + x_^4
+               To:   Function field in z defined by z^2 + y
+               Defn: z_ |--> x
+                     x_ |--> z,
+             Function Field morphism:
+               From: Function field in z defined by z^2 + y
+               To:   Function field in z_ defined by z_ + x_^4
+               Defn: z |--> x_
+                     y |--> x_^2
+                     x |--> x_^4)
+
+        Check that this also works if only the first extension is inseparable::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3 - y)
+            sage: M.separable_model()
+            (Function field in z_ defined by z_ + x_^6, Function Field morphism:
+               From: Function field in z_ defined by z_ + x_^6
+               To:   Function field in z defined by z^3 + y
+               Defn: z_ |--> x
+                     x_ |--> z, Function Field morphism:
+               From: Function field in z defined by z^3 + y
+               To:   Function field in z_ defined by z_ + x_^6
+               Defn: z |--> x_
+                     y |--> x_^3
+                     x |--> x_^6)
+
+        """
+        if names is None:
+            pass
+        elif not isinstance(names, tuple):
+            raise TypeError("names must be a tuple consisting of two strings")
+        elif len(names) != 2:
+            raise ValueError("must provide exactly two variable names")
+
+        if self.base_ring() is not self.rational_function_field():
+            L, from_L, to_L = self.simple_model()
+            K, from_K, to_K = L.separable_model(names=names)
+            f = K.hom([from_L(from_K(K.gen())), from_L(from_K(K.base_field().gen()))])
+            t = self.hom([to_K(to_L(k.gen())) for k in self._intermediate_fields(self.rational_function_field())])
+            return K, f, t
+
+        if self.polynomial().gcd(self.polynomial().derivative()).is_one():
+            # the model is already separable
+            if names is None:
+                names = self.variable_name(), self.base_field().variable_name()
+            return self.change_variable_name(names)
+
+        if not self.constant_base_field().is_perfect():
+            raise NotImplementedError("constructing a separable model is only implemented for function fields over a perfect constant base field")
+
+        if names is None:
+            names = (self.variable_name()+"_", self.rational_function_field().variable_name()+"_")
+
+        L, from_L, to_L = self.monic_integral_model()
+
+        if L.polynomial().gcd(L.polynomial().derivative()).is_one():
+            # L is separable
+            ret, ret_to_L, L_to_ret = L.change_variable_name(names)
+            f = ret.hom([from_L(ret_to_L(ret.gen())), from_L(ret_to_L(ret.base_field().gen()))])
+            t = self.hom([L_to_ret(to_L(self.gen())), L_to_ret(to_L(self.base_field().gen()))])
+            return ret, f, t
+        else:
+            # otherwise, the polynomial of L must be separable in the other variable
+            from .constructor import FunctionField
+            K = FunctionField(self.constant_base_field(), names=(names[1],))
+            # construct a field isomorphic to L on top of K
+
+            # turn the minpoly of K into a bivariate polynomial
+            if names[0] == names[1]:
+                raise ValueError("names of generators must be distinct")
+            from sage.rings.all import PolynomialRing
+            R = PolynomialRing(self.constant_base_field(), names=names)
+            S = R.remove_var(names[1])
+            f = R( L.polynomial().change_variable_name(names[1]).map_coefficients(
+                     lambda c:c.numerator().change_variable_name(names[0]), S))
+            f = f.polynomial(R.gen(0)).change_ring(K)
+            f /= f.leading_coefficient()
+            # f must be separable in the other variable (otherwise it would factor)
+            assert f.gcd(f.derivative()).is_one()
+
+            ret = K.extension(f, names=(names[0],))
+            # isomorphisms between L and ret are given by swapping generators
+            ret_to_L = ret.hom( [L(L.base_field().gen()), L.gen()] )
+            L_to_ret = L.hom( [ret(K.gen()), ret.gen()] )
+            # compose with from_L and to_L to get the desired isomorphisms between self and ret
+            f = ret.hom( [from_L(ret_to_L(ret.gen())), from_L(ret_to_L(ret.base_field().gen()))] )
+            t = self.hom( [L_to_ret(to_L(self.gen())), L_to_ret(to_L(self.base_field().gen()))] )
+            return ret, f, t
 
     def change_variable_name(self, name):
         r"""
@@ -2058,7 +2342,6 @@ class FunctionField_polymod(FunctionField):
             raise ValueError("name must contain at least one string")
         elif len(name) == 1:
             base = self.base_field()
-            from sage.categories.homset import Hom
             from_base = to_base = Hom(base,base).identity()
         else:
             base, from_base, to_base = self.base_field().change_variable_name(name[1:])
@@ -2068,23 +2351,107 @@ class FunctionField_polymod(FunctionField):
         t = self.hom( [k.gen() for k in ret._intermediate_fields(ret.rational_function_field())] )
         return ret, f, t
 
-def is_RationalFunctionField(x):
+class FunctionField_global(FunctionField_polymod):
     """
-    Return ``True`` if ``x`` is of rational function field type.
-
-    EXAMPLES::
-
-        sage: from sage.rings.function_field.function_field import is_RationalFunctionField
-        sage: is_RationalFunctionField(QQ)
-        False
-        sage: is_RationalFunctionField(FunctionField(QQ,'t'))
-        True
+    Global function fields.
     """
-    return isinstance(x, RationalFunctionField)
+    def __init__(self, polynomial, names):
+        """
+        Initialize the function field.
+
+        INPUT:
+
+        - ``polynomial`` -- monic irreducible and separable polynomial
+
+        - ``names`` -- name of the generator of the function field
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(5)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3-(x^3-1)/(x^3-2))
+            sage: L
+            Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+        """
+        FunctionField_polymod.__init__(self, polynomial, names,
+                                       element_class=FunctionFieldElement_global)
+
+        self._cache = {}
+
+    @cached_method
+    def _inversion_isomorphism(self):
+        r"""
+        Return an inverted function field isomorphic to ``self`` and isomorphisms
+        between them.
+
+        An *inverted* function field `M` is an extension of the base rational
+        function field `k(x)` of ``self``, and isomorphic to ``self`` by an
+        isomorphism sending `x` to `1/x`, which we call an *inversion*
+        isomorphism.  Also the defining polynomial of the function field `M` is
+        required to be monic and integral.
+
+        The inversion isomorphism is for internal use to reposition infinite
+        places to finite places.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: F._inversion_isomorphism()
+            (Function field in s defined by s^3 + x^16 + x^14 + x^12, Composite map:
+               From: Function field in s defined by s^3 + x^16 + x^14 + x^12
+               To:   Function field in y defined by y^3 + x^6 + x^4 + x^2
+               Defn:   Function Field morphism:
+                       From: Function field in s defined by s^3 + x^16 + x^14 + x^12
+                       To:   Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
+                       Defn: s |--> x^6*T
+                             x |--> x
+                     then
+                       Function Field morphism:
+                       From: Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
+                       To:   Function field in y defined by y^3 + x^6 + x^4 + x^2
+                       Defn: T |--> y
+                             x |--> 1/x, Composite map:
+               From: Function field in y defined by y^3 + x^6 + x^4 + x^2
+               To:   Function field in s defined by s^3 + x^16 + x^14 + x^12
+               Defn:   Function Field morphism:
+                       From: Function field in y defined by y^3 + x^6 + x^4 + x^2
+                       To:   Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
+                       Defn: y |--> T
+                             x |--> 1/x
+                     then
+                       Function Field morphism:
+                       From: Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
+                       To:   Function field in s defined by s^3 + x^16 + x^14 + x^12
+                       Defn: T |--> 1/x^6*s
+                             x |--> x)
+        """
+        K = self.base_field()
+        R = PolynomialRing(K,'T')
+        x = K.gen()
+        xinv = 1/x
+
+        h = K.hom(xinv)
+        F_poly = R([h(c) for c in self.polynomial().list()])
+        F = K.extension(F_poly)
+
+        self2F = self.hom([F.gen(),xinv])
+        F2self = F.hom([self.gen(),xinv])
+
+        M, M2F, F2M = F.monic_integral_model('s')
+
+        return M, F2self*M2F, F2M*self2F
+
+class FunctionField_global_integral(FunctionField_global):
+    """
+    Global function fields defined by an irreducible and separable polynomial,
+    which is integral over the maximal order of the base rational function
+    field with a finite constant field.
+    """
+    pass
 
 class RationalFunctionField(FunctionField):
     """
-    A rational function field K(t) in one variable, over an arbitrary
+    Rational function field `K(t)` in one variable, over an arbitrary
     base field.
 
     EXAMPLES::
@@ -2127,9 +2494,9 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-            - ``constant_field`` -- an arbitrary field
-            - ``names`` -- a string or tuple of length 1
-            - ``category`` -- default: FunctionFields()
+        - ``constant_field`` -- arbitrary field
+
+        - ``names`` -- string or tuple of length 1
 
         EXAMPLES::
 
@@ -2161,7 +2528,6 @@ class RationalFunctionField(FunctionField):
         self._ring = R
 
         self._field = R.fraction_field()
-        from sage.categories.all import Hom
         hom = Hom(self._field, self)
         from .maps import FractionFieldToFunctionField
         self.register_coercion(hom.__make_element_class__(FractionFieldToFunctionField)(hom.domain(), hom.codomain()))
@@ -2174,7 +2540,9 @@ class RationalFunctionField(FunctionField):
 
     def __reduce__(self):
         """
-        Returns the arguments which were used to create this instance. The rationale for this is explained in the documentation of ``UniqueRepresentation``.
+        Returns the arguments which were used to create this instance. The
+        rationale for this is explained in the documentation of
+        :class:`UniqueRepresentation`.
 
         EXAMPLES::
 
@@ -2188,7 +2556,7 @@ class RationalFunctionField(FunctionField):
 
     def __hash__(self):
         """
-        Return hash of this function field.
+        Return hash of the function field.
 
         The hash is formed from the constant field and the variable names.
 
@@ -2203,7 +2571,7 @@ class RationalFunctionField(FunctionField):
 
     def _repr_(self):
         """
-        Return string representation of this function field.
+        Return string representation of the function field.
 
         EXAMPLES::
 
@@ -2216,15 +2584,7 @@ class RationalFunctionField(FunctionField):
 
     def _element_constructor_(self, x):
         r"""
-        Coerce ``x`` into an element of this function field, possibly not canonically.
-
-        INPUT:
-
-            - ``x`` -- the element
-
-        OUTPUT:
-
-            ``x``, as an element of this function field
+        Coerce ``x`` into an element of the function field, possibly not canonically.
 
         EXAMPLES::
 
@@ -2271,11 +2631,11 @@ class RationalFunctionField(FunctionField):
 
     def _to_constant_base_field(self, f):
         r"""
-        Return ``f`` as an element of the :meth:`constant_base_field`.
+        Return ``f`` as an element of the constant base field.
 
         INPUT:
 
-        - ``f`` -- an element of this rational function field which is a
+        - ``f`` -- element of the rational function field which is a
           constant of the underlying rational function field.
 
         EXAMPLES::
@@ -2331,11 +2691,11 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-            - ``f`` -- a univariate polynomial over self.
+        - ``f`` -- univariate polynomial over the function field
 
         OUTPUT:
 
-            - bivariate polynomial, denominator
+        - bivariate polynomial, denominator
 
         EXAMPLES::
 
@@ -2346,16 +2706,19 @@ class RationalFunctionField(FunctionField):
             (X^7*t^2 - X^4*t^5 - X^3 + t^3, t^3)
         """
         v = f.list()
-        from sage.arith.all import LCM
-        denom = LCM([a.denominator() for a in v])
+        denom = lcm([a.denominator() for a in v])
         S = denom.parent()
         x,t = S.base_ring()['%s,%s'%(f.parent().variable_name(),self.variable_name())].gens()
         phi = S.hom([t])
         return sum([phi((denom * v[i]).numerator()) * x**i for i in range(len(v))]), denom
 
-    def _factor_univariate_polynomial(self, f, proof=True):
+    def _factor_univariate_polynomial(self, f, proof=None):
         """
-        Factor the univariate polynomial ``f`` over self.
+        Factor the univariate polynomial f over the function field.
+
+        INPUT:
+
+        - ``f`` -- univariate polynomial over the function field
 
         EXAMPLES::
 
@@ -2390,22 +2753,16 @@ class RationalFunctionField(FunctionField):
             sage: f.factor().prod() == f
             True
 
-        We check that ``proof`` parameter is passed to the underlying
-        polynomial (see :trac:`24510`). However, factoring over a function
-        field over a tower of finite fields does not work yet (see
-        :trac:`24533`)::
+        Factoring over a function field over a tower of finite fields::
 
-            sage: k = GF(4)
             sage: k.<a> = GF(4)
             sage: R.<b> = k[]
-            sage: l.<b> = k.extension(a^2 + a + b)
+            sage: l.<b> = k.extension(b^2 + b + a)
             sage: K.<x> = FunctionField(l)
             sage: R.<t> = K[]
             sage: F = t*x
             sage: F.factor(proof=False)
-            Traceback (most recent call last):
-            ...
-            TypeError: no conversion of this ring to a Singular ring defined
+            (x) * t
 
         """
         old_variable_name = f.variable_name()
@@ -2429,18 +2786,55 @@ class RationalFunctionField(FunctionField):
             if old_variable_name != a.variable_name():
                 a = a.change_variable_name(old_variable_name)
             unit *= (c**e)
-            w.append((a,e))
+            if a.is_unit():
+                unit *= a**e
+            else:
+                w.append((a,e))
         from sage.structure.factorization import Factorization
         return Factorization(w, unit=unit)
+
+    def extension(self, f, names=None):
+        """
+        Create an extension `L = K[y]/(f(y))` of the rational function field.
+
+        INPUT:
+
+        - ``f`` -- univariate polynomial over self
+
+        - ``names`` -- string or length-1 tuple
+
+        OUTPUT:
+
+        - a function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: K.extension(y^5 - x^3 - 3*x + x*y)
+            Function field in y defined by y^5 + x*y - x^3 - 3*x
+
+        A nonintegral defining polynomial::
+
+            sage: K.<t> = FunctionField(QQ); R.<y> = K[]
+            sage: K.extension(y^3 + (1/t)*y + t^3/(t+1))
+            Function field in y defined by y^3 + 1/t*y + t^3/(t + 1)
+
+        The defining polynomial need not be monic or integral::
+
+            sage: K.extension(t*y^3 + (1/t)*y + t^3/(t+1))
+            Function field in y defined by t*y^3 + 1/t*y + t^3/(t + 1)
+        """
+        from . import constructor
+        return constructor.FunctionFieldExtension(f, names)
 
     @cached_method
     def polynomial_ring(self, var='x'):
         """
-        Return a polynomial ring in one variable over this rational function field.
+        Return a polynomial ring in one variable over the rational function field.
 
         INPUT:
 
-            - ``var`` -- a string (default: 'x')
+        - ``var`` -- string; name of the variable
 
         EXAMPLES::
 
@@ -2455,21 +2849,24 @@ class RationalFunctionField(FunctionField):
     @cached_method
     def vector_space(self):
         """
-        Return a vector space V and isomorphisms self --> V and V --> self.
+        Return a vector space and an isomorphism from the function field to the
+        vector space and its iverse isomorphism.
 
         OUTPUT:
 
-            -  ``V`` -- a vector space over the rational numbers
-            -  ``from_V`` -- an isomorphism from V to self
-            -  ``to_V`` -- an isomorphism from self to V
+        - a vector space `V` over the constant field
+
+        - an isomorphism from `V` to the function field
+
+        - the inverse isomorphism from the function field to `V`
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
             sage: K.vector_space()
-            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism morphism:
+            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
-              To:   Rational function field in x over Rational Field, Isomorphism morphism:
+              To:   Rational function field in x over Rational Field, Isomorphism:
               From: Rational function field in x over Rational Field
               To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
         """
@@ -2481,7 +2878,7 @@ class RationalFunctionField(FunctionField):
 
     def random_element(self, *args, **kwds):
         """
-        Create a random element of this rational function field.
+        Create a random element of the rational function field.
 
         Parameters are passed to the random_element method of the
         underlying fraction field.
@@ -2495,9 +2892,9 @@ class RationalFunctionField(FunctionField):
 
     def degree(self, base=None):
         """
-        Return the degree over the base field of this rational
-        function field. Since the base field is the rational function
-        field itself, the degree is 1.
+        Return the degree over the base field of the rational function
+        field.  Since the base field is the rational function field itself, the
+        degree is 1.
 
         INPUT:
 
@@ -2519,7 +2916,7 @@ class RationalFunctionField(FunctionField):
 
     def gen(self, n=0):
         """
-        Return the ``n``-th generator of this function field.  If ``n`` is not
+        Return the ``n``-th generator of the function field.  If ``n`` is not
         0, then an IndexError is raised.
 
         EXAMPLES::
@@ -2551,8 +2948,8 @@ class RationalFunctionField(FunctionField):
 
     def base_field(self):
         """
-        Return the base field of this rational function field, which is just
-        this function field itself.
+        Return the base field of the rational function field, which is just
+        the function field itself.
 
         EXAMPLES::
 
@@ -2564,18 +2961,20 @@ class RationalFunctionField(FunctionField):
 
     def hom(self, im_gens, base_morphism=None):
         """
-        Create a homomorphism from self to another ring.
+        Create a homomorphism from ``self`` to another ring.
 
         INPUT:
 
-            - ``im_gens`` -- exactly one element of some ring.  It must be invertible and transcendental over
-                             the image of ``base_morphism``; this is not checked.
-            - ``base_morphism`` -- a homomorphism from the base field into the other ring.
-                                   If ``None``, try to use a coercion map.
+        - ``im_gens`` -- exactly one element of some ring.  It must be
+          invertible and transcendental over the image of
+          ``base_morphism``; this is not checked.
+
+        - ``base_morphism`` -- a homomorphism from the base field into the
+          other ring.  If ``None``, try to use a coercion map.
 
         OUTPUT:
 
-            - a map between function fields
+        - a map between function fields
 
         EXAMPLES:
 
@@ -2671,12 +3070,11 @@ class RationalFunctionField(FunctionField):
 
     def genus(self):
         """
-        Return the genus of this function field
-        This is always equal 0 for a rational function field
+        Return the genus of the function field, namely 0.
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ);
+            sage: K.<x> = FunctionField(QQ)
             sage: K.genus()
             0
         """
@@ -2685,8 +3083,8 @@ class RationalFunctionField(FunctionField):
     @cached_method(key=lambda self, base: None)
     def vector_space(self, base=None):
         """
-        Return a vector space `V` and isomorphisms from this field to `V` and
-        from `V` to this field.
+        Return a vector space `V` and isomorphisms from the field to `V` and
+        from `V` to the field.
 
         This function allows us to identify the elements of this field with
         elements of a one-dimensional vector space over the field itself. This
@@ -2700,26 +3098,28 @@ class RationalFunctionField(FunctionField):
 
         OUTPUT:
 
-        - ``V`` -- a vector space over base field
-        - ``from_V`` -- an isomorphism from V to this field
-        - ``to_V`` -- an isomorphism from this field to V
+        - a vector space `V` over base field
+
+        - an isomorphism from `V` to the field
+
+        - the inverse isomorphism from the field to `V`
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
             sage: K.vector_space()
-            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism morphism:
+            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
-              To:   Rational function field in x over Rational Field, Isomorphism morphism:
+              To:   Rational function field in x over Rational Field, Isomorphism:
               From: Rational function field in x over Rational Field
               To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
 
         TESTS::
 
             sage: K.vector_space()
-            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism morphism:
+            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
-              To:   Rational function field in x over Rational Field, Isomorphism morphism:
+              To:   Rational function field in x over Rational Field, Isomorphism:
               From: Rational function field in x over Rational Field
               To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
 
@@ -2772,7 +3172,6 @@ class RationalFunctionField(FunctionField):
                 raise ValueError("names must be a tuple with a single string")
             name = name[0]
         if name == self.variable_name():
-            from sage.categories.homset import Hom
             id = Hom(self,self).identity()
             return self,id,id
         else:
@@ -2785,10 +3184,6 @@ class RationalFunctionField(FunctionField):
         r"""
         Return a derivation of the rational function field over the constant
         base field.
-
-        OUTPUT:
-
-        - a derivation of the rational function field
 
         The derivation maps the generator of the rational function field to 1.
 
@@ -2814,3 +3209,9 @@ class RationalFunctionField(FunctionField):
         if not self.constant_base_field().is_perfect():
             raise NotImplementedError("not implemented for non-perfect base fields")
         return FunctionFieldDerivation_rational(self, self.one())
+
+class RationalFunctionField_global(RationalFunctionField):
+    """
+    Rational function field over finite fields.
+    """
+    pass

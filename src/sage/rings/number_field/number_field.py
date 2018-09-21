@@ -2391,7 +2391,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             (False, [])
 
             sage: k = NumberField(x^2 - x - 1, 'b')
-            sage: ky.<y> = k[];
+            sage: ky.<y> = k[]
             sage: l = NumberField(y, 'a')
             sage: k.is_isomorphic(l, True)
             (True, [-x, x + 1])
@@ -4509,7 +4509,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
              -1,
              2/13*a^2 + 1/13*a - 755/13,
              1/13*a^2 - 19/13*a - 7/13,
-             2/13*a^2 + 53/13*a - 92/13,
+             -1/13*a^2 + 45/13*a - 97/13,
              2/13*a^2 + 40/13*a - 27/13]
 
         Verify that :trac:`16708` is fixed::
@@ -6359,7 +6359,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
             sage: K = NumberField(A, 'a')
             sage: K.units()
-            (1/275*a^3 - 7/55*a^2 + 6/11*a - 3,)
+            (8/275*a^3 - 12/55*a^2 + 15/11*a - 3,)
 
         For big number fields, provably computing the unit group can
         take a very long time.  In this case, one can ask for the
@@ -6706,7 +6706,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             # Factor the n-th cyclotomic polynomial over K.
             f = K.pari_polynomial('y')
             factors = f.nffactor(pari.polcyclo(n)).component(1)
-            roots = [K(-g.polcoeff(0)) for g in factors if g.poldegree() == 1]
+            roots = [K(-g.polcoef(0)) for g in factors if g.poldegree() == 1]
             if all:
                 return roots
             if roots:
@@ -7866,11 +7866,11 @@ class NumberField_absolute(NumberField_generic):
             sage: K.maximal_order([3]).basis()
             [1/3*a^2 + 1/3*a + 1/3, a, a^2]
             sage: K.maximal_order([2]).basis()
-            [1, a, a^2]
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
             sage: K.maximal_order([p]).basis()
-            [1, a, a^2]
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
             sage: K.maximal_order([q]).basis()
-            [1, a, a^2]
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
             sage: K.maximal_order([p,3]).basis()
             [1/3*a^2 + 1/3*a + 1/3, a, a^2]
 
@@ -9465,7 +9465,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: TestSuite(k).run()
             Failure in _test_gcd_vs_xgcd:
             ...
-            AssertionError: The methods gcd and xgcd disagree on Cyclotomic Field of order 3 and degree 2:
+            AssertionError:... The methods gcd and xgcd disagree on Cyclotomic Field of order 3 and degree 2:
               gcd(0,2) = 1
              xgcd(0,2) = (2, 0, 1)
             ------------------------------------------------------------

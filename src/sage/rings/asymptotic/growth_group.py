@@ -1033,7 +1033,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
-            sage: G = GenericGrowthGroup(ZZ);
+            sage: G = GenericGrowthGroup(ZZ)
             sage: hash(G(raw_element=42))  # random
             5656565656565656
         """

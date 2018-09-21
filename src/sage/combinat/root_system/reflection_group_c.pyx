@@ -340,20 +340,22 @@ cdef class Iterator(object):
         20% faster. It yields indeed all elements in the group rather than
         applying a given function.
 
+        The output order is not deterministic.
+
         EXAMPLES::
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
             sage: W = CoxeterGroup(['B',2], implementation="permutation")
             sage: I = Iterator(W, W.number_of_reflections())
-            sage: list(I.iter_parabolic())
+            sage: sorted(I.iter_parabolic())
             [(),
-             (1,3)(2,6)(5,7),
              (2,8)(3,7)(4,6),
+             (1,3)(2,6)(5,7),
              (1,3,5,7)(2,8,6,4),
              (1,5)(2,4)(6,8),
-             (1,7,5,3)(2,4,6,8),
              (1,5)(2,6)(3,7)(4,8),
-             (1,7)(3,5)(4,8)]
+             (1,7)(3,5)(4,8),
+             (1,7,5,3)(2,4,6,8)]
         """
         cdef int i,j
         cdef list coset_reps

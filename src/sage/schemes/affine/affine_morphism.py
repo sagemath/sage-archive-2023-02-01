@@ -233,11 +233,11 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``right`` - a map on affine space.
+        - ``right`` -- a map on affine space
 
         OUTPUT:
 
-        - Boolean - True if the two affine maps define the same map.
+        ``True`` if the two affine maps define the same map.
 
         EXAMPLES::
 
@@ -250,7 +250,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f == g
             False
 
-            ::
+        ::
 
             sage: A.<x,y,z> = AffineSpace(CC, 3)
             sage: H = End(A)
@@ -262,7 +262,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return False
         if self.parent() != right.parent():
             return False
-        return all(self[i] == right[i] for i in range(len(self._polys)))
+        return all(val == right._polys[i] for i,val in enumerate(self._polys))
 
     def __ne__(self, right):
         """
@@ -270,11 +270,11 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``right`` -  a map on affine space.
+        - ``right`` -- a map on affine space
 
         OUTPUT:
 
-        - Boolean - True if the two affine maps define the same map.
+        ``True`` if the two affine maps define the same map.
 
         EXAMPLES::
 
@@ -291,9 +291,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return True
         if self.parent() != right.parent():
             return True
-        if all(self[i] == right[i] for i in range(len(self._polys))):
-            return False
-        return True
+        return any(val != right._polys[i] for i,val in enumerate(self._polys))
 
     @lazy_attribute
     def _fastpolys(self):

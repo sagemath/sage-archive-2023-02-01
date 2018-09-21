@@ -450,9 +450,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    80
+    82
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    119
+    121
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -512,7 +512,7 @@ inheritance still works, by virtue of a ``__getattr__`` method.
     It is strongly recommended to use the category framework both in Python
     and in Cython.
 
-Let us see whether there is any gain in chosing the category of quotient
+Let us see whether there is any gain in choosing the category of quotient
 fields instead of the category of fields::
 
     sage: QuotientFields().parent_class, QuotientFields().element_class

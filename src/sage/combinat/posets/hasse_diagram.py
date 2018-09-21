@@ -1956,7 +1956,7 @@ class HasseDiagram(DiGraph):
             sage: P = posets.PentagonPoset()
             sage: H = P._hasse_diagram
             sage: H.antichains_iterator()
-            <generator object antichains_iterator at ...>
+            <generator object ...antichains_iterator at ...>
             sage: list(H.antichains_iterator())
             [[], [4], [3], [2], [1], [1, 3], [1, 2], [0]]
 
@@ -2210,7 +2210,7 @@ class HasseDiagram(DiGraph):
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0: [1, 2], 1:[3], 2:[3]})
             sage: it = H.sublattices_iterator(set(), 0); it
-            <generator object sublattices_iterator at ...>
+            <generator object ...sublattices_iterator at ...>
             sage: next(it)
             set()
             sage: next(it)
@@ -2918,6 +2918,7 @@ class HasseDiagram(DiGraph):
             irr = [(v, self.neighbors_in(v)[0]) for v in join_irreducibles]
         else:
             irr = [(self.neighbors_out(v)[0], v) for v in meet_irreducibles]
+        irr.sort(key=lambda x: x[0]-x[1])
         tried = []
         for pair in irr:
             cong = self.congruence([pair], stop_pairs=tried)

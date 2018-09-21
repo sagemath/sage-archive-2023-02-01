@@ -1170,7 +1170,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             - Weaker properties: :meth:`is_modular`,
               :meth:`is_semidistributive`, :meth:`is_join_distributive`,
               :meth:`is_meet_distributive`, :meth:`is_subdirectly_reducible`,
-              :meth:`is_constructible_by_doublings` (by interval doubling)
+              :meth:`is_constructible_by_doublings` (by interval doubling),
+              :meth:`is_extremal`
             - Stronger properties: :meth:`is_stone`
 
         TESTS::
@@ -2345,8 +2346,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Canonical example is the lattice of partitions of finite set
         ordered by refinement::
 
-            sage: S = SetPartitions(3)
-            sage: L = LatticePoset( (S, lambda a, b: S.is_less_than(a, b)) )
+            sage: L = posets.SetPartitions(4)
             sage: L.is_geometric()
             True
 
@@ -3025,7 +3025,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_subdirectly_reducible`
-            - Mutually exclusive properties: :meth:`is_atomic`, :meth:`is_coatomic`
+            - Mutually exclusive properties: :meth:`is_atomic`, :meth:`is_coatomic`,
+              :meth:`is_regular`
             - Other: :meth:`vertical_decomposition`
 
         TESTS::
@@ -4186,16 +4187,32 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if self.cardinality() < 5:
             return True
 
-        if type == 'interval':
-            return (len(self.join_irreducibles()) ==
-                    len(self.meet_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
+        if (type == 'interval' and len(self.join_irreducibles()) !=
+            len(self.meet_irreducibles())):
+            return False
+
+        if type == 'upper' or type == 'interval':
+            H = self._hasse_diagram
+            found = set()
+            for v in H:
+                if H.out_degree(v) == 1:
+                    S = frozenset(map(frozenset, H.congruence([[v, next(H.neighbor_out_iterator(v))]])))
+                    if S in found:
+                        return False
+                    found.add(S)
+            return True
+
         if type == 'lower':
-            return (len(self.join_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
-        if type == 'upper':
-            return (len(self.meet_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
+            H = self._hasse_diagram
+            found = set()
+            for v in H:
+                if H.in_degree(v) == 1:
+                    S = frozenset(map(frozenset, H.congruence([[v, next(H.neighbor_in_iterator(v))]])))
+                    if S in found:
+                        return False
+                    found.add(S)
+            return True
+
         if type == 'convex':
             return self._hasse_diagram.is_congruence_normal()
         # type == 'any'
@@ -4279,6 +4296,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return ok
         for c in H.congruences_iterator():
             cong = list(c)
+            if len(cong) in [1, H.order()]:
+                continue
+            if not certificate:
+                if any(len(x) != len(cong[0]) for x in cong):
+                    return False
             d = H.subgraph(cong[0])
             for part in cong:
                 if not H.subgraph(part).is_isomorphic(d):
@@ -4300,7 +4322,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) whether to return
-          a certificate if the lattice is not regular
+          a certificate if the lattice is not uniform
 
         OUTPUT:
 
@@ -4407,6 +4429,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             - Stronger properties: :meth:`is_uniform`,
               :meth:`is_sectionally_complemented`,
               :meth:`is_cosectionally_complemented`
+            - Mutually exclusive properties: :meth:`is_vertically_decomposable`
             - Other: :meth:`congruence`
 
         TESTS::
@@ -4414,8 +4437,16 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: [posets.ChainPoset(i).is_regular() for i in range(5)]
             [True, True, True, False, False]
         """
+        ok = (True, None) if certificate else True
+
         H = self._hasse_diagram
+        if H.order() < 3:
+            return ok
         for cong in H.congruences_iterator():
+            x = iter(cong.root_to_elements_dict().values())
+            ell = len(next(x))
+            if all(len(p) == ell for p in x):
+                continue
             for part in cong:
                 if H.congruence([part]) != cong:
                     if certificate:
@@ -4424,9 +4455,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                                 (SetPartition([[self._vertex_to_element(v) for v in p] for p in cong]),
                                  [self._vertex_to_element(v) for v in part]))
                     return False
-        if certificate:
-            return (True, None)
-        return True
+        return ok
 
     def is_simple(self, certificate=False):
         """

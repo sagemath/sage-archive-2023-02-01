@@ -46,10 +46,10 @@ from __future__ import print_function
 from six.moves import zip
 
 import numpy
-import math, bisect
+import math
+import bisect
 
-from sage.rings.all import (ZZ, QQ, RR, RDF, RIF, CC, CDF, CIF,
-    infinity)
+from sage.rings.all import (ZZ, QQ, RR, RDF, RIF, CC, CDF, CIF, infinity)
 
 from sage.misc.all import cached_method, cartesian_product_iterator
 from sage.arith.all import lcm, factorial
@@ -484,6 +484,7 @@ class UnionOfIntervals:
         """
         return "(%s)" % " U ".join(str(list(I)) for I in self.intervals())
 
+
 def nonneg_region(f):
     r"""
     Returns the UnionOfIntervals representing the region where ``f`` is non-negative.
@@ -634,10 +635,10 @@ def min_on_disk(f, tol, max_iter=10000):
             if in_disk:
                 s_in_disk = True     # if the original region si in the disk so are all its children
             else:
-                 r = abs(s)          # otherwise we test each one
-                 if r > 1:
-                     continue        # skip this subregion if it is entirely outside the disk
-                 s_in_disk = r < 1   # meaning it is entirely inside the disk
+                r = abs(s)          # otherwise we test each one
+                if r > 1:
+                    continue        # skip this subregion if it is entirely outside the disk
+                s_in_disk = r < 1   # meaning it is entirely inside the disk
 
             fs = f(s)
 
@@ -654,11 +655,13 @@ def min_on_disk(f, tol, max_iter=10000):
     # If we get here, then even after max_iter iterations the tolerance has not been reached.
     raise ValueError("too many iterations")
 
-two_pi_i_CDF = CDF(0, 2*RDF.pi())
-two_pi_i_CIF = CIF(0, 2*RIF.pi())
+
+two_pi_i_CDF = CDF(0, 2 * RDF.pi())
+two_pi_i_CIF = CIF(0, 2 * RIF.pi())
 
 # Ideas: We know tau, so we know the direction of the diagonal.
-#        We can solve for x in p1, will this allow us to find the maxima exactly?
+# We can solve for x in p1, will this allow us to find the maxima exactly?
+
 
 def rat_term_CIF(z, try_strict=True):
     r"""
@@ -724,6 +727,7 @@ def rat_term_CIF(z, try_strict=True):
         imag_part = -(r**2-1)*y*r/denom
 
     return CIF(real_part, imag_part)
+
 
 def eps(err, is_real):
     r"""
@@ -1834,12 +1838,12 @@ class EllipticCurveCanonicalHeight:
         # of these is 1 we can return True right away (see [TT]_,
         # Proposition 5.1).
         Bk = []
-        for n in ZZ.range(1, N+1):
+        for n in ZZ.range(1, N + 1):
             b = self.B(n, mu)
             if verbose:
                 print("B_%s(%s) = %s" % (n, mu, b))
             if b < 1:
-               return True
+                return True
             Bk.append(b)
 
         # Each real or complex embedding of the number field gives us

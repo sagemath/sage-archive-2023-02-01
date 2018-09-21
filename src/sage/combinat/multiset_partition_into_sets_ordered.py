@@ -1167,7 +1167,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitionsIntoSets(3).list()
         [[{3}], [{1,2}], [{2}, {1}], [{1}, {2}], [{1}, {1}, {1}]]
 
-    Passing two argument to :class:`OrderedMultisetPartitionsIntoSets`:
+    Passing two arguments to :class:`OrderedMultisetPartitionsIntoSets`:
 
     There are also 5 ordered multiset partitions into sets of order 2
     over the alphabet `\{1, 4\}`::

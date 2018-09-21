@@ -193,7 +193,7 @@ def bdd_height_iq(K, height_bound):
     # Find principal ideals of bounded norm
     possible_norm_set = set([])
     for n in range(class_number):
-        for m in range(1, height_bound + 1):
+        for m in range(1, int(height_bound + 1)):
             possible_norm_set.add(m*class_group_rep_norms[n])
     bdd_ideals = bdd_norm_pr_gens_iq(K, possible_norm_set)
 

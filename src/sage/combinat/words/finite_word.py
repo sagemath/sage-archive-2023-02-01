@@ -632,7 +632,7 @@ class FiniteWord_class(Word_class):
         return True
 
     def schuetzenberger_involution(self, n = None):
-        """
+        r"""
         Return the Schützenberger involution of the word ``self``, which is obtained
         by reverting the word and then complementing all letters within the
         underlying ordered alphabet. If ``n`` is specified, the underlying
@@ -1336,6 +1336,28 @@ class FiniteWord_class(Word_class):
             <... 'generator'>
         """
         return self.suffix_tree().factor_iterator(n)
+
+    def factor_complexity(self, n):
+        r"""
+        Return the number of distinct factors of length ``n`` of ``self``.
+
+        INPUT:
+
+        - ``n`` -- the length of the factors.
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: [w.factor_complexity(i) for i in range(20)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:1000]
+            sage: [w.factor_complexity(i) for i in range(20)]
+            [1, 2, 4, 6, 10, 12, 16, 20, 22, 24, 28, 32, 36, 40, 42, 44, 46, 48, 52, 56]
+        """
+        return len(list(self.factor_iterator(n)))
 
     def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
@@ -3097,6 +3119,28 @@ class FiniteWord_class(Word_class):
         LPS = self.lps_lengths(f)
         return set(self[i-LPS[i] : i] for i in range(len(self)+1))
 
+    def palindromic_complexity(self, n):
+        r"""
+        Return the number of distinct palindromic factors of length ``n`` of ``self``.
+
+        INPUT:
+
+        - ``n`` -- the length of the factors.
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: [w.palindromic_complexity(i) for i in range(20)]
+            [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:1000]
+            sage: [w.palindromic_complexity(i) for i in range(20)]
+            [1, 2, 2, 2, 2, 0, 4, 0, 4, 0, 4, 0, 4, 0, 2, 0, 2, 0, 4, 0]
+        """
+        return len([x for x in self.palindromes() if len(x)==n])    
+
     def palindrome_prefixes(self):
         r"""
         Return a list of all palindrome prefixes of ``self``.
@@ -3888,7 +3932,7 @@ class FiniteWord_class(Word_class):
 
     def is_subword_of(self, other):
         r"""
-        Return ``True`` is ``self`` is a subword of ``other``, and ``False`` otherwise.
+        Return ``True`` if ``self`` is a subword of ``other``, and ``False`` otherwise.
 
         A finite word `u` is a *subword* of a finite word `v` if `u` is a
         subsequence of `v`. See Chapter 6 on Subwords in [1].
@@ -6169,7 +6213,7 @@ class FiniteWord_class(Word_class):
         else:
             return self
 
-    def abelian_vector(self, alphabet=None):
+    def abelian_vector(self):
         r"""
         Return the abelian vector of ``self`` counting the occurrences of each letter.
 
@@ -6179,7 +6223,6 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``self`` -- word having a parent on a finite alphabet
-        - ``alphabet`` -- *DEPRECATED*
 
         OUTPUT:
 
@@ -6195,17 +6238,7 @@ class FiniteWord_class(Word_class):
             sage: W().abelian_vector()
             [0, 0]
 
-        The argument ``alphabet`` is deprecated::
-
-            sage: Word('aabaa').abelian_vector('abc')
-            doctest:...: DeprecationWarning: The argument alphabet of
-            methods abelian_vector and parikh_vector is deprecated and will
-            be removed in a future version of Sage. In order to fix this,
-            you must define your word on a parent with a finite alphabet.
-            See http://trac.sagemath.org/17058 for details.
-            [4, 1, 0]
-
-        You may fix the above deprecated use of the ``alphabet`` argument this way::
+        The result depends on the alphabet of the parent::
 
             sage: W = Words('abc')
             sage: W('aabaa').abelian_vector()
@@ -6221,24 +6254,14 @@ class FiniteWord_class(Word_class):
             word with a parent on a finite alphabet or use
             evaluation_dict() instead
         """
-        if alphabet is None:
-            if self.parent().alphabet().cardinality() is Infinity:
-                raise TypeError("The alphabet of the parent is infinite; define "
-                        "the word with a parent on a finite alphabet or use "
-                        "evaluation_dict() instead")
-            alphabet = self.parent().alphabet()
-        else:
-            from sage.misc.superseded import deprecation
-            deprecation(17058, "The argument alphabet of methods abelian_vector "
-                        "and parikh_vector is deprecated and will be "
-                        "removed in a future version of Sage. In order to "
-                        "fix this, you must define your word on a parent "
-                        "with a finite alphabet.")
-
+        alphabet = self.parent().alphabet()
+        if alphabet.cardinality() is Infinity:
+            raise TypeError("The alphabet of the parent is infinite; define "
+                    "the word with a parent on a finite alphabet or use "
+                    "evaluation_dict() instead")
         ev_dict = self.evaluation_dict()
-        return [ev_dict.get(a,0) for a in alphabet]
+        return [ev_dict.get(a, 0) for a in alphabet]
 
-    parikh_vector = deprecated_function_alias(17058, abelian_vector)
     evaluation = abelian_vector
 
     def robinson_schensted(self):

@@ -47,7 +47,7 @@ REFERENCES:
 """
 from __future__ import print_function, division
 
-from builtins import zip
+from six.moves import zip, filter
 
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1038,6 +1038,20 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.harmonic_cocycles(2,prec=10)
+            sage: H2 = X.harmonic_cocycles(2,prec=10)
+            sage: hash(H1) == hash(H2)
+            True
+        """
+        return hash((self.base_ring(), self._X, self._k))
+
     def _element_constructor_(self, x):
         r"""
         Constructor for harmonic cocycles.
@@ -1194,11 +1208,11 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         d = self._k - 1
         for e in self._E:
             try:
-                g = filter(lambda g: g[2], S[e.label])[0]
+                g = next(filter(lambda g: g[2], S[e.label]))
                 C = self._U.acting_matrix(self._Sigma0(self.embed_quaternion(g[0])), d).transpose()  # Warning - Need to allow the check = True
                 C -= self._U.acting_matrix(self._Sigma0(Matrix(QQ, 2, 2, p ** g[1])), d).transpose()  # Warning - Need to allow the check = True
                 stab_conds.append([e.label, C])
-            except IndexError:
+            except StopIteration:
                 pass
 
         n_stab_conds = len(stab_conds)
@@ -2390,6 +2404,20 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             True
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.padic_automorphic_forms(2,prec = 10)
+            sage: H2 = X.padic_automorphic_forms(2,prec = 10)
+            sage: hash(H1) == hash(H2)
+            True
+        """
+        return hash((self.base_ring(), self._source, self._U))
 
     def _repr_(self):
         r"""

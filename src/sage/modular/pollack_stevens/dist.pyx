@@ -145,7 +145,7 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: D = OverconvergentDistributions(4, 7, 10)
-            sage: v = D([7,14,21,28,35]);
+            sage: v = D([7,14,21,28,35])
             sage: v.moment(3)
             4*7 + O(7^2)
             sage: v.moment(0)
@@ -163,7 +163,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = OverconvergentDistributions(4, 5, 10, base = Qp(5));
+            sage: D = OverconvergentDistributions(4, 5, 10, base = Qp(5))
             sage: v = D([1,7,4,2,-1])
             sage: v = 1/5^3 * v
             sage: v

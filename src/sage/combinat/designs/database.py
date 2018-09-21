@@ -3123,9 +3123,10 @@ DF = {
 
 # Create the list of DF for the documentation
 _all_l = sorted(set(l for v,k,l in DF.keys()))
-LIST_OF_DF = "\n".join("    - `\lambda={}`:\n       ".format(l) +
-                       ", ".join("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l)
+LIST_OF_DF = "\n".join(r"    - `\lambda={}`:\n       ".format(l) +
+                       ", ".join("`({},{},{})`".format(v, k, l) for v,k,_ in sorted(DF.keys()) if _ == l)
                        for l in _all_l)
+
 
 def DM_12_6_1():
     r"""
@@ -4043,9 +4044,10 @@ DM = {
 
 # Create the list of DM for the documentation
 _all_l = sorted(set(l for v,l in DM.keys()))
-LIST_OF_DM = "\n".join("    - `\lambda={}`:\n       ".format(l)+
+LIST_OF_DM = "\n".join(r"    - `\lambda={}`:\n       ".format(l)+
                        ", ".join("`({},{},{})`".format(v,k,l) for (v,_),(k,__) in sorted(DM.items()) if _ == l)
                        for l in _all_l)
+
 
 def RBIBD_120_8_1():
     r"""
@@ -4590,8 +4592,8 @@ BIBD_constructions = {
 
 # Create the list of DF for the documentation
 _all_l = sorted(set(l for v,k,l in BIBD_constructions.keys()))
-LIST_OF_BIBD = "\n".join("    - `\lambda={}`:\n       ".format(l) +
-                       ", ".join("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(BIBD_constructions) if _ == l)
+LIST_OF_BIBD = "\n".join(r"    - `\lambda={}`:\n       ".format(l) +
+                       ", ".join("`({},{},{})`".format(v, k, l) for v,k,_ in sorted(BIBD_constructions) if _ == l)
                        for l in _all_l)
 
 # Evenly Distributed Sets (EDS)

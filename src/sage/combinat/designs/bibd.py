@@ -763,8 +763,9 @@ def _relabel_bibd(B,n,p=None):
     d[p] = n-1
     return [[d[x] for x in X] for X in B]
 
+
 def PBD_4_5_8_9_12(v, check=True):
-    """
+    r"""
     Return a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
 
     A `(v,\{4,5,8,9,12\})`-PBD exists if and only if `v\equiv 0,1 \pmod 4`. The

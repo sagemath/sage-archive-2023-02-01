@@ -71,6 +71,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import Integer, CIF
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
+from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
                                                               is_PrimeFiniteField)
 from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -97,6 +98,7 @@ from sage.schemes.projective.projective_morphism import (
 from sage.schemes.projective.projective_space import (ProjectiveSpace,
                                                       is_ProjectiveSpace)
 from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+from sage.structure.element import get_coercion_model
 from sage.symbolic.constants import e
 from copy import copy
 from sage.parallel.ncpus import ncpus
@@ -142,15 +144,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
       * ``morphism_or_polys`` is a list of homogeneous polynomials and
         ``domain`` is unspecified; ``domain`` is then taken to be the
-        projective space of appropriate dimension over the base ring of
-        the first element of ``morphism_or_polys``.
+        projective space of appropriate dimension over the common base ring,
+        if one exists, of the elements of ``morphism_or_polys``.
 
       * ``morphism_or_polys`` is a single polynomial or rational
         function; ``domain`` is ignored and taken to be a
         1-dimensional projective space over the base ring of
         ``morphism_or_polys`` with coordinate names given by ``names``.
 
-    OUTPUT: :class:`DynamicalSystem_projectve`.
+    OUTPUT: :class:`DynamicalSystem_projective`.
 
     EXAMPLES::
 
@@ -181,7 +183,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           Defn: Defined on coordinates by sending (a : b) to
                 (a^2 : b^2)
 
-    Symbolic Ring elements are not allows::
+    Symbolic Ring elements are not allowed::
 
         sage: x,y = var('x,y')
         sage: DynamicalSystem_projective([x^2,y^2])
@@ -317,7 +319,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: DynamicalSystem_projective([y, x, y], domain=P1)
             Traceback (most recent call last):
             ...
-            ValueError: polys (=[y, x, y]) do not define a rational endomorphism of the domain
+            ValueError: Number of polys does not match dimension of Projective Space of dimension 1 over Rational Field
 
         ::
 
@@ -334,6 +336,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             ValueError: list/tuple must have at least 2 polynomials
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem([CC.0*x^2 + 2*y^2, 1*y^2], domain=P)
+            Traceback (most recent call last):
+            ...
+            TypeError: coefficients of polynomial not in Rational Field
         """
         from sage.dynamics.arithmetic_dynamics.product_projective_ds import DynamicalSystem_product_projective
 
@@ -381,17 +391,23 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             proj_CR = PolynomialRing(aff_CR.base_ring(), names=names)
             X,Y = proj_CR.gens()
             polys = [proj_CR(Y**d * poly(X/Y)) for poly in polys]
+
         if domain is None:
-            f = polys[0]
-            proj_CR = f.parent()
-            domain = ProjectiveSpace(proj_CR)
+            PR = get_coercion_model().common_parent(*polys)
+            polys = [PR(poly) for poly in polys]
+            domain = ProjectiveSpace(PR)
+        else:
+            # Check if we can coerce the given polynomials over the given domain 
+            PR = domain.ambient_space().coordinate_ring()
+            try:
+                polys = [PR(poly) for poly in polys]
+            except TypeError:
+                raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
+        if len(polys) != domain.ambient_space().coordinate_ring().ngens():
+            raise ValueError('Number of polys does not match dimension of {}'.format(domain)) 
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")
-
-        if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            msg = 'polys (={}) do not define a rational endomorphism of the domain'
-            raise ValueError(msg.format(polys))
 
         if is_ProductProjectiveSpaces(domain):
             splitpolys = domain._factors(polys)
@@ -1815,6 +1831,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: Q = P(RSA768,1)
             sage: f.canonical_height(Q, error_bound=0.00000000000000001)
             931.18256422718241278672729195
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([2*( -2*x^3 + 3*(x^2*y)) + 3*y^3,3*y^3])
+            sage: f.canonical_height(P(1,0))
+            0.00000000000000000000000000000
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
@@ -1863,7 +1886,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 t = lcm(t, c.denominator())
             A = t * f[0]
             B = t * f[1]
-            Res = f.resultant(normalize=True)
+            Res = f.resultant(normalize=True).abs()
             H = 0
             x_i = Q[0]
             y_i = Q[1]
@@ -1875,7 +1898,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if Res > 1:
                 if not err is None:
                     err = err / 2
-                    N = ceil((R(Res.abs()).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
+                    N = ceil((R(Res).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
                     if N < 1:
                         N = 1
                     kwds.update({'error_bound': err})
@@ -2074,7 +2097,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(CC,1)
             sage: f = DynamicalSystem_projective([x^3 - 25*x*y^2 + 12*y^3, 12*y^3])
             sage: f.multiplier(P(1,1), 5)
-            [0.389017489711935]
+            [0.389017489711934]
 
         ::
 
@@ -2361,6 +2384,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         its conjugacy class.
 
         See [BM2012]_ and [Mol2015]_ for a description of the algorithm.
+        For polynomial maps it uses [HS2018]_.
 
         INPUT:
 
@@ -2387,10 +2411,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: PS.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([6*x^2+12*x*y+7*y^2, y^2])
             sage: f.is_PGL_minimal()
-            Traceback (most recent call last):
-            ...
-            TypeError: affine minimality is only considered for maps not of the form
-            f or 1/f for a polynomial f
+            False
         """
         if self.base_ring() != QQ and self.base_ring() != ZZ:
             raise NotImplementedError("minimal models only implemented over ZZ or QQ")
@@ -2399,10 +2420,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
 
-        from .endPN_minimal_model import affine_minimal
-        return(affine_minimal(self, False , prime_list , True))
+        f = copy(self)
+        f.normalize_coordinates()
+        R = f.domain().coordinate_ring()
+        F = R(f[0].numerator())
+        G = R(f[0].denominator())
+        if G.degree() == 0 or F.degree() == 0:
+            #can't use BM for polynomial
+            from .endPN_minimal_model import HS_minimal
+            g, m = HS_minimal(self, return_transformation=True, D=prime_list)
+            return m == m.parent().one()
 
-    def minimal_model(self, return_transformation=False, prime_list=None):
+        from .endPN_minimal_model import affine_minimal
+        return affine_minimal(self, return_transformation=False, D=prime_list, quick=True)
+
+    def minimal_model(self, return_transformation=False, prime_list=None, algorithm=None):
         r"""
         Determine if this dynamical system is minimal.
 
@@ -2410,11 +2442,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         over the rationals. In particular, determine if this map is affine
         minimal, which is enough to decide if it is minimal or not.
         See Proposition 2.10 in [BM2012]_.
-
-        REFERENCES:
-
-        - [BM2012]_
-        - [Mol2015]_
 
         INPUT:
 
@@ -2425,9 +2452,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``prime_list`` -- (optional) a list of primes, in case one
           only wants to determine minimality at those specific primes
 
+        - ``algorithm`` -- (optional) string; can be one of the following:
+
+          * ``'BM'`` - the Bruin-Molnar algorithm [BM2012]_
+          * ``'HS'`` - the Hutz-Stoll algorithm [HS2018]_
+
         OUTPUT:
 
-        - a scheme morphism on the projective line which is a minimal model
+        - a dynamical system on the projective line which is a minimal model
           of this map
 
         - a `PGL(2,\QQ)` element which conjugates this map to a minimal model
@@ -2454,12 +2486,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             ....:                                 -12329/2*X^4 - 10506*X^3*Y - 6723*X^2*Y^2 - 1914*X*Y^3 - 409/2*Y^4])
             sage: f.minimal_model(return_transformation=True)
             (
-            Dynamical System of Projective Space of dimension 1 over Rational
-            Field
+            Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (X : Y) to
-                    (22176*X^4 + 151956*X^3*Y + 390474*X^2*Y^2 + 445956*X*Y^3 + 190999*Y^4
-                     : -12329*X^4 - 84480*X^3*Y - 217080*X^2*Y^2 - 247920*X*Y^3 - 106180*Y^4),
-            [2 3]
+                    (9847*X^4 + 28088*X^3*Y + 30048*X^2*Y^2 + 14288*X*Y^3 + 2548*Y^4
+                    : -12329*X^4 - 35164*X^3*Y - 37614*X^2*Y^2 - 17884*X*Y^3 - 3189*Y^4),
+            <BLANKLINE>
+            [2 1]
             [0 1]
             )
 
@@ -2477,11 +2509,28 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: PS.<x,y> = ProjectiveSpace(ZZ,1)
             sage: f = DynamicalSystem_projective([6*x^2+12*x*y+7*y^2, 12*x*y + 42*y^2])
-            sage: g,M=f.minimal_model(return_transformation=True)
+            sage: g,M = f.minimal_model(return_transformation=True, algorithm='BM')
             sage: f.conjugate(M) == g
             True
 
         ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([2*x^2, y^2])
+            sage: f.minimal_model(return_transformation=True)
+            (
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 : y^2)                                                    ,
+            [1 0]
+            [0 2]
+            )
+            sage: f.minimal_model(prime_list=[3])
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (2*x^2 : y^2)            
+
+        TESTS::
 
             sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([X+Y, X-3*Y])
@@ -2499,6 +2548,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             ...
             TypeError: the function is not a morphism
 
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem([2*x^2, y^2])
+            sage: f.minimal_model(algorithm = 'BM')
+            Traceback (most recent call last):
+            ...
+            TypeError: affine minimality is only considered for maps not of the form f or 1/f for a polynomial f
+
+        REFERENCES:
+
+        - [BM2012]_
+        - [Mol2015]_
+        - [HS2018]_
         """
         if self.base_ring() != ZZ and self.base_ring() != QQ:
             raise NotImplementedError("minimal models only implemented over ZZ or QQ")
@@ -2507,8 +2570,162 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
 
-        from .endPN_minimal_model import affine_minimal
-        return(affine_minimal(self, return_transformation, prime_list, False))
+        if algorithm == 'BM':
+            from .endPN_minimal_model import affine_minimal
+            return affine_minimal(self, return_transformation=return_transformation, D=prime_list, quick=False)
+        if algorithm == 'HS':
+            from .endPN_minimal_model import HS_minimal
+            return HS_minimal(self, return_transformation=return_transformation, D=prime_list)
+        # algorithm not specified
+        f = copy(self)
+        f.normalize_coordinates()
+        R = f.domain().coordinate_ring()
+        F = R(f[0].numerator())
+        G = R(f[0].denominator())
+        if G.degree() == 0 or F.degree() == 0:
+            #can use BM for polynomial
+            from .endPN_minimal_model import HS_minimal
+            return HS_minimal(self, return_transformation=return_transformation, D=prime_list)
+
+        if prime_list is None:
+            prime_list = ZZ(F.resultant().prime_divisors())
+        if max(prime_list) > 500:
+            from .endPN_minimal_model import affine_minimal
+            return affine_minimal(self, return_transformation=return_transformation,
+                                  D=prime_list, quick=False)
+
+    def all_minimal_models(self, return_transformation=False, prime_list=None,
+                           algorithm=None, check_minimal=True):
+        r"""
+        Determine a representative in each `SL(2,\ZZ)`-orbit of this map.
+
+        This can be done either with the Bruin-Molnar algorithm or the
+        Hutz-Stoll algorithm. The Hutz-Stoll algorithm requires the map
+        to have minimal resultant and then finds representatives in orbits
+        with minimal resultant. The Bruin-Molnar algorithm finds
+        representatives with the same resultant (up to sign) of the given map.
+
+        Bruin-Molnar does not work for polynomials and is more efficient
+        for large primes.
+
+        INPUT:
+
+        - ``return_transformation`` -- (default: ``False``) boolean; this
+          signals a return of the `PGL_2` transformation to conjugate
+          this map to the calculated models
+
+        - ``prime_list`` -- (optional) a list of primes, in case one
+          only wants to determine minimality at those specific primes
+
+        - ``algorithm`` -- (optional) string; can be one of the following:
+
+          * ``'BM'`` - the Bruin-Molnar algorithm [BM2012]_
+          * ``'HS'`` - for the Hutz-Stoll algorithm [HS2018]_
+
+          if not specified, properties of the map are utilized to choose
+
+        - ``check_minimal`` -- (optional) boolean; to first check if the map
+          is minimal and if not, compute a minimal model before computing
+          for orbit representatives
+
+        OUTPUT:
+
+        A list of pairs `(F,m)`, where `F` is dynamical system on the
+        projective line and `m` is the associated `PGL(2,\QQ)` element.
+        Or just a list of dynamical systems if not returning the conjugation.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([2*x^2, 3*y^2])
+            sage: f.all_minimal_models()
+            [Dynamical System of Projective Space of dimension 1 over Rational Field
+               Defn: Defined on coordinates by sending (x : y) to
+                     (x^2 : y^2)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: c = 2*3^6
+            sage: f = DynamicalSystem([x^3 - c^2*y^3, x*y^2])
+            sage: len(f.all_minimal_models(algorithm='HS'))
+            14
+            sage: len(f.all_minimal_models(prime_list=[2], algorithm='HS'))
+            2
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([237568*x^3 + 1204224*x^2*y + 2032560*x*y^2
+            ....:     + 1142289*y^3, -131072*x^3 - 663552*x^2*y - 1118464*x*y^2
+            ....:     - 627664*y^3])
+            sage: len(f.all_minimal_models(algorithm='BM'))
+            2
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: c = 2^2*5^2*11^3
+            sage: f = DynamicalSystem([x^3 - c^2*y^3, x*y^2])
+            sage: MM = f.all_minimal_models(return_transformation=True, algorithm='BM')
+            sage: all([f.conjugate(m) == F for F,m in MM])
+            True
+            sage: MM = f.all_minimal_models(return_transformation=True, algorithm='HS')
+            sage: all(f.conjugate(m) == F for F,m in MM)
+            True
+
+        REFERENCES:
+
+        - [BM2012]_
+        - [HS2018]_
+        """
+        if self.base_ring() != ZZ and self.base_ring() != QQ:
+            raise NotImplementedError("minimal models only implemented over ZZ or QQ")
+        if not self.is_morphism():
+            raise TypeError("the function is not a morphism")
+        if self.degree() == 1:
+            raise NotImplementedError("minimality is only for degree 2 or higher")
+
+        if check_minimal:
+            f, m = self.minimal_model(return_transformation=True,
+                                      prime_list=prime_list,
+                                      algorithm=algorithm)
+        else:
+            f = self
+            m = matrix(ZZ, 2, 2, [1,0,0,1])
+
+        if algorithm == 'BM':
+            from .endPN_minimal_model import BM_all_minimal
+            models = BM_all_minimal(f, return_transformation=True, D=prime_list)
+        elif algorithm == 'HS':
+            from .endPN_minimal_model import HS_all_minimal
+            models = HS_all_minimal(f, return_transformation=True, D=prime_list)
+        else: # algorithm not specified
+            f.normalize_coordinates()
+            Aff_f = f.dehomogenize(1)
+            R = Aff_f.domain().coordinate_ring()
+            F = R(Aff_f[0].numerator())
+            G = R(Aff_f[0].denominator())
+            if G.degree() == 0 or F.degree() == 0:
+                #can use BM for polynomial
+                from .endPN_minimal_model import HS_all_minimal
+                models = HS_all_minimal(f, return_transformation=True, D=prime_list)
+            elif prime_list is None:
+                prime_list = ZZ(f.resultant()).prime_divisors()
+                if prime_list == []:
+                    models = [[f,m]]
+                elif max(prime_list) > 500:
+                    from .endPN_minimal_model import BM_all_minimal
+                    models = BM_all_minimal(f, return_transformation=True, D=prime_list)
+                else:
+                    from .endPN_minimal_model import HS_all_minimal
+                    models = HS_all_minimal(f, return_transformation=True, D=prime_list)
+
+        if return_transformation:
+            models = [[g, t*m] for g,t in models]
+        else:
+            models = [g for g,t in models]
+        return models
 
     def automorphism_group(self, **kwds):
         r"""
@@ -2571,7 +2788,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2-2*x*y-2*y^2, -2*x^2-2*x*y+y^2])
             sage: f.automorphism_group(return_functions=True)
-            [x, 2/(2*x), -x - 1, -2*x/(2*x + 2), (-x - 1)/x, -1/(x + 1)]
+            [x, 1/x, -x - 1, -x/(x + 1), (-x - 1)/x, -1/(x + 1)]
 
         ::
 
@@ -3582,25 +3799,30 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         sig = [sig[i] * (-1)**(i+1) / den for i in range(len(sig))]
         return sig
 
-    def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
+    def reduced_form(self, **kwds):
         r"""
         Return reduced form of this dynamical system.
 
         The reduced form is the `SL(2, \ZZ)` equivalent morphism obtained
         by applying the binary form reduction algorithm from Stoll and
-        Cremona [SC]_ to the homogeneous polynomial defining the periodic
+        Cremona [CS2003]_ to the homogeneous polynomial defining the periodic
         points (the dynatomic polynomial). The smallest period `n` with
-        enough periodic points is used.
+        enough periodic points is used and without roots of too large
+        multiplicity.
 
-        This should also minimize the sum of the squares of the coefficients,
-        but this is not always the case.
+        This should also minimize the size  of the coefficients,
+        but this is not always the case. By default the coefficient minimizing
+        algorithm in [HS2018]_ is applied.
 
         See :meth:`sage.rings.polynomial.multi_polynomial.reduced_form` for
         the information on binary form reduction.
 
         Implemented by Rebecca Lauren Miller as part of GSOC 2016.
+        Minimal height added by Ben Hutz July 2018.
 
         INPUT:
+
+        keywords:
 
         - ``prec`` -- (default: 300) integer, desired precision
 
@@ -3609,6 +3831,28 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``error_limit`` -- (default: 0.000001) a real number, sets
           the error tolerance
+
+        - ``smallest_coeffs`` -- (default: True), boolean, whether to find the
+          model with smallest coefficients
+
+        - ``dynatomic`` -- (default: True) boolean, to use formal periodic points
+
+        - ``start_n`` -- (default: 1), positive integer, firs period to rry to find
+          appropriate binary form
+
+        - ``emb`` -- (optional) embedding of based field into CC
+
+        - ``algorithm`` -- (optional) which algorithm to use to find all
+          minimal models. Can be one of the following:
+
+          * ``'BM'`` -- Bruin-Molnar algorithm [BM2012]_
+          * ``'HS'`` -- Hutz-Stoll algorithm [HS2018]_
+
+        - ``check_minimal`` -- (default: True), boolean, whether to check
+          if this map is a minimal model
+
+        - ``smallest_coeffs`` -- (default: True), boolean, whether to find the
+          model with smallest coefficients
 
         OUTPUT:
 
@@ -3620,20 +3864,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: PS.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^3 + x*y^2, y^3])
-            sage: m = matrix(QQ, 2, 2, [-221, -1, 1, 0])
+            sage: m = matrix(QQ, 2, 2, [-201221, -1, 1, 0])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form(prec=100) #needs 2 periodic
+            sage: f.reduced_form(prec=50, smallest_coeffs=False) #needs 2 periodic
             Traceback (most recent call last):
             ...
-            ValueError: not enough precision
-            sage: f.reduced_form()
+            ValueError: accuracy of Newton's root not within tolerance(0.000066950849420871 > 1e-06), increase precision
+            sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
-            Defn: Defined on coordinates by sending (x : y) to
-            (x^3 + x*y^2 : y^3)
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 + x*y^2 : y^3)
             ,
-            [  0  -1]
-            [  1 221]
+            <BLANKLINE>
+            [     0     -1]
+            [     1 201221]
             )
 
         ::
@@ -3642,7 +3887,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2+ x*y, y^2]) #needs 3 periodic
             sage: m = matrix(QQ, 2, 2, [-221, -1, 1, 0])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form(prec=200)
+            sage: f.reduced_form(prec=200, smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Integer Ring
             Defn: Defined on coordinates by sending (x : y) to
@@ -3656,15 +3901,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^3, y^3])
-            sage: f.reduced_form()
+            sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^3 : y^3)
             ,
             <BLANKLINE>
-            [-1  0]
-            [ 0 -1]
+            [1 0]
+            [0 1]
             )
 
         ::
@@ -3672,11 +3917,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([7365*X^4 + 12564*X^3*Y + 8046*X^2*Y^2 + 2292*X*Y^3 + 245*Y^4,\
             -12329*X^4 - 21012*X^3*Y - 13446*X^2*Y^2 - 3828*X*Y^3 - 409*Y^4])
-            sage: f.reduced_form(prec=30)
+            sage: f.reduced_form(prec=30, smallest_coeffs=False)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(1.2519612 > 1e-06), increase precision
-            sage: f.reduced_form()
+            ValueError: accuracy of Newton's root not within tolerance(0.000087401733 > 1e-06), increase precision
+            sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (X : Y) to
@@ -3692,15 +3937,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^4, RR(sqrt(2))*y^4])
             sage: m = matrix(RR, 2, 2, [1,12,0,1])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form()
+            sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Real Field with 53 bits of precision
               Defn: Defined on coordinates by sending (x : y) to
-                    (-x^4 + 2.86348722511320e-12*y^4 : -1.41421356237310*y^4)
+                    (x^4 - 2.86348722511320e-12*y^4 : 1.41421356237310*y^4)
             ,
             <BLANKLINE>
-            [-1 12]
-            [ 0 -1]
+            [  1 -12]
+            [  0   1]
             )
 
         ::
@@ -3709,14 +3954,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^4, CC(sqrt(-2))*y^4])
             sage: m = matrix(CC, 2, 2, [1,12,0,1])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form()
+            sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Complex Field with 53 bits of precision
               Defn: Defined on coordinates by sending (x : y) to
-                    (-x^4 + (-1.03914726748259e-15)*y^4 : (-8.65956056235493e-17 - 1.41421356237309*I)*y^4) ,
+                    (x^4 + (1.03914726748259e-15)*y^4 : (8.65956056235493e-17 + 1.41421356237309*I)*y^4)
+            ,
             <BLANKLINE>
-            [-1 12]
-            [ 0 -1]
+            [  1 -12]
+            [  0   1]
             )
 
         ::
@@ -3726,15 +3972,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^3, w*y^3])
             sage: m = matrix(K, 2, 2, [1,12,0,1])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form()
+            sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2
               Defn: Defined on coordinates by sending (x : y) to
                     (x^3 : (w)*y^3)
             ,
             <BLANKLINE>
-            [-1 12]
-            [ 0 -1]
+            [  1 -12]
+            [  0   1]
             )
 
         ::
@@ -3745,7 +3991,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([12*x^3, 2334*w*y^3])
             sage: m = matrix(K, 2, 2, [-12,1,1,0])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form()
+            sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field
             in w with defining polynomial x^5 + x - 3
@@ -3755,22 +4001,130 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [  0  -1]
             [  1 -12]
             )
+
+        ::
+
+            sage: P.<x,y> = QQ[]
+            sage: f = DynamicalSystem([-4*y^2, 9*x^2 - 12*x*y])
+            sage: f.reduced_form()
+            (
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (-2*x^2 + 2*y^2 : x^2 + 2*y^2)
+            ,
+            <BLANKLINE>
+            [ 2 -2]
+            [ 3  0]
+            )
+
+        ::
+
+            sage: P.<x,y> = QQ[]
+            sage: f = DynamicalSystem([-2*x^3 - 9*x^2*y - 12*x*y^2 - 6*y^3 , y^3])
+            sage: f.reduced_form()
+            (
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 + 3*x^2*y : 3*x*y^2 + y^3)
+            ,
+            <BLANKLINE>
+            [-1 -2]
+            [ 1  1]
+            )
+
+        ::
+
+            sage: P.<x,y> = QQ[]
+            sage: f = DynamicalSystem([4*x^2 - 7*y^2, 4*y^2])
+            sage: f.reduced_form(start_n=2, dynatomic=False) #long time
+            (
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 - x*y - y^2 : y^2)
+            ,
+            <BLANKLINE>
+            [ 2 -1]
+            [ 0  2]
+            )
+
+        ::
+
+            sage: P.<x,y> = QQ[]
+            sage: f = DynamicalSystem([4*x^2 + y^2, 4*y^2])
+            sage: f.reduced_form()  #long time
+            (
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 - x*y + y^2 : y^2)
+            ,
+            <BLANKLINE>
+            [ 2 -1]
+            [ 0  2]
+            )
         """
-        R = self.coordinate_ring()
-        F = R(self.dynatomic_polynomial(1))
-        x,y = R.gens()
-        d = gcd(F, F.derivative(x)).degree() #counts multiple roots
-        n = 2
-        # Checks to make sure there are enough distinct, roots we need 3
-        # if there are not it finds the nth periodic points until there are enough
-        while F.degree() - d <= 2:
-            F = self.dynatomic_polynomial(n) # finds n periodic points
-            d = gcd(F, F.derivative(x)).degree() #counts multiple roots
-            n += 1
-        G,m = F.reduced_form(prec=prec, return_conjugation=return_conjugation)
+        if self.domain().ambient_space().dimension_relative() != 1:
+            return NotImplementedError('only implmeneted for dimension 1')
+        return_conjugation = kwds.get('return_conjugation', True)
+        emb = kwds.get('emb', None)
+        prec = kwds.get('prec', 300)
+        start_n = kwds.get('start_n', 1)
+        algorithm = kwds.get('algorithm', None)
+        dynatomic = algorithm = kwds.get('dynatomic', True)
+        smallest_coeffs = kwds.get('smallest_coeffs', True)
+        if smallest_coeffs:
+            if self.base_ring() not in [ZZ,QQ]:
+                raise NotImplementedError("smallest coeff only over ZZ or QQ")
+            check_min = kwds.get('check_minimal', True)
+            from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import smallest_dynamical
+            sm_f, m = smallest_dynamical(self, dynatomic=dynatomic, start_n=start_n,\
+                 prec=prec, emb=emb, algorithm=algorithm, check_minimal=check_min)
+        else:
+            #reduce via covariant
+            PS = self.domain()
+            CR = PS.coordinate_ring()
+            x,y = CR.gens()
+            n = start_n # sometimes you get a problem later with 0,infty as roots
+            pts_poly = self.dynatomic_polynomial(n)
+            d = ZZ(pts_poly.degree())
+            try:
+                max_mult = max([ex for p,ex in pts_poly.factor()])
+            except NotImplementedError: #not factorization in numericla rings
+                CF = ComplexField(prec=prec)
+                if pts_poly.base_ring() != CF:
+                    if emb == None:
+                        pts_poly_CF = pts_poly.change_ring(CF)
+                    else:
+                        pts_poly_CF = pts_poly.change_ring(emb)
+                pp_d = pts_poly.degree()
+                pts_poly_CF = pts_poly_CF.subs({pts_poly_CF.parent().gen(1):1}).univariate_polynomial()
+                max_mult = max([pp_d - pts_poly_CF.degree()] + [ex for p,ex in pts_poly_CF.roots()])
+            while ((d < 3) or (max_mult >= d/2) and (n < 5)):
+                n = n+1
+                if dynatomic:
+                    pts_poly = self.dynatomic_polynomial(n)
+                else:
+                    gn = self.nth_iterate_map(n)
+                    pts_poly = y*gn[0] - x*gn[1]
+                d = ZZ(pts_poly.degree())
+                try:
+                    max_mult = max([ex for p,ex in pts_poly.factor()])
+                except NotImplementedError: #not factorization in numericla rings
+                    CF = ComplexField(prec=prec)
+                    if pts_poly.base_ring() != CF:
+                        if emb == None:
+                            pts_poly_CF = pts_poly.change_ring(CF)
+                        else:
+                            pts_poly_CF = pts_poly.change_ring(emb)
+                    pp_d = pts_poly.degree()
+                    pts_poly_CF = pts_poly_CF.subs({pts_poly_CF.parent().gen(1):1}).univariate_polynomial()
+                    max_mult = max([pp_d - pts_poly_CF.degree()] + [ex for p,ex in pts_poly_CF.roots()])
+            assert(n<=4), "n > 4, failed to find usable poly"
+            G,m = pts_poly.reduced_form(prec=prec, emb=emb, smallest_coeffs=False)
+            sm_f = self.conjugate(m)
+
         if return_conjugation:
-            return (self.conjugate(m), m)
-        return self.conjugate(m)
+            return (sm_f, m)
+        return sm_f
 
     def _is_preperiodic(self, P, err=0.1, return_period=False):
         r"""
@@ -4816,9 +5170,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             for i in Subsets(L, n+2):
                 # make sure all n+1 subsets are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
-                if not any([j == 0 for j in Ml.minors(n+1)]):
+                if not any(j == 0 for j in Ml.minors(n + 1)):
                     Tf = list(i)
-                    more= False
+                    more = False
                     break
         while more:
             #  finds preimages of fixed points
@@ -4834,7 +5188,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             if d >= n + 2: # makes sure all n+1 subsets are linearly independent
                 for i in Subsets(L, n+2):
                     Ml = matrix(r, [list(s) for s in i])
-                    if not any([j == 0 for j in Ml.minors(n+1)]):
+                    if not any(j == 0 for j in Ml.minors(n + 1)):
                         more = False
                         Tf = list(i)
                         break
@@ -4936,7 +5290,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if d >= n+2: # need at least n+2 points
             for i in Subsets(L, n+2): # makes sure all n+1 subsets are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
-                if not any([j == 0 for j in Ml.minors(n+1)]):
+                if not any(j == 0 for j in Ml.minors(n + 1)):
                     Tf = list(i)
                     more = False
                     break
@@ -4955,7 +5309,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 # make sure all n+1 subsets are linearly independent
                 for i in Subsets(L, n+2): # checks at least n+1 are linearly independent
                     Ml = matrix(r, [list(s) for s in i])
-                    if not any([j == 0 for j in Ml.minors(n+1)]):
+                    if not any(j == 0 for j in Ml.minors(n + 1)):
                         more = False
                         Tf = list(i)
                         break
@@ -5520,12 +5874,31 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             sage: R.<x,y> = ProjectiveSpace(GF(3^2,'t'),1)
             sage: f = DynamicalSystem_projective([x^3,y^3])
             sage: f.automorphism_group(return_functions=True, iso_type=True) # long time
-            ([x, x/(x + 1), x/(2*x + 1), 2/(x + 2), (2*x + 1)/(2*x), (2*x + 2)/x,
-            1/(2*x + 2), x + 1, x + 2, x/(x + 2), 2*x/(x + 1), 2*x, 1/x, 2*x + 1,
-            2*x + 2, ((t + 2)*x + t + 2)/((2*t + 1)*x + t + 2), (t*x + 2*t)/(t*x +
-            t), 2/x, (x + 1)/(x + 2), (2*t*x + t)/(t*x), (2*t + 1)/((2*t + 1)*x +
-            2*t + 1), ((2*t + 1)*x + 2*t + 1)/((2*t + 1)*x), t/(t*x + 2*t), (2*x +
-            1)/(x + 1)], 'PGL(2,3)')
+            ([x,
+              x/(x + 1),
+              2*x/(x + 2),
+              2/(x + 2),
+              (x + 2)/x,
+              (2*x + 2)/x,
+              2/(x + 1),
+              x + 1,
+              x + 2,
+              x/(x + 2),
+              2*x/(x + 1),
+              2*x,
+              1/x,
+              2*x + 1,
+              2*x + 2,
+              (x + 2)/(x + 1),
+              2/x,
+              (2*x + 2)/(x + 2),
+              (x + 1)/(x + 2),
+              (2*x + 1)/x,
+              1/(x + 1),
+              1/(x + 2),
+              (2*x + 1)/(x + 1),
+              (x + 1)/x],
+             'PGL(2,3)')
 
         ::
 

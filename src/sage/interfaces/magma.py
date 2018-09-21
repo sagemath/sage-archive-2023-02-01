@@ -223,7 +223,7 @@ from .expect import console, Expect, ExpectElement, ExpectFunction, FunctionElem
 PROMPT = ">>>"
 
 SAGE_REF = "_sage_ref"
-SAGE_REF_RE = re.compile('%s\d+' % SAGE_REF)
+SAGE_REF_RE = re.compile(r'%s\d+' % SAGE_REF)
 
 from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
@@ -1651,6 +1651,71 @@ class Magma(ExtraTabCompletion, Expect):
         """
         return int(self.eval('GetVerbose("%s")' % type))
 
+    def set_nthreads(self, n):
+        """
+        Set the number of threads used for parallelized algorithms in Magma.
+
+        INPUT:
+
+        - ``n`` - number of threads
+
+        EXAMPLES::
+
+            sage: magma.set_nthreads(2)                #optional - magma
+            sage: magma.get_nthreads()                 #optional - magma
+            2
+        """
+        self.SetNthreads(n)
+
+    def SetNthreads(self, n):
+        """
+        Set the number of threads used for parallelized algorithms in Magma.
+
+        INPUT:
+
+        - ``n`` - number of threads
+
+        .. note::
+
+           This method is provided to be consistent with the Magma
+           naming convention.
+
+        EXAMPLES::
+
+            sage: magma.SetNthreads(2)                 #optional - magma
+            sage: magma.GetNthreads()                  #optional - magma
+            2
+        """
+        self.eval('SetNthreads(%d)' % (n))
+
+    def get_nthreads(self):
+        """
+        Get the number of threads used in Magma.
+
+        EXAMPLES::
+
+            sage: magma.set_nthreads(2)                #optional - magma
+            sage: magma.get_nthreads()                 #optional - magma
+            2
+        """
+        return self.GetNthreads()
+
+    def GetNthreads(self):
+        """
+        Get the number of threads used in Magma.
+
+        .. note::
+
+           This method is provided to be consistent with the Magma
+           naming convention.
+
+        EXAMPLES::
+
+            sage: magma.SetNthreads(2)                 #optional - magma
+            sage: magma.GetNthreads()                  #optional - magma
+            2
+        """
+        return int(self.eval('GetNthreads()'))
 
 @instancedoc
 class MagmaFunctionElement(FunctionElement):
@@ -2205,7 +2270,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         return self.__gen_names
 
     def evaluate(self, *args):
-        """
+        r"""
         Evaluate self at the inputs.
 
         INPUT:
@@ -2280,7 +2345,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: V                                             # optional - magma
             Full Vector space of degree 2 over GF(3)
             sage: w = V.__iter__(); w                           # optional - magma
-            <generator object __iter__ at ...>
+            <generator object ...__iter__ at ...>
             sage: next(w)                                       # optional - magma
             (0 0)
             sage: next(w)                                       # optional - magma
@@ -2777,38 +2842,15 @@ def magma_console():
     console('sage-native-execute magma')
 
 
-def magma_version():
-    """
-    Return the version of Magma that you have in your PATH on your
-    computer.
-
-    OUTPUT:
-
-
-    -  ``numbers`` - 3-tuple: major, minor, etc.
-
-    -  ``string`` - version as a string
-
-
-    EXAMPLES::
-
-        sage: magma_version()       # random, optional - magma
-        ((2, 14, 9), 'V2.14-9')
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(20388, 'This function has been deprecated. Use magma.version() instead.')
-    return magma.version()
-
-
 class MagmaGBLogPrettyPrinter:
     """
     A device which filters Magma Groebner basis computation logs.
     """
     cmd_inpt = re.compile("^>>>$")
-    app_inpt = re.compile("^Append\(~_sage_, 0\);$")
+    app_inpt = re.compile(r"^Append\(~_sage_, 0\);$")
 
-    deg_curr = re.compile("^Basis length\: (\d+), queue length\: (\d+), step degree\: (\d+), num pairs\: (\d+)$")
-    pol_curr = re.compile("^Number of pair polynomials\: (\d+), at (\d+) column\(s\), .*")
+    deg_curr = re.compile(r"^Basis length\: (\d+), queue length\: (\d+), step degree\: (\d+), num pairs\: (\d+)$")
+    pol_curr = re.compile(r"^Number of pair polynomials\: (\d+), at (\d+) column\(s\), .*")
 
     def __init__(self, verbosity=1, style='magma'):
         """
@@ -2883,6 +2925,8 @@ class MagmaGBLogPrettyPrinter:
             Highest degree reached during computation:  3.
         """
         self.verbosity = verbosity
+        if style not in ['sage', 'magma']:
+            raise ValueError('style must be sage or magma')
         self.style = style
 
         self.curr_deg = 0    # current degree

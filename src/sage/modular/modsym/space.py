@@ -432,8 +432,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         raise NotImplementedError("computation of cuspidal subspace not yet implemented for this class")
 
     def is_simple(self):
-        """
-        Return whether not this modular symbols space is simple as a module
+        r"""
+        Return whether this modular symbols space is simple as a module
         over the anemic Hecke algebra adjoin \*.
 
         EXAMPLES::
@@ -1017,9 +1017,11 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         return V.span(sum(B, []))
 
     def _q_expansion_module_rational(self, prec):
-        """
+        r"""
         Return a vector space over `\QQ` for the space spanned by the
-        `q`-expansions corresponding to self. The base ring of self must be
+        `q`-expansions corresponding to self.
+
+        The base ring of self must be
         `\QQ` or a number field, and self must be cuspidal. The returned space
         is a `\QQ`-vector space, where the coordinates are the coefficients of
         `q`-expansions.
@@ -1292,7 +1294,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     #########################################################################
 
     def q_expansion_cuspforms(self, prec=None):
-        """
+        r"""
         Returns a function f(i,j) such that each value f(i,j) is the
         q-expansion, to the given precision, of an element of the
         corresponding space `S` of cusp forms. Together these
@@ -1428,8 +1430,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         return self.modular_symbols_of_level(Integer(level))
 
     def sign(self):
-        """
-        Returns the sign of self.
+        r"""
+        Return the sign of self.
 
         For efficiency reasons, it is often useful to compute in the
         (largest) quotient of modular symbols where the \* involution acts

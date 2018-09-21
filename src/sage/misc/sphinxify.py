@@ -108,9 +108,9 @@ smart_quotes = no
         #    "/media/...path.../blah.png"
         # to
         #    "/doc/static/reference/media/...path.../blah.png"
-        output = re.sub("""src=['"](/?\.\.)*/?media/([^"']*)['"]""",
-                          'src="/doc/static/reference/media/\\2"',
-                          output)
+        output = re.sub(r"""src=['"](/?\.\.)*/?media/([^"']*)['"]""",
+                        'src="/doc/static/reference/media/\\2"',
+                        output)
         # Remove spurious \(, \), \[, \].
         output = output.replace('\\(', '').replace('\\)', '').replace('\\[', '').replace('\\]', '')
     else:

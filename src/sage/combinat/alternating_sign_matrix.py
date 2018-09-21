@@ -643,8 +643,8 @@ class AlternatingSignMatrix(Element):
             [ 0  0  1  0], [0 0 0 1], [ 0  1  0  0], [1 0 0 0]
             ]
 
-            sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],\
-            [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
+            sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],
+            ....: [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
             12
         """
         hf = self.height_function()
@@ -866,7 +866,7 @@ class AlternatingSignMatrix(Element):
             sage: asm.to_dyck_word()
             Traceback (most recent call last):
             ...
-            TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
+            TypeError: to_dyck_word() ...argument...
             sage: asm.to_dyck_word(algorithm = 'notamethod')
             Traceback (most recent call last):
             ...
@@ -1629,13 +1629,14 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [4, 8, 2, 8, 8, 8, 2, 2]
 
             sage: A = AlternatingSignMatrices(5)
-            sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,\
-            4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,\
-            4,5,10,10,2,2]
+            sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,
+            ....: 4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,
+            ....: 4,5,10,10,2,2]
             sage: A.gyration_orbit_sizes() == li
             True
         """
         return [len(orbit) for orbit in self.gyration_orbits()]
+
 
 class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
     r"""

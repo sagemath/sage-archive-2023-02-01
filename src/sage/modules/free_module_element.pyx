@@ -690,6 +690,7 @@ def zero_vector(arg0, arg1=None):
         return (arg0**arg1).zero_vector()
     raise TypeError("first argument must be a ring")
 
+
 def random_vector(ring, degree=None, *args, **kwds):
     r"""
     Returns a vector (or module element) with random entries.
@@ -2637,7 +2638,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)" % (len(l), len(r)))
 
     def cross_product_matrix(self):
         r"""
@@ -3904,6 +3905,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 #############################################
 # Generic dense element
 #############################################
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_dense(parent, entries, degree):
     """
     EXAMPLES::
@@ -3922,6 +3925,8 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
     v._degree = degree
     return v
 
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable):
     """
     EXAMPLES::
@@ -4112,7 +4117,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 try:
                     entries = [coefficient_ring(x) for x in entries]
                 except TypeError:
-                    raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
+                    raise TypeError("Unable to coerce entries (=%s) to coefficients in %s" % (entries, coefficient_ring))
             elif copy:
                 entries = list(entries)  # make a copy/convert to list
         self._entries = entries
@@ -4210,7 +4215,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: v.__reduce__()
-            (<built-in function make_FreeModuleElement_generic_dense_v1>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
+            (<cyfunction make_FreeModuleElement_generic_dense_v1 at ...>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
         """
         return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
@@ -4354,6 +4359,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 #############################################
 # Generic sparse element
 #############################################
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     """
     EXAMPLES::
@@ -4368,6 +4375,8 @@ def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     v._degree = degree
     return v
 
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable):
     """
     EXAMPLES::
@@ -4384,6 +4393,7 @@ def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable
     v._degree = degree
     v._is_mutable = is_mutable
     return v
+
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
@@ -4450,10 +4460,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return self._new_c(dict(self._entries))
 
-    def __init__(self, parent,
-                 entries=0,
-                 coerce=True,
-                 copy=True):
+    def __init__(self, parent, entries=0, coerce=True, copy=True):
         """
         EXAMPLES::
 
@@ -4528,39 +4535,42 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         FreeModuleElement.__init__(self, parent)
         R = self.base_ring()
         cdef Py_ssize_t i
+        cdef dict entries_dict, e
         if not entries:
-            entries = {}
+            entries_dict = {}
         else:
             if type(entries) is not dict:
                 if isinstance(entries, dict):
                     # Convert derived type to dict
                     copy = True
+                    entries_dict = <dict> entries
                 elif isinstance(entries, (list, tuple)):
                     if len(entries) != self._degree:
                         raise TypeError("entries has the wrong length")
-                    e = entries
-                    entries = {}
+                    entries_dict = {}
                     for i in range(self._degree):
-                        x = e[i]
+                        x = entries[i]
                         if x:
-                            entries[i] = x
+                            entries_dict[i] = x
                     copy = False
                 else:
-                    raise TypeError("entries must be a dict, list or tuple, not %s", type(entries))
+                    raise TypeError("entries must be a dict, list or tuple, not %s" % type(entries))
+            else:
+                entries_dict = <dict> entries
             if coerce:
                 coefficient_ring = parent.coordinate_ring()
-                e = entries
-                entries = {}
+                e = entries_dict
+                entries_dict = {}
                 try:
                     for k, x in e.iteritems():
                         x = coefficient_ring(x)
                         if x:
-                            entries[k] = x
+                            entries_dict[k] = x
                 except TypeError:
-                    raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
+                    raise TypeError("unable to coerce value (=%s) of entries dict (=%s) to %s" % (x, entries, coefficient_ring))
             elif copy:
-                entries = dict(entries)  # make a copy/convert to dict
-        self._entries = entries
+                entries_dict = dict(entries_dict)  # make a copy/convert to dict
+        self._entries = entries_dict
 
     cpdef _add_(left, right):
         """
@@ -4764,7 +4774,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
             sage: v = vector([1,2/3,pi], sparse=True)
             sage: v.__reduce__()
-            (<built-in function make_FreeModuleElement_generic_sparse_v1>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
+            (<cyfunction make_FreeModuleElement_generic_sparse_v1 at ...>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
         """
         return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 

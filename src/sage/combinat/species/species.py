@@ -178,7 +178,7 @@ class GenericCombinatorialSpecies(SageObject):
         return not (self == other)
     
     def __getstate__(self):
-        """
+        r"""
         This is used during the pickling process and returns a dictionary
         of the data needed to create this object during the unpickling
         process. It returns an (\*args, \*\*kwds) tuple which is to be
@@ -195,7 +195,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: sorted(kwds.items())
             [('max', None), ('min', None), ('weight', 1)]
         """
-        kwds = {'weight':self._weight, 'min':self._min, 'max':self._max}
+        kwds = {'weight': self._weight, 'min': self._min, 'max': self._max}
         try:
             return (dict(enumerate(self._state_info)), kwds)
         except AttributeError:
@@ -260,15 +260,14 @@ class GenericCombinatorialSpecies(SageObject):
         else:
             name = "Combinatorial species"
 
-        optional = False
         options  = []
 
         if self._min is not None:
-            options.append('min=%s'%self._min)
+            options.append('min=%s' % self._min)
         if self._max is not None:
-            options.append('max=%s'%self._max)
+            options.append('max=%s' % self._max)
         if self._weight != 1:
-            options.append('weight=%s'%self._weight)
+            options.append('weight=%s' % self._weight)
 
         if options:
             name += " with " + ", ".join(options)
@@ -788,12 +787,13 @@ class GenericCombinatorialSpecies(SageObject):
         Qz = QQ['z'].fraction_field()
 
         #Generate the variable names and the corresponding polynomial rings
-        var_names = ["node%s"%i for i in range(d.num_verts())]
+        var_names = ["node%s" % i for i in range(d.num_verts())]
         R = Qz[", ".join(var_names)]
         R_gens_dict = R.gens_dict()
 
         #A dictionary mapping the nodes to variables
-        var_mapping = dict((node, R_gens_dict[name]) for node, name in zip(d.vertices(), var_names))
+        var_mapping = {node: R_gens_dict[name]
+                       for node, name in zip(d.vertices(), var_names)}
         var_mapping['z'] = Qz.gen()
 
         eqns = []
@@ -807,5 +807,4 @@ class GenericCombinatorialSpecies(SageObject):
                     eqns.append(var_mapping[species] - eqn)
             except AttributeError:
                 raise NotImplementedError
-        eqns = [eqn.subs(subs) for eqn in eqns]
-        return eqns
+        return [eq.subs(subs) for eq in eqns]

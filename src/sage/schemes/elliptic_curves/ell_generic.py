@@ -147,7 +147,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         self.__ainvs = tuple(K(a) for a in ainvs)
         if self.discriminant() == 0:
             raise ArithmeticError("invariants " + str(ainvs) + " define a singular curve")
-        PP = projective_space.ProjectiveSpace(2, K, names='xyz');
+        PP = projective_space.ProjectiveSpace(2, K, names='xyz')
         x, y, z = PP.coordinate_ring().gens()
         a1, a2, a3, a4, a6 = ainvs
         f = y**2*z + (a1*x + a3*z)*y*z \
@@ -813,7 +813,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: -P
             (x : -y : 1)
             sage: 2*P
-            ((1/4*x^4 - 4*x)/(x^3 + 2) : ((-1/8*x^6 - 5*x^3 + 4)/(-x^6 - 4*x^3 - 4))*y : 1)
+            ((1/4*x^4 - 4*x)/(x^3 + 2) : ((1/8*x^6 + 5*x^3 - 4)/(x^6 + 4*x^3 + 4))*y : 1)
 
 
         AUTHOR:
@@ -2072,7 +2072,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         Grab only the x-coordinate (less work)::
 
             sage: mx = E.multiplication_by_m(2, x_only=True); mx
-            (x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12)
+            (1/4*x^4 + 1/2*x^2 - 6*x + 1/4)/(x^3 - x + 3)
             sage: mx.parent()
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
 

@@ -156,6 +156,7 @@ from .element import (
     FunctionFieldElement_global)
 
 from .order import (
+    FunctionFieldOrder_base,
     FunctionFieldOrder_basis,
     FunctionFieldOrderInfinite_basis,
     FunctionFieldMaximalOrder_global,
@@ -213,9 +214,7 @@ class FunctionField(Field):
         TESTS::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: from sage.rings.function_field.function_field import FunctionField
-            sage: isinstance(K, FunctionField)
-            True
+            sage: TestSuite(K).run()
         """
         Field.__init__(self, base_field, names=names, category=category)
 
@@ -594,8 +593,7 @@ class FunctionField(Field):
             sage: M.has_coerce_map_from(L)
             True
         """
-        from .order import FunctionFieldOrder
-        if isinstance(source, FunctionFieldOrder):
+        if isinstance(source, FunctionFieldOrder_base):
             K = source.fraction_field()
             if K is self:
                 return self._generic_coerce_map(source)
@@ -1003,24 +1001,6 @@ class FunctionField_polymod(FunctionField):
         self._ring = self._polynomial.parent()
         self._populate_coercion_lists_(coerce_list=[base_field, self._ring])
         self._gen = self(self._ring.gen())
-
-    def __reduce__(self):
-        """
-        Return the arguments which were used to create this instance.
-
-        The rationale for this is explained in the documentation of
-        :class:`UniqueRepresentation`.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L = K.extension(y^2 - x)
-            sage: clazz,args = L.__reduce__()
-            sage: clazz(*args)
-            Function field in y defined by y^2 - x
-        """
-        from .constructor import FunctionFieldExtension
-        return  FunctionFieldExtension, (self._polynomial, self._names)
 
     def __hash__(self):
         """
@@ -2494,6 +2474,12 @@ class FunctionField_global(FunctionField_polymod):
     def __init__(self, polynomial, names):
         """
         Initialize.
+
+        TESTS::
+
+            sage: K.<x>=FunctionField(GF(5)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3-(x^3-1)/(x^3-2))
+            sage: TestSuite(L).run()
         """
         FunctionField_polymod.__init__(self, polynomial, names,
                                        element_class=FunctionFieldElement_global)
@@ -2807,14 +2793,14 @@ class RationalFunctionField(FunctionField):
             element_class = FunctionFieldElement_rational,
             category=FunctionFields()):
         """
-        Create a rational function field in one variable.
+        Initialize.
 
         EXAMPLES::
 
             sage: K.<t> = FunctionField(CC); K
             Rational function field in t over Complex Field with 53 bits of precision
-            sage: K.category()
-            Category of function fields
+            sage: TestSuite(K).run()
+
             sage: FunctionField(QQ[I], 'alpha')
             Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1
 

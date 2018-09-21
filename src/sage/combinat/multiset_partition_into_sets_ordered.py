@@ -108,7 +108,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
     EXAMPLES:
 
     The simplest way to create an ordered multiset partition into sets is by
-    specifying its blocks as a list, tuple::
+    specifying its blocks as a list or tuple::
 
         sage: OrderedMultisetPartitionIntoSets([[3],[2,1]])
         [{3}, {1,2}]
@@ -1117,14 +1117,16 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
     Expects one or two arguments, with different behaviors resulting:
 
     - One Argument:
-        + `X` -- a dictionary or list or tuple
-                 (representing a multiset for `c`),
-                 or an integer (representing the size of `c`)
+
+      + `X` -- a dictionary or list or tuple
+        (representing a multiset for `c`),
+        or an integer (representing the size of `c`)
 
     - Two Arguments:
-        + `alph` -- a list (representing allowable letters within blocks of `c`),
-                or a positive integer (representing the maximal allowable letter)
-        + `ord`  -- a nonnegative integer (the total number of letters within `c`)
+
+      + `A` -- a list (representing allowable letters within blocks of `c`),
+        or a positive integer (representing the maximal allowable letter)
+      + `n` -- a nonnegative integer (the total number of letters within `c`)
 
     Optional keyword arguments are as follows:
     (See corresponding methods in see :class:`OrderedMultisetPartitionIntoSets` for more details.)
@@ -1141,7 +1143,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
 
     EXAMPLES:
 
-    Passing one argument to ``OrderedMultisetPartitionsIntoSets``:
+    Passing one argument to :class:`OrderedMultisetPartitionsIntoSets`:
 
     There are 5 ordered multiset partitions into sets of the multiset
     `\{\{1, 1, 4\}\}`::
@@ -1165,7 +1167,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitionsIntoSets(3).list()
         [[{3}], [{1,2}], [{2}, {1}], [{1}, {2}], [{1}, {1}, {1}]]
 
-    Passing two argument to ``OrderedMultisetPartitionsIntoSets``:
+    Passing two argument to :class:`OrderedMultisetPartitionsIntoSets`:
 
     There are also 5 ordered multiset partitions into sets of order 2
     over the alphabet `\{1, 4\}`::
@@ -1180,7 +1182,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitionsIntoSets([1, 4], 2).list()
         [[{1,4}], [{1}, {1}], [{1}, {4}], [{4}, {1}], [{4}, {4}]]
 
-    If no arguments are passed to ``OrderedMultisetPartitionsIntoSets``,
+    If no arguments are passed to :class:`OrderedMultisetPartitionsIntoSets`,
     then the code returns all ordered multiset partitions into sets::
 
         sage: OrderedMultisetPartitionsIntoSets()
@@ -1214,11 +1216,11 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
     results in an error; otherwise, the collection of ordered multiset partitions
     into sets is restricted accordingly:
 
-    *The ``weight`` keyword:*
+    *The* ``weight`` *keyword:*
 
     This is used to specify which multiset `X` is to be considered,
     if this multiset was not passed as one of the required arguments for
-    ``OrderedMultisetPartitionsIntoSets``. In principle, it is a dictionary,
+    :class:`OrderedMultisetPartitionsIntoSets`. In principle, it is a dictionary,
     but weak compositions are also allowed. For example, the ordered multiset
     partitions into sets of integer 4 are listed by weight below::
 
@@ -1241,7 +1243,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitionsIntoSets(4, weight=[4]).list()
         [[{1}, {1}, {1}, {1}]]
 
-    *The ``size`` keyword:*
+    *The* ``size`` *keyword:*
 
     This is used to constrain the sum of entries across all blocks of the ordered
     multiset partition into sets. (This size is not pre-determined when alphabet
@@ -1254,7 +1256,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         [[{1,2}, {2}], [{2}, {1,2}], [{2}, {2}, {1}],
          [{2}, {1}, {2}], [{1}, {2}, {2}]]
 
-    *The ``alphabet`` option:*
+    *The* ``alphabet`` *option:*
 
     This is used to constrain which integers appear across all blocks of the
     ordered multiset partition into sets. For example, the ordered multiset
@@ -1282,7 +1284,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: OMPs(4, alphabet=4).list() == OMPs(4).list()
         True
 
-    *The ``length``, ``min_length``, and ``max_length`` options:*
+    *The* ``length``, ``min_length``, *and* ``max_length`` *options:*
 
     These are used to constrain the number of blocks within the ordered multiset
     partitions into sets. For example, the ordered multiset partitions into sets
@@ -1296,7 +1298,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         [[{4}], [{1,3}], [{3}, {1}], [{1,2}, {1}], [{2}, {2}], [{1}, {3}],
          [{1}, {1,2}]]
 
-    *The ``order``, ``min_order``, and ``max_order`` options:*
+    *The* ``order``, ``min_order``, *and* ``max_order`` *options:*
 
     These are used to constrain the number of elements across all blocks of the
     ordered multiset partitions into sets. For example, the ordered multiset
@@ -1311,8 +1313,8 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitionsIntoSets(4, order=4).list()
         [[{1}, {1}, {1}, {1}]]
 
-    And here is a use of ``max_order``, giving the ordered multiset partitions
-    into sets of integer 4 with order 1 or 2::
+    Also, here is a use of ``max_order``, giving the ordered multiset
+    partitions into sets of integer 4 with order 1 or 2::
 
         sage: OrderedMultisetPartitionsIntoSets(4, max_order=2).list()
         [[{4}], [{1,3}], [{3}, {1}], [{2}, {2}], [{1}, {3}]]
@@ -2290,8 +2292,8 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
         This method does not return elements of ``self`` with uniform probability,
         but it does cover all elements. The scheme is as follows:
 
-        - produce a random permutation `p` of the multiset;
-        - create blocks of an OMP `fat` by breaking `p` after non-ascents;
+        - produce a random permutation ``p`` of the multiset;
+        - create blocks of an OMP ``fat`` by breaking ``p`` after non-ascents;
         - take a random element of ``fat.finer()``.
 
         EXAMPLES::
@@ -3150,7 +3152,8 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
         Elements are not stored internally as ordered multiset partitions
         into sets, but as certain (pairs of) words stemming from the minimaj
-        bijection `\phi` of [BCHOPSY2017]_. See :class:`crystals.Minimaj.Element`
+        bijection `\phi` of [BCHOPSY2017]_. See
+        :class:`sage.combinat.multiset_partition_into_sets_ordered.MinimajCrystal.Element`
         for further details.
 
     AUTHORS:
@@ -3309,7 +3312,9 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         r"""
         Return the bijection `\phi^{-1}` of [BCHOPSY2017]_ applied to ``t``.
 
-        INPUT: ``t`` -- a sequence of column tableaux and a ribbon tableau
+        INPUT:
+
+        - ``t`` -- a sequence of column tableaux and a ribbon tableau
 
         EXAMPLES::
 
@@ -3344,7 +3349,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
     def val(self, q='q'):
         r"""
-        Return `Val` polynomial corresponding to ``self``.
+        Return the `Val` polynomial corresponding to ``self``.
 
         EXAMPLES:
 

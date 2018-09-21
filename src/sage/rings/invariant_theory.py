@@ -206,7 +206,7 @@ def transvectant(f, g, h=1, scale='default'):
         sage: transvectant(f, f, 4)
         Binary quadratic given by 2*x^2 - 4*x*y + 2*y^2
         sage: transvectant(f, f, 8)
-        Binary form given by 0
+        Binary form of degree -6 given by 0
 
     The default scaling will yield an error for fields of positive
     characteristic below `d_f!` or `d_g!` as the denominator of the scaling
@@ -239,6 +239,25 @@ def transvectant(f, g, h=1, scale='default'):
         Binary quadratic given by 864*a3^2*x0^2 - 2304*a2*a4*x0^2
         + 5760*a1*a5*x0^2 + 576*a2*a3*x0*x1 - 3456*a1*a4*x0*x1
         + 28800*a0*a5*x0*x1 + 864*a2^2*x1^2 - 2304*a1*a3*x1^2 + 5760*a0*a4*x1^2
+
+    If the forms are given as inhomogeneous polynomials, the homogenisation
+    might fail if the polynomial ring has multiple variables. You can
+    circumvent this by making sure the base ring of the polynomial has only
+    one variable::
+
+        sage: R.<x,y> = QQ[]
+        sage: quintic = invariant_theory.binary_quintic(x^5+x^3+2*x^2+y^5, x)
+        sage: transvectant(quintic, quintic, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: Polynomial is not homogeneous.
+        sage: R.<y> = QQ[]
+        sage: S.<x> = R[]
+        sage: quintic = invariant_theory.binary_quintic(x^5+x^3+2*x^2+y^5, x)
+        sage: transvectant(quintic, quintic, 2)
+        Binary sextic given by 1/5*x^6 + 6/5*x^5*h + (-3/25)*x^4*h^2
+        + (2*y^5 - 8/25)*x^3*h^3 + (-12/25)*x^2*h^4 + 3/5*y^5*x*h^5
+        + 2/5*y^5*h^6
     """
     f = f.homogenized()
     g = g.homogenized()
@@ -249,7 +268,6 @@ def transvectant(f, g, h=1, scale='default'):
     y = f._variables[1]
     degree = f._d + g._d - 2*h
     if h > f._d or h > g._d:
-        degree = 0
         tv = R(0)
     else:
         from sage.functions.other import binomial, factorial
@@ -651,14 +669,17 @@ class AlgebraicForm(FormsBase):
             s += ary[self._n-1]
         except IndexError:
             s += 'Algebraic'
-        ic = ['form', 'monic', 'quadratic', 'cubic', 'quartic', 'quintic',
+        ic = ['constant form', 'monic', 'quadratic', 'cubic', 'quartic', 'quintic',
               'sextic', 'septimic', 'octavic', 'nonic', 'decimic',
               'undecimic', 'duodecimic']
         s += ' '
-        try:
-            s += ic[self._d]
-        except IndexError:
-            s += 'form'
+        if self._d < 0:
+            s += 'form of degree {}'.format(self._d)
+        else:
+            try:
+                s += ic[self._d]
+            except IndexError:
+                s += 'form'
         try:
             s += ' with coefficients ' + str(self.coeffs())
         except AttributeError:
@@ -723,7 +744,6 @@ class AlgebraicForm(FormsBase):
             x^2 + h^2
 
             sage: R.<x> = QQ[]
-            sage: f = x^4 + 1
             sage: quintic = invariant_theory.binary_quintic(x^4 + 1, x)
             sage: quintic.homogenized().form()
             x^4*h + h^5
@@ -4065,11 +4085,11 @@ can then be queried for invariant and covariants. For example,
         INPUT:
 
         - ``quintic`` -- a homogeneous polynomial of degree five in two
-          variables or an inhomegeneous polynomial of degree at most five in one
-          variable.
+          variables or a (possibly inhomogeneous) polynomial of degree at most
+          five in one variable.
 
         - ``*args`` -- the two homogeneous variables. If only one variable is
-          given, the polynomial `quintic` is assumed to be inhomogeneous. If
+          given, the polynomial ``quintic`` is assumed to be univariate. If
           no variables are given, they are guessed.
 
         REFERENCES:

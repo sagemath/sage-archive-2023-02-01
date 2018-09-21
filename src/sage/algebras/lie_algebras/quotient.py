@@ -17,6 +17,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
+from sage.algebras.lie_algebras.subalgebra import LieSubalgebra_finite_dimensional_with_basis
 from sage.categories.homset import Hom
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.morphism import SetMorphism
@@ -184,7 +185,6 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
             sage: Q1 is Q3
             True
         """
-        from sage.algebras.lie_algebras.subalgebra import LieSubalgebra_finite_dimensional_with_basis
         if not isinstance(I, LieSubalgebra_finite_dimensional_with_basis):
             # assume I is an element or list of elements of some lie algebra
             if ambient is None:

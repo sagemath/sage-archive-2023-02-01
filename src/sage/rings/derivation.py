@@ -127,8 +127,7 @@ from sage.structure.element import ModuleElement
 from sage.rings.integer_ring import ZZ
 
 from sage.categories.map import Map
-from sage.categories.all import Rings, Algebras
-from sage.rings.morphism import RingMap, RingHomomorphism
+from sage.categories.all import Rings
 
 
 class RingDerivationModule(Module, UniqueRepresentation):
@@ -378,9 +377,9 @@ class RingDerivationModule(Module, UniqueRepresentation):
 
     def gen(self, n=0):
         """
-        Returns ``n``th generator of this module of derivations.
+        Returns the ``n``th generator of this module of derivations.
 
-        INPUT::
+        INPUT:
 
         ``n`` - an integer (default: ``0``)
 
@@ -683,7 +682,7 @@ class RingDerivationWithTwist_generic(RingDerivation):
         elif scalar._is_atomic():
             s = "%s*" % sc
         elif (-scalar)._is_atomic():
-            s = "-%s*" % (-c)
+            s = "-%s*" % (-scalar)
         else:
             s = "(%s)*" % sc
         return "%s(%s)" % (s,t)

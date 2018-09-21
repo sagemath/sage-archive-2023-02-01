@@ -1052,7 +1052,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: R = Zp(2, print_mode='digits',prec=10)
+            sage: R = Zp(2, print_mode='digits', prec=10)
             sage: A.<x,y> = TateAlgebra(R)
             sage: t = A.monoid_of_terms()(3*x^2); t
             (...0000000011)*x^2

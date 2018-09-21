@@ -143,6 +143,14 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
         [5, 4, 3, 2, 1, 0]
         sage: all([Lp is Ln.ambient() for Lp, Ln in zip(quots,quots[1:])])
         True
+        sage: X = quots[-2].an_element()
+        sage: lifts = [X]
+        sage: quots = list(reversed(quots[1:-1]))
+        sage: for Q in quots:
+        ....:     X = Q.lift(X)
+        ....:     lifts.append(X)
+        sage: all([X.parent() is L for X, L in zip(lifts,quots)])
+        True
 
     A test suite::
 
@@ -194,8 +202,8 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
 
         # extract an index set from a complementary basis to the ideal
         I_supp = [I.lift(X).leading_support() for X in I.basis()]
-        sorted_indices = [ambient.basis().inverse_family()[X]
-                          for X in ambient.basis()]
+        inv = ambient.basis().inverse_family()
+        sorted_indices = [inv[X] for X in ambient.basis()]
         index_set = [i for i in sorted_indices if i not in I_supp]
 
         if names is None:
@@ -230,8 +238,10 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
             1
             sage: TestSuite(K).run()
         """
-        sm = L.module().submodule_with_basis([I.reduce(L.basis()[i]).to_vector()
+        B = L.basis()
+        sm = L.module().submodule_with_basis([I.reduce(B[i]).to_vector()
                                               for i in index_set])
+        SB = sm.basis()
 
         # compute and normalize structural coefficients for the quotient
         s_coeff = {}
@@ -239,7 +249,7 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
             for j in range(i + 1, len(index_set)):
                 ind_j = index_set[j]
 
-                brkt = I.reduce(L.bracket(sm.basis()[i], sm.basis()[j]))
+                brkt = I.reduce(L.bracket(SB[i], SB[j]))
                 brktvec = sm.coordinate_vector(brkt.to_vector())
                 s_coeff[(ind_i, ind_j)] = dict(zip(index_set, brktvec))
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(
@@ -325,8 +335,8 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
             Free Nilpotent Lie algebra on 3 generators (x, y, z) over Rational Field
         """
         L = self.ambient()
-        Xdict = X.monomial_coefficients().items()
-        return L.sum(ck * L.basis()[ik] for ik, ck in Xdict)
+        B = L.basis()
+        return L.sum(ck * B[ik] for ik, ck in X)
 
     def retract(self, X):
         r"""
@@ -349,6 +359,20 @@ class LieQuotient_finite_dimensional_with_basis(LieAlgebraWithStructureCoefficie
         """
         X_vec = self._I.reduce(X).to_vector()
         return self.from_vector(self._sm.coordinate_vector(X_vec))
+
+    def defining_ideal(self):
+        r"""
+        Return the ideal generating this quotient Lie algebra.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Heisenberg(QQ, 1)
+            sage: p,q,z = L.basis()
+            sage: Q = L.quotient(p)
+            sage: Q.defining_ideal()
+            Ideal (p1) of Heisenberg algebra of rank 1 over Rational Field
+        """
+        return self._I
 
     def from_vector(self, v):
         r"""

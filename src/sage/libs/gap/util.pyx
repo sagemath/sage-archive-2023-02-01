@@ -25,6 +25,9 @@ from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 
+# these do nothing now
+cdef void libgap_enter() {}
+cdef void libgap_exit() {}
 
 ############################################################################
 ### Hooking into the GAP memory management #################################
@@ -184,6 +187,7 @@ def gap_root():
 
 # To ensure that we call initialize_libgap only once.
 cdef bint _gap_is_initialized = False
+cdef extern char **environ
 
 cdef initialize():
     """
@@ -195,7 +199,7 @@ cdef initialize():
         sage: libgap(123)   # indirect doctest
         123
     """
-    global _gap_is_initialized
+    global _gap_is_initialized, environ
     if _gap_is_initialized: return
 
     # Define argv and environ variables, which we will pass in to
@@ -233,15 +237,13 @@ cdef initialize():
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
-    libgap_start_interaction('')
-    libgap_initialize(argc, argv)
-    gap_error_msg = char_to_str(libgap_get_output())
-    libgap_finish_interaction()
-    if gap_error_msg:
+    # libgap_initialize(argc, argv)
+    # gap_error_msg = char_to_str(libgap_get_output())
+    if GAP_Initialize(argc, argv, environ, &gasman_callback, &error_handler):
         raise RuntimeError('libGAP initialization failed\n' + gap_error_msg)
 
     # The error handler is called if a GAP evaluation fails, e.g. 1/0
-    libgap_set_error_handler(&error_handler)
+    # libgap_set_error_handler(&error_handler)
 
     # Prepare global GAP variable to hold temporary GAP objects
     global reference_holder
@@ -311,6 +313,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     """
     initialize()
     cdef ExecStatus status
+    cdef Obj *result
 
     # Careful: We need to keep a reference to the bytes object here
     # so that Cython doesn't dereference it before libGAP is done with
@@ -320,10 +323,12 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         try:
             sig_on()
             libgap_enter()
-            libgap_start_interaction(cmd)
-            status = ReadEvalCommand(BottomLVars, NULL)
+            status = ReadEvalCommand(BottomLVars, result)
             if status != STATUS_END:
-                libgap_call_error_handler()
+                # libgap_call_error_handler()
+                if error_func==NULL:
+                        print("An error occurred, but libGAP has no handler set")
+                        return # needs work
             sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg).strip())
@@ -335,7 +340,6 @@ cdef Obj gap_eval(str gap_string) except? NULL:
             raise ValueError('can only evaluate a single statement')
 
     finally:
-        libgap_finish_interaction()
         libgap_exit()
 
     if ReadEvalResult != NULL:
@@ -345,7 +349,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         AssGVar(Last, ReadEvalResult)
         libgap_exit()
 
-    return ReadEvalResult   # may be NULL, thats ok
+    return result # may be NULL, thats ok
 
 
 ############################################################################
@@ -501,16 +505,15 @@ def command(command_string):
     """
     initialize()
     cdef ExecStatus status
-
+    cdef Obj *result
     cmd = str_to_bytes(command_string + ';\n')
     try:
         libgap_enter()
-        libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = ReadEvalCommand(BottomLVars, NULL)
+            status = ReadEvalCommand(BottomLVars, result)
             if status != STATUS_END:
-                libgap_call_error_handler()
+                print("oops - not ready...")  # needs work
             sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg).strip())
@@ -520,21 +523,18 @@ def command(command_string):
         if Symbol != S_EOF:
             raise ValueError('command() expects a single statement.')
 
-        if ReadEvalResult:
-            ViewObjHandler(ReadEvalResult)
-            s = libgap_get_output()
+        if result:
             print('Output follows...')
-            print(s.strip())
+            ViewObjHandler(result)
         else:
             print('No output.')
 
     finally:
         libgap_exit()
-        libgap_finish_interaction()
 
-    DEBUG_CHECK(ReadEvalResult)
+    DEBUG_CHECK(result)
 
-    if ReadEvalResult != NULL:
+    if result != NULL:
         libgap_enter()
         AssGVar(Last3, VAL_GVAR(Last2))
         AssGVar(Last2, VAL_GVAR(Last))

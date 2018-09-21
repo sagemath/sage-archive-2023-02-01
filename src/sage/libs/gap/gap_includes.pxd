@@ -16,20 +16,19 @@ cdef extern from "<gap/system.h>":
     ctypedef unsigned char UChar "UChar"
 
 cdef extern from "<gap/libgap-api.h>":
-    void libgap_initialize(int argc, char** argv)
-    ctypedef void(*libgap_gasman_callback_ptr)()
-    void libgap_set_gasman_callback(libgap_gasman_callback_ptr callback)
-    ctypedef void(*libgap_error_func_ptr)(char* msg)
-    void libgap_set_error_handler(libgap_error_func_ptr error_handler)
-    void libgap_call_error_handler()
-    void libgap_finalize()
+#    void libgap_initialize(int argc, char** argv)
+#    void libgap_set_gasman_callback(libgap_gasman_callback_ptr callback)
+#    ctypedef void(*libgap_error_func_ptr)(char* msg)
+#    void libgap_set_error_handler(libgap_error_func_ptr error_handler)
+#    void libgap_call_error_handler()
+#    void libgap_finalize()
+    ctypedef void (*CallbackFunc)()
+    void GAP_Initialize(int argc, char ** argv, char ** env, 
+        CallbackFunc, CallbackFunc)
     void libgap_start_interaction(char* inputline)
     char* libgap_get_output()
     char* libgap_get_error()
-    void libgap_finish_interaction()
     void libgap_mark_stack_bottom()
-    void libgap_enter()
-    void libgap_exit()
 
 cdef extern from "<gap/code.h>":
     ctypedef unsigned int Stat "Stat"

@@ -771,13 +771,15 @@ cdef class CategoryObject(SageObject):
         EXAMPLES::
 
             sage: bla = PolynomialRing(ZZ,"x")
-            sage: hash(bla)
-            -5279516879544852222  # 64-bit
-            -1056120574           # 32-bit
+            sage: h1 = hash(bla)
+            sage: h1  # random
+            -5279516879544852222
             sage: bla.rename("toto")
-            sage: hash(bla)
-            -5279516879544852222  # 64-bit
-            -1056120574           # 32-bit
+            sage: h2 = hash(bla)
+            sage: h2  # random
+            -5279516879544852222
+            sage: h1 == h2
+            True
         """
         if self._hash_value == -1:
             self._hash_value = hash(repr(self))
@@ -924,7 +926,7 @@ cdef class CategoryObject(SageObject):
         EXAMPLES::
 
             sage: V = QQ^2
-            sage: V.__div__(V.span([(1,3)]))
+            sage: V.__div__(V.span([(1,3)]))  # py2
             Vector space quotient V/W of dimension 1 over Rational Field where
             V: Vector space of dimension 2 over Rational Field
             W: Vector space of degree 2 and dimension 1 over Rational Field
@@ -1010,10 +1012,14 @@ cpdef normalize_names(Py_ssize_t ngens, names):
         Traceback (most recent call last):
         ...
         IndexError: the number of names must equal the number of generators
-        sage: nn(None, "a")
+        sage: nn(None, "a")  # py2
         Traceback (most recent call last):
         ...
         TypeError: 'NoneType' object cannot be interpreted as an index
+        sage: nn(None, "a")  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: 'NoneType' object cannot be interpreted as an integer
         sage: nn(1, "")
         Traceback (most recent call last):
         ...

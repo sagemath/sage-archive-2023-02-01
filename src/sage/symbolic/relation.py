@@ -373,7 +373,7 @@ def test_relation_maxima(relation):
 
         sage: from sage.symbolic.relation import test_relation_maxima
         sage: k = var('k')
-        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+        sage: pol = 1/(k-1) - 1/k -1/k/(k-1)
         sage: test_relation_maxima(pol == 0)
         True
         sage: f = sin(x)^2 + cos(x)^2 - 1
@@ -762,7 +762,7 @@ def solve(f, *args, **kwds):
 
         sage: var('s,j,b,m,g')
         (s, j, b, m, g)
-        sage: sys = [ m*(1-s) - b*s*j, b*s*j-g*j ];
+        sage: sys = [ m*(1-s) - b*s*j, b*s*j-g*j ]
         sage: solve(sys,s,j)
         [[s == 1, j == 0], [s == g/b, j == (b - g)*m/(b*g)]]
         sage: solve(sys,(s,j))
@@ -914,13 +914,13 @@ def solve(f, *args, **kwds):
     print them::
 
         sage: solve(sinh(x) - 2*cosh(x),x,algorithm='sympy')
-        ConditionSet(x, Eq((-exp(2*x) - 3)*exp(-x)/2, 0), S.Reals)
+        ConditionSet(x, Eq((-exp(2*x) - 3)*exp(-x)/2, 0), Reals)
         sage: solve(2*sin(x) - 2*sin(2*x), x,algorithm='sympy')
         ...
-        [ImageSet(Lambda(_n, 2*_n*pi), S.Integers),
-         ImageSet(Lambda(_n, 2*_n*pi + pi), S.Integers),
-         ImageSet(Lambda(_n, 2*_n*pi + 5*pi/3), S.Integers),
-         ImageSet(Lambda(_n, 2*_n*pi + pi/3), S.Integers)]
+        [ImageSet(Lambda(_n, 2*_n*pi), Integers),
+         ImageSet(Lambda(_n, 2*_n*pi + pi), Integers),
+         ImageSet(Lambda(_n, 2*_n*pi + 5*pi/3), Integers),
+         ImageSet(Lambda(_n, 2*_n*pi + pi/3), Integers)]
 
         sage: solve(x^5 + 3*x^3 + 7, x, algorithm='sympy')[0] # known bug
         complex_root_of(x^5 + 3*x^3 + 7, 0)

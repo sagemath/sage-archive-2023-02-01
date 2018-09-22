@@ -1034,7 +1034,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
         EXAMPLES:
 
         The map from an integral domain to its fraction field is always
-        injective:
+        injective::
 
             sage: R.<x> = QQ[]
             sage: R.fraction_field().coerce_map_from(R).is_injective()

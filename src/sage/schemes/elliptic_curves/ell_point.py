@@ -409,7 +409,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: pari(E).elladd(O,P)
             [1, 2]
 
-        TESTS::
+        TESTS:
 
         Try the same over a finite field::
 

@@ -79,6 +79,10 @@ class DocTestDefaults(SageObject):
             sage: 'sage' in D.optional
             True
         """
+        # NOTE that these are NOT the defaults used by the sage-runtests
+        # script (which is what gets invoked when running `sage -t`).
+        # These are only basic defaults when invoking the doctest runner
+        # from Python, which is not the typical use case.
         self.nthreads = 1
         self.serial = False
         self.timeout = -1
@@ -88,7 +92,6 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(['sage', 'dochtml']) | auto_optional_tags
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -107,6 +110,13 @@ class DocTestDefaults(SageObject):
         self.failed = False
         self.new = False
         self.show_skipped = False
+
+        # sage-runtests contains more optional tags. Technically, adding
+        # auto_optional_tags here is redundant, since that is added
+        # automatically anyway. However, this default is still used for
+        # displaying user-defined optional tags and we don't want to see
+        # the auto_optional_tags there.
+        self.optional = set(['sage']) | auto_optional_tags
 
         # > 0: always run GC before every test
         # < 0: disable GC
@@ -352,8 +362,7 @@ class DocTestController(SageObject):
                     if not optionaltag_regex.search(o):
                         raise ValueError('invalid optional tag {!r}'.format(o))
 
-                if "sage" in options.optional:
-                    options.optional |= auto_optional_tags
+                options.optional |= auto_optional_tags
 
         self.options = options
 
@@ -756,7 +765,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: sorted(DC.sources[0].options.optional)  # abs tol 1
-            ['guava', 'magma']
+            ['guava', 'magma', 'py2']
 
         We check that files are skipped appropriately::
 
@@ -909,17 +918,16 @@ class DocTestController(SageObject):
             self.reporter = DocTestReporter(self)
             self.dispatcher = DocTestDispatcher(self)
             N = self.options.global_iterations
-            for it in range(N):
+            for _ in range(N):
                 try:
                     self.timer = Timer().start()
                     self.dispatcher.dispatch()
                 except KeyboardInterrupt:
-                    it = N - 1
                     break
                 finally:
                     self.timer.stop()
                     self.reporter.finalize()
-                    self.cleanup(it == N - 1)
+                    self.cleanup(False)
         else:
             self.log("No files to doctest")
             self.reporter = DictAsObject(dict(error_status=0))
@@ -983,7 +991,7 @@ class DocTestController(SageObject):
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(), [])
             sage: DC._optional_tags_string()
-            'dochtml,sage'
+            'sage'
             sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
             sage: DC._optional_tags_string()
             'all'
@@ -1150,6 +1158,31 @@ class DocTestController(SageObject):
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
             0
+
+        We check that :trac:`25378` is fixed (testing external packages
+        while providing a logfile does not raise a ValueError: I/O
+        operation on closed file)::
+
+            sage: logfile = tmp_filename(ext='.log')
+            sage: DD = DocTestDefaults(optional=set(['sage', 'external']), logfile=logfile)
+            sage: filename = tmp_filename(ext='.py')
+            sage: DC = DocTestController(DD, [filename])
+            sage: DC.run()
+            Running doctests with ID ...
+            Using --optional=external,sage
+            External software to be detected: ...
+            Doctesting 1 file.
+            sage -t ....py
+                [0 tests, ... s]
+            ----------------------------------------------------------------------
+            All tests passed!
+            ----------------------------------------------------------------------
+            Total time for all tests: ... seconds
+                cpu time: ... seconds
+                cumulative wall time: ... seconds
+            External software detected for doctesting:...
+            0
+
         """
         opt = self.options
         L = (opt.gdb, opt.valgrind, opt.massif, opt.cachegrind, opt.omega)
@@ -1189,6 +1222,7 @@ class DocTestController(SageObject):
             if self.options.optional is True or 'external' in self.options.optional:
                 self.log("External software detected for doctesting: "
                          + ','.join(available_software.seen()))
+            self.cleanup()
             return self.reporter.error_status
 
 def run_doctests(module, options=None):
@@ -1248,6 +1282,7 @@ def run_doctests(module, options=None):
     if not save_dtmode:
         if options.debug:
             raise ValueError("You should not try to run doctests with a debugger from within Sage: IPython objects to embedded shells")
+        from IPython import get_ipython
         IP = get_ipython()
         old_color = IP.colors
         IP.run_line_magic('colors', 'NoColor')

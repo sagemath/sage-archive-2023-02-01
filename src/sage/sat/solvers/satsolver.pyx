@@ -124,10 +124,10 @@ cdef class SatSolver:
             sage: solver.clauses()
             [((1, -3), False, None), ((2, 3, -1), False, None)]
 
-        With xor clauses:
+        With xor clauses::
 
             sage: from six import StringIO # for python 2/3 support
-            sage: file_object = StringIO("c A sample .cnf file with xor clauses.\np cnf 3 3\n1 2 0\n3 0\nx 1 2 3 0")
+            sage: file_object = StringIO("c A sample .cnf file with xor clauses.\np cnf 3 3\n1 2 0\n3 0\nx1 2 3 0")
             sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat          # optional - cryptominisat
             sage: solver = CryptoMiniSat()                                          # optional - cryptominisat
             sage: solver.read(file_object)                                          # optional - cryptominisat
@@ -135,8 +135,19 @@ cdef class SatSolver:
             [((1, 2), False, None), ((3,), False, None), ((1, 2, 3), True, True)]
             sage: solver()                                                          # optional - cryptominisat
             (None, True, True, True)
+
+        TESTS::
+
+            sage: from six import StringIO # for python 2/3 support
+            sage: file_object = StringIO("c A sample .cnf file with xor clauses.\np cnf 3 3\n1 2 0\n3 0\nx1 2 3 0")
+            sage: from sage.sat.solvers.sat_lp import SatLP
+            sage: solver = SatLP()
+            sage: solver.read(file_object)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the solver "an ILP-based SAT Solver" does not support xor clauses
         """
-        if isinstance(filename,str):
+        if isinstance(filename, str):
             file_object = open(filename, "r")
         else:
             file_object = filename
@@ -152,7 +163,8 @@ cdef class SatSolver:
                 try:
                     self.add_xor_clause(clause)
                 except AttributeError:
-                    raise NotImplementedError('The solver "{}" does not support xor clauses'.format(self))
+                    file_object.close()
+                    raise NotImplementedError('the solver "{}" does not support xor clauses'.format(self))
             else:
                 line = line.split(" ")
                 clause = [int(e) for e in line if e]

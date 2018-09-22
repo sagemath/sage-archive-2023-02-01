@@ -108,7 +108,7 @@ cdef void empty_hook(void *user_param , unsigned int n, const unsigned int *aut)
     return
 
 #####################################################
-# constucting bliss graphs from edge lists
+# constructing bliss graphs from edge lists
 #####################################################
 
 cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels, partition):

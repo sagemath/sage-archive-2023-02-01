@@ -65,12 +65,12 @@ def Associahedron(cartan_type):
 
         sage: Asso = polytopes.associahedron(['A',3]); Asso
         Generalized associahedron of type ['A', 3] with 14 vertices
-        sage: Asso.plot()
+        sage: Asso.plot()  # long time
         Graphics3d Object
 
         sage: Asso = polytopes.associahedron(['B',3]); Asso
         Generalized associahedron of type ['B', 3] with 20 vertices
-        sage: Asso.plot()
+        sage: Asso.plot()  # long time
         Graphics3d Object
 
     TESTS::
@@ -205,6 +205,13 @@ class Associahedra(Polyhedra_QQ_ppl):
             Generalized associahedron of type ['A', 2] with 5 vertices
             sage: parent._element_constructor_(['A',2])
             Generalized associahedron of type ['A', 2] with 5 vertices
+
+        TESTS::
+
+            sage: parent(['A', 2, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: the Cartan type must be finite
         """
         cartan_type = CartanType(cartan_type)
         if not cartan_type.is_finite():

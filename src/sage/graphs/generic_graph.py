@@ -175,6 +175,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_circular_planar` | Test whether the graph is circular planar (outerplanar)
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
+    :meth:`~GenericGraph.is_bipartite` | Test whether the given graph is bipartite.
     :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.
     :meth:`~GenericGraph.is_interval` | Check whether the graph is an interval graph.
     :meth:`~GenericGraph.is_gallai_tree` | Return whether the current graph is a Gallai tree.
@@ -253,6 +254,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.min_spanning_tree` | Return the edges of a minimum spanning tree.
     :meth:`~GenericGraph.spanning_trees_count` | Return the number of spanning trees in a graph.
     :meth:`~GenericGraph.dominator_tree`    | Returns a dominator tree of the graph.
+    :meth:`~GenericGraph.connected_subgraph_iterator` | Iterator over the induced connected subgraphs of order at most `k`
 
 **Plot/embedding-related methods:**
 
@@ -3250,6 +3252,128 @@ class GenericGraph(GenericGraph_pyx):
                 return Rational(self.size())/Rational((n**2 - n))
             else:
                 return Rational(self.size())/Rational((n**2 - n)/2)
+
+    def is_bipartite(self, certificate = False):
+        """
+        Returns ``True`` if graph `G` is bipartite, ``False`` if not.
+
+        Traverse the graph G with breadth-first-search and color nodes.
+
+        INPUT:
+
+        - ``certificate`` -- whether to return a certificate (``False`` by
+          default). If set to ``True``, the certificate returned in a proper
+          2-coloring when `G` is bipartite, and an odd cycle otherwise.
+
+        EXAMPLES::
+
+            sage: graphs.CycleGraph(4).is_bipartite()
+            True
+            sage: graphs.CycleGraph(5).is_bipartite()
+            False
+            sage: graphs.RandomBipartite(100,100,0.7).is_bipartite()
+            True
+
+        A random graph is very rarely bipartite::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_bipartite()
+            False
+            sage: false, oddcycle = g.is_bipartite(certificate = True)
+            sage: len(oddcycle) % 2
+            1
+
+        The method works identically with oriented graphs::
+
+            sage: g = DiGraph({0: [1, 2, 3], 2: [1], 3: [4]})
+            sage: g.is_bipartite()
+            False
+            sage: false, oddcycle = g.is_bipartite(certificate = True)
+            sage: len(oddcycle) % 2
+            1
+
+            sage: graphs.CycleGraph(4).random_orientation().is_bipartite()
+            True
+            sage: graphs.CycleGraph(5).random_orientation().is_bipartite()
+            False
+
+        TESTS::
+
+            sage: G = Graph(loops=True)
+            sage: G.add_edge(0, 0)
+            sage: G.is_bipartite()
+            False
+            sage: G.is_bipartite(certificate = True)
+            (False, [0])
+        """
+        if self.has_loops():
+            if certificate:
+                return (False, [self.loops()[0][0]])
+            else:
+                return False
+
+        color = {}
+        tree = {}  # inheritance of colors along the DFS to recover an odd
+                   # cycle when certificate=True
+
+        # For any uncolored vertex in the graph (to ensure we do the right job
+        # when the graph is not connected !)
+        for u in self:
+            if u in color:
+                continue
+
+            # Let us run a BFS starting from u
+            queue = [u]
+            color[u] = 1
+            tree[u] = None
+            while queue:
+                v = queue.pop(0)
+                c = 1-color[v]
+                for w in self.neighbor_iterator(v):
+
+                    # If the vertex has already been colored
+                    if w in color:
+
+                        # The graph is not bipartite !
+                        if color[w] == color[v]:
+
+                            # Should we return an odd cycle ?
+                            if certificate:
+                                w_to_root = []
+                                s = w
+                                while s is not None:
+                                    w_to_root.append(s)
+                                    s = tree[s]
+
+                                v_to_root = []
+                                s = v
+                                while s is not None:
+                                    v_to_root.append(s)
+                                    s = tree[s]
+
+                                # Remove the common part of v -> root and w -> root
+                                while v_to_root and w_to_root and v_to_root[-1] == w_to_root[-1]:
+                                    r = v_to_root.pop()
+                                    w_to_root.pop()
+
+                                cycle = v_to_root + [r] + w_to_root[::-1]
+
+                                return False, cycle
+
+                            else:
+                                return False
+
+                    # We color a new vertex
+                    else:
+                        color[w] = c
+                        tree[w] = v
+                        queue.append(w)
+
+        if certificate:
+            return True, color
+        else:
+            return True
+
 
     def is_eulerian(self, path=False):
         r"""
@@ -22049,7 +22173,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import is_cut_vertex
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
-
+    from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
 
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),

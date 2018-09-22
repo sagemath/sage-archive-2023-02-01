@@ -46,7 +46,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             and Category of Cartesian products of monoids
             and Category of Cartesian products of finite enumerated sets
 
-    .. automethod:: _cartesian_product_of_elements
+    .. automethod:: CartesianProduct._cartesian_product_of_elements
     """
     def __init__(self, sets, category, flatten=False):
         r"""

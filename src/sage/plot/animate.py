@@ -44,8 +44,6 @@ Animate using FFmpeg_ instead of ImageMagick::
 Animate as an APNG_::
 
     sage: a.apng()  # long time
-    doctest:...: DeprecationWarning: use tmp_filename instead
-    See http://trac.sagemath.org/17234 for details.
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
@@ -123,7 +121,7 @@ import six
 
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
-from sage.misc.temporary_file import tmp_dir, tmp_filename, graphics_filename
+from sage.misc.temporary_file import tmp_dir, tmp_filename
 from . import plot
 import sage.misc.misc
 import sage.misc.viewer
@@ -608,7 +606,7 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError(msg)
         else:
             if not savefile:
-                savefile = graphics_filename(ext='.gif')
+                savefile = tmp_filename(ext='.gif')
             if not savefile.endswith('.gif'):
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
@@ -894,7 +892,7 @@ please install it and try again."""
                 else:
                     if output_format[0] != '.':
                         output_format = '.'+output_format
-                savefile = graphics_filename(ext=output_format)
+                savefile = tmp_filename(ext=output_format)
             else:
                 if output_format is None:
                     suffix = os.path.splitext(savefile)[1]
@@ -999,7 +997,7 @@ please install it and try again."""
         """
         pngdir = self.png()
         if savefile is None:
-            savefile = graphics_filename('.png')
+            savefile = tmp_filename('.png')
         with open(savefile, "wb") as out:
             apng = APngAssembler(
                 out, len(self),

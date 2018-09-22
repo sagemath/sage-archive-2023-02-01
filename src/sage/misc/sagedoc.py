@@ -845,7 +845,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         module = ''
         exts = ['html']
         title = 'Documentation'
-        base_path = SAGE_DOC
+        base_path = os.path.join(SAGE_DOC, 'html')
         doc_path = SAGE_DOC_SRC
 
         from sage_setup.docbuild.build_options import LANGUAGES, OMIT
@@ -864,9 +864,9 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         # Check to see if any documents are missing.  This just
         # checks to see if the appropriate output directory exists,
         # not that it contains a complete build of the docs.
-        missing = [os.path.join(SAGE_DOC, 'html', doc)
+        missing = [os.path.join(base_path, doc)
                    for doc in documents if not
-                   os.path.exists(os.path.join(SAGE_DOC, 'html', doc))]
+                   os.path.exists(os.path.join(base_path, doc))]
         num_missing = len(missing)
         if num_missing > 0:
             print("""Warning, the following Sage documentation hasn't been built,
@@ -916,13 +916,17 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
 
     # done with preparation; ready to start search
     for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):
+        try:
+            dirs.remove('_static')
+        except ValueError:
+            pass
         for f in files:
             if not f.startswith('.') and re.search(r"\.(" + "|".join(exts) + ")$", f):
                 filename = os.path.join(dirpath, f)
                 if re.search(path_re, filename):
                     if multiline:
                         line = open(filename).read()
-                        if re.search(string, line, flags):
+                        if re.search(regexp, line, flags):
                             match_list = line
                         else:
                             match_list = None
@@ -935,7 +939,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                     else:
                         match_list = [(lineno, line) for lineno, line in
                                       enumerate(open(filename).read().splitlines(True))
-                                      if re.search(string, line, flags)]
+                                      if re.search(regexp, line, flags)]
                         for extra in extra_regexps:
                             if extra:
                                 match_list = [s for s in match_list
@@ -1146,9 +1150,10 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
                               extra3=extra3, extra4=extra4, extra5=extra5,
                               **kwds)
 
+
 def search_doc(string, extra1='', extra2='', extra3='', extra4='',
                extra5='', **kwds):
-    """
+    r"""
     Search Sage HTML documentation for lines containing ``string``. The
     search is case-insensitive by default.
 

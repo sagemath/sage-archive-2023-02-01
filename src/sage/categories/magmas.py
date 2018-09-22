@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
-from sage.misc.abstract_method import abstract_method
+from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -20,6 +20,7 @@ from sage.categories.category_singleton import Category_singleton
 import sage.categories.coercion_methods
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import RealizationsCategory
+from sage.cpython.getattr import raw_getattr
 
 class Magmas(Category_singleton):
     """
@@ -629,7 +630,7 @@ class Magmas(Category_singleton):
                     EXAMPLES::
 
                         sage: C = Magmas().Unital().Inverse().CartesianProducts()
-                        sage: C.extra_super_categories();
+                        sage: C.extra_super_categories()
                         [Category of inverse unital magmas]
                         sage: sorted(C.axioms())
                         ['Inverse', 'Unital']
@@ -645,7 +646,7 @@ class Magmas(Category_singleton):
                 EXAMPLES::
 
                     sage: C = Magmas().Unital().CartesianProducts()
-                    sage: C.extra_super_categories();
+                    sage: C.extra_super_categories()
                     [Category of unital magmas]
                     sage: C.axioms()
                     frozenset({'Unital'})
@@ -820,6 +821,7 @@ class Magmas(Category_singleton):
                 'ab'
                 sage: S('a').__class__._mul_ == S('a').__class__._mul_parent
                 True
+
             """
             # This should instead register the multiplication to the coercion model
             # But this is not yet implemented in the coercion model
@@ -832,17 +834,25 @@ class Magmas(Category_singleton):
             #
             # So, in addition, it should be tested whether the element class exists
             # *and* has a custom _mul_, because in this case it must not be overridden.
+
             if (self.product.__func__ == self.product_from_element_class_mul.__func__):
                 return
             if not (hasattr(self, "element_class") and hasattr(self.element_class, "_mul_parent")):
                 return
+
             E = self.element_class
-            if hasattr(E._mul_,'__func__'):
+            E_mul_func = raw_getattr(E, '_mul_')
+            if not isinstance(E_mul_func, AbstractMethod):
+                C = self.category().element_class
                 try:
-                    el_class_mul = self.category().element_class._mul_.__func__
-                except AttributeError: # abstract method
+                    C_mul_func = raw_getattr(C, '_mul_')
+                except AttributeError:  # Doesn't have _mul_
                     return
-                if E._mul_.__func__ is el_class_mul:
+
+                if isinstance(C_mul_func, AbstractMethod):
+                    return
+
+                if E_mul_func is C_mul_func:
                     # self.product is custom, thus, we rely on it
                     E._mul_ = E._mul_parent
             else: # E._mul_ has so far been abstract
@@ -1098,7 +1108,7 @@ class Magmas(Category_singleton):
                     sage: x * x
                     (1/4, 1, 1)
 
-                    sage: A = SymmetricGroupAlgebra(QQ, 3);
+                    sage: A = SymmetricGroupAlgebra(QQ, 3)
                     sage: x = cartesian_product([A([1,3,2]), A([2,3,1])])
                     sage: y = cartesian_product([A([1,3,2]), A([2,3,1])])
                     sage: cartesian_product([A,A]).product(x,y)

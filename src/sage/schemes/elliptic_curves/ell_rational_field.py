@@ -588,12 +588,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Return the PARI curve corresponding to this elliptic curve.
 
-        INPUT:
-
-        -  ``prec`` -- Deprecated
-
-        -  ``factor`` -- Deprecated
-
         EXAMPLES::
 
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
@@ -647,12 +641,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Return the PARI curve corresponding to a minimal model for this
         elliptic curve.
-
-        INPUT:
-
-        -  ``prec`` -- Deprecated
-
-        -  ``factor`` -- Deprecated
 
         EXAMPLES::
 
@@ -1106,7 +1094,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return self.modular_symbol_space(sign=0).abelian_variety()
 
-    def _modular_symbol_normalize(self, sign, use_eclib, normalize, implementation):
+    def _modular_symbol_normalize(self, sign, normalize, implementation):
         r"""
         Normalize parameters for :meth:`modular_symbol`.
 
@@ -1116,13 +1104,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.modular_symbol(implementation = 'eclib') is E.modular_symbol(implementation = 'eclib', normalize = 'L_ratio')
             True
         """
-        if use_eclib is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(20864, "Use the option 'implementation' instead of 'use_eclib'")
-            if use_eclib:
-                implementation = 'eclib'
-            else:
-                implementation = 'sage'
         if sign not in [1,-1]:
             raise ValueError("The sign of a modular symbol must be 1 or -1")
         sign = ZZ(sign)
@@ -1135,7 +1116,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return (sign, normalize, implementation)
 
     @cached_method(key = _modular_symbol_normalize)
-    def modular_symbol(self, sign = +1, use_eclib = None, normalize = None, implementation = 'eclib'):
+    def modular_symbol(self, sign=+1, normalize=None, implementation='eclib'):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign.
@@ -1143,8 +1124,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         INPUT:
 
         -  ``sign`` - +1 (default) or -1.
-
-        -  ``use_eclib`` - Deprecated. Use the ``implementation`` parameter instead.
 
         -  ``normalize`` - (default: None); either 'L_ratio', 'period',
            or 'none' when ``implementation`` is 'sage'; ignored if
@@ -1271,12 +1250,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Modular symbol with sign -1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: [Mminus(1/i) for i in [1..11]]
             [0, 0, 1/2, 1/2, 0, 0, -1/2, -1/2, 0, 0, 0]
-
         """
-        sign, normalize, implementation = self._modular_symbol_normalize(sign, use_eclib, normalize, implementation)
+        sign, normalize, implementation = self._modular_symbol_normalize(sign, normalize, implementation)
         if implementation == 'eclib':
             M = ell_modular_symbols.ModularSymbolECLIB(self, sign)
-        else: # implementation == 'sage':
+        else:  # implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         return M
 
@@ -3543,34 +3521,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
         F = self.minimal_model().short_weierstrass_model()
-        _,_,_,A,B = F.ainvs()
-        for p in [2,3]:
-            e=min(A.valuation(p)/4,B.valuation(p)/6).floor()
-            A /= Integer(p**(4*e))
-            B /= Integer(p**(6*e))
-        return constructor.EllipticCurve([A,B])
-
-    # deprecated function replaced by integral_short_weierstrass_model, see trac 3974.
-    def integral_weierstrass_model(self):
-        r"""
-        Return a model of the form `y^2 = x^3 + ax + b` for this
-        curve with `a,b\in\ZZ`.
-
-        Note that this function is deprecated, and that you should use
-        integral_short_weierstrass_model instead as this will be
-        disappearing in the near future.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('17a1')
-            sage: E.integral_weierstrass_model() #random
-            doctest:...: DeprecationWarning: integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!
-            Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(3974, "integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!")
-        return self.integral_short_weierstrass_model()
-
+        _, _, _, A, B = F.ainvs()
+        for p in [2, 3]:
+            e = min(A.valuation(p) / 4, B.valuation(p) / 6).floor()
+            A /= Integer(p**(4 * e))
+            B /= Integer(p**(6 * e))
+        return constructor.EllipticCurve([A, B])
 
     def _generalized_congmod_numbers(self, M, invariant="both"):
         """
@@ -4069,7 +4025,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             k += 1
         return bound
 
-    def torsion_subgroup(self, algorithm=None):
+    def torsion_subgroup(self):
         """
         Return the torsion subgroup of this elliptic curve.
 
@@ -4105,13 +4061,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__torsion_subgroup
         except AttributeError:
-            # algorithm is deprecated: if not None, this will give a warning.
-            # deprecation(20219)
-            self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self, algorithm)
+            self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self)
             self.__torsion_order = self.__torsion_subgroup.order()
             return self.__torsion_subgroup
 
-    def torsion_points(self, algorithm=None):
+    def torsion_points(self):
         """
         Return the torsion points of this elliptic curve as a sorted
         list.
@@ -4132,10 +4086,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Torsion Subgroup isomorphic to Z/8 + Z/2 associated to the
              Elliptic Curve defined by y^2 = x^3 - 1386747*x + 368636886 over
              Rational Field
-            sage: T == E.torsion_subgroup(algorithm="doud")
-            True
-            sage: T == E.torsion_subgroup(algorithm="lutz_nagell")
-            True
             sage: E.torsion_points()
             [(-1293 : 0 : 1),
              (-933 : -29160 : 1),
@@ -4184,9 +4134,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              (244 : -3902 : 1),
              (244 : 3658 : 1)]
         """
-        # algorithm is deprecated: if not None, this will give a warning.
-        # deprecation(20219)
-        return sorted(self.torsion_subgroup(algorithm).points())
+        return sorted(self.torsion_subgroup().points())
 
     @cached_method
     def root_number(self, p=None):

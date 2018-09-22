@@ -24,7 +24,7 @@ Functions, Classes and Methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import print_function, absolute_import
@@ -278,7 +278,7 @@ def repr_op(left, op, right=None, latex=False):
 
     - ``op`` -- a string.
 
-    - ``right`` -- an alement.
+    - ``right`` -- an element.
 
     - ``latex`` -- (default: ``False``) a boolean. If set, then
       LaTeX-output is returned.

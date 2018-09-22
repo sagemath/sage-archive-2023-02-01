@@ -1367,32 +1367,9 @@ def are_projectively_equivalent(P, Q, base_ring):
     return matrix(base_ring, [P, Q]).rank() < 2
 
 
-def EllipticCurve_from_plane_curve(C, P):
-    """
-    Deprecated way to construct an elliptic curve.
-
-    Use :meth:`~sage.schemes.elliptic_curves.jacobian.Jacobian` instead.
-
-    EXAMPLES::
-
-        sage: R.<x,y,z> = QQ[]
-        sage: C = Curve(x^3+y^3+z^3)
-        sage: P = C(1,-1,0)
-        sage: E = EllipticCurve_from_plane_curve(C,P); E  # long time (3s on sage.math, 2013)
-        doctest:...: DeprecationWarning: use Jacobian(C) instead
-        See http://trac.sagemath.org/3416 for details.
-        Elliptic Curve defined by y^2 = x^3 - 27/4 over Rational Field
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(3416, 'use Jacobian(C) instead')
-    # Note: this function never used the rational point
-    from sage.schemes.elliptic_curves.jacobian import Jacobian
-    return Jacobian(C)
-
-
 def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False):
     r"""
-    Returns a sorted list of all elliptic curves defined over `Q`
+    Return a sorted list of all elliptic curves defined over `Q`
     with good reduction outside the set `S` of primes.
 
     INPUT:

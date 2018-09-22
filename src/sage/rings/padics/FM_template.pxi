@@ -658,7 +658,7 @@ cdef class FMElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = ZpFM(5);
+            sage: R = ZpFM(5)
             sage: a = R(77, 2); a
             2 + 3*5^2
             sage: a.lift_to_precision(17) # indirect doctest

@@ -27,7 +27,7 @@ def BullGraph():
     Returns a bull graph with 5 nodes.
 
     A bull graph is named for its shape. It's a triangle with horns.
-    See :wikipedia:`Bull_graph` for more information.
+    See the :wikipedia:`Bull_graph` for more information.
 
     PLOTTING:
 
@@ -95,7 +95,7 @@ def ButterflyGraph():
     Let `C_3` be the cycle graph on 3 vertices. The butterfly or bowtie
     graph is obtained by joining two copies of `C_3` at a common vertex,
     resulting in a graph that is isomorphic to the friendship graph `F_2`.
-    See :wikipedia:`Butterfly_graph` for more information.
+    See the :wikipedia:`Butterfly_graph` for more information.
 
     .. SEEALSO::
 

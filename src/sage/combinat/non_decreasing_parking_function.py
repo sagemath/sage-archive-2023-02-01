@@ -475,7 +475,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
 
         TESTS::
 
-            sage: ndpf=NonDecreasingParkingFunctions(5);
+            sage: ndpf = NonDecreasingParkingFunctions(5)
             sage: list(ndpf) == [pf.to_dyck_word().to_non_decreasing_parking_function() for pf in ndpf]
             True
         """
@@ -505,7 +505,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
 
         TESTS::
 
-          sage: ndpf=NonDecreasingParkingFunctions(5);
+          sage: ndpf = NonDecreasingParkingFunctions(5)
           sage: list(ndpf) == [NonDecreasingParkingFunction.from_dyck_word(pf.to_dyck_word()) for pf in ndpf]
           True
         """

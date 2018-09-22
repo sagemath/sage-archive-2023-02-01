@@ -143,7 +143,7 @@ every change applied to the file simple.py will be automatically updated in Sage
 Can I use SageMath with Python 3.x?
 """""""""""""""""""""""""""""""""""
 
-Currently, (september 2018) you can build the source code of sage with
+Currently, (September 2018) you can build the source code of SageMath with
 Python 3 using the instructions at the bottom of
 https://wiki.sagemath.org/Python3-compatible%20code
 
@@ -153,7 +153,7 @@ Work in progress aims to allow usage of Python 3 in the not-so-far
 future. Until this task is completed, SageMath will continue to use
 Python 2.x.
 
-See :trac:`15530` for tracking the current progress.
+See :trac:`15530` and :trac:`26212` for tracking the current progress.
 
 I'm seeing an error about "Permission denied" on a file called "sage-flags.txt".
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

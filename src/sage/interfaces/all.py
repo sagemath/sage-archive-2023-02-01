@@ -17,7 +17,7 @@ from .gp import gp, gp_version, Gp
 from .gnuplot import gnuplot
 from .kash import  kash, kash_version, Kash
 from .lisp import lisp, Lisp
-from .magma import magma, magma_version, Magma
+from .magma import magma, Magma
 from .magma_free import magma_free
 from .macaulay2 import macaulay2, Macaulay2
 from .maple import maple, Maple
@@ -74,3 +74,5 @@ if get_display_manager().is_in_terminal():
     from .sage0 import sage0_console
     from .lie import lie_console
     from .r import r_console
+
+del absolute_import

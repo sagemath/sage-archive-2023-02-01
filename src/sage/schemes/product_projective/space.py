@@ -165,7 +165,8 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
             X = ProductProjectiveSpaces_field(n, R, names)
         else:
             X = ProductProjectiveSpaces_ring(n, R, names)
-    return(X)
+    return X
+
 
 class ProductProjectiveSpaces_ring(AmbientSpace):
     r"""
@@ -327,7 +328,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T[0]
             Projective Space of dimension 3 over Rational Field
         """
-        return(self._components[i])
+        return self._components[i]
 
     def __eq__(self, right):
         r"""
@@ -369,6 +370,22 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             True
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: S.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
+            sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2, 2], QQ)
+            sage: U.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
+            sage: hash(S) == hash(T)
+            False
+            sage: hash(S) == hash(U)
+            True
+        """
+        return hash(tuple(self._components))
 
     def __pow__(self, m):
         """
@@ -453,7 +470,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
             return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
         else:
-            raise TypeError('%s must be a projective space, product of projective spaces, or subscheme'%right)
+            raise TypeError('%s must be a projective space, product of projective spaces, or subscheme' % right)
 
     def components(self):
         r"""
@@ -482,7 +499,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.dimension_relative()
             5
         """
-        return(sum(self._dims))
+        return sum(self._dims)
 
     def dimension_absolute(self):
         r"""
@@ -517,7 +534,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.dimension_relative_components()
             [3, 2]
         """
-        return(self._dims)
+        return self._dims
 
     def dimension_absolute_components(self):
         r"""
@@ -552,7 +569,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.num_components()
             3
         """
-        return(len(self._components))
+        return len(self._components)
 
     def ngens(self):
         r"""
@@ -569,7 +586,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.ngens()
             6
         """
-        return(sum([P.ngens() for P in self._components]))
+        return sum([P.ngens() for P in self._components])
 
     def _factors(self, v):
         r"""
@@ -597,7 +614,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         for i in range(len(dims)):
             splitv.append(v[index:index+dims[i]+1])
             index += dims[i]+1
-        return(splitv)
+        return splitv
 
     def _degree(self, polynomial):
         r"""

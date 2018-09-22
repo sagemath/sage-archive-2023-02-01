@@ -1920,7 +1920,7 @@ class Func_ultraspherical(GinacFunction):
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
-        sage: _=var('x');
+        sage: _ = var('x')
         sage: for N in range(100):
         ....:     n = ZZ.random_element().abs() + 5
         ....:     a = QQ.random_element().abs() + 5

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Run the system python.
+#
+# This is primarily for use by the build toolchain so that it can continue
+# using the system Python rather than Sage's Python, preventing conflicts
+# that might otherwise occur, particularly in parallel builds.
+#
+# See https://trac.sagemath.org/ticket/18438
+
+PYTHON="$(PATH="$SAGE_ORIG_PATH" command -v python)"
+
+exec "$PYTHON" "$@"

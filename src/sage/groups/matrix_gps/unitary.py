@@ -38,7 +38,7 @@ AUTHORS:
   ``_check_matrix`` (see :trac:`26028`)
 """
 
-#*********************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
@@ -46,8 +46,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import GF
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -92,7 +92,7 @@ def finite_field_sqrt(ring):
 def _UG(n, R, special, var='a', invariant_form=None):
     r"""
     This function is commonly used by the functions :func:`GU` and :func:`SU`
-    to avoid uneccessarily duplicated code. For documnentation and examples
+    to avoid duplicated code. For documentation and examples
     see the individual functions.
 
     TESTS::

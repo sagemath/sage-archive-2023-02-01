@@ -1,4 +1,4 @@
-"""
+r"""
 Sage Runtime Environment
 
 AUTHORS:
@@ -225,6 +225,7 @@ _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version, site
+
 
 def sage_include_directories(use_sources=False):
     """

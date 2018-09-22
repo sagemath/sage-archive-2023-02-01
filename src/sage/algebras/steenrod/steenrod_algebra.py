@@ -400,8 +400,8 @@ corresponding value representing the coefficient of that term::
     sage: for mono, coeff in c: print((coeff, mono))
     (1, (5,))
     (1, (2, 1))
-    sage: c.monomial_coefficients()
-    {(2, 1): 1, (5,): 1}
+    sage: c.monomial_coefficients() == {(2, 1): 1, (5,): 1}
+    True
     sage: sorted(c.monomials(), key=lambda x: x.support())
     [Sq(2,1), Sq(5)]
     sage: sorted(c.support())
@@ -3081,8 +3081,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: for mono, coeff in c: print((coeff, mono))
             (1, (5,))
             (1, (2, 1))
-            sage: c.monomial_coefficients()
-            {(2, 1): 1, (5,): 1}
+            sage: c.monomial_coefficients() == {(2, 1): 1, (5,): 1}
+            True
             sage: sorted(c.monomials(), key=lambda x: x.support())
             [Sq(2,1), Sq(5)]
             sage: sorted(c.support())
@@ -3313,8 +3313,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             EXAMPLES::
 
                 sage: c = Sq(2) * Sq(1)
-                sage: c._basis_dictionary('milnor')
-                {(0, 1): 1, (3,): 1}
+                sage: c._basis_dictionary('milnor') == {(0, 1): 1, (3,): 1}
+                True
                 sage: c
                 Sq(0,1) + Sq(3)
                 sage: c._basis_dictionary('serre-cartan')
@@ -3322,8 +3322,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 sage: c.change_basis('serre-cartan')
                 Sq^2 Sq^1
                 sage: d = Sq(0,0,1)
-                sage: d._basis_dictionary('arnonc')
-                {(2, 5): 1, (4, 2, 1): 1, (4, 3): 1, (7,): 1}
+                sage: sorted(d._basis_dictionary('arnonc').items())
+                [((2, 5), 1), ((4, 2, 1), 1), ((4, 3), 1), ((7,), 1)]
                 sage: d.change_basis('arnonc')
                 Sq^2 Sq^5 + Sq^4 Sq^2 Sq^1 + Sq^4 Sq^3 + Sq^7
 
@@ -3334,8 +3334,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 {((), (1, 2)): 2}
                 sage: e
                 2 P(1,2)
-                sage: e._basis_dictionary('serre-cartan')
-                {(0, 7, 0, 2, 0): 2, (0, 8, 0, 1, 0): 2}
+                sage: sorted(e._basis_dictionary('serre-cartan').items())
+                [((0, 7, 0, 2, 0), 2), ((0, 8, 0, 1, 0), 2)]
                 sage: e.change_basis('adem')
                 2 P^7 P^2 + 2 P^8 P^1
             """

@@ -997,12 +997,12 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         TESTS:
 
-        Bogus values of the ``eps`` keyword will be caught.  ::
+        Bogus values of the ``eps`` keyword will be caught::
 
             sage: A.singular_values(eps='junk')
             Traceback (most recent call last):
             ...
-            ValueError: could not convert string to float: junk
+            ValueError: could not convert string to float: ...
 
         AUTHOR:
 

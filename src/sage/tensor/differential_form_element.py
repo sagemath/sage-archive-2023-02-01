@@ -7,7 +7,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010 Joris Vankerschaver <joris.vankerschaver@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -19,8 +19,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 
@@ -369,7 +369,7 @@ class DifferentialForm(AlgebraElement):
         True
 
 
-    NOTES:
+    .. NOTE::
 
         Differential forms are stored behind the screens as dictionaries,
         where the keys are the subscripts of the non-zero components, and
@@ -816,7 +816,7 @@ class DifferentialForm(AlgebraElement):
             sage: f[1] = 1
             sage: f[2] = 0
             sage: f._dump_all()
-            {(2,): 0, (0,): 0, (1,): 1}
+            {(0,): 0, (1,): 1, (2,): 0}
             sage: f._cleanup()
             sage: f._dump_all()
             {(1,): 1}
@@ -853,7 +853,7 @@ class DifferentialForm(AlgebraElement):
             sage: f
             e^cos(x)*dy + sin(log(y))*dz
             sage: f._dump_all()
-            {(2,): sin(log(y)), (1,): e^cos(x)}
+            {(1,): e^cos(x), (2,): sin(log(y))}
             sage: g = DifferentialForm(F, 2)
             sage: g[1, 2] = x+y+z
             sage: g
@@ -862,8 +862,8 @@ class DifferentialForm(AlgebraElement):
             {(1, 2): x + y + z}
 
         """
-        print(self._components)
-
+        from pprint import pprint
+        pprint(self._components)
 
     def diff(self):
         r"""

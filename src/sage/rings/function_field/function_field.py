@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Function Fields
 
-A function field is an extension field of transcendental degree one of a
-rational function field over a constant field. A function field in Sage is a
-rational function field, an extension of a rational function field, or of
-another function field.
+A function field (of one variable) is a finitely generated field extension of
+transcendence degree one. In Sage, a function field can be a rational function
+field or a finite extension of a function field.
 
 EXAMPLES:
 
@@ -1179,7 +1178,7 @@ class FunctionField_polymod(FunctionField):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[];
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(x^2*y^5 - 1/x)
             sage: g, d = L._make_monic_integral(L.polynomial()); g,d
             (y^5 - x^12, x^3)
@@ -2721,7 +2720,7 @@ class RationalFunctionField(FunctionField):
 
         - ``f`` -- univariate polynomial over the function field
 
-        EXAMPLES::
+        EXAMPLES:
 
         We do a factorization over the function field over the rationals::
 

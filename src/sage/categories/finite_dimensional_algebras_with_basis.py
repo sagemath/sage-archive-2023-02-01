@@ -284,7 +284,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S in Algebras(QQ).Semisimple()
                 True
                 sage: S.basis()
-                Finite family {'y': B['y'], 'x': B['x']}
+                Finite family {'x': B['x'], 'y': B['y']}
                 sage: xs,ys = sorted(S.basis())
                 sage: (xs + ys) * xs
                 B['x']

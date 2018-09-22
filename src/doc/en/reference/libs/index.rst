@@ -99,7 +99,6 @@ LinBox
 .. toctree::
    :maxdepth: 2
 
-   sage/libs/linbox/linbox
    sage/libs/linbox/linbox_flint_interface
 
 lrcalc

@@ -146,43 +146,49 @@ fast-rebuild-clean: misc-clean bdist-clean
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
+# Flags for ./sage -t --all.
+# By default, include all tests marked 'dochtml' -- see
+# https://trac.sagemath.org/ticket/25345 and
+# https://trac.sagemath.org/ticket/26110.
+TESTALL_FLAGS = --optional=sage,dochtml,optional,external
+
 test: all
 	$(TESTALL) --logfile=logs/test.log
 
 check: test
 
 testall: all
-	$(TESTALL) --optional=sage,optional,external --logfile=logs/testall.log
+	$(TESTALL) $(TESTALL_FLAGS) --logfile=logs/testall.log
 
 testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong: all
-	$(TESTALL) --long --optional=sage,optional,external --logfile=logs/testalllong.log
+	$(TESTALL) --long $(TESTALL_FLAGS) --logfile=logs/testalllong.log
 
 ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall: all
-	$(PTESTALL) --optional=sage,optional,external --logfile=logs/ptestall.log
+	$(PTESTALL) $(TESTALL_FLAGS) --logfile=logs/ptestall.log
 
 ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong: all
-	$(PTESTALL) --long --optional=sage,optional,external --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long $(TESTALL_FLAGS) --logfile=logs/ptestalllong.log
 
 testoptional: all
-	$(TESTALL) --optional=sage,optional --logfile=logs/testoptional.log
+	$(TESTALL) --logfile=logs/testoptional.log
 
 testoptionallong: all
-	$(TESTALL) --long --optional=sage,optional --logfile=logs/testoptionallong.log
+	$(TESTALL) --long --logfile=logs/testoptionallong.log
 
 ptestoptional: all
-	$(PTESTALL) --optional=sage,optional --logfile=logs/ptestoptional.log
+	$(PTESTALL) --logfile=logs/ptestoptional.log
 
 ptestoptionallong: all
-	$(PTESTALL) --long --optional=sage,optional --logfile=logs/ptestoptionallong.log
+	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d

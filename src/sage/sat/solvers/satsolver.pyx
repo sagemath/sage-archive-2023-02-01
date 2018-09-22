@@ -325,11 +325,13 @@ def SAT(solver=None, *args, **kwds):
         - ``"cryptominisat"`` -- note that the cryptominisat package must be
           installed.
 
+        - ``"picosat"`` -- note that the pycosat package must be installed.
+
         - ``"LP"`` -- use :class:`~sage.sat.solvers.sat_lp.SatLP` to solve the
           SAT instance.
 
-        - ``None`` (default) -- use CryptoMiniSat if available, and a LP solver
-          otherwise.
+        - ``None`` (default) -- use CryptoMiniSat if available, else PicoSAT if
+          available, and a LP solver otherwise.
 
     EXAMPLES::
 
@@ -347,17 +349,27 @@ def SAT(solver=None, *args, **kwds):
 
         sage: SAT(solver="cryptominisat") # optional - cryptominisat
         CryptoMiniSat solver: 0 variables, 0 clauses.
+
+    Forcing PicoSat::
+
+        sage: SAT(solver="picosat") # optional - pycosat
+        PicoSAT solver: 0 variables, 0 clauses.
     """
     if solver is None:
         import pkgutil
-        if pkgutil.find_loader('pycryptosat') is None:
-            solver = "LP"
-        else:
+        if pkgutil.find_loader('pycryptosat') is not None:
             solver = "cryptominisat"
+        elif pkgutil.find_loader('pycosat') is not None:
+            solver = "picosat"
+        else:
+            solver = "LP"
 
     if solver == 'cryptominisat':
         from sage.sat.solvers.cryptominisat import CryptoMiniSat
         return CryptoMiniSat(*args, **kwds)
+    elif solver == 'picosat':
+        from sage.sat.solvers.picosat import PicoSAT
+        return PicoSAT(*args, **kwds)
     elif solver == "LP":
         from .sat_lp import SatLP
         return SatLP()

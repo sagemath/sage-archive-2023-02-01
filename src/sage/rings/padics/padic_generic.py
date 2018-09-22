@@ -70,7 +70,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         category = category.Metric().Complete()
         LocalGeneric.__init__(self, base, prec, names, element_class, category)
         self._printer = pAdicPrinter(self, print_mode)
-        self._qth_roots_of_unity = [ 1 ]
+        self._qth_roots_of_unity = [ (1, Infinity) ]
 
     def some_elements(self):
         r"""
@@ -1191,19 +1191,22 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         OUTPUT:
 
-        A couple ``(zeta,n)`` where
+        A triple ``(zeta,n,nextzeta)`` where
 
         - ``zeta`` is a generator of the group of ``p^exponent``-th 
           roots of unity in this ring, and
 
         - ``p^n`` is the order of ``zeta``.
 
+        - ``nextzeta`` is the result of ``zeta._inverse_pth_root()``
+          if ``n`` is positive and ``None`` otherwise
+
         TESTS::
 
             sage: K.<a> = Qq(2^3, 5)
             sage: S.<x> = K[]
             sage: L.<pi> = K.extension(x^2 + 2*x + 2)
-            sage: zeta = L.primitive_root_of_unity(); zeta
+            sage: zeta = L.primitive_root_of_unity(); zeta  # indirect doctest
             a + a*pi + pi^2 + a*pi^4 + a*pi^5 + a^2*pi^8 + a^2*pi^9 + O(pi^10)
             sage: zeta.parent() is L
             True
@@ -1213,32 +1216,28 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         # We check if the result is cached
         if exponent < n-1:
-            return self._qth_roots_of_unity[exponent], exponent
-        zeta = self._qth_roots_of_unity[-1]
-        if zeta is None:
-            return self._qth_roots_of_unity[-2], n-2
-        if exponent == n-1:
-            # Here we need explicit conversion because 
-            # the parent of zeta is not correct (it has more precision)
-            return self(zeta), n-1
+            return self._qth_roots_of_unity[exponent][0], exponent, self._qth_roots_of_unity[exponent+1]
+        zeta, accuracy = self._qth_roots_of_unity[-1]
+        if accuracy is not Infinity:
+            return self._qth_roots_of_unity[-2][0], n-2, (zeta, accuracy)
 
         # It is not, so we compute it
-        while zeta is not None and n <= exponent:
-            self._qth_roots_of_unity[n-1] = self(zeta)  # to avoid multiple conversions
+        while accuracy is Infinity and n <= exponent + 1:
+            self._qth_roots_of_unity[-1] = (self(zeta), Infinity)  # to avoid multiple conversions
             if n == 1:  # case of pth root of unity
                 p = self.prime()
                 e = self.absolute_e()
                 k = self.residue_field()
                 if e % (p-1) != 0:
                     # No pth root of unity in this ring
-                    zeta = None
+                    zeta = accuracy = None
                 else:
                     rho = -k(self(p).expansion(e))
                     try:
                         r = rho.nth_root(p-1)
                     except ValueError:
                         # No pth root of unity in this ring
-                        zeta = None
+                        zeta = accuracy = None
                     else:
                         # We compute a primitive pth root of unity
                         m = e // (p-1)
@@ -1254,14 +1253,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             else:
                 zeta, accuracy = zeta._inverse_pth_root()
                 assert accuracy is not None
-                if accuracy is not Infinity:
-                    zeta = None
-            self._qth_roots_of_unity.append(zeta)
+            self._qth_roots_of_unity.append((zeta, accuracy))
             n += 1
-        if zeta is None:
-            return self._qth_roots_of_unity[-2], n-2
-        else:
-            return self(zeta), exponent
+        return self._qth_roots_of_unity[-2][0], n-2, self._qth_roots_of_unity[-1]
 
     def primitive_root_of_unity(self, n=None, order=False):
         """
@@ -1322,11 +1316,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         # We compute a primitive qth root of unity
         # where q is the highest power of p dividing exponent
         if n is None:
-            qthzeta, s = self._primitive_qth_root_of_unity(Infinity)
+            qthzeta, s, _ = self._primitive_qth_root_of_unity(Infinity)
             m = c - 1
         else:
-            qthzeta, s = self._primitive_qth_root_of_unity(n.valuation(p))
+            qthzeta, s, _ = self._primitive_qth_root_of_unity(n.valuation(p))
             m = n.gcd(c - 1)
+        qthzeta = self(qthzeta)
 
         # We now compute a primitive mth root of qthzeta
         if m == 1:

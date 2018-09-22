@@ -55,7 +55,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         """
         LocalGenericElement.__init__(self, *args, **kwds)
-        self._cache_inverse_pth_root = None
 
     cpdef int _cmp_(left, right) except -2:
         """
@@ -3294,10 +3293,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 root += invm * root * (1 - a*(root**m))
 
         # We now extract the (p^v)-th root
-        zeta, s = K._primitive_qth_root_of_unity(v)
+        zeta, s, nextzeta = K._primitive_qth_root_of_unity(v)
+        nextzeta = (parent(nextzeta[0]), nextzeta[1])  # nextzeta[0] may have a wrong parent (with more precision)
         for i in range(v):
             if s > 0 and i >= s:
-                root, accuracy = root._inverse_pth_root(twist=zeta)
+                root, accuracy = root._inverse_pth_root(twist=zeta, hint=nextzeta)
             else:
                 root, accuracy = root._inverse_pth_root()
             if accuracy is not infinity and accuracy is not None:
@@ -3324,7 +3324,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return parent(root)
 
-    def _inverse_pth_root(self, twist=None):
+    def _inverse_pth_root(self, twist=None, hint=None):
         """
         In its simplest form, computes the inverse of 
         ``p``-th root of this element.
@@ -3336,6 +3336,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - ``twist`` -- an element in the same parent or ``None``
           (default: ``None``)
+
+        - ``hint`` -- a tuple or ``None`` (default: ``None``); if not
+          ``None``, it has to be the output of ``twist._inverse_pth_root()``
 
         OUTPUT:
 
@@ -3382,13 +3385,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
         ep = e // (p-1)
 
         if twist is None:
-            # We use cache because this function is often called
-            # with the same primitive p^infty-th root of unity
-            if self._cache_inverse_pth_root is not None:
-                return self._cache_inverse_pth_root
             accuracy = None
         else:
-            invroottwist, accuracy = twist._inverse_pth_root()
+            if hint is None:
+                invroottwist, accuracy = twist._inverse_pth_root()
+            else:
+                invroottwist, accuracy = hint
             if accuracy is None:
                 raise NotImplementedError("Try to increase the precision cap of the parent...")
 
@@ -3429,8 +3431,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
                         try:
                             exponent = ZZ(exponent)
                         except TypeError:
-                            if twist is None:
-                                self._cache_inverse_pth_root = x, curprec
                             return x, curprec
                         else:
                             ainv //= twist**exponent
@@ -3438,8 +3438,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
                             x *= invroottwist**exponent
                             break
                     else:
-                        if twist is None:
-                            self._cache_inverse_pth_root = x, curprec
                         return x, curprec
                 curprec += 1
 
@@ -3448,8 +3446,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # that there is no pth root in the previous step.
         if prec < e + ep + 1:
             x = x.add_bigoh((prec+p-1) // p)
-            if twist is None:
-                self._cache_inverse_pth_root = x, None
             return x, None
 
         # We lift one step further
@@ -3475,8 +3471,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             AS = S([ coeff, rho ] + (p-2)*[0] + [1])
             roots = AS.roots()
             if len(roots) == 0:
-                if twist is None:
-                    self._cache_inverse_pth_root = x, curprec
                 return x, curprec
             x += ring(roots[0][0] * x.residue()) << ep
 
@@ -3488,8 +3482,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             x = x.lift_to_precision(min(prec,curprec))
             x += x * (1 - a*x**p) / p
 
-        if twist is None:
-            self._cache_inverse_pth_root = x, infinity
         return x, infinity
 
 

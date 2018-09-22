@@ -50,7 +50,7 @@ from sage.misc.temporary_file import tmp_dir
 from .viewer import browser
 from .sphinxify import sphinxify
 import sage.version
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC, SAGE_SRC
 
 # The detex function does two kinds of substitutions: math, which
 # should only be done on the command line -- in the notebook, these
@@ -846,57 +846,8 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         exts = ['html']
         title = 'Documentation'
         base_path = os.path.join(SAGE_DOC, 'html')
-        doc_path = SAGE_DOC_SRC
-
-        from sage_setup.docbuild.build_options import LANGUAGES, OMIT
-        # List of languages
-        lang = LANGUAGES
-        # Documents in SAGE_DOC_SRC/LANG/ to omit
-        omit = OMIT
-
-        # List of documents, minus the omitted ones
-        documents = []
-        for L in lang:
-            documents += [os.path.join(L, dir) for dir
-                          in os.listdir(os.path.join(doc_path, L))
-                          if dir not in omit]
-
-        # Check to see if any documents are missing.  This just
-        # checks to see if the appropriate output directory exists,
-        # not that it contains a complete build of the docs.
-        missing = [os.path.join(base_path, doc)
-                   for doc in documents if not
-                   os.path.exists(os.path.join(base_path, doc))]
-        num_missing = len(missing)
-        if num_missing > 0:
-            print("""Warning, the following Sage documentation hasn't been built,
-so documentation search results may be incomplete:
-""")
-            for s in missing:
-                print(s)
-            if num_missing > 1:
-                print("""
-You can build these with 'sage -docbuild DOCUMENT html',
-where DOCUMENT is one of""", end=' ')
-                for s in missing:
-                    if s.find('en') != -1:
-                        print("'{}',".format(os.path.split(s)[-1]), end=' ')
-                    else:
-                        print("'{}',".format(os.path.join(
-                            os.path.split(os.path.split(s)[0])[-1],
-                            os.path.split(s)[-1])), end=' ')
-                print("""
-or you can use 'sage -docbuild all html' to build all of the missing documentation.""")
-            else:
-                s = missing[0]
-                if s.find('en') != -1:
-                    s = os.path.split(s)[-1]
-                else:
-                    s = os.path.join(
-                        os.path.split(os.path.split(s)[0])[-1],
-                        os.path.split(s)[-1])
-                print("""
-You can build this with 'sage -docbuild {} html'.""".format(s))
+    if not os.path.exists(base_path):
+        print("""Warning: the Sage documentation is not available""")
 
     strip = len(base_path)
     results = []

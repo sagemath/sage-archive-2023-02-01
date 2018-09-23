@@ -222,49 +222,6 @@ class LieAlgebras(Category_over_base_ring):
                     2
                 """
 
-            def BCH(self, X, Y):
-                r"""
-                Return the element `\log(\exp(X)\exp(Y))`.
-
-                The BCH formula is an expression for `\log(\exp(X)\exp(Y))`
-                as a sum of Lie brackets of ``X ` and ``Y`` with rational
-                coefficients. It is only defined if the base ring of
-                ``self`` has a coercion from the rationals.
-
-                INPUT:
-
-                - ``X`` -- an element of ``self``
-                - ``Y`` -- an element of ``self``
-
-                EXAMPLES:
-
-                The BCH formula for the generators of a free nilpotent Lie
-                algebra of step 4::
-
-                    sage: L = LieAlgebra(QQ, 2, step=4)
-                    sage: L.inject_variables()
-                    Defining X_1, X_2, X_12, X_112, X_122, X_1112, X_1122, X_1222
-                    sage: L.BCH(X_1, X_2)
-                    X_1 + X_2 + 1/2*X_12 + 1/12*X_112 + 1/12*X_122 + 1/24*X_1122
-
-                An example of the BCH formula in a quotient::
-
-                    sage: Q = L.quotient(X_112 + X_122)
-                    sage: x, y = Q.basis().list()[:2]
-                    sage: Q.BCH(x, y)
-                    X_1 + X_2 + 1/2*X_12 - 1/24*X_1112
-
-                The BCH formula requires a coercion from the rationals::
-
-                    sage: L.<X,Y,Z> = LieAlgebra(ZZ, 2, step=2)
-                    sage: L.BCH(X, Y)
-                    Traceback (most recent call last):
-                    ...
-                    TypeError: the BCH formula is not well defined since Integer Ring has no coercion from Rational Field
-                """
-                from sage.algebras.lie_algebras.bch import BCH_iterator
-                return self.sum(Z for Z in BCH_iterator(X, Y))
-
             def is_nilpotent(self):
                 r"""
                 Return ``True`` since ``self`` is nilpotent.
@@ -649,6 +606,70 @@ class LieAlgebras(Category_over_base_ring):
                 sage: L.is_nilpotent()
                 True
             """
+
+        def bch(self, X, Y, prec=None):
+            r"""
+            Return the element `\log(\exp(X)\exp(Y))`.
+
+            The BCH formula is an expression for `\log(\exp(X)\exp(Y))`
+            as a sum of Lie brackets of ``X ` and ``Y`` with rational
+            coefficients. It is only defined if the base ring of
+            ``self`` has a coercion from the rationals.
+
+            INPUT:
+
+            - ``X`` -- an element of ``self``
+            - ``Y`` -- an element of ``self``
+            - ``prec`` -- an integer; the maximum length of Lie brackets to be
+              considered in the formula
+
+            EXAMPLES:
+
+            The BCH formula for the generators of a free nilpotent Lie
+            algebra of step 4::
+
+                sage: L = LieAlgebra(QQ, 2, step=4)
+                sage: L.inject_variables()
+                Defining X_1, X_2, X_12, X_112, X_122, X_1112, X_1122, X_1222
+                sage: L.bch(X_1, X_2)
+                X_1 + X_2 + 1/2*X_12 + 1/12*X_112 + 1/12*X_122 + 1/24*X_1122
+
+            An example of the BCH formula in a quotient::
+
+                sage: Q = L.quotient(X_112 + X_122)
+                sage: x, y = Q.basis().list()[:2]
+                sage: Q.bch(x, y)
+                X_1 + X_2 + 1/2*X_12 - 1/24*X_1112
+
+            The BCH formula for a non-nilpotent Lie algebra requires the
+            precision to be explicitly stated::
+
+                sage: L.<X,Y> = LieAlgebra(QQ)
+                sage: L.bch(X, Y)
+                Traceback (most recent call last):
+                ...
+                ValueError: the Lie algebra is not known to be nilpotent, so you must specify the precision
+                sage: L.bch(X, Y, 4)
+                X + 1/12*[X, [X, Y]] + 1/24*[X, [[X, Y], Y]] + 1/2*[X, Y] + 1/12*[[X, Y], Y] + Y
+
+            The BCH formula requires a coercion from the rationals::
+
+                sage: L.<X,Y,Z> = LieAlgebra(ZZ, 2, step=2)
+                sage: L.bch(X, Y)
+                Traceback (most recent call last):
+                ...
+                TypeError: the BCH formula is not well defined since Integer Ring has no coercion from Rational Field
+            """
+            if self not in LieAlgebras.Nilpotent and prec is None:
+                raise ValueError("the Lie algebra is not known to be nilpotent,"
+                                 " so you must specify the precision")
+            from sage.algebras.lie_algebras.bch import bch_iterator
+            if prec is None:
+                return self.sum(Z for Z in bch_iterator(X, Y))
+            bch = bch_iterator(X, Y)
+            return self.sum(next(bch) for k in range(prec))
+
+        baker_campbell_hausdorff = bch
 
         def _test_jacobi_identity(self, **options):
             """

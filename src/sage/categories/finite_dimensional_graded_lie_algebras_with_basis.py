@@ -77,7 +77,7 @@ class FiniteDimensionalGradedLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ri
                 if Z == 0:
                     continue
                 Zdeg = Z.degree()
-                tester.assertEquals(Zdeg, i + j,
+                tester.assertEqual(Zdeg, i + j,
                     msg="Lie bracket [%s, %s] has degree %s, not degree %s " %
                         (X, Y, Zdeg, i + j))
                 tester.assertTrue(

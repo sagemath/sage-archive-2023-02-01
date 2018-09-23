@@ -2707,7 +2707,7 @@ LIST_OF_VMT_VECTORS = "\n".join("    - `m={}` and `t=` ".format(m) +
                                 ", ".join("`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m)
                                 for m in _all_m)
 
-r""""
+r"""
 Tests for the Vmt vectors
 
 EXAMPLES::

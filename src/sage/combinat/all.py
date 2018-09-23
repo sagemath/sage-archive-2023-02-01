@@ -89,7 +89,7 @@ from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarity
 from .core import Core, Cores
 
 #Tableaux
-lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", 
+lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau",
                                      "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
@@ -139,6 +139,8 @@ from .cartesian_product import CartesianProduct
 
 from .set_partition import SetPartition, SetPartitions
 from .set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
+lazy_import('sage.combinat.multiset_partition_into_sets_ordered', ['OrderedMultisetPartitionIntoSets',
+                                                         'OrderedMultisetPartitionsIntoSets'])
 from .subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from .necklace import Necklaces

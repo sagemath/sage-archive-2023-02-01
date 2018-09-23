@@ -54,15 +54,16 @@ Below are some examples of constructing a graphic matroid.
     sage: isinstance(M1, RegularMatroid)
     False
 
-Note that if there is not a complete set of unique edge labels, and there are
-no parallel edges, then vertex tuples will be used for the ground set. The user
-may wish to override this by specifying the ground set, as the vertex tuples will
-not be updated if the matroid is modified.
+Note that if there is not a complete set of unique edge labels, and
+there are no parallel edges, then vertex tuples will be used for the
+ground set. The user may wish to override this by specifying the
+ground set, as the vertex tuples will not be updated if the matroid is
+modified::
 
     sage: G = graphs.DiamondGraph()
     sage: M1 = Matroid(G)
     sage: N1 = M1.contract((0,1))
-    sage: N1.graph().edges_incident(0)
+    sage: N1.graph().edges_incident(0, sort=True)
     [(0, 2, (0, 2)), (0, 2, (1, 2)), (0, 3, (1, 3))]
     sage: M2 = Matroid(range(G.num_edges()), G)
     sage: N2 = M2.contract(0)
@@ -1630,7 +1631,7 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(range(8), G)
             sage: I = M.graphic_coextensions(vertices=[0], element='a')
             sage: for N in I:
-            ....:     N.graph().edges_incident(0)
+            ....:     N.graph().edges_incident(0, sort=True)
             [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
             [(0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
             [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 5, 'a')]
@@ -1645,7 +1646,7 @@ class GraphicMatroid(Matroid):
             sage: N = Matroid(range(4), graphs.CycleGraph(4))
             sage: I = N.graphic_coextensions(element='a')
             sage: for N1 in I:
-            ....:     N1.graph().edges()
+            ....:     N1.graph().edges(sort=True)
             [(0, 1, 0), (0, 3, 1), (0, 4, 'a'), (1, 2, 2), (2, 3, 3)]
             [(0, 1, 0), (0, 3, 1), (1, 4, 2), (2, 3, 3), (2, 4, 'a')]
             sage: sum(1 for n in N.graphic_coextensions(cosimple=True))

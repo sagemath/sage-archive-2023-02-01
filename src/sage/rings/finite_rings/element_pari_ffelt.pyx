@@ -103,7 +103,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
     TESTS::
 
         sage: n = 63
-        sage: m = 3;
+        sage: m = 3
         sage: K.<a> = GF(2^n, impl='pari_ffelt')
         sage: f = conway_polynomial(2, n)
         sage: f(a) == 0

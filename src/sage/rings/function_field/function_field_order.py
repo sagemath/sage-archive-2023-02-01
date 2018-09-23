@@ -233,7 +233,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x));
+            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
             sage: y.is_integral()
             False
             sage: L.order(y)

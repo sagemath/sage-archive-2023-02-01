@@ -1271,6 +1271,23 @@ class IntegerVectorsConstraints(IntegerVectors):
         """
         return not self.__eq__(rhs)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(IntegerVectors(min_slope=0)) == hash(IntegerVectors(min_slope=0))
+            True
+            sage: hash(IntegerVectors(2, min_slope=0)) == hash(IntegerVectors(2, min_slope=0))
+            True
+            sage: hash(IntegerVectors(2, 3, min_slope=0)) == hash(IntegerVectors(2, 3, min_slope=0))
+            True
+            sage: hash(IntegerVectors(min_slope=0)) != hash(IntegerVectors(min_slope=3))
+            True
+        """
+        return hash((self.n, self.k, tuple(self.constraints.items())))
+
     def __contains__(self, x):
         """
         TESTS::

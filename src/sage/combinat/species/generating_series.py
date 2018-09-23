@@ -1251,10 +1251,9 @@ def _exp_term(n, R = RationalField()):
         sage: [_exp_term(i) for i in range(4)]
         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
     """
+    p = SymmetricFunctions(R).power()
+    return sum(p(part) / part.aut() for part in Partitions(n))
 
-    p = SymmetricFunctions(R)
-    res = sum(p(part)/part.aut() for part in Partitions(n))
-    return res
 
 def _exp_gen(R = RationalField()):
     """

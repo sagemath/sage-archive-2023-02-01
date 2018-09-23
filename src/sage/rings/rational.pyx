@@ -3401,6 +3401,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             else:
                 return q+1
 
+    __round__ = round
+
     def real(self):
         """
         Returns the real part of ``self``, which is ``self``.

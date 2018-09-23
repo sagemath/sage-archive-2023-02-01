@@ -28,7 +28,7 @@ Often only the first few coefficients are necessary in computations, so for
 performance reasons, coefficients are computed lazily::
 
     sage: v.coefficients(f)
-    <generator object coefficients at 0x...>
+    <generator object ...coefficients at 0x...>
 
 Another example of a :class:`DevelopingValuation` is an :mod:`augmented
 valuation <sage.rings.valuation.augmented_valuation>`::

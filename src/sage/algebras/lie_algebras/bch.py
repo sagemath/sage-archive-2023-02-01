@@ -158,7 +158,7 @@ def bch_iterator(X=None, Y=None):
     while True:
         m += 1
         if L in LieAlgebras.Nilpotent and m > L.step():
-            raise StopIteration
+            return
 
         # apply the recursion formula of [Var1984]
         Zm = ~QQ(2 * m) * xdif.bracket(Z[-1])

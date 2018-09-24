@@ -235,7 +235,7 @@ cdef extern from "<gap/gasman.h>":
     void InitGlobalBag "InitGlobalBag"(Obj* addr, char* cookie)
     Obj NewBag "NewBag"(UInt type, UInt size)
     void CHANGED_BAG "CHANGED_BAG"(Obj bag)
-    void MARK_BAG "MARK_BAG"(Obj bag)
+    void MarkBag "MarkBag"(Obj bag)
     bint IS_MARKED_ALIVE "IS_MARKED_ALIVE"(Obj bag)
     bint IS_MARKED_DEAD "IS_MARKED_DEAD"(Obj bag)
     bint IS_MARKED_HALFDEAD "IS_MARKED_HALFDEAD"(Obj bag)

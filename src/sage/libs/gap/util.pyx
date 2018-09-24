@@ -153,7 +153,7 @@ cdef void gasman_callback():
     """
     global owned_objects_refcount
     for obj in owned_objects_refcount:
-        MARK_BAG((<ObjWrapper>obj).value)
+        MarkBag((<ObjWrapper>obj).value)
 
 
 

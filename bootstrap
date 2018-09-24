@@ -17,9 +17,9 @@
 # download.
 ########################################################################
 
-# Either run this script from SAGE_ROOT or make sure that SAGE_ROOT
-# is set
-test -z "$SAGE_ROOT" || cd "$SAGE_ROOT"
+# Set SAGE_ROOT to the path to this file and then cd into it
+SAGE_ROOT="$(cd "$(dirname "$0")" && pwd -P)"
+cd "$SAGE_ROOT"
 
 export PATH="$SAGE_ROOT/build/bin:$PATH"
 

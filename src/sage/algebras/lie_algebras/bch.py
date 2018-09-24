@@ -19,7 +19,7 @@ AUTHORS:
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra
 from sage.arith.misc import bernoulli
 from sage.categories.lie_algebras import LieAlgebras
-from sage.combinat.integer_vector import IntegerVectorsConstraints
+from sage.combinat.integer_vector import IntegerListsLex
 from sage.functions.other import factorial
 from sage.rings.rational_field import QQ
 from sage.structure.element import canonical_coercion
@@ -157,18 +157,18 @@ def bch_iterator(X=None, Y=None):
 
     while True:
         m += 1
-        if L in LieAlgebras(L.base_ring()).Nilpotent() and m > L.step():
+        if L in LieAlgebras.Nilpotent and m > L.step():
             raise StopIteration
 
         # apply the recursion formula of [Var1984]
-        Zm = QQ(1) / QQ(2 * m) * L.bracket(xdif, Z[-1])
-        for p in range(1, (m - 1) / 2 + 1):
-            partitions = IntegerVectorsConstraints(m - 1, 2 * p, min_part=1)
-            coeff = QQ(bernoulli(2 * p)) / QQ(m * factorial(2 * p))
+        Zm = ~QQ(2 * m) * xdif.bracket(Z[-1])
+        for p in range(1, (m - 1) // 2 + 1):
+            partitions = IntegerListsLex(m - 1, length=2 * p, min_part=1)
+            coeff = bernoulli(2 * p) / QQ(m * factorial(2 * p))
             for kvec in partitions:
                 W = Z[1]
                 for k in kvec:
-                    W = L.bracket(Z[k], W)
+                    W = Z[k].bracket(W)
                 Zm += coeff * W
 
         Z.append(Zm)

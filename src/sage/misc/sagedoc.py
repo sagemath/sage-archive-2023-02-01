@@ -876,7 +876,8 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
                 filename = os.path.join(dirpath, f)
                 if re.search(path_re, filename):
                     if multiline:
-                        line = open(filename).read()
+                        with open(filename) as fobj:
+                            line = fobj.read()
                         if re.search(regexp, line, flags):
                             match_list = line
                         else:
@@ -888,9 +889,10 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
                         if match_list:
                             results.append(filename[strip:].lstrip("/") + '\n')
                     else:
-                        match_list = [(lineno, line) for lineno, line in
-                                      enumerate(open(filename).read().splitlines(True))
-                                      if re.search(regexp, line, flags)]
+                        with open(filename) as fobj:
+                            match_list = [(lineno, line)
+                                          for lineno, line in enumerate(fobj)
+                                          if re.search(regexp, line, flags)]
                         for extra in extra_regexps:
                             if extra:
                                 match_list = [s for s in match_list

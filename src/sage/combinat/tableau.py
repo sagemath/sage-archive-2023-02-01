@@ -5131,7 +5131,7 @@ class IncreasingTableau(Tableau):
         return sorted(ans)
 
     @combinatorial_map(order=2, name='K-Bender-Knuth involution')
-    def K_BenderKnuth(self, i):
+    def K_bender_knuth(self, i):
         r"""
         Return the ``i``-th K-Bender-Knuth operator (as defined in
         [DPS2017]_) applied to ``self``.
@@ -5142,9 +5142,9 @@ class IncreasingTableau(Tableau):
         EXAMPLES::
 
             sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
-            sage: T.K_BenderKnuth(2)
+            sage: T.K_bender_knuth(2)
             [[1, 2, 4], [3, 4, 5]]
-            sage: T.K_BenderKnuth(3)
+            sage: T.K_bender_knuth(3)
             [[1, 3, 4], [2, 4, 5]]
         """
         newtab = [[0] * k for k in self.shape()]
@@ -5188,7 +5188,7 @@ class IncreasingTableau(Tableau):
             ceiling = max(self.entries())
         ans = self
         for i in range(1, ceiling):
-            ans = ans.K_BenderKnuth(i)
+            ans = ans.K_bender_knuth(i)
         return ans
 
     @combinatorial_map(name='K-promotion inverse')
@@ -5219,7 +5219,7 @@ class IncreasingTableau(Tableau):
             ceiling = max(self.entries())
         ans = self
         for i in reversed(range(1, ceiling)):
-            ans = ans.K_BenderKnuth(i)
+            ans = ans.K_bender_knuth(i)
         return ans
 
     @combinatorial_map(order=2,name='K-evacuation')
@@ -5251,7 +5251,7 @@ class IncreasingTableau(Tableau):
         ans = self
         for j in reversed(range(1, ceiling)):
             for i in range(1, j+1):
-                ans = ans.K_BenderKnuth(i)
+                ans = ans.K_bender_knuth(i)
         return ans
 
     @combinatorial_map(order=2, name='dual K-evacuation')
@@ -5289,7 +5289,7 @@ class IncreasingTableau(Tableau):
         ans = self
         for j in range(1, ceiling):
             for i in reversed(range(j, ceiling)):
-                ans = ans.K_BenderKnuth(i)
+                ans = ans.K_bender_knuth(i)
         return ans
 
 class Tableaux(UniqueRepresentation, Parent):

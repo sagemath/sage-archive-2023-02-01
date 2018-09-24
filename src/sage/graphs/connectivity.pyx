@@ -2822,9 +2822,8 @@ class TriconnectivitySPQR:
 
     .. TODO::
 
-        - Remove recursion in methods ``__dfs1``, ``__dfs2``, ``__path_finder``
-          and ``__path_search``. This currently restricts the size of graphs as
-          maximum recursion depth might be exceeded.
+        - Remove recursion in method ``__path_search``. This currently restricts
+          the size of graphs as maximum recursion depth might be exceeded.
 
         - Cythonize the code for more efficiency. Many data structures can be
           turned into integer arrays. More care is needed for the doubly linked
@@ -3185,7 +3184,7 @@ class TriconnectivitySPQR:
                 comp.append(newVEdge)
                 self.__new_component(comp)
 
-    def __dfs1(self, v, u=None, check=True):
+    def __dfs1(self, start, check=True):
         """
         This function builds the palm-tree of the graph using a dfs traversal.
 
@@ -3195,9 +3194,7 @@ class TriconnectivitySPQR:
 
         INPUT:
 
-        - ``v`` -- The start vertex for DFS.
-
-        - ``u`` -- The parent vertex of ``v`` in the palm tree.
+        - ``start`` -- The start vertex for DFS.
 
         - ``check`` -- if ``True``, the graph is tested for biconnectivity. If
           the graph has a cut vertex, the cut vertex is returned. If set to
@@ -3210,31 +3207,60 @@ class TriconnectivitySPQR:
           vertex is returned. If no cut vertex is found, return ``None``.
         - If ``check`` is set to ``False``, ``None`` is returned.
         """
-        first_son = None # For testing biconnectivity
+        stack = [start]
+        adjacency = [iter(self.graph_copy_adjacency[v]) for v in range(self.n)]
+        first_son = [None for v in range(self.n)] # For testing biconnectivity
+        self.parent = [None for v in range(self.n)]
         s1 = None # Storing the cut vertex, if there is one
-        self.dfs_counter += 1
-        self.dfs_number[v] = self.dfs_counter
-        self.parent[v] = u
-        self.degree[v] = self.graph_copy.degree(v)
-        self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
-        self.nd[v] = 1
-        for e in self.graph_copy_adjacency[v]:
-            if self.edge_status[e]:
-                continue
 
-            w = e[0] if e[0] != v else e[1] # Opposite vertex of edge e
-            if self.dfs_number[w] == 0:
-                self.edge_status[e] = 1 # tree edge
-                if first_son is None:
-                    first_son = w
-                self.tree_arc[w] = e
-                s1 = self.__dfs1(w, v, check)
+        while stack:
+            v = stack[-1]
+
+            if not self.dfs_number[v]:
+                self.dfs_counter += 1
+                self.dfs_number[v] = self.dfs_counter
+                self.degree[v] = self.graph_copy.degree(v)
+                self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
+                self.nd[v] = 1
+
+            try:
+                e = next(adjacency[v])
+                while self.edge_status[e]:
+                    e = next(adjacency[v])
+
+                w = e[0] if e[0] != v else e[1] # Opposite vertex of edge e
+                if not self.dfs_number[w]:
+                    self.edge_status[e] = 1 # tree edge
+                    if first_son[v] is None:
+                        first_son[v] = w
+                    self.tree_arc[w] = e
+
+                    stack.append(w)
+                    self.parent[w] = v
+
+                else:
+                    self.edge_status[e] = 2 # frond
+                    if self.dfs_number[w] < self.lowpt1[v]:
+                        self.lowpt2[v] = self.lowpt1[v]
+                        self.lowpt1[v] = self.dfs_number[w]
+                    elif self.dfs_number[w] > self.lowpt1[v]:
+                        self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
+
+            except StopIteration:
+                # We trackback, so w takes the value of v and we pop the stack
+                w = stack.pop()
+
+                # Test termination
+                if not stack:
+                    break
+
+                v = stack[-1]
 
                 if check:
                     # Check for cut vertex.
                     # The situation in which there is no path from w to an
                     # ancestor of v : we have identified a cut vertex
-                    if (self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son or u != None):
+                    if (self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son[v] or not self.parent[v] is None):
                         s1 = v
 
                 # Calculate the `lowpt1` and `lowpt2` values.
@@ -3252,14 +3278,6 @@ class TriconnectivitySPQR:
                     self.lowpt2[v] = min(self.lowpt2[v], self.lowpt1[w])
 
                 self.nd[v] += self.nd[w]
-
-            else:
-                self.edge_status[e] = 2 # frond
-                if self.dfs_number[w] < self.lowpt1[v]:
-                    self.lowpt2[v] = self.lowpt1[v]
-                    self.lowpt1[v] = self.dfs_number[w]
-                elif self.dfs_number[w] > self.lowpt1[v]:
-                    self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
 
         return s1 # s1 is None if graph does not have a cut vertex
 
@@ -3313,29 +3331,47 @@ class TriconnectivitySPQR:
                     self.adj[e[0]].append(node)
                     self.in_adj[e] = node
 
-    def __path_finder(self, v):
+    def __path_finder(self, start):
         """
         This function is a helper function for `__dfs2` function.
+
         Calculate ``newnum[v]`` and identify the edges which start a new path.
+
+        INPUT:
+
+        - ``start`` -- The start vertex.
         """
-        self.newnum[v] = self.dfs_counter - self.nd[v] + 1
-        e_node = self.adj[v].get_head()
-        while e_node:
-            e = e_node.get_data()
-            e_node = e_node.next
-            w = e[1] if e[0] == v else e[0] # opposite vertex of e
-            if self.new_path:
-                self.new_path = False
-                self.starts_path[e] = True
-            if self.edge_status[e] == 1: # tree arc
-                self.__path_finder(w)
-                self.dfs_counter -= 1
+        stack = [start]
+        seen = [False for _ in range(self.n)]
+        pointer_e_node = [self.adj[v].get_head() for v in range(self.n)]
+
+        while stack:
+            v = stack[-1]
+            if not seen[v]:
+                self.newnum[v] = self.dfs_counter - self.nd[v] + 1
+                seen[v] = True
+            e_node = pointer_e_node[v]
+
+            if e_node:
+                e = e_node.get_data()
+                pointer_e_node[v] = e_node.next
+                w = e[1] if e[0] == v else e[0] # opposite vertex of e
+                if self.new_path:
+                    self.new_path = False
+                    self.starts_path[e] = True
+                if self.edge_status[e] == 1: # tree arc
+                    stack.append(w)
+                else:
+                    # Identified a new frond that enters `w`. Add to `highpt[w]`.
+                    highpt_node = _LinkedListNode(self.newnum[v])
+                    self.highpt[w].append(highpt_node)
+                    self.in_high[e] = highpt_node
+                    self.new_path = True
+
             else:
-                # Identified a new frond that enters `w`. Add to `highpt[w]`.
-                highpt_node = _LinkedListNode(self.newnum[v])
-                self.highpt[w].append(highpt_node)
-                self.in_high[e] = highpt_node
-                self.new_path = True
+                # We trackback
+                self.dfs_counter -= 1
+                w = stack.pop()
 
 
     def __dfs2(self):

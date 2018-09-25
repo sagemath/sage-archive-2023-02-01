@@ -23,6 +23,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 from .gap_includes cimport *
 from .util cimport *
+from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
@@ -76,6 +77,15 @@ cdef Obj make_gap_list(sage_list) except NULL:
     for x in sage_list:
         l.Add(x)
     return l.value
+
+
+cdef crepr(Obj obj):
+    cdef Obj s, o
+    s = NEW_STRING(0);
+    o = CALL_2ARGS(   # setting a string buffer
+              GAP_ValueGlobalVariable("OutputTextString"), s, GAP_True)
+    CALL_2ARGS(GAP_ValueGlobalVariable("PrintTo"), o, obj)
+    return CSTR_STRING(s)
 
 
 cdef Obj make_gap_record(sage_dict) except NULL:
@@ -601,12 +611,9 @@ cdef class GapElement(RingElement):
             return 'NULL'
         try:
             libgap_enter()
-            libgap_start_interaction('')
-            ViewObjHandler(self.value)
-            s = char_to_str(libgap_get_output())
+            s = char_to_str(crepr(self.value) )
             return s.strip()
         finally:
-            libgap_finish_interaction()
             libgap_exit()
 
     cpdef _set_compare_by_id(self):

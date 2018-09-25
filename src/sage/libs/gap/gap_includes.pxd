@@ -15,21 +15,6 @@ cdef extern from "<gap/system.h>":
     ctypedef int Int "Int"
     ctypedef unsigned char UChar "UChar"
 
-cdef extern from "<gap/libgap-api.h>":
-#    void libgap_initialize(int argc, char** argv)
-#    void libgap_set_gasman_callback(libgap_gasman_callback_ptr callback)
-#    ctypedef void(*libgap_error_func_ptr)(char* msg)
-#    void libgap_set_error_handler(libgap_error_func_ptr error_handler)
-#    void libgap_call_error_handler()
-#    void libgap_finalize()
-    ctypedef void (*CallbackFunc)()
-    void GAP_Initialize(int argc, char ** argv, char ** env, 
-        CallbackFunc, CallbackFunc)
-    void libgap_start_interaction(char* inputline)
-    char* libgap_get_output()
-    char* libgap_get_error()
-    void libgap_mark_stack_bottom()
-
 cdef extern from "<gap/code.h>":
     ctypedef unsigned int Stat "Stat"
     ctypedef Stat* PtrBody "PtrBody"
@@ -133,17 +118,39 @@ cdef extern from "<gap/objects.h>":
     cdef int TESTING "TESTING"
     cdef int LAST_TESTING_TNUM "LAST_TESTING_TNUM"
 
+
+cdef extern from "<gap/libgap-api.h>":
+#    void libgap_initialize(int argc, char** argv)
+#    void libgap_set_gasman_callback(libgap_gasman_callback_ptr callback)
+#    ctypedef void(*libgap_error_func_ptr)(char* msg)
+#    void libgap_set_error_handler(libgap_error_func_ptr error_handler)
+#    void libgap_call_error_handler()
+#    void libgap_finalize()
+    ctypedef void (*CallbackFunc)()
+    void GAP_Initialize(int argc, char ** argv, char ** env, 
+        CallbackFunc, CallbackFunc)
+    Obj GAP_EvalString(const char *)
+    Obj GAP_ValueGlobalVariable(const char *)
+    void libgap_start_interaction(char* inputline)
+    char* libgap_get_output()
+    char* libgap_get_error()
+    void libgap_mark_stack_bottom()
+
+
+
 cdef extern from "<gap/integer.h>":
     Int IS_INT(Obj)
 
 cdef extern from "<gap/read.h>":
-    void* ReadEvalCommand "ReadEvalCommand"(Obj context, UInt *dualSemicolon)
+    void* ReadEvalCommand "ReadEvalCommand"(Obj, Obj *, void *)
     void* ReadEvalFile "ReadEvalFile"()
     void* ReadEvalResult "ReadEvalResult"
     bint READ_ERROR "READ_ERROR"()
 
-cdef extern from "<gap/scanner.h>":
+cdef extern from "<gap/stats.h>":
     void ClearError "ClearError"()
+
+cdef extern from "<gap/scanner.h>":
     UInt NrError "NrError"
     UInt Symbol "Symbol"
     void GetSymbol "GetSymbol"()
@@ -229,6 +236,7 @@ cdef extern from "<gap/stringobj.h>":
     bint IS_STRING "IS_STRING"(Obj obj)
     bint IsStringConv "IsStringConv"(Obj obj)
     bint ConvString "ConvString"(Obj obj)
+    Obj NEW_STRING "NEW_STRING"(Int)
     void C_NEW_STRING "C_NEW_STRING"(Obj new_gap_string, int length, char* c_string)
 
 cdef extern from "<gap/gasman.h>":

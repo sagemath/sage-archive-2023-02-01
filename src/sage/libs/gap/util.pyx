@@ -26,8 +26,8 @@ from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 
 # these do nothing now
-cdef void libgap_enter() {}
-cdef void libgap_exit() {}
+cdef void libgap_enter(): pass
+cdef void libgap_exit():  pass
 
 ############################################################################
 ### Hooking into the GAP memory management #################################
@@ -239,8 +239,10 @@ cdef initialize():
     # The initialization just prints error and does not use the error handler
     # libgap_initialize(argc, argv)
     # gap_error_msg = char_to_str(libgap_get_output())
-    if GAP_Initialize(argc, argv, environ, &gasman_callback, &error_handler):
-        raise RuntimeError('libGAP initialization failed\n' + gap_error_msg)
+    try: 
+        GAP_Initialize(argc, argv, environ, &gasman_callback, &error_handler)
+    except RuntimeError as msg:
+        raise RuntimeError('libGAP initialization failed\n' + msg)
 
     # The error handler is called if a GAP evaluation fails, e.g. 1/0
     # libgap_set_error_handler(&error_handler)
@@ -312,8 +314,8 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         ValueError: libGAP: Entered a critical block twice
     """
     initialize()
-    cdef ExecStatus status
-    cdef Obj *result
+    cdef Obj result
+    cdef int i, j, nresults
 
     # Careful: We need to keep a reference to the bytes object here
     # so that Cython doesn't dereference it before libGAP is done with
@@ -323,33 +325,23 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         try:
             sig_on()
             libgap_enter()
-            status = ReadEvalCommand(BottomLVars, result, NULL)
-            if status != STATUS_END:
+            result = GAP_EvalString(cmd)
+            nresults = LEN_LIST(result)
+            if nresults > 1: # to mimick the old libGAP
+                raise ValueError('can only evaluate a single statement')
+            result = ELM_LIST(result, 1) # 1-indexed!
+            if ELM_LIST(result, 1) != GAP_True:
                 # libgap_call_error_handler()
-                if error_func==NULL:
                         print("An error occurred, but libGAP has no handler set")
-                        return # needs work
+                        return GAP_False # needs work
             sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg).strip())
 
-        if Symbol != S_SEMICOLON:
-            raise ValueError('did not end with semicolon')
-        GetSymbol()
-        if Symbol != S_EOF:
-            raise ValueError('can only evaluate a single statement')
-
     finally:
         libgap_exit()
 
-    if ReadEvalResult != NULL:
-        libgap_enter()
-        AssGVar(Last3, VAL_GVAR(Last2))
-        AssGVar(Last2, VAL_GVAR(Last))
-        AssGVar(Last, ReadEvalResult)
-        libgap_exit()
-
-    return result # may be NULL, thats ok
+    return ELM_LIST(result, 2)
 
 
 ############################################################################
@@ -381,7 +373,8 @@ cdef void hold_reference(Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
-cdef void error_handler(char* msg):
+# cdef void error_handler(char* msg):
+cdef void error_handler():
     """
     The libgap error handler
 
@@ -390,7 +383,7 @@ cdef void error_handler(char* msg):
     ``sig_off`` blocks, this then jumps back to the ``sig_on`` where
     the ``RuntimeError`` we raise here will be seen.
     """
-    msg_py = char_to_str(msg)
+    msg_py = "libgap's error ..." # char_to_str(msg)
     msg_py = msg_py.replace('For debugging hints type ?Recovery from NoMethodFound\n', '')
     PyErr_SetObject(RuntimeError, msg_py)
     sig_error()
@@ -505,13 +498,13 @@ def command(command_string):
     """
     initialize()
     cdef ExecStatus status
-    cdef Obj *result
+    cdef Obj result
     cmd = str_to_bytes(command_string + ';\n')
     try:
         libgap_enter()
         try:
-            sig_on()
-            status = ReadEvalCommand(BottomLVars, result)
+            sig_on() # NEEDS WORK
+            status = ReadEvalCommand(BottomLVars, &result, NULL)
             if status != STATUS_END:
                 print("oops - not ready...")  # needs work
             sig_off()

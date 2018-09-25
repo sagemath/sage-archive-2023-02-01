@@ -636,7 +636,6 @@ class Gap(Parent):
             <class 'sage.libs.gap.libgap.Gap'>
         """
         initialize()
-        libgap_set_gasman_callback(gasman_callback)
         from sage.rings.integer_ring import ZZ
         Parent.__init__(self, base=ZZ)
 

@@ -175,7 +175,76 @@ class TateTermMonoid(Monoid_class):
 
         `R` can be coerced into the term monoid if and only if the same coercion
         can be done on their parent algebras.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits'); R
+            2-adic Ring with capped relative precision 10
+            sage: A.<x,y> = TateAlgebra(R); A
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+
+        A ring can be coerced into a monoid of terms if and only if it can be
+        coerced into its base ring.
         
+            sage: B = ZZ; B
+            Integer Ring
+            sage: T.has_coerce_map_from(B) # indirect doctest
+            True
+            sage: B = GF(2); B
+            Finite Field of size 2
+            sage: T.has_coerce_map_from(B) # indirect doctest
+            False
+
+        The base rings must be coercible.
+        
+            sage: S.<a> = Zq(4); S
+            2-adic Unramified Extension Ring in a defined by x^2 + x + 1
+            sage: B.<x,y> = TateAlgebra(S); B
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Unramified Extension Field in a defined by x^2 + x + 1
+            sage: U = B.monoid_of_terms()
+            sage: U.has_coerce_map_from(T) # indirect doctest
+            True
+            sage: T.has_coerce_map_from(U) # indirect doctest
+            False
+
+        Note that a Tate algebra cannot be coerced into a monoid of terms:
+
+            sage: U.has_coerce_map_from(A) # indirect doctest
+            False
+            sage: T.has_coerce_map_from(B) # indirect doctest
+            False
+
+        Variable names must match exactly:
+        
+            sage: B.<x,z> = TateAlgebra(R)
+            sage: U = B.monoid_of_terms()
+            sage: T.has_coerce_map_from(U) # indirect doctest
+            False
+            sage: U.has_coerce_map_from(T) # indirect doctest
+            False
+
+        Term orders must match exactly:
+        
+            sage: B.<x,y> = TateAlgebra(R,order="lex"); B
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: U = B.monoid_of_terms()
+            sage: T.has_coerce_map_from(U) # indirect doctest
+            False
+            sage: U.has_coerce_map_from(T) # indirect doctest
+            False
+
+        Variable names must also be in the same order:
+        
+            sage: B.<y,x> = TateAlgebra(R); B
+            Tate Algebra in y (val >= 0), x (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: U = B.monoid_of_terms()
+            sage: T.has_coerce_map_from(U) # indirect doctest
+            False
+            sage: U.has_coerce_map_from(T) # indirect doctest
+            False
+
         """
         base = self._base
         if base.has_coerce_map_from(R):
@@ -190,18 +259,89 @@ class TateTermMonoid(Monoid_class):
                 return True
 
     def base_ring(self):
+        r"""
+        Return the base ring of the Tate term monoid
+
+        EXAMPLES::
+
+            sage: R = Zp(2,10,print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T.base_ring()
+            2-adic Field with capped relative precision 10
+
+        """
+        
         return self._base
 
     def variable_names(self):
+        r"""
+        Return the names of the variables of the Tate term monoid
+
+        EXAMPLES::
+
+            sage: R = Zp(2,10,print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T.variable_names()
+            ('x', 'y')
+
+        """
         return self._names
 
     def log_radii(self):
+        r"""
+        Return the log radii of convergence of the Tate term monoid
+
+        EXAMPLES::
+
+            sage: R = Zp(2,10,print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T.log_radii()
+            (0, 0)
+
+        """
         return tuple(self._log_radii)
 
     def term_order(self):
+        r"""
+        Return the term order on the Tate term monoid
+
+        EXAMPLES::
+
+            sage: R = Zp(2,10,print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T.term_order()
+            Degree reverse lexicographic term order
+        
+        """
         return self._order
 
     def ngens(self):
+        r"""
+        Return the number of variables in the Tate term monoid
+
+        EXAMPLES::
+
+            sage: R = Zp(2,10,print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T.ngens()
+            2
+
+        """
         return self._ngens
 
 

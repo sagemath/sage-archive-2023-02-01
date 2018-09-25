@@ -414,13 +414,7 @@ cpdef memory_usage():
 
     See :meth:`~sage.libs.gap.libgap.Gap.mem` for details.
     """
-    cdef size_t SizeMptrsArea = OldBags - MptrBags
-    cdef size_t SizeOldBagsArea = YoungBags - OldBags
-    cdef size_t SizeYoungBagsArea = AllocBags - YoungBags
-    cdef size_t SizeAllocationArea = StopBags - AllocBags
-    cdef size_t SizeUnavailableArea = EndBags - StopBags
-    return (SizeMptrsArea, SizeOldBagsArea, SizeYoungBagsArea, SizeAllocationArea, SizeUnavailableArea)
-
+    pass
 
 cpdef error_enter_libgap_block_twice():
     """
@@ -496,41 +490,4 @@ def command(command_string):
         Output follows...
         rec( a := 1, b := 2 )
     """
-    initialize()
-    cdef ExecStatus status
-    cdef Obj result
-    cmd = str_to_bytes(command_string + ';\n')
-    try:
-        libgap_enter()
-        try:
-            sig_on() # NEEDS WORK
-            status = ReadEvalCommand(BottomLVars, &result, NULL)
-            if status != STATUS_END:
-                print("oops - not ready...")  # needs work
-            sig_off()
-        except RuntimeError as msg:
-            raise ValueError('libGAP: '+str(msg).strip())
-
-        assert Symbol == S_SEMICOLON, 'Did not end with semicolon?'
-        GetSymbol()
-        if Symbol != S_EOF:
-            raise ValueError('command() expects a single statement.')
-
-        if result:
-            print('Output follows...')
-            ViewObjHandler(result)
-        else:
-            print('No output.')
-
-    finally:
-        libgap_exit()
-
-    DEBUG_CHECK(result)
-
-    if result != NULL:
-        libgap_enter()
-        AssGVar(Last3, VAL_GVAR(Last2))
-        AssGVar(Last2, VAL_GVAR(Last))
-        AssGVar(Last, ReadEvalResult)
-        libgap_exit()
-
+    pass

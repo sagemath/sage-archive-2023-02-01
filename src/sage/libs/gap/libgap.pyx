@@ -273,7 +273,7 @@ from sage.misc.superseded import deprecated_function_alias
 ############################################################################
 
 cdef void report(Obj bag):
-    print(TNAM_OBJ(bag), <int>TNUM_BAG(bag), <int>SIZE_BAG(bag))
+    print(TNAM_OBJ(bag),  <int>SIZE_OBJ(bag))
 
 
 cdef void print_gasman_objects():

@@ -323,7 +323,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         try:
             sig_on()
             libgap_enter()
-            status = ReadEvalCommand(BottomLVars, result)
+            status = ReadEvalCommand(BottomLVars, result, NULL)
             if status != STATUS_END:
                 # libgap_call_error_handler()
                 if error_func==NULL:

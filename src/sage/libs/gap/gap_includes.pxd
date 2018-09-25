@@ -234,7 +234,6 @@ cdef extern from "<gap/stringobj.h>":
 cdef extern from "<gap/gasman.h>":
     void InitGlobalBag "InitGlobalBag"(Obj* addr, char* cookie)
     Obj NewBag "NewBag"(UInt type, UInt size)
-    void CHANGED_BAG "CHANGED_BAG"(Obj bag)
     void MarkBag "MarkBag"(Obj bag)
     bint IS_MARKED_ALIVE "IS_MARKED_ALIVE"(Obj bag)
     bint IS_MARKED_DEAD "IS_MARKED_DEAD"(Obj bag)
@@ -248,9 +247,9 @@ cdef extern from "<gap/gasman.h>":
     cdef UInt NrHalfDeadBags "NrHalfDeadBags"
     UInt CollectBags "CollectBags"(UInt size, UInt full)
     void CallbackForAllBags "CallbackForAllBags"(void (*func)(Obj))
-    char* TNAM_BAG "TNAM_BAG"(Obj obj)
-    UInt TNUM_BAG "TNUM_BAG"(Obj)
-    UInt SIZE_BAG "SIZE_BAG"(Obj)
+    char* TNAM_OBJ "TNAM_OBJ"(Obj obj)
+    UInt TNUM_OBJ "TNUM_OBJ"(Obj)
+    UInt SIZE_OBJ "SIZE_OBJ"(Obj)
     void CheckMasterPointers "CheckMasterPointers"()
     Obj* MptrBags "MptrBags"
     Obj* YoungBags "YoungBags"

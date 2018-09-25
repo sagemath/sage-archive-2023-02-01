@@ -138,7 +138,6 @@ This base class provides a lot more methods than a general parent::
      'content',
      'derivation',
      'derivation_module',
-     'derivation_twisted',
      'divides',
      'epsilon',
      'extension',

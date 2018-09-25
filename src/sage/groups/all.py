@@ -41,3 +41,5 @@ lazy_import('sage.groups.semimonomial_transformations.semimonomial_transformatio
 lazy_import('sage.groups.group_exp', ['GroupExp', 'GroupExp_Class', 'GroupExpElement'])
 
 lazy_import('sage.groups.group_semidirect_product', ['GroupSemidirectProduct', 'GroupSemidirectProductElement'])
+
+lazy_import('sage.groups.lie_group', 'NilpotentLieGroup')

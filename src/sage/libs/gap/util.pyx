@@ -205,7 +205,7 @@ cdef initialize():
     # Define argv and environ variables, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool
     # size!
-    cdef char* argv[14]
+    cdef char* argv[15]
     argv[0] = "sage"
     argv[1] = "-l"
     s = str_to_bytes(gap_root(), FS_ENCODING, "surrogateescape")
@@ -223,17 +223,18 @@ cdef initialize():
 
     argv[9] = "-q"    # no prompt!
     argv[10] = "-T"    # no debug loop
-    argv[11] = NULL
+    argv[11] = "--nointeract"
+    argv[12] = NULL
     cdef int argc = 11   # argv[argc] must be NULL
 
     from .saved_workspace import workspace
     workspace, workspace_is_up_to_date = workspace()
     ws = str_to_bytes(workspace, FS_ENCODING, "surrogateescape")
     if workspace_is_up_to_date:
-        argv[11] = "-L"
-        argv[12] = ws
-        argv[13] = NULL
-        argc = 13
+        argv[12] = "-L"
+        argv[13] = ws
+        argv[14] = NULL
+        argc = 14
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler

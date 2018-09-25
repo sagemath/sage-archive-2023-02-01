@@ -1567,9 +1567,11 @@ cdef class CommutativeRing(Ring):
 
         INPUT:
 
-        - ``codomain`` -- an algebra over this ring or ``None``
-          (default: ``None``); if ``None``, the codomain will be
-          this ring.
+        - ``codomain`` -- an algebra over this ring or a ring homomorphism
+          whose domain is this ring or ``None`` (default: ``None``); if it
+          is a morphism, the codomain of derivations will be the codomain 
+          of the morphism viewed as an algebra over ``self`` through the 
+          given morphism; if ``None``, the codomain will be this ring.
 
         - ``twist`` -- a morphism from this ring to ``codomain``
           or ``None`` (default: ``None``); if ``None``, the coercion
@@ -1601,7 +1603,37 @@ cdef class CommutativeRing(Ring):
             sage: M.gen() / x
             1/x*d/dx
 
-        or a twisting homomorphism::
+        Here is an example with a non-canonical defining morphism::
+
+            sage: ev = R.hom([QQ(0), QQ(1), QQ(2)])
+            sage: ev
+            Ring morphism:
+              From: Multivariate Polynomial Ring in x, y, z over Rational Field
+              To:   Rational Field
+              Defn: x |--> 0
+                    y |--> 1
+                    z |--> 2
+            sage: M = R.derivation_module(ev)
+            sage: M
+            Module of derivations from Multivariate Polynomial Ring in x, y, z over Rational Field to Rational Field
+
+        Elements in `M` acts as derivations at `(0,1,2)`::
+
+            sage: Dx = M.gen(0); Dx
+            d/dx
+            sage: Dy = M.gen(1); Dy
+            d/dy
+            sage: Dz = M.gen(2); Dz
+            d/dz
+            sage: f = x^2 + y^2 + z^2
+            sage: Dx(f)  # = 2*x evaluated at (0,1,2)
+            0
+            sage: Dy(f)  # = 2*y evaluated at (0,1,2)
+            2
+            sage: Dz(f)  # = 2*z evaluated at (0,1,2)
+            4
+
+        An example with a twisting homomorphism::
 
             sage: theta = R.hom([x^2, y^2, z^2])
             sage: M = R.derivation_module(twist=theta); M
@@ -1609,7 +1641,7 @@ cdef class CommutativeRing(Ring):
 
         .. SEEALSO::
 
-            :meth:`derivation`, :meth:`derivation_twisted`
+            :meth:`derivation`
 
         """
         from sage.rings.derivation import RingDerivationModule

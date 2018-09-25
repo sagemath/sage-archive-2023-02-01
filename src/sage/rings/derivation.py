@@ -193,7 +193,7 @@ class RingDerivationModule(Module, UniqueRepresentation):
     """
     A class for modules of derivations over a commutative ring.
     """
-    def __init__(self, domain, codomain, twist=None, element_class=None):
+    def __init__(self, domain, codomain, twist=None):
         """
         Initialize this module of derivation.
 
@@ -991,6 +991,113 @@ class RingDerivationWithoutTwist(RingDerivation):
                 res = self(res)
             arg.append(res)
         return parent(arg)
+
+
+    def precompose(self, morphism):
+        r"""
+        Return the derivation obtained by applying first
+        ``morphism`` and then this derivation.
+
+        INPUT:
+
+        - ``morphism`` - a morphism whose codomain is the domain
+          of this derivation or a ring that coerces to the domain
+          of this derivation.
+
+        EXAMPLES::
+
+            sage: A.<x> = QQ[]
+            sage: B.<x,y> = QQ[]
+            sage: D = B.derivation(x) - 2*x*B.derivation(y); D
+            d/dx - 2*x*d/dy
+
+        When restricting to ``A``, the term ``d/dy`` disappears
+        (since it vanishes on ``A``)::
+
+            sage: D.precompose(A)
+            d/dx
+
+        If we restrict to another subring, the derivation vanishes::
+
+            sage: C.<t> = QQ[]
+            sage: f = C.hom([x^2 + y]); f
+            Ring morphism:
+              From: Univariate Polynomial Ring in t over Rational Field
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
+              Defn: t |--> x^2 + y
+            sage: D.precompose(f)
+            0
+
+        TESTS::
+
+            sage: D.precompose(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: the given ring does not coerce to the domain of the derivation
+
+        """
+        parent = self.parent()
+        if morphism in Rings().Commutative():
+            if parent.domain().has_coerce_map_from(morphism):
+                morphism = parent.domain().coerce_map_from(morphism)
+            else:
+                raise TypeError("the given ring does not coerce to the domain of the derivation")
+        M = RingDerivationModule(morphism.domain(), parent.defining_morphism() * morphism)
+        arg = [ ]
+        for x in M.dual_basis():
+            arg.append(self(morphism(x)))
+        return M(arg)
+
+    def postcompose(self, morphism):
+        """
+        Return the derivation obtained by applying first
+        this derivation and then ``morphism``.
+
+        INPUT:
+
+        - ``morphism`` - a morphism whose domain is the codomain
+          of this derivation or a ring into which the codomain of 
+          this derivation.
+
+        EXAMPLES::
+
+            sage: A.<x,y>= QQ[]
+            sage: ev = A.hom([QQ(0), QQ(1)])
+            sage: Dx = A.derivation(x)
+            sage: Dy = A.derivation(y)
+
+        We can define the derivation at `(0,1)` just by postcomposing
+        with ``ev``::
+
+            sage: dx = Dx.postcompose(ev)
+            sage: dy = Dy.postcompose(ev)
+            sage: f = x^2 + y^2
+            sage: dx(f)
+            0
+            sage: dy(f)
+            2
+
+        Note that we cannot avoid the creation of the evaluation morphism:
+        if we pass in the ``QQ`` instead, an error is raised since there is
+        no coercion morphism from ``A`` to ``QQ``::
+
+            sage: Dx.postcompose(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: the codomain of the derivation does not coerce to the given ring
+
+        """
+        parent = self.parent()
+        if morphism in Rings().Commutative():
+            if morphism.has_coerce_map_from(parent.codomain()):
+                morphism = morphism.coerce_map_from(parent.codomain())
+            else:
+                raise TypeError("the codomain of the derivation does not coerce to the given ring")
+        M = RingDerivationModule(parent.domain(), morphism * parent.defining_morphism())
+        arg = [ ]
+        for x in M.dual_basis():
+            arg.append(morphism(self(x)))
+        return M(arg)
 
 
 class RingDerivationWithoutTwist_zero(RingDerivationWithoutTwist):

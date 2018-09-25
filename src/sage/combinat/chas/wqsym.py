@@ -266,6 +266,60 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         s = self.base_ring().an_element()
         return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
 
+    def _element_constructor_(self, p):
+        """
+        Build and return an element of ``self`` from ``p``.
+
+        According to the specifications of the ``.__call__`` method,
+        this method is called when a coercion from ``p.parent()``
+        to ``self`` is not known.
+
+        EXAMPLES:
+
+        Check that this method is not called when coercions are known::
+
+            sage: M( X[[1,2],] + 2 * M[[1],[2]] )  # indirect test
+            2*M[{1}, {2}] - M[{1, 2}]
+            sage: M(2)
+            2*M[]
+
+        Check method when input represents a word or an ordered set partition::
+
+            sage: M([1,2,1])  # indirect test
+            M[{1, 3}, {2}]
+            sage: M([[1,2]])  # indirect test
+            M[{1, 2}]
+
+        TESTS::
+
+            sage: M._element_constructor_([])
+            M[]
+            sage: x = M._element_constructor_([1,2]); x
+            M[{1}, {2}]
+            sage: y = M._element_constructor_([1,1]); y
+            M[{1, 2}]
+            sage: x == M._element_constructor_(Word([1,2])) == M._element_constructor_('ab')
+            True
+            sage: x == M._element_constructor_(OrderedSetPartition([[1],[2]]))
+            True
+            sage: y == M._element_constructor_(((1,2),))
+            True
+            sage: M._element_constructor_(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
+            sage: M._element_constructor_(((1,2),3))
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert ((1, 2), 3) into an element of Ordered set partitions
+        """
+        if all(isinstance(s, (int, Integer, str)) for s in p):
+            return self.monomial(self._indices.from_finite_word(p))
+        try:
+            return self.monomial(self._indices(p))
+        except TypeError:
+            raise ValueError("cannot convert %s into an element of %s"%(p, self._indices))
+
 class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The word quasi-symmetric functions.
@@ -1902,39 +1956,31 @@ class WQSymBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: M = algebras.WQSym(QQ).M()
-                sage: M[1, 2, 1]
+                sage: M[1, 2, 1]  # pass a word
                 M[{1, 3}, {2}]
-                sage: M[[1, 3, 2]]
-                M[{1}, {3}, {2}]
-                sage: M[[[1, 3, 2]]]
+                sage: _ == M[[1, 2, 1]] == M[Word([1,2,1])]
+                True
+                sage: M[[1, 2, 3]]
+                M[{1}, {2}, {3}]
+
+                sage: M[[[1, 2, 3]]]  # pass an ordered set partition
                 M[{1, 2, 3}]
+                sage: _ == M[[1,2,3],] == M[OrderedSetPartition([[1,2,3]])]
                 sage: M[[1,3],[2]]
                 M[{1, 3}, {2}]
-                sage: M[OrderedSetPartition([[2],[1,4],[3,5]])]
-                M[{2}, {1, 4}, {3, 5}]
 
             TESTS::
 
-                sage: M[[[1,2,3]]] == M[[1,2,3],] == M[OrderedSetPartition([[1,2,3]])]
-                True
-                sage: M[1, 2, 1] == M[[1, 2, 1]] == M[Word([2,3,2])] == M[Word('aca')]
+                sage: M[[]]
+                M[]
+                sage: M[1, 2, 1] == M[Word([2,3,2])] == M[Word('aca')]
                 True
                 sage: M[1,] == M[Word([1])] == M[OrderedSetPartition([[1]])] == M[[1],]
                 True
             """
-            if not p:
-                return self.one()
-
-            if p in self._indices:
-                return self.monomial(self._indices(p))
-            if all(isinstance(s, (int, Integer, str)) for s in p):
-                return self.monomial(self._indices.from_finite_word(p))
-
-            # TODO: consider just going straight to an error here
-            try:
-                return self.monomial(self._indices([p]))
-            except TypeError:
-                raise ValueError("cannot convert %s into an element of %s"%(p, self._indices))
+            if isinstance(p, (int, Integer)):
+                p = [p]
+            return self._element_constructor_(p)
 
         def is_field(self, proof=True):
             """

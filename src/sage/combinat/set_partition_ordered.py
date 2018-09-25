@@ -953,7 +953,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         #is a nonempty set
         u = Set([])
         for s in x:
-            if not isinstance(s, (set, frozenset, Set_generic)) or len(s)==0:
+            if not isinstance(s, (set, frozenset, Set_generic)) or len(s) == 0:
                 return False
             u = u.union(s)
 
@@ -1319,7 +1319,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             return False
 
         # Check to make sure each element of the list is a nonempty set
-        if (any(not isinstance(s, (set, frozenset, list, tuple, Set_generic))) or (len(s)==0)
+        if (any(not isinstance(s, (set, frozenset, list, tuple, Set_generic))) or (len(s) == 0)
                for s in x):
             return False
         if not all(isinstance(s, (set, frozenset, Set_generic)) or len(s) == len(set(s)) for s in x):

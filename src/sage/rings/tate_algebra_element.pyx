@@ -1169,6 +1169,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return (<TateAlgebraElement>self)._lshift_c(n)
 
     def __rshift__(self, n):
+        r"""
         Returns the quotient in the division of this series by
         the ``n``th power of the uniformizer.
 

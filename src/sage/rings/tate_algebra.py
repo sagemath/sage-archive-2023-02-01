@@ -84,7 +84,7 @@ class TateTermMonoid(Monoid_class):
 
     EXAMPLES::
 
-        sage: from tate_algebra import *
+        sage: from sage.rings.tate_algebra import * 
         sage: R = pAdicRing(2,prec=10,print_mode='digits')
         sage: T1 = TateTermMonoid(R,[1,1],["x","y"],"lex"); T1
         Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Ring with capped relative precision 10
@@ -126,7 +126,7 @@ class TateTermMonoid(Monoid_class):
 
         EXAMPLES::
 
-            sage: from tate_algebra import *
+            sage: from sage.rings.tate_algebra import *
             sage: R = pAdicRing(2,prec=10,print_mode='digits')
             sage: T1 = TateTermMonoid(R,[1,1],["x","y"],"lex"); T1
             Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Ring with capped relative precision 10

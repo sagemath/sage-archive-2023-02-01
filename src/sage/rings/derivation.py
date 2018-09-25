@@ -1000,9 +1000,9 @@ class RingDerivationWithoutTwist(RingDerivation):
 
         INPUT:
 
-        - ``morphism`` - a morphism whose codomain is the domain
-          of this derivation or a ring that coerces to the domain
-          of this derivation.
+        - ``morphism`` - an homomorphism of rings whose codomain is
+          the domain of this derivation or a ring that coerces to
+          the domain of this derivation.
 
         EXAMPLES::
 
@@ -1028,6 +1028,13 @@ class RingDerivationWithoutTwist(RingDerivation):
             sage: D.precompose(f)
             0
 
+        Note that this methods cannot be used to compose derivations::
+
+            sage: D.precompose(D)
+            Traceback (most recent call last):
+            ...
+            TypeError: you must give an homomorphism of rings
+
         TESTS::
 
             sage: D.precompose(C)
@@ -1042,6 +1049,8 @@ class RingDerivationWithoutTwist(RingDerivation):
                 morphism = parent.domain().coerce_map_from(morphism)
             else:
                 raise TypeError("the given ring does not coerce to the domain of the derivation")
+        elif not (isinstance(morphism, Map) and morphism.category_for().is_subcategory(Rings())):
+            raise TypeError("you must give an homomorphism of rings")
         M = RingDerivationModule(morphism.domain(), parent.defining_morphism() * morphism)
         arg = [ ]
         for x in M.dual_basis():
@@ -1055,9 +1064,9 @@ class RingDerivationWithoutTwist(RingDerivation):
 
         INPUT:
 
-        - ``morphism`` - a morphism whose domain is the codomain
-          of this derivation or a ring into which the codomain of 
-          this derivation.
+        - ``morphism`` - an homomorphism of rings whose domain is 
+          the codomain of this derivation or a ring into which the 
+          codomain of this derivation.
 
         EXAMPLES::
 
@@ -1086,6 +1095,13 @@ class RingDerivationWithoutTwist(RingDerivation):
             ...
             TypeError: the codomain of the derivation does not coerce to the given ring
 
+        Note that this methods cannot be used to compose derivations::
+
+            sage: Dx.precompose(Dy)
+            Traceback (most recent call last):
+            ...
+            TypeError: you must give an homomorphism of rings
+
         """
         parent = self.parent()
         if morphism in Rings().Commutative():
@@ -1093,6 +1109,8 @@ class RingDerivationWithoutTwist(RingDerivation):
                 morphism = morphism.coerce_map_from(parent.codomain())
             else:
                 raise TypeError("the codomain of the derivation does not coerce to the given ring")
+        elif not (isinstance(morphism, Map) and morphism.category_for().is_subcategory(Rings())):
+            raise TypeError("you must give an homomorphism of rings")
         M = RingDerivationModule(parent.domain(), morphism * parent.defining_morphism())
         arg = [ ]
         for x in M.dual_basis():

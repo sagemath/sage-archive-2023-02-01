@@ -222,6 +222,7 @@ class RingDerivationModule(Module, UniqueRepresentation):
             self.Element = RingDerivationWithTwist_generic
             if domain.is_field():
                 self._gens = [ 1 ]
+                self._basis = [ 1 ]
         elif (domain is ZZ or domain in NumberFields() or domain in FiniteFields() or isinstance(domain, IntegerModRing_generic)
           or (isinstance(domain, pAdicGeneric) and (domain.is_field() or domain.absolute_e() == 1))):
             self.Element = RingDerivationWithoutTwist_zero
@@ -751,6 +752,41 @@ class RingDerivationWithoutTwist(RingDerivation):
         parent = self.parent()
         return [ self(x) for x in parent.dual_basis() ]
 
+    def is_zero(self):
+        """
+        Return ``True`` if this derivation is zero.
+
+        EXEMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: f = R.derivation(); f
+            d/dx
+            sage: f.is_zero()
+            False
+
+            sage: (f-f).is_zero()
+            True
+        """
+        for c in self.list():
+            if not c.is_zero():
+                return False
+        return True
+
+    def _cmp_(self, other):
+        """
+        Compare this derivation with ``other``.
+
+        EXEMPLES::
+
+            sage: R.<x,y,z> = GF(5)[]
+            sage: D = sum(v*R.derivation(v) for v in R.gens()); D
+            x*d/dx + y*d/dy + z*d/dz
+            sage: D.pth_power() == D  # indirect doctest
+            True
+
+        """
+        return cmp(self.list(), other.list())
+
     def _bracket_(self, other):
         """
         Return the Lie bracket (that is the commutator) of 
@@ -770,11 +806,22 @@ class RingDerivationWithoutTwist(RingDerivation):
         TESTS::
 
             sage: M = R.derivation_module()
-            sage: f = M.random_element()
-            sage: g = M.random_element()
-            sage: h = M.random_element()
-            sage: f.bracket(g.bracket(h)) + g.bracket(h.bracket(f)) + h.bracket(f.bracket(g))
+            sage: X = M.random_element()
+            sage: X.bracket(X)
             0
+
+        We check that the Jacobi identity::
+
+            sage: Y = M.random_element()
+            sage: Z = M.random_element()
+            sage: X.bracket(Y.bracket(Z)) + Y.bracket(Z.bracket(X)) + Z.bracket(X.bracket(Y))
+            0
+
+        and the product rule::
+
+            sage: f = R.random_element()
+            sage: X.bracket(f*Y) == X(f)*Y + f*X.bracket(Y)
+            True
 
         """
         parent = self.parent()
@@ -1631,4 +1678,24 @@ class RingDerivationWithTwist_generic(RingDerivation):
         return self._scalar * (self.parent().twisting_homomorphism()(x) - x)
 
     def list(self):
+        """
+        Return the list of coefficient of this twisted derivation
+        on the canonical basis.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: K = R.fraction_field()
+            sage: theta = K.hom([y,x])
+            sage: M = K.derivation_module(twist=theta); M
+            Module of twisted derivations over Fraction Field of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: M.basis()
+            [twisting_morphism - id]
+            sage: f = (x+y) * M.gen()
+            sage: f
+            (x + y)*(twisting_morphism - id)
+            sage: f.list()
+            [x + y]
+
+        """
         return [ self._scalar ]

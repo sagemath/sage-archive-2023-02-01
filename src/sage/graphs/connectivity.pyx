@@ -3400,41 +3400,99 @@ class TriconnectivitySPQR:
             self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
             self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]
 
-    def __path_search(self, v):
+    def __path_search(self, start):
         """
         Find the separation pairs and construct the split components.
+
         Check for type-1 and type-2 separation pairs, and construct the split
         components while also creating new virtual edges wherever required.
+
+        INPUT:
+
+        - ``start`` -- The start vertex.
         """
-        y = 0
-        vnum = self.newnum[v]
-        outv = self.adj[v].get_length()
-        e_node = self.adj[v].get_head()
-        while e_node:
-            e = e_node.get_data()
-            it = e_node
+        stack_v = [start]
+        y_dict = {start:0}
+        outv_dict = {start:self.adj[start].get_length()}
+        e_node_dict = {start:self.adj[start].get_head()}
 
-            if e in self.reverse_edges:
-                w = e[0] # target
+        while stack_v:
+            v = stack_v[-1]
+            e_node = e_node_dict[v]
+
+            if e_node:
+
+                # Restore values of variables
+                y = y_dict[v]
+                vnum = self.newnum[v]
+                outv = outv_dict[v]
+                e = e_node.get_data()
+                it = e_node
+                if e in self.reverse_edges:
+                    w = e[0] # target
+                else:
+                    w = e[1]
+                wnum = self.newnum[w]
+
+                if self.edge_status[e] == 1: # e is a tree arc
+                    if self.starts_path[e]: # if a new path starts at edge e
+                        # Pop all (h,a,b) from tstack where a > lowpt1[w]
+                        if self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
+                            while self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
+                                y = max(y, self.t_stack_h[self.t_stack_top])
+                                b = self.t_stack_b[self.t_stack_top]
+                                self.t_stack_top -= 1
+                            self.__tstack_push(y, self.lowpt1[w], b)
+
+                        else:
+                            self.__tstack_push(wnum + self.nd[w] - 1, self.lowpt1[w], vnum)
+                        self.__tstack_push_eos()
+
+                    # We emulate the recursive call on w using a stack
+                    stack_v.append(w)
+                    y_dict[w] = 0
+                    outv_dict[w] = self.adj[w].get_length()
+                    e_node_dict[w] = self.adj[w].get_head()
+                    y_dict[v] = y
+                    continue
+
+                else: # e is a frond
+                    if self.starts_path[e]:
+                        # pop all (h,a,b) from tstack where a > w
+                        if self.t_stack_a[self.t_stack_top] > wnum:
+                            while self.t_stack_a[self.t_stack_top] > wnum:
+                                y = max(y, self.t_stack_h[self.t_stack_top])
+                                b = self.t_stack_b[self.t_stack_top]
+                                self.t_stack_top -= 1
+                            self.__tstack_push(y, wnum, b)
+
+                        else:
+                            self.__tstack_push(vnum, wnum, vnum)
+                    self.e_stack.append(e) # add (v,w) to ESTACK
+
             else:
-                w = e[1]
-            wnum = self.newnum[w]
-            if self.edge_status[e] == 1: # e is a tree arc
-                if self.starts_path[e]: # if a new path starts at edge e
-                    y = 0
-                    # Pop all (h,a,b) from tstack where a > lowpt1[w]
-                    if self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
-                        while self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
-                            y = max(y, self.t_stack_h[self.t_stack_top])
-                            b = self.t_stack_b[self.t_stack_top]
-                            self.t_stack_top -= 1
-                        self.__tstack_push(y, self.lowpt1[w], b)
+                # We are done with v, so we trackback
+                stack_v.pop()
 
-                    else:
-                        self.__tstack_push(wnum + self.nd[w] - 1, self.lowpt1[w], vnum)
-                    self.__tstack_push_eos()
+                # Test termination
+                if not stack_v:
+                    continue
 
-                self.__path_search(w)
+                # Restore state of variables
+                v = stack_v[-1]
+                e_node = e_node_dict[v]
+                y = y_dict[v]
+                vnum = self.newnum[v]
+                outv = outv_dict[v]
+                e = e_node.get_data()
+                it = e_node
+                if e in self.reverse_edges:
+                    w = e[0] # target
+                else:
+                    w = e[1]
+                wnum = self.newnum[w]
+
+                # Continue operations with tree arc e
 
                 self.e_stack.append(self.tree_arc[w])
                 temp_node = self.adj[w].get_head()
@@ -3676,25 +3734,10 @@ class TriconnectivitySPQR:
                     and self.__high(v) > self.t_stack_h[self.t_stack_top]:
                     self.t_stack_top -= 1
 
-                outv -= 1
-
-            else: # e is a frond
-                if self.starts_path[e]:
-                    y = 0
-                    # pop all (h,a,b) from tstack where a > w
-                    if self.t_stack_a[self.t_stack_top] > wnum:
-                        while self.t_stack_a[self.t_stack_top] > wnum:
-                            y = max(y, self.t_stack_h[self.t_stack_top])
-                            b = self.t_stack_b[self.t_stack_top]
-                            self.t_stack_top -= 1
-                        self.__tstack_push(y, wnum, b)
-
-                    else:
-                        self.__tstack_push(vnum, wnum, vnum)
-                self.e_stack.append(e) # add (v,w) to ESTACK
+                outv_dict[v] -= 1
 
             # Go to next edge in adjacency list
-            e_node = e_node.next
+            e_node_dict[v] = e_node.next
 
     def __assemble_triconnected_components(self):
         """

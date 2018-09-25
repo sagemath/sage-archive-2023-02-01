@@ -82,7 +82,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         TESTS::
 
             sage: M = WordQuasiSymmetricFunctions(QQ).M()
-            sage: elt = M[[[1,2]]]*M[[[1]]]; elt
+            sage: elt = M[[[1,2]]] * M[[[1]]]; elt
             M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
             sage: M.options.objects = "words"
             sage: elt
@@ -180,7 +180,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         Elements of the word quasi-symmetric functions canonically coerce in::
 
-            sage: x, y = M([[1],]), M([[2,1],])
+            sage: x, y = M([[1]]), M([[2,1]])
             sage: M.coerce(x+y) == x+y
             True
 
@@ -188,7 +188,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         since `\ZZ` coerces to `\GF{7}`::
 
             sage: N = algebras.WQSym(ZZ).M()
-            sage: Nx, Ny = N([[1],]), N([[2,1],])
+            sage: Nx, Ny = N([[1]]), N([[2,1]])
             sage: z = M.coerce(Nx+Ny); z
             M[{1}] + M[{1, 2}]
             sage: z.parent() is M
@@ -278,6 +278,8 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         Check that this method is not called when coercions are known::
 
+            sage: WQ = WordQuasiSymmetricFunctions(QQ)
+            sage: M = WQ.M(); X = WQ.X()
             sage: M( X[[1,2],] + 2 * M[[1],[2]] )  # indirect test
             2*M[{1}, {2}] - M[{1, 2}]
             sage: M(2)
@@ -353,13 +355,16 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     set of all `j \in \{1, 2, \ldots, n\}` such that `u_j = i`.
 
     The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
-    in this situation and is implemented using the latter indexing.
-    The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and
-    is implemented as
+    in this situation. The basis `(\mathbf{M}_P)_P` is called the
+    *Monomial basis* and is implemented as
     :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.Monomial`.
 
     Other bases are the cone basis (aka C basis), the characteristic
     basis (aka X basis), the Q basis and the Phi basis.
+
+    Bases of `WQSym` are implemented (internally) using ordered set
+    partitions. However, the user may access specific basis vectors using
+    either packed words or ordered set partitions. (See the examples below.)
 
     `WQSym` is endowed with a connected graded Hopf algebra structure (see
     Section 2.2 of [NoThWi08]_, Section 1.1 of [FoiMal14]_ and
@@ -402,7 +407,9 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     - [NoThWi08]_
     - [BerZab05]_
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Constructing the algebra and its Monomial basis::
 
         sage: WQSym = algebras.WQSym(ZZ)
         sage: WQSym
@@ -412,25 +419,54 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         Word Quasi-symmetric functions over Integer Ring in the Monomial basis
         sage: M[[]]
         M[]
-        sage: M[[1,3,2]]
-        M[{1}, {3}, {2}]
-        sage: M[[1,3,2]] == M[1,3,2] == M[Word([1,3,2])]
+
+    Calling basis elements using packed words::
+
+        sage: x = M[1,2,1]; x
+        M[{1, 3}, {2}]
+        sage: x == M[[1,2,1]] == M[Word([1,2,1])]
         True
-        sage: M[[[1,2,3]]]
+        sage: y = M[1,1,2] - M[1,2,2]; y
+        -M[{1}, {2, 3}] + M[{1, 2}, {3}]
+
+    Note above that expressions are still output in terms of ordered
+    set partitions. Output as packed words can be achieved by modifying
+    the global options. (See :meth:`OrderedSetPartitions.options` for
+    further details.)::
+
+        sage: M.options.objects = "words"
+        sage: y
+        -M[1, 2, 2] + M[1, 1, 2]
+        sage: M.options.display = "compact"
+        sage: y
+        -M[122] + M[112]
+
+    Calling basis elements using ordered set partitions. (Note that the
+    options should be reset to display as ordered set partitions.)::
+
+        sage: y = M[[1,2,3],]; y
+        M[111]
+        sage: M.options._reset()
+        sage: y
         M[{1, 2, 3}]
-        sage: M[[[1,2,3]]] == M([[1,2,3]]) == M[[1,2,3],] == M[OrderedSetPartition([[1,2,3]])]
+        sage: y == M[[[1,2,3]]] == M[OrderedSetPartition([[1,2,3]])]
         True
         sage: M[[1,2],[3]]
         M[{1, 2}, {3}]
+
+    Illustration of the Hopf algebra structure::
+
         sage: M[[2, 3], [5], [6], [4], [1]].coproduct()
         M[] # M[{2, 3}, {5}, {6}, {4}, {1}] + M[{1, 2}] # M[{3}, {4}, {2}, {1}]
          + M[{1, 2}, {3}] # M[{3}, {2}, {1}] + M[{1, 2}, {3}, {4}] # M[{2}, {1}]
          + M[{1, 2}, {4}, {5}, {3}] # M[{1}] + M[{2, 3}, {5}, {6}, {4}, {1}] # M[]
-        sage: M[[1,2,3],] * M[[1,2],[3]]
+        sage: _ == M[5,1,1,4,2,3].coproduct()
+        True
+        sage: M[[1,1,1]] * M[[1,1,2]]   # packed words
         M[{1, 2, 3}, {4, 5}, {6}] + M[{1, 2, 3, 4, 5}, {6}]
          + M[{4, 5}, {1, 2, 3}, {6}] + M[{4, 5}, {1, 2, 3, 6}]
          + M[{4, 5}, {6}, {1, 2, 3}]
-        sage: M[[1,2,3],].antipode()
+        sage: M[[1,2,3],].antipode()  # ordered set partition
         -M[{1, 2, 3}]
         sage: M[[1], [2], [3]].antipode()
         -M[{1, 2, 3}] - M[{2, 3}, {1}] - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
@@ -1966,6 +2002,7 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[[1, 2, 3]]]  # pass an ordered set partition
                 M[{1, 2, 3}]
                 sage: _ == M[[1,2,3],] == M[OrderedSetPartition([[1,2,3]])]
+                True
                 sage: M[[1,3],[2]]
                 M[{1, 3}, {2}]
 

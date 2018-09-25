@@ -24,7 +24,7 @@ from sage.rings.polynomial.polydict import ETuple
 
 class TateAlgebraFactory(UniqueFactory):
     """
-    Doctest here.
+    TODO Doctest here.
     """
     def create_key(self, base, prec=None, log_radii=ZZ(0), names=None, order='degrevlex'):
         if not isinstance(base, pAdicGeneric):
@@ -57,9 +57,91 @@ TateAlgebra = TateAlgebraFactory("TateAlgebra")
 ##################
 
 class TateTermMonoid(Monoid_class):
+    r"""
+    A base class for Tate algebra terms
+
+    A term in `R\{X_1,\dots,X_n\}` is the product of a coefficient in `R` and a
+    monomial in the variables `X_1,\dots,X_n`.
+
+    Those terms form a pre-ordered monoid, with term multiplication and the
+    term order of the parent Tate algebra.
+
+    INPUT:
+
+    - ``base`` - the coefficient ring of the parent Tate algebra
+
+    - ``log_radii`` - the convergence log radii of the parent Tate algebra
+
+    - ``names`` - the names of the variables of the parent Tate algebra
+
+    - ``order`` - the monomial order of the parent Tate algebra
+
+    NOTE::
+
+    The proper way to initialize a Tate term monoid is by first defining a Tate
+    algebra, and then calling the method ``monoid_of_terms``. Calling
+    ``TateTermMonoid`` directly can lead to errors.
+
+    EXAMPLES::
+
+        sage: from tate_algebra import *
+        sage: R = pAdicRing(2,prec=10,print_mode='digits')
+        sage: T1 = TateTermMonoid(R,[1,1],["x","y"],"lex"); T1
+        Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Ring with capped relative precision 10
+
+    The recommended way of initializing a Tate term monoid is by defining the
+    parent Tate algebra first:
+    
+        sage: A.<x,y> = TateAlgebra(R,log_radii=[1,1],order="lex")
+        sage: T2 = A.monoid_of_terms(); T2
+        Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
+
+    """
+    
     def __init__(self, base, log_radii, names, order):
+        r"""
+        A base class for Tate algebra terms
+
+        A term in `R\{X_1,\dots,X_n\}` is the product of a coefficient in `R` and a
+        monomial in the variables `X_1,\dots,X_n`.
+
+        Those terms form a pre-ordered monoid, with term multiplication and the
+        term order of the parent Tate algebra.
+
+        INPUT:
+
+        - ``base`` - the coefficient ring of the parent Tate algebra
+
+        - ``log_radii`` - the convergence log radii of the parent Tate algebra
+
+        - ``names`` - the names of the variables of the parent Tate algebra
+
+        - ``order`` - the monomial order of the parent Tate algebra
+
+        NOTE::
+
+        The proper way to initialize a Tate term monoid is by first defining a Tate
+        algebra, and then calling the method ``monoid_of_terms``. Calling
+        ``TateTermMonoid`` directly can lead to errors.
+
+        EXAMPLES::
+
+            sage: from tate_algebra import *
+            sage: R = pAdicRing(2,prec=10,print_mode='digits')
+            sage: T1 = TateTermMonoid(R,[1,1],["x","y"],"lex"); T1
+            Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Ring with capped relative precision 10
+
+        The recommended way of initializing a Tate term monoid is by defining the
+        parent Tate algebra first:
+
+            sage: A.<x,y> = TateAlgebra(R,log_radii=[1,1],order="lex")
+            sage: T2 = A.monoid_of_terms(); T2
+            Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
+
+        """
         # This function is not exposed to the user
         # so we do not check the inputs
+        # TODO : At the moment it *is* exposed
         self.element_class = TateAlgebraTerm
         Monoid_class.__init__(self, names)
         self._base = base
@@ -69,6 +151,17 @@ class TateTermMonoid(Monoid_class):
         self._order = order
 
     def _repr_(self):
+        r"""
+        Return a printable representation of a Tate term monoid
+
+        EXAMPLES::
+
+            sage: R = pAdicRing(2,prec=10,print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R,log_radii=[1,1],order="lex")
+            sage: A.monoid_of_terms() # indirect doctest
+            Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
+
+        """
         if self._ngens == 0:
             return "Monoid of terms over %s" % self._base
         vars = ""
@@ -77,6 +170,13 @@ class TateTermMonoid(Monoid_class):
         return "Monoid of terms in %s over %s" % (vars[2:], self._base)
 
     def _coerce_map_from_(self, R):
+        r"""
+        Test whether the term monoid `R` can be coerced into the term monoid
+
+        `R` can be coerced into the term monoid if and only if the same coercion
+        can be done on their parent algebras.
+        
+        """
         base = self._base
         if base.has_coerce_map_from(R):
             return True
@@ -226,7 +326,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
     def _coerce_map_from_(self, R):
         r"""
-        Test whether the ring R can be coerced into the Tate algebra.
+        Test whether the ring `R` can be coerced into the Tate algebra.
 
         R can be coerced into the Tate algebra if it can be coerced into its
         base ring, or if R is a Tate algebra whose base ring can be coerced into

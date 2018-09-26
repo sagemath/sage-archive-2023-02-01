@@ -611,7 +611,7 @@ cdef class GapElement(RingElement):
             return 'NULL'
         try:
             libgap_enter()
-            s = char_to_str(crepr(self.value) )
+            s = char_to_str(crepr(self.value))
             return s.strip()
         finally:
             libgap_exit()

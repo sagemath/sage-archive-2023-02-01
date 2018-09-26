@@ -241,7 +241,7 @@ cdef initialize():
     # libgap_initialize(argc, argv)
     # gap_error_msg = char_to_str(libgap_get_output())
     try: 
-        GAP_Initialize(argc, argv, environ, &gasman_callback, &error_handler)
+        GAP_Initialize(argc, argv, environ, &gasman_callback, <CallbackFunc>&error_handler)
     except RuntimeError as msg:
         raise RuntimeError('libGAP initialization failed\n' + msg)
 
@@ -374,8 +374,7 @@ cdef void hold_reference(Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
-# cdef void error_handler(char* msg):
-cdef void error_handler():
+cdef void error_handler(char* msg):
     """
     The libgap error handler
 
@@ -384,7 +383,7 @@ cdef void error_handler():
     ``sig_off`` blocks, this then jumps back to the ``sig_on`` where
     the ``RuntimeError`` we raise here will be seen.
     """
-    msg_py = char_to_str("libgap's error ...") # char_to_str(msg)
+    msg_py = char_to_str(msg)
     msg_py = msg_py.replace('For debugging hints type ?Recovery from NoMethodFound\n', '')
     PyErr_SetObject(RuntimeError, msg_py)
     sig_error()

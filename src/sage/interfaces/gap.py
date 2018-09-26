@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 r"""
 Interface to GAP
 
@@ -908,17 +909,16 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             sage: g = Gap()
             sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name'))
-            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )),
-              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( () )),
+              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ (1,2) ] )) ]
 
         When the command itself is so long that it warrants use of a temporary
         file to be communicated to GAP, this does not cause problems since
         the file will contain a single command::
 
             sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
-            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )),
-              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
-
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( () )),
+              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ (1,2) ] )) ]
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -1666,10 +1666,9 @@ class GapFunction(ExpectFunction):
 
             sage: print(gap.SymmetricGroup.__doc__)
             <BLANKLINE>
-            50 Group Libraries
+              50.1-12 SymmetricGroup
             <BLANKLINE>
-            When you start GAP, it already knows several groups. Currently GAP initially
-            knows the following groups:
+              ‣ SymmetricGroup( [filt, ]deg ) ─────────────────────────────────── function
             ...
         """
         M = self._parent

@@ -55,42 +55,25 @@ def _symbolic_lie_algebra_copy(L):
 
     TESTS:
 
-    Verify that copying works with something that does not have all the
-    required methods for the simple copy::
+    Verify that copying works with something that is not an instance of
+    :class:`LieAlgebraWithStructureCoefficients`::
 
         sage: from sage.groups.lie_group import _symbolic_lie_algebra_copy
         sage: L = lie_algebras.Heisenberg(QQ, 1)
-        sage: p,q,z = L.basis()
-        sage: I = L.ideal(p)
-        sage: I_SR = _symbolic_lie_algebra_copy(I)
-        sage: hasattr(I, 'indices')
+        sage: hasattr(L, 'change_ring')
         False
-        sage: I_SR.structure_coefficients()
-        Finite family {}
+        sage: L_SR = _symbolic_lie_algebra_copy(L)
+        sage: L_SR.structure_coefficients()
+        Finite family {('p1', 'q1'): z}
     """
     try:
-        # try to copy the list of structural coefficients and index set
+        return L.change_ring(SR)
+    except AttributeError:
         s_coeff = L.structure_coefficients()
-        index_set = L.indices()
+        index_set = L.basis().keys()
         names = L.variable_names()
-    except AttributeError, ValueError:
-        # fall back to computing a dictionary of structural coefficients
-        B = L.basis().list()
-        names = [str(X) for X in B]
-        index_set = names
-        s_coeff = {}
-        for i in range(L.dimension()):
-            ni = names[i]
-            Xi = B[i]
-            for j in range(i + 1, L.dimension()):
-                nj = names[j]
-                Xj = B[j]
-
-                Z = Xi.bracket(Xj).to_vector()
-                s_coeff[(ni, nj)] = dict(zip(names, Z))
-
-    return LieAlgebraWithStructureCoefficients(SR, s_coeff, names=names,
-                                               index_set=index_set)
+        return LieAlgebraWithStructureCoefficients(SR, s_coeff, names=names,
+                                                   index_set=index_set)
 
 
 class NilpotentLieGroup(Group, DifferentiableManifold):
@@ -443,7 +426,6 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         """
         return self.exp(self._lie_algebra.zero())
 
-    @cached_method
     def left_invariant_frame(self, **kwds):
         r"""
         Return the frame of left-invariant vector fields of ``self``.
@@ -524,7 +506,6 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         X_vf[frame, :] = self._dLx() * X.to_vector()
         return X_vf
 
-    @cached_method
     def right_invariant_frame(self, **kwds):
         r"""
         Return the frame of right-invariant vector fields of ``self``.

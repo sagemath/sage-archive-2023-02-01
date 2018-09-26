@@ -10,10 +10,6 @@
 
 from .gap_includes cimport Obj
 
-# these do nothing now
-cdef void libgap_enter()
-cdef void libgap_exit()
-
 ############################################################################
 ### Hooking into the GAP memory management #################################
 ############################################################################

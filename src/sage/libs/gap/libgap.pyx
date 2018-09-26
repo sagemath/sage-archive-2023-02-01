@@ -162,53 +162,8 @@ Using the libGAP C library from Cython
 
 .. TODO:: Update the following text
 
-The lower-case ``libgap_foobar`` functions are ones that we added to
-make the libGAP C shared library. The ``foobar`` methods are
-the original GAP methods simply prefixed with the string
-``libGAP_``. The latter were originally not designed to be in a
-library, so some care needs to be taken to call them.
-
-In particular, you must call ``libgap_mark_stack_bottom()`` in every
-function that calls into the libGAP C functions. The reason is that
-the GAP memory manager will automatically keep objects alive that are
-referenced in local (stack-allocated) variables. While convenient,
-this requires to look through the stack to find anything that looks
-like an address to a memory bag. But this requires vigilance against
-the following pattern::
-
-    cdef f()
-      libgap_mark_stack_bottom()
-      function()
-
-    cdef g()
-      libgap_mark_stack_bottom();
-      f()                #  f() changed the stack bottom marker
-      function()  #  boom
-
-The solution is to re-order ``g()`` to first call ``f()``. In order to
-catch this error, it is recommended that you wrap calls into libGAP in
-``libgap_enter`` / ``libgap_exit`` blocks and not call
-``libgap_mark_stack_bottom`` manually. So instead, always write
-
-    cdef f()
-      libgap_enter()
-      function()
-      libgap_exit()
-
-    cdef g()
-      f()
-      libgap_enter()
-      function()
-      libgap_exit()
-
-If you accidentally call ``libgap_enter()`` twice then an error
-message is printed to help you debug this::
-
-    sage: from sage.libs.gap.util import error_enter_libgap_block_twice
-    sage: error_enter_libgap_block_twice()
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Entered a critical block twice
+   We are using libgap API provided by the GAP project since
+   GAP 4.10.
 
 AUTHORS:
 
@@ -217,6 +172,8 @@ AUTHORS:
     almost complete rewrite; first usable version.
   - Volker Braun (2012-08-28, GAP/Singular workshop): update to
     gap-4.5.5, make it ready for public consumption.
+  - Dima Pasechnik (2018-09-18, GAP Days): started the port to native
+    libgap API
 """
 
 ###############################################################################
@@ -277,9 +234,7 @@ cdef void report(Obj bag):
 
 
 cdef void print_gasman_objects():
-    libgap_enter()
     CallbackForAllBags(report)
-    libgap_exit()
 
 
 
@@ -797,9 +752,7 @@ class Gap(Parent):
             sage: del a
             sage: libgap.collect()
         """
-        libgap_enter()
         rc = CollectBags(0, 1)
-        libgap_exit()
         if rc != 1:
             raise RuntimeError('Garbage collection failed.')
 

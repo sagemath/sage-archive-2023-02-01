@@ -26,8 +26,6 @@ from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 
 # these do nothing now
-cdef void libgap_enter(): pass
-cdef void libgap_exit():  pass
 
 ############################################################################
 ### Hooking into the GAP memory management #################################
@@ -250,9 +248,7 @@ cdef initialize():
 
     # Prepare global GAP variable to hold temporary GAP objects
     global reference_holder
-    libgap_enter()
     reference_holder = GVarName("$SAGE_libgap_reference_holder")
-    libgap_exit()
 
     # Finished!
     _gap_is_initialized = True
@@ -299,20 +295,6 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
 
-    TESTS:
-
-    Check that we fail gracefully if this is called within
-    ``libgap_enter()``::
-
-        sage: cython('''
-        ....: # distutils: libraries = gap
-        ....: from sage.libs.gap.gap_includes cimport libgap_enter
-        ....: libgap_enter()
-        ....: ''')
-        sage: libgap.eval('1+1')
-        Traceback (most recent call last):
-        ...
-        ValueError: libGAP: Entered a critical block twice
     """
     initialize()
     cdef Obj result
@@ -325,7 +307,6 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     try:
         try:
             sig_on()
-            libgap_enter()
             result = GAP_EvalString(cmd)
             nresults = LEN_LIST(result)
             if nresults > 1: # to mimick the old libGAP
@@ -340,7 +321,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
             raise ValueError('libGAP: '+str(msg).strip())
 
     finally:
-        libgap_exit()
+        pass
 
     return ELM_LIST(result, 2)
 
@@ -364,10 +345,8 @@ cdef void hold_reference(Obj obj):
     very simple, but you can't use it to keep two objects alive. Be
     careful.
     """
-    libgap_enter()
     global reference_holder
     AssGVar(reference_holder, obj)
-    libgap_exit()
 
 
 ############################################################################
@@ -399,9 +378,7 @@ cdef inline void DEBUG_CHECK(Obj obj):
 
     This function is only useful for debugging.
     """
-    libgap_enter()
     CheckMasterPointers()
-    libgap_exit()
     if obj == NULL:
         print('DEBUG_CHECK: Null pointer!')
 
@@ -431,18 +408,14 @@ cpdef error_enter_libgap_block_twice():
     from sage.libs.gap.libgap import libgap
     try:
         # The exception will be seen by this sig_on() after being
-        # raised by the second libgap_enter().
         sig_on()
-        libgap_enter()
-        libgap_enter()
         sig_off()
     finally:
-        libgap_exit()
+        pass
 
 
 cpdef error_exit_libgap_block_without_enter():
     """
-    Demonstrate that we catch errors from omitting libgap_enter.
 
     EXAMPLES::
 
@@ -450,11 +423,9 @@ cpdef error_exit_libgap_block_without_enter():
         sage: error_exit_libgap_block_without_enter()
         Traceback (most recent call last):
         ...
-        RuntimeError: Called libgap_exit without previous libgap_enter
     """
     from sage.libs.gap.libgap import libgap
     sig_on()
-    libgap_exit()
     sig_off()
 
 ############################################################################

@@ -5121,7 +5121,6 @@ class IncreasingTableau(Tableau):
             [3, 4]
         """
         ans = set()
-        cells = self.cells()
         ell = len(self)
         for r1, row in enumerate(self):
             for val in row:
@@ -8403,8 +8402,10 @@ class IncreasingTableaux(Tableaux):
             if shape in _Partitions:
                 shape = Partition(shape)
             elif shape in SkewPartitions():
-                from sage.combinat.skew_tableau import IncreasingSkewTableaux
-                return IncreasingSkewTableaux(shape, mu)
+                raise NotImplementedError("skew increasing tableaux are not"
+                                          " currently implemented")
+                #from sage.combinat.skew_tableau import IncreasingSkewTableaux
+                #return IncreasingSkewTableaux(shape, wt)
             else:
                 raise ValueError("shape must be a (skew) partition")
 

@@ -1,0 +1,15 @@
+diff --git a/cnf/compat/gap.sh.in b/cnf/compat/gap.sh.in
+index f310e44d0..14ac44369 100755
+--- a/cnf/compat/gap.sh.in
++++ b/cnf/compat/gap.sh.in
+@@ -1,9 +1,4 @@
+ #!/bin/sh
+-
++GAP_DIR=$SAGE_LOCAL/gap/latest
+ GAP_EXE=$GAP_DIR
+-if [ "x$GAP_DIR" = "x" ]; then
+-  GAP_DIR=$(cd "@abs_top_srcdir@" && pwd)
+-  GAP_EXE=@abs_top_builddir@
+-fi
+-
+ exec "$GAP_EXE/gap" -l "$GAP_DIR" "$@"

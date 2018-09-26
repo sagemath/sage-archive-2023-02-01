@@ -64,18 +64,6 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "Creating symlink to new GAP installation..."
-rm -f "$SAGE_LOCAL/gap/latest"
-ln -s "$GAP_DIR" "$SAGE_LOCAL/gap/latest"
-
-echo "Copying GAP startup script..."
-rm -f "$SAGE_LOCAL/bin/gap"
-cp ../gap "$SAGE_LOCAL/bin/gap"
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error copying GAP startup script."
-    exit 1
-fi
-
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
     # The (pre-built) HTML documentation is currently (GAP 4.6.3)
     # included, so we don't have to /build/ it here.
@@ -90,26 +78,6 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
     fi
 fi
 
-# Delete tests that rely on the non-GPL small group library
-rm "$INSTALL_DIR"/tst/testinstall/ctblsolv.tst
-rm "$INSTALL_DIR"/tst/testinstall/grppc.tst
-rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst
-
-# When configuring with and without libgap, a couple different .o
-# files are built differently by the current gap build system. So we
-# need to reconfigure with --enable-libgap and for safety we make a
-# full clean --- PROBABLY NOT NEEDED ANYMORE - checking...
-
-# $MAKE clean
-# echo "Configuring libGAP..."
-# ./configure \
-#    --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
-#    --with-gmp="$SAGE_LOCAL" \
-#    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS"
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error configuring libGAP."
-    exit 1
-fi
 echo "Building libGAP..."
 $MAKE libgap.la
 if [ $? -ne 0 ]; then
@@ -120,5 +88,18 @@ echo "Installing libGAP..."
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing libGAP."
+    exit 1
+fi
+
+echo "Creating symlink to new GAP installation..."
+rm -f "$SAGE_LOCAL/gap/latest"
+ln -s "$GAP_DIR" "$SAGE_LOCAL/gap/latest"
+
+echo "Copying GAP startup script..."
+rm -f "$SAGE_LOCAL/bin/gap"
+echo `pwd`
+cp bin/gap.sh "$SAGE_LOCAL/bin/gap"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error copying GAP startup script."
     exit 1
 fi

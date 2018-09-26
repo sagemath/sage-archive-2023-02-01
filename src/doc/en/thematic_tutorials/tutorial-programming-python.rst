@@ -671,7 +671,7 @@ to use each item once.
     sage: g[0]
     Traceback (most recent call last):
     ...
-    TypeError: 'generator' object has no attribute '__getitem__'
+    TypeError: 'generator' object ...
 
 ::
 
@@ -1112,7 +1112,7 @@ How does this work?
 ::
 
     sage: it = iter(GF(5)); it
-    <generator object __iter__ at 0x...>
+    <generator object ...__iter__ at 0x...>
 
     sage: next(it)
     0

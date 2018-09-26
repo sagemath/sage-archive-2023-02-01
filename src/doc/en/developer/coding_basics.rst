@@ -870,7 +870,7 @@ written.
       sage: print "not like that"
       Traceback (most recent call last):
       ...
-      SyntaxError: invalid syntax
+      SyntaxError: ...
       sage: print("but like this")
       but like this
 
@@ -1081,9 +1081,9 @@ framework. Here is a comprehensive list:
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: hash(-920390823904823094890238490238484)
-      -873977844            # 32-bit
-      6874330978542788722   # 64-bit
+      sage: hash(2^31 + 2^13)
+      -2147475456               # 32-bit
+      2147491840                # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of ``todo: not

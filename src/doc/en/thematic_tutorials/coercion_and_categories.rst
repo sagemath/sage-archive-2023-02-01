@@ -539,8 +539,10 @@ methods are place-holders: There is no default implementation, but it is
     sage: from sage.misc.abstract_method import abstract_methods_of_class
     sage: abstract_methods_of_class(QuotientFields().element_class)['optional']
     ['_add_', '_mul_']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py2
     ['__nonzero__', 'denominator', 'numerator']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py3
+    ['__bool__', 'denominator', 'numerator']
 
 Hence, when implementing elements of a quotient field, it is *required* to
 implement methods returning the denominator and the numerator, and a method
@@ -1493,8 +1495,10 @@ The elements have to provide more::
 
     sage: abstract_methods_of_class(QuotientFields().element_class)['optional']
     ['_add_', '_mul_']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py2
     ['__nonzero__', 'denominator', 'numerator']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py3
+    ['__bool__', 'denominator', 'numerator']
 
 .. end of output
 

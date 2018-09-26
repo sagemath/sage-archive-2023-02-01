@@ -25,7 +25,9 @@ from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.manifolds.structure import(DifferentialStructure,
                                      RealDifferentialStructure)
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import repr_lincomb
+from sage.modules.free_module_element import vector
 from sage.rings.real_mpfr import RealField_class
 from sage.structure.element import MultiplicativeGroupElement
 from sage.symbolic.ring import SR, var
@@ -134,13 +136,54 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         sage: e*k == k and k*e == k
         True
 
-    The default coordinate system is exponential coordinates of the first kind.
+    The default coordinate system is exponential coordinates of the first kind::
+
+        sage: G.default_chart() == G.chart_exp1()
+        True
+        sage: G.chart_exp1()
+        Chart (G, (x_0, x_1, x_2))
+
     Changing the default coordinates to exponential coordinates of the second
     kind will change how elements are printed::
 
         sage: G.set_default_chart(G.chart_exp2())
         sage: k
         exp(z)exp(q1)exp(p1)
+        sage: G.set_default_chart(G.chart_exp1())
+        sage: k
+        exp(p1 + q1 + 1/2*z)
+
+    The frames of left- or right-invariant vector fields are created using
+    :meth:`left_invariant_frame` and :meth:`right_invariant_frame`::
+
+        sage: X = G.left_invariant_frame(); X
+        Vector frame (G, (X_0,X_1,X_2))
+        sage: X[0]
+        Vector field X_0 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+
+    A vector field can be displayed with respect to a coordinate frame::
+
+        sage: exp1_frame = G.chart_exp1().frame()
+        sage: exp2_frame = G.chart_exp2().frame()
+        sage: list(X[0].components(exp1_frame))
+        [1, 0, -1/2*x_1]
+        sage: list(X[0].components(exp2_frame))
+        [1, 0, 0]
+        sage: list(X[1].components(exp1_frame))
+        [0, 1, 1/2*x_0]
+        sage: list(X[1].components(exp2_frame))
+        [0, 1, x_0]
+
+    An element of the Lie algebra can be extended to a left or right invariant
+    vector field::
+
+        sage: X_L = G.left_invariant_extension(p + 3*q); X_L
+        Vector field p1 + 3*q1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+        sage: list(X_L.components(exp1_frame))
+        [1, 3, 3/2*x_0 - 1/2*x_1]
+        sage: X_R = G.right_invariant_extension(p + 3*q)
+        sage: list(X_R.components(exp1_frame))
+        [1, 3, -3/2*x_0 + 1/2*x_1]
 
     The nilpotency step of the Lie group is the nilpotency step of its algebra.
     Nilpotency for Lie groups means that group commutators that are longer than
@@ -152,10 +195,18 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         exp(z)
         sage: g*c*~g*~c
         exp(0)
-
     """
 
     def __init__(self, L, name, **kwds):
+        r"""
+        Initialize self.
+
+        TESTS::
+
+            sage: L = lie_algebras.Heisenberg(QQ, 2)
+            sage: G = NilpotentLieGroup(L, 'G')
+            sage: TestSuite(G).run()
+        """
         required_cat = LieAlgebras(L.base_ring()).FiniteDimensional()
         required_cat = required_cat.WithBasis().Nilpotent()
         if L not in required_cat:
@@ -176,13 +227,12 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
                                         structure, category=category)
 
         # initialize exponential coordinates of the first kind
-        # if the basis of the Lie algebra is named 'S_j',
         basis_strs = [str(X) for X in L.basis()]
         split = zip(*[s.split('_') for s in basis_strs])
         if len(split) == 2 and all(sk == split[0][0] for sk in split[0]):
             self._var_indexing = split[1]
         else:
-            self._var_indexing = range(L.dimension())
+            self._var_indexing = [str(k) for k in range(L.dimension())]
         vars = ' '.join('x_%s' % k for k in self._var_indexing)
         self._Exp1 = self.chart(vars)
         self._Exp2 = None
@@ -194,7 +244,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
                 for s in ['a', 'b'])
         self._group_law_vars = (a, b)
         bch = L_SR.bch(L_SR.from_vector(a), L_SR.from_vector(b), L.step())
-        self._group_law = bch.to_vector()
+        self._group_law = vector(SR, (zk.expand() for zk in bch.to_vector()))
 
     def _repr_(self):
         r"""
@@ -207,6 +257,54 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             Lie group of Heisenberg algebra of rank 1 over Real Field with 53 bits of precision
         """
         return "Lie group of %s" % self.lie_algebra()
+
+    @lazy_attribute
+    def _dLx(self):
+        r"""
+        Return the matrix of the differential at the identity of a left
+        translation by a generic point in exp-1 coordinates.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 2, step=2)
+            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G._dLx
+            [       1       0  0]
+            [       0       1  0]
+            [-1/2*x_2 1/2*x_1  1]
+        """
+        a, b = self._group_law_vars
+        c = self._Exp1[:]
+        asubs = dict(zip(a, c))
+        bsubs = dict(zip(b, c))
+        L_a_expr = self._group_law.subs(bsubs)
+        L_a = self.diff_map(self, L_a_expr, chart1=self._Exp1,
+                            chart2=self._Exp1)
+        return L_a.differential(self.one()).matrix().subs(asubs)
+
+    @lazy_attribute
+    def _dRx(self):
+        r"""
+        Return the matrix of the differential at the identity of a right
+        translation by a generic point in exp-1 coordinates.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 2, step=2)
+            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G._dRx
+            [       1        0        0]
+            [       0        1        0]
+            [ 1/2*x_2 -1/2*x_1        1]
+        """
+        a, b = self._group_law_vars
+        c = self._Exp1[:]
+        asubs = dict(zip(a, c))
+        bsubs = dict(zip(b, c))
+        R_b_expr = self._group_law.subs(asubs)
+        R_b = self.diff_map(self, R_b_expr, chart1=self._Exp1,
+                            chart2=self._Exp1)
+        return R_b.differential(self.one()).matrix().subs(bsubs)
 
     @cached_method
     def gens(self):
@@ -344,6 +442,168 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             exp(0)
         """
         return self.exp(self._lie_algebra.zero())
+
+    @cached_method
+    def left_invariant_frame(self, **kwds):
+        r"""
+        Return the frame of left-invariant vector fields of ``self``.
+
+        The labeling of the frame and the dual frame can be customized using
+        keyword parameters as described in
+        :meth:`sage.manifolds.differentiable.manifold.vector_frame`.
+
+        EXAMPLES:
+
+        The default left-invariant frame::
+
+            sage: L = LieAlgebra(QQ, 2, step=2)
+            sage: G = NilpotentLieGroup(L, 'G')
+            sage: livf = G.left_invariant_frame(); livf
+            Vector frame (G, (X_1,X_2,X_12))
+            sage: coord_frame = G.chart_exp1().frame()
+            sage: list(livf[0].components(coord_frame))
+            [1, 0, -1/2*x_2]
+            sage: list(livf[1].components(coord_frame))
+            [0, 1, 1/2*x_1]
+            sage: list(livf[2].components(coord_frame))
+            [0, 0, 1]
+
+        Examples of custom labeling for the frame::
+
+            sage: G.left_invariant_frame(symbol='Y')
+            Vector frame (G, (Y_1,Y_2,Y_12))
+            sage: G.left_invariant_frame(symbol='Z', indices=None)
+            Vector frame (G, (Z_0,Z_1,Z_2))
+            sage: G.left_invariant_frame(symbol='W', indices=('a','b','c'))
+            Vector frame (G, (W_a,W_b,W_c))
+        """
+        dLx_field = self.automorphism_field()
+        dLx_field[:] = self._dLx
+        coord_frame = self._Exp1.frame()
+        symbol = kwds.pop('symbol', 'X')
+        indices = kwds.pop('indices', self._var_indexing)
+        return coord_frame.new_frame(dLx_field, symbol=symbol,
+                                     indices=indices, **kwds)
+
+    livf = left_invariant_frame
+
+    def left_invariant_extension(self, X, name=None):
+        r"""
+        Return the left-invariant vector field that has the value ``X``
+        at the identity.
+
+        INPUT:
+
+        - ``X`` -- an element of the Lie algebra of ``self``
+        - ``name`` -- (optional) a string to use as a name for the vector field;
+          if nothing is given, the name of the vector ``X`` is used
+
+        EXAMPLES:
+
+        A left-invariant extension in the Heisenberg group::
+
+            sage: L = lie_algebras.Heisenberg(QQ, 1)
+            sage: p, q, z = L.basis()
+            sage: H = NilpotentLieGroup(L, 'H')
+            sage: X = H.left_invariant_extension(p); X
+            Vector field p1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            sage: list(X.components(H.chart_exp1().frame()))
+            [1, 0, -1/2*x_1]
+
+        Default vs. custom naming for the invariant vector field::
+
+            sage: Y = H.left_invariant_extension(p + q); Y
+            Vector field p1 + q1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            sage: Z = H.left_invariant_extension(p + q, 'Z'); Z
+            Vector field Z on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+        """
+        if name is None:
+            name = str(X)
+        X_vf = self.vector_field(name)
+        frame = self._Exp1.frame()
+        X_vf[frame, :] = self._dLx() * X.to_vector()
+        return X_vf
+
+    @cached_method
+    def right_invariant_frame(self, **kwds):
+        r"""
+        Return the frame of right-invariant vector fields of ``self``.
+
+        The labeling of the frame and the dual frame can be customized using
+        keyword parameters as described in
+        :meth:`sage.manifolds.differentiable.manifold.vector_frame`.
+
+        EXAMPLES:
+
+        The default right-invariant frame::
+
+            sage: L = LieAlgebra(QQ, 2, step=2)
+            sage: G = NilpotentLieGroup(L, 'G')
+            sage: rivf = G.right_invariant_frame(); rivf
+            Vector frame (G, (XR_1,XR_2,XR_12))
+            sage: coord_frame = G.chart_exp1().frame()
+            sage: list(rivf[0].components(coord_frame))
+            [1, 0, 1/2*x_2]
+            sage: list(rivf[1].components(coord_frame))
+            [0, 1, -1/2*x_1]
+            sage: list(rivf[2].components(coord_frame))
+            [0, 0, 1]
+
+        Examples of custom labeling for the frame::
+
+            sage: G.right_invariant_frame(symbol='Y')
+            Vector frame (G, (Y_1,Y_2,Y_12))
+            sage: G.right_invariant_frame(symbol='Z', indices=None)
+            Vector frame (G, (Z_0,Z_1,Z_2))
+            sage: G.right_invariant_frame(symbol='W', indices=('a','b','c'))
+            Vector frame (G, (W_a,W_b,W_c))
+        """
+        dRx_field = self.automorphism_field()
+        dRx_field[:] = self._dRx
+        coord_frame = self._Exp1.frame()
+        symbol = kwds.pop('symbol', 'XR')
+        indices = kwds.pop('indices', self._var_indexing)
+        return coord_frame.new_frame(dRx_field, symbol=symbol,
+                                     indices=indices, **kwds)
+
+    rivf = right_invariant_frame
+
+    def right_invariant_extension(self, X, name=None):
+        r"""
+        Return the right-invariant vector field that has the value ``X``
+        at the identity.
+
+        INPUT:
+
+        - ``X`` -- an element of the Lie algebra of ``self``
+        - ``name`` -- (optional) a string to use as a name for the vector field;
+          if nothing is given, the name of the vector ``X`` is used
+
+        EXAMPLES:
+
+        A right-invariant extension in the Heisenberg group::
+
+            sage: L = lie_algebras.Heisenberg(QQ, 1)
+            sage: p, q, z = L.basis()
+            sage: H = NilpotentLieGroup(L, 'H')
+            sage: X = H.right_invariant_extension(p); X
+            Vector field p1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            sage: list(X.components(H.chart_exp1().frame()))
+            [1, 0, 1/2*x_1]
+
+        Default vs. custom naming for the invariant vector field::
+
+            sage: Y = H.right_invariant_extension(p + q); Y
+            Vector field p1 + q1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            sage: Z = H.right_invariant_extension(p + q, 'Z'); Z
+            Vector field Z on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+        """
+        if name is None:
+            name = str(X)
+        X_vf = self.vector_field(name)
+        frame = self._Exp1.frame()
+        X_vf[frame, :] = self._dRx() * X.to_vector()
+        return X_vf
 
     class Element(DifferentiableManifold.Element, MultiplicativeGroupElement):
         r"""

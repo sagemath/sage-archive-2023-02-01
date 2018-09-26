@@ -384,7 +384,7 @@ cdef void error_handler():
     ``sig_off`` blocks, this then jumps back to the ``sig_on`` where
     the ``RuntimeError`` we raise here will be seen.
     """
-    msg_py = "libgap's error ..." # char_to_str(msg)
+    msg_py = char_to_str("libgap's error ...") # char_to_str(msg)
     msg_py = msg_py.replace('For debugging hints type ?Recovery from NoMethodFound\n', '')
     PyErr_SetObject(RuntimeError, msg_py)
     sig_error()

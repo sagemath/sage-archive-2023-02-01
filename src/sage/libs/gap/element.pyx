@@ -79,7 +79,7 @@ cdef Obj make_gap_list(sage_list) except NULL:
     return l.value
 
 
-cdef crepr(Obj obj):
+cdef char *crepr(Obj obj):
     cdef Obj s, o
     s = NEW_STRING(0);
     o = CALL_2ARGS(   # setting a string buffer

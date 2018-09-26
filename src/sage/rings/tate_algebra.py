@@ -81,6 +81,51 @@ def _are_parameters_compatible(params1,params2):
       after this conversion, all convergence radii in the second set are the
       same as in the first set, and if the variable names and term orders are
       equal.
+
+    EXAMPLES::
+
+        sage: R = pAdicRing(2,prec=10,print_mode='digits'); R
+        2-adic Ring with capped relative precision 10
+        sage: import sage.rings.tate_algebra as s
+        sage: s._are_parameters_compatible((R,["x","y"],[1,1],"degrevlex"),
+        ....:                              (R,["x","y"],[1,1],"degrevlex"))
+        True
+
+    With coercion of the base ring:
+    
+        sage: S.<a> = Zq(4); S
+        2-adic Unramified Extension Ring in a defined by x^2 + x + 1
+        sage: s._are_parameters_compatible((S,["x","y"],[1,1],"degrevlex"),
+        ....:                              (R,["x","y"],[1,1],"degrevlex"))
+        True
+        sage: s._are_parameters_compatible((R,["x","y"],[1,1],"degrevlex"),
+        ....:                              (S,["x","y"],[1,1],"degrevlex"))
+        False
+
+    With different variable names:
+    
+        sage: s._are_parameters_compatible((R,["x","y"],[1,1],"degrevlex"),
+        ....:                              (R,["y","x"],[1,1],"degrevlex"))
+        False
+        sage: s._are_parameters_compatible((R,["x","y"],[1,1],"degrevlex"),
+        ....:                              (R,["x","y","z"],[1,1,1],"degrevlex"))
+        False
+        sage: s._are_parameters_compatible((R,["x","y","z"],[1,1,1],"degrevlex"),
+        ....:                              (R,["x","y"],[1,1],"degrevlex"))
+        False
+
+    With different log radii:
+    
+        sage: s._are_parameters_compatible((R,["x","y"],[2,2],"degrevlex"),
+        ....:                              (R,["x","y"],[1,1],"degrevlex"))
+        False
+
+    With different term orders:
+    
+        sage: s._are_parameters_compatible((R,["x","y"],[2,2],"degrevlex"),
+        ....:                              (R,["x","y"],[1,1],"lex"))
+        False
+
     
     """
     base1,names1,logs1,order1 = params1
@@ -127,32 +172,10 @@ class TateTermMonoid(Monoid_class):
     
     def __init__(self, A):
         r"""
-        A base class for Tate algebra terms
+        Initialize the Tate term monoid
 
-        A term in `R\{X_1,\dots,X_n\}` is the product of a coefficient in `R` and a
-        monomial in the variables `X_1,\dots,X_n`.
-
-        Those terms form a pre-ordered monoid, with term multiplication and the
-        term order of the parent Tate algebra.
-
-        INPUT:
-
-        - ``A`` - the Tate series algebra where the terms live
-
-        EXAMPLES::
-
-            sage: R = pAdicRing(2,prec=10,print_mode='digits')
-            sage: A.<x,y> = TateAlgebra(R,log_radii=(1,1),order="lex")
-            sage: T1 = A.monoid_of_terms(); T1
-            Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
-
-        One may also create a Tate term monoid in the following way, but this is
-        not recommended.
+        TESTS::
         
-            sage: from sage.rings.tate_algebra import *
-            sage: T2 = TateTermMonoid(A)
-        
-
         """
         # This function is not exposed to the user
         # so we do not check the inputs
@@ -263,6 +286,7 @@ class TateTermMonoid(Monoid_class):
             False
 
         """
+        # TODO: Write tests for the case where the log radii need to be adjusted for the rings
         base = self._base
         if base.has_coerce_map_from(R):
             return True
@@ -499,7 +523,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
         R can be coerced into the Tate algebra if it can be coerced into its
         base ring, or if R is a Tate algebra whose base ring can be coerced into
         the base ring, which has the same variables with the same monomial
-        order, and if the series of R are converging on a larger ball than those
+        order, and if the series of R are converging on the same ball as those
         of the algebra.
 
         INPUT:

@@ -10,6 +10,20 @@ from heapq import heappush, heappop
 
 
 cdef _groebner_basis_buchberger(I, prec):
+    r"""
+    Compute a Gröbner basis of the Tate series ideal ``I`` using Buchberger's algorithm
+
+    INPUT:
+    
+    - ``I`` - an ideal in a Tate series algebra
+
+    - ``prec`` - the required precision of the calculation
+
+    EXAMPLES::
+
+    TODO
+    
+    """
     cdef list gb, rgb, indices, ts, S = [ ]
     cdef int i, j, l
     cdef TateAlgebraTerm ti, tj, t
@@ -97,7 +111,15 @@ cdef _groebner_basis_buchberger(I, prec):
 
 
 class TateAlgebraIdeal(Ideal_generic):
+    r"""
+    Initialize a class for ideals in a Tate series algebra
 
+    EXAMPLES::
+
+    
+    
+    """
+    
     @cached_method
     def groebner_basis(self, prec=None, algorithm=None):
         if prec is None:
@@ -107,7 +129,7 @@ class TateAlgebraIdeal(Ideal_generic):
         if algorithm == "buchberger":
             return _groebner_basis_buchberger(self, prec)
         else:
-            raise ValueError("Only Buchberger algorithm is implemeted so far")
+            raise NotImplementedError("Only Buchberger algorithm is implemented so far")
 
     def _contains_(self, x):
         rgb = self.groebner_basis()

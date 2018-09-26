@@ -53,90 +53,6 @@ class TateAlgebraFactory(UniqueFactory):
 
 TateAlgebra = TateAlgebraFactory("TateAlgebra")
 
-# Helper function
-#################
-
-def _are_parameters_compatible(params1,params2):
-    r"""
-    Test whether two sets of parameters of Tate algebra are compatible for coercion
-
-    Each set of parameters comprises of a base ring, a list of variable names, a
-    tuple of log of convergence radii and a term order. 
-    
-    INPUT:
-
-    - ``params1`` - a tuple ``(base1,names1,log_radii1,order1)`` where `base1`
-      is a discrete valuation ring, `names1` is a list of variable names,
-      `log_radii1` is a tuple of integers, and `order1` is a term order
-
-    - ``params2`` - a tuple ``(base2,names2,log_radii2,order2)`` where `base2`
-      is a discrete valuation ring, `names2` is a list of variable names,
-      `log_radii2` is a tuple of integers, and `order2` is a term order
-
-    OUTPUT:
-
-    - ``True`` if and only it coercion is possible from an algebra with the
-      second set of parameters into an algebra with the first set of
-      parameters. This is the second ring can be coerced into the first, if
-      after this conversion, all convergence radii in the second set are the
-      same as in the first set, and if the variable names and term orders are
-      equal.
-
-    EXAMPLES::
-
-        sage: R = pAdicRing(2,prec=10,print_mode='digits'); R
-        2-adic Ring with capped relative precision 10
-        sage: import sage.rings.tate_algebra as s
-        sage: s._are_parameters_compatible((R,["x","y"],[1,1],"degrevlex"),
-        ....:                              (R,["x","y"],[1,1],"degrevlex"))
-        True
-
-    With coercion of the base ring:
-    
-        sage: S.<a> = Zq(4); S
-        2-adic Unramified Extension Ring in a defined by x^2 + x + 1
-        sage: s._are_parameters_compatible((S,["x","y"],[1,1],"degrevlex"),
-        ....:                              (R,["x","y"],[1,1],"degrevlex"))
-        True
-        sage: s._are_parameters_compatible((R,["x","y"],[1,1],"degrevlex"),
-        ....:                              (S,["x","y"],[1,1],"degrevlex"))
-        False
-
-    With different variable names:
-    
-        sage: s._are_parameters_compatible((R,["x","y"],[1,1],"degrevlex"),
-        ....:                              (R,["y","x"],[1,1],"degrevlex"))
-        False
-        sage: s._are_parameters_compatible((R,["x","y"],[1,1],"degrevlex"),
-        ....:                              (R,["x","y","z"],[1,1,1],"degrevlex"))
-        False
-        sage: s._are_parameters_compatible((R,["x","y","z"],[1,1,1],"degrevlex"),
-        ....:                              (R,["x","y"],[1,1],"degrevlex"))
-        False
-
-    With different log radii:
-    
-        sage: s._are_parameters_compatible((R,["x","y"],[2,2],"degrevlex"),
-        ....:                              (R,["x","y"],[1,1],"degrevlex"))
-        False
-
-    With different term orders:
-    
-        sage: s._are_parameters_compatible((R,["x","y"],[2,2],"degrevlex"),
-        ....:                              (R,["x","y"],[1,1],"lex"))
-        False
-
-    
-    """
-    base1,names1,logs1,order1 = params1
-    base2,names2,logs2,order2 = params2
-    if base1.has_coerce_map_from(base2) and names1 == names2 and order1 == order2:
-        ratio = base1.absolute_e() // base2.absolute_e()
-        for i in range(len(logs1)) :
-            if logs1[i] != ratio * logs2[i]:
-                return False
-        return True
-    return False
 
 # Parent for terms
 ##################
@@ -188,7 +104,7 @@ class TateTermMonoid(Monoid_class):
         self._ngens = len(self._names)
         self._log_radii = ETuple(A.log_radii())
         self._order = A.term_order()
-        self._parent_alg = A
+        self._parent_algebra = A
 
     def _repr_(self):
         r"""
@@ -291,9 +207,9 @@ class TateTermMonoid(Monoid_class):
         if base.has_coerce_map_from(R):
             return True
         if isinstance(R, TateTermMonoid):
-            params_self = (base,self._names,self._log_radii,self._order)
-            params_R = (R.base_ring(),R.variable_names(),R.log_radii(),R.term_order())
-            return _are_parameters_compatible(params_self,params_R)
+            A = self._parent_algebra
+            RA = R.algebra_of_series()
+            return A.has_coerce_map_from(RA)
 
     def algebra_of_series(self):
         r"""
@@ -308,7 +224,7 @@ class TateTermMonoid(Monoid_class):
             sage: A = AA
         
         """
-        return self._parent_alg    
+        return self._parent_algebra    
             
     def base_ring(self):
         r"""
@@ -587,9 +503,18 @@ class TateAlgebra_generic(CommutativeAlgebra):
         if base.has_coerce_map_from(R):
             return True
         if isinstance(R, (TateTermMonoid, TateAlgebra_generic)):
-            params_self = (base,self._names,self._log_radii,self._order)
-            params_R = (R.base_ring(),R.variable_names(),R.log_radii(),R.term_order())
-            return _are_parameters_compatible(params_self,params_R)
+            Rbase = R.base_ring()
+            logs = self._log_radii
+            Rlogs = R.log_radii()
+            if (base.has_coerce_map_from(Rbase)
+                and self._names == R.variable_names()
+                and self._order == R.term_order()):
+                ratio = base1.absolute_e() // base2.absolute_e()
+                for i in range(self._ngens) :
+                    if logs[i] != ratio * Rlogs[i]:
+                        return False
+                return True
+        return False
 
     def _ideal_class_(self, n):
         r"""

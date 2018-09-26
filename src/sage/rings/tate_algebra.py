@@ -53,52 +53,79 @@ class TateAlgebraFactory(UniqueFactory):
 
 TateAlgebra = TateAlgebraFactory("TateAlgebra")
 
+# Helper function
+#################
+
+def _are_parameters_compatible(params1,params2):
+    r"""
+    Test whether two sets of parameters of Tate algebra are compatible for coercion
+
+    Each set of parameters comprises of a base ring, a list of variable names, a
+    tuple of log of convergence radii and a term order. 
+    
+    INPUT:
+
+    - ``params1`` - a tuple ``(base1,names1,log_radii1,order1)`` where `base1`
+      is a discrete valuation ring, `names1` is a list of variable names,
+      `log_radii1` is a tuple of integers, and `order1` is a term order
+
+    - ``params2`` - a tuple ``(base2,names2,log_radii2,order2)`` where `base2`
+      is a discrete valuation ring, `names2` is a list of variable names,
+      `log_radii2` is a tuple of integers, and `order2` is a term order
+
+    OUTPUT:
+
+    - ``True`` if and only it coercion is possible from an algebra with the
+      second set of parameters into an algebra with the first set of
+      parameters. This is the second ring can be coerced into the first, if
+      after this conversion, all convergence radii in the second set are the
+      same as in the first set, and if the variable names and term orders are
+      equal.
+    
+    """
+    base1,names1,logs1,order1 = params1
+    base2,names2,logs2,order2 = params2
+    if base1.has_coerce_map_from(base2) and names1 == names2 and order1 == order2:
+        ratio = base1.absolute_e() // base2.absolute_e()
+        for i in range(len(logs1)) :
+            if logs1[i] != ratio * logs2[i]:
+                return False
+        return True
+    return False
+
 # Parent for terms
 ##################
 
 class TateTermMonoid(Monoid_class):
     r"""
     A base class for Tate algebra terms
-
+    
     A term in `R\{X_1,\dots,X_n\}` is the product of a coefficient in `R` and a
     monomial in the variables `X_1,\dots,X_n`.
-
+    
     Those terms form a pre-ordered monoid, with term multiplication and the
     term order of the parent Tate algebra.
-
-    INPUT:
-
-    - ``base`` - the coefficient ring of the parent Tate algebra
-
-    - ``log_radii`` - the convergence log radii of the parent Tate algebra
-
-    - ``names`` - the names of the variables of the parent Tate algebra
-
-    - ``order`` - the monomial order of the parent Tate algebra
-
-    NOTE::
-
-    The proper way to initialize a Tate term monoid is by first defining a Tate
-    algebra, and then calling the method ``monoid_of_terms``. Calling
-    ``TateTermMonoid`` directly can lead to errors.
-
-    EXAMPLES::
-
-        sage: from sage.rings.tate_algebra import * 
-        sage: R = pAdicRing(2,prec=10,print_mode='digits')
-        sage: T1 = TateTermMonoid(R,[1,1],["x","y"],"lex"); T1
-        Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Ring with capped relative precision 10
-
-    The recommended way of initializing a Tate term monoid is by defining the
-    parent Tate algebra first:
     
+    INPUT:
+    
+    - ``A`` - the Tate series algebra where the terms live
+    
+    EXAMPLES::
+    
+        sage: R = pAdicRing(2,prec=10,print_mode='digits')
         sage: A.<x,y> = TateAlgebra(R,log_radii=[1,1],order="lex")
-        sage: T2 = A.monoid_of_terms(); T2
+        sage: T1 = A.monoid_of_terms(); T1
         Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
+
+    One may also create a Tate term monoid in the following way, but this is
+    not recommended.
+        
+        sage: from sage.rings.tate_algebra import *
+        sage: T2 = TateTermMonoid(A)
 
     """
     
-    def __init__(self, base, log_radii, names, order):
+    def __init__(self, A):
         r"""
         A base class for Tate algebra terms
 
@@ -110,45 +137,35 @@ class TateTermMonoid(Monoid_class):
 
         INPUT:
 
-        - ``base`` - the coefficient ring of the parent Tate algebra
-
-        - ``log_radii`` - the convergence log radii of the parent Tate algebra
-
-        - ``names`` - the names of the variables of the parent Tate algebra
-
-        - ``order`` - the monomial order of the parent Tate algebra
-
-        NOTE::
-
-        The proper way to initialize a Tate term monoid is by first defining a Tate
-        algebra, and then calling the method ``monoid_of_terms``. Calling
-        ``TateTermMonoid`` directly can lead to errors.
+        - ``A`` - the Tate series algebra where the terms live
 
         EXAMPLES::
 
-            sage: from sage.rings.tate_algebra import *
             sage: R = pAdicRing(2,prec=10,print_mode='digits')
-            sage: T1 = TateTermMonoid(R,[1,1],["x","y"],"lex"); T1
-            Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Ring with capped relative precision 10
-
-        The recommended way of initializing a Tate term monoid is by defining the
-        parent Tate algebra first:
-
-            sage: A.<x,y> = TateAlgebra(R,log_radii=[1,1],order="lex")
-            sage: T2 = A.monoid_of_terms(); T2
+            sage: A.<x,y> = TateAlgebra(R,log_radii=(1,1),order="lex")
+            sage: T1 = A.monoid_of_terms(); T1
             Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
+
+        One may also create a Tate term monoid in the following way, but this is
+        not recommended.
+        
+            sage: from sage.rings.tate_algebra import *
+            sage: T2 = TateTermMonoid(A)
+        
 
         """
         # This function is not exposed to the user
         # so we do not check the inputs
         # TODO : At the moment it *is* exposed
         self.element_class = TateAlgebraTerm
+        names = A.variable_names()
         Monoid_class.__init__(self, names)
-        self._base = base
+        self._base = A.base_ring()
         self._names = names
         self._ngens = len(self._names)
-        self._log_radii = ETuple(log_radii)
-        self._order = order
+        self._log_radii = ETuple(A.log_radii())
+        self._order = A.term_order()
+        self._parent_alg = A
 
     def _repr_(self):
         r"""
@@ -250,14 +267,25 @@ class TateTermMonoid(Monoid_class):
         if base.has_coerce_map_from(R):
             return True
         if isinstance(R, TateTermMonoid):
-            Rbase = R.base_ring()
-            if base.has_coerce_map_from(Rbase) and self._names == R.variable_names() and self._order == R.term_order():
-                ratio = base.absolute_e() // Rbase.absolute_e()
-                for i in range(self._ngens):
-                    if self._log_radii[i] != R.log_radii()[i] * ratio:
-                        return False
-                return True
+            params_self = (base,self._names,self._log_radii,self._order)
+            params_R = (R.base_ring(),R.variable_names(),R.log_radii(),R.term_order())
+            return _are_parameters_compatible(params_self,params_R)
 
+    def algebra_of_series(self):
+        r"""
+        Return the Tate algebra corresponding to the Tate term monoid
+
+        EXAMPLES::
+
+            sage: R = Zp(2,10,print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: AA = T.algebra_of_series()
+            sage: A = AA
+        
+        """
+        return self._parent_alg    
+            
     def base_ring(self):
         r"""
         Return the base ring of the Tate term monoid
@@ -452,7 +480,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
         else:
             self._gens = [ self(g) for g in self._polynomial_ring.gens() ]
             self._integer_ring = TateAlgebra_generic(field, prec, log_radii, names, order, integral=True)
-        self._parent_terms = TateTermMonoid(base, log_radii, names, order)
+        self._parent_terms = TateTermMonoid(self)
         self._oneterm = self._parent_terms(one, ETuple([0]*self._ngens))
 
     def _an_element_(self):
@@ -535,13 +563,9 @@ class TateAlgebra_generic(CommutativeAlgebra):
         if base.has_coerce_map_from(R):
             return True
         if isinstance(R, (TateTermMonoid, TateAlgebra_generic)):
-            Rbase = R.base_ring()
-            if base.has_coerce_map_from(Rbase) and self._names == R.variable_names() and self._order == R.term_order():
-                ratio = base.absolute_e() // Rbase.absolute_e()
-                for i in range(self._ngens):
-                    if self._log_radii[i] != R.log_radii()[i] * ratio:
-                        return False
-                return True
+            params_self = (base,self._names,self._log_radii,self._order)
+            params_R = (R.base_ring(),R.variable_names(),R.log_radii(),R.term_order())
+            return _are_parameters_compatible(params_self,params_R)
 
     def _ideal_class_(self, n):
         r"""

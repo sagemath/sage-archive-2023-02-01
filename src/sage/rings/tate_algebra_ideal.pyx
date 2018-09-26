@@ -11,7 +11,7 @@ from heapq import heappush, heappop
 
 cdef _groebner_basis_buchberger(I, prec):
     r"""
-    Compute a Gröbner basis of the Tate series ideal ``I`` using Buchberger's algorithm
+    Compute a Gröbner basis of the Tate algebra ideal I using Buchberger's algorithm
 
     INPUT:
     

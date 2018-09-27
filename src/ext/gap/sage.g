@@ -62,19 +62,15 @@ end;
 SetAllInfoLevels(0);
 
 \$SAGE.OperationsAdmittingFirstArgument := function(obj)
-    local   hits,  myflags,  i,  flagss,  flags;
-    hits := [];
-    myflags := FlagsType(TypeObj(obj));
-    for i in [1,3..Length(OPERATIONS)-1] do
-        flagss := OPERATIONS[i+1];
-        for flags in flagss do
-            if Length(flags) >= 1 and IS_SUBSET_FLAGS(myflags, flags[1]) then
-                Add(hits, OPERATIONS[i]);
-                break;
-            fi;
-        od;
-    od;
-    return hits;
+    local   myflags, mfi;
+    myflags := FlagsObj(obj);
+    mfi := function(o)
+        local f;
+        f := GET_OPER_FLAGS(o);
+        return f<>[] and f[1]<>[] and
+          IS_SUBSET_FLAGS(myflags, f[1][1]);
+    end;
+    return Filtered(OPERATIONS, mfi);
 end;
 
 

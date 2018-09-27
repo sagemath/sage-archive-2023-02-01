@@ -19,9 +19,28 @@ cdef _groebner_basis_buchberger(I, prec):
 
     - ``prec`` - the required precision of the calculation
 
+    NOTE::
+
+    This function is not meant to be called directly, but through the
+    ``groebner_basis`` method of Tate algebra ideals.
+
     EXAMPLES::
 
-    TODO
+        sage: R = Zp(3,prec=10,print_mode="digits"); R
+        3-adic Ring with capped relative precision 10
+        sage: A.<x,y> = TateAlgebra(R); A
+        Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
+        sage: f = 3*x^2 + 5*x*y^2; f
+        (...0000000012)*x*y^2 + (...00000000010)*x^2
+        sage: g = 5*x^2*y + 3; g
+        (...0000000012)*x^2*y + (...00000000010)
+        sage: I = A.ideal([f,g]); I
+        Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
+        sage: I.groebner_basis(algorithm="buchberger") # indirect doctest
+        [(...0000000012)*x*y^2 + (...0000000010)*x^2 + O(3^10),
+        (...0000000012)*x^2*y + (...0000000010) + O(3^10),
+        (...0000000010)*x^3 + (...2222222220)*y + O(3^10),
+        (...0000000010)*y^2 + (...2101210200)*x + O(3^10)]
     
     """
     cdef list gb, rgb, indices, ts, S = [ ]

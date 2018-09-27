@@ -202,7 +202,6 @@ class FunctionFieldOrder_base(CachedRepresentation, Parent):
         else:
             raise NotImplementedError
 
-    @cached_method
     def ideal_monoid(self):
         """
         Return the monoid of ideals of the order.
@@ -703,7 +702,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
         INPUT:
 
         - ``gens`` -- list of generators or an ideal in a ring which coerces
-          to this order.
+          to this order
 
         EXAMPLES::
 

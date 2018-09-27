@@ -3769,13 +3769,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # (which is theoretically a bit faster)
             b = ainv - x**p
             if b == 0: break
-            curprec = startval = b.valuation()
-            bexp = b.unit_part().expansion()
+            curprec = b.valuation()
+            bexp = iter(b.unit_part().expansion())
             maxprec = prec
             while curprec < maxprec:
                 try:
-                    coeff = k(bexp[curprec-startval])
-                except IndexError:
+                    coeff = k(next(bexp))
+                except StopIteration:
                     coeff = k(0)
                 if coeff != 0:
                     if curprec % p == 0:

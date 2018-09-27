@@ -11,7 +11,7 @@ Base class for polyhedra
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import division, print_function, absolute_import
@@ -6178,10 +6178,10 @@ class Polyhedron_base(Element):
         We test groups for equality in a fool-proof way; they can have different generators, etc::
 
             sage: poly_g = P.restricted_automorphism_group(output="matrix")
-            sage: matrix_g = MatrixGroup(map(lambda t: matrix(QQ,t), mgens))
-            sage: all(map(lambda t: t.matrix() in poly_g, matrix_g.gens()))
+            sage: matrix_g = MatrixGroup([matrix(QQ,t) for t in mgens])
+            sage: all(t.matrix() in poly_g for t in matrix_g.gens())
             True
-            sage: all(map(lambda t: t.matrix() in matrix_g, poly_g.gens()))
+            sage: all(t.matrix() in matrix_g for t in poly_g.gens())
             True
 
         24-cell example::

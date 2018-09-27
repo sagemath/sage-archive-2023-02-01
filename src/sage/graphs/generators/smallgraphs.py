@@ -12,10 +12,9 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 import six
 from six.moves import range
 # import from Sage library
@@ -26,6 +25,7 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 #######################################################################
 #   Named Graphs
 #######################################################################
+
 
 def HarborthGraph():
     r"""
@@ -182,6 +182,7 @@ def HarriesGraph(embedding=1):
     else:
         raise ValueError("the value of embedding must be 1 or 2")
 
+
 def HarriesWongGraph(embedding=1):
     r"""
     Return the Harries-Wong Graph.
@@ -300,6 +301,7 @@ def HarriesWongGraph(embedding=1):
     else:
         raise ValueError("the value of embedding must be 1 or 2")
 
+
 def WellsGraph():
     r"""
     Return the Wells graph.
@@ -408,6 +410,7 @@ def WellsGraph():
 
     return g
 
+
 def Cell600(embedding=1):
     r"""
     Return the 600-Cell graph.
@@ -487,6 +490,7 @@ def Cell600(embedding=1):
     _circle_embedding(g, pos)
 
     return g
+
 
 def Cell120():
     r"""
@@ -598,6 +602,7 @@ def Cell120():
 
     return g
 
+
 def SuzukiGraph():
     r"""
     Return the Suzuki Graph.
@@ -623,6 +628,7 @@ def SuzukiGraph():
     g.relabel()
     g.name("Suzuki graph")
     return g
+
 
 def HallJankoGraph(from_string=True):
     r"""
@@ -757,6 +763,7 @@ def HallJankoGraph(from_string=True):
     _circle_embedding(g, list(range(100)))
     g.name("Hall-Janko graph")
     return g
+
 
 def Balaban10Cage(embedding=1):
     r"""
@@ -3500,8 +3507,8 @@ def LivingstoneGraph():
     from sage.groups.perm_gps.permgroup_named import JankoGroup
     from sage.graphs.graph import Graph
     G = JankoGroup(1)
-    edges = map(tuple,G.orbit((1,24),action="OnSets"))
-    return Graph(edges,name="Livingstone Graph")
+    edges = map(tuple, G.orbit((1, 24), action="OnSets"))
+    return Graph(edges, name="Livingstone Graph")
 
 def M22Graph():
     r"""
@@ -4845,8 +4852,8 @@ def JankoKharaghaniTonchevGraph():
                 (18*x+4,18*x+13),(18*x+5,18*x+14),(18*x+6,18*x+15),(18*x+7,18*x+16),
                 (18*x+8,18*x+17),(18*x+9,18*x+18)]))
                  for x in range(18))
-    G=libgap.Group(map(lambda p: libgap.PermList(p), [m1,m2,t,n1,n2,s,k]))
-    st=libgap.Group(map(lambda p: libgap.PermList(p), [t,s]))
+    G = libgap.Group([libgap.PermList(p) for p in [m1, m2, t, n1, n2, s, k]])
+    st = libgap.Group([libgap.PermList(p) for p in [t, s]])
     B1=(19,22,25,29,30,31,33,34,35,37,40,43,47,48,49,51,52,53,55,56,57,65,
         66,67,68,70,72,76,77,78,79,80,81,82,86,90,92,93,95,96,98,99,100,105,107,
         109,110,111,119,120,121,122,124,126,128,129,131,132,134,135,136,141,143,

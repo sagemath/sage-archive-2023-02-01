@@ -872,7 +872,7 @@ class GaloisGroup(SageObject):
         r"""
         Enumerate the elements of ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Example with order 1 (a special case)::
 

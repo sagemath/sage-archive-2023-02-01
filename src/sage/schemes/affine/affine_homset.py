@@ -356,7 +356,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: K.<v> = QuadraticField(3)
             sage: A.<x,y> = AffineSpace(K, 2)
             sage: X = A.subscheme([x^3 - v^2*y, y - v*x^2 + 3])
-            sage: L = X(K).numerical_points(F=RR); L
+            sage: L = X(K).numerical_points(F=RR); L  # abs tol 1e-14
             [(-1.18738247880014, -0.558021142104134),
              (1.57693558184861, 1.30713548084184),
              (4.80659931965815, 37.0162574656220)]
@@ -408,59 +408,64 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         if not is_AffineSpace(X) and X.base_ring() in Fields():
             # Then X must be a subscheme
             dim_ideal = X.defining_ideal().dimension()
-            if dim_ideal < 0: # no points
+            if dim_ideal != 0: # no points
                 return []
-            if dim_ideal == 0: # if X zero-dimensional
-                zero_tol = RR(kwds.pop('zero_tolerance', 10**(-10)))
-                if zero_tol <= 0:
-                    raise ValueError("tolerance must be positive")
-                rat_points = []
-                PS = X.ambient_space()
-                N = PS.dimension_relative()
-                BR = X.base_ring()
-                #need a lexicographic ordering for elimination
-                R = PolynomialRing(BR, N, PS.gens(), order='lex')
-                RF = R.change_ring(F)
-                I = R.ideal(X.defining_polynomials())
-                I0 = R.ideal(0)
-                #Determine the points through elimination
-                #This is much faster than using the I.variety() function on each affine chart.
-                G = I.groebner_basis()
-                G = [RF(g) for g in G]
-                if G != [1]:
-                    P = {}
-                    points = [P]
-                    #work backwards from solving each equation for the possible
-                    #values of the next coordinate
-                    for i in range(len(G) - 1, -1, -1):
-                        new_points = []
-                        good = 0
-                        for P in points:
-                            #substitute in our dictionary entry that has the values
-                            #of coordinates known so far. This results in a single
-                            #variable polynomial (by elimination)
-                            L = G[i].substitute(P)
-                            if len(RF(L).variables())==1:
-                                for pol in L.univariate_polynomial().roots(ring=F, multiplicities=False):
-                                    r = L.variables()[0]
-                                    varindex = RF.gens().index(r)
-                                    P.update({RF.gen(varindex):pol})
-                                    new_points.append(copy(P))
-                                    good = 1
-                            else:
-                                new_points.append(P)
-                                good = 1
-                        if good:
-                            points = new_points
-                    #the dictionary entries now have values for all coordinates
-                    #they are the rational solutions to the equations
-                    #make them into affine points
-                    polys = [g.change_ring(F) for g in X.defining_polynomials()]
-                    for i in range(len(points)):
-                        if len(points[i]) == N:
-                            S = AA([points[i][R.gen(j)] for j in range(N)])
-                            if all([g(list(S)) < zero_tol for g in polys]):
-                                rat_points.append(S)
+        else:
+            return []
 
-                rat_points = sorted(rat_points)
-                return rat_points
+        # if X zero-dimensional
+        zero_tol = RR(kwds.pop('zero_tolerance', 10**(-10)))
+        if zero_tol <= 0:
+            raise ValueError("tolerance must be positive")
+        rat_points = []
+        PS = X.ambient_space()
+        N = PS.dimension_relative()
+        BR = X.base_ring()
+        # need a lexicographic ordering for elimination
+        R = PolynomialRing(BR, N, PS.gens(), order='lex')
+        RF = R.change_ring(F)
+        I = R.ideal(X.defining_polynomials())
+        I0 = R.ideal(0)
+        # Determine the points through elimination This is much faster
+        # than using the I.variety() function on each affine chart.
+        G = I.groebner_basis()
+        G = [RF(g) for g in G]
+        if G != [1]:
+            P = {}
+            points = [P]
+            # work backwards from solving each equation for the possible
+            # values of the next coordinate
+            for g in reversed(G):
+                new_points = []
+                good = False
+                for P in points:
+                    # substitute in our dictionary entry that has the
+                    # values of coordinates known so far. This results
+                    # in a single variable polynomial (by elimination)
+                    L = g.substitute(P)
+                    if len(RF(L).variables()) == 1:
+                        r = L.variables()[0]
+                        var = RF.gen(RF.gens().index(r))
+
+                        for pol in L.univariate_polynomial().roots(ring=F,
+                                multiplicities=False):
+                            P[var] = pol
+                            new_points.append(copy(P))
+                            good = True
+                    else:
+                        new_points.append(P)
+                        good = True
+                if good:
+                    points = new_points
+            # the dictionary entries now have values for all
+            # coordinates they are the rational solutions to the
+            # equations make them into affine points
+            polys = [g.change_ring(F) for g in X.defining_polynomials()]
+            for P in points:
+                if len(P) == N:
+                    S = AA([P[R.gen(j)] for j in range(N)])
+                    if all([g(list(S)) < zero_tol for g in polys]):
+                        rat_points.append(S)
+
+        rat_points = sorted(rat_points)
+        return rat_points

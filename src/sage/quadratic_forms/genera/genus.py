@@ -246,7 +246,7 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
         sage: canonical_2_adic_compartments(G2.symbol_tuple_list())   ## No compartments here!
         []
 
-    NOTES:
+    .. NOTE::
 
         See Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
     """

@@ -37,8 +37,9 @@ supply :class:`findstat<FindStat>` with a list of `(object, value)`
 pairs.  For example::
 
     sage: PM = PerfectMatchings
-    sage: r = findstat([(m, m.number_of_nestings()) for n in range(6) for m in PM(2*n)]); r    # optional -- internet, random
-    0: (St000041: The number of nestings of a perfect matching. , [], 1000)
+    sage: r = findstat([(m, m.number_of_nestings()) for n in range(6) for m in PM(2*n)]); r    # optional -- internet
+    0: (St000041: The number of nestings of a perfect matching., [], 1000)
+    1: (St000042: The number of crossings of a perfect matching., [Mp00116: Kasraoui-Zeng], 1000)
     ...
 
 The result of this query is a list (presented as a
@@ -66,11 +67,11 @@ FindStat.  This means, that the set of `(object, value)` pairs of the
 statistic `s` as stored in the FindStat database is a superset of the
 data sent.  We can now retrieve the description from the database::
 
-    sage: print(s.description())                                                # optional -- internet, random
+    sage: print(s.description())                                                # optional -- internet
     The number of nestings of a perfect matching.
     <BLANKLINE>
     <BLANKLINE>
-    This is the number of pairs of edges $((a,b), (c,d))$ such that $a\le c\le d\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.
+    This is the number of pairs of edges $((a,b), (c,d))$ such that $a\le c\le d\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$...
 
 and check the references::
 
@@ -86,9 +87,9 @@ Another interesting possibility is to look for equidistributed
 statistics.  Instead of submitting a list of `(object, value)` pairs,
 we pass a list of pairs `(objects, values)`::
 
-    sage: r = findstat([(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]); r # optional -- internet, random
-    0: (St000041: The number of nestings of a perfect matching. , [], 124)
-    1: (St000042: The number of crossings of a perfect matching. , [], 124)
+    sage: r = findstat([(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]); r # optional -- internet
+    0: (St000041: The number of nestings of a perfect matching., [], 124)
+    1: (St000042: The number of crossings of a perfect matching., [], 124)
     ...
 
 This results tells us that the database contains another entry that
@@ -103,9 +104,9 @@ submitted statistic is the composition of a sequence of combinatorial
 maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
-    sage: r = findstat(Permutations, lambda pi: pi.saliances()[0]); r           # optional -- internet, random
-    ...
-    ... (St000051: The size of the left subtree. , [Mp00069: complement, Mp00061: to increasing tree], 24)
+    sage: r = findstat(Permutations, lambda pi: pi.saliances()[0]); r           # optional -- internet
+    0: ...
+    ... (St000051: The size of the left subtree of a binary tree., [Mp00069: complement, Mp00061: to increasing tree], 1000)
     ...
     sage: (s, list_f, quality) = next((a,b,c) for a,b,c in r if a.id() == 51)   # optional -- internet
 
@@ -120,10 +121,10 @@ following permutation::
 
 We first have to find out, what the maps and the statistic actually do::
 
-    sage: print(s.description())                                                # optional -- internet, random
-    The size of the left subtree.
+    sage: print(s.description())                                                # optional -- internet
+    The size of the left subtree of a binary tree.
 
-    sage: print(s.code())                                                       # optional -- internet, random
+    sage: print(s.code())                                                       # optional -- internet
     def statistic(T):
         return T[0].node_number()
 

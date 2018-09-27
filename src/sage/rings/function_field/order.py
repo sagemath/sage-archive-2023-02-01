@@ -141,7 +141,7 @@ class FunctionFieldOrder_base(CachedRepresentation, Parent):
             sage: O = F.maximal_order()
             sage: TestSuite(O).run(skip=['_test_euclidean_degree', '_test_gcd_vs_xgcd', '_test_one', '_test_zero'])
         """
-        Parent.__init__(self, category=category or IntegralDomains(), facade=field)
+        Parent.__init__(self, category=IntegralDomains().or_subcategory(category), facade=field)
 
         self._ideal_class = ideal_class # element class for parent ideal monoid
         self._field = field
@@ -1277,8 +1277,8 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
         INPUT:
 
-        - ``gens`` -- list of elements that generates the
-              ideal over the maximal order of the base field
+        - ``gens`` -- list of elements that generates the ideal over the
+          maximal order of the base field
 
         EXAMPLES::
 
@@ -1989,7 +1989,7 @@ class FunctionFieldMaximalOrderInfinite_rational(FunctionFieldMaximalOrderInfini
             sage: TestSuite(O).run(skip=['_test_one', '_test_zero'])
         """
         FunctionFieldOrderInfinite.__init__(self, field, ideal_class=FunctionFieldIdealInfinite_rational,
-                                            category=category or PrincipalIdealDomains())
+                                            category=PrincipalIdealDomains().or_subcategory(category))
         self._populate_coercion_lists_(coerce_list=[field.constant_base_field()])
 
     def _element_constructor_(self, f):

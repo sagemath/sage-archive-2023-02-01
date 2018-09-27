@@ -13,6 +13,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     cdef TateAlgebraTerm _new_c(self)
     cdef long _valuation_c(self)
+    cpdef TateAlgebraTerm monomial(self)
     cpdef TateAlgebraTerm monic(self)
     cdef TateAlgebraTerm _gcd_c(self, TateAlgebraTerm other)
     cdef TateAlgebraTerm _lcm_c(self, TateAlgebraTerm other)

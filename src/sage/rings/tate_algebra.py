@@ -23,8 +23,89 @@ from sage.rings.polynomial.polydict import ETuple
 #########
 
 class TateAlgebraFactory(UniqueFactory):
-    """
-    TODO Doctest here.
+    r"""
+    Construct a Tate algebra over a `p`-adic field.
+
+    Given a `p`-adic field `K`, variables `X_1,\dots,X_k`
+    and convergence log radii `v_1, \dots, v_n` in `\RR`, the corresponding
+    Tate algebra `K{X_1,\dots,X_k}` consists of power series witj
+    coefficients `a_{i_1,\dots,i_n}` in `K` such that
+
+    .. MATH::
+
+        `\text{val}(a_{i_1,\dots,i_n}) - (i_1 v_1 + \cdots + i_n v_n)`
+
+    tends to infinity as `i_1,\dots,i_n` go towards infinity.
+
+    INPUT:
+
+    - ``base`` -- a `p`-adic ring or field; if a ring is given, the
+      Tate algebra over its fraction field will be constructed
+
+    - ``names`` -- names of the indeterminates
+
+    - ``log_radii`` -- an integer or a list or a tuple of integers 
+      (default: ``0``), the value(s) `v_i`.
+      If an integer is given, this will be the common value for all
+      `v_i`.
+
+    - ``prec`` -- an integer or ``None`` (default: ``None``), the 
+      precision cap; it is used if an exact object must be truncated
+      in order to do an arithmetic operation. 
+      If left as ``None``, it will be set to the precision cap of 
+      the base field.
+
+    - ``order`` - (default: ``degrevlex``) the monomial ordering 
+      used to break ties when comparing terms with the same 
+      coefficient valuation
+
+    EXAMPLES::
+
+        sage: R = Zp(2, 10, print_mode='digits'); R
+        2-adic Ring with capped relative precision 10
+        sage: A.<x,y> = TateAlgebra(R, order='lex'); A
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+
+    We observe that the result is the Tate algebra over the fraction
+    field of `R` and not `R` itself::
+
+        sage: A.base_ring()
+        2-adic Field with capped relative precision 10
+        sage: A.base_ring() is R.fraction_field()
+        True
+
+    If we want to construct the ring of integers of the Tate algebra,
+    we must use the method :meth:`integer_ring`::
+
+        sage: AA = A.integer_ring(); AA
+        Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+        sage: AA.base_ring()
+        2-adic Ring with capped relative precision 10
+        sage: AA.base_ring() is R
+        True
+
+    The term ordering is used (in particular) to determine how series are 
+    displayed. Terms are compared first according to the valuation of their 
+    coefficient, and ties are broken using the monomial ordering::
+
+        sage: A.term_order()
+        Lexicographic term order
+        sage: f = 2 + y^5 + x^2; f
+        (...0000000001)*x^2 + (...0000000001)*y^5 + (...00000000010)
+        sage: B.<x,y> = TateAlgebra(R); B
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+        sage: B.term_order()
+        Degree reverse lexicographic term order
+        sage: B(f)
+        (...0000000001)*y^5 + (...0000000001)*x^2 + (...00000000010)
+
+    Here are examples of Tate algebra with smaller radii of convergence::
+
+        sage: B.<x,y> = TateAlgebra(R, log_radii=-1); B
+        Tate Algebra in x (val >= 1), y (val >= 1) over 2-adic Field with capped relative precision 10
+        sage: C.<x,y> = TateAlgebra(R, log_radii=[-1,-2]); C
+        Tate Algebra in x (val >= 1), y (val >= 2) over 2-adic Field with capped relative precision 10
+
     """
     def create_key(self, base, prec=None, log_radii=ZZ(0), names=None, order='degrevlex'):
         if not isinstance(base, pAdicGeneric):
@@ -61,41 +142,38 @@ class TateTermMonoid(Monoid_class):
     r"""
     A base class for Tate algebra terms
     
-    A term in `R\{X_1,\dots,X_n\}` is the product of a coefficient in `R` and a
-    monomial in the variables `X_1,\dots,X_n`.
+    A term in a Tate algebra `K\{X_1,\dots,X_n\}` (resp. in its ring of
+    integers) is a monomial in this ring.
     
     Those terms form a pre-ordered monoid, with term multiplication and the
     term order of the parent Tate algebra.
     
-    INPUT:
-    
-    - ``A`` - the Tate series algebra where the terms live
-    
-    EXAMPLES::
-    
-        sage: R = pAdicRing(2,prec=10,print_mode='digits')
-        sage: A.<x,y> = TateAlgebra(R,log_radii=[1,1],order="lex")
-        sage: T1 = A.monoid_of_terms(); T1
-        Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
-
-    One may also create a Tate term monoid in the following way, but this is
-    not recommended.
-        
-        sage: from sage.rings.tate_algebra import *
-        sage: T2 = TateTermMonoid(A)
-
     """
     
     def __init__(self, A):
         r"""
         Initialize the Tate term monoid
 
+        INPUT:
+    
+        - ``A`` -- a Tate algebra
+    
+        EXAMPLES::
+    
+            sage: R = pAdicRing(2, 10)
+            sage: A.<x,y> = TateAlgebra(R, log_radii=1)
+            sage: T = A.monoid_of_terms(); T
+            Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
+
         TESTS::
+
+            sage: A.<x,y> = TateAlgebra(Zp(2), log_radii=1)
+            sage: T = A.monoid_of_terms()
+            sage: #TestSuite(T).run()
         
         """
         # This function is not exposed to the user
         # so we do not check the inputs
-        # TODO : At the moment it *is* exposed
         self.element_class = TateAlgebraTerm
         names = A.variable_names()
         Monoid_class.__init__(self, names)
@@ -108,13 +186,13 @@ class TateTermMonoid(Monoid_class):
 
     def _repr_(self):
         r"""
-        Return a printable representation of a Tate term monoid
+        Return a string representation of this Tate term monoid
 
         EXAMPLES::
 
-            sage: R = pAdicRing(2,prec=10,print_mode='digits')
-            sage: A.<x,y> = TateAlgebra(R,log_radii=[1,1],order="lex")
-            sage: A.monoid_of_terms() # indirect doctest
+            sage: R = pAdicRing(2, 10)
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1,1], order="lex")
+            sage: A.monoid_of_terms()  # indirect doctest
             Monoid of terms in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
 
         """
@@ -127,52 +205,40 @@ class TateTermMonoid(Monoid_class):
 
     def _coerce_map_from_(self, R):
         r"""
-        Test whether the term monoid `R` can be coerced into the term monoid
-
-        `R` can be coerced into the term monoid if and only if the same coercion
-        can be done on their parent algebras.
+        Return ``True`` if ``R`` coerces to this monoid.
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-            sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
 
-        A ring can be coerced into a monoid of terms if and only if it can be
-        coerced into its base ring.
-        
-            sage: B = ZZ; B
-            Integer Ring
-            sage: T.has_coerce_map_from(B) # indirect doctest
+        A ring coerces into a monoid of terms if and only if 
+        it coerces into its base ring::
+
+            sage: T.has_coerce_map_from(ZZ)  # indirect doctest
             True
-            sage: B = GF(2); B
-            Finite Field of size 2
-            sage: T.has_coerce_map_from(B) # indirect doctest
+            sage: T.has_coerce_map_from(GF(2))  # indirect doctest
             False
 
-        The base rings must be coercible.
+        ::
         
-            sage: S.<a> = Zq(4); S
-            2-adic Unramified Extension Ring in a defined by x^2 + x + 1
-            sage: B.<x,y> = TateAlgebra(S); B
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Unramified Extension Field in a defined by x^2 + x + 1
+            sage: S.<a> = Zq(4)
+            sage: B.<x,y> = TateAlgebra(S)
             sage: U = B.monoid_of_terms()
-            sage: U.has_coerce_map_from(T) # indirect doctest
+            sage: U.has_coerce_map_from(T)  # indirect doctest
             True
-            sage: T.has_coerce_map_from(U) # indirect doctest
+            sage: T.has_coerce_map_from(U)  # indirect doctest
             False
 
-        Note that a Tate algebra cannot be coerced into a monoid of terms:
+        Note that a Tate algebra does not coerce into a monoid of terms::
 
             sage: U.has_coerce_map_from(A) # indirect doctest
             False
             sage: T.has_coerce_map_from(B) # indirect doctest
             False
 
-        Variable names must match exactly:
+        Variable names must match exactly::
         
             sage: B.<x,z> = TateAlgebra(R)
             sage: U = B.monoid_of_terms()
@@ -181,17 +247,7 @@ class TateTermMonoid(Monoid_class):
             sage: U.has_coerce_map_from(T) # indirect doctest
             False
 
-        Term orders must match exactly:
-        
-            sage: B.<x,y> = TateAlgebra(R,order="lex"); B
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-            sage: U = B.monoid_of_terms()
-            sage: T.has_coerce_map_from(U) # indirect doctest
-            False
-            sage: U.has_coerce_map_from(T) # indirect doctest
-            False
-
-        Variable names must also be in the same order:
+        and appears in the same order:
         
             sage: B.<y,x> = TateAlgebra(R); B
             Tate Algebra in y (val >= 0), x (val >= 0) over 2-adic Field with capped relative precision 10
@@ -201,60 +257,83 @@ class TateTermMonoid(Monoid_class):
             sage: U.has_coerce_map_from(T) # indirect doctest
             False
 
+        Term orders must also match::
+        
+            sage: B.<x,y> = TateAlgebra(R, order="lex")
+            sage: U = B.monoid_of_terms()
+            sage: T.has_coerce_map_from(U) # indirect doctest
+            False
+            sage: U.has_coerce_map_from(T) # indirect doctest
+            False
+
         """
-        # TODO: Write tests for the case where the log radii need to be adjusted for the rings
         base = self._base
         if base.has_coerce_map_from(R):
             return True
         if isinstance(R, TateTermMonoid):
-            A = self._parent_algebra
-            RA = R.algebra_of_series()
-            return A.has_coerce_map_from(RA)
+            return self._parent_algebra.has_coerce_map_from(R.algebra_of_series())
+        if isinstance(R, TateAlgebraElement):
+            return self._parent_algebra.has_coerce_map_from(R)
 
     def algebra_of_series(self):
         r"""
-        Return the Tate algebra corresponding to the Tate term monoid
+        Return the Tate algebra corresponding to this Tate term monoid.
 
         EXAMPLES::
 
-            sage: R = Zp(2,10,print_mode="digits")
+            sage: R = Zp(2, 10)
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
-            sage: AA = T.algebra_of_series()
-            sage: A = AA
+            sage: T.algebra_of_series()
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: T.algebra_of_series() is A
+            True
         
         """
         return self._parent_algebra    
             
     def base_ring(self):
         r"""
-        Return the base ring of the Tate term monoid
+        Return the base ring of this Tate term monoid.
 
         EXAMPLES::
 
-            sage: R = Zp(2,10,print_mode="digits")
+            sage: R = Zp(2, 10)
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
-            sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T.base_ring()
             2-adic Field with capped relative precision 10
 
+        We observe that the base field is not ``R`` but its
+        fraction field::
+
+            sage: T.base_ring() is R
+            False
+            sage: T.base_ring() is R.fraction_field()
+            True
+
+        If we really want to create an integral Tate algebra,
+        we have to invoke the method :meth:`integer_ring`::
+
+            sage: AA = A.integer_ring(); AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: AA.base_ring()
+            2-adic Ring with capped relative precision 10
+            sage: AA.base_ring() is R
+            True
+
         """
-        
         return self._base
 
     def variable_names(self):
         r"""
-        Return the names of the variables of the Tate term monoid
+        Return the names of the variables of this Tate term monoid.
 
         EXAMPLES::
 
-            sage: R = Zp(2,10,print_mode="digits")
+            sage: R = Zp(2, 10)
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
-            sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T.variable_names()
             ('x', 'y')
 
@@ -263,35 +342,40 @@ class TateTermMonoid(Monoid_class):
 
     def log_radii(self):
         r"""
-        Return the log radii of convergence of the Tate term monoid
+        Return the log radii of convergence of this Tate term monoid.
 
         EXAMPLES::
 
-            sage: R = Zp(2,10,print_mode="digits")
+            sage: R = Zp(2, 10)
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
-            sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T.log_radii()
             (0, 0)
+
+            sage: B.<x,y> = TateAlgebra(R, log_radii=[1,2])
+            sage: B.monoid_of_terms().log_radii()
+            (1, 2)
 
         """
         return tuple(self._log_radii)
 
     def term_order(self):
         r"""
-        Return the term order on the Tate term monoid
+        Return the term order on this Tate term monoid.
 
         EXAMPLES::
 
-            sage: R = Zp(2,10,print_mode="digits")
+            sage: R = Zp(2, 10)
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
-            sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-            sage: T.term_order()
+            sage: T.term_order()  # default term order is grevlex
             Degree reverse lexicographic term order
-        
+
+            sage: A.<x,y> = TateAlgebra(R, order='lex')
+            sage: T = A.monoid_of_terms()
+            sage: T.term_order()
+            Lexicographic term order
+
         """
         return self._order
 
@@ -301,11 +385,9 @@ class TateTermMonoid(Monoid_class):
 
         EXAMPLES::
 
-            sage: R = Zp(2,10,print_mode="digits")
+            sage: R = Zp(2, 10)
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
-            sage: T = A.monoid_of_terms(); T
-            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             sage: T.ngens()
             2
 
@@ -317,92 +399,20 @@ class TateTermMonoid(Monoid_class):
 ###############
 
 class TateAlgebra_generic(CommutativeAlgebra):
-    r"""
-    Create a Tate series ring over a given complete discrete valuation
-    ring.
-
-    Given a complete discrete valuation ring `R`, variables `X_1,\dots,X_k`
-    and convergence radii `r_,\dots, r_n` in `\mathbb{R}_{>0}`, the Tate
-    algebra `R{X_1,\dots,X_k}` is the algebra of power series with
-    coefficients `a_{i_1,\dots,i_n}` in `R` and such that
-    `|a_{i_1,\dots,i_n}|*r_1^{-i_1}*\dots*r_n^{-i_n}` tends to 0 as
-    `i_1,\dots,i_n` go towards infinity.
-
-
-    INPUT:
-
-    - ``base`` - a complete discrete valuation ring or field
-
-    - ``names`` - names of the indeterminates
-
-    - ``log-radii`` - (default: ``0``) the value(s) `\log(r_i)`. If only
-      one number l is given, all `r_i`'s are defined with `\log(r_i)=l`.
-
-    - ``prec`` - the default precision used if an exact object
-      must be changed to an approximate object in order to do an
-      arithmetic operation. If left as ``None``, it will be set to
-      the precision of the base ring, if any. Otherwise,
-      it will be set to the cap in precision of the base
-      ring, if any. Otherwise, it will be set to the global
-      default (20).
-
-    - ``order`` - (default: ``degrevlex``) the monomial ordering 
-      used to break ties when comparing terms with the same 
-      coefficient valuation
-
-    EXAMPLES::
-
-        sage: R = Zp(2, 10, print_mode='digits'); R
-        2-adic Ring with capped relative precision 10
-
-    ::
-
-        sage: A.<x,y> = TateAlgebra(R, order='lex'); A
-        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-
-    The term ordering is used to determine how series are displayed. Terms
-    are compared first according to the valuation of their coefficient, and
-    ties are broken using the monomial ordering.
-
-        sage: A.term_order()
-        Lexicographic term order
-        sage: f = 2 + y^5 + x^2; f
-        (...0000000001)*x^2 + (...0000000001)*y^5 + (...00000000010)
-        sage: B.<x,y> = TateAlgebra(R); B
-        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-        sage: B.term_order()
-        Degree reverse lexicographic term order
-        sage: B(f)
-        (...0000000001)*y^5 + (...0000000001)*x^2 + (...00000000010)
-
-    By order of priority, the precision cap is taken to be the given value, the
-    precision of the base ring, the precision cap of the base ring, or the
-    global default (20).  With a given value:
-
-        sage: A.<x,y> = TateAlgebra(R,prec=5); A
-        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-        sage: A.precision_cap()
-        5
-
-    With the precision of the base ring:
-
-        sage: A.<x,y> = TateAlgebra(R); A
-        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-        sage: A.precision_cap()
-        10
-
-    """
     def __init__(self, field, prec, log_radii, names, order, integral=False):
         """
         Initialize the Tate algebra
 
         TESTS::
-        
+
+            sage: A.<x,y> = TateAlgebra(Zp(2), log_radii=1)
+            sage: #TestSuite(A).run()
+
         """
         self.element_class = TateAlgebraElement
         self._field = field
         self._cap = prec
-        self._log_radii = ETuple(log_radii)  # TODO: allow log_radii in QQ (but ETuple does not support this)
+        self._log_radii = ETuple(log_radii)  # TODO: allow log_radii in QQ
         self._names = names
         self._ngens = len(names)
         self._order = order
@@ -425,26 +435,24 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
     def _an_element_(self):
         r"""
-        Return an element of the Tate series algebra
+        Return an element of this Tate algebra
 
         EXAMPLES::
-         
+
+            sage: A.<x,y> = TateAlgebra(Zp(2), log_radii=1)
+            sage: A.an_element()  # indirect doctest
+            (1 + O(2^20))*x
+
         """
-        return self.element_class(0)
+        return self.gen()
 
     def _coerce_map_from_(self, R):
         r"""
-        Test whether the ring `R` can be coerced into the Tate algebra.
-
-        R can be coerced into the Tate algebra if it can be coerced into its
-        base ring, or if R is a Tate algebra whose base ring can be coerced into
-        the base ring, which has the same variables with the same monomial
-        order, and if the series of R are converging on the same ball as those
-        of the algebra.
+        Return ``True`` if ``R`` coerces to this Tate algebra.
 
         INPUT:
 
-        - ``R`` - the ring to be coerced
+        - ``R`` - a ring
 
         EXAMPLES::
         
@@ -453,50 +461,55 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: A.<x,y> = TateAlgebra(R); A
             Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
 
-        B can be coerced into A if B can be coerced into the base ring of A
+        Any ring that coerces to the base ring also coerces to the Tate
+        algebra::
 
-            sage: B = ZZ; B
-            Integer Ring
-            sage: A.has_coerce_map_from(B) # indirect doctest
+            sage: A.has_coerce_map_from(ZZ) # indirect doctest
             True
-            sage: B = GF(2); B
-            Finite Field of size 2
+            sage: A.has_coerce_map_from(GF(2)) # indirect doctest
+            False
+
+        If ``R`` is also a Tate algebra, it coerces to this Tate algebra if
+        the only if the base rings coerce, the variable names, the term order
+        and the domain of convergence match::
+
+            sage: S.<a> = Zq(4)
+            sage: B.<x,y> = TateAlgebra(S)
+            sage: B.has_coerce_map_from(A)  # indirect doctest
+            True        
             sage: A.has_coerce_map_from(B) # indirect doctest
             False
 
-        B can be coerced into A if B is a Tate algebra over a base ring which
-        can be coerced into the base ring of A, with the same variables and term
-        orders, and a larger convergence radius:
-
-            sage: S.<a> = Zq(4); S
-            2-adic Unramified Extension Ring in a defined by x^2 + x + 1
-            sage: B.<x,y> = TateAlgebra(S); B
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Unramified Extension Field in a defined by x^2 + x + 1
-            sage: B.has_coerce_map_from(A) # indirect doctest
-            True
-
-        If the base ring of B cannot be coerced into the base ring of A,
-        coercion cannot happen:
-        
-            sage: A.has_coerce_map_from(B) # indirect doctest
-            False
-
-        If B has different variables than A, coercion cannot happen:
+        We check that coercion is not set when the variable names change::
 
             sage: B.<x,z> = TateAlgebra(R)
-            sage: A.has_coerce_map_from(B) # indirect doctest
+            sage: A.has_coerce_map_from(B)  # indirect doctest
             False
 
-        If B has a different term order than A, coercion cannot happen:
+            sage: B.<y,x> = TateAlgebra(R)
+            sage: B.has_coerce_map_from(A)  # indirect doctest
+            False
 
-            sage: B.<x,y> = TateAlgebra(R,order="lex"); B
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-            sage: B.has_coerce_map_from(A) # indirect doctest
+        If the tame order changes, there is no coercion either::
+
+            sage: B.<x,y> = TateAlgebra(R, order="lex")
+            sage: B.has_coerce_map_from(A)  # indirect doctest
             False
-            sage: B.<y,x> = TateAlgebra(R); B
-            Tate Algebra in y (val >= 0), x (val >= 0) over 2-adic Field with capped relative precision 10
-            sage: B.has_coerce_map_from(A) # indirect doctest
+
+        We finally check the condition on the domain of convergence::
+
+            sage: B.<x,y> = TateAlgebra(R, log_radii=[1,-1])
+            sage: B.has_coerce_map_from(A)  # indirect doctest
             False
+
+            sage: PP.<u> = R[]
+            sage: S.<pi> = R.extension(u^2 - 2)
+            sage: C.<x,y> = TateAlgebra(S, log_radii=[1,-1])
+            sage: C.has_coerce_map_from(B)  # indirect doctest
+            False
+            sage: C.<x,y> = TateAlgebra(S, log_radii=[2,-2])
+            sage: C.has_coerce_map_from(B)  # indirect doctest
+            True
 
         """
         base = self._base
@@ -509,7 +522,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             if (base.has_coerce_map_from(Rbase)
                 and self._names == R.variable_names()
                 and self._order == R.term_order()):
-                ratio = base1.absolute_e() // base2.absolute_e()
+                ratio = base.absolute_e() // Rbase.absolute_e()
                 for i in range(self._ngens) :
                     if logs[i] != ratio * Rlogs[i]:
                         return False
@@ -518,7 +531,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
     def _ideal_class_(self, n):
         r"""
-        Return the class of ideals in the Tate algebra
+        Return the class that handles ideals in this Tate algebra.
 
         INPUT:
 
@@ -526,10 +539,8 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
         EXAMPLE::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10)
+            sage: A.<x,y> = TateAlgebra(R)
             sage: A._ideal_class_(3)
             <class 'sage.rings.tate_algebra_ideal.TateAlgebraIdeal'>
         
@@ -540,36 +551,19 @@ class TateAlgebra_generic(CommutativeAlgebra):
         from sage.rings.tate_algebra_ideal import TateAlgebraIdeal
         return TateAlgebraIdeal
 
-    #def _pushout_(self, R):
-    #    if not isinstance(R, TateAlgebra_generic):  # should we allow PolynomialRing as well?
-    #        return None
-    #    if self._names != R.variable_names():
-    #        return None
-    #    if self._order != R.term_order():
-    #        return None
-    #    Sbase = self._base
-    #    Rbase = R.base_ring()
-    #    base = pushout(Sbase, Rbase)
-    #    Sratio = base.absolute_e() // Sbase.absolute_e()
-    #    Rratio = base.absolute_e() // Rbase.absolute_e()
-    #    log_radii = tuple([ min(self._log_radii[i] * Sratio, R.log_radii()[i] * Rratio) for i in range(self._ngens) ])
-    #    cap = min(self._cap * Sratio, R.precision_cap() * Rratio)
-    #    return TateAlgebra_generic(base, self._names, log_radii, cap, self._order)
-
     def gen(self, n=0):
         r"""
-        Returns the ``n``'th generator of the algebra
+        Return the ``n``-th generator of this Tate algebra.
 
         INPUT:
 
-        - ``n`` - (default: ``0``) the generator to return
+        - ``n`` - an integer (default: ``0``), the index of
+          the requested generator
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
             sage: A.gen()
             (...0000000001)*x
             sage: A.gen(0)
@@ -579,24 +573,22 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: A.gen(2)
             Traceback (most recent call last):
             ...
-            ValueError: Generator not defined
+            ValueError: generator not defined
         
         """
         try:
             return self._gens[n]
         except IndexError:
-            raise ValueError("Generator not defined")
+            raise ValueError("generator not defined")
 
     def gens(self):
         r"""
-        Returns the list of generators of the algebra.
+        Return the list of generators of this Tate algebra.
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
             sage: A.gens()
             ((...0000000001)*x, (...0000000001)*y)
         
@@ -605,14 +597,12 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
     def ngens(self):
         """
-        Returns the number of generators of this algebra
+        Return the number of generators of this algebra.
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
             sage: A.ngens()
             2
 
@@ -621,13 +611,13 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
     def _repr_(self):
         """
-        Returns a printable representation of this algebra.
+        Return a printable representation of this algebra.
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: A
             Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             
         """
@@ -641,14 +631,12 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
     def variable_names(self):
         """
-        Return the list of the names of the variables of the algebra
+        Return the names of the variables of this algebra.
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
             sage: A.variable_names()
             ('x', 'y')
         
@@ -657,23 +645,21 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
     def log_radii(self):
         """
-        Returns the list of the logs of the convergence radii of the series of the
-        algebra.
+        Return the list of the log-radii of convergence radii defining
+        this Tate algebra.
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10)
+            sage: A.<x,y> = TateAlgebra(R)
             sage: A.log_radii()
             (0, 0)
-            sage: B.<x,y> = TateAlgebra(R,log_radii=1); B
-            Tate Algebra in x (val >= -1), y (val >= -1) over 2-adic Field with capped relative precision 10
+
+            sage: B.<x,y> = TateAlgebra(R, log_radii=1)
             sage: B.log_radii()
             (1, 1)
-            sage: C.<x,y> = TateAlgebra(R,log_radii=(1,-1)); C
-            Tate Algebra in x (val >= -1), y (val >= 1) over 2-adic Field with capped relative precision 10
+
+            sage: C.<x,y> = TateAlgebra(R, log_radii=(1,-1))
             sage: C.log_radii()
             (1, -1)
 
@@ -681,55 +667,102 @@ class TateAlgebra_generic(CommutativeAlgebra):
         return self._log_radii
 
     def integer_ring(self):
+        """
+        Return the ring of integers (consisting of series bounded by
+        1 in the domain of convergence) of this Tate algebra.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: AA = A.integer_ring()
+            sage: AA
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+
+            sage: x in AA
+            True
+            sage: x/2 in AA
+            False
+
+        """
         return self._integer_ring
 
     def monoid_of_terms(self):
+        """
+        Return the monoid of terms of this Tate algebra.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: A.monoid_of_terms()
+            Monoid of terms in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+
+        """
         return self._parent_terms
 
     def term_order(self):
         """
-        Returns the monomial order used in this algebra.
+        Return the monomial order used in this algebra.
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: A.term_order()
+            Degree reverse lexicographic term order
+
+            sage: A.<x,y> = TateAlgebra(R, order='lex')
+            sage: A.term_order()
+            Lexicographic term order
+
         """
         return self._order
 
     def precision_cap(self):
         """
-        Return the precision cap of the algebra
+        Return the precision cap of this Tate algebra.
 
-        EXAMPLES::
+        NOTE::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            The precision cap is the truncation precision
+            used for arithmetic operations computed by
+            successive approximations (as inversion).
+
+        EXAMPLES:
+
+        By default the precision cap is the precision cap of the
+        field of coefficients::
+
+            sage: R = Zp(2, 10)
+            sage: A.<x,y> = TateAlgebra(R)
             sage: A.precision_cap()
             10
+
+        But it could be different (either smaller or larger) if we
+        ask to::
+
+            sage: A.<x,y> = TateAlgebra(R, prec=5)
+            sage: A.precision_cap()
+            5
+
+            sage: A.<x,y> = TateAlgebra(R, prec=20)
+            sage: A.precision_cap()
+            20
+
         """
         return self._cap
 
     def characteristic(self):
         """
-        Returns the characteristic of this algebra.
+        Return the characteristic of this algebra.
 
         EXAMPLES::
 
-            sage: R = Zp(2, 10, print_mode='digits'); R
-            2-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
             sage: A.characteristic()
             0
+
         """
         return self.base_ring().characteristic()
-
-    #def ideal(self, gens):
-    #    pass
-
-

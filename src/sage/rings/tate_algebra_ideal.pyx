@@ -26,17 +26,13 @@ cdef _groebner_basis_buchberger(I, prec):
 
     EXAMPLES::
 
-        sage: R = Zp(3,prec=10,print_mode="digits"); R
-        3-adic Ring with capped relative precision 10
-        sage: A.<x,y> = TateAlgebra(R); A
-        Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-        sage: f = 3*x^2 + 5*x*y^2; f
-        (...0000000012)*x*y^2 + (...00000000010)*x^2
-        sage: g = 5*x^2*y + 3; g
-        (...0000000012)*x^2*y + (...00000000010)
+        sage: R = Zp(3, prec=10, print_mode="digits");
+        sage: A.<x,y> = TateAlgebra(R)
+        sage: f = 3*x^2 + 5*x*y^2
+        sage: g = 5*x^2*y + 3
         sage: I = A.ideal([f,g]); I
         Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-        sage: I.groebner_basis(algorithm="buchberger") # indirect doctest
+        sage: I.groebner_basis(algorithm="buchberger")  # indirect doctest
         [(...0000000012)*x*y^2 + (...0000000010)*x^2 + O(3^10),
         (...0000000012)*x^2*y + (...0000000010) + O(3^10),
         (...0000000010)*x^3 + (...2222222220)*y + O(3^10),
@@ -135,19 +131,14 @@ class TateAlgebraIdeal(Ideal_generic):
 
     EXAMPLES::
 
-        sage: R = Zp(3,prec=10,print_mode="digits"); R
-        3-adic Ring with capped relative precision 10
-        sage: A.<x,y> = TateAlgebra(R); A
-        Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-        sage: f = 3*x^2 + 5*x*y^2; f
-        (...0000000012)*x*y^2 + (...00000000010)*x^2
-        sage: g = 5*x^2*y + 3; g
-        (...0000000012)*x^2*y + (...00000000010)
+        sage: R = Zp(3, prec=10, print_mode="digits")
+        sage: A.<x,y> = TateAlgebra(R)
+        sage: f = 3*x^2 + 5*x*y^2
+        sage: g = 5*x^2*y + 3
         sage: I = A.ideal([f,g]); I
         Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
     
-    """
-    
+    """    
     @cached_method
     def groebner_basis(self, prec=None, algorithm=None):
         r"""
@@ -155,12 +146,13 @@ class TateAlgebraIdeal(Ideal_generic):
 
         INPUT:
 
-        - ``prec`` - (default: None) the precision required in the
-          computations. If ``None``, defaults to the algebra precision cap
+        - ``prec`` -- an integer or ``None`` (default: ``None``), the precision 
+          at which the computations are carried. If ``None``, defaults to the 
+          algebra precision cap
 
-        - ``algorithm`` - (default: None) the algorithm to use in the
-          calculations. Currently, only Buchberger's algorithm is implemented,
-          and it is also the default.
+        - ``algorithm`` -- a string or ``None`` (default: ``None``), the 
+          algorithm to use in the calculations; Currently, only Buchberger's 
+          algorithm is implemented.
 
         NOTE::
 
@@ -168,14 +160,10 @@ class TateAlgebraIdeal(Ideal_generic):
         
         EXAMPLES::
 
-            sage: R = Zp(3,prec=10,print_mode="digits"); R
-            3-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: f = 3*x^2 + 5*x*y^2; f
-            (...0000000012)*x*y^2 + (...00000000010)*x^2
-            sage: g = 5*x^2*y + 3; g
-            (...0000000012)*x^2*y + (...00000000010)
+            sage: R = Zp(3,prec=10,print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 5*x*y^2
+            sage: g = 5*x^2*y + 3
             sage: I = A.ideal([f,g]); I
             Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
             sage: I.groebner_basis()
@@ -183,11 +171,11 @@ class TateAlgebraIdeal(Ideal_generic):
              (...0000000012)*x^2*y + (...0000000010) + O(3^10),
              (...0000000010)*x^3 + (...2222222220)*y + O(3^10),
              (...0000000010)*y^2 + (...2101210200)*x + O(3^10)]
+
             sage: I.groebner_basis(algorithm="F4")
             Traceback (most recent call last):
             ...
             NotImplementedError: Only Buchberger algorithm is implemented so far
-
 
         """
         if prec is None:
@@ -201,31 +189,25 @@ class TateAlgebraIdeal(Ideal_generic):
 
     def _contains_(self, x):
         r"""
-        Test whether `x` lies in the ideal
+        Return ``True`` if ``x`` lies in this ideal
 
         INPUT:
 
-        - ``x`` - a Tate series
+        - ``x`` -- a Tate series
 
         EXAMPLES::
 
-            sage: R = Zp(3,prec=10,print_mode="digits"); R
-            3-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: f = 3*x^2 + 5*x*y^2; f
-            (...0000000012)*x*y^2 + (...00000000010)*x^2
-            sage: g = 5*x^2*y + 3; g
-            (...0000000012)*x^2*y + (...00000000010)
-            sage: I = A.ideal([f,g]); I
-            Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: f in I # indirect doctest
+            sage: R = Zp(3, 10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 5*x*y^2
+            sage: g = 5*x^2*y + 3
+            sage: I = A.ideal([f,g])
+            sage: f in I  # indirect doctest
             True
-            sage: (f+g) in I # indirect doctest
+            sage: (f+g) in I  # indirect doctest
             True
-            sage: (f+1) in I # indirect doctest
+            sage: (f+1) in I  # indirect doctest
             False
-
         
         """
         rgb = self.groebner_basis()
@@ -233,31 +215,26 @@ class TateAlgebraIdeal(Ideal_generic):
 
     def _contains_ideal(self, I):
         r"""
-        Test whether the ideal `I` is contained in the ideal
+        Return ``True`` if ``I`` is contained in this ideal
 
         INPUT:
 
-        - ``I`` - an ideal in a Tate series algebra
+        - ``I`` -- an ideal in a Tate series algebra
 
         EXAMPLES::
 
-            sage: R = Zp(3,prec=10,print_mode="digits"); R
-            3-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: f = 3*x^2 + 5*x*y^2; f
-            (...0000000012)*x*y^2 + (...00000000010)*x^2
-            sage: g = 5*x^2*y + 3; g
-            (...0000000012)*x^2*y + (...00000000010)
-            sage: I = A.ideal([f,g]); I
-            Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: A.ideal([f]) < I # indirect doctest
+            sage: R = Zp(3,prec=10,print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 5*x*y^2
+            sage: g = 5*x^2*y + 3
+            sage: I = A.ideal([f,g])
+            sage: A.ideal([f]) < I  # indirect doctest
             True
-            sage: I < A.ideal([f]) # indirect doctest
+            sage: I < A.ideal([f])  # indirect doctest
             False
-            sage: A.ideal([1]) < I # indirect doctest
+            sage: A.ideal([1]) < I  # indirect doctest
             False
-            sage: I < A.ideal([1]) # indirect doctest
+            sage: I < A.ideal([1])  # indirect doctest
             True
         
         """
@@ -269,33 +246,29 @@ class TateAlgebraIdeal(Ideal_generic):
 
     def _richcmp_(self, other, op):
         r"""
-        Compare the ideal with another according to the inclusion partial order
+        Compare this ideal with ``other`` for the rich comparison
+        operator ``op``
 
         INPUT:
 
-        - ``other`` - an ideal in a Tate series algebra
+        - ``other`` -- an ideal in a Tate series algebra
 
-        - ``op`` - a comparison operator
+        - ``op`` -- a comparison operator
 
         EXAMPLES::
 
-            sage: R = Zp(3,prec=10,print_mode="digits"); R
-            3-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: f = 3*x^2 + 5*x*y^2; f
-            (...0000000012)*x*y^2 + (...00000000010)*x^2
-            sage: g = 5*x^2*y + 3; g
-            (...0000000012)*x^2*y + (...00000000010)
-            sage: I = A.ideal([f,g]); I
-            Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: A.ideal([f]) < I # indirect doctest
+            sage: R = Zp(3, 10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 5*x*y^2
+            sage: g = 5*x^2*y + 3
+            sage: I = A.ideal([f,g])
+            sage: A.ideal([f]) < I
             True
-            sage: I < A.ideal([f]) # indirect doctest
+            sage: I < A.ideal([f])
             False
-            sage: A.ideal([1]) < I # indirect doctest
+            sage: A.ideal([1]) < I
             False
-            sage: I < A.ideal([1]) # indirect doctest
+            sage: I < A.ideal([1])
             True
             sage: I <= A.ideal([f,g])
             True
@@ -326,36 +299,32 @@ class TateAlgebraIdeal(Ideal_generic):
 
     def is_saturated(self):
         r"""
-        Test whether the Tate series ideal is saturated
+        Return ``True`` if this ideal is saturated.
 
-        The ideal `I` is saturated if and only it is generated by elements with
-        0 valuation, or equivalently, if the quotient ideal `(I:\pi^\infty) =
-        \{f \in A : \exists n \in \mathbb{N}, \pi^n f \in I\}` is exactly `I`,
-        where `\pi` is the uniformizer of the discrete valuation ring.
+        The ideal `I` is saturated if `\pi f \in I` implies `f \in I`
+        for any `f` in the underlying ring. Here `\pi` denotes a 
+        uniformizer of the field of coefficients.
 
-        If the base ring is a field, all ideals are saturated.
+        .. NOTE::
+
+            All ideals are saturated when `\pi` is invertible.
 
         EXAMPLES::
 
-        By default, Tate algebras are defined over a field, so this test is
-        always true:
-        
-            sage: R = Zp(3,prec=10,print_mode="digits"); R
-            3-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: f = 3*x^2 + 5*x*y^2; f
-            (...0000000012)*x*y^2 + (...00000000010)*x^2
-            sage: g = 5*x^2*y + 3; g
-            (...0000000012)*x^2*y + (...00000000010)
+        Over classical Tate algebras (where `\pi` is invertible), this 
+        method always returns ``True``::
+
+            sage: R = Zp(3, prec=10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 5*x*y^2
+            sage: g = 5*x^2*y + 3
             sage: A.ideal([f,g]).is_saturated()
             True
-            sage: A.ideal([3*f,3*g]).is_saturated()
+            sage: A.ideal([f,3*g]).is_saturated()
             True
-            sage: A.base_ring()
-            3-adic Field with capped relative precision 10
 
-        The test is only relevant if the base ring is not a field:
+        The test is only relevant over the rings of integers of Tate
+        algebras::
         
             sage: AA = A.integer_ring()
             sage: II = AA.ideal([f,g])
@@ -366,9 +335,11 @@ class TateAlgebraIdeal(Ideal_generic):
              (...0000000012)*x^2*y + (...0000000010) + O(3^10),
              (...0000000010)*x^3 + (...2222222220)*y + O(3^10),
              (...0000000010)*y^2 + (...2101210200)*x + O(3^10)]
+
+        Principal ideals are always saturated::
+
             sage: AA.ideal([f]).is_saturated()
             True
-
         
         """
         if self.ring().base_ring().is_field():
@@ -381,42 +352,61 @@ class TateAlgebraIdeal(Ideal_generic):
 
     def saturate(self):
         r"""
-        Saturate the ideal by the uniformizer of the discrete valuation ring
+        Return the ideal obtained by saturating this ideal.
 
-        The result is the quotient ideal `(I:\pi^\infty) = \{f \in A : \exists n
-        \in \mathbb{N}, \pi^n f \in I\}`, where `\pi` is the uniformizer of the
-        discrete valuation ring.
+        In other words, the result is the ideal
+
+        .. MATH::
+
+            (I:\pi^\infty) = \{f \in A : \exists n \in \mathbb{N}, \pi^n f \in I\}`
+
+        where `A` is the underlying ring and `\pi` is the uniformizer of the 
+        field of coefficients.
+
+        .. NOTE::
+
+            When `\pi` is invertible in `A`, all ideals are saturated.
 
         EXAMPLES::
 
-            sage: R = Zp(3,prec=10,print_mode="digits"); R
-            3-adic Ring with capped relative precision 10
-            sage: A.<x,y> = TateAlgebra(R); A
-            Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
-            sage: f = 3*x^2 + 5*x*y^2; f
-            (...0000000012)*x*y^2 + (...00000000010)*x^2
-            sage: g = 5*x^2*y + 3; g
-            (...0000000012)*x^2*y + (...00000000010)
+        Over classical Tate algebras (where `\pi` is invertible), this 
+        method always returns the same ideal::
+
+            sage: R = Zp(3, prec=10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 5*x*y^2
+            sage: g = 5*x^2*y + 3
             sage: I = A.ideal([f,g]); I
             Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
             sage: I.saturate()
-            Ideal ((...0000000001)*x*y^2 + (...1210121020)*x^2 + O(3^10), (...0000000001)*x^2*y + (...1210121020) + O(3^10), (...000000001)*x^3 + (...222222222)*y + O(3^9), (...000000001)*y^2 + (...210121020)*x + O(3^9)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
+            Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
 
-        Over a ring:
+            sage: I.saturate() == I
+            True
+
+        However, the result might be different over the ring of integers
+        of a Tate algebra::
         
             sage: AA = A.integer_ring()
-            sage: II = AA.ideal([f,g]); II
-            Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
+            sage: II = AA.ideal([f,g])
             sage: IIs = II.saturate(); IIs
             Ideal ((...0000000001)*x*y^2 + (...1210121020)*x^2 + O(3^10), (...0000000001)*x^2*y + (...1210121020) + O(3^10), (...000000001)*x^3 + (...222222222)*y + O(3^9), (...000000001)*y^2 + (...210121020)*x + O(3^9)) of Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
+
+            sage: II == IIs
+            False
             sage: IIs.is_saturated()
             True
 
-        
+        TESTS::
+
+            sage: II < IIs
+            True
+            sage: 3*IIs < II
+            True
         
         """
-        # TODO: Should we skip the GB computation + generation of another ideal
-        # if the base ring is a field?
+        if self.ring().base_ring().is_field():
+            return self
         gb = self.groebner_basis()
         gens = [ g.monic() for g in gb ]
         return self.ring().ideal(gens)

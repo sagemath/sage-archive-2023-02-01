@@ -3180,7 +3180,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ...
             PrecisionError: Not enough precision to be sure that this element is a nth power
 
-        TESTS::
+        TESTS:
 
         We check that it works over different fields::
 

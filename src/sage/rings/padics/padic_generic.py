@@ -1203,7 +1203,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: K.<a> = Qq(2^3, 5)
             sage: S.<x> = K[]
             sage: L.<pi> = K.extension(x^2 + 2*x + 2)
-            sage: zeta = L.primitive_root_of_unity(); zeta
+            sage: zeta = L.primitive_root_of_unity(); zeta # indirect doctest
             a + a*pi + pi^2 + a*pi^4 + a*pi^5 + a^2*pi^8 + a^2*pi^9 + O(pi^10)
             sage: zeta.parent() is L
             True

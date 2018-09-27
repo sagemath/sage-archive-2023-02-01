@@ -2767,7 +2767,9 @@ class IdealMonoid(UniqueRepresentation, Parent):
             sage: M = O.ideal_monoid()
             sage: TestSuite(M).run()
         """
+        self.Element = R._ideal_class
         Parent.__init__(self, category = Monoids())
+
         self.__R = R
         self._populate_coercion_lists_()
 

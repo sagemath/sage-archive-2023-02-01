@@ -166,21 +166,34 @@ class CatalanTableau(PathTableau):
             if abs(self[i+1]-self[i]) != 1:
                 raise ValueError( "%s is not a Dyck path" % str(self) )
 
-    @staticmethod
-    def _rule(x):
+    def _local_rule(self,i):
         """
-        Overwrites the abstract method.
+        This is the local rule that is used for the remaining constructions.
+        This has input a list of objects. This method first takes
+        the list of objects of length three consisting of the `(i-1)`-st,
+        `i`-th and `(i+1)`-term and applies the rule. It then replaces
+        the `i`-th object  by the object returned by the rule.
 
         EXAMPLES::
 
-            sage: T = CatalanTableau([0,1,2,3,2,3])
-            sage: T._rule([1,2,1])
-            0
-            sage: T._rule([0,1,0])
-            1
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._local_rule(3)
+            [0, 1, 2, 1, 2, 1, 0]
         """
-        return abs(x[0]-x[1]+x[2])
 
+        def _rule(x):
+            """
+            This is the rule on a sequence of three letters.
+            """
+            return abs(x[0]-x[1]+x[2])
+
+        if not (i > 0 and i < len(self) ):
+            raise ValueError("%d is not a valid integer" % i)
+
+        with self.clone() as result:
+            result[i] = self._rule(self[i-1:i+2])
+
+        return result
     def is_skew(self):
         """
         Return ``True`` if ``self`` is skew and ``False`` if not.

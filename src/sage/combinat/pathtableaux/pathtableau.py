@@ -51,17 +51,11 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
-    @staticmethod
-    @abstract_method(optional=False)
-    def _rule(p):
-        """
-        This is an abstract method. It must be overwritten.
-        This rule provides the functionality. It is called in
-        :method:`_local_rule`.
 
-        The key property is that the following operation on lists
-        of length three is an involution: apply the rule to a list
-        and replace the middle term with the output.
+    @abstractmethod(optional=False):
+    def _local_rule(self,i):
+        """
+        This is the abstract local rule defined in any coboundary category.
         """
 
     def __getattr__(self,name):
@@ -191,28 +185,6 @@ class PathTableau(ClonableList):
         return self[-1]
 
 ############################# Jeu de taquin ###################################
-
-    def _local_rule(self,i):
-        """
-        This is the local rule that is used for the remaining constructions.
-        This has input a list of objects. This method first takes
-        the list of objects of length three consisting of the `(i-1)`-st,
-        `i`-th and `(i+1)`-term and applies the rule. It then replaces
-        the `i`-th object  by the object returned by the rule.
-
-        EXAMPLES::
-
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: t._local_rule(3)
-            [0, 1, 2, 1, 2, 1, 0]
-        """
-        if not (i > 0 and i < len(self) ):
-            raise ValueError("%d is not a valid integer" % i)
-
-        with self.clone() as result:
-            result[i] = self._rule(self[i-1:i+2])
-
-        return result
 
     def promotion(self):
         """

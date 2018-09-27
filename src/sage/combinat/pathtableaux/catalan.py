@@ -191,9 +191,10 @@ class CatalanTableau(PathTableau):
             raise ValueError("%d is not a valid integer" % i)
 
         with self.clone() as result:
-            result[i] = self._rule(self[i-1:i+2])
+            result[i] = _rule(self[i-1:i+2])
 
         return result
+        
     def is_skew(self):
         """
         Return ``True`` if ``self`` is skew and ``False`` if not.

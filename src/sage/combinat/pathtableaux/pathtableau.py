@@ -52,7 +52,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
 
-    @abstractmethod(optional=False):
+    @abstract_method(optional=False)
     def _local_rule(self,i):
         """
         This is the abstract local rule defined in any coboundary category.
@@ -198,7 +198,7 @@ class PathTableau(ClonableList):
         """
         with self.clone() as result:
             for i in range(1,len(result)-1):
-                result[i] = self._rule(result[i-1:i+2])
+                result = result._local_rule(i)
 
         return result
 

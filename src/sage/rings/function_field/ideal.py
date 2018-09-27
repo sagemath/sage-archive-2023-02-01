@@ -1296,29 +1296,11 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I.gens_over_base()
             (x^3 + 1, y + x)
         """
-        gens, d  = self._gens_over_base()
-        return tuple([~d * b for b in gens])
-
-    @cached_method
-    def _gens_over_base(self):
-        """
-        Return the generators of the integral ideal, which is
-        the denominator times of the fractional ideal, together
-        with the denominator.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x^3*y - x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(1/y)
-            sage: I._gens_over_base()
-            ([x, y], x)
-        """
         gens = []
         for row in self._hnf:
             gens.append(sum([c1*c2 for c1,c2 in zip(row, self._ring.basis())]))
-        return gens, self._denominator
+        denom_inv = ~self._denominator
+        return tuple([denom_inv * b for b in gens])
 
     def gens(self):
         """

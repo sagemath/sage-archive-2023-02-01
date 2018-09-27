@@ -1465,6 +1465,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         m = (d * self).hnf()
         if d != 1:
             m = ~d * m
+        m.set_immutable()
         return m
 
     def is_integral(self):

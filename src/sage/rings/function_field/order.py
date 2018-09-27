@@ -1010,22 +1010,21 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
             sigma_a_pow.append(w)
             w *= sigma_a
 
-        basis = [V(sigma_a_pow[j]*beta_pow[i]) for i in range(s) for j in range(r)]
+        basis = [V(sap * bp) for bp in beta_pow for sap in sigma_a_pow]
         W = V.span_of_basis(basis)
 
         def to_K(f):
             coeffs = (f % q).list()
-            return sum([sigma(coeffs[i]) * beta_pow[i] for i in range(len(coeffs))], K.zero())
+            return sum((sigma(c) * beta_pow[i] for i, c in enumerate(coeffs)), K.zero())
 
         if r == 1: # take care of the prime field case
             def fr_K(g):
-                co = W.coordinates(V(g),check=False)
+                co = W.coordinates(V(g), check=False)
                 return R([k(co[j]) for j in range(s)])
         else:
-            t = r * s
             def fr_K(g):
-                co = W.coordinates(V(g),check=False)
-                return R([k(co[i:i+r]) for i in range(0,t,r)])
+                co = W.coordinates(V(g), check=False)
+                return R([k(co[i:i+r]) for i in range(0, r*s, r)])
 
         return K, fr_K, to_K
 
@@ -1361,20 +1360,21 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
         d = R(d) # make it sure that d is in the polynomial ring
 
         if check and not d.is_one(): # check if d is true denominator
-            try:
-                M = []
-                g = d
-                for v in vecs:
-                    l = list(v)
-                    for c in l:
-                        g = g.gcd(c)
-                        if g.is_one():
-                            raise AssertionError
-                    M += l
+            M = []
+            g = d
+            for v in vecs:
+                for c in v:
+                    g = g.gcd(c)
+                    if g.is_one():
+                        break
+                else:
+                    M += list(v)
+                    continue # for v in vecs
+                mat = matrix(R, vecs)
+                break
+            else:
                 d = d // g
                 mat = matrix(R, len(vecs), [c // g for c in M])
-            except AssertionError:
-                mat = matrix(R, vecs)
         else:
             mat = matrix(R, vecs)
 
@@ -1715,7 +1715,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
         for i in range(n):
             row = []
             for j in range(n):
-                row.append(V([to(e) for e in self._mtable[i][j]]))
+                row.append( V([to(e) for e in self._mtable[i][j]]) )
             mtable.append(row)
 
         if not p in self._kummer_places:
@@ -1814,11 +1814,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
                 for b in V.gens(): # basis of Ob = O/pO
                     b_row = [] # row vector representation of the map a -> a*b
                     for a in supplement_basis:
-                        c = 0
-                        for i in range(n):
-                            for j in range(n):
-                                c += a[i] * b[j] * mtable[i][j]
-                        b_row += lift_sJbsIb(proj_sJbsIb(c))
+                        b_row += lift_sJbsIb(proj_sJbsIb( mul_vec(a,b) ))
                     m.append(b_row)
                 return matrix(Fp,n,m).left_kernel().basis_matrix()
 

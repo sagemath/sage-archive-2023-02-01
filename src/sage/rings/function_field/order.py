@@ -141,21 +141,11 @@ class FunctionFieldOrder_base(CachedRepresentation, Parent):
             sage: O = F.maximal_order()
             sage: TestSuite(O).run(skip=['_test_euclidean_degree', '_test_gcd_vs_xgcd', '_test_one', '_test_zero'])
         """
-        Parent.__init__(self, category=IntegralDomains().or_subcategory(category), facade=field)
+        category = IntegralDomains().or_subcategory(category).Infinite()
+        Parent.__init__(self, category=category, facade=field)
 
         self._ideal_class = ideal_class # element class for parent ideal monoid
         self._field = field
-
-    def is_finite(self):
-        """
-        Return ``False`` since orders are never finite.
-
-        EXAMPLES::
-
-            sage: FunctionField(QQ,'y').maximal_order().is_finite()
-            False
-        """
-        return False
 
     def is_field(self):
         """

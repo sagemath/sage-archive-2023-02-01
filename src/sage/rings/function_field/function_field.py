@@ -1053,7 +1053,7 @@ class FunctionField_polymod(FunctionField):
             ...
             IndexError: Only one generator.
         """
-        if n != 0: raise IndexError("Only one generator.")
+        if n != 0: raise IndexError("there is only one generator")
         return self._gen
 
     def ngens(self):
@@ -1794,7 +1794,7 @@ class FunctionField_polymod(FunctionField):
             return int(curveIdeal._singular_().genus())
 
         else:
-            raise NotImplementedError("Computation of genus over the rational "
+            raise NotImplementedError("computation of genus over the rational "
                                       "function field not implemented yet")
 
     @cached_method
@@ -2979,7 +2979,7 @@ class RationalFunctionField(FunctionField):
         K = f.parent().constant_base_field()
         if f.denominator() in K:
             return f.numerator()/K(f.denominator())
-        raise ValueError("Only polynomials can be converted to the underlying polynomial ring")
+        raise ValueError("only polynomials can be converted to the underlying polynomial ring")
 
     def _to_bivariate_polynomial(self, f):
         """
@@ -3331,7 +3331,7 @@ class RationalFunctionField(FunctionField):
         x = im_gens[0]
         R = x.parent()
         if base_morphism is None and not R.has_coerce_map_from(self.constant_field()):
-            raise ValueError("You must specify a morphism on the base field")
+            raise ValueError("you must specify a morphism on the base field")
         from .maps import FunctionFieldMorphism_rational
         return FunctionFieldMorphism_rational(self.Hom(R), x, base_morphism)
 

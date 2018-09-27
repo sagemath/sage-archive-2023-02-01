@@ -947,9 +947,15 @@ class RingDerivationWithoutTwist(RingDerivation):
 
         """
         if op == op_EQ:
-            return self.list() == other.list()
+            if isinstance(other, RingDerivationWithoutTwist):
+                return self.list() == other.list()
+            else:
+                return False
         if op == op_NE:
-            return self.list() != other.list()
+            if isinstance(other, RingDerivationWithoutTwist):
+                return self.list() != other.list()
+            else:
+                return True
         return NotImplemented
 
 
@@ -2100,3 +2106,40 @@ class RingDerivationWithTwist_generic(RingDerivation):
             raise TypeError("you must give an homomorphism of rings")
         M = RingDerivationModule(parent.domain(), morphism * parent.defining_morphism(), morphism * parent.twisting_morphism())
         return M(morphism(self._scalar))
+
+    def _richcmp_(self, other, op):
+        """
+        Compare this derivation with ``other`` according
+        to the comparison operator ``op``.
+
+        EXEMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: theta = R.hom([y,x])
+            sage: Dx = R.derivation(x, twist=theta); Dx
+            x*([x |--> y, y |--> x] - id)
+            sage: Dy = R.derivation(y, twist=theta); Dy
+            y*([x |--> y, y |--> x] - id)
+            sage: D = R.derivation(x+y, twist=theta); D
+            (x + y)*([x |--> y, y |--> x] - id)
+
+            sage: Dx == Dy
+            False
+            sage: D == Dx + Dy
+            True
+
+            sage: D != Dy
+            True
+
+        """
+        if op == op_EQ:
+            if isinstance(other, RingDerivationWithTwist_generic):
+                return self._scalar == other._scalar
+            else:
+                return False
+        if op == op_NE:
+            if isinstance(other, RingDerivationWithTwist_generic):
+                return self._scalar != other._scalar
+            else:
+                return True
+        return NotImplemented

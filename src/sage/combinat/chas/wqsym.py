@@ -47,7 +47,7 @@ from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
-from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
 class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
@@ -307,7 +307,8 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     Bases of `WQSym` are implemented (internally) using ordered set
     partitions. However, the user may access specific basis vectors using
-    either packed words or ordered set partitions. (See the examples below.)
+    either packed words or ordered set partitions. See the examples below,
+    noting especially the section on ambiguities.
 
     `WQSym` is endowed with a connected graded Hopf algebra structure (see
     Section 2.2 of [NoThWi08]_, Section 1.1 of [FoiMal14]_ and
@@ -372,10 +373,19 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: y = M[1,1,2] - M[1,2,2]; y
         -M[{1}, {2, 3}] + M[{1, 2}, {3}]
 
-    Note above that expressions are still output in terms of ordered
-    set partitions. Output as packed words can be achieved by modifying
-    the global options. (See :meth:`OrderedSetPartitions.options` for
-    further details.)::
+    Calling basis elements using ordered set partitions::
+
+        sage: z = M[[1,2,3],]; z
+        M[{1, 2, 3}]
+        sage: z == M[[[1,2,3]]] == M[OrderedSetPartition([[1,2,3]])]
+        True
+        sage: M[[1,2],[3]]
+        M[{1, 2}, {3}]
+
+    Note that expressions above are output in terms of ordered set partitions,
+    even when input as packed words. Output as packed words can be achieved
+    by modifying the global options. (See :meth:`OrderedSetPartitions.options`
+    for further details.)::
 
         sage: M.options.objects = "words"
         sage: y
@@ -383,19 +393,14 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: M.options.display = "compact"
         sage: y
         -M[122] + M[112]
-
-    Calling basis elements using ordered set partitions. (Note that the
-    options should be reset to display as ordered set partitions.)::
-
-        sage: y = M[[1,2,3],]; y
+        sage: z
         M[111]
+
+    The options should be reset to display as ordered set partitions::
+
         sage: M.options._reset()
-        sage: y
+        sage: z
         M[{1, 2, 3}]
-        sage: y == M[[[1,2,3]]] == M[OrderedSetPartition([[1,2,3]])]
-        True
-        sage: M[[1,2],[3]]
-        M[{1, 2}, {3}]
 
     Illustration of the Hopf algebra structure::
 
@@ -419,6 +424,29 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: x.antipode()
         3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
          - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
+
+    .. rubric:: Ambiguities
+
+    Some ambiguity arises when accessing basis vectors with the dictionary syntax,
+    i.e., ``M[...]``. A common example is when referencing an ordered set partition
+    with one part. For example, in the expression ``M[[1,2]]``, does ``[[1,2]]``
+    refer to an ordered set partition or does ``[1,2]`` refer to a packed word?
+    We choose the latter: if the received arguments do not behave like a tuple of
+    iterables, then view them as describing a packed word. (In the running example,
+    one argument is received, which behaves as a tuple of integers.) Here are a
+    variety of ways to get the same basis vector::
+
+        sage: x = M[1,1]; x
+        M[{1, 2}]
+        sage: x == M[[1,1]]  # treated as word
+        True
+        sage: x == M[[1,2],] == M[[[1,2]]]  # treated as ordered set partitions
+        True
+
+        sage: M[[1,3],[2]]  # treat as ordered set partition
+        M[{1, 3}, {2}]
+        sage: M[[1,3],[2]] == M[1,2,1]  # treat as word
+        True
 
     TESTS::
 
@@ -1955,13 +1983,17 @@ class WQSymBases(Category_realization_of_parent):
                 M[]
                 sage: M[1, 2, 1] == M[Word([2,3,2])] == M[Word('aca')]
                 True
+                sage: M[[[1,2]]] == M[1,1] == M[1/1,2/2] == M[2/1,2/1] == M['aa']
+                True
                 sage: M[1] == M[1,] == M[Word([1])] == M[OrderedSetPartition([[1]])] == M[[1],]
                 True
             """
-            if isinstance(p, (int, Integer, str)):
-                p = [p]
+            if p in ZZ:
+                p = [ZZ(p)]
+            if all(s in ZZ for s in p):
+                return self.monomial(self._indices.from_finite_word([ZZ(s) for s in p]))
 
-            if all(isinstance(s, (int, Integer, str)) for s in p):
+            if all(isinstance(s, str) for s in p):
                 return self.monomial(self._indices.from_finite_word(p))
             try:
                 return self.monomial(self._indices(p))

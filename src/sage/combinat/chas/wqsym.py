@@ -1955,11 +1955,11 @@ class WQSymBases(Category_realization_of_parent):
                 M[]
                 sage: M[1, 2, 1] == M[Word([2,3,2])] == M[Word('aca')]
                 True
-                sage: M[1,] == M[Word([1])] == M[OrderedSetPartition([[1]])] == M[[1],]
+                sage: M[1] == M[1,] == M[Word([1])] == M[OrderedSetPartition([[1]])] == M[[1],]
                 True
             """
             if isinstance(p, (int, Integer, str)):
-                p = [int(p)]
+                p = [p]
 
             if all(isinstance(s, (int, Integer, str)) for s in p):
                 return self.monomial(self._indices.from_finite_word(p))

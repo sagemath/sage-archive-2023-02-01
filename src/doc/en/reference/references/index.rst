@@ -51,6 +51,12 @@ REFERENCES:
                 and T. Yalcin, *Block ciphers - focus on the linear layer
                 (feat. PRIDE)*; in CRYPTO, (2014), pp. 57-76.
 
+.. [AGHJLPR2017] Benjamin Assarf, Ewgenij Gawrilow, Katrin Herr, Michael Joswig,
+                 Benjamin Lorenz, Andreas Paffenholz, and Thomas Rehn,
+                 Computing convex hulls and counting integer points with
+                 polymake, Math. Program. Comput. 9 (2017), no. 1, 1–38,
+                 https://doi.org/10.1007/s12532-016-0104-z
+
 .. [AguSot05] Marcelo Aguiar and Frank Sottile,
               *Structure of the Malvenuto-Reutenauer Hopf algebra of
               permutations*,
@@ -1221,14 +1227,35 @@ REFERENCES:
               *On the category `\mathcal{O}` for rational Cherednik algebras*.
               Invent. Math. **154** (2003). :arxiv:`math/0212036`.
 
+.. [GHJ2016] Ewgenij Gawrilow, Simon Hampe, and Michael Joswig, The polymake XML
+             file format, Mathematical software – ICMS 2016. 5th international
+             congress, Berlin, Germany, July 11–14, 2016. Proceedings, Berlin:
+             Springer, 2016, pp. 403–410,
+             https://doi.org/10.1007/978-3-319-42432-3_50, ISBN
+             978-3-319-42431-6/pbk.
+
 .. [GHJV1994] \E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design
               Patterns: Elements of Reusable Object-Oriented
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
+
+.. [GJ1997] Ewgenij Gawrilow and Michael Joswig, polymake: a framework for
+            analyzing convex polytopes, Polytopes—combinatorics and
+            computation (Oberwolfach, 1997), DMV Sem., vol. 29, Birkhäuser,
+            Basel, 2000, pp. 43–73.
+
+.. [GJ2006] Ewgenij Gawrilow and Michael Joswig, Flexible object hierarchies in
+            polymake (extended abstract), Mathematical software—ICMS 2006,
+            Lecture Notes in Comput. Sci., vol. 4151, Springer, Berlin, 2006,
+            pp. 219–221, https://doi.org/10.1007/11832225_20
 
 .. [GJK+2014] Dimitar Grantcharov, Ji Hye Jung, Seok-Jin Kang, Masaki Kashiwara,
               Myungho Kim. *Crystal bases for the quantum queer superalgebra and
               semistandard decomposition tableaux.*; Trans. Amer. Math. Soc.,
               366(1): 457-489, 2014. :arxiv:`1103.1456v2`.
+
+.. [GJRW2010] Ewgenij Gawrilow, Michael Joswig, Thilo Rörig, and Nikolaus Witte,
+              Drawing polytopal graphs with polymake, Comput. Vis. Sci. 13
+              (2010), no. 2, 99–110, https://doi.org/10.1007/s00791-009-0127-3
 
 .. [GK2013] Roland Grinis and Alexander Kasprzyk, Normal forms of
             convex lattice polytopes, :arxiv:`1301.6641`
@@ -1564,6 +1591,12 @@ REFERENCES:
 
 .. [JL2016] \M. Jones and L. Lapointe. *Pieri rules for Schur
             functions in superspace*. Preprint, :arxiv:`1608.08577`
+
+.. [JMP2009] Michael Joswig, Benjamin Müller, and Andreas Paffenholz, polymake
+             and lattice polytopes, 21st International Conference on Formal
+             Power Series and Algebraic Combinatorics (FPSAC 2009), Discrete
+             Math. Theor. Comput. Sci. Proc., AK, Assoc. Discrete
+             Math. Theor. Comput. Sci., Nancy, 2009, pp. 491–502
 
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).

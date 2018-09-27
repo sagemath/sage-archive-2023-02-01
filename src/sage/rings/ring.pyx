@@ -1535,7 +1535,7 @@ cdef class CommutativeRing(Ring):
         """
         INPUT:
 
-        -  ``n`` -- a nonnegative integer (default: 1)
+        - ``n`` -- a nonnegative integer (default: 1)
 
         OUTPUT:
 
@@ -1560,7 +1560,6 @@ cdef class CommutativeRing(Ring):
         from .morphism import FrobeniusEndomorphism_generic
         return FrobeniusEndomorphism_generic(self, n)
 
-
     def derivation_module(self, codomain=None, twist=None):
         r"""
         Returns the module of derivations over this ring.
@@ -1569,23 +1568,23 @@ cdef class CommutativeRing(Ring):
 
         - ``codomain`` -- an algebra over this ring or a ring homomorphism
           whose domain is this ring or ``None`` (default: ``None``); if it
-          is a morphism, the codomain of derivations will be the codomain 
-          of the morphism viewed as an algebra over ``self`` through the 
-          given morphism; if ``None``, the codomain will be this ring.
+          is a morphism, the codomain of derivations will be the codomain
+          of the morphism viewed as an algebra over ``self`` through the
+          given morphism; if ``None``, the codomain will be this ring
 
         - ``twist`` -- a morphism from this ring to ``codomain``
           or ``None`` (default: ``None``); if ``None``, the coercion
-          map from this ring to ``codomain`` will be used.
+          map from this ring to ``codomain`` will be used
 
         .. NOTE::
 
-            A twisted derivation w.r.t. `\theta` (or a `\theta`-derivation
-            for short) is an additive map `d` satisfying the following axiom
-            for all `x, y` in the domain
+            A twisted derivation with respect to `\theta` (or a
+            `\theta`-derivation for short) is an additive map `d`
+            satisfying the following axiom for all `x, y` in the domain:
 
             .. MATH::
 
-                `d(xy) = \theta(x) d(y) + d(x) y`
+                d(xy) = \theta(x) d(y) + d(x) y.
 
         EXAMPLES::
 
@@ -1599,7 +1598,8 @@ cdef class CommutativeRing(Ring):
 
             sage: K = R.fraction_field()
             sage: M = R.derivation_module(K); M
-            Module of derivations from Multivariate Polynomial Ring in x, y, z over Rational Field to Fraction Field of Multivariate Polynomial Ring in x, y, z over Rational Field
+            Module of derivations from Multivariate Polynomial Ring in x, y, z over
+             Rational Field to Fraction Field of Multivariate Polynomial Ring in x, y, z over Rational Field
             sage: M.gen() / x
             1/x*d/dx
 
@@ -1637,7 +1637,8 @@ cdef class CommutativeRing(Ring):
 
             sage: theta = R.hom([x^2, y^2, z^2])
             sage: M = R.derivation_module(twist=theta); M
-            Module of twisted derivations over Multivariate Polynomial Ring in x, y, z over Rational Field (twisting morphism: x |--> x^2, y |--> y^2, z |--> z^2)
+            Module of twisted derivations over Multivariate Polynomial Ring in x, y, z
+             over Rational Field (twisting morphism: x |--> x^2, y |--> y^2, z |--> z^2)
 
         .. SEEALSO::
 
@@ -1651,24 +1652,25 @@ cdef class CommutativeRing(Ring):
 
     def derivation(self, arg=None, twist=None):
         r"""
-        Return the twisted or untwisted derivation over this ring 
+        Return the twisted or untwisted derivation over this ring
         specified by ``arg``.
 
         .. NOTE::
 
-            A twisted derivation w.r.t. `\theta` (or a `\theta`-derivation
-            for short) is an additive map `d` satisfying the following axiom
-            for all `x, y` in the domain
+            A twisted derivation with respect to `\theta` (or a
+            `\theta`-derivation for short) is an additive map `d`
+            satisfying the following axiom for all `x, y` in the domain:
 
             .. MATH::
 
-                `d(xy) = \theta(x) d(y) + d(x) y`
+                d(xy) = \theta(x) d(y) + d(x) y.
 
         INPUT:
 
-        - ``arg``
+        - ``arg`` -- (optional) a generator or a list of coefficients
+          that defines the derivation
 
-        - ``twist`` - an homomorphism or ``None`` (default: ``None``)
+        - ``twist`` -- (optional) the twisting homomorphism
 
         EXAMPLES::
 
@@ -1686,7 +1688,7 @@ cdef class CommutativeRing(Ring):
             sage: R.derivation([1,2,3])
             d/dx + 2*d/dy + 3*d/dz
 
-        It is not possible to define derivations with respect to a 
+        It is not possible to define derivations with respect to a
         polynomial which is not a variable::
 
             sage: R.derivation(x^2)
@@ -1701,7 +1703,8 @@ cdef class CommutativeRing(Ring):
             sage: f = R.derivation(twist=theta); f
             0
             sage: f.parent()
-            Module of twisted derivations over Multivariate Polynomial Ring in x, y, z over Rational Field (twisting morphism: x |--> x^2, y |--> y^2, z |--> z^2)
+            Module of twisted derivations over Multivariate Polynomial Ring in x, y, z
+             over Rational Field (twisting morphism: x |--> x^2, y |--> y^2, z |--> z^2)
 
         Specifying a scalar, the returned twisted derivation is the
         corresponding multiple of `\theta - id`::

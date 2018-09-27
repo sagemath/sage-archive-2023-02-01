@@ -1764,7 +1764,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
                     m.append(sum(qgenb[j] * mtable[i][j] for j in range(n)))
                 beta  = [fr(c) for c in matrix(m).left_kernel().basis()[0]]
 
-                prime._is_prime = True
+                prime.is_prime.set_cache(True)
                 prime._prime_below = ideal
                 prime._relative_degree = q.degree()
                 prime._ramification_index = exp
@@ -1935,7 +1935,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
                         m.append(r)
                     beta = [fr(e) for e in matrix(m).left_kernel().basis()[0]]
 
-                    prime._is_prime = True
+                    prime.is_prime.set_cache(True)
                     prime._prime_below = ideal
                     prime._relative_degree = degree
                     prime._ramification_index = index

@@ -860,9 +860,6 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         self._hnf = hnf
         self._denominator = denominator
 
-        self._two_gens = None
-        self._is_prime = None
-
         # for prime ideals
         self._relative_degree = None
         self._ramification_index = None
@@ -1324,9 +1321,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I.gens()
             (x^3 + 1, y + x)
         """
-        if self._two_gens is None:
+        if self._gens_two.is_in_cache():
+            return self._gens_two.cache
+        else:
             return self.gens_over_base()
-        return self._two_gens
 
     def gens_two(self):
         """
@@ -1358,22 +1356,14 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             Ideal (x, (x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
             of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
-        if self._two_gens is None:
-            if self._kummer_form is not None: # prime ideal
-                O = self.ring()
-                _g1,_g2 = self._kummer_form
-                g1 = O.fraction_field()(_g1)
-                g2 = sum([c1*c2 for c1,c2 in zip(_g2, O.basis())])
-                self._two_gens = (g1,g2)
-            else:
-                self._two_gens = self._gens_two()
         d = self.denominator()
-        return tuple(e/d for e in self._two_gens)
+        return tuple(e/d for e in self._gens_two())
 
+    @cached_method
     def _gens_two(self):
         """
         Return a set of two generators of the integral ideal, that is
-        the denominator times the fractional ideal.
+        the denominator times this fractional ideal.
 
         EXAMPLES::
 
@@ -1386,6 +1376,15 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         """
         O = self.ring()
         F = O.fraction_field()
+
+        if self._kummer_form is not None: # prime ideal
+            _g1, _g2 = self._kummer_form
+            g1 = F(_g1)
+            g2 = sum([c1*c2 for c1,c2 in zip(_g2, O.basis())])
+            return (g1,g2)
+
+        ### start to search for two generators
+
         hnf = self._hnf
 
         norm = reduce(operator.mul, hnf.diagonal())
@@ -1441,6 +1440,9 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
                 alpha = sum([c1*c2 for c1,c2 in zip(g, basis)])
                 if check(alpha):
                     return (l, alpha)
+
+        # should not reach here
+        raise ValueError("no two generators found")
 
     @cached_method
     def basis_matrix(self):
@@ -1643,6 +1645,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         """
         return reduce(operator.mul, self.basis_matrix().diagonal())
 
+    @cached_method
     def is_prime(self):
         """
         Return ``True`` if the ideal is a prime ideal.
@@ -1666,18 +1669,18 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: [f.is_prime() for f,_ in I.factor()]
             [True, True]
         """
-        if self._is_prime is None:
-            factors = self.factor()
-            self._is_prime = len(factors) == 1 and factors[0][1] == 1
-            if self._is_prime:
-                prime = factors[0][0]
-                assert self == prime
-                self._relative_degree = prime._relative_degree
-                self._ramification_index = prime._ramification_index
-                self._prime_below = prime._prime_below
-                self._beta = prime._beta
-                self._beta_matrix = prime._beta_matrix
-        return self._is_prime
+        factors = self.factor()
+        if len(factors) == 1 and factors[0][1] == 1: # prime!
+            prime = factors[0][0]
+            assert self == prime
+            self._relative_degree = prime._relative_degree
+            self._ramification_index = prime._ramification_index
+            self._prime_below = prime._prime_below
+            self._beta = prime._beta
+            self._beta_matrix = prime._beta_matrix
+            return True
+        else:
+            return False
 
     ###################################################
     # The following methods are only for prime ideals #
@@ -1776,9 +1779,6 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             [Ideal (x) of Maximal order of Rational function field in x over Finite Field of size 2,
              Ideal (x + 1) of Maximal order of Rational function field in x over Finite Field of size 2]
         """
-        if not self.is_prime():
-            raise TypeError("not a prime ideal")
-
         return self._prime_below
 
 class FunctionFieldIdealInfinite(FunctionFieldIdeal):

@@ -177,7 +177,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                     sage: A = AlgebrasWithBasis(QQ).example()
                     sage: A.one_basis()
-                    word: 
+                    word:
                     sage: A.one()
                     B[word: ]
                     sage: A.from_base_ring(4)
@@ -198,7 +198,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                     sage: A = AlgebrasWithBasis(QQ).example()
                     sage: A.one_basis()
-                    word: 
+                    word:
                     sage: A.one_from_one_basis()
                     B[word: ]
                     sage: A.one()
@@ -236,7 +236,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                     sage: A = AlgebrasWithBasis(QQ).example()
                     sage: A.one_basis()
-                    word: 
+                    word:
                     sage: A.one()
                     B[word: ]
                 """

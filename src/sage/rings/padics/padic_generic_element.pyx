@@ -28,7 +28,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
+
 from sage.ext.stdsage cimport PY_NEW
+
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -40,6 +42,7 @@ from sage.structure.element import coerce_binop
 
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
+
 
 cdef class pAdicGenericElement(LocalGenericElement):
     cpdef int _cmp_(left, right) except -2:
@@ -566,6 +569,373 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return Integer(1)
         else:
             return infinity
+
+
+    def artin_hasse_exp(self, prec=None, algorithm=None):
+        r"""
+        Return the Artin-Hasse exponential of this element.
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``)
+          the desired precision on the result; if ``None``, the
+          precision is derived from the precision on the input
+
+        - ``algorithm`` -- ``direct``, ``series``, ``newton`` or 
+          ``None`` (default)
+
+          The direct algorithm computes the Artin-Hasse exponential
+          of ``x``, namely ``AH(x)`` as
+
+          .. MATH::
+
+              AH(x) = \exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+          It runs roughly as fast as the computation of the exponential
+          (since the computation of the argument is not that costly).
+
+          The series algorithm computes the series defining the
+          Artin-Hasse exponential and evaluates it.
+
+          The ``Newton`` algorithm solves the equation
+
+          .. MATH::
+
+              \log(AH(x)) = x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+          using a Newton scheme. It runs roughly as fast as the computation
+          of the logarithm.
+
+          By default, we use the direct algorithm if a fast algorithm for
+          computing the exponential is available.
+          If not, we use the Newton algorithm if a fast algorithm for
+          computing the logarithm is available.
+          Otherwise we switch to the series algorithm.
+
+        OUTPUT:
+
+        The Artin-Hasse exponential of this element.
+
+        See :wikipedia:`Artin-Hasse_exponential` for more information.
+
+        EXAMPLES::
+
+            sage: x = Zp(5)(45/7)
+            sage: y = x.artin_hasse_exp(); y
+            1 + 2*5 + 4*5^2 + 3*5^3 + 5^7 + 2*5^8 + 3*5^10 + 2*5^11 + 2*5^12 +
+            2*5^13 + 5^14 + 3*5^17 + 2*5^18 + 2*5^19 + O(5^20)
+
+            sage: y * (-x).artin_hasse_exp()
+            1 + O(5^20)
+
+        The function respects your precision::
+
+            sage: x = Zp(3,30)(45/7)
+            sage: x.artin_hasse_exp()
+            1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^10 + 3^11 +
+            3^13 + 2*3^15 + 2*3^16 + 2*3^17 + 3^19 + 3^20 + 2*3^21 + 3^23 + 3^24 +
+            3^26 + 3^27 + 2*3^28 + O(3^30)
+
+        Unless you tell it not to::
+
+            sage: x = Zp(3,30)(45/7)
+            sage: x.artin_hasse_exp()
+            1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + 2*3^10 + 3^11 +
+            3^13 + 2*3^15 + 2*3^16 + 2*3^17 + 3^19 + 3^20 + 2*3^21 + 3^23 + 3^24 +
+            3^26 + 3^27 + 2*3^28 + O(3^30)
+            sage: x.artin_hasse_exp(10)
+            1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + O(3^10)
+
+        For precision 1 the function just returns 1 since the
+        exponential is always a 1-unit::
+
+            sage: x = Zp(3).random_element()
+            sage: x.artin_hasse_exp(1)
+            1 + O(3)
+
+        TESTS:
+
+        Using Theorem 2.5 of [Conr]_::
+
+            sage: x1 = 5*Zp(5).random_element()
+            sage: x2 = 5*Zp(5).random_element()
+            sage: y1 = x1.artin_hasse_exp()
+            sage: y2 = x2.artin_hasse_exp()
+            sage: (y1 - y2).abs() == (x1 - x2).abs()
+            True
+
+        Comparing with the formal power series definition::
+
+            sage: x = PowerSeriesRing(QQ, 'x', default_prec=82).gen()
+            sage: AH = sum(x**(3**i)/(3**i) for i in range(5)).O(82).exp()
+            sage: z = Zp(3)(33/7)
+            sage: ahz = AH(z); ahz
+            1 + 2*3 + 3^2 + 3^3 + 2*3^5 + 3^6 + 2*3^7 + 3^9 + 3^11 + 3^12 +
+            3^13 + 3^14 + 2*3^15 + 3^16 + 2*3^18 + 2*3^19 + O(3^20)
+            sage: ahz - z.artin_hasse_exp()
+            O(3^20)
+
+        Out of convergence domain::
+
+            sage: Zp(5)(1).artin_hasse_exp()
+            Traceback (most recent call last):
+            ...
+            ValueError: Artin-Hasse exponential does not converge on this input
+
+        AUTHORS:
+
+        - Mitchell Owen, Sebastian Pancrantz (2012-02): initial version.
+
+        - Xavier Caruso (2018-08): extend to any p-adic rings and fields
+          and implement several algorithms.
+
+        """
+        if self.valuation() < 1:
+            raise ValueError("Artin-Hasse exponential does not converge on this input")
+        R = self.parent()
+        if prec is None:
+            prec = min(self.precision_absolute(), R.precision_cap())
+        else:
+            prec = min(prec, self.precision_absolute(), R.precision_cap())
+
+        if algorithm is None:
+            try:
+                R(0).exp(1, algorithm='binary_splitting')  # we check that binary splitting is available
+                ans = self._AHE_direct(prec, exp_algorithm='binary_splitting')
+            except NotImplementedError:
+                try:
+                    R(1).log(1, algorithm='binary_splitting')  # we check that binary splitting is available
+                    ans = self._AHE_newton(prec, log_algorithm='binary_splitting')
+                except NotImplementedError:
+                    ans = self._AHE_series(prec)
+        elif algorithm == 'direct':
+            ans = self._AHE_direct(prec)
+        elif algorithm == 'series':
+            ans = self._AHE_series(prec)
+        elif algorithm == 'newton':
+            ans = self._AHE_newton(prec)
+        else:
+            raise ValueError("Algorithm must be 'direct', 'series', 'newton' or None")
+        return ans
+
+    def _AHE_direct(self, prec, exp_algorithm=None):
+        r"""
+        Return the Artin-Hasse exponential of this element.
+
+        If `x` denotes the input element, its Artin-Hasse
+        exponential is computed by taking the exponential of
+
+        .. MATH::
+
+            x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+        INPUT:
+
+        - ``prec`` -- an integer, the precision at which the
+          result should be computed
+
+        - ``exp_algorithm`` -- a string, the algorithm called
+          for computing the exponential
+
+        EXAMPLES::
+
+            sage: W = Zp(3,10)
+            sage: W(123456).artin_hasse_exp(algorithm='direct')  # indirect doctest
+            1 + 3 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10)
+
+        When `x^{p^i}/p^i` is not in the domain of convergence of the
+        exponential for some nonnegative integer `i`, an error is raised::
+
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension(x^2 + 3)
+            sage: pi.artin_hasse_exp(algorithm='direct')  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: One factor of the Artin-Hasse exponential does not converge
+
+        There is however an important exception.
+        When we are working over `\ZZ_2` or `\QQ_2` and `x` is congruent to `2`
+        modulo `4`, then `x` and `x^2/2` are not in the domain of convergence of
+        the exponential. However, `\exp(x + x^2/2)` does converge. 
+        In this case, the Artin-Hasse exponential of `x`, denoted by `AH(x)`, is
+
+        .. MATH::
+
+            AH(x) = - \exp(x + \frac{x^2}{2} + \frac{x^4}{4} + \dots)
+
+        with a negative sign.
+        This method knows about this fact and handles the computation correctly::
+
+            sage: W = Zp(2,8)
+            sage: x = W(1234); x
+            2 + 2^4 + 2^6 + 2^7 + O(2^9)
+            sage: y1 = x.artin_hasse_exp(algorithm='direct'); y1
+            1 + 2 + 2^2 + 2^6 + O(2^8)
+            sage: y2 = exp(x + x^2/2 + x^4/4 + x^8/8); y2
+            1 + 2^3 + 2^4 + 2^5 + 2^7 + O(2^8)
+            sage: y1 == -y2
+            True
+            sage: y1 == x.artin_hasse_exp(algorithm='series')
+            True
+
+        .. SEEALSO::
+
+            :meth:`artin_hasse_exp`, :meth:`_AHE_series`, :meth:`_AHE_newton`
+        """
+        R = self.parent()
+        p = R.prime()
+        pow = self.add_bigoh(prec)
+        arg = pow
+        denom = 1; trunc = prec
+        if R.absolute_degree() == 1:
+            # Special code for Zp and Qp
+            while pow != 0:
+                trunc += 1
+                pow = (pow**p).add_bigoh(trunc)
+                denom *= p
+                arg += pow/denom
+            AH = arg.exp(algorithm=exp_algorithm)
+            if p == 2 and self.add_bigoh(2) == 2:
+                AH = -AH
+        else:
+            e = R.absolute_e()
+            ep = e // (p-1)
+            while pow != 0:
+                trunc += e
+                pow = (pow**p).add_bigoh(trunc)
+                denom *= p
+                s = pow/denom
+                if s.valuation() <= ep:
+                    raise NotImplementedError("One factor of the Artin-Hasse exponential does not converge")
+                arg += s
+            AH = arg.exp(algorithm=exp_algorithm)
+        return AH
+
+    def _AHE_series(self, prec):
+        r"""
+        Return the Artin-Hasse exponential of this element.
+
+        This method first evaluates the Artin-Hasse series
+
+        .. MATH::
+
+            AH(x) = \exp(x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots)
+
+        at enough precision and the plug the input element in it.
+
+        INPUT:
+
+        - ``prec`` -- an integer, this precision at which the
+          result should be computed
+
+        EXAMPLES::
+
+            sage: W = Zp(3,10)
+            sage: W(123456).artin_hasse_exp(algorithm='series')  # indirect doctest
+            1 + 3 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10)
+
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension(x^2 + 3)
+            sage: pi.artin_hasse_exp(algorithm='series')  # indirect doctest
+            1 + pi + 2*pi^2 + 2*pi^3 + 2*pi^4 + 2*pi^10 + 2*pi^11 + pi^13 + pi^18 + pi^19 + O(pi^20)
+
+        .. SEEALSO::
+
+            :meth:`artin_hasse_exp`, :meth:`_AHE_direct`, :meth:`_AHE_newton`
+        """
+        R = self.parent()
+        p = R.prime()
+        e = R.absolute_e()
+
+        # We compute the Artin-Hasse series at the requested precision
+        L = _AHE_coefficients(p, prec, 1 + (prec-1)//e)
+        # We evaluate it using Horner algorithm
+        y = R(0)
+        x = self.add_bigoh(prec)
+        for i in range(prec-1, -1, -1):
+            y = y*x + R(L[i])
+
+        return y
+
+    def _AHE_newton(self, prec, log_algorithm=None):
+        r"""
+        Return the Artin-Hasse exponential of this element.
+
+        If ``x`` denotes the input element, its Artin-Hasse exponential
+        is computed by solving the following equation in ``y``
+
+        .. MATH::
+
+            \log(y) = x + \frac{x^p}{p} + \frac{x^{p^2}}{p^2} + \dots
+
+        using a Newton scheme. 
+
+        The first approximation used for initializing the Newton iteration
+        is computed using the ``series`` algorithm (see :meth:`_AHE_series`).
+
+        INPUT:
+
+        - ``prec`` -- an integer, this precision at which the
+          result should be computed
+
+        EXAMPLES::
+
+            sage: W = Zp(3,10)
+            sage: W(123456).artin_hasse_exp(algorithm='newton')  # indirect doctest
+            1 + 3 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10)
+
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension(x^2 + 3)
+            sage: pi.artin_hasse_exp(algorithm='newton')  # indirect doctest
+            1 + pi + 2*pi^2 + 2*pi^3 + 2*pi^4 + 2*pi^10 + 2*pi^11 + pi^13 + pi^18 + pi^19 + O(pi^20)
+
+        .. SEEALSO::
+
+            :meth:`artin_hasse_exp`, :meth:`_AHE_direct`, :meth:`_AHE_series`
+        """
+        R = self.parent()
+        p = R.prime()
+        e = R.absolute_e()
+
+        # Step 1:
+        # We compute a sufficiently good approximation of the result
+        # in order to bootstrap the Newton iteration
+
+        # We compute the Artin-Hasse series at the requested precision
+        ep = e // (p-1)
+        startprec = min(prec, ep+1)
+        L = _AHE_coefficients(p, startprec, 1)
+        # We evaluate it using Horner algorithm
+        y = R(0)
+        x = self.add_bigoh(startprec)
+        for i in range(startprec-1, -1, -1):
+            y = y*x + R(L[i])
+
+        # Step 2:
+        # We use Newton iteration to solve the equation
+        # log(AH(x)) = x + x^p/p + x^(p^2)/p^2 + ...
+
+        # We compute b = 1 + x + x^p/p + x^(p^2)/p^2 + ...
+        pow = self.add_bigoh(prec)
+        b = 1 + pow
+        denom = 1; trunc = prec
+        while pow != 0:
+            trunc += e
+            pow = (pow**p).add_bigoh(trunc)
+            denom *= p
+            b += pow/denom
+        # We iterate the Newton scheme: y_(n+1) = y_n * (b - log(y_n))
+        curprec = startprec
+        while curprec < prec:
+            if p == 2:
+                curprec = 2*curprec - e
+            else:
+                curprec = 2*curprec
+            y = y.lift_to_precision(min(prec,curprec))
+            y *= b - y.log(algorithm=log_algorithm)
+
+        return R(y)
+
 
     def minimal_polynomial(self, name='x', base=None):
         """
@@ -2911,6 +3281,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ans = self._exp_binary_splitting(aprec)
         elif algorithm == 'newton':
             ans = self._exp_newton(aprec)
+        else:
+            raise ValueError("Algorithm must be 'generic', 'binary_splitting', 'newton' or None")
         return ans.add_bigoh(aprec)
         
 
@@ -3522,6 +3894,106 @@ cdef class pAdicGenericElement(LocalGenericElement):
             F[i+1] = Li_i_zeta[i+1] + (F[i]/(zeta + t)).integral()
 
         return (F[n](z - zeta)).add_bigoh(N)
+
+
+# Artin-Hasse exponential
+_AHE_coefficients_cache = { }
+def _AHE_coefficients(p, N, prec):
+    r"""
+    Compute the first ``N`` coefficients of the ``p``-adic
+    Artin-Hasse exponential series at precision ``prec``.
+
+    The output is a list of coefficients. The common parent 
+    of these coefficients is the ring of ``p``-adic integers
+    with fixed modulus (with some internal precision which 
+    could be strictly higher than ``prec``).
+
+    The result is cached.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_generic_element import _AHE_coefficients
+
+        sage: L = _AHE_coefficients(101, 10, 3); L
+        [1,
+         1,
+         51 + 50*101 + 50*101^2,
+         17 + 84*101 + 16*101^2,
+         80 + 96*101 + 79*101^2,
+         16 + 100*101 + 15*101^2,
+         70 + 16*101 + 53*101^2,
+         10 + 60*101 + 7*101^2,
+         77 + 32*101 + 89*101^2,
+         31 + 37*101 + 32*101^2]
+        sage: L == [ 1/factorial(i) for i in range(10) ]
+        True
+
+    We check the parent::
+
+        sage: [ elt.parent() for elt in L ]
+        [101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3,
+         101-adic Ring of fixed modulus 101^3]
+
+    Sometimes the precision on the result seems to be higher
+    that the requested precision.
+    However, the result is *not* guaranteed to be correct 
+    beyond the requested precision::
+
+        sage: L = _AHE_coefficients(2, 513, 1); L
+        [1,
+         1,
+         1,
+         2 + 2^2 + 2^4 + 2^6 + 2^8,
+         ...
+         1 + 2 + 2^2 + 2^5 + 2^8,
+         2^2 + 2^6 + 2^9,
+         1]
+
+    We check that the result is correct modulo `2^1`::
+
+        sage: S.<x> = PowerSeriesRing(QQ, 513)
+        sage: AH = exp(sum(x^(2^i) / 2^i for i in range(10)))
+        sage: R = ZpFM(2, 1)
+        sage: [ R(c) for c in L ] == [ R(c) for c in AH.list() ]
+        True
+
+    But it is not modulo `2^{10}`::
+
+        sage: R = ZpFM(2, 10)
+        sage: [ R(c) for c in L ] == [ R(c) for c in AH.list() ]
+        False
+
+    """
+    from sage.rings.padics.factory import ZpFM
+    from sage.functions.other import floor
+    if N < p:
+        internal_prec = prec
+    else:
+        internal_prec = prec + floor((N-1).log()/p.log())
+    if p in _AHE_coefficients_cache:
+        cache_internal_prec, values = _AHE_coefficients_cache[p]
+    else:
+        cache_internal_prec = 0
+    if cache_internal_prec < internal_prec:
+        parent = ZpFM(p, internal_prec)
+        values = [ parent(1) ]
+    for i in range(len(values), N):
+        c = 0
+        dec = 1
+        while dec <= i:
+            c += values[i-dec]
+            dec *= p
+        values.append(c // i)
+    _AHE_coefficients_cache[p] = (internal_prec, values)
+    return values
 
 
 # Module functions used by polylog

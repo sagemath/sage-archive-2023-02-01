@@ -3015,7 +3015,7 @@ class RationalFunctionField(FunctionField):
 
         - ``f`` -- univariate polynomial over the function field
 
-        EXAMPLES::
+        EXAMPLES:
 
         We do a factorization over the function field over the rationals::
 

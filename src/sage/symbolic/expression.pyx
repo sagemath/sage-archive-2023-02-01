@@ -9997,28 +9997,31 @@ cdef class Expression(CommutativeRingElement):
         except RuntimeError:
             return self
         ops = self.operands()
+
         if op == hypergeometric_M or op == hypergeometric_U:
             return self.generalized().simplify_hypergeometric(algorithm)
+
+        if algorithm not in ('maxima', 'sage'):
+            raise NotImplementedError(
+                    "unknown algorithm: '{}'".format(algorithm))
+
+        simplify = lambda o: o.simplify_hypergeometric(algorithm)
+
         if op == hypergeometric:
+            a = [simplify(o) for o in ops[0].operands()]
+            b = [simplify(o) for o in ops[1].operands()]
+            t = simplify(ops[2])
+
             if algorithm == 'maxima':
-                return (self.parent()
-                        (maxima.hgfred(map(lambda o: o.simplify_hypergeometric(algorithm),
-                                           ops[0].operands()),
-                                       map(lambda o: o.simplify_hypergeometric(algorithm),
-                                           ops[1].operands()),
-                                       ops[2].simplify_hypergeometric(algorithm))))
+                R = self.parent()
+                return R(maxima.hgfred(a, b, t))
             elif algorithm == 'sage':
-                return (closed_form
-                        (hypergeometric(map(lambda o: o.simplify_hypergeometric(algorithm),
-                                            ops[0].operands()),
-                                        map(lambda o: o.simplify_hypergeometric(algorithm),
-                                            ops[1].operands()),
-                                        ops[2].simplify_hypergeometric(algorithm))))
-            else:
-                raise NotImplementedError('unknown algorithm')
+                return closed_form(hypergeometric(a, b, t))
+
         if not op:
             return self
-        return op(*map(lambda o: o.simplify_hypergeometric(algorithm), ops))
+
+        return op(*(simplify(o) for o in ops))
 
     hypergeometric_simplify = simplify_hypergeometric
 
@@ -11733,8 +11736,18 @@ cdef class Expression(CommutativeRingElement):
             -0.588532743981862...
             sage: sin(x).find_root(-1,1)
             0.0
-            sage: (1/tan(x)).find_root(3,3.5)
+
+        This example was fixed along with :trac:`4942` - 
+        there was an error in the example
+        pi is a root for tan(x), but an asymptote to 1/tan(x)
+        added an example to show handling of both cases::
+        
+            sage: (tan(x)).find_root(3,3.5)
             3.1415926535...
+            sage: (1/tan(x)).find_root(3, 3.5)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Brent's method failed to find a zero for f on the interval
 
         An example with a square root::
 

@@ -456,26 +456,6 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
 
         return [ [] ] + [i[1] for i in l]
 
-    def digraph_fast(self, depth=None):
-        r"""
-        Return the crystal :class:`graph <DiGraph>` with maximum depth
-        ``depth`` deep starting at the module generator.
-
-        Deprecated in :trac:`19625`.
-
-        EXAMPLES::
-
-            sage: crystals.AlcovePaths(['A',2], [1,1]).digraph_fast(depth=3)
-            doctest:...: DeprecationWarning: digraph_fast is deprecated. Use digraph instead.
-            See http://trac.sagemath.org/19625 for details.
-            Digraph on 7 vertices
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19625, 'digraph_fast is deprecated. Use digraph instead.')
-        if not self._highest_weight_crystal:
-            return super(CrystalOfAlcovePaths, self).digraph()
-        return super(CrystalOfAlcovePaths, self).digraph(depth=depth)
-
 
 class CrystalOfAlcovePathsElement(ElementWrapper):
     """
@@ -571,13 +551,13 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         else:
             successors = 'quantum_bruhat_successors'
 
-        #start at the identity
+        # start at the identity
         w = W.one()
         for i in self:
-            t = prod( [ s[j] for j in  i.root.associated_reflection() ] )
+            t = prod([s[j] for j in i.root.associated_reflection()])
             successor = w * t
             if successor not in getattr(w, successors)():
-               return False
+                return False
             w = successor
         return True
 
@@ -832,12 +812,12 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         """
         Parent = self.parent()
 
-        #self.value contains the admissible sequence as a tuple of Element
+        # self.value contains the admissible sequence as a tuple of Element
 
         finite_cartan_type = Parent._finite_cartan_type  # bool
         J = list(self.value)
 
-        #NOTE: R is a RootsWithHeight object and NOT a RootSystem object
+        # NOTE: R is a RootsWithHeight object and NOT a RootSystem object
         R = Parent._R
         weight = Parent.weight
 
@@ -852,16 +832,16 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
         max_height_Beta = weight.scalar(Beta.associated_coroot())
 
-        if len(J) == 0:
-            for k in range( max_height_Beta ) :
+        if not J:
+            for k in range(max_height_Beta):
                 x = R(Beta, k)
-                signs[x]=self._sign(Beta)
+                signs[x] = self._sign(Beta)
             signs['infinity'] = self._sign(Beta)
 
-        elif len(J) > 0 :
-            #NOTE: we assume J is sorted by order on Element of RootsWithHeight
+        else:
+            # NOTE: we assume J is sorted by order on Element of RootsWithHeight
 
-            for k in  range( max_height_Beta ):
+            for k in  range(max_height_Beta):
                 x = R(Beta, k)
                 if x <= J[0]:
                     signs[x] = self._sign(Beta)
@@ -873,7 +853,6 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
                 max_height_Beta = weight.scalar(
                     (sign_Beta * Beta).associated_coroot())
 
-
                 # some optimization so we don't initialize too many objects
                 # range(c1,c2) can be replaced by range(max_height_Beta) but it
                 # checks unnecessary extra things
@@ -884,9 +863,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
                 else:
                     c2 = min (max_height_Beta, J[j+1]._cmp_v[0]*max_height_Beta + 1)
 
-                for k in range(c1,c2):
+                for k in range(c1, c2):
 
-                    x=R( sign_Beta * Beta , k)
+                    x = R( sign_Beta * Beta , k)
 
                     if (
                         ( j < len(J) - 1 and J[j] < x <= J[j+1] ) or
@@ -894,8 +873,8 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
                     ):
                         signs[x] = sign_Beta
 
-            signs['infinity'] = sign_Beta # tail sign tells something about last step
-                                          # in g_alpha
+            signs['infinity'] = sign_Beta
+            # tail sign tells something about last step in g_alpha
 
         if finite_cartan_type and i == 0:
             signs = {x: -signs[x] for x in signs}
@@ -2038,4 +2017,3 @@ def _test_with_lspaths_crystal(cartan_type, weight, depth=10):
     G2 = C.digraph(subset=C.subcrystal(max_depth=depth, direction='lower'))
 
     return G1.is_isomorphic(G2, edge_labels=True)
-

@@ -751,26 +751,25 @@ class Link(object):
 
         EXAMPLES::
 
-            sage: from pprint import pprint
             sage: L = Link([[1, 3, 2, 4], [2, 3, 1, 4]])
             sage: tails, heads = L._directions_of_edges()
-            sage: pprint(tails)
+            sage: tails
             {1: [2, 3, 1, 4], 2: [1, 3, 2, 4], 3: [1, 3, 2, 4], 4: [2, 3, 1, 4]}
-            sage: pprint(heads)
+            sage: heads
             {1: [1, 3, 2, 4], 2: [2, 3, 1, 4], 3: [2, 3, 1, 4], 4: [1, 3, 2, 4]}
 
         ::
 
             sage: L = Link([[1,5,2,4], [5,3,6,2], [3,1,4,6]])
             sage: tails, heads = L._directions_of_edges()
-            sage: pprint(tails)
+            sage: tails
             {1: [3, 1, 4, 6],
              2: [1, 5, 2, 4],
              3: [5, 3, 6, 2],
              4: [3, 1, 4, 6],
              5: [1, 5, 2, 4],
              6: [5, 3, 6, 2]}
-            sage: pprint(heads)
+            sage: heads
             {1: [1, 5, 2, 4],
              2: [5, 3, 6, 2],
              3: [3, 1, 4, 6],
@@ -782,14 +781,14 @@ class Link(object):
 
             sage: L = Link([[1,2,3,3], [2,4,5,5], [4,1,7,7]])
             sage: tails, heads = L._directions_of_edges()
-            sage: pprint(tails)
+            sage: tails
             {1: [4, 1, 7, 7],
              2: [1, 2, 3, 3],
              3: [1, 2, 3, 3],
              4: [2, 4, 5, 5],
              5: [2, 4, 5, 5],
              7: [4, 1, 7, 7]}
-            sage: pprint(heads)
+            sage: heads
             {1: [1, 2, 3, 3],
              2: [2, 4, 5, 5],
              3: [1, 2, 3, 3],

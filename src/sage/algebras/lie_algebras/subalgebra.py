@@ -442,11 +442,12 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
             sage: I._to_m(el)
             (2, 3, 1)
         """
-        R = self.ambient().base_ring()
         mc = X.monomial_coefficients()
-        X_sorted = [mc[i] if i in mc else R.zero()
-                    for i in self._reversed_indices]
-        return self.ambient().module().from_vector(vector(R, X_sorted))
+        M = self.ambient().module()
+        R = M.base_ring()
+        B = M.basis()
+        return M.sum(R(mc[self._reversed_indices[i]]) * B[i]
+                     for i in range(len(B)) if self._reversed_indices[i] in mc)
 
     def _from_m(self, v):
         r"""
@@ -481,10 +482,14 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
             sage: all(S._from_m(S._to_m(X)) == X for X in L.some_elements())
             True
         """
-        v_self = self.ambient().module().coordinate_vector(v)
-        R = self.ambient().base_ring()
-        v_sorted = [v_self[i] for i in self._reorganized_indices]
-        return self.ambient().from_vector(vector(R, v_sorted))
+        L = self.ambient()
+        M = L.module()
+        R = M.base_ring()
+        v_self = M.coordinate_vector(v)
+        B = M.basis()
+        v_sorted = M.sum(R(v_self[self._reorganized_indices[i]]) * B[i]
+                         for i in range(len(B)))
+        return L.from_vector(v_sorted)
 
     @lazy_attribute
     def _indices(self):
@@ -686,6 +691,7 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
         sortkey = lambda X: self.lift(X).leading_support(key=self._order)
         return Family(sorted(basis, key=sortkey))
 
+    @cached_method
     def leading_monomials(self):
         r"""
         Return the set of leading monomials of the basis of ``self``.

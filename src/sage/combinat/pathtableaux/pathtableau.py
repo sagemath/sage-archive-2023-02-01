@@ -52,6 +52,8 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
 
+    _conversions = []
+
     @abstract_method(optional=False)
     def _local_rule(self,i):
         """
@@ -80,7 +82,7 @@ class PathTableau(ClonableList):
             AttributeError: unable to find method nonsense
 
         """
-        for x in self.parent()._conversions:
+        for x in self._conversions:
             try:
                 return getattr(getattr(self,x)(),name)
             except:
@@ -98,6 +100,9 @@ class PathTableau(ClonableList):
             sage: c._check_conversions()
             to_DyckWord
             (())
+            <BLANKLINE>
+            to_perfect_matching 
+            [(0, 3), (1, 2)] 
             <BLANKLINE>
             to_standard_tableau
             [[1, 2], [3, 4]]
@@ -122,7 +127,7 @@ class PathTableau(ClonableList):
             [1 0]
             <BLANKLINE>
         """
-        for x in self.parent()._conversions:
+        for x in self._conversions:
             print x, "\n", getattr(self,x)(), "\n"
 
     def _check_getattr(self):
@@ -135,7 +140,7 @@ class PathTableau(ClonableList):
 
         """
 
-        for x in self.parent()._conversions:
+        for x in self._conversions:
             print x
             c = getattr(self,x)()
             v = [ a for a in dir(c) if not a in dir(self) ]
@@ -516,7 +521,8 @@ class PathTableau(ClonableList):
 
 class PathTableaux(UniqueRepresentation,Parent):
 
-    _conversions = []
+    def __init(self):
+        Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, *args, **keywords):
         return self.element_class(self, *args, **keywords)

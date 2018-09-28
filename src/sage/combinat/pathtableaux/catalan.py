@@ -98,14 +98,24 @@ class CatalanTableau(PathTableau):
         [0, 1, 2, 1, 0]
 
         sage: p = PerfectMatching([(1,2),(3,4)])
-        sage: #CatalanTableau(p)
-        [1, 0, 1, 0]
+        sage: CatalanTableau(p)
+        [0, 1, 0, 1, 0]
 
         sage: t = Tableau([[1,2],[3,4]])
         sage: CatalanTableau(t)
         [0, 1, 2, 1, 0]
 
     """
+
+    _conversions = [ "to_DyckWord",
+                     "to_perfect_matching",
+                     "to_standard_tableau",
+                     "to_tableau",
+                     "to_noncrossing_partition",
+                     "to_binary_tree",
+                     "to_ordered_tree",
+                     "to_non_decreasing_parking_function",
+                     "to_alternating_sign_matrix" ]
 
     @staticmethod
     def __classcall_private__(cls, ot):
@@ -117,9 +127,10 @@ class CatalanTableau(PathTableau):
 
         if isinstance(ot, PerfectMatching):
             if ot.is_noncrossing():
-                w = [1]*ot.size()
+                u = [1]*ot.size()
                 for a in ot.arcs():
-                    w[a[1]-1] = 0
+                    u[a[1]-1] = 0
+                w = DyckWord(u).heights()
             else:
                 raise ValueError("the perfect matching must be non crossing")
 
@@ -168,7 +179,6 @@ class CatalanTableau(PathTableau):
 
     def _local_rule(self,i):
         """
-        This is the local rule that is used for the remaining constructions.
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
         `i`-th and `(i+1)`-term and applies the rule. It then replaces
@@ -194,7 +204,7 @@ class CatalanTableau(PathTableau):
             result[i] = _rule(self[i-1:i+2])
 
         return result
-        
+
     def is_skew(self):
         """
         Return ``True`` if ``self`` is skew and ``False`` if not.
@@ -284,15 +294,6 @@ class CatalanTableau(PathTableau):
         return SkewTableau([[None]*self[0]+top,bot])
 
 class CatalanTableaux(PathTableaux):
-
-    _conversions = [ "to_DyckWord",
-                     "to_standard_tableau",
-                     "to_tableau",
-                     "to_noncrossing_partition",
-                     "to_binary_tree",
-                     "to_ordered_tree",
-                     "to_non_decreasing_parking_function",
-                     "to_alternating_sign_matrix" ]
 
     Element = CatalanTableau
 

@@ -1458,7 +1458,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
     def gen(self, n=0):
         """
-        Return the ``n``th generator of the order.
+        Return the ``n``-th generator of the order.
 
         The basis elements of the order are generators.
 
@@ -2164,11 +2164,17 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
             True
         """
         F = self.function_field()
-        f = F(f)
+
+        try:
+            f = F(f)
+        except TypeError:
+            raise TypeError("unable to convert to an elemen of {}".format(F))
+
         O = F.base_field().maximal_order_infinite()
         coordinates = self.coordinate_vector(f)
         if not all(c in O for c in coordinates):
             raise TypeError("%r is not an element of %r"%(f,self))
+
         return f
 
     def basis(self):
@@ -2194,7 +2200,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
 
     def gen(self, n=0):
         """
-        Return the ``n``th generator of the order.
+        Return the ``n``-th generator of the order.
 
         The basis elements of the order are generators.
 

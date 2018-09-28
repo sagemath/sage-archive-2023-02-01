@@ -812,7 +812,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: Pol.<x> = CBF[]
             sage: (1 + x + x^2/2 + x^3/6 + x^4/24 + x^5/120).compose_trunc(1 + x, 2)
-            ([2.708333333333333 +/- 6.64e-16])*x + [2.71666666666667 +/- 4.29e-15]
+            ([2.708333333333333 +/- ...e-16])*x + [2.71666666666667 +/- ...e-15]
 
             sage: Pol.<x> = QQ['y'][]
             sage: (1 + x + x^2/2 + x^3/6 + x^4/24 + x^5/120).compose_trunc(1 + x, 2)
@@ -1600,7 +1600,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3/40*x^5 - 1/6*x^3 + x
             sage: Pol.<x> = CBF[]
             sage: (x + x^3/6 + x^5/120).revert_series(6)
-            ([0.075000000000000 +/- 9.75e-17])*x^5 + ([-0.166666666666667 +/- 4.45e-16])*x^3 + x
+            ([0.075000000000000 +/- ...e-17])*x^5 + ([-0.166666666666667 +/- ...e-16])*x^3 + x
             sage: Pol.<x> = SR[]
             sage: x.revert_series(6)
             Traceback (most recent call last):
@@ -7310,15 +7310,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: Pol.<x> = CBF[]
             sage: (x^2 + 2).roots(multiplicities=False)
-            [[+/- 1.54e-19] + [-1.414213562373095 +/- 4.90e-17]*I,
-            [+/- 1.54e-19] + [1.414213562373095 +/- 4.90e-17]*I]
+            [[+/- ...e-19] + [-1.414213562373095 +/- ...e-17]*I,
+            [+/- ...e-19] + [1.414213562373095 +/- ...e-17]*I]
             sage: (x^3 - 1/2).roots(RBF, multiplicities=False)
-            [[0.7937005259840997 +/- 3.76e-17]]
+            [[0.7937005259840997 +/- ...e-17]]
             sage: ((x - 1)^2).roots(multiplicities=False, proof=False)
             doctest:...
             UserWarning: roots may have been lost...
-            [[1.00000000000 +/- 8.43e-12] + [+/- 1.01e-11]*I,
-             [1.0000000000 +/- 5.22e-12] + [+/- 6.20e-12]*I]
+            [[1.00000000000 +/- ...e-12] + [+/- ...e-11]*I,
+             [1.0000000000 +/- ...e-12] + [+/- ...e-12]*I]
 
         Note that coefficients in a number field with defining polynomial
         `x^2 + 1` are considered to be Gaussian rationals (with the

@@ -109,6 +109,20 @@ cdef class TateAlgebraTerm(MonoidElement):
         ans._parent = self._parent
         return ans
 
+    def __reduce__(self):
+        """
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: A.<x,y> = TateAlgebra(Zp(2))
+            sage: t = x.leading_term()
+            sage: loads(dumps(t)) == t  # indirect doctest
+            True
+        """
+        return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent)
+
     def _repr_(self):
         r"""
         Return a string representation of this Tate algebra term.
@@ -860,6 +874,19 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             v = (<ETuple>self._parent._log_radii).dotprod(<ETuple>e)
             self._poly.__repn[e] = self._poly.__repn[e].add_bigoh((self._prec - v).ceil())
 
+    def __reduce__(self):
+        """
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: A.<x,y> = TateAlgebra(Zp(2))
+            sage: loads(dumps(x)) == x  # indirect doctest
+            True
+        """
+        return TateAlgebraElement, (self.parent(), self._poly, self._prec)
+
     def _repr_(self):
         r"""
         Return a string representation of this series.
@@ -1247,7 +1274,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f == g - 2
             True
         """
-        return (self - other).is_zero()
+        try:
+            return (self - other).is_zero()
+        except:
+            return False
 
     def inverse_of_unit(self):
         r"""

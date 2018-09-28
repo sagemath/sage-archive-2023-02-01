@@ -22,7 +22,6 @@ from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.modules.free_module_element import vector
 from sage.sets.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.structure.parent import Parent

@@ -262,7 +262,6 @@ cdef class TateAlgebraTerm(MonoidElement):
         if op == op_GE:
             return c >= 0
 
-    # Should we have a "monomial" method aliases to this one?
     cpdef TateAlgebraTerm monomial(self):
         r"""
         Return this term divided by its coefficient.
@@ -279,12 +278,55 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         cdef TateAlgebraTerm ans = self._new_c()
-        ans._coeff = self._parent.base_ring().fraction_field()(1)
+        ans._coeff = self._parent._field.fraction_field()(1)
         ans._exponent = self._exponent
         return ans
 
     cpdef TateAlgebraTerm monic(self):
-        return self.monomial()
+        r"""
+        Return this term normalized so that it has valuation 0 
+        and its coefficient is a power of the uniformizer.
+
+        EXAMPLES:
+
+        When the log radii of convergence are all zero, the
+        coefficient of the returned term is `1`. In this case,
+        this method does the same thing as :meth:`monomial`::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: s = T(3*x^2*y^2); s
+            (...0000000011)*x^2*y^2
+            sage: s.monic()
+            (...0000000001)*x^2*y^2
+            sage: s.monomial()
+            (...0000000001)*x^2*y^2
+
+        However, when log radii do not vanish, behaviors might
+        be different::
+
+            sage: A.<x,y> = TateAlgebra(R, log_radii=1)
+            sage: T = A.monoid_of_terms()
+            sage: s = T(3*x^2*y^2); s
+            (...0000000011)*x^2*y^2
+            sage: s.monic()
+            (...00000000010000)*x^2*y^2
+            sage: s.monomial()
+            (...0000000001)*x^2*y^2
+
+        We compare the valuations::
+
+            sage: s.monic().valuation()
+            0
+            sage: s.monomial().valuation()
+            -4
+
+        """
+        cdef TateAlgebraTerm ans = self._new_c()
+        ans._coeff = self._parent._field.uniformizer_pow(-self._valuation_c())
+        ans._exponent = self._exponent
+        return ans
 
     def valuation(self):
         r"""
@@ -1001,7 +1043,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
         return ans
 
-    cdef _term_mul_c(self, TateAlgebraTerm term):
+    cdef TateAlgebraElement _term_mul_c(self, TateAlgebraTerm term):
         r"""
         Return the product of this series by the term ``term``.
 
@@ -1022,7 +1064,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._prec = self._prec + term._valuation_c()
         return ans
 
-    cdef _positive_lshift_c(self, n):
+    cdef TateAlgebraElement _positive_lshift_c(self, n):
         r"""
         Return the product of this series by the ``n``-th power 
         of the uniformizer.
@@ -1051,7 +1093,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._prec = self._prec + n
         return ans
 
-    cdef _lshift_c(self, n):
+    cdef TateAlgebraElement _lshift_c(self, n):
         r"""
         Return the product of this series by the ``n``-th power 
         of the uniformizer.
@@ -1634,45 +1676,81 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         else:
             raise ValueError("zero has no leading monomial")
 
-    cpdef monic(self):
+    cpdef TateAlgebraElement monic(self):
         r"""
-        Make the Tate series monic
+        Return this series normalized so that it has valuation 0 
+        and its leading coefficient is a power of the uniformizer.
 
-        The Tate series is multiplied by the inverse of its leading
-        coefficient. The output is a monic series, that is a series with leading
-        coefficient 1.
+        EXAMPLES:
 
-        By definition of the leading term, if the series had integer
-        coefficients, so does its monic counterpart.
+        When the log radii of convergence are all zero, the
+        leading coefficient of the returned series is `1`::
 
-        .. TODO::
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R, order='lex')
+            sage: f = 3*x^2*y^2 + 4*x^2*y^3 + y^5; f
+            (...0000000011)*x^2*y^2 + (...0000000001)*y^5 + (...000000000100)*x^2*y^3
+            sage: f.monic()
+            (...0000000001)*x^2*y^2 + (...1010101011)*y^5 + (...101010101100)*x^2*y^3
 
-            Document the behavior with different convergence radii
+        However, when log radii do not vanish, behaviors might
+        be different::
 
-        EXAMPLES::
+            sage: g = f.restriction(-1); g
+            (...0000000011)*x^2*y^2 + (...0000000001)*y^5 + (...000000000100)*x^2*y^3
+            sage: g.monic()
+            (...000000.0001)*x^2*y^2 + (...101010.1011)*y^5 + (...10101010.11)*x^2*y^3
+            sage: g.monic().valuation()
+            0
 
-            sage: R = Zp(2, prec=10)
-            sage: A.<x,y> = TateAlgebra(R)
-            sage: f = 2*x*y + 4*x^4 + 6; f
-            (2 + O(2^11))*x*y + (2 + 2^2 + O(2^11)) + (2^2 + O(2^12))*x^4
-            sage: f.valuation()
-            1
-            sage: f.leading_coefficient()
-            2 + O(2^11)
+        TESTS::
 
-            sage: g = f.monic(); g
-            (1 + O(2^10))*x*y + (1 + 2 + O(2^10)) + (2 + O(2^11))*x^4
-            sage: g.leading_coefficient()
-            1 + O(2^10)
-            sage: g.valuation()
+            sage: A(0).monic()
             0
 
         """
         cdef TateAlgebraElement ans = self._new_c()
-        c = self.leading_coefficient()
-        ans._poly = self._poly.scalar_lmult(~c)
-        ans._prec = self._prec - c.valuation()
+        cdef TateAlgebraTerm t
+        cdef long shi
+        cdef pAdicGenericElement u
+        cdef list terms = self._terms_c()
+        if not terms:
+            return self
+        t = terms[0]
+        _, u = t._coeff.val_unit()
+        shi = t._exponent.dotprod(self._parent._log_radii)
+        ans._poly = self._poly.scalar_lmult((~u) << shi)
+        ans._prec = self._prec + shi
         return ans
+
+    def is_monic(self):
+        """
+        Return ``True`` if this series is monic, in the sense
+        that it has valuation 0 and its leading coefficient is
+        a power of the uniformizer.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x*y + 2; f
+            (...0000000001)*x*y + (...00000000010)
+            sage: f.is_monic()
+            True
+
+            sage: g = f.restriction(-1); g
+            (...00000000010) + (...0000000001)*x*y
+            sage: g.is_monic()
+            False
+
+        """
+        if self.valuation() != 0:
+            return False
+        c = self.leading_coefficient()
+        if c == 0 or c.unit_part() == 1:
+            return True
+        return False
+
 
     def weierstrass_degree(self):
         r"""

@@ -178,6 +178,7 @@ class TateTermMonoid(Monoid_class):
         names = A.variable_names()
         Monoid_class.__init__(self, names)
         self._base = A.base_ring()
+        self._field = A._field
         self._names = names
         self._ngens = len(self._names)
         self._log_radii = ETuple(A.log_radii())

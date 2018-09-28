@@ -1,0 +1,19 @@
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+cd simp
+sdh_make
+sdh_install glucose ${SAGE_LOCAL}/bin/
+cd ..
+
+# Possible license issue, see discussion on https://trac.sagemath.org/ticket/26361
+cd parallel
+sdh_make
+sdh_install glucose-syrup ${SAGE_LOCAL}/bin/
+cd ..
+

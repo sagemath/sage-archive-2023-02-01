@@ -1,0 +1,37 @@
+= glucose =
+
+== Description ==
+
+Glucose is based on a new scoring scheme (well, not so new now, it was
+introduced in 2009) for the clause learning mechanism of so called "Modern" SAT
+solvers (it is based our IJCAI'09 paper). It is designed to be parallel, since
+2014. This page summarizes the techniques embedded in all the versions of
+glucose. The name of the Solver name is a contraction of the concept of "glue
+clauses", a particular kind of clauses that glucose detects and preserves during
+search. Glucose is heavily based on Minisat, so please do cite Minisat also if
+you want to cite Glucose.
+
+== License ==
+
+- nonparallel glucose: MIT
+
+- parallel glucose-syrup: MIT modified with:
+
+  The parallel version of Glucose (all files modified since Glucose 3.0
+  releases, 2013) cannot be used in any competitive event (sat
+  competitions/evaluations) without the express permission of the authors
+  (Gilles Audemard / Laurent Simon). This is also the case for any competitive
+  event using Glucose Parallel as an embedded SAT engine (single core or not).
+
+== Upstream Contact ==
+
+Website: http://www.labri.fr/perso/lsimon/glucose/
+
+== Dependencies ==
+
+None.
+
+== Special Update/Build Instructions ==
+
+None.
+

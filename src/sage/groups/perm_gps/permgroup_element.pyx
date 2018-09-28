@@ -1619,7 +1619,7 @@ cdef class SymmetricGroupElement(PermutationGroupElement):
 
             sage: S = SymmetricGroup(3)
             sage: [x.absolute_length() for x in S]
-            [0, 1, 2, 1, 2, 1]
+            [0, 2, 2, 1, 1, 1]
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self).absolute_length()

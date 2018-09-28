@@ -226,14 +226,14 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: S = SymmetricGroup(3).algebra(QQ)
                 sage: L = LieAlgebra(associative=S)
-                sage: x = L.gen(2)
+                sage: x = L.gen(3)
                 sage: y = L.gen(1)
                 sage: x.lift()
-                b2
+                b3
                 sage: y.lift()
                 b1
                 sage: x * y
-                b1*b2 - b3 + b5
+                b1*b3 + b4 - b5
             """
             P = self.parent()
             UEA = P.universal_enveloping_algebra()

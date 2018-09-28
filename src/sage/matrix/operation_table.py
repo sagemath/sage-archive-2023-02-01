@@ -81,15 +81,15 @@ class OperationTable(SageObject):
 
         sage: from sage.matrix.operation_table import OperationTable
         sage: G=SymmetricGroup(3)
-        sage: OperationTable(G, operation = operator.mul)
+        sage: OperationTable(G, operation=operator.mul)
         *  a b c d e f
          +------------
         a| a b c d e f
-        b| b a d c f e
-        c| c f e b a d
+        b| b c a f d e
+        c| c a b e f d
         d| d e f a b c
-        e| e d a f c b
-        f| f c b e d a
+        e| e f d c a b
+        f| f d e b c a
 
     With two operations present, we can specify which operation we
     want::
@@ -153,17 +153,17 @@ class OperationTable(SageObject):
          *  00 01 02 03 04 05 06 07 08 09 10 11
           +------------------------------------
         00| 00 01 02 03 04 05 06 07 08 09 10 11
-        01| 01 02 00 04 10 08 09 06 11 07 03 05
-        02| 02 00 01 10 03 11 07 09 05 06 04 08
-        03| 03 11 07 09 05 06 04 08 02 00 01 10
+        01| 01 00 03 02 06 07 04 05 11 10 09 08
+        02| 02 03 00 01 07 06 05 04 09 08 11 10
+        03| 03 02 01 00 05 04 07 06 10 11 08 09
         04| 04 05 06 07 08 09 10 11 00 01 02 03
-        05| 05 06 04 08 02 00 01 10 03 11 07 09
-        06| 06 04 05 02 07 03 11 01 09 10 08 00
-        07| 07 03 11 01 09 10 08 00 06 04 05 02
+        05| 05 04 07 06 10 11 08 09 03 02 01 00
+        06| 06 07 04 05 11 10 09 08 01 00 03 02
+        07| 07 06 05 04 09 08 11 10 02 03 00 01
         08| 08 09 10 11 00 01 02 03 04 05 06 07
-        09| 09 10 08 00 06 04 05 02 07 03 11 01
-        10| 10 08 09 06 11 07 03 05 01 02 00 04
-        11| 11 07 03 05 01 02 00 04 10 08 09 06
+        09| 09 08 11 10 02 03 00 01 07 06 05 04
+        10| 10 11 08 09 03 02 01 00 05 04 07 06
+        11| 11 10 09 08 01 00 03 02 06 07 04 05
 
     If the group's elements are not too cumbersome,
     or the group is small, then the string representation

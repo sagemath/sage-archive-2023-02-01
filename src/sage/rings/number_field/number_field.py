@@ -9634,7 +9634,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         GAP interface -- see :trac:`5618`. ::
 
             sage: H = AlternatingGroup(4)
-            sage: g = H.list()[1]
+            sage: g = H((1,4,3))
             sage: K = H.subgroup([g])
             sage: z = CyclotomicField(3).an_element(); z
             zeta3

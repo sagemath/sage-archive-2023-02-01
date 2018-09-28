@@ -230,12 +230,12 @@ is a natural map from `\ZZ[D_2]` to `\QQ[S_4]`::
     sage: a = A.an_element(); a
     () + 2*(3,4) + 3*(1,2) + (1,2)(3,4)
     sage: b = B.an_element(); b
-    () + (2,3,4) + 3*(1,2,4) + 2*(1,4)
+    () + (2,3,4) + 2*(1,3)(2,4) + 3*(1,4)(2,3)
     sage: B(a)
     () + 2*(3,4) + 3*(1,2) + (1,2)(3,4)
     sage: a * b  # a is automatically converted to an element of B
-    () + 2*(3,4) + 2*(2,3) + (2,3,4) + 3*(1,2) + (1,2)(3,4) + 8*(1,2,4,3)
-     + 9*(1,2,4) + (1,3,2) + 3*(1,3,4,2) + 7*(1,4,3) + 11*(1,4)
+    () + 2*(3,4) + 2*(2,3) + (2,3,4) + 3*(1,2) + (1,2)(3,4) + (1,3,2)
+     + 3*(1,3,4,2) + 5*(1,3)(2,4) + 13*(1,3,2,4) + 12*(1,4,2,3) + 5*(1,4)(2,3)
     sage: parent(a * b)
     Symmetric group algebra of order 4 over Rational Field
 
@@ -244,7 +244,7 @@ There is no obvious map in the other direction, though::
     sage: A(b)
     Traceback (most recent call last):
     ...
-    TypeError: do not know how to make x (= () + (2,3,4) + 3*(1,2,4) + 2*(1,4))
+    TypeError: do not know how to make x (= () + (2,3,4) + 2*(1,3)(2,4) + 3*(1,4)(2,3))
      an element of self
      (=Algebra of Dihedral group of order 4 as a permutation group over Integer Ring)
 
@@ -422,10 +422,10 @@ morphism::
       From: Symmetric group algebra of order 3 over Integer Ring
       To: Symmetric group algebra of order 3 over Finite Field of size 5
     sage: a = 2 * A.an_element(); a
-    2*() + 2*(2,3) + 6*(1,2,3) + 4*(1,3)
+    2*() + 2*(2,3) + 6*(1,2,3) + 4*(1,3,2)
 
     sage: hh(a)
-    2*() + 2*(2,3) + (1,2,3) + 4*(1,3)
+    2*() + 2*(2,3) + (1,2,3) + 4*(1,3,2)
 
 Conversion from a formal sum::
 
@@ -626,9 +626,9 @@ class GroupAlgebraFunctor(ConstructionFunctor):
               To:   Symmetric group algebra of order 3 over Finite Field of size 5
 
             sage: a = 2 * A.an_element(); a
-            2*() + 2*(2,3) + 6*(1,2,3) + 4*(1,3)
+            2*() + 2*(2,3) + 6*(1,2,3) + 4*(1,3,2)
             sage: hh(a)
-            2*() + 2*(2,3) + (1,2,3) + 4*(1,3)
+            2*() + 2*(2,3) + (1,2,3) + 4*(1,3,2)
         """
         from sage.categories.rings import Rings
         domain   = self(f.domain())

@@ -2247,7 +2247,7 @@ class FiniteWord_class(Word_class):
             return True
         try:
             it = iter(self)
-            s = next(islice(it, seq[0], None))
+            s = next(islice(it, int(seq[0]), None))
             for i in range(1, len(seq)):
                 steps = seq[i] - seq[i-1]
                 for n in range(steps-1): next(it)
@@ -5188,7 +5188,7 @@ class FiniteWord_class(Word_class):
 
         #Join the classes of each pair of letters that are one above the other
         from sage.combinat.words.morphism import WordMorphism
-        S = zip(islice(self, delay, None), other)
+        S = zip(islice(self, int(delay), None), other)
         if involution is None:
             for (a,b) in S:
                 p.union(a, b)

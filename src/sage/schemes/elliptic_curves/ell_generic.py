@@ -2923,6 +2923,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
 
+    @cached_method
     def pari_curve(self):
         """
         Return the PARI curve corresponding to this elliptic curve.
@@ -2954,6 +2955,21 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.j_invariant()
             3*5^-1 + O(5)
 
+        Over a number field::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: E = EllipticCurve([1,a])
+            sage: E.pari_curve()
+            [Mod(0, y^2 - 2), Mod(0, y^2 - 2), Mod(0, y^2 - 2), Mod(1, y^2 - 2),
+            Mod(y, y^2 - 2), Mod(0, y^2 - 2), Mod(2, y^2 - 2), Mod(4*y, y^2 - 2),
+            Mod(-1, y^2 - 2), Mod(-48, y^2 - 2), Mod(-864*y, y^2 - 2),
+            Mod(-928, y^2 - 2), Mod(3456/29, y^2 - 2), Vecsmall([5]),
+            [[y^2 - 2, [2, 0], 8, 1, [[1, -1.41421356237310;
+            1, 1.41421356237310], [1, -1.41421356237310; 1, 1.41421356237310],
+            [1, -1; 1, 1], [2, 0; 0, 4], [4, 0; 0, 2], [2, 0; 0, 1],
+            [2, [0, 2; 1, 0]], []], [-1.41421356237310, 1.41421356237310],
+            [1, y], [1, 0; 0, 1], [1, 0, 0, 2; 0, 1, 1, 0]]], [0, 0, 0, 0, 0]]
+
         PARI no longer requires that the `j`-invariant has negative `p`-adic valuation::
 
             sage: E = EllipticCurve(Qp,[1, 1])
@@ -2962,14 +2978,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.pari_curve()
             [0, 0, 0, 1, 1, 0, 2, 4, -1, -48, -864, -496, 6912/31, Vecsmall([2]), [O(5^3)], [0, 0]]
         """
-        try:
-            return self._pari_curve
-        except AttributeError:
-            pass
-
-        from sage.libs.pari.all import pari
-        self._pari_curve = pari(list(self.a_invariants())).ellinit()
-        return self._pari_curve
+        from sage.categories.number_fields import NumberFields
+        from sage.libs.pari import pari
+        if self.base_ring() in NumberFields():
+            return pari.ellinit(self.a_invariants(), self.base_ring())
+        else:
+            return pari.ellinit(self.a_invariants())
 
     # This method is defined so that pari(E) returns exactly the same
     # as E.pari_curve().  This works even for classes that inherit from

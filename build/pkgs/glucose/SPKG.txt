@@ -29,7 +29,7 @@ Website: http://www.labri.fr/perso/lsimon/glucose/
 
 == Dependencies ==
 
-None.
+zlib
 
 == Special Update/Build Instructions ==
 

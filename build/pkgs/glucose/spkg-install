@@ -6,6 +6,9 @@ fi
 
 cd src
 
+LFLAGS="${LDFLAGS} -Wall -lpthread"
+export LFLAGS
+
 cd simp
 sdh_make
 sdh_install glucose ${SAGE_LOCAL}/bin/

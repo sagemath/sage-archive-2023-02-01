@@ -432,6 +432,11 @@ REFERENCES:
              J. Reine Angew. Math., **655** (2011), 61-87.
              :mathscinet:`MR2806105`
 
+.. [BL1994] Bernhard Beckermann, George Labahn. "A Uniform Approach for the
+            Fast Computation of Matrix-Type Padé Approximants". SIAM J. Matrix
+            Anal. Appl. 15 (1994) 804-823.
+            http://dx.doi.org/10.1137/S0895479892230031
+
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
             Poincaré homology 3-sphere", Experiment. Math. 9 (2000),

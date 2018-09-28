@@ -1462,3 +1462,121 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             U.set_immutable()
 
         return (A, U) if transformation else A
+
+    def _approximant_basis_iterative(self,
+            pmat,
+            order,
+            shifts):
+        r"""
+        Computes a ``shifts``-ordered weak Popov approximant basis for input
+        polynomial matrix ``pmat`` and order ``order`` (see
+        :meth:`approximant_basis` for definitions). The basis is considered
+        row-wise, that is, its rows are left-approximants for the columns of
+        ``pmat``. The input is supposed to be sound: the length of ``order``
+        should be the number of columns of ``pmat``, while the length of
+        ``shifts`` should be the number of rows of ``pmat``.
+
+        INPUT:
+
+        - ``pmat`` -- a polynomial matrix.
+
+        - ``order`` -- a list of integers.
+
+        - ``shifts`` -- a list of integers.
+
+        OUTPUT:
+
+        - a polynomial matrix (the approximant basis ``appbas``).
+
+        - a list of integers (the shifts-row degrees of ``appbas``).
+
+        ALGORITHM:
+        
+        This is inspired from the iterative algorithms described in [VBB1992]_
+        and [BL1994]_ .
+        """
+        #EXAMPLES::
+        # Choice: the iteration is by increasing order: first all columns
+        # modulo X, then all columns modulo X^2, etc.
+
+        # Define parameters and perform some sanity checks
+        m = pmat.nrows()
+        n = pmat.ncols()
+        polynomial_ring,(X,) = pmat.base_ring().objgens()
+
+        # Define 'rest_order' : will be updated with the order that remains to
+        # be dealt with
+        # Define 'rest_index' : indices of orders that remains to be dealt with
+        rest_order = copy(order)
+        rest_index = range(n)
+
+        # initialization of the residuals (= input pmat)
+        # and of the approximant basis (= identity matrix)
+        appbas = Matrix.identity(polynomial_ring, m)
+        residuals = copy(pmat)
+
+        # throughout the algorithm, 'rdeg' will be the shifts-row degrees of
+        # 'appbas'
+        # --> initially, 'rdeg' is the shift-row degree of the identity matrix
+        rdeg = copy(shifts)
+
+        while len(rest_order)>0:
+            # invariant:
+            #   * appbas is a shifts-ordered weak Popov approximant basis for
+            #   (pmat,doneorder)
+            #   where doneorder = the already processed order, that is, the
+            #   tuple order-rest_order (componentwise subtraction)
+            #   * rdeg is the shifts-row degree of appbas
+            #   * residuals is the submatrix of columns (appbas * pmat)[:,j]
+            #   for all j such that rest_order[j] > 0
+
+            # choice for the next coefficient to be dealt with:
+            # first of the largest entries in order (--> process 'pmat'
+            # degreewise, and left to right)
+            # Note: one may also consider the first one in order (--> process
+            # 'pmat' columnwise, from left column to right column, set j=0
+            # instead of the below), but it seems to often be (very slightly)
+            # slower
+            j = min([ind for ind in range(len(rest_order))
+                if rest_order[ind] == max(rest_order)])
+            d = order[rest_index[j]] - rest_order[j]
+
+            # coefficient = the coefficient of degree d of the column j of the
+            # residual matrix
+            # --> this is very likely nonzero and we want to make it zero, so
+            # that this column becomes zero mod X^{d+1}
+            coefficient = vector([residuals[i,j][d] for i in range(m)])
+
+            # Lambda: collect rows [i] with nonzero coefficient[i]
+            # pi: index of the first row with smallest shift, among those in
+            # Lambda
+            Lambda = []
+            pi = -1
+            for i in range(m):
+                if coefficient[i] != 0:
+                    Lambda.append(i)
+                    if pi < 0 or rdeg[i] < rdeg[pi]:
+                        pi = i
+            if Lambda != [] : # otherwise, nothing to do
+                #update all rows in Lambda--{pi}
+                Lambda.remove(pi)
+                for row in Lambda:
+                    scalar = -coefficient[row]/coefficient[pi]
+                    appbas.add_multiple_of_row(row, pi, scalar)
+                    residuals.add_multiple_of_row(row, pi, scalar)
+                #update row pi
+                rdeg[pi] += 1
+                appbas.rescale_row(pi, X)
+                residuals.rescale_row(pi, X)
+
+            # Decrement rest_order[j], unless there is no more work to do in
+            # this column, i.e. if rest_order[j] was 1:
+            # in this case remove the column j of
+            # residual,rest_order,rest_index
+            if rest_order[j]==1:
+                residuals = residuals.delete_columns([j])
+                rest_order.pop(j)
+                rest_index.pop(j)
+            else:
+                rest_order[j] -= 1
+        return appbas,rdeg

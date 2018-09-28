@@ -427,6 +427,42 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         """
         return self.point(X.to_vector(), chart=self._Exp1)
 
+    def log(self, x):
+        r"""
+        Return the logarithm of the element ``x`` of ``self``.
+
+        INPUT:
+
+        - ``x`` -- an element of ``self``
+
+        The logarithm is by definition the inverse of :meth:`exp`.
+
+        If the Lie algebra of ``self`` does not admit symbolic coefficients,
+        the logarithm is not defined for abstract, i.e. symbolic, points.
+
+        EXAMPLES:
+
+        The logarithm is the inverse of the exponential::
+
+            sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
+            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G.log(G.exp(X)) == X
+            True
+            sage: G.log(G.exp(X)*G.exp(Y))
+            X + Y + 1/2*Z
+
+        The logarithm is not defined for abstract (symbolic) points::
+
+            sage: g = G.point([var('a'), 1, 2]); g
+            exp(a*X + Y + 2*Z)
+            sage: G.log(g)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert a to a rational
+        """
+        xvec = x.coordinates(chart=self._Exp1)
+        return self.lie_algebra().from_vector(xvec)
+
     def one(self):
         r"""
         Return the identity element of the Lie group.
@@ -681,6 +717,100 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         frame = self._Exp1.frame()
         X_vf[frame, :] = self._dRx() * X.to_vector()
         return X_vf
+
+    def conjugation(self, g):
+        r"""
+        Return the conjugation by ``g`` as an automorphism of ``self``.
+
+        The conjugation by `g` on a Lie group `G` is the map
+
+        .. MATH::
+
+            G \to G,\quad h\mapsto ghg^{-1}.
+
+        INPUT:
+
+        - ``g`` -- an element of ``self``
+
+        EXAMPLES:
+
+        A generic conjugation in the Heisenberg group::
+
+            sage: H = lie_algebras.Heisenberg(QQ, 1)
+            sage: p,q,z = H.basis()
+            sage: G = NilpotentLieGroup(H, 'G')
+            sage: g = G.point([var('a'), var('b'), var('c')])
+            sage: C_g = G.conjugation(g); C_g
+            Diffeomorphism of the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            sage: C_g.display(chart1=G.chart_exp1(), chart2=G.chart_exp1())
+            G --> G
+                (x_0, x_1, x_2) |--> (x_0, x_1, -b*x_0 + a*x_1 + x_2)
+        """
+        chart = self.default_chart()
+        x = self.point(chart[:])
+        C_g_expr = (g * x * ~g).coordinates()
+        return self.diffeomorphism(self, coord_functions=C_g_expr)
+
+    def adjoint(self, g):
+        r"""
+        Return the adjoint map as an automorphism
+        of the Lie algebra of ``self``.
+
+        INPUT:
+
+        - ``g`` -- an element of ``self``
+
+        For a Lie group element `g`, the adjoint map `\mathrm{Ad}_g` is
+        the map on the Lie algebra `\mathfrak{g}` given by the differential
+        of the conjugation by `g` at the identity.
+
+        If the Lie algebra of ``self`` does not admit symbolic coefficients,
+        the adjoint is not in general defined for abstract points.
+
+        EXAMPLES:
+
+        An example of an adjoint map::
+
+            sage: L = LieAlgebra(QQ, 2, step=3)
+            sage: G = NilpotentLieGroup(L, 'G')
+            sage: g = G.exp(L.basis().list()[0]); g
+            exp(X_1)
+            sage: Ad_g = G.adjoint(g); Ad_g
+            Lie algebra endomorphism of Free Nilpotent Lie algebra on 5
+            generators (X_1, X_2, X_12, X_112, X_122) over Rational Field
+              Defn: X_1 |--> X_1
+                    X_2 |--> X_2 + X_12 + 1/2*X_112
+                    X_12 |--> X_12 + X_112
+                    X_112 |--> X_112
+                    X_122 |--> X_122
+
+        Usually the adjoint map of a symbolic point is not defined::
+
+            sage: L = LieAlgebra(QQ, 2, step=2)
+            sage: G = NilpotentLieGroup(L, 'G')
+            sage: g = G.point([var('a'), var('b'), var('c')]); g
+            exp(a*X_1 + b*X_2 + c*X_12)
+            sage: G.adjoint(g)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert -b to a rational
+
+        However, if the adjoint map is independent from the symbolic terms,
+        the map is still well defined::
+
+            sage: g = G.point([0, 0, var('a')]); g
+            exp(a*X_12)
+            sage: G.adjoint(g)
+            Lie algebra endomorphism of Free Nilpotent Lie algebra on 3 generators (X_1, X_2, X_12) over Rational Field
+              Defn: X_1 |--> X_1
+                    X_2 |--> X_2
+                    X_12 |--> X_12
+        """
+        Adg_mat = self.conjugation(g).differential(self.one()).matrix()
+        L = self.lie_algebra()
+        basis_images = {X: L.from_vector(Adg_mat * X.to_vector())
+                        for X in L.basis()}
+        return L.morphism(basis_images, codomain=L)
 
     class Element(DifferentiableManifold.Element, MultiplicativeGroupElement):
         r"""

@@ -132,10 +132,7 @@ class FunctionFieldOrder_base(CachedRepresentation, Parent):
         """
         Initialize.
 
-        TESTS:
-
-        This class defines a facade parent. Thus it does not behave well with
-        respect to elements::
+        TESTS::
 
             sage: F = FunctionField(QQ,'y')
             sage: O = F.maximal_order()
@@ -819,7 +816,7 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
         """
         Initialize.
 
-        TESTS:
+        TESTS::
 
             sage: K.<t> = FunctionField(QQ)
             sage: O = K.maximal_order()

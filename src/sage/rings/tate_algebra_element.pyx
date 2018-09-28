@@ -4,6 +4,7 @@ from sage.structure.richcmp import op_EQ, op_NE, op_LT, op_GT, op_LE, op_GE
 from sage.structure.element cimport Element
 from sage.structure.element cimport MonoidElement
 from sage.structure.element cimport CommutativeAlgebraElement
+from sage.structure.sequence import Sequence
 
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
@@ -12,6 +13,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.polynomial.polydict cimport PolyDict
 from sage.rings.polynomial.polydict cimport ETuple
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
+
 
 
 cdef class TateAlgebraTerm(MonoidElement):
@@ -1930,17 +1932,47 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         poly = self._parent._polynomial_ring(self._poly)
         return poly.change_ring(Rn)
 
-    cdef TateAlgebraElement _mod_c(TateAlgebraElement self, list divisors):
+    cdef _quo_rem_c(self, list divisors, bint quo, bint rem, bint integral):
         r"""
-        TODO
-        """    
+        Perform the division of this series by ``divisors``.
+
+        INPUT::
+
+        - ``divisors`` -- the list of divisors
+
+        - ``quo`` -- a boolean, whether we should compute the quotients
+
+        - ``rem`` -- a boolean, whether we should compute the remainder
+
+        TESTS::
+
+            sage: R = Zp(2, 5, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 2*x*y + 3*x^2*y + 4*x*y^2
+            sage: g = x^2
+            sage: q, r = f.quo_rem(g)  # indirect doctest
+            sage: q
+            (...00011)*y
+            sage: r
+            (...00001) + (...00010)*x*y + (...00100)*x*y^2 + O(2^5)
+
+        """
         cdef dict coeffs = { }
-        cdef TateAlgebraElement f = self._new_c()
+        cdef TateAlgebraElement f
         cdef TateAlgebraTerm lt
         cdef list ltds = [ (<TateAlgebraElement>d)._terms_c()[0] for d in divisors ]
+        cdef list quos = [ ]
         cdef list terms = self._terms_c()
         cdef int index = 0
 
+        if quo:
+            for d in divisors:
+                f = self._new_c()
+                f._poly = PolyDict({})
+                f._prec = d.precision_relative()
+                quos.append(f)
+
+        f = self._new_c()
         f._poly = PolyDict(self._poly.__repn)
         f._prec = self._prec
         while len(terms) > index:
@@ -1948,41 +1980,204 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             if lt._valuation_c() >= f._prec:
                 break
             for i in range(len(divisors)):
-                if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=True):
+                if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=integral):
                     factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
                     f = f - (<TateAlgebraElement>divisors[i])._term_mul_c(factor)
                     terms = f._terms_c()
                     index = 0
+                    if quo:
+                        quos[i] = (<TateAlgebraElement>quos[i]) + factor
                     break
             else:
-                if coeffs.has_key(lt._exponent):
-                    coeffs[lt._exponent] += lt._coeff
-                else:
-                    coeffs[lt._exponent] = lt._coeff
+                if rem:
+                    if coeffs.has_key(lt._exponent):
+                        coeffs[lt._exponent] += lt._coeff
+                    else:
+                        coeffs[lt._exponent] = lt._coeff
                 del f._poly.__repn[lt._exponent]
                 index += 1
-        f._poly += PolyDict(coeffs, self._poly.__zero)
-        f._terms = None
-        return f
+        if rem:
+            f._poly += PolyDict(coeffs, self._poly.__zero)
+            f._terms = None
+        return quos, f
+
+    cdef _quo_rem_check(self, divisors, bint quo, bint rem):
+        """
+        Perform the division of this series by ``divisors``.
+
+        INPUT::
+
+        - ``divisors`` -- the list of divisors
+
+        - ``quo`` -- a boolean, whether we should compute the quotients
+
+        - ``rem`` -- a boolean, whether we should compute the remainder
+
+        TESTS::
+
+
+        """
+        from sage.rings.tate_algebra import TateAlgebra_generic
+        parent = self.parent()
+        if self.precision_absolute() is Infinity:
+            self = self.add_bigoh(self.valuation() + parent.precision_cap())
+        if isinstance(divisors, (list, tuple)):
+            onedivisor = False
+        else:
+            divisors = [divisors]
+            onedivisor = True
+        A = Sequence([self] + divisors).universe()
+        if not isinstance(A, TateAlgebra_generic):
+            raise TypeError("cannot coerce numerator and all divisors to the same Tate algebra")
+        f = A(self)
+        divisors = [A(d) for d in divisors]
+        q, r = (<TateAlgebraElement>self)._quo_rem_c(divisors, quo, rem, False)
+        if quo and onedivisor:
+            q = q[0]
+        if quo and rem:
+            return q, r
+        if quo:
+            return q
+        if rem:
+            return r
+
+    def quo_rem(self, divisors):
+        """
+        Return the quotient(s) and the remainder of the division of
+        this series by ``divisors``.
+
+        INPUT:
+
+        - ``divisors`` -- a series, or a list of series
+
+        NOTE::
+
+        The condition on the remainder is that it has 
+
+        - no term which is greater than the leading term of the 
+          numerator and
+
+        - no term which is divisible by the leading term of one
+          divisor.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 5, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 2*x*y + 3*x^2*y + 4*x*y^2
+            sage: g = x^2
+            sage: q, r = f.quo_rem(g)
+            sage: q
+            (...00011)*y
+            sage: r
+            (...00001) + (...00010)*x*y + (...00100)*x*y^2 + O(2^5)
+            sage: f == g*q + r
+            True
+
+        We can also divide by a family of divisors::
+
+            sage: g0 = x^2
+            sage: g1 = x*y + 2*x
+            sage: q, r = f.quo_rem([g0, g1])
+            sage: q
+            [(...00011)*y, (...11010) + (...00100)*y]
+            sage: r
+            (...00001) + (...01100)*x + O(2^5)
+            sage: f == g0*q[0] + g1*q[1] + r
+            True
+
+        """
+        return (<TateAlgebraElement>self)._quo_rem_check(divisors, True, True)
 
     def __mod__(self, divisors):
-        if not isinstance(divisors, (list, tuple)):
-            divisors = [ divisors ]
-        r = (<TateAlgebraElement>self)._mod_c(divisors)
-        return r
+        """
+        Return the remainder of the division of this series by 
+        ``divisors``.
+
+        INPUT:
+
+        - ``divisors`` -- a series, or a list of series
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 5, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 2*x*y + 3*x^2*y + 4*x*y^2
+            sage: g = x^2
+            sage: f % g
+            (...00001) + (...00010)*x*y + (...00100)*x*y^2 + O(2^5)
+
+        We can also divide by a family of divisors::
+
+            sage: g0 = x^2
+            sage: g1 = x*y + 2*x
+            sage: f % [g0, g1]
+            (...00001) + (...01100)*x + O(2^5)
+
+        """
+        return (<TateAlgebraElement>self)._quo_rem_check(divisors, False, True)
 
     def __floordiv__(self, divisors):
-        raise NotImplementedError
-        q, _ = self.quo_rem(divisors)
-        if not isinstance(divisors, (list, tuple)):
-            return q[0]
-        else:
-            q, _ = self.quo_rem(divisors)
-            return q
+        """
+        Return the quotient(s) of the division of this series by 
+        ``divisors``.
+
+        INPUT:
+
+        - ``divisors`` -- a series, or a list of series
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 5, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 2*x*y + 3*x^2*y + 4*x*y^2
+            sage: g = x^2
+            sage: f // g
+            (...00011)*y
+
+        We can also divide by a family of divisors::
+
+            sage: g0 = x^2
+            sage: g1 = x*y + 2*x
+            sage: f // [g0, g1]
+            [(...00011)*y, (...11010) + (...00100)*y]
+
+        """
+        return (<TateAlgebraElement>self)._quo_rem_check(divisors, True, False)
 
     def reduce(self, I):
+        """
+        Return a canonical representative of this series in the
+        quotient of the Tate algebra (in which this series lives)
+        by the ideal ``I``.
+
+        EXAMPLES::
+
+            sage: R = Zp(3, prec=10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 5*x*y^2
+            sage: g = 5*x^2*y + 3
+            sage: I = A.ideal([f, g])
+
+            sage: f.reduce(I)
+            O(3^10)
+            sage: h = (x^2 + 2*y)*f + (x^2*y^3 + 3*x*y^2 + 7)*g + 1
+            sage: h.reduce(I)
+            (...0000000001) + O(3^10)
+
+        TESTS::
+
+            sage: s = I.random_element()
+            sage: s.reduce(I)
+            O(2^10)
+
+            sage: h = A.random_element()
+            sage: (h + s).reduce(I) == h.reduce(I)
+            True
+
+        """
         g = I.groebner_basis()
-        return self.quo_rem(g)
+        return self % g
 
     @coerce_binop
     def Spoly(self, other):

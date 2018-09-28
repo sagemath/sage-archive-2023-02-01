@@ -9,6 +9,7 @@ from sage.categories.monoids import Monoids
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
+from sage.categories.pushout import pushout
 
 from sage.structure.category_object import normalize_names
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -42,18 +43,18 @@ class TateAlgebraFactory(UniqueFactory):
     - ``base`` -- a `p`-adic ring or field; if a ring is given, the
       Tate algebra over its fraction field will be constructed
 
-    - ``names`` -- names of the indeterminates
+    - ``prec`` -- an integer or ``None`` (default: ``None``), the 
+      precision cap; it is used if an exact object must be truncated
+      in order to do an arithmetic operation. 
+      If left as ``None``, it will be set to the precision cap of 
+      the base field.
 
     - ``log_radii`` -- an integer or a list or a tuple of integers 
       (default: ``0``), the value(s) `v_i`.
       If an integer is given, this will be the common value for all
       `v_i`.
 
-    - ``prec`` -- an integer or ``None`` (default: ``None``), the 
-      precision cap; it is used if an exact object must be truncated
-      in order to do an arithmetic operation. 
-      If left as ``None``, it will be set to the precision cap of 
-      the base field.
+    - ``names`` -- names of the indeterminates
 
     - ``order`` - (default: ``degrevlex``) the monomial ordering 
       used to break ties when comparing terms with the same 
@@ -396,6 +397,7 @@ class TateTermMonoid(Monoid_class):
         return self._ngens
 
 
+
 # Tate algebras
 ###############
 
@@ -529,6 +531,56 @@ class TateAlgebra_generic(CommutativeAlgebra):
                         return False
                 return True
         return False
+
+    def _pushout_(self, R):
+        """
+        Return the pushout of this Tate algebra with ``R``.
+
+        This is only implemented when ``R`` is a p-adic ring or
+        a p-adic field.
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import pushout
+            sage: R = Zp(2)
+            sage: R1.<a> = Zq(4)
+            sage: R2.<pi> = R.extension(x^2 - 2)
+
+            sage: A.<u,v> = TateAlgebra(R, log_radii=[1,2])
+            sage: A1 = pushout(A, R1); A1
+            Tate Algebra in u (val >= -1), v (val >= -2) over 2-adic Unramified Extension Field in a defined by x^2 + x + 1
+            sage: A2 = pushout(A, R2); A2
+            Tate Algebra in u (val >= -2), v (val >= -4) over 2-adic Eisenstein Extension Field in pi defined by x^2 - 2
+
+            sage: AA = A.integer_ring()
+            sage: pushout(AA, R1)
+            Integer ring of the Tate Algebra in u (val >= -1), v (val >= -2) over 2-adic Unramified Extension Field in a defined by x^2 + x + 1
+            sage: pushout(AA, R2.fraction_field())
+            Tate Algebra in u (val >= -2), v (val >= -4) over 2-adic Eisenstein Extension Field in pi defined by x^2 - 2
+
+        TESTS::
+
+            sage: a*u
+            (a + O(2^20))*u
+            sage: (a*u).parent() is A1
+            True
+
+            sage: pi*v
+            (pi + O(pi^41))*v
+            sage: (pi*v).parent() is A2
+            True
+
+        """
+        if isinstance(R, pAdicGeneric):
+            base = pushout(self._base, R)
+            ratio = base.absolute_e() // self._base.absolute_e()
+            cap = ratio * self._cap
+            log_radii = [ ratio * r for r in self._log_radii ]
+            A = TateAlgebra(base, cap, log_radii, self._names, self._order)
+            if base.is_field():
+                return A
+            else:
+                return A.integer_ring()
 
     def _ideal_class_(self, n):
         r"""
@@ -767,3 +819,58 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
         """
         return self.base_ring().characteristic()
+
+    def random_element(self, degree=2, terms=5, integral=False, prec=None):
+        """
+        Return a random element of this Tate algebra.
+
+        INPUT:
+
+        - ``degree`` -- an integer (default: 2), an upper bound on
+          the total degree of the result
+
+        - ``terms`` -- an integer (default: 5), the maximal number
+          of terms of the result
+
+        - ``integral`` -- a boolean (default: ``False``); if ``True``
+          the result will be in the ring of integers
+
+        - ``prec`` -- (optional) an integer, the precision of the result
+
+        EXAMPLES::
+
+            sage: R = Zp(2, prec=10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: A.random_element()  # random
+            (...00101000.01)*y + (...1111011111)*x^2 + (...0010010001)*x*y + (...110000011) + (...010100100)*y^2
+
+            sage: A.random_element(degree=5, terms=3)  # random
+            (...0101100.01)*x^2*y + (...01000011.11)*y^2 + (...00111011)*x*y
+
+            sage: A.random_element(integral=True)  # random
+            (...0001111101)*x + (...1101110101) + (...00010010110)*y + (...101110001100)*x*y + (...000001100100)*y^2
+
+        Note that if we are already working on the ring of integers,
+        specifying ``integral=False`` has no effect::
+
+            sage: AA = A.integer_ring()
+            sage: f = AA.random_element(integral=False); f  # random
+            (...1100111011)*x^2 + (...1110100101)*x + (...1100001101)*y + (...1110110001) + (...01011010110)*y^2
+            sage: f in AA
+            True
+
+        When the log radii are negative, integral series may have non
+        integral coefficients::
+
+            sage: B.<x,y> = TateAlgebra(R, log_radii=[-1,-2])
+            sage: B.random_element(integral=True)  # random
+            (...1111111.001)*x*y + (...111000101.1)*x + (...11010111.01)*y^2 + (...0010011011)*y + (...0010100011000)
+
+        """
+        if integral or self._integral:
+            polring = self._polynomial_ring.change_ring(self._field.integer_ring())
+            gens = self._integer_ring._gens
+        else:
+            polring = self._polynomial_ring
+            gens = [ self.element_class(self, g) for g in self._integer_ring._gens ]
+        return self.element_class(self, polring.random_element(degree, terms)(*gens), prec)

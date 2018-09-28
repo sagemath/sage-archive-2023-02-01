@@ -81,14 +81,14 @@ cdef _groebner_basis_buchberger(I, prec):
             for i in range(len(rgb)-1, -1, -1):
                 g = rgb[i]
                 rgb[i] = g._positive_lshift_c(1)
-                rgb[i] = g._mod_c(rgb)
+                _, rgb[i] = g._quo_rem_c(rgb, False, True, True)
                 gb[indices[i]] = rgb[i]
 
         # We pop a new S-polynomial
         _, _, i, j, f = heappop(S)
         if gb[i] is None or gb[j] is None:
             continue
-        r = f._mod_c(rgb)
+        _, r = f._quo_rem_c(rgb, False, True, True)
         if r.is_zero():
             continue
 
@@ -138,7 +138,8 @@ class TateAlgebraIdeal(Ideal_generic):
         sage: I = A.ideal([f,g]); I
         Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
     
-    """    
+    """
+
     @cached_method
     def groebner_basis(self, prec=None, algorithm=None):
         r"""
@@ -208,6 +209,11 @@ class TateAlgebraIdeal(Ideal_generic):
             True
             sage: (f+1) in I  # indirect doctest
             False
+
+        TESTS::
+
+            sage: I.random_element() in I
+            True
         
         """
         rgb = self.groebner_basis()

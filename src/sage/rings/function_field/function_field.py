@@ -155,13 +155,6 @@ from .element import (
     FunctionFieldElement_polymod,
     FunctionFieldElement_global)
 
-from .order import (
-    FunctionFieldOrder_base,
-    FunctionFieldOrder_basis,
-    FunctionFieldOrderInfinite_basis,
-    FunctionFieldMaximalOrder_global,
-    FunctionFieldMaximalOrderInfinite_global)
-
 def is_FunctionField(x):
     """
     Return ``True`` if ``x`` is a function field.
@@ -419,6 +412,7 @@ class FunctionField(Field):
             ...
             ValueError: the identity element must be in the module spanned by basis (x, x*y + x^2, 2/3*y^2)
         """
+        from .order import FunctionFieldOrder_basis
         return FunctionFieldOrder_basis(tuple([self(a) for a in basis]), check=check)
 
     def order(self, x, check=True):
@@ -591,6 +585,7 @@ class FunctionField(Field):
             sage: M.has_coerce_map_from(L)
             True
         """
+        from .order import FunctionFieldOrder_base
         if isinstance(source, FunctionFieldOrder_base):
             K = source.fraction_field()
             if K is self:
@@ -2495,6 +2490,7 @@ class FunctionField_global(FunctionField_polymod):
             sage: O.basis()
             (1, 1/x^4*y, 1/x^11*y^2 + 1/x^2, 1/x^15*y^3 + 1/x^6*y)
         """
+        from .order import FunctionFieldMaximalOrder_global
         return FunctionFieldMaximalOrder_global(self)
 
     def maximal_order_infinite(self):
@@ -2513,6 +2509,7 @@ class FunctionField_global(FunctionField_polymod):
             sage: L.maximal_order_infinite()
             Maximal infinite order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
+        from .order import FunctionFieldMaximalOrderInfinite_global
         return FunctionFieldMaximalOrderInfinite_global(self)
 
     @cached_method
@@ -2694,6 +2691,7 @@ class FunctionField_global_integral(FunctionField_global):
             sage: F.equation_order()
             Order in Function field in y defined by y^3 + x^6 + x^4 + x^2
         """
+        from .order import FunctionFieldOrder_basis
         a = self.gen()
         basis = [a**i for i in range(self.degree())]
         return FunctionFieldOrder_basis(tuple(basis))
@@ -2741,6 +2739,7 @@ class FunctionField_global_integral(FunctionField_global):
             sage: F.equation_order_infinite()
             Infinite order in Function field in y defined by y^3 + x^6 + x^4 + x^2
         """
+        from .order import FunctionFieldOrderInfinite_basis
         b = self.primitive_integal_element_infinite()
         basis = [b**i for i in range(self.degree())]
         return FunctionFieldOrderInfinite_basis(tuple(basis))

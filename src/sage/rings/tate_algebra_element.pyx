@@ -88,6 +88,8 @@ cdef class TateAlgebraTerm(MonoidElement):
         for i in self._exponent.nonzero_positions():
             if self._exponent[i] < 0:
                 raise ValueError("Only nonnegative exponents are allowed")
+        if not parent.base_ring().is_field() and self.valuation() < 0:
+            raise ValueError("this term is not in the ring of integers")
 
     cdef TateAlgebraTerm _new_c(self):
         r"""
@@ -338,7 +340,8 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         cdef TateAlgebraTerm ans = self._new_c()
-        ans._coeff = self._parent._field.uniformizer_pow(-self._valuation_c())
+        cdef long v = self._exponent.dotprod(self._parent._log_radii)
+        ans._coeff = self._parent._field.uniformizer_pow(v)
         ans._exponent = self._exponent
         return ans
 
@@ -839,6 +842,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             self._prec = min(self._prec, prec)
         self._normalize()
         self._terms = None
+        if not parent.base_ring().is_field() and self.valuation() < 0:
+            raise ValueError("this series is not in the ring of integers")
 
     cdef TateAlgebraElement _new_c(self):
         """
@@ -1747,10 +1752,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if not terms:
             return self
         t = terms[0]
-        _, u = t._coeff.val_unit()
-        shi = t._exponent.dotprod(self._parent._log_radii)
-        ans._poly = self._poly.scalar_lmult((~u) << shi)
-        ans._prec = self._prec + shi
+        shi, u = t._coeff.val_unit()
+        shi -= t._exponent.dotprod(self._parent._log_radii)
+        ans._poly = self._poly.scalar_lmult((~u) >> shi)
+        ans._prec = self._prec - shi
         return ans
 
     def is_monic(self):

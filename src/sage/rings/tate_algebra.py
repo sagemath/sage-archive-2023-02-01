@@ -425,14 +425,14 @@ class TateAlgebra_generic(CommutativeAlgebra):
         CommutativeAlgebra.__init__(self, base, names, category=CommutativeAlgebras(base))
         self._polynomial_ring = PolynomialRing(field, names, order=order)
         one = field(1)
+        self._parent_terms = TateTermMonoid(self)
+        self._oneterm = self._parent_terms(one, ETuple([0]*self._ngens))
         if integral:
             self._gens = [ self((one << log_radii[i].ceil()) * self._polynomial_ring.gen(i)) for i in range(self._ngens) ]
             self._integer_ring = self
         else:
             self._gens = [ self(g) for g in self._polynomial_ring.gens() ]
             self._integer_ring = TateAlgebra_generic(field, prec, log_radii, names, order, integral=True)
-        self._parent_terms = TateTermMonoid(self)
-        self._oneterm = self._parent_terms(one, ETuple([0]*self._ngens))
 
     def _an_element_(self):
         r"""

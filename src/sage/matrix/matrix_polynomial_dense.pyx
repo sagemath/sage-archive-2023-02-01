@@ -1876,41 +1876,25 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         arbitrary shifts and orders::
 
             sage: order = [4, 1, 2]; shifts = [-3, 4]
-            sage: F = Matrix(pR, [[5*x^3 + 4*x^2 + 4*x + 6, 5, 4], \
+            sage: pmat = Matrix(pR, [[5*x^3 + 4*x^2 + 4*x + 6, 5, 4], \
                     [2*x^3 + 2*x^2 + 2*x + 3, 6, 6*x + 3]])
-            sage: P,rdeg = F._approximant_basis_iterative(order, shifts)
-
-        The returned list is the shifted row degrees of `P`::
-
-            sage: rdeg == P.row_degrees(shifts)
+            sage: appbas,rdeg = pmat._approximant_basis_iterative(order, \
+                                                                    shifts)
+            sage: appbas.is_minimal_approximant_basis(pmat, order, shifts)
             True
 
-        The rows of the output `P` are approximants, and `P` is a square
-        nonsingular matrix in shifted ordered weak Popov form::
+        The returned list is the shifted row degrees of ``appbas``::
 
-            sage: A = P * F; all([all([A[i,j].truncate(order[j]) == 0 \
-                    for j in range(3)]) for i in range(2)])
-            True
-            sage: P.is_square() and P.is_weak_popov([-3,4],True,True,False)
+            sage: rdeg == appbas.row_degrees(shifts)
             True
 
-        The rows of `P` generate all approximants; equivalently, the block
-        matrix computed below has unimodular column bases::
+        Approximant bases for the zero matrix are all constant unimodular
+        matrix; in fact, this algorithm returns the identity::
 
-            sage: B = Matrix(pR, [[A[i,j].shift(-order[j]) \
-                    for j in range(3)] for i in range(2)])
-            sage: Matrix.block([[P, B]]).T.hermite_form( \
-                    include_zero_rows=False) \
-                    == Matrix.identity(pR,2)
-            True
-
-        Approximant basis for the zero matrix is a constant unimodular matrix
-        (in fact, the algorithm returns the identity)::
-
-            sage: F = Matrix(pR, 3, 2)
-            sage: P,rdeg = F._approximant_basis_iterative([2,5], [5,0,-4])
-            sage: rdeg == P.row_degrees([5,0,-4]) and P.degree() == 0 \
-                    and P.is_square() and P(0).is_invertible()
+            sage: pmat = Matrix(pR, 3, 2)
+            sage: appbas,rdeg = pmat._approximant_basis_iterative([2,5], \
+                                                                [5,0,-4])
+            sage: rdeg == [5,0,-4] and appbas == Matrix.identity(pR, 3)
             True
         """
         # Define parameters and perform some sanity checks

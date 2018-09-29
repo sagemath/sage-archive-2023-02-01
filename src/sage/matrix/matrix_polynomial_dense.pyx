@@ -1506,7 +1506,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Verification that the matrix is formed by approximants is done via a
         truncated matrix product; verification that the matrix is square,
         nonsingular and in shifted weak Popov form is done via
-        :meth:`is_weak_popov`; .
+        :meth:`is_weak_popov`; verification that the matrix generates the
+        module of approximants is done via the characterization in Theorem 2.1
+        of [GN2018]_ .
 
         EXAMPLES::
 
@@ -1624,7 +1626,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             cert_mat = residual(0)
 
             # check that self generates the set of approximants
-            
+            # 1/ determinant of self should be a monomial c*x^d,
+            # with d the sum of pivot degrees
+            d = sum([self[i,i].degree() for i in range(m)])
+            polynomial_ring,(X,) = self.base_ring().objgens()
+            if self.determinant() != (self(1).determinant() * X**d):
+                return False
+            # 2/ the m x (m+n) constant matrix [self(0) | cert_mat] should have
+            # full rank, that is, rank m
+            from sage.matrix.constructor import block_matrix
+            if block_matrix([[self(0), cert_mat]]).rank() < m:
+                return False
 
         else:
             # check that pmat * self is 0 bmod x^order
@@ -1639,6 +1651,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             cert_mat = residual(0)
 
             # check that self generates the set of approximants
+            # 1/ determinant of self should be a monomial c*x^d,
+            # with d the sum of pivot degrees
+            d = sum([self[i,i].degree() for i in range(n)])
+            polynomial_ring,(X,) = self.base_ring().objgens()
+            if self.determinant() != (self(1).determinant() * X**d):
+                return False
+            # 2/ the (m+n) x n constant matrix [self(0).T | cert_mat.T].T
+            # should have full rank, that is, rank n
+            from sage.matrix.constructor import block_matrix
+            if block_matrix([[self(0)], [cert_mat]]).rank() < n:
+                return False
 
         return True
 

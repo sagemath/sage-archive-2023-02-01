@@ -1267,6 +1267,10 @@ REFERENCES:
              *KLEIN: A new family of lightweight block ciphers*; in
              RFIDSec, (2011), p. 1-18.
 
+.. [GN2018] Pascal Giorgi and Vincent Neiger. Certification of Minimal
+            Approximant Bases. In ISSAC 2018, pages 167-174.
+            https://doi.org/10.1145/3208976.3208991
+
 .. [Go1967] Solomon Golomb, Shift register sequences, Aegean Park
             Press, Laguna Hills, Ca, 1967
 

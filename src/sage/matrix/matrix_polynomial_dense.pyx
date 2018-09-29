@@ -1464,7 +1464,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         return (A, U) if transformation else A
 
-    def is_approximant_basis(self,
+    def is_minimal_approximant_basis(self,
             pmat,
             order,
             shifts=None,
@@ -1525,9 +1525,46 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                    [  17,   86, x^2+77*x+16, 76*x+29,     90*x+78], \
                    [  44,   36, 3*x+42,      x^2+50*x+26, 85*x+44], \
                    [   2,   22, 54*x+94,     73*x+24,     x^2+2*x+25] ])
-            sage: appbas.is_approximant_basis(pmat,\
+            sage: appbas.is_minimal_approximant_basis(pmat,\
                     order, shifts, row_wise=True, normal_form=True)
             True
+
+        The matrix `x^8 \mathrm{Id}_5` is square, nonsingular, in Popov form,
+        and its rows are approximants for ``pmat`` at order 8. However, it is
+        not an approximant basis since its rows generate a module strictly
+        included in the set of approximants for ``pmat`` at order 8::
+
+            sage: (x^8*Matrix.identity(pR, 5)).is_minimal_approximant_basis(\
+                                                                    pmat, 8)
+            False
+
+        Since ``pmat`` is a single column, with nonzero constant coefficient,
+        its column-wise approximant bases at order 8 are all `1\times 1`
+        matrices `[c x^8]` for some nonzero field element `c`::
+
+            sage: Matrix(pR, [x^8]).is_minimal_approximant_basis(pmat, \
+                    8, row_wise=False, normal_form=True)
+            True
+
+        Exceptions are raised if input dimensions are not sound::
+
+            sage: appbas.is_minimal_approximant_basis(pmat, [8,8], shifts)
+            Traceback (most recent call last):
+            ...
+            ValueError: order length should be the column dimension
+
+            sage: appbas.is_minimal_approximant_basis(pmat, \
+                    order, shifts, row_wise=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: shifts length should be the column dimension
+
+            sage: Matrix(pR, [x^8]).is_minimal_approximant_basis(pmat, 8)
+            Traceback (most recent call last):
+            ...
+            ValueError: column dimension should be the row dimension of the
+            input matrix
+
         """
         m = pmat.nrows()
         n = pmat.ncols()
@@ -1552,11 +1589,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         # raise an error if self does not have the right dimension
         if row_wise and self.ncols() != m:
-            raise ValueError("column dimension should be the row dimension of \
-                    input matrix")
+            raise ValueError("column dimension should be the row dimension" \
+                                                    + " of the input matrix")
         elif (not row_wise) and self.nrows() != n:
-            raise ValueError("row dimension should be the column dimension of \
-                    input matrix")
+            raise ValueError("row dimension should be the column dimension" \
+                                                    + " of the input matrix")
 
         # check square
         if not self.is_square():

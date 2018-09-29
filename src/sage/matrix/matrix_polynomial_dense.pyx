@@ -1723,7 +1723,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         The implementation is inspired from the iterative algorithms described
         in [VBB1992]_ and [BL1994]_ ; for obtaining the normal form, it relies
-        directly on Lemma 4.1 in [JNSV16]_ .
+        directly on Lemma 4.1 in [JNSV2016]_ .
 
         EXAMPLES::
 

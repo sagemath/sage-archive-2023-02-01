@@ -1,3 +1,14 @@
+# ***************************************************************************
+#    Copyright (C) 2018 Xavier Caruso <xavier.caruso@normalesup.org>
+#                       Thibaut Verron <thibaut.verron@gmail.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# ***************************************************************************
+
 from sage.structure.factory import UniqueFactory
 from sage.monoids.monoid import Monoid_class
 from sage.rings.ring import CommutativeAlgebra
@@ -107,6 +118,9 @@ class TateAlgebraFactory(UniqueFactory):
         sage: C.<x,y> = TateAlgebra(R, log_radii=[-1,-2]); C
         Tate Algebra in x (val >= 1), y (val >= 2) over 2-adic Field with capped relative precision 10
 
+    AUTHORS:
+
+    - Xavier Caruso, Thibaut Verron (2018-09)
     """
     def create_key(self, base, prec=None, log_radii=ZZ(0), names=None, order='degrevlex'):
         """

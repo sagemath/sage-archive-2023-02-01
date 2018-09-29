@@ -55,13 +55,15 @@ by `1` on the domain of convergence::
     sage: AA
     Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 5
 
-Now we can build elements and perform all usual arithmetic operations 
-on them::
+Now we can build elements::
 
     sage: f = 5 + 2*x*y^3 + 4*x^2*y^2; f
     (...00101) + (...000010)*x*y^3 + (...0000100)*x^2*y^2
     sage: g = x^3*y + 2*x*y; g
     (...00001)*x^3*y + (...000010)*x*y
+
+and perform all usual arithmetic operations on them::
+
     sage: f + g
     (...00001)*x^3*y + (...00101) + (...000010)*x*y^3 + (...000010)*x*y + (...0000100)*x^2*y^2
     sage: f * g
@@ -232,6 +234,7 @@ class TateAlgebraFactory(UniqueFactory):
     AUTHORS:
 
     - Xavier Caruso, Thibaut Verron (2018-09)
+
     """
     def create_key(self, base, prec=None, log_radii=ZZ(0), names=None, order='degrevlex'):
         """
@@ -338,9 +341,8 @@ class TateTermMonoid(Monoid_class):
     
     Those terms form a pre-ordered monoid, with term multiplication and the
     term order of the parent Tate algebra.
-    
+
     """
-    
     def __init__(self, A):
         r"""
         Initialize the Tate term monoid
@@ -371,6 +373,7 @@ class TateTermMonoid(Monoid_class):
         self._base = A.base_ring()
         self._field = A._field
         self._names = names
+        self._latex_names = A._latex_names
         self._ngens = len(self._names)
         self._log_radii = ETuple(A.log_radii())
         self._order = A.term_order()
@@ -394,6 +397,21 @@ class TateTermMonoid(Monoid_class):
         for i in range(self._ngens):
             vars += ", %s (val >= %s)" % (self._names[i], -self._log_radii[i])
         return "Monoid of terms in %s over %s" % (vars[2:], self._base)
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of this Tate term monoid
+
+        EXAMPLES::
+
+            sage: R = pAdicRing(2, 10)
+            sage: A.<x,y> = TateAlgebra(R, log_radii=[1,1], order="lex")
+            sage: M = A.monoid_of_terms()
+            sage: M._latex_()
+            '\\verb"Terms"(\\QQ_{2}\\{x,y\\}_{(1,1)})'
+
+        """
+        return '\\verb"Terms"(%s)' % self._parent_algebra._latex_()
 
     def _coerce_map_from_(self, R):
         r"""
@@ -602,11 +620,13 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: #TestSuite(A).run()
 
         """
+        from sage.misc.latex import latex_variable_name
         self.element_class = TateAlgebraElement
         self._field = field
         self._cap = prec
         self._log_radii = ETuple(log_radii)  # TODO: allow log_radii in QQ
         self._names = names
+        self._latex_names = [ latex_variable_name(var) for var in names ]
         self._ngens = len(names)
         self._order = order
         self._integral = integral
@@ -862,6 +882,9 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: A.<x,y> = TateAlgebra(R)
             sage: A
             Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
+
+            sage: A.integer_ring()
+            Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
             
         """
         vars = ""
@@ -871,6 +894,40 @@ class TateAlgebra_generic(CommutativeAlgebra):
             return "Integer ring of the Tate Algebra in %s over %s" % (vars[2:], self._field)
         else:
             return "Tate Algebra in %s over %s" % (vars[2:], self._field)
+
+    def _latex_(self):
+        """
+        Return a LaTeX representation of this algebra.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: A._latex_()
+            '\\QQ_{2}\\{x,y\\}'
+            sage: A.integer_ring()._latex_()
+            '\\QQ_{2}\\{x,y\\}^\\circ'
+
+            sage: B.<u1,u2> = TateAlgebra(R, log_radii=[1,2])
+            sage: B._latex_()
+            '\\QQ_{2}\\{u_{1},u_{2}\\}_{(1,2)}'
+
+        """
+        from sage.misc.latex import latex
+        s = "%s\\{%s\\}" % (latex(self._field), ",".join(self._latex_names))
+        if self._integral:
+            s += "^{\\circ}"
+        radii = ""; display_radii = False
+        for radius in self._log_radii:
+            if radius != 0:
+                display_radii = True
+            radii += ",%s" % radius
+        if display_radii:
+            if len(self._log_radii) > 1:
+                s += "_{(%s)}" % radii[1:]
+            else:
+                s += "_{%s}" % radii[1:]
+        return s
 
     def variable_names(self):
         """

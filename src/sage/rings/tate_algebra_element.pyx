@@ -1,3 +1,14 @@
+"""
+Tate algebra element
+
+A class for series in Tate algebras.
+
+AUTHOR:
+
+- Xavier Caruso, Thibaut Verron (2018-09)
+
+"""
+
 # ***************************************************************************
 #    Copyright (C) 2018 Xavier Caruso <xavier.caruso@normalesup.org>
 #                       Thibaut Verron <thibaut.verron@gmail.com>
@@ -158,6 +169,31 @@ cdef class TateAlgebraTerm(MonoidElement):
                 s += "*%s" % parent._names[i]
             elif self._exponent[i] > 1:
                 s += "*%s^%s" % (parent._names[i], self._exponent[i])
+        return s
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of this Tate algebra term.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T(2*x*y)
+            (...00000000010)*x*y
+            sage: T(2*x*y)._latex_()
+            '(...00000000010)xy'
+
+        """
+        from sage.misc.latex import latex
+        parent = self._parent
+        s = "(%s)" % latex(self._coeff)
+        for i in range(parent._ngens):
+            if self._exponent[i] == 1:
+                s += "%s" % parent._latex_names[i]
+            elif self._exponent[i] > 1:
+                s += "%s^{%s}" % (parent._latex_names[i], self._exponent[i])
         return s
 
     def coefficient(self):
@@ -934,6 +970,39 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             s += " + %s" % t
         if self._prec is not Infinity:
             s += " + %s" % base.change(show_prec="bigoh")(0, self._prec)
+        if s == "":
+            return "0"
+        return s[3:]
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of this series.
+
+        The terms are ordered with decreasing term order 
+        (increasing valuation of the coefficients, then 
+        the monomial order of the parent algebra).
+
+        EXAMPLES::
+        
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + x^3; f
+            (...0000000001)*x^3 + (...0000000001)*x + (...00000000010)*x^2
+            sage: f._latex_()
+            '(...0000000001)x^{3} + (...0000000001)x + (...00000000010)x^{2}'
+
+        """
+        from sage.misc.latex import latex
+        base = self._parent.base_ring()
+        nvars = self._parent.ngens()
+        vars = self._parent.variable_names()
+        s = ""
+        for t in self.terms():
+            if t.valuation() >= self._prec:
+                continue
+            s += " + %s" % latex(t)
+        if self._prec is not Infinity:
+            s += " + %s" % latex(base.change(show_prec="bigoh")(0, self._prec))
         if s == "":
             return "0"
         return s[3:]

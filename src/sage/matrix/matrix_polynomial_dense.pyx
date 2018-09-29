@@ -13,6 +13,9 @@ AUTHORS:
 - Vincent Neiger (2018-06-13): added basic functions (row/column degrees,
   leading positions, leading matrix, testing reduced and canonical forms)
 
+- Vincent Neiger (2018-09-29): added functions for computing and for verifying
+  minimal approximant bases
+
 """
 #*****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>

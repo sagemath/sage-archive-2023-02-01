@@ -1473,13 +1473,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         r"""
         Return ``True`` if and only if this matrix is an approximant basis in
         ``shifts``-ordered weak Popov form for the polynomial matrix ``pmat``
-        at order ``order``. If ``normal_form`` is ``True``, then the polynomial
-        matrix must furthermore be in ``shifts``-Popov form. An error is raised
-        if the input dimensions are not sound. (See :meth:`approximant_basis`
-        for definitions and more details.)
-
-        If a single integer is provided for ``order``, then it is interpreted
-        as a list of repeated integers with this value.
+        at order ``order``.
+        
+        If ``normal_form`` is ``True``, then the polynomial matrix must
+        furthermore be in ``shifts``-Popov form. An error is raised if the
+        input dimensions are not sound. If a single integer is provided for
+        ``order``, then it is interpreted as a list of repeated integers with
+        this value. (See :meth:`approximant_basis` for definitions and more
+        details.)
 
         INPUT:
 
@@ -1502,14 +1503,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         ALGORITHM:
 
-        Verification that the matrix is formed by approximants via a truncated
-        matrix product; verification that the matrix is square, nonsingular and
-        in shifted weak Popov form via :meth:`is_weak_popov`; .
+        Verification that the matrix is formed by approximants is done via a
+        truncated matrix product; verification that the matrix is square,
+        nonsingular and in shifted weak Popov form is done via
+        :meth:`is_weak_popov`; .
 
         EXAMPLES::
 
-        An example from [Arne Storjohann, 2006, Notes on computing minimal
-        approximant bases] ::
+        We consider the following example from [Arne Storjohann, Notes on
+        computing minimal approximant bases, 2006]::
 
             sage: pR.<x> = GF(97)[]
             sage: order = 8; shifts = [1,1,0,0,0]
@@ -1532,7 +1534,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         The matrix `x^8 \mathrm{Id}_5` is square, nonsingular, in Popov form,
         and its rows are approximants for ``pmat`` at order 8. However, it is
         not an approximant basis since its rows generate a module strictly
-        included in the set of approximants for ``pmat`` at order 8::
+        contained in the set of approximants for ``pmat`` at order 8::
 
             sage: (x^8*Matrix.identity(pR, 5)).is_minimal_approximant_basis(\
                                                                     pmat, 8)
@@ -1564,7 +1566,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             ...
             ValueError: column dimension should be the row dimension of the
             input matrix
-
         """
         m = pmat.nrows()
         n = pmat.ncols()
@@ -1647,16 +1648,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         this polynomial matrix at order ``order``.
 
         Assuming we work row-wise, if `F` is an `m \times n` polynomial matrix
-        and `(d_1,\ldots,d_n)` are positive integers, then an approximant basis
-        for `F` at order `(d_1,\ldots,d_n)` is a polynomial matrix whose rows
-        form a basis of the module of polynomial vectors `p` of size `m` such
-        that the column `j` of `p F` has valuation at least `d_j`, for all `1
-        \le j \le n`.
+        and `(d_0,\ldots,d_{n-1})` are positive integers, then an approximant
+        basis for `F` at order `(d_0,\ldots,d_{n-1})` is a polynomial matrix
+        whose rows form a basis of the module of approximants for `F` at order
+        `(d_0,\ldots,d_{n-1})`. The latter approximants are the polynomial
+        vectors `p` of size `m` such that the column `j` of `p F` has valuation
+        at least `d_j`, for all `0 \le j \le n-1`.
 
         If ``normal_form`` is ``True``, then the output basis `P` is
         furthermore in ``shifts``-Popov form. By default, `P` is considered
         row-wise, that is, its rows are left-approximants for ``self``; if
-        ``row_wise`` is ``False`` then its rows are right-approximants for
+        ``row_wise`` is ``False`` then its columns are right-approximants for
         ``self``. It is guaranteed that the degree of the output basis is at
         most the maximum of the entries of ``order``, independently of
         ``shifts``.
@@ -1666,8 +1668,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         number of columns (resp. rows) of ``self``, while the length of
         ``shifts`` must be the number of rows (resp. columns) of ``self``.
 
-        If a single integer is provided for ``order``, then it is interpreted
-        as a list of repeated integers with this value.
+        If a single integer is provided for ``order``, then it is converted
+        into a list of repeated integers with this value.
 
         INPUT:
 

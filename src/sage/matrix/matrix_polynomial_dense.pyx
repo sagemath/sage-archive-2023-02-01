@@ -1464,6 +1464,142 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         return (A, U) if transformation else A
 
+    def is_approximant_basis(self,
+            pmat,
+            order,
+            shifts=None,
+            row_wise=True,
+            normal_form=False):
+        r"""
+        Return ``True`` if and only if this matrix is an approximant basis in
+        ``shifts``-ordered weak Popov form for the polynomial matrix ``pmat``
+        at order ``order``. If ``normal_form`` is ``True``, then the polynomial
+        matrix must furthermore be in ``shifts``-Popov form. An error is raised
+        if the input dimensions are not sound. (See :meth:`approximant_basis`
+        for definitions and more details.)
+
+        If a single integer is provided for ``order``, then it is interpreted
+        as a list of repeated integers with this value.
+
+        INPUT:
+
+        - ``pmat`` -- a polynomial matrix.
+
+        - ``order`` -- a list of positive integers, or a positive integer.
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then the basis considered row-wise and operates on the left of
+          ``pmat``; otherwise it is column-wise and operates on the right of
+          ``pmat``.
+
+        - ``normal_form`` -- (optional, default: ``False``) boolean, if
+          ``True`` then checks for a basis in ``shifts``-Popov form.
+
+        OUTPUT: a boolean.
+
+        ALGORITHM:
+
+        Verification that the matrix is formed by approximants via a truncated
+        matrix product; verification that the matrix is square, nonsingular and
+        in shifted weak Popov form via :meth:`is_weak_popov`; .
+
+        EXAMPLES::
+
+        An example from [Arne Storjohann, 2006, Notes on computing minimal
+        approximant bases] ::
+
+            sage: pR.<x> = GF(97)[]
+            sage: order = 8; shifts = [1,1,0,0,0]
+            sage: pmat = Matrix(pR, 5, 1, [ \
+                    pR([35,  0, 41, 87,  3, 42, 22, 90]), \
+                    pR([80, 15, 62, 87, 14, 93, 24,  0]), \
+                    pR([42, 57, 90, 87, 22, 80, 71, 53]), \
+                    pR([37, 72, 74,  6,  5, 75, 23, 47]), \
+                    pR([36, 10, 74,  1, 29, 44, 87, 74]) ])
+            sage: appbas = Matrix(pR, [ \
+                   [x+47,   57, 58*x+44,     9*x+23,      93*x+76], \
+                   [  15, x+18, 52*x+23,     15*x+58,     93*x+88], \
+                   [  17,   86, x^2+77*x+16, 76*x+29,     90*x+78], \
+                   [  44,   36, 3*x+42,      x^2+50*x+26, 85*x+44], \
+                   [   2,   22, 54*x+94,     73*x+24,     x^2+2*x+25] ])
+            sage: appbas.is_approximant_basis(pmat,\
+                    order, shifts, row_wise=True, normal_form=True)
+            True
+        """
+        m = pmat.nrows()
+        n = pmat.ncols()
+
+        # set default shifts / check shifts dimension
+        if shifts == None:
+            shifts = [0]*m if row_wise else [0]*n
+        elif row_wise and len(shifts) != m:
+            raise ValueError('shifts length should be the row dimension')
+        elif (not row_wise) and len(shifts) != n:
+            raise ValueError('shifts length should be the column dimension')
+
+        # set default order / check order dimension
+        try: # try to copy order, works if order is a list
+            list_order = list(order)
+            if row_wise and len(order) != n:
+                raise ValueError("order length should be the column dimension")
+            elif (not row_wise) and len(order) != m:
+                raise ValueError("order length should be the row dimension")
+        except TypeError as e: # order is a positive integer
+            list_order = [order]*n if row_wise else [order]*m
+
+        # raise an error if self does not have the right dimension
+        if row_wise and self.ncols() != m:
+            raise ValueError("column dimension should be the row dimension of \
+                    input matrix")
+        elif (not row_wise) and self.nrows() != n:
+            raise ValueError("row dimension should be the column dimension of \
+                    input matrix")
+
+        # check square
+        if not self.is_square():
+            return False
+        # check nonsingular and shifts-(ordered weak) Popov form
+        if normal_form and not self.is_popov(shifts, row_wise, False, False):
+            return False
+        if not self.is_weak_popov(shifts, row_wise, True, False):
+            return False
+
+        # check that self is a basis of the set of approximants
+        if row_wise:
+            # check that self * pmat is 0 bmod x^order
+            # and compute certificate matrix ``cert_mat`` which is
+            # the constant term of (self * pmat) * x^(-order)
+            residual = self * pmat
+            for i in range(m):
+                for j in range(n):
+                    if residual[i,j].truncate(list_order[j]) != 0:
+                        return False
+                    residual[i,j] = residual[i,j].shift(-list_order[j])
+            cert_mat = residual(0)
+
+            # check that self generates the set of approximants
+            
+
+        else:
+            # check that pmat * self is 0 bmod x^order
+            # and compute certificate matrix ``cert_mat`` which is
+            # the constant term of x^(-order) * (pmat * self)
+            residual = pmat * self
+            for i in range(m):
+                for j in range(n):
+                    if residual[i,j].truncate(list_order[i]) != 0:
+                        return False
+                    residual[i,j] = residual[i,j].shift(-list_order[i])
+            cert_mat = residual(0)
+
+            # check that self generates the set of approximants
+
+        return True
+
+
     def approximant_basis(self,
             order,
             shifts=None,
@@ -1492,7 +1628,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         row-wise (resp. column-wise), the length of ``order`` must be the
         number of columns (resp. rows) of ``self``, while the length of
         ``shifts`` must be the number of rows (resp. columns) of ``self``.
-        
+
         If a single integer is provided for ``order``, then it is interpreted
         as a list of repeated integers with this value.
 

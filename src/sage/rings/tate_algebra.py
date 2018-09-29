@@ -56,7 +56,7 @@ class TateAlgebraFactory(UniqueFactory):
 
     - ``names`` -- names of the indeterminates
 
-    - ``order`` - (default: ``degrevlex``) the monomial ordering 
+    - ``order`` -- the monomial ordering (default: ``degrevlex``) 
       used to break ties when comparing terms with the same 
       coefficient valuation
 
@@ -109,20 +109,75 @@ class TateAlgebraFactory(UniqueFactory):
 
     """
     def create_key(self, base, prec=None, log_radii=ZZ(0), names=None, order='degrevlex'):
+        """
+        Create a key from the input paramaters.
+
+        INPUT:
+
+        - ``base`` -- a `p`-adic ring or field
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``)
+
+        - ``log_radii`` -- an integer or a list or a tuple of integers 
+          (default: ``0``)
+
+        - ``names`` -- names of the indeterminates
+
+        - ``order`` - a monomial ordering (default: ``degrevlex``)
+
+        EXAMPLES::
+
+            sage: TateAlgebra.create_key(Zp(2), names=['x','y'])
+            (2-adic Field with capped relative precision 20,
+             20,
+             (0, 0),
+             ('x', 'y'),
+             Degree reverse lexicographic term order)
+
+        TESTS::
+
+            sage: TateAlgebra.create_key(Zp(2))
+            Traceback (most recent call last):
+            ...
+            ValueError: you must specify the names of the variables
+            sage: TateAlgebra.create_key(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: the base ring must be a p-adic ring or a p-adic field
+            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[1])
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of radii does not match the number of variables
+            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], log_radii=[0, 1/2])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only integral log_radii are implemented
+            sage: TateAlgebra.create_key(Zp(2), names=['x','y'], order='myorder')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown term order 'myorder'
+
+        """
         if not isinstance(base, pAdicGeneric):
-            raise TypeError("The base ring must be a p-adic field")
+            raise TypeError("the base ring must be a p-adic ring or a p-adic field")
         # TODO: allow for arbitrary CDVF
         base = base.fraction_field()
         if names is None:
-            raise ValueError("You must specify the names of the variables")
+            raise ValueError("you must specify the names of the variables")
         names = normalize_names(-1, names)
         ngens = len(names)
         if not isinstance(log_radii, (list, tuple)):
-            log_radii = [ZZ(log_radii)] * ngens
+            try:
+                log_radii = [ZZ(log_radii)] * ngens
+            except TypeError:
+                raise NotImplementedError("only integral log_radii are implemented")
         elif len(log_radii) != ngens:
-            raise ValueError("The number of radii does not match the number of variables")
+            raise ValueError("the number of radii does not match the number of variables")
         else:
-            log_radii = [ ZZ(r) for r in log_radii ]
+            try:
+                log_radii = [ ZZ(r) for r in log_radii ]
+            except TypeError:
+                raise NotImplementedError("only integral log_radii are implemented")
         order = TermOrder(order, ngens)
         if prec is None:
             prec = base.precision_cap()
@@ -130,6 +185,16 @@ class TateAlgebraFactory(UniqueFactory):
         return key
 
     def create_object(self, version, key):
+        """
+        Create an object using the given key.
+
+        TESTS::
+
+            sage: key = TateAlgebra.create_key(Zp(2), names=('x','y'))
+            sage: TateAlgebra.create_object((8,4,6), key)
+            Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 20
+
+        """
         (base, prec, log_radii, names, order) = key
         return TateAlgebra_generic(base, prec, log_radii, names, order)
 

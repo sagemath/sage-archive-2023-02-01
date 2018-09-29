@@ -161,7 +161,7 @@ class TateAlgebraIdeal(Ideal_generic):
         
         EXAMPLES::
 
-            sage: R = Zp(3,prec=10,print_mode="digits")
+            sage: R = Zp(3, prec=10, print_mode="digits")
             sage: A.<x,y> = TateAlgebra(R)
             sage: f = 3*x^2 + 5*x*y^2
             sage: g = 5*x^2*y + 3

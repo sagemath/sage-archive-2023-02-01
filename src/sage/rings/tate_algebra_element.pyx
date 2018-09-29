@@ -824,7 +824,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("Cannot restrict to a bigger domain")
-                self._poly = PolyDict(xc._poly.__repn)
+                self._poly = PolyDict({ e: parent._field(v) for (e,v) in xc._poly.__repn.iteritems() })
                 if xc._prec is not Infinity:
                     self._prec = (xc._prec * ratio).ceil()
             else:
@@ -836,7 +836,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("Cannot restrict to a bigger domain")
-                self._poly = PolyDict({(<TateAlgebraTerm>x)._exponent: (<TateAlgebraTerm>x)._coeff})
+                self._poly = PolyDict({(<TateAlgebraTerm>x)._exponent: parent._field((<TateAlgebraTerm>x)._coeff)})
         else:
             poly = parent._polynomial_ring(x)
             self._poly = PolyDict(poly.dict())
@@ -922,7 +922,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 continue
             s += " + %s" % t
         if self._prec is not Infinity:
-            # Only works with padics...
             s += " + %s" % base.change(show_prec="bigoh")(0, self._prec)
         if s == "":
             return "0"
@@ -2015,9 +2014,43 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         TESTS::
 
+            sage: R = Zp(2, 10)
+            sage: A.<u,v> = TateAlgebra(R)
+            sage: AA = A.integer_ring()
+
+            sage: f = AA(u^2 + 2*v^2)
+            sage: f.quo_rem(u)  # indirect doctest
+            ((1 + O(2^10))*u, (2 + O(2^10))*v^2 + O(2^10))
+
+        We check that coercion works::
+
+            sage: f % 2  # indirect doctest
+            (1 + O(2^10))*u^2 + O(2^10)
+            sage: f % [2,u]  # indirect doctest
+            O(2^10)
+
+            sage: S.<pi> = R.extension(x^2 - 2)
+            sage: f % (pi*u)  # indirect doctest
+            (pi^2 + O(pi^20))*v^2 + O(pi^20)
+            sage: (pi*f) // (pi*u) == f // u
+            True
+
+       ::
+
+            sage: s = Zp(3)(1)
+            sage: f % s
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce numerator and all divisors to the same Tate algebra
+
+            sage: f % ZZ
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce numerator and all divisors to the same Tate algebra
 
         """
-        from sage.rings.tate_algebra import TateAlgebra_generic
+        from sage.categories.pushout import pushout
+        from sage.structure.coerce_exceptions import CoercionException
         parent = self.parent()
         if self.precision_absolute() is Infinity:
             self = self.add_bigoh(self.valuation() + parent.precision_cap())
@@ -2026,9 +2059,15 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         else:
             divisors = [divisors]
             onedivisor = True
-        A = Sequence([self] + divisors).universe()
-        if not isinstance(A, TateAlgebra_generic):
-            raise TypeError("cannot coerce numerator and all divisors to the same Tate algebra")
+        A = self._parent
+        for d in divisors:
+            if not isinstance(d, Element):
+                raise TypeError("cannot coerce numerator and all divisors to the same Tate algebra")
+            try:
+                A = pushout(A, d.parent())
+            except CoercionException:
+                raise TypeError("cannot coerce numerator and all divisors to the same Tate algebra")
+
         f = A(self)
         divisors = [A(d) for d in divisors]
         q, r = (<TateAlgebraElement>self)._quo_rem_c(divisors, quo, rem, False)
@@ -2167,26 +2206,71 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         TESTS::
 
-            sage: s = I.random_element()
+            sage: s = I.random_element(integral=True)
             sage: s.reduce(I)
-            O(2^10)
+            O(3^10)
 
             sage: h = A.random_element()
             sage: (h + s).reduce(I) == h.reduce(I)
             True
 
         """
-        g = I.groebner_basis()
-        return self % g
+        return self % I.groebner_basis()
 
     @coerce_binop
     def Spoly(self, other):
+        """
+        Return the S-polynomial of this series and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a Tate series
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 5, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x^3*y + 2*x*y + 4*x^2
+            sage: g = 2*x*y^2 + 2*x
+            sage: h = f.Spoly(g); h
+            (...111110)*x^3 + (...0000100)*x*y^2 + (...00001000)*x^2*y
+
+            sage: h == 2*y*f - x^2*g
+            True
+
+        TESTS::
+
+            sage: f.Spoly(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the S-polynomial of zero is not defined
+
+        """
         try:
             return self._Spoly_c(other)
         except IndexError:
-            raise ValueError("Cannot compute the S-polynomial of zero")
+            raise ValueError("the S-polynomial of zero is not defined")
 
     cdef TateAlgebraElement _Spoly_c(self, TateAlgebraElement other):
+        """
+        Return the S-polynomial of this series and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a Tate series
+
+        TESTS::
+
+        We check that the S-polynomial of two monomials vanishes::
+
+            sage: R = Zp(3, 5, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x^3*y^2
+            sage: g = x^2*y^3
+            sage: f.Spoly(g)
+            0
+
+        """
         cdef TateAlgebraTerm st = self._terms_c()[0]
         cdef TateAlgebraTerm ot = other._terms_c()[0]
         cdef TateAlgebraTerm t = st._lcm_c(ot)

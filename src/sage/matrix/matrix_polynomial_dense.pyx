@@ -1510,10 +1510,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         EXAMPLES::
 
+            sage: pR.<x> = GF(97)[]
+
         We consider the following example from [Arne Storjohann, Notes on
         computing minimal approximant bases, 2006]::
 
-            sage: pR.<x> = GF(97)[]
             sage: order = 8; shifts = [1,1,0,0,0]
             sage: pmat = Matrix(pR, 5, 1, [ \
                     pR([35,  0, 41, 87,  3, 42, 22, 90]), \
@@ -1566,6 +1567,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             ...
             ValueError: column dimension should be the row dimension of the
             input matrix
+
+        .. SEEALSO::
+
+            :meth:`approximant_basis` .
         """
         m = pmat.nrows()
         n = pmat.ncols()
@@ -1698,39 +1703,58 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: pR.<x> = GF(7)[]
 
-        This method supports any number of columns or rows, as well as
-        arbitrary shifts and orders::
-
-            sage: order = [4, 1, 2]; shifts = [-3, 4]
-            sage: F = Matrix(pR, [[5*x^3 + 4*x^2 + 4*x + 6, 5, 4], \
-                    [2*x^3 + 2*x^2 + 2*x + 3, 6, 6*x + 3]])
+            sage: order = [4, 3]; shifts = [-1, 2, 0]
+            sage: F = Matrix(pR, [[5*x^3 + 4*x^2 + 4*x + 6, 5*x^2 + 4*x + 1], \
+                                  [        2*x^2 + 2*x + 3, 6*x^2 + 6*x + 3], \
+                                  [4*x^3         +   x + 1, 4*x^2 + 2*x + 3] ])
             sage: P = F.approximant_basis(order, shifts)
-
-        The rows of the output `P` are approximants, and `P` is a square
-        nonsingular matrix in shifted ordered weak Popov form::
-
-            sage: A = P * F; all([all([A[i,j].truncate(order[j]) == 0 \
-                    for j in range(3)]) for i in range(2)])
-            True
-            sage: P.is_square() and P.is_weak_popov([-3,4],True,True,False)
+            sage: P
+            [                x^4                   0                   0]
+            [4*x^4 + 5*x^3 + 5*x                   x         4*x^2 + 2*x]
+            [  2*x^3 + 6*x^2 + 5                   1       x^2 + 4*x + 2]
+            sage: P.is_minimal_approximant_basis(F, order, shifts)
             True
 
-        The rows of `P` generate all approximants; equivalently, the block
-        matrix computed below has unimodular column bases::
+        By default, the computed basis is not required to be in normal form
+        (and will not be except in rare special cases)::
 
-            sage: B = Matrix(pR, [[A[i,j].shift(-order[j]) \
-                    for j in range(3)] for i in range(2)])
-            sage: Matrix.block([[P, B]]).T.hermite_form( \
-                    include_zero_rows=False) \
-                    == Matrix.identity(pR,2)
+            sage: P.is_minimal_approximant_basis(F, order, shifts, \
+                                                    normal_form=True)
+            False
+            sage: P = F.approximant_basis(order, shifts, normal_form=True)
+            sage: P.is_minimal_approximant_basis(F, order, shifts, \
+                                                    normal_form=True)
             True
 
-        Approximant basis for the zero matrix is a constant unimodular matrix::
+        If shifts are not specified, they are chosen as uniform `[0,\ldots,0]`
+        by default. Besides, if the orders are all the same, one can rather
+        give a single integer::
 
-            sage: F = Matrix(pR, 3, 2)
-            sage: P = F.approximant_basis([2,5], [5,0,-4])
-            sage: P.degree() == 0 and P.is_square() and P(0).is_invertible()
+            sage: F.approximant_basis(3) == \
+                    F.approximant_basis([3,3], shifts=None)
             True
+
+        One can work column-wise by specifying ``row_wise=False``::
+
+            sage: P = F.approximant_basis([5,2,2], [0,1], row_wise=False)
+            sage: P.is_minimal_approximant_basis(F, [5,2,2], \
+                                shifts=[0,1], row_wise=False)
+            True
+            sage: F.approximant_basis(3, row_wise=True) == \
+                F.transpose().approximant_basis(3, row_wise=False).transpose()
+            True
+
+        Errors are raised if the input dimensions are not sound::
+
+            sage: P = F.approximant_basis([4], shifts)
+            Traceback (most recent call last):
+            ...
+            ValueError: order length should be the column dimension
+
+            sage: P = F.approximant_basis(order, [0,0,0,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: shifts length should be the row dimension
         """
         m = self.nrows()
         n = self.ncols()

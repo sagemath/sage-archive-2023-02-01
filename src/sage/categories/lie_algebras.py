@@ -671,6 +671,23 @@ class LieAlgebras(Category_over_base_ring):
 
         baker_campbell_hausdorff = bch
 
+        @abstract_method(optional=True)
+        def lie_group(self, name='G', **kwds):
+            r"""
+            Return the simply connected Lie group related to ``self``.
+
+            INPUT:
+
+            - ``name`` -- (default: 'G') a string;
+              name (symbol) given to the Lie group
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.Heisenberg(QQ, 1)
+                sage: G = L.lie_group('G'); G
+                Lie group of Heisenberg algebra of rank 1 over Rational Field
+            """
+
         def _test_jacobi_identity(self, **options):
             """
             Test that the Jacobi identity is satisfied on (not
@@ -877,6 +894,29 @@ class LieAlgebras(Category_over_base_ring):
                 0
             """
             return self.parent().killing_form(self, x)
+
+        def exp(self):
+            r"""
+            Return the exponential of ``self`` in the Lie group of the Lie
+            algebra containing ``self``.
+
+            INPUT:
+
+            - ``X`` -- an element of the Lie algebra of ``self``
+
+            EXAMPLES::
+
+                sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
+                sage: g = (X + Y + Z).exp(); g
+                exp(X + Y + Z)
+                sage: h = X.exp(); h
+                exp(X)
+                sage: g.parent()
+                Lie group of Free Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
+                sage: g.parent() == h.parent()
+                True
+            """
+            return self.parent().lie_group().exp(self)
 
 class LiftMorphism(Morphism):
     """

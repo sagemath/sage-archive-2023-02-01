@@ -16,7 +16,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.algebras.lie_algebras.lie_algebra import LieAlgebra
 from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
 from sage.categories.lie_groups import LieGroups
 from sage.categories.lie_algebras import LieAlgebras
@@ -25,7 +24,6 @@ from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.manifolds.structure import(DifferentialStructure,
                                      RealDifferentialStructure)
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import repr_lincomb
 from sage.modules.free_module_element import vector
 from sage.rings.real_mpfr import RealField_class

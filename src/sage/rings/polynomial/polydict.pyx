@@ -748,11 +748,65 @@ cdef class PolyDict:
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
     def term_lmult(self, exponent, s):
+        """
+        Return this element multiplied by ``s`` on the left
+        and with exponents shifted by ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- a ETuple
+
+        - ``s`` -- a scalar
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple, PolyDict
+            sage: x, y = FreeMonoid(2, 'x, y').gens()  # a strange object to live in a polydict, but non-commutative!
+            sage: f = PolyDict({(2, 3): x})
+            sage: f.term_lmult(ETuple((1, 2)), y)
+            PolyDict with representation {(3, 5): y*x}
+
+            sage: f = PolyDict({(2,3): 2, (1,2): 3, (2,1): 4})
+            sage: f.term_lmult(ETuple((1, 2)), -2)
+            PolyDict with representation {(2, 4): -6, (3, 3): -8, (3, 5): -4}
+
+        """
         v = {}
         # if s is 0, then all the products will be zero
         if not s == self.__zero:
             for e, c in self.__repn.iteritems():
                 v[e.eadd(exponent)] = s*c
+        return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
+
+    def term_rmult(self, exponent, s):
+        """
+        Return this element multiplied by ``s`` on the right
+        and with exponents shifted by ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- a ETuple
+
+        - ``s`` -- a scalar
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple, PolyDict
+            sage: x, y = FreeMonoid(2, 'x, y').gens()  # a strange object to live in a polydict, but non-commutative!
+            sage: f = PolyDict({(2, 3): x})
+            sage: f.term_rmult(ETuple((1, 2)), y)
+            PolyDict with representation {(3, 5): x*y}
+
+            sage: f = PolyDict({(2,3): 2, (1,2): 3, (2,1): 4})
+            sage: f.term_rmult(ETuple((1, 2)), -2)
+            PolyDict with representation {(2, 4): -6, (3, 3): -8, (3, 5): -4}
+
+        """
+        v = {}
+        # if s is 0, then all the products will be zero
+        if not s == self.__zero:
+            for e, c in self.__repn.iteritems():
+                v[e.eadd(exponent)] = c*s
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
 

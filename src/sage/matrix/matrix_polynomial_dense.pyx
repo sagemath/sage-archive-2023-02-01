@@ -1569,26 +1569,47 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError('shifts length should be the column dimension')
 
         # set default order / check order dimension
-        if type(order) == Integer:
-            list_order = [order]*n if row_wise else [order]*m
-        elif row_wise and len(order) != n:
-            raise ValueError("order length should be the column dimension")
-        elif (not row_wise) and len(order) != m:
-            raise ValueError("order length should be the row dimension")
-        else:
+        try: # try to copy order, works if order is a list
             list_order = list(order)
+            if row_wise and len(order) != n:
+                raise ValueError("order length should be the column dimension")
+            elif (not row_wise) and len(order) != m:
+                raise ValueError("order length should be the row dimension")
+        except TypeError as e: # order is a positive integer
+            list_order = [order]*n if row_wise else [order]*m
 
+        # compute approximant basis
+        # if required, normalize it into shifted Popov form
         if row_wise:
             P,rdeg = self._approximant_basis_iterative(list_order, shifts)
-            # if normal_form...
+            if normal_form:
+                # compute the list "- pivot degree"
+                # (since weak Popov, pivot degree is rdeg-shifts entrywise)
+                degree_shifts = [shifts[i] - rdeg[i] for i in range(m)]
+                # compute approximant basis with that list as shifts
+                P,rdeg = self._approximant_basis_iterative(list_order,
+                        degree_shifts)
+                # left-multiply by inverse of leading matrix
+                lmat = P.leading_matrix(shifts=degree_shifts)
+                P = lmat.inverse() * P
         else:
             P,rdeg = self.transpose()._approximant_basis_iterative(list_order,
                     shifts)
-            # if normal_form...
-            P = P.transpose()
+            if normal_form:
+                # compute the list "- pivot degree"
+                # (since weak Popov, pivot degree is rdeg-shifts entrywise)
+                degree_shifts = [shifts[i] - rdeg[i] for i in range(n)]
+                # compute approximant basis with that list as shifts
+                P,rdeg = self.transpose()._approximant_basis_iterative( \
+                                                list_order, degree_shifts)
+                P = P.transpose()
+                # right-multiply by inverse of leading matrix
+                lmat = P.leading_matrix(shifts=degree_shifts,row_wise=False)
+                P = P * lmat.inverse()
+            else:
+                P = P.transpose()
 
         return P
-
 
     def _approximant_basis_iterative(self, order, shifts):
         r"""
@@ -1693,7 +1714,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             #   * appbas is a shifts-ordered weak Popov approximant basis for
             #   (self,doneorder)
             #   where doneorder = the already processed order, that is, the
-            #   tuple order-rest_order (componentwise subtraction)
+            #   tuple order-rest_order (entrywise subtraction)
             #   * rdeg is the shifts-row degree of appbas
             #   * residuals is the submatrix of columns (appbas * self)[:,j]
             #   for all j such that rest_order[j] > 0

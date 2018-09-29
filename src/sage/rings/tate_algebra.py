@@ -1,3 +1,114 @@
+"""
+Tate algebras
+
+Let `K` be a finite extension of `\QQ_p` for some prime number `p`
+and let `(v_1, \dots, v_n)` be a tuple of real numbers.
+
+The associated Tate algebra consists of series of the form
+
+.. MATH::
+
+    \sum_{i_1,\dots,i_n \in \NN} a_{i_1,\dots,i_n} x_1^{i_1} \cdots x_n^{i_n}
+
+for which the quantity
+
+.. MATH::
+
+    \text{val}(a_{i_1,\dots,i_n}) - (v_1 i_1 + \cdots + v_n i_n)
+
+goes to infinity when the multi-index `(i_1,\dots,i_n)` goes to infinity.
+
+These series converge on the closed disc defined by the inequalities 
+`\val(x_i) \geq -v_i` for all `i \in \{1,\dots,n\}`. The `v_i`'s are 
+then the logarithms of the radii of convergence of the series in the 
+above Tate algebra; the will be called the log radii of convergence.
+
+We can create Tate algebras using the constructor 
+:func:`sage.rings.tate_algebra.TateAlgebra`::
+
+    sage: K = Qp(2, 5, print_mode='digits')
+    sage: A.<x,y> = TateAlgebra(K)
+    sage: A
+    Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 5
+
+As we observe, the default value for the log radii of convergence
+is `0` (the series then converge on the closed unit disc).
+
+We can specify different log radii using the following syntax::
+
+    sage: B.<u,v> = TateAlgebra(K, log_radii=[1,2]); B
+    Tate Algebra in u (val >= -1), v (val >= -2) over 2-adic Field with capped relative precision 5
+
+Note that if we pass in the ring of integers of `p`-adic field,
+the same Tate algebra is returned::
+
+    sage: A1.<x,y> = TateAlgebra(K.integer_ring()); A1
+    Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 5
+    sage: A is A1
+    True
+
+However the method :meth:`integer_ring` constructs the integer ring
+of a Tate algebra, that is the subring consisting of series bounded
+by `1` on the domain of convergence::
+
+    sage: AA = A.integer_ring()
+    sage: AA
+    Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 5
+
+Now we can build elements and perform all usual arithmetic operations 
+on them::
+
+    sage: f = 5 + 2*x*y^3 + 4*x^2*y^2; f
+    (...00101) + (...000010)*x*y^3 + (...0000100)*x^2*y^2
+    sage: g = x^3*y + 2*x*y; g
+    (...00001)*x^3*y + (...000010)*x*y
+    sage: f + g
+    (...00001)*x^3*y + (...00101) + (...000010)*x*y^3 + (...000010)*x*y + (...0000100)*x^2*y^2
+    sage: f * g
+    (...00101)*x^3*y + (...000010)*x^4*y^4 + (...001010)*x*y + (...0000100)*x^5*y^3 + (...0000100)*x^2*y^4 + (...00001000)*x^3*y^3
+
+Invertible elements are those whose reduction modulo `p` is a nonzero
+constant. In our example, `f` in invertible (its reduction modulo `2`
+is `1`) but `g` is not::
+
+    sage: f.inverse_of_unit()
+    (...01101) + (...01110)*x*y^3 + (...10100)*x^2*y^6 + ... + O(2^5)
+    sage: g.inverse_of_unit()
+    Traceback (most recent call last):
+    ...
+    ValueError: This series in not invertible
+
+The notation `O(2^5)` is the result above hides a series which lies
+in `2^5` times the integer ring of `A`, that is a series which is
+bounded by `|2^5|` (`2`-adic norm) on the domain of convergence.
+
+We can also evaluate series in a point of the domain of convergence::
+
+    sage: #f(1, 2)
+    sage: #g(3, 4)
+
+Computations with ideals in Tate algebras are also supported::
+
+    sage: f = 7*x^3*y + 2*x*y - x*y^2 - 6*y^5
+    sage: g = x*y^4 + 8*x^3 - 3*y^3 + 1
+    sage: I = A.ideal([f, g])
+    sage: I.groebner_basis()
+    [(...00001)*x*y^4 + (...11101)*y^3 + (...00001) + ... + O(2^5),
+     (...10101)*x^2*y^3 + (...10101)*y^4 + (...00101)*x^2 + ... + O(2^5),
+     (...10111)*y^5 + (...01001)*x*y^3 + (...01111)*x^2*y + ... + O(2^5),
+     (...01101)*x^3 + (...10101)*x*y + (...11110)*y^4 + (...10110)*x + O(2^5)]
+
+    sage: (x^2 + 3*y)*f + (2*x^3*y + 2*x*y)*g in I
+    True
+
+
+AUTHORS:
+
+- Xavier Caruso, Thibaut Verron (2018-09)
+
+"""
+
+
 # ***************************************************************************
 #    Copyright (C) 2018 Xavier Caruso <xavier.caruso@normalesup.org>
 #                       Thibaut Verron <thibaut.verron@gmail.com>

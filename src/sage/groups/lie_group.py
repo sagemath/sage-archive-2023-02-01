@@ -95,7 +95,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         sage: L = lie_algebras.Heisenberg(QQ, 1)
         sage: G = NilpotentLieGroup(L, 'G'); G
-        Lie group of Heisenberg algebra of rank 1 over Rational Field
+        Lie group G of Heisenberg algebra of rank 1 over Rational Field
 
     Elements can be created using the exponential map::
 
@@ -140,14 +140,14 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         sage: X = G.left_invariant_frame(); X
         Vector frame (G, (X_0,X_1,X_2))
         sage: X[0]
-        Vector field X_0 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+        Vector field X_0 on the Lie group G of Heisenberg algebra of rank 1 over Rational Field
 
     We define a left translation by a generic point::
 
         sage: g = G.point([var('a'), var('b'), var('c')]); g
         exp(a*p1 + b*q1 + c*z)
         sage: L_g = G.left_translation(g); L_g
-        Diffeomorphism of the Lie group of Heisenberg algebra of rank 1 over Rational Field
+        Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
         sage: L_g.display()
         G --> G
             (x_0, x_1, x_2) |--> (a + x_0, b + x_1, -1/2*b*x_0 + 1/2*a*x_1 + c + x_2)
@@ -182,7 +182,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
     vector field::
 
         sage: X_L = G.left_invariant_extension(p + 3*q); X_L
-        Vector field p1 + 3*q1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+        Vector field p1 + 3*q1 on the Lie group G of Heisenberg algebra of rank 1 over Rational Field
         sage: X_L.display(exp1_frame)
         p1 + 3*q1 = d/dx_0 + 3 d/dx_1  + (3/2*x_0 - 1/2*x_1) d/dx_2
         sage: X_R = G.right_invariant_extension(p + 3*q)
@@ -259,9 +259,9 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
             sage: L = lie_algebras.Heisenberg(RR, 1)
             sage: NilpotentLieGroup(L, 'G')
-            Lie group of Heisenberg algebra of rank 1 over Real Field with 53 bits of precision
+            Lie group G of Heisenberg algebra of rank 1 over Real Field with 53 bits of precision
         """
-        return "Lie group of %s" % self.lie_algebra()
+        return "Lie group %s of %s" % (self._name, self.lie_algebra())
 
     def _dLx(self):
         r"""
@@ -497,7 +497,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: G = NilpotentLieGroup(H, 'G')
             sage: g = G.exp(p)
             sage: L_g = G.left_translation(g); L_g
-            Diffeomorphism of the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
             sage: L_g.display(chart1=G.chart_exp1(), chart2=G.chart_exp1())
             G --> G
                 (x_0, x_1, x_2) |--> (x_0 + 1, x_1, 1/2*x_1 + x_2)
@@ -577,16 +577,16 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: p, q, z = L.basis()
             sage: H = NilpotentLieGroup(L, 'H')
             sage: X = H.left_invariant_extension(p); X
-            Vector field p1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Vector field p1 on the Lie group H of Heisenberg algebra of rank 1 over Rational Field
             sage: X.display(H.chart_exp1().frame())
             p1 = d/dx_0 - 1/2*x_1 d/dx_2
 
         Default vs. custom naming for the invariant vector field::
 
             sage: Y = H.left_invariant_extension(p + q); Y
-            Vector field p1 + q1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Vector field p1 + q1 on the Lie group H of Heisenberg algebra of rank 1 over Rational Field
             sage: Z = H.left_invariant_extension(p + q, 'Z'); Z
-            Vector field Z on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Vector field Z on the Lie group H of Heisenberg algebra of rank 1 over Rational Field
         """
         if name is None:
             name = str(X)
@@ -618,7 +618,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: G = NilpotentLieGroup(H, 'G')
             sage: g = G.exp(p)
             sage: R_g = G.right_translation(g); R_g
-            Diffeomorphism of the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
             sage: R_g.display(chart1=G.chart_exp1(), chart2=G.chart_exp1())
             G --> G
                 (x_0, x_1, x_2) |--> (x_0 + 1, x_1, -1/2*x_1 + x_2)
@@ -698,16 +698,16 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: p, q, z = L.basis()
             sage: H = NilpotentLieGroup(L, 'H')
             sage: X = H.right_invariant_extension(p); X
-            Vector field p1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Vector field p1 on the Lie group H of Heisenberg algebra of rank 1 over Rational Field
             sage: X.display(H.chart_exp1().frame())
             p1 = d/dx_0 + 1/2*x_1 d/dx_2
 
         Default vs. custom naming for the invariant vector field::
 
             sage: Y = H.right_invariant_extension(p + q); Y
-            Vector field p1 + q1 on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Vector field p1 + q1 on the Lie group H of Heisenberg algebra of rank 1 over Rational Field
             sage: Z = H.right_invariant_extension(p + q, 'Z'); Z
-            Vector field Z on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Vector field Z on the Lie group H of Heisenberg algebra of rank 1 over Rational Field
         """
         if name is None:
             name = str(X)
@@ -739,7 +739,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: G = NilpotentLieGroup(H, 'G')
             sage: g = G.point([var('a'), var('b'), var('c')])
             sage: C_g = G.conjugation(g); C_g
-            Diffeomorphism of the Lie group of Heisenberg algebra of rank 1 over Rational Field
+            Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
             sage: C_g.display(chart1=G.chart_exp1(), chart2=G.chart_exp1())
             G --> G
                 (x_0, x_1, x_2) |--> (x_0, x_1, -b*x_0 + a*x_1 + x_2)

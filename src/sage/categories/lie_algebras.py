@@ -685,7 +685,7 @@ class LieAlgebras(Category_over_base_ring):
 
                 sage: L = lie_algebras.Heisenberg(QQ, 1)
                 sage: G = L.lie_group('G'); G
-                Lie group of Heisenberg algebra of rank 1 over Rational Field
+                Lie group G of Heisenberg algebra of rank 1 over Rational Field
             """
 
         def _test_jacobi_identity(self, **options):
@@ -912,7 +912,7 @@ class LieAlgebras(Category_over_base_ring):
                 sage: h = X.exp(); h
                 exp(X)
                 sage: g.parent()
-                Lie group of Free Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
+                Lie group G of Free Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
                 sage: g.parent() == h.parent()
                 True
             """

@@ -103,7 +103,7 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
                 sage: L = lie_algebras.Heisenberg(QQ, 1)
                 sage: G = L.lie_group('G'); G
-                Lie group of Heisenberg algebra of rank 1 over Rational Field
+                Lie group G of Heisenberg algebra of rank 1 over Rational Field
 
             We test multiplying elements of the group::
 
@@ -119,7 +119,7 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
             vector field::
 
                 sage: X = G.left_invariant_extension(2*p + 3*q, name='X'); X
-                Vector field X on the Lie group of Heisenberg algebra of rank 1 over Rational Field
+                Vector field X on the Lie group G of Heisenberg algebra of rank 1 over Rational Field
                 sage: X.at(G.one()).display()
                 X = 2 d/dx_0 + 3 d/dx_1
                 sage: X.display()

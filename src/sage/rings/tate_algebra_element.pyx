@@ -102,7 +102,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         sage: T(0)
         Traceback (most recent call last):
         ...
-        ValueError: A term cannot be zero
+        ValueError: a term cannot be zero
 
     """
     def __init__(self, parent, coeff, exponent=None):
@@ -131,12 +131,12 @@ cdef class TateAlgebraTerm(MonoidElement):
             coeff = coeff.leading_term()
         if isinstance(coeff, TateAlgebraTerm):
             if coeff.parent().variable_names() != self._parent.variable_names():
-                raise ValueError("The variable names do not match")
+                raise ValueError("the variable names do not match")
             self._coeff = field((<TateAlgebraTerm>coeff)._coeff)
             self._exponent = (<TateAlgebraTerm>coeff)._exponent
         else:
             if coeff.is_zero():
-                raise ValueError("A term cannot be zero")
+                raise ValueError("a term cannot be zero")
             self._coeff = field(coeff)
             self._exponent = ETuple([0] * parent.ngens())
         if exponent is not None:
@@ -144,10 +144,10 @@ cdef class TateAlgebraTerm(MonoidElement):
                 exponent = ETuple(exponent)
             self._exponent = self._exponent.eadd(exponent)
         if len(self._exponent) != parent.ngens():
-            raise ValueError("The length of the exponent does not match the number of variables")
+            raise ValueError("the length of the exponent does not match the number of variables")
         for i in self._exponent.nonzero_positions():
             if self._exponent[i] < 0:
-                raise ValueError("Only nonnegative exponents are allowed")
+                raise ValueError("only nonnegative exponents are allowed")
         if not parent.base_ring().is_field() and self.valuation() < 0:
             raise ValueError("this term is not in the ring of integers")
 
@@ -929,10 +929,11 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s // t
             Traceback (most recent call last):
             ...
-            ValueError: The division is not exact
+            ValueError: the division is not exact
+
         """
         if not self.is_divisible_by(other):
-            raise(ValueError("The division is not exact"))
+            raise ValueError("the division is not exact")
         return (<TateAlgebraTerm>self)._floordiv_c(<TateAlgebraTerm>other)
 
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other):
@@ -960,7 +961,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s // t
             Traceback (most recent call last):
             ...
-            ValueError: The division is not exact
+            ValueError: the division is not exact
+
         """
         cdef TateAlgebraTerm ans = self._new_c()
         ans._exponent = self.exponent().esub(other.exponent())
@@ -1008,19 +1010,19 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 ratio = parent._base.absolute_e() / xparent.base_ring().absolute_e()
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
-                        raise ValueError("Cannot restrict to a bigger domain")
+                        raise ValueError("cannot restrict to a bigger domain")
                 self._poly = PolyDict({ e: parent._field(v) for (e,v) in xc._poly.__repn.iteritems() })
                 if xc._prec is not Infinity:
                     self._prec = (xc._prec * ratio).ceil()
             else:
-                raise TypeError("Variable names do not match")
+                raise TypeError("variable names do not match")
         elif isinstance(x, TateAlgebraTerm):
             xparent = x.parent()
             if xparent.variable_names() == parent.variable_names():
                 ratio = parent._base.absolute_e() / xparent.base_ring().absolute_e()
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
-                        raise ValueError("Cannot restrict to a bigger domain")
+                        raise ValueError("cannot restrict to a bigger domain")
                 self._poly = PolyDict({(<TateAlgebraTerm>x)._exponent: parent._field((<TateAlgebraTerm>x)._coeff)})
         else:
             poly = parent._polynomial_ring(x)
@@ -1648,11 +1650,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f.inverse_of_unit()
             Traceback (most recent call last):
             ...        
-            ValueError: This series in not invertible
+            ValueError: this series in not invertible
         
         """
         if not self.is_unit():
-            raise ValueError("This series in not invertible")
+            raise ValueError("this series in not invertible")
         t = self.leading_term()
         c = t.coefficient()
         parent = self._parent
@@ -2253,12 +2255,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f.residue()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Residues are only implemented for radius 1
+            NotImplementedError: residues are only implemented for radius 1
 
         """
         for r in self._parent.log_radii():
             if r != 0:
-                raise NotImplementedError("Residues are only implemented for radius 1")
+                raise NotImplementedError("residues are only implemented for radius 1")
         if n is None:
             Rn = self.base_ring().residue_field()
         else:

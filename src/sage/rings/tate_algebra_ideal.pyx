@@ -383,8 +383,6 @@ class TateAlgebraIdeal(Ideal_generic):
             False
         
         """
-        if not isinstance(other, TateAlgebraIdeal):
-            raise NotImplementedError
         if op == op_GT:
             return self._contains_ideal(other) and not other._contains_ideal(self)
         elif op == op_GE:

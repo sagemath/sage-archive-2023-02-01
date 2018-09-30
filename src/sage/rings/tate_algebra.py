@@ -78,7 +78,7 @@ is `1`) but `g` is not::
     sage: g.inverse_of_unit()
     Traceback (most recent call last):
     ...
-    ValueError: This series in not invertible
+    ValueError: this series in not invertible
 
 The notation `O(2^5)` is the result above hides a series which lies
 in `2^5` times the integer ring of `A`, that is a series which is

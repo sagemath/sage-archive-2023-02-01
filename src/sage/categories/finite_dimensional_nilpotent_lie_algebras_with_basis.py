@@ -90,7 +90,7 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
         def lie_group(self, name='G', **kwds):
             r"""
-            Return the simply connected Lie group related to ``self``.
+            Return the Lie group associated to ``self``.
 
             INPUT:
 
@@ -127,9 +127,9 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
             .. SEEALSO::
 
-                :class:`~sage.groups.lie_group.NilpotentLieGroup`
+                :class:`~sage.groups.lie_gps.nilpotent_lie_group.NilpotentLieGroup`
             """
-            from sage.groups.lie_group import NilpotentLieGroup
+            from sage.groups.lie_gps.nilpotent_lie_group import NilpotentLieGroup
             return NilpotentLieGroup(self, name, **kwds)
 
         def step(self):

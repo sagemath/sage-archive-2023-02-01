@@ -43,7 +43,7 @@ def _symbolic_lie_algebra_copy(L):
 
     EXAMPLES::
 
-        sage: from sage.groups.lie_group import _symbolic_lie_algebra_copy
+        sage: from sage.groups.lie_gps.nilpotent_lie_group import _symbolic_lie_algebra_copy
         sage: L = LieAlgebra(QQ, 2, step=2)
         sage: L_SR = _symbolic_lie_algebra_copy(L)
         sage: L.structure_coefficients()
@@ -56,7 +56,7 @@ def _symbolic_lie_algebra_copy(L):
     Verify that copying works with something that is not an instance of
     :class:`LieAlgebraWithStructureCoefficients`::
 
-        sage: from sage.groups.lie_group import _symbolic_lie_algebra_copy
+        sage: from sage.groups.lie_gps.nilpotent_lie_group import _symbolic_lie_algebra_copy
         sage: L = lie_algebras.Heisenberg(QQ, 1)
         sage: hasattr(L, 'change_ring')
         False
@@ -80,8 +80,9 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
     INPUT:
 
-    - ``L`` -- the Lie algebra of the Lie group; must be a finite dimensional
-      Lie algebra with basis over a topological field, e.g. `\QQ` or `\RR`
+    - ``L`` -- the Lie algebra of the Lie group; must be a finite
+      dimensional nilpotent Lie algebra with basis over a topological
+      field,e.g. `\QQ` or `\RR`
     - ``name`` -- a string; name (symbol) given to the Lie group
 
     Two types of exponential coordinates are defined on any
@@ -352,7 +353,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         .. MATH ::
 
-            \exp(x_1X_1 + \dots + x_nX_n) \mapsto (x_1,\dots,x_n).
+            \exp(x_1X_1 + \cdots + x_nX_n) \mapsto (x_1,\ldots,x_n).
 
         EXAMPLES::
 
@@ -371,7 +372,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         .. MATH ::
 
-            \exp(x_nX_n) \dots \exp(x_1X_1) \mapsto (x_1,\dots,x_n).
+            \exp(x_nX_n) \cdots \exp(x_1X_1) \mapsto (x_1,\ldots,x_n).
 
         EXAMPLES::
 
@@ -521,7 +522,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         The labeling of the frame and the dual frame can be customized using
         keyword parameters as described in
-        :meth:`sage.manifolds.differentiable.manifold.vector_frame`.
+        :meth:`sage.manifolds.differentiable.manifold.DifferentiableManifold.vector_frame`.
 
         EXAMPLES:
 
@@ -642,7 +643,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         The labeling of the frame and the dual frame can be customized using
         keyword parameters as described in
-        :meth:`sage.manifolds.differentiable.manifold.vector_frame`.
+        :meth:`sage.manifolds.differentiable.manifold.DifferentiableManifold.vector_frame`.
 
         EXAMPLES:
 

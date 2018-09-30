@@ -5,6 +5,7 @@ from .pari_group import PariGroup
 
 from .matrix_gps.all import *
 from .abelian_gps.all import *
+from .lie_gps.all import *
 
 from .perm_gps.all import *
 
@@ -41,5 +42,3 @@ lazy_import('sage.groups.semimonomial_transformations.semimonomial_transformatio
 lazy_import('sage.groups.group_exp', ['GroupExp', 'GroupExp_Class', 'GroupExpElement'])
 
 lazy_import('sage.groups.group_semidirect_product', ['GroupSemidirectProduct', 'GroupSemidirectProductElement'])
-
-lazy_import('sage.groups.lie_group', 'NilpotentLieGroup')

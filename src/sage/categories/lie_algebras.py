@@ -895,14 +895,15 @@ class LieAlgebras(Category_over_base_ring):
             """
             return self.parent().killing_form(self, x)
 
-        def exp(self, name='G'):
+        def exp(self, lie_group=None):
             r"""
-            Return the exponential of ``self`` in the Lie group named ``name``
-            of the Lie algebra containing ``self``.
+            Return the exponential of ``self`` in ``lie_group``.
 
             INPUT:
 
-            - ``name`` -- a string; the name of the Lie group to map into
+            - ``lie_group`` -- (optional) the Lie group to map into;
+              If ``lie_group`` is not given, the Lie group associated to the
+              parent Lie algebra of ``self`` is used.
 
             EXAMPLES::
 
@@ -916,16 +917,19 @@ class LieAlgebras(Category_over_base_ring):
                 sage: g.parent() is h.parent()
                 True
 
-            Passing the name parameter specifies different Lie groups::
+            The Lie group can be specified explicitly::
 
-                sage: k = Z.exp('H'); k
+                sage: H = L.lie_group('H')
+                sage: k = Z.exp(lie_group=H); k
                 exp(Z)
                 sage: k.parent()
                 Lie group H of Free Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
                 sage: g.parent() == k.parent()
                 False
             """
-            return self.parent().lie_group(name).exp(self)
+            if lie_group is None:
+                lie_group = self.parent().lie_group()
+            return lie_group.exp(self)
 
 class LiftMorphism(Morphism):
     """

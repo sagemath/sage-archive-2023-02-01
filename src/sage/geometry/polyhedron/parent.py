@@ -541,11 +541,21 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Polyhedra in QQ^3
             sage: Polyhedra(ZZ,3).an_element().base_extend(QQ)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+
+        TESTS:
+
+        Test that :trac:`22575` is fixed::
+
+            sage: P = Polyhedra(ZZ,3).base_extend(QQ, backend='field')
+            sage: P.backend()
+            'field'
+
         """
-        if self.base_ring().has_coerce_map_from(base_ring):
+        if (self.base_ring().has_coerce_map_from(base_ring)
+            and (backend is None or self.backend() == backend)):
             return self
         elif base_ring.has_coerce_map_from(self.base_ring()):
-            return Polyhedra(base_ring, self.ambient_dim())
+            return Polyhedra(base_ring, self.ambient_dim(), backend=backend)
 
     def _coerce_base_ring(self, other):
         r"""

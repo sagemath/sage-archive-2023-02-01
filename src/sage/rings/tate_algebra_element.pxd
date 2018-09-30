@@ -15,6 +15,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     cdef TateAlgebraTerm _new_c(self)
     cdef long _valuation_c(self)
+    cdef int _cmp_c(self, TateAlgebraTerm other)
     cdef Element _call_c(self, list arg)
     cpdef TateAlgebraTerm monomial(self)
     cpdef TateAlgebraTerm monic(self)

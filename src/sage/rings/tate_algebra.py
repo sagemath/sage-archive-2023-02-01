@@ -84,10 +84,18 @@ The notation `O(2^5)` is the result above hides a series which lies
 in `2^5` times the integer ring of `A`, that is a series which is
 bounded by `|2^5|` (`2`-adic norm) on the domain of convergence.
 
-We can also evaluate series in a point of the domain of convergence::
+We can also evaluate series in a point of the domain of convergence
+(in the base field or in an extension)::
 
-    sage: #f(1, 2)
-    sage: #g(3, 4)
+    sage: L.<a> = Qq(2^3, 5)
+    sage: f(a^2, 2*a)
+    1 + 2^2 + a*2^4 + O(2^5)
+
+    sage: var('u')
+    u
+    sage: L.<pi> = K.change(print_mode="series").extension(u^3 - 2)
+    sage: g(pi, 2*pi)
+    pi^7 + pi^8 + pi^19 + pi^20 + O(pi^21)
 
 Computations with ideals in Tate algebras are also supported::
 
@@ -95,12 +103,12 @@ Computations with ideals in Tate algebras are also supported::
     sage: g = x*y^4 + 8*x^3 - 3*y^3 + 1
     sage: I = A.ideal([f, g])
     sage: I.groebner_basis()
-    [(...00001)*x*y^4 + (...11101)*y^3 + (...00001) + ... + O(2^5),
-     (...10101)*x^2*y^3 + (...10101)*y^4 + (...00101)*x^2 + ... + O(2^5),
-     (...10111)*y^5 + (...01001)*x*y^3 + (...01111)*x^2*y + ... + O(2^5),
-     (...01101)*x^3 + (...10101)*x*y + (...11110)*y^4 + (...10110)*x + O(2^5)]
+    [(...00001)*x^2*y^3 + (...00001)*y^4 + (...10001)*x^2 + ... + O(2^5),
+     (...00001)*x*y^4 + (...11101)*y^3 + (...00001) + ... + O(2^5),
+     (...00001)*y^5 + (...11111)*x*y^3 + (...01001)*x^2*y + ... + O(2^5),
+     (...00001)*x^3 + (...01001)*x*y + (...10110)*y^4 + (...01110)*x + O(2^5)]
 
-    sage: (x^2 + 3*y)*f + (2*x^3*y + 2*x*y)*g in I
+    sage: (x^2 + 3*y)*f + 1/2*(x^3*y + x*y)*g in I
     True
 
 

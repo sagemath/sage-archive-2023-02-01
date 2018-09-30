@@ -292,10 +292,35 @@ cdef class TateAlgebraTerm(MonoidElement):
         ans._coeff = self._coeff * (<TateAlgebraTerm>other)._coeff
         return ans
 
+    cdef int _cmp_c(self, TateAlgebraTerm other):
+        r"""
+        Compare the Tate algebra term with ``other``.
+
+        INPUT:
+
+        - ``other`` -- a term
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: s = T(x^2*y^2)
+            sage: t = T(x*y^3)
+            sage: s > t  # indirect doctest
+            True
+
+        """
+        cdef int c = -cmp(self._valuation_c(), other._valuation_c())
+        if not c:
+            skey = self._parent.term_order().sortkey
+            c = cmp(skey(self._exponent), skey(other._exponent))
+        return c
+
     cpdef _richcmp_(self, other, int op):
         r"""
         Compare the Tate algebra term with ``other`` according to
-        the rich comparison operator ``op``
+        the rich comparison operator ``op``.
 
         The term `a*X^A` is smaller or equal to `b*X^B` if its valuation is
         greater than the valuation of `b*X^B`, or when equality occurs, when 
@@ -344,16 +369,13 @@ cdef class TateAlgebraTerm(MonoidElement):
             False
         
         """
-        cdef TateAlgebraTerm s = <TateAlgebraTerm>self
-        cdef TateAlgebraTerm o = <TateAlgebraTerm>other
         if op == op_EQ:
-            return s._coeff == o._coeff and s._exponent == o._exponent
+            return ((<TateAlgebraTerm>self)._coeff == (<TateAlgebraTerm>other)._coeff 
+                and (<TateAlgebraTerm>self)._exponent == (<TateAlgebraTerm>other)._exponent)
         if op == op_NE:
-            return s._coeff != o._coeff or s._exponent != o._exponent
-        c = -cmp(s._valuation_c(), o._valuation_c())
-        if not c:
-            skey = s._parent.term_order().sortkey
-            c = cmp(skey(s._exponent), skey(o._exponent))
+            return ((<TateAlgebraTerm>self)._coeff != (<TateAlgebraTerm>other)._coeff 
+                 or (<TateAlgebraTerm>self)._exponent != (<TateAlgebraTerm>other)._exponent)
+        c = (<TateAlgebraTerm>self)._cmp_c(<TateAlgebraTerm>other)
         if op == op_LT:
             return c < 0
         if op == op_LE:
@@ -1272,6 +1294,76 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
         return ans
 
+    cpdef _richcmp_(self, other, int op):
+        r"""
+        Compare this series with ``other`` according to
+        the rich comparison operator ``op``.
+
+        INPUT:
+
+        - ``other`` -- a Tate algebra term
+
+        - ``op`` -- the comparison operator
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: A.term_order()
+            Degree reverse lexicographic term order
+
+        For terms, we first compare the valuation and ties are broken 
+        using the term ordering on `A`::
+
+            sage: 2*x^2*y^2 > x*y^3
+            False
+            sage: x^2*y^2 > x*y^3
+            True
+
+        For general series, leading terms are first compared. In case
+        of tie, second leading terms are compared, and so on::
+        
+            sage: x^2*y^2 > x*y^3 + y^4
+            True
+            sage: x^2*y^2 > x^2*y^2 + x*y^3
+            False
+
+        TESTS::
+
+            sage: f = x^4 + 4*x*y + 1; f
+            (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
+            sage: g = f + 2
+            sage: f == g
+            False
+            sage: f == g - 2
+            True
+
+        """
+        diff = self - other
+        c = None
+        if diff.is_zero():
+            c = 0
+        if op == op_EQ:
+            return c is not None
+        if op == op_NE:
+            return c is None
+        if c is None:
+            ts = self.terms()
+            to = other.terms()
+            for i in range(min(len(ts), len(to))):
+                c = (<TateAlgebraTerm>ts[i])._cmp_c(<TateAlgebraTerm>to[i])
+                if c: break
+            else:
+                c = cmp(len(ts), len(to))
+        if op == op_LT:
+            return c < 0
+        if op == op_LE:
+            return c <= 0
+        if op == op_GT:
+            return c > 0
+        if op == op_GE:
+            return c >= 0
+
     def __call__(self, *args):
         """
         Return this term evaluated at ``args``.
@@ -1530,31 +1622,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if prec is None:
             prec = self._prec
         return self.valuation() >= prec
-
-    def __eq__(self, other):
-        r"""
-        Return ``True`` if this series is indistiguishable from ``other``.
-
-        INPUT:
-
-        - ``other`` - a Tate series
-
-        EXAMPLES::
-
-            sage: R = Zp(2, print_mode='digits',prec=10)
-            sage: A.<x,y> = TateAlgebra(R)
-            sage: f = x^4 + 4*x*y + 1; f
-            (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
-            sage: g = f + 2
-            sage: f == g
-            False
-            sage: f == g - 2
-            True
-        """
-        try:
-            return (self - other).is_zero()
-        except:
-            return False
 
     def inverse_of_unit(self):
         r"""
@@ -2460,16 +2527,16 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: I = A.ideal([f, g])
 
             sage: f.reduce(I)
-            O(3^10)
+            O(3^9)
             sage: h = (x^2 + 2*y)*f + (x^2*y^3 + 3*x*y^2 + 7)*g + 1
             sage: h.reduce(I)
-            (...0000000001) + O(3^10)
+            (...000000001) + O(3^9)
 
         TESTS::
 
             sage: s = I.random_element(integral=True)
             sage: s.reduce(I)
-            O(3^10)
+            O(3^9)
 
             sage: h = A.random_element()
             sage: (h + s).reduce(I) == h.reduce(I)

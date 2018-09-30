@@ -158,10 +158,18 @@ class Polyhedron_field(Polyhedron_base):
 
             sage: p = Polyhedron()    # indirect doctests
 
+            sage: Vrep = [[[0], [1/2], [1]], [], []]
+            sage: Hrep = [[[0, 1], [1, -1]], []]
+            sage: p = Polyhedron_field(parent, Vrep, Hrep,
+            ....:                      Vrep_minimal=False, Hrep_minimal=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: if both Vrep and Hrep are provided, they must be minimal...
         """
         if Vrep is not None and Hrep is not None:
             if not (Vrep_minimal and Hrep_minimal):
-                raise ValueError("If both Vrep and Hrep are provided, they must be minimal and Vrep_minimal and Hrep_minimal must be set True to indicate this.")
+                raise ValueError("if both Vrep and Hrep are provided, they must be minimal"
+                                 " and Vrep_minimal and Hrep_minimal must both be True")
             Element.__init__(self, parent=parent)
             self._init_Vrepresentation(*Vrep)
             self._init_Hrepresentation(*Hrep)

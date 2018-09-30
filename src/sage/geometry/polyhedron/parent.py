@@ -929,3 +929,23 @@ class Polyhedra_polymake(Polyhedra_base):
 
 class Polyhedra_field(Polyhedra_base):
     Element = Polyhedron_field
+
+    def _element_constructor_polyhedron(self, polyhedron, **kwds):
+        """
+        The element (polyhedron) constructor for the case of 1 argument, a polyhedron.
+
+        This version of the method sets up the element using both representations.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: P = Polyhedra(AA, 3, backend='field')
+            sage: p = Polyhedron(vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)])
+            sage: P(p)
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
+        """
+        Vrep = [polyhedron.vertex_generator(), polyhedron.ray_generator(),
+                polyhedron.line_generator()]
+        Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
+        return self._element_constructor_(Vrep, Hrep,
+                                          Vrep_minimal=True, Hrep_minimal=True, **kwds)

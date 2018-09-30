@@ -1848,7 +1848,7 @@ class Polytopes():
             sage: c.plot()
             Graphics3d Object
         """
-        return self.hypercube(3)
+        return self.hypercube(3, backend=backend)
 
     def cross_polytope(self, dim, backend=None):
         r"""

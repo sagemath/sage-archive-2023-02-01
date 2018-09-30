@@ -1,3 +1,4 @@
+from sage.structure.element cimport Element
 from sage.structure.element cimport MonoidElement
 from sage.structure.element cimport CommutativeAlgebraElement
 
@@ -14,6 +15,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
     cdef TateAlgebraTerm _new_c(self)
     cdef long _valuation_c(self)
+    cdef Element _call_c(self, list arg)
     cpdef TateAlgebraTerm monomial(self)
     cpdef TateAlgebraTerm monic(self)
     cdef TateAlgebraTerm _gcd_c(self, TateAlgebraTerm other)

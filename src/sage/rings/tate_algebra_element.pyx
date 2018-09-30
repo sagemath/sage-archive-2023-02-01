@@ -38,6 +38,42 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
 
 
+def _pushout_family(elements, initial=ZZ):
+    """
+    Return a parent in which ``initial`` and all elements 
+    in ``elements`` coerce.
+
+    INPUT:
+
+    - ``elements`` -- a list of elements
+
+    - ``initial`` -- a parent
+
+    EXAMPLES:
+
+        sage: from sage.rings.tate_algebra_element import _pushout_family
+
+        sage: R = Zp(2)
+        sage: A.<x,y> = TateAlgebra(R)
+        sage: S.<a> = Zq(4)
+
+        sage: _pushout_family([a, x, 3])
+        Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Unramified Extension Field in a defined by x^2 + x + 1
+
+    """
+    from sage.structure.coerce_exceptions import CoercionException
+    from sage.categories.pushout import pushout
+    A = initial
+    for elt in elements:
+        if not isinstance(elt, Element):
+            raise TypeError("cannot coerce all the elements to the same parent")
+        try:
+            A = pushout(A, elt.parent())
+        except CoercionException:
+            raise TypeError("cannot coerce all the elements to the same parent")
+    return A
+
+
 cdef class TateAlgebraTerm(MonoidElement):
     r"""
     A class for Tate algebra terms.
@@ -437,6 +473,86 @@ cdef class TateAlgebraTerm(MonoidElement):
         
         """
         return (<pAdicGenericElement>self._coeff).valuation_c() - <long>self._exponent.dotprod(self._parent._log_radii)
+
+    cdef Element _call_c(self, list arg):
+        """
+        Return this term evaluated at ``args``.
+
+        INPUT::
+
+        - ``args`` -- elements
+
+        TESTS::
+
+            sage: R = Zp(2)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: M = A.monoid_of_terms()
+            sage: t = M(x*y)
+            sage: t(0, 1)
+            0
+
+        """
+        cdef Element ans = self._coeff
+        cdef ETuple exponent = self._exponent
+        cdef size_t ind
+        for ind in range(exponent._nonzero):
+            ans *= arg[exponent._data[2*ind]] ** exponent._data[2*ind+1]
+        return ans
+
+    def __call__(self, *args):
+        """
+        Return this term evaluated at ``args``.
+
+        INPUT::
+
+        - ``args`` -- elements
+
+        EXAMPLES::
+
+            sage: R = Zp(2)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: M = A.monoid_of_terms()
+            sage: t = M(x*y)
+            sage: t(1, 2)
+            2 + O(2^21)
+
+        An error is raised if we ask for the evaluation at one
+        point which is outside the domain of convergence::
+
+            sage: t(1/2, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given values are outside the domain of convergence
+
+        TESTS::
+
+            sage: t(1/2, 1, 0)
+            Traceback (most recent call last):
+            ...
+            TypeError: wrong number of arguments
+
+            sage: t(1/2, GF(3)(2))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce all the elements to the same parent
+
+        """
+        parent = self._parent
+        if len(args) != parent._ngens:
+            raise TypeError("wrong number of arguments")
+        A = _pushout_family(args, parent._field)
+        args = [ A(arg) for arg in args ]
+        ratio = A.absolute_e() // parent._base.absolute_e()
+        for i in range(parent._ngens):
+            if args[i].valuation() < -ratio * parent._log_radii[i]:
+                raise ValueError("the given values are outside the domain of convergence")
+        res = self._call_c(args)
+        if parent._integral:
+            try:
+                res = res.parent().integer_ring()(res)
+            except AttributeError:
+                pass
+        return res
 
     @coerce_binop
     def is_coprime_with(self, other):
@@ -1155,6 +1271,81 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._poly = self._poly.scalar_lmult(right)
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
         return ans
+
+    def __call__(self, *args):
+        """
+        Return this term evaluated at ``args``.
+
+        INPUT::
+
+        - ``args`` -- elements
+
+        EXAMPLES::
+
+            sage: R = Zp(2)
+            sage: A.<u,v> = TateAlgebra(R, log_radii=[0,-1])
+            sage: A
+            Tate Algebra in u (val >= 0), v (val >= 1) over 2-adic Field with capped relative precision 20
+
+            sage: f = u^2 + v^2
+            sage: f(1, 0)
+            1 + O(2^20)
+
+        An error is raised if we ask for the evaluation at one
+        point which is outside the domain of convergence::
+
+            sage: f(1, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given values are outside the domain of convergence
+
+        Evaluation at points in extensions is allowed::
+
+            sage: S.<a> = Zq(2^3)
+            sage: f(a, 2)
+            a^2 + 2^2 + O(2^20)
+
+            sage: T.<pi> = S.extension(x^2 - 2)
+            sage: f(pi, 2)
+            pi^2 + pi^4 + O(pi^42)
+
+            sage: f(pi, pi)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given values are outside the domain of convergence
+
+        This method can also be used to compose Tate series::
+
+            sage: f(u + v, 2*u)
+            (1 + 2^2 + O(2^20))*u^2 + (2 + O(2^20))*u*v + (1 + O(2^20))*v^2
+
+        or for partial evaluation::
+
+            sage: f(pi, v)
+            (pi^2 + O(pi^42)) + (1 + O(pi^40))*v^2
+
+        """
+        cdef TateAlgebraTerm t
+        parent = self._parent
+        if len(args) != parent._ngens:
+            raise TypeError("wrong number of arguments")
+        A = _pushout_family(args, parent._field)
+        args = [ A(arg) for arg in args ]
+        ratio = A.absolute_e() // parent._base.absolute_e()
+        for i in range(parent._ngens):
+            if args[i].valuation() < -ratio * parent._log_radii[i]:
+                raise ValueError("the given values are outside the domain of convergence")
+        res = A(0, self._prec)
+        for t in self._terms_c():
+            if t._valuation_c() >= res.precision_absolute():
+                break
+            res += t._call_c(args)
+        if parent._integral:
+            try:
+                res = res.parent().integer_ring()(res)
+            except AttributeError:
+                pass
+        return res
 
     cdef TateAlgebraElement _term_mul_c(self, TateAlgebraTerm term):
         r"""
@@ -2121,16 +2312,14 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f % s
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce numerator and all divisors to the same Tate algebra
+            TypeError: cannot coerce all the elements to the same parent
 
             sage: f % ZZ
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce numerator and all divisors to the same Tate algebra
+            TypeError: cannot coerce all the elements to the same parent
 
         """
-        from sage.categories.pushout import pushout
-        from sage.structure.coerce_exceptions import CoercionException
         parent = self.parent()
         if self.precision_absolute() is Infinity:
             self = self.add_bigoh(self.valuation() + parent.precision_cap())
@@ -2139,15 +2328,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         else:
             divisors = [divisors]
             onedivisor = True
-        A = self._parent
-        for d in divisors:
-            if not isinstance(d, Element):
-                raise TypeError("cannot coerce numerator and all divisors to the same Tate algebra")
-            try:
-                A = pushout(A, d.parent())
-            except CoercionException:
-                raise TypeError("cannot coerce numerator and all divisors to the same Tate algebra")
-
+        A = _pushout_family(divisors, self._parent)
         f = A(self)
         divisors = [A(d) for d in divisors]
         q, r = (<TateAlgebraElement>self)._quo_rem_c(divisors, quo, rem, False)

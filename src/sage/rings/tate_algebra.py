@@ -377,6 +377,7 @@ class TateTermMonoid(Monoid_class):
         self._ngens = len(self._names)
         self._log_radii = ETuple(A.log_radii())
         self._order = A.term_order()
+        self._integral = A._integral
         self._parent_algebra = A
 
     def _repr_(self):
@@ -906,7 +907,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: A._latex_()
             '\\QQ_{2}\\{x,y\\}'
             sage: A.integer_ring()._latex_()
-            '\\QQ_{2}\\{x,y\\}^\\circ'
+            '\\QQ_{2}\\{x,y\\}^{\\circ}'
 
             sage: B.<u1,u2> = TateAlgebra(R, log_radii=[1,2])
             sage: B._latex_()
@@ -1052,6 +1053,34 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
         """
         return self._cap
+
+    def absolute_e(self):
+        """
+        Return the absolute index of ramification of this
+        Tate algebra.
+
+        It is equal to the absolute index of ramification 
+        of the field of coefficients.
+
+        EXAMPLES::
+
+            sage: R = Zp(2)
+            sage: A.<u,v> = TateAlgebra(R)
+            sage: A.absolute_e()
+            1
+
+            sage: R.<a> = Zq(2^3)
+            sage: A.<u,v> = TateAlgebra(R)
+            sage: A.absolute_e()
+            1
+
+            sage: S.<a> = R.extension(x^2 - 2)
+            sage: A.<u,v> = TateAlgebra(S)
+            sage: A.absolute_e()
+            2
+
+        """
+        return self._base.absolute_e()
 
     def characteristic(self):
         """

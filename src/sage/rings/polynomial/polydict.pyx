@@ -1752,6 +1752,22 @@ cdef class ETuple:
         return result
 
     cpdef int dotprod(ETuple self, ETuple other):
+        """
+        Return the dot product of this tuple by ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: f = ETuple([0,1,1])
+            sage: e.dotprod(f)
+            2
+            sage: e = ETuple([1,1,-1])
+            sage: f = ETuple([0,-2,1])
+            sage: e.dotprod(f)
+            -3
+
+        """
         if self._length != other._length:
             raise ArithmeticError
 

@@ -28,7 +28,7 @@ import re
 
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.rings.infinity import infinity
+
 
 class Polynomial_padic(Polynomial):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
@@ -63,7 +63,7 @@ class Polynomial_padic(Polynomial):
         m = len(coeffs)
         if name is None:
             name = self.parent().variable_name()
-        for n in reversed(xrange(m)):
+        for n in reversed(range(m)):
             x = y = str(coeffs[n])
             if n == m-1 or x != "0":
                 if n != m-1:
@@ -71,11 +71,11 @@ class Polynomial_padic(Polynomial):
                 if y.find("-") == 0:
                     y = y[1:]
                 if n > 0 and ("+" in y or ("-" in y and y[0] != "O")):
-                    x = "(%s)"%x
+                    x = "(%s)" % x
                 if n > 1:
-                    var = "*%s^%s"%(name,n)
-                elif n==1:
-                    var = "*%s"%name
+                    var = "*%s^%s" % (name, n)
+                elif n == 1:
+                    var = "*%s" % name
                 else:
                     var = ""
                 s += x + var

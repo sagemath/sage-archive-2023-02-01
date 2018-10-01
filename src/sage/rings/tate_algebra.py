@@ -1,4 +1,4 @@
-"""
+r"""
 Tate algebras
 
 Let `K` be a finite extension of `\QQ_p` for some prime number `p`
@@ -809,7 +809,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
         - ``n`` - number of generators
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(2, 10)
             sage: A.<x,y> = TateAlgebra(R)

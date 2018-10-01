@@ -311,10 +311,12 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
 
         """
-        cdef int c = -cmp(self._valuation_c(), other._valuation_c())
+        cdef int c = other._valuation_c() - self._valuation_c()
         if not c:
             skey = self._parent.term_order().sortkey
-            c = cmp(skey(self._exponent), skey(other._exponent))
+            ks = skey(self._exponent)
+            ko = skey(other._exponent)
+            c = (ks > ko) - (ks < ko)
         return c
 
     cpdef _richcmp_(self, other, int op):
@@ -500,7 +502,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         Return this term evaluated at ``args``.
 
-        INPUT::
+        INPUT:
 
         - ``args`` -- elements
 
@@ -525,7 +527,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         Return this term evaluated at ``args``.
 
-        INPUT::
+        INPUT:
 
         - ``args`` -- elements
 
@@ -1356,7 +1358,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 c = (<TateAlgebraTerm>ts[i])._cmp_c(<TateAlgebraTerm>to[i])
                 if c: break
             else:
-                c = cmp(len(ts), len(to))
+                c = len(ts) - len(to)
         if op == op_LT:
             return c < 0
         if op == op_LE:
@@ -1370,7 +1372,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         Return this term evaluated at ``args``.
 
-        INPUT::
+        INPUT:
 
         - ``args`` -- elements
 
@@ -1467,7 +1469,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         Return the product of this series by the ``n``-th power 
         of the uniformizer.
         
-        INPUT::
+        INPUT:
 
         - ``n`` -- a non-negative integer
 
@@ -1496,7 +1498,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         Return the product of this series by the ``n``-th power 
         of the uniformizer.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- an integer
 
@@ -1535,7 +1537,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         Return the product of this series by the ``n``th power 
         of the uniformizer.
 
-        INPUT::
+        INPUT:
 
         - ``n`` - an integer
 
@@ -2275,7 +2277,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         r"""
         Perform the division of this series by ``divisors``.
 
-        INPUT::
+        INPUT:
 
         - ``divisors`` -- the list of divisors
 
@@ -2344,7 +2346,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         Perform the division of this series by ``divisors``.
 
-        INPUT::
+        INPUT:
 
         - ``divisors`` -- the list of divisors
 

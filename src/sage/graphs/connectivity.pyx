@@ -58,6 +58,8 @@ Methods
 """
 from __future__ import absolute_import
 from sage.rings.integer import Integer
+from sage.ext.memory_allocator cimport MemoryAllocator
+from sage.graphs.generic_graph_pyx cimport GenericGraph_pyx
 
 
 def is_connected(G):
@@ -2491,7 +2493,7 @@ class _LinkedListNode:
     This class implements a node of a (doubly) linked list and so has pointers
     to previous and next nodes in the list.
     """
-    def __init__(self, data=None):
+    def __init__(self, data):
         """
         Initialize this ``_LinkedListNode``.
 
@@ -2676,7 +2678,7 @@ class _Component:
         return e_list
 
 
-class TriconnectivitySPQR:
+cdef class TriconnectivitySPQR:
     r"""
     Decompose a graph into triconnected components and build SPQR-tree.
 
@@ -2827,6 +2829,72 @@ class TriconnectivitySPQR:
         list and for the lists of lists. Note that the internal graph copy
         must allow edge addition due to the insertion of virtual edges.
     """
+    cdef MemoryAllocator mem
+    cdef Py_ssize_t n
+    cdef Py_ssize_t m
+    cdef Py_ssize_t max_number_of_edges
+    cdef str graph_name
+
+    cdef list int_to_vertex
+    cdef dict vertex_to_int
+    cdef list int_to_original_edge_label
+    cdef GenericGraph_pyx graph_copy
+
+    # We associate a unique identifier (int) to each edge
+    cdef list int_to_edge
+    cdef dict edge_to_int
+
+    cdef int * edge_status
+    cdef bint * reverse_edges
+
+    cdef int * dfs_number
+
+    cdef list highpt
+    cdef dict in_high
+
+    # Translates DFS number of a vertex to its new number
+    cdef int * old_to_new
+    cdef int * newnum  # new number of vertex i
+    cdef int * node_at # node at dfs number of i
+    cdef int * lowpt1  # lowpt1 number of vertex i
+    cdef int * lowpt2  # lowpt2 number of vertex i
+
+    cdef list adj
+    cdef dict in_adj
+    cdef int * nd        # Number of descendants of vertex i
+    cdef int * parent    # Parent vertex of vertex i in the palm tree
+    cdef int * degree    # Degree of vertex i
+    cdef int * tree_arc  # Tree arc entering the vertex i
+    cdef int * vertex_at # vertex with DFS number of i
+
+    cdef int dfs_counter
+    cdef list components_list # list of components of `graph_copy`
+    cdef list graph_copy_adjacency # Stores adjacency list
+
+    cdef bint * starts_path # Does edge e_index start a path
+    cdef int start_vertex # First vertex of exploration
+
+    cdef int virtual_edge_num # number of created virtual edges
+    cdef set virtual_edges  # set of virtual edges created by the algorithm
+
+    # Stacks used in `path_search` function
+    cdef list e_stack
+    cdef int * t_stack_h
+    cdef int * t_stack_a
+    cdef int * t_stack_b
+    cdef int t_stack_top
+
+    cdef list comp_final_edge_list # entry i is list of edges in component i
+    cdef list comp_type            # entry i is type of component i
+    cdef dict final_edge_to_edge_index # associate final edge e to its index in int_to_edge
+    cdef GenericGraph_pyx spqr_tree # The final SPQR tree is stored
+
+    # Arrays used in different methods. Allocated only once
+    cdef int * tmp_array_n_int_1
+    cdef int * tmp_array_n_int_2
+    cdef int * tmp_array_n_int_3
+    cdef bint * tmp_array_n_bint_1
+
     def __init__(self, G, check=True):
         """
         Initialize this object, decompose the graph and build SPQR-tree.
@@ -2843,6 +2911,11 @@ class TriconnectivitySPQR:
         self.n = G.order()
         self.m = G.size()
         self.graph_name = G.name()
+        self.mem = MemoryAllocator()
+
+        # We set the largest possible index of an edge to 2 * m + 1
+        # The algorithm creates at most n virtual edges, so this is large enough
+        self.max_number_of_edges = 2 * self.m + 1
 
         # Trivial cases
         if self.n < 2:
@@ -2853,14 +2926,15 @@ class TriconnectivitySPQR:
             self.comp_type = [0]
             self.__build_spqr_tree()
             return
-        elif self.m < self.n -1:
+        elif self.m < self.n - 1:
             # less edges than a tree
             raise ValueError("graph is not connected")
         elif self.m < self.n:
             # less edges than a cycle
             raise ValueError("graph is not biconnected")
 
-        from sage.graphs.graph import Graph
+        cdef Py_ssize_t i
+        cdef Py_ssize_t e_index
 
         # Make a copy of the input graph G in which
         # - vertices are relabeled as integers in [0..n-1]
@@ -2869,6 +2943,7 @@ class TriconnectivitySPQR:
         self.int_to_vertex = G.vertices()
         self.vertex_to_int = {u: i for i,u in enumerate(self.int_to_vertex)}
         self.int_to_original_edge_label = [] # to associate original edge label
+        from sage.graphs.graph import Graph
         self.graph_copy = Graph(self.n, multiedges=True)
         for i, (u, v, l) in enumerate(G.edge_iterator()):
             self.graph_copy.add_edge(self.vertex_to_int[u], self.vertex_to_int[v], i)
@@ -2885,12 +2960,20 @@ class TriconnectivitySPQR:
         #
 
         # status of each edge: unseen=0, tree=1, frond=2
-        self.edge_status = {e_index: 0 for e_index in range(self.m)}
+        #-- self.edge_status = {e_index: 0 for e_index in range(self.m)}
+        self.edge_status = <int *> self.mem.allocarray(self.max_number_of_edges, sizeof(int))
+        for i in range(self.max_number_of_edges):
+            self.edge_status[i] = 0
 
         # Edges of the graph which are in the reverse direction in palm tree
-        self.reverse_edges = set()
+        self.reverse_edges = <bint *> self.mem.allocarray(self.max_number_of_edges, sizeof(bint))
+        for i in range(self.max_number_of_edges):
+            self.reverse_edges[i] = False
 
-        self.dfs_number = [0 for i in range(self.n)] # DFS number of vertex i
+        # DFS number of vertex i
+        self.dfs_number = <int *> self.mem.allocarray(self.n, sizeof(int))
+        for i in range(self.n):
+            self.dfs_number[i] = 0
 
         # Linked list of fronds entering vertex i in the order they are visited
         self.highpt = [_LinkedList() for i in range(self.n)]
@@ -2900,11 +2983,17 @@ class TriconnectivitySPQR:
         self.in_high = {e_index: None for e_index in range(self.m)}
 
         # Translates DFS number of a vertex to its new number
-        self.old_to_new = [0 for i in range(self.n+1)]
-        self.newnum = [0 for i in range(self.n)] # new number of vertex i
-        self.node_at = [0 for i in range(self.n+1)] # node at dfs number of i
-        self.lowpt1 = [None for i in range(self.n)] # lowpt1 number of vertex i
-        self.lowpt2 = [None for i in range(self.n)] # lowpt2 number of vertex i
+        self.old_to_new = <int *> self.mem.allocarray(self.n + 1, sizeof(int))
+        self.newnum = <int *> self.mem.allocarray(self.n + 1, sizeof(int))
+        self.node_at = <int *> self.mem.allocarray(self.n + 1, sizeof(int))
+        self.lowpt1 = <int *> self.mem.allocarray(self.n + 1, sizeof(int))
+        self.lowpt2 = <int *> self.mem.allocarray(self.n + 1, sizeof(int))
+        for i in range(self.n + 1):
+            self.old_to_new[i] = 0
+            self.newnum[i] = 0
+            self.node_at[i] = 0
+            self.lowpt1[i] = -1
+            self.lowpt2[i] = -1
 
         # i^th value contains a LinkedList of incident edges of vertex i
         self.adj = [_LinkedList() for i in range(self.n)]
@@ -2912,35 +3001,38 @@ class TriconnectivitySPQR:
         # A dictionary whose key is an edge, value is a pointer to element in
         # self.adj containing the edge. Used in the `path_search` function.
         self.in_adj = {}
-        self.nd = [None for i in range(self.n)] # number of descendants of vertex i
+        self.nd = <int *> self.mem.allocarray(self.n, sizeof(int))
+        for i in range(self.n):
+            self.nd[i] = 0
 
         # Parent vertex of vertex i in the palm tree
-        self.parent = [None for i in range(self.n)]
-        self.degree = [None for i in range(self.n)] # Degree of vertex i
-        self.tree_arc = [None for i in range(self.n)] # Tree arc entering the vertex i
-        self.vertex_at = [1 for i in range(self.n)] # vertex with DFS number of i
+        self.parent = <int *> self.mem.allocarray(self.n, sizeof(int))
+        self.degree = <int *> self.mem.allocarray(self.n, sizeof(int))
+        self.tree_arc = <int *> self.mem.allocarray(self.n, sizeof(int))
+        self.vertex_at = <int *> self.mem.allocarray(self.n, sizeof(int))
+        for i in range(self.n):
+            self.parent[i] = -1
+            self.degree[i] = -1
+            self.tree_arc[i] = -1
+            self.vertex_at[i] = 1
+
         self.dfs_counter = 0
         self.components_list = [] # list of components of `graph_copy`
         self.graph_copy_adjacency = [[] for i in range(self.n)] # Stores adjacency list
 
         # Dictionary of (e, True/False) to denote if edge e starts a path
-        self.starts_path = {e_index: False for e_index in range(self.m)}
-
-        self.is_biconnected = True # Boolean to store if the graph is biconnected or not
-        self.cut_vertex = None # If graph is not biconnected
+        self.starts_path = <bint *> self.mem.allocarray(self.max_number_of_edges, sizeof(bint))
 
         # Label used for virtual edges, incremented at every new virtual edge
         self.virtual_edge_num = 0
         # Virtual edges are stored in a set
         self.virtual_edges = set()
 
-        self.new_path = False # Boolean used to store if new path is started
-
         # Stacks used in `path_search` function
         self.e_stack = []
-        self.t_stack_h = [None for i in range(2*self.m + 1)]
-        self.t_stack_a = [None for i in range(2*self.m + 1)]
-        self.t_stack_b = [None for i in range(2*self.m + 1)]
+        self.t_stack_h = <int *> self.mem.allocarray(self.max_number_of_edges, sizeof(int))
+        self.t_stack_a = <int *> self.mem.allocarray(self.max_number_of_edges, sizeof(int))
+        self.t_stack_b = <int *> self.mem.allocarray(self.max_number_of_edges, sizeof(int))
         self.t_stack_top = 0
         self.t_stack_a[self.t_stack_top] = -1
 
@@ -2951,6 +3043,12 @@ class TriconnectivitySPQR:
         self.final_edge_to_edge_index = dict()
         # The final SPQR tree is stored
         self.spqr_tree = None # Graph
+
+        # Arrays used in different methods. We allocate them only once
+        self.tmp_array_n_int_1 = <int *> self.mem.allocarray(self.n, sizeof(int))
+        self.tmp_array_n_int_2 = <int *> self.mem.allocarray(self.n, sizeof(int))
+        self.tmp_array_n_int_3 = <int *> self.mem.allocarray(self.n, sizeof(int))
+        self.tmp_array_n_bint_1 = <bint *> self.mem.allocarray(self.n, sizeof(bint))
 
         #
         # Triconnectivity algorithm
@@ -2967,7 +3065,7 @@ class TriconnectivitySPQR:
 
         self.dfs_counter = 0 # Initialisation for dfs1()
         self.start_vertex = 0 # Initialisation for dfs1()
-        self.cut_vertex = self.__dfs1(self.start_vertex, check=check)
+        cdef int cut_vertex = self.__dfs1(self.start_vertex, check=check)
 
         if check:
             # If graph is disconnected
@@ -2975,16 +3073,17 @@ class TriconnectivitySPQR:
                 raise ValueError("graph is not connected")
 
             # If graph has a cut vertex
-            if self.cut_vertex != None:
+            if cut_vertex != -1:
                 raise ValueError("graph has a cut vertex")
 
         # Identify reversed edges to reflect the palm tree arcs and fronds
+        cdef bint up
         for e in self.graph_copy.edge_iterator():
             e_index = self.edge_to_int[e]
             up = (self.dfs_number[e[1]] - self.dfs_number[e[0]]) > 0
             if (up and self.edge_status[e_index] == 2) or (not up and self.edge_status[e_index] == 1):
                 # Add edge to the set reverse_edges
-                self.reverse_edges.add(e_index)
+                self.reverse_edges[e_index] = True
 
         self.__build_acceptable_adj_struct()
         self.__dfs2()
@@ -3002,7 +3101,7 @@ class TriconnectivitySPQR:
 
         self.__build_spqr_tree()
 
-    def __tstack_push(self, h, a, b):
+    cdef __tstack_push(self, h, a, b):
         """
         Push ``(h, a, b)`` triple on ``Tstack``.
         """
@@ -3011,26 +3110,26 @@ class TriconnectivitySPQR:
         self.t_stack_a[self.t_stack_top] = a
         self.t_stack_b[self.t_stack_top] = b
 
-    def __tstack_push_eos(self):
+    cdef __tstack_push_eos(self):
         """
         Push end-of-stack marker on ``Tstack``.
         """
         self.t_stack_top += 1
         self.t_stack_a[self.t_stack_top] = -1
 
-    def __tstack_not_eos(self):
+    cdef __tstack_not_eos(self):
         """
         Return ``True`` iff end-of-stack marker is not on top of ``Tstack``.
         """
         return self.t_stack_a[self.t_stack_top] != -1
 
-    def __estack_pop(self):
+    cdef __estack_pop(self):
         """
         Pop from estack and return the popped element
         """
         return self.e_stack.pop()
 
-    def __new_component(self, edges=[], type_c=0):
+    cdef __new_component(self, edges=[], type_c=0):
         """
         Create a new component and add ``edges`` to it.
 
@@ -3038,7 +3137,7 @@ class TriconnectivitySPQR:
         """
         self.components_list.append(_Component(edges, type_c))
 
-    def __new_virtual_edge(self, u, v):
+    cdef __new_virtual_edge(self, u, v):
         """
         Return a new virtual edge between ``u`` and ``v``.
         """
@@ -3050,7 +3149,7 @@ class TriconnectivitySPQR:
         self.virtual_edges.add(e_index)
         return e_index
 
-    def __high(self, v):
+    cdef __high(self, v):
         """
         Return the ``high(v)`` value, which is the first value in
         ``highpt`` list of ``v``.
@@ -3061,21 +3160,22 @@ class TriconnectivitySPQR:
         else:
             return head.get_data()
 
-    def __del_high(self, e_index):
+    cdef __del_high(self, e_index):
         """
         Delete edge ``e`` from the ``highpt`` list of the endpoint ``v``
         it belongs to.
         """
+        cdef int v
         if e_index in self.in_high:
             it = self.in_high[e_index]
             if it:
-                if e_index in self.reverse_edges:
+                if self.reverse_edges[e_index]:
                     v = self.int_to_edge[e_index][0]
                 else:
                     v = self.int_to_edge[e_index][1]
                 self.highpt[v].remove(it)
 
-    def __split_multiple_edges(self):
+    cdef __split_multiple_edges(self):
         """
         Make the graph simple and build bonds recording multiple edges.
 
@@ -3129,7 +3229,7 @@ class TriconnectivitySPQR:
                 sb.append(virtual_e_index)
                 self.__new_component(sb)
 
-    def __dfs1(self, start, check=True):
+    cdef int __dfs1(self, int start, bint check=True):
         """
         Build the palm-tree of the graph using a dfs traversal.
 
@@ -3148,17 +3248,26 @@ class TriconnectivitySPQR:
         OUTPUT:
 
         - If ``check`` is set to ``True``` and a cut vertex is found, the cut
-          vertex is returned. If no cut vertex is found, return ``None``.
-        - If ``check`` is set to ``False``, ``None`` is returned.
+          vertex is returned. If no cut vertex is found, return ``-1``.
+        - If ``check`` is set to ``False``, ``-1`` is returned.
         """
-        cdef list stack = [start]
+        cdef Py_ssize_t v, w
+        cdef Py_ssize_t e_index
+        cdef int cut_vertex = -1 # Storing the cut vertex, if any
         cdef list adjacency = [iter(self.graph_copy_adjacency[v]) for v in range(self.n)]
-        cdef list first_son = [None for v in range(self.n)] # For testing biconnectivity
-        self.parent = [None for v in range(self.n)]
-        s1 = None # Storing the cut vertex, if there is one
 
-        while stack:
-            v = stack[-1]
+        # Defining a stack. stack_top == -1 means empty stack
+        cdef int * stack = self.tmp_array_n_int_1
+        cdef Py_ssize_t stack_top = 0
+        stack[stack_top] = start
+
+        # Used for testing biconnectivity
+        cdef int * first_son = self.tmp_array_n_int_2
+        for v in range(self.n):
+            first_son[v] = -1
+
+        while stack_top != -1:
+            v = stack[stack_top]
 
             if not self.dfs_number[v]:
                 self.dfs_counter += 1
@@ -3176,11 +3285,12 @@ class TriconnectivitySPQR:
                 w = e[0] if e[0] != v else e[1] # Opposite vertex of edge e
                 if not self.dfs_number[w]:
                     self.edge_status[e_index] = 1 # tree edge
-                    if first_son[v] is None:
+                    if first_son[v] == -1:
                         first_son[v] = w
                     self.tree_arc[w] = e_index
 
-                    stack.append(w)
+                    stack_top += 1
+                    stack[stack_top] = w
                     self.parent[w] = v
 
                 else:
@@ -3193,20 +3303,21 @@ class TriconnectivitySPQR:
 
             except StopIteration:
                 # We trackback, so w takes the value of v and we pop the stack
-                w = stack.pop()
+                w = stack[stack_top]
+                stack_top -= 1
 
                 # Test termination
-                if not stack:
+                if stack_top == -1:
                     break
 
-                v = stack[-1]
+                v = stack[stack_top]
 
                 if check:
                     # Check for cut vertex.
                     # The situation in which there is no path from w to an
                     # ancestor of v : we have identified a cut vertex
-                    if (self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son[v] or self.parent[v] is not None):
-                        s1 = v
+                    if (self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son[v] or self.parent[v] != -1):
+                        cut_vertex = v
 
                 # Calculate the `lowpt1` and `lowpt2` values.
                 # `lowpt1` is the smallest vertex (the vertex x with smallest
@@ -3224,10 +3335,10 @@ class TriconnectivitySPQR:
 
                 self.nd[v] += self.nd[w]
 
-        return s1 # s1 is None if graph does not have a cut vertex
+        return cut_vertex # cut_vertex is -1 if graph does not have a cut vertex
 
 
-    def __build_acceptable_adj_struct(self):
+    cdef __build_acceptable_adj_struct(self):
         """
         Build the adjacency lists for each vertex with certain properties of
         the ordering, using the ``lowpt1`` and ``lowpt2`` values.
@@ -3238,32 +3349,33 @@ class TriconnectivitySPQR:
         incident vertices. The edges are then sorted by the ``phi`` values and
         added to adjacency list.
         """
-        max_size = 3*self.n + 2
+        cdef Py_ssize_t max_size = 3 * self.n + 2
         cdef Py_ssize_t i
+        cdef int e_index, edge_type, phi
         cdef list bucket = [[] for i in range(max_size + 1)]
 
         for e in self.graph_copy.edge_iterator():
-            e_index =self.edge_to_int[e]
+            e_index = self.edge_to_int[e]
             edge_type = self.edge_status[e_index]
 
-            # compute phi value
+            # Compute phi value
             # bucket sort adjacency list by phi values
-            if e_index in self.reverse_edges:
+            if self.reverse_edges[e_index]:
                 if edge_type == 1: # tree arc
                     if self.lowpt2[e[0]] < self.dfs_number[e[1]]:
-                        phi = 3*self.lowpt1[e[0]]
+                        phi = 3 * self.lowpt1[e[0]]
                     else:
-                        phi = 3*self.lowpt1[e[0]] + 2
+                        phi = 3 * self.lowpt1[e[0]] + 2
                 else: # tree frond
-                    phi = 3*self.dfs_number[e[0]]+1
+                    phi = 3 * self.dfs_number[e[0]] + 1
             else:
                 if edge_type == 1: # tree arc
                     if self.lowpt2[e[1]] < self.dfs_number[e[0]]:
-                        phi = 3*self.lowpt1[e[1]]
+                        phi = 3 * self.lowpt1[e[1]]
                     else:
-                        phi = 3*self.lowpt1[e[1]] + 2
+                        phi = 3 * self.lowpt1[e[1]] + 2
                 else: # tree frond
-                    phi = 3*self.dfs_number[e[1]]+1
+                    phi = 3 * self.dfs_number[e[1]] + 1
 
             bucket[phi].append(e_index)
 
@@ -3272,14 +3384,13 @@ class TriconnectivitySPQR:
             for e_index in bucket[i]:
                 e = self.int_to_edge[e_index]
                 node = _LinkedListNode(e_index)
-                if e_index in self.reverse_edges:
+                if self.reverse_edges[e_index]:
                     self.adj[e[1]].append(node)
-                    self.in_adj[e_index] = node
                 else:
                     self.adj[e[0]].append(node)
-                    self.in_adj[e_index] = node
+                self.in_adj[e_index] = node
 
-    def __path_finder(self, start):
+    cdef __path_finder(self, int start):
         """
         This function is a helper function for :meth:`__dfs2` function.
 
@@ -3289,12 +3400,23 @@ class TriconnectivitySPQR:
 
         - ``start`` -- the start vertex
         """
-        cdef list stack = [start]
-        cdef list seen = [False] * self.n
+        cdef bint new_path = True
+        cdef Py_ssize_t v, w
+        cdef Py_ssize_t e_index
+
+        # Defining a stack. stack_top == -1 means empty stack
+        cdef int * stack = self.tmp_array_n_int_1
+        cdef Py_ssize_t stack_top = 0
+        stack[stack_top] = start
+
+        cdef bint * seen = self.tmp_array_n_bint_1
+        for v in range(self.n):
+            seen[v] = False
+
         cdef list pointer_e_node = [self.adj[v].get_head() for v in range(self.n)]
 
-        while stack:
-            v = stack[-1]
+        while stack_top != -1:
+            v = stack[stack_top]
             if not seen[v]:
                 self.newnum[v] = self.dfs_counter - self.nd[v] + 1
                 seen[v] = True
@@ -3305,56 +3427,54 @@ class TriconnectivitySPQR:
                 e = self.int_to_edge[e_index]
                 pointer_e_node[v] = e_node.next
                 w = e[1] if e[0] == v else e[0] # opposite vertex of e
-                if self.new_path:
-                    self.new_path = False
+                if new_path:
+                    new_path = False
                     self.starts_path[e_index] = True
                 if self.edge_status[e_index] == 1: # tree arc
-                    stack.append(w)
+                    stack_top += 1
+                    stack[stack_top] = w
                 else:
                     # Identified a new frond that enters `w`. Add to `highpt[w]`.
                     highpt_node = _LinkedListNode(self.newnum[v])
                     self.highpt[w].append(highpt_node)
                     self.in_high[e_index] = highpt_node
-                    self.new_path = True
+                    new_path = True
 
             else:
                 # We trackback
                 self.dfs_counter -= 1
-                w = stack.pop()
+                stack_top -= 1
 
 
-    def __dfs2(self):
+    cdef __dfs2(self):
         """
         Update the values of ``lowpt1`` and ``lowpt2`` lists with the
         help of new numbering obtained from :meth:`__path_finder`.
         Populate ``highpt`` values.
         """
-        cdef Py_ssize_t i
+        cdef Py_ssize_t v
+        cdef Py_ssize_t e_index
+
         self.dfs_counter = self.n
-        self.newnum = [0 for i in range(self.n)]
         self.in_high = dict()
-        self.starts_path = dict()
-        for e in self.graph_copy.edge_iterator():
-            e_index = self.edge_to_int[e]
+        for e_index in range(len(self.int_to_edge)):
             self.in_high[e_index] = None
             self.starts_path[e_index] = False
-
-        self.new_path = True
 
         # We call the pathFinder function with the start vertex
         self.__path_finder(self.start_vertex)
 
         # Update `old_to_new` values with the calculated `newnum` values
-        for v in self.graph_copy.vertex_iterator():
+        for v in range(self.n):
             self.old_to_new[self.dfs_number[v]] = self.newnum[v]
 
         # Update lowpt values according to `newnum` values.
-        for v in self.graph_copy.vertex_iterator():
+        for v in range(self.n):
             self.node_at[self.newnum[v]] = v
             self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
             self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]
 
-    def __path_search(self, start):
+    cdef __path_search(self, int start):
         """
         Find the separation pairs and construct the split components.
 
@@ -3365,13 +3485,31 @@ class TriconnectivitySPQR:
 
         - ``start`` -- the start vertex
         """
-        cdef list stack_v = [start]
-        cdef dict y_dict = {start: 0}
-        cdef dict outv_dict = {start: self.adj[start].get_length()}
+        cdef int e_index, e_virt_index
+        cdef int x, y, h, xx
+        cdef int v, vnum, outv
+        cdef int w, wnum
+        cdef int temp_index, temp_target
+        cdef int a, b, e_ab_index, e_ab_source
+        cdef int e1_index, e2_index, e2_source
+        cdef int xy_index, xy_target
+        cdef int eh_index, eh_source
+
+        # Defining a stack. stack_v_top == -1 means empty stack
+        cdef int * stack_v = self.tmp_array_n_int_1
+        cdef Py_ssize_t stack_v_top = 0
+        stack_v[stack_v_top] = start
+
+        cdef int * y_dict = self.tmp_array_n_int_2
+        y_dict[start] = 0
+
+        cdef int * outv_dict = self.tmp_array_n_int_3
+        outv_dict[start] = self.adj[start].get_length()
+
         cdef dict e_node_dict = {start: self.adj[start].get_head()}
 
-        while stack_v:
-            v = stack_v[-1]
+        while stack_v_top != -1:
+            v = stack_v[stack_v_top]
             e_node = e_node_dict[v]
 
             if e_node:
@@ -3382,7 +3520,7 @@ class TriconnectivitySPQR:
                 e_index = e_node.get_data()
                 e = self.int_to_edge[e_index]
                 it = e_node
-                if e_index in self.reverse_edges:
+                if self.reverse_edges[e_index]:
                     w = e[0] # target
                 else:
                     w = e[1]
@@ -3403,7 +3541,8 @@ class TriconnectivitySPQR:
                         self.__tstack_push_eos()
 
                     # We emulate the recursive call on w using a stack
-                    stack_v.append(w)
+                    stack_v_top += 1
+                    stack_v[stack_v_top] = w
                     y_dict[w] = 0
                     outv_dict[w] = self.adj[w].get_length()
                     e_node_dict[w] = self.adj[w].get_head()
@@ -3426,14 +3565,14 @@ class TriconnectivitySPQR:
 
             else:
                 # We are done with v, so we trackback
-                stack_v.pop()
+                stack_v_top -= 1
 
                 # Test termination
-                if not stack_v:
+                if stack_v_top == -1:
                     continue
 
                 # Restore state of variables
-                v = stack_v[-1]
+                v = stack_v[stack_v_top]
                 e_node = e_node_dict[v]
                 y = y_dict[v]
                 vnum = self.newnum[v]
@@ -3441,7 +3580,7 @@ class TriconnectivitySPQR:
                 e_index = e_node.get_data()
                 e = self.int_to_edge[e_index]
                 it = e_node
-                if e_index in self.reverse_edges:
+                if self.reverse_edges[e_index]:
                     w = e[0] # target
                 else:
                     w = e[1]
@@ -3453,7 +3592,7 @@ class TriconnectivitySPQR:
                 temp_node = self.adj[w].get_head()
                 temp_index = temp_node.get_data()
                 temp = self.int_to_edge[temp_index]
-                if temp_index in self.reverse_edges:
+                if self.reverse_edges[temp_index]:
                     temp_target = temp[0]
                 else:
                     temp_target = temp[1]
@@ -3469,7 +3608,7 @@ class TriconnectivitySPQR:
                         self.t_stack_top -= 1
 
                     else:
-                        e_ab_index = None
+                        e_ab_index = -1
                         if self.degree[w] == 2 and self.newnum[temp_target] > wnum:
                             # found type-2 separation pair - (v, temp_target)
                             e1_index = self.__estack_pop()
@@ -3478,7 +3617,7 @@ class TriconnectivitySPQR:
                             e2 = self.int_to_edge[e2_index]
                             self.adj[w].remove(self.in_adj[e2_index])
 
-                            if e2_index in self.reverse_edges:
+                            if self.reverse_edges[e2_index]:
                                 x = e2[0] # target
                             else:
                                 x = e2[1] # target
@@ -3489,7 +3628,7 @@ class TriconnectivitySPQR:
                             self.degree[v] -= 1
                             self.degree[x] -= 1
 
-                            if e2_index in self.reverse_edges:
+                            if self.reverse_edges[e2_index]:
                                 e2_source = e2[1] # target
                             else:
                                 e2_source = e2[0]
@@ -3501,7 +3640,7 @@ class TriconnectivitySPQR:
                             if self.e_stack:
                                 e1_index = self.e_stack[-1]
                                 e1 = self.int_to_edge[e1_index]
-                                if e1_index in self.reverse_edges:
+                                if self.reverse_edges[e1_index]:
                                     if e1[1] == x and e1[0] == v:
                                         e_ab_index = self.__estack_pop()
                                         self.adj[x].remove(self.in_adj[e_ab_index])
@@ -3520,7 +3659,7 @@ class TriconnectivitySPQR:
                             while True:
                                 xy_index = self.e_stack[-1]
                                 xy = self.int_to_edge[xy_index]
-                                if xy_index in self.reverse_edges:
+                                if self.reverse_edges[xy_index]:
                                     x = xy[1]
                                     xy_target = xy[0]
                                 else:
@@ -3533,7 +3672,7 @@ class TriconnectivitySPQR:
                                     (self.newnum[xy_target] == a and self.newnum[x] == b):
                                     e_ab_index = self.__estack_pop()
                                     e_ab = self.int_to_edge[e_ab_index]
-                                    if e_ab_index in self.reverse_edges:
+                                    if self.reverse_edges[e_ab_index]:
                                         e_ab_source = e_ab[1] # source
                                     else:
                                         e_ab_source = e_ab[0] # source
@@ -3543,7 +3682,7 @@ class TriconnectivitySPQR:
                                 else:
                                     eh_index = self.__estack_pop()
                                     eh = self.int_to_edge[eh_index]
-                                    if eh_index in self.reverse_edges:
+                                    if self.reverse_edges[eh_index]:
                                         eh_source = eh[1]
                                     else:
                                         eh_source = eh[0]
@@ -3563,7 +3702,7 @@ class TriconnectivitySPQR:
                             comp = None
                             x = self.node_at[b]
 
-                        if e_ab_index is not None:
+                        if e_ab_index != -1:
                             comp = _Component([e_ab_index, e_virt_index], type_c=0)
                             e_virt_index = self.__new_virtual_edge(v, x)
                             e_virt = self.int_to_edge[e_virt_index]
@@ -3591,7 +3730,7 @@ class TriconnectivitySPQR:
                     temp_node = self.adj[w].get_head()
                     temp_index = temp_node.get_data()
                     temp = self.int_to_edge[temp_index]
-                    if temp_index in self.reverse_edges:
+                    if self.reverse_edges[temp_index]:
                         temp_target = temp[0]
                     else:
                         temp_target = temp[1]
@@ -3607,7 +3746,7 @@ class TriconnectivitySPQR:
                     while self.e_stack:
                         xy_index = self.e_stack[-1]
                         xy = self.int_to_edge[xy_index]
-                        if xy_index in self.reverse_edges:
+                        if self.reverse_edges[xy_index]:
                             xx = self.newnum[xy[1]] #source
                             y = self.newnum[xy[0]] #target
                         else:
@@ -3636,7 +3775,7 @@ class TriconnectivitySPQR:
                         eh_index = self.__estack_pop()
                         eh = self.int_to_edge[eh_index]
                         if self.in_adj[eh_index] != it:
-                            if eh_index in self.reverse_edges:
+                            if self.reverse_edges[eh_index]:
                                 self.adj[eh[1]].remove(self.in_adj[eh_index])
                             else:
                                 self.adj[eh[0]].remove(self.in_adj[eh_index])
@@ -3707,7 +3846,7 @@ class TriconnectivitySPQR:
             # Go to next edge in adjacency list
             e_node_dict[v] = e_node.next
 
-    def __assemble_triconnected_components(self):
+    cdef __assemble_triconnected_components(self):
         """
         Iterate through all the split components built by
         :meth:`__path_finder` and merges two bonds or two polygons that
@@ -3716,13 +3855,21 @@ class TriconnectivitySPQR:
         original vertices and edges. The triconnected components are stored
         in ``self.comp_final_edge_list`` and ``self.comp_type``.
         """
-        cdef Py_ssize_t i
-        cdef dict comp1 = {} # The index of first component that an edge belongs to
-        cdef dict comp2 = {} # The index of second component that an edge belongs to
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t e_index
+        cdef int c1_type
+
+        cdef Py_ssize_t num_components = len(self.components_list)
+        cdef bint * visited = <bint *> self.mem.allocarray(num_components, sizeof(bint))
+        for i in range(num_components):
+            visited[i] = False
+
+        # The index of first (second) component that an edge belongs to
+        cdef int * comp1 = <int *> self.mem.allocarray(len(self.int_to_edge), sizeof(int))
+        cdef int * comp2 = <int *> self.mem.allocarray(len(self.int_to_edge), sizeof(int))
+
         cdef dict item1 = {} # Pointer to the edge node in component1
         cdef dict item2 = {} # Pointer to the edge node in component2
-        cdef Py_ssize_t num_components = len(self.components_list)
-        cdef list visited = [False for i in range(num_components)]
 
         # For each edge, we populate the comp1, comp2, item1 and item2 values
         for i in range(num_components): # for each component
@@ -3746,7 +3893,7 @@ class TriconnectivitySPQR:
             l1 = c1.edge_list
             visited[i] = True
 
-            if l1.get_length() == 0:
+            if not l1.get_length():
                 continue
 
             if c1_type == 0 or c1_type == 1:
@@ -3796,11 +3943,13 @@ class TriconnectivitySPQR:
                     e_node = e_node_next
 
         # Convert connected components into original graph vertices and edges
+        cdef list e_list_new
+        cdef list e_index_list
         self.comp_final_edge_list = []
         self.comp_type = []
         self.final_edge_to_edge_index = dict()
         for comp in self.components_list:
-            if comp.edge_list.get_length() > 0:
+            if comp.edge_list.get_length():
                 e_index_list = comp.get_edge_list()
                 e_list_new = []
                 # For each edge, get the original source, target and label
@@ -3819,16 +3968,16 @@ class TriconnectivitySPQR:
                 self.comp_type.append(comp.component_type)
                 self.comp_final_edge_list.append(e_list_new)
 
-    def __build_spqr_tree(self):
+    cdef __build_spqr_tree(self):
         """
         Build the SPQR-tree of the graph and store it in variable
         ``self.spqr_tree``. See
         :meth:`~sage.graphs.connectivity.TriconnectivitySPQR.get_spqr_tree`.
         """
-        from sage.graphs.graph import Graph
         # Types of components 0: "P", 1: "S", 2: "R"
         cdef list component_type = ["P", "S", "R"]
 
+        from sage.graphs.graph import Graph
         self.spqr_tree = Graph(multiedges=False, name='SPQR-tree of {}'.format(self.graph_name))
 
         if len(self.comp_final_edge_list) == 1 and self.comp_type[0] == 0:
@@ -3838,7 +3987,8 @@ class TriconnectivitySPQR:
 
         cdef list int_to_vertex = []
         cdef dict partner_nodes = {}
-        cdef Py_ssize_t i
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t e_index
 
         for i in range(len(self.comp_final_edge_list)):
             # Create a new tree vertex

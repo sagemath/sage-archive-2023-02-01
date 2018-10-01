@@ -488,7 +488,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
     def coordinate_vector(self, e):
         """
-        Return the cooridinates of ``e`` with respect to the basis of the order.
+        Return the coordinates of ``e`` with respect to the basis of the order.
 
         INPUT:
 
@@ -1515,7 +1515,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
     def coordinate_vector(self, e):
         """
-        Return the cooridinates of ``e`` with respect to the basis of this order.
+        Return the coordinates of ``e`` with respect to the basis of this order.
 
         EXAMPLES::
 
@@ -1531,7 +1531,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
     def _coordinate_vector(self, e):
         """
-        Return the cooridinate vector of ``e`` with respect to the basis
+        Return the coordinate vector of ``e`` with respect to the basis
         of the order.
 
         Assuming ``e`` is in the maximal order, the coordinates are given
@@ -2358,7 +2358,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
         return iI
 
     def decomposition(self):
-        """
+        r"""
         Return prime ideal decomposition of `pO_\infty` where `p` is the unique
         prime ideal of the maximal infinite order of the rational function field.
 
@@ -2439,7 +2439,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
 
     def coordinate_vector(self, e):
         """
-        Return the cooridinates of ``e`` with respect to the basis of the order.
+        Return the coordinates of ``e`` with respect to the basis of the order.
 
         INPUT:
 

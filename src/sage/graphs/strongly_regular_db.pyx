@@ -128,14 +128,17 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
         from sage.rings.integer_ring import ZZ
         K = ZZ['x']
         x = K.gen()
-        rpoly = filter(lambda w: w[0]>0, (x*(4*x*(4*x-1)-1)-mu).roots())
-        if rpoly != []:
-            t = rpoly[0][0]
+        rpoly = (w for w in (x*(4*x*(4*x-1)-1) - mu).roots() if w[0] > 0)
+        try:
+            t = next(rpoly)[0]
             if (is_prime_power(4*t-1) and
                 is_prime_power(4*t+1)): # extra assumption in TODO!
                 from sage.graphs.generators.families import \
                                     MathonPseudocyclicStronglyRegularGraph
                 return (MathonPseudocyclicStronglyRegularGraph,t)
+        except StopIteration:
+            pass
+
 
 @cached_function
 def is_muzychuk_S6(int v, int k, int l, int mu):
@@ -1650,14 +1653,14 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return None
 
     def switch_OA_srg(c, n):
-        OA = map(tuple, orthogonal_array(c+1, n, resolvable=True))
+        OA = list(map(tuple, orthogonal_array(c+1, n, resolvable=True)))
         g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
                   loops=False)
         g.add_vertex(0)
         g.seidel_switching(OA[:c*n])
         return g
 
-    return (switch_OA_srg,c,n)
+    return (switch_OA_srg, c, n)
 
 
 def is_nowhere0_twoweight(int v, int k, int l, int mu):
@@ -1956,16 +1959,17 @@ def SRG_105_32_4_12():
        http://projecteuclid.org/euclid.bbms/1136902608
     """
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign
-    P = ProjectiveGeometryDesign(2,1,GF(4,'a'))
+    P = ProjectiveGeometryDesign(2, 1, GF(4, 'a'))
     IG = P.incidence_graph().line_graph()
     a = IG.automorphism_group()
     h = a.stabilizer(a.domain()[0])
-    o = filter(lambda x: len(x)==32, h.orbits())[0][0]
-    e = a.orbit((a.domain()[0],o),action="OnSets")
+    o = next(x for x in h.orbits() if len(x) == 32)[0]
+    e = a.orbit((a.domain()[0], o), action="OnSets")
     G = Graph()
     G.add_edges(e)
     G.name('Aut L(3,4) on flags')
     return G
+
 
 def SRG_120_77_52_44():
     r"""
@@ -2127,20 +2131,21 @@ def SRG_210_99_48_45():
         return libgap.Set([(x, g(x)) for x in range(1,8)] +
                           [(x, g(g(g(g(x))))) for x in range(1,8)])
 
-    kd=map(ekg,
-        [(7, 1, 2, 3, 4, 5), (7, 1, 3, 4, 5, 6),
-        (7, 3, 4, 5, 6, 2), (7, 1, 4, 3, 5, 6),
-        (7, 3, 1, 4, 5, 6), (7, 2, 4, 3, 5, 6),
-        (7, 3, 2, 4, 5, 1), (7, 2, 4, 3, 5, 1)])
-    s=libgap.SymmetricGroup(7)
-    O=s.Orbit(kd[0],libgap.OnSetsTuples)
-    sa=s.Action(O,libgap.OnSetsTuples)
-    G=Graph()
+    kd = list(map(ekg,
+                  [(7, 1, 2, 3, 4, 5), (7, 1, 3, 4, 5, 6),
+                   (7, 3, 4, 5, 6, 2), (7, 1, 4, 3, 5, 6),
+                   (7, 3, 1, 4, 5, 6), (7, 2, 4, 3, 5, 6),
+                   (7, 3, 2, 4, 5, 1), (7, 2, 4, 3, 5, 1)]))
+    s = libgap.SymmetricGroup(7)
+    O = s.Orbit(kd[0],libgap.OnSetsTuples)
+    sa = s.Action(O,libgap.OnSetsTuples)
+    G = Graph()
     for g in kd[1:]:
         G.add_edges(libgap.Orbit(sa,[libgap.Position(O,kd[0]),\
                                      libgap.Position(O,g)],libgap.OnSets))
     G.name('merging of S_7 on Circulant(6,[1,4])s')
     return G
+
 
 def SRG_243_110_37_60():
     r"""
@@ -2227,10 +2232,10 @@ def SRG_196_91_42_42():
     A = map(G,{0, 10, 27, 28, 31, 43, 50})
     B = map(G,{0, 11, 20, 25, 49, 55, 57})
     H = map(G,[13*i for i in range(k)])
-    U = map(frozenset,[[x+z for x in A] for z in G])
-    V = map(frozenset,[[x+z for x in B] for z in G])
-    W = map(frozenset,[[x+z for x in H] for z in G])
-    G = IntersectionGraph(U+V+W)
+    U = list(map(frozenset, [[x + z for x in A] for z in G]))
+    V = list(map(frozenset, [[x + z for x in B] for z in G]))
+    W = list(map(frozenset, [[x + z for x in H] for z in G]))
+    G = IntersectionGraph(U + V + W)
 
     G.seidel_switching(U)
 
@@ -2238,6 +2243,7 @@ def SRG_196_91_42_42():
     G.relabel()
     G.name('RSHCD+')
     return G
+
 
 def SRG_220_84_38_28():
     r"""
@@ -2362,7 +2368,7 @@ def SRG_280_117_44_52():
     H = hypergraphs.CompleteUniform(9,3)
     g = H.intersection_graph()
     V = g.complement().cliques_maximal()
-    V = map(frozenset,V)
+    V = map(frozenset, V)
 
     # G is the graph defined on V in which two vertices are adjacent when they
     # corresponding partitions cross-intersect on 7 nonempty sets

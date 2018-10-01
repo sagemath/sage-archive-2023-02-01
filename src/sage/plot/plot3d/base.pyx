@@ -848,7 +848,7 @@ cdef class Graphics3d(SageObject):
                         COLOR 1.0 1.0 1.0
                         TEXFUNC 0
                 Texdef texture...
-              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1.0
+              Ambient 0.3333333333333333 Diffuse 0.6666666666666666 Specular 0.0 Opacity 1.0
                Color 1.0 1.0 0.0
                TexFunc 0
                 Sphere center 1.0 -2.0 3.0 Rad 5.0 texture...
@@ -860,7 +860,7 @@ cdef class Graphics3d(SageObject):
             begin_scene
             ...
             Texdef texture...
-              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1.0
+              Ambient 0.3333333333333333 Diffuse 0.6666666666666666 Specular 0.0 Opacity 1.0
                Color 1.0 1.0 0.0
                TexFunc 0
             TRI V0 ...
@@ -1766,9 +1766,9 @@ end_scene""" % (render_params.antialiasing,
             ['solid surface',
              'facet normal 0.5257311121191338 0.8506508083520398 -0.0',
              '    outer loop',
-             '        vertex 0.0 1.2360679775 -0.472135955',
-             '        vertex 0.0 1.2360679775 0.472135955',
-             '        vertex 0.7639320225 0.7639320225 0.7639320225']
+             '        vertex 0.0 1.2360679774997898 -0.4721359549995796',
+             '        vertex 0.0 1.2360679774997898 0.4721359549995796',
+             '        vertex 0.7639320225002102 0.7639320225002102 0.7639320225002102']
         """
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)
@@ -1778,11 +1778,11 @@ end_scene""" % (render_params.antialiasing,
             self.triangulate()
             faces = self.face_list()
 
-        code = ("facet normal {} {} {}\n"
+        code = ("facet normal {!r} {!r} {!r}\n"
                 "    outer loop\n"
-                "        vertex {} {} {}\n"
-                "        vertex {} {} {}\n"
-                "        vertex {} {} {}\n"
+                "        vertex {!r} {!r} {!r}\n"
+                "        vertex {!r} {!r} {!r}\n"
+                "        vertex {!r} {!r} {!r}\n"
                 "    endloop\n"
                 "endfacet\n")
 
@@ -1906,7 +1906,7 @@ end_scene""" % (render_params.antialiasing,
             sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
             sage: a_amf = a.amf_ascii_string()
             sage: a_amf[:160]
-            '<?xml version="1.0" encoding="utf-8"?><amf><object id="surface"><mesh><vertices><vertex><coordinates><x>2.94871794872</x><y>-0.384615384615</y><z>-0.39358974359'
+            '<?xml version="1.0" encoding="utf-8"?><amf><object id="surface"><mesh><vertices><vertex><coordinates><x>2.948717948717948</x><y>-0.384615384615385</y><z>-0.3935'
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
             sage: print(p.amf_ascii_string(name='triangle'))
@@ -1923,7 +1923,7 @@ end_scene""" % (render_params.antialiasing,
         string_list = ['<?xml version="1.0" encoding="utf-8"?><amf><object id="{}"><mesh>'.format(name)]
 
         string_list += ['<vertices>']
-        vertex_template = '<vertex><coordinates><x>{}</x><y>{}</y><z>{}</z></coordinates></vertex>'
+        vertex_template = '<vertex><coordinates><x>{!r}</x><y>{!r}</y><z>{!r}</z></coordinates></vertex>'
         for v in self.vertices():
             string_list += [vertex_template.format(*v)]
         string_list += ['</vertices><volume>']

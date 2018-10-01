@@ -1099,14 +1099,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             False
             sage: g(y)
             x + y
-
-        We check that :trac:`26354` is fixed::
-
-            sage: hash(f) == hash(loads(dumps(f)))
-            True
         """
         self.__im_gens = _slots['__im_gens']
-        self.__im_gens.set_immutable()
         RingHomomorphism._update_slots(self, _slots)
 
     cdef dict _extra_slots(self):

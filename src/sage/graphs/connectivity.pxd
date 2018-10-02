@@ -44,16 +44,15 @@ cdef class TriconnectivitySPQR:
     cdef Py_ssize_t max_number_of_edges
     cdef str graph_name
 
+    # Relabel vertices in range [0..n-1]
     cdef list int_to_vertex
     cdef dict vertex_to_int
-    cdef GenericGraph_pyx graph_copy
 
-    # We associate a unique identifier (int) to each edge
-    cdef list int_to_edge
-    cdef dict edge_to_int
-    cdef list int_to_original_edge_label
+    # We associate a unique identifier (int) to each edge and store extremities
+    # and original labels in distinct arrays.
     cdef int* edge_extremity_first
     cdef int* edge_extremity_second
+    cdef list int_to_original_edge_label
     cdef int virtual_edge_num # number of created virtual edges
 
     cdef int* edge_status

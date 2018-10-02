@@ -2728,18 +2728,18 @@ cdef class TriconnectivitySPQR:
         ....: (10, 11), (10, 12)])
         sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
-        Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
-        Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
-        Polygon:  [(8, 12, 'newVEdge1'), (1, 12, None), (8, 1, 'newVEdge2')]
-        Bond:  [(1, 8, None), (8, 1, 'newVEdge2'), (8, 1, 'newVEdge3')]
-        Polygon:  [(5, 8, None), (8, 1, 'newVEdge3'), (4, 5, 'newVEdge8'), (4, 1, 'newVEdge9')]
-        Polygon:  [(5, 6, None), (6, 7, None), (5, 7, 'newVEdge5')]
-        Bond:  [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
-        Polygon:  [(5, 7, 'newVEdge6'), (4, 7, None), (5, 4, 'newVEdge7')]
-        Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
-        Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
-        Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
-        Triconnected:  [(1, 13, None), (2, 13, None), (3, 13, None), (3, 1, 'newVEdge11'), (2, 3, None), (1, 2, None)]
+        Triconnected: [(3, 13, None), (1, 13, None), (2, 13, None), (2, 3, None), (1, 2, None), (3, 1, 'newVEdge0')]
+        Polygon: [(3, 4, None), (3, 1, 'newVEdge0'), (4, 1, 'newVEdge1')]
+        Bond: [(1, 4, None), (4, 1, 'newVEdge1'), (4, 1, 'newVEdge2')]
+        Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge3')]
+        Bond: [(7, 5, 'newVEdge3'), (5, 7, 'newVEdge4'), (5, 7, None)]
+        Polygon: [(5, 7, 'newVEdge4'), (4, 7, None), (5, 4, 'newVEdge5')]
+        Bond: [(4, 5, None), (5, 4, 'newVEdge5'), (5, 4, 'newVEdge6')]
+        Polygon: [(5, 4, 'newVEdge6'), (4, 1, 'newVEdge2'), (5, 8, None), (8, 1, 'newVEdge8')]
+        Bond: [(1, 8, None), (8, 1, 'newVEdge8'), (8, 1, 'newVEdge9')]
+        Triconnected: [(8, 9, None), (9, 12, None), (9, 11, None), (8, 11, None), (10, 11, None), (9, 10, None), (10, 12, None), (8, 12, 'newVEdge10')]
+        Bond: [(8, 12, 'newVEdge10'), (12, 8, 'newVEdge11'), (8, 12, None)]
+        Polygon: [(8, 1, 'newVEdge9'), (12, 8, 'newVEdge11'), (1, 12, None)]
 
     An example from [Gut2001]_::
 
@@ -2855,29 +2855,26 @@ cdef class TriconnectivitySPQR:
         cdef Py_ssize_t i, j
         cdef Py_ssize_t e_index
 
-        # Make a copy of the input graph G in which
-        # - vertices are relabeled as integers in [0..n-1]
-        # - edges are relabeled with distinct labels in [0..m-1] to distinguish
+        # We relabel the graph and store it in different arrays:
+        # - Vertices are relabeled as integers in [0..n-1]
+        # - Edges are relabeled with distinct labels in [0..m-1] to distinguish
         #   between multi-edges
-        # - virtual edges created by the algorithm have labels >= m
-        # - We use edge labels as unique edge identifiers
+        # - Virtual edges created by the algorithm have labels >= m
+        # - We use these edge labels as unique edge identifiers. Each of these
+        #   edge labels is also the index of the edge extremities and original
+        #   edge label in appropriate arrays
+        # - The status of an edge is: unseen=0, tree=1, frond=2, inactive=-1
         self.int_to_vertex = G.vertices()
         self.vertex_to_int = {u: i for i,u in enumerate(self.int_to_vertex)}
-        self.int_to_original_edge_label = [] # to associate original edge label
-        self.int_to_edge = []
-        self.edge_to_int = {}
         self.edge_extremity_first = <int * > self.mem.allocarray(self.max_number_of_edges, sizeof(int))
         self.edge_extremity_second = <int * > self.mem.allocarray(self.max_number_of_edges, sizeof(int))
-        from sage.graphs.graph import Graph
-        self.graph_copy = Graph(self.n, multiedges=True)
+        self.int_to_original_edge_label = [] # to associate original edge label
+        self.edge_status = <int *> self.mem.allocarray(self.max_number_of_edges, sizeof(int))
         for e_index, (u, v, l) in enumerate(G.edge_iterator()):
-            e = (self.vertex_to_int[u], self.vertex_to_int[v], e_index)
-            self.graph_copy.add_edge(e)
-            self.int_to_edge.append(e)
-            self.edge_to_int[e] = e_index
             self.int_to_original_edge_label.append(l)
-            self.edge_extremity_first[e_index] = e[0]
-            self.edge_extremity_second[e_index] = e[1]
+            self.edge_extremity_first[e_index] = self.vertex_to_int[u]
+            self.edge_extremity_second[e_index] = self.vertex_to_int[v]
+            self.edge_status[e_index] = 0
 
         # Label used for virtual edges, incremented at every new virtual edge
         self.virtual_edge_num = 0
@@ -2885,12 +2882,6 @@ cdef class TriconnectivitySPQR:
         #
         # Initialize data structures needed for the algorithm
         #
-
-        # status of each edge: unseen=0, tree=1, frond=2
-        #-- self.edge_status = {e_index: 0 for e_index in range(self.m)}
-        self.edge_status = <int *> self.mem.allocarray(self.max_number_of_edges, sizeof(int))
-        for i in range(self.max_number_of_edges):
-            self.edge_status[i] = 0
 
         # Edges of the graph which are in the reverse direction in palm tree
         self.reverse_edges = <bint *> self.mem.allocarray(self.max_number_of_edges, sizeof(bint))
@@ -2939,7 +2930,7 @@ cdef class TriconnectivitySPQR:
         self.vertex_at = <int *> self.mem.allocarray(self.n, sizeof(int))
         for i in range(self.n):
             self.parent[i] = -1
-            self.degree[i] = -1
+            self.degree[i] = 0
             self.tree_arc[i] = -1
             self.vertex_at[i] = 1
 
@@ -2961,7 +2952,7 @@ cdef class TriconnectivitySPQR:
         # The final triconnected components are stored
         self.comp_final_edge_list = [] # i^th entry is list of edges in i^th component
         self.comp_type = [] # i^th entry is type of i^th component
-        # associate final edge e to its index in int_to_edge
+        # associate final edge e to its internal index
         self.final_edge_to_edge_index = {}
         # The final SPQR tree is stored
         self.spqr_tree = None # Graph
@@ -2980,9 +2971,15 @@ cdef class TriconnectivitySPQR:
         self.__split_multiple_edges()
 
         # Build adjacency list
-        for i, j, e_index in self.graph_copy.edge_iterator():
+        for e_index in range(self.m + self.virtual_edge_num):
+            if self.edge_status[e_index] == -1:
+                continue
+            i = self.edge_extremity_first[e_index]
+            j = self.edge_extremity_second[e_index]
             self.graph_copy_adjacency[i].append(e_index)
             self.graph_copy_adjacency[j].append(e_index)
+            self.degree[i] += 1
+            self.degree[j] += 1
 
         self.dfs_counter = 0 # Initialisation for dfs1()
         self.start_vertex = 0 # Initialisation for dfs1()
@@ -2999,7 +2996,11 @@ cdef class TriconnectivitySPQR:
 
         # Identify reversed edges to reflect the palm tree arcs and fronds
         cdef bint up
-        for i, j, e_index in self.graph_copy.edge_iterator():
+        for e_index in range(self.m + self.virtual_edge_num):
+            if self.edge_status[e_index] == -1:
+                continue
+            i = self.edge_extremity_first[e_index]
+            j = self.edge_extremity_second[e_index]
             up = (self.dfs_number[j] - self.dfs_number[i]) > 0
             if (up and self.edge_status[e_index] == 2) or (not up and self.edge_status[e_index] == 1):
                 # Add edge to the set reverse_edges
@@ -3031,8 +3032,7 @@ cdef class TriconnectivitySPQR:
         self.virtual_edge_num += 1
         self.edge_extremity_first[e_index] = u
         self.edge_extremity_second[e_index] = v
-        self.int_to_edge.append((u, v, e_index))
-        self.edge_to_int[(u, v, e_index)] = e_index
+        self.edge_status[e_index] = 0
         return e_index
 
     cdef __del_high(self, int e_index):
@@ -3060,9 +3060,6 @@ cdef class TriconnectivitySPQR:
         be created, all the `k` edges are deleted from the graph and the virtual
         edge between `u` and `v` is added to the graph.
         """
-        if not self.graph_copy.has_multiple_edges():
-            return
-
         cdef dict sub_bucket
         cdef list b, sb
         cdef int u, v, e_index, virtual_e_index
@@ -3095,10 +3092,9 @@ cdef class TriconnectivitySPQR:
                 # virtual edge to graph_copy, and create a component containing
                 # all removed multiple edges and the virtual edge.
                 for e_index in sb:
-                    self.graph_copy.delete_edge(self.int_to_edge[e_index])
+                    self.edge_status[e_index] = -1
 
                 virtual_e_index = self.__new_virtual_edge(u, v)
-                self.graph_copy.add_edge(self.int_to_edge[virtual_e_index])
                 self.edge_status[virtual_e_index] = 0
 
                 sb.append(virtual_e_index)
@@ -3129,7 +3125,7 @@ cdef class TriconnectivitySPQR:
         cdef Py_ssize_t v, w
         cdef Py_ssize_t e_index
         cdef int cut_vertex = -1 # Storing the cut vertex, if any
-        cdef int* adjacency = <int*> sig_malloc(self.n * sizeof(int))
+        cdef int* adjacency = self.tmp_array_n_int_3
         cdef list cur_adj
         cdef Py_ssize_t len_cur_adj
         for v in range(self.n):
@@ -3151,7 +3147,6 @@ cdef class TriconnectivitySPQR:
             if not self.dfs_number[v]:
                 self.dfs_counter += 1
                 self.dfs_number[v] = self.dfs_counter
-                self.degree[v] = int(self.graph_copy.degree(v))
                 self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
                 self.nd[v] = 1
 
@@ -3163,7 +3158,7 @@ cdef class TriconnectivitySPQR:
             elif adjacency[v] != -1:
                 e_index = cur_adj[adjacency[v]]
                 adjacency[v] += 1
-                while self.edge_status[e_index]:
+                while self.edge_status[e_index] > 0:
                     if adjacency[v] == len_cur_adj:
                         adjacency[v] = -1
                         break
@@ -3225,7 +3220,6 @@ cdef class TriconnectivitySPQR:
 
                 self.nd[v] += self.nd[w]
 
-        sig_free(adjacency)
         return cut_vertex # cut_vertex is -1 if graph does not have a cut vertex
 
     cdef __build_acceptable_adj_struct(self):
@@ -3245,8 +3239,12 @@ cdef class TriconnectivitySPQR:
         cdef list bucket = [[] for i in range(max_size + 1)]
         cdef _LinkedListNode node
 
-        for u, v, e_index in self.graph_copy.edge_iterator():
+        for e_index in range(self.m + self.virtual_edge_num):
             edge_type = self.edge_status[e_index]
+            if edge_type == -1:
+                continue
+            u = self.edge_extremity_first[e_index]
+            v = self.edge_extremity_second[e_index]
 
             # Compute phi value
             # bucket sort adjacency list by phi values
@@ -3346,7 +3344,7 @@ cdef class TriconnectivitySPQR:
 
         self.dfs_counter = self.n
         self.in_high = {}
-        for e_index in range(len(self.int_to_edge)):
+        for e_index in range(self.m + self.virtual_edge_num):
             self.in_high[e_index] = None
             self.starts_path[e_index] = False
 
@@ -3508,7 +3506,6 @@ cdef class TriconnectivitySPQR:
                                 x = self.edge_extremity_second[e2_index] # target
 
                             e_virt_index = self.__new_virtual_edge(v, x)
-                            self.graph_copy.add_edge(self.int_to_edge[e_virt_index])
                             self.degree[v] -= 1
                             self.degree[x] -= 1
 
@@ -3577,7 +3574,6 @@ cdef class TriconnectivitySPQR:
                                     self.degree[xy_target] -= 1
 
                             e_virt_index = self.__new_virtual_edge(self.node_at[a], self.node_at[b])
-                            self.graph_copy.add_edge(self.int_to_edge[e_virt_index])
                             comp.finish_tric_or_poly(e_virt_index)
                             self.components_list.append(comp)
                             comp = None
@@ -3586,7 +3582,6 @@ cdef class TriconnectivitySPQR:
                         if e_ab_index != -1:
                             comp = _Component([e_ab_index, e_virt_index], 0)
                             e_virt_index = self.__new_virtual_edge(v, x)
-                            self.graph_copy.add_edge(self.int_to_edge[e_virt_index])
                             comp.add_edge(e_virt_index)
                             self.degree[x] -= 1
                             self.degree[v] -= 1
@@ -3641,7 +3636,6 @@ cdef class TriconnectivitySPQR:
                         self.degree[self.node_at[y]] -= 1
 
                     e_virt_index = self.__new_virtual_edge(v, self.node_at[self.lowpt1[w]])
-                    self.graph_copy.add_edge(self.int_to_edge[e_virt_index]) # Add virtual edge to graph
                     comp.finish_tric_or_poly(e_virt_index) # Add virtual edge to component
                     self.components_list.append(comp)
                     comp = None
@@ -3659,7 +3653,6 @@ cdef class TriconnectivitySPQR:
                         comp_bond.add_edge(eh_index)
                         comp_bond.add_edge(e_virt_index)
                         e_virt_index = self.__new_virtual_edge(v, self.node_at[self.lowpt1[w]])
-                        self.graph_copy.add_edge(self.int_to_edge[e_virt_index])
                         comp_bond.add_edge(e_virt_index)
                         if eh_index in self.in_high:
                             self.in_high[e_virt_index] = self.in_high[eh_index]
@@ -3688,7 +3681,6 @@ cdef class TriconnectivitySPQR:
                         (<_LinkedList> self.adj[v]).remove(it)
                         comp_bond = _Component([e_virt_index], 0)
                         e_virt_index = self.__new_virtual_edge(self.node_at[self.lowpt1[w]], v)
-                        self.graph_copy.add_edge(self.int_to_edge[e_virt_index])
                         comp_bond.add_edge(e_virt_index)
 
                         eh_index = self.tree_arc[v]
@@ -3742,8 +3734,8 @@ cdef class TriconnectivitySPQR:
             visited[i] = False
 
         # The index of first (second) component that an edge belongs to
-        cdef int* comp1 = <int*> self.mem.allocarray(len(self.int_to_edge), sizeof(int))
-        cdef int* comp2 = <int*> self.mem.allocarray(len(self.int_to_edge), sizeof(int))
+        cdef int* comp1 = <int*> self.mem.allocarray(self.m + self.virtual_edge_num, sizeof(int))
+        cdef int* comp2 = <int*> self.mem.allocarray(self.m + self.virtual_edge_num, sizeof(int))
 
         cdef dict item1 = {} # Pointer to the edge node in component1
         cdef dict item2 = {} # Pointer to the edge node in component2
@@ -3782,7 +3774,6 @@ cdef class TriconnectivitySPQR:
                     if not self.__is_virtual_edge(e_index):
                         e_node = e_node_next
                         continue
-                    e = self.int_to_edge[e_index]
 
                     j = comp1[e_index]
                     if visited[j]:
@@ -3896,18 +3887,18 @@ cdef class TriconnectivitySPQR:
             ....: (10, 11), (10, 12)])
             sage: tric = TriconnectivitySPQR(G)
             sage: tric.print_triconnected_components()
-            Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
-            Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
-            Polygon:  [(8, 12, 'newVEdge1'), (1, 12, None), (8, 1, 'newVEdge2')]
-            Bond:  [(1, 8, None), (8, 1, 'newVEdge2'), (8, 1, 'newVEdge3')]
-            Polygon:  [(5, 8, None), (8, 1, 'newVEdge3'), (4, 5, 'newVEdge8'), (4, 1, 'newVEdge9')]
-            Polygon:  [(5, 6, None), (6, 7, None), (5, 7, 'newVEdge5')]
-            Bond:  [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
-            Polygon:  [(5, 7, 'newVEdge6'), (4, 7, None), (5, 4, 'newVEdge7')]
-            Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
-            Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
-            Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
-            Triconnected:  [(1, 13, None), (2, 13, None), (3, 13, None), (3, 1, 'newVEdge11'), (2, 3, None), (1, 2, None)]
+            Triconnected: [(3, 13, None), (1, 13, None), (2, 13, None), (2, 3, None), (1, 2, None), (3, 1, 'newVEdge0')]
+            Polygon: [(3, 4, None), (3, 1, 'newVEdge0'), (4, 1, 'newVEdge1')]
+            Bond: [(1, 4, None), (4, 1, 'newVEdge1'), (4, 1, 'newVEdge2')]
+            Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge3')]
+            Bond: [(7, 5, 'newVEdge3'), (5, 7, 'newVEdge4'), (5, 7, None)]
+            Polygon: [(5, 7, 'newVEdge4'), (4, 7, None), (5, 4, 'newVEdge5')]
+            Bond: [(4, 5, None), (5, 4, 'newVEdge5'), (5, 4, 'newVEdge6')]
+            Polygon: [(5, 4, 'newVEdge6'), (4, 1, 'newVEdge2'), (5, 8, None), (8, 1, 'newVEdge8')]
+            Bond: [(1, 8, None), (8, 1, 'newVEdge8'), (8, 1, 'newVEdge9')]
+            Triconnected: [(8, 9, None), (9, 12, None), (9, 11, None), (8, 11, None), (10, 11, None), (9, 10, None), (10, 12, None), (8, 12, 'newVEdge10')]
+            Bond: [(8, 12, 'newVEdge10'), (12, 8, 'newVEdge11'), (8, 12, None)]
+            Polygon: [(8, 1, 'newVEdge9'), (12, 8, 'newVEdge11'), (1, 12, None)]
         """
         # The types are {0: "Bond", 1: "Polygon", 2: "Triconnected"}
         cdef list prefix = ["Bond", "Polygon", "Triconnected"]

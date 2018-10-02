@@ -233,16 +233,16 @@ class _Coordinates(object):
 
     def to_cartesian(self, func, params=None):
         """
-        Returns a 3-tuple of functions, parameterized over ``params``, that
+        Return a 3-tuple of functions, parameterized over ``params``, that
         represents the Cartesian coordinates of the value of ``func``.
 
         INPUT:
 
-         - ``func`` - A function in this coordinate space. Corresponds to the
-           independent variable.
+         - ``func`` -- function in this coordinate space. Corresponds
+           to the independent variable.
 
-         - ``params`` - The parameters of ``func``. Corresponds to the dependent
-           variables.
+         - ``params`` -- the parameters of ``func``. Corresponds to
+           the dependent variables.
 
         EXAMPLES::
 
@@ -264,21 +264,33 @@ class _Coordinates(object):
             sage: f(a, b) = 2*a+b
             sage: T.to_cartesian(f, [a, b])
             (a + b, a - b, 2*a + b)
+
             sage: t1,t2,t3=T.to_cartesian(lambda a,b: 2*a+b)
             sage: import inspect
             sage: inspect.getargspec(t1) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t1) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
             sage: inspect.getargspec(t2) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t2) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
             sage: inspect.getargspec(t3) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t3) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
+
             sage: def g(a,b): return 2*a+b
             sage: t1,t2,t3=T.to_cartesian(g)
-            sage: inspect.getargspec(t1)
+            sage: inspect.getargspec(t1) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t1) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
             sage: t1,t2,t3=T.to_cartesian(2*a+b)
             sage: inspect.getargspec(t1) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t1) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
 
         If we cannot guess the right parameter names, then the
         parameters are named `u` and `v`::
@@ -289,6 +301,8 @@ class _Coordinates(object):
             sage: t1,t2,t3=T.to_cartesian(operator.add)
             sage: inspect.getargspec(t1) # py2
             ArgSpec(args=['u', 'v'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t1) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
             sage: [h(1,2) for h in T.to_cartesian(operator.mul)]
             [3.0, -1.0, 2.0]
             sage: [h(u=1,v=2) for h in T.to_cartesian(operator.mul)]
@@ -377,6 +391,7 @@ def _find_arguments_for_callable(func):
     """
     Find the names of arguments (that do not have default values) for
     a callable function, taking care of several special cases in Sage.
+
     If the parameters cannot be found, then return None.
 
     EXAMPLES::

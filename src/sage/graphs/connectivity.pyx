@@ -58,6 +58,7 @@ Methods
 """
 from __future__ import absolute_import
 from sage.rings.integer cimport Integer
+from cysignals.memory cimport sig_malloc, sig_free
 
 
 def is_connected(G):
@@ -3010,6 +3011,7 @@ cdef class TriconnectivitySPQR:
         self.__path_search(self.start_vertex)
 
         # last split component
+        cdef _Component c
         if self.e_stack:
             e_index = self.__estack_pop()
             c = _Component(self.e_stack, 0)
@@ -3127,15 +3129,19 @@ cdef class TriconnectivitySPQR:
         cdef Py_ssize_t v, w
         cdef Py_ssize_t e_index
         cdef int cut_vertex = -1 # Storing the cut vertex, if any
-        cdef list adjacency = [iter(self.graph_copy_adjacency[v]) for v in range(self.n)]
+        cdef int* adjacency = <int*> sig_malloc(self.n * sizeof(int))
+        cdef list cur_adj
+        cdef Py_ssize_t len_cur_adj
+        for v in range(self.n):
+            adjacency[v] = 0
 
         # Defining a stack. stack_top == -1 means empty stack
-        cdef int * stack = self.tmp_array_n_int_1
+        cdef int* stack = self.tmp_array_n_int_1
         cdef Py_ssize_t stack_top = 0
         stack[stack_top] = start
 
         # Used for testing biconnectivity
-        cdef int * first_son = self.tmp_array_n_int_2
+        cdef int* first_son = self.tmp_array_n_int_2
         for v in range(self.n):
             first_son[v] = -1
 
@@ -3145,15 +3151,26 @@ cdef class TriconnectivitySPQR:
             if not self.dfs_number[v]:
                 self.dfs_counter += 1
                 self.dfs_number[v] = self.dfs_counter
-                self.degree[v] = self.graph_copy.degree(v)
+                self.degree[v] = int(self.graph_copy.degree(v))
                 self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
                 self.nd[v] = 1
 
-            try:
-                e_index = next(adjacency[v])
+            cur_adj = self.graph_copy_adjacency[v]
+            len_cur_adj = len(cur_adj)
+            # Find the next e_index such that self.edge_status[e_index] is False
+            if adjacency[v] == len_cur_adj:
+                adjacency[v] = -1
+            elif adjacency[v] != -1:
+                e_index = cur_adj[adjacency[v]]
+                adjacency[v] += 1
                 while self.edge_status[e_index]:
-                    e_index = next(adjacency[v])
+                    if adjacency[v] == len_cur_adj:
+                        adjacency[v] = -1
+                        break
+                    e_index = cur_adj[adjacency[v]]
+                    adjacency[v] += 1
 
+            if adjacency[v] != -1:
                 # Opposite vertex of edge e
                 w = self.__edge_other_extremity(e_index, v)
                 if not self.dfs_number[w]:
@@ -3174,7 +3191,7 @@ cdef class TriconnectivitySPQR:
                     elif self.dfs_number[w] > self.lowpt1[v]:
                         self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
 
-            except StopIteration:
+            else:
                 # We trackback, so w takes the value of v and we pop the stack
                 w = stack[stack_top]
                 stack_top -= 1
@@ -3208,6 +3225,7 @@ cdef class TriconnectivitySPQR:
 
                 self.nd[v] += self.nd[w]
 
+        sig_free(adjacency)
         return cut_vertex # cut_vertex is -1 if graph does not have a cut vertex
 
     cdef __build_acceptable_adj_struct(self):

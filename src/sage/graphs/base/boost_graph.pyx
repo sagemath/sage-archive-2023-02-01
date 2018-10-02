@@ -655,13 +655,13 @@ cpdef min_spanning_tree(g,
         sage: min_spanning_tree(g)
         Traceback (most recent call last):
         ...
-        ValueError: could not convert string to float: a
+        ValueError: could not convert string to float:...
 
         sage: g = Graph([(0,1,1), (1,2,[1,2,3])], weighted=True)
         sage: min_spanning_tree(g)
         Traceback (most recent call last):
         ...
-        TypeError: float() argument must be a string or a number
+        TypeError: float() argument must be a string or a number...
     """
     from sage.graphs.graph import Graph
 
@@ -888,12 +888,12 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         ...
         RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
 
-    Wrong starting vartex::
+    Wrong starting vertex::
 
-        sage: shortest_paths(g, [])
+        sage: shortest_paths(g, 55)
         Traceback (most recent call last):
         ...
-        ValueError: The starting vertex [] is not in the graph.
+        ValueError: The starting vertex 55 is not in the graph.
     """
     from sage.graphs.generic_graph import GenericGraph
 

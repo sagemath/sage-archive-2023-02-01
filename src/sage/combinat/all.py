@@ -121,8 +121,10 @@ from .alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatri
 from .plane_partition import PlanePartition, PlanePartitions
 
 # Parking Functions
-from .non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
-from .parking_functions import ParkingFunctions, ParkingFunction
+lazy_import('sage.combinat.non_decreasing_parking_function',
+            ['NonDecreasingParkingFunctions', 'NonDecreasingParkingFunction'])
+lazy_import('sage.combinat.parking_functions',
+            ['ParkingFunctions', 'ParkingFunction'])
 
 # Trees and Tamari interval posets
 from .ordered_tree import (OrderedTree, OrderedTrees,

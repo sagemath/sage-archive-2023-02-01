@@ -1,40 +1,23 @@
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.generic_graph_pyx cimport GenericGraph_pyx
 
-cdef class _LinkedListNode:
-    cdef _LinkedListNode prev, next
-    cdef Py_ssize_t data
+ctypedef struct _LinkedListNode:
+    _LinkedListNode * prev
+    _LinkedListNode * next
+    Py_ssize_t data
 
-    cdef inline set_data(self, Py_ssize_t data):
-        self.data = data
-
-    cdef inline Py_ssize_t get_data(self):
-        return self.data
-
-cdef class _LinkedList:
-    cdef _LinkedListNode head, tail
-    cdef Py_ssize_t length
-
-    cdef inline _LinkedListNode get_head(self):
-        return self.head
-
-    cdef inline Py_ssize_t get_length(self):
-        return self.length
-
-    cdef remove(self, _LinkedListNode node)
-    cdef set_head(self, _LinkedListNode h)
-    cdef append(self, _LinkedListNode node)
-    cdef push_front(self, _LinkedListNode node)
-    cdef concatenate(self, _LinkedList lst2)
+ctypedef struct _LinkedList:
+    _LinkedListNode * head
+    _LinkedListNode * tail
+    Py_ssize_t length
 
 cdef class _Component:
-    cdef _LinkedList edge_list
+    cdef MemoryAllocator mem
+    cdef _LinkedList * edge_list
     cdef int component_type
 
-    cdef inline add_edge(self, e):
-        self.edge_list.append(_LinkedListNode(e))
-
-    cdef finish_tric_or_poly(self, e)
+    cdef add_edge(self, Py_ssize_t e_index)
+    cdef finish_tric_or_poly(self, Py_ssize_t e_index)
     cdef list get_edge_list(self)
 
 cdef class TriconnectivitySPQR:
@@ -60,8 +43,8 @@ cdef class TriconnectivitySPQR:
 
     cdef int* dfs_number
 
-    cdef list highpt
-    cdef dict in_high
+    cdef _LinkedList ** highpt
+    cdef _LinkedListNode ** in_high
 
     # Translates DFS number of a vertex to its new number
     cdef int* old_to_new
@@ -70,8 +53,8 @@ cdef class TriconnectivitySPQR:
     cdef int* lowpt1  # lowpt1 number of vertex i
     cdef int* lowpt2  # lowpt2 number of vertex i
 
-    cdef list adj
-    cdef dict in_adj
+    cdef _LinkedList ** adj
+    cdef _LinkedListNode ** in_adj
     cdef int* nd        # Number of descendants of vertex i
     cdef int* parent    # Parent vertex of vertex i in the palm tree
     cdef int* degree    # Degree of vertex i
@@ -159,18 +142,10 @@ cdef class TriconnectivitySPQR:
             return self.edge_extremity_second[e_index]
         return self.edge_extremity_first[e_index]
 
-    cdef inline __high(self, int v):
-        """
-        Return the ``high(v)`` value, which is the first value in
-        ``highpt`` list of ``v``.
-        """
-        cdef _LinkedListNode head = (<_LinkedList> self.highpt[v]).get_head()
-        if head is None:
-            return 0
-        else:
-            return head.get_data()
 
     cdef int __new_virtual_edge(self, int u, int v)
+    cdef _LinkedListNode * __new_LinkedListNode(self, Py_ssize_t e_index)
+    cdef Py_ssize_t __high(self, Py_ssize_t v)
     cdef __del_high(self, int e_index)
     cdef __split_multiple_edges(self)
     cdef int __dfs1(self, int start, bint check=*)

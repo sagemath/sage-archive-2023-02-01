@@ -2482,116 +2482,111 @@ def spqr_tree_to_graph(T):
     return G
 
 
-cdef class _LinkedListNode:
+# Helper methods for ``TriconnectivitySPQR``.
+# Define a doubly linked list
+
+cdef inline _LinkedListNode_initialize(_LinkedListNode * node, Py_ssize_t data):
     """
-    Node in a ``_LinkedList``.
-
-    This class is a helper class for ``TriconnectivitySPQR``.
-
-    This class implements a node of a (doubly) linked list and so has pointers
-    to previous and next nodes in the list.
+    Initialize the ``_LinkedListNode`` with value data.
     """
-    def __init__(self, data):
-        """
-        Initialize this ``_LinkedListNode``.
+    node.prev = NULL
+    node.next = NULL
+    node.data = data
 
-        INPUT:
 
-        - ``data`` -- an integer
-        """
-        self.prev = None
-        self.next = None
-        self.set_data(data)
-
-cdef class _LinkedList:
+cdef inline _LinkedList_initialize(_LinkedList * ll):
     """
-    A doubly linked list with head and tail pointers.
-
-    This is a helper class for ``TriconnectivitySPQR``.
-
-    This class implements a doubly linked list of ``_LinkedListNode``.
+    Initialize the ``_LinkedList``.
     """
-    def __init__(self):
-        """
-        Initialize this ``_LinkedList``.
-        """
-        self.head = None
-        self.tail = None
-        self.length = 0
+    ll.head = NULL
+    ll.tail = NULL
+    ll.length = 0
 
-    cdef remove(self, _LinkedListNode node):
-        """
-        Remove the node ``node`` from the linked list.
-        """
-        if node.prev is None and node.next is None:
-            self.head = None
-            self.tail = None
-        elif node.prev is None: # node is head
-            self.head = node.next
-            node.next.prev = None
-        elif node.next is None: #node is tail
-            node.prev.next = None
-            self.tail = node.prev
-        else:
-            node.prev.next = node.next
-            node.next.prev = node.prev
-        self.length -= 1
+cdef _LinkedList_set_head(_LinkedList * ll, _LinkedListNode * h):
+    """
+    Set the node ``h`` as the head and tail of the linked list ``ll``.
+    """
+    ll.head = h
+    ll.tail = h
+    ll.length = 1
 
-    cdef set_head(self, _LinkedListNode h):
-        """
-        Set the node ``h`` as the head and tail of the linked list.
-        """
-        self.head = h
-        self.tail = h
-        self.length = 1
+cdef inline _LinkedListNode * _LinkedList_get_head(_LinkedList * ll):
+    """
+    Return the head of the linked list ``ll``.
+    """
+    return ll.head
 
-    cdef append(self, _LinkedListNode node):
-        """
-        Append the node ``node`` to the linked list.
-        """
-        if self.head is None:
-            self.set_head(node)
-        else:
-            self.tail.next = node
-            node.prev = self.tail
-            self.tail = node
-            self.length += 1
+cdef inline Py_ssize_t _LinkedList_get_length(_LinkedList * ll):
+    """
+    Return the length of the linked list ``ll``.
+    """
+    return ll.length
 
-    cdef push_front(self, _LinkedListNode node):
-        """
-        Add node ``node`` to the beginning of the linked list.
-        """
-        if self.head is None:
-            self.set_head(node)
-        else:
-            self.head.prev = node
-            node.next = self.head
-            self.head = node
-            self.length += 1
+cdef _LinkedList_append(_LinkedList * ll, _LinkedListNode * node):
+    """
+    Append the node ``node`` to the linked list ``ll``.
+    """
+    if not ll.head:
+        _LinkedList_set_head(ll, node)
+    else:
+        ll.tail.next = node
+        node.prev = ll.tail
+        ll.tail = node
+        ll.length += 1
 
-    def to_string(self):
-        """
-        Return a string representation of self.
-        """
-        temp = self.head
-        s = ""
-        while temp:
-            s += "  " + str(temp.get_data())
-            temp = temp.next
-        return s
+cdef _LinkedList_remove(_LinkedList * ll, _LinkedListNode * node):
+    """
+    Remove the node ``node`` from the linked list ``ll``.
+    """
+    if not node.prev and not node.next:
+        ll.head = NULL
+        ll.tail = NULL
+    elif not node.prev: # node is head
+        ll.head = node.next
+        node.next.prev = NULL
+    elif not node.next: #node is tail
+        node.prev.next = NULL
+        ll.tail = node.prev
+    else:
+        node.prev.next = node.next
+        node.next.prev = node.prev
+    ll.length -= 1
 
-    cdef concatenate(self, _LinkedList lst2):
-        """
-        Concatenate lst2 to self.
+cdef _LinkedList_push_front(_LinkedList * ll, _LinkedListNode * node):
+    """
+    Add node ``node`` to the beginning of the linked list ``ll``.
+    """
+    if not ll.head:
+        _LinkedList_set_head(ll, node)
+    else:
+        ll.head.prev = node
+        node.next = ll.head
+        ll.head = node
+        ll.length += 1
 
-        Makes lst2 empty.
-        """
-        self.tail.next = lst2.head
-        lst2.head.prev = self.tail
-        self.tail = lst2.tail
-        self.length += lst2.length
-        lst2.head = None
-        lst2.length = 0
+cdef _LinkedList_concatenate(_LinkedList * lst1, _LinkedList * lst2):
+    """
+    Concatenate lst2 to lst1.
+
+    Makes lst2 empty.
+    """
+    lst1.tail.next = lst2.head
+    lst2.head.prev = lst1.tail
+    lst1.tail = lst2.tail
+    lst1.length += lst2.length
+    lst2.head = NULL
+    lst2.length = 0
+
+cdef str _LinkedList_to_string(_LinkedList * ll):
+    """
+    Return a string representation of self.
+    """
+    cdef _LinkedListNode * temp = ll.head
+    cdef str s = ""
+    while temp:
+        s += "  " + str(temp.data)
+        temp = temp.next
+    return s
 
 cdef class _Component:
     """
@@ -2620,12 +2615,24 @@ cdef class _Component:
 
         - `type_c` -- type of the component (0, 1, or 2).
         """
-        self.edge_list = _LinkedList()
-        for e in edge_list:
-            self.add_edge(e)
+        self.mem = MemoryAllocator()
+        self.edge_list = <_LinkedList *> self.mem.malloc(sizeof(_LinkedList))
+        _LinkedList_initialize(self.edge_list)
+
+        cdef Py_ssize_t e_index
+        for e_index in edge_list:
+            self.add_edge(e_index)
         self.component_type = type_c
 
-    cdef finish_tric_or_poly(self, e):
+    cdef add_edge(self, Py_ssize_t e_index):
+        """
+        Add edge index ``e_index`` to the component.
+        """
+        cdef _LinkedListNode * node = <_LinkedListNode *> self.mem.malloc(sizeof(_LinkedListNode))
+        _LinkedListNode_initialize(node, e_index)
+        _LinkedList_append(self.edge_list, node)
+
+    cdef finish_tric_or_poly(self, Py_ssize_t e_index):
         r"""
         Finalize the component by adding edge ``e``.
 
@@ -2633,8 +2640,8 @@ cdef class _Component:
         Classify the component as a polygon or triconnected component
         depending on the number of edges belonging to it.
         """
-        self.add_edge(e)
-        if self.edge_list.get_length() > 3:
+        self.add_edge(e_index)
+        if _LinkedList_get_length(self.edge_list) > 3:
             self.component_type = 2
         else:
             self.component_type = 1
@@ -2649,16 +2656,16 @@ cdef class _Component:
             type_str = "Polygon: "
         else:
             type_str = "Triconnected: "
-        return type_str + self.edge_list.to_string()
+        return type_str + _LinkedList_to_string(self.edge_list)
 
     cdef list get_edge_list(self):
         """
         Return the list of edges belonging to the component.
         """
         cdef list e_list = []
-        cdef _LinkedListNode e_node = self.edge_list.get_head()
+        cdef _LinkedListNode * e_node = _LinkedList_get_head(self.edge_list)
         while e_node:
-            e_list.append(e_node.get_data())
+            e_list.append(e_node.data)
             e_node = e_node.next
         return e_list
 
@@ -2894,11 +2901,16 @@ cdef class TriconnectivitySPQR:
             self.dfs_number[i] = 0
 
         # Linked list of fronds entering vertex i in the order they are visited
-        self.highpt = [_LinkedList() for i in range(self.n)]
+        self.highpt = <_LinkedList **> self.mem.allocarray(self.n, sizeof(_LinkedList *))
+        for i in range(self.n):
+            self.highpt[i] = <_LinkedList *> self.mem.malloc(sizeof(_LinkedList))
+            _LinkedList_initialize(self.highpt[i])
 
         # A dictionary whose key is an edge e, value is a pointer to element in
         # self.highpt containing the edge e. Used in the `path_search` function.
-        self.in_high = {e_index: None for e_index in range(self.m)}
+        self.in_high = <_LinkedListNode **> self.mem.allocarray(self.max_number_of_edges, sizeof(_LinkedListNode *))
+        for i in range(self.max_number_of_edges):
+            self.in_high[i] = NULL
 
         # Translates DFS number of a vertex to its new number
         self.old_to_new = <int *> self.mem.allocarray(self.n + 1, sizeof(int))
@@ -2914,11 +2926,17 @@ cdef class TriconnectivitySPQR:
             self.lowpt2[i] = -1
 
         # i^th value contains a LinkedList of incident edges of vertex i
-        self.adj = [_LinkedList() for i in range(self.n)]
+        self.adj = <_LinkedList **> self.mem.allocarray(self.n, sizeof(_LinkedList *))
+        for i in range(self.n):
+            self.adj[i] = <_LinkedList *> self.mem.malloc(sizeof(_LinkedList))
+            _LinkedList_initialize(self.adj[i])
 
         # A dictionary whose key is an edge, value is a pointer to element in
         # self.adj containing the edge. Used in the `path_search` function.
-        self.in_adj = {}
+        self.in_adj = <_LinkedListNode **> self.mem.allocarray(self.max_number_of_edges, sizeof(_LinkedListNode *))
+        for i in range(self.max_number_of_edges):
+            self.in_adj[i] = NULL
+
         self.nd = <int *> self.mem.allocarray(self.n, sizeof(int))
         for i in range(self.n):
             self.nd[i] = 0
@@ -3035,21 +3053,38 @@ cdef class TriconnectivitySPQR:
         self.edge_status[e_index] = 0
         return e_index
 
+    cdef _LinkedListNode * __new_LinkedListNode(self, Py_ssize_t e_index):
+        """
+        Create a new ``_LinkedListNode`` initialized with value ``e_index``.
+        """
+        cdef _LinkedListNode * node = <_LinkedListNode *> self.mem.malloc(sizeof(_LinkedListNode))
+        _LinkedListNode_initialize(node, e_index)
+        return node
+
+    cdef Py_ssize_t __high(self, Py_ssize_t v):
+        """
+        Return the ``high(v)`` value, which is the first value in
+        ``highpt`` list of ``v``.
+        """
+        cdef _LinkedListNode * head = _LinkedList_get_head(self.highpt[v])
+        if head:
+            return head.data
+        else:
+            return 0
+
     cdef __del_high(self, int e_index):
         """
         Delete edge ``e`` from the ``highpt`` list of the endpoint ``v``
         it belongs to.
         """
         cdef int v
-        cdef _LinkedListNode it
-        if e_index in self.in_high:
-            it = <_LinkedListNode> self.in_high[e_index]
-            if it:
-                if self.reverse_edges[e_index]:
-                    v = self.edge_extremity_first[e_index]
-                else:
-                    v = self.edge_extremity_second[e_index]
-                (<_LinkedList> self.highpt[v]).remove(it)
+        cdef _LinkedListNode * it = self.in_high[e_index]
+        if it:
+            if self.reverse_edges[e_index]:
+                v = self.edge_extremity_first[e_index]
+            else:
+                v = self.edge_extremity_second[e_index]
+            _LinkedList_remove(self.highpt[v], it)
 
     cdef __split_multiple_edges(self):
         """
@@ -3237,7 +3272,7 @@ cdef class TriconnectivitySPQR:
         cdef Py_ssize_t i, u, v
         cdef int e_index, edge_type, phi
         cdef list bucket = [[] for i in range(max_size + 1)]
-        cdef _LinkedListNode node
+        cdef _LinkedListNode * node
 
         for e_index in range(self.m + self.virtual_edge_num):
             edge_type = self.edge_status[e_index]
@@ -3270,11 +3305,11 @@ cdef class TriconnectivitySPQR:
         # Populate `adj` and `in_adj` with the sorted edges
         for i in range(1, max_size + 1):
             for e_index in bucket[i]:
-                node = _LinkedListNode(e_index)
+                node = self.__new_LinkedListNode(e_index)
                 if self.reverse_edges[e_index]:
-                    (<_LinkedList> self.adj[self.edge_extremity_second[e_index]]).append(node)
+                    _LinkedList_append(self.adj[self.edge_extremity_second[e_index]], node)
                 else:
-                    (<_LinkedList> self.adj[self.edge_extremity_first[e_index]]).append(node)
+                    _LinkedList_append(self.adj[self.edge_extremity_first[e_index]], node)
                 self.in_adj[e_index] = node
 
     cdef __path_finder(self, int start):
@@ -3290,7 +3325,8 @@ cdef class TriconnectivitySPQR:
         cdef bint new_path = True
         cdef Py_ssize_t v, w
         cdef Py_ssize_t e_index
-        cdef _LinkedListNode e_node, highpt_node
+        cdef _LinkedListNode * e_node
+        cdef _LinkedListNode * highpt_node
 
         # Defining a stack. stack_top == -1 means empty stack
         cdef int* stack = self.tmp_array_n_int_1
@@ -3301,17 +3337,19 @@ cdef class TriconnectivitySPQR:
         for v in range(self.n):
             seen[v] = False
 
-        cdef list pointer_e_node = [(<_LinkedList> self.adj[v]).get_head() for v in range(self.n)]
+        cdef _LinkedListNode ** pointer_e_node = <_LinkedListNode ** > self.mem.allocarray(self.n, sizeof(_LinkedListNode *))
+        for v in range(self.n):
+            pointer_e_node[v] = _LinkedList_get_head(self.adj[v])
 
         while stack_top != -1:
             v = stack[stack_top]
             if not seen[v]:
                 self.newnum[v] = self.dfs_counter - self.nd[v] + 1
                 seen[v] = True
-            e_node = <_LinkedListNode> pointer_e_node[v]
+            e_node = pointer_e_node[v]
 
             if e_node:
-                e_index = e_node.get_data()
+                e_index = e_node.data
                 pointer_e_node[v] = e_node.next
                 # opposite vertex of e
                 w = self.__edge_other_extremity(e_index, v)
@@ -3323,8 +3361,8 @@ cdef class TriconnectivitySPQR:
                     stack[stack_top] = w
                 else:
                     # Identified a new frond that enters `w`. Add to `highpt[w]`.
-                    highpt_node = _LinkedListNode(self.newnum[v])
-                    (<_LinkedList> self.highpt[w]).append(highpt_node)
+                    highpt_node = self.__new_LinkedListNode(self.newnum[v])
+                    _LinkedList_append(self.highpt[w], highpt_node)
                     self.in_high[e_index] = highpt_node
                     new_path = True
 
@@ -3343,9 +3381,8 @@ cdef class TriconnectivitySPQR:
         cdef Py_ssize_t e_index
 
         self.dfs_counter = self.n
-        self.in_high = {}
         for e_index in range(self.m + self.virtual_edge_num):
-            self.in_high[e_index] = None
+            self.in_high[e_index] = NULL
             self.starts_path[e_index] = False
 
         # We call the pathFinder function with the start vertex
@@ -3381,7 +3418,11 @@ cdef class TriconnectivitySPQR:
         cdef int e1_index, e2_index, e2_source
         cdef int xy_index, xy_target
         cdef int eh_index, eh_source
-        cdef _LinkedListNode it, e_node, temp_node, vnum_node, e_virt_node
+        cdef _LinkedListNode * it
+        cdef _LinkedListNode * e_node
+        cdef _LinkedListNode * temp_node
+        cdef _LinkedListNode * vnum_node
+        cdef _LinkedListNode * e_virt_node
         cdef _Component comp
 
         # Defining a stack. stack_v_top == -1 means empty stack
@@ -3393,20 +3434,21 @@ cdef class TriconnectivitySPQR:
         y_dict[start] = 0
 
         cdef int* outv_dict = self.tmp_array_n_int_3
-        outv_dict[start] = (<_LinkedList> self.adj[start]).get_length()
+        outv_dict[start] = _LinkedList_get_length(self.adj[start])
 
-        cdef dict e_node_dict = {start: (<_LinkedList> self.adj[start]).get_head()}
+        cdef _LinkedListNode ** e_node_dict = <_LinkedListNode **> self.mem.allocarray(self.n, sizeof(_LinkedListNode *))
+        e_node_dict[start] = _LinkedList_get_head(self.adj[start])
 
         while stack_v_top != -1:
             v = stack_v[stack_v_top]
-            e_node = <_LinkedListNode> e_node_dict[v]
+            e_node = e_node_dict[v]
 
             if e_node:
                 # Restore values of variables
                 y = y_dict[v]
                 vnum = self.newnum[v]
                 outv = outv_dict[v]
-                e_index = e_node.get_data()
+                e_index = e_node.data
                 it = e_node
                 if self.reverse_edges[e_index]:
                     w = self.edge_extremity_first[e_index] # target
@@ -3432,8 +3474,8 @@ cdef class TriconnectivitySPQR:
                     stack_v_top += 1
                     stack_v[stack_v_top] = w
                     y_dict[w] = 0
-                    outv_dict[w] = (<_LinkedList> self.adj[w]).get_length()
-                    e_node_dict[w] = (<_LinkedList> self.adj[w]).get_head()
+                    outv_dict[w] = _LinkedList_get_length(self.adj[w])
+                    e_node_dict[w] = _LinkedList_get_head(self.adj[w])
                     y_dict[v] = y
                     continue
 
@@ -3461,11 +3503,11 @@ cdef class TriconnectivitySPQR:
 
                 # Restore state of variables
                 v = stack_v[stack_v_top]
-                e_node = <_LinkedListNode> e_node_dict[v]
+                e_node = e_node_dict[v]
                 y = y_dict[v]
                 vnum = self.newnum[v]
                 outv = outv_dict[v]
-                e_index = e_node.get_data()
+                e_index = e_node.data
                 it = e_node
                 if self.reverse_edges[e_index]:
                     w = self.edge_extremity_first[e_index] # target
@@ -3476,8 +3518,8 @@ cdef class TriconnectivitySPQR:
                 # Continue operations with tree arc e
 
                 self.e_stack.append(self.tree_arc[w])
-                temp_node = (<_LinkedList> self.adj[w]).get_head()
-                temp_index = temp_node.get_data()
+                temp_node = _LinkedList_get_head(self.adj[w])
+                temp_index = temp_node.data
                 if self.reverse_edges[temp_index]:
                     temp_target = self.edge_extremity_first[temp_index]
                 else:
@@ -3498,7 +3540,7 @@ cdef class TriconnectivitySPQR:
                             # found type-2 separation pair - (v, temp_target)
                             e1_index = self.__estack_pop()
                             e2_index = self.__estack_pop()
-                            (<_LinkedList> self.adj[w]).remove(<_LinkedListNode> self.in_adj[e2_index])
+                            _LinkedList_remove(self.adj[w], self.in_adj[e2_index])
 
                             if self.reverse_edges[e2_index]:
                                 x = self.edge_extremity_first[e2_index] # target
@@ -3524,13 +3566,13 @@ cdef class TriconnectivitySPQR:
                                     if (self.edge_extremity_first[e1_index] == v
                                         and self.edge_extremity_second[e1_index] == x):
                                         e_ab_index = self.__estack_pop()
-                                        (<_LinkedList> self.adj[x]).remove(<_LinkedListNode> self.in_adj[e_ab_index])
+                                        _LinkedList_remove(self.adj[x], self.in_adj[e_ab_index])
                                         self.__del_high(e_ab_index)
                                 else:
                                     if (self.edge_extremity_first[e1_index] == x
                                         and self.edge_extremity_second[e1_index] == v):
                                         e_ab_index = self.__estack_pop()
-                                        (<_LinkedList> self.adj[x]).remove(<_LinkedListNode> self.in_adj[e_ab_index])
+                                        _LinkedList_remove(self.adj[x], self.in_adj[e_ab_index])
                                         self.__del_high(e_ab_index)
 
                         else: # found type-2 separation pair - (self.node_at[a], self.node_at[b])
@@ -3556,7 +3598,7 @@ cdef class TriconnectivitySPQR:
                                         e_ab_source = self.edge_extremity_second[e_ab_index] # source
                                     else:
                                         e_ab_source = self.edge_extremity_first[e_ab_index] # source
-                                    (<_LinkedList> self.adj[e_ab_source]).remove(<_LinkedListNode> self.in_adj[e_ab_index])
+                                    _LinkedList_remove(self.adj[e_ab_source], self.in_adj[e_ab_index])
                                     self.__del_high(e_ab_index)
 
                                 else:
@@ -3565,8 +3607,8 @@ cdef class TriconnectivitySPQR:
                                         eh_source = self.edge_extremity_second[eh_index]
                                     else:
                                         eh_source = self.edge_extremity_first[eh_index]
-                                    if it != (<_LinkedListNode> self.in_adj[eh_index]):
-                                        (<_LinkedList> self.adj[eh_source]).remove(<_LinkedListNode> self.in_adj[eh_index])
+                                    if it != self.in_adj[eh_index]:
+                                        _LinkedList_remove(self.adj[eh_source], self.in_adj[eh_index])
                                         self.__del_high(eh_index)
 
                                     comp.add_edge(eh_index)
@@ -3590,7 +3632,7 @@ cdef class TriconnectivitySPQR:
 
                         self.e_stack.append(e_virt_index)
                         # Replace the edge in `it` with `e_virt`
-                        it.set_data(e_virt_index)
+                        it.data = e_virt_index
 
                         self.in_adj[e_virt_index] = it
                         self.degree[x] += 1
@@ -3602,8 +3644,8 @@ cdef class TriconnectivitySPQR:
                         wnum = self.newnum[w]
 
                     # update the values used in the while loop check
-                    temp_node = (<_LinkedList> self.adj[w]).get_head()
-                    temp_index = temp_node.get_data()
+                    temp_node = _LinkedList_get_head(self.adj[w])
+                    temp_index = temp_node.data
                     if self.reverse_edges[temp_index]:
                         temp_target = self.edge_extremity_first[temp_index]
                     else:
@@ -3644,17 +3686,17 @@ cdef class TriconnectivitySPQR:
                         or (y == vnum and xx == self.lowpt1[w])):
                         comp_bond = _Component([], 0) # new triple bond
                         eh_index = self.__estack_pop()
-                        if (<_LinkedListNode> self.in_adj[eh_index]) != it:
+                        if self.in_adj[eh_index] != it:
                             if self.reverse_edges[eh_index]:
-                                (<_LinkedList> self.adj[self.edge_extremity_second[eh_index]]).remove(<_LinkedListNode> self.in_adj[eh_index])
+                                _LinkedList_remove(self.adj[self.edge_extremity_second[eh_index]], self.in_adj[eh_index])
                             else:
-                                (<_LinkedList> self.adj[self.edge_extremity_first[eh_index]]).remove(<_LinkedListNode> self.in_adj[eh_index])
+                                _LinkedList_remove(self.adj[self.edge_extremity_first[eh_index]], self.in_adj[eh_index])
 
                         comp_bond.add_edge(eh_index)
                         comp_bond.add_edge(e_virt_index)
                         e_virt_index = self.__new_virtual_edge(v, self.node_at[self.lowpt1[w]])
                         comp_bond.add_edge(e_virt_index)
-                        if eh_index in self.in_high:
+                        if self.in_high[eh_index]:
                             self.in_high[e_virt_index] = self.in_high[eh_index]
                         self.degree[v] -= 1
                         self.degree[self.node_at[self.lowpt1[w]]] -= 1
@@ -3666,19 +3708,19 @@ cdef class TriconnectivitySPQR:
                         self.e_stack.append(e_virt_index)
 
                         # replace edge in `it` with `e_virt`
-                        it.set_data(e_virt_index)
+                        it.data = e_virt_index
 
                         self.in_adj[e_virt_index] = it
-                        if e_virt_index not in self.in_high and self.__high(self.node_at[self.lowpt1[w]]) < vnum:
-                            vnum_node = _LinkedListNode(vnum)
-                            (<_LinkedList> self.highpt[self.node_at[self.lowpt1[w]]]).push_front(vnum_node)
+                        if not self.in_high[e_virt_index] and self.__high(self.node_at[self.lowpt1[w]]) < vnum:
+                            vnum_node = self.__new_LinkedListNode(vnum)
+                            _LinkedList_push_front(self.highpt[self.node_at[self.lowpt1[w]]], vnum_node)
                             self.in_high[e_virt_index] = vnum_node
 
                         self.degree[v] += 1
                         self.degree[self.node_at[self.lowpt1[w]]] += 1
 
                     else:
-                        (<_LinkedList> self.adj[v]).remove(it)
+                        _LinkedList_remove(self.adj[v], it)
                         comp_bond = _Component([e_virt_index], 0)
                         e_virt_index = self.__new_virtual_edge(self.node_at[self.lowpt1[w]], v)
                         comp_bond.add_edge(e_virt_index)
@@ -3691,9 +3733,9 @@ cdef class TriconnectivitySPQR:
 
                         self.tree_arc[v] = e_virt_index
                         self.edge_status[e_virt_index] = 1
-                        if eh_index in self.in_adj:
+                        if self.in_adj[eh_index]:
                             self.in_adj[e_virt_index] = self.in_adj[eh_index]
-                        e_virt_node = _LinkedListNode(e_virt_index)
+                        e_virt_node = self.__new_LinkedListNode(e_virt_index)
                         self.in_adj[eh_index] = e_virt_node
                         # end type-1 search
 
@@ -3725,8 +3767,10 @@ cdef class TriconnectivitySPQR:
         cdef Py_ssize_t e_index
         cdef _Component c1, c2
         cdef int c1_type
-        cdef _LinkedListNode e_node, e_node_next
-        cdef _LinkedList l1, l2
+        cdef _LinkedListNode * e_node
+        cdef _LinkedListNode * e_node_next
+        cdef _LinkedList * l1
+        cdef _LinkedList * l2
 
         cdef Py_ssize_t num_components = len(self.components_list)
         cdef bint* visited = <bint*> self.mem.allocarray(num_components, sizeof(bint))
@@ -3737,15 +3781,19 @@ cdef class TriconnectivitySPQR:
         cdef int* comp1 = <int*> self.mem.allocarray(self.m + self.virtual_edge_num, sizeof(int))
         cdef int* comp2 = <int*> self.mem.allocarray(self.m + self.virtual_edge_num, sizeof(int))
 
-        cdef dict item1 = {} # Pointer to the edge node in component1
-        cdef dict item2 = {} # Pointer to the edge node in component2
+        # Pointer to the edge node in first (second) component
+        cdef _LinkedListNode ** item1 = <_LinkedListNode **> self.mem.allocarray(self.m + self.virtual_edge_num, sizeof(_LinkedListNode *))
+        cdef _LinkedListNode ** item2 = <_LinkedListNode **> self.mem.allocarray(self.m + self.virtual_edge_num, sizeof(_LinkedListNode *))
+        for i in range(self.m + self.virtual_edge_num):
+            item1[i] = NULL
+            item2[i] = NULL
 
         # For each edge, we populate the comp1, comp2, item1 and item2 values
         for i in range(num_components): # for each component
-            e_node = (<_Component> self.components_list[i]).edge_list.get_head()
+            e_node = _LinkedList_get_head((<_Component> self.components_list[i]).edge_list)
             while e_node: # for each edge
-                e_index = e_node.get_data()
-                if e_index not in item1:
+                e_index = e_node.data
+                if not item1[e_index]:
                     comp1[e_index] = i
                     item1[e_index] = e_node
                 else:
@@ -3762,14 +3810,14 @@ cdef class TriconnectivitySPQR:
             l1 = c1.edge_list
             visited[i] = True
 
-            if not l1.get_length():
+            if not _LinkedList_get_length(l1):
                 continue
 
             if c1_type == 0 or c1_type == 1:
-                e_node = (<_Component> self.components_list[i]).edge_list.get_head()
+                e_node = _LinkedList_get_head((<_Component> self.components_list[i]).edge_list)
                 # Iterate through each edge in the component
                 while e_node:
-                    e_index = e_node.get_data()
+                    e_index = e_node.data
                     e_node_next = e_node.next
                     if not self.__is_virtual_edge(e_index):
                         e_node = e_node_next
@@ -3797,15 +3845,15 @@ cdef class TriconnectivitySPQR:
 
                     # Remove the corresponding virtual edges in both the components
                     # and merge the components
-                    l2.remove(e_node2)
-                    l1.concatenate(l2)
+                    _LinkedList_remove(l2, e_node2)
+                    _LinkedList_concatenate(l1, l2)
 
                     # if `e_node_next` was empty, after merging two components,
                     # more edges are added to the component.
                     if not e_node_next:
                         e_node_next = e_node.next # Go to next edge
 
-                    l1.remove(e_node)
+                    _LinkedList_remove(l1, e_node)
 
                     e_node = e_node_next
 
@@ -3817,7 +3865,7 @@ cdef class TriconnectivitySPQR:
         self.comp_type = []
         self.final_edge_to_edge_index = {}
         for comp in self.components_list:
-            if (<_Component> comp).edge_list.get_length():
+            if _LinkedList_get_length((<_Component> comp).edge_list):
                 e_index_list = (<_Component> comp).get_edge_list()
                 e_list_new = []
                 # For each edge, get the original source, target and label

@@ -1161,10 +1161,8 @@ If this all works, you can then make calls like:
 
         ::
 
-            sage: r._expect.before # py2
-            '...abc;\r\n[1] '
-            sage: r._expect.before # py3
-            b'...abc;\r\n[1] '
+            sage: r._expect.before.decode('ascii')
+            u'...abc;\r\n[1] '
 
         We test interrupting ``_expect_expr`` using the GP interface,
         see :trac:`6661`.  Unfortunately, this test doesn't work reliably using

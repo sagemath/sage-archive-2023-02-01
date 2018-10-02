@@ -175,8 +175,6 @@ from .q_analogues import gaussian_binomial, q_binomial
 
 from .species.all import *
 
-from .multichoose_nk import MultichooseNK
-
 from .kazhdan_lusztig import KazhdanLusztigPolynomial
 
 from .degree_sequences import DegreeSequences

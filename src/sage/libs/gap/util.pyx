@@ -128,6 +128,7 @@ cdef void reference_obj(Obj obj):
     """
     cdef ObjWrapper wrapped = wrap_obj(obj)
     global owned_objects_refcount
+#    print("reference_obj called "+ crepr(obj) +"\n")
     if wrapped in owned_objects_refcount:
         owned_objects_refcount[wrapped] += 1
     else:
@@ -237,12 +238,14 @@ cdef initialize():
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
     # libgap_initialize(argc, argv)
-    # gap_error_msg = char_to_str(libgap_get_output())
     try: 
-        GAP_Initialize(argc, argv, environ, &gasman_callback, <CallbackFunc>&error_handler)
+        GAP_Initialize(argc, argv, environ, &gasman_callback, &error_handler)
     except RuntimeError as msg:
         raise RuntimeError('libGAP initialization failed\n' + msg)
 
+    # gap_error_msg = char_to_str(libgap_get_output())
+    GAP_EvalString('libgap_errout := \"\"; ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
+ 
     # The error handler is called if a GAP evaluation fails, e.g. 1/0
     # libgap_set_error_handler(&error_handler)
 
@@ -304,6 +307,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     # so that Cython doesn't dereference it before libGAP is done with
     # its contents.
     cmd = str_to_bytes(gap_string + ';\n')
+#    print("gap_string: "+gap_string+"\n")
     try:
         try:
             sig_on()
@@ -326,7 +330,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     return ELM_LIST(result, 2)
 
 
-############################################################################
+###########################################################################
 ### Helper to protect temporary objects from deletion ######################
 ############################################################################
 
@@ -353,7 +357,7 @@ cdef void hold_reference(Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
-cdef void error_handler(char* msg):
+cdef void error_handler():
     """
     The libgap error handler
 
@@ -362,9 +366,15 @@ cdef void error_handler(char* msg):
     ``sig_off`` blocks, this then jumps back to the ``sig_on`` where
     the ``RuntimeError`` we raise here will be seen.
     """
-    msg_py = char_to_str(msg)
+    cdef Obj r
+    r = GAP_ValueGlobalVariable("libgap_errout")
+    GAP_EvalString("CloseStream(ERROR_OUTPUT);");
+    GAP_EvalString('libgap_errout := \"\"; ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
+
+    msg_py = char_to_str(CSTR_STRING(r))
     msg_py = msg_py.replace('For debugging hints type ?Recovery from NoMethodFound\n', '')
     PyErr_SetObject(RuntimeError, msg_py)
+    ClearError()
     sig_error()
 
 

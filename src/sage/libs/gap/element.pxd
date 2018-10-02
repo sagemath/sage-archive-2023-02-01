@@ -26,7 +26,7 @@ cdef GapElement_Rational make_GapElement_Rational(parent, Obj obj)
 cdef GapElement_String make_GapElement_String(parent, Obj obj)
 cdef GapElement_Boolean make_GapElement_Boolean(parent, Obj obj)
 cdef GapElement_Function make_GapElement_Function(parent, Obj obj)
-
+cdef char *crepr(Obj)
 
 
 cdef class GapElement(RingElement):

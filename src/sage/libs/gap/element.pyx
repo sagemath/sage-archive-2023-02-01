@@ -85,6 +85,7 @@ cdef char *crepr(Obj obj):
     o = CALL_2ARGS(   # setting a string buffer
               GAP_ValueGlobalVariable("OutputTextString"), s, GAP_True)
     CALL_2ARGS(GAP_ValueGlobalVariable("PrintTo"), o, obj)
+    CALL_1ARGS(GAP_ValueGlobalVariable("CloseStream"), o)
     return CSTR_STRING(s)
 
 

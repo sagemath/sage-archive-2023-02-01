@@ -131,10 +131,10 @@ cdef extern from "<gap/libgap-api.h>":
         CallbackFunc, CallbackFunc)
     Obj GAP_EvalString(const char *)
     Obj GAP_ValueGlobalVariable(const char *)
-    void libgap_start_interaction(char* inputline)
-    char* libgap_get_output()
-    char* libgap_get_error()
-    void libgap_mark_stack_bottom()
+#    void libgap_start_interaction(char* inputline)
+#    char* libgap_get_output()
+#    char* libgap_get_error()
+#    void libgap_mark_stack_bottom()
 
 
 

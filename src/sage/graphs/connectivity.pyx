@@ -2497,7 +2497,7 @@ cdef class _LinkedListNode:
 
         INPUT:
 
-        - ``data`` -- (default: ``None``) either an edge, or an integer.
+        - ``data`` -- an integer
         """
         self.prev = None
         self.next = None
@@ -2962,7 +2962,7 @@ cdef class TriconnectivitySPQR:
         self.comp_final_edge_list = [] # i^th entry is list of edges in i^th component
         self.comp_type = [] # i^th entry is type of i^th component
         # associate final edge e to its index in int_to_edge
-        self.final_edge_to_edge_index = dict()
+        self.final_edge_to_edge_index = {}
         # The final SPQR tree is stored
         self.spqr_tree = None # Graph
 
@@ -3292,7 +3292,7 @@ cdef class TriconnectivitySPQR:
         cdef bint new_path = True
         cdef Py_ssize_t v, w
         cdef Py_ssize_t e_index
-        cdef _LinkedListNode e_node
+        cdef _LinkedListNode e_node, highpt_node
 
         # Defining a stack. stack_top == -1 means empty stack
         cdef int* stack = self.tmp_array_n_int_1
@@ -3345,7 +3345,7 @@ cdef class TriconnectivitySPQR:
         cdef Py_ssize_t e_index
 
         self.dfs_counter = self.n
-        self.in_high = dict()
+        self.in_high = {}
         for e_index in range(len(self.int_to_edge)):
             self.in_high[e_index] = None
             self.starts_path[e_index] = False
@@ -3363,7 +3363,7 @@ cdef class TriconnectivitySPQR:
             self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
             self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]
 
-    cdef __path_search(self, int start):
+    cdef int __path_search(self, int start) except -1:
         """
         Find the separation pairs and construct the split components.
 
@@ -3401,7 +3401,7 @@ cdef class TriconnectivitySPQR:
 
         while stack_v_top != -1:
             v = stack_v[stack_v_top]
-            e_node = e_node_dict[v]
+            e_node = <_LinkedListNode> e_node_dict[v]
 
             if e_node:
                 # Restore values of variables
@@ -3463,7 +3463,7 @@ cdef class TriconnectivitySPQR:
 
                 # Restore state of variables
                 v = stack_v[stack_v_top]
-                e_node = e_node_dict[v]
+                e_node = <_LinkedListNode> e_node_dict[v]
                 y = y_dict[v]
                 vnum = self.newnum[v]
                 outv = outv_dict[v]
@@ -3500,7 +3500,7 @@ cdef class TriconnectivitySPQR:
                             # found type-2 separation pair - (v, temp_target)
                             e1_index = self.__estack_pop()
                             e2_index = self.__estack_pop()
-                            (<_LinkedList> self.adj[w]).remove(self.in_adj[e2_index])
+                            (<_LinkedList> self.adj[w]).remove(<_LinkedListNode> self.in_adj[e2_index])
 
                             if self.reverse_edges[e2_index]:
                                 x = self.edge_extremity_first[e2_index] # target
@@ -3517,7 +3517,7 @@ cdef class TriconnectivitySPQR:
                             else:
                                 e2_source = self.edge_extremity_first[e2_index]
                             if e2_source != w:
-                                raise ValueError("Graph is not biconnected")
+                                raise ValueError("graph is not biconnected")
 
                             self.__new_component([e1_index, e2_index, e_virt_index], 1)
 
@@ -3527,20 +3527,20 @@ cdef class TriconnectivitySPQR:
                                     if (self.edge_extremity_first[e1_index] == v
                                         and self.edge_extremity_second[e1_index] == x):
                                         e_ab_index = self.__estack_pop()
-                                        (<_LinkedList> self.adj[x]).remove(self.in_adj[e_ab_index])
+                                        (<_LinkedList> self.adj[x]).remove(<_LinkedListNode> self.in_adj[e_ab_index])
                                         self.__del_high(e_ab_index)
                                 else:
                                     if (self.edge_extremity_first[e1_index] == x
                                         and self.edge_extremity_second[e1_index] == v):
                                         e_ab_index = self.__estack_pop()
-                                        (<_LinkedList> self.adj[x]).remove(self.in_adj[e_ab_index])
+                                        (<_LinkedList> self.adj[x]).remove(<_LinkedListNode> self.in_adj[e_ab_index])
                                         self.__del_high(e_ab_index)
 
                         else: # found type-2 separation pair - (self.node_at[a], self.node_at[b])
                             h = self.t_stack_h[self.t_stack_top]
                             self.t_stack_top -= 1
 
-                            comp = _Component([], type_c=0)
+                            comp = _Component([], 0)
                             while True:
                                 xy_index = self.e_stack[-1]
                                 if self.reverse_edges[xy_index]:
@@ -3556,10 +3556,10 @@ cdef class TriconnectivitySPQR:
                                     or (self.newnum[xy_target] == a and self.newnum[x] == b)):
                                     e_ab_index = self.__estack_pop()
                                     if self.reverse_edges[e_ab_index]:
-                                        e_ab_source =  self.edge_extremity_second[e_ab_index] # source
+                                        e_ab_source = self.edge_extremity_second[e_ab_index] # source
                                     else:
                                         e_ab_source = self.edge_extremity_first[e_ab_index] # source
-                                    (<_LinkedList> self.adj[e_ab_source]).remove(self.in_adj[e_ab_index])
+                                    (<_LinkedList> self.adj[e_ab_source]).remove(<_LinkedListNode> self.in_adj[e_ab_index])
                                     self.__del_high(e_ab_index)
 
                                 else:
@@ -3568,8 +3568,8 @@ cdef class TriconnectivitySPQR:
                                         eh_source = self.edge_extremity_second[eh_index]
                                     else:
                                         eh_source = self.edge_extremity_first[eh_index]
-                                    if it != self.in_adj[eh_index]:
-                                        (<_LinkedList> self.adj[eh_source]).remove(self.in_adj[eh_index])
+                                    if it != (<_LinkedListNode> self.in_adj[eh_index]):
+                                        (<_LinkedList> self.adj[eh_source]).remove(<_LinkedListNode> self.in_adj[eh_index])
                                         self.__del_high(eh_index)
 
                                     comp.add_edge(eh_index)
@@ -3584,7 +3584,7 @@ cdef class TriconnectivitySPQR:
                             x = self.node_at[b]
 
                         if e_ab_index != -1:
-                            comp = _Component([e_ab_index, e_virt_index], type_c=0)
+                            comp = _Component([e_ab_index, e_virt_index], 0)
                             e_virt_index = self.__new_virtual_edge(v, x)
                             self.graph_copy.add_edge(self.int_to_edge[e_virt_index])
                             comp.add_edge(e_virt_index)
@@ -3648,13 +3648,13 @@ cdef class TriconnectivitySPQR:
 
                     if ((xx == vnum and y == self.lowpt1[w])
                         or (y == vnum and xx == self.lowpt1[w])):
-                        comp_bond = _Component([], type_c=0) # new triple bond
+                        comp_bond = _Component([], 0) # new triple bond
                         eh_index = self.__estack_pop()
-                        if self.in_adj[eh_index] != it:
+                        if (<_LinkedListNode> self.in_adj[eh_index]) != it:
                             if self.reverse_edges[eh_index]:
-                                (<_LinkedList> self.adj[self.edge_extremity_second[eh_index]]).remove(self.in_adj[eh_index])
+                                (<_LinkedList> self.adj[self.edge_extremity_second[eh_index]]).remove(<_LinkedListNode> self.in_adj[eh_index])
                             else:
-                                (<_LinkedList> self.adj[self.edge_extremity_first[eh_index]]).remove(self.in_adj[eh_index])
+                                (<_LinkedList> self.adj[self.edge_extremity_first[eh_index]]).remove(<_LinkedListNode> self.in_adj[eh_index])
 
                         comp_bond.add_edge(eh_index)
                         comp_bond.add_edge(e_virt_index)
@@ -3676,7 +3676,7 @@ cdef class TriconnectivitySPQR:
                         it.set_data(e_virt_index)
 
                         self.in_adj[e_virt_index] = it
-                        if not e_virt_index in self.in_high and self.__high(self.node_at[self.lowpt1[w]]) < vnum:
+                        if e_virt_index not in self.in_high and self.__high(self.node_at[self.lowpt1[w]]) < vnum:
                             vnum_node = _LinkedListNode(vnum)
                             (<_LinkedList> self.highpt[self.node_at[self.lowpt1[w]]]).push_front(vnum_node)
                             self.in_high[e_virt_index] = vnum_node
@@ -3686,7 +3686,7 @@ cdef class TriconnectivitySPQR:
 
                     else:
                         (<_LinkedList> self.adj[v]).remove(it)
-                        comp_bond = _Component([e_virt_index], type_c=0)
+                        comp_bond = _Component([e_virt_index], 0)
                         e_virt_index = self.__new_virtual_edge(self.node_at[self.lowpt1[w]], v)
                         self.graph_copy.add_edge(self.int_to_edge[e_virt_index])
                         comp_bond.add_edge(e_virt_index)
@@ -3824,7 +3824,7 @@ cdef class TriconnectivitySPQR:
         cdef tuple e_new
         self.comp_final_edge_list = []
         self.comp_type = []
-        self.final_edge_to_edge_index = dict()
+        self.final_edge_to_edge_index = {}
         for comp in self.components_list:
             if (<_Component> comp).edge_list.get_length():
                 e_index_list = (<_Component> comp).get_edge_list()

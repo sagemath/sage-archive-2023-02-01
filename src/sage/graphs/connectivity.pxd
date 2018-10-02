@@ -3,12 +3,12 @@ from sage.graphs.generic_graph_pyx cimport GenericGraph_pyx
 
 cdef class _LinkedListNode:
     cdef _LinkedListNode prev, next
-    cdef object data
+    cdef Py_ssize_t data
 
-    cdef inline set_data(self, data):
+    cdef inline set_data(self, Py_ssize_t data):
         self.data = data
 
-    cdef inline get_data(self):
+    cdef inline Py_ssize_t get_data(self):
         return self.data
 
 cdef class _LinkedList:
@@ -128,11 +128,11 @@ cdef class TriconnectivitySPQR:
         """
         return self.t_stack_a[self.t_stack_top] != -1
 
-    cdef inline __estack_pop(self):
+    cdef inline int __estack_pop(self):
         """
         Pop from estack and return the popped element
         """
-        return self.e_stack.pop()
+        return <int> self.e_stack.pop()
 
     cdef inline __new_component(self, list edges, int type_c):
         """
@@ -178,7 +178,7 @@ cdef class TriconnectivitySPQR:
     cdef __build_acceptable_adj_struct(self)
     cdef __path_finder(self, int start)
     cdef __dfs2(self)
-    cdef __path_search(self, int start)
+    cdef int __path_search(self, int start) except -1
     cdef __assemble_triconnected_components(self)
     cdef __build_spqr_tree(self)
 

@@ -62,7 +62,7 @@ can use the direction option in subcrystal::
     The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[1]
     sage: C = LS.subcrystal(max_depth=2, direction='both')
     sage: G = LS.digraph(subset = C)
-    sage: G.set_latex_options(edge_options=lambda u,v,label: ({}))
+    sage: G.set_latex_options(edge_options=lambda uvl: ({}))
     sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
 .. image:: ../media/level_zero_crystal.png

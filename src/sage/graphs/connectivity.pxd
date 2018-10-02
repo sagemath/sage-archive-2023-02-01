@@ -134,11 +134,44 @@ cdef class TriconnectivitySPQR:
         """
         return self.e_stack.pop()
 
-    cdef __new_component(self, list edges=*, int type_c=*)
+    cdef inline __new_component(self, list edges, int type_c):
+        """
+        Create a new component and add ``edges`` to it.
+
+        ``type_c = 0`` for bond, ``1`` for polygon, ``2`` for triconnected.
+        """
+        self.components_list.append(_Component(edges, type_c))
+
+    cdef inline bint __is_virtual_edge(self, int e_index):
+        """
+        Return ``True`` if edge number ``e_index`` is a virtual edge.
+
+        By construction, the first ``m`` edge indices are the original edges of
+        the graph. The edges created during the execution of the algorithm,
+        i.e., virtual edges, have indices ``>= m``.
+        """
+        return e_index >= self.m
+
+    cdef inline int __edge_other_extremity(self, int e_index, int u):
+        """
+        Return the other extremity of the edge
+        """
+        if self.edge_extremity_first[e_index] == u:
+            return self.edge_extremity_second[e_index]
+        return self.edge_extremity_first[e_index]
+
+    cdef inline __high(self, int v):
+        """
+        Return the ``high(v)`` value, which is the first value in
+        ``highpt`` list of ``v``.
+        """
+        cdef _LinkedListNode head = (<_LinkedList> self.highpt[v]).get_head()
+        if head is None:
+            return 0
+        else:
+            return head.get_data()
+
     cdef int __new_virtual_edge(self, int u, int v)
-    cdef bint __is_virtual_edge(self, int e_index)
-    cdef int __edge_other_extremity(self, int e_index, int u)
-    cdef __high(self, int v)
     cdef __del_high(self, int e_index)
     cdef __split_multiple_edges(self)
     cdef int __dfs1(self, int start, bint check=*)

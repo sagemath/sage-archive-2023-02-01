@@ -790,7 +790,7 @@ If this all works, you can then make calls like:
             tmp_to_use = self._remote_tmpfile()
         try:
             s = self._eval_line(self._read_in_file_command(tmp_to_use), allow_use_file=False, restart_if_needed=False)
-        except pexpect.EOF as msg:
+        except pexpect.EOF:
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
@@ -814,9 +814,9 @@ If this all works, you can then make calls like:
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
                 except TypeError:
                     pass
-                except RuntimeError as msg:
+                except RuntimeError:
                     raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
-            if "Input/output error" in msg[0]: # This occurs on non-linux machines
+            if "Input/output error" in msg[0]:  # This occurs on non-linux machines
                 raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
             raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0]))
         return self._post_process_from_file(s)

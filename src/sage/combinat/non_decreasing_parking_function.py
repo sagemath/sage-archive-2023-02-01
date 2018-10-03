@@ -316,6 +316,19 @@ class NonDecreasingParkingFunction(Element):
         """
         return richcmp(self._list, other._list, op)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: a = NonDecreasingParkingFunction([1,1,1])
+            sage: b = NonDecreasingParkingFunction([1,1,2])
+            sage: hash(a) == hash(b)
+            False
+        """
+        return hash(tuple(self._list))
+
     @classmethod
     def from_dyck_word(cls, dw):
         """

@@ -1246,7 +1246,10 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         Traceback (most recent call last):
         ...
         TypeError: isinstance() arg 2 must be a type or tuple of types
+<<<<<<< HEAD
 
+=======
+>>>>>>> 486e529971793f727cca7fbe5ef1d3f33d4d4bb6
         sage: isinstance(GF, sage.structure.factory.UniqueFactory)
         True
 

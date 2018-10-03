@@ -55,6 +55,10 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   - :func:`groups.affine.Affine <sage.groups.affine_gps.affine_group.AffineGroup>`
   - :func:`groups.affine.Euclidean <sage.groups.affine_gps.euclidean_group.EuclideanGroup>`
 
+- Lie Groups  (``groups.lie.<tab>``)
+
+  - :class:`groups.lie.Nilpotent <sage.groups.lie_gps.nilpotent_lie_group.NilpotentLieGroup>`
+
 - Miscellaneous Groups (``groups.misc.<tab>``)
 
   - Coxeter, reflection and related groups
@@ -97,4 +101,6 @@ from sage.groups.matrix_gps import catalog as matrix
 from sage.groups.perm_gps import permutation_groups_catalog as permutation
 from sage.groups.misc_gps import misc_groups_catalog as misc
 from sage.groups.affine_gps import catalog as affine
+from sage.groups.lie import catalog as lie
 from sage.groups import finitely_presented_catalog as presentation
+

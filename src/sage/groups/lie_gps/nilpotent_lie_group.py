@@ -82,7 +82,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
     - ``L`` -- the Lie algebra of the Lie group; must be a finite
       dimensional nilpotent Lie algebra with basis over a topological
-      field,e.g. `\QQ` or `\RR`
+      field, e.g. `\QQ` or `\RR`
     - ``name`` -- a string; name (symbol) given to the Lie group
 
     Two types of exponential coordinates are defined on any
@@ -209,7 +209,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
     def __init__(self, L, name, **kwds):
         r"""
-        Initialize self.
+        Initialize ``self``.
 
         TESTS::
 
@@ -232,7 +232,6 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         else:
             structure = DifferentialStructure()
 
-        Group.__init__(self, base=R, category=category)
         DifferentiableManifold.__init__(self, L.dimension(), name, R,
                                         structure, category=category)
 
@@ -243,9 +242,8 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             self._var_indexing = split[1]
         else:
             self._var_indexing = [str(k) for k in range(L.dimension())]
-        vars = ' '.join('x_%s' % k for k in self._var_indexing)
-        self._Exp1 = self.chart(vars)
-        self._Exp2 = None
+        variables = ' '.join('x_%s' % k for k in self._var_indexing)
+        self._Exp1 = self.chart(variables)
 
         # compute a symbolic formula for the group law
         L_SR = _symbolic_lie_algebra_copy(L)
@@ -258,13 +256,14 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
     def _repr_(self):
         r"""
-        Return a string representation of the Lie group.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
             sage: L = lie_algebras.Heisenberg(RR, 1)
             sage: L.lie_group()
-            Lie group G of Heisenberg algebra of rank 1 over Real Field with 53 bits of precision
+            Lie group G of Heisenberg algebra of rank 1 over
+             Real Field with 53 bits of precision
         """
         return "Lie group %s of %s" % (self._name, self.lie_algebra())
 
@@ -338,7 +337,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
     def step(self):
         r"""
-        Return the nilpotency step of the Lie group.
+        Return the nilpotency step of ``self``.
 
         EXAMPLES::
 
@@ -357,7 +356,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         .. MATH ::
 
-            \exp(x_1X_1 + \cdots + x_nX_n) \mapsto (x_1,\ldots,x_n).
+            \exp(x_1X_1 + \cdots + x_nX_n) \mapsto (x_1, \ldots, x_n).
 
         EXAMPLES::
 
@@ -368,6 +367,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         """
         return self._Exp1
 
+    @cached_method
     def chart_exp2(self):
         r"""
         Return the chart of exponential coordinates of the second kind.
@@ -376,7 +376,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         .. MATH ::
 
-            \exp(x_nX_n) \cdots \exp(x_1X_1) \mapsto (x_1,\ldots,x_n).
+            \exp(x_nX_n) \cdots \exp(x_1X_1) \mapsto (x_1, \ldots, x_n).
 
         EXAMPLES::
 
@@ -385,29 +385,27 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: G.chart_exp2()
             Chart (G, (y_1, y_2, y_12))
         """
-        if self._Exp2 is None:
-            vars = ' '.join('y_%s' % k for k in self._var_indexing)
-            self._Exp2 = self.chart(vars)
+        variables = ' '.join('y_%s' % k for k in self._var_indexing)
+        ret = self.chart(variables)
 
-            # compute transitions between exponential coordinates
-            # compute exp-2 to exp-1
-            n = self.dimension()
-            Z = self.one()
-            for k, yk in enumerate(self._Exp2[:]):
-                v = [0] * n
-                v[k] = yk
-                Z = self.point(v, chart=self._Exp1) * Z
-            f = [zk.expand() for zk in Z.coordinates(chart=self._Exp1)]
-            self._Exp2.transition_map(self._Exp1, f)
+        # compute transitions between exponential coordinates
+        # compute exp-2 to exp-1
+        n = self.dimension()
+        Z = self.one()
+        for k, yk in enumerate(ret[:]):
+            v = [0] * n
+            v[k] = yk
+            Z = self.point(v, chart=self._Exp1) * Z
+        f = [zk.expand() for zk in Z.coordinates(chart=self._Exp1)]
+        ret.transition_map(self._Exp1, f)
 
-            # compute exp-1 to exp-2 by inverting the previous map
-            inv_subs = {}
-            for xk, yk, fk in zip(self._Exp1[:], self._Exp2[:], f):
-                inv_subs[yk] = xk - (fk - yk).subs(inv_subs)
-            f_inv = [inv_subs[yk].expand() for yk in self._Exp2[:]]
-            self._Exp1.transition_map(self._Exp2, f_inv)
-
-        return self._Exp2
+        # compute exp-1 to exp-2 by inverting the previous map
+        inv_subs = {}
+        for xk, yk, fk in zip(self._Exp1[:], ret[:], f):
+            inv_subs[yk] = xk - (fk - yk).subs(inv_subs)
+        f_inv = [inv_subs[yk].expand() for yk in ret[:]]
+        self._Exp1.transition_map(ret, f_inv)
+        return ret
 
     def exp(self, X):
         r"""
@@ -468,7 +466,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
     def one(self):
         r"""
-        Return the identity element of the Lie group.
+        Return the identity element of ``self``.
 
         EXAMPLES::
 
@@ -487,7 +485,8 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         .. MATH::
 
-            G \to G,\quad h\mapsto gh.
+            G \to G, \qquad
+            h \mapsto gh.
 
         INPUT:
 
@@ -608,7 +607,8 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         .. MATH::
 
-            G \to G,\quad h\mapsto hg.
+            G \to G, \qquad
+            h\mapsto hg.
 
         INPUT:
 
@@ -729,7 +729,8 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         .. MATH::
 
-            G \to G,\quad h\mapsto ghg^{-1}.
+            G \to G, \qquad
+            h \mapsto ghg^{-1}.
 
         INPUT:
 
@@ -763,7 +764,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         - ``g`` -- an element of ``self``
 
-        For a Lie group element `g`, the adjoint map `\mathrm{Ad}_g` is
+        For a Lie group element `g`, the adjoint map `\operatorname{Ad}_g` is
         the map on the Lie algebra `\mathfrak{g}` given by the differential
         of the conjugation by `g` at the identity.
 
@@ -846,10 +847,9 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: G.exp(X)*G.exp(Y)
             exp(X + Y + 1/2*Z)
         """
-
         def __init__(self, parent, **kwds):
             r"""
-            Initialize self.
+            Initialize ``self``.
 
             TESTS::
 
@@ -905,7 +905,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         def _repr_(self):
             r"""
-            Return a string description of the element of the Lie group.
+            Return a string representation of ``self``.
 
             Supports printing in exponential coordinates of the first and
             second kinds, depending on the default coordinate system.
@@ -922,14 +922,14 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             """
             G = self.parent()
             chart = G.default_chart()
-            if chart not in [G._Exp1, G._Exp2]:
+            if chart not in [G._Exp1, G.chart_exp2()]:
                 chart = G._Exp1
 
             x = self.coordinates(chart=chart)
             B = G.lie_algebra().basis()
             nonzero_pairs = [(Xk, xk) for Xk, xk in zip(B, x) if xk]
 
-            if G.default_chart() == G._Exp2:
+            if G.default_chart() == G.chart_exp2():
                 s = ")exp(".join(repr_lincomb([(Xk, xk)])
                                  for Xk, xk in reversed(nonzero_pairs))
                 if not s:
@@ -937,3 +937,4 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             else:
                 s = repr_lincomb(nonzero_pairs)
             return "exp(%s)" % s
+

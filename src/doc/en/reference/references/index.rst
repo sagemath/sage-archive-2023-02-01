@@ -2865,7 +2865,7 @@ REFERENCES:
              Manifolds*, Springer Basel AG (Basel) (1994);
              :doi:`10.1007/978-3-0348-8495-2`
 
-.. [Var1984] V. S. Varadarajan. *Lie groups, Lie algebras, and their
+.. [Var1984] \V. S. Varadarajan. *Lie groups, Lie algebras, and their
              representations*. Reprint of the 1974 edition. Graduate Texts in
              Mathematics, 102. Springer-Verlag, New York, 1984.
 

@@ -94,8 +94,8 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
 
             INPUT:
 
-            - ``name`` -- (default: 'G') a string;
-              name (symbol) given to the Lie group
+            - ``name`` -- string (default: ``'G'``);
+              the name (symbol) given to the Lie group
 
             EXAMPLES:
 
@@ -160,3 +160,4 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
                 True
             """
             return True
+

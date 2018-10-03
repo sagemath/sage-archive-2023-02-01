@@ -678,8 +678,8 @@ class LieAlgebras(Category_over_base_ring):
 
             INPUT:
 
-            - ``name`` -- (default: 'G') a string;
-              name (symbol) given to the Lie group
+            - ``name`` -- string (default: ``'G'``);
+              the name (symbol) given to the Lie group
 
             EXAMPLES::
 

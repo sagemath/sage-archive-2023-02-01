@@ -91,12 +91,16 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
     EXAMPLES:
 
-    A nilpotent Lie group is created by passing it a nilpotent Lie algebra
-    over a topological field and a string to use as a name::
+    Creation of a nilpotent Lie group::
 
         sage: L = lie_algebras.Heisenberg(QQ, 1)
-        sage: G = NilpotentLieGroup(L, 'G'); G
+        sage: G = L.lie_group(); G
         Lie group G of Heisenberg algebra of rank 1 over Rational Field
+
+    Giving a different name to the group::
+
+        sage: L.lie_group('H')
+        Lie group H of Heisenberg algebra of rank 1 over Rational Field
 
     Elements can be created using the exponential map::
 
@@ -143,29 +147,6 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         sage: X[0]
         Vector field X_0 on the Lie group G of Heisenberg algebra of rank 1 over Rational Field
 
-    We define a left translation by a generic point::
-
-        sage: g = G.point([var('a'), var('b'), var('c')]); g
-        exp(a*p1 + b*q1 + c*z)
-        sage: L_g = G.left_translation(g); L_g
-        Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
-        sage: L_g.display()
-        G --> G
-            (x_0, x_1, x_2) |--> (a + x_0, b + x_1, -1/2*b*x_0 + 1/2*a*x_1 + c + x_2)
-            (x_0, x_1, x_2) |--> (y_0, y_1, y_2) = (a + x_0, b + x_1, 1/2*a*b + 1/2*(2*a + x_0)*x_1 + c + x_2)
-            (y_0, y_1, y_2) |--> (x_0, x_1, x_2) = (a + y_0, b + y_1, -1/2*b*y_0 + 1/2*(a - y_0)*y_1 + c + y_2)
-            (y_0, y_1, y_2) |--> (a + y_0, b + y_1, 1/2*a*b + a*y_1 + c + y_2)
-
-    We verify the definition of left-invariance for the left-invariant frame::
-
-        sage: x = G(G.chart_exp1()[:])
-        sage: L_g.differential(x)(X[0].at(x)) == X[0].at(L_g(x))
-        True
-        sage: L_g.differential(x)(X[1].at(x)) == X[1].at(L_g(x))
-        True
-        sage: L_g.differential(x)(X[2].at(x)) == X[2].at(L_g(x))
-        True
-
     A vector field can be displayed with respect to a coordinate frame::
 
         sage: exp1_frame = G.chart_exp1().frame()
@@ -178,6 +159,29 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         X_1 = d/dx_1 + 1/2*x_0 d/dx_2
         sage: X[1].display(exp2_frame)
         X_1 = d/dy_1 + x_0 d/dy_2
+
+    Defining a left translation by a generic point::
+
+        sage: g = G.point([var('a'), var('b'), var('c')]); g
+        exp(a*p1 + b*q1 + c*z)
+        sage: L_g = G.left_translation(g); L_g
+        Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
+        sage: L_g.display()
+        G --> G
+            (x_0, x_1, x_2) |--> (a + x_0, b + x_1, -1/2*b*x_0 + 1/2*a*x_1 + c + x_2)
+            (x_0, x_1, x_2) |--> (y_0, y_1, y_2) = (a + x_0, b + x_1, 1/2*a*b + 1/2*(2*a + x_0)*x_1 + c + x_2)
+            (y_0, y_1, y_2) |--> (x_0, x_1, x_2) = (a + y_0, b + y_1, -1/2*b*y_0 + 1/2*(a - y_0)*y_1 + c + y_2)
+            (y_0, y_1, y_2) |--> (a + y_0, b + y_1, 1/2*a*b + a*y_1 + c + y_2)
+
+    Verifying the left-invariance of the left-invariant frame::
+
+        sage: x = G(G.chart_exp1()[:])
+        sage: L_g.differential(x)(X[0].at(x)) == X[0].at(L_g(x))
+        True
+        sage: L_g.differential(x)(X[1].at(x)) == X[1].at(L_g(x))
+        True
+        sage: L_g.differential(x)(X[2].at(x)) == X[2].at(L_g(x))
+        True
 
     An element of the Lie algebra can be extended to a left or right invariant
     vector field::
@@ -210,7 +214,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         TESTS::
 
             sage: L = lie_algebras.Heisenberg(QQ, 2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: TestSuite(G).run()
         """
         required_cat = LieAlgebras(L.base_ring()).FiniteDimensional()
@@ -259,7 +263,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = lie_algebras.Heisenberg(RR, 1)
-            sage: NilpotentLieGroup(L, 'G')
+            sage: L.lie_group()
             Lie group G of Heisenberg algebra of rank 1 over Real Field with 53 bits of precision
         """
         return "Lie group %s of %s" % (self._name, self.lie_algebra())
@@ -272,7 +276,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G._dLx()
             [       1       0  0]
             [       0       1  0]
@@ -292,7 +296,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G._dRx()
             [       1        0        0]
             [       0        1        0]
@@ -313,7 +317,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = lie_algebras.Heisenberg(QQ, 1)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G.gens()
             (exp(p1), exp(q1), exp(z))
         """
@@ -326,7 +330,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G.lie_algebra() == L
             True
         """
@@ -339,7 +343,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = LieAlgebra(QQ, 2, step=4)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G.step()
             4
         """
@@ -358,7 +362,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G.chart_exp1()
             Chart (G, (x_1, x_2, x_12))
         """
@@ -377,7 +381,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G.chart_exp2()
             Chart (G, (y_1, y_2, y_12))
         """
@@ -416,7 +420,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G.exp(X)
             exp(X)
             sage: G.exp(Y)
@@ -444,7 +448,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         The logarithm is the inverse of the exponential::
 
             sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G.log(G.exp(X)) == X
             True
             sage: G.log(G.exp(X)*G.exp(Y))
@@ -469,7 +473,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         EXAMPLES::
 
             sage: L = LieAlgebra(QQ, 2, step=4)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: G.one()
             exp(0)
         """
@@ -495,7 +499,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
             sage: H = lie_algebras.Heisenberg(QQ, 1)
             sage: p,q,z = H.basis()
-            sage: G = NilpotentLieGroup(H, 'G')
+            sage: G = H.lie_group()
             sage: g = G.exp(p)
             sage: L_g = G.left_translation(g); L_g
             Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
@@ -529,7 +533,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         The default left-invariant frame::
 
             sage: L = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: livf = G.left_invariant_frame(); livf
             Vector frame (G, (X_1,X_2,X_12))
             sage: coord_frame = G.chart_exp1().frame()
@@ -576,7 +580,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
             sage: L = lie_algebras.Heisenberg(QQ, 1)
             sage: p, q, z = L.basis()
-            sage: H = NilpotentLieGroup(L, 'H')
+            sage: H = L.lie_group('H')
             sage: X = H.left_invariant_extension(p); X
             Vector field p1 on the Lie group H of Heisenberg algebra of rank 1 over Rational Field
             sage: X.display(H.chart_exp1().frame())
@@ -616,7 +620,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
             sage: H = lie_algebras.Heisenberg(QQ, 1)
             sage: p,q,z = H.basis()
-            sage: G = NilpotentLieGroup(H, 'G')
+            sage: G = H.lie_group()
             sage: g = G.exp(p)
             sage: R_g = G.right_translation(g); R_g
             Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
@@ -650,7 +654,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         The default right-invariant frame::
 
             sage: L = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: rivf = G.right_invariant_frame(); rivf
             Vector frame (G, (XR_1,XR_2,XR_12))
             sage: coord_frame = G.chart_exp1().frame()
@@ -697,7 +701,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
             sage: L = lie_algebras.Heisenberg(QQ, 1)
             sage: p, q, z = L.basis()
-            sage: H = NilpotentLieGroup(L, 'H')
+            sage: H = L.lie_group('H')
             sage: X = H.right_invariant_extension(p); X
             Vector field p1 on the Lie group H of Heisenberg algebra of rank 1 over Rational Field
             sage: X.display(H.chart_exp1().frame())
@@ -737,7 +741,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
             sage: H = lie_algebras.Heisenberg(QQ, 1)
             sage: p,q,z = H.basis()
-            sage: G = NilpotentLieGroup(H, 'G')
+            sage: G = H.lie_group()
             sage: g = G.point([var('a'), var('b'), var('c')])
             sage: C_g = G.conjugation(g); C_g
             Diffeomorphism of the Lie group G of Heisenberg algebra of rank 1 over Rational Field
@@ -771,7 +775,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         An example of an adjoint map::
 
             sage: L = LieAlgebra(QQ, 2, step=3)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: g = G.exp(L.basis().list()[0]); g
             exp(X_1)
             sage: Ad_g = G.adjoint(g); Ad_g
@@ -786,7 +790,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         Usually the adjoint map of a symbolic point is not defined::
 
             sage: L = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: g = G.point([var('a'), var('b'), var('c')]); g
             exp(a*X_1 + b*X_2 + c*X_12)
             sage: G.adjoint(g)
@@ -821,7 +825,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
         exponential coordinates::
 
             sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
-            sage: G = NilpotentLieGroup(L, 'G')
+            sage: G = L.lie_group()
             sage: g = G.exp(2*X + 3*Z); g
             exp(2*X + 3*Z)
             sage: h = G.point([ var('a'), var('b'), 0]); h
@@ -850,7 +854,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             TESTS::
 
                 sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
-                sage: G = NilpotentLieGroup(L, 'G')
+                sage: G = L.lie_group()
                 sage: g = G.exp(X)
                 sage: TestSuite(g).run()
             """
@@ -864,7 +868,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             EXAMPLES::
 
                 sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
-                sage: G = NilpotentLieGroup(L, 'H')
+                sage: G = L.lie_group('H')
                 sage: g = G.point([var('a'), var('b'), var('c')]); g
                 exp(a*X + b*Y + c*Z)
                 sage: ~g
@@ -883,7 +887,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             EXAMPLES::
 
                 sage: L = LieAlgebra(QQ, 2, step=2)
-                sage: G = NilpotentLieGroup(L, 'H')
+                sage: G = L.lie_group('H')
                 sage: g1 = G.point([2, 0, 0]); g1
                 exp(2*X_1)
                 sage: g2 = G.point([0, 1/3, 0]); g2
@@ -909,7 +913,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             EXAMPLES:
 
                 sage: L = LieAlgebra(QQ, 2, step=2)
-                sage: G = NilpotentLieGroup(L, 'H')
+                sage: G = L.lie_group('H')
                 sage: g = G.point([1, 2, 3]); g
                 exp(X_1 + 2*X_2 + 3*X_12)
                 sage: G.set_default_chart(G.chart_exp2())

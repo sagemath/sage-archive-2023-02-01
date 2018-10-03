@@ -847,6 +847,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: G.exp(X)*G.exp(Y)
             exp(X + Y + 1/2*Z)
         """
+
         def __init__(self, parent, **kwds):
             r"""
             Initialize ``self``.
@@ -922,19 +923,20 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             """
             G = self.parent()
             chart = G.default_chart()
-            if chart not in [G._Exp1, G.chart_exp2()]:
-                chart = G._Exp1
+            if chart != G._Exp1:
+                if chart != G.chart_exp2():
+                    chart = G._Exp1
 
             x = self.coordinates(chart=chart)
             B = G.lie_algebra().basis()
             nonzero_pairs = [(Xk, xk) for Xk, xk in zip(B, x) if xk]
 
-            if G.default_chart() == G.chart_exp2():
+            if chart == G._Exp1:
+                s = repr_lincomb(nonzero_pairs)
+            else:
                 s = ")exp(".join(repr_lincomb([(Xk, xk)])
                                  for Xk, xk in reversed(nonzero_pairs))
                 if not s:
                     s = "0"
-            else:
-                s = repr_lincomb(nonzero_pairs)
             return "exp(%s)" % s
 

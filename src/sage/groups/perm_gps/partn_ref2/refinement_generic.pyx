@@ -334,11 +334,13 @@ cdef class LabelledBranching:
             sage: L = LabelledBranching(3)
         """
         from sage.libs.gap.libgap import libgap
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 
         self.n = n
         self.group = libgap.eval("Group(())")
         self.ClosureGroup = libgap.eval("ClosureGroup")
         self.father = < int *> sig_malloc(n * sizeof(int))
+        self.sym_gp = SymmetricGroup(self.n)
         if self.father is NULL:
             raise MemoryError('allocating LabelledBranching')
         self.act_perm = < int *> sig_malloc(n * sizeof(int))
@@ -433,8 +435,7 @@ cdef class LabelledBranching:
             [(1,2,3)]
         """
         from sage.libs.gap.libgap import libgap
-
-        return libgap.SmallGeneratingSet(self.group).sage()
+        return libgap.SmallGeneratingSet(self.group).sage(parent=self.sym_gp)
 
     def get_order(self):
         r"""

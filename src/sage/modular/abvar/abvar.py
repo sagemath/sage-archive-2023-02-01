@@ -231,7 +231,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     #############################################################################
     # lattice() *must* be defined by every derived class!!!!
     def lattice(self):
-        """
+        r"""
         Return lattice in ambient cuspidal modular symbols product that
         defines this modular abelian variety.
 
@@ -4178,9 +4178,9 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         return M
 
     def _compute_hecke_polynomial(self, n, var='x'):
-        """
+        r"""
         Return the characteristic polynomial of the `n^{th}` Hecke
-        operator on self.
+        operator on ``self``.
 
         .. note::
 

@@ -956,7 +956,7 @@ class Hypergeometric_M(BuiltinFunction):
         1/2*sqrt(pi)*erf(1)*e
     """
     def __init__(self):
-        """
+        r"""
         TESTS::
         
             sage: maxima(hypergeometric_M(1,1,x))
@@ -1067,7 +1067,7 @@ class Hypergeometric_U(BuiltinFunction):
 
     """
     def __init__(self):
-        """
+        r"""
         TESTS::
         
             sage: maxima(hypergeometric_U(1,1,x))

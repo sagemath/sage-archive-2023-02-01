@@ -822,7 +822,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             8
             sage: [T.order() for T in tor]
             [2, 4, 4, 2, 1, 2, 4, 4]
-            sage: all([T.is_divisible_by(3) for T in tor])
+            sage: all(T.is_divisible_by(3) for T in tor)
             True
             sage: Set([T for T in tor if T.is_divisible_by(2)])
             {(0 : 1 : 0), (1 : 0 : 1)}
@@ -2342,7 +2342,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         E = self.curve()
         if P is None:
-            return all([self.has_good_reduction(Pr) for Pr in E.discriminant().support()])
+            return all(self.has_good_reduction(Pr)
+                       for Pr in E.discriminant().support())
         K = E.base_field()
         from sage.schemes.elliptic_curves.ell_local_data import check_prime
         P = check_prime(K, P)

@@ -2031,18 +2031,22 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
             sage: from brial import BooleanMonomialMonoid
             sage: R.<t,y> = BooleanPolynomialRing(2)
             sage: N = BooleanMonomialMonoid(R)
-            sage: m = M(N(y)); m
+            sage: M(N(y))
+            y
+            sage: M(N(t))
             Traceback (most recent call last):
             ...
-            TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
+            ValueError: cannot convert monomial t to MonomialMonoid of Boolean PolynomialRing in x, y, z: name t not defined
 
             sage: from brial import BooleanMonomialMonoid
             sage: R.<t,x,y,z> = BooleanPolynomialRing(4)
             sage: N = BooleanMonomialMonoid(R)
-            sage: m = M(N(x*y*z)); m
+            sage: M(N(x*y*z))
+            x*y*z
+            sage: M(N(x*y*t))
             Traceback (most recent call last):
             ...
-            TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
+            ValueError: cannot convert monomial t*x*y to MonomialMonoid of Boolean PolynomialRing in x, y, z: name t not defined
         """
         if isinstance(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._parent.ngens() <= \
@@ -2170,7 +2174,7 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
                 except NameError as msg:
                     raise ValueError("cannot convert monomial %s to %s: %s" % (other, self, msg))
                 m = self._one_element
-                for i in other:
+                for i in other.iterindex():
                     m *= var_mapping[i]
                 return m
         elif isinstance(other, BooleSet):
@@ -6332,7 +6336,7 @@ cdef class ReductionStrategy:
 
         INPUT:
 
-        - ``p`` - a polynomial
+        - ``p`` -- a polynomial
 
         EXAMPLES::
 
@@ -6346,7 +6350,7 @@ cdef class ReductionStrategy:
             sage: red.head_normal_form(x + y*z)
             y + z + 1
 
-            sage; red.nf(x + y*z)
+            sage: red.nf(x + y*z)
             y + z + 1
         """
         return new_BP_from_PBPoly(self._parent, deref(self._strat).headNormalForm(p._pbpoly))
@@ -7400,7 +7404,7 @@ def ll_red_nf_redsb(p, BooleSet reductors):
         sage: from brial import ll_red_nf_redsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_redsb(p, reductors)
         b*c + b*d + c + d + 1
@@ -7442,7 +7446,7 @@ def ll_red_nf_noredsb(BooleanPolynomial p, BooleSet reductors):
         sage: from brial import ll_red_nf_noredsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_noredsb(p, reductors)
         b*c + b*d + c + d + 1
@@ -7475,7 +7479,7 @@ def ll_red_nf_noredsb_single_recursive_call(BooleanPolynomial p, BooleSet reduct
         sage: from brial import ll_red_nf_noredsb_single_recursive_call
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_noredsb_single_recursive_call(p, reductors)
         b*c + b*d + c + d + 1

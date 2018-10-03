@@ -236,7 +236,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         return all(F.is_constant() for F in self._filt.values())
 
     def is_exhaustive(self):
-        """
+        r"""
         Return whether the multi-filtration is exhaustive.
 
         A filtration $\{F_d\}$ in an ambient vector space $V$ is
@@ -258,7 +258,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         return all(F.is_exhaustive() for F in self._filt.values())
 
     def is_separating(self):
-        """
+        r"""
         Return whether the multi-filtration is separating.
 
         A filtration $\{F_d\}$ in an ambient vector space $V$ is

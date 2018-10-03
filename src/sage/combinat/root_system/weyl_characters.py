@@ -22,7 +22,7 @@ from sage.rings.all import ZZ
 
 
 class WeylCharacterRing(CombinatorialFreeModule):
-    """
+    r"""
     A class for rings of Weyl characters.
 
     Let `K` be a compact Lie group, which we assume is semisimple and
@@ -680,7 +680,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                     d[l] += c*d1[l]
                 else:
                     d[l] = c*d1[l]
-        for k in d.keys():
+        for k in list(d):
             if d[k] == 0:
                 del d[k]
             else:
@@ -1291,7 +1291,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             # a generic product) in the weight ring to optimize by
             # running only through pairs of weights instead of couples.
             c = self.weight_multiplicities()
-            ckeys = c.keys()
+            ckeys = list(c)
             d = {}
             for j in range(len(ckeys)):
                 for i in range(j+1):
@@ -1306,7 +1306,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                         d[t] += coef
                     else:
                         d[t] = coef
-            for k in d.keys():
+            for k in list(d):
                 if d[k] == 0:
                     del d[k]
             return self.parent().char_from_weights(d)
@@ -1322,7 +1322,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 A2(0,1)
             """
             c = self.weight_multiplicities()
-            ckeys = c.keys()
+            ckeys = list(c)
             d = {}
             for j in range(len(ckeys)):
                 for i in range(j+1):
@@ -1337,13 +1337,13 @@ class WeylCharacterRing(CombinatorialFreeModule):
                         d[t] += coef
                     else:
                         d[t] = coef
-            for k in d.keys():
+            for k in list(d):
                 if d[k] == 0:
                     del d[k]
             return self.parent().char_from_weights(d)
 
         def frobenius_schur_indicator(self):
-            """
+            r"""
             Return:
 
             - `1` if the representation is real (orthogonal)
@@ -1458,8 +1458,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 raise ValueError("{} is not irreducible".format(other))
             return self.coefficient(other.support()[0])
 
+
 def irreducible_character_freudenthal(hwv, debug=False):
-    """
+    r"""
     Return the dictionary of multiplicities for the irreducible
     character with highest weight `\lambda`.
 
@@ -1907,7 +1908,7 @@ class WeightRing(CombinatorialFreeModule):
             return self.parent()._from_dict(d2)
 
         def shift(self, mu):
-            """
+            r"""
             Add `\mu` to any weight. Extended by linearity to the weight ring.
 
             INPUT:

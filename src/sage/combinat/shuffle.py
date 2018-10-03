@@ -366,7 +366,7 @@ class ShuffleProduct(SageObject):
         m = len(self._l1)
         n = len(self._l2)
         mn = m + n
-        l = [0] * m + [1] * n # [0, 0 ... m times, 1, 1, 1 ... n times]
+        l = [0] * m + [1] * n  # [0, 0 ... m times, 1, 1, 1 ... n times]
 
         EC = self._element_constructor_
         yield EC(self._l1 + self._l2)
@@ -374,8 +374,7 @@ class ShuffleProduct(SageObject):
         for _ in gen(mn, m):
             l1 = iter(self._l1)
             l2 = iter(self._l2)
-            d = {0: l1.next, 1: l2.next}
-            yield EC([d[l[k]]() for k in range(mn)])
+            yield EC([next(l2) if l[k] else next(l1) for k in range(mn)])
 
     def __contains__(self, iterable):
         """

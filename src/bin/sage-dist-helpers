@@ -147,8 +147,18 @@ sdh_configure() {
     if [ -z "$CONFIG_SHELL" ]; then
         export CONFIG_SHELL=`command -v bash`
     fi
-    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" "$@" || \
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" "$@"
+    if [ $? -ne 0 ]; then
+        if [ -f "$(pwd)/config.log" ]; then
+            sdh_die <<_EOF_
+Error configuring $PKG_NAME
+See the file
+    $(pwd)/config.log
+for details.
+_EOF_
+        fi
         sdh_die "Error configuring $PKG_NAME"
+    fi
 }
 
 
@@ -174,10 +184,12 @@ sdh_pip_install() {
     echo "Installing $PKG_NAME"
     if [ -n "$SAGE_DESTDIR" ]; then
         local sudo=""
+        local root="--root=$SAGE_DESTDIR"
     else
         local sudo="$SAGE_SUDO"
+        local root=""
     fi
-    $sudo sage-pip-install "$@" || \
+    $sudo sage-pip-install $root "$@" || \
         sdh_die "Error installing $PKG_NAME"
 }
 

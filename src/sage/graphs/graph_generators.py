@@ -307,6 +307,7 @@ __append_to_doc(
     ["RandomBarabasiAlbert",
      "RandomBicubicPlanar",
      "RandomBipartite",
+     "RandomRegularBipartite",
      "RandomBlockGraph",
      "RandomBoundedToleranceGraph",
      "RandomGNM",
@@ -2116,6 +2117,7 @@ class GraphGenerators():
     import sage.graphs.generators.random
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
+    RandomRegularBipartite   = staticmethod(sage.graphs.generators.random.RandomRegularBipartite)
     RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBlockGraph         = staticmethod(sage.graphs.generators.random.RandomBlockGraph)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)

@@ -1100,8 +1100,9 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())
     G = Graph([[index_set[i], index_set[j], coxeter_matrix[i, j]]
-               for i in range(n) for j in range(i,n)
-               if coxeter_matrix[i, j] not in [1, 2]])
+               for i in range(n) for j in range(i, n)
+               if coxeter_matrix[i, j] not in [1, 2]],
+              format='list_of_edges')
     G.add_vertices(index_set)
 
     types = []

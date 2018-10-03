@@ -9,7 +9,6 @@ from sage.env import SAGE_DOC_SRC, SAGE_DOC
 LANGUAGES = [d for d in os.listdir(SAGE_DOC_SRC) if re.match('^[a-z][a-z]$', d)]
 SPHINXOPTS = ""
 PAPER = ""
-OMIT = ["introspect"]  # docs/dirs to omit when listing and building 'all'
 
 if PAPER:
     PAPEROPTS = "-D latex_paper_size=" + PAPER

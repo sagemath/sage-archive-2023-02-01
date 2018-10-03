@@ -229,7 +229,8 @@ class TestSuite(object):
             Failure in _test_pickling:
             Traceback (most recent call last):
               ...
-            PicklingError: Can't pickle <class '__main__.Blah'>: attribute lookup __main__.Blah failed
+            ...PicklingError: Can't pickle <class '__main__.Blah'>: attribute
+            lookup ...Blah... failed
             ------------------------------------------------------------
             The following tests failed: _test_b, _test_d, _test_pickling
 
@@ -252,7 +253,8 @@ class TestSuite(object):
             running ._test_pickling() . . . fail
             Traceback (most recent call last):
               ...
-            PicklingError: Can't pickle <class '__main__.Blah'>: attribute lookup __main__.Blah failed
+            ...PicklingError: Can't pickle <class '__main__.Blah'>: attribute
+            lookup ...Blah... failed
             ------------------------------------------------------------
             The following tests failed: _test_b, _test_d, _test_pickling
 

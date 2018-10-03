@@ -7355,34 +7355,30 @@ class GenericGraph(GenericGraph_pyx):
         #####################
 
         if self.order() == 2:
-            u,v = self.vertices()
+            uu,vv = self.vertices()
             if self.is_directed():
-                if self.has_edge(u,v) and self.has_edge(v,u):
+                if self.has_edge(uu, vv) and self.has_edge(vv, uu):
                     if self.has_multiple_edges():
                         if maximize:
-                            edges = [(u,v,max(self.edge_label(u,v), key=weight)),
-                                    (v,u,max(self.edge_label(v,u), key=weight))]
+                            edges = [(uu, vv, max(self.edge_label(uu, vv), key=weight)),
+                                     (vv, uu, max(self.edge_label(vv, uu), key=weight))]
                         else:
-                            edges = [(u,v,min(self.edge_label(u,v), key=weight)),
-                                    (v,u,min(self.edge_label(v,u), key=weight))]
+                            edges = [(uu, vv, min(self.edge_label(uu, vv), key=weight)),
+                                     (vv, uu, min(self.edge_label(vv, uu), key=weight))]
                     else:
-                        edges = [(u,v,self.edge_label(u,v)),
-                                 (v,u,self.edge_label(v,u))]
-                    answer = self.subgraph(edges = edges, immutable = False)
+                        edges = [(uu, vv, self.edge_label(uu, vv)),
+                                 (vv, uu, self.edge_label(vv, uu))]
+                    answer = self.subgraph(edges=edges, immutable=self.is_immutable())
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
-                    if self.is_immutable():
-                        answer = answer.copy(immutable = True)
                     return answer
             else:
-                if self.has_multiple_edges() and len(self.edge_label(u,v)) > 1:
+                if self.has_multiple_edges() and len(self.edge_label(uu, vv)) > 1:
                     edges = self.edges()
                     edges.sort(key=weight)
-                    answer = self.subgraph(edges = edges[:2], immutable = False)
+                    answer = self.subgraph(edges=edges[:2], immutable=self.is_immutable())
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
-                    if self.is_immutable():
-                        answer = answer.copy(immutable = True)
                     return answer
 
             raise EmptySetError("the given graph is not Hamiltonian")
@@ -19929,10 +19925,6 @@ class GenericGraph(GenericGraph_pyx):
 
             edge_option_functions.append(lambda edge: {"color": color_by_edge[edge]} if edge in color_by_edge else {})
 
-        else:
-            edges_by_color = []
-            not_colored_edges = self.edge_iterator(labels=True)
-
         key = self._keys_for_vertices()
 
         s = '%s {\n' % graph_string
@@ -21113,17 +21105,16 @@ class GenericGraph(GenericGraph_pyx):
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
             G_vertices = sum(partition, [])
             G_to = {}
-            for i in range(len(G_vertices)):
-                G_to[G_vertices[i]] = i
+            for i,u in enumerate(G_vertices):
+                G_to[u] = i
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
             HB = H._backend
             for u,v in G.edge_iterator(labels=False):
-                u = G_to[u]; v = G_to[v]
-                HB.add_edge(u,v,None,G._directed)
+                HB.add_edge(G_to[u], G_to[v], None, G._directed)
             GC = HB.c_graph()[0]
-            partition = [[G_to[v] for v in cell] for cell in partition]
+            partition = [[G_to[vv] for vv in cell] for cell in partition]
             A = search_tree(GC, partition, lab=False, dict_rep=True, dig=dig, verbosity=verbosity, order=order)
             if order:
                 a,b,c = A
@@ -21160,17 +21151,16 @@ class GenericGraph(GenericGraph_pyx):
         else:
             G_vertices = sum(partition, [])
             G_to = {}
-            for i in range(len(G_vertices)):
-                G_to[G_vertices[i]] = i
+            for i,u in enumerate(G_vertices):
+                G_to[u] = i
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), implementation='c_graph', loops=self.allows_loops())
             HB = H._backend
             for u,v in self.edge_iterator(labels=False):
-                u = G_to[u]; v = G_to[v]
-                HB.add_edge(u,v,None,self._directed)
+                HB.add_edge(G_to[u], G_to[v], None, self._directed)
             GC = HB.c_graph()[0]
-            partition = [[G_to[v] for v in cell] for cell in partition]
+            partition = [[G_to[vv] for vv in cell] for cell in partition]
 
             if return_group:
                 A = search_tree(GC, partition, dict_rep=True, lab=False, dig=dig, verbosity=verbosity, order=order)
@@ -21593,28 +21583,26 @@ class GenericGraph(GenericGraph_pyx):
             G = self; partition = [self_vertices]
             G2 = other; partition2 = other_vertices
         G_to = {}
-        for i in range(len(self_vertices)):
-            G_to[self_vertices[i]] = i
+        for i,u in enumerate(self_vertices):
+            G_to[u] = i
         from sage.graphs.all import Graph, DiGraph
         DoDG = DiGraph if self._directed else Graph
         H = DoDG(len(self_vertices), implementation='c_graph', loops=G.allows_loops())
         HB = H._backend
         for u,v in G.edge_iterator(labels=False):
-            u = G_to[u]; v = G_to[v]
-            HB.add_edge(u,v,None,G._directed)
+            HB.add_edge(G_to[u], G_to[v], None, G._directed)
         G = HB.c_graph()[0]
-        partition = [[G_to[v] for v in cell] for cell in partition]
+        partition = [[G_to[vv] for vv in cell] for cell in partition]
         GC = G
         G2_to = {}
-        for i in range(len(other_vertices)):
-            G2_to[other_vertices[i]] = i
+        for i,u in enumerate(other_vertices):
+            G2_to[u] = i
         H2 = DoDG(len(other_vertices), implementation='c_graph', loops=G2.allows_loops())
         H2B = H2._backend
         for u,v in G2.edge_iterator(labels=False):
-            u = G2_to[u]; v = G2_to[v]
-            H2B.add_edge(u,v,None,G2._directed)
+            H2B.add_edge(G2_to[u], G2_to[v], None, G2._directed)
         G2 = H2B.c_graph()[0]
-        partition2 = [G2_to[v] for v in partition2]
+        partition2 = [G2_to[vv] for vv in partition2]
         GC2 = G2
         isom = isomorphic(GC, GC2, partition, partition2, (self._directed or self.has_loops()), 1)
 
@@ -21803,7 +21791,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.bliss import canonical_form
 
         # By default use bliss when possible
-        if algorithm is None:
+        elif algorithm is None:
             algorithm = 'sage'
             if not has_multiedges:
                 try:
@@ -21830,17 +21818,16 @@ class GenericGraph(GenericGraph_pyx):
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
             G_vertices = sum(partition, [])
             G_to = {}
-            for i in range(len(G_vertices)):
-                G_to[G_vertices[i]] = i
+            for i,u in enumerate(G_vertices):
+                G_to[u] = i
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
             HB = H._backend
             for u,v in G.edge_iterator(labels=False):
-                u = G_to[u]; v = G_to[v]
-                HB.add_edge(u,v,None,G._directed)
+                HB.add_edge(G_to[u], G_to[v], None, G._directed)
             GC = HB.c_graph()[0]
-            partition = [[G_to[v] for v in cell] for cell in partition]
+            partition = [[G_to[vv] for vv in cell] for cell in partition]
             a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = copy(self)
@@ -21854,17 +21841,16 @@ class GenericGraph(GenericGraph_pyx):
                 return H
         G_vertices = sum(partition, [])
         G_to = {}
-        for i in range(len(G_vertices)):
-            G_to[G_vertices[i]] = i
+        for i,u in enumerate(G_vertices):
+            G_to[u] = i
         from sage.graphs.all import Graph, DiGraph
         DoDG = DiGraph if self._directed else Graph
         H = DoDG(len(G_vertices), implementation='c_graph', loops=self.allows_loops())
         HB = H._backend
         for u,v in self.edge_iterator(labels=False):
-            u = G_to[u]; v = G_to[v]
-            HB.add_edge(u, v, None, self._directed)
+            HB.add_edge(G_to[u], G_to[v], None, self._directed)
         GC = HB.c_graph()[0]
-        partition = [[G_to[v] for v in cell] for cell in partition]
+        partition = [[G_to[vv] for vv in cell] for cell in partition]
         a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
         H = copy(self)
         c_new = {}

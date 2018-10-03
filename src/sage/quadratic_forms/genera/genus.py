@@ -60,7 +60,7 @@ def Genus(A, factored_determinant=None):
         D = D.factor()
     else:
         D = factored_determinant * 2
-    sig_pair = signature_pair(A)
+    sig_pair = signature_pair_of_matrix(A)
     local_symbols = []
     for f in D:
         p = f[0]

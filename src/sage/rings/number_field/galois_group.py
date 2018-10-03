@@ -134,8 +134,8 @@ class GaloisGroup_v1(SageObject):
             PARI group [6, -1, 2, "S3"] of degree 3
             sage: P = H.permutation_group(); P  # optional - database_gap
             Transitive group number 2 of degree 3
-            sage: list(P)                       # optional - database_gap
-            [(), (1,2,3), (1,3,2), (2,3), (1,2), (1,3)]
+            sage: sorted(P)                     # optional - database_gap
+            [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
         """
         return self.__group
 

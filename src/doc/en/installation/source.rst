@@ -45,7 +45,7 @@ See http://wiki.sagemath.org/SupportedPlatforms for the full list of platforms
 on which Sage is supported and the level of support for these systems.
 
 Sage is supported on a number of `Linux <http://en.wikipedia.org/wiki/Linux>`_,
-Mac `OS X <http://www.apple.com/macosx/>`_ ,
+`macOS <http://www.apple.com/macosx/>`_ ,
 Sun/Oracle `Solaris <http://www.oracle.com/solaris>`_ releases,
 but not necessarily all versions of these operating systems.
 There is no native version of Sage which installs on
@@ -87,7 +87,7 @@ and the `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_ shell,
 the following standard command-line development tools must be installed on your
 computer:
 
-- A **C/C++ compiler**: Since Sage builds its own GCC if needed,
+- A **C/C++ compiler**: Since SageMath builds its own GCC if needed,
   a wide variety of C/C++ compilers is supported.
   Many GCC versions work,
   from as old as version 3.4.3 to the most recent release.
@@ -168,7 +168,7 @@ and inform you of any that are missing, or have unsuitable versions.
 System-specific requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On Mac OS X, there are various developer tools needed which may require
+On macOS, there are various developer tools needed which may require
 some registration on Apple's developer site; see
 :ref:`section_macprereqs`.
 
@@ -238,10 +238,10 @@ or other package managers.
 
 .. _section_macprereqs:
 
-Mac OS X prerequisite installation
+macOS prerequisite installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-On OS X systems, you need a recent version of
+On macOS systems, you need a recent version of
 `Command Line Tools <http://developer.apple.com/downloads/index.action?=command%20line%20tools>`_.
 It provides all the above requirements.
 
@@ -258,7 +258,7 @@ there as well.
 - Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
   preference pane and install the command line tools from there.
 
-- On pre-Lion OS X systems, the command line tools are not available as a
+- On pre-Lion macOS systems, the command line tools are not available as a
   separate download and you have to install the full-blown Xcode supporting your
   system version.
 
@@ -292,7 +292,7 @@ On other systems, check the documentation for your particular operating system.
 Specific notes for ``make`` and ``tar``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On OS X, the system-wide BSD ``tar`` supplied will build Sage, so there is no
+On macOS, the system-wide BSD ``tar`` supplied will build Sage, so there is no
 need to install the GNU ``tar``.
 
 On Solaris or OpenSolaris, the Sun/Oracle versions of ``make`` and ``tar`` are
@@ -503,7 +503,7 @@ Running Sage from a directory with spaces in its name will also fail.
    build process; see :ref:`section_envvar`.
 
    Some environment variables deserve a special mention: `CC`, `CXX` and `FC`;
-   and on OS X, `OBJC` and `OBJCXX`. Those variables defining your compilers
+   and on macOS, `OBJC` and `OBJCXX`. Those variables defining your compilers
    can be set at configuration time and their values will be recorded for
    further use at runtime. Those initial values are over-ridden if Sage builds
    its own compiler or they are set to a different value again before calling
@@ -540,8 +540,8 @@ Running Sage from a directory with spaces in its name will also fail.
 
    .. NOTE::
 
-      Mac OS X allows changing directories without using exact capitalization.
-      Beware of this convenience when compiling for OS X. Ignoring exact
+      macOS allows changing directories without using exact capitalization.
+      Beware of this convenience when compiling for macOS. Ignoring exact
       capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
       errors for dependencies requiring exact capitalization in path names.
 
@@ -570,7 +570,7 @@ Running Sage from a directory with spaces in its name will also fail.
    If the log files are very large (and many are), then don't paste the whole
    file, but make sure to include any error messages.
    It would also be helpful to include the type of operating system
-   (Linux, OS X, Solaris, OpenSolaris, Cygwin, or any other system),
+   (Linux, macOS, Solaris, OpenSolaris, Cygwin, or any other system),
    the version and release date of that operating system and the version of
    the copy of Sage you are using.
    (There are no formal requirements for bug reports -- just send them;
@@ -696,7 +696,7 @@ Running Sage from a directory with spaces in its name will also fail.
      (under the Application tab of the Properties of the icon, which you get my
      right clicking the mouse on the icon).
 
-   - On Linux and OS X systems, you can make an alias to
+   - On Linux and macOS systems, you can make an alias to
      :file:`$SAGE_ROOT/sage`.
      For example, put something similar to the following line in your
      :file:`.bashrc` file::
@@ -921,7 +921,7 @@ Here are some of the more commonly used variables affecting the build process:
 
   .. warning::
 
-      Some users on single-core OS X machines have reported problems when
+      Some users on single-core macOS machines have reported problems when
       building Sage with ``MAKE='make -jNUM'`` with ``NUM`` greater than one.
 
 - :envvar:`SAGE_NUM_THREADS` - if set to a number, then when building the

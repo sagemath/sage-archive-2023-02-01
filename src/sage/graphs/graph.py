@@ -3374,16 +3374,16 @@ class Graph(GenericGraph):
 
         for v in self:
             minimum,maximum = f_bounds(v)
-            p.add_constraint(p.sum( b[frozenset((x,y))]*weight(l) for x,y,l in self.edges_incident(v)),
+            p.add_constraint(p.sum(b[frozenset((x,y))]*weight(l) for x,y,l in self.edges_incident(v)),
                                  min=minimum, max=maximum)
 
-        p.set_objective(p.sum( b[frozenset((x,y))]*weight(l) for x,y,l in self.edge_iterator()))
+        p.set_objective(p.sum(b[frozenset((x,y))]*weight(l) for x,y,l in self.edge_iterator()))
 
         try:
             p.solve(log=verbose)
             g = copy(self)
             b = p.get_values(b)
-            g.delete_edges((x,y) for x,y,_ in g.edge_iterator() if b[frozenset((x,y))] < 0.5)
+            g.delete_edges((x,y) for x,y in g.edge_iterator(labels=False) if b[frozenset((x,y))] < 0.5)
             return g
 
 
@@ -3575,7 +3575,7 @@ class Graph(GenericGraph):
 
         # Whether an edge adjacent to a vertex u counts positively or
         # negatively. To do so, we first fix an arbitrary extremity per edge uv.
-        ext = {frozenset(e):e[0] for e in self.edge_iterator(labels=False)}
+        ext = {frozenset(e): e[0] for e in self.edge_iterator(labels=False)}
         def outgoing(u, e, variable):
             if u == ext[frozenset(e)]:
                 return variable
@@ -4535,7 +4535,7 @@ class Graph(GenericGraph):
             if u is v:
                 continue
             fuv = frozenset((u, v))
-            if not fuv in L or ( use_edge_labels and W[fuv] < weight(l) ):
+            if fuv not in L or ( use_edge_labels and W[fuv] < weight(l) ):
                 L[fuv] = l
                 if use_edge_labels:
                     W[fuv] = weight(l)
@@ -4566,9 +4566,9 @@ class Graph(GenericGraph):
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
             b = p.new_variable(binary=True)
             if use_edge_labels:
-                p.set_objective( p.sum( w * b[fe] for fe,w in W.items() ) )
+                p.set_objective(p.sum(w * b[fe] for fe,w in W.items()))
             else:
-                p.set_objective( p.sum( b[fe] for fe in L ) )
+                p.set_objective(p.sum(b[fe] for fe in L))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
@@ -4782,12 +4782,10 @@ class Graph(GenericGraph):
 
         # One variable per edge
         b = M.new_variable(binary=True, nonnegative=True)
-        def B(e):
-            return b[frozenset(e)]
 
         # We want to select at most one incident edge per vertex (matching)
         for u in self.vertex_iterator():
-            M.add_constraint( M.sum( B(e) for e in self.edges_incident(u, labels=0) ) <= 1 )
+            M.add_constraint(M.sum(b[frozenset(e)] for e in self.edges_incident(u, labels=0)), max=1)
 
         #
         # Initialize LP for fractional chromatic number
@@ -4795,31 +4793,29 @@ class Graph(GenericGraph):
 
         # One variable per edge
         r = p.new_variable(nonnegative=True)
-        def R(e):
-            return r[frozenset(e)]
 
         # We want to maximize the sum of weights on the edges
-        p.set_objective( p.sum( R(e) for e in self.edge_iterator(labels=False)))
+        p.set_objective(p.sum(r[frozenset(e)] for e in self.edge_iterator(labels=False)))
 
         # Each edge being by itself a matching, its weight can not be more than
         # 1
         for e in self.edge_iterator(labels=False):
-            p.add_constraint( R(e), max = 1)
+            p.add_constraint(r[frozenset(e)], max=1)
 
         obj = p.solve(log=verbose)
 
         while True:
 
             # Update the weights of edges for the matching problem
-            M.set_objective( M.sum( p.get_values(R(e)) * B(e) for e in self.edge_iterator(labels=0) ) )
+            M.set_objective(M.sum(p.get_values(r[frozenset(e)]) * b[frozenset(e)] for e in self.edge_iterator(labels=0)))
 
             # If the maximum matching has weight at most 1, we are done !
             if M.solve(log=verbose) <= 1:
                 break
 
             # Otherwise, we add a new constraint
-            matching = [e for e in self.edge_iterator(labels=0) if M.get_values(B(e)) == 1]
-            p.add_constraint( p.sum( R(e) for e in matching), max=1)
+            matching = [e for e in self.edge_iterator(labels=0) if M.get_values(b[frozenset(e)]) == 1]
+            p.add_constraint(p.sum(r[frozenset(e)] for e in matching), max=1)
             if verbose_constraints:
                 print("Adding a constraint on matching : {}".format(matching))
 
@@ -4900,19 +4896,20 @@ class Graph(GenericGraph):
         g = self
         from sage.numerical.mip import MixedIntegerLinearProgram
 
-        p = MixedIntegerLinearProgram(maximization=True, solver = solver)
+        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
 
         d = p.new_variable(nonnegative=True)
         one = p.new_variable(nonnegative=True)
 
         for u,v in g.edge_iterator(labels=False):
-            p.add_constraint( one[ frozenset((u, v)) ] - 2*d[u], max=0 )
-            p.add_constraint( one[ frozenset((u, v)) ] - 2*d[v], max=0 )
+            fuv = frozenset((u, v))
+            p.add_constraint(one[fuv] - 2 * d[u], max=0)
+            p.add_constraint(one[fuv] - 2 * d[v], max=0)
 
-        p.add_constraint( p.sum(d[v] for v in g), max=1)
+        p.add_constraint(p.sum(d[v] for v in g), max=1)
 
-        p.set_objective(p.sum(one[frozenset((u, v))]
-                              for u, v in g.edge_iterator(labels=False)))
+        p.set_objective(p.sum(one[frozenset(uv)]
+                              for uv in g.edge_iterator(labels=False)))
 
         p.solve(log=verbose)
 
@@ -4926,7 +4923,7 @@ class Graph(GenericGraph):
         # should be safe :-)
         m = 1/(10 *Integer(g.order()))
         d_val = p.get_values(d)
-        g_mad = g.subgraph([v for v,l in d_val.items() if l > m ])
+        g_mad = g.subgraph(v for v,l in six.iteritems(d_val) if l > m)
 
         if value_only:
             return g_mad.average_degree()
@@ -5024,7 +5021,7 @@ class Graph(GenericGraph):
         classss = p.new_variable(binary=True)
 
         # Associates to the vertices the classes to which they belong
-        lists = dict((v, []) for v in self)
+        lists = {v: [] for v in self}
         for i,f in enumerate(family):
             for v in f:
                 lists[v].append(i)
@@ -5149,9 +5146,7 @@ class Graph(GenericGraph):
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
         p = MixedIntegerLinearProgram(solver=solver)
 
-        # Make an edge a frozenset to avoid confusion between (u, v) and (v, u)
-        def S(e):
-            return frozenset(e)
+        # We use frozenset((u, v)) to avoid confusion between (u, v) and (v, u)
 
         # rs = Representative set of a vertex
         # for h in H, v in G is such that rs[h,v] == 1 if and only if v
@@ -5170,15 +5165,16 @@ class Graph(GenericGraph):
         # there can be a edge for h between two vertices
         # only if those vertices represent h
         for u,v in self.edge_iterator(labels=None):
+            fuv = frozenset((u, v))
             for h in H:
-                p.add_constraint(edges[h,S((u,v))] - rs[h,u], max=0)
-                p.add_constraint(edges[h,S((u,v))] - rs[h,v], max=0)
+                p.add_constraint(edges[h,fuv] - rs[h,u], max=0)
+                p.add_constraint(edges[h,fuv] - rs[h,v], max=0)
 
         # The number of edges of the tree in h is exactly the cardinal
         # of its representative set minus 1
 
         for h in H:
-            p.add_constraint(  p.sum(edges[h,S(e)] for e in self.edge_iterator(labels=None))
+            p.add_constraint(  p.sum(edges[h,frozenset(e)] for e in self.edge_iterator(labels=None))
                              - p.sum(rs[h,v] for v in self), min=-1, max=-1)
 
         # a tree  has no cycle
@@ -5187,7 +5183,7 @@ class Graph(GenericGraph):
 
         for h in H:
             for u,v in self.edge_iterator(labels=None):
-                p.add_constraint(r_edges[h,(u,v)] + r_edges[h,(v,u)] - edges[h,S((u,v))], min=0)
+                p.add_constraint(r_edges[h,(u,v)] + r_edges[h,(v,u)] - edges[h,frozenset((u,v))], min=0)
 
             for v in self:
                 p.add_constraint(p.sum(r_edges[h,(u,v)] for u in self.neighbor_iterator(v)), max=1-epsilon)
@@ -5199,14 +5195,14 @@ class Graph(GenericGraph):
         for h1, h2 in H.edge_iterator(labels=None):
 
             for v1, v2 in self.edge_iterator(labels=None):
+                fv1v2 = frozenset((v1, v2))
+                p.add_constraint(h_edges[(h1,h2),fv1v2] - rs[h2,v2], max=0)
+                p.add_constraint(h_edges[(h1,h2),fv1v2] - rs[h1,v1], max=0)
 
-                p.add_constraint(h_edges[(h1,h2),S((v1,v2))] - rs[h2,v2], max=0)
-                p.add_constraint(h_edges[(h1,h2),S((v1,v2))] - rs[h1,v1], max=0)
+                p.add_constraint(h_edges[(h2,h1),fv1v2] - rs[h1,v2], max=0)
+                p.add_constraint(h_edges[(h2,h1),fv1v2] - rs[h2,v1], max=0)
 
-                p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h1,v2], max=0)
-                p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h2,v1], max=0)
-
-            p.add_constraint(p.sum(h_edges[(h1,h2),S(e)] + h_edges[(h2,h1),S(e)]
+            p.add_constraint(p.sum(h_edges[(h1,h2),frozenset(e)] + h_edges[(h2,h1),frozenset(e)]
                                        for e in self.edge_iterator(labels=None)), min=1)
 
         p.set_objective(None)
@@ -5754,11 +5750,11 @@ class Graph(GenericGraph):
 
         # Exactly one representant per vertex of H
         for h in H:
-            p.add_constraint( p.sum( v_repr[h,g] for g in G), min=1, max=1)
+            p.add_constraint(p.sum(v_repr[h,g] for g in G), min=1, max=1)
 
         # A vertex of G can only represent one vertex of H
         for g in G:
-            p.add_constraint( p.sum( v_repr[h,g] for h in H), max=1)
+            p.add_constraint(p.sum(v_repr[h,g] for h in H), max=1)
 
         ###################
         # Is representent #
@@ -5770,7 +5766,7 @@ class Graph(GenericGraph):
 
         for g in G:
             for h in H:
-                p.add_constraint( v_repr[h,g] - is_repr[g], max=0)
+                p.add_constraint(v_repr[h,g] - is_repr[g], max=0)
 
         ###################################
         # paths between the representents #
@@ -5789,10 +5785,10 @@ class Graph(GenericGraph):
         # These functions return the balance of flow corresponding to
         # commodity C at vertex v
         def flow_in(C, v):
-            return p.sum( flow[C,(v,u)] for u in G.neighbor_iterator(v) )
+            return p.sum(flow[C,(v,u)] for u in G.neighbor_iterator(v))
 
         def flow_out(C, v):
-            return p.sum( flow[C,(u,v)] for u in G.neighbor_iterator(v) )
+            return p.sum(flow[C,(u,v)] for u in G.neighbor_iterator(v))
 
         def flow_balance(C, v):
             return flow_in(C,v) - flow_out(C,v)
@@ -5803,7 +5799,7 @@ class Graph(GenericGraph):
 
                 # The flow balance depends on whether the vertex v is a
                 # representant of h1 or h2 in G, or a representant of none
-                p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v] )
+                p.add_constraint(flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v])
 
         #############################
         # Internal vertex of a path #
@@ -5817,7 +5813,7 @@ class Graph(GenericGraph):
         # When is a vertex internal for a commodity ?
         for C in H.edge_iterator(labels = False):
             for g in G:
-                p.add_constraint( flow_in(C,g) + flow_out(C,g) - is_internal[C,g], max=1)
+                p.add_constraint(flow_in(C,g) + flow_out(C,g) - is_internal[C,g], max=1)
 
         ############################
         # Two paths do not cross ! #
@@ -5827,7 +5823,7 @@ class Graph(GenericGraph):
         # the vertex is a representent
 
         for g in G:
-            p.add_constraint( p.sum( is_internal[C,g] for C in H.edge_iterator(labels=False))
+            p.add_constraint(p.sum(is_internal[C,g] for C in H.edge_iterator(labels=False))
                               + is_repr[g], max=1)
 
         # (The following inequalities are not necessary, but they seem
@@ -5840,8 +5836,8 @@ class Graph(GenericGraph):
 
         for g1,g2 in G.edge_iterator(labels = None):
 
-            p.add_constraint(   p.sum( flow[C,(g1,g2)] for C in H.edge_iterator(labels=False) )
-                              + p.sum( flow[C,(g2,g1)] for C in H.edge_iterator(labels=False) ),
+            p.add_constraint(   p.sum(flow[C,(g1,g2)] for C in H.edge_iterator(labels=False))
+                              + p.sum(flow[C,(g2,g1)] for C in H.edge_iterator(labels=False)),
                                 max=1)
 
 
@@ -8254,7 +8250,7 @@ class Graph(GenericGraph):
         elif algorithm == "LP":
             from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
             p = MixedIntegerLinearProgram(solver=solver)
-            b = p.new_variable(binary = True)
+            b = p.new_variable(binary=True)
             for v in self:
                 edges = self.edges_incident(v, labels=False)
                 if not edges:

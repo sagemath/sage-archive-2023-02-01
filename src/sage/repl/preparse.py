@@ -87,9 +87,9 @@ Raw and hex work correctly::
     sage: type(0xa1)
     <type 'sage.rings.integer.Integer'>
     sage: type(0xa1r)
-    <... 'int'>
+    <type 'int'>
     sage: type(0Xa1R)
-    <... 'int'>
+    <type 'int'>
 
 In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error)::
@@ -159,7 +159,7 @@ We create a raw integer::
     sage: a
     393939
     sage: type(a)
-    <... 'int'>
+    <type 'int'>
 
 We create a raw float::
 
@@ -167,7 +167,7 @@ We create a raw float::
     sage: z
     1.5949
     sage: type(z)
-    <... 'float'>
+    <type 'float'>
 
 You can also use an upper case letter::
 
@@ -175,7 +175,7 @@ You can also use an upper case letter::
     sage: z
     3.1415
     sage: type(z)
-    <... 'float'>
+    <type 'float'>
 
 This next example illustrates how raw literals can be very useful in
 certain cases.  We make a list of even integers up to 10000::

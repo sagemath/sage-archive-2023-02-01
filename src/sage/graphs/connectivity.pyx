@@ -1552,8 +1552,8 @@ def strongly_connected_components_digraph(G, keep_labels = False):
 
         sage: g = DiGraph({0:{1:"01", 2: "02", 3: "03"}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
         sage: scc_digraph = strongly_connected_components_digraph(g)
-        sage: scc_digraph.vertices()
-        [{0}, {3}, {1, 2}]
+        sage: scc_digraph.vertices(key=sorted)
+        [{0}, {1, 2}, {3}]
         sage: scc_digraph.edges()
         [({0}, {1, 2}, None), ({0}, {3}, None), ({1, 2}, {3}, None)]
 
@@ -1567,8 +1567,8 @@ def strongly_connected_components_digraph(G, keep_labels = False):
 
         sage: g = DiGraph({0:{1:"0-12", 2: "0-12", 3: "0-3"}, 1: {2: "1-2", 3: "1-3"}, 2:{1: "2-1", 3: "2-3"}})
         sage: scc_digraph = strongly_connected_components_digraph(g, keep_labels = True)
-        sage: scc_digraph.vertices()
-        [{0}, {3}, {1, 2}]
+        sage: scc_digraph.vertices(key=sorted)
+        [{0}, {1, 2}, {3}]
         sage: scc_digraph.edges()
         [({0}, {1, 2}, '0-12'),
          ({0}, {3}, '0-3'),

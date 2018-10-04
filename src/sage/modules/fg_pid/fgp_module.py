@@ -1136,7 +1136,7 @@ class FGP_Module_class(Module):
             [0 1 0]
             [0 0 1]
 
-        We create some element of or FGP_module::
+        We create some element of our FGP_module::
 
             sage: x = D.linear_combination_of_smith_form_gens((1,2,3))
             sage: x
@@ -1145,7 +1145,7 @@ class FGP_Module_class(Module):
         and want to know some (it is not unique) linear combination
         of the user defined generators that is x::
 
-            sage: x.vector()*D._to_gens()
+            sage: x.vector() * D._to_gens()
             (2, 33, 22, 1, 3)
         """
         if self.base_ring()!= ZZ:

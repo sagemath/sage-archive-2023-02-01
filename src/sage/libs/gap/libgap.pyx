@@ -338,6 +338,7 @@ class Gap(Parent):
             except AttributeError:
                 pass
             x = str(x._gap_init_())
+            gx = gap_eval(x)
             return make_any_gap_element(self, gap_eval(x))
 
     def _construct_matrix(self, M):

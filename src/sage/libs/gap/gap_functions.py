@@ -1441,4 +1441,6 @@ common_gap_functions = [
   'ZeroOp',
   'ZeroSM',
   'ZeroSameMutability',
+  'GASMAN_STATS',
+  'GASMAN',
  ]

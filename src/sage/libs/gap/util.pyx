@@ -309,23 +309,21 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     cmd = str_to_bytes(gap_string + ';\n')
 #    print("gap_string: "+gap_string+"\n")
     try:
-        try:
             sig_on()
             result = GAP_EvalString(cmd)
             nresults = LEN_LIST(result)
+#            print("nresults="+str(nresults)+"\n")
             if nresults > 1: # to mimick the old libGAP
                 raise ValueError('can only evaluate a single statement')
             result = ELM_LIST(result, 1) # 1-indexed!
+#            print("result's length: "+str(LEN_LIST(result))+"\n")
             if ELM_LIST(result, 1) != GAP_True:
                 # libgap_call_error_handler()
                         print("An error occurred, but libGAP has no handler set")
                         return GAP_False # needs work
             sig_off()
-        except RuntimeError as msg:
+    except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg).strip())
-
-    finally:
-        pass
 
     return ELM_LIST(result, 2)
 

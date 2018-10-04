@@ -1,0 +1,13 @@
+diff --git a/src/streams.c b/src/streams.c
+index 794d2ebf5..201a6b2ea 100644
+--- a/src/streams.c
++++ b/src/streams.c
+@@ -858,7 +858,7 @@ static Obj PRINT_OR_APPEND_TO_STREAM(Obj args, int append)
+     /* try to open the file for output                                     */
+     i = OpenOutputStream(stream);
+     if ( ! i ) {
+-        ErrorQuit( "%s: cannot open stream for output", (Int)funcname, 0L );
++        printf("*** trouble in PRINT_OR_APPEND_TO_STREAM***\n");
+         return 0;
+     }
+ 

@@ -1113,13 +1113,6 @@ def edge_connectivity(G,
             if not is_strongly_connected(h):
                 return 1.0
 
-
-    def reorder_edge(x, y):
-        if g.is_directed():
-            return (x,y)
-        else:
-            return frozenset((x,y))
-
     from sage.numerical.mip import MixedIntegerLinearProgram
 
     p = MixedIntegerLinearProgram(maximization=False, solver=solver)
@@ -1140,15 +1133,18 @@ def edge_connectivity(G,
         # is not in the cut
         for u,v in g.edge_iterator(labels=None):
             p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[u,v], max=1)
+
+        p.set_objective(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edge_iterator()))
+
     else:
 
         # Two adjacent vertices are in different sets if and only if
         # the edge between them is in the cut
         for u,v in g.edge_iterator(labels=None):
-            p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[reorder_edge(u,v)], max=1)
-            p.add_constraint(in_set[1,u] + in_set[0,v] - in_cut[reorder_edge(u,v)], max=1)
+            p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[frozenset((u,v))], max=1)
+            p.add_constraint(in_set[1,u] + in_set[0,v] - in_cut[frozenset((u,v))], max=1)
 
-    p.set_objective(p.sum(weight(l) * in_cut[reorder_edge(u,v)] for u,v,l in g.edge_iterator()))
+        p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()))
 
     obj = p.solve(objective_only=value_only, log=verbose)
 
@@ -1164,10 +1160,10 @@ def edge_connectivity(G,
         in_cut = p.get_values(in_cut)
         in_set = p.get_values(in_set)
 
-        edges = []
-        for u,v,l in g.edge_iterator():
-            if in_cut[reorder_edge(u,v)] == 1:
-                edges.append((u,v,l))
+        if g.is_directed():
+            edges = [(u,v,l) for u,v,l in g.edge_iterator() if in_cut[u,v] == 1]
+        else:
+            edges = [(u,v,l) for u,v,l in g.edge_iterator() if in_cut[frozenset((u,v))] == 1]
 
         val.append(edges)
 

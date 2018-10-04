@@ -1059,24 +1059,24 @@ class BackslashOperator:
     r"""
     Implements Matlab-style backslash operator for solving systems::
 
-        A \\ b
+        A \ b
 
     The preparser converts this to multiplications using
     ``BackslashOperator()``.
 
     EXAMPLES::
 
-        sage: preparse("A \ matrix(QQ,2,1,[1/3,'2/3'])")
+        sage: preparse("A \\ matrix(QQ,2,1,[1/3,'2/3'])")
         "A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),'2/3'])"
-        sage: preparse("A \ matrix(QQ,2,1,[1/3,2*3])")
+        sage: preparse("A \\ matrix(QQ,2,1,[1/3,2*3])")
         'A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),Integer(2)*Integer(3)])'
-        sage: preparse("A \ B + C")
+        sage: preparse("A \\ B + C")
         'A  * BackslashOperator() * B + C'
-        sage: preparse("A \ eval('C+D')")
+        sage: preparse("A \\ eval('C+D')")
         "A  * BackslashOperator() * eval('C+D')"
-        sage: preparse("A \ x / 5")
+        sage: preparse("A \\ x / 5")
         'A  * BackslashOperator() * x / Integer(5)'
-        sage: preparse("A^3 \ b")
+        sage: preparse("A^3 \\ b")
         'A**Integer(3)  * BackslashOperator() * b'
     """
     def __rmul__(self, left):
@@ -1131,19 +1131,29 @@ def is_iterator(it):
         sage: is_iterator(it)
         True
 
-        sage: class wrong():
+        sage: class wrong():  # py2
         ....:    def __init__(self): self.n = 5
         ....:    def next(self):
+        ....:        self.n -= 1
+        ....:        if self.n == 0: raise StopIteration
+        ....:        return self.n
+        sage: class wrong():  # py3
+        ....:    def __init__(self): self.n = 5
+        ....:    def __next__(self):
         ....:        self.n -= 1
         ....:        if self.n == 0: raise StopIteration
         ....:        return self.n
         sage: x = wrong()
         sage: is_iterator(x)
         False
-        sage: list(x)
+        sage: list(x)  # py2
         Traceback (most recent call last):
         ...
         TypeError: iteration over non-sequence
+        sage: list(x)  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: 'wrong' object is not iterable
 
         sage: class good(wrong):
         ....:    def __iter__(self): return self
@@ -1624,7 +1634,7 @@ class AttrCallObject(object):
             sage: hash(x)       # random # indirect doctest
             210434060
             sage: type(hash(x))
-            <... 'int'>
+            <type 'int'>
             sage: y = attrcall('core', 3, blah = 1, flatten = True)
             sage: hash(y) == hash(x)
             True

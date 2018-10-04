@@ -149,6 +149,9 @@ from .dyck_word import DyckWords, DyckWord
 from .sloane_functions import sloane
 from .superpartition import SuperPartition, SuperPartitions
 
+lazy_import('sage.combinat.parallelogram_polyomino',
+            ['ParallelogramPolyomino', 'ParallelogramPolyominoes'])
+
 from .root_system.all import *
 from .sf.all import *
 from .ncsf_qsym.all import *

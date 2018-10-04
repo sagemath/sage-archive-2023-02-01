@@ -903,7 +903,7 @@ REFERENCES:
 .. [DerZak1980] Nachum Dershowitz and Schmuel Zaks,
                 *Enumerations of ordered trees*,
                 Discrete Mathematics (1980), 31: 9-28.
-              
+
 .. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
 

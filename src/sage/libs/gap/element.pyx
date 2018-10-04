@@ -731,6 +731,13 @@ cdef class GapElement(RingElement):
             sage: F2._set_compare_by_id()
             sage: F1 < F2 or F1 > F2
             True
+
+        TEST #26388 is fixed::
+
+            sage: 1 > libgap(1)
+            False
+            sage: libgap(1) > 1
+            False
         """
         if self._compare_by_id != (<GapElement>other)._compare_by_id:
             raise ValueError('comparison style must be the same for both operands')
@@ -741,9 +748,9 @@ cdef class GapElement(RingElement):
         elif op == Py_EQ:
             return self._compare_equal(other)
         elif op == Py_GT:
-            return not self._compare_less(other)
+            return not self._compare_less(other) and not self._compare_equal(other)
         elif op == Py_GE:
-            return self._compare_equal(other) or not self._compare_less(other)
+            return not self._compare_less(other)
         elif op == Py_NE:
             return not self._compare_equal(other)
         else:

@@ -1260,7 +1260,6 @@ def GeneralizedPetersenGraph(n,k):
             raise ValueError("n must be larger than 2")
     if k < 1 or k > (n - 1) // 2:
             raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
-    pos_dict = {}
     G = Graph(2 * n, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
     for i in range(n):
         G.add_edge(i, (i+1) % n)

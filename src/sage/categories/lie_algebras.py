@@ -671,6 +671,23 @@ class LieAlgebras(Category_over_base_ring):
 
         baker_campbell_hausdorff = bch
 
+        @abstract_method(optional=True)
+        def lie_group(self, name='G', **kwds):
+            r"""
+            Return the simply connected Lie group related to ``self``.
+
+            INPUT:
+
+            - ``name`` -- string (default: ``'G'``);
+              the name (symbol) given to the Lie group
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.Heisenberg(QQ, 1)
+                sage: G = L.lie_group('G'); G
+                Lie group G of Heisenberg algebra of rank 1 over Rational Field
+            """
+
         def _test_jacobi_identity(self, **options):
             """
             Test that the Jacobi identity is satisfied on (not
@@ -877,6 +894,42 @@ class LieAlgebras(Category_over_base_ring):
                 0
             """
             return self.parent().killing_form(self, x)
+
+        def exp(self, lie_group=None):
+            r"""
+            Return the exponential of ``self`` in ``lie_group``.
+
+            INPUT:
+
+            - ``lie_group`` -- (optional) the Lie group to map into;
+              If ``lie_group`` is not given, the Lie group associated to the
+              parent Lie algebra of ``self`` is used.
+
+            EXAMPLES::
+
+                sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
+                sage: g = (X + Y + Z).exp(); g
+                exp(X + Y + Z)
+                sage: h = X.exp(); h
+                exp(X)
+                sage: g.parent()
+                Lie group G of Free Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
+                sage: g.parent() is h.parent()
+                True
+
+            The Lie group can be specified explicitly::
+
+                sage: H = L.lie_group('H')
+                sage: k = Z.exp(lie_group=H); k
+                exp(Z)
+                sage: k.parent()
+                Lie group H of Free Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
+                sage: g.parent() == k.parent()
+                False
+            """
+            if lie_group is None:
+                lie_group = self.parent().lie_group()
+            return lie_group.exp(self)
 
 class LiftMorphism(Morphism):
     """

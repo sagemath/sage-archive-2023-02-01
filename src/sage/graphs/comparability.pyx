@@ -450,7 +450,7 @@ def is_comparability_MILP(g, certificate=False, solver=None, verbose=0):
     p = MixedIntegerLinearProgram(solver=solver)
     o = p.new_variable(binary=True)
 
-    for u,v in g.edges(labels=False):
+    for u,v in g.edge_iterator(labels=False):
         p.add_constraint( o[u,v] + o[v,u] == 1)
 
     for u in g:

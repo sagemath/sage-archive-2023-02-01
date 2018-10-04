@@ -5552,7 +5552,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Then, LP formulation
         from sage.numerical.mip import MixedIntegerLinearProgram
-        p = MixedIntegerLinearProgram(maximization = False, solver = solver)
+        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
         # edges used in the Steiner Tree
         edges = p.new_variable(binary=True)
@@ -5561,14 +5561,14 @@ class GenericGraph(GenericGraph_pyx):
         r_edges = p.new_variable(nonnegative=True)
 
         # Whether a vertex is in the Steiner Tree
-        vertex = p.new_variable(binary = True)
+        vertex = p.new_variable(binary=True)
         for v in g:
             for e in g.edges_incident(v, labels=False):
-                p.add_constraint(vertex[v] - edges[frozenset(e)], min = 0)
+                p.add_constraint(vertex[v] - edges[frozenset(e)], min=0)
 
         # We must have the given vertices in our tree
         for v in vertices:
-            p.add_constraint(p.sum(edges[frozenset(e)] for e in g.edges_incident(v,labels=False)), min=1)
+            p.add_constraint(p.sum(edges[frozenset(e)] for e in g.edges_incident(v, labels=False)), min=1)
 
         # The number of edges is equal to the number of vertices in our tree minus 1
         p.add_constraint(   p.sum(vertex[v] for v in g)
@@ -5586,11 +5586,9 @@ class GenericGraph(GenericGraph_pyx):
 
         # Objective
         if weighted:
-            w = lambda x_y: g.edge_label(x_y[0], x_y[1]) if g.edge_label(x_y[0], x_y[1]) is not None else 1
+            p.set_objective(p.sum((l if l is not None else 1)*edges[frozenset((u,v))] for u,v,l in g.edge_iterator()))
         else:
-            w = lambda x_y: 1
-
-        p.set_objective(p.sum(w(e)*edges[frozenset(e)] for e in g.edge_iterator(labels=False)))
+            p.set_objective(p.sum(edges[frozenset(e)] for e in g.edge_iterator(labels=False)))
 
         p.solve(log=verbose)
 
@@ -5714,14 +5712,6 @@ class GenericGraph(GenericGraph_pyx):
 
         epsilon = 1/(3*(Integer(self.order())))
 
-        def S(e):
-            if self.is_directed():
-                return e
-            else:
-                # Turn an edge to a frozenset to ensure that (u, v) and (v, u)
-                # represent the same edge.
-                return frozenset(e)
-
         if self.is_directed():
             # An edge belongs to at most one arborescence
             for e in self.edge_iterator(labels=False):
@@ -5755,22 +5745,25 @@ class GenericGraph(GenericGraph_pyx):
                 classes = [D.copy() for j in colors]
 
         else:
+            # Turn an edge to a frozenset to ensure that (u, v) and (v, u)
+            # represent the same edge.
+
             # An edge belongs to at most one arborescence
             for e in self.edge_iterator(labels=False):
-                p.add_constraint(p.sum(edges[j,S(e)] for j in colors), max=1)
+                p.add_constraint(p.sum(edges[j,frozenset(e)] for j in colors), max=1)
 
 
             for j in colors:
                 # each color class has self.order()-1 edges
-                p.add_constraint(p.sum(edges[j,S(e)] for e in self.edge_iterator(labels=None)), min=self.order()-1)
+                p.add_constraint(p.sum(edges[j,frozenset(e)] for e in self.edge_iterator(labels=None)), min=self.order()-1)
 
                 # Each vertex is in the tree
                 for v in self:
-                    p.add_constraint(p.sum(edges[j,S(e)] for e in self.edges_incident(v, labels=None)), min=1)
+                    p.add_constraint(p.sum(edges[j,frozenset(e)] for e in self.edges_incident(v, labels=None)), min=1)
 
                 # r_edges is larger than edges
                 for u,v in self.edges(labels=None):
-                    p.add_constraint(r_edges[j,(u,v)] + r_edges[j,(v,u)] - edges[j,S((u,v))], min=0)
+                    p.add_constraint(r_edges[j,(u,v)] + r_edges[j,(v,u)] - edges[j,frozenset((u,v))], min=0)
 
                 from sage.graphs.graph import Graph
                 D = Graph()
@@ -5792,9 +5785,11 @@ class GenericGraph(GenericGraph_pyx):
         edges = p.get_values(edges)
 
         for j,g in enumerate(classes):
-            for e in self.edge_iterator(labels=False):
-                if edges[j,S(e)] == 1:
-                    g.add_edge(e)
+            if self.is_directed():
+                g.add_edges(e for e in self.edge_iterator(labels=False) if edges[j,e] == 1)
+            else:
+                g.add_edges(e for e in self.edge_iterator(labels=False) if edges[j,frozenset(e)] == 1)
+
             if len(list(g.breadth_first_search(root))) != self.order():
                 raise RuntimeError("The computation seems to have gone wrong somewhere..."+
                                    "This is probably because of the value of epsilon, but"+
@@ -6421,10 +6416,11 @@ class GenericGraph(GenericGraph_pyx):
             # Two adjacent vertices are in different sets if and only if
             # the edge between them is in the cut
             for u,v in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[frozenset((u,v))], max=1)
-                p.add_constraint(in_set[1,u] + in_set[0,v] - in_cut[frozenset((u,v))], max=1)
-                p.add_constraint(in_set[0,u] + in_set[0,v] + in_cut[frozenset((u,v))], max=2)
-                p.add_constraint(in_set[1,u] + in_set[1,v] + in_cut[frozenset((u,v))], max=2)
+                fuv = frozenset((u,v))
+                p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[fuv], max=1)
+                p.add_constraint(in_set[1,u] + in_set[0,v] - in_cut[fuv], max=1)
+                p.add_constraint(in_set[0,u] + in_set[0,v] + in_cut[fuv], max=2)
+                p.add_constraint(in_set[1,u] + in_set[1,v] + in_cut[fuv], max=2)
 
             p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()))
 
@@ -7549,26 +7545,13 @@ class GenericGraph(GenericGraph_pyx):
         eps = 1/(2*Integer(g.order()))
         x = next(g.vertex_iterator())
 
-        def R(x, y):
-            if g.is_directed():
-                return (x, y)
-            else:
-                # reorders the edge as it can appear in the two different ways
-                return frozenset((x, y))
-
-        def E(u, v):
-            """
-            Return the f variable corresponding to arc u,v
-            """
-            return f[R(u, v)]
-
         if g.is_directed():
             # All the vertices have in-degree 1 and out-degree 1
             for v in g:
-                p.add_constraint(p.sum(E(u,v) for u in g.neighbor_in_iterator(v)),
+                p.add_constraint(p.sum(f[u,v] for u in g.neighbor_in_iterator(v)),
                                  min=1, max=1)
 
-                p.add_constraint(p.sum(E(v,u) for u in g.neighbor_out_iterator(v)),
+                p.add_constraint(p.sum(f[v,u] for u in g.neighbor_out_iterator(v)),
                                  min=1, max=1)
 
             # r is greater than f
@@ -7576,13 +7559,16 @@ class GenericGraph(GenericGraph_pyx):
             for u,v in g.edge_iterator(labels=None):
                 if g.has_edge(v,u):
                     if vertex_to_int[u] < vertex_to_int[v]:
-                        p.add_constraint( r[u,v] + r[v,u]- E(u,v) - E(v,u), min=0)
+                        p.add_constraint(r[u,v] + r[v,u]- f[u,v] - f[v,u], min=0)
 
                         # no 2-cycles
-                        p.add_constraint( E(u,v) + E(v,u), max=1)
+                        p.add_constraint(f[u,v] + f[v,u], max=1)
 
                 else:
-                    p.add_constraint( r[u,v] + r[v,u] - E(u,v), min=0)
+                    p.add_constraint(r[u,v] + r[v,u] - f[u,v], min=0)
+
+            if use_edge_labels:
+                p.set_objective(p.sum(weight(l) * f[u,v] for u,v,l in g.edge_iterator()))
 
             # defining the answer when g is directed
             from sage.graphs.all import DiGraph
@@ -7591,25 +7577,26 @@ class GenericGraph(GenericGraph_pyx):
         else:
             # All the vertices have degree 2
             for v in g:
-                p.add_constraint(p.sum( E(u,v) for u in g.neighbor_iterator(v)),
+                p.add_constraint(p.sum(f[frozenset((u,v))] for u in g.neighbor_iterator(v)),
                                  min=2, max=2)
 
             # r is greater than f
             for u,v in g.edge_iterator(labels = None):
-                p.add_constraint( r[u,v] + r[v,u] - E(u,v), min=0)
+                p.add_constraint( r[u,v] + r[v,u] - f[frozenset((u,v))], min=0)
+
+            if use_edge_labels:
+                p.set_objective(p.sum(weight(l) * f[frozenset((u,v))] for u,v,l in g.edge_iterator()))
 
             from sage.graphs.all import Graph
 
             # defining the answer when g is not directed
             tsp = Graph()
 
+
         # no cycle which does not contain x
         for v in g:
             if v != x:
-                p.add_constraint(p.sum( r[u,v] for u in g.neighbor_iterator(v)), max=1-eps)
-
-        if use_edge_labels:
-            p.set_objective(p.sum( weight(l)*E(u,v) for u,v,l in g.edge_iterator()) )
+                p.add_constraint(p.sum(r[u,v] for u in g.neighbor_iterator(v)), max=1-eps)
 
         try:
             p.solve(log=verbose)
@@ -7617,7 +7604,10 @@ class GenericGraph(GenericGraph_pyx):
             tsp.add_vertices(g.vertex_iterator())
             tsp.set_pos(g.get_pos())
             tsp.name("TSP from "+g.name())
-            tsp.add_edges((u,v,l) for u,v,l in g.edge_iterator() if f_val[R(u,v)] == 1)
+            if g.is_directed():
+                tsp.add_edges((u,v,l) for u,v,l in g.edge_iterator() if f_val[u,v] == 1)
+            else:
+                tsp.add_edges((u,v,l) for u,v,l in g.edge_iterator() if f_val[frozenset((u,v))] == 1)
 
             return tsp
 
@@ -7963,7 +7953,7 @@ class GenericGraph(GenericGraph_pyx):
 
             # The removed vertices cover all the back arcs ( third condition )
             for u,v in self.edge_iterator(labels=None):
-                p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]), min=1)
+                p.add_constraint(d[u] - d[v] + n * (b[u] + b[v]), min=1)
 
             for u in self:
                 p.add_constraint(d[u], max = n)

@@ -385,6 +385,7 @@ class TateTermMonoid(Monoid_class):
         self._ngens = len(self._names)
         self._log_radii = ETuple(A.log_radii())
         self._order = A.term_order()
+        self._sortkey = self._order.sortkey
         self._integral = A._integral
         self._parent_algebra = A
 

@@ -120,7 +120,7 @@ cdef class PolyDict:
         else:
             if remove_zero:
                 for k in list(pdict):
-                    if pdict[k] == zero:
+                    if pdict[k].is_zero(): # == zero:
                         del pdict[k]
         self.__repn = pdict
         self.__zero = zero

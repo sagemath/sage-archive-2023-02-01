@@ -44,6 +44,7 @@ from random import randint
 from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
+from sage.misc.temporary_file import tmp_filename
 from sage.env import SAGE_LOCAL
 from sage.doctest import DOCTEST_MODE
 
@@ -766,7 +767,7 @@ cdef class Graphics3d(SageObject):
         """
         Return an instance of RenderParams suitable for testing this object.
 
-        In particular, it opens up '/dev/null' as an auxiliary zip
+        In particular, it opens up a temporary file as an auxiliary zip
         file for jmol.
 
         EXAMPLES::
@@ -775,7 +776,8 @@ cdef class Graphics3d(SageObject):
             <class 'sage.plot.plot3d.base.RenderParams'>
         """
         params = RenderParams(ds=.075)
-        params.output_archive = zipfile.ZipFile('/dev/null', 'w', zipfile.ZIP_STORED, True)
+        fn = tmp_filename(ext=".zip")
+        params.output_archive = zipfile.ZipFile(fn, 'w', zipfile.ZIP_STORED, True)
         return params
 
     def x3d(self):

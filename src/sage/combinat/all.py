@@ -183,6 +183,8 @@ from .degree_sequences import DegreeSequences
 
 from .cyclic_sieving_phenomenon import CyclicSievingPolynomial, CyclicSievingCheck
 
+from .finite_dynamical_system import FiniteDynamicalSystem
+
 from .sidon_sets import sidon_sets
 
 # Puzzles

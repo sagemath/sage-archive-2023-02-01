@@ -33,13 +33,11 @@ orbits.)
   is_homomesic, is_invariant, orbits, orbit, orbit_lengths,
   orbit_lengths_lcm.
 
-- Examples:
-  - finite set with permutation;
-  - rowmotion on order ideals;
-  - promotion on std YTs.
-  - rotation of bitstrings.
-
 - Implement caching for orbits.
+
+- Possibly implement lazy ground set -- or should this just be
+  what you get when you use DiscreteDynamicalSystem rather than
+  FiniteDynamicalSystem?
 
 - non-auto functionality: is_recurrent, recurrent_entries,
   first_recurrent_image, lollipop.
@@ -284,13 +282,17 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
         """
         return [len(orb) for orb in self.orbits()]
 
-    def is_homomesic(self, h, average=None):
+    def is_homomesic(self, h, average=None, find_average=False):
         r"""
         Check if ``h`` (a map from the ground set of ``self`` to
         a `\QQ`-vector space) is homomesic with respect to ``self``.
 
         If the optional argument ``average`` is provided, then
         this also checks that the averages are equal to ``average``.
+        
+        If the optional argument ``find_average`` is set to
+        ``True``, then this method returns the average of ``h``
+        in case ``h`` is homomesic (instead of returning ``True``).
 
         EXAMPLES::
 
@@ -304,13 +306,17 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
             False
             sage: F.is_homomesic(lambda w: 1)
             True
+            sage: F.is_homomesic(lambda w: 1, find_average=True)
+            1
             sage: F.is_homomesic(lambda w: w[0] - w[1], average=0)
             True
+            sage: F.is_homomesic(lambda w: w[0] - w[1], find_average=True)
+            0
         """
         orbavgs = []
         for orb in self.orbits():
             l = len(orb)
-            avg = QQ(1) / QQ(l) * sum(h(i) for i in orb)
+            avg = ~(QQ(l)) * sum(h(i) for i in orb)
             if avg not in orbavgs:
                 if orbavgs:
                     return False
@@ -318,6 +324,8 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
         if not orbavgs:
             return True
         if average is None:
+            if find_average:
+                return orbavgs[0]
             return True
         return orbavgs[0] == average
 
@@ -331,68 +339,220 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
                 return False
         return True
 
-def FDDSFromPermutation(pi):
+class discrete_dynamical_systems():
     r"""
-    Return the finite discrete dynamical system induced by
-    the permutation ``pi``.
+    A class consisting of constructors for several specific
+    discrete dynamical systems.
     """
-    from sage.combinat.permutation import Permutation
-    pi = Permutation(pi)
-    n = len(pi)
-    X = range(1, n+1)
-    return FiniteDynamicalSystem(X, pi)
+    
+    @staticmethod
+    def permutation(pi):
+        r"""
+        Return the finite discrete dynamical system induced by
+        the permutation ``pi`` of the set `\{1, 2, \ldots, n\}`.
+        
+        EXAMPLES::
+        
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: F = discrete_dynamical_systems.permutation([3, 5, 4, 1, 2])
+            sage: sorted(F.orbit_lengths())
+            [2, 3]
+            sage: F.orbit(3)
+            [3, 4, 1]
+            sage: F.is_homomesic(lambda x: 1)
+            True
+            sage: F.is_homomesic(lambda x: x)
+            False
+        """
+        from sage.combinat.permutation import Permutation
+        pi = Permutation(pi)
+        n = len(pi)
+        X = range(1, n+1)
+        return FiniteDynamicalSystem(X, pi, create_tuple=True)
 
-def FDDSFromSYTPromotion(lam):
-    r"""
-    Return the finite discrete dynamical system consisting
-    of all standard tableaux of shape ``lam`` and evolving
-    according to promotion.
+    @staticmethod
+    def bitstring_rotation(n, ones=None):
+        r"""
+        Return the finite discrete dynamical system consisting
+        of all bitstrings of size `n` (that is, of all
+        `n`-tuples `(i_1, \ldots, i_n) \in \{0, 1\}^n`),
+        evolving by cyclic rotation.
+        
+        If the optional parameter ``ones`` is provided, the
+        system is restricted only to those bitstrings whose
+        number of ones is the value of this parameter.
+        
+        EXAMPLES::
+        
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: F = discrete_dynamical_systems.bitstring_rotation(5)
+            sage: sorted(F.orbit_lengths())
+            [1, 1, 5, 5, 5, 5, 5, 5]
+            sage: F.orbit((0, 1, 1, 0, 1))
+            [(0, 1, 1, 0, 1),
+             (1, 1, 0, 1, 0),
+             (1, 0, 1, 0, 1),
+             (0, 1, 0, 1, 1),
+             (1, 0, 1, 1, 0)]
+            sage: F.is_homomesic(lambda x: sum(1 for i in range(5) for j in range(i) if x[j] > x[i]))
+            False
+            sage: F.is_homomesic(lambda x: x[0])
+            False
+            sage: F = discrete_dynamical_systems.bitstring_rotation(5, ones=3)
+            sage: sorted(F.orbit_lengths())
+            [5, 5]
+            sage: F.orbit((0, 1, 1, 0, 1))
+            [(0, 1, 1, 0, 1),
+             (1, 1, 0, 1, 0),
+             (1, 0, 1, 0, 1),
+             (0, 1, 0, 1, 1),
+             (1, 0, 1, 1, 0)]
+            sage: F.is_homomesic(lambda x: sum(1 for i in range(5) for j in range(i) if x[j] > x[i]))
+            True
+            sage: F.is_homomesic(lambda x: x[0])
+            True
+        """
+        from sage.categories.cartesian_product import cartesian_product
+        X = cartesian_product([[0,1]] * n)
+        if ones is not None:
+            # Not the best method...
+            X = [x for x in X if sum(x) == ones]
+        if n == 0:
+            phi = lambda x : x
+        else:
+            phi = lambda x : x[1:] + (x[0],)
+        return FiniteDynamicalSystem(X, phi)
 
-    EXAMPLES::
+    @staticmethod
+    def striker_sweep(E, predicate, elements, lazy=False):
+        r"""
+        Return the finite discrete dynamical system on
+        all subsets of a finite set ``E`` satisfying a
+        boolean predicate ``predicate``, where evolution is
+        the "Striker sweep" -- i.e., the composition of
+        Striker toggles corresponding to the elements in the
+        iterable ``elements`` (from first to last).
+        
+        Let `E` be a finite set.
+        Let `\mathcal{L}` be a subset of the powerset of `E`.
+        (In this implementation, `\mathcal{L}` should be
+        specified via the boolean predicate ``predicate``,
+        which takes a subset `F` of `E` and returns the truth
+        value of `F \in \mathcal{L}`.)
+        For any `e \in E`, the *Striker toggle* `t_e` is
+        the involution of the set `\mathcal{L}` that sends
+        each `F \in \mathcal{L}` to the symmetric difference
+        `F \triangle \{ e \}` if this symmetric difference
+        is in `\mathcal{L}`, and otherwise to `F` itself.
+        If `(e_1, e_2, \ldots, e_k)` is a finite sequence of
+        elements of `E` (to be provided as the iterable
+        ``elements``), then the *Striker sweep* corresponding
+        to this sequence is the composition of maps
+        `t_{e_k} \circ t_{e_{k-1}} \circ \cdots \circ t_{e_1}`.
+        
+        This generalizes classical constructions such as
+        rowmotion on order ideals.
+        
+        The optional argument ``lazy`` can be set to
+        ``True``; in that case, the ground set of the
+        dynamical system will not be explicitly computed.
+        
+        .. TODO::
 
-        sage: from sage.combinat.finite_dynamical_system import FDDSFromSYTPromotion
-        sage: F = FDDSFromSYTPromotion([4, 4, 4])
-        sage: sorted(F.orbit_lengths())
-        [3, 3, 4, 4, 4, 6, 6, 6, 6, 12, 12, 12, 12, 12, 12,
-         12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-         12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-         12, 12, 12, 12, 12]
-        sage: G = FDDSFromSYTPromotion([4, 3, 1])
-        sage: sorted(G.orbit_lengths())
-        [16, 22, 32]
-    """
-    from sage.combinat.partition import Partition
-    lam = Partition(lam)
-    from sage.combinat.tableau import StandardTableaux
-    X = StandardTableaux(lam)
-    return FiniteDynamicalSystem(X, lambda T : T.promotion())
+            Implement the ``lazy=True`` case.
+        
+        EXAMPLES::
+        
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: StS = discrete_dynamical_systems.striker_sweep
+            sage: E = range(1, 5)
+            sage: lac = lambda S: all(s + 1 not in S for s in S) # lacunarity predicate
+            sage: F = StS(E, lac, [1, 2, 3, 4])
+            sage: F.evolution()(Set([2, 4]))
+            {}
+            sage: F.evolution()(Set([]))
+            {1, 3}
+            sage: F.evolution()(Set([1, 3]))
+            {4}
+            sage: F.evolution()(Set([4]))
+            {1}
+            sage: sorted(F.orbit_lengths())
+            [3, 5]
+            sage: F.orbit(Set([2, 4]))
+            [{2, 4}, {}, {1, 3}, {4}, {1}]
+            sage: F.is_homomesic(lambda S: S.cardinality())
+            False
+            sage: F.is_homomesic(lambda S: bool(1 in S) - bool(4 in S), find_average=True)
+            0
+            sage: F.is_homomesic(lambda S: bool(2 in S) - bool(3 in S), find_average=True)
+            0
+            sage: F.is_homomesic(lambda S: bool(1 in S), find_average=True)
+            False
+        """
+        from sage.combinat.subset import Subsets
+        from sage.sets.set import Set
+        X = [F for F in Subsets(E) if predicate(F)]
+        def phi(F):
+            for e in elements:
+                G = F.symmetric_difference(Set([e]))
+                if predicate(G):
+                    F = G
+            return F
+        return FiniteDynamicalSystem(X, phi)
 
-def FDDSFromRowmotion(P):
-    r"""
-    Return the finite discrete dynamical system consisting
-    of all order ideals of the poset ``P``.
+    @staticmethod
+    def syt_promotion(lam):
+        r"""
+        Return the finite discrete dynamical system consisting
+        of all standard tableaux of shape ``lam`` (a given
+        partition) and evolving according to promotion.
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: P = RootSystem(["A", 6]).root_poset()
-        sage: from sage.combinat.finite_dynamical_system import FDDSFromRowmotion
-        sage: F = FDDSFromRowmotion(P)
-        sage: sorted(F.orbit_lengths())
-        [2, 7, 7, 7, 7, 7, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
-         14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]
-        sage: F.is_homomesic(lambda I: len(I))
-        False
-        sage: F.is_homomesic(lambda I: sum((-1)**(P.rank(i)) for i in I))
-        True
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: F = discrete_dynamical_systems.syt_promotion([4, 4, 4])
+            sage: sorted(F.orbit_lengths())
+            [3, 3, 4, 4, 4, 6, 6, 6, 6, 12, 12, 12, 12, 12, 12,
+            12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+            12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+            12, 12, 12, 12, 12]
+            sage: G = discrete_dynamical_systems.syt_promotion([4, 3, 1])
+            sage: sorted(G.orbit_lengths())
+            [16, 22, 32]
+        """
+        from sage.combinat.partition import Partition
+        lam = Partition(lam)
+        from sage.combinat.tableau import StandardTableaux
+        X = StandardTableaux(lam)
+        return FiniteDynamicalSystem(X, lambda T : T.promotion())
 
-    (These are perhaps long-time.)
-    """
-    from sage.sets.set import Set
-    X = [Set(P.order_ideal(A)) for A in P.antichains()]
-    # Using P.order_ideals_lattice() instead causes intransparency issues:
-    # sage can't always do P.rowmotion(I) when I is in P.order_ideals_lattice().
-    # Bug in P.order_ideals_lattice() when P is facade?
-    phi = lambda I : P.rowmotion(I)
-    return FiniteDynamicalSystem(X, phi)
+    @staticmethod
+    def order_ideal_rowmotion(P):
+        r"""
+        Return the finite discrete dynamical system consisting
+        of all order ideals of the poset ``P``, evolving
+        according to rowmotion.
 
+        EXAMPLES::
+
+            sage: P = RootSystem(["A", 6]).root_poset()
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: F = discrete_dynamical_systems.order_ideal_rowmotion(P)
+            sage: sorted(F.orbit_lengths())
+            [2, 7, 7, 7, 7, 7, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+            14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]
+            sage: F.is_homomesic(lambda I: len(I))
+            False
+            sage: F.is_homomesic(lambda I: sum((-1)**(P.rank(i)) for i in I))
+            True
+
+        (These are perhaps long-time.)
+        """
+        from sage.sets.set import Set
+        X = [Set(P.order_ideal(A)) for A in P.antichains()]
+        # Using P.order_ideals_lattice() instead causes intransparency issues:
+        # sage can't always do P.rowmotion(I) when I is in P.order_ideals_lattice().
+        # Bug in P.order_ideals_lattice() when P is facade?
+        phi = lambda I : P.rowmotion(I)
+        return FiniteDynamicalSystem(X, phi)
 

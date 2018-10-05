@@ -1398,6 +1398,37 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         zeta, order = self.primitive_root_of_unity(n, order=True)
         return [ zeta**i for i in range(order) ]
 
+    def _roots_univariate_polynomial(self, P, ring, multiplicities, algorithm, secure=False):
+        if P.is_zero():
+            raise ArithmeticError("factorization of 0 is not defined")
+        if ring is None:
+             ring = self
+        if algorithm is None:
+            try:
+                return self._roots_univariate_polynomial(P, ring, multiplicities, "pari", secure)
+            except (NotImplementedError, PrecisionError):
+                return self._roots_univariate_polynomial(P, ring, multiplicities, "sage", secure)                
+        elif algorithm == "pari":
+            p = ring.prime()
+            n = ring.precision_cap()
+            P = P.change_ring(ring)
+            try:
+                F = P.change_ring(ring.exact_ring()).factor_padic(p, n)
+            except (AttributeError, TypeError):
+                raise NotImplementedError("root finding for this polynomial is not implemented in pari")
+            else:
+                return P._roots_from_factorization(F, multiplicities)
+        elif algorithm == "sage":
+            if ring.is_field():
+                roots = P.change_ring(ring)._roots(secure, -Infinity, None)
+            else:
+                K = ring.fraction_field()
+                roots = P.change_ring(K)._roots(secure, 0, None)
+            if multiplicities:
+                return [ (ring(root), m) for (root, m) in roots ]
+            else:
+                return [ ring(root) for (root, m) in roots ]
+
 
 class ResidueReductionMap(Morphism):
     """

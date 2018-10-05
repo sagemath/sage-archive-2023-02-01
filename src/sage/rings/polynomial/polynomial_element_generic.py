@@ -1393,6 +1393,65 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         factors.reverse()
         return Factorization(factors, sort=False, unit=unit)
 
+    def _roots(self, secure, minval, hint):
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        K = self.base_ring()
+        Pk = PolynomialRing(K.residue_field(), names='xbar')
+        x = self.parent().gen()
+
+        # Trivial cases
+        if self.degree() == 0:
+            return [ ]
+        if self.degree() == 1:
+            return [ (-self[0]/self[1], 1) ]
+
+        # We consider the case where zero is a (possibly multiple) root
+        i = 0
+        while self[i] == 0: i += 1
+        if secure and i > 1:
+            raise PrecisionError
+        if i == 0:
+            roots = [ ]
+            P = self
+        else:
+            vali = self[i].valuation()
+            prec = min((self[j].precision_absolute()-vali) / (i-j) for j in range(i))
+            if prec is not Infinity:
+                prec = prec.ceil()
+            roots = [ (K(0,prec), i) ]
+            P = self // self[:i+1]
+
+        # We use Newton polygon and slope factorisation to find roots
+        vertices = P.newton_polygon().vertices(copy=False)
+        deg = 0
+        for i in range(1, len(vertices)):
+            (deg_left, val_left) = vertices[i-1]
+            (deg_right, val_right) = vertices[i]
+            slope = (val_right - val_left) / (deg_left - deg_right)
+            if slope not in ZZ or slope < minval:
+                continue
+            if hint is not None and slope == minval:
+                rootsbar = hint
+                if not rootsbar: continue
+            F = P._factor_of_degree(deg_right - deg)
+            P = P // F
+            if deg < deg_left:
+                G = F._factor_of_degree(deg_left - deg)
+                F //= G
+            deg = deg_right
+            val = F[0].valuation()
+            if hint is None or slope != minval:
+                Fbar = Pk([ F[j] >> (val - j*slope) for j in range(F.degree()+1) ])
+                rootsbar = [ r for (r, _) in Fbar.roots() ]
+                if not rootsbar: continue
+            rbar = rootsbar.pop()
+            shift = K(rbar).lift_to_precision() << slope  # probably we should choose a better lift
+            hint = [r-rbar for r in rootsbar]
+            roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, hint)]
+        return roots
+
+
+
 class Polynomial_generic_dense_cdv(Polynomial_generic_dense_inexact, Polynomial_generic_cdv):
     pass
 

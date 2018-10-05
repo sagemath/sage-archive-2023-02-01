@@ -1074,9 +1074,9 @@ class FGP_Module_class(Module):
             [0 0 4]
             sage: T = D.gens_to_smith()*D.smith_to_gens()
             sage: T
-            [ 3  0 33  0  0]
+            [ 3  0 15  0  0]
             [ 0 33  0  0  3]
-            [ 2  0 22  0  0]
+            [ 2  0 10  0  0]
             [ 0  0  0  1  0]
             [ 0 44  0  0  4]
 
@@ -1120,12 +1120,12 @@ class FGP_Module_class(Module):
             [  0   0   0   0 2/3]
             sage: D.smith_to_gens()
             [ 0  0  0  1  0]
-            [ 1  0 11  0  0]
+            [ 1  0  5  0  0]
             [ 0 11  0  0  1]
             sage: T = D.smith_to_gens()*D.gens_to_smith()
             sage: T
             [ 1  0  0]
-            [ 0 25  0]
+            [ 0 13  0]
             [ 0  0 37]
 
         This matrix satisfies the congruence::
@@ -1147,23 +1147,22 @@ class FGP_Module_class(Module):
         of the user defined generators that is x::
 
             sage: x.vector() * D.smith_to_gens()
-            (2, 33, 22, 1, 3)
+            (2, 33, 10, 1, 3)
         """
         if self.base_ring()!= ZZ:
             # it is not
             raise NotImplementedError("the base ring must be ZZ")
         base = self.base_ring()
-
         invs = self.invariants()
-        R = base.quotient_ring(invs[-1])
-        E = matrix.identity(R, len(invs))
-        # view self as a submodule of (ZZ/nZZ)^(len(invs))
-        B = self.gens_to_smith().change_ring(R)
-        for k in range(B.ncols()):
-            B[:, k] *= invs[-1] // invs[k]
-            E[:, k] *= invs[-1] // invs[k]
-        smith_to_gens = B.solve_left(E)
-        smith_to_gens = smith_to_gens.change_ring(base)
+        B = self.gens_to_smith()
+        n = len(invs)
+        smith_to_gens = []
+        for k in range(n):
+            R = base.quotient_ring(invs[k])
+            e = (R**n).gen(k)  # k-th standard basis vector
+            v = B.change_ring(R).solve_left(e)
+            smith_to_gens.append(v)
+        smith_to_gens = matrix(base, smith_to_gens)
         smith_to_gens.set_immutable()
         return smith_to_gens
 
@@ -1209,7 +1208,7 @@ class FGP_Module_class(Module):
 
             sage: v = D.gens_vector(x)
             sage: v
-            (2, 9, 22, 1, 33)
+            (2, 9, 10, 1, 33)
 
         The output can be further reduced::
 

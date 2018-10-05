@@ -1173,11 +1173,11 @@ class FGP_Module_class(Module):
 
         INPUT:
 
-        - ``x`` -- element of self
+        - ``x`` -- element of ``self``
 
-        - ``reduce`` -- (default: False); if True, reduce
-          coefficients modulo invariants; this is
-          ignored if the base ring isn't ZZ.
+        - ``reduce`` -- (default: ``False``); if ``True``,
+          reduce coefficients modulo invariants; this is
+          ignored if the base ring isn't `\ZZ`
 
         EXAMPLES:
 

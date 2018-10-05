@@ -6780,29 +6780,27 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(
                 p.sum(weight(l) * edge_used[u,v] for u, v, l in self.edge_iterator()))
         else:
-            # f_edge_used calls edge_used through a frozenset of u and v
-            # to avoid having two different variables
-            def f_edge_used(u, v):
-                return edge_used[frozenset((u,v))]
+            # We use edge_used[frozenset((u, v))] to avoid having two different
+            # variables for edge (u, v)
 
             # A vertex is used if one of its incident edges is
             for v in self:
                 for u in self.neighbor_iterator(v):
-                    p.add_constraint(vertex_used[v] - f_edge_used(u,v), min=0)
+                    p.add_constraint(vertex_used[v] - edge_used[frozenset((u,v))], min=0)
             # A path is a tree. If n vertices are used, at most n-1 edges are
             p.add_constraint(
                 p.sum(vertex_used[v] for v in self)
-                - p.sum(f_edge_used(u,v) for u, v in self.edge_iterator(labels=False)),
+                - p.sum(edge_used[frozenset((u,v))] for u, v in self.edge_iterator(labels=False)),
                 min=1, max=1)
             # A vertex has at most two incident edges used
             for v in self:
                 p.add_constraint(
-                    p.sum(f_edge_used(u,v) for u in self.neighbor_iterator(v)), max=2)
+                    p.sum(edge_used[frozenset((u,v))] for u in self.neighbor_iterator(v)), max=2)
             # r_edge_used is "more" than edge_used
             for u, v in self.edge_iterator(labels=False):
                 p.add_constraint(r_edge_used[u,v]
                                  + r_edge_used[v,u]
-                                 - f_edge_used(u,v),
+                                 - edge_used[frozenset((u,v))],
                                  min=0)
             # No cycles
             for v in self:
@@ -6813,15 +6811,16 @@ class GenericGraph(GenericGraph_pyx):
             # they have exactly one incident edge
             if s is not None:
                 p.add_constraint(
-                    p.sum(f_edge_used(s,u) for u in self.neighbor_iterator(s)),
+                    p.sum(edge_used[frozenset((s,u))] for u in self.neighbor_iterator(s)),
                     max=1, min=1)
             if t is not None:
                 p.add_constraint(
-                    p.sum(f_edge_used(t,u) for u in self.neighbor_iterator(t)),
+                    p.sum(edge_used[frozenset((t,u))] for u in self.neighbor_iterator(t)),
                     max=1, min=1)
             # Defining the objective
-            p.set_objective(p.sum(weight(l) * f_edge_used(u,v)
+            p.set_objective(p.sum(weight(l) * edge_used[frozenset((u,v))]
                                 for u, v, l in self.edge_iterator()))
+
         # Computing the result. No exception has to be raised, as this
         # problem always has a solution (there is at least one edge,
         # and a path from s to t if they are specified).
@@ -6837,7 +6836,7 @@ class GenericGraph(GenericGraph_pyx):
             g = self.subgraph(
                 vertices=(v for v in self if vertex_used[v] == 1),
                 edges=((u,v,l) for u, v, l in self.edge_iterator()
-                       if f_edge_used(u,v) == 1))
+                       if edge_used[frozenset((u,v))] == 1))
         if use_edge_labels:
             return sum(map(weight, g.edge_labels())), g
         else:
@@ -7483,17 +7482,15 @@ class GenericGraph(GenericGraph_pyx):
             else:
 
                 from sage.graphs.all import Graph
-                b = p.new_variable(binary = True)
-                def B(u,v):
-                    return b[frozenset((u,v))]
+                b = p.new_variable(binary=True)
 
                 # Objective function
                 if use_edge_labels:
-                    p.set_objective(p.sum( weight(l)*B(u,v) for u,v,l in g.edge_iterator()) )
+                    p.set_objective(p.sum(weight(l) * b[frozenset((u,v))] for u,v,l in g.edge_iterator()))
 
                 # All the vertices have degree 2
                 for v in g:
-                    p.add_constraint(p.sum( B(u,v) for u in g.neighbor_iterator(v)),
+                    p.add_constraint(p.sum(b[frozenset((u,v))] for u in g.neighbor_iterator(v)),
                                      min=2, max=2)
 
                 # Initial Solve
@@ -7505,9 +7502,7 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = Graph()
-                    for u,v,l in g.edge_iterator():
-                        if p.get_values(B(u,v)) == 1:
-                            h.add_edge(u,v,l)
+                    h.add_edges((u,v,l) for u,v,l in g.edge_iterator() if p.get_values(b[frozenset((u,v))]) == 1)
 
                     # If there is only one circuit, we are done !
                     cc = h.connected_components()
@@ -7518,8 +7513,7 @@ class GenericGraph(GenericGraph_pyx):
                     for c in cc:
                         if verbose_constraints:
                             print("Adding a constraint on set", c)
-                        p.add_constraint(p.sum(B(u,v) for u,v in
-                                                   g.edge_boundary(c, labels=False)),
+                        p.add_constraint(p.sum(b[frozenset((u,v))] for u,v in g.edge_boundary(c, labels=False)),
                                              min=2)
 
                     try:

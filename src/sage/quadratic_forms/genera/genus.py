@@ -986,12 +986,21 @@ class Genus_Symbol_p_adic_ring(object):
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
             sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
             sage: g = Genus_Symbol_p_adic_ring(2,symbol)
-            sage: g._canonical_symbol = [[0, 4, 1, 0, 0],[1, 2, 1, 1, 3],[2, 1, 1, 1, 0],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
             sage: g
-            Genus symbol at 2:    1^4 [2^2 4^1]_1 :16^4 [32^1]_1
+            Genus symbol at 2:    1^-4 [2^2 4^1]_3:16^4 [32^1]_1
 
+        TESTS:
 
+        Check that :trac:`25776` is fixed::
 
+            sage: from sage.quadratic_forms.genera.genus import Genus
+            sage: G = Genus(matrix.diagonal([2,2,64]))
+            sage: G
+            Genus of
+            [ 2  0  0]
+            [ 0  2  0]
+            [ 0  0 64]
+            Genus symbol at 2:    [2^2]_2:[64^1]_1
         """
         p=self._prime
         CS_string = ""
@@ -1017,11 +1026,16 @@ class Genus_Symbol_p_adic_ring(object):
                     if block_index in compartment_ends:
                         #close this compartment with ] and remove a space
                         CS_string = CS_string[:-1] + "]"
-                        #the oddity belongs to the compartment
-                        oddity = CS[comp[0]][4]
+                        # the oddity belongs to the compartment
+                        # and is saved in its first block
+                        i = compartment_ends.index(block_index)
+                        compartment_start = compartment_begins[i]
+                        oddity = CS[compartment_start][4]
                         CS_string +="_%s" % oddity
-            #remove the first colon
+            # remove the first colon
             CS_string = CS_string[2:]
+            # remove some unnecessary whitespace
+            CS_string = CS_string.replace(" :",":")
 
         else:
             for s in self._symbol:
@@ -1039,18 +1053,16 @@ class Genus_Symbol_p_adic_ring(object):
             sage: g = Genus_Symbol_p_adic_ring(2,symbol)
             sage: g._canonical_symbol = [[0, 4, 1, 0, 0],[1, 2, 1, 1, 3],[2, 1, 1, 1, 0],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
             sage: g._latex_()
-            '\\mbox{Genus symbol at } 2\\mbox{: }1^{4} [2^{2} 4^{1}]_{1} :16^{4} [32^{1}]_{1}'
-
-
+            '\\mbox{Genus symbol at } 2\\mbox{: }1^{4} [2^{2} 4^{1}]_{3} :16^{4} [32^{1}]_{1}'
         """
         p=self._prime
         CS_string = ""
         if p==2:
             CS = self.canonical_symbol()
             for train in self.trains():
-                #mark the beginning of a train with a colon
+                # mark the beginning of a train with a colon
                 CS_string += " :"
-                #collect the indices where compartments begin and end
+                # collect the indices where compartments begin and end
                 compartment_begins = []
                 compartment_ends = []
                 for comp in self.compartments():
@@ -1059,16 +1071,19 @@ class Genus_Symbol_p_adic_ring(object):
 
                 for block_index in train:
                     if block_index in compartment_begins:
-                        #mark the beginning of this compartment with [
+                        # mark the beginning of this compartment with [
                         CS_string += "["
                     block = CS[block_index]
                     block_string = "%s^{%s} " % (p**block[0],block[2]*block[1])
                     CS_string += block_string
                     if block_index in compartment_ends:
-                        #close this compartment with ] and remove a space
+                        # close this compartment with ] and remove a space
                         CS_string = CS_string[:-1] + "]"
-                        #the oddity belongs to the compartment
-                        oddity = CS[comp[0]][4]
+                        # the oddity belongs to the compartment
+                        # and is saved in its first block
+                        i = compartment_ends.index(block_index)
+                        compartment_start = compartment_begins[i]
+                        oddity = CS[compartment_start][4]
                         CS_string +="_{%s}" % oddity
             #remove the first colon
             CS_string = CS_string[2:]

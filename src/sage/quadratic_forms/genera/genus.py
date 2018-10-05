@@ -1,8 +1,16 @@
-"Genus"
+r"""
+Genus
 
+
+AUTHORS:
+
+- David Kohel & Gabriele Nebe (2007): First created
+- Simon Brandhorst (2018): various bugfixes and printing
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #                          Gabriele Nebe <nebe@math.rwth-aachen.de>
+#                          Simon Brandhorst <sbrandhorst@web.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -41,6 +49,7 @@ def Genus(A):
         Genus of
         [1 1]
         [1 2]
+        Signature:  (2, 0)
         Genus symbol at 2:    [1^2]_2
     """
     return GenusSymbol_global_ring(A)
@@ -981,12 +990,36 @@ class Genus_Symbol_p_adic_ring(object):
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
             sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
             sage: g = Genus_Symbol_p_adic_ring(2,symbol)
-            sage: g._canonical_symbol = [[0, 4, 1, 0, 0],[1, 2, 1, 1, 3],[2, 1, 1, 1, 0],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
             sage: g
-            Genus symbol at 2:    1^4 [2^2 4^1]_1 :16^4 [32^1]_1
+            Genus symbol at 2:    1^-4 [2^2 4^1]_3:16^4 [32^1]_1
 
+        TESTS:
 
+        Check that :trac:`25776` is fixed::
 
+            sage: from sage.quadratic_forms.genera.genus import Genus
+            sage: G = Genus(matrix.diagonal([2,2,64]))
+            sage: G
+            Genus of
+            [ 2  0  0]
+            [ 0  2  0]
+            [ 0  0 64]
+            Signature:  (3, 0)
+            Genus symbol at 2:    [2^2]_2:[64^1]_1
+
+            sage: a = matrix.diagonal([1,3])
+            sage: b = 2 * matrix(ZZ,2,[2,1,1,2])
+            sage: c = matrix.block_diagonal([a, b])
+            sage: Genus(c)
+            Genus of
+            [1 0|0 0]
+            [0 3|0 0]
+            [---+---]
+            [0 0|4 2]
+            [0 0|2 4]
+            Signature:  (4, 0)
+            Genus symbol at 2:    [1^2]_0 2^2
+            Genus symbol at 3:     1^2 3^2
         """
         p=self._prime
         CS_string = ""
@@ -1012,16 +1045,22 @@ class Genus_Symbol_p_adic_ring(object):
                     if block_index in compartment_ends:
                         #close this compartment with ] and remove a space
                         CS_string = CS_string[:-1] + "]"
-                        #the oddity belongs to the compartment
-                        oddity = CS[comp[0]][4]
-                        CS_string +="_%s" % oddity
-            #remove the first colon
+                        # the oddity belongs to the compartment
+                        # and is saved in its first block
+                        i = compartment_ends.index(block_index)
+                        compartment_start = compartment_begins[i]
+                        oddity = CS[compartment_start][4]
+                        CS_string +="_%s " % oddity
+            # remove the first colon
             CS_string = CS_string[2:]
+            # remove some unnecessary whitespace
+            CS_string = CS_string.replace("  :",":")
 
         else:
             for s in self._symbol:
                 CS_string += " %s^%s" % (p**s[0], s[2]*s[1])
-        return "Genus symbol at %s:    %s" % (p, CS_string)
+        rep = "Genus symbol at %s:    %s" % (p, CS_string)
+        return rep.rstrip()
 
     def _latex_(self):
         r"""
@@ -1033,19 +1072,17 @@ class Genus_Symbol_p_adic_ring(object):
             sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
             sage: g = Genus_Symbol_p_adic_ring(2,symbol)
             sage: g._canonical_symbol = [[0, 4, 1, 0, 0],[1, 2, 1, 1, 3],[2, 1, 1, 1, 0],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
-            sage: g._latex_()
-            '\\mbox{Genus symbol at } 2\\mbox{: }1^{4} [2^{2} 4^{1}]_{1} :16^{4} [32^{1}]_{1}'
-
-
+            sage: latex(g)
+            \mbox{Genus symbol at } 2\mbox{: }1^{4} [2^{2} 4^{1}]_{3} :16^{4} [32^{1}]_{1}
         """
         p=self._prime
         CS_string = ""
         if p==2:
             CS = self.canonical_symbol()
             for train in self.trains():
-                #mark the beginning of a train with a colon
+                # mark the beginning of a train with a colon
                 CS_string += " :"
-                #collect the indices where compartments begin and end
+                # collect the indices where compartments begin and end
                 compartment_begins = []
                 compartment_ends = []
                 for comp in self.compartments():
@@ -1054,16 +1091,19 @@ class Genus_Symbol_p_adic_ring(object):
 
                 for block_index in train:
                     if block_index in compartment_begins:
-                        #mark the beginning of this compartment with [
+                        # mark the beginning of this compartment with [
                         CS_string += "["
                     block = CS[block_index]
                     block_string = "%s^{%s} " % (p**block[0],block[2]*block[1])
                     CS_string += block_string
                     if block_index in compartment_ends:
-                        #close this compartment with ] and remove a space
+                        # close this compartment with ] and remove a space
                         CS_string = CS_string[:-1] + "]"
-                        #the oddity belongs to the compartment
-                        oddity = CS[comp[0]][4]
+                        # the oddity belongs to the compartment
+                        # and is saved in its first block
+                        i = compartment_ends.index(block_index)
+                        compartment_start = compartment_begins[i]
+                        oddity = CS[compartment_start][4]
                         CS_string +="_{%s}" % oddity
             #remove the first colon
             CS_string = CS_string[2:]
@@ -1071,7 +1111,7 @@ class Genus_Symbol_p_adic_ring(object):
         else:
             for s in self._symbol:
                 CS_string += " {%s}^{%s}" % (p**s[0], s[2]*s[1])
-        return "\\mbox{Genus symbol at } %s\\mbox{: }%s" % (p,CS_string)
+        return r"\mbox{Genus symbol at } %s\mbox{: }%s" % (p,CS_string)
 
     def __eq__(self, other):
         r"""
@@ -1596,6 +1636,7 @@ class GenusSymbol_global_ring(object):
         [0 4 0 0]
         [0 0 6 0]
         [0 0 0 8]
+        Signature:  (4, 0)
         Genus symbol at 2:    [2^-2 4^1 8^1]_6
         Genus symbol at 3:     1^3 3^-1
     """
@@ -1649,6 +1690,7 @@ class GenusSymbol_global_ring(object):
             [0 4 0 0]
             [0 0 6 0]
             [0 0 0 8]
+            Signature:  (4, 0)
             Genus symbol at 2:    [2^-2 4^1 8^1]_6
             Genus symbol at 3:     1^3 3^-1
 
@@ -1657,14 +1699,18 @@ class GenusSymbol_global_ring(object):
             Genus of
             [ 2 -1]
             [-1  2]
+            Signature:  (2, 0)
             Genus symbol at 2:    1^-2
             Genus symbol at 3:     1^-1 3^-1
 
         """
-        local_symbols = ""
+        rep = "Genus"
+        if self.dimension() <= 20:
+            rep += " of\n%s" %self._representative
+        rep += "\nSignature:  %s"%(self._signature,)
         for s in self._local_symbols:
-            local_symbols += "\n" + s.__repr__()
-        return "Genus of\n%s\n%s" % (self._representative,local_symbols[1:])
+            rep += "\n" + s.__repr__()
+        return rep
 
     def _latex_(self):
         r"""
@@ -1672,16 +1718,25 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: D4=QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
-            sage: G=D4.global_genus_symbol()
-            sage: G._latex_()
-            '\\mbox{Genus of}\\\\\\left(\\begin{array}{rrrr}\n2 & 0 & 0 & -1 \\\\\n0 & 2 & 0 & -1 \\\\\n0 & 0 & 2 & -1 \\\\\n-1 & -1 & -1 & 2\n\\end{array}\\right)\\\\\\\\\\mbox{Genus symbol at } 2\\mbox{: }1^{-2}  :2^{-2} '
+            sage: D4 = QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
+            sage: G = D4.global_genus_symbol()
+            sage: latex(G)
+            \mbox{Genus of}\\ \left(\begin{array}{rrrr}
+            2 & 0 & 0 & -1 \\
+            0 & 2 & 0 & -1 \\
+            0 & 0 & 2 & -1 \\
+            -1 & -1 & -1 & 2
+            \end{array}\right)\\ \mbox{Signature: } (4, 0)\\ \mbox{Genus symbol at } 2\mbox{: }1^{-2}  :2^{-2}
         """
-        local_symbols = ""
+        rep = r"\mbox{Genus"
+        if self.dimension() <= 20:
+            rep += r" of}\\ %s" %self._representative._latex_()
+        else:
+            rep +=r"}"
+        rep += r"\\ \mbox{Signature: } %s"%(self._signature,)
         for s in self._local_symbols:
-            local_symbols += "\\\\" + s._latex_()
-        return "\\mbox{Genus of}\\\\%s\\\\%s" % (self._representative._latex_(),local_symbols)
-
+            rep += r"\\ " + s._latex_()
+        return rep
 
 
     def __eq__(self, other):

@@ -1044,11 +1044,11 @@ class FGP_Module_class(Module):
         self._gens_smith = tuple([self(z, check=DEBUG) for z in Z.rows()])
         return self._gens_smith
 
-    def to_smith(self):
+    def gens_to_smith(self):
         r"""
         Return the transformation matrix from the user to smith form generators.
 
-        To go in the other direction use :meth:`to_gens`.
+        To go in the other direction use :meth:`smith_to_gens`.
 
         OUTPUT:
 
@@ -1066,13 +1066,13 @@ class FGP_Module_class(Module):
             [  0   0 1/3   0   0]
             [  0   0   0 1/3   0]
             [  0   0   0   0 2/3]
-            sage: D.to_smith()
+            sage: D.gens_to_smith()
             [0 3 0]
             [0 0 3]
             [0 2 0]
             [1 0 0]
             [0 0 4]
-            sage: T = D.to_smith()*D.to_gens()
+            sage: T = D.gens_to_smith()*D.smith_to_gens()
             sage: T
             [ 3  0 33  0  0]
             [ 0 33  0  0  3]
@@ -1091,16 +1091,16 @@ class FGP_Module_class(Module):
             [0 0 0 1 0]
             [0 0 0 0 1]
         """
-        to_smith = matrix(self.base_ring(), [t.vector() for t in self.gens()])
-        to_smith.set_immutable()
-        return to_smith
+        gens_to_smith = matrix(self.base_ring(), [t.vector() for t in self.gens()])
+        gens_to_smith.set_immutable()
+        return gens_to_smith
 
     @cached_method
-    def to_gens(self):
+    def smith_to_gens(self):
         r"""
         Return the transformation matrix from smith form to user generators.
 
-        To go in the other direction use :meth:`to_smith`.
+        To go in the other direction use :meth:`gens_to_smith`.
 
         OUTPUT:
 
@@ -1118,11 +1118,11 @@ class FGP_Module_class(Module):
             [  0   0 1/3   0   0]
             [  0   0   0 1/3   0]
             [  0   0   0   0 2/3]
-            sage: D.to_gens()
+            sage: D.smith_to_gens()
             [ 0  0  0  1  0]
             [ 1  0 11  0  0]
             [ 0 11  0  0  1]
-            sage: T = D.to_gens()*D.to_smith()
+            sage: T = D.smith_to_gens()*D.gens_to_smith()
             sage: T
             [ 1  0  0]
             [ 0 25  0]
@@ -1146,7 +1146,7 @@ class FGP_Module_class(Module):
         and want to know some (it is not unique) linear combination
         of the user defined generators that is x::
 
-            sage: x.vector() * D.to_gens()
+            sage: x.vector() * D.smith_to_gens()
             (2, 33, 22, 1, 3)
         """
         if self.base_ring()!= ZZ:
@@ -1158,18 +1158,26 @@ class FGP_Module_class(Module):
         R = base.quotient_ring(invs[-1])
         E = matrix.identity(R, len(invs))
         # view self as a submodule of (ZZ/nZZ)^(len(invs))
-        B = self.to_smith().change_ring(R)
+        B = self.gens_to_smith().change_ring(R)
         for k in range(B.ncols()):
             B[:, k] *= invs[-1] // invs[k]
             E[:, k] *= invs[-1] // invs[k]
-        to_gens = B.solve_left(E)
-        to_gens = to_gens.change_ring(base)
-        to_gens.set_immutable()
-        return to_gens
+        smith_to_gens = B.solve_left(E)
+        smith_to_gens = smith_to_gens.change_ring(base)
+        smith_to_gens.set_immutable()
+        return smith_to_gens
 
-    def gens_vector(self, x):
+    def gens_vector(self, x, reduce=False):
         r"""
         Return coordinates of x with respect to the generators.
+
+        INPUT:
+
+        - ``x`` -- element of self
+
+        - ``reduce`` -- (default: False); if True, reduce
+          coefficients modulo invariants; this is
+          ignored if the base ring isn't ZZ.
 
         EXAMPLES:
 
@@ -1203,13 +1211,24 @@ class FGP_Module_class(Module):
             sage: v
             (2, 9, 22, 1, 33)
 
+        The output can be further reduced::
+
+            sage: D.gens_vector(x, reduce=True)
+            (0, 1, 1, 1, 0)
+
         Let us check::
 
             sage: x == sum(v[i]*D.gen(i) for i in range(len(D.gens())))
             True
         """
         x = self(x)
-        return x.vector() * self.to_gens()
+        v = x.vector() * self.smith_to_gens()
+        from sage.rings.all import infinity
+        if reduce and self.base_ring() == ZZ:
+            orders = [g.order() for g in self.gens()]
+            v = v.parent()([v[i] if  orders[i] == infinity
+                            else v[i] % orders[i] for i in range(len(self.gens()))])
+        return v
 
     def coordinate_vector(self, x, reduce=False):
         """

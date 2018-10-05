@@ -333,8 +333,8 @@ class _Coordinates(object):
             if params is None:
                 if callable(func):
                     params = _find_arguments_for_callable(func)
-                    if params is None:
-                        params=['u','v']
+                    if not params:
+                        params = ['u', 'v']
                 else:
                     raise ValueError("function is not callable")
             def subs_func(t):

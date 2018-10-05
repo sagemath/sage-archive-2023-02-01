@@ -1044,7 +1044,7 @@ class FGP_Module_class(Module):
         self._gens_smith = tuple([self(z, check=DEBUG) for z in Z.rows()])
         return self._gens_smith
 
-    def _to_smith(self):
+    def to_smith(self):
         r"""
         Return the transformation matrix from the user to smith form generators.
 
@@ -1066,13 +1066,13 @@ class FGP_Module_class(Module):
             [  0   0 1/3   0   0]
             [  0   0   0 1/3   0]
             [  0   0   0   0 2/3]
-            sage: D._to_smith()
+            sage: D.to_smith()
             [0 3 0]
             [0 0 3]
             [0 2 0]
             [1 0 0]
             [0 0 4]
-            sage: T = D._to_smith()*D._to_gens()
+            sage: T = D.to_smith()*D.to_gens()
             sage: T
             [ 3  0 33  0  0]
             [ 0 33  0  0  3]
@@ -1092,10 +1092,11 @@ class FGP_Module_class(Module):
             [0 0 0 0 1]
         """
         to_smith = matrix(self.base_ring(), [t.vector() for t in self.gens()])
+        to_smith.set_immutable()
         return to_smith
 
     @cached_method
-    def _to_gens(self):
+    def to_gens(self):
         r"""
         Return the transformation matrix from smith form to user generators.
 
@@ -1117,11 +1118,11 @@ class FGP_Module_class(Module):
             [  0   0 1/3   0   0]
             [  0   0   0 1/3   0]
             [  0   0   0   0 2/3]
-            sage: D._to_gens()
+            sage: D.to_gens()
             [ 0  0  0  1  0]
             [ 1  0 11  0  0]
             [ 0 11  0  0  1]
-            sage: T = D._to_gens()*D._to_smith()
+            sage: T = D.to_gens()*D.to_smith()
             sage: T
             [ 1  0  0]
             [ 0 25  0]
@@ -1145,7 +1146,7 @@ class FGP_Module_class(Module):
         and want to know some (it is not unique) linear combination
         of the user defined generators that is x::
 
-            sage: x.vector() * D._to_gens()
+            sage: x.vector() * D.to_gens()
             (2, 33, 22, 1, 3)
         """
         if self.base_ring()!= ZZ:
@@ -1157,12 +1158,13 @@ class FGP_Module_class(Module):
         R = base.quotient_ring(invs[-1])
         E = matrix.identity(R, len(invs))
         # view self as a submodule of (ZZ/nZZ)^(len(invs))
-        B = self._to_smith().change_ring(R)
+        B = self.to_smith().change_ring(R)
         for k in range(B.ncols()):
             B[:, k] *= invs[-1] // invs[k]
             E[:, k] *= invs[-1] // invs[k]
         to_gens = B.solve_left(E)
         to_gens = to_gens.change_ring(base)
+        to_gens.set_immutable()
         return to_gens
 
     def gens_vector(self, x):
@@ -1171,7 +1173,7 @@ class FGP_Module_class(Module):
 
         EXAMPLES:
 
-        We create a derived class and overwrite :meth:``gens``::
+        We create a derived class and overwrite :meth:`gens`::
 
              sage: from sage.modules.fg_pid.fgp_module import FGP_Module_class
              sage: W = ZZ^3
@@ -1207,7 +1209,7 @@ class FGP_Module_class(Module):
             True
         """
         x = self(x)
-        return x.vector() * self._to_gens()
+        return x.vector() * self.to_gens()
 
     def coordinate_vector(self, x, reduce=False):
         """

@@ -941,6 +941,7 @@ import collections
 import itertools
 
 import sage
+from sage.misc.sageinspect import sage_getargspec
 
 
 def full_group_by(l, key=lambda x: x):
@@ -14822,8 +14823,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             next_transitions = None
             state_said_finished = False
             if hasattr(current_state, 'hook'):
-                import inspect
-                if len(inspect.getargspec(current_state.hook).args) == 2:
+                if len(sage_getargspec(current_state.hook).args) == 2:
                     from sage.misc.superseded import deprecation
                     deprecation(16538, 'The hook of state %s cannot be '
                                 'processed: It seems that you are using an '

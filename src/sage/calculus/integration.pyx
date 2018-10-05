@@ -28,6 +28,7 @@ from __future__ import print_function, absolute_import
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gsl.all cimport *
+from sage.misc.sageinspect import sage_getargspec
 from sage.ext.fast_eval cimport FastDoubleFunc
 
 
@@ -240,7 +241,6 @@ def numerical_integral(func, a, b=None,
         TypeError: unable to simplify to float approximation
    """
 
-   import inspect
    cdef double abs_err # step size
    cdef double result
    cdef int i
@@ -298,9 +298,9 @@ def numerical_integral(func, a, b=None,
       else:
          raise ValueError("No integrand defined")
       try:
-         if params==[] and len(inspect.getargspec(wrapper.the_function)[0])==1:
+         if params==[] and len(sage_getargspec(wrapper.the_function)[0])==1:
             wrapper.the_parameters=[]
-         elif params==[] and len(inspect.getargspec(wrapper.the_function)[0])>1:
+         elif params==[] and len(sage_getargspec(wrapper.the_function)[0])>1:
             raise ValueError("Integrand has parameters but no parameters specified")
          elif params!=[]:
             wrapper.the_parameters = params

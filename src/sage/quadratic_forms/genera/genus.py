@@ -1001,6 +1001,19 @@ class Genus_Symbol_p_adic_ring(object):
             [ 0  2  0]
             [ 0  0 64]
             Genus symbol at 2:    [2^2]_2:[64^1]_1
+
+            sage: a = matrix.diagonal([1,3])
+            sage: b = 2 * matrix(ZZ,2,[2,1,1,2])
+            sage: c = matrix.block_diagonal([a, b])
+            sage: Genus(c)
+            Genus of
+            [1 0|0 0]
+            [0 3|0 0]
+            [---+---]
+            [0 0|4 2]
+            [0 0|2 4]
+            Genus symbol at 2:    [1^2]_0 2^2
+            Genus symbol at 3:     1^2 3^2
         """
         p=self._prime
         CS_string = ""
@@ -1031,7 +1044,7 @@ class Genus_Symbol_p_adic_ring(object):
                         i = compartment_ends.index(block_index)
                         compartment_start = compartment_begins[i]
                         oddity = CS[compartment_start][4]
-                        CS_string +="_%s" % oddity
+                        CS_string +="_%s " % oddity
             # remove the first colon
             CS_string = CS_string[2:]
             # remove some unnecessary whitespace
@@ -1706,10 +1719,13 @@ class GenusSymbol_global_ring(object):
             Genus symbol at 3:     1^-1 3^-1
 
         """
-        local_symbols = ""
+        local_symbols = "Signature:  %s"%(self._signature,)
         for s in self._local_symbols:
             local_symbols += "\n" + s.__repr__()
-        return "Genus of\n%s\n%s" % (self._representative,local_symbols[1:])
+        rep = "Genus"
+        if self.dimension() <= 20:
+            rep += " of\n%s" %self._representative
+        return rep + "\n%s" %local_symbols[1:]
 
     def _latex_(self):
         """
@@ -1722,11 +1738,15 @@ class GenusSymbol_global_ring(object):
             sage: G._latex_()
             '\\mbox{Genus of}\\\\\\left(\\begin{array}{rrrr}\n2 & 0 & 0 & -1 \\\\\n0 & 2 & 0 & -1 \\\\\n0 & 0 & 2 & -1 \\\\\n-1 & -1 & -1 & 2\n\\end{array}\\right)\\\\\\\\\\mbox{Genus symbol at } 2\\mbox{: }1^{-2}  :2^{-2} '
         """
-        local_symbols = ""
+        local_symbols = "Signature:  %s"%(self._signature,)
         for s in self._local_symbols:
             local_symbols += "\\\\" + s._latex_()
-        return "\\mbox{Genus of}\\\\%s\\\\%s" % (self._representative._latex_(),local_symbols)
-
+        rep = "\\mbox{Genus"
+        if self.dimension() <= 20:
+            rep += " of}\\\\%s" %self._representative._latex_()
+        else:
+            rep +="}"
+        return rep + "\\\\%s" %local_symbols
 
 
     def __eq__(self, other):

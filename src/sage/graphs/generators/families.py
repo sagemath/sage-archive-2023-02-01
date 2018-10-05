@@ -167,6 +167,7 @@ def FurerGadget(k, prefix=None):
     EXAMPLES:
 
     Furer gadget of order 3, without any prefix. ::
+
         sage: G, p = graphs.FurerGadget(3)
         sage: G.vertices()
         [(), (0, 1), (0, 2), (0, 'a'), (0, 'b'), (1, 2), (1, 'a'),

@@ -496,6 +496,9 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
         # Let rels = rels union I relations.
         rels.update(modI_relations(syms, sign))
 
+    rels = list(rels)
+    # should be sorted(rels), but this breaks many doctests
+
     if syms._apply_S_only_0pm1() and is_RationalField(field):
         from . import relation_matrix_pyx
         mod = relation_matrix_pyx.sparse_2term_quotient_only_pm1(rels, len(syms))
@@ -508,7 +511,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
 
 def sparse_2term_quotient(rels, n, F):
     r"""
-    Performs Sparse Gauss elimination on a matrix all of whose columns
+    Perform Sparse Gauss elimination on a matrix all of whose columns
     have at most 2 nonzero entries. We use an obvious algorithm, which
     runs fast enough. (Typically making the list of relations takes
     more time than computing this quotient.) This algorithm is more
@@ -517,21 +520,19 @@ def sparse_2term_quotient(rels, n, F):
 
     INPUT:
 
-
-    -  ``rels`` - set of pairs ((i,s), (j,t)). The pair
+    -  ``rels`` -- iterable made of pairs ((i,s), (j,t)). The pair
        represents the relation s\*x_i + t\*x_j = 0, where the i, j must
        be Python int's.
 
-    -  ``n`` - int, the x_i are x_0, ..., x_n-1.
+    -  ``n`` -- int, the x_i are x_0, ..., x_n-1.
 
-    -  ``F`` - base field
+    -  ``F`` -- base field
 
     OUTPUT:
 
-    -  ``mod`` - list such that mod[i] = (j,s), which means
+    -  ``mod`` -- list such that mod[i] = (j,s), which means
        that x_i is equivalent to s\*x_j, where the x_j are a basis for
        the quotient.
-
 
     EXAMPLES: We quotient out by the relations
 
@@ -544,15 +545,12 @@ def sparse_2term_quotient(rels, n, F):
 
     ::
 
-        sage: v = [((int(0),3), (int(1),-1)), ((int(1),1), (int(3),1)), ((int(2),1),(int(3),1)), ((int(4),1),(int(5),-1))]
-        sage: rels = set(v)
+        sage: rels = [((int(0),3), (int(1),-1)), ((int(1),1), (int(3),1)), ((int(2),1),(int(3),1)), ((int(4),1),(int(5),-1))]
         sage: n = 6
         sage: from sage.modular.modsym.relation_matrix import sparse_2term_quotient
         sage: sparse_2term_quotient(rels, n, QQ)
         [(3, -1/3), (3, -1), (3, -1), (3, 1), (5, 1), (5, 1)]
     """
-    if not isinstance(rels, set):
-        raise TypeError("rels must be a set")
     n = int(n)
     if not isinstance(F, Ring):
         raise TypeError("F must be a ring.")

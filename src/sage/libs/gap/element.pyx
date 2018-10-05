@@ -732,7 +732,7 @@ cdef class GapElement(RingElement):
             sage: F1 < F2 or F1 > F2
             True
 
-        TEST #26388 is fixed::
+        Check that :trac:`26388` is fixed::
 
             sage: 1 > libgap(1)
             False

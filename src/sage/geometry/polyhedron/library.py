@@ -357,8 +357,8 @@ class Polytopes():
             sage: ico = polytopes.icosahedron(exact=False)
             sage: ico.base_ring()
             Real Double Field
-            sage: ico.volume()                                # rel tol 1e-15
-            2.1816949907715726
+            sage: ico.volume()
+            2.181694990...
 
         A version using `AA <sage.rings.qqbar.AlgebraicRealField>`::
 

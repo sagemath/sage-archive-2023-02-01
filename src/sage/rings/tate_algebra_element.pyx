@@ -40,7 +40,7 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
 def _pushout_family(elements, initial=ZZ):
     """
-    Return a parent in which ``initial`` and all elements 
+    Return a parent in which ``initial`` and all elements
     in ``elements`` coerce.
 
     INPUT:
@@ -89,7 +89,7 @@ cdef class TateAlgebraTerm(MonoidElement):
     - ``coeff`` -- an element in the base field
 
     - ``exponent`` - a tuple of length ``n``
-    
+
     EXAMPLES::
 
         sage: R = Zp(2, print_mode='digits', prec=10)
@@ -182,6 +182,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: t = x.leading_term()
             sage: loads(dumps(t)) == t  # indirect doctest
             True
+
         """
         return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent)
 
@@ -196,7 +197,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: T = A.monoid_of_terms()
             sage: T(2*x*y)  # indirect doctest
             (...00000000010)*x*y
-        
+
         """
         parent = self._parent
         s = "(%s)" % self._coeff
@@ -243,7 +244,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: T = A.monoid_of_terms()
             sage: t = T(2*x*y); t
             (2 + O(2^11))*x*y
-            sage: t.coefficient() 
+            sage: t.coefficient()
             2 + O(2^11)
 
         """
@@ -325,9 +326,9 @@ cdef class TateAlgebraTerm(MonoidElement):
         the rich comparison operator ``op``.
 
         The term `a*X^A` is smaller or equal to `b*X^B` if its valuation is
-        greater than the valuation of `b*X^B`, or when equality occurs, when 
+        greater than the valuation of `b*X^B`, or when equality occurs, when
         `A` is smaller or equal to `B` for the Tate algebra monomial order.
- 
+
         INPUT:
 
         - ``other`` -- a Tate algebra term
@@ -356,7 +357,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         Elements with the same valuation and monomial are equivalent
         for the preorder::
-        
+
             sage: ss = T(3*x^2*y^2); ss
             (...0000000011)*x^2*y^2
             sage: s < ss  # indirect doctest
@@ -369,13 +370,13 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
             sage: s == ss
             False
-        
+
         """
         if op == op_EQ:
-            return ((<TateAlgebraTerm>self)._coeff == (<TateAlgebraTerm>other)._coeff 
+            return ((<TateAlgebraTerm>self)._coeff == (<TateAlgebraTerm>other)._coeff
                 and (<TateAlgebraTerm>self)._exponent == (<TateAlgebraTerm>other)._exponent)
         if op == op_NE:
-            return ((<TateAlgebraTerm>self)._coeff != (<TateAlgebraTerm>other)._coeff 
+            return ((<TateAlgebraTerm>self)._coeff != (<TateAlgebraTerm>other)._coeff
                  or (<TateAlgebraTerm>self)._exponent != (<TateAlgebraTerm>other)._exponent)
         c = (<TateAlgebraTerm>self)._cmp_c(<TateAlgebraTerm>other)
         if op == op_LT:
@@ -403,13 +404,13 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         cdef TateAlgebraTerm ans = self._new_c()
-        ans._coeff = self._parent._field.fraction_field()(1)
+        ans._coeff = self._parent._field(1)
         ans._exponent = self._exponent
         return ans
 
     cpdef TateAlgebraTerm monic(self):
         r"""
-        Return this term normalized so that it has valuation 0 
+        Return this term normalized so that it has valuation 0
         and its coefficient is a power of the uniformizer.
 
         EXAMPLES:
@@ -494,7 +495,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...000000000100)*x^2*y^2
             sage: t.valuation()  # indirect doctest
             2
-        
+
         """
         return (<pAdicGenericElement>self._coeff).valuation_c() - <long>self._exponent.dotprod(self._parent._log_radii)
 
@@ -608,9 +609,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: tt.is_coprime_with(s)
             True
 
-        When working over a rational Tate algebra, only the 
+        When working over a rational Tate algebra, only the
         monomial part of terms are compared::
-        
+
             sage: t = T(2*x^2); t
             (...00000000010)*x^2
             sage: s = T(4*y^3); s
@@ -701,7 +702,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         The result is normalized so that its valuation is equal to
         the largest valuation of this term and ``other``.
-        
+
         INPUT:
 
         - ``other`` - a Tate term
@@ -719,8 +720,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...000000000100)*x*y^3
             sage: s.lcm(t)
             (...0000000001000)*x^2*y^3
-        
-        """        
+
+        """
         return self._lcm_c(other)
 
     cdef TateAlgebraTerm _lcm_c(self, TateAlgebraTerm other):
@@ -729,7 +730,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         The result is normalized so that its valuation is equal to
         the largest valuation of this term and ``other``.
-        
+
         INPUT:
 
         - ``other`` - a Tate term
@@ -747,8 +748,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             (...000000000100)*x*y^3
             sage: s.lcm(t)  # indirect doctest
             (...0000000001000)*x^2*y^3
-        
-        """        
+
+        """
         cdef TateAlgebraTerm ans = self._new_c()
         ans._exponent = self._exponent.emax(other._exponent)
         if self._coeff.valuation() < other._coeff.valuation():
@@ -765,8 +766,8 @@ cdef class TateAlgebraTerm(MonoidElement):
         INPUT:
 
         - ``other`` - a Tate term
-        
-        - ``integral`` - (default: ``False``); if ``True``, test 
+
+        - ``integral`` - (default: ``False``); if ``True``, test
           for divisibility in the ring of integers of the Tate algebra
 
         EXAMPLES::
@@ -794,7 +795,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             False
 
         If you are working over the ring of integers of the Tate algebra,
-        divisibility is always checked in the ring of integers (even if 
+        divisibility is always checked in the ring of integers (even if
         ``integral`` is set to ``False``)::
 
             sage: AA = A.integer_ring()
@@ -805,8 +806,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             False
             sage: ss.is_divisible_by(tt, integral=False)
             False
-            
-        Be careful that coercion between the Tate algebra and its ring of 
+
+        Be careful that coercion between the Tate algebra and its ring of
         integers can be done silently::
 
             sage: s.is_divisible_by(tt)
@@ -814,7 +815,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         return (<TateAlgebraTerm?>other)._divides_c(self, integral)
-    
+
     @coerce_binop
     def divides(self, other, integral=False):
         r"""
@@ -823,8 +824,8 @@ cdef class TateAlgebraTerm(MonoidElement):
         INPUT:
 
         - ``other`` - a Tate term
-        
-        - ``integral`` - (default: ``False``); if ``True``, test for 
+
+        - ``integral`` - (default: ``False``); if ``True``, test for
           divisibility in the ring of integers of the Tate algebra
 
         EXAMPLES::
@@ -852,7 +853,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             False
 
         If you are working over the ring of integers of the Tate algebra,
-        divisibility is always checked in the ring of integers (even if 
+        divisibility is always checked in the ring of integers (even if
         ``integral`` is set to ``False``)::
 
             sage: AA = A.integer_ring()
@@ -863,8 +864,8 @@ cdef class TateAlgebraTerm(MonoidElement):
             False
             sage: tt.divides(ss, integral=False)
             False
-            
-        Be careful that coercion between the Tate algebra and its ring of 
+
+        Be careful that coercion between the Tate algebra and its ring of
         integers can be done silently::
 
             sage: tt.divides(s)
@@ -880,8 +881,8 @@ cdef class TateAlgebraTerm(MonoidElement):
         INPUT:
 
         - ``other`` - a Tate term
-        
-        - ``integral`` - (default: ``False``) if ``True``, test for 
+
+        - ``integral`` - (default: ``False``) if ``True``, test for
           divisibility in the ring of integers of the Tate algebra
 
         EXAMPLES::
@@ -990,7 +991,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     """
     def __init__(self, parent, x, prec=None, reduce=True):
         r"""
-        Initialise a Tate algebra series.
+        Initialize a Tate algebra series.
 
         TESTS::
 
@@ -1013,7 +1014,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("cannot restrict to a bigger domain")
-                self._poly = PolyDict({ e: parent._field(v) for (e,v) in xc._poly.__repn.iteritems() })
+                self._poly = PolyDict({ e: parent._field(v) for (e,v) in xc._poly.__repn.items() })
                 if xc._prec is not Infinity:
                     self._prec = (xc._prec * ratio).ceil()
             else:
@@ -1066,7 +1067,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         self._is_normalized = True
         if self._prec is Infinity: return
         cdef int v
-        for (e,c) in self._poly.__repn.iteritems():
+        for (e,c) in self._poly.__repn.items():
             v = (<ETuple>self._parent._log_radii).dotprod(<ETuple>e)
             self._poly.__repn[e] = self._poly.__repn[e].add_bigoh((self._prec - v).ceil())
 
@@ -1087,12 +1088,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         r"""
         Return a string representation of this series.
 
-        The terms are ordered with decreasing term order 
-        (increasing valuation of the coefficients, then 
-        the monomial order of the parent algebra).
+        The terms are ordered with decreasing term order
+        (increasing valuation, then the monomial order of the parent algebra).
 
         EXAMPLES::
-        
+
             sage: R = Zp(2, 10, print_mode='digits')
             sage: A.<x,y> = TateAlgebra(R)
             sage: x + 2*x^2 + x^3
@@ -1101,7 +1101,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: A(x + 2*x^2 + x^3, prec=5)
             (...00001)*x^3 + (...00001)*x + (...00010)*x^2 + O(2^5)
 
-        """        
+        """
         base = self._parent.base_ring()
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
@@ -1120,12 +1120,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         r"""
         Return a LaTeX representation of this series.
 
-        The terms are ordered with decreasing term order 
-        (increasing valuation of the coefficients, then 
+        The terms are ordered with decreasing term order
+        (increasing valuation of the coefficients, then
         the monomial order of the parent algebra).
 
         EXAMPLES::
-        
+
             sage: R = Zp(2, 10, print_mode='digits')
             sage: A.<x,y> = TateAlgebra(R)
             sage: f = x + 2*x^2 + x^3; f
@@ -1178,8 +1178,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             5
 
         """
-        # TODO: g = x + 2*y^2 + O(2^5) fails coercing O(2^5) into R, is that normal? 
-        # If we force conversion with R(O(2^5)) the result is a Tate series with precision infinity... it's understandable but confusing, no? 
+        # TODO: g = x + 2*y^2 + O(2^5) fails coercing O(2^5) into R, is that normal?
+        # If we force conversion with R(O(2^5)) the result is a Tate series with precision infinity... it's understandable but confusing, no?
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly + (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
@@ -1305,7 +1305,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a Tate algebra term
+        - ``other`` -- a Tate algebra element
 
         - ``op`` -- the comparison operator
 
@@ -1316,7 +1316,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: A.term_order()
             Degree reverse lexicographic term order
 
-        For terms, we first compare the valuation and ties are broken 
+        For terms, we first compare the valuation and ties are broken
         using the term ordering on `A`::
 
             sage: 2*x^2*y^2 > x*y^3
@@ -1326,7 +1326,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         For general series, leading terms are first compared. In case
         of tie, second leading terms are compared, and so on::
-        
+
             sage: x^2*y^2 > x*y^3 + y^4
             True
             sage: x^2*y^2 > x^2*y^2 + x*y^3
@@ -1354,8 +1354,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if c is None:
             ts = self.terms()
             to = other.terms()
-            for i in range(min(len(ts), len(to))):
-                c = (<TateAlgebraTerm>ts[i])._cmp_c(<TateAlgebraTerm>to[i])
+            for s, o in zip(ts, to):
+                c = (<TateAlgebraTerm>s)._cmp_c(<TateAlgebraTerm>o)
                 if c: break
             else:
                 c = len(ts) - len(to)
@@ -1457,7 +1457,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
             sage: t*f # indirect doctest
             (...0000000011)*x^6 + (...0000000011)*x^2 + (...000000001100)*x^3*y
-        
+
         """
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly.term_lmult(term._exponent, term._coeff)
@@ -1466,9 +1466,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     cdef TateAlgebraElement _positive_lshift_c(self, n):
         r"""
-        Return the product of this series by the ``n``-th power 
+        Return the product of this series by the ``n``-th power
         of the uniformizer.
-        
+
         INPUT:
 
         - ``n`` -- a non-negative integer
@@ -1487,7 +1487,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef ETuple e
         cdef Element c
         cdef TateAlgebraElement ans = self._new_c()
-        for (e,c) in self._poly.__repn.iteritems():
+        for (e,c) in self._poly.__repn.items():
             coeffs[e] = c << n
         ans._poly = PolyDict(coeffs, self._poly.__zero)
         ans._prec = self._prec + n
@@ -1519,13 +1519,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         parent = self._parent
         base = parent.base_ring()
         if base.is_field():
-            for (e,c) in self._poly.__repn.iteritems():
+            for (e,c) in self._poly.__repn.items():
                 coeffs[e] = c << n
             ans._prec = self._prec + n
         else:
             field = base.fraction_field()
             ngens = parent.ngens()
-            for (e,c) in self._poly.__repn.iteritems():
+            for (e,c) in self._poly.__repn.items():
                 minval = ZZ(e.dotprod(<ETuple>parent._log_radii)).ceil()
                 coeffs[e] = field(base(c) >> (minval-n)) << minval
             ans._prec = max(ZZ(0), self._prec - n)
@@ -1786,7 +1786,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraTerm oneterm = self._parent._oneterm
         cdef TateAlgebraTerm term
         self._terms = []
-        for (e,c) in self._poly.__repn.iteritems():
+        for (e,c) in self._poly.__repn.items():
             term = oneterm._new_c()
             term._coeff = c
             term._exponent = e

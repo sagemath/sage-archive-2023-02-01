@@ -668,7 +668,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             `|\nu|`. This creation operator is a t-analogue of
             multiplication by ``s(nu)`` .
 
-            .. SEEALSO:: Proposition 5 in [SZ.2001]_.
+            .. SEEALSO:: Proposition 5 in [SZ2001]_.
 
             INPUT:
 
@@ -676,12 +676,6 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
             - ``t`` -- (default: ``None``, in which case ``t`` is used) an
               element of the base ring
-
-            REFERENCES:
-
-            .. [SZ.2001] \M. Shimozono, M. Zabrocki,
-               Hall-Littlewood vertex operators and generalized Kostka polynomials.
-               Adv. Math. 158 (2001), no. 1, 66-85.
 
             EXAMPLES::
 
@@ -1211,7 +1205,7 @@ class kSplit(CombinatorialFreeModule):
         See [LLMSSZ]_ p. 81.
 
         The `k`-split basis is defined recursively using the
-        Hall-Littlewood creation operator defined in [SZ.2001]_.  If a
+        Hall-Littlewood creation operator defined in [SZ2001]_.  If a
         partition ``la`` is the concatenation (as lists) of a partition ``mu``
         and ``nu`` where ``mu`` has maximal hook length equal to ``k``
         then ``ksp(la) = ksp(nu).hl_creation_operator(mu)``.  If the
@@ -1300,7 +1294,7 @@ class kSplit(CombinatorialFreeModule):
         When `t=1` the `k`-split basis is the product of the Schur functions
         indexed by the partitions in the `k`-split of the partition.
         For `t \neq 1`, the elements are computed using the Hall-Littlewood
-        creation operator defined in [SZ.2001]_.
+        creation operator defined in [SZ2001]_.
 
         .. MATH::
 

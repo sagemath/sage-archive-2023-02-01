@@ -14,22 +14,6 @@ AUTHORS:
 
 - Florent Hivert (2010-2011): initial implementation.
 - Adrien Boussicault (2015): Hook statistics.
-
-REFERENCES:
-
-.. [LodayRonco] Jean-Louis Loday and Maria O. Ronco.
-   *Hopf algebra of the planar binary trees*,
-   Advances in Mathematics, volume 139, issue 2,
-   10 November 1998, pp. 293-309.
-   http://www.sciencedirect.com/science/article/pii/S0001870898917595
-
-.. [HNT05] Florent Hivert, Jean-Christophe Novelli, and Jean-Yves Thibon.
-   *The algebra of binary search trees*,
-   :arxiv:`math/0401089v2`.
-
-.. [CP12] Grégory Châtel, Viviane Pons.
-   *Counting smaller trees in the Tamari order*,
-   :arxiv:`1212.0751v1`.
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
@@ -1090,7 +1074,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         by sending every permutation `p \in S_n` to the binary
         search tree of `p` (more precisely, to
         ``p.binary_search_tree_shape()``) is a lattice
-        homomorphism. (See Theorem 6.2 in [Read04]_.)
+        homomorphism. (See Theorem 6.2 in [Rea2004]_.)
 
         .. SEEALSO::
 
@@ -1159,12 +1143,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: b = BinaryTree([])
             sage: b.tamari_join(b)
             [., .]
-
-        REFERENCES:
-
-        .. [Read04] Nathan Reading.
-           *Cambrian Lattices*.
-           :arxiv:`math/0402086v2`.
         """
         # We use Reading's result that the projection from the symmetric
         # group is a lattice homomorphism.
@@ -1184,7 +1162,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         by sending every permutation `p \in S_n` to the binary
         search tree of `p` (more precisely, to
         ``p.binary_search_tree_shape()``) is a lattice
-        homomorphism. (See Theorem 6.2 in [Read04]_.)
+        homomorphism. (See Theorem 6.2 in [Rea2004]_.)
 
         .. SEEALSO::
 
@@ -1451,7 +1429,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         Two binary trees of the same size are comparable in
         the Tamari order if and only if the associated tuples
         `w` are componentwise comparable.
-        (This is essentially the Theorem in [HuangTamari1972]_.)
+        (This is essentially the Theorem in [HT1972]_.)
         This is used in :meth:`tamari_lequal`.
 
         EXAMPLES::
@@ -1465,7 +1443,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         REFERENCES:
 
-        - [HuangTamari1972]_
+        - [HT1972]_
         """
         if not self:
             return tuple(), 0
@@ -1916,7 +1894,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         The number of pairs `(t_1, t_2)` of binary trees of size `n` such that
         the canopee of `t_1` is the complementary of the canopee of `t_2` is
-        also the number of Baxter permutations (see [DG94]_, see
+        also the number of Baxter permutations (see [DG1994]_, see
         also :oeis:`A001181`). We check this in small cases::
 
             sage: [len([(u,v) for u in BinaryTrees(n) for v in BinaryTrees(n)
@@ -1942,12 +1920,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             Traceback (most recent call last):
             ...
             ValueError: canopee is only defined for non empty binary trees
-
-        REFERENCES:
-
-        .. [DG94] \S. Dulucq and O. Guibert. Mots de piles, tableaux
-           standards et permutations de Baxter, proceedings of
-           Formal Power Series and Algebraic Combinatorics, 1994.
         """
         if not self:
             raise ValueError("canopee is only defined for non empty binary trees")
@@ -2163,7 +2135,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         is a quotient of the weak order on the `n`-th symmetric group
         (also known as the right permutohedron order, see
         :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`).
-        See [CP12]_. The set of binary trees of size `n` equipped with
+        See [CP2012]_. The set of binary trees of size `n` equipped with
         the Tamari order is called the `n`-th Tamari poset.
 
         The Tamari order can equivalently be defined as follows:
@@ -2808,7 +2780,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         multiplicative factor, which is a power of `q`.
 
         When `q = 1`, both `f_{q} (T)` and `h_{q} (T)` equal the number
-        of permutations whose binary search tree (see [HNT05]_ for the
+        of permutations whose binary search tree (see [HNT2005]_ for the
         definition) is `T` (after dropping the labels). For example,
         there are `20` permutations which give a binary tree of the
         following shape::
@@ -2830,7 +2802,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         Objects similar to `h_{q} (T)` also make sense for general
         ordered forests (rather than just binary trees), see e. g.
-        [BW88]_, Theorem 9.1.
+        [BW1988]_, Theorem 9.1.
 
         INPUT:
 
@@ -2844,14 +2816,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
           compute `f_{q} (T)` (namely, `h_{q} (T)` is obtained when
           ``q_factor == False``, and `f_{q} (T)` is obtained when
           ``q_factor == True``)
-
-        REFERENCES:
-
-        .. [BW88] Anders Bjoerner, Michelle L. Wachs,
-           *Generalized quotients in Coxeter groups*.
-           Transactions of the American Mathematical Society,
-           vol. 308, no. 1, July 1988.
-           http://www.ams.org/journals/tran/1988-308-01/S0002-9947-1988-0946427-X/S0002-9947-1988-0946427-X.pdf
 
         EXAMPLES:
 
@@ -2988,7 +2952,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         (:meth:`left_rotate`).
 
         The right rotation operation introduced here is the one defined
-        in Definition 2.1 of [CP12]_.
+        in Definition 2.1 of [CP2012]_.
 
         .. SEEALSO::
 
@@ -3110,18 +3074,18 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         (written `T / T'`) is defined as the tree obtained by grafting
         `T'` on the rightmost leaf of `T`. More precisely, `T / T'` is
         defined by identifying the root of the `T'` with the rightmost
-        leaf of `T`. See section 4.5 of [HNT05]_.
+        leaf of `T`. See section 4.5 of [HNT2005]_.
 
         If `T` is empty, then `T / T' = T'`.
 
         The definition of this "over" operation goes back to
-        Loday-Ronco [LodRon0102066]_ (Definition 2.2), but it is
+        Loday-Ronco [LR0102066]_ (Definition 2.2), but it is
         denoted by `\backslash` and called the "under" operation there.
         In fact, trees in sage have their root at the top, contrary to
-        the trees in [LodRon0102066]_ which are growing upwards. For
+        the trees in [LR0102066]_ which are growing upwards. For
         this reason, the names of the over and under operations are
         swapped, in order to keep a graphical meaning.
-        (Our notation follows that of section 4.5 of [HNT05]_.)
+        (Our notation follows that of section 4.5 of [HNT2005]_.)
 
         .. SEEALSO::
 
@@ -3224,13 +3188,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         If `T'` is empty, then `T \backslash T' = T`.
 
         The definition of this "under" operation goes back to
-        Loday-Ronco [LodRon0102066]_ (Definition 2.2), but it is
+        Loday-Ronco [LR0102066]_ (Definition 2.2), but it is
         denoted by `/` and called the "over" operation there. In fact,
         trees in sage have their root at the top, contrary to the trees
-        in [LodRon0102066]_ which are growing upwards. For this reason,
+        in [LR0102066]_ which are growing upwards. For this reason,
         the names of the over and under operations are swapped, in
         order to keep a graphical meaning.
-        (Our notation follows that of section 4.5 of [HNT05]_.)
+        (Our notation follows that of section 4.5 of [HNT2005]_.)
 
         .. SEEALSO::
 
@@ -3485,7 +3449,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         The sylvester class of a tree `T` is the set of permutations
         `\sigma` whose right-to-left binary search tree (a notion defined
-        in [HNT05]_, Definition 7) is `T` after forgetting the labels.
+        in [HNT2005]_, Definition 7) is `T` after forgetting the labels.
         This is an equivalence class of the sylvester congruence (the
         congruence on words which holds two words `uacvbw` and `ucavbw`
         congruent whenever `a`, `b`, `c` are letters satisfying
@@ -4852,7 +4816,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
           obtained by replacing the left child of `t` by `Ins(i, l)`
           in `t`, where `l` denotes the left child of `t`.
 
-        See, for example, [HNT05]_ for properties of this algorithm.
+        See, for example, [HNT2005]_ for properties of this algorithm.
 
         .. WARNING::
 
@@ -4863,7 +4827,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
         EXAMPLES:
 
-        The example from Fig. 2 of [HNT05]_::
+        The example from Fig. 2 of [HNT2005]_::
 
             sage: LBT = LabelledBinaryTree
             sage: x = LBT(None)

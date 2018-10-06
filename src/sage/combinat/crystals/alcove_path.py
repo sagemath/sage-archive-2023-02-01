@@ -220,12 +220,6 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         True
 
     .. WARNING:: Weights from finite root systems index non-highest weight crystals.
-
-    REFERENCES:
-
-    .. [LP2008] \C. Lenart and A. Postnikov. *A combinatorial model for
-       crystals of Kac-Moody algebras*. Trans. Amer. Math. Soc. 360 (2008),
-       4349-4381.
     """
 
     @staticmethod

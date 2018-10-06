@@ -700,7 +700,7 @@ class FiniteWord_class(Word_class):
         Return word ``self`` under the Foata bijection.
 
         The Foata bijection `\phi` is a bijection on the set of words
-        of given content (by a slight generalization of Section 2 in [FoSc78]_).
+        of given content (by a slight generalization of Section 2 in [FS1978]_).
         It can be defined by induction on the size of the word: Given a word
         `w_1 w_2 \cdots w_n`, start with `\phi(w_1) = w_1`. At the `i`-th step, if
         `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define

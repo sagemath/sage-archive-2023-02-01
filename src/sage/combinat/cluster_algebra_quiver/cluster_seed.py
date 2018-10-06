@@ -4428,7 +4428,7 @@ class ClusterSeed(SageObject):
         r"""
         Computes an element in the upper cluster algebra of `B` corresponding to the vector `a \in \ZZ^n`.
 
-        See [LeeLiM]_ for more details. 
+        See [LLM2014]_ for more details.
 
         INPUT:
 
@@ -4464,12 +4464,6 @@ class ClusterSeed(SageObject):
             sage: C=ClusterSeed(B)
             sage: C.get_upper_cluster_algebra_element([1,1,1])
             x0^4*x1^2*x2^3 + x0^2*x1^3*x2^4
-
-
-        REFERENCES:
-
-        .. [LeeLiM] Lee-Li-Mills, A combinatorial formula for certain elements in the upper cluster algebra, :arxiv:`1409.8177`
-
         """
         B=self.b_matrix()
         #Checks if the length of the

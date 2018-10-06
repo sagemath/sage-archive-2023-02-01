@@ -183,8 +183,6 @@ from .degree_sequences import DegreeSequences
 
 from .cyclic_sieving_phenomenon import CyclicSievingPolynomial, CyclicSievingCheck
 
-from .finite_dynamical_system import FiniteDynamicalSystem
-
 from .sidon_sets import sidon_sets
 
 # Puzzles
@@ -222,3 +220,9 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
                                      'GrowthDiagramRSK', 'GrowthDiagramBurge',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
+
+# Discrete dynamical systems
+lazy_import('sage.combinat.finite_dynamical_system',
+            ['DiscreteDynamicalSystem',
+             'FiniteDynamicalSystem', 'InvertibleDiscreteDynamicalSystem',
+             'InvertibleFiniteDynamicalSystem'])

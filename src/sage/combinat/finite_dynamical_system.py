@@ -607,9 +607,6 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
         r"""
         Return a list of all orbits of ``self``, up to
         cyclic rotation.
-
-        If the evolution of ``self`` is not invertible, then
-        this will not terminate!
         """
         phi = self._phi
         l = list(self)
@@ -852,6 +849,10 @@ class discrete_dynamical_systems():
         .. TODO::
 
             Implement the ``lazy=True`` case.
+            This should differ in that ``X`` is no longer a
+            list, but an enumerated set.
+            But how to build an enumerated set filtering a
+            given enumerated set according to a predicate?
 
         EXAMPLES::
 

@@ -45,31 +45,31 @@ dynamical systems:
 - :class:`InvertibleFiniteDynamicalSystem`: invertible
   finite discrete dynamical system.
 
-.. TODO ::
+.. TODO::
 
-- Implement basic functionality for homomesy and invariance testing
-  when the endo is an auto:
-  is_homomesic, is_invariant, orbits, orbit, orbit_lengths,
-  orbit_lengths_lcm.
+    - Implement basic functionality for homomesy and invariance testing
+    when the endo is an auto:
+    is_homomesic, is_invariant, orbits, orbit, orbit_lengths,
+    orbit_lengths_lcm.
 
-- General classcall that delegates to subclasses?
+    - General classcall that delegates to subclasses?
 
-- Subclasses for DDSes whose ground set is an enumerated set?
+    - Subclasses for DDSes whose ground set is an enumerated set?
 
-- Implement caching for orbits?
+    - Implement caching for orbits?
 
-- Possibly implement lazy ground set -- or should this just be
-  what you get when you use DiscreteDynamicalSystem rather than
-  FiniteDynamicalSystem?
+    - Possibly implement lazy ground set -- or should this just be
+    what you get when you use DiscreteDynamicalSystem rather than
+    FiniteDynamicalSystem?
 
-- non-auto functionality: is_recurrent, recurrent_entries,
-  first_recurrent_image, rho, cycles, homomesy?
+    - non-auto functionality: is_recurrent, recurrent_entries,
+    first_recurrent_image, rho, cycles, homomesy?
 
-- Examples for non-auto functionality:
-  - infection on a chessboard;
-  - Conway's GoL.
+    - Examples for non-auto functionality:
+    - infection on a chessboard;
+    - Conway's GoL.
 
-- Wrap (some of) the cyclic_sieving_phenomenon.py methods.
+    - Wrap (some of) the cyclic_sieving_phenomenon.py methods.
 
 """
 #*****************************************************************************
@@ -234,7 +234,7 @@ class DiscreteDynamicalSystem(SageObject):
         """
         return self._X[i]
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation of ``self``.
         
@@ -245,6 +245,9 @@ class DiscreteDynamicalSystem(SageObject):
             sage: D # indirect doctest
             A discrete dynamical system with ground set
              Non negative integer semiring
+            sage: D = DiscreteDynamicalSystem(None, lambda x : x + 2)
+            sage: D # indirect doctest
+            A discrete dynamical system with unspecified ground set
         """
         if self._X is None:
             return "A discrete dynamical system with unspecified ground set"
@@ -377,7 +380,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
             self._inverse = inverse
         self._cache_orbits = cache_orbits
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation of ``self``.
 
@@ -387,6 +390,9 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
             sage: D # indirect doctest
             An invertible discrete dynamical system with ground set
              Non negative integer semiring
+            sage: D = InvertibleDiscreteDynamicalSystem(None, lambda x : x + 2)
+            sage: D # indirect doctest
+            An invertible discrete dynamical system with unspecified ground set
         """
         if self._X is None:
             return "An invertible discrete dynamical system with unspecified ground set"
@@ -538,7 +544,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
         sage: D.evolution()((1, 1, 1, 0, 1, 0, 0, 1))
         (1, 1, 0, 1, 0, 0, 1, 0)
     """
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation of ``self``.
         
@@ -546,13 +552,11 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
         
             sage: D = FiniteDynamicalSystem(tuple(range(11)), lambda x : (x**2) % 11)
             sage: D
-            Finite discrete dynamical system with ground set
-            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) and evolution
-            <function <lambda> at ...>
+            A finite discrete dynamical system with ground set
+            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         """
-        return "Finite discrete dynamical system with ground set " \
-               + repr(self._X) + " and evolution " + \
-               repr(self._phi)
+        return "A finite discrete dynamical system with ground set " \
+               + repr(self._X)
 
     def is_invariant(self, f):
         r"""
@@ -626,7 +630,7 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
         sage: sorted(D.orbit_lengths())
         [2, 4, 8, 8, 8, 8, 8, 8, 8, 8]
     """
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation of ``self``.
         
@@ -634,12 +638,11 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
         
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(5)), lambda x : (x + 2) % 5)
             sage: D
-            Invertible finite discrete dynamical system with ground set
-            (0, 1, 2, 3, 4) and evolution <function <lambda> at ...>
+            An invertible finite discrete dynamical system with ground set
+            (0, 1, 2, 3, 4)
         """
-        return "Invertible finite discrete dynamical system with ground set " \
-               + repr(self._X) + " and evolution " + \
-               repr(self._phi)
+        return "An invertible finite discrete dynamical system with ground set " \
+               + repr(self._X)
 
     def orbits(self):
         r"""

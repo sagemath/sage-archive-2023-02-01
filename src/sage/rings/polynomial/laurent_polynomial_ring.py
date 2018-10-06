@@ -706,11 +706,23 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
         # One may eventually want ideals in these guys.
         raise NotImplementedError
 
-    def ideal(self):
+    def ideal(self, *args, **kwds):
         """
         EXAMPLES::
 
-            sage: LaurentPolynomialRing(QQ,2,'x').ideal()
+            sage: LaurentPolynomialRing(QQ,2,'x').ideal([1])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        TESTS:
+ 
+        check that trac:`26421` is fixed:
+
+            sage: R.<t> = LaurentPolynomialRing(ZZ)
+            sage: P.<x> = PolynomialRing(R)
+            sage: p = x-t
+            sage: p.content_ideal()    # indirect doctest
             Traceback (most recent call last):
             ...
             NotImplementedError

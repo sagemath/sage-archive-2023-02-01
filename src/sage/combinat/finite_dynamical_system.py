@@ -332,6 +332,28 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
     def is_invariant(self, f):
         r"""
         Check if ``f`` is an invariant of ``self``.
+
+        EXAMPLES::
+
+            sage: W = Words(2, 5)
+            sage: F = FiniteDynamicalSystem(W, lambda x : x[1:] + Word([x[0]]))
+            sage: F.is_invariant(lambda w: sum(w))
+            True
+            sage: F.is_invariant(lambda w: 1)
+            True
+            sage: F.is_invariant(lambda w: w[0] - w[1])
+            False
+            sage: F.is_invariant(lambda w: sum(i**2 for i in w))
+            True
+
+        An invariant of a permutation::
+        
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: F = discrete_dynamical_systems.permutation([3, 4, 5, 6, 1, 2])
+            sage: F.is_invariant(lambda i: i % 2)
+            True
+            sage: F.is_invariant(lambda i: i % 3)
+            False
         """
         phi = self._phi
         for i in self._X:

@@ -175,12 +175,29 @@ class DiscreteDynamicalSystem(SageObject):
             In particular, if a list was provided, then this
             precise list will be returned; mutating this list
             will then corrupt ``self``.
+
+        EXAMPLES::
+        
+            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
+            sage: D.ground_set()
+            (1, 3, 4)
         """
         return self._X
 
     def evolution(self):
         r"""
         Return the evolution of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
+            sage: ev = D.evolution()
+            sage: ev(1)
+            1
+            sage: ev(4)
+            3
         """
         return self._phi
 
@@ -217,8 +234,10 @@ class DiscreteDynamicalSystem(SageObject):
         """
         return self._X[i]
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
+        String representation of ``self``.
+        
         EXAMPLES::
 
             sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
@@ -358,8 +377,10 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
             self._inverse = inverse
         self._cache_orbits = cache_orbits
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
+        String representation of ``self``.
+
         EXAMPLES::
 
             sage: D = InvertibleDiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 4 < 2 else x - 2))
@@ -519,6 +540,15 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
     """
     def __repr__(self):
         r"""
+        String representation of ``self``.
+        
+        EXAMPLES::
+        
+            sage: D = FiniteDynamicalSystem(tuple(range(11)), lambda x : (x**2) % 11)
+            sage: D
+            Finite discrete dynamical system with ground set
+            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) and evolution
+            <function <lambda> at ...>
         """
         return "Finite discrete dynamical system with ground set " \
                + repr(self._X) + " and evolution " + \
@@ -598,6 +628,14 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
     """
     def __repr__(self):
         r"""
+        String representation of ``self``.
+        
+        EXAMPLES::
+        
+            sage: D = InvertibleFiniteDynamicalSystem(tuple(range(5)), lambda x : (x + 2) % 5)
+            sage: D
+            Invertible finite discrete dynamical system with ground set
+            (0, 1, 2, 3, 4) and evolution <function <lambda> at ...>
         """
         return "Invertible finite discrete dynamical system with ground set " \
                + repr(self._X) + " and evolution " + \
@@ -607,6 +645,15 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
         r"""
         Return a list of all orbits of ``self``, up to
         cyclic rotation.
+        
+        EXAMPLES::
+        
+            sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
+            sage: D.orbits()
+            [[5, 1, 3], [4, 0, 2]]
+            sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 3) % 6)
+            sage: D.orbits()
+            [[5, 2], [4, 1], [3, 0]]
         """
         phi = self._phi
         l = list(self)
@@ -626,6 +673,15 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
         r"""
         Return a list of the lengths of all orbits of
         ``self``.
+        
+        EXAMPLES::
+        
+            sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
+            sage: D.orbit_lengths()
+            [3, 3]
+            sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 3) % 6)
+            sage: D.orbit_lengths()
+            [2, 2, 2]
         """
         return [len(orb) for orb in self.orbits()]
 
@@ -1009,7 +1065,7 @@ class discrete_dynamical_systems():
             [[4], [3, 1], [2, 2], [2, 1, 1]]
             sage: BS(4).orbit(Partition([3, 1]))
             [[3, 1], [2, 2], [2, 1, 1]]
-            sage: BS(7).orbit(Partition([6, 1]), preperiod=2)
+            sage: BS(7).orbit(Partition([6, 1]), preperiod=True)
             ([[6, 1], [5, 2], [4, 2, 1], [3, 3, 1], [3, 2, 2], [3, 2, 1, 1]], 2)
         """
         from sage.combinat.partition import Partition, Partitions

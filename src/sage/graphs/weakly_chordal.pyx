@@ -47,8 +47,7 @@ from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from sage.graphs.base.static_sparse_graph cimport out_degree
-from sage.data_structures.binary_matrix cimport binary_matrix_t
-from libc.stdint cimport uint32_t
+
 
 cdef inline int has_edge(bitset_t bs, int u, int v, int n):
     return bitset_in(bs, u * n + v)

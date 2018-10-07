@@ -1400,7 +1400,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def _roots_univariate_polynomial(self, P, ring, multiplicities, algorithm, secure=False):
         r"""
-        Return the roots of ``P`` in the ring ``ring``
+        Return the roots of ``P`` in the ring ``ring``.
 
         INPUT:
 
@@ -1432,9 +1432,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
              (1 + O(p^10))*X^2 + O(p^10)*X + O(p^10)
 
-        Indeed its discriminant is divisible might be any `p`-adic
-        integer divisible by `p^{10}` (resp. `p^{11}` when `p=2`) and
-        so might be as well zero, a square and a non-square.
+        Indeed its discriminant might be any `p`-adic integer divisible 
+        by `p^{10}` (resp. `p^{11}` when `p=2`) and so can be as well 
+        zero, a square and a non-square.
         In the first case, the polynomial has one double root; in the
         second case, it has two roots; in the third case, it has no
         root in `\QQ_p`.
@@ -1444,7 +1444,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         it then answers that the given polynomial has a double root
         `O(p^5)`.
 
-        This keyword is ignored when algorithm is ``"pari"``.
+        This keyword is ignored when using the ``pari`` algorithm.
 
         EXAMPLES::
 

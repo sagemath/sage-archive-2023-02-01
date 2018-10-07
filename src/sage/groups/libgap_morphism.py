@@ -36,18 +36,17 @@ from sage.misc.latex import latex
 
 class GroupMorphism_libgap(Morphism):
     r"""
-    Group morphism specified by the images of generators.
+    This wraps libGAP group homomorphisms.
 
-    This wraps GAP's ``GroupHomomorphismByImages`` function.
     Checking if the input defines a group homomorphism can be expensive
     if the group is large.
 
     INPUT:
 
     - ``homset`` -- the parent
-    - ``imgs`` -- a tuple of generators
-    - ``check`` -- (default: ``True``) check if the images define
-      a group homomorphism
+    - ``gap_hom`` -- a tuple of generators
+    - ``check`` -- (default: ``True``) check if the ``gap_hom`` is a group
+      homomorphism
 
     EXAMPLES::
 

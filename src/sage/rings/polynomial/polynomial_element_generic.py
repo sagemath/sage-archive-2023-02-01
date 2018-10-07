@@ -47,6 +47,8 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.factorization import Factorization
 
+from sage.rings.padics.precision_error import PrecisionError
+
 
 class Polynomial_generic_sparse(Polynomial):
     """
@@ -1394,6 +1396,41 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         return Factorization(factors, sort=False, unit=unit)
 
     def _roots(self, secure, minval, hint):
+        """
+        Return the roots of this polynomial whose valuation is 
+        at least ``minval``.
+
+        This is an helper method for :meth:`roots`.
+        It is not meant to be called directly.
+
+        INPUT:
+
+        - ``secure`` -- a boolean; whether we raise an error or
+          not in case of multiple roots
+
+        - ``minval`` -- an integer
+
+        - ``hint`` -- a list or ``None``; if given, it must be the
+          list of roots of the residual polynomial of slope ``minval``
+
+        OUTPUT:
+
+        A list of pairs ``(root, multiplicity)``
+
+        TESTS::
+
+            sage: R = Zp(2)
+            sage: S.<x> = R[]
+            sage: P = (x-1) * (x-2) * (x-4) * (x-8) * (x-16)
+            sage: Q = P^2
+            sage: Q.roots(algorithm="sage")  # indirect doctest
+            [(2^4 + O(2^14), 2),
+             (2^3 + O(2^13), 2),
+             (2^2 + O(2^12), 2),
+             (2 + O(2^11), 2),
+             (1 + O(2^10), 2)]
+
+        """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         K = self.base_ring()
         Pk = PolynomialRing(K.residue_field(), names='xbar')
@@ -1409,7 +1446,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         i = 0
         while self[i] == 0: i += 1
         if secure and i > 1:
-            raise PrecisionError
+            raise PrecisionError("not enough precision to determine the number of roots")
         if i == 0:
             roots = [ ]
             P = self
@@ -1419,7 +1456,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             if prec is not Infinity:
                 prec = prec.ceil()
             roots = [ (K(0,prec), i) ]
-            P = self // self[:i+1]
+            P = self // self[:i+1]  # we do not shift because we need to track precision here
 
         # We use Newton polygon and slope factorisation to find roots
         vertices = P.newton_polygon().vertices(copy=False)
@@ -1449,7 +1486,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
                 if not rootsbar: continue
             rbar = rootsbar.pop()
             shift = K(rbar).lift_to_precision() << slope  # probably we should choose a better lift
-            roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, [r-rbar for r in rootsbar])]
+            roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, [r-rbar for r in rootsbar])]  # recursive call
         return roots
 
 

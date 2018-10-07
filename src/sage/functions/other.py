@@ -1941,10 +1941,14 @@ class Function_cases(GinacFunction):
 
         TESTS::
 
-            sage: cases()
+            sage: cases()  # py2
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
+            sage: cases()  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() missing 1 required positional argument: 'l'
 
             sage: cases(x)
             Traceback (most recent call last):

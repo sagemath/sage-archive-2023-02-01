@@ -239,6 +239,19 @@ class GroupMorphism_libgap(Morphism):
     def __init__(self, homset, gap_hom, check=True):
         r"""
         Constructor method.
+
+        TESTS::
+
+            sage: G = GL(2, ZZ)
+            sage: H = GL(2, GF(2))
+            sage: P = Hom(G, H)
+            sage: gen1 = [g.gap() for g in G.gens()]
+            sage: gen2 = [H(g).gap() for g in G.gens()]
+            sage: phi = G.gap().GroupHomomorphismByImagesNC(H,gen1, gen2)
+            sage: phi = P.element_class(P,phi)
+            sage: phi(G.gen(0))
+            [0 1]
+            [1 0]
         """
         if check:
             if not gap_hom.IsGroupHomomorphism():

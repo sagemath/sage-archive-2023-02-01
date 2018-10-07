@@ -144,9 +144,8 @@ from .invariants.all import *
 from .fast_arith import prime_range
 
 # continued fractions
-from sage.rings.continued_fraction import (farey, convergents,
-    continued_fraction, continued_fraction_list,
-    Hirzebruch_Jung_continued_fraction_list)
+from sage.rings.continued_fraction import (convergents,
+    continued_fraction, continued_fraction_list)
 
 # asymptotic ring
 from .asymptotic.all import *

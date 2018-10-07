@@ -8,6 +8,11 @@
 #
 # See https://trac.sagemath.org/ticket/18438
 
+if [ -z "$SAGE_ORIG_PATH" ]; then
+    # If not we're running from within sage-env just set the existing path
+    SAGE_ORIG_PATH="$PATH"
+fi
+
 PYTHON="$(PATH="$SAGE_ORIG_PATH" command -v python)"
 
 exec "$PYTHON" "$@"

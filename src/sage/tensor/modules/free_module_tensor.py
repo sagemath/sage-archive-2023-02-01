@@ -181,22 +181,23 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
     -2
 
 """
-from __future__ import absolute_import
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+
 
 class FreeModuleTensor(ModuleElement):
     r"""
@@ -861,29 +862,6 @@ class FreeModuleTensor(ModuleElement):
                                         format_spec=format_spec,
                                         only_nonzero=only_nonzero,
                                         only_nonredundant=only_nonredundant)
-
-    def view(self, basis=None, format_spec=None):
-        r"""
-        Deprecated method.
-
-        Use method :meth:`display` instead.
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 2, 'M')
-            sage: e = M.basis('e')
-            sage: v = M([2,-3], basis=e, name='v')
-            sage: v.view(e)
-            doctest:...: DeprecationWarning: Use function display() instead.
-            See http://trac.sagemath.org/15916 for details.
-            v = 2 e_0 - 3 e_1
-            sage: v.display(e)
-            v = 2 e_0 - 3 e_1
-
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15916, 'Use function display() instead.')
-        return self.display(basis=basis, format_spec=format_spec)
 
     def set_name(self, name=None, latex_name=None):
         r"""

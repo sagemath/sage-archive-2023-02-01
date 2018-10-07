@@ -1800,8 +1800,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             [0, 0, 0, 0, 0, 0, 0, 0]
             sage: 'hi' * 8
             'hihihihihihihihi'
+            sage: b'hi' * 8 == b'hihihihihihihihi'
+            True
         """
-        if isinstance(s, (list, tuple, basestring)):
+        if isinstance(s, (list, tuple, basestring, bytes)):
             if mpz_fits_slong_p(self.value):
                 return s * mpz_get_si(self.value)
             else:

@@ -127,8 +127,7 @@ AUTHORS:
 
 - Oscar Lazo, William Cauchois, Jason Grout (2009-2010): Adding coordinate transformations
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -140,12 +139,16 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
-
+import six
 import inspect
+
+if six.PY2:
+    getargspec = inspect.getargspec
+else:
+    getargspec = inspect.getfullargspec
 
 from six import iteritems
 
@@ -191,7 +194,7 @@ class _Coordinates(object):
             Arbitrary Coordinates coordinate transform (z in terms of x, y)
         """
         import inspect
-        all_vars=inspect.getargspec(self.transform).args[1:]
+        all_vars = getargspec(self.transform).args[1:]
         if set(all_vars) != set(indep_vars + [dep_var]):
             raise ValueError('variables were specified incorrectly for this coordinate system; incorrect variables were %s'%list(set(all_vars).symmetric_difference(set(indep_vars+[dep_var]))))
         self.dep_var = dep_var
@@ -230,16 +233,16 @@ class _Coordinates(object):
 
     def to_cartesian(self, func, params=None):
         """
-        Returns a 3-tuple of functions, parameterized over ``params``, that
+        Return a 3-tuple of functions, parameterized over ``params``, that
         represents the Cartesian coordinates of the value of ``func``.
 
         INPUT:
 
-         - ``func`` - A function in this coordinate space. Corresponds to the
-           independent variable.
+         - ``func`` -- function in this coordinate space. Corresponds
+           to the independent variable.
 
-         - ``params`` - The parameters of ``func``. Corresponds to the dependent
-           variables.
+         - ``params`` -- the parameters of ``func``. Corresponds to
+           the dependent variables.
 
         EXAMPLES::
 
@@ -261,21 +264,33 @@ class _Coordinates(object):
             sage: f(a, b) = 2*a+b
             sage: T.to_cartesian(f, [a, b])
             (a + b, a - b, 2*a + b)
+
             sage: t1,t2,t3=T.to_cartesian(lambda a,b: 2*a+b)
             sage: import inspect
-            sage: inspect.getargspec(t1)
+            sage: inspect.getargspec(t1) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
-            sage: inspect.getargspec(t2)
+            sage: inspect.getfullargspec(t1) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
+            sage: inspect.getargspec(t2) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
-            sage: inspect.getargspec(t3)
+            sage: inspect.getfullargspec(t2) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
+            sage: inspect.getargspec(t3) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t3) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
+
             sage: def g(a,b): return 2*a+b
             sage: t1,t2,t3=T.to_cartesian(g)
-            sage: inspect.getargspec(t1)
+            sage: inspect.getargspec(t1) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t1) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
             sage: t1,t2,t3=T.to_cartesian(2*a+b)
-            sage: inspect.getargspec(t1)
+            sage: inspect.getargspec(t1) # py2
             ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t1) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
 
         If we cannot guess the right parameter names, then the
         parameters are named `u` and `v`::
@@ -284,8 +299,10 @@ class _Coordinates(object):
             sage: x, y, z = var('x y z')
             sage: T = _ArbitraryCoordinates((x + y, x - y, z), z,[x,y])
             sage: t1,t2,t3=T.to_cartesian(operator.add)
-            sage: inspect.getargspec(t1)
+            sage: inspect.getargspec(t1) # py2
             ArgSpec(args=['u', 'v'], varargs=None, keywords=None, defaults=None)
+            sage: inspect.getfullargspec(t1) # py3
+            FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={})
             sage: [h(1,2) for h in T.to_cartesian(operator.mul)]
             [3.0, -1.0, 2.0]
             sage: [h(u=1,v=2) for h in T.to_cartesian(operator.mul)]
@@ -374,6 +391,7 @@ def _find_arguments_for_callable(func):
     """
     Find the names of arguments (that do not have default values) for
     a callable function, taking care of several special cases in Sage.
+
     If the parameters cannot be found, then return None.
 
     EXAMPLES::
@@ -398,22 +416,22 @@ def _find_arguments_for_callable(func):
         sage: _find_arguments_for_callable(operator.add)
     """
     if inspect.isfunction(func):
-        f_args=inspect.getargspec(func)
+        f_args = getargspec(func)
         if f_args.defaults is None:
-            params=f_args.args
+            params = f_args.args
         else:
-            params=f_args.args[:-len(f_args.defaults)]
+            params = f_args.args[:-len(f_args.defaults)]
     else:
         try:
-            f_args=inspect.getargspec(func.__call__)
+            f_args = getargspec(func.__call__)
             if f_args.defaults is None:
-                params=f_args.args
+                params = f_args.args
             else:
-                params=f_args.args[:-len(f_args.defaults)]
+                params = f_args.args[:-len(f_args.defaults)]
         except TypeError:
             # func.__call__ may be a built-in (or Cython) function
             if hasattr(func, 'arguments'):
-                params=[repr(s) for s in func.arguments()]
+                params = [repr(s) for s in func.arguments()]
             else:
                 params=None
     return params

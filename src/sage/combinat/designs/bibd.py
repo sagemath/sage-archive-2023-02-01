@@ -1281,14 +1281,15 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
 
     def __repr__(self):
         r"""
-        Returns a string describing the PBD
+        Return a string describing the PBD
 
         EXAMPLES::
 
             sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
             (13,3,1)-Balanced Incomplete Block Design
         """
-        return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(),set(self.block_sizes()))
+        bsizes = str(frozenset(self.block_sizes()))[10:-1]
+        return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(), bsizes)
 
 
 class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):

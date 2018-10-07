@@ -440,7 +440,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         Test that :trac:`26427` is fixed::
 
             sage: M = matrix(SR, 7, 7, SR.var('a', 49))
-            sage: M.charpoly().degree()
+            sage: M.charpoly().degree() # long time
             7
         """
         cache_key = 'charpoly'

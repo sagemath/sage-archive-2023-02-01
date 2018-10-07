@@ -1433,8 +1433,11 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             if hint is not None and slope == minval:
                 rootsbar = hint
                 if not rootsbar: continue
-            F = P._factor_of_degree(deg_right - deg)
-            P = P // F
+            if i < len(vertices) - 1:
+                F = P._factor_of_degree(deg_right - deg)
+                P = P // F
+            else:
+                F = P
             if deg < deg_left:
                 G = F._factor_of_degree(deg_left - deg)
                 F //= G
@@ -1446,8 +1449,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
                 if not rootsbar: continue
             rbar = rootsbar.pop()
             shift = K(rbar).lift_to_precision() << slope  # probably we should choose a better lift
-            hint = [r-rbar for r in rootsbar]
-            roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, hint)]
+            roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, [r-rbar for r in rootsbar])]
         return roots
 
 

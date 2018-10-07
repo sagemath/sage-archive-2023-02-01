@@ -2,77 +2,70 @@
 r"""
 Undirected graphs
 
-This module implements functions and operations involving undirected
-graphs.
+This module implements functions and operations involving undirected graphs.
 
 {INDEX_OF_METHODS}
 
 AUTHORS:
 
--  Robert L. Miller (2006-10-22): initial version
+- Robert L. Miller (2006-10-22): initial version
 
--  William Stein (2006-12-05): Editing
+- William Stein (2006-12-05): Editing
 
--  Robert L. Miller (2007-01-13): refactoring, adjusting for
-   NetworkX-0.33, fixed plotting bugs (2007-01-23): basic tutorial,
-   edge labels, loops, multiple edges and arcs (2007-02-07): graph6
-   and sparse6 formats, matrix input
+- Robert L. Miller (2007-01-13): refactoring, adjusting for NetworkX-0.33, fixed
+   plotting bugs (2007-01-23): basic tutorial, edge labels, loops, multiple
+   edges and arcs (2007-02-07): graph6 and sparse6 formats, matrix input
 
--  Emily Kirkmann (2007-02-11): added graph_border option to plot
-   and show
+- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
 
--  Robert L. Miller (2007-02-12): vertex color-maps, graph
-   boundaries, graph6 helper functions in Cython
+- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries, graph6
+   helper functions in Cython
 
--  Robert L. Miller Sage Days 3 (2007-02-17-21): 3d plotting in
-   Tachyon
+- Robert L. Miller Sage Days 3 (2007-02-17-21): 3d plotting in Tachyon
 
--  Robert L. Miller (2007-02-25): display a partition
+- Robert L. Miller (2007-02-25): display a partition
 
--  Robert L. Miller (2007-02-28): associate arbitrary objects to
-   vertices, edge and arc label display (in 2d), edge coloring
+- Robert L. Miller (2007-02-28): associate arbitrary objects to vertices, edge
+   and arc label display (in 2d), edge coloring
 
--  Robert L. Miller (2007-03-21): Automorphism group, isomorphism
-   check, canonical label
+- Robert L. Miller (2007-03-21): Automorphism group, isomorphism check,
+   canonical label
 
--  Robert L. Miller (2007-06-07-09): NetworkX function wrapping
+- Robert L. Miller (2007-06-07-09): NetworkX function wrapping
 
--  Michael W. Hansen (2007-06-09): Topological sort generation
+- Michael W. Hansen (2007-06-09): Topological sort generation
 
--  Emily Kirkman, Robert L. Miller Sage Days 4: Finished wrapping
-   NetworkX
+- Emily Kirkman, Robert L. Miller Sage Days 4: Finished wrapping NetworkX
 
--  Emily Kirkman (2007-07-21): Genus (including circular planar,
-   all embeddings and all planar embeddings), all paths, interior
-   paths
+- Emily Kirkman (2007-07-21): Genus (including circular planar, all embeddings
+   and all planar embeddings), all paths, interior paths
 
--  Bobby Moretti (2007-08-12): fixed up plotting of graphs with
-   edge colors differentiated by label
+- Bobby Moretti (2007-08-12): fixed up plotting of graphs with edge colors
+   differentiated by label
 
--  Jason Grout (2007-09-25): Added functions, bug fixes, and
-   general enhancements
+- Jason Grout (2007-09-25): Added functions, bug fixes, and general enhancements
 
--  Robert L. Miller (Sage Days 7): Edge labeled graph isomorphism
+- Robert L. Miller (Sage Days 7): Edge labeled graph isomorphism
 
--  Tom Boothby (Sage Days 7): Miscellaneous awesomeness
+- Tom Boothby (Sage Days 7): Miscellaneous awesomeness
 
--  Tom Boothby (2008-01-09): Added graphviz output
+- Tom Boothby (2008-01-09): Added graphviz output
 
--  David Joyner (2009-2): Fixed docstring bug related to GAP.
+- David Joyner (2009-2): Fixed docstring bug related to GAP.
 
--  Stephen Hartke (2009-07-26): Fixed bug in blocks_and_cut_vertices()
-   that caused an incorrect result when the vertex 0 was a cut vertex.
+- Stephen Hartke (2009-07-26): Fixed bug in blocks_and_cut_vertices() that
+   caused an incorrect result when the vertex 0 was a cut vertex.
 
--  Stephen Hartke (2009-08-22): Fixed bug in blocks_and_cut_vertices()
-   where the list of cut_vertices is not treated as a set.
+- Stephen Hartke (2009-08-22): Fixed bug in blocks_and_cut_vertices() where the
+   list of cut_vertices is not treated as a set.
 
--  Anders Jonsson (2009-10-10): Counting of spanning trees and out-trees added.
+- Anders Jonsson (2009-10-10): Counting of spanning trees and out-trees added.
 
--  Nathann Cohen (2009-09) : Cliquer, Connectivity, Flows
-                             and everything that uses Linear Programming
-                             and class numerical.MIP
+- Nathann Cohen (2009-09) : Cliquer, Connectivity, Flows and everything that
+                             uses Linear Programming and class numerical.MIP
 
-- Nicolas M. Thiery (2010-02): graph layout code refactoring, dot2tex/graphviz interface
+- Nicolas M. Thiery (2010-02): graph layout code refactoring, dot2tex/graphviz
+  interface
 
 - David Coudert (2012-04) : Reduction rules in vertex_cover.
 
@@ -85,17 +78,18 @@ AUTHORS:
 
 - Julian Rüth (2018-06-21): upgrade to NetworkX 2
 
+- David Coudert (2018-10-07): cleaning
+
 Graph Format
 ------------
 
 Supported formats
 ~~~~~~~~~~~~~~~~~
 
-Sage Graphs can be created from a wide range of inputs. A few
-examples are covered here.
+Sage Graphs can be created from a wide range of inputs. A few examples are
+covered here.
 
-
--  NetworkX dictionary format:
+- NetworkX dictionary format:
 
    ::
 
@@ -105,7 +99,7 @@ examples are covered here.
        Graph on 10 vertices
        sage: G.plot().show()    # or G.show()
 
--  A NetworkX graph:
+- A NetworkX graph:
 
    ::
 
@@ -115,7 +109,7 @@ examples are covered here.
        sage: G.degree()
        [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 12, 12, 12, 12, 12, 12, 12]
 
--  graph6 or sparse6 format:
+- graph6 or sparse6 format:
 
    ::
 
@@ -124,8 +118,8 @@ examples are covered here.
        Looped multi-graph on 10 vertices
        sage: G.plot().show()    # or G.show()
 
-   Note that the ``\`` character is an escape character in Python, and
-   also a character used by graph6 strings:
+   Note that the ``\`` character is an escape character in Python, and also a
+   character used by graph6 strings:
 
    ::
 
@@ -141,9 +135,8 @@ examples are covered here.
        sage: G = Graph('Ihe\\n@GUA')
        sage: G.plot().show()    # or G.show()
 
--  adjacency matrix: In an adjacency matrix, each column and each
-   row represent a vertex. If a 1 shows up in row `i`, column
-   `j`, there is an edge `(i,j)`.
+- adjacency matrix: In an adjacency matrix, each column and each row represent a
+   vertex. If a 1 shows up in row `i`, column `j`, there is an edge `(i,j)`.
 
    ::
 
@@ -166,8 +159,8 @@ examples are covered here.
        Graph on 10 vertices
        sage: G.plot().show()    # or G.show()
 
--  incidence matrix: In an incidence matrix, each row represents a
-   vertex and each column represents an edge.
+- incidence matrix: In an incidence matrix, each row represents a vertex and
+   each column represents an edge.
 
    ::
 
@@ -200,13 +193,13 @@ examples are covered here.
        ...
        ValueError: There must be two nonzero entries (-1 & 1) per column.
 
--  a list of edges::
+- a list of edges::
 
        sage: g = Graph([(1,3),(3,8),(5,2)])
        sage: g
        Graph on 5 vertices
 
--  an igraph Graph::
+- an igraph Graph::
 
        sage: import igraph                                # optional - python_igraph
        sage: g = Graph(igraph.Graph([(1,3),(3,2),(0,2)])) # optional - python_igraph
@@ -232,9 +225,9 @@ Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
     [3, 3, 2, 2]
     [3, 3, 3, 3]
 
-Similarly ``graphs()`` will iterate through all graphs. The complete
-graph of 4 vertices is of course the smallest graph with chromatic number
-bigger than three::
+Similarly ``graphs()`` will iterate through all graphs. The complete graph of 4
+vertices is of course the smallest graph with chromatic number bigger than
+three::
 
     sage: for g in graphs():
     ....:     if g.chromatic_number() > 3:
@@ -242,14 +235,12 @@ bigger than three::
     sage: g.is_isomorphic(graphs.CompleteGraph(4))
     True
 
-For some commonly used graphs to play with, type
-
-::
+For some commonly used graphs to play with, type::
 
     sage: graphs.[tab]          # not tested
 
-and hit {tab}. Most of these graphs come with their own custom
-plot, so you can see how people usually visualize these graphs.
+and hit {tab}. Most of these graphs come with their own custom plot, so you can
+see how people usually visualize these graphs.
 
 ::
 
@@ -287,12 +278,11 @@ plot, so you can see how people usually visualize these graphs.
 Labels
 ------
 
-Each vertex can have any hashable object as a label. These are
-things like strings, numbers, and tuples. Each edge is given a
-default label of ``None``, but if specified, edges can
-have any label at all. Edges between vertices `u` and
-`v` are represented typically as ``(u, v, l)``, where
-``l`` is the label for the edge.
+Each vertex can have any hashable object as a label. These are things like
+strings, numbers, and tuples. Each edge is given a default label of ``None``,
+but if specified, edges can have any label at all. Edges between vertices `u`
+and `v` are represented typically as ``(u, v, l)``, where ``l`` is the label for
+the edge.
 
 Note that vertex labels themselves cannot be mutable items::
 
@@ -302,8 +292,8 @@ Note that vertex labels themselves cannot be mutable items::
     ...
     TypeError: mutable matrices are unhashable
 
-However, if one wants to define a dictionary, with the same keys
-and arbitrary objects for entries, one can make that association::
+However, if one wants to define a dictionary, with the same keys and arbitrary
+objects for entries, one can make that association::
 
     sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), \
           2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
@@ -319,27 +309,20 @@ and arbitrary objects for entries, one can make that association::
 Database
 --------
 
-There is a database available for searching for graphs that satisfy
-a certain set of parameters, including number of vertices and
-edges, density, maximum and minimum degree, diameter, radius, and
-connectivity. To see a list of all search parameter keywords broken
-down by their designated table names, type
-
-::
+There is a database available for searching for graphs that satisfy a certain
+set of parameters, including number of vertices and edges, density, maximum and
+minimum degree, diameter, radius, and connectivity. To see a list of all search
+parameter keywords broken down by their designated table names, type ::
 
     sage: graph_db_info()
     {...}
 
-For more details on data types or keyword input, enter
-
-::
+For more details on data types or keyword input, enter ::
 
     sage: GraphQuery?    # not tested
 
-The results of a query can be viewed with the show method, or can be
-viewed individually by iterating through the results:
-
-::
+The results of a query can be viewed with the show method, or can be viewed
+individually by iterating through the results ::
 
     sage: Q = GraphQuery(display_cols=['graph6'],num_vertices=7, diameter=5)
     sage: Q.show()
@@ -355,9 +338,7 @@ viewed individually by iterating through the results:
     FGC{o
     FIAHo
 
-Show each graph as you iterate through the results:
-
-::
+Show each graph as you iterate through the results::
 
     sage: for g in Q:
     ....:     show(g)
@@ -365,9 +346,8 @@ Show each graph as you iterate through the results:
 Visualization
 -------------
 
-To see a graph `G` you are working with, there
-are three main options. You can view the graph in two dimensions via
-matplotlib with ``show()``. ::
+To see a graph `G` you are working with, there are three main options. You can
+view the graph in two dimensions via matplotlib with ``show()``. ::
 
     sage: G = graphs.RandomGNP(15,.3)
     sage: G.show()
@@ -376,12 +356,11 @@ And you can view it in three dimensions via jmol with ``show3d()``. ::
 
     sage: G.show3d()
 
-Or it can be rendered with `\LaTeX`.  This requires the right
-additions to a standard `\mbox{\rm\TeX}` installation.  Then standard
-Sage commands, such as ``view(G)`` will display the graph, or
-``latex(G)`` will produce a string suitable for inclusion in a
-`\LaTeX` document.  More details on this are at
-the :mod:`sage.graphs.graph_latex` module. ::
+Or it can be rendered with `\LaTeX`.  This requires the right additions to a
+standard `\mbox{\rm\TeX}` installation.  Then standard Sage commands, such as
+``view(G)`` will display the graph, or ``latex(G)`` will produce a string
+suitable for inclusion in a `\LaTeX` document.  More details on this are at the
+:mod:`sage.graphs.graph_latex` module. ::
 
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
@@ -458,37 +437,37 @@ class Graph(GenericGraph):
     edges*) and unweighted. This can be easily tuned with the appropriate flags
     (see below).
 
-    -  ``data`` -- can be any of the following (see the ``format`` argument):
+    - ``data`` -- can be any of the following (see the ``format`` argument):
 
       #. ``Graph()`` -- build a graph on 0 vertices.
 
       #. ``Graph(5)`` -- return an edgeless graph on the 5 vertices 0,...,4.
 
-      #. ``Graph([list_of_vertices,list_of_edges])`` -- returns a graph with
+      #. ``Graph([list_of_vertices, list_of_edges])`` -- returns a graph with
          given vertices/edges.
 
          To bypass auto-detection, prefer the more explicit
-         ``Graph([V,E],format='vertices_and_edges')``.
+         ``Graph([V, E], format='vertices_and_edges')``.
 
       #. ``Graph(list_of_edges)`` -- return a graph with a given list of edges
          (see documentation of
          :meth:`~sage.graphs.generic_graph.GenericGraph.add_edges`).
 
-         To bypass auto-detection, prefer the more explicit ``Graph(L,
-         format='list_of_edges')``.
+         To bypass auto-detection, prefer the more explicit
+         ``Graph(L, format='list_of_edges')``.
 
-      #. ``Graph({1:[2,3,4],3:[4]})`` -- return a graph by associating to each
-         vertex the list of its neighbors.
+      #. ``Graph({1: [2, 3, 4], 3: [4]})`` -- return a graph by associating to
+         each vertex the list of its neighbors.
 
-         To bypass auto-detection, prefer the more explicit ``Graph(D,
-         format='dict_of_lists')``.
+         To bypass auto-detection, prefer the more explicit
+         ``Graph(D, format='dict_of_lists')``.
 
       #. ``Graph({1: {2: 'a', 3:'b'} ,3:{2:'c'}})`` -- return a graph by
          associating a list of neighbors to each vertex and providing its edge
          label.
 
-         To bypass auto-detection, prefer the more explicit ``Graph(D,
-         format='dict_of_dicts')``.
+         To bypass auto-detection, prefer the more explicit
+         ``Graph(D, format='dict_of_dicts')``.
 
          For graphs with multiple edges, you can provide a list of labels
          instead, e.g.: ``Graph({1: {2: ['a1', 'a2'], 3:['b']} ,3:{2:['c']}})``.
@@ -505,8 +484,8 @@ class Graph(GenericGraph):
          matrix (see documentation of
          :meth:`~sage.graphs.generic_graph.GenericGraph.incidence_matrix`).
 
-         To bypass auto-detection, prefer the more explicit ``Graph(M,
-         format='incidence_matrix')``.
+         To bypass auto-detection, prefer the more explicit
+         ``Graph(M, format='incidence_matrix')``.
 
       #. ``Graph([V, f])`` -- return a graph from a vertex set ``V`` and a
          *symmetric* function ``f``. The graph contains an edge `u,v` whenever
@@ -535,14 +514,14 @@ class Graph(GenericGraph):
           2: [ 1, 1],
           3: [-1, 1]}
 
-    -  ``name`` - (must be an explicitly named parameter,
-       i.e., ``name="complete")`` gives the graph a name
+    - ``name`` - (must be an explicitly named parameter, i.e.,
+       ``name="complete")`` gives the graph a name
 
-    -  ``loops`` - boolean, whether to allow loops (ignored
-       if data is an instance of the ``Graph`` class)
+    - ``loops`` - boolean, whether to allow loops (ignored if data is an
+       instance of the ``Graph`` class)
 
-    -  ``multiedges`` - boolean, whether to allow multiple
-       edges (ignored if data is an instance of the ``Graph`` class).
+    - ``multiedges`` - boolean, whether to allow multiple edges (ignored if data
+       is an instance of the ``Graph`` class).
 
     - ``weighted`` - whether graph thinks of itself as weighted or not. See
       :meth:`~sage.graphs.generic_graph.GenericGraph.weighted`.
@@ -580,15 +559,15 @@ class Graph(GenericGraph):
     - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
       only the integers `0,...,n-1`, where `n` is the number of vertices.
 
-    -  ``convert_empty_dict_labels_to_None`` - this arguments sets
-       the default edge labels used by NetworkX (empty dictionaries)
-       to be replaced by None, the default Sage edge label. It is
-       set to ``True`` iff a NetworkX graph is on the input.
+    - ``convert_empty_dict_labels_to_None`` - this arguments sets the default
+       edge labels used by NetworkX (empty dictionaries) to be replaced by None,
+       the default Sage edge label. It is set to ``True`` iff a NetworkX graph
+       is on the input.
 
     EXAMPLES:
 
-    We illustrate the first seven input formats (the other two
-    involve packages that are currently not standard in Sage):
+    We illustrate the first seven input formats (the other two involve packages
+    that are currently not standard in Sage):
 
     #. An integer giving the number of vertices::
 
@@ -604,11 +583,9 @@ class Graph(GenericGraph):
         sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
         Graph on 5 vertices
 
-       The labels ('x', 'z', 'a', 'out') are labels for edges. For
-       example, 'out' is the label for the edge on 2 and 5. Labels can be
-       used as weights, if all the labels share some common parent.
-
-       ::
+       The labels ('x', 'z', 'a', 'out') are labels for edges. For example,
+       'out' is the label for the edge on 2 and 5. Labels can be used as
+       weights, if all the labels share some common parent.::
 
         sage: a,b,c,d,e,f = sorted(SymmetricGroup(3))
         sage: Graph({b:{d:'c',e:'p'}, c:{d:'p',e:'c'}})
@@ -619,13 +596,11 @@ class Graph(GenericGraph):
         sage: g = Graph({0:[1,2,3], 2:[4]}); g
         Graph on 5 vertices
 
-    #. A list of vertices and a function describing adjacencies. Note
-       that the list of vertices and the function must be enclosed in a
-       list (i.e., [list of vertices, function]).
+    #. A list of vertices and a function describing adjacencies. Note that the
+       list of vertices and the function must be enclosed in a list (i.e., [list
+       of vertices, function]).
 
-       Construct the Paley graph over GF(13).
-
-       ::
+       Construct the Paley graph over GF(13).::
 
           sage: g=Graph([GF(13), lambda i,j: i!=j and (i-j).is_square()])
           sage: g.vertices()
@@ -645,9 +620,7 @@ class Graph(GenericGraph):
           [0 1 1 0 0 0 0 1 1 0 1 0 1]
           [1 0 1 1 0 0 0 0 1 1 0 1 0]
 
-       Construct the line graph of a complete graph.
-
-       ::
+       Construct the line graph of a complete graph.::
 
           sage: g=graphs.CompleteGraph(4)
           sage: line_graph=Graph([g.edges(labels=false), \
@@ -663,8 +636,8 @@ class Graph(GenericGraph):
           [1 0 1 1 0 1]
           [0 1 1 1 1 0]
 
-    #. A graph6 or sparse6 string: Sage automatically recognizes
-       whether a string is in graph6 or sparse6 format::
+    #. A graph6 or sparse6 string: Sage automatically recognizes whether a
+       string is in graph6 or sparse6 format::
 
            sage: s = ':I`AKGsaOs`cI]Gb~'
            sage: Graph(s,sparse=True)
@@ -784,7 +757,7 @@ class Graph(GenericGraph):
             sage: Graph(M).edges()
             [(0, 1, None)]
 
-    #.  A Seidel adjacency matrix::
+    #. A Seidel adjacency matrix::
 
           sage: from sage.combinat.matrices.hadamard_matrix import \
           ....:  regular_symmetric_hadamard_matrix_with_constant_diagonal as rshcd
@@ -792,7 +765,7 @@ class Graph(GenericGraph):
           sage: Graph(m,format="seidel_adjacency_matrix").is_strongly_regular(parameters=True)
           (16, 6, 2, 2)
 
-    #. a list of edges, or labelled edges::
+    #. List of edges, or labelled edges::
 
           sage: g = Graph([(1,3),(3,8),(5,2)])
           sage: g
@@ -867,9 +840,8 @@ class Graph(GenericGraph):
           ...
           TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(immutable=True)`
 
-    When providing the optional arguments ``data_structure="static_sparse"``
-    or ``immutable=True`` (both mean the same), then an immutable graph
-    results. ::
+    When providing the optional arguments ``data_structure="static_sparse"`` or
+    ``immutable=True`` (both mean the same), then an immutable graph results. ::
 
           sage: G_imm = Graph(G, immutable=True)
           sage: H_imm = Graph(G, data_structure='static_sparse')
@@ -880,7 +852,7 @@ class Graph(GenericGraph):
 
     TESTS::
 
-        sage: Graph(4,format="HeyHeyHey")
+        sage: Graph(4, format="HeyHeyHey")
         Traceback (most recent call last):
         ...
         ValueError: Unknown input format 'HeyHeyHey'
@@ -890,24 +862,24 @@ class Graph(GenericGraph):
         ...
         ValueError: An *undirected* igraph graph was expected. To build an directed graph, call the DiGraph constructor.
 
-        sage: m = matrix([[0,-1],[-1,0]])
-        sage: Graph(m,format="seidel_adjacency_matrix")
+        sage: m = matrix([[0, -1], [-1, 0]])
+        sage: Graph(m, format="seidel_adjacency_matrix")
         Graph on 2 vertices
-        sage: m[0,1]=1
-        sage: Graph(m,format="seidel_adjacency_matrix")
+        sage: m[0,1] = 1
+        sage: Graph(m, format="seidel_adjacency_matrix")
         Traceback (most recent call last):
         ...
         ValueError: Graph's Seidel adjacency matrix must be symmetric
 
-        sage: m[0,1]=-1; m[1,1]=1
-        sage: Graph(m,format="seidel_adjacency_matrix")
+        sage: m[0,1] = -1; m[1,1] = 1
+        sage: Graph(m, format="seidel_adjacency_matrix")
         Traceback (most recent call last):
         ...
         ValueError: Graph's Seidel adjacency matrix must have 0s on the main diagonal
 
     From a a list of vertices and a list of edges::
 
-        sage: G = Graph([[1,2,3],[(1,2)]]); G
+        sage: G = Graph([[1,2,3], [(1,2)]]); G
         Graph on 3 vertices
         sage: G.edges()
         [(1, 2, None)]
@@ -1010,11 +982,11 @@ class Graph(GenericGraph):
             ...
             ValueError: Column 1 of the (oriented) incidence matrix contains
             only one nonzero value
-            sage: Graph(matrix([[1,1],[1,1],[1,0]]))
+            sage: Graph(matrix([[1,1], [1,1], [1,0]]))
             Traceback (most recent call last):
             ...
             ValueError: There must be one or two nonzero entries per column in an incidence matrix. Got entries [1, 1, 1] in column 0
-            sage: Graph(matrix([[3,1,1],[0,1,1]]))
+            sage: Graph(matrix([[3,1,1], [0,1,1]]))
             Traceback (most recent call last):
             ...
             ValueError: Each column of a non-oriented incidence matrix must sum
@@ -1078,18 +1050,18 @@ class Graph(GenericGraph):
         if format is None and isinstance(data, DiGraph):
             data = data.to_undirected()
             format = 'Graph'
-        if (format is None        and
-            isinstance(data,list) and
-            len(data)>=2          and
+        if (format is None         and
+            isinstance(data, list) and
+            len(data) >= 2         and
             callable(data[1])):
             format = 'rule'
 
-        if (format is None           and
-            isinstance(data,list)    and
-            len(data) == 2           and
-            isinstance(data[0],list) and # a list of two lists, the second of
-            isinstance(data[1],list) and # which contains iterables (the edges)
-            (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
+        if (format is None            and
+            isinstance(data, list)    and
+            len(data) == 2            and
+            isinstance(data[0], list) and # a list of two lists, the second of
+            isinstance(data[1], list) and # which contains iterables (the edges)
+            (not data[1] or callable(getattr(data[1][0], "__iter__", None)))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):
@@ -1213,7 +1185,7 @@ class Graph(GenericGraph):
                                  "constructor.")
 
             self.add_vertices(range(data.vcount()))
-            self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
+            self.add_edges((e.source, e.target, e.attributes()) for e in data.es())
 
             if vertex_labels and 'name' in data.vertex_attributes():
                 vs = data.vs()
@@ -1250,7 +1222,7 @@ class Graph(GenericGraph):
         elif format == 'int':
             self.allow_loops(loops if loops else False, check=False)
             self.allow_multiple_edges(multiedges if multiedges else False, check=False)
-            if data<0:
+            if data < 0:
                 raise ValueError("The number of vertices cannot be strictly negative!")
             if data:
                 self.add_vertices(range(data))
@@ -1393,7 +1365,7 @@ class Graph(GenericGraph):
         if n == 1:
             s = '0' * self.size()
         else:
-            v_to_int = {v:i for i,v in enumerate(self.vertex_iterator())}
+            v_to_int = {v:i for i,v in enumerate(self)}
             edges = [sorted((v_to_int[u], v_to_int[v])) for u,v in self.edge_iterator(labels=False)]
             edges.sort(key=lambda e: (e[1], e[0])) # reverse lexicographic order
 
@@ -2054,7 +2026,7 @@ class Graph(GenericGraph):
             sage: G = graphs.Grid2dGraph(4,4)
             sage: G.apex_vertices() == G.vertices()
             True
-            sage: G.add_edges([('universal',v) for v in G.vertex_iterator()])
+            sage: G.add_edges([('universal',v) for v in G])
             sage: G.apex_vertices()
             ['universal']
 
@@ -2534,7 +2506,7 @@ class Graph(GenericGraph):
             N = self.order()
             vertex_to_int = {}
             B = {}
-            for i,u in enumerate(self.vertex_iterator()):
+            for i,u in enumerate(self):
                 vertex_to_int[u] = i
                 B[u] = Bitset(capacity=N)
             # map adjacency to bitsets
@@ -2543,9 +2515,9 @@ class Graph(GenericGraph):
                 B[v].add(vertex_to_int[u])
             # map lengths 2 paths to bitsets
             BB = Bitset(capacity=N)
-            for u in self.vertex_iterator():
+            for u in self:
                 BB.clear()
-                for v in self.vertex_iterator():
+                for v in self:
                     if B[u] & B[v]:
                         BB.add(vertex_to_int[v])
                 # search for triangles
@@ -4553,7 +4525,7 @@ class Graph(GenericGraph):
                 p.set_objective(p.sum(b[fe] for fe in L))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
-            for v in g.vertex_iterator():
+            for v in g:
                 p.add_constraint(p.sum(b[frozenset(e)] for e in self.edge_iterator(vertices=[v], labels=False)
                                            if e[0] != e[1]), max=1)
             if value_only:
@@ -4767,7 +4739,7 @@ class Graph(GenericGraph):
         b = M.new_variable(binary=True, nonnegative=True)
 
         # We want to select at most one incident edge per vertex (matching)
-        for u in self.vertex_iterator():
+        for u in self:
             M.add_constraint(M.sum(b[frozenset(e)] for e in self.edges_incident(u, labels=0)), max=1)
 
         #
@@ -5440,8 +5412,7 @@ class Graph(GenericGraph):
             G.add_edges((u, v) for u in range(self.order())
                         for v in range(self.order(), self.order() + other.order()))
         else:
-            G.add_edges(((0, u), (1, v)) for u in self.vertex_iterator()
-                        for v in other.vertex_iterator())
+            G.add_edges(((0, u), (1, v)) for u in self for v in other)
 
         G.name('%s join %s'%(self.name(), other.name()))
 

@@ -4203,9 +4203,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<t> = LaurentPolynomialRing(ZZ)
             sage: P.<x> = R[]
-            sage: p = x**3 -(t**3+t**(-3))*x**2 -t**2*x + ~t +t**5
+            sage: p = x^4 + (-5 - 2*t)*x^3 + (-2 + 10*t)*x^2 + (10 + 4*t)*x - 20*t
             sage: p.factor()
-            (t^-3) * (t^3*x - 1 - t^6) * (x - t) * (x + t)
+            (x - 5) * (x - 2*t) * (x^2 - 2)
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -4353,14 +4353,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return F
             except (TypeError, AttributeError):
                 if R.is_integral_domain() and not R.is_field():
-                    from sage.rings.fraction_field import FractionField_generic
                     try:
-                        F = FractionField_generic(R)
+                        F = R.fraction_field()
                         PF = F[self.variable_name()]
                         pol_frac = PF(self) 
                         return pol_frac.factor(**kwargs).base_change(self.parent())
-                    except:
-                        pass
+                    except (TypeError, AttributeError):
+                        raise NotImplementedError
                     
                 raise NotImplementedError
 
@@ -7627,13 +7626,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: eq.roots(multiplicities=False)
             [3109038, 17207405]
 
-        Check that :trac:`26421' is fixed::
+        Check that :trac:`26421` is fixed::
 
             sage: R.<t> = LaurentPolynomialRing(ZZ)
             sage: P.<x> = R[]
-            sage: p = x**3 -(t**3+t**(-3))*x**2 -t**2*x + ~t +t**5
+            sage: p = x^4 + (-5 - 2*t)*x^3 + (-2 + 10*t)*x^2 + (10 + 4*t)*x - 20*t
             sage: p.roots()
-            [(t^-3 + t^3, 1), (t, 1), (-t, 1)]
+            [(5, 1), (2*t, 1)]
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
@@ -7852,11 +7851,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         c = self.content_ideal().gen()
                         self = self//c
                     except (AttributeError, NotImplementedError):
-                        try:
-                            c = lcm(self.coefficients())
-                            self = self/c
-                        except:
-                            pass
+                        pass
                 return self._roots_from_factorization(self.factor(), multiplicities)
             else:
                 raise NotImplementedError

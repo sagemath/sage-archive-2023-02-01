@@ -21822,7 +21822,7 @@ class GenericGraph(GenericGraph_pyx):
                 same algorithm.
 
         - ``return_graph`` -- boolean (default: ``True``). When set to
-          ``False``, returns the list of edges of the the canonical graph
+          ``False``, returns the list of edges of the canonical graph
           instead of the canonical graph; only available when ``'bliss'``
           is explicitly set as algorithm.
 

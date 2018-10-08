@@ -2271,21 +2271,21 @@ class AffineConnection(SageObject):
             self._curvature_forms[frame] = forms
         return  self._curvature_forms[frame][(i,j)]
 
-    def set_calc_order(self, symbol, order, truncate = False):
-        """
-        Tell the components to develop their expression in series with respect
-        to parameter ``symbol`` at order ``order``.
+    def set_calc_order(self, symbol, order, truncate=False):
+        r"""
+        Tell the components to develop their expression in series with
+        respect to parameter ``symbol`` at order ``order``.
 
-        This property is propagated by usual operations. Internal representation
-        must be `SR` for this to take effect.
+        This property is propagated by usual operations. The internal
+        representation must be ``SR`` for this to take effect.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero.
-        - ``order`` -- order of the big oh in the development. To keep only the
-          first order, set to 2.
-        - ``truncate`` -- (default: ``False``) perform one step of
-          simplification. False by default.
+        - ``symbol`` -- symbol used to develop the components around zero
+        - ``order`` -- order of the big oh in the development; to keep only
+          the first order, set to ``2``
+        - ``truncate`` -- (default: ``False``) perform one step of the
+          simplification
 
         EXAMPLES::
 

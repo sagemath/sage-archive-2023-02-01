@@ -2039,24 +2039,25 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                 comp_resu._comp[ind] = val_resu
         return resu
 
-    def series(self, symbol, order=None):
+    def series(self, symbol, order=20):
         """
         Develop the tensor in series with respect to parameter ``symbol`` at
         order ``order``.
 
-        The result is return as a list of pair ``(tensor, order)``. The internal
-        representation must be `SR`. This function works by applying the SR
-        method :meth:`~sage.symbolic.expression.series` on each component.
+        The result is return as a list of pair ``(tensor, order)``. The
+        internal representation must be ``SR``. This function works by
+        applying the ``SR`` method :meth:`~sage.symbolic.expression.series`
+        on each component.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero.
-        - ``order`` -- order of the big oh in the development. To keep only the
-          first order, set to 2.
+        - ``symbol`` -- symbol used to develop the components around zero
+        - ``order`` -- (default: 20) order of the big oh in the development;
+          to keep only the first order, set to ``2``
 
         OUTPUT:
 
-        - list of pair ``(tensor, order)``
+        - list of pairs ``(tensor, order)``
 
         EXAMPLES::
 
@@ -2069,7 +2070,11 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
             sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
             sage: h2[0, 2], h2[1, 3] = 1, 1
-            sage: g.set_comp()[:] = (g+e*h1+e**2*h2)[:]
+            sage: g.set(g+e*h1+e**2*h2)
+            sage: g.series(e, 3)
+            [(Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 0),
+             (Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 1),
+             (Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 2)]
             sage: g.series(e, 3)[0][0][:]
             [ 1  0  0  0]
             [ 0 -1  0  0]
@@ -2088,8 +2093,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         """
         from sage.tensor.modules.comp import Components
-        if order is None:
-            order = 20
         res = [0] * order
         for k in range(order):
             res[k] = self.domain().tensor_field(*self.tensor_type(),
@@ -2101,32 +2104,29 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             comp = self.comp(frame)
             res_comp = [0] * order
             for inds in comp.index_generator():
-                decompo[inds] = comp[inds].expr().series(symbol, order). \
-                    truncate().coefficients(symbol)
+                decompo[inds] = comp[inds].expr().series(symbol, order).truncate().coefficients(symbol)
             for k in range(order):
                 res_comp[k] = Components(SR, frame, self.tensor_rank())
                 for inds in comp.index_generator():
-                    res_comp_k = [decompo[inds][l][0] for l in
-                                  range(len(decompo[inds])) if
-                                  decompo[inds][l][1] == k]
-                    res_comp[k][inds] = res_comp_k[0] if len(
-                        res_comp_k) >= 1 else 0
+                    res_comp_k = [decompo[inds][l][0] for l in range(len(decompo[inds]))
+                                  if decompo[inds][l][1] == k]
+                    res_comp[k][inds] = res_comp_k[0] if len(res_comp_k) >= 1 else 0
                 res[k].add_comp(frame)[:] = res_comp[k][:]
         return list(zip(res, list(range(order))))
 
     def truncate(self, symbol, order):
-        """
+        r"""
         Return the tensor truncated at a given order in ``symbol``.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero.
-        - ``order`` -- order of the big oh in the development. To keep only the
-          first order, set to 2.
+        - ``symbol`` -- symbol used to develop the components around zero
+        - ``order`` -- order of the big oh in the development; to keep only
+          the first order, set to ``2``
 
         OUTPUT:
 
-        - tensorfield approximating ``self``.
+        - tensorfield approximating ``self``
 
         EXAMPLES::
 
@@ -2139,7 +2139,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
             sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
             sage: h2[0, 2], h2[1, 3] = 1, 1
-            sage: g.set_comp()[:] = (g+e*h1+e**2*h2)[:]
+            sage: g.set(g+e*h1+e**2*h2)
             sage: g[:]
             [  1   e e^2   0]
             [  e  -1   e e^2]
@@ -2155,21 +2155,21 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         s = self.series(symbol, order)
         return sum(symbol**i*s[i][0] for i in range(order))
 
-    def set_calc_order(self, symbol, order, truncate = False):
+    def set_calc_order(self, symbol, order, truncate=False):
         """
-        Tell the components to develop their expression in series with respect
-        to parameter ``symbol`` at order ``order``.
+        The components will develop their expression in series with
+        respect to parameter ``symbol`` at order ``order``.
 
-        This property is propagated by usual operations. Internal representation
-        must be `SR` for this to take effect.
+        This property is propagated by usual operations. Internal
+        representation must be ``SR`` for this to take effect.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero.
-        - ``order`` -- order of the big oh in the development. To keep only the
-          first order, set to 2.
-        - ``truncate`` -- (default: ``False``) perform one step of
-          simplification. False by default.
+        - ``symbol`` -- symbol used to develop the components around zero
+        - ``order`` -- order of the big oh in the development; to keep only
+          the first order, set to ``2``
+        - ``truncate`` -- (default: ``False``) perform one step of the
+          simplification
 
         EXAMPLES::
 
@@ -2177,12 +2177,12 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: C.<t,x,y,z> = M.chart()
             sage: e = var('e')
             sage: g = M.metric('g')
-            sage: h1 = M.tensor_field(0,2,sym=(0,1))
-            sage: h2 = M.tensor_field(0,2,sym=(0,1))
+            sage: h1 = M.tensor_field(0, 2, sym=(0,1))
+            sage: h2 = M.tensor_field(0, 2, sym=(0,1))
             sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
             sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
             sage: h2[0, 2], h2[1, 3] = 1, 1
-            sage: g.set_comp()[:] = (g+e*h1+e**2*h2)[:]
+            sage: g.set(g+e*h1+e**2*h2)
             sage: g.set_calc_order(e, 2)
             sage: g[:]
             [  1   e e^2   0]
@@ -2204,3 +2204,4 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                 if truncate:
                     self._components[frame][ind].simplify()
         self._del_derived()
+

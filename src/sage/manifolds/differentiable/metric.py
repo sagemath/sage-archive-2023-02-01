@@ -643,9 +643,14 @@ class PseudoRiemannianMetric(TensorField):
                 rst.set(symbiform_rst)
 
 
-    def inverse(self, symbol=None, order=1):
+    def inverse(self, expansion_symbol=None, order=1):
         r"""
         Return the inverse metric.
+
+        INPUT:
+
+        - ``expansion_symbol`` -- ignored
+        - ``order`` -- ignored
 
         OUTPUT:
 
@@ -2220,20 +2225,21 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             rst = self.restrict(dom)
             rst.set(symbiform_rst)
 
-    def inverse(self, symbol=None, order=2):
+    def inverse(self, expansion_symbol=None, order=2):
         r"""
         Return the inverse metric.
 
         INPUT:
 
-        - ``symbol`` -- (default: ``None``) If not ``None``, the inverse will be
-          expanded with respect to this symbol. The zeroth order metric be
-          invertible. The following calls to this method will return a cached
-          value, even when called with the default value (to enable computation
-          of derived quantities). To reset, call ``_del_derived``
-        - ``order`` -- (default: 2) Order of the big oh in the previous
-          development. Currently only first order inverse is supported, any
-          value other than 2 will thus raise an exception.
+        - ``expansion_symbol`` -- (optional) if specified, the inverse will
+          be expanded with respect to this symbol
+        - ``order`` -- (default: ``2``) order of the big oh in the previous
+          development; currently only first order inverse is supported
+
+        If ``expansion_symbol``, then the zeroth order metric must be
+        invertible. Moreover, subsequent calls to this method will return
+        a cached value, even when called with the default value (to enable
+        computation of derived quantities). To reset, call :meth:`_del_derived`.
 
         OUTPUT:
 
@@ -2313,27 +2319,25 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ 0 -e -1 -e]
             [ 0  0 -e -1]
 
-
         """
-
         if symbol is not None:
-            if self._inverse is not None and bool(self._inverse._components) and \
-                self._inverse._components.values()[0][0,0]._symbol is symbol and \
-                self._inverse._components.values()[0][0,0]._order == order:
+            if (self._inverse is not None and bool(self._inverse._components)
+                and self._inverse._components.values()[0][0,0]._symbol is symbol
+                and self._inverse._components.values()[0][0,0]._order == order):
                 return self._inverse
 
-            if order!=2:
-                raise NotImplementedError("Only first order inverse is "
-                                          "implemented")
+            if order != 2:
+                raise NotImplementedError("only first order inverse is implemented")
             decompo = self.series(symbol, 2)
             g0 = decompo[0][0]
             g1 = decompo[1][0]
 
-            g0m = self._new_instance() # needed because only metrics have
-            g0m.set_comp()[:]=g0[:]    # an "inverse" method.
+            g0m = self._new_instance()   # needed because only metrics have
+            g0m.set_comp()[:] = g0[:]    # an "inverse" method.
 
-            self._inverse = g0m.inverse()-g1.contract(0,g0m.inverse(),0)\
-                .contract(1,g0m.inverse(),1)*symbol
+            contraction = g1.contract(0, g0m.inverse(), 0)
+            contraction = contraction.contract(1, g0m.inverse(), 1)
+            self._inverse = g0m.inverse() - contraction * symbol
             self._inverse.set_calc_order(symbol, 2)
             return self._inverse
 

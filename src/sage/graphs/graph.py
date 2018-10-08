@@ -822,8 +822,8 @@ class Graph(GenericGraph):
     When defining an undirected graph from a function ``f``, it is *very*
     important that ``f`` be symmetric. If it is not, anything can happen::
 
-        sage: f_sym = lambda x,y : abs(x-y) == 1
-        sage: f_nonsym = lambda x,y : (x-y) == 1
+        sage: f_sym = lambda x,y: abs(x-y) == 1
+        sage: f_nonsym = lambda x,y: (x-y) == 1
         sage: G_sym = Graph([[4,6,1,5,3,7,2,0], f_sym])
         sage: G_sym.is_isomorphic(graphs.PathGraph(8))
         True
@@ -1160,9 +1160,9 @@ class Graph(GenericGraph):
             self.add_edges(data.edge_iterator(), loops=loops)
         elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
-                r = lambda x:None if x=={} else x
+                r = lambda x: None if x=={} else x
             else:
-                r = lambda x:x
+                r = lambda x: x
             if weighted is None:
                 if isinstance(data, networkx.Graph):
                     weighted = False
@@ -2317,7 +2317,7 @@ class Graph(GenericGraph):
 
         Making sure there are no other counter-examples around ::
 
-            sage: t = lambda x : (Graph(x).is_forest() or
+            sage: t = lambda x: (Graph(x).is_forest() or
             ....:       isinstance(Graph(x).is_even_hole_free(certificate=True), Graph))
             sage: all( t(graphs.RandomBipartite(10, 10, .5)) for i in range(100) )
             True
@@ -3527,9 +3527,9 @@ class Graph(GenericGraph):
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
-            weight = lambda e : self.edge_label(e) if self.edge_label(e) in RR else 1
+            weight = lambda e: self.edge_label(e) if self.edge_label(e) in RR else 1
         else:
-            weight = lambda e : 1
+            weight = lambda e: 1
 
         from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -3632,7 +3632,7 @@ class Graph(GenericGraph):
         out-degree at most `\lceil \frac {d(v)} 2 \rceil`::
 
             sage: g = graphs.RandomGNP(40, .4)
-            sage: b = lambda v : ceil(g.degree(v)/2)
+            sage: b = lambda v: ceil(g.degree(v)/2)
             sage: D = g.bounded_outdegree_orientation(b)
             sage: all( D.out_degree(v) <= b(v) for v in g )
             True
@@ -3671,7 +3671,7 @@ class Graph(GenericGraph):
 
             sage: for i in range(30):      # long time (up to 6s on sage.math, 2012)
             ....:     g = graphs.RandomGNP(40, .4)
-            ....:     b = lambda v : ceil(g.degree(v)/2)
+            ....:     b = lambda v: ceil(g.degree(v)/2)
             ....:     D = g.bounded_outdegree_orientation(b)
             ....:     if not (
             ....:          all( D.out_degree(v) <= b(v) for v in g ) or
@@ -7198,7 +7198,7 @@ class Graph(GenericGraph):
 
         D = modular_decomposition(self)
 
-        relabel = lambda x : (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else x.children[0]
+        relabel = lambda x: (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else x.children[0]
 
         return relabel(D)
 

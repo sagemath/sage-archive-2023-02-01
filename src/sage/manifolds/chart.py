@@ -2001,12 +2001,12 @@ class RealChart(Chart):
 
     def valid_coordinates_numerical(self, *coordinates):
         r"""
-        Check whether a tuple of float coordinates can be the coordinates of a
-        point in the chart domain.
+        Check whether a tuple of float coordinates can be the coordinates
+        of a point in the chart domain.
 
-        This version is optimized for float numbers, and cannot accept parameters
-        nor tolerance. The chart restriction must also be specified in CNF
-        (ie list of tuple).
+        This version is optimized for float numbers, and cannot accept
+        parameters nor tolerance. The chart restriction must also be
+        specified in CNF (i.e. a list of tuples).
 
         INPUT:
 
@@ -2014,8 +2014,8 @@ class RealChart(Chart):
 
         OUTPUT:
 
-        - ``True`` if the coordinate values are admissible in the chart range
-          and ``False`` otherwise
+        - ``True`` if the coordinate values are admissible in the chart
+          range and ``False`` otherwise
 
         EXAMPLES:
 
@@ -2044,8 +2044,8 @@ class RealChart(Chart):
             sage: XD.valid_coordinates_numerical(0,0)
             True
 
-        Another open subset of the square, defined by `x^2+y^2<1` or
-        (`x>0` and `|y|<1`)::
+        Another open subset of the square, defined by `x^2 + y^2 < 1` or
+        (`x > 0` and `|y| < 1`)::
 
             sage: B = M.open_subset('B',coord_def={X: [(x^2+y^2<1, x>0),
             ....:                   (x^2+y^2<1,  abs(y)<1)]})
@@ -2071,7 +2071,7 @@ class RealChart(Chart):
             elif isinstance(self._restrictions, Expression):
                 self._restrictions = [(self._restrictions,)]
             else:
-                raise ValueError("Restrictions must be in CNF (list of tuple)")
+                raise ValueError("restrictions must be in CNF (list of tuples)")
 
         list_of_clause = []
         for clause in self._restrictions:
@@ -2079,11 +2079,11 @@ class RealChart(Chart):
                 if isinstance(clause, Expression):
                     clause = (clause,)
                 else:
-                    raise ValueError("Restrictions must be in CNF (list of tuple)")
+                    raise ValueError("restrictions must be in CNF (list of tuples)")
             list_of_fast_callable = []
             for litteral in clause:
                 if not isinstance(litteral, Expression):
-                    raise ValueError("Restrictions must be in CNF (list of tuple)")
+                    raise ValueError("Restrictions must be in CNF (list of tuples)")
                 # End of checks
 
                 fl = fast_callable(litteral.lhs(), vars=self[:], domain=float)

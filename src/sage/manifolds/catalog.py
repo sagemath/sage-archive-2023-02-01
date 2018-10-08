@@ -3,6 +3,13 @@ Manifolds Catalog
 
 A catalog of manifolds to rapidly create various simple manifolds.
 
+Entries:
+
+- :func:`Sphere`: sphere embedded in Euclidean space
+- :func:`Torus`: torus embedded in Euclidean space
+- :func:`Minkowski`: 4-dimensional Minkowski space
+- :func:`Kerr`: Kerr spacetime
+
 AUTHORS:
 
 - Florentin Jaffredo (2018) : initial version
@@ -18,15 +25,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 
-from sage.manifolds.differentiable.euclidean import EuclideanSpace as Euclidean
+from sage.manifolds.manifold import Manifold
+from sage.manifolds.differentiable.euclidean import EuclideanSpace
 
 def Minkowski(positive_spacelike=True, names=None):
     """
     Generate a Minkowski space of dimension 4.
 
     By default the signature is set to `(- + + +)`, but can be changed to
-    `(+ - - -)` by setting the optionnal argument to -1, a full signature
-    can also be provided. The shortcut operator ``.<,>`` can be used to
+    `(+ - - -)` by setting the optionnal argument ``positive_spacelike`` to
+    ``False``. The shortcut operator ``.<,>`` can be used to
     specify the coordinates.
 
     INPUT:
@@ -39,7 +47,7 @@ def Minkowski(positive_spacelike=True, names=None):
 
     OUTPUT:
 
-    - pseudo-Riemannian manifold of dimension 4 with Minkowskian metric
+    - Lorentzian manifold of dimension 4 with (flat) Minkowskian metric
 
     EXAMPLES::
 
@@ -57,7 +65,6 @@ def Minkowski(positive_spacelike=True, names=None):
         [ 0  0 -1  0]
         [ 0  0  0 -1]
     """
-    from sage.manifolds.manifold import Manifold
     M = Manifold(4, 'M', structure='Lorentzian')
     if names is None:
         names = ("t", "x", "y", "z")
@@ -97,7 +104,7 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
         sage: S.<th, ph> = manifolds.Sphere()
         sage: S
-        2-dimensional pseudo-Riemannian submanifold S embedded in 
+        2-dimensional pseudo-Riemannian submanifold S embedded in
          3-dimensional differentiable manifold E^3
         sage: S.atlas()
         [Chart (S, (th, ph))]
@@ -112,8 +119,6 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         gamma = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
          + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
     """
-    from sage.manifolds.manifold import Manifold
-    from sage.manifolds.differentiable.euclidean import EuclideanSpace
     from functools import reduce
     from sage.functions.trig import cos, sin, atan, atan2
     from sage.functions.other import sqrt
@@ -132,7 +137,7 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         if dim != 2:
             raise NotImplementedError("stereographic charts only "
                                       "implemented for 2d spheres")
-        E = Euclidean(names=("X", "Y", "Z"))
+        E = EuclideanSpace(3, names=("X", "Y", "Z"))
         S2 = Manifold(dim, 'S', ambient=E, structure='Riemannian')
         U = S2.open_subset('U')
         V = S2.open_subset('V')
@@ -212,10 +217,8 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
     Generate a Kerr spacetime.
 
     A Kerr spacetime is a 4 dimensional manifold describing a rotating black
-    hole. Two coordinates system are implemented: Boyer-Lindquist and ADM.
-    The first only has a single non-diagonal term in he metric, making its
-    Ricci tensor faster to compute, but is divergent on the event horizon.
-    The second is only divergent at the center.
+    hole. Two coordinate systems are implemented: Boyer-Lindquist and Kerr
+    (3+1 version).
 
     The shortcut operator ``.<,>`` can be used to specify the coordinates.
 
@@ -225,7 +228,9 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
       (`c=1`, `G=1`)
     - ``a`` -- (default: ``0``) angular momentum in natural units; if set to
       ``0``, the resulting spacetime corresponds to a Schwarzschild black hole
-    - ``coordinates`` -- (default: ``"BL"``) either ``"BL"`` or ``"ADM"``
+    - ``coordinates`` -- (default: ``"BL"``) either ``"BL"`` for
+      Boyer-Lindquist coordinates or ``"Kerr"`` for Kerr coordinates (3+1
+      version)
     - ``names`` -- (default: ``None``) name of the coordinates,
       automatically set by the shortcut operator
 
@@ -242,10 +247,10 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
         sage: K.atlas()
         [Chart (M, (t, r, th, ph))]
         sage: K.metric().display()
-        g = (2*m*r/(a^2*cos(th)^2 + r^2) - 1) dt*dt 
-         + 2*a*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) dt*dph 
-         + (a^2*cos(th)^2 + r^2)/(a^2 - 2*m*r + r^2) dr*dr 
-         + (a^2*cos(th)^2 + r^2) dth*dth 
+        g = (2*m*r/(a^2*cos(th)^2 + r^2) - 1) dt*dt
+         + 2*a*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) dt*dph
+         + (a^2*cos(th)^2 + r^2)/(a^2 - 2*m*r + r^2) dr*dr
+         + (a^2*cos(th)^2 + r^2) dth*dth
          + 2*a*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) dph*dt
          + (2*a^2*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) + a^2 + r^2)*sin(th)^2 dph*dph
 
@@ -259,7 +264,7 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
         t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: (-pi, pi)
 
         sage: m, a = var('m, a')
-        sage: K.<t, r, th, ph> = manifolds.Kerr(m, a, coordinates="ADM")
+        sage: K.<t, r, th, ph> = manifolds.Kerr(m, a, coordinates="Kerr")
         sage: K
         4-dimensional Lorentzian manifold M
         sage: K.atlas()
@@ -279,11 +284,10 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
         sage: K.default_chart().coord_range()
         t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: (-pi, pi)
     """
-    from sage.manifolds.manifold import Manifold
     from sage.functions.other import sqrt
     from sage.functions.trig import cos, sin
     M = Manifold(4, 'M', structure="Lorentzian")
-    if coordinates == "ADM":
+    if coordinates == "Kerr":
         if names is None:
             names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta', r'ph:(-pi,pi):\phi')
         else:
@@ -343,22 +347,19 @@ def Torus(R=2, r=1, names=None):
 
         sage: T.<theta, phi> = manifolds.Torus(3, 1)
         sage: T
-        2-dimensional pseudo-Riemannian submanifold M embedded in 
+        2-dimensional pseudo-Riemannian submanifold M embedded in
          3-dimensional differentiable manifold E^3
         sage: T.atlas()
         [Chart (M, (theta, phi))]
         sage: T.embedding().display()
         M --> E^3
-           (theta, phi) |--> (X, Y, Z) = ((cos(theta) + 3)*cos(phi), 
-                                          (cos(theta) + 3)*sin(phi), 
+           (theta, phi) |--> (X, Y, Z) = ((cos(theta) + 3)*cos(phi),
+                                          (cos(theta) + 3)*sin(phi),
                                           sin(theta))
         sage: T.metric().display()
         gamma = dtheta*dtheta + (cos(theta)^2 + 6*cos(theta) + 9) dphi*dphi
     """
-    from sage.manifolds.manifold import Manifold
     from sage.functions.trig import cos, sin
-    from sage.manifolds.differentiable.euclidean import EuclideanSpace
-
     E = EuclideanSpace(3, symbols='X Y Z')
     M = Manifold(2, 'M', ambient=E, structure="Riemannian")
     if names is None:

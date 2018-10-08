@@ -738,6 +738,10 @@ cdef class GapElement(RingElement):
             False
             sage: libgap(1) > 1
             False
+            sage: 1 >= libgap(1)
+            True
+            sage: libgap(1) >= 1
+            True
         """
         if self._compare_by_id != (<GapElement>other)._compare_by_id:
             raise ValueError('comparison style must be the same for both operands')

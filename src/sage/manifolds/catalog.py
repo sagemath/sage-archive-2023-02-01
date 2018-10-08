@@ -3,7 +3,9 @@ Manifolds Catalog
 
 A catalog of manifolds to rapidly create various simple manifolds.
 
-Entries:
+The current entries to the catalog are obtained by typing
+``manifolds.<tab>``, where ``<tab>`` indicates pressing the tab key.
+They are:
 
 - :func:`Sphere`: sphere embedded in Euclidean space
 - :func:`Torus`: torus embedded in Euclidean space
@@ -24,9 +26,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
-
-from sage.manifolds.manifold import Manifold
-from sage.manifolds.differentiable.euclidean import EuclideanSpace
 
 def Minkowski(positive_spacelike=True, names=None):
     """
@@ -65,6 +64,7 @@ def Minkowski(positive_spacelike=True, names=None):
         [ 0  0 -1  0]
         [ 0  0  0 -1]
     """
+    from sage.manifolds.manifold import Manifold
     M = Manifold(4, 'M', structure='Lorentzian')
     if names is None:
         names = ("t", "x", "y", "z")
@@ -124,6 +124,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
     from sage.functions.other import sqrt
     from sage.symbolic.constants import pi
     from sage.misc.misc_c import prod
+    from sage.manifolds.manifold import Manifold
+    from sage.manifolds.differentiable.euclidean import EuclideanSpace
 
     if dim is None:
         if names is None:
@@ -286,6 +288,7 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
     """
     from sage.functions.other import sqrt
     from sage.functions.trig import cos, sin
+    from sage.manifolds.manifold import Manifold
     M = Manifold(4, 'M', structure="Lorentzian")
     if coordinates == "Kerr":
         if names is None:
@@ -360,6 +363,8 @@ def Torus(R=2, r=1, names=None):
         gamma = dtheta*dtheta + (cos(theta)^2 + 6*cos(theta) + 9) dphi*dphi
     """
     from sage.functions.trig import cos, sin
+    from sage.manifolds.manifold import Manifold
+    from sage.manifolds.differentiable.euclidean import EuclideanSpace
     E = EuclideanSpace(3, symbols='X Y Z')
     M = Manifold(2, 'M', ambient=E, structure="Riemannian")
     if names is None:

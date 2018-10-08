@@ -2127,7 +2127,7 @@ class Graph(GenericGraph):
                 else:
                     V[d] = [u]
         apex = set()
-        for deg in sorted(V.keys()):
+        for deg in sorted(V):
             for u in V[deg]:
                 if u in apex: # True if neighbor of an apex of degree 2
                     if deg == 2:
@@ -4062,8 +4062,8 @@ class Graph(GenericGraph):
             sage: all(graphs.KneserGraph(i,2).chromatic_number() == i-2 for i in range(4,6))
             True
 
-        A snark has chromatic index 4 hence its line graph has chromatic number
-        4::
+        The Flower Snark graph has chromatic index 4 hence its line graph has
+        chromatic number 4::
 
             sage: graphs.FlowerSnark().line_graph().chromatic_number()
             4
@@ -4142,18 +4142,11 @@ class Graph(GenericGraph):
             [[1, 2, 3], [0, 5, 6], [4]]
             sage: G.plot(partition=P)
             Graphics object consisting of 16 graphics primitives
-            sage: H = G.coloring(hex_colors=True, algorithm="MILP")
-            sage: for c in sorted(H.keys()):
-            ....:     print("{} {}".format(c, H[c]))
-            #0000ff [4]
-            #00ff00 [0, 6, 5]
-            #ff0000 [2, 1, 3]
+            sage: G.coloring(hex_colors=True, algorithm="MILP")
+            {'#0000ff': [4], '#00ff00': [0, 6, 5], '#ff0000': [2, 1, 3]}
             sage: H = G.coloring(hex_colors=True, algorithm="DLX")
-            sage: for c in sorted(H.keys()):
-            ....:     print("{} {}".format(c, H[c]))
-            #0000ff [4]
-            #00ff00 [1, 2, 3]
-            #ff0000 [0, 5, 6]
+            sage: H
+            {'#0000ff': [4], '#00ff00': [1, 2, 3], '#ff0000': [0, 5, 6]}
             sage: G.plot(vertex_colors=H)
             Graphics object consisting of 16 graphics primitives
 
@@ -6100,15 +6093,8 @@ class Graph(GenericGraph):
             sage: C.cliques_number_of(cliques=E)
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: F = graphs.Grid2dGraph(2,3)
-            sage: X = F.cliques_number_of()
-            sage: for v in sorted(X):
-            ....:     print("{} {}".format(v, X[v]))
-            (0, 0) 2
-            (0, 1) 3
-            (0, 2) 2
-            (1, 0) 2
-            (1, 1) 3
-            (1, 2) 2
+            sage: F.cliques_number_of()
+            {(0, 0): 2, (0, 1): 3, (0, 2): 2, (1, 0): 2, (1, 1): 3, (1, 2): 2}
             sage: F.cliques_number_of(vertices=[(0, 1), (1, 2)])
             {(0, 1): 3, (1, 2): 2}
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
@@ -6772,15 +6758,8 @@ class Graph(GenericGraph):
             sage: C.cliques_vertex_clique_number(cliques=E,algorithm="networkx")
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: F = graphs.Grid2dGraph(2,3)
-            sage: X = F.cliques_vertex_clique_number(algorithm="networkx")
-            sage: for v in sorted(X):
-            ....:     print("{} {}".format(v, X[v]))
-            (0, 0) 2
-            (0, 1) 2
-            (0, 2) 2
-            (1, 0) 2
-            (1, 1) 2
-            (1, 2) 2
+            sage: F.cliques_vertex_clique_number(algorithm="networkx")
+            {(0, 0): 2, (0, 1): 2, (0, 2): 2, (1, 0): 2, (1, 1): 2, (1, 2): 2}
             sage: F.cliques_vertex_clique_number(vertices=[(0, 1), (1, 2)])
             {(0, 1): 2, (1, 2): 2}
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
@@ -6835,15 +6814,13 @@ class Graph(GenericGraph):
             sage: C.cliques_containing_vertex(cliques=E)
             {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
             sage: F = graphs.Grid2dGraph(2,3)
-            sage: X = F.cliques_containing_vertex()
-            sage: for v in sorted(X):
-            ....:     print("{} {}".format(v, X[v]))
-            (0, 0) [[(0, 1), (0, 0)], [(1, 0), (0, 0)]]
-            (0, 1) [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
-            (0, 2) [[(0, 1), (0, 2)], [(1, 2), (0, 2)]]
-            (1, 0) [[(1, 0), (0, 0)], [(1, 0), (1, 1)]]
-            (1, 1) [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]]
-            (1, 2) [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]
+            sage: F.cliques_containing_vertex()
+            {(0, 0): [[(0, 1), (0, 0)], [(1, 0), (0, 0)]],
+             (0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]],
+             (0, 2): [[(0, 1), (0, 2)], [(1, 2), (0, 2)]],
+             (1, 0): [[(1, 0), (0, 0)], [(1, 0), (1, 1)]],
+             (1, 1): [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]],
+             (1, 2): [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]}
             sage: F.cliques_containing_vertex(vertices=[(0, 1), (1, 2)])
             {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], (1, 2): [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]}
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
@@ -7101,13 +7078,13 @@ class Graph(GenericGraph):
 
         Here are two very simple modules :
 
-            * A connected component `C` (or the union of some --but not all-- of
-              them) of a disconnected graph `G`, for instance, is a module, as
-              no vertex of `C` has a neighbor outside of it.
+        * A connected component `C` (or the union of some --but not all-- of
+          them) of a disconnected graph `G`, for instance, is a module, as no
+          vertex of `C` has a neighbor outside of it.
 
-            * An anticomponent `C` (or the union of some --but not all-- of
-              them) of an non-anticonnected graph `G`, for the same reason (it
-              is just the complement of the previous graph !).
+        * An anticomponent `C` (or the union of some --but not all-- of them) of
+          an non-anticonnected graph `G`, for the same reason (it is just the
+          complement of the previous graph !).
 
         These modules being of special interest, the disjoint union of graphs is
         called a Parallel composition, and the complement of a disjoint union is

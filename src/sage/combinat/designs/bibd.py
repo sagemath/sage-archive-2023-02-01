@@ -1288,7 +1288,8 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
             sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
             (13,3,1)-Balanced Incomplete Block Design
         """
-        bsizes = str(frozenset(self.block_sizes()))[10:-1]
+        bsizes = str(frozenset(self.block_sizes()))[11:-2]
+        bsize = '{' + bsizes + '}'
         return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(), bsizes)
 
 

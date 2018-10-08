@@ -717,7 +717,8 @@ def PBD_4_7_from_Y(gdd,check=True):
     block_sizes = set(map(len,gdd._blocks))
     group_sizes = set(map(len,gdd._groups))
     if not block_sizes.issubset([4, 5, 7]):
-        txt = str(frozenset(block_sizes.difference([4, 5, 7])))[10:-1]
+        txt = str(frozenset(block_sizes.difference([4, 5, 7])))[11:-2]
+        txt = '{' + txt + '}'
         raise ValueError("The GDD should only contain blocks of size {{4,5,7}} "
                          "but there are other: {}".format(txt))
 

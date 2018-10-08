@@ -30,7 +30,7 @@ def Genus(A, factored_determinant=None):
     - ``A`` -- a symmetric matrix with integer coefficients
 
     - ``factored_determinant`` -- (default: ``None``) a factorization object
-                                  the factored determinant of ``A``
+      the factored determinant of ``A``
 
     OUTPUT:
 
@@ -1646,13 +1646,14 @@ class GenusSymbol_global_ring(object):
             True
         """
         if check:
-            if not all([type(sym)==Genus_Symbol_p_adic_ring for sym in local_symbols]):
+            if not all(isinstance(Genus_Symbol_p_adic_ring,sym) for sym in local_symbols):
                 raise TypeError("local symbols must be a list of local genus symbols")
             n = signature_pair[0] + signature_pair[1]
-            if not all([sym.dimension()==n for sym in local_symbols]):
+            if not all(sym.dimension()==n for sym in local_symbols):
                 raise TypeError("all local symbols must be of the same dimension")
             if representative is not None:
-                representative.is_symmetric()
+                if not representative.is_symmetric():
+                    raise ValueError("the representative must be a symmetric matrix")
 
         self._representative = representative
         self._signature = signature_pair

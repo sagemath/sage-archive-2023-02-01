@@ -22,7 +22,6 @@ import os
 import re
 import shutil
 from tempfile import mkdtemp
-from sage.env import SAGE_DOC_SRC
 from sphinx.application import Sphinx
 
 

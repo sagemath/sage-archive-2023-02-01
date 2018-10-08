@@ -833,7 +833,7 @@ class Tableau(ClonableList):
 
         EXAMPLES::
 
-            sage: t = Tableau([[1,2,3],[4,5]]);
+            sage: t = Tableau([[1,2,3],[4,5]])
             sage: for s in t.components(): print(s.to_list())
             [[1, 2, 3], [4, 5]]
         """
@@ -4460,7 +4460,7 @@ class RowStandardTableau(Tableau):
         False
         sage: u.parent()
         Row standard tableaux of size 3
-        sage: u = RowStandardTableaux(3)(u);
+        sage: u = RowStandardTableaux(3)(u)
         sage: u.parent()
         Row standard tableaux of size 3
         sage: isinstance(u, Tableau)
@@ -7721,13 +7721,10 @@ class StandardTableaux_shape(StandardTableaux):
             sage: StandardTableaux([]).random_element()
             []
         """
-
         p = self.shape
-
         t = [[None]*n for n in p]
 
-
-        #Get the cells in the
+        # Get the cells in the Young diagram
         cells = []
         for i in range(len(p)):
             for j in range(p[i]):
@@ -7735,31 +7732,24 @@ class StandardTableaux_shape(StandardTableaux):
 
         m = sum(p)
         while m > 0:
-
-            #Choose a cell at random
+            # Choose a cell at random
             cell = random.choice(cells)
 
-
-            #Find a corner
+            # Find a corner
             inner_corners = p.corners()
             while cell not in inner_corners:
                 hooks = []
-                for k in range(cell[1], p[cell[0]]):
+                for k in range(cell[1] + 1, p[cell[0]]):
                     hooks.append((cell[0], k))
-                for k in range(cell[0], len(p)):
+                for k in range(cell[0] + 1, len(p)):
                     if p[k] > cell[1]:
                         hooks.append((k, cell[1]))
-
                 cell = random.choice(hooks)
 
-
-            #Assign m to cell
+            # Assign m to cell
             t[cell[0]][cell[1]] = m
-
             p = p.remove_cell(cell[0])
-
             cells.remove(cell)
-
             m -= 1
 
         return self.element_class(self, t)

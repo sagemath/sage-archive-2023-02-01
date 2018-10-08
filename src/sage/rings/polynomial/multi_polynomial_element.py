@@ -1463,9 +1463,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return CommutativeRingElement.__ne__(self, right)
         return self._MPolynomial_element__element != right._MPolynomial_element__element
 
+    # required by Python 3
+    __hash__ = MPolynomial_element.__hash__
+
     def __bool__(self):
         """
-        Returns True if self != 0
+        Return True if self != 0
 
         .. note::
 

@@ -90,6 +90,7 @@ from sage.rings.all import (PolynomialRing,
 from sage.rings.ring import CommutativeRing
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.categories.fields import Fields
@@ -208,8 +209,14 @@ def ProjectiveSpace(n, R=None, names='x'):
     Projective spaces are not cached, i.e., there can be several with
     the same base ring and dimension (to facilitate gluing
     constructions).
+
+    ::
+
+        sage: R.<x> = QQ[]
+        sage: ProjectiveSpace(R)
+        Projective Space of dimension 0 over Rational Field
     """
-    if is_MPolynomialRing(n) and R is None:
+    if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
         A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())
         A._coordinate_ring = n
         return A
@@ -443,6 +450,24 @@ class ProjectiveSpace_ring(AmbientSpace):
             True
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(ProjectiveSpace(QQ, 3, 'a')) == hash(ProjectiveSpace(ZZ, 3, 'a'))
+            False
+            sage: hash(ProjectiveSpace(ZZ, 1, 'a')) == hash(ProjectiveSpace(ZZ, 0, 'a'))
+            False
+            sage: hash(ProjectiveSpace(ZZ, 2, 'a')) == hash(AffineSpace(ZZ, 2, 'a'))
+            False
+            sage: P = ProjectiveSpace(ZZ, 1, 'x')
+            sage: hash(loads(P.dumps())) == hash(P)
+            True
+        """
+        return hash((self.dimension_relative(), self.coordinate_ring()))
 
     def __pow__(self, m):
         """

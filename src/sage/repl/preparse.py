@@ -1560,7 +1560,8 @@ def preparse_file_named_to_stream(name, out):
     stream \code{out}.
     """
     name = os.path.abspath(name)
-    contents = open(name).read()
+    with open(name) as f:
+        contents = f.read()
     contents = handle_encoding_declaration(contents, out)
     parsed = preparse_file(contents)
     out.write('#'*70+'\n')
@@ -1575,7 +1576,6 @@ def preparse_file_named(name):
     """
     from sage.misc.temporary_file import tmp_filename
     tmpfilename = tmp_filename(os.path.basename(name)) + '.py'
-    out = open(tmpfilename, 'w')
-    preparse_file_named_to_stream(name, out)
-    out.close()
+    with open(tmpfilename, 'w') as out:
+        preparse_file_named_to_stream(name, out)
     return tmpfilename

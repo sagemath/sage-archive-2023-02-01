@@ -49,9 +49,9 @@ def is_FunctionFieldElement(x):
     EXAMPLES::
 
         sage: t = FunctionField(QQ,'t').gen()
-        sage: sage.rings.function_field.function_field_element.is_FunctionFieldElement(t)
+        sage: sage.rings.function_field.element.is_FunctionFieldElement(t)
         True
-        sage: sage.rings.function_field.function_field_element.is_FunctionFieldElement(0)
+        sage: sage.rings.function_field.element.is_FunctionFieldElement(0)
         False
     """
     if isinstance(x, FunctionFieldElement):
@@ -65,7 +65,7 @@ def make_FunctionFieldElement(parent, element_class, representing_element):
 
     EXAMPLES::
 
-        sage: from sage.rings.function_field.function_field_element import make_FunctionFieldElement
+        sage: from sage.rings.function_field.element import make_FunctionFieldElement
         sage: K.<x> = FunctionField(QQ)
         sage: make_FunctionFieldElement(K, K._element_class, (x+1)/x)
         (x + 1)/x
@@ -79,7 +79,7 @@ cdef class FunctionFieldElement(FieldElement):
     EXAMPLES::
 
         sage: t = FunctionField(QQ,'t').gen()
-        sage: isinstance(t, sage.rings.function_field.function_field_element.FunctionFieldElement)
+        sage: isinstance(t, sage.rings.function_field.element.FunctionFieldElement)
         True
     """
     cdef readonly object _x
@@ -525,7 +525,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     def list(self):
         """
-        Return the list of the coefficients prepresenting the element.
+        Return the list of the coefficients representing the element.
 
         If the function field is `K[y]/(f(y))`, then return the coefficients of
         the reduced presentation of the element as a polynomial in `K[y]`.
@@ -794,6 +794,12 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def valuation(self, v):
         """
+        Return the valuation of the element with respect to a prime element.
+
+        INPUT:
+
+        - ``v`` -- a prime element of the function field
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -810,7 +816,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def is_square(self):
         """
-        Returns whether self is a square.
+        Return whether the element is a square.
 
         EXAMPLES::
 
@@ -889,6 +895,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             -1/2*x + 1/2
             sage: (t*(x+1) - 1) in I
             True
+
         """
         assert  len(I.gens()) == 1
         f = I.gens()[0]._x

@@ -127,8 +127,6 @@ AUTHORS:
 
 - Oscar Lazo, William Cauchois, Jason Grout (2009-2010): Adding coordinate transformations
 """
-from __future__ import absolute_import
-from six import iteritems
 
 #*****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -145,6 +143,11 @@ from six import iteritems
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import
+
+import inspect
+
+from six import iteritems
 
 from .tri_plot import TrianglePlot
 from .index_face_set import IndexFaceSet

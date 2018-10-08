@@ -246,7 +246,7 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
         sage: canonical_2_adic_compartments(G2.symbol_tuple_list())   ## No compartments here!
         []
 
-    NOTES:
+    .. NOTE::
 
         See Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
     """
@@ -1247,7 +1247,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
-            sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2));
+            sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2))
             sage: G2.gram_matrix()
             [2 0|0|0]
             [0 6|0|0]

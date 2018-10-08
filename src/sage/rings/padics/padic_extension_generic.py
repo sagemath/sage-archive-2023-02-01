@@ -103,7 +103,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
                     from sage.rings.padics.relative_ramified_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
 
-
     def _extension_type(self):
         """
         Return the type (``Unramified``, ``Eisenstein``) of this 
@@ -123,9 +122,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         return ""
 
-    def _repr_(self, do_latex = False):
+    def _repr_(self, do_latex=False):
         """
-        Returns a print representation of this extension.
+        Return a print representation of this extension.
 
         EXAMPLES::
 
@@ -275,6 +274,24 @@ class pAdicExtensionGeneric(pAdicGeneric):
             True
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<a> = Qq(27)
+            sage: S.<a> = Qq(5,print_mode='val-unit')
+            sage: hash(R) == hash(S)
+            False
+            sage: S.<a> = Qq(27,type='capped-rel')
+            sage: hash(R) == hash(S)
+            True
+        """
+        # _printer is not hashable, hence not taken into account
+        return hash((self.ground_ring(), self.defining_polynomial(exact=True),
+                     self.precision_cap()))
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError
@@ -511,9 +528,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         from sage.categories.pushout import AlgebraicExtensionFunctor as AEF, FractionField as FF
         if not forbid_frac_field and self.is_field():
             return (FF(), self.integer_ring())
-        print_mode = self._printer.dict()
-        return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
-                    precs=[self.precision_cap()], print_mode=self._printer.dict(),
+        return (AEF([self.defining_polynomial(exact=True)],
+                    [self.variable_name()],
+                    precs=[self.precision_cap()],
+                    print_mode=self._printer.dict(),
                     implementations=[self._implementation]),
                 self.base_ring())
 
@@ -522,7 +540,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def random_element(self):
         """
-        Returns a random element of self.
+        Return a random element of ``self``.
 
         This is done by picking a random element of the ground ring
         self.degree() times, then treating those elements as

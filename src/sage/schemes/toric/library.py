@@ -963,11 +963,11 @@ class ToricVarietyFactory(SageObject):
         A :class:`toric variety
         <sage.schemes.toric.variety.ToricVariety_field>`.
 
-        NOTES:
+        .. NOTE::
 
-        * This is an example of an non-polyhedral fan.
+            * This is an example of an non-polyhedral fan.
 
-        * Its Chow group has torsion: `A_2(X)=\ZZ^5 \oplus \ZZ_2`
+            * Its Chow group has torsion: `A_2(X)=\ZZ^5 \oplus \ZZ_2`
 
         EXAMPLES::
 

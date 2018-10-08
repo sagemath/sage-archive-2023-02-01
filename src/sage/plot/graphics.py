@@ -84,7 +84,7 @@ class Graphics(WithEqualityById, SageObject):
     Here we make a graphic of embedded isosceles triangles, coloring
     each one with a different color as we go::
 
-        sage: h=10; c=0.4; p=0.5;
+        sage: h=10; c=0.4; p=0.5
         sage: G = Graphics()
         sage: for x in srange(1,h+1):
         ....:     l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
@@ -1120,10 +1120,16 @@ class Graphics(WithEqualityById, SageObject):
 
         It does not accept any argument (:trac:`19539`)::
 
-            sage: S.plot(1)
+            sage: S.plot(1)  # py2
             Traceback (most recent call last):
             ...
             TypeError: plot() takes exactly 1 argument (2 given)
+
+            sage: S.plot(1)  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: plot() takes 1 positional argument but 2 were given
+
             sage: S.plot(hey="hou")
             Traceback (most recent call last):
             ...
@@ -1589,7 +1595,7 @@ class Graphics(WithEqualityById, SageObject):
 
         You can add a title to a plot::
 
-            sage: show(plot(sin,-4,4), title='A plot of $\sin(x)$')
+            sage: show(plot(sin,-4,4), title=r'A plot of $\sin(x)$')
 
         You can also provide the position for the title to the plot. In the
         plot below the title is placed on the bottom left of the figure.::
@@ -1624,7 +1630,7 @@ class Graphics(WithEqualityById, SageObject):
         background. This behavior can be recovered by passing in certain
         ``legend_options``::
 
-            sage: p = plot(sin(x), legend_label='$\sin(x)$')
+            sage: p = plot(sin(x), legend_label=r'$\sin(x)$')
             sage: p.show(legend_options={'back_color': (0.9,0.9,0.9),
             ....:                        'shadow': False})
 
@@ -1934,12 +1940,11 @@ class Graphics(WithEqualityById, SageObject):
             Graphics object consisting of 1 graphics primitive
 
         When using ``title_pos``, it must be ensured that a list or a tuple
-        of length two is used. Otherwise, an error is raised.::
+        of length two is used. Otherwise, a warning is raised::
 
-            sage; plot(x, -4, 4, title='Plot x', title_pos=0.05)
-            Traceback (most recent call last):
-            ...
-            ValueError: 'title_pos' must be a list or tuple of two real numbers.
+            sage: plot(x, -4, 4, title='Plot x', title_pos=0.05)
+            doctest:...: ...RichReprWarning: Exception in _rich_repr_ while displaying object: 'title_pos' must be a list or tuple of two real numbers.
+            Graphics object consisting of 1 graphics primitive
 
         TESTS:
 
@@ -2512,7 +2517,7 @@ class Graphics(WithEqualityById, SageObject):
         ``typeset`` must not be set to an arbitrary string::
 
             sage: plot(x, typeset='garbage')
-            doctest:...: RichReprWarning: Exception in _rich_repr_ while
+            doctest:...: ...RichReprWarning: Exception in _rich_repr_ while
             displaying object: typeset must be set to one of 'default',
             'latex', or 'type1'; got 'garbage'.
             Graphics object consisting of 1 graphics primitive

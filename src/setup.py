@@ -342,7 +342,7 @@ class sage_build_cython(Command):
             return self.cythonized_files
 
         self.cythonized_files = list(find_extra_files(
-            ".", ["sage"], self.build_dir, ["ntlwrap.cpp"]).items())
+            ".", ["sage"], self.build_dir, []).items())
 
         return self.cythonized_files
 

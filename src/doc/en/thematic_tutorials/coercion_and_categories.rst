@@ -450,9 +450,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    80
+    82
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    119
+    121
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -512,7 +512,7 @@ inheritance still works, by virtue of a ``__getattr__`` method.
     It is strongly recommended to use the category framework both in Python
     and in Cython.
 
-Let us see whether there is any gain in chosing the category of quotient
+Let us see whether there is any gain in choosing the category of quotient
 fields instead of the category of fields::
 
     sage: QuotientFields().parent_class, QuotientFields().element_class
@@ -539,8 +539,10 @@ methods are place-holders: There is no default implementation, but it is
     sage: from sage.misc.abstract_method import abstract_methods_of_class
     sage: abstract_methods_of_class(QuotientFields().element_class)['optional']
     ['_add_', '_mul_']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py2
     ['__nonzero__', 'denominator', 'numerator']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py3
+    ['__bool__', 'denominator', 'numerator']
 
 Hence, when implementing elements of a quotient field, it is *required* to
 implement methods returning the denominator and the numerator, and a method
@@ -1493,8 +1495,10 @@ The elements have to provide more::
 
     sage: abstract_methods_of_class(QuotientFields().element_class)['optional']
     ['_add_', '_mul_']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py2
     ['__nonzero__', 'denominator', 'numerator']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py3
+    ['__bool__', 'denominator', 'numerator']
 
 .. end of output
 

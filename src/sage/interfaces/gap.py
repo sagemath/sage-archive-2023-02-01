@@ -353,7 +353,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         cmd = str(rnd)+';'
         try:
             E.sendline(cmd)
-            E.expect('@[nf][@J\s>]*'+str(rnd), timeout=timeout)
+            E.expect(r'@[nf][@J\s>]*'+str(rnd), timeout=timeout)
             E.send(' ')
             E.expect('@i', timeout=timeout)
         except pexpect.TIMEOUT:
@@ -375,7 +375,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: gap._eval_line('while(1=1) do i:=1;; od;', wait_for_prompt=False);
+            sage: gap._eval_line('while(1=1) do i:=1;; od;', wait_for_prompt=False)
             ''
             sage: rc = gap.interrupt(timeout=1)
             sage: [ gap(i) for i in range(10) ]   # check that it is still working
@@ -405,7 +405,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             # send a dummy command
             E.sendline('224433409;')
             # read everything up to the actual output of the command
-            E.expect('@[nf][@J\s>]*224433409', timeout=timeout)
+            E.expect(r'@[nf][@J\s>]*224433409', timeout=timeout)
             E.send(' ')
             # the following input prompt should be the current input
             # prompt but GAP might be too confused to display it
@@ -418,11 +418,11 @@ class Gap_generic(ExtraTabCompletion, Expect):
             E.sendline()
             time.sleep(0.1)
             E.sendline('224433437;')
-            E.expect('@[nf][@J\s>]*224433437', timeout=timeout)
+            E.expect(r'@[nf][@J\s>]*224433437', timeout=timeout)
             E.sendline()
             time.sleep(0.1)
             E.sendline('224433479;')
-            E.expect('@[nf][@J\s>]*224433479', timeout=timeout)
+            E.expect(r'@[nf][@J\s>]*224433479', timeout=timeout)
             E.send(' ')
             # the following input prompt is now the current input prompt
             E.expect('@i', timeout=timeout)
@@ -675,7 +675,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True):
-        """
+        r"""
         Evaluate a line of commands.
 
         REMARK:
@@ -733,7 +733,6 @@ class Gap_generic(ExtraTabCompletion, Expect):
             Restarting Gap and trying again
             sage: a
             3
-
         """
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"
@@ -1257,8 +1256,8 @@ class Gap(Gap_generic):
             self.save_workspace()
         # Now, as self._expect exists, we can compile some useful pattern:
         self._compiled_full_pattern = self._expect.compile_pattern_list([
-                '@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+',
-                '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
+                r'@p\d+\.','@@','@[A-Z]',r'@[123456!"#$%&][^+]*\+',
+                '@e','@c','@f','@h','@i','@m','@n','@r',r'@s\d',r'@w.*\+','@x','@z'])
         # read everything up to the first "ready" prompt
         self._expect.expect("@i")
 
@@ -1360,7 +1359,7 @@ class Gap(Gap_generic):
         self.eval(r'\$SAGE.tempfile := "%s";' % tmp_to_use)
         line = Expect.eval(self, "? %s" % s)
         Expect.eval(self, "? 1")
-        match = re.search("Page from (\d+)", line)
+        match = re.search(r"Page from (\d+)", line)
         if match is None:
             print(line)
         else:

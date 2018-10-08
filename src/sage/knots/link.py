@@ -66,6 +66,7 @@ from sage.misc.cachefunc import cached_method
 from copy import deepcopy, copy
 from itertools import combinations
 
+
 class Link(object):
     r"""
     A link.
@@ -192,7 +193,7 @@ class Link(object):
         [[[1, -4, 3, -1, 10, -9, 6, -7, 8, 5, 4, -3, 2, -6, 7, -8, 9, -10, -5, -2]],
          [1, -1, 1, 1, 1, -1, -1, -1, -1, -1]]
         sage: L.braid()
-        s0*s1^-1*s2^-1*s3^-1*s2*s1^-1*s0^-1*s1*s2^2*s1^-1*s3*s2*s1^-3
+        s0*s1^-3*s2^-1*s1*s3*s2^2*s1^-1*s0^-1*s2*s1^-1*s3^-1*s2*s1^-1
 
     .. PLOT::
         :width: 300 px
@@ -273,6 +274,7 @@ class Link(object):
 
         Implement methods to creating new links from previously created links.
     """
+
     def __init__(self, data):
         """
         Initialize ``self``.
@@ -675,7 +677,7 @@ class Link(object):
                             C2 = newPD[newPD.index(tails[-b])]
                             C2[C2.index(-b)] = newedge + 2
                             newPD.append([newedge + 2, newedge, newedge + 3, newedge + 1])
-                            newPD.append([newedge + 3, newedge, -b , -a])
+                            newPD.append([newedge + 3, newedge, -b, -a])
                             self._braid = Link(newPD).braid()
                             return self._braid
 
@@ -684,11 +686,11 @@ class Link(object):
         G.add_vertices([tuple(c) for c in seifert_circles])
         for i,c in enumerate(pd_code):
             if self.orientation()[i] == 1:
-                a  = [x for x in seifert_circles if c[1] in x][0]
-                b  = [x for x in seifert_circles if c[0] in x][0]
+                a = [x for x in seifert_circles if c[1] in x][0]
+                b = [x for x in seifert_circles if c[0] in x][0]
             else:
-                a  = [x for x in seifert_circles if c[0] in x][0]
-                b  = [x for x in seifert_circles if c[3] in x][0]
+                a = [x for x in seifert_circles if c[0] in x][0]
+                b = [x for x in seifert_circles if c[3] in x][0]
             G.add_edge(tuple(a), tuple(b))
 
         # Get a simple path from a source to a sink in the digraph
@@ -750,43 +752,49 @@ class Link(object):
         EXAMPLES::
 
             sage: L = Link([[1, 3, 2, 4], [2, 3, 1, 4]])
-            sage: L._directions_of_edges()
-            ({1: [2, 3, 1, 4], 2: [1, 3, 2, 4], 3: [1, 3, 2, 4], 4: [2, 3, 1, 4]},
-             {1: [1, 3, 2, 4], 2: [2, 3, 1, 4], 3: [2, 3, 1, 4], 4: [1, 3, 2, 4]})
+            sage: tails, heads = L._directions_of_edges()
+            sage: tails
+            {1: [2, 3, 1, 4], 2: [1, 3, 2, 4], 3: [1, 3, 2, 4], 4: [2, 3, 1, 4]}
+            sage: heads
+            {1: [1, 3, 2, 4], 2: [2, 3, 1, 4], 3: [2, 3, 1, 4], 4: [1, 3, 2, 4]}
 
         ::
 
             sage: L = Link([[1,5,2,4], [5,3,6,2], [3,1,4,6]])
-            sage: L._directions_of_edges()
-            ({1: [3, 1, 4, 6],
-              2: [1, 5, 2, 4],
-              3: [5, 3, 6, 2],
-              4: [3, 1, 4, 6],
-              5: [1, 5, 2, 4],
-              6: [5, 3, 6, 2]},
-             {1: [1, 5, 2, 4],
-              2: [5, 3, 6, 2],
-              3: [3, 1, 4, 6],
-              4: [1, 5, 2, 4],
-              5: [5, 3, 6, 2],
-              6: [3, 1, 4, 6]})
+            sage: tails, heads = L._directions_of_edges()
+            sage: tails
+            {1: [3, 1, 4, 6],
+             2: [1, 5, 2, 4],
+             3: [5, 3, 6, 2],
+             4: [3, 1, 4, 6],
+             5: [1, 5, 2, 4],
+             6: [5, 3, 6, 2]}
+            sage: heads
+            {1: [1, 5, 2, 4],
+             2: [5, 3, 6, 2],
+             3: [3, 1, 4, 6],
+             4: [1, 5, 2, 4],
+             5: [5, 3, 6, 2],
+             6: [3, 1, 4, 6]}
 
         ::
 
             sage: L = Link([[1,2,3,3], [2,4,5,5], [4,1,7,7]])
-            sage: L._directions_of_edges()
-            ({1: [4, 1, 7, 7],
-              2: [1, 2, 3, 3],
-              3: [1, 2, 3, 3],
-              4: [2, 4, 5, 5],
-              5: [2, 4, 5, 5],
-              7: [4, 1, 7, 7]},
-             {1: [1, 2, 3, 3],
-              2: [2, 4, 5, 5],
-              3: [1, 2, 3, 3],
-              4: [4, 1, 7, 7],
-              5: [2, 4, 5, 5],
-              7: [4, 1, 7, 7]})
+            sage: tails, heads = L._directions_of_edges()
+            sage: tails
+            {1: [4, 1, 7, 7],
+             2: [1, 2, 3, 3],
+             3: [1, 2, 3, 3],
+             4: [2, 4, 5, 5],
+             5: [2, 4, 5, 5],
+             7: [4, 1, 7, 7]}
+            sage: heads
+            {1: [1, 2, 3, 3],
+             2: [2, 4, 5, 5],
+             3: [1, 2, 3, 3],
+             4: [4, 1, 7, 7],
+             5: [2, 4, 5, 5],
+             7: [4, 1, 7, 7]}
         """
         tails = {}
         heads = {}
@@ -1165,7 +1173,6 @@ class Link(object):
         else:
             homologies = {j: dict(self._khovanov_homology_cached(j, ring)) for j in heights}
         return homologies
-
 
     def oriented_gauss_code(self):
         """
@@ -1990,23 +1997,23 @@ class Link(object):
 
             sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L.regions()
-            [[1, 7, 3, 11, 5], [2, -7], [4, -11], [6, -1], [8, -13, 10, -3], [9, 13], [12, -9, 14, -5], [-14, -8, -2, -6], [-12, -4, -10]]
+            [[14, -5, 12, -9], [13, 9], [11, 5, 1, 7, 3], [10, -3, 8, -13], [6, -1], [4, -11], [2, -7], [-2, -6, -14, -8], [-4, -10, -12]]
             sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.regions()
-            [[1, 7, -4], [2, -5, -7], [3, -8, 5], [4, 8], [6, -1, -3], [-2, -6]]
+            [[8, 4], [7, -4, 1], [6, -1, -3], [5, 3, -8], [2, -5, -7], [-2, -6]]
             sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.regions()
-            [[1, 13, -8], [2, -9, -13], [3, -14, 9], [4, 16, 8, 14], [5, 11, 7, -16], [6, -11], [10, -5, -15, -3], [12, -1, -7], [15, -4], [-12, -6, -10, -2]]
+            [[16, 8, 14, 4], [15, -4], [13, -8, 1], [12, -1, -7], [11, 7, -16, 5], [10, -5, -15, -3], [9, 3, -14], [6, -11], [2, -9, -13], [-2, -12, -6, -10]]
             sage: B = BraidGroup(2)
             sage: L = Link(B([-1, -1, -1]))
             sage: L.regions()
-            [[1, 3, 5], [2, -1], [4, -3], [6, -5], [-2, -6, -4]]
+            [[6, -5], [5, 1, 3], [4, -3], [2, -1], [-2, -6, -4]]
             sage: L = Link([[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
             sage: L.regions()
-            [[1, -5], [2, -8, 4, 5], [3, 8], [6, -9, -2], [7, -3, 9], [10, -4, -7], [-10, -6, -1]]
+            [[10, -4, -7], [9, 7, -3], [8, 3], [6, -9, -2], [5, 2, -8, 4], [1, -5], [-1, -10, -6]]
             sage: L = Link([[1, 2, 3, 3], [2, 5, 4, 4], [5, 7, 6, 6], [7, 1, 8, 8]])
             sage: L.regions()
-            [[-3], [-4], [-6], [-8], [1, 2, 5, 7], [-2, 3, -1, 8, -7, 6, -5, 4]]
+            [[-3], [-4], [-6], [-8], [7, 1, 2, 5], [-1, 8, -7, 6, -5, 4, -2, 3]]
 
         .. NOTE::
 
@@ -2046,13 +2053,14 @@ class Link(object):
                 regions.append([-edge])
             available_edges.remove(edge)
             available_edges.remove(-edge)
+        available_edges = sorted(available_edges)
 
         while available_edges:
             edge = available_edges.pop()
             region = []
             while not edge in region:
                 region.append(edge)
-                if edge > 0 :
+                if edge > 0:
                     cros = heads[edge]
                     ind = cros.index(edge)
                 else:
@@ -2445,7 +2453,7 @@ class Link(object):
         return [[list(i) for i in j]
                 for j in G.connected_components(sort=False)]
 
-    def homfly_polynomial(self, var1='L', var2='M', normalization = 'lm'):
+    def homfly_polynomial(self, var1='L', var2='M', normalization='lm'):
         r"""
         Return the HOMFLY polynomial of ``self``.
 
@@ -2589,7 +2597,6 @@ class Link(object):
                 return -L(auxdic)
         else:
             raise ValueError('normalization must be either `lm` or `az`')
-
 
     def plot(self, gap=0.1, component_gap=0.5, solver=None, **kwargs):
         r"""
@@ -3027,4 +3034,3 @@ class Link(object):
             image += l
             ims += sum(line(a[0], **kwargs) for a in im)
         return image
-

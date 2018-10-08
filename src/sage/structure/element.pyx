@@ -270,7 +270,7 @@ In case that Python code calls ``x._add_(y)`` directly,
 continue down the MRO and find the ``_add_`` method in the category.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006-2016 ...
 #       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
@@ -278,8 +278,8 @@ continue down the MRO and find the ``_add_`` method in the category.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, division, print_function
 
@@ -311,7 +311,6 @@ from sage.cpython.getattr cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
 from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
@@ -380,7 +379,6 @@ cdef class Element(SageObject):
     .. automethod:: __sub__
     .. automethod:: __neg__
     .. automethod:: __mul__
-    .. automethod:: __div__
     .. automethod:: __truediv__
     .. automethod:: __floordiv__
     .. automethod:: __mod__
@@ -516,14 +514,14 @@ cdef class Element(SageObject):
         EXAMPLES::
 
             sage: dir(1/2)
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
 
         Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
 
             sage: 1.__dir__()
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
             sage: dir(1)         # todo: not implemented
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
         from sage.cpython.getattr import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
@@ -849,13 +847,6 @@ cdef class Element(SageObject):
 
             sage: (0).n(algorithm='foo')
             0.000000000000000
-
-        The ``.N`` method is a deprecated alias::
-
-            sage: 0.N()
-            doctest:...: DeprecationWarning: N is deprecated. Please use n instead.
-            See http://trac.sagemath.org/13055 for details.
-            0.000000000000000
         """
         from sage.arith.numerical_approx import numerical_approx_generic
         if prec is None:
@@ -872,8 +863,6 @@ cdef class Element(SageObject):
             0.666666666666667
         """
         return self.numerical_approx(prec, digits, algorithm)
-
-    N = deprecated_function_alias(13055, n)
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -1029,8 +1018,6 @@ cdef class Element(SageObject):
             sage: (v+w).is_zero()
             True
             sage: bool(v+w)
-            False
-            sage: (v+w).__nonzero__()
             False
 
         """
@@ -2175,32 +2162,32 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "from sage.structure.richcmp cimport richcmp",
         ....:     "cdef class MyBrokenElement(Element):",
         ....:     "    cdef public object x",
-        ....:     "    def __init__(self,P,x):",
-        ....:     "        self.x=x",
-        ....:     "        Element.__init__(self,P)",
+        ....:     "    def __init__(self, P, x):",
+        ....:     "        self.x = x",
+        ....:     "        Element.__init__(self, P)",
         ....:     "    def __neg__(self):",
-        ....:     "        return MyBrokenElement(self.parent(),-self.x)",
+        ....:     "        return MyBrokenElement(self.parent(), -self.x)",
         ....:     "    def _repr_(self):",
-        ....:     "        return '<%s>'%self.x",
+        ....:     "        return '<%s>' % self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
         ....:     "    cpdef _richcmp_(left, right, int op):",
-        ....:     "        return richcmp(left.x,right.x,op)",
+        ....:     "        return richcmp(left.x, right.x, op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "cdef class MyElement(ElementWithCachedMethod):",
         ....:     "    cdef public object x",
-        ....:     "    def __init__(self,P,x):",
-        ....:     "        self.x=x",
-        ....:     "        Element.__init__(self,P)",
+        ....:     "    def __init__(self, P, x):",
+        ....:     "        self.x = x",
+        ....:     "        Element.__init__(self, P)",
         ....:     "    def __neg__(self):",
-        ....:     "        return MyElement(self.parent(),-self.x)",
+        ....:     "        return MyElement(self.parent(), -self.x)",
         ....:     "    def _repr_(self):",
-        ....:     "        return '<%s>'%self.x",
+        ....:     "        return '<%s>' % self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
         ....:     "    cpdef _richcmp_(left, right, int op):",
-        ....:     "        return richcmp(left.x,right.x,op)",
+        ....:     "        return richcmp(left.x, right.x, op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "class MyPythonElement(MyBrokenElement): pass",
@@ -2598,9 +2585,9 @@ cdef class RingElement(ModuleElement):
             sage: p(2, 1/2)
             sqrt(2)
 
-        TESTS::
+        TESTS:
 
-        These aren't testing this code, but they are probably good to have around::
+        These are not testing this code, but they are probably good to have around::
 
             sage: 2r**(SR(2)-1-1r)
             1

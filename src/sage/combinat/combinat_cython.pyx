@@ -5,11 +5,14 @@ Currently implemented:
 
 - Stirling numbers of the second kind
 - iterators for set partitions
+- iterator for Lyndon words
+- iterator for perfect matchings
 
 AUTHORS:
 
 - Fredrik Johansson (2010-10): Stirling numbers of second kind
-- Martin Rubey and Travis Scrimshaw (2018): iterators for set partitions
+- Martin Rubey and Travis Scrimshaw (2018): iterators for set partitions,
+  Lyndon words, and perfect matchings
 """
 
 cimport cython
@@ -140,6 +143,62 @@ def _stirling_number2(n, k):
     return s
 
 #####################################################################
+## Lyndon word iterator
+
+def lyndon_word_iterator(Py_ssize_t n, Py_ssize_t k):
+    r"""
+    Generate the Lyndon words of fixed length ``k`` with ``n`` letters.
+
+    The resulting Lyndon words will be words represented as lists
+    whose alphabet is ``range(n)`` (`= \{0, 1, \ldots, n-1\}`).
+
+    ALGORITHM:
+
+    The iterative FKM Algorithm 7.2 from [Rus2003]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat_cython import lyndon_word_iterator
+        sage: list(lyndon_word_iterator(4, 2))
+        [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
+        sage: list(lyndon_word_iterator(2, 4))
+        [[0, 0, 0, 1], [0, 0, 1, 1], [0, 1, 1, 1]]
+
+    TESTS::
+
+        sage: from sage.combinat.combinat_cython import lyndon_word_iterator
+        sage: list(lyndon_word_iterator(6, 1))
+        [[0], [1], [2], [3], [4], [5]]
+        sage: list(lyndon_word_iterator(5, 0))
+        []
+        sage: list(lyndon_word_iterator(1, 1000))
+        []
+        sage: list(lyndon_word_iterator(1, 1))
+        [[0]]
+    """
+    cdef Py_ssize_t i, j
+    if k == 0:
+        return
+    if k == 1:
+        for i in range(n):
+            yield [i]
+        return
+    if n == 1:
+        return
+
+    cdef list a = [0] * (k+1)
+    i = k
+    while i != 0:
+        a[i] += 1
+        for j in range(1, k-i+1):
+            a[j + i] = a[j]
+        if k == i:
+            yield a[1:]
+        i = k
+        while a[i] == n - 1:
+            i -= 1
+
+#####################################################################
 ## Set partition iterators
 
 @cython.wraparound(False)
@@ -216,8 +275,8 @@ def set_partition_iterator(base_set):
 def _set_partition_block_gen(Py_ssize_t n, Py_ssize_t k, list a):
     r"""
     Recursively generate set partitions of ``n`` with fixed block
-    size ``k`` using Algorithm 4.23 from *Combinatorial Generation*
-    by Ruskey. ``a`` is a list of size ``n``.
+    size ``k`` using Algorithm 4.23 from [Rus2003]_.
+    ``a`` is a list of size ``n``.
 
     EXAMPLES::
 
@@ -265,4 +324,89 @@ def set_partition_iterator_blocks(base_set, Py_ssize_t k):
     # TODO: implement _set_partition_block_gen as an iterative algorithm
     for P in _set_partition_block_gen(n, k, a):
         yield from_word(<list> P, base)
+
+#####################################################################
+## Perfect matchings iterator
+
+def perfect_matchings_iterator(Py_ssize_t n):
+    r"""
+    Iterate over all perfect matchings with ``n`` parts.
+
+    This iterates over all perfect matchings of `\{0, 1, \ldots, 2n-1\}`
+    using a Gray code for fixed-point-free involutions due to Walsh [Wal2001]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat_cython import perfect_matchings_iterator
+        sage: list(perfect_matchings_iterator(1))
+        [[(0, 1)]]
+        sage: list(perfect_matchings_iterator(2))
+        [[(0, 1), (2, 3)], [(0, 2), (1, 3)], [(0, 3), (1, 2)]]
+
+        sage: list(perfect_matchings_iterator(0))
+        [[]]
+
+    REFERENCES:
+
+    - [Wal2001]_
+    """
+    if n == 0:
+        yield []
+        return
+
+    cdef Py_ssize_t i, x, y, g, j, J
+    cdef Py_ssize_t* e = <Py_ssize_t*> check_allocarray(2*n, sizeof(Py_ssize_t))
+    for i in range(2*n):
+        e[i] = i
+    cdef Py_ssize_t* f = <Py_ssize_t*> check_allocarray(2*n, sizeof(Py_ssize_t))
+    for i in range(2*n):
+        if i % 2 == 0:
+            f[i] = i + 1
+        else:
+            f[i] = i - 1
+    cdef bint odd = False
+
+    yield convert(f, n)
+    while e[0] != n - 1:
+        i = e[0]
+        if odd:
+            x = 2 * i
+        else:
+            x = i
+
+        y = f[x]
+        g = y - x - 1
+        if g % 2 == odd:
+            g += 1
+            j = y + 1
+        else:
+            g -= 1
+            j = y-1
+        J = f[j]
+        f[y] = J
+        f[J] = y
+        f[x] = j
+        f[j] = x
+        odd = not odd
+        e[0] = 0
+        if g == 0 or g == 2 * (n-i-1):
+            e[i] = e[i+1]
+            e[i+1] = i + 1
+
+        yield convert(f, n)
+
+    sig_free(e)
+    sig_free(f)
+
+cdef list convert(Py_ssize_t* f, Py_ssize_t n):
+    """
+    Convert a list ``f`` representing a fixed-point free involution
+    to a set partition.
+    """
+    cdef list ret = []
+    cdef Py_ssize_t i
+    for i in range(2*n):
+        if i < f[i]:
+            ret.append((i, f[i]))
+    return ret
 

@@ -1289,7 +1289,7 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
             (13,3,1)-Balanced Incomplete Block Design
         """
         bsizes = str(frozenset(self.block_sizes()))[11:-2]
-        bsize = '{' + bsizes + '}'
+        bsizes = '{' + bsizes + '}'
         return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(), bsizes)
 
 

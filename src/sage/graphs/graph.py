@@ -2251,7 +2251,7 @@ class Graph(GenericGraph):
             2 * self.size() > max(self.degree()) * (self.order() - 1))
 
     @doc_index("Graph properties")
-    def is_even_hole_free(self, certificate = False):
+    def is_even_hole_free(self, certificate=False):
         r"""
         Tests whether ``self`` contains an induced even hole.
 
@@ -2356,7 +2356,7 @@ class Graph(GenericGraph):
         return True
 
     @doc_index("Graph properties")
-    def is_odd_hole_free(self, certificate = False):
+    def is_odd_hole_free(self, certificate=False):
         r"""
         Tests whether ``self`` contains an induced odd hole.
 
@@ -4105,7 +4105,7 @@ class Graph(GenericGraph):
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.")
 
     @doc_index("Algorithmically hard stuff")
-    def coloring(self, algorithm="DLX", hex_colors=False, verbose = 0):
+    def coloring(self, algorithm="DLX", hex_colors=False, verbose=0):
         r"""
         Return the first (optimal) proper vertex-coloring found.
 
@@ -5809,7 +5809,7 @@ class Graph(GenericGraph):
     ### Cliques
 
     @doc_index("Clique-related methods")
-    def cliques_maximal(self, algorithm = "native"):
+    def cliques_maximal(self, algorithm="native"):
         """
         Return the list of all maximal cliques.
 
@@ -6899,7 +6899,7 @@ class Graph(GenericGraph):
     ### Miscellaneous
 
     @doc_index("Leftovers")
-    def cores(self, k = None, with_labels=False):
+    def cores(self, k=None, with_labels=False):
         r"""
         Return the core number for each vertex in an ordered list.
 
@@ -6987,17 +6987,17 @@ class Graph(GenericGraph):
             [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
             sage: (graphs.FruchtGraph()).cores(with_labels=True)
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3}
-            sage: a = random_matrix(ZZ,20,x=2,sparse=True, density=.1)
+            sage: a = random_matrix(ZZ, 20, x=2, sparse=True, density=.1)
             sage: b = Graph(20)
             sage: b.add_edges(a.nonzero_positions(), loops=False)
             sage: cores = b.cores(with_labels=True); cores
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 2, 5: 2, 6: 3, 7: 1, 8: 3, 9: 3, 10: 3, 11: 3, 12: 3, 13: 3, 14: 2, 15: 3, 16: 3, 17: 3, 18: 3, 19: 3}
-            sage: [v for v,c in cores.items() if c>=2] # the vertices in the 2-core
+            sage: [v for v,c in cores.items() if c >= 2] # the vertices in the 2-core
             [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
         Checking the 2-core of a random lobster is indeed the empty set::
 
-            sage: g = graphs.RandomLobster(20,.5,.5)
+            sage: g = graphs.RandomLobster(20, .5, .5)
             sage: ordering, core = g.cores(2)
             sage: len(core) == 0
             True
@@ -7006,9 +7006,8 @@ class Graph(GenericGraph):
         # compute the degrees of each vertex
         degrees = self.degree(labels=True)
 
-        # sort vertices by degree.  Store in a list and keep track of
-        # where a specific degree starts (effectively, the list is
-        # sorted by bins).
+        # Sort vertices by degree. Store in a list and keep track of where a
+        # specific degree starts (effectively, the list is sorted by bins).
         verts = sorted(degrees.keys(), key=lambda x: degrees[x])
         bin_boundaries = [0]
         curr_degree = 0
@@ -7023,8 +7022,8 @@ class Graph(GenericGraph):
         # form vertex core building up from smallest
         for v in verts:
 
-            # If all the vertices have a degree larger than k, we can
-            # return our answer if k is not None
+            # If all the vertices have a degree larger than k, we can return our
+            # answer if k is not None
             if k is not None and core[v] >= k:
                 return verts[:vert_pos[v]], verts[vert_pos[v]:]
 
@@ -7032,11 +7031,10 @@ class Graph(GenericGraph):
                 if core[u] > core[v]:
                     nbrs[u].remove(v)
 
-                    # cleverly move u to the end of the next smallest
-                    # bin (i.e., subtract one from the degree of u).
-                    # We do this by swapping u with the first vertex
-                    # in the bin that contains u, then incrementing
-                    # the bin boundary for the bin that contains u.
+                    # Cleverly move u to the end of the next smallest bin (i.e.,
+                    # subtract one from the degree of u). We do this by swapping
+                    # u with the first vertex in the bin that contains u, then
+                    # incrementing the bin boundary for the bin that contains u.
                     pos = vert_pos[u]
                     bin_start = bin_boundaries[core[u]]
                     vert_pos[u] = bin_start

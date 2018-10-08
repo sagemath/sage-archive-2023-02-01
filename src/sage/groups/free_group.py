@@ -50,15 +50,15 @@ AUTHORS:
 - Volker Braun
 """
 
-##############################################################################
+# ****************************************************************************
 #       Copyright (C) 2012 Miguel Angel Marco Buzunariz <mmarco@unizar.es>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-##############################################################################
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import six
 from sage.groups.group import Group
@@ -70,6 +70,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.structure.sequence import Sequence
+from sage.structure.element import coercion_model
 
 
 def is_FreeGroup(x):
@@ -557,6 +558,14 @@ class FreeGroupElement(ElementLibGAP):
             sage: u = F(1)
             sage: parent(u.subs({x1:x0})) is F
             True
+
+        TESTS::
+
+            sage: F.<x,y> = FreeGroup()
+            sage: F.one().subs(x=x, y=1)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Free Group on generators {x, y}' and 'Integer Ring'
         """
         if len(values) == 1:
             try:
@@ -567,7 +576,7 @@ class FreeGroupElement(ElementLibGAP):
         if len(values) != G.ngens():
             raise ValueError('number of values has to match the number of generators')
         replace = dict(zip(G.gens(), values))
-        new_parent = values[0].parent()
+        new_parent = coercion_model.common_parent(*[v.parent() for v in values])
         return new_parent.prod(replace[gen] ** power
                                for gen, power in self.syllables())
 
@@ -739,7 +748,6 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             sage: G.variable_names()
             ('a', 'b')
         """
-        n = len(generator_names)
         self._assign_names(generator_names)
         if libgap_free_group is None:
             libgap_free_group = libgap.FreeGroup(generator_names)

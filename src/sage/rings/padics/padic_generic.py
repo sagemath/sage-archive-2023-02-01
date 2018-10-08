@@ -1567,11 +1567,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             n = ring.precision_cap()
             P = P.change_ring(ring)
             try:
-                F = P.change_ring(ring.exact_ring()).factor_padic(p, n)
+                # note that P.factor() calls pari
+                return P._roots_from_factorization(P.factor(), multiplicities)
             except (AttributeError, TypeError):
                 raise NotImplementedError("root finding for this polynomial is not implemented in pari")
-            else:
-                return P._roots_from_factorization(F, multiplicities)
         elif algorithm == "sage":
             if ring.is_field():
                 roots = P.change_ring(ring)._roots(secure, -Infinity, None)

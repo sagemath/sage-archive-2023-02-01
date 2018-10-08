@@ -7568,12 +7568,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol.roots(Qp(3,5))
             [(1 + O(3^5), 2)]
 
-        This doesn't work if we first change coefficients to `\QQ_p`::
+        We loose precision if we first change coefficients to `\QQ_p`::
 
             sage: pol.change_ring(Qp(3,5)).roots()
-            Traceback (most recent call last):
-            ...
-            PrecisionError: p-adic factorization not well-defined since the discriminant is zero up to the requestion p-adic precision
+            [(1 + O(3^3), 2)]
 
             sage: (pol - 3^6).roots(Qp(3,5))
             [(1 + 2*3^3 + 2*3^4 + O(3^5), 1), (1 + 3^3 + O(3^5), 1)]

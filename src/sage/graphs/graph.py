@@ -5858,10 +5858,10 @@ class Graph(GenericGraph):
              [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [4, 5], [4, 8], [5, 10],
              [5, 11], [6, 10], [6, 11], [7, 8], [7, 11], [8, 10], [9, 10], [9, 11]]
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
-            sage: G.show(figsize=[2,2])
+            sage: G.show(figsize=[2, 2])
             sage: G.cliques_maximal()
             [[0, 1, 2], [0, 1, 3]]
-            sage: C=graphs.PetersenGraph()
+            sage: C = graphs.PetersenGraph()
             sage: C.cliques_maximal()
             [[0, 1], [0, 4], [0, 5], [1, 2], [1, 6], [2, 3], [2, 7], [3, 4],
              [3, 8], [4, 9], [5, 7], [5, 8], [6, 8], [6, 9], [7, 9]]
@@ -5879,10 +5879,10 @@ class Graph(GenericGraph):
         """
         if algorithm == "native":
             from sage.graphs.independent_sets import IndependentSets
-            return sorted(IndependentSets(self, maximal=True, complement=True))
+            return list(IndependentSets(self, maximal=True, complement=True))
         elif algorithm == "NetworkX":
             import networkx
-            return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
+            return list(networkx.find_cliques(self.networkx_graph(copy=False)))
         else:
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
@@ -6334,7 +6334,7 @@ class Graph(GenericGraph):
 
         The two algorithms should return the same result::
 
-           sage: g = graphs.RandomGNP(10,.5)
+           sage: g = graphs.RandomGNP(10, .5)
            sage: vc1 = g.vertex_cover(algorithm="MILP")
            sage: vc2 = g.vertex_cover(algorithm="Cliquer")
            sage: len(vc1) == len(vc2)
@@ -6347,30 +6347,30 @@ class Graph(GenericGraph):
            ....:     g = graphs.RandomTree(20)
            ....:     vc1_set = g.vertex_cover()
            ....:     vc1 = len(vc1_set)
-           ....:     vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
+           ....:     vc2 = g.vertex_cover(value_only=True, reduction_rules=False)
            ....:     if vc1 != vc2:
            ....:         print("Error :", vc1, vc2)
            ....:         print("With reduction rules :", vc1)
            ....:         print("Without reduction rules :", vc2)
            ....:         break
            ....:     g.delete_vertices(vc1_set)
-           ....:     if g.size() != 0:
+           ....:     if g.size():
            ....:         print("This thing is not a vertex cover !")
 
         Then for random GNP graphs::
 
            sage: for i in range(20):
-           ....:     g = graphs.RandomGNP(50,4/50)
+           ....:     g = graphs.RandomGNP(50, 0.08)
            ....:     vc1_set = g.vertex_cover()
            ....:     vc1 = len(vc1_set)
-           ....:     vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
+           ....:     vc2 = g.vertex_cover(value_only=True, reduction_rules=False)
            ....:     if vc1 != vc2:
            ....:         print("Error :", vc1, vc2)
            ....:         print("With reduction rules :", vc1)
            ....:         print("Without reduction rules :", vc2)
            ....:         break
            ....:     g.delete_vertices(vc1_set)
-           ....:     if g.size() != 0:
+           ....:     if g.size():
            ....:         print("This thing is not a vertex cover !")
 
         Testing mcqd::
@@ -6380,7 +6380,7 @@ class Graph(GenericGraph):
 
         Given a wrong algorithm::
 
-            sage: graphs.PetersenGraph().vertex_cover(algorithm = "guess")
+            sage: graphs.PetersenGraph().vertex_cover(algorithm="guess")
             Traceback (most recent call last):
             ...
             ValueError: the algorithm must be "Cliquer", "MILP" or "mcqd"
@@ -6498,7 +6498,7 @@ class Graph(GenericGraph):
         if not g.order():
             # Reduction rules were sufficients to get the solution
             size_cover_g = 0
-            cover_g = []
+            cover_g = set()
 
         elif algorithm == "Cliquer" or algorithm == "mcqd":
             if g.has_multiple_edges() and not reduction_rules:
@@ -6509,7 +6509,7 @@ class Graph(GenericGraph):
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = [uu for uu in g if not uu in independent]
+                cover_g = set(uu for uu in g if not uu in independent)
 
         elif algorithm == "MILP":
 
@@ -6529,7 +6529,7 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbosity)
                 b = p.get_values(b)
-                cover_g = [v for v in g if b[v] == 1]
+                cover_g = set(v for v in g if b[v] == 1)
         else:
             raise ValueError('the algorithm must be "Cliquer", "MILP" or "mcqd"')
 
@@ -6542,18 +6542,17 @@ class Graph(GenericGraph):
             return len(ppset) + len(folded_vertices) + size_cover_g
         else:
             # RULES 2 and 3:
-            cover_g.extend(ppset)
+            cover_g.update(ppset)
             # RULE 4:
             folded_vertices.reverse()
             for u,v,w in folded_vertices:
                 if u in cover_g:
-                    cover_g.remove(u)
-                    cover_g.append(v)
-                    cover_g.append(w)
+                    cover_g.discard(u)
+                    cover_g.add(v)
+                    cover_g.add(w)
                 else:
-                    cover_g.append(u)
-            cover_g.sort()
-            return cover_g
+                    cover_g.add(u)
+            return list(cover_g)
 
     @doc_index("Connectivity, orientations, trees")
     def ear_decomposition(self):

@@ -289,7 +289,7 @@ class Polytopes():
             verts.append( [ZZ.one() if p[i]==j else ZZ.zero() for j in range(n) for i in range(n) ] )
         return Polyhedron(vertices=verts, base_ring=ZZ, backend=backend)
 
-    def simplex(self, dim=3, project=False, backend=None):
+    def simplex(self, dim=3, project=False, base_ring=None, backend=None):
         r"""
         Return the ``dim`` dimensional simplex.
 
@@ -304,9 +304,13 @@ class Polytopes():
 
         - ``project`` -- (boolean, default ``False``) if ``True``, the polytope
           is (isometrically) projected to a vector space of dimension ``dim-1``.
-          This operation turns the coordinates into floating point
-          approximations and corresponds to the projection given by the matrix
-          from :func:`zero_sum_projection`.
+          This corresponds to the projection given by the matrix from
+          :func:`zero_sum_projection`.  By default, this operation turns the
+          coordinates into floating point approximations (see ``base_ring``).
+
+        - ``base_ring`` -- the base ring to use to create the polytope.
+          If ``project`` is ``False``, this defaults to `\ZZ`.
+          Otherwise, it defaults to ``RDF``.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -340,20 +344,27 @@ class Polytopes():
             sage: sqrt(7.) / factorial(6)
             0.00367465459870082
 
+        Computation in algebraic reals::
+
+            sage: s3 = polytopes.simplex(3, project=True, base_ring=AA)
+            sage: s3.volume() == sqrt(3+1) / factorial(3)
+            True
+
         TESTS::
 
             sage: s6norm = polytopes.simplex(6,backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(s6norm).run(skip='_test_pickling')      # optional - pynormaliz
         """
         verts = list((ZZ ** (dim+1)).basis())
-        if project: verts = project_points(*verts)
-        return Polyhedron(vertices=verts, backend=backend)
+        if project:
+            verts = project_points(*verts, base_ring=base_ring)
+        return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def icosahedron(self, exact=True, base_ring=None, backend=None):
         r"""
         Return an icosahedron with edge length 1.
 
-        The icosahedron is one of the Platonic solid. It has 20 faces
+        The icosahedron is one of the Platonic solids. It has 20 faces
         and is dual to the :meth:`dodecahedron`.
 
         INPUT:

@@ -53,6 +53,92 @@ cdef inline int has_edge(bitset_t bs, int u, int v, int n):
     return bitset_in(bs, u * n + v)
 
 
+cdef inline is_long_hole_free_process(g, short_digraph sd, bitset_t dense_graph,
+                                          list id_label, int* path, int* InPath,
+                                          int* neighbor_index, set VisitedP3,
+                                          bint certificate,
+                                          int a, int b, int c, int n):
+    """
+    This method is part of method `is_long_hole_free`.
+
+    EXAMPLES::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.is_long_hole_free()
+        False
+    """
+    cdef int d, u, v, i
+    cdef Py_ssize_t path_top = 2
+    cdef list C
+    cdef dict C_index
+
+    path[2] = c
+    InPath[c] = path_top  # c is the (i+1)-th vertex at position i
+    neighbor_index[c] = 0
+    VisitedP3.add((a, b, c))
+    VisitedP3.add((c, b, a))
+
+    while path_top >= 2:
+        a = path[path_top - 2]
+        b = path[path_top - 1]
+        c = path[path_top]
+
+        if neighbor_index[c] < out_degree(sd, c):
+            d = sd.neighbors[c][neighbor_index[c]]
+            neighbor_index[c] += 1
+            if not has_edge(dense_graph, d, a, n) and not has_edge(dense_graph, d, b, n):
+                # a-b-c-d form an induced path P_4
+
+                if InPath[d] != -1:
+                    # d is already contained in InPath
+                    # HOLE FOUND !!!
+                    if certificate:
+                        # We extract the hole and relabel it on-the-fly with the
+                        # vertices' real name
+                        C = [id_label[path[i]] for i in range(InPath[d], path_top + 1)]
+                        C_index = {label: i for i,label in enumerate(C)}
+
+                        # At this step C[0]C[1]..... is a cycle such that any 4
+                        # consecutive vertices induce a P4. C may not be an
+                        # induced cycle, so we extract one from it.
+
+                        # To do so, we look for the *shortest* edge C[i]C[j]
+                        # between two nonconsecutive vertices of C, where the
+                        # length is the difference |i-j|.
+                        #
+                        # C[i]...C[j] is necessarily an induced cycle.
+
+                        gg = g.subgraph(C, immutable=False)
+                        gg.delete_edges(zip(C[:-1],C[1:]))
+
+                        dist = lambda X: abs(C_index[X[0]]-C_index[X[1]])
+
+                        label_u,label_v = min(gg.edge_iterator(labels=False), key=dist)
+                        u,v = C_index[label_u], C_index[label_v]
+
+                        # Return the answer
+                        return False, g.subgraph(C[min(u, v): max(u, v) + 1])
+
+                    else:
+                        return False, None
+
+                elif (b, c, d) not in VisitedP3:
+                    # search for another P_4
+                    path_top += 1
+                    path[path_top] = d
+                    InPath[d] = path_top
+                    neighbor_index[d] = 0
+                    VisitedP3.add((b, c, d))
+                    VisitedP3.add((d, c, b))
+
+        else:
+            # We are done with c. We trackback
+            path_top -= 1
+            InPath[c] = -1
+
+    return True, []
+
+
 def is_long_hole_free(g, certificate=False):
     r"""
     Tests whether ``g`` contains an induced cycle of length at least 5.
@@ -146,83 +232,16 @@ def is_long_hole_free(g, certificate=False):
 
     # Allocate some data strutures
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int * path = <int *> mem.allocarray(n, sizeof(int))
+    cdef int* path = <int*> mem.allocarray(n, sizeof(int))
     cdef int path_top
-    cdef int * InPath = <int *> mem.allocarray(n, sizeof(int))
+    cdef int* InPath = <int*> mem.allocarray(n, sizeof(int))
     for u in range(n):
         InPath[u] = -1
 
-    cdef int * neighbor_index = <int *>  mem.allocarray(n, sizeof(int))
+    cdef int* neighbor_index = <int*>  mem.allocarray(n, sizeof(int))
 
     cdef set VisitedP3 = set() # stores triples (u,v,w) which represent visited paths of length 3
 
-    def process(a, b, c):
-        path[2] = c
-        path_top = 2
-        InPath[c] = path_top  # c is the (i+1)-th vertex at position i
-        neighbor_index[c] = 0
-        VisitedP3.add((a, b, c))
-        VisitedP3.add((c, b, a))
-
-        while path_top >= 2:
-            a = path[path_top - 2]
-            b = path[path_top - 1]
-            c = path[path_top]
-
-            if neighbor_index[c] < out_degree(sd, c):
-                d = sd.neighbors[c][neighbor_index[c]]
-                neighbor_index[c] += 1
-                if not has_edge(dense_graph, d, a, n) and not has_edge(dense_graph, d, b, n):
-                    # a-b-c-d form an induced path P_4
-
-                    if InPath[d] != -1:
-                        # d is already contained in InPath
-                        # HOLE FOUND !!!
-                        if certificate:
-                            # We extract the hole and relabel it on-the-fly with
-                            # the vertices' real name
-                            C = [id_label[path[i]] for i in range(InPath[d], path_top + 1)]
-                            C_index = {label: i for i,label in enumerate(C)}
-
-                            # At this step C[0]C[1]..... is a cycle such that any 4
-                            # consecutive vertices induce a P4. C may not be an
-                            # induced cycle, so we extract one from it.
-
-                            # To do so, we look for the *shortest* edge C[i]C[j]
-                            # between two nonconsecutive vertices of C, where the
-                            # length is the difference |i-j|.
-                            #
-                            # C[i]...C[j] is necessarily an induced cycle.
-
-                            gg = g.subgraph(C, immutable=False)
-                            gg.delete_edges(zip(C[:-1],C[1:]))
-
-                            dist = lambda X : abs(C_index[X[0]]-C_index[X[1]])
-
-                            label_u,label_v = min(gg.edge_iterator(labels=False), key=dist)
-                            u,v = C_index[label_u], C_index[label_v]
-
-                            # Return the answer
-                            return False, g.subgraph(C[min(u, v): max(u, v) + 1])
-
-                        else:
-                            return False, None
-
-                    elif (b, c, d) not in VisitedP3:
-                        # search for another P_4
-                        path_top += 1
-                        path[path_top] = d
-                        InPath[d] = path_top
-                        neighbor_index[d] = 0
-                        VisitedP3.add((b, c, d))
-                        VisitedP3.add((d, c, b))
-
-            else:
-                # We are done with c. We trackback
-                path_top -= 1
-                InPath[c] = -1
-
-        return True, []
 
 
     # main algorithm
@@ -239,7 +258,11 @@ def is_long_hole_free(g, certificate=False):
             for ww in range(out_degree(sd, v)):
                 w = sd.neighbors[v][ww]
                 if u != w and not has_edge(dense_graph, u, w, n) and (u, v, w) not in VisitedP3:
-                    res, hole = process(u, v, w)
+
+                    res, hole = is_long_hole_free_process(g, sd, dense_graph, id_label,
+                                                              path, InPath, neighbor_index, VisitedP3,
+                                                              certificate, u, v, w, n)
+
                     if not res:
                         # We release memory before returning the result
                         free_short_digraph(sd)
@@ -261,6 +284,90 @@ def is_long_hole_free(g, certificate=False):
         return True, []
     else:
         return True
+
+
+cdef inline is_long_antihole_free_process(g, short_digraph sd, bitset_t dense_graph,
+                                              list id_label, int* path, int* InPath,
+                                              int* neighbor_index, set VisitedP3,
+                                              bint certificate,
+                                              int a, int b, int c, int n):
+    """
+    This method is part of method `is_long_antihole_free`.
+
+    EXAMPLES::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.is_long_antihole_free()
+        False
+    """
+    cdef int d, u, v, i
+    cdef Py_ssize_t path_top = 2
+    cdef list C
+    cdef dict C_index
+
+    path[2] = c
+    InPath[c] = 2  # c is the (i+1)-th vertex at position i
+    neighbor_index[b] = 0
+    VisitedP3.add((a, b, c))
+    VisitedP3.add((c, b, a))
+
+    while path_top >= 2:
+        # We consider the antichain a,b,c
+        a = path[path_top - 2]
+        b = path[path_top - 1]
+        c = path[path_top]
+
+        if neighbor_index[b] < out_degree(sd, b):
+            d = sd.neighbors[b][neighbor_index[b]]
+            neighbor_index[b] += 1
+            if has_edge(dense_graph, d, a, n) and not has_edge(dense_graph, d, c, n):
+                # We found a neighbor of a and b that is not adjacent to c
+                if InPath[d] != -1:
+                    if certificate:
+                        # Calculation of induced cycle in complement
+                        # Relabel it on-the-fly with the vertices' real name
+                        C = [id_label[path[i]] for i in range(InPath[d], path_top + 1)]
+                        C_index = {label: i for i,label in enumerate(C)}
+
+                        # At this step C[0]C[1]..... is an anticycle such that
+                        # any 4 consecutive vertices induce the complement of a
+                        # P4. C may not be an induced anticycle, so we extract
+                        # one from it.
+
+                        # To do so, we look for the *shortest* nonedge C[i]C[j]
+                        # between two nonconsecutive vertices of C, where the
+                        # length is the difference |i-j|.
+                        #
+                        # C[i]...C[j] is necessarily an induced anticycle.
+
+                        gg = g.subgraph(C, immutable=False).complement()
+                        gg.delete_edges(zip(C[:-1],C[1:]))
+
+                        dist = lambda X: abs(C_index[X[0]]-C_index[X[1]])
+
+                        label_u,label_v = min(gg.edge_iterator(labels=False), key=dist)
+                        u,v = C_index[label_u], C_index[label_v]
+
+                        # Return the answer
+                        return False, g.subgraph(C[min(u, v): max(u, v) + 1])
+
+                    else:
+                        return False, []
+
+                elif (b, c, d) not in VisitedP3:
+                    path_top += 1
+                    path[path_top] = d
+                    InPath[d] = path_top
+                    neighbor_index[c] = 0
+                    VisitedP3.add((b, c, d))
+                    VisitedP3.add((d, c, b))
+
+        else:
+            # We trackback
+            path_top -= 1
+            InPath[c] = -1
+
+    return True, []
 
 def is_long_antihole_free(g, certificate = False):
     r"""
@@ -356,81 +463,16 @@ def is_long_antihole_free(g, certificate = False):
 
     # Allocate some data strutures
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int * path = <int *> mem.allocarray(n, sizeof(int))
+    cdef int* path = <int*> mem.allocarray(n, sizeof(int))
     cdef int path_top
-    cdef int * InPath = <int *> mem.allocarray(n, sizeof(int))
+    cdef int* InPath = <int*> mem.allocarray(n, sizeof(int))
     for u in range(n):
         InPath[u] = -1
 
-    cdef int * neighbor_index = <int *>  mem.allocarray(n, sizeof(int))
+    cdef int* neighbor_index = <int*>  mem.allocarray(n, sizeof(int))
 
     cdef set VisitedP3 = set() # stores triples (u,v,w) which represent visited paths of length 3
 
-    def process(a, b, c):
-        path[2] = c
-        InPath[c] = 2  # c is the (i+1)-th vertex at position i
-        neighbor_index[b] = 0
-        VisitedP3.add((a, b, c))
-        VisitedP3.add((c, b, a))
-        path_top = 2
-
-        while path_top >= 2:
-            # We consider the antichain a,b,c
-            a = path[path_top - 2]
-            b = path[path_top - 1]
-            c = path[path_top]
-
-            if neighbor_index[b] < out_degree(sd, b):
-                d = sd.neighbors[b][neighbor_index[b]]
-                neighbor_index[b] += 1
-                if has_edge(dense_graph, d, a, n) and not has_edge(dense_graph, d, c, n):
-                    # We found a neighbor of a and b that is not adjacent to c
-                    if InPath[d] != -1:
-                        if certificate:
-                            # Calculation of induced cycle in complement
-                            # Relabel it on-the-fly with the vertices' real name
-                            C = [id_label[path[i]] for i in range(InPath[d], path_top + 1)]
-                            C_index = {label: i for i,label in enumerate(C)}
-
-                            # At this step C[0]C[1]..... is an anticycle such
-                            # that any 4 consecutive vertices induce the
-                            # complement of a P4. C may not be an induced
-                            # anticycle, so we extract one from it.
-
-                            # To do so, we look for the *shortest* nonedge
-                            # C[i]C[j] between two nonconsecutive vertices of C,
-                            # where the length is the difference |i-j|.
-                            #
-                            # C[i]...C[j] is necessarily an induced anticycle.
-
-                            gg = g.subgraph(C, immutable=False).complement()
-                            gg.delete_edges(zip(C[:-1],C[1:]))
-
-                            dist = lambda X : abs(C_index[X[0]]-C_index[X[1]])
-
-                            label_u,label_v = min(gg.edge_iterator(labels=False), key=dist)
-                            u,v = C_index[label_u], C_index[label_v]
-
-                            # Return the answer
-                            return False, g.subgraph(C[min(u, v): max(u, v) + 1])
-
-                        else:
-                            return False, []
-
-                    elif (b, c, d) not in VisitedP3:
-                        path_top += 1
-                        path[path_top] = d
-                        InPath[d] = path_top
-                        neighbor_index[c] = 0
-                        VisitedP3.add((b, c, d))
-                        VisitedP3.add((d, c, b))
-
-            else:
-                # We trackback
-                path_top -= 1
-                InPath[c] = -1
-
-        return True, []
 
     # main algorithm
     # For all triples u,v,w of vertices such that uvw is a complement of P_3
@@ -446,7 +488,12 @@ def is_long_antihole_free(g, certificate = False):
             for ww in range(out_degree(sd, v)):
                 w = sd.neighbors[v][ww]
                 if v < w and not has_edge(dense_graph, u, w, n) and (v, u, w) not in VisitedP3:
-                    res, antihole = process(v, u, w)
+
+                    res, antihole = is_long_antihole_free_process(g, sd, dense_graph, id_label,
+                                                                      path, InPath, neighbor_index,
+                                                                      VisitedP3, certificate,
+                                                                      v, u, w, n)
+
                     if not res:
                         # We release memory before returning the result
                         free_short_digraph(sd)

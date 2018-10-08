@@ -63,7 +63,7 @@ dynamical systems:
     FiniteDynamicalSystem?
 
     - non-auto functionality: is_recurrent, recurrent_entries,
-    first_recurrent_image, rho, cycles, homomesy?
+    cycles, idempotent_power, etc.?
 
     - Examples for non-auto functionality:
     - infection on a chessboard;
@@ -271,6 +271,10 @@ class DiscreteDynamicalSystem(SageObject):
         smallest nonnegative integer such that
         `\phi^k(x) \in \left\{ \phi^i(x) \mid i > k \right\}`.
 
+        The orbit of the element ``x`` is also called the
+        "rho" of ``x``, due to its shape when it is depicted
+        as a directed graph.
+
         EXAMPLES::
 
             sage: D = DiscreteDynamicalSystem(tuple(range(11)), lambda x : (x ** 2) % 11)
@@ -296,6 +300,128 @@ class DiscreteDynamicalSystem(SageObject):
         if not preperiod:
             return orb
         return (orb, orb.index(curr))
+
+    def is_homomesic(self, h, average=None, find_average=False, elements=None):
+        r"""
+        Check if ``h`` (a map from the ground set of ``self`` to
+        a `\QQ`-vector space) is homomesic with respect to ``self``.
+
+        If the optional argument ``average`` is provided, then
+        this also checks that the averages are equal to ``average``.
+
+        If the optional argument ``find_average`` is set to
+        ``True``, then this method returns the average of ``h``
+        in case ``h`` is homomesic (instead of returning ``True``).
+
+        If the optional argument ``elements`` (an iterable of
+        elements of the ground set of ``self``) is provided, then
+        this method only checks homomesy for the cycles in the
+        orbits of the elements given in the list ``elements``.
+        Note that ``elements`` must be provided if the ground set of
+        ``self`` is infinite (or cannot be iterated through for any
+        other reason), since there is no way to check all the cycles
+        in this case.
+
+        This method will fail to terminate if any element of
+        ``elements`` has an infinite orbit.
+
+        Let us recall the definition of homomesy:
+        Let `(X, \phi)` be a DDS.
+        A *cycle* of `(X, \phi)` is a finite list
+        `u = (u_1, u_2, \ldots, u_k)` of elements of `X` such
+        that `\phi(u_i) = u_{i+1}` for each `i \leq k`, where we
+        set `u_{k+1} = u_1`.
+        Note that any element of `X` whose orbit is finite has a
+        cycle in its orbit.
+        Now, let `h` be a map from `X` to a `\QQ`-vector space `A`.
+        If `u = (u_1, u_2, \ldots, u_k)` is any cycle of
+        `(X, \phi)`, then the *average* of `h` on this cycle is
+        defined to be the element
+        `(h(u_1) + h(u_2) + \cdots + h(u_k)) / k` of `A`.
+        We say that `h` is *homomesic* (with respect to the DDS
+        `(X, \phi)`) if and only if the averages of `h` on all
+        cycles of `(X, \phi)` are equal.
+
+        EXAMPLES::
+
+            sage: W = Words(2, 5)
+            sage: F = InvertibleFiniteDynamicalSystem(W, lambda x : x[1:] + Word([x[0]]))
+            sage: F.is_homomesic(lambda w: sum(w))
+            False
+            sage: F.is_homomesic(lambda w: 1, average=1)
+            True
+            sage: F.is_homomesic(lambda w: 1, average=0)
+            False
+            sage: F.is_homomesic(lambda w: 1)
+            True
+            sage: F.is_homomesic(lambda w: 1, find_average=True)
+            1
+            sage: F.is_homomesic(lambda w: w[0] - w[1], average=0)
+            True
+            sage: F.is_homomesic(lambda w: w[0] - w[1], find_average=True)
+            0
+
+        Now, let us check homomesy restricted to specific cycles::
+
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: F = discrete_dynamical_systems.bitstring_rotation(7)
+            sage: descents = lambda x: sum(1 for i in range(6) if x[i] > x[i+1])
+            sage: F.is_homomesic(descents)
+            False
+            sage: F.is_homomesic(descents, elements=[(1, 0, 1, 0, 0, 0, 0), (1, 0, 0, 1, 0, 0, 0)])
+            True
+            sage: F.is_homomesic(descents, elements=[(1, 0, 1, 0, 0, 0, 0), (1, 1, 0, 0, 0, 0, 0)])
+            False
+            sage: F.is_homomesic(descents, elements=[(1, 0, 1, 0, 0, 0, 0)])
+            True
+            sage: F.is_homomesic(descents, elements=[])
+            True
+
+        And here is a non-invertible finite dynamical system::
+
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: F = discrete_dynamical_systems.one_line([9, 1, 1, 6, 5, 4, 5, 5, 1])
+            sage: F.is_homomesic(lambda i: i)
+            True
+            sage: F.is_homomesic(lambda i: i % 2)
+            False
+            sage: F.is_homomesic(lambda i: i % 2, elements=[2, 9, 7])
+            True
+            sage: F.is_homomesic(lambda i: i % 2, elements=[2, 9, 4])
+            False
+            sage: F.is_homomesic(lambda i: i % 2, elements=[2, 9, 5, 7, 8, 2])
+            True
+        """
+        orbavgs = [] # This will be the list of all averages on cycles.
+        if elements is None:
+            # The user has not provided elements, so we need to
+            # check all cycles of the DDS.
+            for cyc in self.cycles():
+                l = len(cyc)
+                avg = ~(QQ(l)) * sum(h(i) for i in cyc)
+                if avg not in orbavgs:
+                    if orbavgs:
+                        return False
+                    orbavgs.append(avg)
+        else:
+            # Checking only the cycles of the elements provided
+            # by the user.
+            for element in elements:
+                (orb, ix) = self.orbit(element, preperiod=True)
+                cyc = orb[ix:] # the cycle in the orbit of element
+                l = len(cyc)
+                avg = ~(QQ(l)) * sum(h(i) for i in cyc)
+                if avg not in orbavgs:
+                    if orbavgs:
+                        return False
+                    orbavgs.append(avg)
+        if not orbavgs:
+            return True
+        if average is None:
+            if find_average:
+                return orbavgs[0]
+            return True
+        return orbavgs[0] == average
 
 class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
     r"""
@@ -590,6 +716,61 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
                 return False
         return True
 
+    def cycles(self):
+        r"""
+        Return a list of all cycles of ``self``, up to
+        cyclic rotation.
+
+        We recall the definition of cycles:
+        Let `(X, \phi)` be a DDS.
+        A *cycle* of `(X, \phi)` is a finite list
+        `u = (u_1, u_2, \ldots, u_k)` of elements of `X` such
+        that `\phi(u_i) = u_{i+1}` for each `i \leq k`, where we
+        set `u_{k+1} = u_1`.
+        Note that any element of `X` whose orbit is finite has a
+        cycle in its orbit.
+
+        EXAMPLES::
+        
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: BS = discrete_dynamical_systems.bulgarian_solitaire
+            sage: BS(8).cycles()
+            [[[4, 3, 1], [3, 3, 2], [3, 2, 2, 1], [4, 2, 1, 1]],
+             [[4, 2, 2], [3, 3, 1, 1]]]
+            sage: BS(6).cycles()
+            [[[3, 2, 1]]]
+
+            sage: D = FiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
+            sage: D.cycles()
+            [[5, 1, 3], [4, 0, 2]]
+            sage: D = FiniteDynamicalSystem(tuple(range(6)), lambda x : (x ** 2) % 6)
+            sage: D.cycles()
+            [[1], [4], [3], [0]]
+            sage: D = FiniteDynamicalSystem(tuple(range(11)), lambda x : (x ** 2 - 1) % 11)
+            sage: D.cycles()
+            [[10, 0], [8], [4]]
+
+            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: F = discrete_dynamical_systems.one_line([4, 7, 2, 6, 2, 10, 9, 11, 5, 6, 12, 12, 12, 6])
+            sage: F.cycles()
+            [[6, 10], [12], [9, 5, 2, 7]]
+        """
+        l = list(self)
+        cycs = []
+        while l:
+            start = l[-1]
+            (orb, ix) = self.orbit(start, preperiod=True)
+            if orb[ix] in l:
+                # This means we've actually found a new cycle,
+                # not just a new path to an old cycle.
+                cycs.append(orb[ix:])
+            for j in orb:
+                try:
+                    l.remove(j)
+                except ValueError:
+                    pass
+        return cycs
+
 class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteDynamicalSystem):
     r"""
     An invertible finite discrete dynamical system.
@@ -672,6 +853,34 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
             orbs.append(orb)
         return orbs
 
+    def cycles(self):
+        r"""
+        Return a list of all cycles of ``self``, up to
+        cyclic rotation.
+
+        We recall the definition of cycles:
+        Let `(X, \phi)` be a DDS.
+        A *cycle* of `(X, \phi)` is a finite list
+        `u = (u_1, u_2, \ldots, u_k)` of elements of `X` such
+        that `\phi(u_i) = u_{i+1}` for each `i \leq k`, where we
+        set `u_{k+1} = u_1`.
+        Note that any element of `X` whose orbit is finite has a
+        cycle in its orbit.
+
+        Since ``self`` is invertible, the cycles of ``self``
+        are the same as its orbits.
+        
+        EXAMPLES::
+        
+            sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
+            sage: D.cycles()
+            [[5, 1, 3], [4, 0, 2]]
+            sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 3) % 6)
+            sage: D.cycles()
+            [[5, 2], [4, 1], [3, 0]]
+        """
+        return self.orbits()
+
     def orbit_lengths(self):
         r"""
         Return a list of the lengths of all orbits of
@@ -687,53 +896,6 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
             [2, 2, 2]
         """
         return [len(orb) for orb in self.orbits()]
-
-    def is_homomesic(self, h, average=None, find_average=False):
-        r"""
-        Check if ``h`` (a map from the ground set of ``self`` to
-        a `\QQ`-vector space) is homomesic with respect to ``self``.
-
-        If the optional argument ``average`` is provided, then
-        this also checks that the averages are equal to ``average``.
-
-        If the optional argument ``find_average`` is set to
-        ``True``, then this method returns the average of ``h``
-        in case ``h`` is homomesic (instead of returning ``True``).
-
-        EXAMPLES::
-
-            sage: W = Words(2, 5)
-            sage: F = InvertibleFiniteDynamicalSystem(W, lambda x : x[1:] + Word([x[0]]))
-            sage: F.is_homomesic(lambda w: sum(w))
-            False
-            sage: F.is_homomesic(lambda w: 1, average=1)
-            True
-            sage: F.is_homomesic(lambda w: 1, average=0)
-            False
-            sage: F.is_homomesic(lambda w: 1)
-            True
-            sage: F.is_homomesic(lambda w: 1, find_average=True)
-            1
-            sage: F.is_homomesic(lambda w: w[0] - w[1], average=0)
-            True
-            sage: F.is_homomesic(lambda w: w[0] - w[1], find_average=True)
-            0
-        """
-        orbavgs = []
-        for orb in self.orbits():
-            l = len(orb)
-            avg = ~(QQ(l)) * sum(h(i) for i in orb)
-            if avg not in orbavgs:
-                if orbavgs:
-                    return False
-                orbavgs.append(avg)
-        if not orbavgs:
-            return True
-        if average is None:
-            if find_average:
-                return orbavgs[0]
-            return True
-        return orbavgs[0] == average
 
 class discrete_dynamical_systems():
     r"""
@@ -1070,6 +1232,18 @@ class discrete_dynamical_systems():
             [[3, 1], [2, 2], [2, 1, 1]]
             sage: BS(7).orbit(Partition([6, 1]), preperiod=True)
             ([[6, 1], [5, 2], [4, 2, 1], [3, 3, 1], [3, 2, 2], [3, 2, 1, 1]], 2)
+            sage: BS(6).is_homomesic(lambda lam: len(lam))
+            True
+            sage: BS(6).is_homomesic(lambda lam: lam[0])
+            True
+            sage: BS(6).is_homomesic(lambda lam: lam[-1])
+            True
+            sage: BS(8).is_homomesic(lambda lam: len(lam))
+            True
+            sage: BS(8).is_homomesic(lambda lam: lam[0])
+            True
+            sage: BS(8).is_homomesic(lambda lam: lam[-1])
+            False
         """
         from sage.combinat.partition import Partition, Partitions
         X = Partitions(n)

@@ -505,7 +505,7 @@ class Graph(GenericGraph):
          <https://networkx.github.io/>`__ graph, or `igraph
          <http://igraph.org/python/>`__ graph.
 
-    - ``pos`` - a positioning dictionary (cf. documentation of
+    - ``pos`` -- a positioning dictionary (cf. documentation of
       :meth:`~sage.graphs.generic_graph.GenericGraph.layout`). For example, to
       draw 4 vertices on a square::
 
@@ -514,19 +514,20 @@ class Graph(GenericGraph):
           2: [ 1, 1],
           3: [-1, 1]}
 
-    - ``name`` - (must be an explicitly named parameter, i.e.,
+    - ``name`` -- (must be an explicitly named parameter, i.e.,
        ``name="complete")`` gives the graph a name
 
-    - ``loops`` - boolean, whether to allow loops (ignored if data is an
-       instance of the ``Graph`` class)
+    - ``loops`` -- boolean (default: ``None``); whether to allow loops (ignored
+       if data is an instance of the ``Graph`` class)
 
-    - ``multiedges`` - boolean, whether to allow multiple edges (ignored if data
-       is an instance of the ``Graph`` class).
+    - ``multiedges`` -- boolean (default: ``None``); whether to allow multiple
+       edges (ignored if data is an instance of the ``Graph`` class).
 
-    - ``weighted`` - whether graph thinks of itself as weighted or not. See
+    - ``weighted`` -- boolean (default: ``None``); whether graph thinks of
+      itself as weighted or not. See
       :meth:`~sage.graphs.generic_graph.GenericGraph.weighted`.
 
-    - ``format`` - if set to ``None`` (default), :class:`Graph` tries to guess
+    - ``format`` -- if set to ``None`` (default), :class:`Graph` tries to guess
       input's format. To avoid this possibly time-consuming step, one of the
       following values can be specified (see description above): ``"int"``,
       ``"graph6"``, ``"sparse6"``, ``"rule"``, ``"list_of_edges"``,
@@ -534,7 +535,7 @@ class Graph(GenericGraph):
       ``"weighted_adjacency_matrix"``, ``"seidel_adjacency_matrix"``,
       ``"incidence_matrix"``, ``"NX"``, ``"igraph"``.
 
-    - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
+    - ``sparse`` -- boolean (default: ``True``); ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
       ``data_structure="dense"``.
 
@@ -552,17 +553,18 @@ class Graph(GenericGraph):
          than the sparse backend and smaller in memory, and it is immutable, so
          that the resulting graphs can be used as dictionary keys).
 
-    - ``immutable`` (boolean) -- whether to create a immutable graph. Note that
-      ``immutable=True`` is actually a shortcut for
+    - ``immutable`` -- boolean (default: ``False``); whether to create a
+      immutable graph. Note that ``immutable=True`` is actually a shortcut for
       ``data_structure='static_sparse'``. Set to ``False`` by default.
 
-    - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
-      only the integers `0,...,n-1`, where `n` is the number of vertices.
+    - ``vertex_labels`` -- boolean (default: ``True``); whether to allow any
+      object as a vertex (slower), or only the integers `0,...,n-1`, where `n`
+      is the number of vertices.
 
-    - ``convert_empty_dict_labels_to_None`` - this arguments sets the default
-       edge labels used by NetworkX (empty dictionaries) to be replaced by None,
-       the default Sage edge label. It is set to ``True`` iff a NetworkX graph
-       is on the input.
+    - ``convert_empty_dict_labels_to_None`` -- this arguments sets the default
+       edge labels used by NetworkX (empty dictionaries) to be replaced by
+       ``None``, the default Sage edge label. It is set to ``True`` iff a
+       NetworkX graph is on the input.
 
     EXAMPLES:
 
@@ -1526,20 +1528,20 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` (boolean) -- whether to return a certificate. The
-          method only returns boolean answers when ``certificate = False``
-          (default). When it is set to ``True``, it either answers ``(True,
-          None)`` when the graph is a tree and ``(False, cycle)`` when it
-          contains a cycle. It returns ``(False, None)`` when the graph is
-          empty or not connected.
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate. The method only returns boolean answers when
+          ``certificate = False`` (default). When it is set to ``True``, it
+          either answers ``(True, None)`` when the graph is a tree or ``(False,
+          cycle)`` when it contains a cycle. It returns ``(False, None)`` when
+          the graph is empty or not connected.
 
-        - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether the
-          certificate is given as a list of vertices or a list of
-          edges.
+        - ``output`` -- either ``'vertex'`` (default) or ``'edge'``; whether the
+          certificate is given as a list of vertices (``output = 'vertex'``) or
+          a list of edges (``output = 'edge'``).
 
-        When the certificate cycle is given as a list of edges, the
-        edges are given as `(v_i, v_{i+1}, l)` where `v_1, v_2, \dots,
-        v_n` are the vertices of the cycles (in their cyclic order).
+        When the certificate cycle is given as a list of edges, the edges are
+        given as `(v_i, v_{i+1}, l)` where `v_1, v_2, \dots, v_n` are the
+        vertices of the cycles (in their cyclic order).
 
         EXAMPLES::
 
@@ -1669,15 +1671,15 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` (boolean) -- whether to return a certificate. The
-          method only returns boolean answers when ``certificate = False``
-          (default). When it is set to ``True``, it either answers ``(True,
-          None)`` when the graph is a forest and ``(False, cycle)`` when it
-          contains a cycle.
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate. The method only returns boolean answers when
+          ``certificate = False`` (default). When it is set to ``True``, it
+          either answers ``(True, None)`` when the graph is a forest or
+          ``(False, cycle)`` when it contains a cycle.
 
-        - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether the
-          certificate is given as a list of vertices or a list of
-          edges.
+        - ``output`` -- either ``'vertex'`` (default) or ``'edge'``; whether the
+          certificate is given as a list of vertices (``output = 'vertex'``) or
+          a list of edges (``output = 'edge'``).
 
         EXAMPLES::
 
@@ -1992,10 +1994,10 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``k`` -- when set to ``None``, the method returns the list of all apex
-          of the graph, possibly empty if the graph is not apex. When set to a
-          positive integer, the method ends as soon as `k` apex vertices are
-          found.
+        - ``k`` -- integer (default: ``None``); when set to ``None``, the method
+          returns the list of all apex of the graph, possibly empty if the graph
+          is not apex. When set to a positive integer, the method ends as soon
+          as `k` apex vertices are found.
 
         OUTPUT:
 
@@ -2264,9 +2266,10 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` (boolean) -- When ``certificate = False``, this method
-          only returns ``True`` or ``False``. If ``certificate = True``, the
-          subgraph found is returned instead of ``False``.
+        - ``certificate`` -- boolean (default: ``False``); when ``certificate =
+          False``, this method only returns ``True`` or ``False``. If
+          ``certificate = True``, the subgraph found is returned instead of
+          ``False``.
 
         EXAMPLES:
 
@@ -2370,9 +2373,10 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` (boolean) -- When ``certificate = False``, this method
-          only returns ``True`` or ``False``. If ``certificate = True``, the
-          subgraph found is returned instead of ``False``.
+        - ``certificate`` -- boolean (default: ``False``); when ``certificate =
+          False``, this method only returns ``True`` or ``False``. If
+          ``certificate = True``, the subgraph found is returned instead of
+          ``False``.
 
         EXAMPLES:
 
@@ -2611,12 +2615,13 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``k`` (integer) -- the width to be considered. When ``k`` is an
-          integer, the method checks that the graph has treewidth `\leq k`. If
-          ``k`` is ``None`` (default), the method computes the optimal
-          tree-width.
+        - ``k`` -- integer (default: ``None``); indicates the width to be
+          considered. When ``k`` is an integer, the method checks that the graph
+          has treewidth `\leq k`. If ``k`` is ``None`` (default), the method
+          computes the optimal tree-width.
 
-        - ``certificate`` -- whether to return the tree-decomposition itself.
+        - ``certificate`` -- boolean (default: ``False``); whether to return the
+          tree-decomposition itself.
 
         - ``algorithm`` -- whether to use ``"sage"`` or ``"tdlib"`` (requires
           the installation of the 'tdlib' package). The default behaviour is to
@@ -2918,8 +2923,8 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` (boolean) -- whether to return
-          a certificate (default : ``False``)
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate.
 
         OUTPUT:
 
@@ -3271,7 +3276,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``bounds`` -- (default: ``None``) Two possibilities:
+        - ``bounds`` -- (default: ``None``); Two possibilities:
 
           - A dictionary whose keys are the vertices, and values a pair of
             real values ``(min,max)`` corresponding to the values
@@ -3282,7 +3287,7 @@ class Graph(GenericGraph):
             `(f(v),g(v))`.
 
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -3290,7 +3295,7 @@ class Graph(GenericGraph):
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
@@ -3486,7 +3491,7 @@ class Graph(GenericGraph):
           - When set to ``False`` (default), gives a weight of 1 to all the
             edges.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -3494,7 +3499,7 @@ class Graph(GenericGraph):
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
@@ -3593,7 +3598,7 @@ class Graph(GenericGraph):
          * A function associating to each vertex its associated maximum
            out-degree.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP) solver
           to be used. If set to ``None``, the default one is used. For more
           information on LP solvers and which default solver is used, see the
           method :meth:`solve
@@ -3601,7 +3606,7 @@ class Graph(GenericGraph):
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
@@ -3750,9 +3755,10 @@ class Graph(GenericGraph):
           ``"dense"``; see the documentation of :class:`Graph` or
           :class:`DiGraph`; default is the data structure of ``self``
 
-        - ``sparse`` -- (optional) boolean; ``sparse=True`` is an alias for
-          ``data_structure="sparse"``, and ``sparse=False`` is an alias for
-          ``data_structure="dense"``
+        - ``sparse`` -- boolean (default: ``None``); ``sparse=True`` is an alias
+          for ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+          ``data_structure="dense"``. By default (``None``), guess the most
+          suitable data structure.
 
         .. WARNING::
 
@@ -3926,15 +3932,15 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` (default: ``None``) Specify the Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`solve
+        - ``solver`` -- (default: ``None``); specify the Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         This method is a frontend for method
@@ -4015,14 +4021,13 @@ class Graph(GenericGraph):
             (see the :mod:`MILP module <sage.numerical.mip>`, or Sage's tutorial
             on Linear Programming).
 
-          - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-            solver to be used. If set to ``None``, the default one is used. For
-            more information on LP solvers and which default solver is used, see
-            the method
-            :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the
-            class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
+          of the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity
           for the MILP algorithm. Its default value is 0, which means *quiet*.
 
         .. SEEALSO::
@@ -4105,7 +4110,7 @@ class Graph(GenericGraph):
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.")
 
     @doc_index("Algorithmically hard stuff")
-    def coloring(self, algorithm="DLX", hex_colors=False, verbose=0):
+    def coloring(self, algorithm="DLX", hex_colors=False, solver=None, verbose=0):
         r"""
         Return the first (optimal) proper vertex-coloring found.
 
@@ -4122,10 +4127,16 @@ class Graph(GenericGraph):
             affected by whether optional MILP solvers have been installed (see
             the :mod:`MILP module <sage.numerical.mip>`).
 
-        - ``hex_colors`` -- (default: ``False``) if ``True``, return a
+        - ``hex_colors`` -- boolean (default: ``False``); if ``True``, return a
           dictionary which can easily be used for plotting.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
+          of the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity
           for the MILP algorithm. Its default value is 0, which means *quiet*.
 
         .. SEEALSO::
@@ -4165,7 +4176,7 @@ class Graph(GenericGraph):
         self._scream_if_not_simple(allow_multiple_edges=True)
         if algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
-            return vertex_coloring(self, hex_colors=hex_colors, verbose=verbose)
+            return vertex_coloring(self, hex_colors=hex_colors, solver=solver, verbose=verbose)
         elif algorithm == "DLX":
             from sage.graphs.graph_coloring import first_coloring
             return first_coloring(self, hex_colors=hex_colors)
@@ -4395,8 +4406,8 @@ class Graph(GenericGraph):
 
           - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- (default: ``None``) specify a Linear Program (LP) solver
-          to be used; if set to ``None``, the default one is used
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
+          solver to be used; if set to ``None``, the default one is used
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
           set to 0 by default, which means quiet (only useful when ``algorithm
@@ -4553,10 +4564,11 @@ class Graph(GenericGraph):
 
         - ``H`` -- the graph to which ``self`` should be sent.
 
-        - ``core`` (boolean) -- whether to minimize the size of the mapping's
-          image (see note below). This is set to ``False`` by default.
+        - ``core`` -- boolean (default: ``False``; whether to minimize the size
+          of the mapping's image (see note below). This is set to ``False`` by
+          default.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -4564,7 +4576,7 @@ class Graph(GenericGraph):
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         .. NOTE::
@@ -4674,7 +4686,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` -- (default: ``"PPL"``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -4690,11 +4702,11 @@ class Graph(GenericGraph):
               when using some non exact solvers as reported in :trac:`23658` and
               :trac:`23798`.
 
-        - ``verbose_constraints`` -- boolean (default: ``False``) whether to
+        - ``verbose_constraints`` -- boolean (default: ``False``); whether to
           display which constraints are being generated.
 
-        - ``verbose`` -- integer (default: `0`) level of verbosity required from
-          the LP solver
+        - ``verbose`` -- integer (default: `0`); sets the level of verbosity of
+          the LP solver.
 
         EXAMPLES:
 
@@ -4787,14 +4799,14 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``value_only`` (boolean) -- ``True`` by default
+        - ``value_only`` -- boolean (default: ``True``);
 
           - If ``value_only=True``, only the numerical value of the `MAD` is
             returned.
 
           - Else, the subgraph of `G` realizing the `MAD` is returned.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -4802,7 +4814,7 @@ class Graph(GenericGraph):
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
@@ -4895,7 +4907,7 @@ class Graph(GenericGraph):
         - ``family`` -- A list of lists defining the family `F` (actually, a
           Family of subsets of ``G.vertices()``).
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -4903,7 +4915,7 @@ class Graph(GenericGraph):
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
@@ -5016,13 +5028,13 @@ class Graph(GenericGraph):
 
         - ``H`` -- The minor to find for in the current graph.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP) solver
           to be used. If set to ``None``, the default one is used. For more
           information on LP solvers and which default solver is used, see the
           method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
           the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
@@ -5215,8 +5227,8 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``v`` - a vertex. Set to ``None`` (default) to get a dictionary
-          associating each vertex with its centrality degree.
+        - ``v`` -- a vertex (default: ``None``); set to ``None`` (default) to
+          get a dictionary associating each vertex with its centrality degree.
 
         .. SEEALSO::
 
@@ -5267,9 +5279,9 @@ class Graph(GenericGraph):
            ``"dense"``. See the documentation of :class:`Graph` or
            :class:`DiGraph`.
 
-         - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
-           ``data_structure="sparse"``, and ``sparse=False`` is an alias for
-           ``data_structure="dense"``.
+         - ``sparse`` -- boolean (default: ``None``); ``sparse=True`` is an
+           alias for ``data_structure="sparse"``, and ``sparse=False`` is an
+           alias for ``data_structure="dense"``.
 
         EXAMPLES::
 
@@ -5354,15 +5366,15 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``labels`` - (defaults to 'pairs') If set to 'pairs', each element `v`
-          in the first graph will be named `(0, v)` and each element `u` in
+        - ``labels`` -- (defaults to 'pairs'); if set to 'pairs', each element
+          `v` in the first graph will be named `(0, v)` and each element `u` in
           ``other`` will be named `(1, u)` in the result. If set to 'integers',
           the elements of the result will be relabeled with consecutive
           integers.
 
-        - ``immutable`` (boolean) -- whether to create a mutable/immutable
-          join. ``immutable=None`` (default) means that the graphs and their
-          join will behave the same way.
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable join. ``immutable=None`` (default) means that the
+          graphs and their join will behave the same way.
 
         .. SEEALSO::
 
@@ -5432,8 +5444,9 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``vertices`` (list) -- the ordering of the vertices defining how they
-          should appear in the matrix. By default, the ordering given by
+        - ``vertices`` -- list of vertices (default: ``None``); the ordering of
+          the vertices defining how they should appear in the matrix. By
+          default, the ordering given by
           :meth:`~sage.graphs.generic_graph.GenericGraph.vertices` is used.
 
         EXAMPLES::
@@ -5459,10 +5472,11 @@ class Graph(GenericGraph):
 
         INPUT:
 
-         - ``s`` -- a list of vertices of ``self``
+         - ``s`` -- a list of vertices of ``self``.
 
-        - ``inplace`` (boolean) -- whether to do the modification inplace, or to
-          return a copy of the graph after switching.
+        - ``inplace`` -- boolean (default: ``True``); whether to do the
+          modification inplace, or to return a copy of the graph after
+          switching.
 
         EXAMPLES::
 
@@ -5597,15 +5611,15 @@ class Graph(GenericGraph):
 
         - ``H`` -- The topological minor to find in the current graph.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`solve
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
@@ -5887,7 +5901,7 @@ class Graph(GenericGraph):
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
     @doc_index("Clique-related methods")
-    def clique_maximum(self,  algorithm="Cliquer"):
+    def clique_maximum(self,  algorithm="Cliquer", solver=None, verbose=0):
         """
         Return the vertex set of a maximal order complete subgraph.
 
@@ -5907,6 +5921,20 @@ class Graph(GenericGraph):
             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
             package must be installed.
 
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        Parameters ``solver`` and ``verbose`` are used only when
+        ``algorithm="MILP"``.
+
         .. NOTE::
 
             Currently only implemented for undirected graphs. Use to_undirected
@@ -5920,7 +5948,7 @@ class Graph(GenericGraph):
 
         Using Cliquer (default)::
 
-            sage: C=graphs.PetersenGraph()
+            sage: C = graphs.PetersenGraph()
             sage: C.clique_maximum()
             [7, 9]
             sage: C = Graph('DJ{')
@@ -5929,14 +5957,14 @@ class Graph(GenericGraph):
 
         Through a Linear Program::
 
-            sage: len(C.clique_maximum(algorithm = "MILP"))
+            sage: len(C.clique_maximum(algorithm="MILP"))
             4
 
         TESTS:
 
         Wrong algorithm::
 
-            sage: C.clique_maximum(algorithm = "BFS")
+            sage: C.clique_maximum(algorithm="BFS")
             Traceback (most recent call last):
             ...
             NotImplementedError: Only 'MILP', 'Cliquer' and 'mcqd' are supported.
@@ -5947,7 +5975,7 @@ class Graph(GenericGraph):
             from sage.graphs.cliquer import max_clique
             return max_clique(self)
         elif algorithm == "MILP":
-            return self.complement().independent_set(algorithm=algorithm)
+            return self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose)
         elif algorithm == "mcqd":
             try:
                 from sage.graphs.mcqd import mcqd
@@ -5990,18 +6018,18 @@ class Graph(GenericGraph):
             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
             package must be installed.
 
-        - ``cliques`` - an optional list of cliques that can be input if
+        - ``cliques`` -- an optional list of cliques that can be input if
           already computed. Ignored unless ``algorithm=="networkx"``.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`solve
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         ALGORITHM:
@@ -6077,9 +6105,9 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``vertices`` - the vertices to inspect (default is entire graph)
+        - ``vertices`` -- the vertices to inspect (default is entire graph)
 
-        - ``cliques`` - list of cliques (if already computed)
+        - ``cliques`` -- list of cliques (if already computed)
 
 
         EXAMPLES::
@@ -6197,16 +6225,16 @@ class Graph(GenericGraph):
            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
            package must be installed.
 
-        - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
+        - ``value_only`` -- boolean (default: ``False``); if set to ``True``,
           only the size of a maximum independent set is returned. Otherwise,
           a maximum independent set is returned as a list of vertices.
 
-        - ``reduction_rules`` -- (default: ``True``) Specify if the reductions
+        - ``reduction_rules`` -- (default: ``True``); specify if the reductions
           rules from kernelization must be applied as pre-processing or not.
           See [ACFLSS04]_ for more details. Note that depending on the instance,
           it might be faster to disable reduction rules.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -6214,7 +6242,7 @@ class Graph(GenericGraph):
           of the class
           :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
-        - ``verbosity`` -- non-negative integer (default: ``0``). Set the level
+        - ``verbosity`` -- non-negative integer (default: ``0``); set the level
           of verbosity you want from the linear program solver. Since the
           problem of computing an independent set is `NP`-complete, its solving
           may take some time depending on the graph. A value of 0 means that
@@ -6238,7 +6266,7 @@ class Graph(GenericGraph):
         As a linear program::
 
             sage: C = graphs.PetersenGraph()
-            sage: len(C.independent_set(algorithm = "MILP"))
+            sage: len(C.independent_set(algorithm="MILP"))
             4
 
         .. PLOT::
@@ -6293,24 +6321,24 @@ class Graph(GenericGraph):
             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
             package must be installed.
 
-        - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
+        - ``value_only`` -- boolean (default: ``False``); if set to ``True``,
           only the size of a minimum vertex cover is returned. Otherwise,
           a minimum vertex cover is returned as a list of vertices.
 
-        - ``reduction_rules`` -- (default: ``True``) Specify if the reductions
+        - ``reduction_rules`` -- (default: ``True``); specify if the reductions
           rules from kernelization must be applied as pre-processing or not.
-          See [ACFLSS04]_ for more details. Note that depending on the
-          instance, it might be faster to disable reduction rules.
+          See [ACFLSS04]_ for more details. Note that depending on the instance,
+          it might be faster to disable reduction rules.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`solve
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbosity`` -- non-negative integer (default: ``0``). Set the level
+        - ``verbosity`` -- non-negative integer (default: ``0``); set the level
           of verbosity you want from the linear program solver. Since the
           problem of computing a vertex cover is `NP`-complete, its solving may
           take some time depending on the graph. A value of 0 means that there
@@ -6733,18 +6761,18 @@ class Graph(GenericGraph):
 
         INPUT:
 
-         - ``algorithm`` - either ``cliquer`` or ``networkx``
+         - ``algorithm`` -- either ``cliquer`` or ``networkx``
 
-           - ``cliquer`` - This wraps the C program Cliquer [NisOst2003]_.
+           - ``cliquer`` -- This wraps the C program Cliquer [NisOst2003]_.
 
-           - ``networkx`` - This function is based on NetworkX's implementation
+           - ``networkx`` -- This function is based on NetworkX's implementation
              of the Bron and Kerbosch Algorithm [BroKer1973]_.
 
-        -  ``vertices`` - the vertices to inspect (default is entire graph).
-           Ignored unless ``algorithm=='networkx'``.
+        - ``vertices`` -- the vertices to inspect (default is entire graph).
+          Ignored unless ``algorithm=='networkx'``.
 
-        -  ``cliques`` - list of cliques (if already computed).  Ignored unless
-           ``algorithm=='networkx'``.
+        - ``cliques`` -- list of cliques (if already computed).  Ignored unless
+          ``algorithm=='networkx'``.
 
         EXAMPLES::
 
@@ -6796,11 +6824,9 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        -  ``vertices`` - the vertices to inspect (default is
-           entire graph)
+        - ``vertices`` -- the vertices to inspect (default is entire graph)
 
-        -  ``cliques`` - list of cliques (if already
-           computed)
+        - ``cliques`` -- list of cliques (if already computed)
 
         EXAMPLES::
 
@@ -6944,7 +6970,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``k`` (integer)
+        - ``k`` -- integer (default: ``None``);
 
             * If ``k = None`` (default), returns the core number for each vertex.
 
@@ -6954,14 +6980,11 @@ class Graph(GenericGraph):
               that each vertex is of degree strictly less than `k` when it is to
               be eliminated from the graph.
 
-        - ``with_labels`` (boolean)
-
-           * When set to ``False``, and ``k = None``, the method returns a list
-             whose `i` th element is the core number of the `i` th vertex. When
-             set to ``True``, the method returns a dictionary whose keys are
-             vertices, and whose values are the corresponding core numbers.
-
-             By default, ``with_labels = False``.
+        - ``with_labels`` -- boolean (default: ``False``); when set to
+          ``False``, and ``k = None``, the method returns a list whose `i` th
+          element is the core number of the `i` th vertex. When set to ``True``,
+          the method returns a dictionary whose keys are vertices, and whose
+          values are the corresponding core numbers.
 
         .. SEEALSO::
 
@@ -7240,7 +7263,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` -- (default: ``"ppl"``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``"ppl"``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method :meth:`solve
@@ -7248,7 +7271,7 @@ class Graph(GenericGraph):
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES::
@@ -7356,7 +7379,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` -- (default: ``"ppl"``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``"ppl"``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method :meth:`solve
@@ -7364,7 +7387,7 @@ class Graph(GenericGraph):
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES::
@@ -7464,7 +7487,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``vertices`` - a set of "real" vertices, as opposed to the fakes one
+        - ``vertices`` -- a set of "real" vertices, as opposed to the fakes one
           introduced during the computations. This variable is useful for the
           algorithm and for recursion purposes.
 
@@ -7655,7 +7678,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method :meth:`solve
@@ -7663,7 +7686,7 @@ class Graph(GenericGraph):
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
@@ -7733,7 +7756,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``name``: name of the variables (default: ``'t'``)
+        - ``name`` -- name of the variables (default: ``'t'``)
 
         OUTPUT:
 
@@ -8071,7 +8094,7 @@ class Graph(GenericGraph):
             each vertex `v`, require that the sum of the values of the edges
             incident to `v` is 1.
 
-        - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
+        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
           solver to be used; if set to ``None``, the default one is used
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:

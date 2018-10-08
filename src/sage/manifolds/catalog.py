@@ -154,11 +154,7 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         stereoN_to_S = stereoN.transition_map(stereoS,
           (x / (x**2 + y**2), y / (x**2 + y**2)), intersection_name='W',
           restrictions1=x**2 + y**2 != 0, restrictions2=xp**2+yp**2!=0)
-        stereoS_to_N = stereoS.transition_map(stereoN,
-          (xp / (xp**2 + yp**2), yp / (xp**2 + yp**2)), intersection_name='W',
-          restrictions1=x**2 + y**2 != 0, restrictions2=xp**2+yp**2!=0)
         stereoN_to_S.set_inverse(xp / (xp**2 + yp**2), yp / (xp**2 + yp**2))
-        stereoS_to_N.set_inverse(x / (x**2 + y**2), y / (x**2 + y**2))
         W = U.intersection(V)
         stereoN_W = stereoN.restrict(W)
         stereoS_W = stereoS.restrict(W)
@@ -177,9 +173,9 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
                                                             sin(th)*sin(ph) / (1-cos(th))))
         spher_to_stereoN.set_inverse(2*atan(1/sqrt(x**2+y**2)), atan2(-y, -x)+pi)
         stereoN_to_S_A = stereoN_to_S.restrict(A)
-        spher_to_stereoS = stereoN_to_S_A * spher_to_stereoN
+        stereoN_to_S_A * spher_to_stereoN # generates spher_to_stereoS
         stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)
-        stereoS_to_spher = spher_to_stereoN.inverse() * stereoS_to_N_A
+        spher_to_stereoN.inverse() * stereoS_to_N_A  # generates stereoS_to_spher
 
         coordfunc1 = [sin(th)*cos(ph), sin(th)*sin(ph), cos(th)]
         coordfunc2 = [2*x/(1+x**2+y**2), 2*y/(1+x**2+y**2), (x**2+y**2-1)/(1+x**2+y**2)]

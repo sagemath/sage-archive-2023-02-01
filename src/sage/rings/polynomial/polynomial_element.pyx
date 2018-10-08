@@ -11052,7 +11052,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f.quo_rem(g)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Division not exact (consider coercing to polynomials over the fraction field)
+            ArithmeticError: Division non exact (consider coercing to polynomials over the fraction field)
             sage: g = 0
             sage: f.quo_rem(g)
             Traceback (most recent call last):
@@ -11101,7 +11101,7 @@ cdef class Polynomial_generic_dense(Polynomial):
                 try:
                     q = R(q)
                 except TypeError:
-                    raise ArithmeticError("Division not exact (consider coercing to polynomials over the fraction field)")
+                    raise ArithmeticError("Division non exact (consider coercing to polynomials over the fraction field)")
             for j from n+k-2 >= j >= k:
                 x[j] -= q * y[j-k]
             quo.append(q)

@@ -74,7 +74,7 @@ from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.associahedron import Associahedron
 
 
-def zero_sum_projection(d):
+def zero_sum_projection(d, base_ring=RDF):
     r"""
     Return a matrix corresponding to the projection on the orthogonal of
     `(1,1,\ldots,1)` in dimension `d`.
@@ -85,8 +85,8 @@ def zero_sum_projection(d):
 
     OUTPUT:
 
-    A matrix of dimensions `(d-1)\times d` defined over :class:`RDF
-    <sage.rings.real_double.RealDoubleField_class>`.
+    A matrix of dimensions `(d-1)\times d` defined over ``base_ring`` (default:
+    :class:`RDF <sage.rings.real_double.RealDoubleField_class>`).
 
     EXAMPLES::
 
@@ -96,15 +96,28 @@ def zero_sum_projection(d):
         sage: zero_sum_projection(3)
         [ 0.7071067811865475 -0.7071067811865475                 0.0]
         [ 0.4082482904638631  0.4082482904638631 -0.8164965809277261]
+
+    Exact computation in `AA <sage.rings.qqbar.AlgebraicRealField>``::
+
+        sage: zero_sum_projection(3, base_ring=AA)
+        [ 0.7071067811865475? -0.7071067811865475?                    0]
+        [ 0.4082482904638630?  0.4082482904638630? -0.8164965809277260?]
+
     """
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector
-    basis = [vector(RDF,[1]*i + [-i] + [0]*(d-i-1)) for i in range(1,d)]
-    return matrix(RDF, [v / v.norm() for v in basis])
+    basis = [vector(base_ring,[1]*i + [-i] + [0]*(d-i-1)) for i in range(1,d)]
+    return matrix(base_ring, [v / v.norm() for v in basis])
 
-def project_points(*points):
+def project_points(*points, **kwds):
     """
     Projects a set of points into a vector space of dimension one less.
+
+    INPUT:
+
+    - ``points``... -- the points to project.
+
+    - ``base_ring`` -- (default ``RDF``) the base ring to use.
 
     The projection is isometric to the orthogonal projection on the hyperplane
     made of zero sum vector. Hence, if the set of points have all equal sums,
@@ -140,12 +153,24 @@ def project_points(*points):
         sage: for i in range(21):
         ....:     for j in range(21):
         ....:         assert abs((V[i]-V[j]).norm() - (P[i]-P[j]).norm()) < 0.00001
+
+    Example with exact computation::
+
+        sage: V = [ vector(v) for v in IntegerVectors(n=4,length=2) ]
+        sage: P = project_points(*V, base_ring=AA)
+        sage: for i in range(len(V)):
+        ....:     for j in range(len(V)):
+        ....:         assert (V[i]-V[j]).norm() == (P[i]-P[j]).norm()
+
     """
     if not points:
         return []
+    base_ring = kwds.pop('base_ring', None)
+    if base_ring is None:
+        base_ring = RDF
     from sage.modules.free_module_element import vector
-    vecs = [vector(RDF,p) for p in points]
-    m = zero_sum_projection(len(vecs[0]))
+    vecs = [vector(base_ring,p) for p in points]
+    m = zero_sum_projection(len(vecs[0]), base_ring=base_ring)
     return [m*v for v in vecs]
 
 class Polytopes():

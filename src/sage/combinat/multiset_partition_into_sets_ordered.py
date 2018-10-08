@@ -1616,7 +1616,10 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             cdict = dict(self.constraints)
         if "alphabet" in cdict:
             # make, e.g., `set([2,3,4])` print as `{2, 3, 4}`
-            A = sorted(cdict["alphabet"])
+            if not all(l in ZZ for l in cdict["alphabet"]):
+                A = sorted(cdict["alphabet"], key=str)
+            else:
+                A = sorted(cdict["alphabet"])
             cdict["alphabet"] = "{" + repr(A)[1:-1] + "}"
         constr = ""
         ss = ['%s=%s' % item for item in iteritems(cdict)]

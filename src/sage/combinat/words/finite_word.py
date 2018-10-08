@@ -2247,7 +2247,7 @@ class FiniteWord_class(Word_class):
             return True
         try:
             it = iter(self)
-            s = next(islice(it, seq[0], None))
+            s = next(islice(it, int(seq[0]), None))
             for i in range(1, len(seq)):
                 steps = seq[i] - seq[i-1]
                 for n in range(steps-1): next(it)
@@ -3676,7 +3676,7 @@ class FiniteWord_class(Word_class):
                             m += 1
                     else:
                         m = 0
-                    current_pos = k-j+l-1  
+                    current_pos = k-j+l-1
                     pft[current_pos] = m
                     current_exp = QQ((current_pos+1, current_pos+1-m))
                     if current_exp > best_exp:
@@ -3686,7 +3686,7 @@ class FiniteWord_class(Word_class):
                         j = self.length()
                     queue.append((u, i, j, l+j-i+1))
             return best_exp
-     
+
     def is_overlap(self):
         r"""
         Return ``True`` if ``self`` is an overlap, and ``False`` otherwise.
@@ -4983,10 +4983,10 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: Word([4,4,2,5,2,1,4,1]).evaluation_sparse()
+            sage: sorted(Word([4,4,2,5,2,1,4,1]).evaluation_sparse())
             [(1, 2), (2, 2), (4, 3), (5, 1)]
-            sage: Word("abcaccab").evaluation_sparse()
-            [('a', 3), ('c', 3), ('b', 2)]
+            sage: sorted(Word("abcaccab").evaluation_sparse())
+            [('a', 3), ('b', 2), ('c', 3)]
         """
         return list(iteritems(self.evaluation_dict()))
 
@@ -5188,7 +5188,7 @@ class FiniteWord_class(Word_class):
 
         #Join the classes of each pair of letters that are one above the other
         from sage.combinat.words.morphism import WordMorphism
-        S = zip(islice(self, delay, None), other)
+        S = zip(islice(self, int(delay), None), other)
         if involution is None:
             for (a,b) in S:
                 p.union(a, b)

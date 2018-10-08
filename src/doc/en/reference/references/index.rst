@@ -638,6 +638,9 @@ REFERENCES:
              Theory*. Morgan & Claypool Publishers, (2011). ISBN
              9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
 
+.. [CFI1992] Cai, JY., Fürer, M. & Immerman, N. Combinatorica (1992) 12: 389.
+             :doi:`10.1007/BF01305232`
+
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
@@ -959,6 +962,11 @@ REFERENCES:
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
 
+.. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker,
+             *Resonance in orbits of plane partitions and increasing
+             tableaux*, JCTA 148 (2017), 244-274,
+             https://doi.org/10.1016/j.jcta.2016.12.007
+
 .. [DPV2001] \J. Daemen, M. Peeters, and G. Van Assche,
              *Bitslice ciphers and power analysis attacks*; in FSE, (2000), pp. 134-149.
 
@@ -1014,6 +1022,11 @@ REFERENCES:
              Computing Classic Closeness Centrality, at Scale
              In Proceedings of the second ACM conference on Online social networks (COSN '14)
              :doi:`10.1145/2660460.2660465`
+
+.. [Ega1981] Yoshimi Egawa, Characterization of H(n, q) by the parameters,
+             Journal of Combinatorial Theory, Series A, Volume 31, Issue 2,
+             1981, Pages 108-125, ISSN 0097-3165,:doi:`10.1016/0097-3165(81)90007-8`.
+             (http://www.sciencedirect.com/science/article/pii/0097316581900078)
 
 .. [Eh2013] Ehrhardt, Wolfgang. "The AMath and DAMath Special
             Functions: Reference Manual and Implementation Notes,
@@ -2362,6 +2375,10 @@ REFERENCES:
 .. [PearsonTest] :wikipedia:`Goodness_of_fit`, accessed 13th
                  October 2009.
 
+.. [Pec2014] Oliver Pechenik, *Cyclic sieving of increasing tableaux and
+             small Schroeder paths*, JCTA 125 (2014), 357-378,
+             https://doi.org/10.1016/j.jcta.2014.04.002
+
 .. [Pen2012] \R. Pendavingh, On the evaluation at `(-i, i)` of the
              Tutte polynomial of a binary matroid. Preprint:
              :arxiv:`1203.0910`
@@ -2873,6 +2890,11 @@ REFERENCES:
 .. [TW1980] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva
             Publishing, 1980)
 
+.. [TY2009] Hugh Thomas and Alexander Yong, *A jeu de taquin theory for
+            increasing tableaux, with applications to K-theoretic Schubert
+            calculus*, Algebra and Number Theory 3 (2009), 121-148,
+            https://projecteuclid.org/euclid.ant/1513797353
+
 .. _ref-U:
 
 **U**
@@ -2901,7 +2923,7 @@ REFERENCES:
              Manifolds*, Springer Basel AG (Basel) (1994);
              :doi:`10.1007/978-3-0348-8495-2`
 
-.. [Var1984] V. S. Varadarajan. *Lie groups, Lie algebras, and their
+.. [Var1984] \V. S. Varadarajan. *Lie groups, Lie algebras, and their
              representations*. Reprint of the 1974 edition. Graduate Texts in
              Mathematics, 102. Springer-Verlag, New York, 1984.
 

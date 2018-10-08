@@ -136,6 +136,8 @@ This base class provides a lot more methods than a general parent::
      'class_group',
      'coerce_map_from_c',
      'content',
+     'derivation',
+     'derivation_module',
      'divides',
      'epsilon',
      'extension',

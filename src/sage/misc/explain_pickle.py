@@ -2431,7 +2431,7 @@ def unpickle_newobj(klass, args):
 
     # This pickle is: load persistent object 0, load persistent object 1,
     # NEWOBJ, STOP.
-    pickle = "P0\nP1\n\x81."
+    pickle = b"P0\nP1\n\x81."
 
     pers = [klass, args]
     def pers_load(id):

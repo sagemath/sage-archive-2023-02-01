@@ -1252,7 +1252,7 @@ class Graph(GenericGraph):
             raise ValueError("Unknown input format '{}'".format(format))
 
         if weighted   is None: weighted   = False
-        self._weighted = getattr(self,'_weighted',weighted)
+        self._weighted = getattr(self, '_weighted', weighted)
 
         self._pos = copy(pos)
 
@@ -1331,8 +1331,8 @@ class Graph(GenericGraph):
 
         ::
 
-            sage: G = Graph(loops=True, multiedges=True,data_structure="sparse")
-            sage: Graph(':?',data_structure="sparse") == G
+            sage: G = Graph(loops=True, multiedges=True, data_structure="sparse")
+            sage: Graph(':?', data_structure="sparse") == G
             True
 
         TESTS::
@@ -1431,12 +1431,12 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-            sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)],multiedges=True)
+            sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)], multiedges=True)
             sage: len(G.spanning_trees())
             8
             sage: G.spanning_trees_count()
             8
-            sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)],multiedges=True)
+            sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)], multiedges=True)
             sage: len(G.spanning_trees())
             6
             sage: G.spanning_trees_count()
@@ -2295,7 +2295,7 @@ class Graph(GenericGraph):
         We can check the certificate returned is indeed an even cycle::
 
             sage: if not g.is_forest():
-            ....:    cycle = g.is_even_hole_free(certificate = True)
+            ....:    cycle = g.is_even_hole_free(certificate=True)
             ....:    if cycle.order() % 2 == 1:
             ....:        print("Error !")
             ....:    if not cycle.is_isomorphic(
@@ -2312,14 +2312,14 @@ class Graph(GenericGraph):
             sage: g = Graph(':SiBFGaCEF_@CE`DEGH`CEFGaCDGaCDEHaDEF`CEH`ABCDEF', loops=False, multiedges=False)
             sage: g.is_even_hole_free()
             False
-            sage: g.is_even_hole_free(certificate = True)
+            sage: g.is_even_hole_free(certificate=True)
             Subgraph of (): Graph on 4 vertices
 
         Making sure there are no other counter-examples around ::
 
             sage: t = lambda x : (Graph(x).is_forest() or
-            ....:       isinstance(Graph(x).is_even_hole_free(certificate = True),Graph))
-            sage: all( t(graphs.RandomBipartite(10,10,.5)) for i in range(100) )
+            ....:       isinstance(Graph(x).is_even_hole_free(certificate=True), Graph))
+            sage: all( t(graphs.RandomBipartite(10, 10, .5)) for i in range(100) )
             True
 
         REFERENCE:
@@ -2393,7 +2393,7 @@ class Graph(GenericGraph):
 
         We can check the certificate returned is indeed a 5-cycle::
 
-            sage: cycle = g.is_odd_hole_free(certificate = True)
+            sage: cycle = g.is_odd_hole_free(certificate=True)
             sage: cycle.is_isomorphic(graphs.CycleGraph(5))
             True
 
@@ -3408,7 +3408,7 @@ class Graph(GenericGraph):
 
         A multigraph also has a strong orientation ::
 
-            sage: g = Graph([(1,2),(1,2)],multiedges=True)
+            sage: g = Graph([(1,2),(1,2)], multiedges=True)
             sage: g.strong_orientation()
             Multi-digraph on 2 vertices
 
@@ -4623,8 +4623,8 @@ class Graph(GenericGraph):
         for ug in self:
             p.add_constraint(p.sum(b[ug,uh] for uh in H) == 1)
 
-        nonedges = H.complement().edges(labels = False)
-        for ug,vg in self.edges(labels = False):
+        nonedges = H.complement().edges(labels=False)
+        for ug,vg in self.edges(labels=False):
             # Two adjacent vertices cannot be mapped to the same element
             for uh in H:
                 p.add_constraint(b[ug,uh] + b[vg,uh] <= 1)
@@ -5737,7 +5737,7 @@ class Graph(GenericGraph):
         def flow_balance(C, v):
             return flow_in(C,v) - flow_out(C,v)
 
-        for h1,h2 in H.edge_iterator(labels = False):
+        for h1,h2 in H.edge_iterator(labels=False):
 
             for v in G:
 
@@ -5755,7 +5755,7 @@ class Graph(GenericGraph):
         is_internal = p.new_variable(binary=True)
 
         # When is a vertex internal for a commodity ?
-        for C in H.edge_iterator(labels = False):
+        for C in H.edge_iterator(labels=False):
             for g in G:
                 p.add_constraint(flow_in(C,g) + flow_out(C,g) - is_internal[C,g], max=1)
 
@@ -5776,7 +5776,7 @@ class Graph(GenericGraph):
         # The flow on one edge can go in only one direction. Besides, it can
         # belong to at most one commodity and has a maximum intensity of 1.
 
-        for g1,g2 in G.edge_iterator(labels = None):
+        for g1,g2 in G.edge_iterator(labels=None):
 
             p.add_constraint(   p.sum(flow[C,(g1,g2)] for C in H.edge_iterator(labels=False))
                               + p.sum(flow[C,(g2,g1)] for C in H.edge_iterator(labels=False)),
@@ -5909,7 +5909,7 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- the algorithm to be used :
 
-          - If ``algorithm = "Cliquer"`` (default) - This wraps the C program
+          - If ``algorithm = "Cliquer"`` (default), wraps the C program
             Cliquer [NisOst2003]_.
 
           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
@@ -5917,7 +5917,7 @@ class Graph(GenericGraph):
 
             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
-          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+          - If ``algorithm = "mcqd"``, uses the MCQD solver
             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
             package must be installed.
 
@@ -6002,19 +6002,18 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- the algorithm to be used :
 
-          - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer
+          - If ``algorithm = "Cliquer"``, wraps the C program Cliquer
             [NisOst2003]_.
 
-          - If ``algorithm = "networkx"`` - This function is based on
-            NetworkX's implementation of the Bron and Kerbosch Algorithm
-            [BroKer1973]_.
+          - If ``algorithm = "networkx"``, uses the NetworkX's implementation of
+            the Bron and Kerbosch Algorithm [BroKer1973]_.
 
           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
             Integer Linear Program.
 
             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
-          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+          - If ``algorithm = "mcqd"``, uses the MCQD solver
             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
             package must be installed.
 
@@ -6221,7 +6220,7 @@ class Graph(GenericGraph):
 
             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
-         * If ``algorithm = "mcqd"`` - Uses the MCQD solver
+         * If ``algorithm = "mcqd"``, uses the MCQD solver
            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
            package must be installed.
 
@@ -6317,7 +6316,7 @@ class Graph(GenericGraph):
           - ``"MILP"`` will compute a minimum vertex cover through a mixed
             integer linear program.
 
-          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+          - ``"mcqd"`` will use the MCQD solver
             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
             package must be installed.
 
@@ -6403,7 +6402,7 @@ class Graph(GenericGraph):
 
         Testing mcqd::
 
-            sage: graphs.PetersenGraph().vertex_cover(algorithm="mcqd",value_only=True) # optional - mcqd
+            sage: graphs.PetersenGraph().vertex_cover(algorithm="mcqd", value_only=True) # optional - mcqd
             6
 
         Given a wrong algorithm::
@@ -7792,7 +7791,7 @@ class Graph(GenericGraph):
 
         For the 'coffee bean' graph::
 
-            sage: G = Graph([(0,1,'a'),(0,1,'b'),(0,1,'c')],multiedges=True)
+            sage: G = Graph([(0,1,'a'),(0,1,'b'),(0,1,'c')], multiedges=True)
             sage: G.kirchhoff_symanzik_polynomial()
             t0*t1 + t0*t2 + t1*t2
 

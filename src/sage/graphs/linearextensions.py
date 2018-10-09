@@ -60,15 +60,15 @@ from sage.combinat.combinat import CombinatorialClass
 class LinearExtensions(CombinatorialClass):
     def __init__(self, dag):
         r"""
-        Creates an object representing the class of all linear extensions
-        of the directed acyclic graph \code{dag}.
+        Creates an object representing the class of all linear extensions of the
+        directed acyclic graph \code{dag}.
 
-        Note that upon construction of this object some pre-computation is
-        done.  This is the "preprocessing routine" found in Figure 7 of
-        "Generating Linear Extensions Fast" by Preusse and Ruskey.
+        Note that upon construction of this object some pre-computation is done.
+        This is the "preprocessing routine" found in Figure 7 of "Generating
+        Linear Extensions Fast" by Preusse and Ruskey.
 
-        This is an in-place algorithm and the list self.le keeps track
-        of the current linear extensions.  The boolean variable self.is_plus
+        This is an in-place algorithm and the list ``self.le`` keeps track of
+        the current linear extensions. The boolean variable ``self.is_plus``
         keeps track of the "sign".
 
         EXAMPLES::
@@ -80,22 +80,21 @@ class LinearExtensions(CombinatorialClass):
             True
 
         """
-        ################
-        #Precomputation#
-        ################
+        #
+        # Precomputation
+        #
         dag_copy = copy(dag)
         le = []
         a  = []
         b  = []
 
-        #The preprocessing routine found in Figure 7 of
-        #"Generating Linear Extensions Fast" by
-        #Pruesse and Ruskey
-        while dag_copy.num_verts() != 0:
-            #Find all the minimal elements of dag_copy
+        # The preprocessing routine found in Figure 7 of
+        # "Generating Linear Extensions Fast" by Pruesse and Ruskey
+        while dag_copy.num_verts():
+            # Find all the minimal elements of dag_copy
             minimal_elements = []
             for node in dag_copy.vertices():
-                if len(dag_copy.incoming_edges(node)) == 0:
+                if not len(dag_copy.incoming_edges(node)):
                     minimal_elements.append(node)
             if len(minimal_elements) == 1:
                 le.append(minimal_elements[0])
@@ -123,12 +122,12 @@ class LinearExtensions(CombinatorialClass):
 
 
     def switch(self, i):
-        """
+        r"""
         This implements the Switch procedure described on page 7
         of "Generating Linear Extensions Fast" by Pruesse and Ruskey.
 
-        If i == -1, then the sign is changed.  If i > 0, then self.a[i]
-        and self.b[i] are transposed.
+        If `i == -1`, then the sign is changed.  If `i > 0`, then ``self.a[i]``
+        and ``self.b[i]`` are transposed.
 
         Note that this meant to be called by the generate_linear_extensions
         method and is not meant to be used directly.
@@ -136,7 +135,7 @@ class LinearExtensions(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
-            sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+            sage: D = DiGraph({0:[1,2], 1:[3], 2:[3,4]})
             sage: l = LinearExtensions(D)
             sage: _ = l.list()
             sage: l.le = [0, 1, 2, 3, 4]
@@ -156,7 +155,6 @@ class LinearExtensions(CombinatorialClass):
             [2, 4]
             sage: l.b
             [1, 3]
-
 
         """
         if i == -1:
@@ -178,9 +176,9 @@ class LinearExtensions(CombinatorialClass):
         This implements the Move procedure described on page 7
         of "Generating Linear Extensions Fast" by Pruesse and Ruskey.
 
-        If direction is "left", then this transposes element with the
-        element on its left.  If the direction is "right", then this
-        transposes element with the element on its right.
+        If direction is "left", then this transposes element with the element on
+        its left.  If the direction is "right", then this transposes element
+        with the element on its right.
 
         Note that this is meant to be called by the generate_linear_extensions
         method and is not meant to be used directly.
@@ -188,7 +186,7 @@ class LinearExtensions(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
-            sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+            sage: D = DiGraph({0:[1,2], 1:[3], 2:[3,4]})
             sage: l = LinearExtensions(D)
             sage: _ = l.list()
             sage: l.le = [0, 1, 2, 3, 4]
@@ -216,12 +214,11 @@ class LinearExtensions(CombinatorialClass):
 
     def right(self, i, letter):
         """
-        If letter =="b", then this returns True if and only if
-        self.b[i] is incomparable with the elements to its right
-        in self.le.  If letter == "a", then it returns True if
-        and only if self.a[i] is incomparable with the element to its
-        right in self.le and the element to the right is not
-        self.b[i]
+        If ``letter == "b"``, then this returns ``True`` if and only if
+        ``self.b[i]`` is incomparable with the elements to its right in
+        ``self.le``.  If ``letter == "a"``, then it returns ``True`` if and only
+        if ``self.a[i]`` is incomparable with the element to its right in
+        ``self.le`` and the element to the right is not ``self.b[i]``.
 
         This is the Right function described on page 8 of
         "Generating Linear Extensions Fast" by Pruesse and Ruskey.
@@ -232,7 +229,7 @@ class LinearExtensions(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
-            sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+            sage: D = DiGraph({0:[1,2], 1:[3], 2:[3,4]})
             sage: l = LinearExtensions(D)
             sage: _ = l.list()
             sage: l.le
@@ -274,16 +271,16 @@ class LinearExtensions(CombinatorialClass):
 
     def generate_linear_extensions(self, i):
         """
-        This a Python version of the GenLE routine found in Figure 8
-        of "Generating Linear Extensions Fast" by Pruesse and Ruskey.
+        This is a Python version of the ``GenLE`` routine found in Figure 8 of
+        "Generating Linear Extensions Fast" by Pruesse and Ruskey.
 
-        Note that this is meant to be called by the list
-        method and is not meant to be used directly.
+        Note that this is meant to be called by the list method and is not meant
+        to be used directly.
 
         EXAMPLES::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
-            sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+            sage: D = DiGraph({0:[1,2], 1:[3], 2:[3,4]})
             sage: l = LinearExtensions(D)
             sage: l.linear_extensions = []
             sage: l.linear_extensions.append(l.le[:])
@@ -293,13 +290,13 @@ class LinearExtensions(CombinatorialClass):
 
         """
         if i >= 0:
-            self.generate_linear_extensions(i-1)
+            self.generate_linear_extensions(i - 1)
             mrb = 0
             typical = False
             while self.right(i, "b"):
                 mrb += 1
                 self.move(self.b[i], "right")
-                self.generate_linear_extensions(i-1)
+                self.generate_linear_extensions(i - 1)
                 mra = 0
                 if self.right(i, "a"):
                     typical = True
@@ -307,39 +304,39 @@ class LinearExtensions(CombinatorialClass):
                     while cont:
                         mra += 1
                         self.move(self.a[i], "right")
-                        self.generate_linear_extensions(i-1)
+                        self.generate_linear_extensions(i - 1)
                         cont = self.right(i, "a")
                 if typical:
                     self.switch(i-1)
-                    self.generate_linear_extensions(i-1)
-                    if mrb % 2 == 1:
-                        mla = mra -1
+                    self.generate_linear_extensions(i - 1)
+                    if mrb % 2:
+                        mla = mra - 1
                     else:
                         mla = mra + 1
                     for x in range(mla):
                         self.move(self.a[i], "left")
-                        self.generate_linear_extensions(i-1)
+                        self.generate_linear_extensions(i - 1)
 
-            if typical and (mrb % 2 == 1):
+            if typical and mrb % 2:
                 self.move(self.a[i], "left")
             else:
-                self.switch(i-1)
-            self.generate_linear_extensions(i-1)
+                self.switch(i - 1)
+            self.generate_linear_extensions(i - 1)
             for x in range(mrb):
                 self.move(self.b[i], "left")
-                self.generate_linear_extensions(i-1)
+                self.generate_linear_extensions(i - 1)
 
     def list(self):
         """
         Returns a list of the linear extensions of the directed acyclic graph.
 
-        Note that once they are computed, the linear extensions are
-        cached in this object.
+        Note that once they are computed, the linear extensions are cached in
+        this object.
 
         EXAMPLES::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
-            sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+            sage: D = DiGraph({0:[1,2], 1:[3], 2:[3,4]})
             sage: LinearExtensions(D).list()
             [[0, 1, 2, 3, 4],
              [0, 1, 2, 4, 3],
@@ -358,22 +355,19 @@ class LinearExtensions(CombinatorialClass):
         self.linear_extensions.sort()
         return self.linear_extensions[:]
 
-
     def incomparable(self, x, y):
-        """
-        Returns True if vertices x and y are incomparable in the directed
-        acyclic graph when thought of as a poset.
+        r"""
+        Returns ``True`` if vertices `x` and `y` are incomparable in the
+        directed acyclic graph when thought of as a poset.
 
         EXAMPLES::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
-            sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
+            sage: D = DiGraph({0:[1,2], 1:[3], 2:[3,4]})
             sage: l = LinearExtensions(D)
-            sage: l.incomparable(0,1)
+            sage: l.incomparable(0, 1)
             False
-            sage: l.incomparable(1,2)
+            sage: l.incomparable(1, 2)
             True
         """
-        if (not self.dag.shortest_path(x, y)) and (not self.dag.shortest_path(y, x)):
-            return True
-        return False
+        return not self.dag.shortest_path(x, y) and not self.dag.shortest_path(y, x)

@@ -87,6 +87,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.cpython.getattr import raw_getattr
 
 from collections import defaultdict
 
@@ -1444,7 +1445,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
         self._level = len(multicharge)
         if self._level == 1:
             self.Element = KleshchevPartitionCrystal
-            self._element_constructor_ = Partitions._element_constructor_.__func__
+            self._element_constructor_ = raw_getattr(Partitions, '_element_constructor_')
         else:
             self.Element = KleshchevPartitionTupleCrystal
 
@@ -1641,7 +1642,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
         self._level = len(multicharge)
         if self._level == 1:
             self.Element = KleshchevPartition
-            self._element_constructor_ = Partitions._element_constructor_.__func__
+            self._element_constructor_ = raw_getattr(Partitions, '_element_constructor_')
         else:
             self.Element = KleshchevPartitionTuple
         super(KleshchevPartitions_size, self).__init__(category=FiniteEnumeratedSets())

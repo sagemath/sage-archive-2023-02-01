@@ -116,6 +116,105 @@ if hasattr(os, 'chmod'):
             print("Setting permissions of DOT_SAGE directory so only you "
                   "can read and write it.")
 
+def try_read(obj, splitlines=False):
+    r"""
+    Determine if a given object is a readable file-like object and if so
+    read and return its contents.
+
+    That is, the object has a callable method named ``read()`` which takes
+    no arguments (except ``self``) then the method is executed and the
+    contents are returned.
+
+    Alternatively, if the ``splitlines=True`` is given, first ``splitlines()``
+    is tried, then if that fails ``read().splitlines()``.
+
+    If either method fails, ``None`` is returned.
+
+    INPUT:
+
+    - ``obj`` -- typically a `file` or `io.BaseIO` object, but any other
+      object with a ``read()`` method is accepted.
+
+    - ``splitlines`` -- `bool`, optional; if True, return a list of lines
+      instead of a string.
+
+    EXAMPLES::
+
+        sage: import io
+        sage: filename = tmp_filename()
+        sage: from sage.misc.misc import try_read
+        sage: with open(filename, 'w') as fobj:
+        ....:     _ = fobj.write('a\nb\nc')
+        sage: with open(filename) as fobj:
+        ....:     print(try_read(fobj))
+        a
+        b
+        c
+        sage: with open(filename) as fobj:
+        ....:     try_read(fobj, splitlines=True)
+        ['a\n', 'b\n', 'c']
+
+    The following example is identical to the above example on Python 3,
+    but different on Python 2 where ``open != io.open``::
+
+        sage: with io.open(filename) as fobj:
+        ....:     print(try_read(fobj))
+        a
+        b
+        c
+
+    I/O buffers::
+
+        sage: buf = io.StringIO(u'a\nb\nc')
+        sage: print(try_read(buf))
+        a
+        b
+        c
+        sage: _ = buf.seek(0); try_read(buf, splitlines=True)
+        [u'a\n', u'b\n', u'c']
+        sage: buf = io.BytesIO(b'a\nb\nc')
+        sage: try_read(buf) == b'a\nb\nc'
+        True
+        sage: _ = buf.seek(0)
+        sage: try_read(buf, splitlines=True) == [b'a\n', b'b\n', b'c']
+        True
+
+    Custom readable::
+
+        sage: class MyFile(object):
+        ....:     def read(self): return 'Hello world!'
+        sage: try_read(MyFile())
+        'Hello world!'
+        sage: try_read(MyFile(), splitlines=True)
+        ['Hello world!']
+
+    Not readable::
+
+        sage: try_read(1) is None
+        True
+    """
+
+    if splitlines:
+        try:
+            return obj.readlines()
+        except (AttributeError, TypeError):
+            pass
+
+    try:
+        data = obj.read()
+    except (AttributeError, TypeError):
+        return
+
+    if splitlines:
+        try:
+            data = data.splitlines()
+        except (AttributeError, TypeError):
+            # Not a string??
+            data = [data]
+
+    return data
+
+
 
 #################################################
 # Next we create the Sage temporary directory.
@@ -960,24 +1059,24 @@ class BackslashOperator:
     r"""
     Implements Matlab-style backslash operator for solving systems::
 
-        A \\ b
+        A \ b
 
     The preparser converts this to multiplications using
     ``BackslashOperator()``.
 
     EXAMPLES::
 
-        sage: preparse("A \ matrix(QQ,2,1,[1/3,'2/3'])")
+        sage: preparse("A \\ matrix(QQ,2,1,[1/3,'2/3'])")
         "A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),'2/3'])"
-        sage: preparse("A \ matrix(QQ,2,1,[1/3,2*3])")
+        sage: preparse("A \\ matrix(QQ,2,1,[1/3,2*3])")
         'A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),Integer(2)*Integer(3)])'
-        sage: preparse("A \ B + C")
+        sage: preparse("A \\ B + C")
         'A  * BackslashOperator() * B + C'
-        sage: preparse("A \ eval('C+D')")
+        sage: preparse("A \\ eval('C+D')")
         "A  * BackslashOperator() * eval('C+D')"
-        sage: preparse("A \ x / 5")
+        sage: preparse("A \\ x / 5")
         'A  * BackslashOperator() * x / Integer(5)'
-        sage: preparse("A^3 \ b")
+        sage: preparse("A^3 \\ b")
         'A**Integer(3)  * BackslashOperator() * b'
     """
     def __rmul__(self, left):
@@ -1032,19 +1131,29 @@ def is_iterator(it):
         sage: is_iterator(it)
         True
 
-        sage: class wrong():
+        sage: class wrong():  # py2
         ....:    def __init__(self): self.n = 5
         ....:    def next(self):
+        ....:        self.n -= 1
+        ....:        if self.n == 0: raise StopIteration
+        ....:        return self.n
+        sage: class wrong():  # py3
+        ....:    def __init__(self): self.n = 5
+        ....:    def __next__(self):
         ....:        self.n -= 1
         ....:        if self.n == 0: raise StopIteration
         ....:        return self.n
         sage: x = wrong()
         sage: is_iterator(x)
         False
-        sage: list(x)
+        sage: list(x)  # py2
         Traceback (most recent call last):
         ...
         TypeError: iteration over non-sequence
+        sage: list(x)  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: 'wrong' object is not iterable
 
         sage: class good(wrong):
         ....:    def __iter__(self): return self
@@ -1525,7 +1634,7 @@ class AttrCallObject(object):
             sage: hash(x)       # random # indirect doctest
             210434060
             sage: type(hash(x))
-            <... 'int'>
+            <type 'int'>
             sage: y = attrcall('core', 3, blah = 1, flatten = True)
             sage: hash(y) == hash(x)
             True

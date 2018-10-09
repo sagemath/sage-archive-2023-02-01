@@ -581,7 +581,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     We can also construct the `\bar{q}` basis that can be used
     to determine character tables for Hecke algebras (with quadratic
-    relation `T_i^2 = (1-q) T_i + q`::
+    relation `T_i^2 = (1-q) T_i + q`)::
 
         sage: Sym = SymmetricFunctions(ZZ['q'].fraction_field())
         sage: qbar = Sym.hecke_character()
@@ -649,8 +649,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: ksp3 = SymS3.ksplit()
         sage: ksp3(Qp[2,1,1,1])
         ksp3[2, 1, 1, 1] + t^2*ksp3[2, 2, 1] + (t^3+t^2)*ksp3[3, 1, 1] + t^4*ksp3[3, 2]
-        sage: [ks(ksp3(la)) for la in ksp3(Qp[2,1,1,1]).support()]
-        [ks3[2, 2, 1], ks3[2, 1, 1, 1] + t*ks3[2, 2, 1], ks3[3, 2], ks3[3, 1, 1]]
+        sage: [ks(ksp3(la)) for la in sorted(ksp3(Qp[2,1,1,1]).support())]
+        [ks3[2, 1, 1, 1] + t*ks3[2, 2, 1], ks3[2, 2, 1], ks3[3, 1, 1], ks3[3, 2]]
 
     .. rubric:: dual `k`-Schur functions
 

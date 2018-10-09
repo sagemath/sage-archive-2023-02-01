@@ -17,6 +17,8 @@ AUTHORS:
 
 - Andrew Mathas (2016-08-11): Row standard tableaux added
 
+- Oliver Pechenik (2018): Added increasing tableaux.
+
 This file consists of the following major classes:
 
 Element classes:
@@ -25,6 +27,7 @@ Element classes:
 * :class:`SemistandardTableau`
 * :class:`StandardTableau`
 * :class:`RowStandardTableau`
+* :class:`IncreasingTableau`
 
 Factory classes:
 
@@ -32,6 +35,7 @@ Factory classes:
 * :class:`SemistandardTableaux`
 * :class:`StandardTableaux`
 * :class:`RowStandardTableaux`
+* :class:`IncreasingTableaux`
 
 Parent classes:
 
@@ -47,6 +51,13 @@ Parent classes:
 * :class:`StandardTableaux_all` (facade class)
 * :class:`StandardTableaux_size`
 * :class:`StandardTableaux_shape`
+* :class:`IncreasingTableaux_all` (facade class)
+* :class:`IncreasingTableaux_size`
+* :class:`IncreasingTableaux_size_inf`
+* :class:`IncreasingTableaux_size_weight`
+* :class:`IncreasingTableaux_shape`
+* :class:`IncreasingTableaux_shape_inf`
+* :class:`IncreasingTableaux_shape_weight`
 * :class:`RowStandardTableaux_all` (facade class)
 * :class:`RowStandardTableaux_size`
 * :class:`RowStandardTableaux_shape`
@@ -97,6 +108,7 @@ import sage.misc.prandom as random
 from sage.combinat import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
+from sage.misc.misc import powerset
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
@@ -4951,6 +4963,334 @@ def from_shape_and_word(shape, w, convention="French"):
         res.reverse()
     return Tableau(res)
 
+class IncreasingTableau(Tableau):
+    """
+    A class to model an increasing tableau.
+
+    INPUT:
+
+    - ``t`` -- a tableau, a list of iterables, or an empty list
+
+    An *increasing tableau* is a tableau whose entries are positive
+    integers that are strictly increasing across rows and strictly
+    increasing down columns.
+
+    EXAMPLES::
+
+        sage: t = IncreasingTableau([[1,2,3],[2,3]]); t
+        [[1, 2, 3], [2, 3]]
+        sage: t.shape()
+        [3, 2]
+        sage: t.pp() # pretty printing
+        1 2 3
+        2 3
+        sage: t = Tableau([[1,2],[2]])
+        sage: s = IncreasingTableau(t); s
+        [[1, 2], [2]]
+        sage: IncreasingTableau([]) # The empty tableau
+        []
+
+    You can also construct an :class:`IncreasingTableau` from the
+    appropriate :class:`Parent` object::
+
+        sage: IT = IncreasingTableaux()
+        sage: IT([[1, 2, 3], [4, 5]])
+        [[1, 2, 3], [4, 5]]
+
+    .. SEEALSO::
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SemistandardTableaux`
+        - :class:`SemistandardTableau`
+        - :class:`StandardTableaux`
+        - :class:`StandardTableau`
+        - :class:`IncreasingTableaux`
+
+    TESTS::
+
+        sage: t = Tableaux()([[1,2],[2]])
+        sage: s = IncreasingTableaux(3)([[1,2],[2]])
+        sage: s == t
+        True
+        sage: s.parent()
+        Increasing tableaux of size 3 and maximum entry 3
+        sage: r = IncreasingTableaux(3)(t); r.parent()
+        Increasing tableaux of size 3 and maximum entry 3
+        sage: isinstance(r, Tableau)
+        True
+        sage: s2 = IncreasingTableaux(3)([(1,2),(2,)])
+        sage: s2 == s
+        True
+        sage: s2.parent()
+        Increasing tableaux of size 3 and maximum entry 3
+    """
+    @staticmethod
+    def __classcall_private__(self, t):
+        r"""
+        Construct an :class:`IncreasingTableau` from the appropriate parent.
+
+        TESTS::
+
+            sage: t = IncreasingTableau([[1,2],[2]])
+            sage: TestSuite(t).run()
+
+            sage: t.parent()
+            Increasing tableaux
+            sage: t.category()
+            Category of elements of Increasing tableaux
+            sage: type(t)
+            <class 'sage.combinat.tableau.IncreasingTableaux_all_with_category.element_class'>
+        """
+        if isinstance(t, IncreasingTableau):
+            return t
+        IT = IncreasingTableaux()
+        return IT.element_class(IT, t)  # The check() will raise the appropriate error
+
+    def check(self):
+        """
+        Check that ``self`` is a valid increasing tableau.
+
+        TESTS::
+
+            sage: IncreasingTableau([[1,2,3],[1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries of each column of an increasing tableau must be strictly increasing
+
+            sage: IncreasingTableau([[1,2,2]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries in each row of an increasing tableau must be strictly increasing
+
+            sage: IncreasingTableau([[0,1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries of an increasing tableau must be non-negative integers
+        """
+        if not self:
+            # Empty tableau, so trivially an increasing tableau
+            return
+
+        super(IncreasingTableau, self).check()
+
+        # Tableau() has checked that t is tableau, so it remains to check that
+        # the entries of t are positive integers which are weakly increasing
+        # along rows
+        from sage.sets.positive_integers import PositiveIntegers
+        PI = PositiveIntegers()
+
+        for row in self:
+            if any(c not in PI for c in row):
+                raise ValueError("the entries of an increasing tableau"
+                                 " must be non-negative integers")
+            if any(row[c] >= row[c+1] for c in range(len(row)-1)):
+                raise ValueError("the entries in each row of an increasing"
+                                 " tableau must be strictly increasing")
+
+        # and strictly increasing down columns
+        for row, next in zip(self, self[1:]):
+            if not all(row[c] < next[c] for c in range(len(next))):
+                raise ValueError("the entries of each column of an increasing"
+                                 " tableau must be strictly increasing")
+
+    def descent_set(self):
+        r"""
+        Compute the descents of the increasing tableau ``self``
+        as defined in [DPS2017]_.
+
+        The number `i` is a *descent* of an increasing tableau if some
+        instance of `i + 1` appears in a lower row than some instance
+        of `i`.
+
+        .. NOTE::
+
+            This notion is close to the notion of descent for a standard
+            tableau but is unrelated to the notion for semistandard tableaux.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,2,4],[3,5,6]])
+            sage: T.descent_set()
+            [2, 4]
+            sage: U = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: U.descent_set()
+            [1, 3, 4]
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[4,5]])
+            sage: V.descent_set()
+            [3, 4]
+        """
+        ans = set()
+        ell = len(self)
+        for r1, row in enumerate(self):
+            for val in row:
+                for r2 in range(r1+1, ell):
+                    if val + 1 in self[r2]:
+                        ans.add(val)
+        return sorted(ans)
+
+    @combinatorial_map(order=2, name='K-Bender-Knuth involution')
+    def K_bender_knuth(self, i):
+        r"""
+        Return the ``i``-th K-Bender-Knuth operator (as defined in
+        [DPS2017]_) applied to ``self``.
+
+        The `i`-th K-Bender-Knuth operator swaps the letters `i` and
+        `i + 1` everywhere where doing so would not break increasingness.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_bender_knuth(2)
+            [[1, 2, 4], [3, 4, 5]]
+            sage: T.K_bender_knuth(3)
+            [[1, 3, 4], [2, 4, 5]]
+        """
+        newtab = [[0] * k for k in self.shape()]
+        for r, row in enumerate(self):
+            for c, val in enumerate(row):
+                if val == i:
+                    if (c + 1 < len(row) and row[c+1] == i + 1):
+                        newtab[r][c] = i
+                    elif (r + 1 < len(self) and c < len(self[r+1]) and self[r+1][c] == i + 1):
+                        newtab[r][c] = i
+                    else:
+                        newtab[r][c] = i + 1
+                elif val == i + 1:
+                    if c > 0 and row[c-1] == i:
+                        newtab[r][c] = i + 1
+                    elif r > 0 and self[r-1][c] == i:
+                        newtab[r][c] = i + 1
+                    else:
+                        newtab[r][c] = i
+                else:
+                    newtab[r][c] = val
+        return IncreasingTableau(newtab)
+
+    @combinatorial_map(name='K-promotion')
+    def K_promotion(self, ceiling=None):
+        """
+        Return the K-promotion operator from [Pec2014]_ applied to ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_promotion()
+            [[1, 2, 3], [3, 4, 5]]
+            sage: T.K_promotion(6)
+            [[1, 2, 3], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_promotion()
+            [[2, 3, 4], [3, 4, 5], [4]]
+        """
+        if ceiling is None:
+            ceiling = max(self.entries())
+        ans = self
+        for i in range(1, ceiling):
+            ans = ans.K_bender_knuth(i)
+        return ans
+
+    @combinatorial_map(name='K-promotion inverse')
+    def K_promotion_inverse(self, ceiling=None):
+        """
+        Return the inverse of K-promotion operator applied to ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_promotion_inverse()
+            [[1, 2, 4], [3, 4, 5]]
+            sage: T.K_promotion_inverse(6)
+            [[2, 4, 5], [3, 5, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_promotion_inverse()
+            [[1, 2, 4], [2, 4, 5], [4]]
+
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.K_promotion().K_promotion_inverse()
+            True
+            sage: V == V.K_promotion_inverse().K_promotion()
+            True
+        """
+        if ceiling is None:
+            ceiling = max(self.entries())
+        ans = self
+        for i in reversed(range(1, ceiling)):
+            ans = ans.K_bender_knuth(i)
+        return ans
+
+    @combinatorial_map(order=2,name='K-evacuation')
+    def K_evacuation(self, ceiling=None):
+        """
+        Return the K-evacuation involution from [TY2009]_ to ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_evacuation()
+            [[1, 2, 4], [2, 3, 5]]
+            sage: T.K_evacuation(6)
+            [[2, 3, 5], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_evacuation()
+            [[1, 2, 3], [2, 3, 5], [3]]
+
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.K_evacuation().K_evacuation()
+            True
+            sage: V.K_promotion().K_evacuation() == V.K_evacuation().K_promotion_inverse()
+            True
+        """
+        if ceiling is None:
+            ceiling = max(self.entries())
+        ans = self
+        for j in reversed(range(1, ceiling)):
+            for i in range(1, j+1):
+                ans = ans.K_bender_knuth(i)
+        return ans
+
+    @combinatorial_map(order=2, name='dual K-evacuation')
+    def dual_K_evacuation(self, ceiling=None):
+        """
+        Return the dual K-evacuation involution applied to ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.dual_K_evacuation()
+            [[1, 2, 4], [2, 3, 5]]
+            sage: T.dual_K_evacuation(6)
+            [[2, 3, 5], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.dual_K_evacuation()
+            [[1, 2, 3], [2, 3, 5], [3]]
+
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.dual_K_evacuation().dual_K_evacuation()
+            True
+            sage: W = IncreasingTableau([[1,2,4],[2,3,5]])
+            sage: W.K_evacuation() == W.dual_K_evacuation()
+            True
+            sage: X = IncreasingTableau([[1,2,4,7],[3,5,6,8],[5,7,8,10],[7,9,10,11]])
+            sage: X.K_evacuation() == X.dual_K_evacuation()
+            False
+            sage: X.K_promotion().dual_K_evacuation() == X.dual_K_evacuation().K_promotion_inverse()
+            True
+        """
+        if ceiling is None:
+            ceiling = max(self.entries())
+        ans = self
+        for j in range(1, ceiling):
+            for i in reversed(range(j, ceiling)):
+                ans = ans.K_bender_knuth(i)
+        return ans
+
 class Tableaux(UniqueRepresentation, Parent):
     """
     A factory class for the various classes of tableaux.
@@ -5232,31 +5572,6 @@ class Tableaux(UniqueRepresentation, Parent):
             return [len(_) for _ in x] in _Partitions
         else:
             return False
-
-#    def list(self):
-#        """
-#        Raises a ``NotImplementedError`` since there is not a method to
-#        enumerate all tableaux.
-#
-#        TESTS::
-#
-#            sage: Tableaux().list()
-#            Traceback (most recent call last):
-#            ...
-#            NotImplementedError
-#        """
-#        raise NotImplementedError
-#
-#    def __iter__(self):
-#        """
-#        TESTS::
-#
-#            sage: iter(Tableaux())
-#            Traceback (most recent call last):
-#            ...
-#            NotImplementedError
-#        """
-#        raise NotImplementedError
 
 class Tableaux_all(Tableaux):
 
@@ -7853,6 +8168,1154 @@ class Tableau_class(Tableau):
         self.__class__ = Tableau
         self.__init__(Tableaux(), state['_list'])
 
+##########################
+# Increasing tableaux #
+##########################
+
+class IncreasingTableaux(Tableaux):
+    """
+    A factory class for the various classes of increasing tableaux.
+
+    An *increasing tableau* is a tableau whose entries are positive
+    integers that are strictly increasing across rows and strictly
+    increasing down columns. Note that Sage uses the English convention
+    for partitions and tableaux; the longer rows are displayed on top.
+
+    INPUT:
+
+    Keyword arguments:
+
+    - ``size`` -- the size of the tableaux
+    - ``shape`` -- the shape of the tableaux
+    - ``eval`` -- the weight (also called binary content) of
+      the tableaux, where values can be either `0` or `1` with position
+      `i` being `1` if and only if `i` can appear in the tableaux
+    - ``max_entry`` -- positive integer or infinity (``oo``); the maximum
+      entry for the tableaux; if ``size`` or ``shape`` are specified,
+      ``max_entry`` defaults to be ``size`` or the size of ``shape``
+
+    Positional arguments:
+
+    - the first argument is interpreted as either ``size`` or ``shape``
+      according to whether it is an integer or a partition
+    - the second keyword argument will always be interpreted as ``eval``
+
+    .. WARNING::
+
+        The ``eval`` is not the usual notion of ``eval`` or ``weight``,
+        where the `i`-th entry counts how many `i`'s appear in the tableau.
+
+    EXAMPLES::
+
+        sage: IT = IncreasingTableaux([2,1]); IT
+        Increasing tableaux of shape [2, 1] and maximum entry 3
+        sage: IT.list()
+        [[[1, 3], [2]], [[1, 2], [3]], [[1, 2], [2]], [[1, 3], [3]], [[2, 3], [3]]]
+
+        sage: IT = IncreasingTableaux(3); IT
+        Increasing tableaux of size 3 and maximum entry 3
+        sage: IT.list()
+        [[[1, 2, 3]],
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[1, 2], [2]],
+         [[1, 3], [3]],
+         [[2, 3], [3]],
+         [[1], [2], [3]]]
+
+        sage: IT = IncreasingTableaux(3, max_entry=2); IT
+        Increasing tableaux of size 3 and maximum entry 2
+        sage: IT.list()
+        [[[1, 2], [2]]]
+
+        sage: IT = IncreasingTableaux(3, max_entry=4); IT
+        Increasing tableaux of size 3 and maximum entry 4
+        sage: IT.list()
+        [[[1, 2, 3]],
+         [[1, 2, 4]],
+         [[1, 3, 4]],
+         [[2, 3, 4]],
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[1, 4], [2]],
+         [[1, 2], [4]],
+         [[1, 2], [2]],
+         [[1, 4], [3]],
+         [[1, 3], [4]],
+         [[1, 3], [3]],
+         [[1, 4], [4]],
+         [[2, 4], [3]],
+         [[2, 3], [4]],
+         [[2, 3], [3]],
+         [[2, 4], [4]],
+         [[3, 4], [4]],
+         [[1], [2], [3]],
+         [[1], [2], [4]],
+         [[1], [3], [4]],
+         [[2], [3], [4]]]
+
+        sage: IT = IncreasingTableaux(3, max_entry=oo); IT
+        Increasing tableaux of size 3
+        sage: IT[123]
+        [[5, 7], [6]]
+
+        sage: IT = IncreasingTableaux(max_entry=2)
+        sage: list(IT)
+        [[], [[1]], [[2]], [[1, 2]], [[1], [2]]]
+        sage: IT[4]
+        [[1], [2]]
+
+        sage: IncreasingTableaux()[0]
+        []
+
+    .. SEEALSO::
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SemistandardTableaux`
+        - :class:`SemistandardTableau`
+        - :class:`StandardTableaux`
+        - :class:`StandardTableau`
+        - :class:`IncreasingTableau`
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        arguments.  See the documentation for :class:`IncreasingTableaux`
+        for more information.
+
+        TESTS::
+
+            sage: IncreasingTableaux()
+            Increasing tableaux
+            sage: IncreasingTableaux(3)
+            Increasing tableaux of size 3 and maximum entry 3
+            sage: IncreasingTableaux(size=3)
+            Increasing tableaux of size 3 and maximum entry 3
+            sage: IncreasingTableaux(0)
+            Increasing tableaux of size 0 and maximum entry 0
+            sage: IncreasingTableaux([2,1])
+            Increasing tableaux of shape [2, 1] and maximum entry 3
+            sage: IncreasingTableaux(shape=[2,1])
+            Increasing tableaux of shape [2, 1] and maximum entry 3
+            sage: IncreasingTableaux([])
+            Increasing tableaux of shape [] and maximum entry 0
+            sage: IncreasingTableaux(eval=(1,0,1))
+            Increasing tableaux of size 2 and weight (1, 0, 1)
+            sage: IncreasingTableaux(max_entry=3)
+            Increasing tableaux with maximum entry 3
+            sage: IncreasingTableaux(3, (1,0,1))
+            Increasing tableaux of size 3 and weight (1, 0, 1)
+            sage: IncreasingTableaux(3, shape=[2,1])
+            Increasing tableaux of shape [2, 1] and maximum entry 3
+            sage: IncreasingTableaux(3, (1,0,1), shape=[2,1])
+            Increasing tableaux of shape [2, 1] and weight (1, 0, 1)
+            sage: IncreasingTableaux(3, max_entry=4)
+            Increasing tableaux of size 3 and maximum entry 4
+            sage: IncreasingTableaux(3, max_entry=oo)
+            Increasing tableaux of size 3
+            sage: IncreasingTableaux([2, 1], max_entry=oo)
+            Increasing tableaux of shape [2, 1]
+            sage: IncreasingTableaux([2, 1], (1,0,1))
+            Increasing tableaux of shape [2, 1] and weight (1, 0, 1)
+            sage: mu = Partition([2,1]); IncreasingTableaux(mu, (1,0,1))
+            Increasing tableaux of shape [2, 1] and weight (1, 0, 1)
+            sage: IncreasingTableaux(3, (1,0,1), max_entry=3)
+            Increasing tableaux of size 3 and weight (1, 0, 1)
+
+            sage: IncreasingTableaux(3, shape=[2])
+            Traceback (most recent call last):
+            ...
+            ValueError: size and shape are different sizes
+
+            sage: IncreasingTableaux(3, (1,0,1,1,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: size is smaller than the number of labels
+
+            sage: IncreasingTableaux([2],(1,0,1,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: number of boxes is smaller than the number of labels
+
+            sage: IncreasingTableaux(2,(1,0,1), max_entry=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the maximum entry must match the weight
+
+            sage: IncreasingTableaux(eval=(1,0,1), max_entry=oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: the maximum entry must match the weight
+
+            sage: IncreasingTableaux([[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: shape must be a (skew) partition
+        """
+        from sage.combinat.partition import Partition, _Partitions
+        # Process the keyword arguments -- allow for original syntax where
+        #   n == size,  p== shape and mu == eval
+        n = kwargs.get('n', None)
+        size = kwargs.get('size', n)
+
+        p = kwargs.get('p', None)
+        shape = kwargs.get('shape', p)
+
+        wt = kwargs.get("eval", None)
+        wt = kwargs.get("wt", wt)
+        wt = kwargs.get("weight", wt)
+
+        max_entry = kwargs.get('max_entry', None)
+
+        # Process the positional arguments
+        if args:
+            # The first arg could be either a size or a shape
+            if isinstance(args[0], (int, Integer)):
+                if size is not None:
+                    raise ValueError("size was specified more than once")
+                else:
+                    size = args[0]
+            else:
+                if shape is not None:
+                    raise ValueError("the shape was specified more than once")
+                shape = args[0] # we check it's a partition later
+
+        if len(args) == 2:
+            # The second non-keyword argument is the weight
+            if wt is not None:
+                raise ValueError("the weight was specified more than once")
+            else:
+                wt = args[1]
+
+        # Consistency checks
+        if size is not None:
+            if size not in NonNegativeIntegers():
+                raise ValueError("size must be a non-negative integer")
+            size = Integer(size)
+
+        if shape is not None:
+            from sage.combinat.skew_partition import SkewPartitions
+            # use in (and not isinstance) below so that lists can be used as
+            # shorthand
+            if shape in _Partitions:
+                shape = Partition(shape)
+            elif shape in SkewPartitions():
+                raise NotImplementedError("skew increasing tableaux are not"
+                                          " currently implemented")
+                #from sage.combinat.skew_tableau import IncreasingSkewTableaux
+                #return IncreasingSkewTableaux(shape, wt)
+            else:
+                raise ValueError("shape must be a (skew) partition")
+
+        if wt is not None:
+            wt = list(wt)
+            k = len(wt) - 1
+            while k >= 0 and wt[k] == 0:
+                k -= 1
+            wt = tuple(wt[:k+1])
+            if not all(k in [0,1] for k in wt):
+                raise ValueError("wt must be a binary vector")
+            if max_entry is not None and max_entry != len(wt):
+                    raise ValueError("the maximum entry must match the weight")
+
+        is_inf = bool(max_entry == PlusInfinity())
+
+        if max_entry is not None:
+            if not is_inf and not isinstance(max_entry, (int, Integer)):
+                raise ValueError("max_entry must be an integer or PlusInfinity")
+            elif max_entry < 0:
+                raise ValueError("max_entry must be non-negative")
+
+        if size is not None and shape is not None:
+            if sum(shape) != size:
+                # This could return an empty class instead of an error
+                raise ValueError("size and shape are different sizes")
+
+        if size is not None and wt is not None:
+            if sum(wt) > size:
+                # This could return an empty class instead of an error
+                raise ValueError("size is smaller than the number of labels")
+
+        # Dispatch appropriately
+        if shape is not None and wt is not None:
+            if sum(shape) < sum(wt):
+                # This could return an empty class instead of an error
+                raise ValueError("number of boxes is smaller than the number of labels")
+            else:
+                return IncreasingTableaux_shape_weight(shape, wt)
+
+        if shape is not None:
+            if is_inf:
+                return IncreasingTableaux_shape_inf(shape)
+            return IncreasingTableaux_shape(shape, max_entry)
+
+        if wt is not None and size is not None:
+            return IncreasingTableaux_size_weight(size, wt)
+
+        if wt is not None:
+            return IncreasingTableaux_size_weight(sum(wt), wt)
+
+        if size is not None:
+            if is_inf:
+                return IncreasingTableaux_size_inf(size)
+            return IncreasingTableaux_size(size, max_entry)
+
+        return IncreasingTableaux_all(max_entry)
+
+    Element = IncreasingTableau
+
+    def __init__(self, **kwds):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = IncreasingTableaux()
+            sage: TestSuite(S).run()  # long time
+        """
+        if 'max_entry' in kwds:
+            self.max_entry = kwds['max_entry']
+            kwds.pop('max_entry')
+        else:
+            self.max_entry = None
+        Tableaux.__init__(self, **kwds)
+
+    def __getitem__(self, r):
+        r"""
+        The default implementation of ``__getitem__`` for enumerated sets
+        does not allow slices so we override it.
+
+        EXAMPLES::
+
+            sage: IncreasingTableaux([4,3,3,2])[10:20]     # long time
+            [[[1, 5, 8, 10], [2, 6, 9], [3, 7, 12], [4, 11]],
+             [[1, 5, 8, 10], [2, 6, 9], [3, 7, 11], [4, 12]],
+             [[1, 5, 8, 9], [2, 6, 11], [3, 7, 12], [4, 10]],
+             [[1, 5, 8, 9], [2, 6, 10], [3, 7, 12], [4, 11]],
+             [[1, 5, 8, 9], [2, 6, 10], [3, 7, 11], [4, 12]],
+             [[1, 5, 7, 12], [2, 6, 10], [3, 8, 11], [4, 9]],
+             [[1, 5, 7, 11], [2, 6, 10], [3, 8, 12], [4, 9]],
+             [[1, 5, 7, 10], [2, 6, 11], [3, 8, 12], [4, 9]],
+             [[1, 5, 7, 12], [2, 6, 9], [3, 8, 11], [4, 10]],
+             [[1, 5, 7, 11], [2, 6, 9], [3, 8, 12], [4, 10]]]
+
+            sage: IncreasingTableaux(size=2, max_entry=oo)[5]
+            [[2], [3]]
+
+            sage: IncreasingTableaux([2,1], max_entry=oo)[3]
+            [[1, 2], [4]]
+
+            sage: IncreasingTableaux(3, max_entry=4)[0:5]    # indirect doctest
+            [[[1, 2, 3]], [[1, 2, 4]], [[1, 3, 4]], [[2, 3, 4]], [[1, 3], [2]]]
+
+            sage: IncreasingTableaux([2,2], (1,0,1,1,1))[0]    # indirect doctest
+            [[1, 4], [3, 5]]
+
+            sage: IncreasingTableaux([1,1,1], max_entry=4)[0:4]
+            [[[1], [2], [3]], [[1], [2], [4]], [[1], [3], [4]], [[2], [3], [4]]]
+
+            sage: IncreasingTableaux(3, (1,0,1,1))[1]    # indirect doctest
+            [[1, 4], [3]]
+
+            sage: IncreasingTableaux(3)[:]  # indirect doctest
+            [[[1, 2, 3]],
+             [[1, 3], [2]],
+             [[1, 2], [3]],
+             [[1, 2], [2]],
+             [[1, 3], [3]],
+             [[2, 3], [3]],
+             [[1], [2], [3]]]
+
+            sage: IncreasingTableaux([2,2])[1]   # indirect doctest
+            [[1, 2], [3, 4]]
+
+        TESTS::
+
+            sage: IncreasingTableaux()[5]
+            [[1, 3], [2]]
+
+            sage: IncreasingTableaux(max_entry=4)[5]
+            [[1, 2]]
+
+            sage: IncreasingTableaux()[:]
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite set
+
+            sage: IncreasingTableaux(size=2, max_entry=oo)[:]
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite set
+        """
+        if isinstance(r, (int,Integer)):
+            return self.unrank(r)
+        elif isinstance(r,slice):
+            start = 0 if r.start is None else r.start
+            stop = r.stop
+            if stop is None and not self.is_finite():
+                raise ValueError('infinite set')
+        else:
+            raise ValueError('r must be an integer or a slice')
+        count = 0
+        tabs = []
+        for t in self:
+            if count == stop:
+                break
+            if count >= start:
+                tabs.append(t)
+            count += 1
+
+        # this is to cope with empty slices endpoints like [:6] or [:}
+        if count == stop or stop is None:
+            return tabs
+        raise IndexError('value out of range')
+
+    def __contains__(self, t):
+        """
+        Return ``True`` if ``t`` can be interpreted as an
+        :class:`IncreasingTableau`.
+
+        TESTS::
+
+            sage: T = sage.combinat.tableau.IncreasingTableaux_all()
+            sage: [[1,2],[2]] in T
+            True
+            sage: [] in T
+            True
+            sage: Tableau([[1]]) in T
+            True
+            sage: StandardTableau([[1]]) in T
+            True
+
+            sage: [[1,2],[1]] in T
+            False
+            sage: [[1,1],[5]] in T
+            False
+            sage: [[1,7],[5]] in T
+            True
+            sage: [[1,3,2]] in T
+            False
+
+            sage: None in T
+            False
+        """
+        if not t:
+            return isinstance(t, (IncreasingTableau, list))
+
+        if isinstance(t, IncreasingTableau):
+            return (self.max_entry is None
+                    or max(max(row) for row in t) <= self.max_entry)
+
+        if not Tableaux.__contains__(self, t):
+            return False
+
+        for row in t:
+            if not all(c > 0 for c in row):
+                return False
+            if not all(row[i] < row[i+1] for i in range(len(row)-1)):
+                return False
+        for row, next in zip(t, t[1:]):
+            if not all(row[c] < next[c] for c in range(len(next))):
+                return False
+        return self.max_entry is None or max(max(row) for row in t) <= self.max_entry
+
+class IncreasingTableaux_all(IncreasingTableaux, DisjointUnionEnumeratedSets):
+    """
+    All increasing tableaux.
+
+    EXAMPLES::
+
+        sage: T = IncreasingTableaux()
+        sage: T.cardinality()
+        +Infinity
+
+        sage: T = IncreasingTableaux(max_entry=3)
+        sage: list(T)
+        [[],
+         [[1]],
+         [[2]],
+         [[3]],
+         [[1, 2]],
+         [[1, 3]],
+         [[2, 3]],
+         [[1], [2]],
+         [[1], [3]],
+         [[2], [3]],
+         [[1, 2, 3]],
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[1, 2], [2]],
+         [[1, 3], [3]],
+         [[2, 3], [3]],
+         [[1], [2], [3]]]
+
+    TESTS::
+
+        sage: T = IncreasingTableaux(max_entry=0)
+        sage: list(T)
+        [[]]
+    """
+    def __init__(self, max_entry=None):
+        r"""
+        Initializes the class of all increasing tableaux.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`IncreasingTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: from sage.combinat.tableau import IncreasingTableaux_all
+            sage: T = IncreasingTableaux_all()
+            sage: TestSuite(T).run()  # long time
+
+            sage: T = IncreasingTableaux_all(max_entry=3)
+            sage: TestSuite(T).run()
+
+            sage: T = IncreasingTableaux_all(max_entry=0)
+            sage: TestSuite(T).run()
+        """
+        SST_n = lambda n: IncreasingTableaux_size(n, max_entry)
+        if max_entry is None or max_entry == PlusInfinity():
+            self.max_entry = None
+            DisjointUnionEnumeratedSets.__init__(self,
+                    Family(NonNegativeIntegers(), SST_n),
+                    facade=True, keepkey=False)
+        else:
+            self.max_entry = max_entry
+            DisjointUnionEnumeratedSets.__init__(self,
+                    Family(list(range(max_entry+1)), SST_n),
+                    facade=True, keepkey=False)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: IncreasingTableaux()
+            Increasing tableaux
+
+            sage: IncreasingTableaux(max_entry=3)
+            Increasing tableaux with maximum entry 3
+        """
+        if self.max_entry is not None:
+            return "Increasing tableaux with maximum entry %s"%str(self.max_entry)
+        return "Increasing tableaux"
+
+
+class IncreasingTableaux_size_inf(IncreasingTableaux):
+    """
+    Increasing tableaux of fixed size `n` with no maximum entry.
+    """
+    def __init__(self, n):
+        r"""
+        Initializes the class of increasing tableaux of size ``n`` with no
+        maximum entry.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`IncreasingTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: from sage.combinat.tableau import IncreasingTableaux_size_inf
+            sage: T = IncreasingTableaux_size_inf(3)
+            sage: TestSuite(T).run()
+        """
+        super(IncreasingTableaux_size_inf, self).__init__(category=InfiniteEnumeratedSets())
+        self.size = n
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: IncreasingTableaux(3, max_entry=oo)
+            Increasing tableaux of size 3
+        """
+        return "Increasing tableaux of size %s" % str(self.size)
+
+    def __contains__(self, t):
+        """
+        Return ``True`` if ``t`` can be interpreted as an element of ``self``.
+
+        TESTS::
+
+            sage: T = IncreasingTableaux(3, max_entry=oo)
+            sage: [[1,2],[5]] in T
+            True
+            sage: StandardTableau([[1, 2], [3]]) in T
+            True
+
+            sage: [] in T
+            False
+            sage: Tableau([[1]]) in T
+            False
+        """
+        return IncreasingTableaux.__contains__(self, t) and sum(map(len, t)) == self.size
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: IT = IncreasingTableaux(3, max_entry=oo)
+            sage: [IT[t] for t in range(0,5)]
+            [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]], [[1, 2, 4]]]
+            sage: IT[1000]
+            [[3, 13], [10]]
+            sage: IT[0].parent() is IT
+            True
+        """
+        from sage.combinat.partition import Partitions
+        # Iterates through with maximum entry as order
+        i = 1
+        while True:
+            for part in Partitions(self.size):
+                if i != 1:
+                    for k in range(1, self.size+1):
+                        for c in integer_vectors_nk_fast_iter(self.size - k, i-1):
+                            c.append(k)
+                            for sst in IncreasingTableaux_shape_weight(part, tuple(c)):
+                                yield self.element_class(self, sst)
+                else:
+                    for sst in IncreasingTableaux_shape_weight(part, (self.size,)):
+                        yield self.element_class(self, sst)
+            i += 1
+
+
+class IncreasingTableaux_shape_inf(IncreasingTableaux):
+    """
+    Increasing tableaux of fixed shape `p` and no maximum entry.
+    """
+    def __init__(self, p):
+        r"""
+        Initializes the class of increasing tableaux of shape ``p`` and no
+        maximum entry.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`IncreasingTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: IT = IncreasingTableaux([2,1], max_entry=oo)
+            sage: type(IT)
+            <class 'sage.combinat.tableau.IncreasingTableaux_shape_inf_with_category'>
+            sage: TestSuite(IT).run()
+        """
+        super(IncreasingTableaux_shape_inf, self).__init__(category=InfiniteEnumeratedSets())
+        self.shape = p
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: IT = IncreasingTableaux([2,1], max_entry=oo)
+            sage: [[13, 67], [1467]] in IT
+            True
+            sage: IT = IncreasingTableaux([3,1], max_entry=oo)
+            sage: [[13, 67], [1467]] in IT
+            False
+        """
+        return IncreasingTableaux.__contains__(self, x) and [len(row) for row in x] == self.shape
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: IncreasingTableaux([2,1], max_entry=oo)
+            Increasing tableaux of shape [2, 1]
+        """
+        return "Increasing tableaux of shape %s" % str(self.shape)
+
+    def __iter__(self):
+        """
+        An iterator for the increasing partitions of shape ``p`` and no
+        maximum entry. Iterates through with maximum entry as order.
+
+        EXAMPLES::
+
+            sage: IT = IncreasingTableaux([3, 1], max_entry=oo)
+            sage: IT[1000]
+            [[1, 2, 12], [6]]
+            sage: [ IT[t] for t in range(0, 5) ]
+            [[[1, 3, 4], [2]],
+             [[1, 2, 4], [3]],
+             [[1, 2, 3], [4]],
+             [[1, 3, 5], [2]],
+             [[1, 2, 5], [3]]]
+            sage: IT[0].parent() is IT
+            True
+        """
+        # Iterates through with maximum entry as order
+        i = 1
+        n = sum(self.shape)
+        while True:
+            if i != 1:
+                for k in range(1, n+1):
+                    for c in integer_vectors_nk_fast_iter(n - k, i-1):
+                        c.append(k)
+                        for sst in IncreasingTableaux_shape_weight(self.shape, tuple(c)):
+                            yield self.element_class(self, sst)
+            else:
+                for sst in IncreasingTableaux_shape_weight(self.shape, (n,)):
+                    yield self.element_class(self, sst)
+            i += 1
+
+
+class IncreasingTableaux_size(IncreasingTableaux):
+    """
+    Increasing tableaux of fixed size `n`.
+    """
+    def __init__(self, n, max_entry=None):
+        r"""
+        Initializes the class of increasing tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`IncreasingTableaux`
+            to ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: IT = IncreasingTableaux(3); IT
+            Increasing tableaux of size 3 and maximum entry 3
+            sage: type(IT)
+            <class 'sage.combinat.tableau.IncreasingTableaux_size_with_category'>
+            sage: TestSuite(IT).run()
+
+            sage: IT = IncreasingTableaux(3, max_entry=6)
+            sage: type(IT)
+            <class 'sage.combinat.tableau.IncreasingTableaux_size_with_category'>
+            sage: TestSuite(IT).run()
+        """
+        if max_entry is None:
+            max_entry = n
+        super(IncreasingTableaux_size, self).__init__(max_entry=max_entry,
+                                                      category=FiniteEnumeratedSets())
+        self.size = n
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: IncreasingTableaux(3)
+            Increasing tableaux of size 3 and maximum entry 3
+
+            sage: IncreasingTableaux(3, max_entry=6)
+            Increasing tableaux of size 3 and maximum entry 6
+        """
+        return "Increasing tableaux of size %s and maximum entry %s" % (str(self.size), str(self.max_entry))
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: [[1,2],[2,3]] in IncreasingTableaux(3)
+            False
+            sage: [[1,2],[2,3]] in IncreasingTableaux(4)
+            True
+            sage: [[1,2],[2,3]] in IncreasingTableaux(4, max_entry=2)
+            False
+            sage: IT = IncreasingTableaux(4)
+            sage: all(it in IT for it in IT)
+            True
+        """
+        if self.size == 0:
+            return x == []
+
+        return (IncreasingTableaux.__contains__(self, x)
+                and sum(map(len, x)) == self.size
+                and max(max(row) for row in x) <= self.max_entry)
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: [ t for t in IncreasingTableaux(2) ]
+            [[[1, 2]], [[1], [2]]]
+            sage: [ t for t in IncreasingTableaux(3) ]
+            [[[1, 2, 3]],
+             [[1, 3], [2]],
+             [[1, 2], [3]],
+             [[1, 2], [2]],
+             [[1, 3], [3]],
+             [[2, 3], [3]],
+             [[1], [2], [3]]]
+
+            sage: [ t for t in IncreasingTableaux(4, max_entry=3) ]
+            [[[1, 2, 3], [2]],
+             [[1, 2, 3], [3]],
+             [[1, 2], [2, 3]],
+             [[1, 2], [2], [3]],
+             [[1, 3], [2], [3]]]
+
+            sage: IT = IncreasingTableaux(3)
+            sage: IT[0].parent() is IT
+            True
+
+            sage: list(IncreasingTableaux(size=4, max_entry=2))
+            []
+            sage: list(IncreasingTableaux(size=3, max_entry=2))
+            [[[1, 2], [2]]]
+            sage: list(IncreasingTableaux(0, max_entry=4))
+            [[]]
+            sage: list(IncreasingTableaux(3, max_entry=0))
+            []
+        """
+        if self.size == 0:
+            yield self.element_class(self, [])
+            return
+
+        from sage.combinat.partition import Partitions
+        for part in Partitions(self.size):
+            for sst in IncreasingTableaux_shape(part, self.max_entry):
+                yield self.element_class(self, sst)
+
+class IncreasingTableaux_shape(IncreasingTableaux):
+    """
+    Increasing tableaux of fixed shape `p` with a given max entry.
+
+    An increasing tableau with max entry `i` is required to have all
+    its entries less or equal to `i`. It is not required to actually
+    contain an entry `i`.
+
+    INPUT:
+
+    - ``p`` -- a partition
+    - ``max_entry`` -- the max entry; defaults to the size of ``p``
+    """
+    def __init__(self, p, max_entry=None):
+        r"""
+        Initializes the class of increasing tableaux of shape ``p``, with a
+        given ``max_entry``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`IncreasingTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: IT = IncreasingTableaux([2,1])
+            sage: TestSuite(IT).run()
+
+            sage: IT = IncreasingTableaux([2,1], max_entry=5)
+            sage: TestSuite(IT).run()
+        """
+        if max_entry is None:
+            max_entry = sum(p)
+        super(IncreasingTableaux_shape, self).__init__(max_entry=max_entry,
+                                                       category=FiniteEnumeratedSets())
+        self.shape = p
+
+    def __iter__(self):
+        """
+        An iterator for the increasing tableaux of the specified shape
+        with the specified max entry.
+
+        EXAMPLES::
+
+            sage: [ t for t in IncreasingTableaux([3]) ]
+            [[[1, 2, 3]]]
+            sage: [ t for t in IncreasingTableaux([2,1]) ]
+            [[[1, 3], [2]], [[1, 2], [3]], [[1, 2], [2]], [[1, 3], [3]], [[2, 3], [3]]]
+            sage: [ t for t in IncreasingTableaux([3,1]) ]
+            [[[1, 3, 4], [2]],
+             [[1, 2, 4], [3]],
+             [[1, 2, 3], [4]],
+             [[1, 2, 3], [2]],
+             [[1, 2, 3], [3]],
+             [[1, 2, 4], [2]],
+             [[1, 2, 4], [4]],
+             [[1, 3, 4], [3]],
+             [[1, 3, 4], [4]],
+             [[2, 3, 4], [3]],
+             [[2, 3, 4], [4]]]
+
+            sage: [ t for t in IncreasingTableaux([3,1], max_entry=3) ]
+            [[[1, 2, 3], [2]], [[1, 2, 3], [3]]]
+
+            sage: IT = IncreasingTableaux([3])
+            sage: IT[0].parent() is IT
+            True
+
+            sage: list(IncreasingTableaux(shape=[4,2], max_entry=2))
+            []
+            sage: list(IncreasingTableaux(shape=[2,1], max_entry=0))
+            []
+            sage: list(IncreasingTableaux(shape=[], max_entry=4))
+            [[]]
+        """
+        n = sum(self.shape)
+        if n == 0:
+            yield self.element_class(self, [])
+            return
+
+        list_of_partial_binary_vecs = [[]]
+        list_of_binary_vecs = []
+        while list_of_partial_binary_vecs:
+            active_vec = list_of_partial_binary_vecs.pop()
+            if len(active_vec) < self.max_entry:
+                list_of_partial_binary_vecs.append(active_vec + [0])
+                list_of_partial_binary_vecs.append(active_vec + [1])
+            else:
+                list_of_binary_vecs.append(tuple(active_vec))
+        for wt in list_of_binary_vecs:
+            for sst in IncreasingTableaux_shape_weight(self.shape, wt):
+                yield self.element_class(self, sst)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: IT = IncreasingTableaux([2,1])
+            sage: all(it in IT for it in IT)
+            True
+            sage: len([x for x in IncreasingTableaux(3) if x in IT])
+            5
+            sage: IT.cardinality()
+            5
+
+            sage: IT = IncreasingTableaux([2,1], max_entry=4)
+            sage: all(it in IT for it in IT)
+            True
+            sage: IT.cardinality()
+            14
+        """
+        return (IncreasingTableaux.__contains__(self, x)
+                and [len(row) for row in x] == self.shape)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: IncreasingTableaux([2,1])
+            Increasing tableaux of shape [2, 1] and maximum entry 3
+
+            sage: IncreasingTableaux([2,1], max_entry=5)
+            Increasing tableaux of shape [2, 1] and maximum entry 5
+        """
+        return "Increasing tableaux of shape %s and maximum entry %s" % (str(self.shape), str(self.max_entry))
+
+class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
+    r"""
+    Increasing tableaux of fixed shape `p` and binary weight `wt`.
+    """
+    def __init__(self, p, wt):
+        r"""
+        Initializes the class of all increasing tableaux of shape ``p`` and
+        weight ``mu``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`IncreasingTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: IT = IncreasingTableaux([2,1], (1,0,1))
+            sage: TestSuite(IT).run()
+        """
+        super(IncreasingTableaux_shape_weight, self).__init__(p, len(wt))
+        self.weight = wt
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: IncreasingTableaux([2,1], (1,0,1))
+            Increasing tableaux of shape [2, 1] and weight (1, 0, 1)
+        """
+        return "Increasing tableaux of shape %s and weight %s" % (self.shape, self.weight)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: IT = IncreasingTableaux([2,1], (1,0,1))
+            sage: all(it in IT for it in IT)
+            True
+            sage: len([x for x in IncreasingTableaux(3) if x in IT])
+            1
+            sage: IT.cardinality()
+            1
+            sage: None in IT
+            False
+
+        Corner case check::
+
+            sage: IT = IncreasingTableaux([], ())
+            sage: [] in IT
+            True
+            sage: None in IT
+            False
+        """
+        if not IncreasingTableaux_shape.__contains__(self, x):
+            return False
+        n = sum(self.shape)
+
+        if n == 0 and not x:
+            return True
+
+        content_list = [0] * int(self.max_entry)
+        for row in x:
+            for i in row:
+                content_list[i-1] = 1
+
+        if tuple(content_list) != self.weight:
+            return False
+
+        return True
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: IncreasingTableaux([2,2], (1,0,1,1)).list()
+            [[[1, 3], [3, 4]]]
+            sage: IncreasingTableaux([2,2,2], (1,0,1,1,0,1,1)).list()
+            [[[1, 3], [3, 6], [4, 7]],
+             [[1, 3], [3, 4], [6, 7]],
+             [[1, 4], [3, 6], [4, 7]],
+             [[1, 4], [3, 6], [6, 7]],
+             [[1, 3], [4, 6], [6, 7]]]
+
+        TESTS::
+
+            sage: IT = IncreasingTableaux([3,1], (1,0,1,1))
+            sage: [IT[i] for i in range(2)]
+            [[[1, 3, 4], [3]], [[1, 3, 4], [4]]]
+            sage: IT[0].parent() is IT
+            True
+
+            sage: list(IncreasingTableaux(shape=[], eval=(0,0,0)))
+            [[]]
+
+        We explicitly check a corner case::
+
+            sage: from sage.combinat.tableau import IncreasingTableaux_shape_weight
+            sage: list(IncreasingTableaux_shape_weight(Partition([]), (0,1,1)))
+            []
+        """
+        if not self.shape:
+            if sum(self.weight) == 0:
+                yield IncreasingTableau([])
+            return
+
+        tab = Tableau([[0] * k for k in self.shape])
+        wt = self.weight
+        list_of_partial_inc_tabs = [tab]
+        list_of_inc_tabs = []
+        while list_of_partial_inc_tabs != []:
+            active_tab = list_of_partial_inc_tabs.pop()
+            unfilled_spots = []
+            for (r,c) in active_tab.cells():
+                if active_tab[r][c] == 0:
+                    unfilled_spots.append((r,c))
+            if not unfilled_spots:
+                top_value = max(active_tab.entries())
+                if top_value == len(wt) - wt[::-1].index(1):
+                    list_of_inc_tabs.append(self.element_class(self, active_tab))
+                continue
+            growth_spots = []
+            for (r,c) in unfilled_spots:
+                if (r-1,c) not in active_tab.cells() or active_tab[r-1][c] != 0:
+                    if (r,c-1) not in active_tab.cells() or active_tab[r][c-1] != 0:
+                        growth_spots.append((r,c))
+            growth_choices = list(powerset(growth_spots))
+            top_value = max(active_tab.entries())
+            try:
+                growth_num = wt[top_value:].index(1) + top_value + 1
+            except ValueError:
+                continue
+            for growth_choice in growth_choices[1:]:
+                new_tab = [[0] * k for k in self.shape]
+                for (r,c) in active_tab.cells():
+                    new_tab[r][c] = active_tab[r][c]
+                for (r,c) in growth_choice:
+                    new_tab[r][c] = growth_num
+                list_of_partial_inc_tabs.append(Tableau(new_tab))
+        for inctab in list_of_inc_tabs:
+            yield inctab
+
+
+class IncreasingTableaux_size_weight(IncreasingTableaux):
+    r"""
+    Increasing tableaux of fixed size `n` and weight `wt`.
+    """
+    def __init__(self, n, wt):
+        r"""
+        Initializes the class of increasing tableaux of size ``n`` and
+        weight ``wt``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`IncreasingTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: IT = IncreasingTableaux(3, (1,0,1))
+            sage: TestSuite(IT).run()
+        """
+        super(IncreasingTableaux_size_weight, self).__init__(max_entry=len(wt),
+                                                             category=FiniteEnumeratedSets())
+        self.size = n
+        self.weight = wt
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: IncreasingTableaux(3, (1,0,1))
+            Increasing tableaux of size 3 and weight (1, 0, 1)
+        """
+        return "Increasing tableaux of size %s and weight %s" % (self.size, self.weight)
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: [ T for T in IncreasingTableaux(3, (1,0,1)) ]
+            [[[1, 3], [3]]]
+            sage: [ T for T in IncreasingTableaux(4, (1,0,1,1)) ]
+            [[[1, 3, 4], [3]],
+             [[1, 3, 4], [4]],
+             [[1, 3], [3, 4]],
+             [[1, 3], [3], [4]],
+             [[1, 4], [3], [4]]]
+            sage: IT = IncreasingTableaux(4, (1,0,1,1))
+            sage: IT[0].parent() is IT
+            True
+        """
+        from sage.combinat.partition import Partitions
+        for p in Partitions(self.size):
+            for sst in IncreasingTableaux_shape_weight(p, self.weight):
+                yield self.element_class(self, sst)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: IT = IncreasingTableaux(4, (1,0,1,1))
+            sage: all(it in IT for it in IT)
+            True
+            sage: all(it in IT for it in IncreasingTableaux([2,2], (1,0,1,1)))
+            True
+        """
+        from sage.combinat.partition import _Partitions
+        shape = [len(row) for row in x]
+        if shape not in _Partitions:
+            return False
+        return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
+
+
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.tableau', 'Tableau_class',  Tableau_class)
@@ -7868,3 +9331,4 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu', 
 # Deprecations from trac:18555. July 2016
 from sage.misc.superseded import deprecated_function_alias
 Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)
+

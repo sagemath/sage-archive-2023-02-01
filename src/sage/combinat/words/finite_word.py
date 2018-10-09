@@ -2247,7 +2247,7 @@ class FiniteWord_class(Word_class):
             return True
         try:
             it = iter(self)
-            s = next(islice(it, seq[0], None))
+            s = next(islice(it, int(seq[0]), None))
             for i in range(1, len(seq)):
                 steps = seq[i] - seq[i-1]
                 for n in range(steps-1): next(it)
@@ -3427,7 +3427,7 @@ class FiniteWord_class(Word_class):
             sage: w.palindromic_closure(f=f, side='left')
             Traceback (most recent call last):
             ...
-            KeyError: 'b'
+            ValueError: b not in alphabet!
 
         REFERENCES:
 
@@ -3676,7 +3676,7 @@ class FiniteWord_class(Word_class):
                             m += 1
                     else:
                         m = 0
-                    current_pos = k-j+l-1  
+                    current_pos = k-j+l-1
                     pft[current_pos] = m
                     current_exp = QQ((current_pos+1, current_pos+1-m))
                     if current_exp > best_exp:
@@ -3686,7 +3686,7 @@ class FiniteWord_class(Word_class):
                         j = self.length()
                     queue.append((u, i, j, l+j-i+1))
             return best_exp
-     
+
     def is_overlap(self):
         r"""
         Return ``True`` if ``self`` is an overlap, and ``False`` otherwise.
@@ -4983,10 +4983,10 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: Word([4,4,2,5,2,1,4,1]).evaluation_sparse()
+            sage: sorted(Word([4,4,2,5,2,1,4,1]).evaluation_sparse())
             [(1, 2), (2, 2), (4, 3), (5, 1)]
-            sage: Word("abcaccab").evaluation_sparse()
-            [('a', 3), ('c', 3), ('b', 2)]
+            sage: sorted(Word("abcaccab").evaluation_sparse())
+            [('a', 3), ('b', 2), ('c', 3)]
         """
         return list(iteritems(self.evaluation_dict()))
 
@@ -5188,7 +5188,7 @@ class FiniteWord_class(Word_class):
 
         #Join the classes of each pair of letters that are one above the other
         from sage.combinat.words.morphism import WordMorphism
-        S = zip(islice(self, delay, None), other)
+        S = zip(islice(self, int(delay), None), other)
         if involution is None:
             for (a,b) in S:
                 p.union(a, b)
@@ -6213,7 +6213,7 @@ class FiniteWord_class(Word_class):
         else:
             return self
 
-    def abelian_vector(self, alphabet=None):
+    def abelian_vector(self):
         r"""
         Return the abelian vector of ``self`` counting the occurrences of each letter.
 
@@ -6223,7 +6223,6 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``self`` -- word having a parent on a finite alphabet
-        - ``alphabet`` -- *DEPRECATED*
 
         OUTPUT:
 
@@ -6239,17 +6238,7 @@ class FiniteWord_class(Word_class):
             sage: W().abelian_vector()
             [0, 0]
 
-        The argument ``alphabet`` is deprecated::
-
-            sage: Word('aabaa').abelian_vector('abc')
-            doctest:...: DeprecationWarning: The argument alphabet of
-            methods abelian_vector and parikh_vector is deprecated and will
-            be removed in a future version of Sage. In order to fix this,
-            you must define your word on a parent with a finite alphabet.
-            See http://trac.sagemath.org/17058 for details.
-            [4, 1, 0]
-
-        You may fix the above deprecated use of the ``alphabet`` argument this way::
+        The result depends on the alphabet of the parent::
 
             sage: W = Words('abc')
             sage: W('aabaa').abelian_vector()
@@ -6265,24 +6254,14 @@ class FiniteWord_class(Word_class):
             word with a parent on a finite alphabet or use
             evaluation_dict() instead
         """
-        if alphabet is None:
-            if self.parent().alphabet().cardinality() is Infinity:
-                raise TypeError("The alphabet of the parent is infinite; define "
-                        "the word with a parent on a finite alphabet or use "
-                        "evaluation_dict() instead")
-            alphabet = self.parent().alphabet()
-        else:
-            from sage.misc.superseded import deprecation
-            deprecation(17058, "The argument alphabet of methods abelian_vector "
-                        "and parikh_vector is deprecated and will be "
-                        "removed in a future version of Sage. In order to "
-                        "fix this, you must define your word on a parent "
-                        "with a finite alphabet.")
-
+        alphabet = self.parent().alphabet()
+        if alphabet.cardinality() is Infinity:
+            raise TypeError("The alphabet of the parent is infinite; define "
+                    "the word with a parent on a finite alphabet or use "
+                    "evaluation_dict() instead")
         ev_dict = self.evaluation_dict()
-        return [ev_dict.get(a,0) for a in alphabet]
+        return [ev_dict.get(a, 0) for a in alphabet]
 
-    parikh_vector = deprecated_function_alias(17058, abelian_vector)
     evaluation = abelian_vector
 
     def robinson_schensted(self):

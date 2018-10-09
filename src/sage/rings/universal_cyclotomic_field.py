@@ -271,9 +271,9 @@ class UniversalCyclotomicFieldElement(FieldElement):
         r"""
         INPUT:
 
-        - ``parent`` - a universal cyclotomic field
+        - ``parent`` -- a universal cyclotomic field
 
-        - ``obj`` - a libgap element (either an integer, a rational or a
+        - ``obj`` -- a libgap element (either an integer, a rational or a
           cyclotomic)
 
         TESTS::
@@ -462,8 +462,6 @@ class UniversalCyclotomicFieldElement(FieldElement):
             15
         """
         return self._obj.Conductor().sage()
-
-    field_order = deprecated_function_alias(18152, conductor)
 
     def _symbolic_(self, R):
         r"""
@@ -761,7 +759,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     def multiplicative_order(self):
         r"""
-        The multiplicative order.
+        Return the multiplicative order.
 
         EXAMPLES::
 
@@ -778,7 +776,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     def additive_order(self):
         r"""
-        The additive order.
+        Return the additive order.
 
         EXAMPLES::
 
@@ -985,7 +983,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
         n = k if n is None else ZZ(n)
         if not k.divides(n):
             raise ValueError("n = {} must be a multiple of the conductor ({})".format(n, k))
-        return [P.element_class(P, obj.GaloisCyc(i)) for i in n.coprime_integers(n)]
+        return [P.element_class(P, obj.GaloisCyc(i))
+                for i in n.coprime_integers(n)]
 
     def norm_of_galois_extension(self):
         r"""
@@ -1005,7 +1004,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         obj = self._obj
         k = obj.Conductor().sage()
-        return libgap.Product(libgap([obj.GaloisCyc(i) for i in range(k) if k.gcd(i) == 1])).sage()
+        return libgap.Product(libgap([obj.GaloisCyc(i) for i in range(k)
+                                      if k.gcd(i) == 1])).sage()
 
     def minpoly(self, var='x'):
         r"""
@@ -1239,9 +1239,9 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UCF('[[0, 1], [0, 2]]')
             Traceback (most recent call last):
             ...
-            TypeError: [ [ 0, 1 ], [ 0, 2 ] ] of type <type
-            'sage.libs.gap.element.GapElement_List'> not valid to initialize an
-            element of the universal cyclotomic field
+            TypeError: [ [ 0, 1 ], [ 0, 2 ] ]
+            of type <type 'sage.libs.gap.element.GapElement_List'> not valid
+            to initialize an element of the universal cyclotomic field
 
         .. TODO::
 

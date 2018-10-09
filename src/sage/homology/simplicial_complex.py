@@ -3317,9 +3317,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring
             sage: Y = SimplicialComplex([['a', 'b', 'c']])
             sage: Y._stanley_reisner_base_ring(base_ring=QQ)
-            Multivariate Polynomial Ring in a, c, b over Rational Field
+            Multivariate Polynomial Ring in a, b, c over Rational Field
         """
-        return PolynomialRing(base_ring, list(self._gen_dict.values()))
+        verts = self._gen_dict.values()
+        try:
+            verts = sorted(verts)
+        except TypeError:
+            verts = sorted(verts, key=str)
+        return PolynomialRing(base_ring, verts)
 
     def stanley_reisner_ring(self, base_ring=ZZ):
         """

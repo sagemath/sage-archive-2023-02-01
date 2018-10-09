@@ -289,7 +289,7 @@ class OEIS:
         sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
         0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
         1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-        2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+        2: ...
 
         sage: fibo = search[0]                         # optional -- internet
 
@@ -344,7 +344,7 @@ class OEIS:
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
             1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+            2: ...
 
             sage: fibo = oeis('A000045')                # optional -- internet
 
@@ -355,7 +355,7 @@ class OEIS:
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
             1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+            2: ...
 
             sage: fibo = _[0]                           # optional -- internet
     """
@@ -1422,13 +1422,13 @@ class OEISSequence(SageObject):
 
             sage: f.links(format='url')                             # optional -- internet
             0: http://oeis.org/A000045/b000045.txt
-            1: http://library.thinkquest.org/27890/theSeries.html
-            ...
+            1: ...
+            2: ...
 
             sage: f.links(format='raw')                 # optional -- internet
             0: N. J. A. Sloane, <a href="/A000045/b000045.txt">The first 2000 Fibonacci numbers: Table of n, F(n) for n = 0..2000</a>
-            1: Matt Anderson, Jeffrey Frazier and Kris Popendorf, <a href="http://library.thinkquest.org/27890/theSeries.html">The Fibonacci series: the section index</a> [broken link]
-            ...
+            1: ...
+            2: ...
 
         TESTS::
 
@@ -1521,7 +1521,7 @@ class OEISSequence(SageObject):
 
             sage: nbalanced.cross_references(fetch=True)    # optional -- internet
             0: A049703: a(0) = 0; for n>0, a(n) = A005598(n)/2.
-            1: A049695: Array T read by diagonals; T(i,j)=number of nonnegative slopes of lines determined by 2 lattice points in [ 0,i ] X [ 0,j ] if i>0; T(0,j)=1 if j>0; T(0,0)=0.
+            1: A049695: Array T read by diagonals; ...
             2: A103116: a(n) = A005598(n) - 1.
             3: A000010: Euler totient function phi(n): count numbers <= n and prime to n.
 

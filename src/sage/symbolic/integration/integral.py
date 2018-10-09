@@ -521,7 +521,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: (x^y - z).integrate(y)
         -y*z + x^y/log(x)
         sage: (x^y - z).integrate(y, algorithm="sympy")
-        -y*z + cases(((log(x) == 0, y), (1, x^y/log(x))))
+        -y*z + cases(((log(x) != 0, x^y/log(x)), (1, y)))
 
     We integrate the above function in Maple now::
 

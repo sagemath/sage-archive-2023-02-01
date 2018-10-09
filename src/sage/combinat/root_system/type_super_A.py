@@ -30,8 +30,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
         sage: AL = R.ambient_space(); AL
         Ambient space of the Root system of type ['A', [2, 1]]
         sage: AL.basis()
-        Finite family {-2: (0, 1, 0, 0, 0), 2: (0, 0, 0, 0, 1), -3: (1, 0, 0, 0, 0),
-        -1: (0, 0, 1, 0, 0), 1: (0, 0, 0, 1, 0)}
+        Finite family {-3: (1, 0, 0, 0, 0),
+         -2: (0, 1, 0, 0, 0),
+         -1: (0, 0, 1, 0, 0),
+         1: (0, 0, 0, 1, 0),
+         2: (0, 0, 0, 0, 1)}
     """
     def __init__(self, root_system, base_ring, index_set=None):
         """
@@ -582,7 +585,7 @@ class CartanType(SuperCartanType_standard):
         EXAMPLES::
 
             sage: CartanType(['A', [2,3]]).symmetrizer()
-            Finite family {0: 1, 1: -1, 2: -1, 3: -1, -1: 1, -2: 1}
+            Finite family {-2: 1, -1: 1, 0: 1, 1: -1, 2: -1, 3: -1}
         """
         from sage.sets.family import Family
         def ell(i): return ZZ.one() if i <= 0 else -ZZ.one()

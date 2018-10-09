@@ -445,7 +445,7 @@ def cython(filename, verbose=0, compile_message=False,
         sage: d = sage.misc.temporary_file.tmp_dir()
         sage: os.chdir(d)
         sage: with open("helper.pxd", 'w') as f:
-        ....:     f.write("cdef inline int the_answer(): return 42")
+        ....:     _ = f.write("cdef inline int the_answer(): return 42")
         sage: cython('''
         ....: from helper cimport the_answer
         ....: print(the_answer())
@@ -605,6 +605,8 @@ def cython(filename, verbose=0, compile_message=False,
                     extra_compile_args=extra_args,
                     language=language)
 
+    directives = dict(language_level=sys.version_info[0])
+
     try:
         # Change directories to target_dir so that Cython produces the correct
         # relative path; https://trac.sagemath.org/ticket/24097
@@ -613,6 +615,7 @@ def cython(filename, verbose=0, compile_message=False,
                 ext, = cythonize([ext],
                         aliases=cython_aliases(),
                         include_path=includes,
+                        compiler_directives=directives,
                         quiet=(verbose <= 0),
                         errors_to_stderr=False,
                         use_listing_file=True)

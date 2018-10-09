@@ -1646,7 +1646,7 @@ class GenusSymbol_global_ring(object):
             True
         """
         if check:
-            if not all(isinstance(Genus_Symbol_p_adic_ring,sym) for sym in local_symbols):
+            if not all(isinstance(sym, Genus_Symbol_p_adic_ring) for sym in local_symbols):
                 raise TypeError("local symbols must be a list of local genus symbols")
             n = signature_pair[0] + signature_pair[1]
             if not all(sym.dimension()==n for sym in local_symbols):

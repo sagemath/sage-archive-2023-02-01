@@ -1608,8 +1608,9 @@ class GenusSymbol_global_ring(object):
     - ``signature_pair`` -- a tuple of two non-negative integers
 
     - ``local_symbols`` -- a list of :class:`Genus_Symbol_p_adic_ring`` instances
+      sorted by their primes
 
-    - ``representative`` -- (default: ``None``) integer symmetric matrix
+    - ``representative`` -- (default: ``None``) integer symmetric matrix;
       the gram matrix of a representative of this genus
 
     - ``check`` -- (default: ``True``) a boolean; checks the input
@@ -1627,14 +1628,15 @@ class GenusSymbol_global_ring(object):
         [0 0 0 8]
         Genus symbol at 2:    [2^-2 4^1 8^1]_6
         Genus symbol at 3:     1^3 3^-1
+
+    .. SEEALSO::
+
+        :func:`Genus` to create a :class:`GenusSymbol_global_ring` from the gram matrix directly.
     """
 
     def __init__(self, signature_pair, local_symbols, representative=None, check=True):
         r"""
-        Initialize a global genus symbol from a non-degenerate
-        integral gram matrix (and possibly information about its
-        largest elementary divisors).
-
+        Initialize a global genus symbol.
 
         EXAMPLES::
 
@@ -1654,6 +1656,13 @@ class GenusSymbol_global_ring(object):
             if representative is not None:
                 if not representative.is_symmetric():
                     raise ValueError("the representative must be a symmetric matrix")
+            # check the symbols are sorted increasing by their prime
+            if any(local_symbols[i].prime() >= local_symbols[i+1].prime()
+                   for i in range(len(local_symbols)-1)):
+                raise ValueError("the local symbols must be sorted by their primes")
+            if local_symbols[0].prime() != 2:
+                raise ValueError("the first symbol must be 2-adic")
+
 
         self._representative = representative
         self._signature = signature_pair

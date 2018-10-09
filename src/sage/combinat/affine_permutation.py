@@ -10,7 +10,7 @@ Affine Permutations
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
 
 from six.moves import range
 
@@ -23,6 +23,7 @@ from sage.categories.affine_weyl_groups import AffineWeylGroups
 from sage.structure.list_clone import ClonableArray
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.rings.integer_ring import ZZ
 
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.arith.all import binomial
@@ -49,31 +50,43 @@ class AffinePermutation(ClonableArray):
 
         INPUT:
 
-        - ``parent`` -- The parent affine permutation group.
+        - ``parent`` -- the parent affine permutation group
 
-        - ``lst`` -- List giving the base window of the affine permutation.
+        - ``lst`` -- list giving the base window of the affine permutation
 
-        - ``check``-- Chooses whether to test that the affine permutation is legit.
+        - ``check``-- whether to test if the affine permutation is valid
 
         EXAMPLES::
 
-            sage: A=AffinePermutationGroup(['A',7,1])
-            sage: p=A([3, -1, 0, 6, 5, 4, 10, 9]) #indirect doctest
+            sage: A = AffinePermutationGroup(['A',7,1])
+            sage: p = A([3, -1, 0, 6, 5, 4, 10, 9])  # indirect doctest
             sage: p
             Type A affine permutation with window [3, -1, 0, 6, 5, 4, 10, 9]
+
+        TESTS:
+
+        Check that :trac:`XXXXX` is fixed::
+
+            sage: A = AffinePermutationGroup(['A',3,1])
+            sage: p = A([-3/1,2/1,3/1,8/1])
+            sage: q = ~p
+            sage: q * p
+            Type A affine permutation with window [1, 2, 3, 4]
         """
-        self._lst=lst
-        self.k=parent.k
-        self.n=self.k+1
+        if check:
+            lst = [ZZ(val) for val in lst]
+        self._lst = lst
+        self.k = parent.k
+        self.n = self.k + 1
         #This N doesn't matter for type A, but comes up in all other types.
-        if parent.cartan_type()[0]=='A':
-            self.N=self.n
+        if parent.cartan_type()[0] == 'A':
+            self.N = self.n
         elif parent.cartan_type()[0] in ['B', 'C', 'D']:
-            self.N=2*self.k+1
-        elif parent.cartan_type()[0]=='G':
-            self.N=6
+            self.N = 2*self.k+1
+        elif parent.cartan_type()[0] == 'G':
+            self.N = 6
         else:
-            raise NotImplementedError('Unsupported Cartan Type.')
+            raise NotImplementedError('unsupported Cartan type')
         ClonableArray.__init__(self, parent, lst, check)
 
     def _repr_(self):

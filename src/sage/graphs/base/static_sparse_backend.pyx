@@ -368,8 +368,12 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: gi=DiGraph(g,data_structure="static_sparse")
             sage: gi.edges()[0]
             ('000', '000', '0')
-            sage: gi.edges_incident('111')
-            [('111', '110', '0'), ('111', '111', '1'), ('111', '112', '2'), ('111', '113', '3')]
+            sage: sorted(gi.edges_incident('111'))
+            [('111', '110', '0'),
+            ('111', '111', '1'),
+            ('111', '112', '2'),
+            ('111', '113', '3')]
+
             sage: sorted(g.edges()) == sorted(gi.edges())
             True
 

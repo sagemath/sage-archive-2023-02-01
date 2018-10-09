@@ -3136,6 +3136,10 @@ REFERENCES:
             Optimization Methods and Software, 32(1):109-125, 2017,
             :doi:`10.1080/10556788.2016.1202246`.
 
+.. [Or2018a] \M. Orlitzky. Lyapunov rank of polyhedral positive operators.
+             Linear and Multilinear Algebra, 66(5):992-1000, 2018,
+             :doi:`10.1080/03081087.2017.1331998`.
+
 .. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
             Langlands dual quantum affine algebras: Exceptional cases*.
             Preprint: :arxiv:`1802.09253` (2018).

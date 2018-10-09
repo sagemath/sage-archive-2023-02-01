@@ -105,8 +105,7 @@ maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
     sage: r = findstat(Permutations, lambda pi: pi.saliances()[0]); r           # optional -- internet
-    0: ...
-    ... (St000051: The size of the left subtree of a binary tree., [Mp00069: complement, Mp00061: to increasing tree], 1000)
+    0: ... (St000051: The size of the left subtree of a binary tree., [Mp00069: complement, Mp00061: to increasing tree], 1000)
     ...
     sage: (s, list_f, quality) = next((a,b,c) for a,b,c in r if a.id() == 51)   # optional -- internet
 
@@ -1056,7 +1055,7 @@ class FindStatStatistic(SageObject):
 
         try:
             result = json.load(response)
-        except StandardError as e:
+        except Exception as e:
             raise IOError("FindStat did not answer with a json response: %s" %e)
 
         self._result = FancyTuple((findstat(match[FINDSTAT_STATISTIC_IDENTIFIER]),

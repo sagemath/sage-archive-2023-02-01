@@ -439,7 +439,7 @@ def PBD_4_7(v,check=True, existence=False):
 
         sage: from sage.combinat.designs.resolvable_bibd import PBD_4_7
         sage: PBD_4_7(22)
-        Pairwise Balanced Design on 22 points with sets of sizes in {4, 7}
+        Pairwise Balanced Design on 22 points with sets of sizes in [4, 7]
 
     TESTS:
 
@@ -699,14 +699,14 @@ def PBD_4_7_from_Y(gdd,check=True):
 
         sage: from sage.combinat.designs.resolvable_bibd import PBD_4_7_from_Y
         sage: PBD_4_7_from_Y(designs.transversal_design(7,8))
-        Pairwise Balanced Design on 169 points with sets of sizes in {4, 7}
+        Pairwise Balanced Design on 169 points with sets of sizes in [4, 7]
 
     TESTS::
 
         sage: PBD_4_7_from_Y(designs.balanced_incomplete_block_design(10,10))
         Traceback (most recent call last):
         ...
-        ValueError: The GDD should only contain blocks of size {4,5,7} but there are other: {10}
+        ValueError: The GDD should only contain blocks of size {4,5,7} but there are other: [10]
         sage: PBD_4_7_from_Y(designs.transversal_design(4,3))
         Traceback (most recent call last):
         ...
@@ -717,8 +717,7 @@ def PBD_4_7_from_Y(gdd,check=True):
     block_sizes = set(map(len,gdd._blocks))
     group_sizes = set(map(len,gdd._groups))
     if not block_sizes.issubset([4, 5, 7]):
-        txt = str(frozenset(block_sizes.difference([4, 5, 7])))[11:-2]
-        txt = '{' + txt + '}'
+        txt = list(block_sizes.difference([4, 5, 7]))
         raise ValueError("The GDD should only contain blocks of size {{4,5,7}} "
                          "but there are other: {}".format(txt))
 

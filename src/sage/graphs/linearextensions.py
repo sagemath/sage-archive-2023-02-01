@@ -64,7 +64,7 @@ class LinearExtensions(CombinatorialClass):
         of the directed acyclic graph \code{dag}.
 
         Note that upon construction of this object some pre-computation is
-        done. This is the "preprocessing routine" found in Figure 7 of
+        done.  This is the "preprocessing routine" found in Figure 7 of
         "Generating Linear Extensions Fast" by Preusse and Ruskey.
 
         This is an in-place algorithm and the list self.le keeps track
@@ -95,7 +95,7 @@ class LinearExtensions(CombinatorialClass):
             #Find all the minimal elements of dag_copy
             minimal_elements = []
             for node in dag_copy.vertices():
-                if not len(dag_copy.incoming_edges(node)):
+                if len(dag_copy.incoming_edges(node)) == 0:
                     minimal_elements.append(node)
             if len(minimal_elements) == 1:
                 le.append(minimal_elements[0])
@@ -277,8 +277,8 @@ class LinearExtensions(CombinatorialClass):
         This a Python version of the GenLE routine found in Figure 8
         of "Generating Linear Extensions Fast" by Pruesse and Ruskey.
 
-        Note that this is meant to be called by the list method and is not meant
-        to be used directly.
+        Note that this is meant to be called by the list
+        method and is not meant to be used directly.
 
         EXAMPLES::
 
@@ -307,7 +307,7 @@ class LinearExtensions(CombinatorialClass):
                     while cont:
                         mra += 1
                         self.move(self.a[i], "right")
-                        self.generate_linear_extensions(i - 1)
+                        self.generate_linear_extensions(i-1)
                         cont = self.right(i, "a")
                 if typical:
                     self.switch(i-1)
@@ -357,6 +357,7 @@ class LinearExtensions(CombinatorialClass):
         self.generate_linear_extensions(self.max_pair)
         self.linear_extensions.sort()
         return self.linear_extensions[:]
+
 
     def incomparable(self, x, y):
         """

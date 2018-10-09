@@ -2122,7 +2122,8 @@ class Graph(GenericGraph):
         # vertex of degree 2 is an apex, its neighbors also are. So we start
         # with vertices of degree 2.
         V = {}
-        for u,d in six.iteritems(H.degree(labels=True)):
+        for u in H:
+            d = H.degree(u)
             if d > 1:
                 if d in V:
                     V[d].append(u)

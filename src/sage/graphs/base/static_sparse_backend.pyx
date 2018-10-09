@@ -428,7 +428,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         self._directed = cg._directed
 
-        vertices = G.vertices()
+        vertices = list(G)
         self._order = len(vertices)
 
         # Does it allow loops/multiedges ?
@@ -437,13 +437,13 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         # Dictionary translating a vertex int to a label, and the other way around.
         self._vertex_to_labels = vertices
-        self._vertex_to_int = {v:i for i,v in enumerate(vertices)}
+        self._vertex_to_int = {v: i for i, v in enumerate(vertices)}
 
         # Needed by CGraph. The first one is just an alias, and the second is
         # useless : accessing _vertex_to_labels (which is a list) is faster than
         # vertex_labels (which is a dictionary)
         self.vertex_ints = self._vertex_to_int
-        self.vertex_labels = {i:v for i,v in enumerate(vertices)}
+        self.vertex_labels = {i: v for i, v in enumerate(vertices)}
         self._multiple_edges = self._multiedges
 
     def has_vertex(self, v):

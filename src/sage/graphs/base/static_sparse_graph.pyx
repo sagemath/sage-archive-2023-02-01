@@ -83,7 +83,7 @@ Technical details
 -----------------
 
     * When creating a ``fast_digraph`` from a ``Graph`` or ``DiGraph`` named
-      ``G``, the `i^{\text{th}}` vertex corresponds to ``G.vertices()[i]``
+      ``G``, the `i^{\text{th}}` vertex corresponds to ``list(G)[i]``
 
     * Some methods return ``bitset_t`` objets when lists could be
       expected. There is a very useful ``bitset_list`` function for this kind of
@@ -229,7 +229,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
     else:
         raise ValueError("The source graph must be either a DiGraph or a Graph object !")
 
-    cdef list vertices = G.vertices()
+    cdef list vertices = list(G)
     cdef dict v_to_id = {}
     cdef int i,j,v_id
     cdef list neighbor_label
@@ -627,9 +627,10 @@ def tarjan_strongly_connected_components(G):
     cdef int i
     cdef list output = [[] for i in range(nscc)]
 
-    for i,v in enumerate(G.vertices()):
+    for i,v in enumerate(G):
         output[scc[i]].append(v)
     return output
+
 
 cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int *scc, short_digraph output):
     r"""
@@ -750,7 +751,7 @@ def strongly_connected_components_digraph(G):
             edges.append((i, scc_g.neighbors[i][j]))
     output.add_edges(edges)
     sig_off()
-    return output, {v:scc[i] for i,v in enumerate(G.vertices())}
+    return output, {v:scc[i] for i,v in enumerate(G)}
 
 
 cdef strongly_connected_component_containing_vertex(short_digraph g, short_digraph g_reversed, int v, bitset_t scc):
@@ -824,7 +825,7 @@ def triangles_count(G):
             count[v] += tmp_count
 
     ans = {w:Integer(count[i]/2)
-           for i,w in enumerate(G.vertices())}
+           for i,w in enumerate(G)}
 
     sig_free(count)
     return ans

@@ -60,6 +60,7 @@ def Genus(A, factored_determinant=None):
         Genus of
         [2 1]
         [1 2]
+        Signature:  (2, 0)
         Genus symbol at 2:    1^-2
         Genus symbol at 3:     1^-1 3^-1
     """

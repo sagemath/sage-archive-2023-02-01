@@ -19,7 +19,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.functional import is_even
 from sage.rings.all import ZZ
-
+from sage.matrix.all import Matrix
 
 class WeylCharacterRing(CombinatorialFreeModule):
     r"""
@@ -131,6 +131,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._prefix = prefix
         self._style = style
         self._k = k
+        self._opposition = ct.opposition_automorphism()
         if k is not None:
             self._highest = self._space.highest_root()
             self._hip = self._highest.inner_product(self._highest)
@@ -754,6 +755,37 @@ class WeylCharacterRing(CombinatorialFreeModule):
         the weight on the coroot associated with the highest root.
         """
         return ZZ(2*wt.inner_product(self._highest)/self._hip)
+
+    def _dual_helper(self, wt):
+        """
+        If `w_0` is the long Weyl group element and `wt` is an
+        element of the weight lattice, this returns `-w_0(wt)`.
+        """
+        if self.cartan_type()[0] == 'A':
+            return self.space()([-x for x in reversed(wt.to_vector().list())])
+        ret = 0
+        alphacheck = self._space.simple_coroots()
+        fw = self._space.fundamental_weights()
+        for i in self._space.index_set():
+            ret += wt.inner_product(alphacheck[i])*fw[self._opposition[i]]
+        return ret
+
+    def dual(self, elt):
+        """
+        The involution that replaces a representation with
+        its contragredient. (For Fusion rings, this is the
+        conjugation map.)
+
+        EXAMPLES::
+
+            sage: A3=WeylCharacterRing("A3",style="coroots")
+            sage: A3(1,0,0)^2
+            A3(0,1,0) + A3(2,0,0)
+            sage: A3.dual(A3(1,0,0)^2)
+            A3(0,1,0) + A3(0,0,2)
+        """
+        d = elt.monomial_coefficients()
+        return sum(d[k]*self(self._dual_helper(k)) for k in d.keys())
 
     def _wt_repr(self, wt):
         """

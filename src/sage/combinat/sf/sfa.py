@@ -4677,10 +4677,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)
 
-    def adams_operation(self, *args, **opts):
-        from sage.misc.superseded import deprecation
-        deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
-
     def verschiebung(self, n):
         r"""
         Return the image of the symmetric function ``self`` under the

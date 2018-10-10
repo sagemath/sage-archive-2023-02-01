@@ -88,6 +88,50 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
                 msg="claimed nilpotency step %d does not match the "
                 "actual nilpotency step %d" % (step, len(lcs) - 1))
 
+        def lie_group(self, name='G', **kwds):
+            r"""
+            Return the Lie group associated to ``self``.
+
+            INPUT:
+
+            - ``name`` -- string (default: ``'G'``);
+              the name (symbol) given to the Lie group
+
+            EXAMPLES:
+
+            We define the Heisenberg group::
+
+                sage: L = lie_algebras.Heisenberg(QQ, 1)
+                sage: G = L.lie_group('G'); G
+                Lie group G of Heisenberg algebra of rank 1 over Rational Field
+
+            We test multiplying elements of the group::
+
+                sage: p,q,z = L.basis()
+                sage: g = G.exp(p); g
+                exp(p1)
+                sage: h = G.exp(q); h
+                exp(q1)
+                sage: g*h
+                exp(p1 + q1 + 1/2*z)
+
+            We extend an element of the Lie algebra to a left-invariant
+            vector field::
+
+                sage: X = G.left_invariant_extension(2*p + 3*q, name='X'); X
+                Vector field X on the Lie group G of Heisenberg algebra of rank 1 over Rational Field
+                sage: X.at(G.one()).display()
+                X = 2 d/dx_0 + 3 d/dx_1
+                sage: X.display()
+                X = 2 d/dx_0 + 3 d/dx_1 + (3/2*x_0 - x_1) d/dx_2
+
+            .. SEEALSO::
+
+                :class:`~sage.groups.lie_gps.nilpotent_lie_group.NilpotentLieGroup`
+            """
+            from sage.groups.lie_gps.nilpotent_lie_group import NilpotentLieGroup
+            return NilpotentLieGroup(self, name, **kwds)
+
         def step(self):
             r"""
             Return the nilpotency step of ``self``.
@@ -116,3 +160,4 @@ class FiniteDimensionalNilpotentLieAlgebrasWithBasis(CategoryWithAxiom_over_base
                 True
             """
             return True
+

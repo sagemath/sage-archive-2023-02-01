@@ -980,7 +980,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A
             Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) over Rational Field
             sage: A.quotient(A.ideal(3*x*z - 2*y*t))
-            Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) with relations [3*x*z - 2*y*t] over Rational Field 
+            Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) with relations [3*x*z - 2*y*t] over Rational Field
         """
         s = "Graded Commutative Algebra with generators {} in degrees {}".format(self._names, self._degrees)
         # Find any nontrivial relations.
@@ -2629,10 +2629,15 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     algebra" -- the word "differential" is missing. Also, it has no
     default ``differential``::
 
-        sage: AQ.differential()
+        sage: AQ.differential()  # py2
         Traceback (most recent call last):
         ...
-        TypeError: differential() ...
+        TypeError: differential() takes exactly 2 arguments (1 given)
+        sage: AQ.differential()  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: differential() missing 1 required positional argument:
+        'diff'
 
     Now we add a differential to ``AQ``::
 

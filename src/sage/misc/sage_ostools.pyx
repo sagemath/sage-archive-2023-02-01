@@ -130,28 +130,28 @@ cdef class redirection:
         sage: with redirection(sys.stdout, open(fn, 'w')):
         ....:     print("hello world!")
         sage: with open(fn) as f:
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = sys.stdout.write(f.read())
         hello world!
 
     We can do the same using a file descriptor as source::
 
         sage: fd = sys.stdout.fileno()
-        sage: with redirection(fd, open(fn, 'w')):
-        ....:     _ = os.write(fd, "hello world!\n")
+        sage: with redirection(fd, open(fn, 'wb')):
+        ....:     _ = os.write(fd, b"hello world!\n")
         sage: with open(fn) as f:
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = sys.stdout.write(f.read())
         hello world!
 
     The converse also works::
 
         sage: with open(fn, 'w') as f:
-        ....:     f.write("This goes to the file\n")
+        ....:     _ = f.write("This goes to the file\n")
         ....:     with redirection(f, sys.stdout, close=False):
-        ....:         f.write("This goes to stdout\n")
-        ....:     f.write("This goes to the file again\n")
+        ....:         _ = f.write("This goes to stdout\n")
+        ....:     _ = f.write("This goes to the file again\n")
         This goes to stdout
         sage: with open(fn) as f:
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = sys.stdout.write(f.read())
         This goes to the file
         This goes to the file again
 
@@ -165,8 +165,8 @@ cdef class redirection:
         sage: with r:
         ....:     print("Line 2")
         sage: with f:
-        ....:     f.seek(0)
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = f.seek(0)
+        ....:     _ = sys.stdout.write(f.read())
         Line 1
         Line 2
 
@@ -176,16 +176,20 @@ cdef class redirection:
         sage: with redirection(sys.stdout, open(fn, 'w')):
         ....:     _ = subprocess.call(["echo", "hello world"])
         sage: with open(fn) as f:
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = sys.stdout.write(f.read())
         hello world
 
     TESTS::
 
         sage: from six.moves import cStringIO as StringIO
-        sage: redirection(sys.stdout, StringIO())
+        sage: redirection(sys.stdout, StringIO())  # py2
         Traceback (most recent call last):
         ...
         TypeError: <...> must be a Python file or an integer
+        sage: redirection(sys.stdout, StringIO())  # py3
+        Traceback (most recent call last):
+        ...
+        io.UnsupportedOperation: fileno
 
     The redirection is removed and the destination file is closed even
     in the case of errors::

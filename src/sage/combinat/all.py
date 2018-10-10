@@ -89,8 +89,8 @@ from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarity
 from .core import Core, Cores
 
 #Tableaux
-lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau",
-                                     "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux"])
+lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", "IncreasingTableau",
+                                     "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux", "IncreasingTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
 from .ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
@@ -121,8 +121,10 @@ from .alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatri
 from .plane_partition import PlanePartition, PlanePartitions
 
 # Parking Functions
-from .non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
-from .parking_functions import ParkingFunctions, ParkingFunction
+lazy_import('sage.combinat.non_decreasing_parking_function',
+            ['NonDecreasingParkingFunctions', 'NonDecreasingParkingFunction'])
+lazy_import('sage.combinat.parking_functions',
+            ['ParkingFunctions', 'ParkingFunction'])
 
 # Trees and Tamari interval posets
 from .ordered_tree import (OrderedTree, OrderedTrees,
@@ -174,8 +176,6 @@ from .finite_class import FiniteCombinatorialClass
 from .q_analogues import gaussian_binomial, q_binomial
 
 from .species.all import *
-
-from .multichoose_nk import MultichooseNK
 
 from .kazhdan_lusztig import KazhdanLusztigPolynomial
 

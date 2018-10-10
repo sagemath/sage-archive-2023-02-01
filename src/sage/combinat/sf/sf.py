@@ -581,7 +581,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     We can also construct the `\bar{q}` basis that can be used
     to determine character tables for Hecke algebras (with quadratic
-    relation `T_i^2 = (1-q) T_i + q`::
+    relation `T_i^2 = (1-q) T_i + q`)::
 
         sage: Sym = SymmetricFunctions(ZZ['q'].fraction_field())
         sage: qbar = Sym.hecke_character()

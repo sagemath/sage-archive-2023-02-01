@@ -57,12 +57,12 @@ cdef class Polynomial_complex_arb(Polynomial):
         sage: Pol(polygen(QQ))
         x
 
-        sage: [Pol.has_coerce_map_from(P) for P in
-        ....: QQ['x'], QuadraticField(-1), RealBallField(100)]
-        [True, True, True]
-        sage: [Pol.has_coerce_map_from(P) for P in
-        ....: QQ['y'], RR, CC, RDF, CDF, RIF, CIF, RealBallField(20)]
-        [False, False, False, False, False, False, False, False]
+        sage: all(Pol.has_coerce_map_from(P) for P in
+        ....:     (QQ['x'], QuadraticField(-1), RealBallField(100)))
+        True
+        sage: any(Pol.has_coerce_map_from(P) for P in
+        ....:     (QQ['y'], RR, CC, RDF, CDF, RIF, CIF, RealBallField(20)))
+        False
     """
 
     # Memory management and initialization

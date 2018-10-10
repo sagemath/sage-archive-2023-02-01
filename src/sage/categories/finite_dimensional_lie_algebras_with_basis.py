@@ -310,7 +310,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         @cached_method
         def structure_coefficients(self, include_zeros=False):
-            """
+            r"""
             Return the structure coefficients of ``self``.
 
             INPUT:
@@ -338,15 +338,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S = GroupAlgebra(G, QQ)
                 sage: L = LieAlgebra(associative=S)
                 sage: L.structure_coefficients()
-                Finite family {((2,3), (1,3)): -(1,2,3) + (1,3,2),
-                 ((1,2), (2,3)): -(1,2,3) + (1,3,2),
-                 ((1,2), (1,2,3)): -(2,3) + (1,3),
-                 ((1,2), (1,3,2)): (2,3) - (1,3),
-                 ((1,2), (1,3)): (1,2,3) - (1,3,2),
-                 ((1,2,3), (2,3)): -(1,2) + (1,3),
-                 ((1,2,3), (1,3)): -(2,3) + (1,2),
-                 ((1,3,2), (2,3)): (1,2) - (1,3),
-                 ((1,3,2), (1,3)): (2,3) - (1,2)}
+                Finite family {((2,3), (1,2)): (1,2,3) - (1,3,2),
+                               ((2,3), (1,3)): -(1,2,3) + (1,3,2),
+                               ((1,2,3), (2,3)): -(1,2) + (1,3),
+                               ((1,2,3), (1,2)): (2,3) - (1,3),
+                               ((1,2,3), (1,3)): -(2,3) + (1,2),
+                               ((1,3,2), (2,3)): (1,2) - (1,3),
+                               ((1,3,2), (1,2)): -(2,3) + (1,3),
+                               ((1,3,2), (1,3)): (2,3) - (1,2),
+                               ((1,3), (1,2)): -(1,2,3) + (1,3,2)}
             """
             d = {}
             B = self.basis()
@@ -605,7 +605,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 gens = gens[0]
             category = kwds.pop('category', None)
             return LieSubalgebra_finite_dimensional_with_basis(
-                self, gens, category=category)
+                self, gens, category=category, **kwds)
 
         def ideal(self, *gens, **kwds):
             r"""
@@ -641,7 +641,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 gens = gens[0]
             category = kwds.pop('category', None)
             return LieSubalgebra_finite_dimensional_with_basis(
-                self, gens, ideal=True, category=category)
+                self, gens, ideal=True, category=category, **kwds)
 
         @cached_method
         def is_ideal(self, A):

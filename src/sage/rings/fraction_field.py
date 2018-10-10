@@ -984,6 +984,7 @@ class FractionField_1poly_field(FractionField_generic):
         return super(FractionField_1poly_field, self)._coerce_map_from_(R)
 
 
+
 class FractionFieldEmbedding(DefaultConvertMap_unique):
     r"""
     The embedding of an integral domain into its field of fractions.

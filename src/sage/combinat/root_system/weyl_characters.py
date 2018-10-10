@@ -17,6 +17,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.misc.functional import is_even
 from sage.rings.all import ZZ
 
@@ -755,6 +756,24 @@ class WeylCharacterRing(CombinatorialFreeModule):
         the weight on the coroot associated with the highest root.
         """
         return ZZ(2*wt.inner_product(self._highest)/self._hip)
+
+    def fusion_basis(self):
+        """
+        For FusionRings, this method returns the finite canonical basis
+        as a list.
+        
+        EXAMPLES::
+            sage: B22=FusionRing("B2",2)
+            sage: B22.fusion_basis()
+            [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
+        """
+        if self._k is None:
+            raise ValueError("fusion_basis method is only available for FusionRings")
+        fw = self._space.fundamental_weights()
+        def next_level(wt):
+            return [wt + la for la in fw if self.level(wt + la) <= self._k]
+        B = RecursivelyEnumeratedSet([self._space.zero()], next_level)
+        return [self._element_constructor_(x) for x in B]
 
     def _dual_helper(self, wt):
         """

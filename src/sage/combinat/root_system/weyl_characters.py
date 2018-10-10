@@ -19,7 +19,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.functional import is_even
 from sage.rings.all import ZZ
-from sage.matrix.all import Matrix
 
 class WeylCharacterRing(CombinatorialFreeModule):
     r"""

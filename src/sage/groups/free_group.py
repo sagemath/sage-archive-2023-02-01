@@ -70,7 +70,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.structure.sequence import Sequence
-from sage.structure.element import coercion_model
+from sage.structure.element import coercion_model, parent
 
 
 def is_FreeGroup(x):
@@ -559,6 +559,17 @@ class FreeGroupElement(ElementLibGAP):
             sage: parent(u.subs({x1:x0})) is F
             True
 
+            sage: F = FreeGroup(2)
+            sage: x0, x1 = F.gens()
+            sage: u = x0*x1
+            sage: u.subs({x0:3, x1:2})
+            6
+            sage: M0 = matrix(ZZ,2,[1,1,0,1])
+            sage: M1 = matrix(ZZ,2,[1,0,1,1])
+            sage: u.subs({x0: M0, x1: M1})
+            [2 1]
+            [1 1]
+
         TESTS::
 
             sage: F.<x,y> = FreeGroup()
@@ -576,7 +587,7 @@ class FreeGroupElement(ElementLibGAP):
         if len(values) != G.ngens():
             raise ValueError('number of values has to match the number of generators')
         replace = dict(zip(G.gens(), values))
-        new_parent = coercion_model.common_parent(*[v.parent() for v in values])
+        new_parent = coercion_model.common_parent(*[parent(v) for v in values])
         return new_parent.prod(replace[gen] ** power
                                for gen, power in self.syllables())
 

@@ -362,7 +362,7 @@ def _greedy_dominating_set(H, verbose=False):
     r"""
     Returns a greedy approximation of a dominating set
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.hyperbolicity import _greedy_dominating_set
         sage: G = graphs.PetersenGraph()
@@ -842,7 +842,7 @@ cdef tuple hyperbolicity_BCCM(int N,
         print("Visited 4-tuples:", nq)
 
     # Last, we return the computed value and the certificate
-    if not len(certificate):
+    if not certificate:
         return ( -1, [], h_UB )
     else:
         # When using far-apart pairs, the loops may end before improving the
@@ -1059,7 +1059,7 @@ cdef tuple hyperbolicity_CCL(int N,
     sig_free(pairs_of_length)
 
     # Last, we return the computed value and the certificate
-    if not len(certificate):
+    if not certificate:
         return ( -1, [], h_UB )
     else:
         # When using far-apart pairs, the loops may end before improving the
@@ -1285,7 +1285,7 @@ def hyperbolicity(G,
         sage: hyperbolicity(G, algorithm='tip top')
         Traceback (most recent call last):
         ...
-        ValueError: algorithm 'tip top' not yet implemented. Please contribute
+        ValueError: algorithm 'tip top' not yet implemented, please contribute
     """
 
     # Abbreviations for algorithms are expanded.
@@ -1295,7 +1295,7 @@ def hyperbolicity(G,
     if not isinstance(G, Graph):
         raise ValueError("the input parameter must be a Graph")
     if not algorithm in ['basic', 'CCL', 'CCL+FA', 'BCCM', 'dom']:
-        raise ValueError("algorithm '%s' not yet implemented. Please contribute" %(algorithm))
+        raise ValueError("algorithm '%s' not yet implemented, please contribute" %(algorithm))
     if approximation_factor is None:
         approximation_factor = 1.0
     elif approximation_factor == 1.0:
@@ -1708,7 +1708,7 @@ def hyperbolicity_distribution(G, algorithm='sampling', sampling_size=10**6):
     elif algorithm == 'sampling':
         hdict = __hyperbolicity_sampling__(N, distances, sampling_size)
     else:
-        raise ValueError("algorithm '%s' not yet implemented. Please contribute" %(algorithm))
+        raise ValueError("algorithm '%s' not yet implemented, please contribute" %(algorithm))
 
     # We release memory
     sig_free(distances)

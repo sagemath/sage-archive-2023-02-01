@@ -117,7 +117,8 @@ def project_points(*points, **kwds):
 
     - ``points``... -- the points to project.
 
-    - ``base_ring`` -- (default ``RDF``) the base ring to use.
+    - ``base_ring`` -- (defaults to ``RDF`` if keyword is ``None`` or not
+      provided in ``kwds``) the base ring to use.
 
     The projection is isometric to the orthogonal projection on the hyperplane
     made of zero sum vector. Hence, if the set of points have all equal sums,
@@ -357,6 +358,7 @@ class Polytopes():
         """
         verts = list((ZZ ** (dim+1)).basis())
         if project:
+            # Handling of default in base_ring is delegated to project_points
             verts = project_points(*verts, base_ring=base_ring)
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 

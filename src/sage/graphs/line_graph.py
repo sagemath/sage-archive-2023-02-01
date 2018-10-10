@@ -363,7 +363,7 @@ def line_graph(self, labels=True):
         G.add_vertices(self.edges(labels=labels))
         for v in self:
             # Connect appropriate incident edges of the vertex v
-            G.add_edges((e, f) for e in self.incoming_edge_iterator(v, labels=labels) \
+            G.add_edges((e, f) for e in self.incoming_edge_iterator(v, labels=labels)
                          for f in self.outgoing_edge_iterator(v, labels=labels))
         return G
     else:
@@ -582,7 +582,7 @@ def root_graph(g, verbose=False):
         for x,y in [(u, v), (v, w), (w, u)]:
 
             # If edge xy does not appear in any of the cliques associated with y
-            if all(not x in C for C in v_cliques[y]):
+            if all(x not in C for C in v_cliques[y]):
                 if len(v_cliques[y]) >= 2 or len(v_cliques[x]) >= 2:
                     raise ValueError("This graph is not a line graph !")
 
@@ -614,7 +614,7 @@ def root_graph(g, verbose=False):
 
         # Add cliques to relabel dictionary
         for S in L:
-            if not S in relabel:
+            if S not in relabel:
                 relabel[S] = len(relabel)
 
         # The coordinates of edge v

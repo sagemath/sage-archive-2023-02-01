@@ -83,7 +83,7 @@ Technical details
 -----------------
 
     * When creating a ``fast_digraph`` from a ``Graph`` or ``DiGraph`` named
-      ``G``, the `i^{\text{th}}` vertex corresponds to ``list(G)[i]``
+      ``G``, the `i^{\text{th}}` vertex corresponds to ``G.vertices()[i]``
 
     * Some methods return ``bitset_t`` objets when lists could be
       expected. There is a very useful ``bitset_list`` function for this kind of
@@ -204,7 +204,7 @@ cdef extern from "fenv.h":
     int fegetround ()
     int fesetround (int)
 
-cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
+cdef int init_short_digraph(short_digraph g, G, edge_labelled=False, vertex_list=None) except -1:
     r"""
     Initializes ``short_digraph g`` from a Sage (Di)Graph.
 
@@ -229,7 +229,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
     else:
         raise ValueError("The source graph must be either a DiGraph or a Graph object !")
 
-    cdef list vertices = list(G)
+    cdef list vertices = vertex_list if vertex_list is not None else G.vertices()
     cdef dict v_to_id = {}
     cdef int i,j,v_id
     cdef list neighbor_label
@@ -581,7 +581,7 @@ def tarjan_strongly_connected_components(G):
         sage: D.strongly_connected_components()
         [[3], [0, 1, 2], [6], [5], [4]]
         sage: D = DiGraph([('a','b'), ('b','c'), ('c', 'd'), ('d', 'b'), ('c', 'e')])
-        sage: [sorted(x) for x in D.strongly_connected_components()]
+        sage: D.strongly_connected_components()
         [['e'], ['b', 'c', 'd'], ['a']]
 
     TESTS:
@@ -627,10 +627,9 @@ def tarjan_strongly_connected_components(G):
     cdef int i
     cdef list output = [[] for i in range(nscc)]
 
-    for i,v in enumerate(G):
+    for i,v in enumerate(G.vertices()):
         output[scc[i]].append(v)
     return output
-
 
 cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int *scc, short_digraph output):
     r"""
@@ -751,7 +750,7 @@ def strongly_connected_components_digraph(G):
             edges.append((i, scc_g.neighbors[i][j]))
     output.add_edges(edges)
     sig_off()
-    return output, {v:scc[i] for i,v in enumerate(G)}
+    return output, {v:scc[i] for i,v in enumerate(G.vertices())}
 
 
 cdef strongly_connected_component_containing_vertex(short_digraph g, short_digraph g_reversed, int v, bitset_t scc):
@@ -825,7 +824,7 @@ def triangles_count(G):
             count[v] += tmp_count
 
     ans = {w:Integer(count[i]/2)
-           for i,w in enumerate(G)}
+           for i,w in enumerate(G.vertices())}
 
     sig_free(count)
     return ans

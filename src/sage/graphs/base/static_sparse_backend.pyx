@@ -56,13 +56,15 @@ cdef class StaticSparseCGraph(CGraph):
     <sage.graphs.base.static_sparse_graph>`.
     """
 
-    def __cinit__(self, G):
+    def __cinit__(self, G, vertex_list=None):
         r"""
         Cython constructor
 
         INPUT:
 
         - ``G`` -- a :class:`Graph` object.
+
+        - ``vertex_list`` -- optional list of vertices
 
         TESTS::
 
@@ -80,7 +82,8 @@ cdef class StaticSparseCGraph(CGraph):
         has_labels = any(l is not None for _,_,l in G.edge_iterator())
         self._directed = G.is_directed()
 
-        init_short_digraph(self.g, G, edge_labelled=has_labels)
+        init_short_digraph(self.g, G, edge_labelled=has_labels,
+                           vertex_list=vertex_list)
         if self._directed:
             init_reverse(self.g_rev,self.g)
 
@@ -427,12 +430,13 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}}, immutable=True).is_directed_acyclic()
             True
         """
-        cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G)
+        vertices = list(G)
+        cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G, vertices)
         self._cg = cg
 
         self._directed = cg._directed
 
-        vertices = list(G)
+
         self._order = len(vertices)
 
         # Does it allow loops/multiedges ?

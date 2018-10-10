@@ -935,21 +935,32 @@ class WordGenerator(object):
             sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
             word: 0100100101001001001010010010010100100101...
         """
-        if next(cf) != 0:
-            raise ValueError("The first term of the continued fraction expansion must be zero.")
+        try:
+            if next(cf) != 0:
+                raise ValueError("The first term of the continued fraction expansion must be zero.")
+        except StopIteration:
+            return
+
         s0 = [1]
         s1 = [0]
-        e = next(cf)
+        try:
+            e = next(cf)
+        except StopIteration:
+            return
+
         if not e >= 1:
             raise ValueError("The second term of the continued fraction expansion must be larger or equal to 1.")
         s1, s0 = s1*(e-1) + s0, s1
         n = 0
         while True:
-            for i in s1[n:]:
-                n += 1
-                yield alphabet[i]
-            else:
-                s1, s0 = s1*next(cf) + s0, s1
+            try:
+                for i in s1[n:]:
+                    n += 1
+                    yield alphabet[i]
+                else:
+                    s1, s0 = s1*next(cf) + s0, s1
+            except StopIteration:
+                return
 
     def KolakoskiWord(self, alphabet=(1,2)):
         r"""

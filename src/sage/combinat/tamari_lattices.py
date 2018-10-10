@@ -371,8 +371,7 @@ def DexterSemilattice(n):
 
     REFERENCES:
 
-    .. [Cha18] Frédéric Chapoton, *Some properties of a new partial
-       order on Dyck paths*, 2018, :arxiv:`1809.10981`
+    - [Cha18]_
     """
     a = n + 1
     b = n

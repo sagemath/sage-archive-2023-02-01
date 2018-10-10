@@ -662,6 +662,9 @@ REFERENCES:
            *Les Treillis Pseudocomplémentés Finis*
            Europ. J. Combinatorics (1992) 13, 89-107.
 
+.. [Cha18] Frédéric Chapoton, *Some properties of a new partial
+           order on Dyck paths*, 2018, :arxiv:`1809.10981`
+
 .. [ChLi] \F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
           operad*, International Math. Research Notices (2001) no 8, pages 395-408.
           Preprint: :arxiv:`math/0002069v2`.

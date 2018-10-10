@@ -69,6 +69,7 @@ from sage.libs.gap.element import GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 from sage.structure.sequence import Sequence
 from sage.structure.element import coercion_model, parent
 
@@ -99,6 +100,7 @@ def is_FreeGroup(x):
         return True
     from sage.groups.indexed_free_group import IndexedFreeGroup
     return isinstance(x, IndexedFreeGroup)
+
 
 def _lexi_gen(zeroes=False):
     """
@@ -564,6 +566,8 @@ class FreeGroupElement(ElementLibGAP):
             sage: u = x0*x1
             sage: u.subs({x0:3, x1:2})
             6
+            sage: u.subs({x0:1r, x1:2r})
+            2
             sage: M0 = matrix(ZZ,2,[1,1,0,1])
             sage: M1 = matrix(ZZ,2,[1,0,1,1])
             sage: u.subs({x0: M0, x1: M1})
@@ -588,8 +592,12 @@ class FreeGroupElement(ElementLibGAP):
             raise ValueError('number of values has to match the number of generators')
         replace = dict(zip(G.gens(), values))
         new_parent = coercion_model.common_parent(*[parent(v) for v in values])
-        return new_parent.prod(replace[gen] ** power
-                               for gen, power in self.syllables())
+        try:
+            return new_parent.prod(replace[gen] ** power
+                                   for gen, power in self.syllables())
+        except AttributeError:
+            return prod(new_parent(replace[gen]) ** power
+                        for gen, power in self.syllables())
 
 
 def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):

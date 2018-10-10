@@ -51,7 +51,7 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
 
@@ -890,7 +890,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             power of the uniformizer `\pi`.
 
             For negative ``s``, it does the same but when not over a field, it
-            drops coefficients in the `\pi`-adic expension which have negative
+            drops coefficients in the `\pi`-adic expansion which have negative
             valuation.
 
             EXAMPLES::

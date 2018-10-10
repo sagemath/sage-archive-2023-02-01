@@ -1574,28 +1574,23 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: [posets.ChainPoset(i).is_cosectionally_complemented() for i in range(5)]
             [True, True, True, False, False]
         """
-        # Quick check: every sectionally complemented lattice is atomic.
+        # Quick check: every cosectionally complemented lattice is coatomic.
         if not certificate and not self.is_coatomic():
             return False
 
-        n = self.cardinality()
         H = self._hasse_diagram
-        mt = H._meet
         jn = H._join
-        top = n - 1
-
-        for bottom in range(n - 3, -1, -1):
-            interval = H.principal_order_filter(bottom)
-            for e in interval:
-                for f in interval:
-                    if mt[e, f] == bottom and jn[e, f] == top:
-                        break
-                else:
-                    if certificate:
-                        return (False, (self._vertex_to_element(bottom),
-                                        self._vertex_to_element(e)))
-                    return False
-
+        n = H.order()
+        for e in range(n-2, -1, -1):
+            t = 0
+            for uc in H.neighbors_out(e):
+                t = jn[t, uc]
+                if t == n-1:
+                    break
+            else:
+                if certificate:
+                    return (False, (self[e], self[t]))
+                return False
         return (True, None) if certificate else True
 
     def is_relatively_complemented(self, certificate=False):
@@ -2254,9 +2249,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: LatticePoset({}).is_atomic()
             True
 
-        NOTES:
+        .. NOTE::
 
-        See [EnumComb1]_, Section 3.3 for a discussion of atomic lattices.
+            See [EnumComb1]_, Section 3.3 for a discussion of atomic lattices.
 
         .. SEEALSO::
 

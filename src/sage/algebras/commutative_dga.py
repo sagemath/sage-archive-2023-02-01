@@ -499,6 +499,30 @@ class Differential(with_metaclass(
         H_basis_brackets = [CohomologyClass(b) for b in H_basis]
         return CombinatorialFreeModule(A.base_ring(), H_basis_brackets)
 
+    def _is_nonzero(self):
+        """
+        Return ``True`` iff this morphism is nonzero.
+
+        This is used by the :meth:`Morphism.__nonzero__` method, which
+        in turn is used by the :func:`TestSuite` test
+        ``_test_nonzero_equal``.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ, degrees=(1,1,2,3))
+            sage: B = A.cdg_algebra({x: x*y, y: -x*y , z: t})
+            sage: B.differential()._is_nonzero()
+            True
+            sage: bool(B.differential())
+            True
+            sage: C = A.cdg_algebra({x: 0, y: 0, z: 0})
+            sage: C.differential()._is_nonzero()
+            False
+            sage: bool(C.differential())
+            False
+        """
+        return any(x for x in self._dic_.values())
+
 class Differential_multigraded(Differential):
     """
     Differential of a commutative multi-graded algebra.
@@ -956,7 +980,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A
             Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) over Rational Field
             sage: A.quotient(A.ideal(3*x*z - 2*y*t))
-            Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) with relations [3*x*z - 2*y*t] over Rational Field 
+            Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) with relations [3*x*z - 2*y*t] over Rational Field
         """
         s = "Graded Commutative Algebra with generators {} in degrees {}".format(self._names, self._degrees)
         # Find any nontrivial relations.
@@ -2605,10 +2629,15 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     algebra" -- the word "differential" is missing. Also, it has no
     default ``differential``::
 
-        sage: AQ.differential()
+        sage: AQ.differential()  # py2
         Traceback (most recent call last):
         ...
         TypeError: differential() takes exactly 2 arguments (1 given)
+        sage: AQ.differential()  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: differential() missing 1 required positional argument:
+        'diff'
 
     Now we add a differential to ``AQ``::
 
@@ -2900,7 +2929,7 @@ class GCAlgebraMorphism(RingHomomorphism_im_gens):
         """
         codomain = self.codomain()
         result = codomain.zero()
-        for mono, coeff in x.dict().iteritems():
+        for mono, coeff in x.dict().items():
             term = prod([gen**y for (y, gen) in zip(mono, self.im_gens())],
                         codomain.one())
             result += coeff*term

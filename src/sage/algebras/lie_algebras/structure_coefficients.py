@@ -371,6 +371,30 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return list(self.basis()) + [self.sum(self.basis())]
 
+    def change_ring(self, R):
+        r"""
+        Return a Lie algebra with identical structure coefficients over ``R``.
+
+        INPUT:
+
+        - ``R`` -- a ring
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(ZZ, {('x','y'): {'z':1}})
+            sage: L.structure_coefficients()
+            Finite family {('x', 'y'): z}
+            sage: LQQ = L.change_ring(QQ)
+            sage: LQQ.structure_coefficients()
+            Finite family {('x', 'y'): z}
+            sage: LSR = LQQ.change_ring(SR)
+            sage: LSR.structure_coefficients()
+            Finite family {('x', 'y'): z}
+        """
+        return LieAlgebraWithStructureCoefficients(
+            R, self.structure_coefficients(),
+            names=self.variable_names(), index_set=self.indices())
+
     class Element(StructureCoefficientsElement):
         def _sorted_items_for_printing(self):
             """

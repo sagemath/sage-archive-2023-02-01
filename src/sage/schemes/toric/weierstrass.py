@@ -160,7 +160,7 @@ from sage.misc.all import prod
 from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
-from sage.rings.all import invariant_theory
+from sage.rings.invariants.all import invariant_theory
 
 import six
 

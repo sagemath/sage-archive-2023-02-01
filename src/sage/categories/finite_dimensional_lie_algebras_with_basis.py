@@ -310,7 +310,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         @cached_method
         def structure_coefficients(self, include_zeros=False):
-            """
+            r"""
             Return the structure coefficients of ``self``.
 
             INPUT:
@@ -338,15 +338,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S = GroupAlgebra(G, QQ)
                 sage: L = LieAlgebra(associative=S)
                 sage: L.structure_coefficients()
-                Finite family {((2,3), (1,3)): -(1,2,3) + (1,3,2),
-                 ((1,2), (2,3)): -(1,2,3) + (1,3,2),
-                 ((1,2), (1,2,3)): -(2,3) + (1,3),
-                 ((1,2), (1,3,2)): (2,3) - (1,3),
-                 ((1,2), (1,3)): (1,2,3) - (1,3,2),
-                 ((1,2,3), (2,3)): -(1,2) + (1,3),
-                 ((1,2,3), (1,3)): -(2,3) + (1,2),
-                 ((1,3,2), (2,3)): (1,2) - (1,3),
-                 ((1,3,2), (1,3)): (2,3) - (1,2)}
+                Finite family {((2,3), (1,2)): (1,2,3) - (1,3,2),
+                               ((2,3), (1,3)): -(1,2,3) + (1,3,2),
+                               ((1,2,3), (2,3)): -(1,2) + (1,3),
+                               ((1,2,3), (1,2)): (2,3) - (1,3),
+                               ((1,2,3), (1,3)): -(2,3) + (1,2),
+                               ((1,3,2), (2,3)): (1,2) - (1,3),
+                               ((1,3,2), (1,2)): -(2,3) + (1,3),
+                               ((1,3,2), (1,3)): (2,3) - (1,2),
+                               ((1,3), (1,2)): -(1,2,3) + (1,3,2)}
             """
             d = {}
             B = self.basis()
@@ -605,7 +605,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 gens = gens[0]
             category = kwds.pop('category', None)
             return LieSubalgebra_finite_dimensional_with_basis(
-                self, gens, category=category)
+                self, gens, category=category, **kwds)
 
         def ideal(self, *gens, **kwds):
             r"""
@@ -641,7 +641,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 gens = gens[0]
             category = kwds.pop('category', None)
             return LieSubalgebra_finite_dimensional_with_basis(
-                self, gens, ideal=True, category=category)
+                self, gens, ideal=True, category=category, **kwds)
 
         @cached_method
         def is_ideal(self, A):
@@ -680,6 +680,53 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             except (ValueError, TypeError):
                 return False
             return b_mat.row_space().is_submodule(self.module())
+
+        def quotient(self, I, names=None, category=None):
+            r"""
+            Return the quotient of ``self`` by the ideal ``I``.
+
+            A quotient Lie algebra.
+
+            INPUT:
+
+            - ``I`` -- an ideal or a list of generators of the ideal
+            - ``names`` -- (optional) a string or a list of strings;
+              names for the basis elements of the quotient. If ``names`` is a
+              string, the basis will be named ``names_1``,...,``names_n``.
+
+            EXAMPLES:
+
+            The Engel Lie algebra as a quotient of the free nilpotent Lie algebra
+            of step 3 with 2 generators::
+
+                    sage: L.<X,Y,Z,W,U> = LieAlgebra(QQ, 2, step=3)
+                    sage: E = L.quotient(U); E
+                    Lie algebra quotient L/I of dimension 4 over Rational Field where
+                    L: Free Nilpotent Lie algebra on 5 generators (X, Y, Z, W, U) over Rational Field
+                    I: Ideal (U)
+                    sage: E.basis().list()
+                    [X, Y, Z, W]
+                    sage: E(X).bracket(E(Y))
+                    Z
+                    sage: Y.bracket(Z)
+                    -U
+                    sage: E(Y).bracket(E(Z))
+                    0
+                    sage: E(U)
+                    0
+
+            Quotients when the base ring is not a field are not implemented::
+
+                sage: L = lie_algebras.Heisenberg(ZZ, 1)
+                sage: L.quotient(L.an_element())
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: quotients over non-fields not implemented
+            """
+            from sage.algebras.lie_algebras.quotient import LieQuotient_finite_dimensional_with_basis
+            return LieQuotient_finite_dimensional_with_basis(I, ambient=self,
+                                                             names=names,
+                                                             category=category)
 
         def product_space(self, L, submodule=False):
             r"""
@@ -733,13 +780,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ()
             """
             # Make sure we lift everything to the ambient space
-            try:
-                A = self._ambient
-            except AttributeError:
-                try:
-                    A = L._ambient
-                except AttributeError:
-                    A = self
+            if self in LieAlgebras(self.base_ring()).Subobjects():
+                A = self.ambient()
+            elif L in LieAlgebras(L.base_ring()).Subobjects():
+                A = L.ambient()
+            else:
+                A = self
 
             if L not in self.category():
                 # L might be a submodule of A.module()

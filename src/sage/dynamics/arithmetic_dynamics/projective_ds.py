@@ -49,7 +49,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
@@ -1879,7 +1879,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Q.normalize_coordinates()
             if Q.parent().value_ring() is QQ:
                 Q.clear_denominators()
-            #assures integer coeffcients
+            # assures integer coefficients
             coeffs = f[0].coefficients() + f[1].coefficients()
             t = 1
             for c in coeffs:
@@ -3791,8 +3791,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 res *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
             res = res.univariate_polynomial()
 
-        #the sigmas are the coeficients
-        #need to fix the signs and the order
+        # the sigmas are the coefficients
+        # needed to fix the signs and the order
         sig = res.coefficients(sparse=False)
         den = sig.pop(-1)
         sig.reverse()

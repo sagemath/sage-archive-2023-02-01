@@ -124,22 +124,17 @@ for the purpose of easy iteration over all available S-boxes.
 
 EXAMPLES:
 
-We can print the S-Boxes with differential uniformity 2 with the following code::
+We can print the S-Boxes with differential uniformity 2::
 
     sage: from sage.crypto.sboxes import sboxes
-    sage: for name, s in sboxes.items():
-    ....:     if s.differential_uniformity() == 2:
-    ....:         print(name)
-    Fides_6
-    Fides_5
-    APN_6
-    SC2000_5
-    PRINTcipher
-    SEA
+    sage: sorted(name for name, s in sboxes.items()
+    ....:     if s.differential_uniformity() == 2)
+    ['APN_6', 'Fides_5', 'Fides_6', 'PRINTcipher', 'SC2000_5', 'SEA']
 
 AUTHOR:
-    - Leo Perrin: initial collection of sboxes
-    - Friedrich Wiemer (2017-05-12): refactored list for inclusion in SAGE
+
+- Leo Perrin: initial collection of sboxes
+- Friedrich Wiemer (2017-05-12): refactored list for inclusion in SAGE
 """
 
 from sage.crypto.sbox import SBox

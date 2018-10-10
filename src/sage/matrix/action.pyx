@@ -150,41 +150,15 @@ cdef class MatrixMatrixAction(MatrixMulAction):
         example is good practice.
     """
     def __init__(self, G, S):
-        """
-        TESTS:
-
-        Check that multiplication for matrices with different backends are not allowed::
-
-            sage: M1 = MatrixSpace(ZZ, 2, implementation='flint')
-            sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
-            sage: M3 = MatrixSpace(ZZ, 2, implementation='gap')
-            sage: M4 = MatrixSpace(ZZ, 2, sparse=True)
-            sage: M = [M1, M2, M3, M4]
-
-            sage: coercions = ''
-            sage: for M1 in M:
-            ....:     for M2 in M:
-            ....:         try:
-            ....:             s = M1.an_element() * M2.an_element()
-            ....:             coercions += 'X'
-            ....:         except TypeError:
-            ....:             coercions += ' '
-            ....:     coercions += '\n'
-            sage: print(coercions)
-            X  X
-             X
-              X
-            X  X
-        """
         if not is_MatrixSpace(S):
             raise TypeError("Not a matrix space: %s" % S)
 
         MatrixMulAction.__init__(self, G, S, True)
 
         # disallow multiplication on different backends (same size and rings)
-        if G.base_ring() is S.base_ring() and \
-           G.is_sparse() == S.is_sparse() and \
-           G._matrix_class != S._matrix_class:
+        if (G.base_ring() is S.base_ring() and
+           G.is_sparse() == S.is_sparse() and
+           G.Element is not S.Element):
             raise TypeError("no matrix multiplication between different implementations")
 
         # disallow multiplication (sparse) x (dense) when the densification is not the default

@@ -188,7 +188,7 @@ class Function_stieltjes(GinacFunction):
         GinacFunction.__init__(self, "stieltjes", nargs=1,
                             conversions=dict(mathematica='StieltjesGamma',
                                 sympy='stieltjes'),
-                            latex_name='\gamma')
+                            latex_name=r'\gamma')
 
 stieltjes = Function_stieltjes()
 
@@ -206,7 +206,7 @@ class Function_HurwitzZeta(BuiltinFunction):
         BuiltinFunction.__init__(self, 'hurwitz_zeta', nargs=2,
                                  conversions=dict(mathematica='HurwitzZeta',
                                                   sympy='zeta'),
-                                 latex_name='\zeta')
+                                 latex_name=r'\zeta')
 
     def _eval_(self, s, x):
         r"""

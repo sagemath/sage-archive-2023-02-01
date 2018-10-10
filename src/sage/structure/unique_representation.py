@@ -153,7 +153,7 @@ result in the cache. This has the following implications:
     decorator to the definition; see :class:`staticmethod`.
 
     For more on Python's ``__get__()`` method, see:
-    http://docs.python.org/2/howto/descriptor.html
+    https://docs.python.org/2/howto/descriptor.html
 
 .. WARNING::
 
@@ -557,7 +557,7 @@ accordingly, for example by inheriting from
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
 
@@ -565,6 +565,7 @@ from sage.misc import six
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
+
 
 class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
     """
@@ -803,12 +804,13 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
 
     .. rubric:: More on cached representation and identity
 
-    :class:`CachedRepresentation` is implemented by means of a cache. This
-    cache uses weak references. Hence, when all other references to, say,
-    ``MyClass(1)`` have been deleted, the instance is actually deleted from
-    memory. A later call to ``MyClass(1)`` reconstructs the instance from
-    scratch.
-    ::
+    :class:`CachedRepresentation` is implemented by means of a cache.
+    This cache uses weak references in general, but strong references to
+    the most recently created objects. Hence, when all other references
+    to, say, ``MyClass(1)`` have been deleted, the instance is
+    eventually deleted from memory (after enough other objects have been
+    created to remove the strong reference to ``MyClass(1)``). A later
+    call to ``MyClass(1)`` reconstructs the instance from scratch::
 
         sage: class SomeClass(UniqueRepresentation):
         ....:     def __init__(self, i):
@@ -816,20 +818,25 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
         ....:         self.i = i
         ....:     def __del__(self):
         ....:         print("deleting instance for argument %s" % self.i)
-        ....:
+        sage: class OtherClass(UniqueRepresentation):
+        ....:     def __init__(self, i):
+        ....:         pass
         sage: O = SomeClass(1)
         creating new instance for argument 1
         sage: O is SomeClass(1)
         True
         sage: O is SomeClass(2)
         creating new instance for argument 2
-        deleting instance for argument 2
         False
+        sage: L = [OtherClass(i) for i in range(200)]
+        deleting instance for argument 2
         sage: del O
         deleting instance for argument 1
         sage: O = SomeClass(1)
         creating new instance for argument 1
         sage: del O
+        sage: del L
+        sage: L = [OtherClass(i) for i in range(200)]
         deleting instance for argument 1
 
     .. rubric:: Cached representation and pickling
@@ -1001,9 +1008,8 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
     unprocessed arguments will be passed down to
     :meth:`__init__<object.__init__>`.
     """
-    _included_private_doc_ = ["__classcall__"]
 
-    @weak_cached_function # automatically a staticmethod
+    @weak_cached_function(cache=128)  # automatically a staticmethod
     def __classcall__(cls, *args, **options):
         """
         Construct a new object of this class or reuse an existing one.
@@ -1232,10 +1238,15 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
 
     This nice behaviour is not available when one just uses a factory::
 
-        sage: isinstance(GF(7), GF)
+        sage: isinstance(GF(7), GF)  # py2
         Traceback (most recent call last):
         ...
         TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
+        sage: isinstance(GF(7), GF)  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: isinstance() arg 2 must be a type or tuple of types
+
         sage: isinstance(GF, sage.structure.factory.UniqueFactory)
         True
 

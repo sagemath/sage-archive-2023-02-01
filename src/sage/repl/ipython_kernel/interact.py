@@ -34,7 +34,7 @@ EXAMPLES::
 #*****************************************************************************
 
 from ipywidgets.widgets import SelectionSlider, ValueWidget, ToggleButtons
-from ipywidgets.widgets.interaction import interactive, signature, ValueWidget
+from ipywidgets.widgets.interaction import interactive, signature
 from copy import copy
 from collections import Iterable, Iterator
 from .widgets import EvalText, SageColorPicker

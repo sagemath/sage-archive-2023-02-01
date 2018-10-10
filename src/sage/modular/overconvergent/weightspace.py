@@ -494,7 +494,7 @@ class AlgebraicWeight(WeightCharacter):
         if n == 1:
             n = self._p
         if not n.is_power_of(self._p):
-            raise ValueError("Character must have %s-power conductor" % p)
+            raise ValueError("Character must have %s-power conductor" % self._p)
         self._chi = DirichletGroup(n, chi.base_ring())(chi)
 
     def __call__(self, x):

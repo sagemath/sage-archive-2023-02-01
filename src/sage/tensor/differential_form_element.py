@@ -7,7 +7,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010 Joris Vankerschaver <joris.vankerschaver@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -19,8 +19,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 
@@ -307,7 +307,7 @@ class DifferentialForm(AlgebraElement):
         sage: form2[1] = exp(cos(x))
         sage: form2[2] = 1/ln(y)
         sage: form2
-        1/log(y)*dz + dx + e^cos(x)*dy
+        dx + e^cos(x)*dy + 1/log(y)*dz
 
     We may calculate the exterior derivative of a form, and observe that
     applying the exterior derivative twice always yields zero::
@@ -335,11 +335,11 @@ class DifferentialForm(AlgebraElement):
 
         sage: from sage.tensor.differential_form_element import d
         sage: form2
-        1/log(y)*dz + dx + e^cos(x)*dy
+        dx + e^cos(x)*dy + 1/log(y)*dz
         sage: d(form2)
-        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -e^cos(x)*sin(x)*dx/\dy + -1/(y*log(y)^2)*dy/\dz
         sage: form2.diff()
-        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -e^cos(x)*sin(x)*dx/\dy + -1/(y*log(y)^2)*dy/\dz
         sage: d(form1) == form1.diff()
         True
 
@@ -369,7 +369,7 @@ class DifferentialForm(AlgebraElement):
         True
 
 
-    NOTES:
+    .. NOTE::
 
         Differential forms are stored behind the screens as dictionaries,
         where the keys are the subscripts of the non-zero components, and
@@ -477,12 +477,12 @@ class DifferentialForm(AlgebraElement):
             subscript = tuple(subscript)
 
         dim = self.parent().base_space().dim()
-        if any([s >= dim for s in subscript]):
+        if any(s >= dim for s in subscript):
             raise ValueError("Index out of bounds.")
 
         if len(subscript) != self._degree:
-            raise TypeError("%s is not a subscript of degree %s" %\
-                (subscript, self._degree))
+            raise TypeError("%s is not a subscript of degree %s" %
+                            (subscript, self._degree))
 
         sign, subscript = sort_subscript(subscript)
 
@@ -522,12 +522,12 @@ class DifferentialForm(AlgebraElement):
             subscript = tuple(subscript)
 
         dim = self.parent().base_space().dim()
-        if any([s >= dim for s in subscript]):
+        if any(s >= dim for s in subscript):
             raise ValueError("Index out of bounds.")
 
         if len(subscript) != self._degree:
-            raise TypeError("%s is not a subscript of degree %s" %\
-                (subscript, self._degree))
+            raise TypeError("%s is not a subscript of degree %s" %
+                            (subscript, self._degree))
 
         sign, subscript = sort_subscript(subscript)
         self._components[subscript] = sign*SR(fun)
@@ -816,7 +816,7 @@ class DifferentialForm(AlgebraElement):
             sage: f[1] = 1
             sage: f[2] = 0
             sage: f._dump_all()
-            {(2,): 0, (0,): 0, (1,): 1}
+            {(0,): 0, (1,): 1, (2,): 0}
             sage: f._cleanup()
             sage: f._dump_all()
             {(1,): 1}
@@ -851,9 +851,9 @@ class DifferentialForm(AlgebraElement):
             sage: f[1] = exp(cos(x))
             sage: f[2] = sin(ln(y))
             sage: f
-            sin(log(y))*dz + e^cos(x)*dy
+            e^cos(x)*dy + sin(log(y))*dz
             sage: f._dump_all()
-            {(2,): sin(log(y)), (1,): e^cos(x)}
+            {(1,): e^cos(x), (2,): sin(log(y))}
             sage: g = DifferentialForm(F, 2)
             sage: g[1, 2] = x+y+z
             sage: g
@@ -862,8 +862,8 @@ class DifferentialForm(AlgebraElement):
             {(1, 2): x + y + z}
 
         """
-        print(self._components)
-
+        from pprint import pprint
+        pprint(self._components)
 
     def diff(self):
         r"""
@@ -1019,14 +1019,14 @@ class DifferentialForm(AlgebraElement):
             sage: g
             z^3*dz
             sage: f.wedge(g)
-            y*z^3*dy/\dz + x^2*z^3*dx/\dz
+            x^2*z^3*dx/\dz + y*z^3*dy/\dz
 
         The wedge product is graded commutative::
 
             sage: f.wedge(g)
-            y*z^3*dy/\dz + x^2*z^3*dx/\dz
+            x^2*z^3*dx/\dz + y*z^3*dy/\dz
             sage: g.wedge(f)
-            -y*z^3*dy/\dz + -x^2*z^3*dx/\dz
+            -x^2*z^3*dx/\dz + -y*z^3*dy/\dz
             sage: f.wedge(f)
             0
 
@@ -1135,7 +1135,7 @@ class DifferentialForm(AlgebraElement):
 
         format = DifferentialFormFormatter(self.parent().base_space())
         output = [format.latex(comp, fun) \
-                      for (comp, fun) in self._components.items()]
+                      for (comp, fun) in sorted(self._components.items())]
         return ' + '.join(output)
 
 
@@ -1167,7 +1167,7 @@ class DifferentialForm(AlgebraElement):
 
         format = DifferentialFormFormatter(self.parent().base_space())
         output = [format.repr(comp, fun) \
-                      for (comp, fun) in self._components.items()]
+                      for (comp, fun) in sorted(self._components.items())]
         return ' + '.join(output)
 
 

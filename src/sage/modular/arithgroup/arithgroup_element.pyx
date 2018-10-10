@@ -160,7 +160,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             '\\left(\\begin{array}{rr}\n6 & 1 \\\\\n5 & 1\n\\end{array}\\right)'
         """
         return '%s' % self.__x._latex_()
-        
+
     cpdef _richcmp_(self, right_r, int op):
         """
         Compare self to right, where right is guaranteed to have the same

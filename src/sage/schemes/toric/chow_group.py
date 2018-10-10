@@ -129,6 +129,7 @@ Chow cycles can be of mixed degrees::
 #*****************************************************************************
 
 from sage.misc.all import flatten
+from sage.misc.fast_methods import WithEqualityById
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.modules.free_module import FreeModule
@@ -546,7 +547,7 @@ class ChowGroupFactory(UniqueFactory):
     """
 
     def create_key_and_extra_args(self, toric_variety, base_ring=ZZ, check=True):
-        """
+        r"""
         Create a key that uniquely determines the :class:`ChowGroup_class`.
 
         INPUT:
@@ -604,7 +605,7 @@ ChowGroup = ChowGroupFactory('ChowGroup')
 
 
 #*******************************************************************
-class ChowGroup_class(FGP_Module_class):
+class ChowGroup_class(FGP_Module_class, WithEqualityById):
     r"""
     The Chow group of a toric variety.
 
@@ -772,8 +773,6 @@ class ChowGroup_class(FGP_Module_class):
             sage: matrix(rel).submatrix(col=21, ncols=6).elementary_divisors()
             [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """
-        fan = self._variety.fan()
-        dim = self._variety.dimension()
         relations = []
         for rho in self._cones:
             for u in rho.orthogonal_sublattice().gens():
@@ -782,10 +781,9 @@ class ChowGroup_class(FGP_Module_class):
                     sigma_idx = self._cones.index(sigma)
                     Q = sigma.relative_quotient(rho)
                     for v in [n.lift() for n in Q.gens()]:
-                        rel += (u*v) * V.gen(sigma_idx)
+                        rel += (u * v) * V.gen(sigma_idx)
                 relations.append(rel)
         return V.span(relations)
-
 
     def __truediv__(self, other):
         r"""
@@ -826,30 +824,6 @@ class ChowGroup_class(FGP_Module_class):
             return "Chow group of " + str(self._variety)
         else:
             raise ValueError
-
-
-    def __eq__(self, other):
-        r"""
-        Comparison of two Chow groups.
-
-        INPUT:
-
-        - ``other`` -- anything.
-
-        OUTPUT:
-
-        ``True`` or ``False``.
-
-        EXAMPLES::
-
-            sage: P2 = toric_varieties.P2()
-            sage: P2.Chow_group() == P2.Chow_group()
-            True
-            sage: P2.Chow_group(ZZ) == P2.Chow_group(QQ)
-            False
-        """
-        return self is other  # ChowGroup_class is unique
-
 
     def _cone_to_V(self, cone):
         r"""

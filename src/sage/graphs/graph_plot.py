@@ -106,13 +106,6 @@ previously::
     :meth:`GraphPlot.show` | Shows the (Di)Graph associated with this GraphPlot object.
     :meth:`GraphPlot.plot` | Returns a graphics object representing the (di)graph.
     :meth:`GraphPlot.layout_tree` | Compute a nice layout of a tree.
-    :meth:`~sage.graphs.graph_plot._circle_embedding` | Sets some vertices on a circle in the embedding of a graph G.
-    :meth:`~sage.graphs.graph_plot._line_embedding` | Sets some vertices on a line in the embedding of a graph G.
-
-Methods and classes
--------------------
-.. autofunction:: _circle_embedding
-.. autofunction:: _line_embedding
 """
 
 layout_options =   {
@@ -189,9 +182,7 @@ __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
-from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
-import six
 from six import text_type as str
 
 DEFAULT_SHOW_OPTIONS = {
@@ -303,11 +294,11 @@ class GraphPlot(SageObject):
         but due to numerical noise we do not check the values themselves::
 
             sage: g.get_pos()
-            {0: [...e-17, 1.0],
-             1: [-0.951..., 0.309...],
-             2: [-0.587..., -0.809...],
-             3: [0.587..., -0.809...],
-             4: [0.951..., 0.309...]}
+            {0: (0.0, 1.0),
+             1: (-0.951..., 0.309...),
+             2: (-0.587..., -0.809...),
+             3: (0.587..., -0.809...),
+             4: (0.951..., 0.309...)}
 
         ::
 
@@ -422,7 +413,7 @@ class GraphPlot(SageObject):
 
         if 'vertex_colors' not in self._options or self._options['vertex_colors'] is None:
             if self._options['partition'] is not None:
-                from sage.plot.colors import rainbow,rgbcolor
+                from sage.plot.colors import rainbow
                 partition = self._options['partition']
                 l = len(partition)
                 R = rainbow(l)
@@ -1233,6 +1224,11 @@ class GraphPlot(SageObject):
             ....:      part_bbox = part.get_minmax_data()
             ....:      assert bbox['xmin'] <= part_bbox['xmin'] <= part_bbox['xmax'] <= bbox['xmax']
             ....:      assert bbox['ymin'] <= part_bbox['ymin'] <= part_bbox['ymax'] <= bbox['ymax']
+
+        Check that one can plot immutable graphs (:trac:`17340`)::
+
+            sage: Graph({0:[0]},immutable=True).plot()
+            Graphics object consisting of 3 graphics primitives
         """
         G = Graphics()
         options = self._options.copy()
@@ -1370,71 +1366,3 @@ class GraphPlot(SageObject):
 
         return pos
 
-####################
-# Helper functions #
-####################
-
-def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
-    r"""
-    Sets some vertices on a circle in the embedding of a graph G.
-
-    This method modifies the graph's embedding so that the vertices
-    listed in ``vertices`` appear in this ordering on a circle of given
-    radius and center. The ``shift`` parameter is actually a rotation of
-    the circle. A value of ``shift=1`` will replace in the drawing the
-    `i`-th element of the list by the `(i-1)`-th. Non-integer values are
-    admissible, and a value of `\alpha` corresponds to a rotation of the
-    circle by an angle of `\alpha 2\pi/n` (where `n` is the number of
-    vertices set on the circle).
-
-    EXAMPLES::
-
-        sage: from sage.graphs.graph_plot import _circle_embedding
-        sage: g = graphs.CycleGraph(5)
-        sage: _circle_embedding(g, [0, 2, 4, 1, 3], radius=2, shift=.5)
-        sage: g.show()
-    """
-    c_x, c_y = center
-    n = len(vertices)
-    d = g.get_pos()
-    if d is None:
-        d = {}
-
-    for i,v in enumerate(vertices):
-        i += shift
-        v_x = c_x + radius * cos(2*i*pi / n)
-        v_y = c_y + radius * sin(2*i*pi / n)
-        d[v] = (v_x, v_y)
-
-    g.set_pos(d)
-
-def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
-    r"""
-    Sets some vertices on a line in the embedding of a graph G.
-
-    This method modifies the graph's embedding so that the vertices of
-    ``vertices`` appear on a line, where the position of ``vertices[0]``
-    is the pair ``first`` and the position of ``vertices[-1]`` is
-    ``last``. The vertices are evenly spaced.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.graph_plot import _line_embedding
-        sage: g = graphs.PathGraph(5)
-        sage: _line_embedding(g, [0, 2, 4, 1, 3], first=(-1, -1), last=(1, 1))
-        sage: g.show()
-    """
-    n = len(vertices) - 1.
-
-    fx, fy = first
-    dx = (last[0] - first[0])/n
-    dy = (last[1] - first[1])/n
-
-    d = g.get_pos()
-    if d is None:
-        d = {}
-
-    for v in vertices:
-        d[v] = (fx, fy)
-        fx += dx
-        fy += dy

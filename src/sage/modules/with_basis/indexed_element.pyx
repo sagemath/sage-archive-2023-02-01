@@ -68,7 +68,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: [i for i in sorted(a)]
             [([2, 1], 1), ([3], 1)]
         """
-        return self._monomial_coefficients.iteritems()
+        return iter(self._monomial_coefficients.iteritems())
 
     def __contains__(self, x):
         """
@@ -914,7 +914,7 @@ def _unpickle_element(C, d):
     return C._from_dict(d, coerce=False, remove_zeros=False)
 
 # Handle old CombinatorialFreeModuleElement pickles, see trac #22632
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.free_module",
                            "CombinatorialFreeModuleElement",
                            IndexedFreeModuleElement)

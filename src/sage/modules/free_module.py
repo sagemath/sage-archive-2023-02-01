@@ -1037,7 +1037,7 @@ done from the right side.""")
         return self.element_class(self, x, coerce, copy)
 
     def __richcmp__(self, other, op):
-        """
+        r"""
         Rich comparison via containment in the same ambient space.
 
         Two modules compare if their ambient module/space is equal.
@@ -1124,7 +1124,7 @@ done from the right side.""")
 
         We test that :trac:`5525` is fixed::
 
-            sage: A = (QQ^1).span([[1/3]],ZZ); B = (QQ^1).span([[1]],ZZ);
+            sage: A = (QQ^1).span([[1/3]],ZZ); B = (QQ^1).span([[1]],ZZ)
             sage: A.intersection(B)
             Free module of degree 1 and rank 1 over Integer Ring
             Echelon basis matrix:
@@ -1619,7 +1619,7 @@ done from the right side.""")
 
         ::
 
-            sage: M = FreeModule(GF(7),3).span_of_basis([[2,3,4],[1,1,1]]);
+            sage: M = FreeModule(GF(7),3).span_of_basis([[2,3,4],[1,1,1]])
             sage: M.basis_matrix()
             [2 3 4]
             [1 1 1]
@@ -3305,7 +3305,7 @@ class FreeModule_generic_pid(FreeModule_generic):
                     "with base_ring (= %s)."%base_ring)
 
     def submodule_with_basis(self, basis, check=True, already_echelonized=False):
-        """
+        r"""
         Create the R-submodule of the ambient vector space with given
         basis, where R is the base ring of self.
 
@@ -3732,7 +3732,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             #    by clearing denominators, computing the kernel of a matrix with
             #    entries in R, then restoring denominators to the answer.
             K = self.base_ring()
-            R = other.base_ring()
             B = self.basis_matrix().transpose()
             W = B.kernel()
             phi = W.basis_matrix().transpose()
@@ -4053,7 +4052,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         return self.submodule_with_basis(gens, check=check, already_echelonized=already_echelonized)
 
     def complement(self):
-        """
+        r"""
         Return the complement of ``self`` in the
         :meth:`~sage.modules.free_module.FreeModule_ambient_field.ambient_vector_space`.
 
@@ -5273,12 +5272,12 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
     def ambient_vector_space(self):
         """
-        Returns the ambient vector space, which is this free module
+        Return the ambient vector space, which is this free module
         tensored with its fraction field.
 
         EXAMPLES::
 
-            sage: M = ZZ^3;
+            sage: M = ZZ^3
             sage: V = M.ambient_vector_space(); V
             Vector space of dimension 3 over Rational Field
 
@@ -6301,7 +6300,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [  4   5   6]
         """
         if base_field is None:
-            K = self.base_ring().fraction_field()
             V = self.ambient_vector_space()
             return V.submodule_with_basis(self.basis())
         return self.change_ring(base_field)
@@ -6569,7 +6567,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             TypeError: element [2, -4] is not in free module
         """
         R = self.base_ring()
-        check = (not R.is_field()) and any([a not in R for a in list(v)])
+        check = (not R.is_field()) and any(a not in R for a in list(v))
         return self(self.basis_matrix().linear_combination_of_rows(v),
                     check=check, copy=False, coerce=False)
 

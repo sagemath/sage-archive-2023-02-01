@@ -181,9 +181,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.exponents()
             [0, 1997, 10000]
         """
-        keys = self.__coeffs.keys()
-        keys.sort()
-        return keys
+        return sorted(self.__coeffs)
 
     def valuation(self):
         """
@@ -294,7 +292,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: x.integral()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(2, 4) does not exist
         """
         R = self.parent()
         # TODO:
@@ -1114,7 +1112,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
 
             sage: g = f + K(0,0)*t^4; g
-            (5^2 + O(5^22))*t^10 + (O(5^0))*t^4 + (3 + O(5^20))*t + (5 + O(5^21))
+            (5^2 + O(5^22))*t^10 + O(5^0)*t^4 + (3 + O(5^20))*t + 5 + O(5^21)
             sage: g.newton_polygon()
             Traceback (most recent call last):
             ...
@@ -1299,7 +1297,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         is `1`::
 
             sage: f.factor_of_slope(-1)
-            (1 + O(5^20))
+            1 + O(5^20)
 
         AUTHOR:
 
@@ -1425,7 +1423,7 @@ class Polynomial_generic_sparse_cdvf(Polynomial_generic_sparse_cdv, Polynomial_g
 # XXX:  Ensures that the generic polynomials implemented in SAGE via PARI  #
 # until at least until 4.5.0 unpickle correctly as polynomials implemented #
 # via FLINT.                                                               #
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
 
 register_unpickle_override( \

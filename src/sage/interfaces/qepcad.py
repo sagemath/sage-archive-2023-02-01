@@ -530,7 +530,7 @@ TESTS:
 
 Check the qepcad configuration file::
 
-    sage: with open(os.path.join(SAGE_LOCAL, 'default.qepcadrc')) as f:
+    sage: with open(os.path.join(SAGE_LOCAL, 'default.qepcadrc')) as f:  # optional - qepcad
     ....:     f.readlines()[-1]
     'SINGULAR .../bin\n'
 
@@ -685,7 +685,7 @@ def _update_command_info():
 
     cache = {}
 
-    with open('%s/bin/qepcad.help'%SAGE_LOCAL) as help:
+    with open(os.path.join(SAGE_LOCAL, 'bin', 'qepcad.help')) as help:
         assert(help.readline().strip() == '@')
 
         while True:
@@ -1867,9 +1867,8 @@ class qepcad_formula_factory:
             sage: qf._combine_formulas([x^2 == 0, y < 17])
             (['x^2 = 0', 'y < 17'], frozenset({'x', 'y'}))
         """
-        formulas = map(self.atomic, formulas)
-        formulas = map(self.atomic, formulas)
-        formula_strs = [repr(_) for _ in formulas]
+        formulas = [self.atomic(f) for f in formulas]
+        formula_strs = [repr(f) for f in formulas]
         vars = frozenset()
         for f in formulas:
             vars = vars | f.vars

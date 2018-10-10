@@ -1,4 +1,4 @@
-"""
+r"""
 Sage Runtime Environment
 
 AUTHORS:
@@ -155,6 +155,7 @@ _add_variable_or_fallback('SAGE_REPO_AUTHENTICATED', 'ssh://git@trac.sagemath.or
 _add_variable_or_fallback('SAGE_REPO_ANONYMOUS',     'git://trac.sagemath.org/sage.git')
 _add_variable_or_fallback('SAGE_VERSION',            version.version)
 _add_variable_or_fallback('SAGE_DATE',               version.date)
+_add_variable_or_fallback('SAGE_VERSION_BANNER',     version.banner)
 _add_variable_or_fallback('SAGE_BANNER',             '')
 _add_variable_or_fallback('SAGE_IMPORTALL',          'yes')
 
@@ -165,6 +166,15 @@ _add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
 _add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
 _add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
 _add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
+_add_variable_or_fallback('COMBINATORIAL_DESIGN_DATA_DIR', opj('$SAGE_SHARE', 'combinatorial_designs'))
+_add_variable_or_fallback('CREMONA_MINI_DATA_DIR', opj('$SAGE_SHARE', 'cremona'))
+_add_variable_or_fallback('CREMONA_LARGE_DATA_DIR', opj('$SAGE_SHARE', 'cremona'))
+_add_variable_or_fallback('JMOL_DIR', opj('$SAGE_SHARE', 'jmol'))
+_add_variable_or_fallback('JSMOL_DIR', opj('$SAGE_SHARE', 'jsmol'))
+_add_variable_or_fallback('MATHJAX_DIR', opj('$SAGE_SHARE', 'mathjax'))
+_add_variable_or_fallback('THREEJS_DIR', opj('$SAGE_SHARE', 'threejs'))
+_add_variable_or_fallback('MAXIMA_FAS', None)
+
 
 # locate singular shared object
 if UNAME[:6] == "CYGWIN":
@@ -179,11 +189,6 @@ else:
     SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
 
 _add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
-
-if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
-    raise RuntimeError(
-        "libSingular not found--a working Singular install in $SAGE_LOCAL "
-        "is required for Sage to work")
 
 # post process
 if ' ' in DOT_SAGE:
@@ -220,6 +225,7 @@ _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version, site
+
 
 def sage_include_directories(use_sources=False):
     """

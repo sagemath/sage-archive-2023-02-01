@@ -709,7 +709,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         return 'Algebraic closure of %s' % self.base_ring()
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation of ``self``.
 
         EXAMPLES::

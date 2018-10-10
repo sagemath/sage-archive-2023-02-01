@@ -39,6 +39,11 @@ BLAS = @SAGE_BLAS@
 BUILT_PACKAGES = @SAGE_BUILT_PACKAGES@
 DUMMY_PACKAGES = @SAGE_DUMMY_PACKAGES@
 
+# Set to the path to Sage's GCC (if GCC is installed) to force rebuilds
+# of packages if GCC changed.
+# See m4/sage_spkg_collect.m4 and https://trac.sagemath.org/ticket/24703
+GCC_DEP = @SAGE_GCC_DEP@
+
 # Versions of all the packages, in the format
 #
 # vers_<pkgname> = <pkgvers>
@@ -63,7 +68,6 @@ OPTIONAL_INSTALLED_PACKAGE_INSTS = \
 
 # All packages which should be downloaded
 SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
-SDIST_PACKAGE_INSTS = $(foreach pkgname,$(SDIST_PACKAGES),$(inst_$(pkgname)))
 
 SCRIPTS = @SAGE_SCRIPTS@
 
@@ -129,9 +133,13 @@ $(INST)/.dummy:
 # the name of some arbitrary file, or it is the '|' symbol) then it is just
 # used verbatim.
 #
+# As a special case, also adds a special variable GCC_DEP for all packages
+# except for gcc itself.  See the definition of GCC_DEP above
+#
 # Positional arguments:
 #     $(1): package name
 pkg_deps = \
+	$(if $(filter gcc,$(1)),,$$(GCC_DEP))\
 	$(foreach dep,$(deps_$(1)),\
         $(if $(value inst_$(dep)),$$(inst_$(dep)),$(dep)))
 
@@ -145,7 +153,7 @@ pkg_deps = \
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
 # <pkgname>-clean:
-#     rm -rf $(INST)/<pkgname>-<pkgvers>
+#     sage-spkg-uninstall <pkgname> '$(SAGE_LOCAL)'
 #
 # For example, for python2 this will expand to:
 #
@@ -155,7 +163,7 @@ pkg_deps = \
 # python2: $(INST)/python2-2.7.14
 #
 # python2-clean:
-#     rm -rf $(INST)/python2-2.7.14
+#     sage-spkg-uninstall python2 '$(SAGE_LOCAL)'
 #
 # Note: In these rules the $(INST)/<pkgname>-<pkgvers> target is used
 # explicitly, rather than expanding the $(inst_<pkgname>) variable, since
@@ -174,6 +182,7 @@ $$(INST)/$(1)-$(2): $(3)
 $(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
+	sage-spkg-uninstall $(1) '$$(SAGE_LOCAL)'
 	rm -rf $$(INST)/$(1)-$(2)
 
 endef
@@ -257,6 +266,16 @@ $(foreach pkgname,$(SCRIPT_PACKAGES),\
 	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
 endif
 
+
+# Use this target to list common targets of this Makefile (in particular for
+# installation with `sage -i`.
+list:
+	@for pkg in $(SAGE_I_TARGETS) $(NORMAL_PACKAGES) $(PIP_PACKAGES) $(SCRIPT_PACKAGES); do\
+		echo $$pkg;\
+	done
+
+
 .PHONY: $(NORMAL_PACKAGES) $(addsuffix -clean,$(NORMAL_PACKAGES)) \
         $(PIP_PACKAGES) $(addsuffix -clean,$(PIP_PACKAGES)) \
-        $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES))
+        $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES)) \
+		list

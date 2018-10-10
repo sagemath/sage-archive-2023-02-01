@@ -37,6 +37,7 @@ test.spyx
 --R
 --root
 --rst2ipynb
+--ipynb2rst
 --rst2txt
 --rst2sws
 --sh
@@ -57,6 +58,8 @@ AUTHORS:
 from subprocess import *
 import os
 import select
+
+import six
 
 
 def test_executable(args, input="", timeout=100.0, **kwds):
@@ -612,7 +615,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Check some things requiring an internet connection::
 
         sage: (out, err, ret) = test_executable(["sage", "--standard"])  # optional - internet
-        sage: out.find("atlas") >= 0  # optional - internet
+        sage: out.find("cython") >= 0  # optional - internet
         True
         sage: err  # optional - internet
         ''
@@ -628,7 +631,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--experimental"])  # optional - internet
-        sage: out.find("macaulay2") >= 0  # optional - internet
+        sage: out.find("valgrind") >= 0  # optional - internet
         True
         sage: err  # optional - internet
         ''
@@ -752,6 +755,71 @@ def test_executable(args, input="", timeout=100.0, **kwds):
          }
         }
 
+    Test ``sage --ipynb2rst file.ipynb file.rst`` on a ipynb file::
+
+        sage: s = r'''{
+        ....:  "cells": [
+        ....:   {
+        ....:    "cell_type": "code",
+        ....:    "execution_count": 1,
+        ....:    "metadata": {},
+        ....:    "outputs": [
+        ....:     {
+        ....:      "data": {
+        ....:       "text/plain": [
+        ....:        "2"
+        ....:       ]
+        ....:      },
+        ....:      "execution_count": 1,
+        ....:      "metadata": {},
+        ....:      "output_type": "execute_result"
+        ....:     }
+        ....:    ],
+        ....:    "source": [
+        ....:     "1+1"
+        ....:    ]
+        ....:   },
+        ....:   {
+        ....:    "cell_type": "code",
+        ....:    "execution_count": null,
+        ....:    "metadata": {},
+        ....:    "outputs": [],
+        ....:    "source": []
+        ....:   }
+        ....:  ],
+        ....:  "metadata": {
+        ....:   "kernelspec": {
+        ....:    "display_name": "SageMath 8.3.beta4",
+        ....:    "language": "",
+        ....:    "name": "sagemath"
+        ....:   },
+        ....:   "language_info": {
+        ....:    "codemirror_mode": {
+        ....:     "name": "ipython",
+        ....:     "version": 2
+        ....:    },
+        ....:    "file_extension": ".py",
+        ....:    "mimetype": "text/x-python",
+        ....:    "name": "python",
+        ....:    "nbconvert_exporter": "python",
+        ....:    "pygments_lexer": "ipython2",
+        ....:    "version": "2.7.15"
+        ....:   }
+        ....:  },
+        ....:  "nbformat": 4,
+        ....:  "nbformat_minor": 2
+        ....: }
+        ....: '''
+        sage: t = '.. escape-backslashes\n.. default-role:: math\n\n\n::\n\n    sage: 1+1\n    2\n\n\n'
+        sage: input = tmp_filename(ext='.ipynb')
+        sage: output = tmp_filename(ext='.rst')
+        sage: with open(input, 'w') as F:
+        ....:     _ = F.write(s)
+        sage: L = ["sage", "--ipynb2rst", input, output]
+        sage: _ = test_executable(L)                        # optional - pandoc
+        sage: print(open(output, 'r').read() == t)          # optional - pandoc
+        True
+
     Test ``sage --rst2txt file.rst`` on a ReST file::
 
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
@@ -847,14 +915,24 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         del pexpect_env["TERM"]
     except KeyError:
         pass
-    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env, **kwds)
+
+    encoding = kwds.pop('encoding', 'utf-8')
+    errors = kwds.pop('errors', None)
+
+    if six.PY3:
+        kwds['encoding'] = encoding
+        kwds['errors'] = errors
+
+    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env,
+              **kwds)
     if input:
         p.stdin.write(input)
+
     p.stdin.close()
     fdout = p.stdout.fileno()
     fderr = p.stderr.fileno()
-    out = ""
-    err = ""
+    out = []
+    err = []
 
     while True:
         # Try reading from fdout and fderr
@@ -872,14 +950,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             p.terminate()
             raise RuntimeError("timeout in test_executable()")
         if fdout in rlist:
-            s = os.read(fdout, 1024)
-            if s == "":
+            s = p.stdout.read(1024)
+            if not s:
                 fdout = None   # EOF
-            out += s
+                p.stdout.close()
+            out.append(s)
         if fderr in rlist:
-            s = os.read(fderr, 1024)
-            if s == "":
+            s = p.stderr.read(1024)
+            if not s:
                 fderr = None   # EOF
-            err += s
+                p.stderr.close()
+            err.append(s)
 
-    return (out, err, p.wait())
+    return (''.join(out), ''.join(err), p.wait())

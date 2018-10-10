@@ -1,4 +1,4 @@
-"""
+r"""
 Helper Classes to implement Tensor Operations
 
 .. warning::
@@ -62,12 +62,10 @@ vectors of the vector collection ``VW`` ::
 #*****************************************************************************
 from six.moves import range
 
-from sage.structure.sage_object import SageObject
-from sage.modules.free_module import FreeModule_ambient_field, VectorSpace
-from sage.misc.all import cached_method, prod
-from sage.matrix.constructor import vector, matrix
+from sage.modules.free_module import FreeModule_ambient_field
+from sage.misc.all import prod
+from sage.matrix.constructor import matrix
 from sage.rings.all import ZZ
-
 
 
 def symmetrized_coordinate_sums(dim, n):

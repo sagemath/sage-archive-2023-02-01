@@ -102,7 +102,8 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             sage: from sage.groups.matrix_gps.isometries import GroupOfIsometries
             sage: bil = Matrix(ZZ,2,[3,2,2,3])
             sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-            sage: O = GroupOfIsometries(2,ZZ,gens,bil)
+            sage: cat = Groups().Finite()
+            sage: O = GroupOfIsometries(2, ZZ, gens, bil, category=cat)
             sage: TestSuite(O).run()
         """
         from copy import copy
@@ -159,6 +160,28 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             return 'Group of isometries with %s generator %s'%(n, format_list(self.gens()))
         else:
             return 'Group of isometries with %s generators %s'%(n, format_list(self.gens()))
+
+    def __reduce__(self):
+        r"""
+        Implements pickling.
+
+        EXAMPLES::
+
+            sage: from sage.groups.matrix_gps.isometries import GroupOfIsometries
+            sage: bil = Matrix(ZZ,2,[3,2,2,3])
+            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+            sage: cat = Groups().Finite()
+            sage: O = GroupOfIsometries(2, ZZ, gens, bil, category=cat)
+            sage: loads(dumps(O)) == O
+            True
+        """
+        args = (self.degree(), self.base_ring(),
+                tuple(g.matrix() for g in self.gens()), self._invariant_bilinear_form,
+                self.category(),
+                False,
+                self._invariant_submodule,
+                self._invariant_quotient_module)
+        return (GroupOfIsometries, args)
 
     def invariant_bilinear_form(self):
         r"""

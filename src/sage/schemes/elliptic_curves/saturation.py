@@ -179,7 +179,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     K = E.base_ring()
 
     def projections(Q, p):
-        """
+        r"""
         Project points onto (E mod Q)(K mod Q) \otimes \F_p.
 
         Returns a list of 0, 1 or 2 vectors in \F_p^n

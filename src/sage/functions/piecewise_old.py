@@ -950,8 +950,8 @@ class PiecewisePolynomial:
             return Piecewise(new_pieces)
 
     def convolution(self, other):
-        """
-        Returns the convolution function,
+        r"""
+        Return the convolution function,
         `f*g(t)=\int_{-\infty}^\infty f(u)g(t-u)du`, for compactly
         supported `f,g`.
         
@@ -971,12 +971,12 @@ class PiecewisePolynomial:
             See http://trac.sagemath.org/14801 for details.
             doctest:...: DeprecationWarning: use lower-case piecewise instead
             See http://trac.sagemath.org/14801 for details.
-            sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1));
+            sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1))
             sage: # Type show(P+Q+R) to view
             sage: f = Piecewise([[(0,1),1*x^0],[(1,2),2*x^0],[(2,3),1*x^0]])  ## example 1
             sage: g = f.convolution(f)
             sage: h = f.convolution(g)
-            sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1));
+            sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1))
             sage: # Type show(P+Q+R) to view
             sage: f = Piecewise([[(-1,1),1]])                             ## example 2
             sage: g = Piecewise([[(0,3),x]])

@@ -1823,7 +1823,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             sage: WeakTableau_factorized_permutation.straighten_input([W.an_element(),W.an_element()], 3)
             Traceback (most recent call last):
             ...
-            ValueError: a matrix from Full MatrixSpace of 5 by 5 dense matrices over Rational Field cannot be converted to a matrix in Full MatrixSpace of 4 by 4 dense matrices over Rational Field!
+            ValueError: inconsistent number of rows: should be 4 but got 5
         """
         W = WeylGroup(['A', k, 1], prefix='s')
         if len(t) > 0:

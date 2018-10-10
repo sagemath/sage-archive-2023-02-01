@@ -249,7 +249,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
     @cached_method
     def module_generator(self):
-        """
+        r"""
         Return the module generator (or highest weight element) of ``self``.
 
         The module generator is the unique tableau of shape `(n, n-1, \ldots,
@@ -622,7 +622,7 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
 
     @cached_method
     def module_generator(self):
-        """
+        r"""
         Return the module generator (or highest weight element) of ``self``.
 
         The module generator is the unique tableau of shape `(n-1, \ldots, 2,

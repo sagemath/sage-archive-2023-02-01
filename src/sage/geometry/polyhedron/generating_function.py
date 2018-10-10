@@ -1072,7 +1072,7 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
         for v in G.topological_sort():
             NP = iter(sorted(((n, potential[n] + chain_links[(n, v)])
                               for n in G.neighbor_in_iterator(v)),
-                             key=lambda k: k[1]))
+                             key=lambda k: (k[1], k[0])))
             n, p = next(NP, (None, 0))
             potential[v] = p
             D[(0, v)] = -p

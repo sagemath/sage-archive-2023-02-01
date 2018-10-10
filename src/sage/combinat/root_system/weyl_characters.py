@@ -130,7 +130,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._prefix = prefix
         self._style = style
         self._k = k
-        self._opposition = ct.opposition_automorphism()
+        if ct.is_atomic():
+            self._opposition = ct.opposition_automorphism()
         if k is not None:
             self._highest = self._space.highest_root()
             self._hip = self._highest.inner_product(self._highest)
@@ -760,7 +761,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         If `w_0` is the long Weyl group element and `wt` is an
         element of the weight lattice, this returns `-w_0(wt)`.
         """
-        if self.cartan_type()[0] == 'A':
+        if self.cartan_type()[0] == 'A': # handled separately for GL(n) compatibility
             return self.space()([-x for x in reversed(wt.to_vector().list())])
         ret = 0
         alphacheck = self._space.simple_coroots()
@@ -783,6 +784,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: A3.dual(A3(1,0,0)^2)
             A3(0,1,0) + A3(0,0,2)
         """
+        if not self.cartan_type().is_atomic():
+            raise NotImplementedError("dual method is not implemented for reducible types")
         d = elt.monomial_coefficients()
         return sum(d[k]*self(self._dual_helper(k)) for k in d.keys())
 

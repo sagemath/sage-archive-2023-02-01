@@ -13,7 +13,10 @@ parallelogram polyominoes.
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
+#python 3 support
 #******************************************************************************
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 from six.moves import range
 from six import add_metaclass
 
@@ -526,19 +529,19 @@ class _drawing_tool:
         sage: opt = ParallelogramPolyominoesOptions['tikz_options']
         sage: dt = _drawing_tool(opt)
         sage: dt.draw_line([1, 1], [-1, -1])
-        '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+        u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
 
         sage: fct = lambda vec: [2*vec[0], vec[1]]
         sage: dt = _drawing_tool(opt, fct)
         sage: dt.draw_line([1, 1], [-1, -1])
-        '\n  \\draw[color=black, line width=1] (2.000000, 1.000000) -- (-2.000000, -1.000000);'
+        u'\n  \\draw[color=black, line width=1] (2.000000, 1.000000) -- (-2.000000, -1.000000);'
 
         sage: import copy
         sage: opt = copy.deepcopy(opt)
         sage: opt['mirror'] = [0,1]
         sage: dt = _drawing_tool(opt)
         sage: dt.draw_line([1, 1], [-1, -1])
-        '\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) -- (1.000000, -1.000000);'
+        u'\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) -- (1.000000, -1.000000);'
 
     """
     def __init__(self, options, XY=lambda v: v):
@@ -561,7 +564,7 @@ class _drawing_tool:
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_line([1, 1], [-1, -1])
-            '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
         """
         self._XY = lambda v: XY([float(v[0]), float(v[1])])
         self._translation = options['translation']
@@ -710,7 +713,7 @@ class _drawing_tool:
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_line([1, 1], [-1, -1])
-            '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
 
         """
         if color is None:
@@ -748,7 +751,7 @@ class _drawing_tool:
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_polyline([[1, 1], [-1, -1], [0,0]])
-            '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);\n  \\draw[color=black, line width=1] (-1.000000, -1.000000) -- (0.000000, 0.000000);'
+            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);\n  \\draw[color=black, line width=1] (-1.000000, -1.000000) -- (0.000000, 0.000000);'
         """
         res = ""
         for i in range(len(list_of_vertices)-1):
@@ -782,7 +785,7 @@ class _drawing_tool:
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_point([1, 1])
-            '\n  \\filldraw[color=black] (1.000000, 1.000000) circle (3.5pt);'
+            u'\n  \\filldraw[color=black] (1.000000, 1.000000) circle (3.5pt);'
 
         """
         if color is None:
@@ -1472,7 +1475,7 @@ class ParallelogramPolyomino(ClonableList):
               - display:            list
               - drawing_components: {'diagram': True, 'bounce_1': False, 'tree': False, 'bounce_0': False}
               - latex:              drawing
-              - tikz_options:       {'color_bounce_1': 'blue', 'color_bounce_0': 'red', 'point_size': 3.5, 'line_size': 1, 'color_line': 'black', 'color_point': 'black', 'scale': 1, 'mirror': None, 'rotation': 0, 'translation': [0, 0]}
+              - tikz_options:       {'color_bounce_1': u'blue', 'color_bounce_0': u'red', 'point_size': 3.5, 'line_size': 1, 'color_line': u'black', 'color_point': u'black', 'scale': 1, 'mirror': None, 'rotation': 0, 'translation': [0, 0]}
         """
         if self._options is None:
             return self.parent().get_options()
@@ -2378,10 +2381,10 @@ class ParallelogramPolyomino(ClonableList):
 
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.get_tikz_options()
-            {'color_bounce_0': 'red',
-             'color_bounce_1': 'blue',
-             'color_line': 'black',
-             'color_point': 'black',
+            {'color_bounce_0': u'red',
+             'color_bounce_1': u'blue',
+             'color_line': u'black',
+             'color_point': u'black',
              'line_size': 1,
              'mirror': None,
              'point_size': 3.5,
@@ -3302,7 +3305,7 @@ class ParallelogramPolyomino(ClonableList):
             ...
             \end{tikzpicture}
         """
-        latex.add_package_to_preamble_if_available("tikz")
+        latex.add_package_to_preamble_if_available(str("tikz"))
         tikz_options = self.get_tikz_options()
         res = "\n\\begin{tikzpicture}[scale=%s]" % (tikz_options['scale'])
         res += self.to_tikz()
@@ -3317,7 +3320,7 @@ class ParallelogramPolyomino(ClonableList):
 
             sage: pp = ParallelogramPolyomino([[0,1],[1,0]])
             sage: pp._latex_list()
-            '\\[[[0, 1], [1, 0]]\\]'
+            u'\\[[[0, 1], [1, 0]]\\]'
         """
         return "\\[%s\\]" % self._repr_list()
 

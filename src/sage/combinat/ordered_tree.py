@@ -15,7 +15,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
+
+#python 3 support
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 from six import add_metaclass
 
 import itertools
@@ -376,12 +379,12 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             [[0, 0, 1], [1, 0, 0]]
         """
         if (bijection is None) or (bijection == 'Boussicault-Socci'):
-            return self.to_parallelogram_polyomino_Boussicault_Socci()
+            return self._to_parallelogram_polyomino_Boussicault_Socci()
         if bijection == 'via dyck and Delest-Viennot':
             raise NotImplementedError
         raise ValueError('unknown bijection')
 
-    def to_parallelogram_polyomino_Boussicault_Socci(self):
+    def _to_parallelogram_polyomino_Boussicault_Socci(self):
         r"""
         Return the polyomino parallelogram using the Boussicault-Socci 
         bijection.
@@ -391,19 +394,19 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: T = OrderedTree(
             ....:     [[[], [[], [[]]]], [], [[[],[]]], [], []]
             ....: )
-            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            sage: T._to_parallelogram_polyomino_Boussicault_Socci()
             [[0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1], [1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0]]
             sage: T = OrderedTree( [] )
-            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            sage: T._to_parallelogram_polyomino_Boussicault_Socci()
             [[1], [1]]
             sage: T = OrderedTree( [[]] )
-            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            sage: T._to_parallelogram_polyomino_Boussicault_Socci()
             [[0, 1], [1, 0]]
             sage: T = OrderedTree( [[],[]] )
-            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            sage: T._to_parallelogram_polyomino_Boussicault_Socci()
             [[0, 1, 1], [1, 1, 0]]
             sage: T = OrderedTree( [[[]]] )
-            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            sage: T._to_parallelogram_polyomino_Boussicault_Socci()
             [[0, 0, 1], [1, 0, 0]]
         """
         from sage.combinat.parallelogram_polyomino import ParallelogramPolyomino

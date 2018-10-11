@@ -3,8 +3,8 @@ Kirillov-Reshetikhin Crystals
 """
 
 #*****************************************************************************
-#       Copyright (C) 2009   Anne Schilling <anne at math.ucdavis.edu>
-#                     2014   Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2009       Anne Schilling <anne at math.ucdavis.edu>
+#                     2014-2018  Travis Scrimshaw <tcscrims at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -415,6 +415,8 @@ def KashiwaraNakashimaTableaux(cartan_type, r, s):
                 raise ValueError("wrong range of parameters")
         elif ct == CartanType(['E',6,1]) and r in [1,6,2]:
             return KR_type_E6(ct, r, s)
+        elif ct == CartanType(['E',7,1]) and r in [7]:
+            return KR_type_E7(ct, r, s)
         else:
             raise NotImplementedError
     else:
@@ -3451,6 +3453,245 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
             c = self.coordinates()
             s = c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5]
             return self.parent()._s - s + max(self._A)
+
+
+class CrystalOfTableaux_E7(CrystalOfTableaux):
+    r"""
+    The type `E_7` crystal `B(s\Lambda_7)`.
+
+    This is a helper class for the corresponding:class:`KR crystal
+    <sage.combinat.crystals.kirillov_reshetikhin.KR_type_E7>` `B^{7,s}`.
+    """
+    def module_generator(self, shape):
+        """
+        Return the module generator of ``self`` with shape ``shape``.
+
+        .. NOTE::
+
+            Only implemented for single rows (i.e., highest weight
+            `s\Lambda_7`).
+
+        EXAMPELS::
+
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import CrystalOfTableaux_E7
+            sage: T = CrystalOfTableaux_E7(CartanType(['E',7]), shapes=(Partition([5]),))
+            sage: T.module_generator([5])
+            [[(7,), (7,), (7,), (7,), (7,)]]
+        """
+        if len(shape) != 1:
+            raise NotImplementedError("only implemented for single row shapes")
+        return self(*[self.letters.highest_weight_vector()]*shape[0])
+
+class KR_type_E7(KirillovReshetikhinGenericCrystal):
+    r"""
+    The Kirillov-Reshetikhin crystal `B^{7,s}` of type `E_7^{(1)}`.
+    """
+    def __init__(self, ct, r, s):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 1)
+            sage: TestSuite(K).run()
+
+            sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 2)
+            sage: TestSuite(K).run()  # long time
+        """
+        assert r == 7
+        KirillovReshetikhinGenericCrystal.__init__(self, ct, 7, s)
+
+    def classical_decomposition(self):
+        """
+        Return the classical decomposition of ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 4)
+            sage: K.classical_decomposition()
+            The crystal of tableaux of type ['E', 7] and shape(s) [[4]]
+        """
+        return CrystalOfTableaux_E7(self.cartan_type().classical(),
+                                    shapes=(Partition([self._s]),))
+
+    @cached_method
+    def A7_decomposition(self):
+        """
+        Return the decomposition of ``self`` into `A_7` highest
+        weight crystals.
+
+        The `A_7` decomposition of `B^{7,s}` is given by
+        the parameters `m_4, m_5, m_6, m_7 \geq 0` such that
+        `m_4 + m_5 \leq m_7` and `s = m_4 + m_5 + m_6 + m_7`. The
+        corresponding `A_7` highest weight crystal has highest weight
+        `\lambda = (m_7 - m_4 - m_5) \Lambda_6 + m_5 \Lambda_4
+        + m_6 \Lambda_2`.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 3)
+            sage: K.A7_decomposition()
+            The crystal of tableaux of type ['A', 7] and shape(s)
+             [[3, 3, 3, 3, 3, 3], [3, 3, 2, 2, 2, 2], [3, 3, 1, 1, 1, 1], [3, 3],
+              [2, 2, 2, 2, 1, 1], [2, 2, 1, 1], [1, 1, 1, 1, 1, 1], [1, 1]]
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        # variables are m_4, m_5, m_6, m_7
+        P = Polyhedron(ieqs=[[0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1],[0,-1,-1,0,1]],
+                       eqns=[[-self._s,1,1,1,1]])
+        shapes = [Partition([6]*(p[3]-p[1]-p[0])+[4]*p[1]+[2]*p[2]).conjugate()
+                  for p in P.integral_points()]
+        return CrystalOfTableaux(['A',7], shapes=shapes)
+
+    @lazy_attribute
+    def _highest_weight_to_A7_elements(self):
+        """
+        Return a dictionary that maps the A6 highest weight elements of
+        ``self`` to their corresponding element in the `A_7` decomposition.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 2)
+            sage: K._highest_weight_to_A7_elements
+            {[[(7,), (7,)]]: [[1, 1], [8, 8]],
+             [[(7,), (-2, 3)]]: [[1, 1], [2, 8], [3], [4], [5], [8]],
+             [[(7,), (-2, 6)]]: [[1, 1], [2, 8]],
+             [[(7,), (-2, 1)]]: [[1, 1], [2, 8], [3], [4], [5], [6]],
+             [[(-6, 5), (-2, 6)]]: [[1], [2], [3], [8]],
+             [[(-2, 3), (-2, 1)]]: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 8]],
+             [[(-1, 2), (-2, 1)]]: [],
+             [[(-2, 3), (-2, 3)]]: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [8, 8]],
+             [[(-2, 3), (-2, 6)]]: [[1, 1], [2, 2], [3], [4], [5], [8]],
+             [[(-1, -2, 4), (-2, 1)]]: [[1], [2], [3], [4]],
+             [[(-2, 6), (-2, 6)]]: [[1, 1], [2, 2]],
+             [[(-2, 6), (-2, 1)]]: [[1, 1], [2, 2], [3], [4], [5], [6]],
+             [[(-2, 1), (-2, 1)]]: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6]]}
+        """
+        d = {}
+        A7 = self.A7_decomposition()
+        for b in self:
+            if not b.is_highest_weight([1,3,4,5,6,7]):
+                continue
+            wt = [b.phi(i) for i in [7,6,5,4,3,1]]
+            la = Partition([6]*(wt[4]+wt[5])+[4]*(wt[2]+wt[3])+[2]*(wt[0]+wt[1])).conjugate()
+            #mu = Partition(sum(([6-i]*m for i,m in enumerate(wt)), [])).conjugate()
+            x = A7.module_generator(la)
+            for i in range(wt[0]):
+                x = x.f_string([2,3,4,5,6,7])
+            for i in range(wt[2]):
+                x = x.f_string([4,5,6,7])
+            for i in range(wt[4]):
+                x = x.f_string([6,7])
+            d[b] = x
+        return d
+
+    @cached_method
+    def to_A7_crystal(self):
+        r"""
+        Return the map decomposing the KR crystal `B^{7,s}` of
+        type `E_7^{(1)}` into type `A_7` highest weight crystals.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 2)
+            sage: K.to_A7_crystal()
+            ['A', 6] relabelled by {1: 1, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7} -> ['A', 7] Virtual Crystal morphism:
+              From: Kirillov-Reshetikhin crystal of type ['E', 7, 1] with (r,s)=(7,2)
+              To:   The crystal of tableaux of type ['A', 7] and shape(s)
+                [[2, 2, 2, 2, 2, 2], [2, 2, 1, 1, 1, 1], [2, 2], [1, 1, 1, 1], []]
+              Defn: [[(7,), (-2, 3)]] |--> [[1, 1], [2, 8], [3], [4], [5], [8]]
+                    [[(-2, 3), (-2, 1)]] |--> [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 8]]
+                    [[(-1, 2), (-2, 1)]] |--> []
+                    [[(-2, 3), (-2, 6)]] |--> [[1, 1], [2, 2], [3], [4], [5], [8]]
+                    [[(-2, 6), (-2, 6)]] |--> [[1, 1], [2, 2]]
+                    [[(7,), (7,)]] |--> [[1, 1], [8, 8]]
+                    [[(-2, 3), (-2, 3)]] |--> [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [8, 8]]
+                    [[(7,), (-2, 1)]] |--> [[1, 1], [2, 8], [3], [4], [5], [6]]
+                    [[(-2, 6), (-2, 1)]] |--> [[1, 1], [2, 2], [3], [4], [5], [6]]
+                    [[(-2, 1), (-2, 1)]] |--> [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6]]
+                    [[(-6, 5), (-2, 6)]] |--> [[1], [2], [3], [8]]
+                    [[(-1, -2, 4), (-2, 1)]] |--> [[1], [2], [3], [4]]
+                    [[(7,), (-2, 6)]] |--> [[1, 1], [2, 8]]
+        """
+        d = self._highest_weight_to_A7_elements
+        return self.crystal_morphism(d, automorphism={1:6,3:5,4:4,5:3,6:2,7:1},
+                                     index_set=[1,3,4,5,6,7], check=False)
+
+    @cached_method
+    def from_A7_crystal(self):
+        r"""
+        Return the inclusion of the KR crystal `B^{7,s}` of
+        type `E_7^{(1)}` into type `A_7` highest weight crystals.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 2)
+            sage: K.from_A7_crystal()
+            ['A', 6] -> ['E', 7, 1] Virtual Crystal morphism:
+              From: The crystal of tableaux of type ['A', 7] and shape(s)
+                [[2, 2, 2, 2, 2, 2], [2, 2, 1, 1, 1, 1], [2, 2], [1, 1, 1, 1], []]
+              To:   Kirillov-Reshetikhin crystal of type ['E', 7, 1] with (r,s)=(7,2)
+              Defn: [[1, 1], [2, 8]] |--> [[(7,), (-2, 6)]]
+                    [[1, 1], [2, 2]] |--> [[(-2, 6), (-2, 6)]]
+                    [[1, 1], [2, 2], [3], [4], [5], [8]] |--> [[(-2, 3), (-2, 6)]]
+                    [[1], [2], [3], [4]] |--> [[(-1, -2, 4), (-2, 1)]]
+                    [[1, 1], [8, 8]] |--> [[(7,), (7,)]]
+                    [[1, 1], [2, 8], [3], [4], [5], [8]] |--> [[(7,), (-2, 3)]]
+                    [[1, 1], [2, 2], [3], [4], [5], [6]] |--> [[(-2, 6), (-2, 1)]]
+                    [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 8]] |--> [[(-2, 3), (-2, 1)]]
+                    [] |--> [[(-1, 2), (-2, 1)]]
+                    [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [8, 8]] |--> [[(-2, 3), (-2, 3)]]
+                    [[1], [2], [3], [8]] |--> [[(-6, 5), (-2, 6)]]
+                    [[1, 1], [2, 8], [3], [4], [5], [6]] |--> [[(7,), (-2, 1)]]
+                    [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6]] |--> [[(-2, 1), (-2, 1)]]
+        """
+        A7 = self.A7_decomposition()
+        d = self._highest_weight_to_A7_elements
+        d_inv = {d[b]: b for b in d}
+        return A7.crystal_morphism(d_inv, automorphism={6:1,5:3,4:4,3:5,2:6,1:7},
+                                   index_set=[1,2,3,4,5,6], check=False)
+
+    class Element(KirillovReshetikhinGenericCrystalElement):
+        def e0(self):
+            r"""
+            Return the action of `e_0` on ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 2)
+                sage: mg = K.module_generator()
+                sage: mg.e0()
+                [[(7,), (-1, 7)]]
+                sage: mg.e0().e0()
+                [[(-1, 7), (-1, 7)]]
+                sage: mg.e_string([0,0,0]) is None
+                True
+            """
+            P = self.parent()
+            x = P.to_A7_crystal()(self).e(7)
+            if x is None:
+                return None
+            return P.from_A7_crystal()(x)
+
+        def f0(self):
+            r"""
+            Return the action of `f_0` on ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['E',7,1], 7, 2)
+                sage: mg = K.module_generator()
+                sage: x = mg.f_string([7,6,5,4,3,2,4,5,6,1,3,4,5,2,4,3,1])
+                sage: x.f0()
+                [[(7,), (7,)]]
+                sage: mg.f0() is None
+                True
+            """
+            P = self.parent()
+            x = P.to_A7_crystal()(self).f(7)
+            if x is None:
+                return None
+            return P.from_A7_crystal()(x)
 
 #####################################################################
 

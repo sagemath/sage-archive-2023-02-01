@@ -628,6 +628,9 @@ class GraphPlot(SageObject):
             else:
                 edges_to_draw[key] = [(label, color, head)]
 
+        is_directed = self._graph.is_directed()
+        v_to_int = {v: i for i,v in enumerate(self._graph)}
+
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
             if self._options['color_by_label']:
                 edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
@@ -636,50 +639,58 @@ class GraphPlot(SageObject):
             edges_drawn = []
             for color in edge_colors:
                 for edge in edge_colors[color]:
-                    key = tuple(sorted([edge[0],edge[1]]))
-                    if key == (edge[0],edge[1]): head = 1
-                    else: head = 0
-
+                    if v_to_int[edge[0]] < v_to_int[edge[1]]:
+                        key = (edge[0], edge[1])
+                        head = 1
+                    else:
+                        key = (edge[1], edge[0])
+                        head = 0
                     if len(edge) < 3:
-                        label = self._graph.edge_label(edge[0],edge[1])
+                        label = self._graph.edge_label(edge[0], edge[1])
                         if isinstance(label, list):
                             append_or_set(key, label[-1], color, head)
-                            edges_drawn.append((edge[0],edge[1],label[-1]))
-                            for i in range(len(label)-1):
+                            edges_drawn.append((edge[0], edge[1], label[-1]))
+                            for i in range(len(label) - 1):
                                 edges_to_draw[key].append((label[i], color, head))
-                                edges_drawn.append((edge[0],edge[1],label[i]))
+                                edges_drawn.append((edge[0], edge[1], label[i]))
                         else:
                             append_or_set(key, label, color, head)
-                            edges_drawn.append((edge[0],edge[1],label))
+                            edges_drawn.append((edge[0], edge[1], label))
                     else:
                         label = edge[2]
-                        labelList = self._graph.edge_label(edge[0],edge[1])
+                        labelList = self._graph.edge_label(edge[0], edge[1])
                         if isinstance(labelList, list):
                             for i in range(len(labelList)):
                                 if labelList[i] == label:
                                     append_or_set(key, label, color, head)
-                                    edges_drawn.append((edge[0],edge[1],label))
+                                    edges_drawn.append((edge[0], edge[1], label))
                         else:
                             if labelList == label:
                                 append_or_set(key, label, color, head)
-                                edges_drawn.append((edge[0],edge[1],label))
+                                edges_drawn.append((edge[0], edge[1], label))
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
                 if (edge[0],edge[1],edge[2]) not in edges_drawn and \
                     ( self._graph.is_directed() or
-                      (edge[1],edge[0],edge[2]) not in edges_drawn
+                      (edge[1], edge[0], edge[2]) not in edges_drawn
                     ):
-                    key = tuple(sorted([edge[0],edge[1]]))
-                    if key == (edge[0],edge[1]): head = 1
-                    else: head = 0
+                    if v_to_int[edge[0]] < v_to_int[edge[1]]:
+                        key = (edge[0], edge[1])
+                        head = 1
+                    else:
+                        key = (edge[1], edge[0])
+                        head = 0
                     append_or_set(key, edge[2], self._options['edge_color'], head)
 
         else:
-            for edge in self._graph.edges(sort=True):
-                key = tuple(sorted([edge[0],edge[1]]))
-                if key == (edge[0],edge[1]): head = 1
-                else: head = 0
+            for edge in self._graph.edge_iterator():
+                if v_to_int[edge[0]] < v_to_int[edge[1]]:
+                    key = (edge[0], edge[1])
+                    head = 1
+                else:
+                    key = (edge[1], edge[0])
+                    head = 0
                 append_or_set(key, edge[2], self._options['edge_color'], head)
 
         if edges_to_draw:

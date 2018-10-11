@@ -105,7 +105,7 @@ cdef class StaticSparseCGraph(CGraph):
         has_labels = any(l is not None for _, _, l in G.edge_iterator())
         self._directed = G.is_directed()
 
-        if vertex_list is not None and len(vertex_list) != len(G):
+        if vertex_list is not None and len(vertex_list) != G.order():
             raise ValueError('vertex_list has wrong length')
 
         init_short_digraph(self.g, G, edge_labelled=has_labels,

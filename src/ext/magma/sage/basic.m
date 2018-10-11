@@ -212,6 +212,26 @@ intrinsic Sage(A::FldNumElt) -> MonStgElt, BoolElt
     return Sprintf("%o(%o)", Sage(K), Sage(seq)), true;
 end intrinsic;
 
+intrinsic Sage(O::RngOrd) -> MonStgElt, BoolElt
+{Converts an order of a number field to sage.}
+K:=NumberField(O);
+if IsMaximal(O) then
+    return Sprintf("%o.maximal_order()",Sage(K)), true;
+end if;
+B:=Basis(O);
+seq := [K!B[i] : i in [1..#B]];
+return Sprintf("%o.order(%o)", Sage(K),Sage(seq)), true;
+end intrinsic;
+
+intrinsic Sage(I::RngOrdIdl) -> MonStgElt, BoolElt
+{Converts an ideal of a number field to sage.}
+O:=Order(I);
+K:=NumberField(O);
+gens:=Generators(I);
+seq := [K!gens[i] : i in [1..#gens]];
+return Sprintf("%o.ideal(%o)", Sage(K),Sage(seq)), true;
+end intrinsic;
+
 /* Elliptic curves */
 
 intrinsic Sage(X::CrvEll) -> MonStgElt, BoolElt

@@ -110,8 +110,9 @@ def CongruenceSubgroup_constructor(*args):
     else:
         return CongruenceSubgroupFromGroup(GG)
 
+
 def is_CongruenceSubgroup(x):
-    """
+    r"""
     Return True if x is of type CongruenceSubgroup.
 
     Note that this may be False even if `x` really is a congruence subgroup --
@@ -138,6 +139,7 @@ def is_CongruenceSubgroup(x):
         False
     """
     return isinstance(x, CongruenceSubgroupBase)
+
 
 class CongruenceSubgroupBase(ArithmeticSubgroup):
 
@@ -251,6 +253,19 @@ class CongruenceSubgroupBase(ArithmeticSubgroup):
             True
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(CongruenceSubgroup(3,[ [1,1,0,1] ])) == hash(Gamma1(3))
+            True
+            sage: hash(CongruenceSubgroup(3,[ [1,1,0,1] ])) == hash(Gamma(3))
+            False
+        """
+        return hash((self.level(), self.index()))
 
 
 class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):

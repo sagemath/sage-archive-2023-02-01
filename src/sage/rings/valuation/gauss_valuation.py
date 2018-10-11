@@ -231,7 +231,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         return self.domain()(self._base_valuation.uniformizer())
 
     def valuations(self, f, coefficients=None, call_error=False):
-        """
+        r"""
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
 
         INPUT:
@@ -259,7 +259,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: f = x^2 + 2*x + 16
             sage: list(v.valuations(f))
             [4, 1, 0]
-
         """
         f = self.domain().coerce(f)
 
@@ -384,7 +383,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: F = v.reduce(f); F
             x^2 + 2*x + 1
             sage: g = v.lift(F); g
-            (1 + O(3^5))*x^2 + (2 + O(3^5))*x + (1 + O(3^5))
+            (1 + O(3^5))*x^2 + (2 + O(3^5))*x + 1 + O(3^5)
             sage: v.is_equivalent(f,g)
             True
             sage: g.parent() is v.domain()
@@ -454,9 +453,9 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
-            (3^2 + O(3^7))
+            3^2 + O(3^7)
             sage: v.equivalence_unit(-2)
-            (3^-2 + O(3^3))
+            3^-2 + O(3^3)
 
         """
         if reciprocal:
@@ -633,7 +632,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
                Defn: (1 + O(2^5))*x |--> (2^-1 + O(2^4))*x,
              Ring endomorphism of Univariate Polynomial Ring in x over 2-adic Field with capped relative precision 5
                Defn: (1 + O(2^5))*x |--> (2 + O(2^6))*x,
-            (1 + O(2^5))*x^2 + (1 + 2^2 + 2^3 + O(2^5))*x + (1 + 2^2 + 2^3 + O(2^5)))
+             (1 + O(2^5))*x^2 + (1 + 2^2 + 2^3 + O(2^5))*x + 1 + 2^2 + 2^3 + O(2^5))
 
         """
         if not G.is_monic():

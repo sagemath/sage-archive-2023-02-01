@@ -879,7 +879,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: point_set = X.point_set()
             sage: ffe = point_set._enumerator()
             sage: ffe.solutions_serial([s^2-1, s^6-s^2], [range(6)])
-            <generator object solutions_serial at 0x...>
+            <generator object ...solutions_serial at 0x...>
             sage: list(_)
             [(0,), (3,)]
         """
@@ -907,7 +907,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: point_set = X.point_set()
             sage: ffe = point_set._enumerator()
             sage: ffe.solutions([s^2-1, s^6-s^2], [range(6)])
-            <generator object solutions at 0x...>
+            <generator object ...solutions at 0x...>
             sage: sorted(_)
             [(0,), (3,)]
         """
@@ -992,8 +992,10 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         for cone, nonzero_coordinates, cokernel in self.ambient.cone_points_iter():
             R = PolynomialRing(self.ambient.ring, cokernel.ngens(), 't')
             inhomogeneous = self.inhomogeneous_equations(R, nonzero_coordinates, cokernel)
-            for log_t in self.solutions(inhomogeneous, map(range, cokernel.invariants())):
-                yield self.homogeneous_coordinates(log_t, nonzero_coordinates, cokernel)
+            log_range = [range(I) for I in cokernel.invariants()]
+            for log_t in self.solutions(inhomogeneous, log_range):
+                yield self.homogeneous_coordinates(log_t, nonzero_coordinates,
+                                                   cokernel)
 
     def cardinality(self):
         """
@@ -1025,7 +1027,8 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         for cone, nonzero_coordinates, cokernel in self.ambient.cone_points_iter():
             R = PolynomialRing(self.ambient.ring, cokernel.ngens(), 't')
             inhomogeneous = self.inhomogeneous_equations(R, nonzero_coordinates, cokernel)
-            for log_t in self.solutions(inhomogeneous, map(range, cokernel.invariants())):
+            log_range = [range(I) for I in cokernel.invariants()]
+            for log_t in self.solutions(inhomogeneous, log_range):
                 n += 1
         return n
 

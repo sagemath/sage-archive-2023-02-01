@@ -1,4 +1,4 @@
-"""
+r"""
 Fast Lattice Polytopes using PPL.
 
 The :func:`LatticePolytope_PPL` class is a thin wrapper around PPL
@@ -509,7 +509,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         return tuple(points)
 
     def vertices_saturating(self, constraint):
-        """
+        r"""
         Return the vertices saturating the constraint
 
         INPUT:
@@ -681,7 +681,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                                               point_labels=tuple(range(len(points))))
         indexsets = set([ frozenset([points.index(p) for p in ps]) for ps in pointsets ])
         orbits = []
-        while len(indexsets)>0:
+        while indexsets:
             idx = indexsets.pop()
             orbits.append(frozenset([points[i] for i in idx]))
             for g in Aut:
@@ -874,7 +874,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         return matrix(ZZ, fiber.vertices()).right_kernel_matrix()
 
     def base_rays(self, fiber, points):
-        """
+        r"""
         Return the primitive lattice vectors that generate the
         direction given by the base projection of points.
 

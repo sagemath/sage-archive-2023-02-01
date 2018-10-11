@@ -600,7 +600,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: M._repr_()
             'Quasisymmetric functions over the Integer Ring in the Monomial basis'
         """
-        return "Quasisymmetric functions over the %s"%self.base_ring()
+        return "Quasisymmetric functions over the %s" % self.base_ring()
 
     def a_realization(self):
         r"""
@@ -1146,10 +1146,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                        for (I, coeff) in M(self)}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
-
-            def adams_operation(self, *args, **opts):
-                from sage.misc.superseded import deprecation
-                deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
 
             def star_involution(self):
                 r"""
@@ -2730,7 +2726,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                                          for i in range(0,len(compo)+1))
 
         def product_on_basis(self, I, J):
-            """
+            r"""
             The product on Essential basis elements.
 
             The product of the basis elements indexed by two compositions
@@ -3363,7 +3359,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             self._M_inverse_transition_matrices = {}
 
         def _precompute_cache(self, n, to_self_cache, from_self_cache, transition_matrices, inverse_transition_matrices, from_self_gen_function):
-            """
+            r"""
             Compute the transition matrices between ``self`` and the
             monomial basis in the homogeneous components of degree `n`.
             The results are not returned, but rather stored in the caches.

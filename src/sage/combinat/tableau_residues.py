@@ -452,14 +452,20 @@ class ResidueSequence(ClonableArray):
             sage: res == ser
             False
 
+        TESTS::
+
+            sage: res.swap_residues(22,26)
+            Traceback (most recent call last):
+            ...
+            IndexError: 22 and 26 must be between 1 and 8
         """
         with self.clone() as swap:
             try:
                 # we have overridden __getitem__ so that indices are 1-based but
                 # __setitem__ is still 0-based so we need to renormalise the LHS
-                swap[i-1],swap[j-1] = self[j], self[i]
+                swap[i-1], swap[j-1] = self[j], self[i]
             except IndexError:
-                raise IndexError('%s and %s must be between 1 and %s' % (i,j,self.size))
+                raise IndexError('%s and %s must be between 1 and %s' % (i, j, self.size()))
         return swap
 
     def standard_tableaux(self, shape=None):
@@ -846,4 +852,3 @@ class ResidueSequences(UniqueRepresentation, Parent):
         """
         if any(r not in self._base_ring for r in element):
             raise ValueError('not a {}-residue sequence {}'.format(self._quantum_characteristic))
-

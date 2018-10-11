@@ -552,7 +552,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             for j from 0 <= j < self._ncols:
                 s = data[k]
                 k += 1
-                if fmpz_set_str(fmpz_mat_entry(self._matrix,i,j), s, 32):
+                if fmpz_set_str(fmpz_mat_entry(self._matrix, i, j), s, 32):
                     raise RuntimeError("invalid pickle data")
 
     def _unpickle_matrix_2x2_version0(self, data):
@@ -634,21 +634,21 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: a = MatrixSpace(ZZ, 2, 3)(range(6)); a
             [0 1 2]
             [3 4 5]
-            sage: a.__nonzero__()
+            sage: bool(a)
             True
-            sage: (a - a).__nonzero__()
+            sage: bool(a - a)
             False
 
         ::
 
             sage: a = MatrixSpace(ZZ, 0, 3)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
             sage: a = MatrixSpace(ZZ, 3, 0)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
             sage: a = MatrixSpace(ZZ, 0, 0)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
         """
         return not fmpz_mat_is_zero(self._matrix)
@@ -2536,7 +2536,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             'computed-pari-int'
             sage: X = result[1]; X
             [ 26 -31  30 -21  -2  10]
-            [ 47  13 -48  14  11 -18]
+            [-47 -13  48 -14 -11  18]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 
@@ -4880,14 +4880,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
         # 0. Base case
         if self.nrows() == 0:
             pos = row.nonzero_positions()
-            if len(pos) > 0:
+            if pos:
                 pivots = [pos[0]]
                 if row[pivots[0]] < 0:
                     row *= -1
             else:
                 pivots = []
             return matrix([row]), pivots
-
 
         if row == 0:
             return self, pivots

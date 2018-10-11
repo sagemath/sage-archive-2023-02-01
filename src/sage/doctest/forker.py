@@ -33,15 +33,23 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
-from __future__ import absolute_import
-import __future__
+from __future__ import absolute_import, print_function
 
-import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
+import os
+import sys
+import time
+import signal
+import linecache
+import hashlib
+import multiprocessing
+import warnings
 import re
 import errno
-import doctest, traceback
+import doctest
+import traceback
 import tempfile
+from dis import findlinestarts
+import gc
 import six
 
 import sage.misc.randstate as randstate
@@ -51,13 +59,34 @@ from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
-from sage.interfaces.process import ContainChildren
 from sage.cpython.atexit import restore_atexit
 from sage.cpython.string import bytes_to_str, str_to_bytes
 
 
 # All doctests run as if the following future imports are present
+import __future__
 MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
+
+
+if not six.PY2:
+    # These lists are used on Python 3+ only for backwards compatibility with
+    # Python 2 in traceback parsing
+    # These exceptions in Python 2 have been rolled into OSError on Python 3;
+    # see https://docs.python.org/3/library/exceptions.html#OSError
+    _OSError_ALIASES = [
+        'IOError', 'EnvironmentError', 'socket.error', 'select.error',
+        'mmap.error'
+    ]
+    # This list is sort of the opposite case: these are new built-in exceptions
+    # in Python 3 that are subclasses of OSError; see
+    # https://docs.python.org/3/library/exceptions.html#os-exceptions
+    import builtins
+    _OSError_SUBCLASSES = [
+        exc.__name__ for exc in vars(builtins).values()
+        if isinstance(exc, type) and issubclass(exc, OSError) and
+           exc is not OSError
+    ]
+
 
 
 def init_sage():
@@ -153,6 +182,15 @@ def init_sage():
     dm = get_display_manager()
     from sage.repl.rich_output.backend_doctest import BackendDoctest
     dm.switch_backend(BackendDoctest())
+
+    # IPython's pretty printer sorts the repr of dicts by their keys by default
+    # (or their keys' str() if they are not otherwise orderable).  However, it
+    # disables this for CPython 3.6+ opting to instead display dicts' "natural"
+    # insertion order, which is preserved in those versions).  This makes for
+    # inconsistent results with Python 2 tests that return dicts, so here we
+    # force the Python 2 style dict printing
+    import IPython.lib.pretty
+    IPython.lib.pretty.DICT_IS_ORDERED = False
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -497,6 +535,21 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: DTR.run(doctests[0], clear_globs=False) # indirect doctest
             TestResults(failed=0, attempted=4)
+
+        TESTS:
+
+        Check that :trac:`26038` is fixed::
+
+            sage: a = 1
+            ....: b = 2
+            Traceback (most recent call last):
+            ...
+            SyntaxError: doctest is not a single statement
+            sage: a = 1
+            ....: @syntax error
+            Traceback (most recent call last):
+            ...
+            SyntaxError: invalid syntax
         """
         # Ensure that injecting globals works as expected in doctests
         set_globals(test.globs)
@@ -546,7 +599,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             with OriginalSource(example):
                 print("sage: " + example.source[:-1] + " ## line %s ##"%(test.lineno + example.lineno + 1))
             # Update the position so that result comparison works
-            throwaway = self._fakeout.getvalue()
+            self._fakeout.getvalue()
             if not quiet:
                 self.report_start(out, test, example)
 
@@ -566,9 +619,42 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             # any exception that gets raised. But for SystemExit, we
             # simply propagate the exception.
             exception = None
+            def compiler(example):
+                # Compile mode "single" is meant for running a single
+                # statement like on the Python command line. It implies
+                # in particular that the resulting value will be printed.
+                code = compile(example.source, filename, "single",
+                               compileflags, 1)
+
+                # Python 2 ignores everything after the first complete
+                # statement in the source code. To verify that we really
+                # have just a single statement and nothing more, we also
+                # compile in "exec" mode and verify that the line
+                # numbers are the same.
+                execcode = compile(example.source, filename, "exec",
+                                   compileflags, 1)
+
+                # findlinestarts() returns pairs (index, lineno) where
+                # "index" is the index in the bytecode where the line
+                # number changes to "lineno".
+                linenumbers1 = set(lineno for (index, lineno)
+                                   in findlinestarts(code))
+                linenumbers2 = set(lineno for (index, lineno)
+                                   in findlinestarts(execcode))
+                if linenumbers1 != linenumbers2:
+                    raise SyntaxError("doctest is not a single statement")
+
+                return code
+
+            if not self.options.gc:
+                pass
+            elif self.options.gc > 0:
+                if gc.isenabled():
+                    gc.collect()
+            elif self.options.gc < 0:
+                gc.disable()
+
             try:
-                compiler = lambda example:compile(
-                    example.source, filename, "single", compileflags, 1)
                 # Don't blink!  This is where the user's code gets run.
                 self.compile_and_execute(example, compiler, test.globs)
             except SystemExit:
@@ -619,22 +705,23 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     else:
                         exc_fullname = exc_cls.__qualname__
 
-                    # See
-                    # https://docs.python.org/3/library/exceptions.html#OSError
-                    oserror_aliases = ['IOError', 'EnvironmentError',
-                                       'socket.error', 'select.error',
-                                       'mmap.error']
-
                     if (example.exc_msg.startswith(exc_name) and
                             exc_msg.startswith(exc_fullname)):
                         exc_msg = exc_msg.replace(exc_fullname, exc_name, 1)
                     else:
                         # Special case: On Python 3 these exceptions are all
                         # just aliases for OSError
-                        for alias in oserror_aliases:
+                        for alias in _OSError_ALIASES:
                             if example.exc_msg.startswith(alias + ':'):
                                 exc_msg = exc_msg.replace('OSError', alias, 1)
                                 break
+                        else:
+                            for subcls in _OSError_SUBCLASSES:
+                                if exc_msg.startswith(subcls + ':'):
+                                    exc_msg = exc_msg.replace(subcls, 'OSError',
+
+                                                              1)
+                                    break
 
                 if not quiet:
                     got += doctest._exception_traceback(exc_info)
@@ -1264,7 +1351,6 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                         if ex.want:
                             print(doctest._indent(ex.want[:-1]))
                     from sage.repl.configuration import sage_ipython_config
-                    from sage.repl.prompts import DebugPrompts
                     from IPython.terminal.embed import InteractiveShellEmbed
                     cfg = sage_ipython_config.default()
                     # Currently this doesn't work: prompts only work in pty

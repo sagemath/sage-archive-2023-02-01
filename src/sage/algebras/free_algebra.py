@@ -194,7 +194,7 @@ class FreeAlgebraFactory(UniqueFactory):
 
     By :trac:`7797`, we provide a different implementation of free
     algebras, based on Singular's "letterplace rings". Our letterplace
-    wrapper allows for chosing positive integral degree weights for the
+    wrapper allows for choosing positive integral degree weights for the
     generators of the free algebra. However, only (weighted) homogenous
     elements are supported. Of course, isomorphic algebras in different
     implementations are not identical::
@@ -714,7 +714,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
             sage: F = FreeAlgebra(ZZ,3,'x,y,z')
             sage: F.algebra_generators()
-            Finite family {'y': y, 'x': x, 'z': z}
+            Finite family {'x': x, 'y': y, 'z': z}
         """
         ret = {}
         for i in range(self.__ngens):

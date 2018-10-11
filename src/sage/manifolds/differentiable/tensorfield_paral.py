@@ -619,9 +619,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         #     FreeModuleTensor.__init__ ); accordingly self._restrictions is
         #     initialized by _init_derived() and cleared by _del_derived().
 
-        self._extensions_graph = {self._domain: self}
-        self._restrictions_graph = {self._domain: self}
-
         # Initialization of derived quantities:
         self._init_derived()
 
@@ -681,6 +678,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         TensorField._init_derived(self)
         self._restrictions = {} # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
 
     def _del_derived(self, del_restrictions=True):
         r"""
@@ -703,6 +702,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         TensorField._del_derived(self)
         if del_restrictions:
             self._restrictions.clear()
+            self._extensions_graph = {self._domain: self}
+            self._restrictions_graph = {self._domain: self}
 
     def set_comp(self, basis=None):
         r"""
@@ -1777,8 +1778,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         index_latex_labels = None
         if isinstance(frame, CoordFrame) and coordinate_labels:
             ch = frame.chart()
-            index_labels = map(str, ch[:])
-            index_latex_labels = map(latex, ch[:])
+            index_labels = list(map(str, ch[:]))
+            index_latex_labels = list(map(latex, ch[:]))
         return FreeModuleTensor.display_comp(self, basis=frame,
                                   format_spec=chart, index_labels=index_labels,
                                   index_latex_labels=index_latex_labels,

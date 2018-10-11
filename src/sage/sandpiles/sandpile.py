@@ -319,6 +319,8 @@ from six.moves import zip, range
 from collections import Counter
 from copy import deepcopy
 from inspect import getdoc
+from textwrap import dedent
+
 import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
 from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
@@ -340,10 +342,57 @@ from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
 from sage.arith.all import falling_factorial, lcm
 from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
-from sage.symbolic.all import I, pi
+from sage.symbolic.all import I, pi, SR
 
 # TODO: remove the following line once 4ti2 functions are removed
-path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
+path_to_zsolve = os.path.join(SAGE_LOCAL, 'bin', 'zsolve')
+
+
+
+def _sandpile_help(cls, usage, verbose=True):
+    """
+    Prints help text for classes in this module; see the ``help()`` methods on
+    individual classes in this module for example usage.
+    """
+
+    # We collect the first sentence of each docstring.  The sentence is,
+    # by definition, from the beginning of the string to the first
+    # occurrence of a period or question mark.  If neither of these appear
+    # in the string, take the sentence to be the empty string.  If the
+    # latter occurs, something should be changed.
+    from sage.misc.sagedoc import detex
+    methods = []
+    for attr in sorted(vars(cls)):
+        if attr[0] != '_':
+            doc = getdoc(getattr(cls, attr))
+            period = doc.find('.')
+            question = doc.find('?')
+            if period == -1 and question == -1:
+                doc = ''  # Neither appears!
+            else:
+                if period == -1:
+                    period = len(doc) + 1
+                if question == -1:
+                    question = len(doc) + 1
+                if period < question:
+                    doc = doc.split('.')[0]
+                    doc = detex(doc).strip() + '.'
+                else:
+                    doc = doc.split('?')[0]
+                    doc = detex(doc).strip() + '?'
+            methods.append((attr, doc))
+
+    print(usage)
+    print()
+
+    mlen = max(len(attr) for attr, doc in methods)
+    if verbose:
+        for attr, doc in methods:
+            print(attr.ljust(mlen), '--', doc)
+    else:
+        for attr, _ in methods:
+            print(attr)
+
 
 class Sandpile(DiGraph):
     """
@@ -443,42 +492,11 @@ class Sandpile(DiGraph):
             zero_config              -- The all-zero configuration.
             zero_div                 -- The all-zero divisor.
         """
-        # We collect the first sentence of each docstring.  The sentence is,
-        # by definition, from the beginning of the string to the first
-        # occurrence of a period or question mark.  If neither of these appear
-        # in the string, take the sentence to be the empty string.  If the
-        # latter occurs, something should be changed.
-        from sage.misc.sagedoc import detex
-        methods = []
-        for i in sorted(Sandpile.__dict__):
-            if i[0]!='_':
-                s = eval('getdoc(Sandpile.' + i +')')
-                period = s.find('.')
-                question = s.find('?')
-                if period==-1 and question==-1:
-                    s = ''  # Neither appears!
-                else:
-                    if period==-1:
-                        period = len(s) + 1
-                    if question==-1:
-                        question = len(s) + 1
-                    if period < question:
-                        s = s.split('.')[0]
-                        s = detex(s).strip() + '.'
-                    else:
-                        s = s.split('?')[0]
-                        s = detex(s).strip() + '?'
-                methods.append([i,s])
-        print('For detailed help with any method FOO listed below,')
-        print('enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S.')
-        print('')
-        mlen = max([len(i[0]) for i in methods])
-        if verbose:
-            for i in methods:
-                print(i[0].ljust(mlen), '--', i[1])
-        else:
-            for i in methods:
-                print(i[0])
+
+        _sandpile_help(Sandpile, dedent("""\
+            For detailed help with any method FOO listed below,
+            enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S."""),
+            verbose=verbose)
 
     def __init__(self, g, sink=None):
         r"""
@@ -2579,13 +2597,13 @@ class Sandpile(DiGraph):
         # convert the resolution to a list of Sage poly matrices
         result = []
         zero = self._ring.gens()[0]*0
-        for i in range(1,len(res)+1):
+        for i in range(1, len(res)+1):
             syz_mat = []
-            new = [res[i][j] for j in range(1,res[i].size()+1)]
+            new = [res[i][j] for j in range(1, int(res[i].size())+1)]
             for j in range(self._betti[i]):
                 row = new[j].transpose().sage_matrix(self._ring)
                 row = [r for r in row[0]]
-                if len(row)<self._betti[i-1]:
+                if len(row) < self._betti[i-1]:
                     row += [zero]*(self._betti[i-1]-len(row))
                 syz_mat.append(row)
             syz_mat = matrix(self._ring, syz_mat).transpose()
@@ -2699,7 +2717,8 @@ class Sandpile(DiGraph):
             [1, 6, 9, 4]
         """
         if verbose:
-            print(singular.eval('print(betti(%s),"betti")' % self._singular_resolution.name()))
+            print(singular.eval('print(betti(%s), "betti")' %
+                                self._singular_resolution.name()))
         else:
             return self._betti
 
@@ -2728,24 +2747,20 @@ class Sandpile(DiGraph):
             group.  Generators for this group are given exactly by ``points()``.
         """
         singular.setring(self._ring._singular_())
-        v = [singular.var(i) for i in range(1,singular.nvars(self._ring))]
-        vars = '('
-        for i in v:
-            vars += str(i)
-            vars += ','
-        vars = vars[:-1]  # to get rid of the final ,
-        vars += ')'
+        v = [singular.var(i) for i in range(1, int(singular.nvars(self._ring)))]
+        vars_ = '({})'.format(','.join(str(i) for i in v))
+
         L = singular.subst(self._ideal,
-                singular.var(singular.nvars(self._ring)),1)
-        R = singular.ring(0,vars,'lp')
-        K = singular.fetch(self._ring,L)
+                singular.var(singular.nvars(self._ring)), 1)
+        R = singular.ring(0, vars_, 'lp')
+        K = singular.fetch(self._ring, L)
         K = singular.groebner(K)
         singular.LIB('solve.lib')
-        M = K.solve(5,1)
+        M = K.solve(5, 1)
         singular.setring(M)
         sol= singular('SOL').sage_structured_str_list()
         sol = sol[0][0]
-        sol = [map(eval,[j.replace('i','I') for j in k]) for k in sol]
+        sol = [[SR(j) for j in k] for k in sol]
         return sol
 
     def _set_points(self):
@@ -2898,49 +2913,18 @@ class SandpileConfig(dict):
             unstable               -- The unstable vertices.
             values                 -- The values of the configuration as a list.
         """
-        # We collect the first sentence of each docstring.  The sentence is,
-        # by definition, from the beginning of the string to the first
-        # occurrence of a period or question mark.  If neither of these appear
-        # in the string, take the sentence to be the empty string.  If the
-        # latter occurs, something should be changed.
-        from sage.misc.sagedoc import detex
-        methods = []
-        for i in sorted(SandpileConfig.__dict__):
-            if i[0]!='_':
-                s = eval('getdoc(SandpileConfig.' + i +')')
-                period = s.find('.')
-                question = s.find('?')
-                if period==-1 and question==-1:
-                    s = ''  # Neither appears!
-                else:
-                    if period==-1:
-                        period = len(s) + 1
-                    if question==-1:
-                        question = len(s) + 1
-                    if period < question:
-                        s = s.split('.')[0]
-                        s = detex(s).strip() + '.'
-                    else:
-                        s = s.split('?')[0]
-                        s = detex(s).strip() + '?'
-                methods.append([i,s])
-        print('Shortcuts for SandpileConfig operations:')
-        print('~c    -- stabilize')
-        print('c & d -- add and stabilize')
-        print('c * c -- add and find equivalent recurrent')
-        print('c^k   -- add k times and find equivalent recurrent')
-        print('         (taking inverse if k is negative)')
-        print("")
-        print('For detailed help with any method FOO listed below,')
-        print('enter "SandpileConfig.FOO?" or enter "c.FOO?" for any SandpileConfig c.')
-        print('')
-        mlen = max([len(i[0]) for i in methods])
-        if verbose:
-            for i in methods:
-                print(i[0].ljust(mlen), '--', i[1])
-        else:
-            for i in methods:
-                print(i[0])
+
+        _sandpile_help(SandpileConfig, dedent("""\
+            Shortcuts for SandpileConfig operations:
+            ~c    -- stabilize
+            c & d -- add and stabilize
+            c * c -- add and find equivalent recurrent
+            c^k   -- add k times and find equivalent recurrent
+                     (taking inverse if k is negative)
+
+            For detailed help with any method FOO listed below,
+            enter "SandpileConfig.FOO?" or enter "c.FOO?" for any SandpileConfig c."""),
+            verbose=verbose)
 
     def __init__(self, S, c):
         r"""
@@ -4250,42 +4234,11 @@ class SandpileDivisor(dict):
             weierstrass_pts        -- The Weierstrass points (vertices).
             weierstrass_rank_seq   -- The Weierstrass rank sequence at the given vertex.
         """
-        # We collect the first sentence of each docstring.  The sentence is,
-        # by definition, from the beginning of the string to the first
-        # occurrence of a period or question mark.  If neither of these appear
-        # in the string, take the sentence to be the empty string.  If the
-        # latter occurs, something should be changed.
-        from sage.misc.sagedoc import detex
-        methods = []
-        for i in sorted(SandpileDivisor.__dict__):
-            if i[0]!='_':
-                s = eval('getdoc(SandpileDivisor.' + i +')')
-                period = s.find('.')
-                question = s.find('?')
-                if period==-1 and question==-1:
-                    s = ''  # Neither appears!
-                else:
-                    if period==-1:
-                        period = len(s) + 1
-                    if question==-1:
-                        question = len(s) + 1
-                    if period < question:
-                        s = s.split('.')[0]
-                        s = detex(s).strip() + '.'
-                    else:
-                        s = s.split('?')[0]
-                        s = detex(s).strip() + '?'
-                methods.append([i,s])
-        print('For detailed help with any method FOO listed below,')
-        print('enter "SandpileDivisor.FOO?" or enter "D.FOO?" for any SandpileDivisor D.')
-        print('')
-        mlen = max([len(i[0]) for i in methods])
-        if verbose:
-            for i in methods:
-                print(i[0].ljust(mlen), '--', i[1])
-        else:
-            for i in methods:
-                print(i[0])
+
+        _sandpile_help(SandpileDivisor, dedent("""\
+            For detailed help with any method FOO listed below,
+            enter "SandpileDivisor.FOO?" or enter "D.FOO?" for any SandpileDivisor D."""),
+            verbose=verbose)
 
     def __init__(self, S, D):
         r"""
@@ -6122,13 +6075,13 @@ def sandlib(selector=None):
             sage: from sage.sandpiles.sandpile import sandlib
             sage: sandlib()
               Sandpiles in the sandlib:
-                 kite : generic undirected graphs with 5 vertices
+                 ci1 : complete intersection, non-DAG but equivalent to a DAG
                  generic : generic digraph with 6 vertices
                  genus2 : Undirected graph of genus 2
-                 ci1 : complete intersection, non-DAG but equivalent to a DAG
+                 gor : Gorenstein but not a complete intersection
+                 kite : generic undirected graphs with 5 vertices
                  riemann-roch1 : directed graph with postulation 9 and 3 maximal weight superstables
                  riemann-roch2 : directed graph with a superstable not majorized by a maximal superstable
-                 gor : Gorenstein but not a complete intersection
             sage: S = sandlib('gor')
             sage: S.resolution()
             'R^1 <-- R^5 <-- R^5 <-- R^1'
@@ -6187,7 +6140,7 @@ def sandlib(selector=None):
     if selector is None:
         print('')
         print('  Sandpiles in the sandlib:')
-        for i in sandpiles:
+        for i in sorted(sandpiles):
             print('    ', i, ':', sandpiles[i]['description'])
         print("")
     elif selector not in sandpiles:
@@ -6566,15 +6519,15 @@ def admissible_partitions(S, k):
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
         sage: P
-        [[{{0}, {1, 2, 3}},
-          {{0, 2, 3}, {1}},
+        [[{{0, 2, 3}, {1}},
+          {{0, 3}, {1, 2}},
           {{0, 1, 3}, {2}},
-          {{0, 1, 2}, {3}},
+          {{0}, {1, 2, 3}},
           {{0, 1}, {2, 3}},
-          {{0, 3}, {1, 2}}],
-         [{{0}, {1}, {2, 3}},
+          {{0, 1, 2}, {3}}],
+         [{{0, 3}, {1}, {2}},
+          {{0}, {1}, {2, 3}},
           {{0}, {1, 2}, {3}},
-          {{0, 3}, {1}, {2}},
           {{0, 1}, {2}, {3}}],
          [{{0}, {1}, {2}, {3}}]]
         sage: for p in P:

@@ -516,9 +516,9 @@ class Function_gamma_inc_lower(BuiltinFunction):
             sage: gamma_inc_lower(2,377/79)
             -456/79*e^(-377/79) + 1
             sage: gamma_inc_lower(3,x)
-            -x^2*e^(-x) - 2*x*e^(-x) - 2*e^(-x) + 2
+            -(x^2 + 2*x + 2)*e^(-x) + 2
             sage: gamma_inc_lower(9/2,37/7)
-            105/16*sqrt(pi)*erf(1/7*sqrt(259)) - 836473/19208*sqrt(259)*e^(-37/7)
+            -1/38416*sqrt(pi)*(1672946*sqrt(259)*e^(-37/7)/sqrt(pi) - 252105*erf(1/7*sqrt(259)))
         """
         if y == 0:
             return 0
@@ -737,7 +737,7 @@ class Function_psi1(GinacFunction):
             sage: psi(x)._sympy_()
             polygamma(0, x)
         """
-        GinacFunction.__init__(self, "psi", nargs=1, latex_name='\psi',
+        GinacFunction.__init__(self, "psi", nargs=1, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 maxima='psi[0]',
                                                 sympy='digamma'))
@@ -788,7 +788,7 @@ class Function_psi2(GinacFunction):
             sage: psi(2, x)._sympy_()
             polygamma(2, x)
         """
-        GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
+        GinacFunction.__init__(self, "psi", nargs=2, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 sympy='polygamma',
                                                 giac='Psi'))

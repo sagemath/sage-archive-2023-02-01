@@ -2227,7 +2227,7 @@ class MapCombinatorialClass(CombinatorialClass):
 
             sage: R = SymmetricGroup(10).map(attrcall('reduced_word'))
             sage: R.an_element()
-            [9, 8, 7, 6, 5, 4, 3, 2, 1]
+            [9, 8, 7, 6, 5, 4, 3, 2]
         """
         return self.f(self.cc.an_element())
 

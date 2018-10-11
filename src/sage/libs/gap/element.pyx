@@ -2421,7 +2421,7 @@ cdef class GapElement_MethodProxy(GapElement_Function):
             sage: lst
             [ 1,, 3, 4, 5 ]
         """
-        if len(args) > 0:
+        if args:
             return GapElement_Function.__call__(self, * ([self.first_argument] + list(args)))
         else:
             return GapElement_Function.__call__(self, self.first_argument)

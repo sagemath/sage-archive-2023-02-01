@@ -1,4 +1,4 @@
-"""
+r"""
 Combinatorial Logarithm
 
 This file provides the cycle index series for the virtual species `\Omega`,

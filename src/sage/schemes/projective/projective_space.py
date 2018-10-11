@@ -82,7 +82,7 @@ from __future__ import print_function
 from six.moves import range
 from six import integer_types
 
-from sage.arith.all import gcd, binomial
+from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
@@ -90,6 +90,7 @@ from sage.rings.all import (PolynomialRing,
 from sage.rings.ring import CommutativeRing
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.categories.fields import Fields
@@ -101,6 +102,8 @@ from sage.categories.map import Map
 
 from sage.misc.all import (latex,
                            prod)
+from sage.misc.all import cartesian_product_iterator
+
 from sage.structure.category_object import normalize_names
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
@@ -206,8 +209,14 @@ def ProjectiveSpace(n, R=None, names='x'):
     Projective spaces are not cached, i.e., there can be several with
     the same base ring and dimension (to facilitate gluing
     constructions).
+
+    ::
+
+        sage: R.<x> = QQ[]
+        sage: ProjectiveSpace(R)
+        Projective Space of dimension 0 over Rational Field
     """
-    if is_MPolynomialRing(n) and R is None:
+    if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
         A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())
         A._coordinate_ring = n
         return A
@@ -441,6 +450,24 @@ class ProjectiveSpace_ring(AmbientSpace):
             True
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(ProjectiveSpace(QQ, 3, 'a')) == hash(ProjectiveSpace(ZZ, 3, 'a'))
+            False
+            sage: hash(ProjectiveSpace(ZZ, 1, 'a')) == hash(ProjectiveSpace(ZZ, 0, 'a'))
+            False
+            sage: hash(ProjectiveSpace(ZZ, 2, 'a')) == hash(AffineSpace(ZZ, 2, 'a'))
+            False
+            sage: P = ProjectiveSpace(ZZ, 1, 'x')
+            sage: hash(loads(P.dumps())) == hash(P)
+            True
+        """
+        return hash((self.dimension_relative(), self.coordinate_ring()))
 
     def __pow__(self, m):
         """
@@ -1042,7 +1069,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P.Lattes_map(E, 2)
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^4 + 2*x^2*y^2 + y^4 : 4*x^3*y - 4*x*y^3)
+                    (1/4*x^4 + 1/2*x^2*y^2 + 1/4*y^4 : x^3*y - x*y^3)
         """
         if self.dimension_relative() != 1:
             raise TypeError("must be dimension 1")
@@ -1297,10 +1324,13 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: list(P.points_of_bounded_height(bound=5))
-            [(0 : 1), (1 : 1), (-1 : 1), (1/2 : 1), (-1/2 : 1), (2 : 1), (-2 : 1), (1/3 : 1),
-            (-1/3 : 1), (3 : 1), (-3 : 1), (2/3 : 1), (-2/3 : 1), (3/2 : 1), (-3/2 : 1), (1/4 : 1),
-            (-1/4 : 1), (4 : 1), (-4 : 1), (3/4 : 1), (-3/4 : 1), (4/3 : 1), (-4/3 : 1), (1 : 0)]
+            sage: sorted(list(P.points_of_bounded_height(bound=5)))
+            [(0 : 1), (1 : -5), (1 : -4), (1 : -3), (1 : -2), (1 : -1), (1 : 0),
+             (1 : 1), (1 : 2), (1 : 3), (1 : 4), (1 : 5), (2 : -5), (2 : -3),
+             (2 : -1), (2 : 1), (2 : 3), (2 : 5), (3 : -5), (3 : -4), (3 : -2),
+             (3 : -1), (3 : 1), (3 : 2), (3 : 4), (3 : 5), (4 : -5), (4 : -3),
+             (4 : -1), (4 : 1), (4 : 3), (4 : 5), (5 : -4), (5 : -3), (5 : -2),
+             (5 : -1), (5 : 1), (5 : 2), (5 : 3), (5 : 4)]
 
         ::
 
@@ -1321,33 +1351,33 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         n = self.dimension_relative()
         R = self.base_ring()
-        zero = R(0)
-        i = n
-        while not i < 0:
-            P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
-            yield self(P)
-            if not ftype: # if rational field
-                iters = [ R.range_by_height(B) for _ in range(i) ]
-            else: # if number field
+        if ftype:
+            zero = R(0)
+            i = n
+            while not i < 0:
+                P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
+                yield self(P)
                 tol = kwds.pop('tolerance', 1e-2)
                 prec = kwds.pop('precision', 53)
                 iters = [ R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(i) ]
-            for x in iters: next(x) # put at zero
-            j = 0
-            while j < i:
-                try:
-                    P[j] = next(iters[j])
-                    yield self(P)
-                    j = 0
-                except StopIteration:
-                    if not ftype: # if rational field
-                        iters[j] = R.range_by_height(B) # reset
-                    else: # if number field
+                for x in iters: next(x) # put at zero
+                j = 0
+                while j < i:
+                    try:
+                        P[j] = next(iters[j])
+                        yield self(P)
+                        j = 0
+                    except StopIteration:
                         iters[j] = R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) # reset
-                    next(iters[j]) # put at zero
-                    P[j] = zero
-                    j += 1
-            i -= 1
+                        next(iters[j]) # put at zero
+                        P[j] = zero
+                        j += 1
+                i -= 1
+        else: # base ring QQ
+            zero = (0,) * (n+1)
+            for c in cartesian_product_iterator([srange(-B,B+1) for _ in range(n+1)]):
+                if gcd(c) == 1 and c > zero:
+                    yield self.point(c, check=False)
 
     def subscheme_from_Chow_form(self, Ch, dim):
         r"""
@@ -1424,8 +1454,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             raise ValueError("for given dimension, there should be %d variables in the Chow form" % binomial(n+1,n-dim))
         #create the brackets associated to variables
         L1 = []
-        for t in UnorderedTuples(list(range(n + 1)), dim+1):
-            if all([t[i]<t[i+1] for i in range(dim)]):
+        for t in UnorderedTuples(list(range(n + 1)), dim + 1):
+            if all(t[i] < t[i + 1] for i in range(dim)):
                 L1.append(t)
         #create the dual brackets
         L2 = []
@@ -1568,22 +1598,22 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         n = self.dimension_relative()
         P = ProjectiveSpace(r, n**2+2*n,'p')
         # makes sure there aren't to few or two many points
-        if len(points_source)!= n + 2:
+        if len(points_source) != n + 2:
             raise ValueError ("incorrect number of points in source, need %d points"%(n+2))
-        if len(points_target)!= n + 2:
+        if len(points_target) != n + 2:
             raise ValueError ("incorrect number of points in target, need %d points"%(n+2))
-        if any([x.codomain()!=self for x in points_source]):
+        if any(x.codomain()!=self for x in points_source):
             raise ValueError ("source points not in self")
-        if any([x.codomain()!=self for x in points_target]):
+        if any(x.codomain()!=self for x in points_target):
             raise ValueError ("target points not in self")
         # putting points as the rows of the matrix
         Ms = matrix(r, [list(s) for s in points_source])
-        if any([m == 0 for m in Ms.minors(n+1)]):
+        if any(m == 0 for m in Ms.minors(n + 1)):
             raise ValueError("source points not independent")
         Mt = matrix(r, [list(t) for t in points_target])
-        if any([l == 0 for l in Mt.minors(n+1)]):
+        if any(l == 0 for l in Mt.minors(n + 1)):
             raise ValueError("target points not independent")
-        A = matrix(P.coordinate_ring(), n+1, n+1, P.gens())
+        A = matrix(P.coordinate_ring(), n + 1, n + 1, P.gens())
         #transpose to get image points and then get the list of image points with columns
         funct = (A*Ms.transpose()).columns()
         eq = []

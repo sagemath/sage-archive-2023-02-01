@@ -11,7 +11,7 @@ Base class for polyhedra
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import division, print_function, absolute_import
@@ -46,10 +46,9 @@ from sage.categories.sets_cat import EmptySetError
 #  * derive from Polyhedron_base
 #
 #  * you must implement _init_from_Vrepresentation and
-#    _init_from_Vrepresentationa
+#    _init_from_Hrepresentation
 #
-#  * You might want to override _init_empty_polyhedron,
-#    _init_facet_adjacency_matrix, _init_vertex_adjacency_matrix, and
+#  * You might want to override _init_empty_polyhedron and
 #    _make_polyhedron_face.
 #
 #  * You can of course also override any other method for which you
@@ -386,16 +385,21 @@ class Polyhedron_base(Element):
         """
         Return a new polyhedron over a larger base ring.
 
+        This method can also be used to change the backend.
+
         INPUT:
 
         - ``base_ring`` -- the new base ring.
 
         - ``backend`` -- the new backend, see
           :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+          If ``None`` (the default), use the same defaulting behavior
+          as described there; it is not attempted to keep the same
+          backend.
 
         OUTPUT:
 
-        The same polyhedron, but over a larger base ring.
+        The same polyhedron, but over a larger base ring and possibly with a changed backend.
 
         EXAMPLES::
 
@@ -405,6 +409,15 @@ class Polyhedron_base(Element):
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 1 ray
             sage: P.base_extend(QQ) == P
             True
+
+        TESTS:
+
+        Test that :trac:`22575` is fixed::
+
+            sage: Q = P.base_extend(ZZ, backend='field')
+            sage: Q.backend()
+            'field'
+
         """
         new_parent = self.parent().base_extend(base_ring, backend)
         return new_parent(self)
@@ -1282,14 +1295,24 @@ class Polyhedron_base(Element):
         else:
             return self._Hrepresentation[index]
 
-    def repr_pretty_Hrepresentation(self, separator=', ', **kwds):
+    def Hrepresentation_str(self, separator='\n', latex=False, style='>=', align=None, **kwds):
         r"""
-        Return a pretty representation of the Hrepresentation of this
+        Return a human-readable string representation of the Hrepresentation of this
         polyhedron.
 
         INPUT:
 
-        - ``separator`` -- a string
+        - ``separator`` -- a string. Default is ``"\n"``.
+
+        - ``latex`` -- a boolean. Default is ``False``.
+
+        - ``style`` -- either ``"positive"`` (making all coefficients positive)
+                       or ``"<="``, or ``">="``. Default is ``">="``.
+
+        - ``align`` -- a boolean or ``None''. Default is ``None`` in which case
+                       ``align`` is ``True`` if ``separator`` is the newline character.
+                       If set, then the lines of the output string are aligned
+                       by the comparison symbol by padding blanks.
 
         Keyword parameters of
         :meth:`~sage.geometry.polyhedron.representation.Hrepresentation.repr_pretty`
@@ -1299,21 +1322,117 @@ class Polyhedron_base(Element):
 
         - ``indices`` -- a tuple or other iterable
 
-        - ``latex`` -- a boolean
-
         OUTPUT:
 
         A string.
 
         EXAMPLES::
 
-            sage: P = Polyhedron(ieqs=[(0, 1, 0, 0), (1, 2, 1, 0)],
-            ....:                eqns=[(1, -1, -1, 1)])
-            sage: P.repr_pretty_Hrepresentation()
-            'x0 + x1 == x2 + 1, x0 >= 0, 2*x0 + x1 + 1 >= 0'
+            sage: P = polytopes.permutahedron(3)
+            sage: print(P.Hrepresentation_str())
+            x0 + x1 + x2 ==  6
+                -x1 - x2 >= -5
+                     -x2 >= -3
+                     -x1 >= -3
+                      x1 >=  1
+                 x1 + x2 >=  3
+                      x2 >=  1
+
+            sage: print(P.Hrepresentation_str(style='<='))
+            -x0 - x1 - x2 == -6
+                  x1 + x2 <=  5
+                       x2 <=  3
+                       x1 <=  3
+                      -x1 <= -1
+                 -x1 - x2 <= -3
+                      -x2 <= -1
+
+            sage: print(P.Hrepresentation_str(style='positive'))
+            x0 + x1 + x2 == 6
+                       5 >= x1 + x2
+                       3 >= x2
+                       3 >= x1
+                      x1 >= 1
+                 x1 + x2 >= 3
+                      x2 >= 1
+
+            sage: print(P.Hrepresentation_str(latex=True))
+            \begin{array}{rcl}
+            x_{0} + x_{1} + x_{2} & =    &  6 \\
+                   -x_{1} - x_{2} & \geq & -5 \\
+                           -x_{2} & \geq & -3 \\
+                           -x_{1} & \geq & -3 \\
+                            x_{1} & \geq &  1 \\
+                    x_{1} + x_{2} & \geq &  3 \\
+                            x_{2} & \geq &  1
+            \end{array}
+
+            sage: print(P.Hrepresentation_str(align=False))
+            x0 + x1 + x2 == 6
+            -x1 - x2 >= -5
+            -x2 >= -3
+            -x1 >= -3
+            x1 >= 1
+            x1 + x2 >= 3
+            x2 >= 1
+
+            sage: c = polytopes.cube()
+            sage: c.Hrepresentation_str(separator=', ', style='positive')
+            '1 >= x2, 1 >= x1, 1 >= x0, x0 + 1 >= 0, x2 + 1 >= 0, x1 + 1 >= 0'
+
+        TESTS::
+
+            sage: P1 = Polyhedron([[0],[1]], base_ring=ZZ)
+            sage: P1.repr_pretty_Hrepresentation()
+            doctest:warning
+            ...
+            :
+            DeprecationWarning: repr_pretty_Hrepresentation is deprecated. Please use Hrepresentation_str instead.
+            See https://trac.sagemath.org/24837 for details.
+            ' x0 >=  0 \n-x0 >= -1 '
         """
-        return separator.join(h.repr_pretty(**kwds)
-                              for h in self.Hrepresentation())
+        pretty_hs = [h.repr_pretty(split=True, latex=latex, style=style, **kwds) for h in self.Hrepresentation()]
+        shift = any(pretty_h[2].startswith('-') for pretty_h in pretty_hs)
+
+        if align is None:
+            align = separator == "\n"
+        if align:
+            lengths  = [(len(s[0]), len(s[1]), len(s[2])) for s in pretty_hs]
+            from operator import itemgetter
+            length_left = max(lengths, key=itemgetter(0))[0]
+            length_middle = max(lengths, key=itemgetter(1))[1]
+            length_right = max(lengths, key=itemgetter(2))[2]
+            if shift:
+                length_right += 1
+            if latex:
+                h_line = "{:>" + "{}".format(length_left) + "} & {:" + \
+                         "{}".format(length_middle) + "} & {:" + \
+                         "{}".format(length_right) + "}\\\\"
+            else:
+                h_line = "{:>" + "{}".format(length_left) \
+                         + "} {:" + "{}".format(length_middle) \
+                         + "} {:" + "{}".format(length_right) + "}"
+        elif latex:
+            h_line = "{} & {} & {}\\\\"
+        else:
+            h_line = "{} {} {}"
+
+        def pad_non_minus(s):
+            if align and shift and not s.startswith('-'):
+                return ' ' + s
+            else:
+                return s
+        h_list = [h_line.format(pretty_h[0], pretty_h[1], pad_non_minus(pretty_h[2]))
+                  for pretty_h in pretty_hs]
+        pretty_print = separator.join(h_list)
+
+        if not latex:
+            return pretty_print
+        else:
+            # below we remove the 2 unnecessary backslashes at the end of pretty_print
+            return "\\begin{array}{rcl}\n" + pretty_print[:-2] + "\n\\end{array}"
+
+    repr_pretty_Hrepresentation = deprecated_function_alias(24837, Hrepresentation_str)
 
     def Hrep_generator(self):
         """
@@ -2176,8 +2295,6 @@ class Polyhedron_base(Element):
         """
         return self.parent().backend()
 
-    field = deprecated_function_alias(22551, base_ring)
-
     @cached_method
     def center(self):
         """
@@ -2721,7 +2838,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def minkowski_sum(self, other):
-        """
+        r"""
         Return the Minkowski sum.
 
         Minkowski addition of two subsets of a vector space is defined
@@ -2786,7 +2903,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def minkowski_difference(self, other):
-        """
+        r"""
         Return the Minkowski difference.
 
         Minkowski subtraction can equivalently be defined via
@@ -2941,7 +3058,7 @@ class Polyhedron_base(Element):
         return self + (-other)
 
     def is_minkowski_summand(self, Y):
-        """
+        r"""
         Test whether ``Y`` is a Minkowski summand.
 
         See :meth:`minkowski_sum`.
@@ -3138,7 +3255,7 @@ class Polyhedron_base(Element):
 
     def subdirect_sum(self, other):
         """
-        Return the subdirect sum of ``self`` and ``other``. 
+        Return the subdirect sum of ``self`` and ``other``.
 
         The subdirect sum of two polyhedron is a projection of the join of the
         two polytopes. It is obtained by placing the two objects in orthogonal subspaces
@@ -3415,7 +3532,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def intersection(self, other):
-        """
+        r"""
         Return the intersection of one polyhedron with another.
 
         INPUT:
@@ -3516,8 +3633,6 @@ class Polyhedron_base(Element):
         return Polyhedron(vertices=new_vertices, rays=new_rays,
                           lines=new_lines,
                           base_ring=self.parent()._coerce_base_ring(cut_frac))
-
-    edge_truncation = deprecated_function_alias(18128, truncation)
 
     def face_truncation(self, face, linear_coefficients=None, cut_frac=None):
         r"""
@@ -3673,8 +3788,126 @@ class Polyhedron_base(Element):
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
 
-        return Polyhedron(ieqs=new_ieqs, eqns=new_eqns, base_ring=
-                self.parent()._coerce_base_ring(cut_frac))
+        return Polyhedron(ieqs=new_ieqs, eqns=new_eqns,
+                          base_ring=self.parent()._coerce_base_ring(cut_frac))
+
+    def stack(self, face, position=None):
+        r"""
+        Return a new polyhedron formed by stacking onto a ``face``. Stacking a
+        face adds a new vertex located slightly outside of the designated face.
+
+        INPUT:
+
+        - ``face`` -- a PolyhedronFace.
+
+        - ``position`` -- a positive integer. Determines a relative distance
+          from the barycenter of ``face``. A value close to 0 will place the
+          new vertex close to the face and a large value further away. Default
+          is `1`. If the given value is too large, an error is returned.
+
+        OUTPUT:
+
+        A Polyhedron object
+
+        EXAMPLES::
+
+            sage: cube = polytopes.cube()
+            sage: square_face = cube.faces(2)[2]
+            sage: stacked_square = cube.stack(square_face)
+            sage: stacked_square.f_vector()
+            (1, 9, 16, 9, 1)
+
+            sage: edge_face = cube.faces(1)[3]
+            sage: stacked_edge = cube.stack(edge_face)
+            sage: stacked_edge.f_vector()
+            (1, 9, 17, 10, 1)
+
+            sage: cube.stack(cube.faces(0)[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: Can not stack onto a vertex.
+
+            sage: stacked_square_half = cube.stack(square_face,position=1/2)
+            sage: stacked_square_half.f_vector()
+            (1, 9, 16, 9, 1)
+            sage: stacked_square_large = cube.stack(square_face,position=10)
+
+            sage: hexaprism = polytopes.regular_polygon(6).prism()
+            sage: hexaprism.f_vector()
+            (1, 12, 18, 8, 1)
+            sage: square_face = hexaprism.faces(2)[0]
+            sage: stacked_hexaprism = hexaprism.stack(square_face)
+            sage: stacked_hexaprism.f_vector()
+            (1, 13, 22, 11, 1)
+
+            sage: hexaprism.stack(square_face,position=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: The chosen position is too large.
+
+        It is possible to stack on unbounded faces::
+
+            sage: Q = Polyhedron(vertices=[[0,1],[1,0]],rays=[[1,1]])
+            sage: E = Q.faces(1)
+            sage: Q.stack(E[0],1/2).Vrepresentation()
+            (A vertex at (0, 1),
+             A vertex at (0, 2),
+             A vertex at (1, 0),
+             A ray in the direction (1, 1))
+            sage: Q.stack(E[1],1/2).Vrepresentation()
+            (A vertex at (0, 0),
+             A vertex at (0, 1),
+             A vertex at (1, 0),
+             A ray in the direction (1, 1))
+            sage: Q.stack(E[2],1/2).Vrepresentation()
+            (A vertex at (0, 1),
+             A vertex at (1, 0),
+             A ray in the direction (1, 1),
+             A vertex at (2, 0))
+        """
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if not isinstance(face, PolyhedronFace):
+            raise TypeError("{} should be a PolyhedronFace of {}".format(face, self))
+        elif face.dim() == 0:
+            raise ValueError("Can not stack onto a vertex.")
+
+        if position is None:
+            position = 1
+
+        face_vertices = face.vertices()
+        n_vertices = len(face_vertices)
+        barycenter = ZZ.one()*sum([v.vector() for v in face_vertices]) / n_vertices
+
+        # Taking all facets that contain the face
+        if face.dim() == self.dim() - 1:
+            face_star = set([face.ambient_Hrepresentation()[0]])
+        else:
+            face_star = set([facet for facet in self.Hrepresentation()
+                             if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices)])
+
+        neighboring_facets = set()
+        for facet in face_star:
+            for neighbor_facet in facet.neighbors():
+                if neighbor_facet not in face_star:
+                    neighboring_facets.add(neighbor_facet)
+
+        # Create the polyhedron where we can put the new vertex
+        locus_ieqs = [facet.vector() for facet in neighboring_facets]
+        locus_ieqs += [-facet.vector() for facet in face_star]
+        locus_eqns = self.equations_list()
+
+        locus_polyhedron = Polyhedron(ieqs=locus_ieqs, eqns=locus_eqns,
+                                      base_ring=self.parent().base_ring())
+
+        repr_point = locus_polyhedron.representative_point()
+        new_vertex = (1-position)*barycenter + position*repr_point
+
+        if not locus_polyhedron.contains(new_vertex):
+            raise ValueError("The chosen position is too large.")
+
+        return Polyhedron(vertices=self.vertices() + (new_vertex,),
+                          rays=self.rays(),
+                          lines=self.lines())
 
     def barycentric_subdivision(self, subdivision_frac=None):
         r"""
@@ -4119,25 +4352,25 @@ class Polyhedron_base(Element):
         vertices     = self.vertices()
 
         # Associated to 'v' the inequalities in contact with v
-        vertex_ineq_incidence = [frozenset([i for i,ineq in enumerate(inequalities) if self._is_zero(ineq.eval(v))])
-                                 for i,v in enumerate(vertices)]
+        vertex_ineq_incidence = [frozenset([i for i, ineq in enumerate(inequalities) if self._is_zero(ineq.eval(v))])
+                                 for i, v in enumerate(vertices)]
 
         # the dual incidence structure
         ineq_vertex_incidence = [set() for _ in range(len(inequalities))]
-        for v,ineq_list in enumerate(vertex_ineq_incidence):
+        for v, ineq_list in enumerate(vertex_ineq_incidence):
             for ineq in ineq_list:
                 ineq_vertex_incidence[ineq].add(v)
 
         n = len(vertices)
 
         pairs = []
-        for i,j in combinations(range(n),2):
-            common_ineq = vertex_ineq_incidence[i]&vertex_ineq_incidence[j]
+        for i, j in combinations(range(n), 2):
+            common_ineq = vertex_ineq_incidence[i] & vertex_ineq_incidence[j]
             if not common_ineq: # or len(common_ineq) < d-2:
                 continue
 
             if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
-                pairs.append((i,j))
+                pairs.append((i, j))
 
         from sage.graphs.graph import Graph
         g = Graph()
@@ -4148,7 +4381,7 @@ class Polyhedron_base(Element):
     graph = vertex_graph
 
     def vertex_digraph(self, f, increasing=True):
-        """
+        r"""
         Return the directed graph of the polyhedron according to a linear form.
 
         The underlying undirected graph is the graph of vertices and edges.
@@ -4251,7 +4484,7 @@ class Polyhedron_base(Element):
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
         base_ring = self.parent()._coerce_base_ring(self.center().parent())
-        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring,backend=self.backend())
+        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring, backend=self.backend())
 
     def pyramid(self):
         """
@@ -4381,9 +4614,9 @@ class Polyhedron_base(Element):
         """
         from sage.geometry.polyhedron.representation import Vertex
         from sage.geometry.polyhedron.face import PolyhedronFace
-        if isinstance(vertex,Vertex):
+        if isinstance(vertex, Vertex):
             return self.face_split(vertex)
-        elif isinstance(vertex,PolyhedronFace) and vertex.dim() == 0:
+        elif isinstance(vertex, PolyhedronFace) and vertex.dim() == 0:
             return self.face_split(vertex)
         else:
             raise TypeError("The vertex {} should be a Vertex or PolyhedronFace of dimension 0".format(vertex))
@@ -4393,7 +4626,7 @@ class Polyhedron_base(Element):
         Return the face splitting of the face ``face``.
 
         Splitting a face correspond to the bipyramid (see :meth:`bipyramid`)
-        of ``self`` where the two new vertices are placed above and below 
+        of ``self`` where the two new vertices are placed above and below
         the center of ``face`` instead of the center of the whole polyhedron.
         The two new vertices are placed in the new dimension at height `-1` and
         `1`.
@@ -4416,14 +4649,14 @@ class Polyhedron_base(Element):
         """
         from sage.geometry.polyhedron.representation import Vertex
         from sage.geometry.polyhedron.face import PolyhedronFace
-        if isinstance(face,Vertex):
+        if isinstance(face, Vertex):
             new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
-                           [list(face) + [x] for x in [-1,1]]  # Splitting the vertex
-        elif isinstance(face,PolyhedronFace):
+                           [list(face) + [x] for x in [-1, 1]]  # Splitting the vertex
+        elif isinstance(face, PolyhedronFace):
             new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
-                           [list(face.as_polyhedron().center()) + [x] for x in [-1,1]]  # Splitting the face
+                           [list(face.as_polyhedron().center()) + [x] for x in [-1, 1]]  # Splitting the face
         else:
-            raise TypeError("The face {} should be a Vertex or PolyhedronFace".format(face)) 
+            raise TypeError("The face {} should be a Vertex or PolyhedronFace".format(face))
 
         new_rays = []
         new_rays.extend( [ r + [0] for r in self.ray_generator() ] )
@@ -4650,7 +4883,6 @@ class Polyhedron_base(Element):
             raise ValueError("LattE integrale cannot be applied over inexact rings.")
         else:
             return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
-
 
     @cached_method
     def volume(self, measure='ambient', engine='auto', **kwds):
@@ -5034,7 +5266,7 @@ class Polyhedron_base(Element):
         """
         try:
             p = vector(point)
-        except TypeError: # point not iterable or no common ring for elements
+        except TypeError:  # point not iterable or no common ring for elements
             if len(point) > 0:
                 return False
             else:
@@ -5084,7 +5316,7 @@ class Polyhedron_base(Element):
         """
         try:
             p = vector(point)
-        except TypeError: # point not iterable or no common ring for elements
+        except TypeError:  # point not iterable or no common ring for elements
             if len(point) > 0:
                 return False
             else:
@@ -5322,7 +5554,7 @@ class Polyhedron_base(Element):
                     '"envelope=True" to compute an enveloping lattice polytope.')
             vertices = []
             for v in self.vertex_generator():
-                vbox = [ set([floor(x),ceil(x)]) for x in v ]
+                vbox = [ set([floor(x), ceil(x)]) for x in v ]
                 vertices.extend( itertools.product(*vbox) )
 
         # construct the (enveloping) lattice polytope
@@ -5960,10 +6192,10 @@ class Polyhedron_base(Element):
         We test groups for equality in a fool-proof way; they can have different generators, etc::
 
             sage: poly_g = P.restricted_automorphism_group(output="matrix")
-            sage: matrix_g = MatrixGroup(map(lambda t: matrix(QQ,t), mgens))
-            sage: all(map(lambda t: t.matrix() in poly_g, matrix_g.gens()))
+            sage: matrix_g = MatrixGroup([matrix(QQ,t) for t in mgens])
+            sage: all(t.matrix() in poly_g for t in matrix_g.gens())
             True
-            sage: all(map(lambda t: t.matrix() in matrix_g, poly_g.gens()))
+            sage: all(t.matrix() in matrix_g for t in poly_g.gens())
             True
 
         24-cell example::
@@ -6137,14 +6369,14 @@ class Polyhedron_base(Element):
                 return len(c_list) - 1
 
         if self.is_compact():
-            def edge_label(i,j,c_ij):
+            def edge_label(i, j, c_ij):
                 return c_ij
         else:
             # In the non-compact case, we also label the edges by the
             # type of the V-representation object. This ensures that
             # vertices, rays, and lines are only permuted amongst
             # themselves.
-            def edge_label(i,j,c_ij):
+            def edge_label(i, j, c_ij):
                 return (self.Vrepresentation(i).type(), c_ij, self.Vrepresentation(j).type())
 
         # Homogeneous coordinates for the V-representation objects.

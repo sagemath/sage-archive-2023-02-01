@@ -86,6 +86,7 @@ Details on Specific Solvers
 
    sage/sat/solvers/satsolver
    sage/sat/solvers/dimacs
+   sage/sat/solvers/picosat
    sage/sat/solvers/sat_lp
    sage/sat/solvers/cryptominisat
 

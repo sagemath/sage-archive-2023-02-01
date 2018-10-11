@@ -40,8 +40,8 @@ from sage.rings.rational_field import QQ
 from sage.rings.all import RR, Infinity
 from sage.functions.other import ceil
 from sage.geometry.polyhedron.constructor import Polyhedron
-from sage.structure.proof.all import number_field
 from sage.libs.pari.all import pari
+
 
 def bdd_norm_pr_gens_iq(K, norm_list):
     r"""
@@ -101,12 +101,8 @@ def bdd_norm_pr_gens_iq(K, norm_list):
         Traceback (most recent call last):
         ...
         KeyError: 100
-
     """
-    gens = dict()
-    for n in norm_list:
-        gens[n] = K.elements_of_norm(n)
-    return gens
+    return {n: K.elements_of_norm(n) for n in norm_list}
 
 
 def bdd_height_iq(K, height_bound):
@@ -197,7 +193,7 @@ def bdd_height_iq(K, height_bound):
     # Find principal ideals of bounded norm
     possible_norm_set = set([])
     for n in range(class_number):
-        for m in range(1, height_bound + 1):
+        for m in range(1, int(height_bound + 1)):
             possible_norm_set.add(m*class_group_rep_norms[n])
     bdd_ideals = bdd_norm_pr_gens_iq(K, possible_norm_set)
 
@@ -207,7 +203,7 @@ def bdd_height_iq(K, height_bound):
         this_ideal = class_group_reps[n]
         this_ideal_norm = class_group_rep_norms[n]
         gens = []
-        for i in range(1, height_bound + 1):
+        for i in range(1, int(height_bound + 1)):
             for g in bdd_ideals[i*this_ideal_norm]:
                 if g in this_ideal:
                     gens.append(g)

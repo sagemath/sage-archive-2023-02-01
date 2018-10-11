@@ -124,8 +124,8 @@ class Word_class(SageObject):
         """
         global word_options
         l = word_options['truncate_length']
-        letters = list(islice(self, l+1))
-        if len(letters) == l+1:
+        letters = list(islice(self, int(l + 1)))
+        if len(letters) == l + 1:
             letters.pop()
             suffix = "..."
         else:

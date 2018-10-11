@@ -588,7 +588,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Note that the input *MUST* be an ``int``::
 
             sage: a = 10000000000000000000000rL
-            sage: f(a)
+            sage: f(a)  # py2
             Traceback (most recent call last):
             ...
             TypeError: must be a Python int object

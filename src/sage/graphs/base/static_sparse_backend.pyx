@@ -68,7 +68,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         The optional argument ``vertex_list`` is assumed to be a list of all
         vertices of the graph ``G`` in some order.
-        **Beware that no checks are made that this input is correct**.
+        **Beware that no serious checks are made that this input is correct**.
 
         If ``vertex_list`` is given, it will be used to map vertices
         of the graph to consecutive integers. Otherwise, the result
@@ -95,10 +95,18 @@ cdef class StaticSparseCGraph(CGraph):
             False
             sage: g.has_arc(1,0)
             True
+
+            sage: g = StaticSparseCGraph(DiGraph({0:[2]}),vertex_list=[2,0,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex_list has wrong length
         """
         cdef int i, j, tmp
         has_labels = any(l is not None for _, _, l in G.edge_iterator())
         self._directed = G.is_directed()
+
+        if vertex_list is not None and len(vertex_list) != len(G):
+            raise ValueError('vertex_list has wrong length')
 
         init_short_digraph(self.g, G, edge_labelled=has_labels,
                            vertex_list=vertex_list)
@@ -182,7 +190,6 @@ cdef class StaticSparseCGraph(CGraph):
             Traceback (most recent call last):
             ...
             ValueError: Thou shalt not add a vertex to an immutable graph
-
         """
         self.add_vertex_unsafe(k)
 

@@ -431,6 +431,10 @@ cdef class StaticSparseBackend(CGraphBackend):
             True
         """
         vertices = list(G)
+        try:
+            vertices.sort()
+        except TypeError:
+            pass
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G, vertices)
         self._cg = cg
 

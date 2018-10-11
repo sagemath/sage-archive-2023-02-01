@@ -628,7 +628,6 @@ class GraphPlot(SageObject):
             else:
                 edges_to_draw[key] = [(label, color, head)]
 
-        is_directed = self._graph.is_directed()
         v_to_int = {v: i for i,v in enumerate(self._graph)}
 
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
@@ -794,7 +793,6 @@ class GraphPlot(SageObject):
                     if len(local_labels)%2 == 1:
                         edges_to_draw[(a,b)] = [local_labels[-1]] # draw line for last odd
 
-        dir = self._graph.is_directed()
         for (a,b) in edges_to_draw:
             if self._arcdigraph:
                 C,D = self._polar_hack_for_multidigraph(self._pos[a], self._pos[b], self._vertex_radius)
@@ -805,7 +803,7 @@ class GraphPlot(SageObject):
                     self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),
                         [(C[0]+D[0])/2., (C[1]+D[1])/2.],
                         background_color=self._options['edge_labels_background']))
-            elif dir:
+            elif self._graph.is_directed():
                 self._plot_components['edges'].append(arrow(self._pos[a],self._pos[b],
                     rgbcolor=edges_to_draw[(a,b)][0][1], arrowshorten=self._arrowshorten,
                     head=edges_to_draw[(a,b)][0][2], **eoptions))

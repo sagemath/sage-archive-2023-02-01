@@ -3200,7 +3200,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         if data is None:
             pass
-        elif hasattr(data, 'iteritems'):
+        elif hasattr(data, 'items'):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
             for (sf, iter_transitions) in six.iteritems(data):
@@ -3889,7 +3889,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: inverter(words.FibonacciWord(), automatic_output_type=True)
             word: 1011010110110101101011011010110110101101...
             sage: tuple(islice(inverter(words.FibonacciWord(),
-            ....:                       automatic_output_type=False), 10))
+            ....:                       automatic_output_type=False), int(10)))
             (1, 0, 1, 1, 0, 1, 0, 1, 1, 0)
             sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
             ....:               automatic_output_type=False))
@@ -4659,8 +4659,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T.latex_options(loop_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: loop_where for 4 must be in ['below',
-            'right', 'above', 'left'].
+            ValueError: loop_where for 4 must be in ['above',
+            'below', 'left', 'right'].
             sage: T.latex_options(initial_where=90)
             Traceback (most recent call last):
             ...
@@ -4669,13 +4669,13 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T.latex_options(initial_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: initial_where for 4 must be in ['below',
-            'right', 'above', 'left'].
+            ValueError: initial_where for 4 must be in ['above',
+            'below', 'left', 'right'].
             sage: T.latex_options(accepting_style='fancy')
             Traceback (most recent call last):
             ...
             ValueError: accepting_style must be in ['accepting by
-            double', 'accepting by arrow'].
+            arrow', 'accepting by double'].
             sage: T.latex_options(accepting_where=90)
             Traceback (most recent call last):
             ...
@@ -4684,8 +4684,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T.latex_options(accepting_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: accepting_where for 0 must be in ['below',
-            'right', 'above', 'left'].
+            ValueError: accepting_where for 0 must be in ['above',
+            'below', 'left', 'right'].
             sage: T.latex_options(accepting_where={0: 'above', 3: 'top'})
             Traceback (most recent call last):
             ...
@@ -4727,7 +4727,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                     state.loop_where = where
                 else:
                     raise ValueError('loop_where for %s must be in %s.' %
-                                     (state.label(), permissible))
+                                     (state.label(), sorted(permissible)))
 
         if initial_where is not None:
             permissible = list(tikz_automata_where)
@@ -4746,7 +4746,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                     state.initial_where = where
                 else:
                     raise ValueError('initial_where for %s must be in %s.' %
-                                     (state.label(), permissible))
+                                     (state.label(), sorted(permissible)))
 
         if accepting_style is not None:
             permissible = ['accepting by double',
@@ -4755,7 +4755,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 self.accepting_style = accepting_style
             else:
                 raise ValueError('accepting_style must be in %s.' %
-                    permissible)
+                    sorted(permissible))
 
         if accepting_distance is not None:
             self.accepting_distance = accepting_distance
@@ -4786,7 +4786,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
                 else:
                     raise ValueError('accepting_where for %s must be in %s.' %
-                                     (state.label(), permissible))
+                                     (state.label(), sorted(permissible)))
 
         if accepting_show_empty is not None:
             self.accepting_show_empty = accepting_show_empty
@@ -6408,7 +6408,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             sage: from itertools import islice
             sage: it = inverter.iter_process(words.FibonacciWord())
-            sage: for current in islice(it, 4):
+            sage: for current in islice(it, int(4)):
             ....:     print(current)
             process (1 branch)
             + at state 'A'
@@ -7712,7 +7712,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:                final_states=[1])
             sage: T.state(1).final_word_out = 2
             sage: S = T.kleene_star()
-            sage: S.process([0, 0])
+            sage: sorted(S.process([0, 0]))
             [(True, 0, [1, 2, 1, 2]), (True, 1, [1, 2, 1, 2])]
 
         Final output words may lead to undesirable situations if initial
@@ -14299,7 +14299,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
         ....:                 (1, 2, 1, 'c'), (2, 0, 0, 'd'),
         ....:                 (2, 1, None, 'd')],
         ....:                initial_states=[0], final_states=[2])
-        sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o))
+        sage: sorted(T.process([0, 0, 1], format_output=lambda o: ''.join(o)))
         [(False, 1, 'abcd'), (True, 2, 'abc')]
         sage: it = FSMProcessIterator(T, input_tape=[0, 0, 1],
         ....:                         format_output=lambda o: ''.join(o))

@@ -206,15 +206,25 @@ cdef extern from "fenv.h":
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled=False, vertex_list=None) except -1:
     r"""
-    Initializes ``short_digraph g`` from a Sage (Di)Graph.
+    Initialize ``short_digraph g`` from a Sage (Di)Graph.
 
     If ``G`` is a ``Graph`` objet (and not a ``DiGraph``), an edge between two
     vertices `u` and `v` is replaced by two arcs in both directions.
+
+    The optional argument ``vertex_list`` is assumed to be a list
+    of all vertices of the graph ``G`` in some order.
+    **Beware that no checks are made that this input is correct**.
+
+    If ``vertex_list`` is given, it will be used to map vertices
+    of the graph to consecutive integers. Otherwise, the result
+    of ``G.vertices()`` will be used instead. Because ``G.vertices()``
+    only works if the vertices can be sorted, using ``vertex_list``
+    is useful when working with possibly non-sortable objects in Python 3.
     """
     g.edge_labels = NULL
 
     if G.order() >= INT_MAX:
-        raise ValueError("This structure can handle at most "+str(INT_MAX)+" vertices !")
+        raise ValueError("This structure can handle at most " + str(INT_MAX) + " vertices !")
     else:
         g.n = G.order()
 

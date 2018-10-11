@@ -62,9 +62,19 @@ cdef class StaticSparseCGraph(CGraph):
 
         INPUT:
 
-        - ``G`` -- a :class:`Graph` object.
+        - ``G`` -- a :class:`Graph` object
 
-        - ``vertex_list`` -- optional list of vertices
+        - ``vertex_list`` -- optional list of all vertices of ``G``
+
+        The optional argument ``vertex_list`` is assumed to be a list of all
+        vertices of the graph ``G`` in some order.
+        **Beware that no checks are made that this input is correct**.
+
+        If ``vertex_list`` is given, it will be used to map vertices
+        of the graph to consecutive integers. Otherwise, the result
+        of ``G.vertices()`` will be used instead. Because ``G.vertices()``
+        only works if the vertices can be sorted, using ``vertex_list``
+        is useful when working with possibly non-sortable objects in Python 3.
 
         TESTS::
 
@@ -77,9 +87,17 @@ cdef class StaticSparseCGraph(CGraph):
             sage: G2 = G.copy(immutable=True)
             sage: G2.is_strongly_connected()
             True
+
+        Using the ``vertex_list`` optional argument::
+
+            sage: g = StaticSparseCGraph(DiGraph({0:[2]}),vertex_list=[2,0])
+            sage: g.has_arc(0,1)
+            False
+            sage: g.has_arc(1,0)
+            True
         """
         cdef int i, j, tmp
-        has_labels = any(l is not None for _,_,l in G.edge_iterator())
+        has_labels = any(l is not None for _, _, l in G.edge_iterator())
         self._directed = G.is_directed()
 
         init_short_digraph(self.g, G, edge_labelled=has_labels,

@@ -1460,8 +1460,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         Note that this is actually the inverse of the Weierstrass isomorphism::
 
-            sage: L.elliptic_exponential(_)
-            (3.00000000000000000000000000... : 5.00000000000000000000000000... : 1.000000000000000000000000000)
+            sage: L.elliptic_exponential(_)  # abs tol 1e-26
+            (3.000000000000000000000000000 : 5.000000000000000000000000000 : 1.000000000000000000000000000)
 
         An example with negative discriminant, and a torsion point::
 
@@ -1749,12 +1749,12 @@ class PeriodLattice_ell(PeriodLattice):
         # test for the point at infinity:
 
         eps = (C(2)**(-0.8*prec)).real()  ## to test integrality w.r.t. lattice within 20%
-        if all([(t.round()-t).abs() < eps for t in self.coordinates(z)]):
+        if all((t.round()-t).abs() < eps for t in self.coordinates(z)):
             K = z.parent()
             if to_curve:
                 return self.curve().change_ring(K)(0)
             else:
-                return (K('+infinity'),K('+infinity'))
+                return (K('+infinity'), K('+infinity'))
 
         # general number field code (including QQ):
 
@@ -1882,7 +1882,7 @@ def normalise_periods(w1, w2):
     return (a*w1+b*w2,c*w1+d*w2), abcd
 
 
-def extended_agm_iteration(a,b,c):
+def extended_agm_iteration(a, b, c):
     r"""
     Internal function for the extended AGM used in elliptic logarithm computation.
     INPUT:
@@ -1913,13 +1913,13 @@ def extended_agm_iteration(a,b,c):
     """
     if not isinstance(a, (RealNumber,ComplexNumber)):
         raise ValueError("values must be real or complex numbers")
-    eps = a.parent().one().real()>>(a.parent().precision()-10)
+    eps = a.parent().one().real() >> (a.parent().precision() - 10)
     while True:
-        a1 = (a + b)/2
-        b1 = (a*b).sqrt()
-        delta = (b**2 - a**2)/c**2
-        f = (1 + (1 + delta).sqrt())/2
-        if (f.abs()-1).abs() < eps:
-            return a,b,c
-        c*=f
-        a,b = a1,b1
+        a1 = (a + b) / 2
+        b1 = (a * b).sqrt()
+        delta = (b**2 - a**2) / c**2
+        f = (1 + (1 + delta).sqrt()) / 2
+        if (f.abs() - 1).abs() < eps:
+            return a, b, c
+        c *= f
+        a, b = a1, b1

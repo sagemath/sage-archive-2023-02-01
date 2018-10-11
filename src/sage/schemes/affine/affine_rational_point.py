@@ -38,6 +38,7 @@ AUTHORS:
 
 - John Cremona and Charlie Turner <charlotteturner@gmail.com> (06-2010):
   improvements to clarity and documentation.
+
 """
 
 #*****************************************************************************
@@ -84,17 +85,17 @@ def enum_affine_rational_field(X, B):
     ::
 
         sage: A.<w,x,y,z> = AffineSpace(4, QQ)
-        sage: S = A.subscheme([x^2-y*z+3, w^3+z+y^2])
+        sage: S = A.subscheme([x^2-y*z+1, w^3+z+y^2])
+        sage: enum_affine_rational_field(S(QQ), 1)
+        [(0, 0, -1, -1)]
         sage: enum_affine_rational_field(S(QQ), 2)
-        []
-        sage: enum_affine_rational_field(S(QQ), 3)
-        [(-2, 0, -3, -1)]
+        [(0, 0, -1, -1), (1, -1, -1, -2), (1, 1, -1, -2)]
 
     ::
 
         sage: A.<x,y> = AffineSpace(2, QQ)
         sage: C = Curve(x^2+y-x)
-        sage: enum_affine_rational_field(C, 10)
+        sage: enum_affine_rational_field(C, 10) # long time (3 s)
         [(-2, -6), (-1, -2), (-2/3, -10/9), (-1/2, -3/4), (-1/3, -4/9),
         (0, 0), (1/3, 2/9), (1/2, 1/4), (2/3, 2/9), (1, 0),
         (4/3, -4/9), (3/2, -3/4), (5/3, -10/9), (2, -2), (3, -6)]

@@ -453,8 +453,8 @@ class CooperativeGame(SageObject):
             sage: long_game.is_monotone()
             True
         """
-        return not any([set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
-                        for p1, p2 in permutations(self.ch_f.keys(), 2)])
+        return not any(set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
+                       for p1, p2 in permutations(self.ch_f.keys(), 2))
 
     def is_superadditive(self):
         r"""

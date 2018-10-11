@@ -129,7 +129,7 @@ easily::
     sage: A.rank()
     4056
     sage: A[4055]*v
-    (k002*k003)
+    (k001*k003)
 
 TESTS::
 
@@ -986,8 +986,16 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F = Sequence([x*y + z, y + z + 1])
             sage: loads(dumps(F)) == F # indirect doctest
             True
+
+        We check that :trac:`26354` is fixed::
+
+            sage: f = P.hom([y,z,x])
+            sage: hash(f) == hash(loads(dumps(f)))
+            True
+
         """
-        return PolynomialSequence, (self._ring, self._parts)
+        return PolynomialSequence, (self._ring, self._parts, self._is_immutable, 
+                                    self._Sequence_generic__cr, self._Sequence_generic__cr_str)
 
     @singular_gb_standard_options
     @libsingular_gb_standard_options

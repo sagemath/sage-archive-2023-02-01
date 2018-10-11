@@ -633,7 +633,7 @@ cdef class GenericGraphBackend(SageObject):
         raise NotImplementedError()
 
     def __reduce__(self):
-        r""""
+        r"""
         Return a tuple used for pickling this graph.
 
         This function returns a pair ``(f, args)`` such that ``f(*args)``

@@ -1670,7 +1670,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
 
     @cached_method
     def class_size(self):
-        """
+        r"""
         If it is known, the size of the mutation class of all quivers
         which are mutation equivalent to the standard quiver of
         ``self`` (up to isomorphism) is returned.
@@ -2252,7 +2252,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     types_file = os.path.join(types_path,'mutation_classes_%s.dig6'%n)
     sage_makedirs(types_path)
     from sage.misc.temporary_file import atomic_write
-    with atomic_write(types_file) as f:
+    with atomic_write(types_file, binary=True) as f:
         cPickle.dump(data, f)
     if verbose:
         keys = sorted(data.keys(),key=str)
@@ -2323,14 +2323,13 @@ def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
 
 def _bipartite_graph_to_digraph(g):
     """
-    Return a digraph obtained from a bipartite graph g by choosing one
+    Return a digraph obtained from a bipartite graph ``g`` by choosing one
     set of the bipartition to be the set of sinks and the other to be the
     set of sources.
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type \
-              import _bipartite_graph_to_digraph
+        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _bipartite_graph_to_digraph
         sage: G = Graph([(1,2)])
         sage: _bipartite_graph_to_digraph(G)
         Digraph on 2 vertices
@@ -2342,10 +2341,10 @@ def _bipartite_graph_to_digraph(g):
     dg = DiGraph()
     for edge in g.edges():
         if edge[0] in order[0]:
-            dg.add_edge( edge[0],edge[1],edge[2] )
+            dg.add_edge( edge[0], edge[1], edge[2] )
         else:
-            dg.add_edge( edge[1],edge[0],edge[2] )
-    for vert in g.vertices():
+            dg.add_edge( edge[1], edge[0], edge[2] )
+    for vert in g.vertex_iterator():
         if vert not in dg.vertices():
             dg.add_vertex(vert)
     return dg
@@ -2370,7 +2369,7 @@ def _is_mutation_type(data):
         return False
 
 def _mutation_type_error(data):
-    """
+    r"""
     Output an error message because data which is not a valid quiver mutation
     type has been passed to QuiverMutationType.
 
@@ -2391,7 +2390,7 @@ def _mutation_type_error(data):
     return_str  = str(data) + ' is not a valid quiver mutation type'
     return_str += '\n            Finite types have the form [ \'?\', n ] for type ? and rank n'
     return_str += '\n            Affine type A has the form [ \'A\', [ i, j ], 1 ] for rank i+j'
-    return_str += '\n            Affine type ? has the form [ \'?\', k, \pm 1 ] for rank k+1'
+    return_str += '\n            Affine type ? has the form [ \'?\', k, \\pm 1 ] for rank k+1'
     return_str += '\n            Elliptic type ? has the form [ \'?\', k, [i, j] ] (1 <= i,j <= 3) for rank k+2'
     return_str += '\n            For correct syntax in other types, please consult the documentation.'
 

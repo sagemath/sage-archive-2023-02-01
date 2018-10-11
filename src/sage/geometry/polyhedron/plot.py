@@ -536,7 +536,7 @@ class Projection(SageObject):
             sage: from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
             sage: pproj_stereo = pproj.__call__(proj = ProjectionFuncStereographic([1,2,3]))
             sage: pproj_stereo.polygons[0]
-            [10, 1, 4]
+            [6, 1, 8]
         """
         self.transformed_coords = \
             Sequence([proj(p) for p in self.coords])
@@ -1445,7 +1445,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']', ')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' % (tag, tag)
+            coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         for index1, index2 in self.lines:
@@ -1566,7 +1566,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' % (tag, tag)
+            coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         for index1, index2 in self.lines:
@@ -1729,7 +1729,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' %(tag, tag)
+            coord = '\\coordinate %s at %s;\n' %(tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         # Separate the edges between back and front

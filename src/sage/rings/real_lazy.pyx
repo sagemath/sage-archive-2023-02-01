@@ -158,7 +158,7 @@ cdef class LazyField(Field):
         """
         if isinstance(R, type):
             if R in [int, long]:
-                from sage.structure.parent import Set_PythonType
+                from sage.sets.pythonclass import Set_PythonType
                 return LazyWrapperMorphism(Set_PythonType(R), self)
         elif R.is_exact():
             ivf = self.interval_field()

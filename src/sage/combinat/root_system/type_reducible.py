@@ -35,12 +35,12 @@ class CartanType(SageObject, CartanType_abstract):
 
     INPUT:
 
-    - ``types`` - a list of simple Cartan types
+    - ``types`` -- a list of simple Cartan types
 
     EXAMPLES::
 
-        sage: [t1,t2]=[CartanType(x) for x in ['A',1],['B',2]]
-        sage: CartanType([t1,t2])
+        sage: t1, t2 = [CartanType(x) for x in (['A',1], ['B',2])]
+        sage: CartanType([t1, t2])
         A1xB2
         sage: t = CartanType("A2xB2")
 
@@ -234,7 +234,7 @@ class CartanType(SageObject, CartanType_abstract):
 
     @cached_method
     def index_set(self):
-        """
+        r"""
         Implements :meth:`CartanType_abstract.index_set`.
 
         For the moment, the index set is always of the form `\{1, \ldots, n\}`.

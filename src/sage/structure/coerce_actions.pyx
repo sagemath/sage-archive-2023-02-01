@@ -667,7 +667,7 @@ cdef class IntegerAction(Action):
     """
     def __init__(self, Z, S, is_left, op):
         if isinstance(Z, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             Z = Set_PythonType(Z)
         super().__init__(Z, S, is_left, op)
 

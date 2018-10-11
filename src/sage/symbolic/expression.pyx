@@ -123,6 +123,22 @@ Test if :trac:`9947` is fixed::
     4*sqrt(3)/(sqrt(3) + 5)
     sage: a.imag_part()
     2*sqrt(10)/(sqrt(3) + 5)
+
+Check the fix for :trac:`25251` and :trac:`25252`::
+
+    sage: e1 = sqrt(2)*I - sqrt(2) - 2 
+    sage: e2 = sqrt(2)
+    sage: e1 * e2
+    sqrt(2)*((I - 1)*sqrt(2) - 2)
+    sage: (1 + exp(I*pi/4)) * exp(I*pi/4)
+    -(1/4*I + 1/4)*sqrt(2)*(-(I + 1)*sqrt(2) - 2)
+
+Test if :trac:`24883` is fixed::
+
+    sage: a = exp(I*pi/4) + 1
+    sage: b = 1 - exp(I*pi/4)
+    sage: a*b
+    1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 """
 
 #*****************************************************************************
@@ -1447,6 +1463,19 @@ cdef class Expression(CommutativeRingElement):
         """
         from sage.symbolic.expression_conversions import sympy_converter
         return sympy_converter(self)
+
+    def _fricas_init_(self):
+        """
+        Return a FriCAS version of this object.
+
+        EXAMPLES::
+
+            sage: pi._fricas_()                                                 # optional - fricas
+            %pi
+
+        """
+        from sage.symbolic.expression_conversions import fricas_converter
+        return fricas_converter(self)
 
     def _algebraic_(self, field):
         """
@@ -3693,7 +3722,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.nops()
             38
 
-            sage: x,y,z = var('x y z');
+            sage: x,y,z = var('x y z')
             sage: print((-x+z)*(3*x-3*z))
             -3*(x - z)^2
 
@@ -4100,7 +4129,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g = derivative(f, x); g # this is a complex expression
             -1/2*((x^2 + 1)*x/(x^2 - 1)^2 - x/(x^2 - 1))/((x^2 + 1)/(x^2 - 1))^(3/4)
             sage: g.factor()
-            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/(x^2 - 1))^(3/4))
+            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/((x + 1)*(x - 1)))^(3/4))
 
         ::
 
@@ -6831,7 +6860,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x, y, n = var('x, y, n')
             sage: f = pi^3*x - y^2*e - I; f
             pi^3*x - y^2*e - I
-            sage: f.polynomial(CDF)
+            sage: f.polynomial(CDF)  # abs tol 1e-15
             (-2.718281828459045)*y^2 + 31.006276680299827*x - 1.0*I
             sage: f.polynomial(CC)
             (-2.71828182845905)*y^2 + 31.0062766802998*x - 1.00000000000000*I
@@ -6945,7 +6974,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f = e*x^3 + pi*y^3 + sqrt(2) + I; f
             pi*y^3 + x^3*e + sqrt(2) + I
             sage: R = CDF['x,y']
-            sage: R(f)
+            sage: R(f)  # abs tol 1e-15
             2.718281828459045*x^3 + 3.141592653589793*y^3 + 1.414213562373095 + 1.0*I
 
         We coerce to a higher-precision polynomial ring::
@@ -9968,28 +9997,31 @@ cdef class Expression(CommutativeRingElement):
         except RuntimeError:
             return self
         ops = self.operands()
+
         if op == hypergeometric_M or op == hypergeometric_U:
             return self.generalized().simplify_hypergeometric(algorithm)
+
+        if algorithm not in ('maxima', 'sage'):
+            raise NotImplementedError(
+                    "unknown algorithm: '{}'".format(algorithm))
+
+        simplify = lambda o: o.simplify_hypergeometric(algorithm)
+
         if op == hypergeometric:
+            a = [simplify(o) for o in ops[0].operands()]
+            b = [simplify(o) for o in ops[1].operands()]
+            t = simplify(ops[2])
+
             if algorithm == 'maxima':
-                return (self.parent()
-                        (maxima.hgfred(map(lambda o: o.simplify_hypergeometric(algorithm),
-                                           ops[0].operands()),
-                                       map(lambda o: o.simplify_hypergeometric(algorithm),
-                                           ops[1].operands()),
-                                       ops[2].simplify_hypergeometric(algorithm))))
+                R = self.parent()
+                return R(maxima.hgfred(a, b, t))
             elif algorithm == 'sage':
-                return (closed_form
-                        (hypergeometric(map(lambda o: o.simplify_hypergeometric(algorithm),
-                                            ops[0].operands()),
-                                        map(lambda o: o.simplify_hypergeometric(algorithm),
-                                            ops[1].operands()),
-                                        ops[2].simplify_hypergeometric(algorithm))))
-            else:
-                raise NotImplementedError('unknown algorithm')
+                return closed_form(hypergeometric(a, b, t))
+
         if not op:
             return self
-        return op(*map(lambda o: o.simplify_hypergeometric(algorithm), ops))
+
+        return op(*(simplify(o) for o in ops))
 
     hypergeometric_simplify = simplify_hypergeometric
 
@@ -10163,7 +10195,7 @@ cdef class Expression(CommutativeRingElement):
         # better not call this unless your variables really are real
         # anyway.
         for v in self.variables():
-            assume(v, 'real');
+            assume(v, 'real')
 
         # This will round trip through Maxima, essentially performing
         # self.simplify() in the process.
@@ -11125,22 +11157,24 @@ cdef class Expression(CommutativeRingElement):
             sage: (f(x).diff(x)^2-1).factor()
             (diff(f(x), x) + 1)*(diff(f(x), x) - 1)
         """
-        from sage.calculus.calculus import symbolic_expression_from_maxima_string, symbolic_expression_from_string
-        if len(dontfactor) > 0:
+        from sage.calculus.calculus import symbolic_expression_from_maxima_string
+        cdef GEx x
+        cdef bint b
+        if dontfactor:
             m = self._maxima_()
             name = m.name()
-            varstr = ','.join(['_SAGE_VAR_'+str(v) for v in dontfactor])
-            cmd = 'block([dontfactor:[%s]],factor(%s))'%(varstr, name)
+            varstr = ','.join(['_SAGE_VAR_' + str(v) for v in dontfactor])
+            cmd = 'block([dontfactor:[%s]],factor(%s))' % (varstr, name)
             return symbolic_expression_from_maxima_string(cmd)
+        sig_on()
+        try:
+            b = g_factor(self._gobj, x)
+        finally:
+            sig_off()
+        if b:
+            return new_Expression_from_GEx(self._parent, x)
         else:
-            try:
-                from sage.rings.all import QQ
-                f = self.polynomial(QQ)
-                w = repr(f.factor())
-                return symbolic_expression_from_string(w)
-            except (TypeError, NotImplementedError):
-                pass
-            return self.parent()(self._maxima_().factor())
+            return self
 
     def factor_list(self, dontfactor=[]):
         """
@@ -11702,8 +11736,18 @@ cdef class Expression(CommutativeRingElement):
             -0.588532743981862...
             sage: sin(x).find_root(-1,1)
             0.0
-            sage: (1/tan(x)).find_root(3,3.5)
+
+        This example was fixed along with :trac:`4942` - 
+        there was an error in the example
+        pi is a root for tan(x), but an asymptote to 1/tan(x)
+        added an example to show handling of both cases::
+        
+            sage: (tan(x)).find_root(3,3.5)
             3.1415926535...
+            sage: (1/tan(x)).find_root(3, 3.5)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Brent's method failed to find a zero for f on the interval
 
         An example with a square root::
 

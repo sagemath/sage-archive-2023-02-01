@@ -166,8 +166,8 @@ class ClusterQuiver(SageObject):
         sage: Q = ClusterQuiver( DiGraph([[1,2],[2,3],[3,4],[4,1]]) ); Q
         Quiver on 4 vertices
 
-        sage: Q = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']]), \
-                  frozen=['c']); Q
+        sage: Q = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']]),
+        ....:          frozen=['c']); Q
         Quiver on 5 vertices with 1 frozen vertex
         sage: Q.mutation_type()
         [ ['A', 2], ['A', 2] ]
@@ -371,16 +371,17 @@ class ClusterQuiver(SageObject):
                 n = self._n = data.order() - m
                 mlist = self._mlist = []
 
-            elif isinstance(frozen,list):
-                if not set(frozen).issubset(set(data.vertices())):
+            elif isinstance(frozen, list):
+                frozen = set(frozen)
+                if not frozen.issubset(data.vertex_iterator()):
                     raise ValueError("the optional list of frozen elements"
                                      " must be vertices of the digraph")
                 else:
+                    nlist = self._nlist = sorted(x for x in data.vertex_iterator() if x not in frozen)
                     mlist = self._mlist = list(frozen)
-                    nlist = self._nlist = [x for x in data.vertices() if x not in mlist]
-                    labelDict = {(nlist + mlist)[i]: range(len(nlist) + len(mlist))[i] for i in range(data.order())}
                     m = self._m = len(frozen)
                     n = self._n = data.order() - m
+                    labelDict = {x: i for i, x in enumerate(nlist + mlist)}
 
             else:
                   raise ValueError("the optional parameter 'frozen' must be"
@@ -388,13 +389,14 @@ class ClusterQuiver(SageObject):
 
             dg = copy( data )
             dg_labelling = False
-            edges = data.edges(labels=False)
-            if any((a,a) in edges for a in data.vertices()):
+            if data.has_loops():
                 raise ValueError("the input DiGraph contains a loop")
-            if any((b,a) in edges for (a,b) in edges):
+
+            edges = set(data.edge_iterator(labels=False))
+            if any((b, a) in edges for (a, b) in edges):
                 raise ValueError("the input DiGraph contains two-cycles")
 
-            if not set(dg.vertices()) == set(range(n+m)):
+            if not set(dg.vertex_iterator()) == set(range(n + m)):
                 # frozen vertices must be preserved
                 if m != 0:
                     dg_labelling = nlist + mlist
@@ -402,18 +404,21 @@ class ClusterQuiver(SageObject):
                 else:
                     dg_labelling = dg.vertices()
                     dg.relabel()
-            if dg.has_multiple_edges():
+
+            multiple_edges = dg.multiple_edges()
+            if multiple_edges:
                 multi_edges = {}
-                for v1,v2,label in dg.multiple_edges():
+                for v1, v2, label in multiple_edges:
                     if label not in ZZ:
                         raise ValueError("the input DiGraph contains multiple"
                                          " edges labeled by non-integers")
-                    elif (v1,v2) in multi_edges:
-                        multi_edges[(v1,v2)] += label
+                    elif (v1, v2) in multi_edges:
+                        multi_edges[(v1, v2)] += label
                     else:
-                        multi_edges[(v1,v2)] = label
-                    dg.delete_edge(v1,v2)
-                dg.add_edges( [ (v1,v2,multi_edges[(v1,v2)]) for v1,v2 in multi_edges ] )
+                        multi_edges[(v1, v2)] = label
+                    dg.delete_edge(v1, v2)
+                dg.add_edges([(v1, v2, multi_edges[(v1,v2)])
+                              for v1, v2 in multi_edges])
 
             for edge in dg.edge_iterator():
                 if edge[0] >= n and edge[1] >= n:
@@ -1248,15 +1253,14 @@ class ClusterQuiver(SageObject):
         else:
             return Q
 
-
     def first_sink(self):
         r"""
-        Return the first vertex of ``self`` that is a sink
+        Return the first vertex of ``self`` that is a sink.
 
         EXAMPLES::
 
-            sage: Q = ClusterQuiver(['A',5]);
-            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([1,2,4,3,2])
             sage: Q.first_sink()
             0
         """
@@ -1266,15 +1270,14 @@ class ClusterQuiver(SageObject):
             return sinks[0]
         return None
 
-
     def sinks(self):
         r"""
-        Return all vertices of ``self`` that are sinks
+        Return all vertices of ``self`` that are sinks.
 
         EXAMPLES::
 
-            sage: Q = ClusterQuiver(['A',5]);
-            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([1,2,4,3,2])
             sage: Q.sinks()
             [0, 2]
 
@@ -1308,8 +1311,8 @@ class ClusterQuiver(SageObject):
 
         EXAMPLES::
 
-            sage: Q = ClusterQuiver(['A',5]);
-            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([1,2,4,3,2])
             sage: Q.sources()
             []
 
@@ -1384,8 +1387,8 @@ class ClusterQuiver(SageObject):
             [-1  0 -1]
             [ 0  1  0]
 
-            sage: Q2 = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']]),\
-                       frozen=['c']); Q2.b_matrix()
+            sage: Q2 = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']]),
+            ....:           frozen=['c']); Q2.b_matrix()
             [ 0  1  0  0]
             [-1  0  0  0]
             [ 0  0  0  1]
@@ -1514,7 +1517,7 @@ class ClusterQuiver(SageObject):
 
         if show_sequence:
             def _plot_arrow( v, k, center=(0,0) ):
-                return text("$\longleftrightarrow$",(center[0],center[1]), fontsize=25) + text("$\mu_"+str(v)+"$",(center[0],center[1]+0.15), fontsize=15) \
+                return text(r"$\longleftrightarrow$",(center[0],center[1]), fontsize=25) + text(r"$\mu_"+str(v)+"$",(center[0],center[1]+0.15), fontsize=15) \
                     + text("$"+str(k)+"$",(center[0],center[1]-0.2), fontsize=15)
             plot_sequence = [ quiver_sequence[i].plot( circular=True, center=(i*width_factor,0) ) for i in range(len(quiver_sequence)) ]
             arrow_sequence = [ _plot_arrow( sequence[i],i+1,center=((i+0.5)*width_factor,0) ) for i in range(len(sequence)) ]

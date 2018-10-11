@@ -1479,8 +1479,8 @@ class DiGraph(GenericGraph):
         The minimum feedback edge set of a digraph is a set of edges that
         intersect all the circuits of the digraph.  Equivalently, a minimum
         feedback arc set of a DiGraph is a set `S` of arcs such that the digraph
-        `G-S` is acyclic. For more information, see the `Wikipedia article on
-        feedback arc sets <http://en.wikipedia.org/wiki/Feedback_arc_set>`_.
+        `G-S` is acyclic. For more information, see
+        the :wikipedia:`Feedback_arc_set`.
 
         INPUT:
 
@@ -1664,7 +1664,7 @@ class DiGraph(GenericGraph):
             # Variables are binary, and their coefficient in the objective is
             # the number of occurence of the corresponding edge, so 1 if the
             # graph is simple
-            p.set_objective( p.sum( b[u,v] for u,v in self.edges(labels=False)))
+            p.set_objective( p.sum( b[u,v] for u,v in self.edge_iterator(labels=False)))
 
             p.solve(log=verbose)
 
@@ -1673,7 +1673,7 @@ class DiGraph(GenericGraph):
 
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
-                for u,v in self.edges(labels=False):
+                for u,v in self.edge_iterator(labels=False):
                     if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
@@ -1707,7 +1707,7 @@ class DiGraph(GenericGraph):
 
             else:
                 # listing the edges contained in the MFAS
-                return [(u, v) for u, v in self.edges(labels=False)
+                return [(u, v) for u, v in self.edge_iterator(labels=False)
                         if p.get_values(b[u, v]) > .5]
 
         ######################################
@@ -1721,13 +1721,13 @@ class DiGraph(GenericGraph):
 
             n = self.order()
 
-            for u,v in self.edges(labels=None):
+            for u,v in self.edge_iterator(labels=None):
                 p.add_constraint(d[u] - d[v] + n * b[u,v], min=1)
 
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(p.sum(b[u,v] for u,v in self.edges(labels=None)))
+            p.set_objective(p.sum(b[u,v] for u,v in self.edge_iterator(labels=None)))
 
             if value_only:
                 return Integer(round(p.solve(objective_only=True, log=verbose)))
@@ -1736,7 +1736,7 @@ class DiGraph(GenericGraph):
 
                 b_sol = p.get_values(b)
 
-                return [(u,v) for u,v in self.edges(labels=None) if b_sol[u,v]==1]
+                return [(u,v) for u,v in self.edge_iterator(labels=None) if b_sol[u,v]==1]
 
     ### Construction
 
@@ -3304,9 +3304,9 @@ class DiGraph(GenericGraph):
         r"""
         Return whether the current ``DiGraph`` is aperiodic.
 
-        A directed graph is aperiodic if there is no integer ``k > 1``
-        that divides the length of every cycle in the graph, cf.
-        :wikipedia:`Aperiodic_graph`.
+        A directed graph is aperiodic if there is no integer `k > 1`
+        that divides the length of every cycle in the graph. See the
+        :wikipedia:`Aperiodic_graph` for more information.
 
         EXAMPLES:
 
@@ -3335,8 +3335,8 @@ class DiGraph(GenericGraph):
         Return the period of the current ``DiGraph``.
 
         The period of a directed graph is the largest integer that
-        divides the length of every cycle in the graph, cf.
-        :wikipedia:`Aperiodic_graph`.
+        divides the length of every cycle in the graph. See the
+        :wikipedia:`Aperiodic_graph` for more information.
 
         EXAMPLES:
 

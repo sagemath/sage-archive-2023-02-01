@@ -761,7 +761,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
     @cached_method
     def decomposition(self):
-        """
+        r"""
         Return the decomposition of self as a product of Dirichlet
         characters of prime power modulus, where the prime powers exactly
         divide the modulus of this character.
@@ -1059,9 +1059,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
         return g
 
     def jacobi_sum(self, char, check=True):
-        """
+        r"""
         Return the Jacobi sum associated to these Dirichlet characters
-        (i.e., J(self,char)). This is defined as
+        (i.e., J(self,char)).
+
+        This is defined as
 
         .. MATH::
 
@@ -2053,7 +2055,7 @@ class DirichletGroupFactory(UniqueFactory):
             sage: DirichletGroup(-33)
             Traceback (most recent call last):
             ...
-            ValueError: modulus should be positive            
+            ValueError: modulus should be positive
         """
         modulus = rings.Integer(N)
         if modulus <= 0:

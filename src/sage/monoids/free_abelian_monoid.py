@@ -110,9 +110,10 @@ class FreeAbelianMonoidFactory(UniqueFactory):
 
 FreeAbelianMonoid_factory = FreeAbelianMonoidFactory("sage.monoids.free_abelian_monoid.FreeAbelianMonoid_factory")
 
+
 @rename_keyword(deprecation=15289, n="index_set")
 def FreeAbelianMonoid(index_set=None, names=None, **kwds):
-    """
+    r"""
     Return a free abelian monoid on `n` generators or with the generators
     indexed by a set `I`.
 

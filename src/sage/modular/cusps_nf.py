@@ -34,7 +34,7 @@ Different operations with cusps over a number field::
     7
     sage: alpha.ideal()
     Fractional ideal (7, a + 3)
-    sage: M = alpha.ABmatrix(); M # random output
+    sage: M = alpha.ABmatrix(); M # random
     [a + 10, 2*a + 6, 7, a + 5]
     sage: NFCusp(k, oo).apply(M)
     Cusp [a + 10: 7] of Number Field in a with defining polynomial x^2 + 5

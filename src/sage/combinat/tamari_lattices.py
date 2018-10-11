@@ -62,9 +62,9 @@ def paths_in_triangle(i, j, a, b):
 
     INPUT:
 
-    - `a` and `b` coprime integers with `a \geq b`
+    - `a` and `b` -- coprime integers with `a \geq b`
 
-    - `i` and `j` nonnegative integers with `1 \geq \frac{j}{b} \geq
+    - `i` and `j` -- nonnegative integers with `1 \geq \frac{j}{b} \geq
       \frac{bi}{a} \geq 0`
 
     OUTPUT:
@@ -109,9 +109,9 @@ def swap(p, i, m=1):
 
     INPUT:
 
-    - `p` a Dyck path in the `(a \times b)`-rectangle
+    - ``p`` -- a Dyck path in the `(a \times b)`-rectangle
 
-    - `i` an integer between `0` and `a+b-1`
+    - ``i`` -- an integer between `0` and `a+b-1`
 
     OUTPUT:
 
@@ -165,9 +165,9 @@ def GeneralizedTamariLattice(a, b, m=1):
 
     INPUT:
 
-    - `a` and `b` coprime integers with `a \geq b`
+    - `a` and `b` -- coprime integers with `a \geq b`
 
-    - `m` a nonnegative integer such that `a \geq b m`
+    - `m` -- a nonnegative integer such that `a \geq b m`
 
     OUTPUT:
 
@@ -277,9 +277,9 @@ def swap_dexter(p, i):
 
     INPUT:
 
-    - `p` a Dyck path in the `(a \times b)`-rectangle
+    - ``p`` -- a Dyck path in the `(a \times b)`-rectangle
 
-    - `i` an integer between `0` and `a+b-1`
+    - ``i`` -- an integer between `0` and `a+b-1`
 
     OUTPUT:
 
@@ -345,7 +345,7 @@ def DexterSemilattice(n):
 
     INPUT:
 
-    - `n` -- a nonnegative integer (the index)
+    - ``n`` -- a nonnegative integer (the index)
 
     OUTPUT:
 

@@ -1495,7 +1495,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     cdef TateAlgebraElement _lshift_c(self, n):
         r"""
-        Return the product of this series by the ``n``-th power 
+        Return the product of this series by the ``n``-th power
         of the uniformizer.
 
         INPUT:
@@ -1534,7 +1534,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     def __lshift__(self, n):
         r"""
-        Return the product of this series by the ``n``th power 
+        Return the product of this series by the ``n``th power
         of the uniformizer.
 
         INPUT:
@@ -1552,9 +1552,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f << -1  # indirect doctest
             (...000000000.1)*x^3 + (...000000000.1)*x + (...0000000001)*x^2
 
-        If we're shifting by a negative number of digits over the ring of 
-        integers of a Tate algebra, the result is truncated -- that is, the 
-        output is the result of the integer division of the Tate series by 
+        If we're shifting by a negative number of digits over the ring of
+        integers of a Tate algebra, the result is truncated -- that is, the
+        output is the result of the integer division of the Tate series by
         `\pi^{-n}` where `\pi` is a uniformizer.
 
             sage: AA = A.integer_ring()
@@ -1584,8 +1584,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f << -1  # indirect doctest
             (...000000000.1)*x^3 + (...000000000.1)*x + (...0000000001)*x^2
 
-        If we're working over the ring of integers of a Tate algebra, the 
-        result is truncated -- that is, the output is the result of the integer 
+        If we're working over the ring of integers of a Tate algebra, the
+        result is truncated -- that is, the output is the result of the integer
         division of the Tate series by `\pi^n` where `\pi` is a uniformizer.
 
             sage: AA = A.integer_ring()
@@ -1601,7 +1601,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``prec`` - an integer or ``None`` (default: ``None``), 
+        - ``prec`` - an integer or ``None`` (default: ``None``),
           the precision at which the series should be compared to zero
 
         EXAMPLES::
@@ -1621,7 +1621,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             False
             sage: g.is_zero(4)
             True
-        
+
         """
         if prec is None:
             prec = self._prec
@@ -1651,9 +1651,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000001)*x + (...0000000001)
             sage: f.inverse_of_unit()
             Traceback (most recent call last):
-            ...        
+            ...
             ValueError: this series in not invertible
-        
+
         """
         if not self.is_unit():
             raise ValueError("this series in not invertible")
@@ -1739,7 +1739,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         parent = self._parent
         from sage.rings.tate_algebra import TateAlgebra
-        ring = TateAlgebra(self.base_ring(), names=parent.variable_names(), log_radii=log_radii, 
+        ring = TateAlgebra(self.base_ring(), names=parent.variable_names(), log_radii=log_radii,
                            prec=parent.precision_cap(), order=parent.term_order())
         return ring(self)
 
@@ -1842,7 +1842,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f.add_bigoh(5)
             O(2^5)
 
-            sage: g = f.add_bigoh(6); g 
+            sage: g = f.add_bigoh(6); g
             (...100000)*x + O(2^6)
             sage: g.precision_absolute()
             6
@@ -1855,7 +1855,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         Return the maximal precision at which a term of this series is known.
 
         EXAMPLES::
-        
+
             sage: R = Zp(2,prec=10,print_mode='digits')
             sage: A.<x,y> = TateAlgebra(R)
             sage: f = x + 2*x^2; f
@@ -1915,7 +1915,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f = x^4 + 4*x*y + 1
             sage: f.valuation()
             -4
-          
+
         """
         cdef TateAlgebraTerm t
         cdef list terms = self._terms_c()
@@ -1928,7 +1928,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         Return the relative precision of this series.
 
-        The relative precision is defined as the difference 
+        The relative precision is defined as the difference
         between the absolute precision and the valuation.
 
         EXAMPLES::
@@ -1988,7 +1988,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
             sage: f.restriction(-1).leading_term()
             (...0000000001)
-        
+
         """
         terms = self.terms()
         if terms:
@@ -2017,7 +2017,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (3 + O(2^10))*x*y + (1 + O(2^10)) + (2 + O(2^10))*x^4
             sage: g.leading_coefficient()
             3 + O(2^10)
-        
+
         """
         terms = self.terms()
         if terms:
@@ -2056,7 +2056,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     cpdef TateAlgebraElement monic(self):
         r"""
-        Return this series normalized so that it has valuation 0 
+        Return this series normalized so that it has valuation 0
         and its leading coefficient is a power of the uniformizer.
 
         EXAMPLES:
@@ -2147,7 +2147,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000001)*x*y + (...0000000001)*y + (...00000000010)*x^4
             sage: f.weierstrass_degree()
             2
-        
+
         """
         v = self.valuation()
         return self.residue(v+1).degree()
@@ -2167,9 +2167,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: A.<x,y> = TateAlgebra(R)
             sage: f = x*y + 2*x^4 + y; f
             (...0000000001)*x*y + (...0000000001)*y + (...00000000010)*x^4
-            sage: f.weierstrass_degree()
+            sage: f.degree()
             2
-        
+
         """
         return self.weierstrass_degree()
 
@@ -2190,7 +2190,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
             sage: f.weierstrass_degrees()
             (2, 2)
-        
+
         """
         v = self.valuation()
         return self.residue(v+1).degrees()
@@ -2210,9 +2210,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: A.<x,y> = TateAlgebra(R)
             sage: f = x^2 + y^2 + 2*x^3 + y; f
             (...0000000001)*x^2 + (...0000000001)*y^2 + (...0000000001)*y + (...00000000010)*x^3
-            sage: f.weierstrass_degrees()
+            sage: f.degrees()
             (2, 2)
-        
+
         """
         return self.weierstrass_degrees()
 
@@ -2230,7 +2230,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
             sage: R = Zp(2, print_mode='digits', prec=10)
             sage: A.<x,y> = TateAlgebra(R)
-            sage: f = x^2 + y^2 + 6*x^3 + 3*y 
+            sage: f = x^2 + y^2 + 6*x^3 + 3*y
             sage: f.residue()
             x^2 + y^2 + y
             sage: f.residue().parent()
@@ -2242,7 +2242,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             Multivariate Polynomial Ring in x, y over Ring of integers modulo 4
 
         The residue can only be computed for series with non-negative valuation.
-        
+
             sage: g = f >> 2; g
             (...00000000.01)*x^2 + (...00000000.01)*y^2 + (...00000000.11)*y + (...000000001.1)*x^3
             sage: g.residue()
@@ -2253,7 +2253,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         The residue is not implemented for series with convergence radius different from 1.
 
             sage: A.<x,y> = TateAlgebra(R, log_radii=(2,-1))
-            sage: f = x^2 + y^2 + 6*x^3 + 3*y 
+            sage: f = x^2 + y^2 + 6*x^3 + 3*y
             sage: f.residue()
             Traceback (most recent call last):
             ...
@@ -2423,9 +2423,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         NOTE::
 
-        The condition on the remainder is that it has 
+        The condition on the remainder is that it has
 
-        - no term which is greater than the leading term of the 
+        - no term which is greater than the leading term of the
           numerator and
 
         - no term which is divisible by the leading term of one
@@ -2462,7 +2462,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     def __mod__(self, divisors):
         """
-        Return the remainder of the division of this series by 
+        Return the remainder of the division of this series by
         ``divisors``.
 
         INPUT:
@@ -2490,7 +2490,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     def __floordiv__(self, divisors):
         """
-        Return the quotient(s) of the division of this series by 
+        Return the quotient(s) of the division of this series by
         ``divisors``.
 
         INPUT:

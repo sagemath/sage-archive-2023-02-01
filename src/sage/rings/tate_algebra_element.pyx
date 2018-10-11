@@ -314,7 +314,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         cdef int c = other._valuation_c() - self._valuation_c()
         if not c:
-            skey = self._parent.term_order().sortkey
+            skey = self._parent._sortkey
             ks = skey(self._exponent)
             ko = skey(other._exponent)
             c = (ks > ko) - (ks < ko)
@@ -1002,7 +1002,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         cdef TateAlgebraElement xc
         CommutativeAlgebraElement.__init__(self, parent)
-        self._prec = Infinity
+        self._prec = Infinity  # TODO: replace infinity by a big int
         if isinstance(x, TateAlgebraElement):
             xc = <TateAlgebraElement>x
             xparent = x.parent()
@@ -1069,7 +1069,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef int v
         for (e,c) in self._poly.__repn.items():
             v = (<ETuple>self._parent._log_radii).dotprod(<ETuple>e)
-            self._poly.__repn[e] = self._poly.__repn[e].add_bigoh((self._prec - v).ceil())
+            self._poly.__repn[e] = self._poly.__repn[e].add_bigoh(self._prec - v)
 
     def __reduce__(self):
         """

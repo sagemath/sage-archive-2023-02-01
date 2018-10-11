@@ -64,8 +64,9 @@ def is_FreeMonoid(x):
     from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
     return isinstance(x, IndexedFreeMonoid)
 
+
 class FreeMonoid(Monoid_class, UniqueRepresentation):
-    """
+    r"""
     Return a free monoid on `n` generators or with the generators
     indexed by a set `I`.
 

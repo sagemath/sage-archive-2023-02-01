@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Helper functions for reduction of binary forms.
 
 The algorithm for reducing is from Stoll and Cremona's "On the Reduction Theory of
@@ -42,8 +42,9 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
 from sage.symbolic.constants import e
 
+
 def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
-    """
+    r"""
     Return the covariant and Julia invariant from Cremona-Stoll [CS2003]_.
 
     In [CS2003]_ and [HS2018]_ the Julia invariant is denoted as `\Theta(F)`
@@ -444,7 +445,7 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
 
 
 def smallest_poly(F, prec=53, norm_type='norm', emb=None):
-    """
+    r"""
     Determine the poly with smallest coefficients in `SL(2,\Z)` orbit of ``F``
 
     Smallest can be in the sense of `L_2` norm or height.

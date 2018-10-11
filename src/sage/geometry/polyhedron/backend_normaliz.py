@@ -1028,7 +1028,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         OUTPUT:
 
-        A tuple consisting of the integral points, the hilbert basis of the
+        A tuple consisting of the integral points, the Hilbert basis of the
         recession cone, and an integral basis for the lineality space.
 
         EXAMPLES:

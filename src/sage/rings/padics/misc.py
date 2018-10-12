@@ -78,9 +78,9 @@ def gauss_sum(a, p, f, prec=20, factored=False, algorithm='pari', parent=None):
 
     OUTPUT:
 
-    If ``factored`` is ``False``, returns a `p`-adic number in an Eisenstein extension of `\QQ_p`.
+    If ``factored`` is ``False``, returns a `p`-adic number in an Eisenstein extension of `\Bold{Q}_p`.
     This number has the form `pi^e * z` where `pi` is as above, `e` is some nonnegative
-    integer, and `z` is an element of `\ZZ_p`; if ``factored`` is ``True``, the pair `(e,z)`
+    integer, and `z` is an element of `\Bold{Z}_p`; if ``factored`` is ``True``, the pair `(e,z)`
     is returned instead, and the Eisenstein extension is not formed.
 
     .. NOTE::

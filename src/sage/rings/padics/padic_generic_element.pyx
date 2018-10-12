@@ -755,7 +755,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             NotImplementedError: One factor of the Artin-Hasse exponential does not converge
 
         There is however an important exception.
-        When we are working over `\ZZ_2` or `\QQ_2` and `x` is congruent to `2`
+        When we are working over `\Bold{Z}_2` or `\Bold{Q}_2` and `x` is congruent to `2`
         modulo `4`, then `x` and `x^2/2` are not in the domain of convergence of
         the exponential. However, `\exp(x + x^2/2)` does converge. 
         In this case, the Artin-Hasse exponential of `x`, denoted by `AH(x)`, is
@@ -1400,7 +1400,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Since the elements are only given with finite precision,
             their greatest common divisor is in general not unique (not even up
             to units). For example `O(3)` is a representative for the elements
-            0 and 3 in the 3-adic ring `\ZZ_3`. The greatest common
+            0 and 3 in the 3-adic ring `\Bold{Z}_3`. The greatest common
             divisor of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
             return an element of minimal valuation among the possible greatest
@@ -1553,7 +1553,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Since the elements are only given with finite precision, their
             greatest common divisor is in general not unique (not even up to
             units). For example `O(3)` is a representative for the elements 0
-            and 3 in the 3-adic ring `\ZZ_3`. The greatest common
+            and 3 in the 3-adic ring `\Bold{Z}_3`. The greatest common
             divisor of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
             return an element of minimal valuation among the possible greatest

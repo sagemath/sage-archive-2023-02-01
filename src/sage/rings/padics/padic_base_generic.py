@@ -84,43 +84,43 @@ class pAdicBaseGeneric(pAdicGeneric):
             sage: K = Zp(17); K #indirect doctest
             17-adic Ring with capped relative precision 20
             sage: latex(K)
-            \ZZ_{17}
+            \Bold{Z}_{17}
             sage: K = ZpCA(17); K #indirect doctest
             17-adic Ring with capped absolute precision 20
             sage: latex(K)
-            \ZZ_{17}
+            \Bold{Z}_{17}
             sage: K = ZpFP(17); K #indirect doctest
             17-adic Ring with floating precision 20
             sage: latex(K)
-            \ZZ_{17}
+            \Bold{Z}_{17}
             sage: K = ZpFM(7); K
             7-adic Ring of fixed modulus 7^20
             sage: latex(K) #indirect doctest
-            \ZZ_{7}
+            \Bold{Z}_{7}
             sage: K = ZpLF(2); K   # indirect doctest
             doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
             See http://trac.sagemath.org/23505 for details.
             2-adic Ring with lattice-float precision
             sage: latex(K)
-            \ZZ_{2}
+            \Bold{Z}_{2}
             sage: K = Qp(17); K #indirect doctest
             17-adic Field with capped relative precision 20
             sage: latex(K)
-            \QQ_{17}
+            \Bold{Q}_{17}
             sage: K = QpFP(17); K #indirect doctest
             17-adic Field with floating precision 20
             sage: latex(K)
-            \QQ_{17}
+            \Bold{Q}_{17}
             sage: K = QpLC(2); K   # indirect doctest
             2-adic Field with lattice-cap precision
             sage: latex(K)
-            \QQ_{2}
+            \Bold{Q}_{2}
         """
         if do_latex:
             if self.is_field():
-                s = r"\QQ_{%s}" % self.prime()
+                s = r"\Bold{Q}_{%s}" % self.prime()
             else:
-                s = r"\ZZ_{%s}" % self.prime()
+                s = r"\Bold{Z}_{%s}" % self.prime()
             if hasattr(self, '_label') and self._label:
                 s = r"\verb'%s' (\simeq %s)"%(self._label, s)
         else:

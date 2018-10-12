@@ -97,7 +97,7 @@ As above, we call this `n` the absolute precision of our
 element.
 
 Given any `x \in \mathbb{Q}_p` with `x \ne 0`, we
-can write `x = p^v u` where `v \in \ZZ` and
+can write `x = p^v u` where `v \in \Bold{Z}` and
 `u \in \mathbb{Z}_p^{\times}`. We could thus also store an element
 of `\mathbb{Q}_p` (or `\mathbb{Z}_p`) by storing
 `v` and a finite approximation of `u`. This

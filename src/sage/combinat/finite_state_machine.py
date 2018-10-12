@@ -3200,7 +3200,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         if data is None:
             pass
-        elif hasattr(data, 'items'):
+        elif hasattr(data, 'iteritems'):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
             for (sf, iter_transitions) in six.iteritems(data):

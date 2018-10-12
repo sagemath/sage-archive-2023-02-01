@@ -3889,7 +3889,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: inverter(words.FibonacciWord(), automatic_output_type=True)
             word: 1011010110110101101011011010110110101101...
             sage: tuple(islice(inverter(words.FibonacciWord(),
-            ....:                       automatic_output_type=False), int(10)))
+            ....:                       automatic_output_type=False), 10r))
             (1, 0, 1, 1, 0, 1, 0, 1, 1, 0)
             sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
             ....:               automatic_output_type=False))
@@ -4690,7 +4690,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             Traceback (most recent call last):
             ...
             ValueError: accepting_where for 3 must be a real number or
-            be in ['below', 'right', 'above', 'left'].
+            be in ['above', 'below', 'left', 'right'].
         """
         if coordinates is not None:
             self.set_coordinates(coordinates)
@@ -4782,7 +4782,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                     else:
                         raise ValueError('accepting_where for %s must '
                                          'be a real number or be in %s.' %
-                                         (state.label(), permissible))
+                                         (state.label(), sorted(permissible)))
 
                 else:
                     raise ValueError('accepting_where for %s must be in %s.' %
@@ -6408,7 +6408,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             sage: from itertools import islice
             sage: it = inverter.iter_process(words.FibonacciWord())
-            sage: for current in islice(it, int(4)):
+            sage: for current in islice(it, 4r):
             ....:     print(current)
             process (1 branch)
             + at state 'A'
@@ -14321,7 +14321,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
         + at state 2
         +-- tape at 3, [['a', 'b', 'c']]
         process (0 branches)
-        sage: it.result()
+        sage: sorted(it.result())
         [Branch(accept=False, state=1, output='abcd'),
          Branch(accept=True, state=2, output='abc')]
 

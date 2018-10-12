@@ -786,7 +786,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
     An example of 3-vector field in `\RR^3` with Cartesian coordinates::
 
-        sage: M = Manifold(3, 'R3', '\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R3', r'\RR^3', start_index=1)
         sage: c_cart.<x,y,z> = M.chart()
         sage: a = M.multivector_field(3, name='a')
         sage: a[1,2,3] = x^2+y^2+z^2  # the only independent component

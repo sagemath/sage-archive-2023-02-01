@@ -921,7 +921,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     An example of 3-form is the volume element on `\RR^3` in Cartesian
     coordinates::
 
-        sage: M = Manifold(3, 'R3', '\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R3', r'\RR^3', start_index=1)
         sage: c_cart.<x,y,z> = M.chart()
         sage: eps = M.diff_form(3, 'epsilon', r'\epsilon')
         sage: eps[1,2,3] = 1  # the only independent component

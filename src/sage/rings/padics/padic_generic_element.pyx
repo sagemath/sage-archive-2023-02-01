@@ -541,6 +541,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Zp(5,5)(1/3) # indirect doctest
             2 + 3*5 + 5^2 + 3*5^3 + 5^4 + O(5^5)
+
+        We check that trac:`26479` is fixed::
+
+            sage: K.<pi> = Qp(2).extension(x^3 - 2)
+            sage: latex(pi)
+            '\pi + O(\pi^{61})'
+
         """
         return self.parent()._printer.repr_gen(self, do_latex, mode=mode)
 

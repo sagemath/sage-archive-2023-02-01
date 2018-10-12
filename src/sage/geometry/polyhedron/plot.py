@@ -25,7 +25,6 @@ from sage.plot.all import Graphics, point2d, line2d, arrow, polygon2d
 from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygons3d
 from sage.plot.plot3d.transform import rotate_arbitrary
 
-from .base import is_Polyhedron
 
 #############################################################
 
@@ -537,7 +536,6 @@ class Projection(SageObject):
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.plot import Projection, render_2d
             sage: p = polytopes.simplex(2, project=True).projection()
             sage: test = p._init_dimension()
             sage: p.plot.__doc__ == p.render_2d.__doc__

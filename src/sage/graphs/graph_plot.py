@@ -100,11 +100,11 @@ previously::
     :widths: 30, 70
     :delim: |
 
-    :meth:`GraphPlot.set_pos` | Sets the position plotting parameters for this GraphPlot.
-    :meth:`GraphPlot.set_vertices` | Sets the vertex plotting parameters for this GraphPlot.
-    :meth:`GraphPlot.set_edges` | Sets the edge (or arrow) plotting parameters for the GraphPlot object.
-    :meth:`GraphPlot.show` | Shows the (Di)Graph associated with this GraphPlot object.
-    :meth:`GraphPlot.plot` | Returns a graphics object representing the (di)graph.
+    :meth:`GraphPlot.set_pos` | Set the position plotting parameters for this GraphPlot.
+    :meth:`GraphPlot.set_vertices` | Set the vertex plotting parameters for this GraphPlot.
+    :meth:`GraphPlot.set_edges` | Set the edge (or arrow) plotting parameters for the GraphPlot object.
+    :meth:`GraphPlot.show` | Show the (Di)Graph associated with this GraphPlot object.
+    :meth:`GraphPlot.plot` | Return a graphics object representing the (di)graph.
     :meth:`GraphPlot.layout_tree` | Compute a nice layout of a tree.
 """
 
@@ -214,7 +214,7 @@ DEFAULT_PLOT_OPTIONS = {
 class GraphPlot(SageObject):
     def __init__(self, graph, options):
         """
-        Returns a ``GraphPlot`` object, which stores all the parameters needed
+        Return a ``GraphPlot`` object, which stores all the parameters needed
         for plotting (Di)Graphs.
 
         A ``GraphPlot`` has a plot and show function, as well as some functions
@@ -265,7 +265,7 @@ class GraphPlot(SageObject):
 
     def _repr_(self):
         """
-        Returns a string representation of a ``GraphPlot`` object.
+        Return a string representation of a ``GraphPlot`` object.
 
         EXAMPLES:
 
@@ -279,7 +279,7 @@ class GraphPlot(SageObject):
 
     def set_pos(self):
         """
-        Sets the position plotting parameters for this GraphPlot.
+        Set the position plotting parameters for this GraphPlot.
 
         EXAMPLES:
 
@@ -343,7 +343,7 @@ class GraphPlot(SageObject):
 
     def set_vertices(self, **vertex_options):
         """
-        Sets the vertex plotting parameters for this ``GraphPlot``.
+        Set the vertex plotting parameters for this ``GraphPlot``.
 
         This function is called by the constructor but can also be called to
         make updates to the vertex options of an existing ``GraphPlot`` object.
@@ -483,7 +483,7 @@ class GraphPlot(SageObject):
 
     def set_edges(self, **edge_options):
         """
-        Sets the edge (or arrow) plotting parameters for the ``GraphPlot``
+        Set the edge (or arrow) plotting parameters for the ``GraphPlot``
         object.
 
         This function is called by the constructor but can also be called to
@@ -864,7 +864,7 @@ class GraphPlot(SageObject):
 
     def show(self, **kwds):
         """
-        Shows the (Di)Graph associated with this ``GraphPlot`` object.
+        Show the (Di)Graph associated with this ``GraphPlot`` object.
 
         INPUT:
 
@@ -901,7 +901,7 @@ class GraphPlot(SageObject):
 
     def plot(self, **kwds):
         """
-        Returns a graphics object representing the (di)graph.
+        Return a graphics object representing the (di)graph.
 
         INPUT:
 
@@ -1278,7 +1278,7 @@ class GraphPlot(SageObject):
         G.axes(False)
         return G
 
-    def layout_tree(self,root,orientation):
+    def layout_tree(self, root, orientation):
         """
         Compute a nice layout of a tree.
 
@@ -1287,10 +1287,10 @@ class GraphPlot(SageObject):
         - ``root`` -- the root vertex.
 
         - ``orientation`` -- whether to place the root at the top or at the
-          bottom :
+          bottom:
 
-            - ``orientation="down"`` -- children are placed below their parent
-            - ``orientation="top"`` -- children are placed above their parent
+          * ``orientation="down"`` -- children are placed below their parent
+          * ``orientation="top"`` -- children are placed above their parent
 
         EXAMPLES::
 

@@ -28,7 +28,7 @@ def from_whatever(data):
     INPUT:
 
     - ``data`` -- can be a string, a list/iterable of strings, or a readable
-      file-like object.
+      file-like object
 
     EXAMPLES::
 
@@ -59,12 +59,12 @@ def _from_whatever(data, fmt=None):
     INPUT:
 
     - ``data`` -- can be a string, a list/iterable of strings, or a readable
-      file-like object.
+      file-like object
 
     - ``fmt`` -- string (default: ``None``); format of ``data``. It can be
       either ``'graph6'``, ``sparse6``, or ``None``, with the latter case
       indicating that the ``Graph`` constructor should determine this for
-      itself.
+      itself
     """
     from sage.graphs.graph import Graph
 
@@ -117,7 +117,7 @@ def from_graph6(data):
 
     INPUT:
 
-    - ``data`` -- can be a string, a list of strings, or a file stream.
+    - ``data`` -- can be a string, a list of strings, or a file stream
 
     EXAMPLES::
 
@@ -134,7 +134,7 @@ def from_sparse6(data):
 
     INPUT:
 
-    - ``data`` -- can be a string, a list of strings, or a file stream.
+    - ``data`` -- can be a string, a list of strings, or a file stream
 
     EXAMPLES::
 
@@ -155,13 +155,13 @@ def to_graph6(graphs, file=None, output_list=False):
 
     INPUT:
 
-    - ``graphs`` -- a Python list of Sage Graphs.
+    - ``graphs`` -- a Python list of Sage Graphs
 
-    - ``file`` -- (optional) a file stream to write to (must be in 'w' mode).
+    - ``file`` -- (optional) a file stream to write to (must be in 'w' mode)
 
     - ``output_list`` -- boolean (default: ``False``); whether to return a
       string (when set to ``True``) or a list of strings. This parameter is
-      ignored if file gets specified.
+      ignored if file gets specified
 
     EXAMPLES::
 
@@ -182,13 +182,13 @@ def to_sparse6(graphs, file=None, output_list=False):
 
     INPUT:
 
-    - ``graphs`` -- a Python list of Sage Graphs.
+    - ``graphs`` -- a Python list of Sage Graphs
 
-    - ``file`` -- (optional) a file stream to write to (must be in 'w' mode).
+    - ``file`` -- (optional) a file stream to write to (must be in 'w' mode)
 
     - ``output_list`` -- boolean (default: ``False``); whether to return a
       string (when set to ``True``) or a list of strings. This parameter is
-      ignored if file gets specified.
+      ignored if file gets specified
 
     EXAMPLES::
 
@@ -226,7 +226,7 @@ def to_graphics_array(graph_list, **kwds):
 
     INPUT:
 
-    - ``graph_list`` -- a Python list of Sage Graphs.
+    - ``graph_list`` -- a Python list of Sage Graphs
 
     GRAPH PLOTTING:
 
@@ -289,7 +289,7 @@ def show_graphs(graph_list, **kwds):
 
     INPUT:
 
-    - ``graph_list`` -- a Python list of Sage Graphs.
+    - ``graph_list`` -- a Python list of Sage Graphs
 
     GRAPH PLOTTING: Defaults to circular layout for graphs. This allows for a
     nicer display in a small area and takes much less time to compute than the

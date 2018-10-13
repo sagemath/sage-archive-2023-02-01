@@ -211,12 +211,12 @@ def from_adjacency_matrix(G, M, loops=False, multiedges=False, weighted=False):
 
     INPUT:
 
-    - ``G`` -- a :class:`Graph` or :class:`DiGraph`.
+    - ``G`` -- a :class:`Graph` or :class:`DiGraph`
 
     - ``M`` -- an adjacency matrix
 
     - ``loops``, ``multiedges``, ``weighted`` -- booleans (default: ``False``);
-      whether to consider the graph as having loops, multiple edges, or weights.
+      whether to consider the graph as having loops, multiple edges, or weights
 
     EXAMPLES::
 
@@ -291,7 +291,7 @@ def from_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
     - ``M`` -- an incidence matrix
 
     - ``loops``, ``multiedges``, ``weighted`` -- booleans (default: ``False``);
-      whether to consider the graph as having loops, multiple edges, or weights.
+      whether to consider the graph as having loops, multiple edges, or weights
 
     EXAMPLES::
 
@@ -353,7 +353,7 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
     - ``M`` -- an incidence matrix
 
     - ``loops``, ``multiedges``, ``weighted`` -- booleans (default: ``False``);
-      whether to consider the graph as having loops, multiple edges, or weights.
+      whether to consider the graph as having loops, multiple edges, or weights
 
     EXAMPLES::
 
@@ -404,14 +404,14 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
 
     - ``G`` -- a graph
 
-    - ``M`` -- a dictionary of dictionaries.
+    - ``M`` -- a dictionary of dictionaries
 
     - ``loops``, ``multiedges``, ``weighted`` -- booleans (default: ``False``);
-      whether to consider the graph as having loops, multiple edges, or weights.
+      whether to consider the graph as having loops, multiple edges, or weights
 
     - ``convert_empty_dict_labels_to_None`` -- booleans (default: ``False``);
       whether to adjust for empty dicts instead of ``None`` in NetworkX default
-      edge labels.
+      edge labels
 
     EXAMPLES::
 
@@ -425,24 +425,22 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
         raise ValueError("input dict must be a consistent format")
 
     if not loops:
-        for u, neighb in six.iteritems(M):
-            if u in neighb:
-                if loops is False:
-                    raise ValueError("the graph was built with loops=False but input M has a loop at {}".format(u))
-                loops = True
-                break
+        if any(u in neighb for u,neighb in six.iteritems(M)):
+            if loops is False:
+                u = next(u for u,neighb in six.iteritems(M) if u in neighb)
+                raise ValueError("the graph was built with loops=False but input M has a loop at {}".format(u))
+            loops = True
         if loops is None:
             loops = False
-
-    if weighted is None: G._weighted = False
-    for u in M:
-        for v in M[u]:
-            if multiedges is not False and not isinstance(M[u][v], list):
-                if multiedges is None: multiedges = False
-                if multiedges:
-                    raise ValueError("dict of dicts for multigraph must be in the format {v: {u: list}}")
-    if multiedges is None and len(M) > 0:
-        multiedges = True
+    if weighted is None:
+        G._weighted = False
+    if multiedges is not False:
+        if not all(isinstance(M[u][v], list) for u in M for v in M[u]):
+            if multiedges:
+                raise ValueError("dict of dicts for multigraph must be in the format {v: {u: list}}")
+            multiedges = False
+        if multiedges is None and M:
+            multiedges = True
 
     G.allow_loops(loops, check=False)
     G.allow_multiple_edges(multiedges, check=False)
@@ -477,12 +475,12 @@ def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
 
     INPUT:
 
-    - ``G`` -- a :class:`Graph` or :class:`DiGraph`.
+    - ``G`` -- a :class:`Graph` or :class:`DiGraph`
 
-    - ``D`` -- a dictionary of lists.
+    - ``D`` -- a dictionary of lists
 
     - ``loops``, ``multiedges``, ``weighted`` -- booleans (default: ``False``);
-      whether to consider the graph as having loops, multiple edges, or weights.
+      whether to consider the graph as having loops, multiple edges, or weights
 
     EXAMPLES::
 
@@ -494,24 +492,21 @@ def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
     """
     verts = set().union(D.keys(), *D.values())
     if not loops:
-        for u, neighb in six.iteritems(D):
-            if u in neighb:
-                if loops is False:
-                    ValueError("the graph was built with loops=False but input D has a loop at {}.".format(u))
-                loops = True
-                break
+        if any(u in neighb for u, neighb in six.iteritems(D)):
+            if loops is False:
+                u = next(u for u, neighb in six.iteritems(M) if u in neighb)
+                raise ValueError("the graph was built with loops=False but input D has a loop at {}".format(u))
+            loops = True
         if loops is None:
             loops = False
     if weighted is None:
         G._weighted = False
     if not multiedges:
-        for u, neighb in six.iteritems(D):
-            set_neighb = set(neighb)
-            if len(set_neighb) != len(neighb):
+        for u in D:
+            if len(set(D[u])) != len(D[u]):
                 if multiedges is False:
-                    for v in set_neighb:
-                        if neighb.count(v) > 1:
-                            raise ValueError("non-multigraph got several edges (%s, %s)"%(u, v))
+                    v = next((v for v in D[u] if D[u].count(v) > 1))
+                    raise ValueError("non-multigraph got several edges (%s, %s)"%(u, v))
                 multiedges = True
                 break
         if multiedges is None:

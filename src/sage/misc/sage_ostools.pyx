@@ -30,7 +30,7 @@ def have_program(program, path=None):
         True
         sage: have_program('there_is_not_a_program_with_this_name')
         False
-        sage: have_program('sage')
+        sage: have_program('sage', os.path.join(SAGE_LOCAL, 'bin'))
         True
     """
     if path is None:

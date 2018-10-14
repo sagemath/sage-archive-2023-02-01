@@ -30,10 +30,8 @@ def have_program(program, path=None):
         True
         sage: have_program('there_is_not_a_program_with_this_name')
         False
-        sage: have_program('sage', path=SAGE_ROOT)
+        sage: have_program('sage')
         True
-        sage: have_program('ls', path=SAGE_ROOT)
-        False
     """
     if path is None:
         path = os.environ.get('PATH', "")

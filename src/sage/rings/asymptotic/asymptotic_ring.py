@@ -703,7 +703,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if convert:
             from .misc import combine_exceptions
             from .term_monoid import ZeroCoefficientError
-            TermMonoid = self.parent().term_monoid
+            TermMonoid = self.parent().term_monoid_factory
             def convert_terms(element):
                 T = TermMonoid(term_monoid=element.parent(), asymptotic_ring=parent)
                 try:
@@ -1311,7 +1311,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if other.is_zero():
             return self.parent().zero()
 
-        TermMonoid = self.parent().term_monoid
+        TermMonoid = self.parent().term_monoid_factory
         E = TermMonoid('exact', asymptotic_ring=self.parent())
         e = E(self.parent().growth_group.one(), coefficient=other)
         return self._mul_term_(e)
@@ -1481,7 +1481,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return self
 
         summands = self.summands.copy()
-        TermMonoid = self.parent().term_monoid
+        TermMonoid = self.parent().term_monoid_factory
         def convert_terms(element):
             if convert_terms.count < precision:
                 convert_terms.count += 1
@@ -3276,8 +3276,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
       subcategory of ``Category of rings``. This is also the default
       category if ``None`` is specified.
 
-    - ``term_monoid`` -- a :class:`~sage.rings.asymptotic.term_monoid.TermMonoidFactory`.
-      If ``None``, then :class:`~sage.rings.asymptotic.term_monoid.DefaultTermMonoid`
+    - ``term_monoid_factory`` -- a :class:`~sage.rings.asymptotic.term_monoid.TermMonoidFactory`.
+      If ``None``, then :class:`~sage.rings.asymptotic.term_monoid.DefaultTermMonoidFactory`
       is used.
 
     EXAMPLES:
@@ -3358,7 +3358,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
                       names=None, category=None, default_prec=None,
-                      term_monoid=None):
+                      term_monoid_factory=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.
@@ -3477,21 +3477,21 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if default_prec is None:
             default_prec = series_precision()
 
-        if term_monoid is None:
-            from .term_monoid import DefaultTermMonoid
-            term_monoid = DefaultTermMonoid
+        if term_monoid_factory is None:
+            from .term_monoid import DefaultTermMonoidFactory
+            term_monoid_factory = DefaultTermMonoidFactory
 
         return super(AsymptoticRing,
                      cls).__classcall__(cls, growth_group, coefficient_ring,
                                         category=category,
                                         default_prec=default_prec,
-                                        term_monoid=term_monoid)
+                                        term_monoid_factory=term_monoid_factory)
 
     def __init__(self, growth_group, coefficient_ring,
                  category, default_prec,
-                 term_monoid):
+                 term_monoid_factory):
         r"""
-        See :class:`AsymptoticRing` for more information.
+ß        See :class:`AsymptoticRing` for more information.
 
         TESTS::
 
@@ -3512,7 +3512,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group
         self._default_prec_ = default_prec
-        self._term_monoid_ = term_monoid
+        self._term_monoid_factory_ = term_monoid_factory
         super(AsymptoticRing, self).__init__(base_ring=coefficient_ring,
                                              category=category)
 
@@ -3571,21 +3571,21 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
 
     @property
-    def term_monoid(self):
+    def term_monoid_factory(self):
         r"""
         The term monoid factory of this asymptotic ring.
 
         EXAMPLES::
 
             sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
-            sage: AR.term_monoid
-            term monoid factory "DefaultTermMonoid"
+            sage: AR.term_monoid_factory
+            Term Monoid Factory 'DefaultTermMonoidFactory'
 
         .. SEEALSO::
 
             :doc:`term_monoid`
         """
-        return self._term_monoid_
+        return self._term_monoid_factory_
 
 
     def change_parameter(self, **kwds):
@@ -4029,7 +4029,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ).an_element()
             1/8*z^(3/2) + O(z^(1/2))
         """
-        TermMonoid = self.term_monoid
+        TermMonoid = self.term_monoid_factory
         E = TermMonoid('exact', asymptotic_ring=self)
         O = TermMonoid('O', asymptotic_ring=self)
         return self(E.an_element(), simplify=False, convert=False)**3 + \
@@ -4067,7 +4067,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
              z^(3/2) + O(z^(-2)))
         """
         from sage.misc.mrange import cantor_product
-        TermMonoid = self.term_monoid
+        TermMonoid = self.term_monoid_factory
         E = TermMonoid('exact', asymptotic_ring=self)
         O = TermMonoid('O', asymptotic_ring=self)
         return iter(self(e, simplify=False, convert=False)**3 +
@@ -4357,7 +4357,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             no 'coefficient' specified.
         """
         from .term_monoid import ZeroCoefficientError
-        TermMonoid = self.term_monoid
+        TermMonoid = self.term_monoid_factory
         TM = TermMonoid(type, asymptotic_ring=self)
 
         if data is None:

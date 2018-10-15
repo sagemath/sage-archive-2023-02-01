@@ -547,7 +547,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: t(1/2, 1)
             Traceback (most recent call last):
             ...
-            ValueError: the given values are outside the domain of convergence
+            ValueError: not in the domain of convergence
 
         TESTS::
 
@@ -570,7 +570,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         ratio = A.absolute_e() // parent._base.absolute_e()
         for i in range(parent._ngens):
             if args[i].valuation() < -ratio * parent._log_radii[i]:
-                raise ValueError("the given values are outside the domain of convergence")
+                raise ValueError("not in the domain of convergence")
         res = self._call_c(args)
         if parent._integral:
             try:
@@ -1067,9 +1067,16 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         self._is_normalized = True
         if self._prec is Infinity: return
         cdef int v
+        cdef pAdicGenericElement coeff
         for (e,c) in self._poly.__repn.items():
             v = (<ETuple>self._parent._log_radii).dotprod(<ETuple>e)
-            self._poly.__repn[e] = self._poly.__repn[e].add_bigoh(self._prec - v)
+            coeff = self._poly.__repn[e]
+            if coeff.precision_absolute() > self._prec - v:
+                coeff = coeff.add_bigoh(self._prec - v)
+            if coeff.valuation() >= self._prec - v:
+                del self._poly.__repn[e]
+            else:
+                self._poly.__repn[e] = coeff
 
     def __reduce__(self):
         """
@@ -1273,7 +1280,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         b = self.valuation() + (<TateAlgebraElement>other)._prec
         ans._poly = self._poly * (<TateAlgebraElement>other)._poly
         ans._prec = min(a, b)
-        #ans._normalize()
+        ans._normalize()
         return ans
 
     cpdef _lmul_(self, Element right):
@@ -1297,6 +1304,187 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._poly = self._poly.scalar_lmult(right)
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
         return ans
+
+    def __pow__(self, exponent, modulus):
+        """
+        Return this element raised to the power ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- either an integer, a rational number or a
+          Tate series
+
+        EXEMPLES::
+
+            sage: R = Zp(3, prec=4, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: (x + y)^3
+            (...0001)*x^3 + (...0001)*y^3 + (...0010)*x^2*y + (...0010)*x*y^2
+
+        This function can be used to compute the inverse of a Tate series::
+
+            sage: f = 1 + 6*x^2 + 9*y^2
+            sage: f^(-1)
+            (...0001) + (...2210)*x^2 + (...1100)*x^4 + (...2200)*y^2 + (...1000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+
+        or a square root (or more generally a nth root)::
+
+            sage: g = f^(1/2); g
+            (...0001) + (...0010)*x^2 + (...1100)*x^4 + (...1200)*y^2 + (...2000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+            sage: g^2 == f
+            True
+
+        When the exponent is not an integer, `f^e` is computed as `\exp(e \log(f))`.
+        This computation fails if `f` is outside the domain of the logarithm or if
+        `e \log(f)` is outside the domain of convergence of the exponential::
+
+            sage: f^(1/3)
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        The exponent can be a series as well::
+
+            sage: g = f^f; g
+            (...0001) + (...0020)*x^2 + (...1100)*x^4 + (...0100)*y^2 + (...1000)*x^8 + (...1000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+
+            sage: x0 = 3 * R.random_element()
+            sage: y0 = 3 * R.random_element()
+            sage: g(x0, y0) == f(x0, y0)^f(x0, y0)
+            True
+
+        """
+        cdef TateAlgebraElement temp
+        cdef long p, v, e
+        if exponent in ZZ:
+            if exponent == 0:
+                return (<TateAlgebraElement>self)._parent.one()
+            elif exponent > 0:
+                # We change the precision
+                temp = (<TateAlgebraElement>self)._new_c()
+                temp._poly = (<TateAlgebraElement>self)._poly
+                if (<TateAlgebraElement>self)._prec is Infinity:
+                    temp._prec = Infinity
+                else:
+                    p = (<TateAlgebraElement>self)._parent.prime()
+                    e = (<TateAlgebraElement>self)._parent.absolute_e()
+                    v = (<TateAlgebraElement>self).valuation()
+                    temp._prec = p*v + (<TateAlgebraElement>self)._prec
+                    q = ZZ(exponent)
+                    while True:
+                        q, r = q.quo_rem(p)
+                        if r != 0: break
+                        temp._prec = min(p * temp._prec, temp._prec + e)
+                # and perform the exponentiation
+                return CommutativeAlgebraElement.__pow__(temp, exponent, modulus)
+            else:
+                return self.inverse_of_unit() ** (-exponent)
+        else:
+            return ((<TateAlgebraElement>self).log() * exponent).exp()
+
+    def square_root(self):
+        r"""
+        Return the square root of this series.
+
+        NOTE:
+
+        The square root is computed as `\exp(\frac 1 2 \log(f))`.
+
+        EXAMPLES::
+
+            sage: R = Zp(3, prec=4, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 6*x^2 + 9*y^2
+            sage: g = f.square_root(); g
+            (...0001) + (...0010)*x^2 + (...1100)*x^4 + (...1200)*y^2 + (...2000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+
+            sage: g^2 == f
+            True
+
+        It's possible that `f` has a trivial square root (which is analytic on
+        the correct domain) but that `\exp(\frac 1 2 \log(f))` does not converge.
+        In this case, an error is raised::
+
+            sage: f = x^2
+            sage: f.square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        """
+        return (self.log()/2).exp()
+
+    def sqrt(self):
+        r"""
+        Return a square root of this series.
+
+        NOTE:
+
+        The square root is computed as `\exp(\frac 1 2 \log(f))`.
+
+        EXAMPLES::
+
+            sage: R = Zp(3, prec=4, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 6*x^2 + 9*y^2
+            sage: g = f.sqrt(); g
+            (...0001) + (...0010)*x^2 + (...1100)*x^4 + (...1200)*y^2 + (...2000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+
+            sage: g^2 == f
+            True
+
+        It's possible that `f` has a trivial square root (which is analytic on
+        the correct domain) but that `\exp(\frac 1 2 \log(f))` does not converge.
+        In this case, an error is raised::
+
+            sage: f = x^2
+            sage: f.sqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        """
+        return self.square_root()
+
+    def nth_root(self, n=2):
+        r"""
+        Return the ``n``-th root of this series.
+
+        INPUT:
+
+        - ``n`` -- an integer (default: 2)
+
+        NOTE:
+
+        The ``n``-th root is computed as `\exp(\frac 1 n \log(f))`.
+
+        EXAMPLES::
+
+            sage: R = Zp(3, prec=4, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 9*x^2 + 9*y^2
+            sage: g = f.nth_root(3); g
+            (...001) + (...010)*x^2 + (...010)*y^2 + (...200)*x^6 + (...200)*y^6 + (...200)*x^4 + (...100)*x^2*y^2 + (...200)*y^4 + O(3^3)
+            sage: g^3 == f
+            True
+
+            sage: for n in range(2, 9):
+            ....:     if f.nth_root(n)^n != f: raise RuntimeError
+
+        It's possible that `f` has a trivial ``n``-th root (which is analytic on 
+        the correct domain) but that `\exp(\frac 1 n \log(f))` does not converge.
+        In this case, an error is raised::
+
+            sage: f = x^3
+            sage: f.nth_root(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        """
+        if not n in ZZ:
+            raise ValueError
+        return (self.log()/n).exp()
 
     cpdef _richcmp_(self, other, int op):
         r"""
@@ -1393,7 +1581,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f(1, 1)
             Traceback (most recent call last):
             ...
-            ValueError: the given values are outside the domain of convergence
+            ValueError: not in the domain of convergence
 
         Evaluation at points in extensions is allowed::
 
@@ -1408,7 +1596,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f(pi, pi)
             Traceback (most recent call last):
             ...
-            ValueError: the given values are outside the domain of convergence
+            ValueError: not in the domain of convergence
 
         This method can also be used to compose Tate series::
 
@@ -1430,7 +1618,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ratio = A.absolute_e() // parent._base.absolute_e()
         for i in range(parent._ngens):
             if args[i].valuation() < -ratio * parent._log_radii[i]:
-                raise ValueError("the given values are outside the domain of convergence")
+                raise ValueError("not in the domain of convergence")
         res = A(0, self._prec)
         for t in self._terms_c():
             if t._valuation_c() >= res.precision_absolute():
@@ -1455,7 +1643,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000011)*x^2
             sage: f = x^4 + 4*x*y + 1; f
             (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
-            sage: t*f # indirect doctest
+            sage: t*f  # indirect doctest
             (...0000000011)*x^6 + (...0000000011)*x^2 + (...000000001100)*x^3*y
 
         """
@@ -1655,15 +1843,25 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             ValueError: this series in not invertible
         
         """
+        cdef TateAlgebraTerm t
+        cdef long v, cap, prec
+        cdef pAdicGenericElement c
+        cdef TateAlgebraElement inv, x
         if not self.is_unit():
             raise ValueError("this series in not invertible")
         t = self.leading_term()
         c = t.coefficient()
         parent = self._parent
         v, c = c.val_unit()
-        cap = parent.precision_cap()
-        inv = parent(c.inverse_of_unit()).add_bigoh(cap)
-        x = (self >> v).add_bigoh(cap)
+        x = self >> v
+        if self._prec is Infinity:
+            cap = parent.precision_cap()
+            x = x.add_bigoh(cap)
+        else:
+            cap = self._prec - v
+        inv = (<TateAlgebraElement>self)._new_c()
+        inv._poly = PolyDict({ ETuple({}, parent._ngens): parent._field(~c.residue()).lift_to_precision() })
+        inv._prec = cap
         prec = 1
         while prec < cap:
             prec *= 2
@@ -1809,6 +2007,23 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         """
         return [ t.monomial() for t in self.terms() ]
+
+    def dict(self):
+        """
+        Return a dictionary whose keys are the exponents are values
+        are the corresponding coefficients of this series.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, prec=10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 2*x^2 + x
+            sage: f.dict()
+            {(1, 0): ...0000000001, (2, 0): ...00000000010}
+        
+        """
+        self._normalize()
+        return dict(self._poly.__repn)
 
     def coefficients(self):
         r"""
@@ -1958,6 +2173,257 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             -1
         """
         return self._prec - self.valuation()
+
+    def log(self, prec=None):
+        """
+        Return the logarithm of this series.
+
+        INPUT:
+
+        - `prec` -- an integer or ``None`` (default: ``None``); the
+          absolute precision at which the result is computed, if ``None``
+          the cap of the Tate algebra is used
+
+        EXAMPLES::
+
+            sage: R = Zp(3, 10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 3*x + 9*y^2
+            sage: f.log()
+            (...0000000010)*x + (...0000000100)*x^3 + (...1111111100)*x^2 + (...0000000100)*y^2 + (...2222222000)*x*y^2 + ... + O(3^10)
+
+            sage: f.log(prec=4)
+            (...0010)*x + (...0100)*x^3 + (...1100)*x^2 + (...0100)*y^2 + (...2000)*x*y^2 + O(3^4)
+
+        If the precision on the input is not enough to determine the
+        result at precision ``prec``, a result with smaller precision
+        is returned::
+
+            sage: g = f.add_bigoh(4); g
+            (...0001) + (...0010)*x + (...0100)*y^2 + O(3^4)
+            sage: g.log()
+            (...0010)*x + (...0100)*x^3 + (...1100)*x^2 + (...0100)*y^2 + (...2000)*x*y^2 + O(3^4)
+            sage: g.log(prec=10)
+            (...0010)*x + (...0100)*x^3 + (...1100)*x^2 + (...0100)*y^2 + (...2000)*x*y^2 + O(3^4)
+
+        When the input value is outside the domain of convergence, an
+        error is raised::
+
+            sage: f = 1 + x
+            sage: f.log()
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        However `\log(1+x)` converges on a smaller disk::
+
+            sage: f.restriction(-1).log()
+            (...0000000001)*x + (...000000000.1)*x^3 + (...1111111111)*x^2 + ... + O(3^10)
+
+        TESTS::
+
+            sage: f = 1 + 3 * A.random_element(integral=True)
+            sage: logf = f.log()
+
+            sage: x0 = 3 * R.random_element()
+            sage: y0 = 3 * R.random_element()
+            sage: f(x0, y0).log() == logf(x0, y0)
+            True
+
+            sage: logf.exp() == f
+            True
+
+        """
+        # This code is mostly copied from sage.rings.padics.padic_generic_element
+        # (should we find a way to share it?)
+        R = self.parent()
+        p = R.base_ring().prime()
+        e = R.absolute_e()
+        x = 1 - self
+        alpha = x.valuation()
+        if alpha <= 0:
+            raise ValueError("not in the domain of convergence")
+
+        aprec = self.precision_absolute()
+        if aprec is Infinity:
+            aprec = R.precision_cap()
+        if prec is not None and prec < aprec:
+            aprec = prec
+        mina = 0
+        if e != 1:
+            lamb = aprec - alpha
+            if lamb > 0 and lamb*(p-1) <= e:
+                # This is the precision region where the absolute
+                # precision of the answer might be less than the
+                # absolute precision of the input
+
+                # kink is the number of times we multiply the relative
+                # precision by p before starting to add e instead.
+                kink = (e // (lamb * (p-1))).exact_log(p) + 1
+
+                # deriv0 is within 1 of the n yielding the minimal
+                # absolute precision
+                tmp = (e / (aprec * p.log(prec=53))).floor()
+                if tmp > 0:
+                    deriv0 = tmp.exact_log(p)
+                else:
+                    deriv0 = 0
+
+                # These are the absolute precisions of x^(p^n) at potential minimum points
+                L = [(aprec * p**n - n * e, n) for n in [0, kink, deriv0, deriv0+1]]
+                L.sort()
+                aprec = L[0][0]
+                mina = L[0][1]
+
+        total = R.zero()
+        if mina == 0 and alpha*p - e > aprec:
+            # The value of x^p/p is not needed in that case
+            x2p_p = R(0)
+        else:
+            x2p_p = x**p / p
+
+        # To get result right to precision aprec, we need all terms for which
+        # the valuation of x^n/n is strictly smaller than aprec.
+        # If we rewrite n=u*p^a with u a p-adic unit, then these are the terms
+        # for which u<(aprec+a*v(p))/(v(x)*p^a).
+        # Two sum over these terms, we run two nested loops, the outer one
+        # iterates over the possible values for a, the inner one iterates over
+        # the possible values for u.
+        upper_u = (aprec/alpha).floor()
+        if mina > 0 or upper_u > 0:
+            a=0
+            p2a=1       # p^a
+            x2pa = x    # x^(p^a)
+
+            # In the unramified case, we can stop summing terms as soon as
+            # there are no u for a given a to sum over. In the ramified case,
+            # it can happen that for some initial a there are no such u but
+            # later in the series there are such u again. mina can be set to
+            # take care of this by summing at least to a=mina-1
+            while True:
+                # we compute the sum for the possible values for u using Horner's method
+                inner_sum = R.zero()
+                for u in xrange(upper_u,0,-1):
+                    # We want u to be a p-adic unit
+                    if u % p==0:
+                        new_term = R.zero()
+                    else:
+                        new_term = ~R.base_ring()(u)
+
+                    # This hack is to deal with rings that don't lift to fields
+                    if u > 1 or x2p_p.is_zero():
+                        inner_sum = (inner_sum+new_term)*x2pa
+                    else:
+                        inner_sum = (inner_sum+new_term)*(x2p_p**a)*(x**(p2a-a*p))
+
+                total -= inner_sum
+
+                # Now increase a and check if a new iteration of the loop is needed
+                a += 1
+                p2a *= p
+                upper_u = ((aprec + a*e)/(alpha * p2a)).floor()
+                if a >= mina and upper_u <= 0: break
+
+                # We perform this last operation after the test
+                # because it is costly and may raise OverflowError
+                x2pa = x2pa**p
+
+        return total.add_bigoh(aprec)
+
+    def exp(self, prec=None):
+        """
+        Return the exponential of this series.
+
+        INPUT:
+
+        - `prec` -- an integer or ``None`` (default: ``None``); the
+          absolute precision at which the result is computed, if ``None``
+          the cap of the Tate algebra is used
+
+        EXAMPLES::
+
+            sage: R = Zp(3, 10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 9*y
+            sage: f.exp()
+            (...0000000001) + (...0000000010)*x^2 + (...1111111200)*x^6 + (...1111111200)*x^4 + (...0000000100)*y + ... + O(3^10)
+
+            sage: f.exp(prec=3)
+            (...001) + (...010)*x^2 + (...200)*x^6 + (...200)*x^4 + (...100)*y + O(3^3)
+
+        If the precision on the input is not enough to determine the
+        result at precision ``prec``, a result with smaller precision
+        is returned::
+
+            sage: g = f.add_bigoh(3); g
+            (...010)*x^2 + (...100)*y + O(3^3)
+            sage: g.exp()
+            (...001) + (...010)*x^2 + (...200)*x^6 + (...200)*x^4 + (...100)*y + O(3^3)
+            sage: g.exp(prec=10)
+            (...001) + (...010)*x^2 + (...200)*x^6 + (...200)*x^4 + (...100)*y + O(3^3)
+
+        When the input value is outside the domain of convergence, an
+        error is raised::
+
+            sage: f = x
+            sage: f.exp()
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        However `\exp(x)` converges on a smaller disk::
+
+            sage: f.restriction(-1).exp()
+            (...0000000001) + (...0000000001)*x + (...111111111.2)*x^3 + (...111111112)*x^2 + ... + O(3^10)
+
+        TESTS::
+
+            sage: f = 3 * A.random_element(integral=True)
+            sage: expf = f.exp()
+
+            sage: x0 = 3 * R.random_element()
+            sage: y0 = 3 * R.random_element()
+            sage: f(x0, y0).exp() == expf(x0, y0)
+            True
+
+            sage: expf.log() == f
+            True
+
+        """
+        # This code is mostly copied from sage.rings.padics.padic_generic_element
+        # (should we find a way to share it?)
+        A = self.parent()
+        R = A.base_ring()
+        p = R.prime()
+        e = R.absolute_e()
+        x_val = self.valuation()
+
+        if (p-1) * x_val <= e:
+            raise ValueError("not in the domain of convergence")
+
+        aprec = self.precision_absolute()
+        if aprec is Infinity:
+            aprec = R.precision_cap()
+        if prec is not None and prec < aprec:
+            aprec = prec
+
+        # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
+        # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
+        # have to sum terms for which n does not exceed N
+        N = (aprec // (x_val - e/(p-1))).floor()
+
+        # We evaluate the exponential series:
+        # We compute the value of x^N + N*x^(N-1) + ... + (N-1)!*x + N!
+        # by Horner's method. Then, we divide by N!.
+        series = A.one()
+        nfactorial = R.one()
+        x = self.add_bigoh(aprec)
+        for n in range(N, 0, -1):
+            series *= x
+            nfactorial *= n
+            series += nfactorial
+        return series / nfactorial
+
 
     def leading_term(self):
         r"""

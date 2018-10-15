@@ -3493,7 +3493,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                  category, default_prec,
                  term_monoid_factory):
         r"""
-ß        See :class:`AsymptoticRing` for more information.
+        See :class:`AsymptoticRing` for more information.
 
         TESTS::
 

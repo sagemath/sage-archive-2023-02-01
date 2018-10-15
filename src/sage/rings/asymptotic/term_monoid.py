@@ -4138,13 +4138,31 @@ class TermMonoidFactory(UniqueFactory):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoid
-            sage: DefaultTermMonoid._cache_key()
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('TermMonoid')
+            sage: TermMonoid._cache_key()
             (<class 'sage.rings.asymptotic.term_monoid.TermMonoidFactory'>,
-             <class 'sage.rings.asymptotic.term_monoid.ExactTerm'>,
-             <class 'sage.rings.asymptotic.term_monoid.OTerm'>)
+             'TermMonoid',
+             <class 'sage.rings.asymptotic.term_monoid.ExactTermMonoid'>,
+             <class 'sage.rings.asymptotic.term_monoid.OTermMonoid'>)
         """
-        return (TermMonoidFactory, ExactTerm, OTerm)
+        return (TermMonoidFactory,
+                self._name,
+                self.ExactTermMonoid,
+                self.OTermMonoid)
+
+    def __hash__(self):
+        r"""
+        Return a hash of this object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('TermMonoid')
+            sage: hash(TermMonoid)  # random
+            42
+        """
+        return hash(self._cache_key())
 
 
 DefaultTermMonoidFactory = TermMonoidFactory('DefaultTermMonoidFactory')

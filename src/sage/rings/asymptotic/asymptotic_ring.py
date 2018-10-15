@@ -604,7 +604,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('TermMonoid')
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
@@ -976,7 +976,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('TermMonoid')
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: G = GrowthGroup('x^ZZ')
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
@@ -1239,7 +1239,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('TermMonoid')
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: T = OTermMonoid(TermMonoid, R.growth_group, ZZ)
@@ -3608,7 +3608,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.term_monoid_factory
-            Term Monoid Factory 'DefaultTermMonoidFactory'
+            Term Monoid Factory 'sage.rings.asymptotic.term_monoid.DefaultTermMonoidFactory'
 
         .. SEEALSO::
 

@@ -603,7 +603,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('TermMonoid')
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
@@ -701,7 +702,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         if convert:
             from .misc import combine_exceptions
-            from .term_monoid import TermMonoid, ZeroCoefficientError
+            from .term_monoid import ZeroCoefficientError
+            TermMonoid = self.parent().term_monoid
             def convert_terms(element):
                 T = TermMonoid(term_monoid=element.parent(), asymptotic_ring=parent)
                 try:
@@ -973,7 +975,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('TermMonoid')
             sage: G = GrowthGroup('x^ZZ')
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
@@ -1308,7 +1311,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if other.is_zero():
             return self.parent().zero()
 
-        from .term_monoid import TermMonoid
+        TermMonoid = self.parent().term_monoid
         E = TermMonoid('exact', asymptotic_ring=self.parent())
         e = E(self.parent().growth_group.one(), coefficient=other)
         return self._mul_term_(e)
@@ -1478,7 +1481,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return self
 
         summands = self.summands.copy()
-        from .term_monoid import TermMonoid
+        TermMonoid = self.parent().term_monoid
         def convert_terms(element):
             if convert_terms.count < precision:
                 convert_terms.count += 1
@@ -3994,7 +3997,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ).an_element()
             1/8*z^(3/2) + O(z^(1/2))
         """
-        from .term_monoid import TermMonoid
+        TermMonoid = self.term_monoid
         E = TermMonoid('exact', asymptotic_ring=self)
         O = TermMonoid('O', asymptotic_ring=self)
         return self(E.an_element(), simplify=False, convert=False)**3 + \
@@ -4032,7 +4035,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
              z^(3/2) + O(z^(-2)))
         """
         from sage.misc.mrange import cantor_product
-        from .term_monoid import TermMonoid
+        TermMonoid = self.term_monoid
         E = TermMonoid('exact', asymptotic_ring=self)
         O = TermMonoid('O', asymptotic_ring=self)
         return iter(self(e, simplify=False, convert=False)**3 +
@@ -4321,7 +4324,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             TypeError: Cannot create exact term: only 'growth' but
             no 'coefficient' specified.
         """
-        from .term_monoid import TermMonoid, ZeroCoefficientError
+        from .term_monoid import ZeroCoefficientError
+        TermMonoid = self.term_monoid
         TM = TermMonoid(type, asymptotic_ring=self)
 
         if data is None:

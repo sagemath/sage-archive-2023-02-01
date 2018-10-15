@@ -3338,6 +3338,26 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         sage: R1_x.has_coerce_map_from(QQ)
         True
 
+    It is possible to customize the terms in an asymptotic expansion::
+
+        sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid, OTermMonoid
+        sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+        sage: class MyExactTermMonoid(ExactTermMonoid):
+        ....:     pass
+        sage: class MyOTermMonoid(OTermMonoid):
+        ....:     pass
+        sage: MyTermMonoid = TermMonoidFactory('MyTermMonoid',
+        ....:                                  exact_term_monoid_class=MyExactTermMonoid,
+        ....:                                  O_term_monoid_class=MyOTermMonoid)
+        sage: G = GrowthGroup('x^ZZ')
+        sage: A.<n> = AsymptoticRing(growth_group=G, coefficient_ring=QQ, term_monoid_factory=MyTermMonoid)
+        sage: a = A.an_element(); a
+        1/8*x^3 + O(x)
+        sage: for t in a.summands.elements_topological(reverse=True):
+        ....:     print(t, type(t))
+        1/8*x^3 <class '__main__.MyExactTermMonoid_with_category.element_class'>
+        O(x) <class '__main__.MyOTermMonoid_with_category.element_class'>
+
     TESTS::
 
         sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing as AR_class
@@ -3439,6 +3459,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             ValueError: icecream is not a ring. Cannot continue.
+
+        ::
+
+            sage: A.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=ZZ)
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory
+            sage: A.term_monoid_factory is DefaultTermMonoidFactory
+            True
         """
         from sage.categories.sets_cat import Sets
         from sage.categories.rings import Rings

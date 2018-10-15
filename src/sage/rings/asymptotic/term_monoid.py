@@ -4029,6 +4029,43 @@ class TermMonoidFactory(UniqueFactory):
         running ._test_some_elements() . . . pass
     """
 
+    def __init__(self, name,
+                 exact_term_monoid_class=None,
+                 O_term_monoid_class=None):
+        r"""
+        See :class:`TermMonoidFactory` for more information.
+
+        TESTS::
+
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid, OTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('TermMonoid')
+
+            sage: class MyExactTermMonoid(ExactTermMonoid):
+            ....:     pass
+            sage: class MyOTermMonoid(OTermMonoid):
+            ....:     pass
+            sage: MyTermMonoid = TermMonoidFactory('MyTermMonoid',
+            ....:                                  exact_term_monoid_class=MyExactTermMonoid,
+            ....:                                  O_term_monoid_class=MyOTermMonoid)
+            sage: G = GrowthGroup('x^ZZ')
+            sage: type(MyTermMonoid('exact', G, QQ))
+            <class '__main__.MyExactTermMonoid_with_category'>
+            sage: type(MyTermMonoid('O', G, QQ))
+            <class '__main__.MyOTermMonoid_with_category'>
+        """
+        super(TermMonoidFactory, self).__init__(name)
+
+        if exact_term_monoid_class is None:
+            exact_term_monoid_class = ExactTermMonoid
+        self.ExactTermMonoid = exact_term_monoid_class
+
+        if O_term_monoid_class is None:
+            O_term_monoid_class = OTermMonoid
+        self.OTermMonoid = O_term_monoid_class
+
     def create_key_and_extra_args(self, term_monoid,
                                   growth_group=None, coefficient_ring=None,
                                   asymptotic_ring=None,
@@ -4070,9 +4107,9 @@ class TermMonoidFactory(UniqueFactory):
         if isinstance(term_monoid, GenericTermMonoid):
             term_class = term_monoid._underlying_class()
         elif term_monoid == 'O':
-            term_class = OTermMonoid
+            term_class = self.OTermMonoid
         elif term_monoid == 'exact':
-            term_class = ExactTermMonoid
+            term_class = self.ExactTermMonoid
         else:
             raise ValueError("Term specification '%s' has to be either 'exact' or 'O' "
                              "or an instance of an existing term." % term_monoid)
@@ -4126,11 +4163,11 @@ class TermMonoidFactory(UniqueFactory):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoid
-            sage: DefaultTermMonoid  # indirect doctest
-            term monoid factory "DefaultTermMonoid"
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoidFactory('TestTermMonoidFactory')  # indirect doctest
+            Term Monoid Factory 'TestTermMonoidFactory'
         """
-        return 'term monoid factory "{}"'.format(self._name)
+        return "Term Monoid Factory '{}'".format(self._name)
 
     def _cache_key(self):
         r"""

@@ -3997,6 +3997,32 @@ class TermMonoidFactory(UniqueFactory):
         term_class, growth_group, coefficient_ring = key
         return term_class(growth_group, coefficient_ring, **kwds)
 
+    def _repr_(self):
+        r"""
+        Return a representation string of this term monoid factory.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoid
+            sage: DefaultTermMonoid  # indirect doctest
+            term monoid factory "DefaultTermMonoid"
+        """
+        return 'term monoid factory "{}"'.format(self._name)
+
+    def _cache_key(self):
+        r"""
+        Return a key for caching this object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoid
+            sage: DefaultTermMonoid._cache_key()
+            (<class 'sage.rings.asymptotic.term_monoid.TermMonoidFactory'>,
+             <class 'sage.rings.asymptotic.term_monoid.ExactTerm'>,
+             <class 'sage.rings.asymptotic.term_monoid.OTerm'>)
+        """
+        return (TermMonoidFactory, ExactTerm, OTerm)
+
 
 DefaultTermMonoid = TermMonoidFactory('DefaultTermMonoid')
 r"""

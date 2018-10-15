@@ -3910,7 +3910,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
                (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
-class TermMonoidFactory(UniqueFactory):
+class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
     r"""
     Factory for asymptotic term monoids. It can generate the following
     term monoids:
@@ -4202,9 +4202,15 @@ class TermMonoidFactory(UniqueFactory):
         return hash(self._cache_key())
 
 
-DefaultTermMonoidFactory = TermMonoidFactory('DefaultTermMonoidFactory')
+DefaultTermMonoidFactory = TermMonoidFactory('sage.rings.asymptotic.term_monoid.DefaultTermMonoidFactory')
 r"""
 A factory for asymptotic term monoids.
 This is an instance of :class:`TermMonoidFactory` whose documentation
 provides more details.
+
+TESTS::
+
+    sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory
+    sage: loads(dumps(DefaultTermMonoidFactory)) is DefaultTermMonoidFactory
+    True
 """

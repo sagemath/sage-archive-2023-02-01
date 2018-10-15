@@ -1311,7 +1311,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
     Element = GenericTerm
 
     @staticmethod
-    def __classcall__(cls, growth_group, coefficient_ring, category=None):
+    def __classcall__(cls, term_monoid_factory,
+                      growth_group, coefficient_ring,
+                      category=None):
         r"""
         Normalize the input in order to ensure a unique
         representation of the parent.
@@ -1344,6 +1346,11 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             ...
             TypeError: <... 'int'> is not a valid coefficient ring.
         """
+        if term_monoid_factory is None:
+            raise ValueError('No term monoid factory specified.')
+        if not isinstance(term_monoid_factory, TermMonoidFactory):
+            raise TypeError('%s is not a valid term monoid factory.' % (term_monoid_factory,))
+
         if growth_group is None:
             raise ValueError('No growth group specified.')
         if not isinstance(growth_group, Parent):
@@ -1360,9 +1367,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             category = Monoids() & Posets()
 
         return super(GenericTermMonoid, cls).__classcall__(
-            cls, growth_group, coefficient_ring, category)
+            cls, term_monoid_factory, growth_group, coefficient_ring, category)
 
-    def __init__(self, growth_group, coefficient_ring, category):
+    def __init__(self, term_monoid_factory, growth_group, coefficient_ring, category):
         r"""
         See :class:`GenericTermMonoid` for more information.
 
@@ -1398,9 +1405,25 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             sage: T_QQ.category()
             Join of Category of monoids and Category of posets
         """
+        self._term_monoid_factory_ = term_monoid_factory
         self._growth_group_ = growth_group
         self._coefficient_ring_ = coefficient_ring
         super(GenericTermMonoid, self).__init__(category=category)
+
+    @property
+    def term_monoid_factory(self):
+        r"""
+        The term monoid factory capable of creating this term monoid.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('TermMonoid')
+            sage: TermMonoid('exact', GrowthGroup('x^ZZ'), ZZ).term_monoid_factory
+            Term Monoid Factory 'TermMonoid'
+        """
+        return self._term_monoid_factory_
 
     @property
     def growth_group(self):
@@ -1432,8 +1455,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         """
         return self._coefficient_ring_
 
-    def change_parameter(self, growth_group=None, coefficient_ring=None,
-                         term_monoid=None):
+    def change_parameter(self, growth_group=None, coefficient_ring=None):
         r"""
         Return a term monoid with a change in one or more of the
         given parameters.
@@ -1443,9 +1465,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         - ``growth_group`` -- (default: ``None``) the new growth group.
 
         - ``coefficient_ring`` -- (default: ``None``) the new coefficient ring.
-
-        - ``term_monoid`` -- (default: ``None``) a term monoid factory used
-          for creating the new term.
 
         OUTPUT:
 
@@ -1480,9 +1499,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         if self.growth_group is growth_group and \
                 self.coefficient_ring is coefficient_ring:
             return self
-        if term_monoid is None:
-            term_monoid = DefaultTermMonoid
-        return term_monoid(self, growth_group, coefficient_ring)
+        return self.term_monoid_factory(self, growth_group, coefficient_ring)
 
     def _repr_(self):
         r"""
@@ -1748,11 +1765,12 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
            (coefficient is None or coefficient.parent() is self.coefficient_ring):
             parent = self
         else:
-            parent = self._underlying_class()(growth.parent(),
-                                            coefficient.parent()
-                                            if coefficient is not None
-                                            else self.coefficient_ring,
-                                            category=self.category())
+            parent = self._underlying_class()(self.term_monoid_factory,
+                                              growth.parent(),
+                                              coefficient.parent()
+                                              if coefficient is not None
+                                              else self.coefficient_ring,
+                                              category=self.category())
         return parent(growth, coefficient)
 
     def _split_growth_and_coefficient_(self, data):
@@ -2335,7 +2353,9 @@ class OTerm(GenericTerm):
             return self
         if base == 1:
             P = self.parent()
-            return ExactTermMonoid(P.growth_group, P.coefficient_ring).one()
+            return P.term_monoid_factory('exact',
+                                         P.growth_group,
+                                         P.coefficient_ring).one()
         raise ValueError('Cannot take %s to the exponent %s in %s' %
                          (base, self, self.parent()))
 
@@ -3995,7 +4015,7 @@ class TermMonoidFactory(UniqueFactory):
             Exact Term Monoid x^ZZ with coefficients in Integer Ring
         """
         term_class, growth_group, coefficient_ring = key
-        return term_class(growth_group, coefficient_ring, **kwds)
+        return term_class(self, growth_group, coefficient_ring, **kwds)
 
     def _repr_(self):
         r"""
@@ -4024,7 +4044,7 @@ class TermMonoidFactory(UniqueFactory):
         return (TermMonoidFactory, ExactTerm, OTerm)
 
 
-DefaultTermMonoid = TermMonoidFactory('DefaultTermMonoid')
+DefaultTermMonoidFactory = TermMonoidFactory('DefaultTermMonoidFactory')
 r"""
 A factory for asymptotic term monoids.
 This is an instance of :class:`TermMonoidFactory` whose documentation

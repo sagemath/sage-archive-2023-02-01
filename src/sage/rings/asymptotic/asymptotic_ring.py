@@ -2174,7 +2174,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         try:
             large_result = P.prod(
                 P._create_element_in_extension_(term.rpow(base),
-                                              term.parent())
+                                                term.parent())
                 for term in large_terms)
         except (TypeError, ValueError) as e:
             from .misc import combine_exceptions
@@ -3013,8 +3013,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         def mapping(term):
             T = term.parent().change_parameter(
-                coefficient_ring=new_coefficient_ring,
-                term_monoid=self.parent().term_monoid)
+                coefficient_ring=new_coefficient_ring)
             if hasattr(term, 'coefficient'):
                 c = f(term.coefficient)
                 if c.is_zero():

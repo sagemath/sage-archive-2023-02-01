@@ -131,6 +131,7 @@ AUTHORS:
 # ***************************************************************************
 
 from sage.structure.factory import UniqueFactory
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.monoids.monoid import Monoid_class
 from sage.rings.ring import CommutativeAlgebra
 from sage.rings.integer_ring import ZZ
@@ -144,7 +145,6 @@ from sage.categories.complete_discrete_valuation import CompleteDiscreteValuatio
 from sage.categories.pushout import pushout
 
 from sage.structure.category_object import normalize_names
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.tate_algebra_element import TateAlgebraTerm
 from sage.rings.tate_algebra_element import TateAlgebraElement
@@ -340,7 +340,7 @@ TateAlgebra = TateAlgebraFactory("TateAlgebra")
 # Parent for terms
 ##################
 
-class TateTermMonoid(Monoid_class):
+class TateTermMonoid(Monoid_class, UniqueRepresentation):
     r"""
     A base class for Tate algebra terms
 
@@ -492,8 +492,6 @@ class TateTermMonoid(Monoid_class):
             return True
         if isinstance(R, TateTermMonoid):
             return self._parent_algebra.has_coerce_map_from(R.algebra_of_series())
-        if isinstance(R, TateAlgebra_generic):
-            return self._parent_algebra.has_coerce_map_from(R)
 
     def algebra_of_series(self):
         r"""
@@ -614,6 +612,64 @@ class TateTermMonoid(Monoid_class):
         """
         return self._ngens
 
+    def gens(self):
+        r"""
+        Return the list of generators of this monoid of terms.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T.gens()
+            ((...0000000001)*x, (...0000000001)*y)
+
+        """
+        return tuple([self(g) for g in self._parent_algebra.gens()])
+
+    def gen(self, n=0):
+        r"""
+        Return the ``n``-th generator of this monoid of terms.
+
+        INPUT:
+
+        - ``n`` - an integer (default: ``0``), the index of
+          the requested generator
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T.gen()
+            (...0000000001)*x
+            sage: T.gen(0)
+            (...0000000001)*x
+            sage: T.gen(1)
+            (...0000000001)*y
+            sage: T.gen(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: generator not defined
+
+        """
+        return self(self._parent_algebra.gen(n))
+
+    def some_elements(self):
+        """
+        Return a list of elements in this monoid of terms.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: T = A.monoid_of_terms()
+            sage: T.some_elements()
+            ((...0000000001)*x, (...0000000001)*y)
+
+        """
+        return self.gens()
+
 
 
 # Tate algebras
@@ -631,6 +687,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
         """
         from sage.misc.latex import latex_variable_name
+        from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate
         self.element_class = TateAlgebraElement
         self._field = field
         self._cap = prec
@@ -645,7 +702,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
         else:
             base = field
         CommutativeAlgebra.__init__(self, base, names, category=CommutativeAlgebras(base))
-        self._polynomial_ring = PolynomialRing(field, names, order=order)
+        self._polynomial_ring = _multi_variate(field, names, order=order)
         one = field(1)
         self._parent_terms = TateTermMonoid(self)
         self._oneterm = self._parent_terms(one, ETuple([0]*self._ngens))
@@ -656,6 +713,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
         else:
             self._gens = [ self(g) for g in self._polynomial_ring.gens() ]
             self._integer_ring = TateAlgebra_generic(field, prec, log_radii, names, order, integral=True)
+            self._integer_ring._rational_ring = self._rational_ring = self
 
     def _an_element_(self):
         r"""
@@ -882,6 +940,20 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
         """
         return self._ngens
+
+    def some_elements(self):
+        """
+        Return a list of elements in this Tate algebra.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, 10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: A.some_elements()
+            ((...0000000001)*x, (...0000000001)*y)
+
+        """
+        return self.gens()
 
     def _repr_(self):
         """
@@ -1154,3 +1226,16 @@ class TateAlgebra_generic(CommutativeAlgebra):
             polring = self._polynomial_ring
             gens = [ self.element_class(self, g) for g in self._integer_ring._gens ]
         return self.element_class(self, polring.random_element(degree, terms)(*gens), prec)
+
+    def is_integral_domain(self):
+        """
+        Return ``True`` since any Tate algebra is an integral domain.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = TateAlgebra(Zp(3))
+            sage: A.is_integral_domain()
+            True
+
+        """
+        return True

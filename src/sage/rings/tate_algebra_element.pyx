@@ -102,7 +102,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         sage: T(0)
         Traceback (most recent call last):
         ...
-        ValueError: a term cannot be zero
+        TypeError: a term cannot be zero
 
     """
     def __init__(self, parent, coeff, exponent=None):
@@ -135,9 +135,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             self._coeff = field((<TateAlgebraTerm>coeff)._coeff)
             self._exponent = (<TateAlgebraTerm>coeff)._exponent
         else:
-            if coeff.is_zero():
-                raise ValueError("a term cannot be zero")
             self._coeff = field(coeff)
+            if self._coeff.is_zero():
+                raise TypeError("a term cannot be zero")
             self._exponent = ETuple([0] * parent.ngens())
         if exponent is not None:
             if not isinstance(exponent, ETuple):
@@ -150,6 +150,9 @@ cdef class TateAlgebraTerm(MonoidElement):
                 raise ValueError("only nonnegative exponents are allowed")
         if not parent.base_ring().is_field() and self.valuation() < 0:
             raise ValueError("this term is not in the ring of integers")
+
+    def __hash__(self):
+        return hash((self._coeff, self._exponent))
 
     cdef TateAlgebraTerm _new_c(self):
         r"""
@@ -292,6 +295,29 @@ cdef class TateAlgebraTerm(MonoidElement):
         ans._exponent = self._exponent.eadd((<TateAlgebraTerm>other)._exponent)
         ans._coeff = self._coeff * (<TateAlgebraTerm>other)._coeff
         return ans
+
+    #def _div_(self, other):
+    #    """
+    #    Division of Tate series.
+    #
+    #    It is currently not implemented because fraction fields
+    #    of Tate algebras are not implemented.
+    #
+    #    EXAMPLES::
+    #
+    #        sage: A.<x,y> = TateAlgebra(Zp(2))
+    #        sage! x / y
+    #        Traceback (most recent call last):
+    #        ...
+    #        NotImplementedError: fraction fields of Tate algebras are not implemented; try inverse_of_unit()
+    #
+    #        sage: ~x  # indirect doctest
+    #        Traceback (most recent call last):
+    #        ...
+    #        NotImplementedError: fraction fields of Tate algebras are not implemented; try inverse_of_unit()
+    #
+    #    """
+    #    raise NotImplementedError("fraction fields of Tate algebras are not implemented; try inverse_of_unit()")
 
     cdef int _cmp_c(self, TateAlgebraTerm other):
         r"""
@@ -641,8 +667,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the greatest common divisor of this term and ``other``.
 
-        The result is normalized so that its valuation is equal to
-        the smallest valuation of this term and ``other``.
+        The result is normalized so that:
+
+        - its valuation is equal to the smallest valuation of 
+          this term and ``other``
+
+        - its coefficient is a power of the uniformizer.
 
         INPUT:
 
@@ -667,8 +697,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the greatest common divisor of this term and ``other``.
 
-        The result is normalized so that its valuation is equal to
-        the smallest valuation of this term and ``other``.
+        The result is normalized so that:
+
+        - its valuation is equal to the smallest valuation of 
+          this term and ``other``
+
+        - its coefficient is a power of the uniformizer.
 
         INPUT:
 
@@ -686,13 +720,19 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s.gcd(t)  # indirect doctest
             (...000000000100)*x*y^2
 
+        ::
+
+            sage: A.<x,y> = TateAlgebra(R, log_radii=1)
+            sage: T = A.monoid_of_terms()
+            sage: T(x^5).gcd(T(y^5))
+            (...00000.00001)
+
         """
         cdef TateAlgebraTerm ans = self._new_c()
+        cdef long val
         ans._exponent = self._exponent.emin(other._exponent)
-        if self._coeff.valuation() < other._coeff.valuation():
-            ans._coeff = self._coeff
-        else:
-            ans._coeff = other._coeff
+        val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii)
+        ans._coeff = self._parent._field.uniformizer_pow(val)
         return ans
 
     @coerce_binop
@@ -700,8 +740,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the least common multiple of two Tate terms.
 
-        The result is normalized so that its valuation is equal to
-        the largest valuation of this term and ``other``.
+        The result is normalized so that `\gcd(a,b) \lcm(a,b) = ab`.
 
         INPUT:
 
@@ -728,8 +767,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the least common multiple of two Tate terms.
 
-        The result is normalized so that its valuation is equal to
-        the largest valuation of this term and ``other``.
+        The result is normalized so that `\gcd(a,b) \lcm(a,b) = ab`.
 
         INPUT:
 
@@ -744,18 +782,22 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: T = A.monoid_of_terms()
             sage: s = T(8*x^2*y^2); s
             (...0000000001000)*x^2*y^2
-            sage: t = T(4*x*y^3); t
-            (...000000000100)*x*y^3
+            sage: t = T(12*x*y^3); t
+            (...000000001100)*x*y^3
             sage: s.lcm(t)  # indirect doctest
-            (...0000000001000)*x^2*y^3
+            (...0000000011000)*x^2*y^3
+
+        TESTS::
+
+            sage: s.gcd(t) * s.lcm(t) == s * t
+            True
 
         """
         cdef TateAlgebraTerm ans = self._new_c()
+        cdef long val
         ans._exponent = self._exponent.emax(other._exponent)
-        if self._coeff.valuation() < other._coeff.valuation():
-            ans._coeff = other._coeff
-        else:
-            ans._coeff = self._coeff
+        val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii)
+        ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part()) << val
         return ans
 
     @coerce_binop
@@ -1028,8 +1070,17 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                         raise ValueError("cannot restrict to a bigger domain")
                 self._poly = PolyDict({(<TateAlgebraTerm>x)._exponent: parent._field((<TateAlgebraTerm>x)._coeff)})
         else:
-            poly = parent._polynomial_ring(x)
-            self._poly = PolyDict(poly.dict())
+            try:
+                poly = parent._polynomial_ring(x)
+                self._poly = PolyDict(poly.dict())
+            except TypeError, e:
+                # last chance: we first try to convert to the rational Tate series
+                if parent._integral:
+                    xc = parent._rational_ring(x)
+                    self._poly = xc._poly
+                    self._prec = xc._prec
+                else:
+                    raise TypeError(e)
         if prec is not None:
             self._prec = min(self._prec, prec)
         self._normalize()
@@ -1178,8 +1229,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             5
 
         """
-        # TODO: g = x + 2*y^2 + O(2^5) fails coercing O(2^5) into R, is that normal?
-        # If we force conversion with R(O(2^5)) the result is a Tate series with precision infinity... it's understandable but confusing, no?
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly + (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
@@ -1297,6 +1346,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._poly = self._poly.scalar_lmult(right)
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
         return ans
+
 
     cpdef _richcmp_(self, other, int op):
         r"""
@@ -1431,7 +1481,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         for i in range(parent._ngens):
             if args[i].valuation() < -ratio * parent._log_radii[i]:
                 raise ValueError("the given values are outside the domain of convergence")
-        res = A(0, self._prec)
+        res = A(0, ratio * self._prec)
         for t in self._terms_c():
             if t._valuation_c() >= res.precision_absolute():
                 break
@@ -1655,15 +1705,25 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             ValueError: this series in not invertible
         
         """
+        cdef TateAlgebraTerm t
+        cdef long v, cap, prec
+        cdef pAdicGenericElement c
+        cdef TateAlgebraElement inv, x
         if not self.is_unit():
             raise ValueError("this series in not invertible")
         t = self.leading_term()
         c = t.coefficient()
         parent = self._parent
         v, c = c.val_unit()
-        cap = parent.precision_cap()
-        inv = parent(c.inverse_of_unit()).add_bigoh(cap)
-        x = (self >> v).add_bigoh(cap)
+        x = self >> v
+        if self._prec is Infinity:
+            cap = parent.precision_cap()
+            x = x.add_bigoh(cap)
+        else:
+            cap = self._prec - v
+        inv = (<TateAlgebraElement>self)._new_c()
+        inv._poly = PolyDict({ ETuple({}, parent._ngens): parent._field(~c.residue()).lift_to_precision() })
+        inv._prec = cap
         prec = 1
         while prec < cap:
             prec *= 2
@@ -1959,6 +2019,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return self._prec - self.valuation()
 
+
     def leading_term(self):
         r"""
         Return the leading term of this series.
@@ -2084,7 +2145,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         TESTS::
 
             sage: A(0).monic()
-            0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
 
         """
         cdef TateAlgebraElement ans = self._new_c()
@@ -2093,7 +2156,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef pAdicGenericElement u
         cdef list terms = self._terms_c()
         if not terms:
-            return self
+            raise ZeroDivisionError("rational division by zero")
         t = terms[0]
         shi, u = t._coeff.val_unit()
         shi -= t._exponent.dotprod(self._parent._log_radii)
@@ -2125,7 +2188,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if self.valuation() != 0:
             return False
         c = self.leading_coefficient()
-        if c == 0 or c.unit_part() == 1:
+        if c != 0 and c.unit_part() == 1:
             return True
         return False
 

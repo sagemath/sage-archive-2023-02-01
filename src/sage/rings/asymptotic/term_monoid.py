@@ -1444,6 +1444,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
 
         - ``coefficient_ring`` -- (default: ``None``) the new coefficient ring.
 
+        - ``term_monoid`` -- (default: ``None``) a term monoid factory used
+          for creating the new term.
+
         OUTPUT:
 
         A term monoid.
@@ -1477,7 +1480,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         if self.growth_group is growth_group and \
                 self.coefficient_ring is coefficient_ring:
             return self
-        return TermMonoid(self, growth_group, coefficient_ring)
+        if term_monoid is None:
+            term_monoid = DefaultTermMonoid
+        return term_monoid(self, growth_group, coefficient_ring)
 
     def _repr_(self):
         r"""
@@ -3993,7 +3998,7 @@ class TermMonoidFactory(UniqueFactory):
         return term_class(growth_group, coefficient_ring, **kwds)
 
 
-TermMonoid = TermMonoidFactory("TermMonoid")
+DefaultTermMonoid = TermMonoidFactory('DefaultTermMonoid')
 r"""
 A factory for asymptotic term monoids.
 This is an instance of :class:`TermMonoidFactory` whose documentation

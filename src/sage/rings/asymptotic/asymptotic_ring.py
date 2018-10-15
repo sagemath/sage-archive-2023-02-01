@@ -3013,7 +3013,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         def mapping(term):
             T = term.parent().change_parameter(
-                coefficient_ring=new_coefficient_ring)
+                coefficient_ring=new_coefficient_ring,
+                term_monoid=self.parent().term_monoid)
             if hasattr(term, 'coefficient'):
                 c = f(term.coefficient)
                 if c.is_zero():
@@ -3275,6 +3276,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
       subcategory of ``Category of rings``. This is also the default
       category if ``None`` is specified.
 
+    - ``term_monoid`` -- a :class:`~sage.rings.asymptotic.term_monoid.TermMonoidFactory`.
+      If ``None``, then :class:`~sage.rings.asymptotic.term_monoid.DefaultTermMonoid`
+      is used.
+
     EXAMPLES:
 
     We begin with the construction of an asymptotic ring in various
@@ -3352,7 +3357,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
-                      names=None, category=None, default_prec=None):
+                      names=None, category=None, default_prec=None,
+                      term_monoid=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.
@@ -3471,12 +3477,19 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if default_prec is None:
             default_prec = series_precision()
 
+        if term_monoid is None:
+            from .term_monoid import DefaultTermMonoid
+            term_monoid = DefaultTermMonoid
+
         return super(AsymptoticRing,
                      cls).__classcall__(cls, growth_group, coefficient_ring,
                                         category=category,
-                                        default_prec=default_prec)
+                                        default_prec=default_prec,
+                                        term_monoid=term_monoid)
 
-    def __init__(self, growth_group, coefficient_ring, category, default_prec):
+    def __init__(self, growth_group, coefficient_ring,
+                 category, default_prec,
+                 term_monoid):
         r"""
         See :class:`AsymptoticRing` for more information.
 
@@ -3499,6 +3512,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group
         self._default_prec_ = default_prec
+        self._term_monoid_ = term_monoid
         super(AsymptoticRing, self).__init__(base_ring=coefficient_ring,
                                              category=category)
 
@@ -3554,6 +3568,24 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             123
         """
         return self._default_prec_
+
+
+    @property
+    def term_monoid(self):
+        r"""
+        The term monoid factory of this asymptotic ring.
+
+        EXAMPLES::
+
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: AR.term_monoid
+            term monoid factory "DefaultTermMonoid"
+
+        .. SEEALSO::
+
+            :doc:`term_monoid`
+        """
+        return self._term_monoid_
 
 
     def change_parameter(self, **kwds):

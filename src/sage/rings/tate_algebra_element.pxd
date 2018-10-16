@@ -29,11 +29,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
     cdef _prec
     cdef PolyDict _poly
     cdef list _terms
+    cdef list _terms_nonzero
     cdef bint _is_normalized
 
     cdef _normalize(self)
     cdef TateAlgebraElement _new_c(self)
-    cdef list _terms_c(self)
+    cdef list _terms_c(self, bint include_zero=*)
     cpdef valuation(self)
     cdef TateAlgebraElement _term_mul_c(self, TateAlgebraTerm term)
     cdef TateAlgebraElement _positive_lshift_c(self, n)

@@ -7552,7 +7552,7 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_prime()
             True
         """
-        from sage.graphs.modular_decomposition import NodeType
+        from sage.graphs.graph_decompositions.modular_decomposition import NodeType
 
         if self.order() <= 1:
             return True

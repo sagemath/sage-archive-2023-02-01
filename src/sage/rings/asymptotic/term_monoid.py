@@ -1486,7 +1486,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: TermMonoid('exact', GrowthGroup('x^ZZ'), ZZ).term_monoid_factory
-            Term Monoid Factory 'TermMonoid'
+            Term Monoid Factory '__main__.TermMonoid'
         """
         return self._term_monoid_factory_
 
@@ -4179,7 +4179,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: TermMonoid._cache_key()
             (<class 'sage.rings.asymptotic.term_monoid.TermMonoidFactory'>,
-             'TermMonoid',
+             '__main__.TermMonoid',
              <class 'sage.rings.asymptotic.term_monoid.ExactTermMonoid'>,
              <class 'sage.rings.asymptotic.term_monoid.OTermMonoid'>)
         """

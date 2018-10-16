@@ -466,6 +466,229 @@ def modular_decomposition(graph):
     else:
         return root
 
+def gamma_classes(graph):
+    """
+    Partition the edges of the graph into Gamma classes.
+
+    Two distinct edges are Gamma related if they share a vertex but are not
+    part of a triangle.  A Gamma class of edges is a collection of edges such
+    that any edge in the class can be reached from any other by a chain of
+    Gamma related edges (that are also in the class).
+
+    The two important properties of the Gamma class
+
+    * The vertex set corresponding to a Gamma class is a module
+    * If the graph is not fragile (neither it or its complement is
+    disconnected) then there is exactly one class that visits all the
+    vertices of the graph, and this class consists of just the edges
+    that connect the modules.
+    """
+
+    #inner function
+    def vertex_set(list_of_edges):
+        """
+        Given a list of edges return the set of vertices spanned by those edges.
+        """
+        s = frozenset([])
+        for e in list_of_edges:
+            s = s.union(frozenset(e))
+        return s
+
+    components = {e : i for i,e in enumerate(graph.edges(labels=False))}
+    pieces = { i:[e] for i,e in enumerate(graph.edges(labels=False)) }
+    for v in graph.vertices():
+        neighborhood = graph.subgraph(vertices=graph.neighbors(v))
+        for component in neighborhood.complement().connected_components():
+            v1 = component[0]
+            e = tuple(sorted((v1, v)))
+            for vi in component[1:]:
+                ei = tuple(sorted((vi,v)))
+                if components[e] != components[ei]:
+                    pieces[components[e]] += pieces[components[ei]]
+                    active_edge = components[ei]
+                    for old_edge in pieces[components[ei]]:
+                        components[old_edge] = components[e]
+                    del pieces[active_edge]
+    return {tuple(sorted(vertex_set(loe))) : loe for loe in pieces.values()}
+
+def habib_maurer_algorithm(graph, g_classes=None):
+    """
+    Compute the modular decomposition by the algorithm of Habib and Maurer
+
+
+    INPUT:
+
+    - ``graph`` -- The graph for which modular decomposition
+      tree needs to be computed
+
+    - ``g_classes`` -- A dictionary whose values are the gamma classes of
+      the graph, and whose keys are a sorted tuple of the vertices corresponding
+      to the class.  Used internally.
+
+    OUTPUT:
+
+    A nested list representing the modular decomposition tree computed
+    for the graph
+
+    EXAMPLES:
+
+    The Icosahedral graph is Prime::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
+              habib_maurer_algorithm, test_modular_decomposition, print_md_tree
+        sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))
+        PRIME
+         10
+         4
+         9
+         6
+         2
+         5
+         0
+         1
+         8
+         11
+         3
+         7
+
+    The Octahedral graph is not Prime::
+
+        sage: print_md_tree(habib_maurer_algorithm(graphs.OctahedralGraph()))
+        SERIES
+         PARALLEL
+          0
+          5
+         PARALLEL
+          1
+          4
+         PARALLEL
+          2
+          3
+
+    Tetrahedral Graph is Series::
+
+        sage: print_md_tree(habib_maurer_algorithm(graphs.TetrahedralGraph()))
+        SERIES
+         0
+         1
+         2
+         3
+
+    Modular Decomposition tree containing both parallel and series modules::
+
+        sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
+        sage: g = Graph(d)
+        sage: print_md_tree(habib_maurer_algorithm(g))
+        SERIES
+         PARALLEL
+          1
+          2
+         PARALLEL
+          3
+          4
+         5
+
+    TESTS:
+
+    Bad Input::
+
+        sage: g = DiGraph()
+        sage: habib_maurer_algorithm(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph must be undirected
+
+    Empty Graph is Prime::
+
+        sage: g = Graph()
+        sage: habib_maurer_algorithm(g)
+        PRIME []
+
+    Graph from Marc Tedder implementation of modular decomposition::
+
+        sage: d = {1:[5,4,3,24,6,7,8,9,2,10,11,12,13,14,16,17], 2:[1], \
+                    3:[24,9,1], 4:[5,24,9,1], 5:[4,24,9,1], 6:[7,8,9,1], \
+                    7:[6,8,9,1], 8:[6,7,9,1], 9:[6,7,8,5,4,3,1], 10:[1], \
+                    11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1], \
+                    16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
+        sage: g = Graph(d)
+        sage: test_modular_decomposition(habib_maurer_algorithm(g), g)
+        True
+
+    Graph from the :wikipedia:`Modular_decomposition`::
+
+        sage: d2 = {1:[2,3,4], 2:[1,4,5,6,7], 3:[1,4,5,6,7], 4:[1,2,3,5,6,7], \
+                    5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
+                    7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
+                    10:[6,7,8,9], 11:[6,7,8,9]}
+        sage: g = Graph(d2)
+        sage: test_modular_decomposition(habib_maurer_algorithm(g), g)
+        True
+
+    Tetrahedral Graph is Series::
+
+        sage: print_md_tree(habib_maurer_algorithm(graphs.TetrahedralGraph()))
+        SERIES
+         0
+         1
+         2
+         3
+
+    Modular Decomposition tree containing both parallel and series modules::
+
+        sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
+        sage: g = Graph(d)
+        sage: print_md_tree(habib_maurer_algorithm(g))
+        SERIES
+         PARALLEL
+          1
+          2
+         PARALLEL
+          3
+          4
+         5
+
+    """
+
+    if graph.is_directed():
+        raise ValueError("Graph must be undirected")
+
+    if graph.order() == 0:
+        return create_prime_node()
+
+    if graph.order() == 1:
+        root = create_normal_node(next(graph.vertex_iterator()))
+        return root
+
+    elif not graph.is_connected():
+        root = create_parallel_node()
+        root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
+                 for sg in graph.connected_components()]
+        return root
+
+    elif not graph.complement().is_connected():
+        root = create_series_node()
+        root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
+                 for sg in graph.complement().connected_components()]
+        return root
+
+    else:
+        from collections import defaultdict
+        root = create_prime_node()
+        if g_classes == None:
+            g_classes = gamma_classes(graph)
+        edges = g_classes[tuple(sorted(graph.vertices()))]
+        sub = graph.subgraph(edges=edges)
+        d = defaultdict(list)
+        for v in sub:
+            for v1 in sub.neighbors(v):
+                d[v1].append(v)
+        d1 = defaultdict(list)
+        for k,v in d.iteritems():
+            d1[tuple(sorted(v))].append(k)
+        root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
+                 for sg in d1.values()]
+        return root
 
 def number_components(root, vertex_status):
     """

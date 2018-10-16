@@ -7152,9 +7152,34 @@ class Graph(GenericGraph):
             return list(six.itervalues(core))
 
     @doc_index("Leftovers")
-    def modular_decomposition(self):
+    def modular_decomposition(self, algorithm='tedder'):
         r"""
         Return the modular decomposition of the current graph.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'tedder'``) specifies the algorithm to
+          use among:
+
+          - ``'tedder'`` -- Use the linear algorithm of [TedCorHabPaul08]_.
+
+          - ``'habib'`` -- Use the $O(n^3)$ algorithm of [HabMau1979]_.  This
+            is probably slower, but is much simpler and so possibly less
+            error prone.
+
+        OUTPUT:
+
+        A pair of two values (recursively encoding the decomposition) :
+
+        * The type of the current module :
+
+          * ``"PARALLEL"``
+          * ``"PRIME"``
+          * ``"SERIES"``
+
+        * The list of submodules (as list of pairs ``(type, list)``,
+          recursively...) or the vertex's name if the module is a
+          singleton.
 
         Crash course on modular decomposition:
 
@@ -7201,20 +7226,6 @@ class Graph(GenericGraph):
         Christophe Paul entitled "A survey on Algorithmic aspects of
         modular decomposition" [HabPau10]_.
 
-        OUTPUT:
-
-        A pair of two values (recursively encoding the decomposition) :
-
-        * The type of the current module :
-
-          * ``"PARALLEL"``
-          * ``"PRIME"``
-          * ``"SERIES"``
-
-        * The list of submodules (as list of pairs ``(type, list)``,
-          recursively...) or the vertex's name if the module is a
-          singleton.
-
         EXAMPLES:
 
         The Bull Graph is prime::
@@ -7258,6 +7269,11 @@ class Graph(GenericGraph):
           Christophe Paul
           :arxiv:`0710.3901`
 
+        .. [HabMau1979] M. Habib, and M.C. Maurer
+          On the X-join decomposition for undirected graphs
+          Discrete Applied Mathematics
+          vol 1, issue 3, pages 201-207
+
         TESTS:
 
         empty graph is OK::
@@ -7270,7 +7286,7 @@ class Graph(GenericGraph):
             sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
             (SERIES, [(2, 3), (1, 2)])
         """
-        from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition, NodeType
+        from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition, NodeType, habib_maurer_algorithm
 
         self._scream_if_not_simple()
 
@@ -7280,7 +7296,10 @@ class Graph(GenericGraph):
         if self.order() == 1:
             return (NodeType.PRIME, self.vertices())
 
-        D = modular_decomposition(self)
+        if algorithm == 'habib':
+            D = habib_maurer_algorithm(self)
+        else:
+            D = modular_decomposition(self)
 
         relabel = lambda x : (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else x.children[0]
 
@@ -7526,9 +7545,20 @@ class Graph(GenericGraph):
         return self.planar_dual().is_circumscribable(solver=solver, verbose=verbose)
 
     @doc_index("Graph properties")
-    def is_prime(self):
+    def is_prime(self, algorithm='tedder'):
         r"""
         Test whether the current graph is prime.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'tedder'``) specifies the algorithm to
+          use to find the modular decomposition from among:
+
+          - ``'tedder'`` -- Use the linear algorithm of [TedCorHabPaul08]_.
+
+          - ``'habib'`` -- Use the $O(n^3)$ algorithm of [HabMau1979]_.  This
+            is probably slower, but is much simpler and so possibly less
+            error prone.
 
         A graph is prime if all its modules are trivial (i.e. empty, all of the
         graph or singletons) -- see :meth:`modular_decomposition`.
@@ -7557,7 +7587,7 @@ class Graph(GenericGraph):
         if self.order() <= 1:
             return True
 
-        D = self.modular_decomposition()
+        D = self.modular_decomposition(algorithm=algorithm)
 
         return D[0] == NodeType.PRIME and len(D[1]) == self.order()
 

@@ -425,11 +425,11 @@ class TateAlgebraIdeal(Ideal_generic):
         The test is only relevant over the rings of integers of Tate
         algebras::
         
-            sage: AA = A.integer_ring()
-            sage: II = AA.ideal([f,g])
-            sage: II.is_saturated()
+            sage: Ao = A.integer_ring()
+            sage: Io = Ao.ideal([f,g])
+            sage: Io.is_saturated()
             False
-            sage: II.groebner_basis()
+            sage: Io.groebner_basis()
             [(...0000000001)*x^2*y + (...1210121020) + O(3^10),
              (...0000000001)*x*y^2 + (...1210121020)*x^2 + O(3^10),
              (...0000000010)*x^3 + (...2222222220)*y + O(3^10),
@@ -437,7 +437,7 @@ class TateAlgebraIdeal(Ideal_generic):
 
         Principal ideals are always saturated::
 
-            sage: AA.ideal([f]).is_saturated()
+            sage: Ao.ideal([f]).is_saturated()
             True
         
         """
@@ -488,25 +488,25 @@ class TateAlgebraIdeal(Ideal_generic):
         However, the result might be different over the ring of integers
         of a Tate algebra::
         
-            sage: AA = A.integer_ring()
-            sage: II = AA.ideal([f,g])
-            sage: IIs = II.saturate(); IIs
+            sage: Ao = A.integer_ring()
+            sage: Io = Ao.ideal([f,g])
+            sage: Ios = Io.saturate(); Ios
             Ideal ((...0000000001)*x^2*y + (...1210121020) + O(3^10),
                    (...0000000001)*x*y^2 + (...1210121020)*x^2 + O(3^10),
                    (...000000001)*x^3 + (...222222222)*y + O(3^9),
                    (...000000001)*y^2 + (...210121020)*x + O(3^9))
              of Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
 
-            sage: II == IIs
+            sage: Io == Ios
             False
-            sage: IIs.is_saturated()
+            sage: Ios.is_saturated()
             True
 
         TESTS::
 
-            sage: II < IIs
+            sage: Io < Ios
             True
-            sage: 3*IIs < II
+            sage: 3*Ios < Io
             True
         
         """

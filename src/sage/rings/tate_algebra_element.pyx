@@ -661,9 +661,9 @@ cdef class TateAlgebraTerm(MonoidElement):
         But coefficients play a role when we are working over
         the ring of integers of the Tate Algebra::
 
-            sage: AA = A.integer_ring()
-            sage: TT = AA.monoid_of_terms()
-            sage: TT(s).is_coprime_with(TT(t))
+            sage: Ao = A.integer_ring()
+            sage: To = Ao.monoid_of_terms()
+            sage: To(s).is_coprime_with(To(t))
             False
 
         """
@@ -853,19 +853,19 @@ cdef class TateAlgebraTerm(MonoidElement):
         divisibility is always checked in the ring of integers (even if
         ``integral`` is set to ``False``)::
 
-            sage: AA = A.integer_ring()
-            sage: TT = AA.monoid_of_terms()
-            sage: ss = TT(s)
-            sage: tt = TT(t)
-            sage: ss.is_divisible_by(tt)
+            sage: Ao = A.integer_ring()
+            sage: To = Ao.monoid_of_terms()
+            sage: so = To(s)
+            sage: to = To(t)
+            sage: so.is_divisible_by(to)
             False
-            sage: ss.is_divisible_by(tt, integral=False)
+            sage: so.is_divisible_by(to, integral=False)
             False
 
         Be careful that coercion between the Tate algebra and its ring of
         integers can be done silently::
 
-            sage: s.is_divisible_by(tt)
+            sage: s.is_divisible_by(to)
             True
 
         """
@@ -911,19 +911,19 @@ cdef class TateAlgebraTerm(MonoidElement):
         divisibility is always checked in the ring of integers (even if
         ``integral`` is set to ``False``)::
 
-            sage: AA = A.integer_ring()
-            sage: TT = AA.monoid_of_terms()
-            sage: ss = TT(s)
-            sage: tt = TT(t)
-            sage: tt.divides(ss)
+            sage: Ao = A.integer_ring()
+            sage: To = Ao.monoid_of_terms()
+            sage: so = To(s)
+            sage: to = To(t)
+            sage: to.divides(so)
             False
-            sage: tt.divides(ss, integral=False)
+            sage: to.divides(so, integral=False)
             False
 
         Be careful that coercion between the Tate algebra and its ring of
         integers can be done silently::
 
-            sage: tt.divides(s)
+            sage: to.divides(s)
             True
 
         """
@@ -1455,8 +1455,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f.is_unit()
             True
 
-            sage: AA = A.integer_ring()
-            sage: AA(f).is_unit()
+            sage: Ao = A.integer_ring()
+            sage: Ao(f).is_unit()
             False
 
         """
@@ -1969,8 +1969,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         output is the result of the integer division of the Tate series by 
         `\pi^{-n}` where `\pi` is a uniformizer.
 
-            sage: AA = A.integer_ring()
-            sage: AA(f) << -1
+            sage: Ao = A.integer_ring()
+            sage: Ao(f) << -1
             (...0000000001)*x^2 + (...000000000)*x^3 + (...000000000)*x
 
         """
@@ -2000,8 +2000,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         result is truncated -- that is, the output is the result of the integer 
         division of the Tate series by `\pi^n` where `\pi` is a uniformizer.
 
-            sage: AA = A.integer_ring()
-            sage: AA(f) << -1
+            sage: Ao = A.integer_ring()
+            sage: Ao(f) << -1
             (...0000000001)*x^2 + (...000000000)*x^3 + (...000000000)*x
 
         """
@@ -3048,9 +3048,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
             sage: R = Zp(2, 10)
             sage: A.<u,v> = TateAlgebra(R)
-            sage: AA = A.integer_ring()
+            sage: Ao = A.integer_ring()
 
-            sage: f = AA(u^2 + 2*v^2)
+            sage: f = Ao(u^2 + 2*v^2)
             sage: f.quo_rem(u)  # indirect doctest
             ((1 + O(2^10))*u, (2 + O(2^10))*v^2 + O(2^10))
 

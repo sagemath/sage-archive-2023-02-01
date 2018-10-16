@@ -51,8 +51,8 @@ However the method :meth:`integer_ring` constructs the integer ring
 of a Tate algebra, that is the subring consisting of series bounded
 by `1` on the domain of convergence::
 
-    sage: AA = A.integer_ring()
-    sage: AA
+    sage: Ao = A.integer_ring()
+    sage: Ao
     Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 5
 
 Now we can build elements::
@@ -210,11 +210,11 @@ class TateAlgebraFactory(UniqueFactory):
     If we want to construct the ring of integers of the Tate algebra,
     we must use the method :meth:`integer_ring`::
 
-        sage: AA = A.integer_ring(); AA
+        sage: Ao = A.integer_ring(); Ao
         Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-        sage: AA.base_ring()
+        sage: Ao.base_ring()
         2-adic Ring with capped relative precision 10
-        sage: AA.base_ring() is R
+        sage: Ao.base_ring() is R
         True
 
     The term ordering is used (in particular) to determine how series are
@@ -547,11 +547,11 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
         If we really want to create an integral Tate algebra,
         we have to invoke the method :meth:`integer_ring`::
 
-            sage: AA = A.integer_ring(); AA
+            sage: Ao = A.integer_ring(); Ao
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
-            sage: AA.base_ring()
+            sage: Ao.base_ring()
             2-adic Ring with capped relative precision 10
-            sage: AA.base_ring() is R
+            sage: Ao.base_ring() is R
             True
 
         """
@@ -845,10 +845,10 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: A2 = pushout(A, R2); A2
             Tate Algebra in u (val >= -2), v (val >= -4) over 2-adic Eisenstein Extension Field in pi defined by x^2 - 2
 
-            sage: AA = A.integer_ring()
-            sage: pushout(AA, R1)
+            sage: Ao = A.integer_ring()
+            sage: pushout(Ao, R1)
             Integer ring of the Tate Algebra in u (val >= -1), v (val >= -2) over 2-adic Unramified Extension Field in a defined by x^2 + x + 1
-            sage: pushout(AA, R2.fraction_field())
+            sage: pushout(Ao, R2.fraction_field())
             Tate Algebra in u (val >= -2), v (val >= -4) over 2-adic Eisenstein Extension Field in pi defined by x^2 - 2
 
         TESTS::
@@ -1079,13 +1079,13 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
             sage: R = Zp(2, 10)
             sage: A.<x,y> = TateAlgebra(R)
-            sage: AA = A.integer_ring()
-            sage: AA
+            sage: Ao = A.integer_ring()
+            sage: Ao
             Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
 
-            sage: x in AA
+            sage: x in Ao
             True
-            sage: x/2 in AA
+            sage: x/2 in Ao
             False
 
         """
@@ -1232,10 +1232,10 @@ class TateAlgebra_generic(CommutativeAlgebra):
         Note that if we are already working on the ring of integers,
         specifying ``integral=False`` has no effect::
 
-            sage: AA = A.integer_ring()
-            sage: f = AA.random_element(integral=False); f  # random
+            sage: Ao = A.integer_ring()
+            sage: f = Ao.random_element(integral=False); f  # random
             (...1100111011)*x^2 + (...1110100101)*x + (...1100001101)*y + (...1110110001) + (...01011010110)*y^2
-            sage: f in AA
+            sage: f in Ao
             True
 
         When the log radii are negative, integral series may have non

@@ -424,13 +424,13 @@ Sage example in ./nonlinear.tex, line 1198::
 Sage example in ./nonlinear.tex, line 1230::
 
     sage: generator = quadraticgen(f, a, b)
-    sage: iterate(generator, check=checkconv)
+    sage: iterate(generator, check=checkconv) # py2
     After 5 iterations: 2.15846852554764
 
 Sage example in ./nonlinear.tex, line 1287::
 
     sage: rings = [ZZ, QQ, QQbar, RDF, RIF, RR, AA, CDF, CIF, CC]
-    sage: for ring in rings:
+    sage: for ring in rings: # py2
     ....:   print("{0:50} {1}".format(ring, ring.is_exact()))
     Integer Ring                                       True
     Rational Field                                     True
@@ -463,7 +463,7 @@ Sage example in ./nonlinear.tex, line 1419::
     sage: accelseq = steffensen(newtongen(g, RR(0.7)))
     sage: iterate(sequence, check=checkconv)
     After 17 iterations: 1.41422192763287
-    sage: iterate(accelseq, check=checkconv)
+    sage: iterate(accelseq, check=checkconv) # py2
     After 10 iterations: 1.41421041980166
 
 Sage example in ./nonlinear.tex, line 1432::
@@ -472,7 +472,7 @@ Sage example in ./nonlinear.tex, line 1432::
     sage: accelseq = steffensen(newtongen(f, RR(a)))
     sage: iterate(sequence, check=checkconv)
     After 6 iterations: 2.15846852566756
-    sage: iterate(accelseq, check=checkconv)
+    sage: iterate(accelseq, check=checkconv) # py2
     After 7 iterations: 2.15846852554764
 
 Sage example in ./nonlinear.tex, line 1457::

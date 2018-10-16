@@ -28,16 +28,16 @@ Sage example in ./mpoly.tex, line 52::
 
 Sage example in ./mpoly.tex, line 59::
 
-  sage: test_poly(QQ['x,y'])
+  sage: test_poly(QQ['x,y']) # py2
   x^3 + x^2*y + x*y^2 + y^3 + x^2 + x*y + y^2 + x + y + 1
-  sage: test_poly(QQ['y,x'])
+  sage: test_poly(QQ['y,x']) # py2
   y^3 + y^2*x + y*x^2 + x^3 + y^2 + y*x + x^2 + y + x + 1
-  sage: test_poly(QQ['x,y']) == test_poly(QQ['y,x'])
+  sage: test_poly(QQ['x,y']) == test_poly(QQ['y,x']) # py2
   True
 
 Sage example in ./mpoly.tex, line 74::
 
-  sage: test_poly(PolynomialRing(QQ, 'x,y', order='deglex'))
+  sage: test_poly(PolynomialRing(QQ, 'x,y', order='deglex')) # py2
   x^3 + x^2*y + x*y^2 + y^3 + x^2 + x*y + y^2 + x + y + 1
 
 Sage example in ./mpoly.tex, line 138::
@@ -102,7 +102,7 @@ Sage example in ./mpoly.tex, line 333::
 
 Sage example in ./mpoly.tex, line 339::
 
-  sage: J.variety()
+  sage: J.variety() # py2
   [{y: 2, z: 1, x: 3}]
 
 Sage example in ./mpoly.tex, line 347::

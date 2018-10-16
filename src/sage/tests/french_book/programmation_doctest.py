@@ -20,7 +20,7 @@ Sage example in ./programmation.tex, line 78::
 
 Sage example in ./programmation.tex, line 113::
 
-  sage: import keyword; keyword.kwlist
+  sage: import keyword; keyword.kwlist # py2
   ['and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del',
   'elif', 'else', 'except', 'exec', 'finally', 'for', 'from',
   'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 'pass',
@@ -356,29 +356,29 @@ Sage example in ./programmation.tex, line 1476::
 
 Sage example in ./programmation.tex, line 1493::
 
-  sage: map (cos, [0, pi/6, pi/4, pi/3, pi/2])
+  sage: map (cos, [0, pi/6, pi/4, pi/3, pi/2]) # py2
   [1, 1/2*sqrt(3), 1/2*sqrt(2), 1/2, 0]
 
 Sage example in ./programmation.tex, line 1501::
 
-  sage: map (lambda t: cos(t), [0, pi/6, pi/4, pi/3, pi/2])
+  sage: map (lambda t: cos(t), [0, pi/6, pi/4, pi/3, pi/2]) # py2
   [1, 1/2*sqrt(3), 1/2*sqrt(2), 1/2, 0]
 
 Sage example in ./programmation.tex, line 1526::
 
-  sage: map (lambda t: N(cos(t)), [0, pi/6, pi/4, pi/3, pi/2])
+  sage: map (lambda t: N(cos(t)), [0, pi/6, pi/4, pi/3, pi/2]) # py2
   [1.00000000000000, 0.866025403784439, 0.707106781186548,
   0.500000000000000, 0.000000000000000]
 
 Sage example in ./programmation.tex, line 1538::
 
-  sage: map (N, map (cos, [0, pi/6, pi/4, pi/3, pi/2]))
+  sage: map (N, map (cos, [0, pi/6, pi/4, pi/3, pi/2])) # py2
   [1.00000000000000, 0.866025403784439, 0.707106781186548,
   0.500000000000000, 0.000000000000000]
 
 Sage example in ./programmation.tex, line 1543::
 
-  sage: map (compose(N, cos), [0, pi/6, pi/4, pi/3, pi/2])
+  sage: map (compose(N, cos), [0, pi/6, pi/4, pi/3, pi/2]) # py2
   [1.00000000000000, 0.866025403784439, 0.707106781186548,
   0.500000000000000, 0.000000000000000]
 
@@ -415,18 +415,18 @@ Sage example in ./programmation.tex, line 1590::
 
 Sage example in ./programmation.tex, line 1609::
 
-  sage: reduce (lambda x, y: 10*x+y, [1, 2, 3, 4])
+  sage: reduce (lambda x, y: 10*x+y, [1, 2, 3, 4]) # py2
   1234
 
 Sage example in ./programmation.tex, line 1614::
 
-  sage: reduce (lambda x, y: 10*x+y, [9, 8, 7, 6], 1)
+  sage: reduce (lambda x, y: 10*x+y, [9, 8, 7, 6], 1) # py2
   19876
 
 Sage example in ./programmation.tex, line 1621::
 
   sage: L = [2*n+1 for n in [0..9]]
-  sage: reduce (lambda x, y: x*y, L, 1)
+  sage: reduce (lambda x, y: x*y, L, 1) # py2
   654729075
 
 Sage example in ./programmation.tex, line 1672::
@@ -458,7 +458,7 @@ Sage example in ./programmation.tex, line 1709::
 
 Sage example in ./programmation.tex, line 1716::
 
-  sage: map (lambda x, y: [x, y], [1..3], [6..8])
+  sage: map (lambda x, y: [x, y], [1..3], [6..8]) # py2
   [[1, 6], [2, 7], [3, 8]]
 
 Sage example in ./programmation.tex, line 1723::
@@ -580,7 +580,7 @@ Sage example in ./programmation.tex, line 1991::
 
 Sage example in ./programmation.tex, line 2001::
 
-  sage: S = 'Ceci est une chaîne de caractères.'; S
+  sage: S = 'Ceci est une chaîne de caractères.'; S # py2
   'Ceci est une cha\xc3\xaene de caract\xc3\xa8res.'
   sage: print(S)
   Ceci est une chaîne de caractères.
@@ -663,7 +663,7 @@ Sage example in ./programmation.tex, line 2275::
 
 Sage example in ./programmation.tex, line 2283::
 
-  sage: Set([Set([]), Set([1]), Set([2]), Set([1, 2])])
+  sage: Set([Set([]), Set([1]), Set([2]), Set([1, 2])]) # py2
   {{1, 2}, {}, {2}, {1}}
   sage: Set([    (),     (1, ),    (2, ),    (1, 2) ])
   {(1, 2), (2,), (), (1,)}
@@ -682,7 +682,7 @@ Sage example in ./programmation.tex, line 2298::
 
 Sage example in ./programmation.tex, line 2302::
 
-  sage: Parties(Set([1, 2, 3]))
+  sage: Parties(Set([1, 2, 3])) # py2
   {{3}, {1, 2}, {}, {2, 3}, {1}, {1, 3}, {1, 2, 3}, {2}}
 
 Sage example in ./programmation.tex, line 2324::

@@ -7270,7 +7270,7 @@ class Graph(GenericGraph):
             sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
             (SERIES, [(2, 3), (1, 2)])
         """
-        from sage.graphs.modular_decomposition import modular_decomposition, NodeType
+        from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition, NodeType
 
         self._scream_if_not_simple()
 

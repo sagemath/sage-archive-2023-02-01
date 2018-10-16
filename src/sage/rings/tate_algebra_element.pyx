@@ -2991,6 +2991,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef list quos = [ ]
         cdef list terms = self._terms_c()
         cdef int index = 0
+        cdef bint in_rem
 
         if quo:
             for d in divisors:
@@ -3006,16 +3007,19 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             lt = terms[index]
             if lt._valuation_c() >= f._prec:
                 break
-            for i in range(len(divisors)):
-                if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=integral):
-                    factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
-                    f = f - (<TateAlgebraElement>divisors[i])._term_mul_c(factor)
-                    terms = f._terms_c()
-                    index = 0
-                    if quo:
-                        quos[i] = (<TateAlgebraElement>quos[i]) + factor
-                    break
-            else:
+            in_rem = True
+            if not lt._coeff.is_zero():  # is it a good idea?
+                for i in range(len(divisors)):
+                    if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=integral):
+                        factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
+                        f = f - (<TateAlgebraElement>divisors[i])._term_mul_c(factor)
+                        terms = f._terms_c()
+                        index = 0
+                        if quo:
+                            quos[i] = (<TateAlgebraElement>quos[i]) + factor
+                        in_rem = False
+                        break
+            if in_rem:
                 if rem:
                     if coeffs.has_key(lt._exponent):
                         coeffs[lt._exponent] += lt._coeff

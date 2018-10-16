@@ -3248,6 +3248,20 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         - ``other`` -- a Tate series
 
+        NOTE:
+
+        If `f` and `g` are two Tate series with leading term
+        `t_f` and `t_g` respectively, the S-polynomial of `f`
+        and `g` is defined by
+
+        .. MATH::
+
+            S(f,g) = \frac{\text{lcm}(t_f,t_g)}{t_f}} f - \frac{\text{lcm}(t_f,t_g)}{t_g}} g
+
+        By construction the terms in `\text{lcm}(t_f,t_g)` cancel,
+        so that the leading term of `S(f,g)` is strictly smaller
+        than `\text{lcm}(t_f,t_g)`.
+
         EXAMPLES::
 
             sage: R = Zp(2, 5, print_mode="digits")

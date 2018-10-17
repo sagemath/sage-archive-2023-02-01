@@ -1479,6 +1479,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         - ``exponent`` -- either an integer, a rational number or a
           Tate series
 
+        - ``modulus`` -- discarded
+
         EXEMPLES::
 
             sage: R = Zp(3, prec=4, print_mode="digits")
@@ -1510,12 +1512,21 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         The exponent can be a series as well::
 
-            sage: g = f^f; g
-            (...0001) + (...0020)*x^2 + (...1100)*x^4 + (...0100)*y^2 + (...1000)*x^8 + (...1000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+            sage: g = f^x; g
+            (...0001) + (...0020)*x^3 + (...1100)*x^9 + (...2200)*x^7 + ... + O(3^4)
 
-            sage: x0 = 3 * R.random_element()
-            sage: y0 = 3 * R.random_element()
-            sage: g(x0, y0) == f(x0, y0)^f(x0, y0)
+            sage: x0 = R.random_element()
+            sage: y0 = R.random_element()
+            sage: g(x0, y0) == f(x0, y0)^x0
+            True
+
+        TESTS::
+
+            sage: f^(x + y) == f^x * f^y
+            True
+            sage: f^(x*y) == (f^x)^y
+            True
+            sage: f^(x*y) == (f^y)^x
             True
 
         """
@@ -1525,7 +1536,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             if exponent == 0:
                 return (<TateAlgebraElement>self)._parent.one()
             elif exponent > 0:
-                # We change the precision
+                # We handle precision
                 temp = (<TateAlgebraElement>self)._new_c()
                 temp._poly = (<TateAlgebraElement>self)._poly
                 if (<TateAlgebraElement>self)._prec is Infinity:
@@ -1541,9 +1552,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                         if r != 0: break
                         temp._prec = min(p * temp._prec, temp._prec + e)
                 # and perform the exponentiation
-                return CommutativeAlgebraElement.__pow__(temp, exponent, modulus)
+                return CommutativeAlgebraElement.__pow__(temp, exponent, None)
             else:
                 return self.inverse_of_unit() ** (-exponent)
+        elif exponent in QQ:
+            exponent = QQ(exponent)
+            return self.nth_root(exponent.denominator()) ** exponent.numerator()
         else:
             return ((<TateAlgebraElement>self).log() * exponent).exp()
 

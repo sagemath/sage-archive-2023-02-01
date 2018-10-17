@@ -670,7 +670,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
             `s` = Schur).
 
-            :meth:`omega_involution()` is a synonym for the :meth`omega()`
+            :meth:`omega_involution` is a synonym for the :meth:`omega`
             method.
 
             OUTPUT:
@@ -735,7 +735,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
                 sage: h = m.dual_basis(scalar=zee)
                 sage: a = h([2,1])
                 sage: a.scalar_hl(a)
-                (t + 2)/(-t^4 + 2*t^3 - 2*t + 1)
+                (-t - 2)/(t^4 - 2*t^3 + 2*t - 1)
             """
             return self._dual.scalar_hl(x)
 
@@ -894,6 +894,6 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             return self._dual.expand(n, alphabet)
 
 # Backward compatibility for unpickling
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.sf.dual', 'SymmetricFunctionAlgebraElement_dual',  SymmetricFunctionAlgebra_dual.Element)
 

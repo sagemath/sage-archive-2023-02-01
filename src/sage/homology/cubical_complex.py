@@ -35,8 +35,10 @@ a list (or tuple) of "intervals", and an "interval" is a pair of
 integers, of one of the two forms `[i, i]` or `[i, i+1]`.  So the
 cubical complex ``S1`` above has four maximal cubes::
 
-    sage: S1.maximal_cells()
-    {[0,0] x [2,3], [1,1] x [2,3], [0,1] x [3,3], [0,1] x [2,2]}
+    sage: len(S1.maximal_cells())
+    4
+    sage: sorted(S1.maximal_cells())
+    [[0,0] x [2,3], [0,1] x [2,2], [0,1] x [3,3], [1,1] x [2,3]]
 
 The first of these, for instance, is the product of the degenerate
 interval `[0,0]` with the unit interval `[2,3]`: this is the line
@@ -63,8 +65,8 @@ reflected in the fact that they have isomorphic homology groups.
    see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
    page instead.
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import zip
 
 from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
@@ -228,8 +230,8 @@ class Cube(SageObject):
         t = t + ((0,0),) * (embed-len(t))
         vec = tuple(vec) + (0,) * (embed-len(vec))
         new = []
-        for (a,b) in zip(t, vec):
-            new.append([a[0]+b, a[1]+b])
+        for (a, b) in zip(t, vec):
+            new.append([a[0] + b, a[1] + b])
         return Cube(new)
 
     def __getitem__(self, n):
@@ -395,9 +397,9 @@ class Cube(SageObject):
             sage: C.faces_as_pairs()
             [([2,2] x [3,4], [1,1] x [3,4]), ([1,2] x [4,4], [1,2] x [3,3])]
         """
-        upper = [self.face(i,True) for i in range(self.dimension())]
-        lower = [self.face(i,False) for i in range(self.dimension())]
-        return zip(upper,lower)
+        upper = [self.face(i, True) for i in range(self.dimension())]
+        lower = [self.face(i, False) for i in range(self.dimension())]
+        return list(zip(upper, lower))
 
     def _compare_for_gluing(self, other):
         r"""
@@ -462,8 +464,8 @@ class Cube(SageObject):
         translate = []
         self_tuple = self.tuple()
         other_tuple = other.tuple()
-        nondegen = (zip(self.nondegenerate_intervals(),
-                        other.nondegenerate_intervals())
+        nondegen = (list(zip(self.nondegenerate_intervals(),
+                        other.nondegenerate_intervals()))
                     + [(len(self_tuple), len(other_tuple))])
         old = (-1, -1)
         self_added = 0
@@ -800,8 +802,29 @@ class CubicalComplex(GenericCellComplex):
 
     You can get the set of maximal cells or a dictionary of all cells::
 
-        sage: X.maximal_cells()
+        sage: X.maximal_cells() # random: order may depend on the version of Python
         {[0,0] x [2,3] x [-12,-12], [0,1] x [3,3] x [5,5], [0,1] x [2,2] x [3,3], [0,1] x [2,2] x [0,0], [0,1] x [3,3] x [6,6], [1,1] x [2,3] x [0,0], [0,1] x [2,2] x [-12,-12], [0,0] x [2,3] x [6,6], [1,1] x [2,3] x [-12,-12], [1,1] x [2,3] x [5,5], [0,1] x [2,2] x [5,5], [0,1] x [3,3] x [3,3], [1,1] x [2,3] x [3,3], [0,0] x [2,3] x [5,5], [0,1] x [3,3] x [0,0], [1,1] x [2,3] x [6,6], [0,1] x [2,2] x [6,6], [0,0] x [2,3] x [0,0], [0,0] x [2,3] x [3,3], [0,1] x [3,3] x [-12,-12]}
+        sage: sorted(X.maximal_cells())
+        [[0,0] x [2,3] x [-12,-12],
+         [0,0] x [2,3] x [0,0],
+         [0,0] x [2,3] x [3,3],
+         [0,0] x [2,3] x [5,5],
+         [0,0] x [2,3] x [6,6],
+         [0,1] x [2,2] x [-12,-12],
+         [0,1] x [2,2] x [0,0],
+         [0,1] x [2,2] x [3,3],
+         [0,1] x [2,2] x [5,5],
+         [0,1] x [2,2] x [6,6],
+         [0,1] x [3,3] x [-12,-12],
+         [0,1] x [3,3] x [0,0],
+         [0,1] x [3,3] x [3,3],
+         [0,1] x [3,3] x [5,5],
+         [0,1] x [3,3] x [6,6],
+         [1,1] x [2,3] x [-12,-12],
+         [1,1] x [2,3] x [0,0],
+         [1,1] x [2,3] x [3,3],
+         [1,1] x [2,3] x [5,5],
+         [1,1] x [2,3] x [6,6]]
         sage: S1.cells()
         {-1: set(),
          0: {[0,0] x [2,2], [0,0] x [3,3], [1,1] x [2,2], [1,1] x [3,3]},
@@ -937,10 +960,10 @@ class CubicalComplex(GenericCellComplex):
 
     def __ne__(self, other):
         r"""
-        Return True if ``self`` and ``other`` are not equal
+        Return True if ``self`` and ``other`` are not equal.
 
         :param other: another cubical complex
-        :return: True if the compexes are not equal
+        :return: True if the complexes are not equal
         :rtype: bool
 
         EXAMPLES::
@@ -963,12 +986,10 @@ class CubicalComplex(GenericCellComplex):
 
             sage: I1 = cubical_complexes.Cube(1)
             sage: I2 = cubical_complexes.Cube(1)
-            sage: hash(I1)
-            2025268965           # 32-bit
-            6535457225869567717  # 64-bit
-            sage: hash(I1.product(I1))
-            -117854811           # 32-bit
-            -1640877824464540251 # 64-bit
+            sage: hash(I1) == hash(I2)
+            True
+            sage: hash(I1.product(I1)) == hash(I2.product(I1))
+            True
         """
         return hash(frozenset(self._facets))
 
@@ -1013,11 +1034,9 @@ class CubicalComplex(GenericCellComplex):
             {[0,1] x [0,0]}
         """
         other_facets = other.maximal_cells()
-        answer = True
-        for cube in self.maximal_cells():
-            answer = answer and any([cube.is_face(other_cube)
-                                     for other_cube in other_facets])
-        return answer
+        return all(any(cube.is_face(other_cube)
+                       for other_cube in other_facets)
+                   for cube in self.maximal_cells())
 
     def cells(self, subcomplex=None):
         """
@@ -1177,7 +1196,7 @@ class CubicalComplex(GenericCellComplex):
             empty_cell = 1  # number of (-1)-dimensional cubes
         else:
             empty_cell = 0
-        vertices = self.n_cells(0, subcomplex=subcomplex)
+        vertices = self._n_cells_sorted(0, subcomplex=subcomplex)
         n = len(vertices)
         mat = matrix(base_ring, empty_cell, n, n*empty_cell*[1])
         if cochain:
@@ -1207,7 +1226,7 @@ class CubicalComplex(GenericCellComplex):
                 # dictionary seems to be faster than finding the index
                 # of an entry in a list.
                 old = dict(zip(current, range(len(current))))
-                current = list(self.n_cells(dim, subcomplex=subcomplex))
+                current = self._n_cells_sorted(dim, subcomplex=subcomplex)
                 # construct matrix.  it is easiest to construct it as
                 # a sparse matrix, specifying which entries are
                 # nonzero via a dictionary.

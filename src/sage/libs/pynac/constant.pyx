@@ -19,6 +19,7 @@ from __future__ import absolute_import, division, print_function
 from .pynac cimport *
 from sage.symbolic.expression cimport new_Expression_from_GEx
 from sage.symbolic.ring import SR
+from sage.cpython.string cimport str_to_bytes
 
 
 cdef class PynacConstant:
@@ -53,8 +54,9 @@ cdef class PynacConstant:
 
         self._name = name
 
-        #For the constants explicitly defined in constant.cpp in the Pynac
-        #library, we use those symbols.
+        # For the constants explicitly defined in constant.cpp in the
+        # Pynac library, we use those symbols. Otherwise, we create a
+        # new constant stored in *self._object
         if self._name == "pi":
             self.pointer = <GConstant *>&g_Pi
         elif self._name == "catalan":
@@ -64,12 +66,12 @@ cdef class PynacConstant:
         elif self._name == "NaN":
             self.pointer = <GConstant *>&g_NaN
         else:
-            GConstant_construct(&self.object, name, texname, domain)
-            self.pointer = &self.object
+            self._object = new GConstant(str_to_bytes(name), ConstantEvalf,
+                                         str_to_bytes(texname), domain)
+            self.pointer = self._object
 
     def __dealloc__(self):
-        if self.pointer == & self.object:
-            GConstant_destruct(&self.object)
+        del self._object
 
     def serial(self):
         """
@@ -118,7 +120,7 @@ cdef class PynacConstant:
             sage: f + 2
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': '<type 'sage.libs.pynac.constant.PynacConstant'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for +: '<type 'sage.libs.pynac.constant.PynacConstant'>' and 'Integer Ring'
 
             sage: foo = f.expression(); foo
             foo

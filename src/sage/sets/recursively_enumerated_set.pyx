@@ -281,7 +281,7 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
 
     TESTS:
 
-    The succesors method is an attribute::
+    The successors method is an attribute::
 
         sage: R = RecursivelyEnumeratedSet([1], lambda x: [x+1, x-1])
         sage: R.successors(4)
@@ -296,7 +296,8 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
         (1, 2, 3)
     """
     if structure is None:
-        if enumeration is None: enumeration = 'breadth'
+        if enumeration is None:
+            enumeration = 'breadth'
         return RecursivelyEnumeratedSet_generic(seeds, successors,
                 enumeration, max_depth, facade=facade, category=category)
     if structure == 'symmetric':
@@ -446,9 +447,9 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: len(C)
             Traceback (most recent call last):
             ...
-            TypeError: 'NoneType' object cannot be interpreted as an index
+            TypeError: cannot compute length of A recursively enumerated set (breadth first search)
         """
-        return None
+        raise TypeError(f"cannot compute length of {self}")
 
     def __iter__(self):
         r"""
@@ -798,7 +799,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             x = todo.pop()
             yield x
             for y in self.successors(x):
-                if y == None or y in known:
+                if y is None or y in known:
                     continue
                 todo.add(y)
                 known.add(y)
@@ -919,7 +920,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         sage: loads(dumps(C))
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+        PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
 
     This works in the command line but apparently not as a doctest::
 
@@ -928,7 +929,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         sage: loads(dumps(C))
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+        PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
     """
     breadth_first_search_iterator = RecursivelyEnumeratedSet_generic._breadth_first_search_iterator_from_graded_component_iterator
 

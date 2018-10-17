@@ -15,7 +15,6 @@ from __future__ import absolute_import
 from six.moves import range
 
 from . import ambient_space
-from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
 
@@ -380,5 +379,5 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         return CartanTypeFolded(self, ['E', 6], [[2], [4], [3, 5], [1, 6]])
 
 # For unpickling backward compatibility (Sage <= 4.1)
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_F', 'ambient_space',  AmbientSpace)

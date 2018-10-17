@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Rank Decompositions of graphs
 
@@ -13,8 +14,8 @@ of `S` in `G`, denoted `rw_G(S)`, is equal to the rank in `GF(2)` of the `|S|
 `\overline S` is the complement of `S` in `V(G)`.
 
 A *rank-decomposition* of `G` is a tree whose `n` leaves are the elements of
-`V(G)`, and whose internal noes have degree 3. In a tree, ay edge naturally
-corresponds to a bipartition of the vertex set : indeed, the reoal of any edge
+`V(G)`, and whose internal nodes have degree 3. In a tree, any edge naturally
+corresponds to a bipartition of the vertex set : indeed, the removal of any edge
 splits the tree into two connected components, thus splitting the set of leaves
 (i.e. vertices of `G`) into two sets. Hence we can define for any edge `e\in
 E(G)` a width equal to the value `rw_G(S)` or `rw_G(\overline S)`, where
@@ -75,7 +76,7 @@ from the smaller of the two and its complement.
       it to us, what we need is some information on the hardware you run to know
       where it comes from !
 
-EXAMPLE::
+EXAMPLES::
 
         sage: g = graphs.PetersenGraph()
         sage: g.rank_decomposition()
@@ -116,15 +117,19 @@ Methods
 """
 
 #*****************************************************************************
-#      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gail.com>
+#       Copyright (C) 2011 Nathann Cohen <nathann.cohen@gail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport *
 
 from libc.string cimport memset
 
@@ -150,7 +155,7 @@ def rank_decomposition(G, verbose = False):
     numerical value and ``decomposition_tree`` is a ternary tree describing the
     decomposition (cf. the module's documentation).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
         sage: g = graphs.PetersenGraph()
@@ -298,7 +303,7 @@ def mkgraph(int num_vertices):
 
     (This function is for internal use)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
         sage: g = graphs.PetersenGraph()
@@ -313,7 +318,7 @@ def mkgraph(int num_vertices):
     from sage.graphs.graph import Graph
     g = Graph()
 
-    cdef subset_t * tab = <subset_t *> sig_malloc(sizeof(subset_t) * (2*num_vertices -1))
+    cdef subset_t * tab = <subset_t *>check_allocarray(2*num_vertices - 1, sizeof(subset_t))
     tab[0] = 0x7ffffffful >> (31 - num_vertices)
 
     cdef int beg = 0

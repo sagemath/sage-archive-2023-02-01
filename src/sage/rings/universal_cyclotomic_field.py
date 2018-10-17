@@ -147,15 +147,24 @@ Check that :trac:`17117` is fixed::
     sage: imag(e3)
     -1/2*E(12)^7 + 1/2*E(12)^11
 
+Check that :trac:`25686` is fixed::
+
+    sage: UCF = UniversalCyclotomicField()
+    sage: UCF.is_finite()
+    False
+
 AUTHORS:
 
 - Christian Stump (2013): initial Sage version (see :trac:`8327`)
 
 - Vincent Delecroix (2015): complete rewriting using libgap (see :trac:`18152`)
+
+- Sebastian Oehms (2018): deleting the method is_finite since it returned the wrong result (see :trac:`25686`)
 """
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 
+from sage.structure.richcmp import rich_to_bool
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import FieldElement, parent
 from sage.structure.coerce import py_scalar_to_element
@@ -262,9 +271,9 @@ class UniversalCyclotomicFieldElement(FieldElement):
         r"""
         INPUT:
 
-        - ``parent`` - a universal cyclotomic field
+        - ``parent`` -- a universal cyclotomic field
 
-        - ``obj`` - a libgap element (either an integer, a rational or a
+        - ``obj`` -- a libgap element (either an integer, a rational or a
           cyclotomic)
 
         TESTS::
@@ -281,7 +290,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: UCF = UniversalCyclotomicField()
-            sage: map(bool, [UCF.zero(), UCF.one(), UCF.gen(3), UCF.gen(5) + UCF.gen(5,3)])
+            sage: list(map(bool, [UCF.zero(), UCF.one(), UCF.gen(3), UCF.gen(5) + UCF.gen(5,3)]))
             [False, True, True, True]
         """
         return bool(self._obj)
@@ -345,8 +354,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             False
         """
         if parent(self) is not parent(other):
-            from sage.structure.element import get_coercion_model
-            cm = get_coercion_model()
+            from sage.structure.element import coercion_model as cm
             try:
                 self, other = cm.canonical_coercion(self, other)
             except TypeError:
@@ -454,8 +462,6 @@ class UniversalCyclotomicFieldElement(FieldElement):
             15
         """
         return self._obj.Conductor().sage()
-
-    field_order = deprecated_function_alias(18152, conductor)
 
     def _symbolic_(self, R):
         r"""
@@ -632,6 +638,15 @@ class UniversalCyclotomicFieldElement(FieldElement):
             1.47801783444132?
             sage: _.imag().is_zero()
             True
+
+        Check that units are evaluated correctly (:trac:`23775`)::
+
+            sage: CIF(1 + E(8) - E(8,3))
+            2.41421356237310?
+            sage: (1 + E(8) - E(8,3))._eval_complex_(CC)
+            2.41421356237309
+            sage: (1 + E(8) - E(8,3))._eval_complex_(CDF) # abs tol 1e-14
+            2.414213562373095
         """
         if self._obj.IsRat():
             return R(self._obj.sage())
@@ -639,7 +654,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
         zeta = R.zeta(k)
-        s = sum(coeffs[i] * zeta ** i for i in range(1, k))
+        s = sum(coeffs[i] * zeta ** i for i in range(k))
         if self.is_real():
             return R(s.real())
         return s
@@ -657,6 +672,15 @@ class UniversalCyclotomicFieldElement(FieldElement):
             1.24697960371747
             sage: 2*cos(2*pi/7).n()
             1.24697960371747
+
+        Check that units are evaluated correctly (:trac:`23775`)::
+
+            sage: RIF(1 + E(8) - E(8,3))
+            2.414213562373095?
+            sage: RR(1 + E(8) - E(8,3))
+            2.41421356237309
+            sage: RDF(1 + E(8) - E(8,3))
+            2.414213562373095
         """
         if not self.is_real():
             raise TypeError("self is not real")
@@ -667,11 +691,11 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
         t = (2 * R.pi()) / k
-        return sum(coeffs[i] * (i * t).cos() for i in range(1, k))
+        return sum(coeffs[i] * (i * t).cos() for i in range(k))
 
     _mpfr_ = _eval_real_
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Comparison (using the complex embedding).
 
@@ -680,10 +704,10 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: UCF = UniversalCyclotomicField()
             sage: l = [UCF.gen(3), UCF.gen(3)+1, UCF.gen(5), UCF.gen(5,2),
             ....:      UCF.gen(4), 2*UCF.gen(4), UCF.gen(5)-22/3]
-            sage: lQQbar = map(QQbar,l)
+            sage: lQQbar = list(map(QQbar,l))
             sage: lQQbar.sort()
             sage: l.sort()
-            sage: lQQbar == map(QQbar,l)
+            sage: lQQbar == list(map(QQbar,l))
             True
 
             sage: for i in range(len(l)):
@@ -697,7 +721,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             False
         """
         if self._obj == other._obj:
-            return 0
+            return rich_to_bool(op, 0)
 
         s = self.real_part()
         o = other.real_part()
@@ -715,7 +739,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             R = RealIntervalField(prec)
             sa = s._eval_real_(R)
             oa = o._eval_real_(R)
-        return sa._cmp_(oa)
+        return sa._richcmp_(oa, op)
 
     def denominator(self):
         r"""
@@ -735,7 +759,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     def multiplicative_order(self):
         r"""
-        The multiplicative order.
+        Return the multiplicative order.
 
         EXAMPLES::
 
@@ -752,7 +776,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     def additive_order(self):
         r"""
-        The additive order.
+        Return the additive order.
 
         EXAMPLES::
 
@@ -780,7 +804,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: type(E(3).is_rational())
-            <type 'bool'>
+            <... 'bool'>
         """
         return self._obj.IsRat().sage()
 
@@ -959,7 +983,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
         n = k if n is None else ZZ(n)
         if not k.divides(n):
             raise ValueError("n = {} must be a multiple of the conductor ({})".format(n, k))
-        return [P.element_class(P, obj.GaloisCyc(i)) for i in range(n) if n.gcd(i) == 1]
+        return [P.element_class(P, obj.GaloisCyc(i))
+                for i in n.coprime_integers(n)]
 
     def norm_of_galois_extension(self):
         r"""
@@ -979,7 +1004,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         obj = self._obj
         k = obj.Conductor().sage()
-        return libgap.Product(libgap([obj.GaloisCyc(i) for i in range(k) if k.gcd(i) == 1])).sage()
+        return libgap.Product(libgap([obj.GaloisCyc(i) for i in range(k)
+                                      if k.gcd(i) == 1])).sage()
 
     def minpoly(self, var='x'):
         r"""
@@ -1098,21 +1124,6 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 self.gen(3, 1),
                 self.gen(7, 1) - self(2) / self(3) * self.gen(7, 2))
 
-    def is_finite(self):
-        r"""
-        Return ``True``.
-
-        EXAMPLES::
-
-            sage: UniversalCyclotomicField().is_finite()
-            True
-
-        .. TODO::
-
-            this method should be provided by the category.
-        """
-        return True
-
     def _repr_(self):
         r"""
         TESTS::
@@ -1228,9 +1239,9 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UCF('[[0, 1], [0, 2]]')
             Traceback (most recent call last):
             ...
-            TypeError: [ [ 0, 1 ], [ 0, 2 ] ] of type <type
-            'sage.libs.gap.element.GapElement_List'> not valid to initialize an
-            element of the universal cyclotomic field
+            TypeError: [ [ 0, 1 ], [ 0, 2 ] ]
+            of type <type 'sage.libs.gap.element.GapElement_List'> not valid
+            to initialize an element of the universal cyclotomic field
 
         .. TODO::
 

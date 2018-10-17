@@ -28,10 +28,12 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six.moves import range
 
 from sage.rings.integer import Integer
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
+
 
 class PseudoRiemannianMetric(TensorField):
     r"""
@@ -67,7 +69,7 @@ class PseudoRiemannianMetric(TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
@@ -431,7 +433,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -456,7 +458,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -481,7 +483,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Delete the inverse metric.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -590,7 +592,7 @@ class PseudoRiemannianMetric(TensorField):
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a field of symmetric bilinear forms
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric defined from a field of symmetric bilinear forms on a
         non-parallelizable 2-dimensional manifold::
@@ -691,7 +693,7 @@ class PseudoRiemannianMetric(TensorField):
                                                     # update of the restriction
         return self._inverse
 
-    def connection(self, name=None, latex_name=None):
+    def connection(self, name=None, latex_name=None, init_coef=True):
         r"""
         Return the unique torsion-free affine connection compatible with
         ``self``.
@@ -706,15 +708,19 @@ class PseudoRiemannianMetric(TensorField):
           Levi-Civita connection; if ``None``, it is set to ``name``, or if the
           latter is None as well, it formed from the symbol `\nabla` and the
           metric symbol
+        - ``init_coef`` -- (default: ``True``) determines whether the
+          connection coefficients are initialized, as Christoffel symbols
+          in the top charts of the domain of ``self`` (i.e. disregarding
+          the subcharts)
 
         OUTPUT:
 
         - the Levi-Civita connection, as an instance of
-          :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`.
+          :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`
 
         EXAMPLES:
 
-        Levi-Civitation connection associated with the Euclidean metric on
+        Levi-Civita connection associated with the Euclidean metric on
         `\RR^3`::
 
             sage: M = Manifold(3, 'R^3', start_index=1)
@@ -763,7 +769,8 @@ class PseudoRiemannianMetric(TensorField):
             if name is None:
                 name = 'nabla_' + self._name
             self._connection = LeviCivitaConnection(self, name,
-                                                    latex_name=latex_name)
+                                                    latex_name=latex_name,
+                                                    init_coef=init_coef)
         return self._connection
 
     def christoffel_symbols(self, chart=None):
@@ -991,7 +998,7 @@ class PseudoRiemannianMetric(TensorField):
              2-dimensional differentiable manifold S^2
             sage: g.riemann()[:]
             [[[[0, 0], [0, 0]], [[0, sin(th)^2], [-sin(th)^2, 0]]],
-             [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
+             [[[0, -1], [1, 0]], [[0, 0], [0, 0]]]]
 
         In dimension 2, the Riemann tensor can be expressed entirely in terms of
         the Ricci scalar `r`:
@@ -1007,6 +1014,17 @@ class PseudoRiemannianMetric(TensorField):
             sage: g.riemann() == \
             ....:  -g.ricci_scalar()*(g*U.tangent_identity_field()).antisymmetrize(2,3)
             True
+
+        Using SymPy as symbolic engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: g = U.metric('g')
+            sage: g[1,1], g[2,2] = a**2, a**2*sin(th)**2
+            sage: g.riemann()[:]
+            [[[[0, 0], [0, 0]],
+              [[0, sin(2*th)/(2*tan(th)) - cos(2*th)],
+               [-sin(2*th)/(2*tan(th)) + cos(2*th), 0]]],
+             [[[0, -1], [1, 0]], [[0, 0], [0, 0]]]]
 
         """
         return self.connection().riemann(name, latex_name)
@@ -1397,6 +1415,16 @@ class PseudoRiemannianMetric(TensorField):
             sage: s.expr()
             -x^2*y^2 - (x + 1)*y + x + 1
 
+        A shortcut is ``det()``::
+
+            sage: g.det() == g.determinant()
+            True
+
+        The notation ``det(g)`` can be used::
+
+            sage: det(g) == g.determinant()
+            True
+
         Determinant in a frame different from the default's one::
 
             sage: Y.<u,v> = M.chart()
@@ -1423,9 +1451,17 @@ class PseudoRiemannianMetric(TensorField):
             sage: g.determinant(X.frame()) == g.determinant(Y.frame())
             False
 
+        Using SymPy as symbolic engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: g = M.metric('g')
+            sage: g[1,1], g[1, 2], g[2, 2] = 1+x, x*y , 1-y
+            sage: s = g.determinant()  # determinant in M's default frame
+            sage: s.expr()
+            -x**2*y**2 + x - y*(x + 1) + 1
+
         """
         from sage.matrix.constructor import matrix
-        from sage.manifolds.utilities import simplify_chain_real
         dom = self._domain
         if frame is None:
             frame = dom._def_frame
@@ -1440,12 +1476,15 @@ class PseudoRiemannianMetric(TensorField):
             gg = self.comp(frame)
             i1 = manif.start_index()
             for chart in gg[[i1, i1]]._express:
-                gm = matrix( [[ gg[i, j, chart]._express
+                # TODO: do the computation without the 'SR' enforcement
+                gm = matrix( [[ gg[i, j, chart].expr(method='SR')
                             for j in manif.irange()] for i in manif.irange()] )
-                detgm = simplify_chain_real(gm.det())
+                detgm = chart.simplify(gm.det(), method='SR')
                 resu.add_expr(detgm, chart=chart)
             self._determinants[frame] = resu
         return self._determinants[frame]
+
+    det = determinant
 
     def sqrt_abs_det(self, frame=None):
         r"""
@@ -1517,9 +1556,19 @@ class PseudoRiemannianMetric(TensorField):
             sage: g.sqrt_abs_det(X.frame()) == g.sqrt_abs_det(Y.frame())
             False
 
+        Using SymPy as symbolic engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: g = M.metric('g')
+            sage: g[1,1], g[1, 2], g[2, 2] = 1+x, x*y , 1-y
+            sage: g.sqrt_abs_det().expr()
+            sqrt(-x**2*y**2 - x*y + x - y + 1)
+            sage: g.sqrt_abs_det(Y.frame()).expr()
+            sqrt(-x**2*y**2 - x*y + x - y + 1)/2
+            sage: g.sqrt_abs_det(Y.frame()).expr(Y)
+            sqrt(-u**4 + 2*u**2*v**2 - 4*u**2 - v**4 + 4*v**2 + 16*v + 16)/8
+
         """
-        from sage.functions.other import sqrt
-        from sage.manifolds.utilities import simplify_chain_real
         dom = self._domain
         if frame is None:
             frame = dom._def_frame
@@ -1531,9 +1580,8 @@ class PseudoRiemannianMetric(TensorField):
             # a new computation is necessary
             detg = self.determinant(frame)
             resu = frame._domain.scalar_field()
-            for chart in detg._express:
-                x = self._indic_signat * detg._express[chart]._express # |g|
-                x = simplify_chain_real(sqrt(x))
+            for chart, funct in detg._express.items():
+                x = (self._indic_signat * funct).sqrt().expr()
                 resu.add_expr(x, chart=chart)
             self._sqrt_abs_dets[frame] = resu
         return self._sqrt_abs_dets[frame]
@@ -1567,12 +1615,14 @@ class PseudoRiemannianMetric(TensorField):
           an instance of
           :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
         - if ``contra = k``, with `1\leq k \leq n`, the tensor field of type
-          (k,n-k) formed from `\epsilon` by raising the first k indices with the
-          metric (see method
+          (k,n-k) formed from `\epsilon` by raising the first k indices with
+          the metric (see method
           :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`);
           the output is then an instance of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`, with the
-          appropriate antisymmetries
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`, with
+          the appropriate antisymmetries, or of the subclass
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+          if `k=n`
 
         EXAMPLES:
 
@@ -1594,7 +1644,6 @@ class PseudoRiemannianMetric(TensorField):
             True
             sage: latex(eps)
             \epsilon_{g}
-
 
         The tensor field of components `\epsilon^i_{\ \, jk}` (``contra=1``)::
 
@@ -1623,8 +1672,10 @@ class PseudoRiemannianMetric(TensorField):
         The tensor field of components `\epsilon^{ijk}` (``contra=3``)::
 
             sage: eps3 = g.volume_form(3) ; eps3
-            Tensor field of type (3,0) on the Open subset U of the
-             3-dimensional differentiable manifold M
+            3-vector field on the Open subset U of the 3-dimensional
+             differentiable manifold M
+            sage: eps3.tensor_type()
+            (3, 0)
             sage: eps3.symmetries()
             no symmetry;  antisymmetry: (0, 1, 2)
             sage: eps3[:]
@@ -1836,7 +1887,7 @@ class PseudoRiemannianMetric(TensorField):
             dom_resu = self._domain.intersection(pform.domain())
             resu = pform.restrict(dom_resu) * eps.restrict(dom_resu)
         else:
-            args = range(p) + [eps] + range(p)
+            args = list(range(p)) + [eps] + list(range(p))
             resu = pform.contract(*args)
         if p > 1:
             resu = resu / factorial(p)
@@ -1879,7 +1930,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
@@ -2010,7 +2061,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2031,7 +2082,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         - ``del_restrictions`` -- (default: True) determines whether the
           restrictions of ``self`` to subdomains are deleted.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2048,7 +2099,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Delete the inverse metric.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2082,7 +2133,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         - instance of :class:`PseudoRiemannianMetricParal` representing the
           restriction.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Restriction of a Lorentzian metric on `\RR^2` to the upper half plane::
 
@@ -2139,7 +2190,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           representing a field of symmetric bilinear forms
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -2165,6 +2216,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         self._components.clear()
         for frame in symbiform._components:
             self._components[frame] = symbiform._components[frame].copy()
+        for dom, symbiform_rst in symbiform._restrictions.items():
+            rst = self.restrict(dom)
+            rst.set(symbiform_rst)
 
     def inverse(self):
         r"""
@@ -2203,11 +2257,21 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ 1/(x + 1)          0]
             [         0 -1/(x - 1)]
 
+        Using SymPy as symbolic engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-x
+            sage: g[:]  # components in the manifold's default frame
+            [ x + 1    x*y]
+            [   x*y -x + 1]
+            sage: g.inverse()[:]
+            [ (x - 1)/(x**2*y**2 + x**2 - 1)      x*y/(x**2*y**2 + x**2 - 1)]
+            [     x*y/(x**2*y**2 + x**2 - 1) -(x + 1)/(x**2*y**2 + x**2 - 1)]
+
         """
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullySym
         from sage.manifolds.differentiable.vectorframe import CoordFrame
-        from sage.manifolds.utilities import simplify_chain_real
         # Is the inverse metric up to date ?
         for frame in self._components:
             if frame not in self._inverse._components:
@@ -2215,23 +2279,29 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 fmodule = self._fmodule
                 si = fmodule._sindex ; nsi = fmodule._rank + si
                 dom = self._domain
-                if isinstance(frame, CoordFrame):
-                    chart = frame._chart
-                else:
-                    chart = dom._def_chart
-                try:
-                    gmat = matrix(
-                              [[self.comp(frame)[i, j, chart]._express
-                              for j in range(si, nsi)] for i in range(si, nsi)])
-                except (KeyError, ValueError):
-                    continue
-                gmat_inv = gmat.inverse()
                 cinv = CompFullySym(fmodule._ring, frame, 2, start_index=si,
                                     output_formatter=fmodule._output_formatter)
+                cinv_scal = {}  # dict. of scalars representing the components
+                                # of the inverse (keys: comp. indices)
                 for i in range(si, nsi):
                     for j in range(i, nsi):   # symmetry taken into account
-                        cinv[i, j] = {chart:
-                                      simplify_chain_real(gmat_inv[i-si,j-si])}
+                        cinv_scal[(i,j)] = dom.scalar_field()
+                for chart in dom.top_charts():
+                    # TODO: do the computation without the 'SR' enforcement
+                    try:
+                        gmat = matrix(
+                                  [[self.comp(frame)[i, j, chart].expr(method='SR')
+                                  for j in range(si, nsi)] for i in range(si, nsi)])
+                        gmat_inv = gmat.inverse()
+                    except (KeyError, ValueError):
+                        continue
+                    for i in range(si, nsi):
+                        for j in range(i, nsi):
+                            val = chart.simplify(gmat_inv[i-si,j-si], method='SR')
+                            cinv_scal[(i,j)].add_expr(val, chart=chart)
+                for i in range(si, nsi):
+                    for j in range(i, nsi):
+                        cinv[i,j] = cinv_scal[(i,j)]
                 self._inverse._components[frame] = cinv
         return self._inverse
 

@@ -32,9 +32,8 @@ REFERENCES:
   http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
 
 .. [HH12] Victoria Horan and Glenn Hurlbert,
-  Overlap Cycles for Steiner Quadruple Systems,
-  2012,
-  http://arxiv.org/abs/1204.3215
+  *Overlap Cycles for Steiner Quadruple Systems*,
+  2012, :arxiv:`1204.3215`
 
 AUTHORS:
 
@@ -480,7 +479,7 @@ def relabel_system(B):
 
     - ``B`` -- a list of 4-uples on `0,...,n-1`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import relabel_system
         sage: SQS8 = designs.steiner_quadruple_system(8)
@@ -514,7 +513,7 @@ def P(alpha, m):
 
     For more information on this system, see [Hanani60]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import P
         sage: P(3,4)
@@ -555,7 +554,7 @@ def _missing_pair(n,l):
     r"""
     Return the smallest `(x,x+1)` that is not contained in `l`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import _missing_pair
         sage: _missing_pair(6, [(0,1), (4,5)])
@@ -576,7 +575,7 @@ def barP(eps, m):
 
     For more information on this system, see [Hanani60]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import barP
         sage: barP(3,4)
@@ -591,7 +590,7 @@ def barP_system(m):
 
     For more information on this system, see [Hanani60]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import barP_system
         sage: barP_system(3)
@@ -769,7 +768,7 @@ def _SQS14():
 
     Obtained from the La Jolla Covering Repository.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import _SQS14
         sage: sqs14 = IncidenceStructure(_SQS14())
@@ -802,7 +801,7 @@ def _SQS38():
 
     Obtained from the La Jolla Covering Repository.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import _SQS38
         sage: sqs38 = IncidenceStructure(_SQS38())

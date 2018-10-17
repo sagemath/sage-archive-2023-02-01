@@ -4,7 +4,7 @@ The PPL (Parma Polyhedra Library) backend for polyhedral computations
 from __future__ import absolute_import
 
 from sage.rings.all import ZZ, QQ
-from sage.rings.integer import LCM_list
+from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
 from sage.matrix.constructor import matrix
 from sage.libs.ppl import (
@@ -228,7 +228,7 @@ class Polyhedron_ppl(Polyhedron_base):
 
 #########################################################################
 class Polyhedron_QQ_ppl(Polyhedron_ppl, Polyhedron_QQ):
-    """
+    r"""
     Polyhedra over `\QQ` with ppl
 
     INPUT:
@@ -248,7 +248,7 @@ class Polyhedron_QQ_ppl(Polyhedron_ppl, Polyhedron_QQ):
 
 #########################################################################
 class Polyhedron_ZZ_ppl(Polyhedron_ppl, Polyhedron_ZZ):
-    """
+    r"""
     Polyhedra over `\ZZ` with ppl
 
     INPUT:
@@ -259,7 +259,7 @@ class Polyhedron_ZZ_ppl(Polyhedron_ppl, Polyhedron_ZZ):
 
     EXAMPLES::
 
-        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[])
+        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[],
         ....:                backend='ppl', base_ring=ZZ)
         sage: TestSuite(p).run(skip='_test_pickling')
     """

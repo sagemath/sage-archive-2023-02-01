@@ -163,7 +163,7 @@ def GeneralizedTamariLattice(a, b, m=1):
 
     - `a` and `b` coprime integers with `a \geq b`
 
-    - `m` a nonnegative integer such that `a \geq b \times m`
+    - `m` a nonnegative integer such that `a \geq b m`
 
     OUTPUT:
 
@@ -222,21 +222,26 @@ def GeneralizedTamariLattice(a, b, m=1):
                               for p in paths_in_triangle(a, b, a, b)]))
 
 
-def TamariLattice(n):
+def TamariLattice(n, m=1):
     r"""
     Return the `n`-th Tamari lattice.
 
+    Using the slope parameter `m`, one can also get the `m`-Tamari lattices.
+
     INPUT:
 
-    - `n` a nonnegative integer
+    - `n` -- a nonnegative integer (the index)
+
+    - `m` -- an optional nonnegative integer (the slope, default to 1)
 
     OUTPUT:
 
-    - a finite lattice
+    a finite lattice
 
-    The elements of the lattice are
-    :func:`Dyck paths<sage.combinat.dyck_word.DyckWord>`
-    in the `(n+1 \times n)`-rectangle.
+    In the usual case, the elements of the lattice are :func:`Dyck
+    paths<sage.combinat.dyck_word.DyckWord>` in the `(n+1 \times
+    n)`-rectangle. For a general slope `m`, the elements are Dyck
+    paths in the `(m n+1 \times n)`-rectangle.
 
     See :wikipedia:`Tamari lattice<Tamari_lattice>` for mathematical
     background.
@@ -245,5 +250,12 @@ def TamariLattice(n):
 
         sage: posets.TamariLattice(3)
         Finite lattice containing 5 elements
+
+        sage: posets.TamariLattice(3, 2)
+        Finite lattice containing 12 elements
+
+    REFERENCES:
+
+    - [BMFPR]_
     """
-    return GeneralizedTamariLattice(n + 1, n, 1)
+    return GeneralizedTamariLattice(m * n + 1, n, m)

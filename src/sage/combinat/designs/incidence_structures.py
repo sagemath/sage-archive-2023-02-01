@@ -40,15 +40,14 @@ Methods
 #***************************************************************************
 from __future__ import print_function
 
+import six
 from six import itervalues
 from six.moves import range
 
-from sage.misc.cachefunc import cached_method
-
-from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.sets.set import Set
+
 
 class IncidenceStructure(object):
     r"""
@@ -169,9 +168,9 @@ class IncidenceStructure(object):
             sage: blocks = [[e0,e1,e2],[e0,e1],[e2,e4]]
             sage: I = IncidenceStructure(V, blocks)
             sage: type(I.ground_set()[0])
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <... 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
             sage: type(I.blocks()[0][0])
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <... 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
 
         TESTS::
 
@@ -394,7 +393,7 @@ class IncidenceStructure(object):
         `\{0,...,n-1\}` such that isomorphic incidence structures are
         relabelled to equal objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: fano1 = designs.balanced_incomplete_block_design(7,3)
             sage: fano2 = designs.projective_plane(2)
@@ -425,10 +424,10 @@ class IncidenceStructure(object):
         - ``other`` -- an incidence structure.
 
         - ``certificate`` (boolean) -- whether to return an
-          insomorphism from ``self`` to ``other`` instead of a boolean
+          isomorphism from ``self`` to ``other`` instead of a boolean
           answer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: fano1 = designs.balanced_incomplete_block_design(7,3)
             sage: fano2 = designs.projective_plane(2)
@@ -483,8 +482,8 @@ class IncidenceStructure(object):
 
         if A == B:
             if certificate:
-                B_canon_rev = {y:x for x,y in B_canon.iteritems()}
-                return {x:B_canon_rev[xint] for x,xint in A_canon.iteritems()}
+                B_canon_rev = {y:x for x,y in six.iteritems(B_canon)}
+                return {x:B_canon_rev[xint] for x,xint in six.iteritems(A_canon)}
             else:
                 return True
         else:
@@ -539,7 +538,7 @@ class IncidenceStructure(object):
 
         They begin to differ if we make one vertex universal::
 
-            sage: P.add_edges([(0,x) for x in P])
+            sage: P.add_edges([(0,x) for x in P], loops=False)
             sage: IP = IncidenceStructure(P.edges(labels=False))
             sage: IC = IncidenceStructure(C.edges(labels=False))
             sage: sum(1 for _ in IP.isomorphic_substructures_iterator(IC))
@@ -563,7 +562,7 @@ class IncidenceStructure(object):
         r"""
         Return a copy of the incidence structure.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: IS = IncidenceStructure([[1,2,3,"e"]],name="Test")
             sage: IS
@@ -604,7 +603,7 @@ class IncidenceStructure(object):
             sorting). It probably should not be called in a performance-critical
             code.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A Fano plane with one point removed::
 
@@ -671,7 +670,7 @@ class IncidenceStructure(object):
             sorting). It probably should not be called in a performance-critical
             code.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A Baer subplane of order 2 (i.e. a Fano plane) in a projective plane of order 4::
 
@@ -898,7 +897,7 @@ class IncidenceStructure(object):
                 for s in combinations(b,size):
                     d[s]+=1
             if self._point_to_index:
-                return {tuple([self._points[x] for x in s]):v for s,v in d.iteritems()}
+                return {tuple([self._points[x] for x in s]):v for s,v in six.iteritems(d)}
             else:
                 return d
 
@@ -1085,7 +1084,7 @@ class IncidenceStructure(object):
           ``sizes`` to ``5`` has the same effect as ``sizes=[5]``. When set to
           ``None`` (default), behaves as ``sizes=PositiveIntegers()``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The intersection graph of a
         :func:`~sage.combinat.designs.bibd.balanced_incomplete_block_design` is
@@ -1104,8 +1103,8 @@ class IncidenceStructure(object):
             sizes = PositiveIntegers()
         elif sizes in PositiveIntegers():
             sizes = (sizes,)
-        V = map(Set,self)
-        return Graph([V,lambda x,y: len(x&y) in sizes],loops=False)
+        V = [Set(v)  for v in self]
+        return Graph([V, lambda x,y: len(x & y) in sizes], loops=False)
 
     def incidence_matrix(self):
         r"""
@@ -1166,7 +1165,7 @@ class IncidenceStructure(object):
               elements of :meth:`ground_set` mix :func:`Set` and non-:func:`Set
               <Set>` objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BD = IncidenceStructure(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: BD.incidence_graph()
@@ -1362,7 +1361,7 @@ class IncidenceStructure(object):
 
         This object is mutable because of .relabel()
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: TD=designs.transversal_design(5,5)
             sage: hash(TD)
@@ -1400,10 +1399,11 @@ class IncidenceStructure(object):
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage; IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
-            [[1, 2], [3, 'A']]
+            sage: P = IncidenceStructure([[1,2],[3,4],[2,3]]).packing()
+            sage: sorted(sorted(b) for b in P)
+            [[1, 2], [3, 4]]
             sage: len(designs.steiner_triple_system(9).packing())
             3
         """
@@ -1411,13 +1411,13 @@ class IncidenceStructure(object):
 
         # List of blocks containing a given point x
         d = [[] for x in self._points]
-        for i,B in enumerate(self._blocks):
+        for i, B in enumerate(self._blocks):
             for x in B:
                 d[x].append(i)
 
         p = MixedIntegerLinearProgram(solver=solver)
         b = p.new_variable(binary=True)
-        for x,L in enumerate(d): # Set of disjoint blocks
+        for x, L in enumerate(d):  # Set of disjoint blocks
             p.add_constraint(p.sum([b[i] for i in L]) <= 1)
 
         # Maximum number of blocks
@@ -1426,7 +1426,7 @@ class IncidenceStructure(object):
         p.solve(log=verbose)
 
         return [[self._points[x] for x in self._blocks[i]]
-                for i,v in p.get_values(b).iteritems() if v]
+                for i, v in six.iteritems(p.get_values(b)) if v]
 
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         r"""
@@ -1661,7 +1661,7 @@ class IncidenceStructure(object):
           case, `s` and `t` are the integers defined above if they exist (each
           can be set to ``False`` otherwise).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: h = designs.CremonaRichmondConfiguration()
             sage: h.is_generalized_quadrangle()
@@ -1751,7 +1751,7 @@ class IncidenceStructure(object):
             sage: print(D.dual(algorithm="gap"))       # optional - gap_packages
             Incidence structure with 3 points and 4 blocks
             sage: blocks = [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]]
-            sage: BD = IncidenceStructure(7, blocks, name="FanoPlane");
+            sage: BD = IncidenceStructure(7, blocks, name="FanoPlane")
             sage: BD
             Incidence structure with 7 points and 7 blocks
             sage: print(BD.dual(algorithm="gap"))         # optional - gap_packages
@@ -1948,7 +1948,7 @@ class IncidenceStructure(object):
                 else:
                     # each class is stored as the list of indices of its blocks
                     self._classes = [[] for _ in range(n_classes)]
-                    for (t,i),v in p.get_values(b).iteritems():
+                    for (t,i),v in six.iteritems(p.get_values(b)):
                         if v:
                             self._classes[t].append(self._blocks[i])
 
@@ -2060,7 +2060,7 @@ class IncidenceStructure(object):
 
         col = [[] for i in range(k)]
 
-        for (x,i),v in p.get_values(b).iteritems():
+        for (x,i),v in six.iteritems(p.get_values(b)):
             if v:
                 col[i].append(self._points[x])
 
@@ -2161,7 +2161,6 @@ class IncidenceStructure(object):
             sage: H = Hypergraph(sets)
             sage: view(H) # not tested
         """
-        from sage.rings.integer import Integer
         from sage.functions.trig import arctan2
 
         from sage.misc.misc import warn

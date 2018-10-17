@@ -72,10 +72,24 @@ from sage.rings.all import NumberField, RationalField, PolynomialRing
 from sage.misc.misc import powerset
 from sage.env import SAGE_SHARE
 
-from sage.structure.sage_object import load, save
+from sage.misc.persist import load, save
 
+from sage.misc.package import PackageNotFoundError
 
 JONESDATA = os.path.join(SAGE_SHARE, 'jones')
+
+
+def sortkey(K):
+    """
+    A completely deterministic sorting key for number fields.
+
+    EXAMPLES::
+
+        sage: from sage.databases.jones import sortkey
+        sage: sortkey(QuadraticField(-3))
+        (2, 3, False, x^2 + 3)
+    """
+    return K.degree(), abs(K.discriminant()), K.discriminant() > 0, K.polynomial()
 
 
 class JonesDatabase:
@@ -96,7 +110,7 @@ class JonesDatabase:
         S = sorted([eval(z) for z in filename[i:j + 1].split("-")])
         data = open(path + "/" + filename).read()
         data = data.replace("^", "**")
-        x = PolynomialRing(RationalField(), 'x').gen()
+        x = PolynomialRing(RationalField(), 'x').gen()  # used next line
         v = eval(data)
         s = tuple(S)
         if s in self.root:
@@ -120,7 +134,7 @@ class JonesDatabase:
            been downloaded using wget.
 
 
-        EXAMPLE: This is how to create the database from scratch, assuming
+        EXAMPLES: This is how to create the database from scratch, assuming
         that the number fields are in the default directory above: From a
         cold start of Sage::
 
@@ -131,7 +145,6 @@ class JonesDatabase:
         This takes about 5 seconds.
         """
         from sage.misc.misc import sage_makedirs
-        n = 0
         x = PolynomialRing(RationalField(), 'x').gen()
         self.root = {}
         self.root[tuple([])] = [x - 1]
@@ -183,8 +196,7 @@ class JonesDatabase:
         Z = []
         for X in powerset(S):
             Z += self.ramified_at(X, d=d, var=var)
-        Z = sorted([(k.degree(), k.discriminant().abs(), k.discriminant() > 0, k) for k in Z])
-        return [z[-1] for z in Z]
+        return sorted(Z, key=sortkey)
 
     def __getitem__(self, S):
         return self.get(S)
@@ -216,7 +228,7 @@ class JonesDatabase:
             if os.path.exists(JONESDATA + "/jones.sobj"):
                 self.root = load(JONESDATA + "/jones.sobj")
             else:
-                raise RuntimeError("You must install the Jones database optional package.")
+                raise PackageNotFoundError("database_jones_numfield")
         try:
             S = list(S)
         except TypeError:
@@ -261,13 +273,10 @@ class JonesDatabase:
             sage: J.ramified_at((2, 5, 29), 3, 'c') # optional - database_jones_numfield
             [Number Field in c with defining polynomial x^3 - x^2 - 8*x - 28,
              Number Field in c with defining polynomial x^3 - x^2 + 10*x + 102,
-             Number Field in c with defining polynomial x^3 - x^2 + 97*x - 333,
-             Number Field in c with defining polynomial x^3 - x^2 - 48*x - 188]
+             Number Field in c with defining polynomial x^3 - x^2 - 48*x - 188,
+             Number Field in c with defining polynomial x^3 - x^2 + 97*x - 333]
         """
         Z = self.get(S, var=var)
-        if d is None:
-            Z = [(k.degree(), k.discriminant().abs(), k.discriminant() > 0, k) for k in Z]
-        else:
-            Z = [(k.discriminant().abs(), k.discriminant() > 0, k) for k in Z if k.degree() == d]
-        Z.sort()
-        return [z[-1] for z in Z]
+        if d is not None:
+            Z = [k for k in Z if k.degree() == d]
+        return sorted(Z, key=sortkey)

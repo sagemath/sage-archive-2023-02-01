@@ -9,8 +9,10 @@ from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.richcmp import richcmp_method, rich_to_bool
 
 
+@richcmp_method
 class UnknownClass(UniqueRepresentation, SageObject):
     """
     TESTS::
@@ -34,15 +36,17 @@ class UnknownClass(UniqueRepresentation, SageObject):
             [False, Unknown, True]
             [True, True, True]
 
-        ..warning:: Unless PEP 335 is accepted, in the following cases,
-        ``and``, ``not`` and ``or`` return a somewhat wrong value::
+        .. WARNING::
 
-            sage: not Unknown         # should return Unknown
-            True
-            sage: Unknown and False   # should return False
-            Unknown
-            sage: Unknown or False    # should return Unknown
-            False
+            Unless PEP 335 is accepted, in the following cases,
+            ``and``, ``not`` and ``or`` return a somewhat wrong value::
+
+                sage: not Unknown         # should return Unknown
+                True
+                sage: Unknown and False   # should return False
+                Unknown
+                sage: Unknown or False    # should return Unknown
+                False
         """
 
     def _repr_(self):
@@ -56,7 +60,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
 
     def __bool__(self):
         """
-        When evaluated in a boolean context ``Unknown()`` is evalutated into
+        When evaluated in a boolean context ``Unknown()`` is evaluated into
         ``False``.
 
         EXAMPLES::
@@ -74,7 +78,9 @@ class UnknownClass(UniqueRepresentation, SageObject):
         """
         The ``and`` logical connector.
 
-        ..warning:: This is not used by ``and`` unless PEP 335 is accepted.
+        .. WARNING::
+
+            This is not used by ``and`` unless PEP 335 is accepted.
 
         EXAMPLES::
 
@@ -90,14 +96,18 @@ class UnknownClass(UniqueRepresentation, SageObject):
             sage: Unknown and False    # should return False
             Unknown
         """
-        if other is False: return False
-        else:              return self
+        if other is False:
+            return False
+        else:
+            return self
 
     def __or__(self, other):
         """
         The ``or`` logical connector.
 
-        ..warning:: This is not used by ``or`` unless PEP 335 is accepted.
+        .. WARNING::
+
+            This is not used by ``or`` unless PEP 335 is accepted.
 
         EXAMPLES::
 
@@ -113,14 +123,18 @@ class UnknownClass(UniqueRepresentation, SageObject):
             sage: Unknown or False    # should return Unknown
             False
         """
-        if other: return True
-        else:     return self
+        if other:
+            return True
+        else:
+            return self
 
     def __not__(self):
         """
         The ``not`` logical connector.
 
-        ..warning:: This is not used by ``not`` unless PEP 335 is accepted.
+        .. WARNING::
+
+            This is not used by ``not`` unless PEP 335 is accepted.
 
         EXAMPLES::
 
@@ -134,7 +148,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
         """
         return self
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Comparison of truth value.
 
@@ -152,13 +166,13 @@ class UnknownClass(UniqueRepresentation, SageObject):
             [False, False, True]
         """
         if other is self:
-            return 0
-        if isinstance(other, bool):
-            if other:
-                return -1
-            else:
-                return +1
+            return rich_to_bool(op, 0)
+        if not isinstance(other, bool):
+            return NotImplemented
+        if other:
+            return rich_to_bool(op, -1)
         else:
-            raise ValueError("Unable to compare {} with {}".format(self, other))
+            return rich_to_bool(op, +1)
+
 
 Unknown = UnknownClass()

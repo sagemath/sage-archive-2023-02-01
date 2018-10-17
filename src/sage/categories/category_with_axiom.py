@@ -1,4 +1,4 @@
-"""
+r"""
 Axioms
 
 This documentation covers how to implement axioms and proceeds with an
@@ -267,11 +267,11 @@ from the name of the category with axiom (see
 :func:`base_category_class_and_axiom` for the details). This typically
 covers the following examples::
 
-    sage: FiniteGroups()
-    Category of finite groups
-    sage: FiniteGroups() is Groups().Finite()
+    sage: FiniteCoxeterGroups()
+    Category of finite coxeter groups
+    sage: FiniteCoxeterGroups() is CoxeterGroups().Finite()
     True
-    sage: FiniteGroups._base_category_class_and_axiom_origin
+    sage: FiniteCoxeterGroups._base_category_class_and_axiom_origin
     'deduced by base_category_class_and_axiom'
 
     sage: FiniteDimensionalAlgebrasWithBasis(QQ)
@@ -926,7 +926,7 @@ to an infinite recursion.
 .. TOPIC:: Design discussion
 
     Supporting similar deduction rules will be an important feature in
-    the future, with quite a few occurences already implemented in
+    the future, with quite a few occurrences already implemented in
     upcoming tickets. For the time being though there is a single
     occurrence of this idiom outside of the tests. So this would be an
     easy thing to refactor after :trac:`10963` if a better idiom is
@@ -1364,7 +1364,7 @@ Other design goals include:
 Upcoming features
 =================
 
-.. TODO:
+.. TODO::
 
     - Implement compatibility axiom / functorial constructions. For
       example, one would want to have::
@@ -1679,12 +1679,15 @@ all_axioms += ("Flying", "Blue",
                "WellGenerated",
                "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
+               "Nilpotent",
                "FiniteDimensional", "Connected", "WithBasis",
                "Irreducible",
-               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
+               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors", "Cellular",
                "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
                "Distributive",
                "Endset",
+               "Pointed",
+               "Stratified",
               )
 
 def uncamelcase(s,separator=" "):
@@ -1789,8 +1792,9 @@ def base_category_class_and_axiom(cls):
             except (ImportError,AttributeError):
                 pass
     raise TypeError("""Could not retrieve the base category class and axiom for {}.
-Please specify it explictly using the attribute _base_category_class_and_axiom.
+Please specify it explicitly using the attribute _base_category_class_and_axiom.
 See CategoryWithAxiom for details.""".format(cls))
+
 
 @cached_function
 def axiom_of_nested_class(cls, nested_cls):
@@ -1853,13 +1857,13 @@ class CategoryWithAxiom(Category):
     how to implement axioms and the documentation of the axiom
     infrastructure.
 
-    .. automethod:: __classcall__
-    .. automethod:: __classget__
-    .. automethod:: __init__
-    .. automethod:: _repr_object_names
-    .. automethod:: _repr_object_names_static
-    .. automethod:: _test_category_with_axiom
-    .. automethod:: _without_axioms
+    .. automethod:: CategoryWithAxiom.__classcall__
+    .. automethod:: CategoryWithAxiom.__classget__
+    .. automethod:: CategoryWithAxiom.__init__
+    .. automethod:: CategoryWithAxiom._repr_object_names
+    .. automethod:: CategoryWithAxiom._repr_object_names_static
+    .. automethod:: CategoryWithAxiom._test_category_with_axiom
+    .. automethod:: CategoryWithAxiom._without_axioms
     """
 
     @lazy_class_attribute
@@ -2100,7 +2104,7 @@ class CategoryWithAxiom(Category):
 
         This check that an axiom category of a
         :class:`Category_singleton` is a singleton category, and
-        similarwise for :class`Category_over_base_ring`.
+        similarwise for :class:`Category_over_base_ring`.
 
         EXAMPLES::
 
@@ -2265,6 +2269,14 @@ class CategoryWithAxiom(Category):
                 result = result.replace("graded ", "graded connected ", 1)
             elif axiom == "Connected" and "filtered " in result:
                 result = result.replace("filtered ", "filtered connected ", 1)
+            elif axiom == "Stratified" and "graded " in result:
+                result = result.replace("graded ", "stratified ", 1)
+            elif axiom == "Nilpotent" and "finite dimensional " in result:
+                # We need to put nilpotent before finite dimensional in the
+                #   axioms ordering so we do not (unnecessarily) display
+                #   'nilpotent' in 'finite dimensional nilpotent stratified'.
+                # So we need to swap the order here.
+                result = result.replace("finite dimensional ", "finite dimensional nilpotent ", 1)
             elif axiom == "Endset" and "homsets" in result:
                 # Without the space at the end to handle Homsets().Endset()
                 result = result.replace("homsets", "endsets", 1)

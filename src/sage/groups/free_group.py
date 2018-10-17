@@ -239,7 +239,7 @@ class FreeGroupElement(ElementLibGAP):
         return hash(self.Tietze())
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation
 
         OUTPUT:
@@ -272,10 +272,10 @@ class FreeGroupElement(ElementLibGAP):
         """
         import re
         s = self._repr_()
-        s = re.sub('([a-z]|[A-Z])([0-9]+)', '\g<1>_{\g<2>}', s)
-        s = re.sub('(\^)(-)([0-9]+)', '\g<1>{\g<2>\g<3>}', s)
-        s = re.sub('(\^)([0-9]+)', '\g<1>{\g<2>}', s)
-        s = s.replace('*', '\cdot ')
+        s = re.sub('([a-z]|[A-Z])([0-9]+)', r'\g<1>_{\g<2>}', s)
+        s = re.sub(r'(\^)(-)([0-9]+)', r'\g<1>{\g<2>\g<3>}', s)
+        s = re.sub(r'(\^)([0-9]+)', r'\g<1>{\g<2>}', s)
+        s = s.replace('*', r'\cdot ')
         return s
 
     def __reduce__(self):
@@ -318,7 +318,7 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: type(a.Tietze())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(a.Tietze()[0])
             <type 'sage.rings.integer.Integer'>
         """
@@ -385,19 +385,17 @@ class FreeGroupElement(ElementLibGAP):
         If ``im_gens`` are provided, the result lives in the
         algebra where ``im_gens`` live.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: G = FreeGroup(5)
             sage: G.inject_variables()
             Defining x0, x1, x2, x3, x4
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x0)
-            -B[x0^-1] + B[x0^-1*x1] - B[x0^-1*x1*x0*x2*x0^-1]
+            -x0^-1 + x0^-1*x1 - x0^-1*x1*x0*x2*x0^-1
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x1)
-            B[x0^-1]
+            x0^-1
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x2)
-            B[x0^-1*x1*x0]
+            x0^-1*x1*x0
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x3)
             0
 
@@ -407,7 +405,7 @@ class FreeGroupElement(ElementLibGAP):
             sage: F=FreeGroup(3)
             sage: a=F([2,1,3,-1,2])
             sage: a.fox_derivative(F([1]))
-            B[x1] - B[x1*x0*x2*x0^-1]
+            x1 - x1*x0*x2*x0^-1
             sage: R.<t>=LaurentPolynomialRing(ZZ)
             sage: a.fox_derivative(F([1]),[t,t,t])
             t - t^2
@@ -571,7 +569,7 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
 
     INPUT:
 
-    - ``n`` -- integer or ``None`` (default). The nnumber of
+    - ``n`` -- integer or ``None`` (default). The number of
       generators. If not specified the ``names`` are counted.
 
     - ``names`` -- string or list/tuple/iterable of strings (default:

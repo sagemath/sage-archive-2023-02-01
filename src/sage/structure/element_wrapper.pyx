@@ -177,7 +177,7 @@ cdef class ElementWrapper(Element):
 
         Checking that we can still load pickle from before :trac:`14519`::
 
-            sage: f = loads('x\x9c\x85\x8d\xbb\n\xc2@\x14D\xf1\x11\x8d\xebO\xd8\xda,\xf8\t\x82\xf6\x12\x08\x96a\x8dC\x08f\xd7\xdc\xbb{\x15\x8b\x80\x16\xd1\xdf6\x10\xad,,\xcf0s\xe6>\xcc\xbd)\xa0}`\xc9\x8304*X\xb8\x90]\xd9\xd45Xm{\xde\x7f\x90\x06\xcb\x07\xfd\x8c\xc4\x95$\xc8\x185\xc3wm\x13\xca\xb3S\xe2\x18G\xc9\xa1h\xf4\xefe#\xd6\xdev\x86\xbbL\xd18\x8d\xd7\x8b\x1e(j\x9b\x17M\x12\x9a6\x14\xa7\xd1\xc5T\x02\x9a\xf56.]\xe1u\xe9\x02\x8a\xce`\xcd\t\xd9\x17H\xa5\x83U\x9b\xd0\xdc?\x0f\xfa\rl4S\xbc')
+            sage: f = loads(b'x\x9c\x85\x8d\xbb\n\xc2@\x14D\xf1\x11\x8d\xebO\xd8\xda,\xf8\t\x82\xf6\x12\x08\x96a\x8dC\x08f\xd7\xdc\xbb{\x15\x8b\x80\x16\xd1\xdf6\x10\xad,,\xcf0s\xe6>\xcc\xbd)\xa0}`\xc9\x8304*X\xb8\x90]\xd9\xd45Xm{\xde\x7f\x90\x06\xcb\x07\xfd\x8c\xc4\x95$\xc8\x185\xc3wm\x13\xca\xb3S\xe2\x18G\xc9\xa1h\xf4\xefe#\xd6\xdev\x86\xbbL\xd18\x8d\xd7\x8b\x1e(j\x9b\x17M\x12\x9a6\x14\xa7\xd1\xc5T\x02\x9a\xf56.]\xe1u\xe9\x02\x8a\xce`\xcd\t\xd9\x17H\xa5\x83U\x9b\xd0\xdc?\x0f\xfa\rl4S\xbc')
             sage: f == ElementWrapper(DummyParent("A Parent"), 1)
             True
         """
@@ -382,46 +382,9 @@ cdef class ElementWrapper(Element):
             sage: 1 < l11                # random, since it depends on what the Integer 1 decides to do, which may just involve memory locations
             False
         """
-        return self.__class__ is other.__class__ \
-            and self._parent is other.parent() \
-            and self.value < (<ElementWrapper>other).value
-
-    cpdef int _cmp_by_value(self, other):
-        """
-        Implementation of ``cmp`` by comparing first values, then
-        parents, then class. This behavior (which implies a total
-        order) is not always desirable and hard to override. Hence
-        derived subclasses that want to take advantage of this
-        feature need to explicitely set :meth:`.__cmp__`.
-
-        EXAMPLES::
-
-            sage: class MyElement(ElementWrapper):
-            ....:     __cmp__ = ElementWrapper._cmp_by_value
-            ....:
-            sage: from sage.structure.element_wrapper import DummyParent
-            sage: parent1 = DummyParent("A parent")
-            sage: parent2 = DummyParent("Another parent")
-            sage: parent1 == parent2
-            False
-            sage: l11 = MyElement(parent1, 1)
-            sage: l12 = MyElement(parent1, 2)
-            sage: l21 = MyElement(parent2, 1)
-            sage: l22 = MyElement(parent2, 2)
-            sage: cmp(l11, l11)
-            0
-            sage: cmp(l11, l12), cmp(l12, l11)   # values differ
-            (-1, 1)
-            sage: cmp(l11, l21) in [-1, 1]       # parents differ
-            True
-            sage: cmp(l21, l11) == -cmp(l11, l21)
-            True
-            sage: cmp(l11, 1) in [-1,1]          # class differ
-            True
-        """
-        return cmp(self.__class__, other.__class__) or \
-               cmp(self.parent(), other.parent()) or \
-               cmp(self.value, other.value)
+        return (self.__class__ is other.__class__
+                and self._parent is other.parent()
+                and self.value < (<ElementWrapper>other).value)
 
     def __copy__(self):
         """
@@ -546,7 +509,8 @@ class ElementWrapperTester(ElementWrapper):
             sage: x.value = [2,32]; x # indirect doctest
             [n=0, value=[2, 32]]
         """
-        return "[n=%s, value=%s]"%(self.n, self.value)
+        return "[n=%s, value=%s]" % (self.n, self.value)
+
 
 cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
     """
@@ -554,6 +518,23 @@ cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
     operations are done against subclasses of ``wrapped_class``.
     """
     wrapped_class = object
+
+    def __hash__(self):
+        """
+        Return the same hash as for the wrapped element.
+
+        EXAMPLES::
+
+            sage: A = cartesian_product([ZZ, ZZ])
+            sage: e1 = A((6,9))
+            sage: e2 = A((3,8))
+            sage: e3 = A((6,9))
+            sage: hash(e1) == hash(e2)
+            False
+            sage: hash(e1) == hash(e3)
+            True
+        """
+        return hash(self.value)
 
     def __richcmp__(left, right, int op):
         """

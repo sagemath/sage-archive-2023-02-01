@@ -411,9 +411,9 @@ class ClassicalCrystals(Category_singleton):
             tester = self._tester(**options)
             S = list(self)
             SS  = list(Crystals().parent_class.__iter__(self))
-            tester.assert_( len(S) == len(SS) )
-            tester.assert_( len(S) == len(set(S)))
-            tester.assert_( set(S) == set(SS) )
+            tester.assertTrue( len(S) == len(SS) )
+            tester.assertTrue( len(S) == len(set(S)))
+            tester.assertTrue( set(S) == set(SS) )
 
         def cardinality(self):
             r"""

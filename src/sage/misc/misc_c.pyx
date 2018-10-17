@@ -22,6 +22,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sys
 
@@ -78,6 +79,10 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff=5):
 
     This assumes that your multiplication is associative; we don't promise
     which end of the list we start at.
+
+    .. SEEALSO::
+
+        For the symbolic product function, see :func:`sage.calculus.calculus.symbolic_product`.
 
     EXAMPLES::
 
@@ -347,6 +352,8 @@ def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff=5):
         11
         sage: balanced_sum((1..-1), 5) # empty, z is not None
         5
+        sage: balanced_sum([1])
+        1
 
     AUTHORS:
 
@@ -397,7 +404,7 @@ cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff
 
     - ``L`` -- the terms (MUST be a tuple or list)
     - ``off`` -- offset in the list from which to start
-    - ``count`` -- how many terms in the product
+    - ``count`` -- how many terms in the sum
     - ``cutoff`` -- the minimum count to recurse on.  Must be at least 2
 
     OUTPUT:
@@ -417,8 +424,8 @@ cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff
     """
     cdef Py_ssize_t k
     if count <= cutoff:
-        sum = <object>PySequence_Fast_GET_ITEM(L, offset) + <object>PySequence_Fast_GET_ITEM(L, offset + 1)
-        for k from offset + 1 < k < offset + count:
+        sum = <object>PySequence_Fast_GET_ITEM(L, offset)
+        for k in range(offset + 1, offset + count):
             sum += <object>PySequence_Fast_GET_ITEM(L, k)
         return sum
     else:
@@ -579,7 +586,7 @@ cpdef list normalize_index(object key, int size):
             raise IndexError("index out of range")
         return [index]
     elif isinstance(key, slice):
-        return range(*key.indices(size))
+        return list(xrange(*key.indices(size)))
     elif type(key) is tuple:
         index_tuple = key
     elif type(key) is list:
@@ -603,3 +610,118 @@ cpdef list normalize_index(object key, int size):
         else:
             raise TypeError("index must be an integer or slice")
     return return_list
+
+
+cdef class sized_iter:
+    """
+    Wrapper for an iterator to verify that it has a specified length.
+
+    INPUT:
+
+    - ``iterable`` -- object to be iterated over
+
+    - ``length`` -- (optional) the required length. If this is not
+      given, then ``len(iterable)`` will be used.
+
+    If the iterable does not have the given length, a ``ValueError`` is
+    raised during iteration.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc_c import sized_iter
+        sage: list(sized_iter(range(4)))
+        [0, 1, 2, 3]
+        sage: list(sized_iter(range(4), 4))
+        [0, 1, 2, 3]
+        sage: list(sized_iter(range(5), 4))
+        Traceback (most recent call last):
+        ...
+        ValueError: sequence too long (expected length 4, got more)
+        sage: list(sized_iter(range(3), 4))
+        Traceback (most recent call last):
+        ...
+        ValueError: sequence too short (expected length 4, got 3)
+
+    If the iterable is too long, we get the error on the last entry::
+
+        sage: it = sized_iter(range(5), 2)
+        sage: next(it)
+        0
+        sage: next(it)
+        Traceback (most recent call last):
+        ...
+        ValueError: sequence too long (expected length 2, got more)
+
+    When the expected length is zero, the iterator is checked on
+    construction::
+
+        sage: list(sized_iter([], 0))
+        []
+        sage: sized_iter([1], 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: sequence too long (expected length 0, got more)
+
+    If no ``length`` is given, the iterable must implement ``__len__``::
+
+        sage: sized_iter(x for x in range(4))
+        Traceback (most recent call last):
+        ...
+        TypeError: object of type 'generator' has no len()
+    """
+    cdef iterator
+    cdef Py_ssize_t index, size
+
+    def __init__(self, iterable, length=None):
+        self.iterator = iter(iterable)
+        self.index = 0
+        if length is None:
+            self.size = len(iterable)
+        else:
+            self.size = length
+        self.check()
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        """
+        Number of entries remaining, assuming that the expected length
+        is the actual length.
+
+        EXAMPLES::
+
+            sage: from sage.misc.misc_c import sized_iter
+            sage: it = sized_iter(range(4), 4)
+            sage: len(it)
+            4
+            sage: next(it)
+            0
+            sage: len(it)
+            3
+        """
+        return self.size - self.index
+
+    cdef inline int check(self) except -1:
+        """
+        If the iterator is supposed to be exhausted, check that it is.
+        """
+        if self.index < self.size:
+            return 0
+        try:
+            next(self.iterator)
+        except StopIteration:
+            pass
+        else:
+            raise ValueError(f"sequence too long (expected length {self.size}, got more)")
+
+    def __next__(self):
+        if self.index >= self.size:
+            raise StopIteration
+        try:
+            x = next(self.iterator)
+        except StopIteration:
+            raise ValueError(f"sequence too short (expected length {self.size}, got {self.index})")
+        self.index += 1
+        self.check()
+        return x

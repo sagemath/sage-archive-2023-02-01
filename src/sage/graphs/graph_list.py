@@ -9,65 +9,106 @@ AUTHORS:
   (to_graphics_array and show_graphs)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #           Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
 #                              and Emily A. Kirkman
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
+
+
+from sage.misc.misc import try_read
+
 
 def from_whatever(data):
-    """
+    r"""
     Returns a list of Sage Graphs, given a list of whatever kind of
     data.
 
     INPUT:
 
 
-    -  ``data`` - can be a string, a list of strings, or a
-       file stream, or whatever.
+    -  ``data`` - can be a string, a list/iterable of strings, or a
+       readable file-like object.
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: l = ['N@@?N@UGAGG?gGlKCMO',':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI']
         sage: graphs_list.from_whatever(l)
         [Graph on 15 vertices, Looped multi-graph on 17 vertices]
+        sage: graphs_list.from_whatever('\n'.join(l))
+        [Graph on 15 vertices, Looped multi-graph on 17 vertices]
+
+    This example happens to be a mix a sparse and non-sparse graphs, so we
+    don't explicitly put a ``.g6`` or ``.s6`` extension, which implies just one
+    or the other::
+
+        sage: filename = tmp_filename()
+        sage: with open(filename, 'w') as fobj:
+        ....:     _ = fobj.write('\n'.join(l))
+        sage: with open(filename) as fobj:
+        ....:     graphs_list.from_whatever(fobj)
+        [Graph on 15 vertices, Looped multi-graph on 17 vertices]
     """
+
+    return _from_whatever(data)
+
+
+def _from_whatever(data, fmt=None):
+    """
+    Implementation details of :func:`from_whatever`.
+
+    ``fmt`` can be either ``'graph6'``, ``sparse6``, or ``None``, with the
+    latter case indicating that the `Graph` constructor should determine this
+    for itself.
+    """
+
     from sage.graphs.graph import Graph
-    if isinstance(data, file):
-        if data.name[data.name.rindex('.'):] == '.g6':
-            return from_graph6(data)
-        elif data.name[data.name.rindex('.'):] == '.s6':
-            return from_sparse6(data)
-        else: # convert to list of lines, do each separately
-            L = data.readlines()
-            return from_whatever(L)
-    if isinstance(data, list):
-        l = []
-        for d in data:
-            if isinstance(d, str):
-                nn = d.rfind('\n')
-                if nn == -1:
-                    sparse = bool(d[0] == ':')
-                    l.append(Graph(d, sparse=sparse))
-                elif len(d) == nn + 1:
-                    sparse = bool(d[0] == ':')
-                    l.append(Graph(d[:nn], sparse=sparse))
-                else:
-                    l.append(from_whatever(d))
-            else:
-                l.append(from_whatever(d))
-        return l
+
     if isinstance(data, str):
-        data = data.split('\n')
-        l = []
-        for d in data:
-            if not d == '':
-                sparse = bool(d[0] == ':')
-                l.append(Graph(d, sparse=sparse))
-        return l
+        lines = data.splitlines()
+    else:
+        lines = try_read(data, splitlines=True)
+
+        if lines is not None and fmt is None:
+            # In this case the format should be 'forced' by the filename
+            if hasattr(data, 'name'):
+                if data.name.endswith('.g6'):
+                    fmt = 'graph6'
+                elif data.name.endswith('.s6'):
+                    fmt = 'sparse6'
+        else:
+            try:
+                lines = iter(data)
+            except TypeError:
+                raise TypeError(
+                    "Must be a string, an iterable of strings, or a readable "
+                    "file-like object")
+
+    if fmt == 'graph6':
+        kwargs = {'format': fmt}
+    elif fmt == 'sparse6':
+        kwargs = {'format': fmt, 'sparse': True}  # probably implied?
+    else:
+        kwargs = {}  # We let Graph guess
+
+    out = []
+    for line in lines:
+        if not isinstance(line, str):
+            raise TypeError("Must be an iterable of strings")
+        line = line.strip()
+        if not line:
+            continue
+
+        if '\n' in line:
+            out.append(_from_whatever(line.splitlines(), fmt=fmt))
+        else:
+            out.append(Graph(line, **kwargs))
+
+    return out
+
 
 def from_graph6(data):
     """
@@ -80,40 +121,14 @@ def from_graph6(data):
        file stream.
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: l = ['N@@?N@UGAGG?gGlKCMO','XsGGWOW?CC?C@HQKHqOjYKC_uHWGX?P?~TqIKA`OA@SAOEcEA??']
         sage: graphs_list.from_graph6(l)
         [Graph on 15 vertices, Graph on 25 vertices]
     """
-    from sage.graphs.graph import Graph
-    if isinstance(data,str):
-        data = data.split('\n')
-        l = []
-        for d in data:
-            if not d == '':
-                l.append(Graph(d, format = 'graph6'))
-        return l
-    elif isinstance(data,list):
-        l = []
-        for d in data:
-            if isinstance(d, str):
-                nn = d.rfind('\n')
-                if nn == -1:
-                    l.append(Graph(d,format='graph6'))
-                elif len(d) == nn + 1:
-                    l.append(Graph(d[:nn], format='graph6'))
-                else:
-                    l.append(from_graph6(d))
-            else:
-                l.append(from_graph6(d))
-        return l
-    elif isinstance(data,file):
-        strlist = data.readlines()
-        l = []
-        for s in strlist:
-            l.append(Graph(s[:s.rfind('\n')], format='graph6'))
-        return l
+    return _from_whatever(data, fmt='graph6')
+
 
 def from_sparse6(data):
     """
@@ -126,42 +141,16 @@ def from_sparse6(data):
        file stream.
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: l = [':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI',':f`??KO?B_OOSCGE_?OWONDBO?GOJBDO?_SSJdApcOIG`?og_UKEbg?_SKFq@[CCBA`p?oYMFp@gw]Qaa@xEMHDb@hMCBCbQ@ECHEcAKKQKFPOwo[PIDQ{KIHEcQPOkVKEW_WMNKqPWwcRKOOWSKIGCqhWt??___WMJFCahWzEBa`xOu[MpPPKqYNoOOOKHHDBPs|??__gWMKEcAHKgTLErqA?A@a@G{kVLErs?GDBA@XCs\\NggWSOJIDbHh@?A@aF']
         sage: graphs_list.from_sparse6(l)
         [Looped multi-graph on 17 vertices, Looped multi-graph on 39 vertices]
     """
-    from sage.graphs.graph import Graph
-    if isinstance(data,str):
-        data = data.split('\n')
-        l = []
-        for d in data:
-            if not d == '':
-                l.append(Graph(d, format = 'sparse6', sparse=True))
-        return l
-    elif isinstance(data,list):
-        l = []
-        for d in data:
-            if isinstance(d, str):
-                nn = d.rfind('\n')
-                if nn == -1:
-                    l.append(Graph(d, format='sparse6', sparse=True))
-                elif len(d) == nn + 1:
-                    l.append(Graph(d[:nn], format='sparse6', sparse=True))
-                else:
-                    l.append(from_sparse6(d))
-            else:
-                l.append(from_sparse6(d))
-        return l
-    elif isinstance(data,file):
-        strlist = data.readlines()
-        l = []
-        for s in strlist:
-            l.append(Graph(s[:s.rfind('\n')], format='sparse6', sparse=True))
-        return l
+    return _from_whatever(data, fmt='sparse6')
 
-def to_graph6(list, file = None, output_list=False):
+
+def to_graph6(graphs, file=None, output_list=False):
     r"""
     Converts a list of Sage graphs to a single string of graph6 graphs.
     If file is specified, then the string will be written quietly to
@@ -171,7 +160,7 @@ def to_graph6(list, file = None, output_list=False):
     INPUT:
 
 
-    -  ``list`` - a Python list of Sage Graphs
+    -  ``graphs`` - a Python list of Sage Graphs
 
     -  ``file`` - (optional) a file stream to write to
        (must be in 'w' mode)
@@ -180,27 +169,16 @@ def to_graph6(list, file = None, output_list=False):
        output is a list of strings (ignored if file gets specified)
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
         sage: graphs_list.to_graph6(l)
         'ShCHGD@?K?_@?@?C_GGG@??cG?G?GK_?C\nIheA@GUAo\n'
     """
-    l = ''
-    for G in list:
-        l += G.graph6_string() + '\n'
-    if file is None:
-        if output_list:
-            a = l.split('\n')
-            a = a[:len(a)-1]
-            return a
-        else:
-            return l
-    else:
-        file.write(l)
-        file.flush()
+    return _to_graph6(graphs, file=file, output_list=output_list)
 
-def to_sparse6(list, file = None, output_list=False):
+
+def to_sparse6(graphs, file=None, output_list=False):
     r"""
     Converts a list of Sage graphs to a single string of sparse6
     graphs. If file is specified, then the string will be written
@@ -219,27 +197,35 @@ def to_sparse6(list, file = None, output_list=False):
        output is a list of strings (ignored if file gets specified)
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
         sage: graphs_list.to_sparse6(l)
         ':S_`abcaDe`Fg_HijhKfLdMkNcOjP_BQ\n:I`ES@obGkqegW~\n'
     """
-    l = ''
-    for G in list:
-        l += G.sparse6_string() + '\n'
-    if file is None:
-        if output_list:
-            a = l.split('\n')
-            a = a[:len(a)-1]
-            return a
-        else:
-            return l
-    else:
-        file.write(l)
-        file.flush()
+    return _to_graph6(graphs, file=file, output_list=output_list, sparse=True)
 
-        
+
+def _to_graph6(graphs, file=None, output_list=False, sparse=False):
+    """Internal implementation of :func:`to_graph6` and :func:`to_sparse6`."""
+
+    if sparse:
+        method = 'sparse6_string'
+    else:
+        method = 'graph6_string'
+
+    strs = [getattr(g, method)() for g in graphs]
+
+    if file or not output_list:
+        strs = '\n'.join(strs) + '\n'
+
+    if file is None:
+        return strs
+
+    file.write(strs)
+    file.flush()
+
+
 def to_graphics_array(graph_list, **kwds):
     """
     Draw all graphs in a graphics array
@@ -248,7 +234,7 @@ def to_graphics_array(graph_list, **kwds):
 
     -  ``graph_list`` - a list of Sage graphs
 
-    GRAPH PLOTTING: 
+    GRAPH PLOTTING:
 
     Defaults to circular layout for graphs. This allows
     for a nicer display in a small area and takes much less time to
@@ -275,9 +261,9 @@ def to_graphics_array(graph_list, **kwds):
     """
     from sage.graphs import graph
     plist = []
-    for i in range(len(graph_list)):
-        if isinstance(graph_list[i], graph.GenericGraph):
-            pos = graph_list[i].get_pos()
+    for graph_i in graph_list:
+        if isinstance(graph_i, graph.GenericGraph):
+            pos = graph_i.get_pos()
             if pos is None:
                 if 'layout' not in kwds:
                     kwds['layout'] = 'circular'
@@ -286,9 +272,11 @@ def to_graphics_array(graph_list, **kwds):
                 if 'vertex_labels' not in kwds:
                     kwds['vertex_labels'] = False
                 kwds['graph_border'] = True
-                plist.append(graph_list[i].plot(**kwds))
+                plist.append(graph_i.plot(**kwds))
             else:
-                plist.append(graph_list[i].plot(pos=pos, vertex_size=50, vertex_labels=False, graph_border=True))
+                plist.append(graph_i.plot(pos=pos, vertex_size=50,
+                                          vertex_labels=False,
+                                          graph_border=True))
         else:
             raise TypeError('param list must be a list of Sage (di)graphs.')
     from sage.plot.plot import graphics_array
@@ -308,13 +296,11 @@ def show_graphs(graph_list, **kwds):
 
     INPUT:
 
-
-    -  ``list`` - a list of Sage graphs
-
+    -  ``list`` -- a list of Sage graphs
 
     GRAPH PLOTTING: Defaults to circular layout for graphs. This allows
     for a nicer display in a small area and takes much less time to
-    compute than the spring- layout algorithm for many graphs.
+    compute than the spring-layout algorithm for many graphs.
 
     EXAMPLES: Create a list of graphs::
 
@@ -362,8 +348,5 @@ def show_graphs(graph_list, **kwds):
     """
     graph_list = list(graph_list)
     for i in range(len(graph_list) // 20 + 1):
-        graph_slice =graph_list[20*i:20*(i+1)]
+        graph_slice = graph_list[20 * i: 20 * (i + 1)]
         to_graphics_array(graph_slice, **kwds).show()
-
-
-

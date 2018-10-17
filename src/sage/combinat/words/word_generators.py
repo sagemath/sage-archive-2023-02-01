@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Common words
 
@@ -65,7 +65,7 @@ from sage.rings.infinity import Infinity
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.word import FiniteWord_list
 from sage.combinat.words.finite_word import FiniteWord_class, Factorization
-from sage.combinat.words.words import Words, FiniteWords, InfiniteWords
+from sage.combinat.words.words import FiniteWords, InfiniteWords
 from sage.combinat.words.morphism import WordMorphism
 from sage.arith.all import gcd
 from sage.misc.decorators import rename_keyword
@@ -839,9 +839,7 @@ class WordGenerator(object):
 
         ::
 
-            sage: words.CharacteristicSturmianWord(1/golden_ratio^2, bits=30)
-            doctest:...: DeprecationWarning: the argument 'bits' is deprecated
-            See http://trac.sagemath.org/14567 for details.
+            sage: words.CharacteristicSturmianWord(1/golden_ratio^2)
             word: 0100101001001010010100100101001001010010...
             sage: _.length()
             +Infinity
@@ -873,10 +871,6 @@ class WordGenerator(object):
             sage: u[1:-1] == v[:-2]
             True
         """
-        if bits is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(14567, "the argument 'bits' is deprecated")
-
         if len(set(alphabet)) != 2:
             raise TypeError("alphabet does not contain two distinct elements")
 
@@ -972,6 +966,9 @@ class WordGenerator(object):
         Note that `K_{a,b} \neq K_{b,a}`. On the other hand, the
         words `K_{a,b}` and `K_{b,a}` are the unique two words over `A`
         that are fixed by `\Delta`.
+
+        Also note that the Kolakoski word is also known as the
+        Oldenburger word.
 
         INPUT:
 
@@ -1265,7 +1262,7 @@ class WordGenerator(object):
            morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
 
         .. [GJ07] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
-           2007, arXiv:0801.1655.
+           2007, :arxiv:`0801.1655`.
         """
         if not isinstance(directive_word, Word_class):
            raise TypeError("directive_word is not a word, so it cannot be used to build an episturmian word")
@@ -1359,8 +1356,8 @@ class WordGenerator(object):
         return W(w)
 
     def RandomWord(self, n, m=2, alphabet=None):
-        """
-        Returns a random word of length `n` over the given `m`-letter
+        r"""
+        Return a random word of length `n` over the given `m`-letter
         alphabet.
 
         INPUT:
@@ -1834,7 +1831,7 @@ class WordGenerator(object):
             sage: s = words.s_adic(w, repeat(3), x); s
             word: 3232232232322322322323223223232232232232...
             sage: prefixe = s[:10000]
-            sage: map(prefixe.number_of_factors, range(15))
+            sage: list(map(prefixe.number_of_factors, range(15)))
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             sage: [_[i+1] - _[i] for i in range(len(_)-1)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -1918,11 +1915,11 @@ class WordGenerator(object):
 
     def PalindromicDefectWord(self, k=1, alphabet='ab'):
         r"""
-        Returns the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
+        Return the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
 
-        As described by Brlek, Hamel, Nivat and Reuteunaer in [BHNR04]_, this
+        As described by Brlek, Hamel, Nivat and Reutenauer in [BHNR04]_, this
         finite word `w` is such that the infinite periodic word `w^{\omega}`
-        have palindromic defect ``k``.
+        has palindromic defect ``k``.
 
         INPUT:
 

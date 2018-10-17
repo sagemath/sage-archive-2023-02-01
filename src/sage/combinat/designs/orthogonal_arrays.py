@@ -58,17 +58,17 @@ Functions
 from __future__ import print_function, absolute_import
 
 from builtins import zip
-from six import itervalues
+from six import itervalues, iteritems
 from six.moves import range
 
-from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from .designs_pyx import is_orthogonal_array
 from .group_divisible_designs import GroupDivisibleDesign
 from .designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
 
-def transversal_design(k,n,resolvable=False,check=True,existence=False):
+
+def transversal_design(k, n, resolvable=False, check=True, existence=False):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -134,7 +134,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
 
     .. SEEALSO::
 
-        :func:`orthogonal_array` -- a tranversal design `TD(k,n)` is equivalent to an
+        :func:`orthogonal_array` -- a transversal design `TD(k,n)` is equivalent to an
         orthogonal array `OA(k,n,2)`.
 
     EXAMPLES::
@@ -347,8 +347,6 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
     if existence and _OA_cache_get(k,n) is not None:
         return _OA_cache_get(k,n)
 
-    may_be_available = _OA_cache_construction_available(k,n) is not False
-
     if n == 1:
         if existence:
             return True
@@ -380,6 +378,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
         raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
 
     return TransversalDesign(TD,k,n,check=check)
+
 
 class TransversalDesign(GroupDivisibleDesign):
     r"""
@@ -451,7 +450,8 @@ class TransversalDesign(GroupDivisibleDesign):
         """
         return "Transversal Design TD({},{})".format(self._k,self._n)
 
-def is_transversal_design(B,k,n, verbose=False):
+
+def is_transversal_design(B, k, n, verbose=False):
     r"""
     Check that a given set of blocks ``B`` is a transversal design.
 
@@ -469,7 +469,7 @@ def is_transversal_design(B,k,n, verbose=False):
 
     .. NOTE::
 
-        The tranversal design must have `\{0, \ldots, kn-1\}` as a ground set,
+        The transversal design must have `\{0, \ldots, kn-1\}` as a ground set,
         partitioned as `k` sets of size `n`: `\{0, \ldots, k-1\} \sqcup
         \{k, \ldots, 2k-1\} \sqcup \cdots \sqcup \{k(n-1), \ldots, kn-1\}`.
 
@@ -718,7 +718,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 
         This function uses transversal designs with
         `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}` both as input and
-        ouptut.
+        output.
 
     EXAMPLES::
 
@@ -871,7 +871,6 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
         return _OA_cache_get(k,n)
 
     from .block_design import projective_plane
-    from .latin_squares import mutually_orthogonal_latin_squares
     from .database import OA_constructions, MOLS_constructions, QDM
     from .orthogonal_arrays_find_recursive import find_recursive_construction
     from .difference_matrices import difference_matrix
@@ -1029,7 +1028,7 @@ def largest_available_k(n,t=2):
 
     - ``t`` -- (integer; default: 2) -- strength of the array
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: designs.orthogonal_arrays.largest_available_k(0)
         +Infinity
@@ -1330,8 +1329,8 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
             holes[i] = [h2]
             IOA.remove(h2)
 
-        holes = sum(holes,[])
-        holes = map(list, list(zip(*holes)))
+        holes = sum(holes, [])
+        holes = [list(h) for h in zip(*holes)]
 
         # Building the relabel matrix
         for l in holes:
@@ -1359,7 +1358,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         OA = [B[:-1] for B in OA]
 
     elif max_hole==1 and orthogonal_array(k,n,existence=True):
-        OA = orthogonal_array(k,n)
+        OA = orthogonal_array(k, n)
         try:
             independent_set = OA_find_disjoint_blocks(OA,k,n,number_of_holes)
         except ValueError:
@@ -1374,9 +1373,11 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         return orthogonal_array(k,n,existence=existence)
 
     # From a quasi-difference matrix
-    elif number_of_holes==1 and any(uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1 for (nn,lmbda,mu,uu),(kk,_) in QDM.get((n,1),{}).iteritems()):
-        for (nn,lmbda,mu,uu),(kk,f) in QDM[n,1].iteritems():
-            if uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1:
+    elif (number_of_holes == 1 and
+          any(uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1
+              for (nn,lmbda,mu,uu),(kk,_) in iteritems(QDM.get((n,1),{})))):
+        for (nn,lmbda,mu,uu),(kk,f) in iteritems(QDM[n,1]):
+            if uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1:
                 break
         G,M = f()
         OA  = OA_from_quasi_difference_matrix(M,G,fill_hole=False)
@@ -1422,7 +1423,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
 
     `x` blocks of an `OA` are said to be disjoint if they all have
     different values for a every given index, i.e. if they correspond to
-    disjoint blocks in the `TD` assciated with the `OA`.
+    disjoint blocks in the `TD` associated with the `OA`.
 
     INPUT:
 
@@ -1620,7 +1621,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
         - :func:`~sage.combinat.designs.database.OA_11_640`
         - :func:`~sage.combinat.designs.database.OA_15_896`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_n_times_2_pow_c_from_matrix
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
@@ -1662,7 +1663,6 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
        The Australasian Journal of Combinatorics, vol 10 (1994)
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
-    from sage.rings.integer import Integer
     from itertools import combinations
     from .designs_pyx import is_difference_matrix
 
@@ -1676,7 +1676,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     F = FiniteField(2**c,'w')
     GG = G.cartesian_product(F)
 
-    # dictionary from integers to elments of GF(2^c): i -> w^i, None -> 0
+    # dictionary from integers to elements of GF(2^c): i -> w^i, None -> 0
     w = F.multiplicative_generator()
     r = {i:w**i for i in range(2**c-1)}
     r[None] = F.zero()
@@ -1805,10 +1805,10 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     G_to_int = {x:i for i,x in enumerate(G)}
 
     # A cache for addition in G
-    G_sum = [[0]*Gn for _ in range(Gn)]
-    for x,i in G_to_int.iteritems():
-        for xx,ii in G_to_int.iteritems():
-            G_sum[i][ii] = G_to_int[x+xx]
+    G_sum = [[0] * Gn for _ in range(Gn)]
+    for x, i in iteritems(G_to_int):
+        for xx, ii in iteritems(G_to_int):
+            G_sum[i][ii] = G_to_int[x + xx]
 
     # Convert M to integers
     M = [[None if x is None else G_to_int[G(x)] for x in line] for line in M]
@@ -1860,10 +1860,9 @@ def OA_from_Vmt(m,t,V):
 
         sage: _ = designs.orthogonal_arrays.build(6,46) # indirect doctest
     """
-    from sage.rings.finite_rings.finite_field_constructor import FiniteField
-    q = m*t+1
     Fq, M = QDM_from_Vmt(m,t,V)
     return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
+
 
 def QDM_from_Vmt(m,t,V):
     r"""
@@ -2118,7 +2117,7 @@ class OAMainFunctions():
 
         - ``k,n,t`` (integers) -- parameters of the orthogonal array.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.explain_construction(9,565)
             "Wilson's construction n=23.24+13 with master design OA(9+1,23)"
@@ -2187,7 +2186,7 @@ class OAMainFunctions():
 
             :meth:`is_available`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.exists(3,6) # indirect doctest
             True
@@ -2211,7 +2210,7 @@ class OAMainFunctions():
 
             :meth:`exists`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.is_available(3,6) # indirect doctest
             True

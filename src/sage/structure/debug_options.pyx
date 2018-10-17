@@ -4,8 +4,6 @@ Debug options for the :mod:`sage.structure` modules
 EXAMPLES::
 
     sage: from sage.structure.debug_options import debug
-    sage: debug.bad_parent_warnings
-    False
     sage: debug.unique_parent_warnings
     False
     sage: debug.refine_category_hash_check
@@ -33,9 +31,8 @@ cdef class DebugOptions_class:
 
             sage: from sage.structure.debug_options import debug
             sage: type(debug)
-            <type 'sage.structure.debug_options.DebugOptions_class'>
+            <... 'sage.structure.debug_options.DebugOptions_class'>
         """
-        self.bad_parent_warnings = False
         self.unique_parent_warnings = False
         # This one will be enabled during doctests
         self.refine_category_hash_check = False

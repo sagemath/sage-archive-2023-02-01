@@ -156,6 +156,8 @@ from __future__ import absolute_import
 import os
 from .expect import Expect, ExpectElement
 from sage.misc.misc import verbose
+from sage.docs.instancedoc import instancedoc
+
 
 class Octave(Expect):
     r"""
@@ -190,7 +192,7 @@ class Octave(Expect):
         Expect.__init__(self,
                         name = 'octave',
                         # We want the prompt sequence to be unique to avoid confusion with syntax error messages containing >>>
-                        prompt = 'octave\:\d+> ',
+                        prompt = r'octave\:\d+> ',
                         # We don't want any pagination of output
                         command = command + " --no-line-editing --silent --eval 'PS2(PS1());more off' --persist",
                         maxread = maxread,
@@ -459,7 +461,7 @@ class Octave(Expect):
         octave_console()
 
     def version(self):
-        """
+        r"""
         Return the version of Octave.
 
         OUTPUT: string
@@ -471,7 +473,7 @@ class Octave(Expect):
             '2.13.7'
 
             sage: import re
-            sage: assert re.match("\d+\.\d+\.\d+", v)  is not None # optional - octave
+            sage: assert re.match(r"\d+\.\d+\.\d+", v)  is not None # optional - octave
         """
         return str(self("version")).strip()
 
@@ -611,6 +613,8 @@ def to_complex(octave_string, R):
     real, imag = octave_string.strip('() ').split(',')
     return R(float(real), float(imag))
 
+
+@instancedoc
 class OctaveElement(ExpectElement):
     def _get_sage_ring(self):
         r"""

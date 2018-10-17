@@ -20,7 +20,7 @@ from __future__ import division, print_function
 include "algebra_elements.pxi"
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import repr_lincomb
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 
 cdef class PathAlgebraElement(RingElement):
@@ -422,7 +422,7 @@ cdef class PathAlgebraElement(RingElement):
             sage: P.inject_variables()
             Defining e_1, x, y, z
             sage: p = (x+2*z+1)^3
-            sage: list(sorted(p.monomial_coefficients().items()))
+            sage: sorted(p.monomial_coefficients().items())
             [(x*x*x, 1),
              (z*x*x, 2),
              (x*z*x, 2),
@@ -1203,7 +1203,7 @@ cdef class PathAlgebraElement(RingElement):
 
 ## (scalar) multiplication
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -1234,7 +1234,7 @@ cdef class PathAlgebraElement(RingElement):
             return self._new_(outnxt)
         return self._new_(out)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         EXAMPLES::
 

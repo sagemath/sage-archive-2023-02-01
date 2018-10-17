@@ -362,9 +362,8 @@ Another graph::
 
     sage: x = var('x')
     sage: P = plot(sin(x)/x, -4, 4, color='blue') + \
-    ...       plot(x*cos(x), -4, 4, color='red') + \
-    ...       plot(tan(x), -4, 4, color='green')
-    ...
+    ....:     plot(x*cos(x), -4, 4, color='red') + \
+    ....:     plot(tan(x), -4, 4, color='green')
     sage: P.show(ymin=-pi, ymax=pi)
 
 .. PLOT::
@@ -479,7 +478,7 @@ We test that ``imshow`` works as well, verifying that
 
 ::
 
-    sage: plt.imshow([[(0,0,0)]])
+    sage: plt.imshow([[(0.0,0.0,0.0)]])
     <matplotlib.image.AxesImage object at ...>
     sage: plt.savefig(os.path.join(SAGE_TMP, 'foo.png'))
 
@@ -556,11 +555,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
-import os
 from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
@@ -576,11 +574,16 @@ from sage.arith.srange import srange
 from sage.misc.randstate import current_randstate #for plot adaptive refinement
 from math import sin, cos, pi #for polar_plot
 
-from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
+from sage.ext.fast_eval import fast_float, is_fast_float
 
-from sage.misc.decorators import options, rename_keyword
+from sage.misc.decorators import options
 
 from .graphics import Graphics, GraphicsArray
+from sage.plot.polygon import polygon
+
+# import of line2d below is only for redirection of imports
+from sage.plot.line import line, line2d
+
 
 #Currently not used - see comment immediately above about
 #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
@@ -1012,6 +1015,12 @@ def plot(funcs, *args, **kwds):
 
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
+      
+    MATPLOTLIB STYLE SHEET OPTION:
+    
+    - ``stylesheet`` - (Default: classic) Support for loading a full matplotlib style sheet.
+      Any style sheet listed in ``matplotlib.pyplot.style.available`` is acceptable. If a
+      non-existing style is provided the default classic is applied.
 
     EXAMPLES:
 
@@ -1216,12 +1225,12 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: plot(sin, legend_label='$\sin$')
+        sage: plot(sin, legend_label=r'$\sin$')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        g = plot(sin,legend_label='$\sin$')
+        g = plot(sin,legend_label=r'$\sin$')
         sphinx_plot(g)
 
     It is possible to use a different color for the text of each label::
@@ -1242,12 +1251,12 @@ def plot(funcs, *args, **kwds):
     background. This behavior can be recovered by setting the legend
     options on your plot object::
 
-        sage: p = plot(sin(x), legend_label='$\sin(x)$')
+        sage: p = plot(sin(x), legend_label=r'$\sin(x)$')
         sage: p.set_legend_options(back_color=(0.9,0.9,0.9), shadow=False)
 
     .. PLOT::
 
-        g = plot(sin(x), legend_label='$\sin(x)$')
+        g = plot(sin(x), legend_label=r'$\sin(x)$')
         g.set_legend_options(back_color=(0.9,0.9,0.9), shadow=False)
         sphinx_plot(g)
 
@@ -1538,7 +1547,7 @@ def plot(funcs, *args, **kwds):
 
     .. PLOT::
 
-        p1 = plot(sin(x), -pi, pi, fill='axis'); print p1
+        p1 = plot(sin(x), -pi, pi, fill='axis'); print(p1)
         p2 = plot(sin(x), -pi, pi, fill='min', fillalpha=1)
         p3 = plot(sin(x), -pi, pi, fill='max')
         p4 = plot(sin(x), -pi, pi, fill=(1-x)/3, fillcolor='blue', fillalpha=.2)
@@ -1604,7 +1613,7 @@ def plot(funcs, *args, **kwds):
     like ``i:j`` will fill between the ith function and the line y=j::
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
-        sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:[i-1] for i in [1..4]}, color={i:'blue' for i in [1..5]}, aspect_ratio=3, ymax=3);
+        sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:[i-1] for i in [1..4]}, color={i:'blue' for i in [1..5]}, aspect_ratio=3, ymax=3)
         Graphics object consisting of 9 graphics primitives
         sage: plot([b(c) for c in [1..5]], 0, 20, fill={i:i-1 for i in [1..4]}, color='blue', aspect_ratio=3) # long time
         Graphics object consisting of 9 graphics primitives
@@ -1621,12 +1630,12 @@ def plot(funcs, *args, **kwds):
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
     as long as they are valid::
 
-        sage: plot(sin(x^2), (x, -3, 3), title='Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
+        sage: plot(sin(x^2), (x, -3, 3), title=r'Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        g = plot(sin(x**2), (x, -3, 3), title='Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
+        g = plot(sin(x**2), (x, -3, 3), title=r'Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
         sphinx_plot(g)
 
     ::
@@ -1710,6 +1719,7 @@ def plot(funcs, *args, **kwds):
     Ghostscript be installed::
 
         sage: plot(x, typeset='type1') # optional - latex
+        Graphics object consisting of 1 graphics primitive
 
     A example with excluded values::
 
@@ -2055,7 +2065,7 @@ def _plot(funcs, xrange, parametric=False,
     plot properly (:trac:`13246`)::
 
         sage: parametric_plot((x, arcsec(x)), (x, -2, 2))
-        Graphics object consisting of 1 graphics primitive
+        Graphics object consisting of 2 graphics primitives
 
     """
     from sage.plot.colors import Color
@@ -2083,10 +2093,9 @@ def _plot(funcs, xrange, parametric=False,
 
     # Check to see if funcs is a list of functions that will be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
-        from sage.rings.integer import Integer
         def golden_rainbow(i,lightness=0.4):
             # note: sage's "blue" has hue-saturation-lightness values (2/3, 1, 1/2).
-            g = golden_ratio_conjugate = 0.61803398875
+            g = 0.61803398875
             return Color((0.66666666666666 + i*g) % 1, 1, lightness, space='hsl')
 
         default_line_styles = ("-", "--", "-.", ":")*len(funcs)
@@ -2180,7 +2189,7 @@ def _plot(funcs, xrange, parametric=False,
                     linestyle_entry = default_line_styles[i]
             elif linestyle_temp == 'automatic':
                 linestyle_entry = default_line_styles[i]
-            elif linestyle_temp == None:
+            elif linestyle_temp is None:
                 linestyle_entry = 'solid'
             else:
                 linestyle_entry = linestyle_temp
@@ -2223,7 +2232,7 @@ def _plot(funcs, xrange, parametric=False,
     exclude = options.pop('exclude')
     if exclude is not None:
         from sage.symbolic.expression import Expression
-        if isinstance(exclude, Expression) and exclude.is_relational() == True:
+        if isinstance(exclude, Expression) and exclude.is_relational():
             if len(exclude.variables()) > 1:
                 raise ValueError('exclude has to be an equation of only one variable')
             v = exclude.variables()[0]
@@ -2340,11 +2349,9 @@ def _plot(funcs, xrange, parametric=False,
     if polar:
         data = [(y*cos(x), y*sin(x)) for x, y in data]
 
-    from sage.plot.all import line, text
-
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
-    if excluded_points or detect_poles != False:
+    if excluded_points or detect_poles:
         start_index = 0
         # setup for pole detection
         from sage.rings.all import RDF
@@ -2365,7 +2372,7 @@ def _plot(funcs, xrange, parametric=False,
             x1, y1 = exclude_data[i+1]
 
             # detect poles
-            if (not (polar or parametric)) and detect_poles != False \
+            if (not (polar or parametric)) and detect_poles \
                and ((y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0)):
                 # calculate the slope of the line segment
                 dy = abs(y1-y0)
@@ -2402,14 +2409,6 @@ def _plot(funcs, xrange, parametric=False,
         G += line(data[start_index:], legend_label=legend_label, **options)
     else:
         G += line(data, legend_label=legend_label, **options)
-
-    # Label?
-    if label:
-        from sage.misc.superseded import deprecation
-        deprecation(4342, "Consider using legend_label instead")
-        label = '  '+str(label)
-        G += text(label, data[-1], horizontal_alignment='left',
-                  vertical_alignment='center')
 
     return G
 
@@ -2916,11 +2915,14 @@ def list_plot(data, plotjoined=False, **kwargs):
         If ``plotjoined`` is ``False`` then the axis that is in log scale
         must have all points strictly positive. For instance, the following
         plot will show no points in the figure since the points in the
-        horizontal axis starts from `(0,1)`.
+        horizontal axis starts from `(0,1)`. Further, matplotlib will display
+        a user warning.
 
         ::
 
             sage: list_plot(yl, scale='loglog')         # both axes are log
+            doctest:warning
+            ...
             Graphics object consisting of 1 graphics primitive
 
         Instead this will work. We drop the point `(0,1)`.::
@@ -2967,7 +2969,7 @@ def list_plot(data, plotjoined=False, **kwargs):
         sage: d['ymin']
         100.0
     """
-    from sage.plot.all import line, point
+    from sage.plot.all import point
     try:
         if not data:
             return Graphics()
@@ -2979,13 +2981,13 @@ def list_plot(data, plotjoined=False, **kwargs):
                     "and 'y' against each other, use 'list_plot(list(zip(x,y)))'.")
     if isinstance(data, dict):
         if plotjoined:
-            list_data = sorted(list(data.iteritems()))
+            list_data = sorted(list(iteritems(data)))
         else:
-            list_data = list(data.iteritems())
+            list_data = list(iteritems(data))
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
     try:
         from sage.rings.all import RDF
-        tmp = RDF(data[0])
+        RDF(data[0])
         data = list(enumerate(data))
     except TypeError: # we can get this TypeError if the element is a list
                       # or tuple or numpy array, or an element of CC, CDF
@@ -3051,7 +3053,7 @@ def plot_loglog(funcs, *args, **kwds):
         sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         Graphics object consisting of 1 graphics primitive
 
-    .. PLOT ::
+    .. PLOT::
 
         g = plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         sphinx_plot(g)
@@ -3296,19 +3298,21 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
         If ``plotjoined`` is ``False`` then the vertical axis must have all
         points strictly positive. Otherwise the plot will come up empty.
-        For instance the following plot contains a point at `(1,0)`.
+        For instance the following plot contains a point at `(1,0)`. Further, 
+        matplotlib will display a user warning.
 
         ::
 
             sage: xl = [2**k for k in range(12)]; yl = range(len(xl))
             sage: list_plot_semilogy(list(zip(xl,yl))) # plot empty due to (1,0)
+            doctest:warning
+            ...
             Graphics object consisting of 1 graphics primitive
 
         We remove `(1,0)` to fix this.::
 
             sage: list_plot_semilogy(list(zip(xl[1:],yl[1:])))
             Graphics object consisting of 1 graphics primitive
-
 
     ::
 
@@ -3322,6 +3326,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogy', **kwds)
+
 
 def to_float_list(v):
     """
@@ -3420,7 +3425,7 @@ def graphics_array(array, nrows=None, ncols=None):
        if necessary. If only one is specified, the other is chosen
        automatically.
 
-    EXAMPLE: Make some plots of `\sin` functions::
+    EXAMPLES: Make some plots of `\sin` functions::
 
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
@@ -3754,6 +3759,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     else:
         return []
 
+
 def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize=True, initial_points=None):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
@@ -3849,7 +3855,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     if isinstance(initial_points, list):
         data = sorted(data + initial_points)
 
-    exceptions = 0; msg=''
+    exceptions = 0
     exception_indices = []
     for i in range(len(data)):
         xi = data[i]
@@ -3857,12 +3863,13 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         try:
             data[i] = (float(xi), float(f(xi)))
             if str(data[i][1]) in ['nan', 'NaN', 'inf', '-inf']:
-                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
+                msg = "Unable to compute f(%s)" % xi
+                sage.misc.misc.verbose(msg, 1)
                 exceptions += 1
                 exception_indices.append(i)
 
-        except (ArithmeticError, TypeError, ValueError) as msg:
-            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
+        except (ArithmeticError, TypeError, ValueError) as m:
+            sage.misc.misc.verbose("%s\nUnable to compute f(%s)" % (m, xi), 1)
 
             if i == 0: # Given an error for left endpoint, try to move it in slightly
                 for j in range(1, 99):
@@ -3873,9 +3880,10 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError) as msg:
+                    except (ArithmeticError, TypeError, ValueError):
                         pass
                 else:
+                    msg = m
                     exceptions += 1
                     exception_indices.append(i)
 
@@ -3888,12 +3896,14 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError) as msg:
+                    except (ArithmeticError, TypeError, ValueError):
                         pass
                 else:
+                    msg = m
                     exceptions += 1
                     exception_indices.append(i)
             else:
+                msg = m
                 exceptions += 1
                 exception_indices.append(i)
 
@@ -3913,20 +3923,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
        i += 1
 
     if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
-        sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
+        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points." % exceptions, level=0)
+        sage.misc.misc.verbose("Last error message: '%s'" % msg, level=0)
 
     return data
-
-#Lovely cruft to keep the pickle jar working
-from .line import line, line2d, Line as GraphicPrimitive_Line
-from .arrow import arrow, Arrow as GraphicPrimitive_Arrow
-from .bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart
-from .disk import disk, Disk as GraphicPrimitive_Disk
-from .point import point, points, point2d, Point as GraphicPrimitive_Point
-from .matrix_plot import matrix_plot, MatrixPlot as GraphicPrimitive_MatrixPlot
-from .plot_field import plot_vector_field, plot_slope_field, PlotField as GraphicPrimitive_PlotField
-from .text import text, Text as GraphicPrimitive_Text
-from .polygon import polygon, Polygon as GraphicPrimitive_Polygon
-from .circle import circle, Circle as GraphicPrimtive_Circle
-from .contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot

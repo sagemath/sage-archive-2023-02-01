@@ -35,16 +35,10 @@ value that is being garbage collected::
     sage: len(D)
     10
     sage: del ValList, v
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    ...
     sage: len(D) > 1
     True
 
-Hence, there are scary error messages, and moreover the defunct items have not
-been removed from the dictionary.
+Hence, the defunct items have not been removed from the dictionary.
 
 Therefore, Sage provides an alternative implementation
 :class:`sage.misc.weak_dict.WeakValueDictionary`, using a callback that
@@ -96,6 +90,12 @@ collection occurs. Note that when a key gets returned as "present" in the
 dictionary, there is no guarantee one can actually retrieve its value: it may
 have been garbage collected in the mean time.
 
+The variant :class:`~sage.misc.weak_dict.CachedWeakValueDictionary`
+additionally adds strong references to the most recently added values.
+This ensures that values will not be immediately deleted after adding
+them to the dictionary. This is mostly useful to implement cached
+functions.
+
 Note that Sage's weak value dictionary is actually an instance of
 :class:`dict`, in contrast to :mod:`weakref`'s weak value dictionary::
 
@@ -106,222 +106,41 @@ Note that Sage's weak value dictionary is actually an instance of
 
 See :trac:`13394` for a discussion of some of the design considerations.
 """
-########################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
 #                          Nils Bruin <nbruin@sfu.ca>
 #                          Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
-from __future__ import print_function
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 import weakref
+import six
 from weakref import KeyedRef
 from copy import deepcopy
 
 from cpython.dict cimport *
+from cpython.tuple cimport PyTuple_GET_SIZE, PyTuple_New
 from cpython.weakref cimport PyWeakref_NewRef
-from cpython.list cimport PyList_New
 from cpython.object cimport PyObject_Hash
-from cpython cimport Py_XINCREF, Py_XDECREF
+from cpython.ref cimport Py_INCREF, Py_XINCREF, Py_XDECREF
+from sage.cpython.dict_del_by_value cimport *
 
 cdef extern from "Python.h":
-    ctypedef struct PyDictEntry:
-        Py_ssize_t me_hash
-        PyObject* me_key
-        PyObject* me_value
-    ctypedef struct PyDictObject:
-        Py_ssize_t ma_fill
-        Py_ssize_t ma_used
-        Py_ssize_t ma_mask
-        PyDictEntry* ma_table
-        PyDictEntry* (*ma_lookup)(PyDictObject *mp, PyObject *key, long hash) except NULL
-
     PyObject* Py_None
     #we need this redefinition because we want to be able to call
     #PyWeakref_GetObject with borrowed references. This is the recommended
     #strategy according to Cython/Includes/cpython/__init__.pxd
-    PyObject* PyWeakref_GetObject(PyObject * wr)
-    int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
+    PyObject* PyWeakref_GetObject(PyObject *ref)
+    int PyTuple_SetItem(PyObject *op, Py_ssize_t i, PyObject *newitem) except -1
 
-cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
-    cdef PyDictEntry* ep
-    cdef PyDictObject* mp = <PyDictObject*><void *>op
-    ep = mp.ma_lookup(mp, <PyObject*><void*>key, PyObject_Hash(key))
-    if ep:
-        return ep.me_value
-    else:
-        return NULL
-
-#this routine extracts the "dummy" sentinel value that is used in dicts to mark
-#"freed" slots. We need that to delete things ourselves.
-
-cdef PyObject* init_dummy() except NULL:
-    cdef dict D = dict()
-    cdef PyDictObject* mp = <PyDictObject *><void *>D
-    cdef size_t mask
-    cdef PyDictEntry* ep0 = mp.ma_table
-    cdef PyDictEntry* ep
-    cdef size_t i
-    global dummy
-
-    D[0]=0; del D[0] #ensure that there is a "deleted" entry in the dict
-    mask = mp.ma_mask
-    #since our entry had hash 0, we should really succeed on the first iteration
-    for i in range(mask+1):
-        ep = &(ep0[i])
-        if ep.me_key != NULL:
-            return ep.me_key
-    raise RuntimeError("Problem initializing dummy")
-
-#note that dummy here is a borrowed reference. That's not a problem because
-#we're never giving it up and dictobject.c is also holding a permanent reference
-#to this object
-cdef PyObject* dummy = init_dummy()
-
-#this routine looks for the first entry in dict D with given hash of the
-#key and given (identical!) value and deletes that entry.
-cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
-    """
-    This is used in callbacks for the weak values of :class:`WeakValueDictionary`.
-
-    INPUT:
-
-    - ``PyDictObject *mp`` -- pointer to a dict
-    - ``PyObject *value``  -- pointer to a value of the dictionary
-    - ``long hash``        -- hash of the key by which the value is stored in the dict
-
-    The hash bucket determined by the given hash is searched for the item
-    containing the given value. If this item cannot be found, the function is
-    silently returning. Otherwise, the item is removed from the dict.
-
-    TESTS:
-
-    The following is an indirect doctest, as discussed on :trac:`13394`.
-    ::
-
-        sage: from sage.misc.weak_dict import WeakValueDictionary
-        sage: V = [set(range(n)) for n in range(5)]
-        sage: D = WeakValueDictionary(enumerate(V))
-
-    The line ``V[k] = None`` triggers execution of the callback functions of
-    the dict values. However, the actual deletion is postponed till after the
-    iteration over the dictionary has finished. Hence, when the callbacks are
-    executed, the values which the callback belongs to has already been
-    overridded by a new value. Therefore, the callback does not delete the
-    item::
-
-        sage: for k in D:    # indirect doctest
-        ....:     V[k] = None
-        ....:     D[k] = ZZ
-        sage: len(D)
-        5
-        sage: D[1]
-        Integer Ring
-
-    TESTS:
-
-    The following shows that the deletion of deeply nested structures does not
-    result in an error, by :trac:`15506`::
-
-        sage: class A: pass
-        sage: a = A(); prev = a
-        sage: M = WeakValueDictionary()
-        sage: for i in range(10^3+10): newA = A(); M[newA] = prev; prev = newA
-        sage: del a
-
-    """
-    cdef size_t i
-    cdef size_t perturb
-    cdef size_t mask = <size_t> mp.ma_mask
-    cdef PyDictEntry* ep0 = mp.ma_table
-    cdef PyDictEntry* ep
-    i = hash & mask
-    ep = &(ep0[i])
-
-    if ep.me_key == NULL:
-        # key not found
-        return
-
-    perturb = hash
-    while (<PyObject *>(ep.me_value) != value or ep.me_hash != hash):
-        i = (i << 2) + i + perturb +1
-        ep = &ep0[i & mask]
-        if ep.me_key == NULL:
-            # key not found
-            return
-        perturb = perturb >> 5 #this is the value of PERTURB_SHIFT
-
-    T=PyList_New(2)
-    PyList_SetItem(T, 0, ep.me_key)
-    if dummy == NULL:
-        raise RuntimeError("dummy needs to be initialized")
-    Py_XINCREF(dummy)
-    ep.me_key = dummy
-    PyList_SetItem(T, 1, ep.me_value)
-    ep.me_value = NULL
-    mp.ma_used -= 1
-    #We have transferred the to-be-deleted references to the list T
-    #we now delete the list so that the actual decref happens through a
-    #deallocation routine that uses the Python Trashcan macros to
-    #avoid stack overflow in deleting deep structures.
-    del T
-
-def test_del_dictitem_by_exact_value(D, value, h):
-    """
-    This function helps testing some cdef function used to delete dictionary items.
-
-    INPUT:
-
-    - ``D`` -- a Python ``<dict>``.
-    - ``value`` -- an object that is value ``D``.
-    - ``h`` -- the hash of the key under which to find ``value`` in ``D``.
-
-    The underlying cdef function deletes an item from ``D`` that is in the
-    hash bucket determined by ``h`` and whose value is identic with
-    ``value``. Of course, this only makes sense if the pairs ``(h, value)``
-    corresponding to items in ``D`` are pair-wise distinct.
-
-    If a matching item can not be found, the function does nothing and
-    silently returns.
-
-    TESTS:
-
-    See :trac:`13394` for a discussion.
-    ::
-
-        sage: from sage.misc.weak_dict import test_del_dictitem_by_exact_value
-        sage: B=1000
-        sage: L=list(range(B))
-        sage: D1=dict()
-        sage: D2=dict()
-        sage: for i in range(100000):        # long time
-        ....:     ki=L[floor(random()*B)]
-        ....:     vi=L[floor(random()*B)]
-        ....:     D1[ki]=vi
-        ....:     D2[ki]=vi
-        ....:     ko=L[floor(random()*B)]
-        ....:     if ko in D1:
-        ....:         vo=D1[ko]
-        ....:         del D1[ko]
-        ....:         test_del_dictitem_by_exact_value(D2,vo,hash(ko))
-        ....:     assert D1 == D2
-
-    No action is taken if the item prescribed by key hash and value does not
-    exist in the dictionary::
-
-        sage: D = {1: ZZ}
-        sage: test_del_dictitem_by_exact_value(D, ZZ, 2)
-        sage: D
-        {1: Integer Ring}
-        sage: test_del_dictitem_by_exact_value(D, QQ, 1)
-        sage: D
-        {1: Integer Ring}
-
-    """
-    return del_dictitem_by_exact_value(<PyDictObject *>D, <PyObject *>value, h)
 
 cdef class WeakValueDictEraser:
     """
@@ -400,6 +219,7 @@ cdef class WeakValueDictEraser:
             D._pending_removals.append(r)
         else:
             del_dictitem_by_exact_value(<PyDictObject *>D, <PyObject *>r, r.key)
+
 
 cdef class WeakValueDictionary(dict):
     """
@@ -498,15 +318,26 @@ cdef class WeakValueDictionary(dict):
         ....:         del D1[ko]
         ....:         L[ko] = None
         ....:     assert D1 == D2
-
     """
+
+    def __cinit__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.misc.weak_dict import WeakValueDictionary
+            sage: WeakValueDictionary.__new__(WeakValueDictionary)
+            <WeakValueDictionary at ...>
+        """
+        self.callback = WeakValueDictEraser(self)
+        self._pending_removals = []
+
     def __init__(self, data=()):
         """
         Create a :class:`WeakValueDictionary` with given initial data.
 
         INPUT:
 
-        Optional iterable of key-value pairs
+        - ``data`` -- Optional iterable of key-value pairs
 
         EXAMPLES::
 
@@ -518,18 +349,13 @@ cdef class WeakValueDictionary(dict):
             sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
             sage: len(D) == len(L)
             True
-
         """
-        dict.__init__(self)
-        self.callback = WeakValueDictEraser(self)
-        self._guard_level = 0
-        self._pending_removals = []
         try:
-            data=data.iteritems()
+            data = six.iteritems(data)
         except AttributeError:
             pass
-        for k,v in data:
-            self[k] = v
+        for (k, v) in data:
+            self._set_item(k, v)
 
     def __copy__(self):
         """
@@ -592,20 +418,10 @@ cdef class WeakValueDictionary(dict):
             sage: import sage.misc.weak_dict
             sage: repr(sage.misc.weak_dict.WeakValueDictionary([(1,ZZ),(2,QQ)]))  # indirect doctest
             '<WeakValueDictionary at 0x...>'
-
-        """
-        return "<WeakValueDictionary at 0x%x>" % id(self)
-
-    def __str__(self):
-        """
-        EXAMPLES::
-
-            sage: import sage.misc.weak_dict
             sage: str(sage.misc.weak_dict.WeakValueDictionary([(1,ZZ),(2,QQ)]))  # indirect doctest
             '<WeakValueDictionary at 0x...>'
-
         """
-        return "<WeakValueDictionary at 0x%x>" % id(self)
+        return "<%s at 0x%x>" % (type(self).__name__, id(self))
 
     def setdefault(self, k, default=None):
         """
@@ -657,7 +473,7 @@ cdef class WeakValueDictionary(dict):
             out = PyWeakref_GetObject(wr)
             if out != Py_None:
                 return <object>out
-        PyDict_SetItem(self,k,KeyedRef(default,self.callback,PyObject_Hash(k)))
+        self._set_item(k, default)
         return default
 
     def __setitem__(self, k, v):
@@ -725,9 +541,16 @@ cdef class WeakValueDictionary(dict):
             Traceback (most recent call last):
             ...
             TypeError: mutable matrices are unhashable
-
         """
-        PyDict_SetItem(self,k,KeyedRef(v,self.callback,PyObject_Hash(k)))
+        self._set_item(k, v)
+
+    cdef int _set_item(self, k, v) except -1:
+        """
+        Common implementation for ``__setitem__`` and ``setdefault``:
+        add a weak reference to ``v`` under the key ``k`` in the actual
+        dict underlying ``self``.
+        """
+        PyDict_SetItem(self, k, KeyedRef(v, self.callback, hash(k)))
 
     #def __delitem__(self, k):
     #we do not really have to override this method.
@@ -924,9 +747,8 @@ cdef class WeakValueDictionary(dict):
             TypeError: mutable matrices are unhashable
 
         """
-        cdef PyDictObject* mp=<PyDictObject*><void*>self
-        cdef PyDictEntry* ep=mp.ma_lookup(mp,<PyObject*><void*>k, PyObject_Hash(k))
-        return (ep.me_value != NULL) and (PyWeakref_GetObject(ep.me_value) != Py_None)
+        cdef PyObject* wr = PyDict_GetItemWithError(self, k)
+        return (wr != NULL) and (PyWeakref_GetObject(wr) != Py_None)
 
     #def __len__(self):
     #since GC is not deterministic, neither is the length of a WeakValueDictionary,
@@ -953,9 +775,8 @@ cdef class WeakValueDictionary(dict):
         item in the dictionary got deleted as well. Therefore, the
         corresponding key 4 is missing in the list of keys::
 
-            sage: list(sorted(D))
+            sage: sorted(D)
             [0, 1, 2, 3, 5, 6, 7, 8, 9]
-
         """
         cdef PyObject *key
         cdef PyObject *wr
@@ -1265,3 +1086,119 @@ cdef class WeakValueDictionary(dict):
         while (not self._guard_level) and self._pending_removals:
             self.callback(self._pending_removals.pop())
         return 0
+
+
+cdef class CachedWeakValueDictionary(WeakValueDictionary):
+    """
+    This class extends :class:`WeakValueDictionary` with a strong cache
+    to the most recently added values. It is meant to solve the case
+    where significant performance losses can occur if a value is deleted
+    too early, but where keeping a value alive too long does not hurt
+    much. This is typically the case with cached functions.
+
+    EXAMPLES:
+
+    We illustrate the difference between :class:`WeakValueDictionary`
+    and :class:`CachedWeakValueDictionary`. An item is removed from a
+    :class:`WeakValueDictionary` as soon as there are no references to
+    it::
+
+        sage: from sage.misc.weak_dict import WeakValueDictionary
+        sage: D = WeakValueDictionary()
+        sage: class Test(object): pass
+        sage: tmp = Test()
+        sage: D[0] = tmp
+        sage: 0 in D
+        True
+        sage: del tmp
+        sage: 0 in D
+        False
+
+    So, if you have a cached function repeatedly creating the same
+    temporary object and deleting it (in a helper function called from
+    a loop for example), this caching will not help at all. With
+    :class:`CachedWeakValueDictionary`, the most recently added values
+    are not deleted. After adding enough new values, the item is removed
+    anyway::
+
+        sage: from sage.misc.weak_dict import CachedWeakValueDictionary
+        sage: D = CachedWeakValueDictionary(cache=4)
+        sage: class Test(object): pass
+        sage: tmp = Test()
+        sage: D[0] = tmp
+        sage: 0 in D
+        True
+        sage: del tmp
+        sage: 0 in D
+        True
+        sage: for i in range(5):
+        ....:     D[1] = Test()
+        ....:     print(0 in D)
+        True
+        True
+        True
+        False
+        False
+    """
+
+    def __cinit__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.misc.weak_dict import CachedWeakValueDictionary
+            sage: CachedWeakValueDictionary.__new__(CachedWeakValueDictionary)
+            <CachedWeakValueDictionary at ...>
+        """
+        self.cache = ()
+
+    def __init__(self, data=(), cache=16):
+        """
+        Create a :class:`CachedWeakValueDictionary` with given initial
+        data and strong cache size.
+
+        INPUT:
+
+        - ``data`` -- Optional iterable of key-value pairs
+
+        - ``cache`` -- (default: 16) Number of values with strong
+          references
+
+        EXAMPLES::
+
+            sage: L = [(p,GF(p)) for p in prime_range(10)]
+            sage: from sage.misc.weak_dict import CachedWeakValueDictionary
+            sage: D = CachedWeakValueDictionary()
+            sage: len(D)
+            0
+            sage: D = CachedWeakValueDictionary(L)
+            sage: len(D) == len(L)
+            True
+
+        A :class:`CachedWeakValueDictionary` with a cache size of zero
+        works exactly the same as an ordinary
+        :class:`WeakValueDictionary`::
+
+            sage: D = CachedWeakValueDictionary(cache=0)
+            sage: class Test(object): pass
+            sage: tmp = Test()
+            sage: D[0] = tmp
+            sage: del tmp
+            sage: 0 in D
+            False
+        """
+        super().__init__(data)
+        self.cache = PyTuple_New(cache)
+
+    cdef int _set_item(self, k, v) except -1:
+        """
+        Add the item to the dict with caching.
+        """
+        cdef Py_ssize_t N = PyTuple_GET_SIZE(self.cache)
+        if N:
+            if self.cache_index + 1 < N:
+                self.cache_index += 1
+            else:
+                self.cache_index = 0
+            PyTuple_SetItem(<PyObject*>self.cache, self.cache_index, <PyObject*>v)
+            Py_INCREF(v)
+        WeakValueDictionary._set_item(self, k, v)

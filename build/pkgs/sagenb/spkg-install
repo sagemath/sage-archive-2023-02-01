@@ -1,29 +1,15 @@
-#!/usr/bin/env bash
-
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 cd src
 
-# Install a flat package (not an egg), which is the same as how pip
-# installs packages.
-$PIP_INSTALL .
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing SageNB"
-    exit 1
-fi
+sdh_pip_install .
 
 # let sagenb use mathjax
-cd "${SAGE_LOCAL}/lib/python/site-packages/sagenb/data"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: Cannot find SageNB data directory."
-    exit 1
+if [ "$SAGE_PYTHON3" = yes ]; then
+    PYTHON=python3
+else
+    PYTHON=python2
 fi
-ln -s ../../../../../share/mathjax/ mathjax
-if [ ! -d mathjax ]; then
-    echo >&2 "Error: Cannot symlink mathjax into the SageNB data directory."
-    exit 1
-fi
+PYTHON_VERSION=$("$SAGE_LOCAL/bin/$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+cd "${SAGE_DESTDIR}${SAGE_LOCAL}/lib/python$PYTHON_VERSION/site-packages/sagenb/data" || \
+    sdh_die "Cannot find SageNB data directory."
+ln -s -n "$SAGE_SHARE/mathjax/" mathjax || \
+    sdh_die "Error: Cannot symlink mathjax into the SageNB data directory."

@@ -1,5 +1,7 @@
 r"""
-Ideals in Function Fields
+Ideals of function fields
+
+Ideals of an order of a function field include all fractional ideals of the order. Sage provides basic arithmetic with fractional ideals.
 
 AUTHORS:
 
@@ -50,6 +52,8 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 from sage.rings.ideal import Ideal_generic
+from sage.structure.richcmp import richcmp
+
 
 class FunctionFieldIdeal(Ideal_generic):
     """
@@ -203,7 +207,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
             raise ValueError("rings must be the same")
         return FunctionFieldIdeal_module(self.ring(), self.module().intersection(other.module()))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self and ``other``.
 
@@ -226,7 +230,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
             other = self.ring().ideal(other)
         if self.ring() != other.ring():
             raise ValueError("rings must be the same")
-        return cmp(self.module(), other.module())
+        return richcmp(self.module(), other.module(), op)
 
     def __invert__(self):
         """

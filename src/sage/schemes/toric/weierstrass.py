@@ -1,5 +1,5 @@
 r"""
-Weierstrass form of a toric elliptic curve.
+Weierstrass form of a toric elliptic curve
 
 There are 16 reflexive polygons in the plane, see
 :func:`~sage.geometry.lattice_polytope.ReflexivePolytopes`. Each of
@@ -95,7 +95,7 @@ matters. For example::
     (0, -27/4)
 
 This allows you to work with either homogeneous or inhomogeneous
-variables. For exmple, here is the del Pezzo surface of degree 8::
+variables. For example, here is the del Pezzo surface of degree 8::
 
     sage: dP8 = toric_varieties.dP8()
     sage: dP8.inject_variables()
@@ -161,6 +161,9 @@ from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
 from sage.rings.all import invariant_theory
+
+import six
+
 
 ######################################################################
 #
@@ -265,8 +268,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
 
     OUTPUT:
 
-    A tuple containing of the affine span of the Netwton polytope and
-    a dictionary with keys the integral values of the Newton polytope
+    A dictionary with keys the integral values of the Newton polytope
     and values the corresponding coefficient of ``polynomial``.
 
     EXAMPLES::
@@ -288,7 +290,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
          (3, 0, 0): a30}
 
         sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
-        sage: polytope = LatticePolytope_PPL(p_data.keys());  polytope
+        sage: polytope = LatticePolytope_PPL(list(p_data));  polytope
         A 2-dimensional lattice polytope in ZZ^3 with 3 vertices
         sage: polytope.vertices()
         ((0, 0, 3), (3, 0, 0), (0, 3, 0))
@@ -357,12 +359,12 @@ def Newton_polygon_embedded(polynomial, variables):
          (s, t))
     """
     p_dict = Newton_polytope_vars_coeffs(polynomial, variables)
-    newton_polytope = LatticePolytope_PPL(p_dict.keys())
+    newton_polytope = LatticePolytope_PPL(list(p_dict))
     assert newton_polytope.affine_dimension() <= 2
     embedding = newton_polytope.embed_in_reflexive_polytope('points')
     x, y = variables[0:2]
     embedded_polynomial = polynomial.parent().zero()
-    for e, c in p_dict.iteritems():
+    for e, c in six.iteritems(p_dict):
         e_embed = embedding[e]
         embedded_polynomial += c * x**(e_embed[0]) * y**(e_embed[1])
     return newton_polytope, embedded_polynomial, (x, y)
@@ -403,7 +405,7 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
 
     If ``transformation=True``, a triple `(X,Y,Z)` of polynomials
     defining a rational map of the toric hypersurface or complete
-    intersection in `\mathbb{P}^3` to its Weierstrass form in 
+    intersection in `\mathbb{P}^3` to its Weierstrass form in
     `\mathbb{P}^2[2,3,1]` is returned.
     That is, the triple satisfies
 

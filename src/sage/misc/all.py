@@ -2,21 +2,17 @@ from __future__ import absolute_import
 from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
-from .misc import (alarm, cancel_alarm,
-                  ellipsis_range, ellipsis_iter, xsrange, sxrange,
-                  BackslashOperator, getitem,
+from .misc import (BackslashOperator,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   union, uniq, powerset, subsets,
                   exists, forall, is_iterator,
-                  random_sublist, walltime, generic_cmp,
+                  random_sublist, walltime,
                   repr_lincomb,
                   pad_zeros, attrcall,
                   SAGE_DB, SAGE_TMP,
-                  newton_method_sizes, compose,
-                  self_compose, nest)
-
-lazy_import('sage.arith.srange', 'srange', deprecation=20334)
+                   newton_method_sizes, compose,
+                  nest)
 
 from .banner import version, banner
 
@@ -78,8 +74,8 @@ from .sage_eval import sage_eval, sageobj
 
 from .sage_input import sage_input
 
-lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"]) 
-lazy_import("sage.misc.cython_c", "cython_compile", "cython")
+lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"])
+lazy_import("sage.misc.cython", "cython_compile", "cython")
 
 from .persist import save, load, dumps, loads, db, db_save
 
@@ -139,6 +135,7 @@ from .functional import (additive_order,
                         isqrt,
                         squarefree_part,
                         symbolic_sum as sum,
+                        symbolic_prod as product,
                         transpose,
                         )
 

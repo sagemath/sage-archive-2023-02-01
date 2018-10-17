@@ -29,10 +29,11 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.all import divisors, prime_divisors, is_square, euler_phi, gcd
-from sage.rings.all import Integer, IntegerRing, RationalField
+from sage.rings.all import Integer, ZZ, QQ
 from sage.groups.old import AbelianGroup
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.formal_sum import FormalSum
@@ -43,9 +44,6 @@ from sage.modules.free_module import FreeModule
 from sage.misc.misc import union
 
 import weakref
-
-ZZ = IntegerRing()
-QQ = RationalField()
 
 _cache = {}
 def EtaGroup(level):
@@ -83,7 +81,8 @@ class EtaGroup_class(AbelianGroup):
         Create the group of eta products of a given level, which must be a
         positive integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = EtaGroup(12); G # indirect doctest
             Group of eta products on X_0(12)
             sage: G is loads(dumps(G))
@@ -101,38 +100,52 @@ class EtaGroup_class(AbelianGroup):
         r"""
         Return the data used to construct self. Used for pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(13).__reduce__()
             (<function EtaGroup at ...>, (13,))
         """
         return (EtaGroup, (self.level(),))
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
-        Compare self to other. If other is not an EtaGroup, compare by
-        type; otherwise compare by level. EtaGroups of the same level
+        Check that ``self`` is equal to ``other``.
+
+        If other is not an EtaGroup, return ``False``.
+
+        Otherwise compare the levels. EtaGroups of the same level
         compare as identical.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: EtaGroup(12) == 12
-            False
-            sage: EtaGroup(12) < EtaGroup(13)
-            True
             sage: EtaGroup(12) == EtaGroup(12)
             True
+            sage: EtaGroup(12) == EtaGroup(13)
+            False
         """
         if not isinstance(other, EtaGroup_class):
-            return cmp(type(self), type(other))
+            return False
         else:
-            return cmp(self.level(), other.level())
+            return self.level() == other.level()
+
+    def __ne__(self, other):
+        """
+        Check that ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: EtaGroup(12) != EtaGroup(12)
+            False
+            sage: EtaGroup(12) != EtaGroup(13)
+            True
+        """
+        return not (self == other)
 
     def _repr_(self):
         r"""
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(12)._repr_()
             'Group of eta products on X_0(12)'
@@ -143,7 +156,7 @@ class EtaGroup_class(AbelianGroup):
         r"""
         Return the identity element of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(12).one()
             Eta product of level 12 : 1
@@ -156,7 +169,7 @@ class EtaGroup_class(AbelianGroup):
         exponents from the given dictionary. See the docstring for the
         EtaProduct() factory function for how dict is used.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(2).__call__({1:24, 2:-24})
             Eta product of level 2 : (eta_1)^24 (eta_2)^-24
@@ -185,7 +198,7 @@ class EtaGroup_class(AbelianGroup):
            whether or not to apply LLL-reduction to the calculated basis
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(5).basis()
             [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
@@ -352,6 +365,7 @@ def EtaProduct(level, dict):
     """
     return EtaGroup(level)(dict)
 
+
 class EtaGroupElement(MultiplicativeGroupElement):
 
     def __init__(self, parent, rdict):
@@ -359,7 +373,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
         Create an eta product object. Usually called implicitly via
         EtaGroup_class.__call__ or the EtaProduct factory function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
             Eta product of level 8 : (eta_1)^24 (eta_2)^-24
@@ -383,11 +397,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
         sumR = sumDR = sumNoverDr = 0
         prod = 1
 
-        for d in rdict.keys():
+        for d in rdict:
             if N % d:
                 raise ValueError("%s does not divide %s" % (d, N))
 
-        for d in rdict.keys():
+        for d in list(rdict):
             if rdict[d] == 0:
                 rdict.pop(d)
                 continue
@@ -405,9 +419,9 @@ class EtaGroupElement(MultiplicativeGroupElement):
         if not is_square(prod):
             raise ValueError("product (N/d)^(r_d) (=%s) is not a square" % prod)
 
-        self._sumDR = sumDR # this is useful to have around
+        self._sumDR = sumDR  # this is useful to have around
         self._rdict = rdict
-        self._keys = rdict.keys() # avoid factoring N every time
+        self._keys = list(rdict)  # avoid factoring N every time
 
     def _mul_(self, other):
         r"""
@@ -441,10 +455,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
             newdict[d] = self.r(d) - other.r(d)
         return EtaProduct(self.level(), newdict)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Compare self to other. Eta products are compared according to
-        their rdicts.
+        Compare self to other.
+
+        Eta products are compared according to their rdicts.
 
         EXAMPLES::
 
@@ -459,7 +474,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
             False
         """
-        return (cmp(self.level(), other.level()) or cmp(self._rdict, other._rdict))
+        return richcmp((self.level(), self._rdict),
+                       (other.level(), other._rdict), op)
 
     def _short_repr(self):
         r"""
@@ -540,9 +556,10 @@ class EtaGroupElement(MultiplicativeGroupElement):
         eta_n = max([ (n/d).floor() for d in self._keys if self.r(d) != 0])
         eta = qexp_eta(R, eta_n)
         for d in self._keys:
-            if self.r(d) != 0:
-                pr *= eta(q**d)**self.r(d)
-        return pr*q**(self._sumDR / ZZ(24))*( R(1).add_bigoh(n))
+            rd = self.r(d)
+            if rd:
+                pr *= eta(q ** d) ** ZZ(rd)
+        return pr * q**ZZ(self._sumDR / ZZ(24)) * R(1).add_bigoh(n)
 
     def qexp(self, n):
         """
@@ -663,6 +680,7 @@ def num_cusps_of_width(N, d):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import num_cusps_of_width
         sage: [num_cusps_of_width(18,d) for d in divisors(18)]
         [1, 1, 2, 2, 1, 1]
         sage: num_cusps_of_width(4,8)
@@ -725,7 +743,7 @@ class CuspFamily(SageObject):
         with `\mathrm{lcm}(r,d) = N`. The cusp doesn't store zeta,
         so we store an arbitrary label instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(8, 4)
             (c_{4})
@@ -770,11 +788,10 @@ class CuspFamily(SageObject):
         return self._N
 
     def sage_cusp(self):
-        """
-        Return the corresponding element of
-        `\mathbb{P}^1(\QQ)`.
+        r"""
+        Return the corresponding element of `\mathbb{P}^1(\QQ)`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(10, 1).sage_cusp() # not implemented
             Infinity
@@ -785,7 +802,7 @@ class CuspFamily(SageObject):
         r"""
         Return a string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(16, 4, "1")._repr_()
             '(c_{4,1})'
@@ -797,6 +814,7 @@ class CuspFamily(SageObject):
         else:
             return "(c_{%s%s})" % (self.width(), ((self.label and (","+self.label)) or ""))
 
+
 def qexp_eta(ps_ring, prec):
     r"""
     Return the q-expansion of `\eta(q) / q^{1/24}`, where
@@ -806,15 +824,13 @@ def qexp_eta(ps_ring, prec):
 
         \eta(q) = q^{1/24}\prod_{n=1}^\infty (1-q^n),
 
-
     as an element of ps_ring, to precision prec.
 
     INPUT:
 
-    -  ``ps_ring`` - (PowerSeriesRing): a power series ring
+    -  ``ps_ring`` -- (PowerSeriesRing): a power series ring
 
-    -  ``prec`` - (integer): the number of terms to compute.
-
+    -  ``prec`` -- (integer): the number of terms to compute
 
     OUTPUT: An element of ps_ring which is the q-expansion of
     `\eta(q)/q^{1/24}` truncated to prec terms.
@@ -829,11 +845,13 @@ def qexp_eta(ps_ring, prec):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import qexp_eta
         sage: qexp_eta(ZZ[['q']], 100)
         1 - q - q^2 + q^5 + q^7 - q^12 - q^15 + q^22 + q^26 - q^35 - q^40 + q^51 + q^57 - q^70 - q^77 + q^92 + O(q^100)
     """
     prec = Integer(prec)
-    assert prec>0, "prec must be a positive integer"
+    if not prec > 0:
+        raise ValueError("prec must be a positive integer")
     v = [Integer(0)] * prec
     pm = Integer(1)
     v[0] = pm
@@ -847,6 +865,7 @@ def qexp_eta(ps_ring, prec):
     except IndexError:
         pass
     return ps_ring(v, prec=prec)
+
 
 def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     r"""
@@ -888,6 +907,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import eta_poly_relations
         sage: t = EtaProduct(26, {2:2,13:2,26:-2,1:-2})
         sage: u = EtaProduct(26, {2:4,13:2,26:-4,1:-2})
         sage: eta_poly_relations([t, u], 3)
@@ -962,7 +982,7 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
 
     as then 1 will be in the ideal.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.etaproducts import _eta_relations_helper
         sage: r,s = EtaGroup(4).basis()

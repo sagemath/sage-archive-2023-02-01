@@ -38,6 +38,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import add_metaclass
 
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
@@ -54,6 +55,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.all import prod
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class GelfandTsetlinPattern(ClonableArray):
     r"""
     A Gelfand-Tsetlin (sometimes written as Gelfand-Zetlin or Gelfand-Cetlin)
@@ -137,8 +139,6 @@ class GelfandTsetlinPattern(ClonableArray):
     """
     # Note that the width == height, so len(gt) == len(gt[0]) except
     #   we don't have to check if it is the emtry GT pattern
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, gt):
         """
@@ -248,7 +248,7 @@ class GelfandTsetlinPattern(ClonableArray):
 
     @combinatorial_map(name='to semistandard tableau')
     def to_tableau(self):
-        """
+        r"""
         Return ``self`` as a semistandard Young tableau.
 
         The conversion from a Gelfand-Tsetlin pattern to a semistandard Young
@@ -1142,7 +1142,7 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
             False
         """
         # Check if the top row matches (if applicable)
-        if tuple(gt[0]) != self._row:
+        if gt and tuple(gt[0]) != self._row:
             return False
         return GelfandTsetlinPatterns.__contains__(self, gt)
 

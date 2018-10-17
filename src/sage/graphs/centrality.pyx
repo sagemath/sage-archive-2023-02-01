@@ -10,28 +10,32 @@ This module is meant for all functions related to centrality in networks.
 
     :func:`centrality_betweenness` | Return the centrality betweenness of `G`
     :func:`centrality_closeness_top_k` | Return the k most closeness central vertices of `G`
+    :func:`centrality_closeness_random_k` | Return an estimation of the closeness centrality of `G`.
 
 Functions
 ---------
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "sage/data_structures/bitset.pxi"
-include "cysignals/signals.pxi"
-
-from sage.graphs.base.static_sparse_graph cimport *
 from libc.string cimport memset
 from libc.stdint cimport uint32_t
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport sig_check
+
+include "sage/data_structures/bitset.pxi"
+from sage.graphs.base.static_sparse_graph cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
-include "cysignals/memory.pxi"
 from sage.ext.memory_allocator cimport MemoryAllocator
+from sage.graphs.base.static_sparse_backend cimport simple_BFS
+from sage.graphs.base.boost_graph import shortest_paths as boost_shortest_paths
+import random
 
 ctypedef fused numerical_type:
     mpq_t
     double
 
-import cython
+cimport cython
 
 def centrality_betweenness(G, exact=False, normalize=True):
     r"""
@@ -112,12 +116,6 @@ def centrality_betweenness(G, exact=False, normalize=True):
         sage: centrality_betweenness(Graph(2),exact=1)
         {0: 0, 1: 0}
 
-    REFERENCES:
-
-    .. [Brandes01] Ulrik Brandes,
-       A faster algorithm for betweenness centrality,
-       Journal of Mathematical Sociology 25.2 (2001): 163-177,
-       http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
     """
     if exact:
         return centrality_betweenness_C(G,<mpq_t> 0,normalize=normalize)
@@ -181,11 +179,11 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         init_short_digraph(g, G, edge_labelled = False)
         init_reverse(bfs_dag, g)
 
-        queue               = <uint32_t *> check_malloc(n*sizeof(uint32_t))
-        degrees             = <uint32_t *> check_malloc(n*sizeof(uint32_t))
-        n_paths_from_source = <numerical_type *> check_malloc(n*sizeof(numerical_type))
-        betweenness_source  = <numerical_type *> check_malloc(n*sizeof(numerical_type))
-        betweenness         = <numerical_type *> check_malloc(n*sizeof(numerical_type))
+        queue               = <uint32_t *> check_allocarray(n, sizeof(uint32_t))
+        degrees             = <uint32_t *> check_allocarray(n, sizeof(uint32_t))
+        n_paths_from_source = <numerical_type *> check_allocarray(n, sizeof(numerical_type))
+        betweenness_source  = <numerical_type *> check_allocarray(n, sizeof(numerical_type))
+        betweenness         = <numerical_type *> check_allocarray(n, sizeof(numerical_type))
 
         bitset_init(seen,n)
         bitset_init(next_layer,n)
@@ -233,7 +231,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
                 for j in range(layer_current_beginning,layer_current_end):
                     u = queue[j]
 
-                    # List the neighors of u
+                    # List the neighbors of u
                     p_tmp = g.neighbors[u]
                     while p_tmp<g.neighbors[u+1]:
                         v = p_tmp[0]
@@ -341,7 +339,7 @@ cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* re
         L(C)=|C|+\max_{(C,C') \in \mathcal{E}}L(C') \\
         U(C)=|C|+\max_{(C,C') \in \mathcal{E}}L(C')
 
-    By analyzing strongly connected components in reverse topologial order,
+    By analyzing strongly connected components in reverse topological order,
     we are sure that, as soon as we process component `C`, all components
     `C'` appearing on the right hand side have already been processed.
     A further improvement on these bounds is obtained by exactly computing
@@ -576,13 +574,6 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     If ``k`` is bigger than the number of vertices with positive (out)degree,
     the list might be smaller.
 
-    REFERENCES:
-
-    .. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
-       Fast and Simple Computation of Top-k Closeness Centralities.
-       Preprint on arXiv.
-       http://arxiv.org/abs/1507.01490
-
     EXAMPLES::
 
         sage: from sage.graphs.centrality import centrality_closeness_top_k
@@ -675,7 +666,6 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     if G.num_verts()==0 or G.num_verts()==1:
         return []
 
-    sig_on()
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef short_digraph sd
     # Copying the whole graph to obtain the list of neighbors quicker than by
@@ -716,6 +706,8 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     _sort_vertices_degree(sd, sorted_vert)
 
     for x in sorted_vert[:n]:
+        sig_check()
+
         if out_degree(sd, x) == 0:
             break
         # We start a BFSCut from x:
@@ -741,6 +733,7 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
 
         # The graph is explored layer by layer.
         while layer_current_beginning<layer_current_end and not stopped:
+            sig_check()
 
             # We update our estimate of the farness of v.
             # The estimate sets distance d+1 to gamma vertices (which is an
@@ -758,11 +751,15 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
             # Looking for all non-discovered neighbors of some vertex of the
             # current layer.
             for j in range(layer_current_beginning,layer_current_end):
+                sig_check()
+
                 u = queue[j]
 
-                # List the neighors of u
+                # List the neighbors of u
                 p_tmp = sd.neighbors[u]
                 while p_tmp<sd.neighbors[u+1] and not stopped:
+                    sig_check()
+
                     visited += 1
                     v = p_tmp[0]
                     p_tmp += 1
@@ -805,10 +802,141 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
             print("Visit {} from {}:".format(nvis, x))
             print("    Lower bound: {}".format(1 / kth))
             print("    Perf. ratio: {}".format(visited / (nvis * <double> (sd.neighbors[sd.n]-sd.edges))))
-    sig_off()
 
     if verbose > 0:
         print("Final performance ratio: {}".format(visited / (n * <double> (sd.neighbors[sd.n]-sd.edges))))
 
     cdef list V = G.vertices()
     return sorted([(1.0/farness[v], V[v]) for v in topk[:k] if v != -1], reverse=True)
+
+def centrality_closeness_random_k(G, int k=1):
+    r"""
+    Return an estimation of the closeness centrality of `G`.
+
+    The algorithm first randomly selects a set `S` of `k` vertices.  Then it
+    computes shortest path distances from each vertex in `S` (using Dijkstra for
+    weighted graph and breadth-first-search (BFS) for unweighted graph) and uses
+    this knowledge to estimate the closeness centrality of all vertices.
+
+    For more information, see [EDI2014]_.
+
+    INPUT:
+
+    - ``G`` -- an undirected connected Graph
+
+    - ``k`` (integer, default: 1) -- The number of random nodes to choose
+
+    OUTPUT:
+
+    A dictionary indexed by vertices and values are estimated closeness centrality.
+
+    EXAMPLES:
+
+    Estimation of the closeness centrality of the Petersen Graph when `k == n`::
+
+        sage: from sage.graphs.centrality import centrality_closeness_random_k
+        sage: G = graphs.PetersenGraph()
+        sage: centrality_closeness_random_k(G, 10)
+        {0: 0.6,
+         1: 0.6,
+         2: 0.6,
+         3: 0.6,
+         4: 0.6,
+         5: 0.6,
+         6: 0.6,
+         7: 0.6,
+         8: 0.6,
+         9: 0.6}
+
+    TESTS::
+
+        sage: from sage.graphs.centrality import centrality_closeness_random_k
+        sage: G = Graph('Ihe\\n@GUA')
+        sage: centrality_closeness_random_k(G, -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter k must be a positive integer
+
+        sage: centrality_closeness_random_k(DiGraph(2), 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: G must be an undirected Graph
+
+    """
+    G._scream_if_not_simple()
+    if G.is_directed():
+        raise ValueError("G must be an undirected Graph")
+
+    cdef int n = G.order()
+    if n == 0:
+        return {}
+    if k < 1:
+        raise ValueError("parameter k must be a positive integer")
+    if k > n:
+        k = n
+
+    if not G.is_connected():
+        raise ValueError("G must be a connected Graph")
+
+    # Initialization of some data structures
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef double * partial_farness = <double *> mem.malloc(n * sizeof(double))
+    cdef uint32_t * distance
+    cdef uint32_t * waiting_list
+    cdef short_digraph sd
+    cdef bitset_t seen
+    cdef double farness
+    cdef int i, j
+    cdef dict closeness_centrality_array = {}
+    cdef list int_to_vertex = G.vertices()
+    cdef dict vertex_to_int = {int_to_vertex[i]:i for i in range(n)}
+
+    # Initialize
+    for i in range(n):
+        partial_farness[i] = 0
+
+    # Shuffle the vertices
+    cdef list l = list(range(n))
+    random.shuffle(l)
+    
+    if G.weighted():
+        # For all random nodes take as a source then run Dijstra and
+        # calculate closeness centrality for k random vertices from l.
+        for i in range(k):
+            farness = 0
+            distances = boost_shortest_paths(G, int_to_vertex[l[i]], algorithm='Dijkstra')[0]
+            for vertex in distances:
+                farness += float(distances[vertex])
+                partial_farness[vertex_to_int[vertex]] += float(distances[vertex])
+
+            closeness_centrality_array[int_to_vertex[l[i]]] = (n - 1) / farness
+
+    # G is unweighted graph
+    else:
+
+        # Copying the whole graph as a static_sparse_graph for fast shortest
+        # paths computation in unweighted graph. This data structure is well
+        # documented in module sage.graphs.base.static_sparse_graph
+        init_short_digraph(sd, G)
+        distance = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
+        waiting_list = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
+        bitset_init(seen, n)
+
+        # Run BFS for random k vertices
+        for i in range(k):
+            farness = 0
+            simple_BFS(sd, l[i], distance, NULL, waiting_list, seen)
+            for j in range(n):
+                farness += distance[j]
+                partial_farness[j] += distance[j]
+
+            closeness_centrality_array[int_to_vertex[l[i]]] = (n - 1) / farness
+
+        bitset_free(seen)
+        free_short_digraph(sd)
+
+    # Estimate the closeness centrality for remaining n-k vertices.
+    for i in range(k, n):
+        closeness_centrality_array[int_to_vertex[l[i]]] = k / partial_farness[l[i]]
+
+    return closeness_centrality_array

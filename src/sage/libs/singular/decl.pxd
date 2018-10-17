@@ -79,24 +79,6 @@ cdef extern from "singular/Singular/libsingular.h":
     cdef int OPT_NOTREGULARITY
     cdef int OPT_WEIGHTM
 
-
-
-    cdef int V_SHOW_MEM
-    cdef int V_YACC
-    cdef int V_REDEFINE
-    cdef int V_READING
-    cdef int V_LOAD_LIB
-    cdef int V_DEBUG_LIB
-    cdef int V_LOAD_PROC
-    cdef int V_DEF_RES
-    cdef int V_SHOW_USE
-    cdef int V_IMAP
-    cdef int V_PROMPT
-    cdef int V_NSB
-    cdef int V_CONTENTSB
-    cdef int V_CANCELUNIT
-    cdef int V_DEG_STOP
-
     # getter/setter functions
     int Sy_bit(int)
     int Sy_inset(int x,int s)
@@ -188,7 +170,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     int n_NumberOfParameters(const n_Procs_s* r)
 
-    ctypedef struct poly "polyrec":
+    ctypedef struct poly "spolyrec":
         poly *next
         number *coef
         unsigned long exp[1]
@@ -484,8 +466,8 @@ cdef extern from "singular/Singular/libsingular.h":
 
     ring *rDefault(int char , int nvars, char **names)
     ring *rDefault(const n_Procs_s* cf, int nvars, char **names)
-    ring *rDefault(int ch             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
-    ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+    ring *rDefault(int ch             , int nvars, char **names,int ord_size, rRingOrder_t *ord, int *block0, int *block1, int **wvhdl)
+    ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, rRingOrder_t *ord, int *block0, int *block1, int **wvhdl)
 
 
 
@@ -533,6 +515,9 @@ cdef extern from "singular/Singular/libsingular.h":
     # return True if ring has components
 
     int rRing_has_Comp(ring *r)
+
+    int rHasGlobalOrdering(ring *r)
+    int rHasLocalOrMixedOrdering(ring *r)
 
     # return new empty monomial
 
@@ -598,7 +583,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     # homogenizes p by multiplying certain powers of the varnum-th variable
 
-    poly *pHomogen (poly *p, int varnum)
+    poly *p_Homogen (poly *p, int varnum, ring *r)
 
     # return whether a polynomial is homogenous
 
@@ -645,9 +630,13 @@ cdef extern from "singular/Singular/libsingular.h":
     # return p*q, destroys p and q
     poly *p_Mult_q(poly *p, poly *q, ring *r)
 
+    # polynomial division, ignoring the remainder
+    # via singclap_pdivide resp. idLift, destroys p,q
+    poly *p_Divide(poly *p, poly *q, ring *r)
+
     # divide monomial p by monomial q, p,q const
 
-    poly *pDivide(poly *p,poly *q)
+    poly *pMDivide(poly *p,poly *q)
 
     # return the i-th power of p; p destroyed, requires global ring
 
@@ -710,7 +699,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     # inverse of poly, if possible
 
-    poly *pInvers(int n, poly *, intvec *)
+    poly *p_Series(int n, poly *, poly *, intvec *, ring *r)
 
     # gcd of f and g
 
@@ -765,6 +754,10 @@ cdef extern from "singular/Singular/libsingular.h":
 
     # Copy this number
     number *n_Copy(number *n, ring* r)
+
+    # Invert this number
+    int n_IsUnit(number *n, const n_Procs_s *cf)
+    number *n_Invers(number *n, const n_Procs_s *cf)
 
     # rational number from int
 
@@ -917,7 +910,6 @@ cdef extern from "singular/Singular/libsingular.h":
     cdef int PROC_CMD
     cdef int RING_CMD
     cdef int QRING_CMD
-
     cdef int STRING_CMD
     cdef int VECTOR_CMD
     cdef int IDEAL_CMD
@@ -925,7 +917,6 @@ cdef extern from "singular/Singular/libsingular.h":
     cdef int NUMBER_CMD
     cdef int MATRIX_CMD
     cdef int LIST_CMD
-    cdef int RING_CMD
     cdef int INTVEC_CMD
     cdef int NONE
     cdef int RESOLUTION_CMD

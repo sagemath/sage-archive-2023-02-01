@@ -27,9 +27,9 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import richcmp
-from sage.categories.finite_crystals import FiniteCrystals
+from sage.structure.richcmp import richcmp
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.loop_crystals import LoopCrystals
 from sage.graphs.all import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
@@ -200,7 +200,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         ....:         g.delete_edge(e)  #long time
 
         sage: C = crystals.AlcovePaths(['B',3,1],[0,2,0], highest_weight_crystal=False)
-        sage: g2 = C.digraph_fast() #long time
+        sage: g2 = C.digraph() #long time
         sage: g.is_isomorphic(g2, edge_labels = True) #long time
         True
 
@@ -329,11 +329,11 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
 
 
         if cartan_type.is_finite() and highest_weight_crystal:
-            Parent.__init__(self, category=ClassicalCrystals() )
+            Parent.__init__(self, category=ClassicalCrystals())
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = True
         elif cartan_type.is_finite() and not highest_weight_crystal:
-            Parent.__init__(self, category=FiniteCrystals() )
+            Parent.__init__(self, category=LoopCrystals().Finite())
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = True
             self._cartan_type = cartan_type.affine()
@@ -381,7 +381,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             return self.element_class(self, tuple(sorted([lambda_chain[i] for i in data])))
 
     def vertices(self):
-        """
+        r"""
         Return a list of all the vertices of the crystal.
 
         The vertices are represented as lists of integers recording the folding
@@ -456,87 +456,6 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
 
         return [ [] ] + [i[1] for i in l]
 
-    def digraph_fast(self, depth=None):
-        r"""
-        Return the crystal :class:`graph <DiGraph>` with maximum depth
-        ``depth`` deep starting at the module generator. Significant speed up
-        for highest_weight_crystals of affine type.
-
-        EXAMPLES::
-
-            sage: crystals.AlcovePaths(['A',2], [1,1]).digraph_fast(depth=3)
-            Digraph on 7 vertices
-
-        TESTS:
-
-        The following example demonstrates the speed improvement.
-        The speedup in non-affine types is small however::
-
-            sage: cartan_type = ['A',2,1] #long time
-            sage: weight = [1,1,0] #long time
-            sage: depth = 5 #long time
-            sage: C = crystals.AlcovePaths(cartan_type, weight) #long time
-            sage: %timeit C.digraph_fast(depth) # not tested
-            10 loops, best of 3: 171 ms per loop
-            sage: %timeit C.digraph(subset=C.subcrystal(max_depth=depth, direction='lower')) #not tested
-            1 loops, best of 3: 19.7 s per loop
-            sage: G1 = C.digraph_fast(depth) #long time
-            sage: G2 = C.digraph(subset=C.subcrystal(max_depth=depth, direction='lower')) #long time
-            sage: G1.is_isomorphic(G2, edge_labels=True) #long time
-            True
-
-        """
-        if not self._highest_weight_crystal:
-            return super(CrystalOfAlcovePaths, self).digraph()
-
-        if self._cartan_type.is_affine() and depth is None:
-            depth = 10
-        I = self.index_set()
-
-        rank = 0
-        G = { self.module_generators[0]: {} }
-        visited = { self.module_generators[0] }
-
-        while depth is None or rank < depth:
-            recently_visited = set()
-            for x in visited:
-                G.setdefault(x, {}) # does nothing if there's a default
-                for i in I:
-                    xfi = x.f(i)
-                    if xfi is not None:
-                        G[x][xfi] = i
-                        recently_visited.add(xfi)
-            if len(recently_visited) == 0: # No new nodes, nothing more to do
-                break
-            rank += 1
-            visited = recently_visited
-
-        return DiGraph(G)
-
-    def weight_lattice_realization(self):
-        r"""
-        Return the weight lattice realization of ``self``.
-
-        EXAMPLES::
-
-            sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
-            sage: B.weight_lattice_realization()
-            Extended weight lattice of the Root system of type ['A', 2, 1]
-
-            sage: C = crystals.AlcovePaths("B3",[1,0,0])
-            sage: C.weight_lattice_realization()
-            Ambient space of the Root system of type ['B', 3]
-
-            sage: A = crystals.AlcovePaths(['A',2,1], [1,0], highest_weight_crystal=False)
-            sage: A.weight_lattice_realization()
-            Weight lattice of the Root system of type ['A', 2, 1]
-        """
-        F = self.cartan_type().root_system()
-        if self.cartan_type().is_affine():
-            return F.weight_lattice(extended=self._highest_weight_crystal)
-        if self.cartan_type().is_finite() and F.ambient_space() is not None:
-            return F.ambient_space()
-        return F.weight_lattice()
 
 class CrystalOfAlcovePathsElement(ElementWrapper):
     """
@@ -632,13 +551,13 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         else:
             successors = 'quantum_bruhat_successors'
 
-        #start at the identity
+        # start at the identity
         w = W.one()
         for i in self:
-            t = prod( [ s[j] for j in  i.root.associated_reflection() ] )
+            t = prod([s[j] for j in i.root.associated_reflection()])
             successor = w * t
             if successor not in getattr(w, successors)():
-               return False
+                return False
             w = successor
         return True
 
@@ -808,57 +727,56 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         affine_ambient_space = RootSystem(ct.affine()).ambient_space()
         return affine_ambient_space.plot() + affine_ambient_space.plot_alcove_walk( word, foldings=foldings, labels=False)
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Test equality of ``self.value`` and ``other.value``.
+        Comparison of ``self.value`` and ``other.value``.
+
+        For inequalities, ``self.value`` is compared to
+        ``other.value`` in dictionary order.
 
         EXAMPLES::
 
-            sage: C=crystals.AlcovePaths(['B',2],[1,0])
-            sage: lst=list(C)
+            sage: C = crystals.AlcovePaths(['B',2],[1,0])
+            sage: lst = list(C)
             sage: lst[2] == lst[2]
             True
             sage: lst[2] == lst[1]
             False
-        """
-        #note: may want to use _eq_ for coercion
-        try:
-            return self.value == other.value
-        except (NameError, AttributeError):
-            return False
+            sage: lst[2] != lst[2]
+            False
+            sage: lst[2] != lst[1]
+            True
 
-    def __lt__(self, other):
-        r"""
-        Test if ``self.value`` is less than ``other.value`` in dictionary order.
-
-        EXAMPLES::
+            sage: C = crystals.AlcovePaths(['A',2],[2,0])
+            sage: x = C(())
+            sage: x < x.f(1)
+            True
+            sage: a = x.f(1) ; b = x.f(1).f(1).f(2)
+            sage: a < b
+            False
 
             sage: C = crystals.AlcovePaths(['A',2],[2,0])
             sage: x = C( () )
-            sage: x.__lt__(x.f(1))
-            True
-            sage: a=x.f(1) ; b = x.f(1).f(1).f(2)
-            sage: a.__lt__(b)
+            sage: x > x.f(1)
             False
+            sage: a = x.f(1) ; b = x.f(1).f(1).f(2)
+            sage: a > b
+            True
         """
-        return self.value < other.value
+        return richcmp(self.value, other.value, op)
 
-    def __gt__(self, other):
-        r"""
-        Test if ``self.value`` is greater than ``other.value`` in dictionary
-        order.
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
 
         EXAMPLES::
 
-            sage: C = crystals.AlcovePaths(['A',2],[2,0])
-            sage: x = C( () )
-            sage: x.__gt__(x.f(1))
-            False
-            sage: a=x.f(1) ; b = x.f(1).f(1).f(2)
-            sage: a.__gt__(b)
+            sage: C = crystals.AlcovePaths(['B',2],[1,0])
+            sage: lst = list(C)
+            sage: hash(lst[2]) == hash(lst[2])
             True
         """
-        return self.value > other.value
+        return hash(self.value)
 
     def _folding_data(self, i):
         r"""
@@ -889,17 +807,17 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             {(alpha[2], 0): 1, (alpha[1] + alpha[2], 1): 1, 'infinity': 1}
             sage: fd['infinity']
             1
-            sage: fd.values()
+            sage: sorted(fd.values())
             [1, 1, 1]
         """
         Parent = self.parent()
 
-        #self.value contains the admissible sequence as a tuple of Element
+        # self.value contains the admissible sequence as a tuple of Element
 
         finite_cartan_type = Parent._finite_cartan_type  # bool
         J = list(self.value)
 
-        #NOTE: R is a RootsWithHeight object and NOT a RootSystem object
+        # NOTE: R is a RootsWithHeight object and NOT a RootSystem object
         R = Parent._R
         weight = Parent.weight
 
@@ -914,16 +832,16 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
         max_height_Beta = weight.scalar(Beta.associated_coroot())
 
-        if len(J) == 0:
-            for k in range( max_height_Beta ) :
+        if not J:
+            for k in range(max_height_Beta):
                 x = R(Beta, k)
-                signs[x]=self._sign(Beta)
+                signs[x] = self._sign(Beta)
             signs['infinity'] = self._sign(Beta)
 
-        elif len(J) > 0 :
-            #NOTE: we assume J is sorted by order on Element of RootsWithHeight
+        else:
+            # NOTE: we assume J is sorted by order on Element of RootsWithHeight
 
-            for k in  range( max_height_Beta ):
+            for k in  range(max_height_Beta):
                 x = R(Beta, k)
                 if x <= J[0]:
                     signs[x] = self._sign(Beta)
@@ -935,7 +853,6 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
                 max_height_Beta = weight.scalar(
                     (sign_Beta * Beta).associated_coroot())
 
-
                 # some optimization so we don't initialize too many objects
                 # range(c1,c2) can be replaced by range(max_height_Beta) but it
                 # checks unnecessary extra things
@@ -946,9 +863,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
                 else:
                     c2 = min (max_height_Beta, J[j+1]._cmp_v[0]*max_height_Beta + 1)
 
-                for k in range(c1,c2):
+                for k in range(c1, c2):
 
-                    x=R( sign_Beta * Beta , k)
+                    x = R( sign_Beta * Beta , k)
 
                     if (
                         ( j < len(J) - 1 and J[j] < x <= J[j+1] ) or
@@ -956,8 +873,8 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
                     ):
                         signs[x] = sign_Beta
 
-            signs['infinity'] = sign_Beta # tail sign tells something about last step
-                                          # in g_alpha
+            signs['infinity'] = sign_Beta
+            # tail sign tells something about last step in g_alpha
 
         if finite_cartan_type and i == 0:
             signs = {x: -signs[x] for x in signs}
@@ -1830,11 +1747,10 @@ class RootsWithHeightElement(Element):
             sage: v1 = rl.from_vector(vector([1,1]))
             sage: v2 = rl.from_vector(vector([1]))
             sage: x1 = R(v1,1) ; x2 = R(v1,0) ; x3 = R(v2,1)
-            sage: x1.__cmp__(x2)
-            1
-            sage: x1.__cmp__(x3)
-            -1
-
+            sage: x1 < x2
+            False
+            sage: x1 < x3
+            True
         """
         # I suspect that if you redefine this method to produce a
         # different (valid)  `\lambda`-chain the rest of the
@@ -1883,7 +1799,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
         (0,8)     : {(0,5)       : 1 }
         })
 
-    if (G.is_isomorphic(GT) != True):
+    if not G.is_isomorphic(GT):
         return False
     else:
         print("G2 example passed.")
@@ -1909,7 +1825,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
         (0, 6, 7):{ (0, 1, 7): 2}
         })
 
-    if (G.is_isomorphic(GT) != True):
+    if not G.is_isomorphic(GT):
         return False
     else:
         print("C3 example passed.")
@@ -1947,7 +1863,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
         (6, 7, 11):{ (0, 7, 11): 1, (6, 7, 8): 3}
         })
 
-    if (G.is_isomorphic(GT) != True):
+    if not G.is_isomorphic(GT):
         return False
     else:
         print("B3 example 1 passed.")
@@ -1978,7 +1894,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
         (0, 7):{ (0, 1, 7): 1, (0, 2): 3}
         })
 
-    if (G.is_isomorphic(GT) != True):
+    if not G.is_isomorphic(GT):
         return False
     else:
         print("B3 example 2 passed.")
@@ -2096,9 +2012,8 @@ def _test_with_lspaths_crystal(cartan_type, weight, depth=10):
         True
     """
     from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
-    G1 = CrystalOfAlcovePaths(cartan_type, weight).digraph_fast(depth)
+    G1 = CrystalOfAlcovePaths(cartan_type, weight).digraph(depth=depth)
     C = CrystalOfLSPaths(cartan_type, weight)
     G2 = C.digraph(subset=C.subcrystal(max_depth=depth, direction='lower'))
 
     return G1.is_isomorphic(G2, edge_labels=True)
-

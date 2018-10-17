@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Static Sparse Graphs
 
@@ -179,18 +180,21 @@ with C arguments).
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 include "sage/data_structures/bitset.pxi"
 cimport cpython
 from libc.string cimport memset
 from libc.limits cimport INT_MAX
-from sage.graphs.base.c_graph cimport CGraph
-from static_sparse_backend cimport StaticSparseCGraph
-from static_sparse_backend cimport StaticSparseBackend
-from sage.ext.memory_allocator cimport MemoryAllocator
-include "cysignals/memory.pxi"
+from libc.math cimport sqrt
 from libcpp.vector cimport vector
+from cysignals.memory cimport check_allocarray, check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
+from sage.graphs.base.c_graph cimport CGraph
+from .static_sparse_backend cimport StaticSparseCGraph
+from .static_sparse_backend cimport StaticSparseBackend
+from sage.ext.memory_allocator cimport MemoryAllocator
 
 cdef extern from "fenv.h":
     int FE_TONEAREST
@@ -237,13 +241,8 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
     for i, v in enumerate(vertices):
         v_to_id[v] = i
 
-    g.edges = <uint32_t *> sig_malloc(n_edges*sizeof(uint32_t))
-    if g.edges == NULL:
-        raise ValueError("Problem while allocating memory (edges)")
-
-    g.neighbors = <uint32_t **> sig_malloc((1+<int>g.n)*sizeof(uint32_t *))
-    if g.neighbors == NULL:
-        raise ValueError("Problem while allocating memory (neighbors)")
+    g.edges = <uint32_t *>check_allocarray(n_edges, sizeof(uint32_t))
+    g.neighbors = <uint32_t **>check_allocarray(1 + g.n, sizeof(uint32_t *))
 
     # Initializing the value of neighbors
     g.neighbors[0] = g.edges
@@ -314,13 +313,8 @@ cdef int init_empty_copy(short_digraph dst, short_digraph src) except -1:
     dst.edge_labels = NULL
     cdef list edge_labels
 
-    dst.edges = <uint32_t *> sig_malloc(n_edges(src)*sizeof(uint32_t))
-    if dst.edges == NULL:
-        raise ValueError("Problem while allocating memory (edges)")
-
-    dst.neighbors = <uint32_t **> sig_malloc((src.n+1)*sizeof(uint32_t *))
-    if dst.neighbors == NULL:
-        raise ValueError("Problem while allocating memory (neighbors)")
+    dst.edges = <uint32_t *>check_allocarray(n_edges(src), sizeof(uint32_t))
+    dst.neighbors = <uint32_t **>check_allocarray(src.n + 1, sizeof(uint32_t *))
 
     if src.edge_labels != NULL:
         edge_labels = [None]*n_edges(src)
@@ -342,12 +336,7 @@ cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
     # vector. With this information, we can initialize dst.neighbors to its
     # correct value. The content of dst.edges is not touched at this level.
 
-    cdef int * in_degree = <int *> sig_malloc(src.n*sizeof(int))
-    if in_degree == NULL:
-        raise ValueError("Problem while allocating memory (in_degree)")
-
-    # Counting the degrees
-    memset(in_degree, 0, src.n*sizeof(int))
+    cdef int * in_degree = <int *>check_calloc(src.n, sizeof(int))
 
     for i in range(n_edges(src)):
         in_degree[src.edges[i]] += 1
@@ -413,9 +402,7 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
 
     # We will be doing a Depth-First Search. We allocate the stack we need for
     # that, and put "src" on top of it.
-    cdef int * stack = <int *> sig_malloc(g.n*sizeof(int))
-    if stack == NULL:
-        raise ValueError("Problem while allocating memory (stack)")
+    cdef int * stack = <int *>check_allocarray(g.n, sizeof(int))
 
     stack[0] = src
     cdef int stack_size = 1
@@ -577,9 +564,9 @@ def tarjan_strongly_connected_components(G):
     the lowlink of `v`, that whole subtree is a new SCC.
 
     For more information, see the
-    :wikipedia:`Wikipedia article on Tarjan's algorithm <Tarjan's_strongly_connected_components_algorithm>`.
+    :wikipedia:`Tarjan's_strongly_connected_components_algorithm`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
         sage: tarjan_strongly_connected_components(digraphs.Path(3))
@@ -603,7 +590,7 @@ def tarjan_strongly_connected_components(G):
 
         sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
         sage: import random
-        sage: for i in range(10):                                     # long
+        sage: for i in range(10):                          # long time
         ....:     n = random.randint(2,20)
         ....:     m = random.randint(1, n*(n-1))
         ....:     g = digraphs.RandomDirectedGNM(n,m)
@@ -615,7 +602,7 @@ def tarjan_strongly_connected_components(G):
     Checking against NetworkX::
 
         sage: import networkx
-        sage: for i in range(10):                                     # long
+        sage: for i in range(10):                          # long time
         ....:      g = digraphs.RandomDirectedGNP(100,.05)
         ....:      h = g.networkx_graph()
         ....:      scc1 = g.strongly_connected_components()
@@ -630,18 +617,18 @@ def tarjan_strongly_connected_components(G):
     if not isinstance(G, DiGraph):
         raise ValueError("G must be a DiGraph.")
 
-    sig_on()
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef short_digraph g
     init_short_digraph(g, G)
     cdef int * scc = <int*> mem.malloc(g.n * sizeof(int))
+    sig_on()
     cdef int nscc = tarjan_strongly_connected_components_C(g, scc)
+    sig_off()
     cdef int i
-    cdef list output = list(list() for i in range(nscc)) # We cannot use [] here
+    cdef list output = [[] for i in range(nscc)]
 
     for i,v in enumerate(G.vertices()):
         output[scc[i]].append(v)
-    sig_off()
     return output
 
 cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int *scc, short_digraph output):
@@ -719,7 +706,7 @@ def strongly_connected_components_digraph(G):
     to each vertex ``v`` the number of the SCC of ``v``, as it appears in
     ``g_scc``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components_digraph
         sage: strongly_connected_components_digraph(digraphs.Path(3))
@@ -778,14 +765,9 @@ cdef strongly_connected_component_containing_vertex(short_digraph g, short_digra
     bitset_intersection(scc, scc, scc_reversed)
 
 cdef void free_short_digraph(short_digraph g):
-    if g.edges != NULL:
-        sig_free(g.edges)
-
-    if g.neighbors != NULL:
-        sig_free(g.neighbors)
-
-    if g.edge_labels != NULL:
-        cpython.Py_XDECREF(g.edge_labels)
+    sig_free(g.edges)
+    sig_free(g.neighbors)
+    cpython.Py_XDECREF(g.edge_labels)
 
 def triangles_count(G):
     r"""
@@ -795,7 +777,7 @@ def triangles_count(G):
 
     - `G`-- a graph
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import triangles_count
         sage: triangles_count(graphs.PetersenGraph())
@@ -924,7 +906,7 @@ def spectral_radius(G, prec=1e-10):
         sage: r = list(range(100000))
         sage: while not G.is_strongly_connected():
         ....:     shuffle(r)
-        ....:     G.add_edges(enumerate(r))
+        ....:     G.add_edges(enumerate(r), loops=False)
         sage: spectral_radius(G, 1e-10)  # random
         (1.9997956006500042, 1.9998043797692782)
 
@@ -937,9 +919,30 @@ def spectral_radius(G, prec=1e-10):
         sage: max(G.adjacency_matrix().eigenvalues(AA))
         2.414213562373095?
 
+    Some bipartite graphs::
+
+        sage: G = Graph([(0,1),(0,3),(2,3)])
+        sage: G.spectral_radius()  # abs tol 1e-10
+        (1.6180339887253428, 1.6180339887592732)
+
+        sage: G = DiGraph([(0,1),(0,3),(2,3),(3,0),(1,0),(1,2)])
+        sage: G.spectral_radius() # abs tol 1e-10
+        (1.5537739740270458, 1.553773974033029)
+
+        sage: G = graphs.CompleteBipartiteGraph(1,3)
+        sage: G.spectral_radius()  # abs tol 1e-10
+        (1.7320508075688772, 1.7320508075688774)
+
     TESTS::
 
-        sage: spectral_radius(G, 1e-20)
+        sage: from sage.graphs.base.static_sparse_graph import spectral_radius
+
+        sage: Graph(1).spectral_radius()
+        (0.0, 0.0)
+        sage: Graph([(0,0)], loops=True).spectral_radius()
+        (1.0, 1.0)
+
+        sage: spectral_radius(Graph([(0,1),(0,2)]), 1e-20)
         Traceback (most recent call last):
         ...
         ValueError: precision (=1.00000000000000e-20) is too small
@@ -951,12 +954,46 @@ def spectral_radius(G, prec=1e-10):
         ....:     e = max(G.adjacency_matrix().charpoly().roots(AA,multiplicities=False))
         ....:     e_min, e_max = G.spectral_radius(1e-13)
         ....:     assert e_min < e < e_max
+
+        sage: spectral_radius(Graph(), 1e-10)
+        Traceback (most recent call last):
+        ...
+        ValueError: empty graph
     """
+    if not G:
+        raise ValueError("empty graph")
     if G.is_directed():
         if not G.is_strongly_connected():
             raise ValueError("G must be strongly connected")
     elif not G.is_connected():
         raise ValueError("G must be connected")
+    
+    cdef double e_min, e_max
+
+    if G.num_verts() == 1:
+        e_min = e_max = G.num_edges()
+        return (e_min, e_max)
+
+    is_bipartite, colors = G.is_bipartite(certificate=True)
+    if is_bipartite:
+        # NOTE: for bipartite graph there are two eigenvalues of maximum modulus
+        # and the iteration is likely to reach a cycle of length 2 and hence the
+        # algorithm never terminate. Here we compute the "square" reduced to
+        # one component of the bipartition.
+        from sage.graphs.all import DiGraph
+        H = DiGraph(loops=True, multiedges=True)
+        if G.is_directed():
+            neighbors_iterator = G.neighbor_out_iterator
+        else:
+            neighbors_iterator = G.neighbor_iterator
+        for u0 in G:
+            if colors[u0] == 0:
+                for u1 in neighbors_iterator(u0):
+                    for u2 in neighbors_iterator(u1):
+                        H.add_edge(u0, u2)
+
+        e_min, e_max = spectral_radius(H, prec)
+        return sqrt(e_min), sqrt(e_max)
 
     cdef double c_prec = prec
     if 1+c_prec/2 == 1:
@@ -973,17 +1010,15 @@ def spectral_radius(G, prec=1e-10):
     cdef long m = g.m
     cdef uint32_t ** neighbors = g.neighbors
 
-    cdef double * v1 = <double *> sig_malloc(n * sizeof(double))
-    cdef double * v2 = <double *> sig_malloc(n * sizeof(double))
+    # v1 and v2 are two arrays of length n, allocated as one array
+    # of length 2n for efficiency.
+    cdef double * vmem = <double *>check_allocarray(2*n, sizeof(double))
+    cdef double * v1 = vmem
+    cdef double * v2 = vmem + n
     cdef double * v3
-    if v1 == NULL or v2 == NULL:
-        sig_free(v1)
-        sig_free(v2)
-        raise MemoryError
 
     cdef size_t i
     cdef uint32_t *p
-    cdef double e_min, e_max
     cdef double s
 
     for i in range(n):
@@ -1046,7 +1081,6 @@ def spectral_radius(G, prec=1e-10):
         fesetround(old_rounding)
 
         # and that the memory is freed
-        sig_free(v1)
-        sig_free(v2)
+        sig_free(vmem)
 
     return (e_min, e_max)

@@ -1,4 +1,4 @@
-"""
+r"""
 Commutative Differential Graded Algebras
 
 An algebra is said to be *graded commutative* if it is endowed with a
@@ -71,9 +71,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six import string_types
 
-import six
+from sage.misc.six import with_metaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -86,6 +87,7 @@ from sage.categories.modules import Modules
 from sage.categories.homset import Hom
 
 from sage.algebras.free_algebra import FreeAlgebra
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
@@ -93,11 +95,17 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module import VectorSpace
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ
+from sage.rings.homset import RingHomset_generic
+from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 
-class Differential(UniqueRepresentation, Morphism):
+
+class Differential(with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        UniqueRepresentation, Morphism
+    )):
     r"""
     Differential of a commutative graded algebra.
 
@@ -119,8 +127,6 @@ class Differential(UniqueRepresentation, Morphism):
         sage: B.differential()(x)
         x*y
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, A, im_gens):
         r"""
@@ -325,8 +331,8 @@ class Differential(UniqueRepresentation, Morphism):
         """
         A = self.domain()
         dom = A.basis(n)
-        cod = A.basis(n+1)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cod = A.basis(n + 1)
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(A.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -568,7 +574,7 @@ class Differential_multigraded(Differential):
         n = G(vector(n))
         dom = A.basis(n)
         cod = A.basis(n+self._degree_of_differential)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(self.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -840,6 +846,18 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A2 = GradedCommutativeAlgebra(GF(2), ['x', 'y'], [3, 6])
             sage: A1 is A2
             True
+
+        Testing the single generator case (:trac:`25276`)::
+
+            sage: A3.<z> = GradedCommutativeAlgebra(QQ)
+            sage: z**2 == 0
+            True
+            sage: A4.<z> = GradedCommutativeAlgebra(QQ, degrees=[4])
+            sage: z**2 == 0
+            False
+            sage: A5.<z> = GradedCommutativeAlgebra(GF(2))
+            sage: z**2 == 0
+            False
         """
         if names is None:
             if degrees is None:
@@ -847,7 +865,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             else:
                 n = len(degrees)
             names = tuple('x{}'.format(i) for i in range(n))
-        elif isinstance(names, six.string_types):
+        elif isinstance(names, string_types):
             names = tuple(names.split(','))
             n = len(names)
         else:
@@ -871,7 +889,10 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             degrees = tuple(degrees)
 
         if not R or not I:
-            F = FreeAlgebra(base, n, names)
+            if n > 1:
+                F = FreeAlgebra(base, n, names)
+            else: # n = 1
+                F = PolynomialRing(base, n, names)
             gens = F.gens()
             rels = {}
             tot_degs = [total_degree(d) for d in degrees]
@@ -879,7 +900,10 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 for j in range(i+1, len(gens)):
                     rels[gens[j]*gens[i]] = ((-1) ** (tot_degs[i] * tot_degs[j])
                                              * gens[i] * gens[j])
-            R = F.g_algebra(rels, order = TermOrder('wdegrevlex', tot_degs))
+            if n > 1:
+                R = F.g_algebra(rels, order = TermOrder('wdegrevlex', tot_degs))
+            else: # n = 1
+                R = F.quotient(rels)
             if base.characteristic() == 2:
                 I = R.ideal(0, side='twosided')
             else:
@@ -1051,7 +1075,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             el = prod([self.gen(i)**v[i] for i in range(len(v))])
             di = el.dict()
             if len(di) == 1:
-                if tuple(di.keys()[0]) == v:
+                k, = di.keys()
+                if tuple(k) == v:
                     basis.append(el)
         return basis
 
@@ -1148,6 +1173,44 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             return x
 
         return self.element_class(self, x)
+
+    def _Hom_(self, B, category):
+        """
+        Return the homset from ``self`` to ``B`` in the category ``category``.
+
+        INPUT:
+
+        - ``B`` -- a graded commative algebra
+        - ``category`` -- a subcategory of graded algebras or ``None``
+
+        EXAMPLES::
+
+            sage: A.<x,y> = GradedCommutativeAlgebra(QQ)
+            sage: B.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3))
+            sage: C.<d> = GradedCommutativeAlgebra(GF(17))
+            sage: Hom(A,A)
+            Set of Homomorphisms from Graded Commutative Algebra with generators ('x', 'y') in degrees (1, 1) over Rational Field to Graded Commutative Algebra with generators ('x', 'y') in degrees (1, 1) over Rational Field
+            sage: Hom(A,B)
+            Set of Homomorphisms from Graded Commutative Algebra with generators ('x', 'y') in degrees (1, 1) over Rational Field to Graded Commutative Algebra with generators ('a', 'b', 'c') in degrees (1, 2, 3) over Rational Field
+            sage: Hom(A,C)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: homomorphisms of graded commutative algebras have only been implemented when the base rings are the same
+        """
+        R = self.base_ring()
+        # The base rings need to be checked before the categories, or
+        # else the function sage.categories.homset.Hom catches the
+        # TypeError and uses the wrong category (the meet of the
+        # categories for self and B, which might be the category of
+        # rings).
+        if R != B.base_ring():
+            raise NotImplementedError('homomorphisms of graded commutative '
+                                      'algebras have only been implemented '
+                                      'when the base rings are the same')
+        cat = Algebras(R).Graded()
+        if category is not None and not category.is_subcategory(cat):
+            raise TypeError("%s is not a subcategory of graded algebras"%category)
+        return GCAlgebraHomset(self, B, category=category)
 
     def differential(self, diff):
         """
@@ -1292,13 +1355,13 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         def is_homogeneous(self, total=False):
             r"""
-            Return ``True`` if ``self`` is homogenous and ``False`` otherwise.
+            Return ``True`` if ``self`` is homogeneous and ``False`` otherwise.
 
             INPUT:
 
             - ``total`` -- boolean (default ``False``); only used in the
               multi-graded case, in which case if ``True``, check to see
-              if ``self`` is homogenenous with respect to total degree
+              if ``self`` is homogeneous with respect to total degree
 
             EXAMPLES::
 
@@ -1406,11 +1469,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 raise ValueError('This element is not homogeneous')
 
             basis = self.parent().basis(self.degree(total))
-            F = self.parent().base()
             lift = self.lift()
-            monos = self.monomials()
-            c = [lift.monomial_coefficient(x.lift()) for x in basis]
-            return c
+            return [lift.monomial_coefficient(x.lift()) for x in basis]
 
 
 class GCAlgebra_multigraded(GCAlgebra):
@@ -1483,6 +1543,10 @@ class GCAlgebra_multigraded(GCAlgebra):
 
             sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=((1,0), (0,1), (1,1)))
             sage: TestSuite(A).run()
+            sage: B.<w> = GradedCommutativeAlgebra(GF(2), degrees=((3,2)))
+            sage: TestSuite(B).run()
+            sage: C = GradedCommutativeAlgebra(GF(7), degrees=((3,2)))
+            sage: TestSuite(C).run()
         """
         total_degs = [total_degree(d) for d in degrees]
         GCAlgebra.__init__(self, base, R=R, I=I, names=names, degrees=total_degs)
@@ -2642,7 +2706,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     if degrees:
         try:
             for d in degrees:
-                _ = list(d)
+                list(d)
             # If the previous line doesn't raise an error, looks multi-graded.
             multi = True
         except TypeError:
@@ -2651,6 +2715,367 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
         return GCAlgebra_multigraded(ring, names=names, degrees=degrees)
     else:
         return GCAlgebra(ring, names=names, degrees=degrees)
+
+################################################
+# Morphisms
+
+class GCAlgebraMorphism(RingHomomorphism_im_gens):
+    """
+    Create a morphism between two :class:`graded commutative algebras <GCAlgebra>`.
+
+    INPUT:
+
+    - ``parent`` -- the parent homset
+
+    - ``im_gens`` -- the images, in the codomain, of the generators of
+      the domain
+
+    - ``check`` -- boolean (default: ``True``); check whether the
+      proposed map is actually an algebra map; if the domain and
+      codomain have differentials, also check that the map respects
+      those.
+
+    EXAMPLES::
+
+        sage: A.<x,y> = GradedCommutativeAlgebra(QQ)
+        sage: H = Hom(A,A)
+        sage: f = H([y,x])
+        sage: f
+        Graded Commutative Algebra endomorphism of Graded Commutative Algebra with generators ('x', 'y') in degrees (1, 1) over Rational Field
+          Defn: (x, y) --> (y, x)
+        sage: f(x*y)
+        -x*y
+    """
+    def __init__(self, parent, im_gens, check=True):
+        r"""
+        TESTS:
+
+        The entries in ``im_gens`` must lie in the codomain::
+
+            sage: A.<x,y> = GradedCommutativeAlgebra(QQ, degrees=(1,2))
+            sage: B.<a,b> = GradedCommutativeAlgebra(QQ, degrees=(1,2))
+            sage: H = Hom(A,A)
+            sage: H([x,b])
+            Traceback (most recent call last):
+            ...
+            ValueError: not all elements of im_gens are in the codomain
+
+        Note that morphisms do not need to respect the grading;
+        whether they do can be tested with the method
+        :meth:`is_graded`::
+
+            sage: A.<x,y> = GradedCommutativeAlgebra(QQ, degrees=(1,2))
+            sage: H = Hom(A,A)
+            sage: f = H([x,x])
+            sage: f
+            Graded Commutative Algebra endomorphism of Graded Commutative Algebra with generators ('x', 'y') in degrees (1, 2) over Rational Field
+              Defn: (x, y) --> (x, x)
+            sage: f.is_graded()
+            False
+            sage: TestSuite(f).run(skip="_test_category")
+
+        Since `x^2=0` but `y^2 \neq 0`, the following does not define a valid morphism::
+
+            sage: H([y,y])
+            Traceback (most recent call last):
+            ...
+            ValueError: the proposed morphism does not respect the relations
+
+        This is okay in characteristic two since then `x^2 \neq 0`::
+
+            sage: A2.<x,y> = GradedCommutativeAlgebra(GF(2), degrees=(1,2))
+            sage: H2 = Hom(A2,A2)
+            sage: H2([y,y])
+            Graded Commutative Algebra endomorphism of Graded Commutative Algebra with generators ('x', 'y') in degrees (1, 2) over Finite Field of size 2
+              Defn: (x, y) --> (y, y)
+
+        The "nc-relations" `a*b = -b*a`, for `a` and `b` in odd
+        degree, are checked first, and we can see this when using more
+        generators::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1,2))
+            sage: Hom(A,A)([x,z,z])
+            Traceback (most recent call last):
+            ...
+            ValueError: the proposed morphism does not respect the nc-relations
+
+        Other relations::
+
+            sage: B.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1,1))
+            sage: D = B.quotient(B.ideal(x*y))
+            sage: H = Hom(D,D)
+            sage: D.inject_variables()
+            Defining x, y, z
+            sage: H([x,z,z])
+            Traceback (most recent call last):
+            ...
+            ValueError: the proposed morphism does not respect the relations
+
+        The morphisms must respect the differentials, when present::
+
+            sage: B.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1,1))
+            sage: C = B.cdg_algebra({z: x*y})
+            sage: C.inject_variables()
+            Defining x, y, z
+            sage: H = Hom(C,C)
+            sage: H([x,z,z])
+            Traceback (most recent call last):
+            ...
+            ValueError: the proposed morphism does not respect the differentials
+        """
+        domain = parent.domain()
+        codomain = parent.codomain()
+
+        # We use check=False here because checking of nc-relations is
+        # not implemented in RingHomomorphism_im_gens.__init__.
+        # We check these relations below.
+        RingHomomorphism_im_gens.__init__(self, parent=parent,
+                                          im_gens=im_gens,
+                                          check=False)
+        self._im_gens = tuple(im_gens)
+        # Now check that the relations are respected.
+        if check:
+            if any(x not in codomain for x in im_gens):
+                raise ValueError('not all elements of im_gens are in '
+                                 'the codomain')
+            R = domain.cover_ring()
+            from_free = dict(zip(R.free_algebra().gens(), im_gens))
+            from_R = dict(zip(R.gens(), im_gens))
+            # First check the nc-relations: x*y=-y*x for x, y in odd
+            # degrees. These are in the form of a dictionary, with
+            # typical entry left:right.
+            for left in R.relations():
+                zero = left.subs(from_free) - R.relations()[left].subs(from_R)
+                if zero:
+                    raise ValueError('the proposed morphism does not respect '
+                                     'the nc-relations')
+            # Now check any extra relations, including x**2=0 for x in
+            # odd degree. These are defined by a list of generators of
+            # the defining ideal.
+            for g in domain.defining_ideal().gens():
+                zero = g.subs(from_R)
+                if zero:
+                    raise ValueError('the proposed morphism does not respect '
+                                     'the relations')
+            # If the domain and codomain have differentials, check
+            # those, too.
+            if (isinstance(domain, DifferentialGCAlgebra) and
+                isinstance(codomain, DifferentialGCAlgebra)):
+                dom_diff = domain.differential()
+                cod_diff = codomain.differential()
+                if any(cod_diff(self(g)) != self(dom_diff(g))
+                       for g in domain.gens()):
+                    raise ValueError('the proposed morphism does not respect '
+                                     'the differentials')
+
+    def _call_(self, x):
+        """
+        Evaluate this morphism on ``x``.
+
+        INPUT:
+
+        - ``x`` -- an element of the domain
+
+        EXAMPLES::
+
+            sage: A.<x,y> = GradedCommutativeAlgebra(GF(2))
+            sage: H = Hom(A,A)
+            sage: g = H([y,y])
+            sage: g(x)
+            y
+            sage: g(x*y)
+            y^2
+
+            sage: B.<x,y,z> = GradedCommutativeAlgebra(QQ)
+            sage: H = Hom(B,B)
+            sage: f = H([y,x,x])
+            sage: f(x)
+            y
+            sage: f(3*x*y)
+            -3*x*y
+            sage: f(y*z)
+            0
+            sage: f(1)
+            1
+        """
+        codomain = self.codomain()
+        result = codomain.zero()
+        for mono, coeff in x.dict().iteritems():
+            term = prod([gen**y for (y, gen) in zip(mono, self.im_gens())],
+                        codomain.one())
+            result += coeff*term
+        return result
+
+    def is_graded(self, total=False):
+        """
+        Return ``True`` if this morphism is graded.
+
+        That is, return ``True`` if `f(x)` is zero, or if `f(x)` is
+        homogeneous and has the same degree as `x`, for each generator
+        `x`.
+
+        INPUT:
+
+        - ``total`` (optional, default ``False``) -- if ``True``, use
+          the total degree to determine whether the morphism is graded
+          (relevant only in the multigraded case)
+
+        EXAMPLES::
+
+            sage: C.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(1,1,2))
+            sage: H = Hom(C,C)
+            sage: H([a, b, a*b + 2*a]).is_graded()
+            False
+            sage: H([a, b, a*b]).is_graded()
+            True
+
+            sage: A.<w,x> = GradedCommutativeAlgebra(QQ, degrees=((1,0), (1,0)))
+            sage: B.<y,z> = GradedCommutativeAlgebra(QQ, degrees=((1,0), (0,1)))
+            sage: H = Hom(A,B)
+            sage: H([y,0]).is_graded()
+            True
+            sage: H([z,z]).is_graded()
+            False
+            sage: H([z,z]).is_graded(total=True)
+            True
+        """
+        return all(not y or # zero is always allowed as an image
+                   (y.is_homogeneous()
+                    and x.degree(total=total) == y.degree(total=total))
+                   for (x,y) in zip(self.domain().gens(), self.im_gens()))
+
+    def _repr_type(self):
+        """
+        EXAMPLES::
+
+            sage: B.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1,1))
+            sage: C = B.cdg_algebra({z: x*y})
+            sage: Hom(B,B)([z,y,x])._repr_type()
+            'Graded Commutative Algebra'
+            sage: C.inject_variables()
+            Defining x, y, z
+            sage: Hom(C,C)([x,0,0])._repr_type()
+            'Commutative Differential Graded Algebra'
+        """
+        if (isinstance(self.domain(), DifferentialGCAlgebra) and
+            isinstance(self.codomain(), DifferentialGCAlgebra)):
+            return "Commutative Differential Graded Algebra"
+        return "Graded Commutative Algebra"
+
+    def _repr_defn(self):
+        """
+        EXAMPLES::
+
+            sage: A.<x,y> = GradedCommutativeAlgebra(QQ)
+            sage: Hom(A,A)([y,x])._repr_defn()
+            '(x, y) --> (y, x)'
+        """
+        gens = self.domain().gens()
+        return "{} --> {}".format(gens, self._im_gens)
+
+
+################################################
+# Homsets
+
+class GCAlgebraHomset(RingHomset_generic):
+    """
+    Set of morphisms between two graded commutative algebras.
+
+    .. NOTE::
+
+        Homsets (and thus morphisms) have only been implemented when
+        the base fields are the same for the domain and codomain.
+
+    EXAMPLES::
+
+        sage: A.<x,y> = GradedCommutativeAlgebra(QQ, degrees=(1,2))
+        sage: H = Hom(A,A)
+        sage: H([x,y]) == H.identity()
+        True
+        sage: H([x,x]) == H.identity()
+        False
+
+        sage: A.<w,x> = GradedCommutativeAlgebra(QQ, degrees=(1,2))
+        sage: B.<y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1))
+        sage: H = Hom(A,B)
+        sage: H([y,0])
+        Graded Commutative Algebra morphism:
+          From: Graded Commutative Algebra with generators ('w', 'x') in degrees (1, 2) over Rational Field
+          To:   Graded Commutative Algebra with generators ('y', 'z') in degrees (1, 1) over Rational Field
+          Defn: (w, x) --> (y, 0)
+        sage: H([y,y*z])
+        Graded Commutative Algebra morphism:
+          From: Graded Commutative Algebra with generators ('w', 'x') in degrees (1, 2) over Rational Field
+          To:   Graded Commutative Algebra with generators ('y', 'z') in degrees (1, 1) over Rational Field
+          Defn: (w, x) --> (y, y*z)
+    """
+
+    @cached_method
+    def zero(self):
+        """
+        Construct the "zero" morphism of this homset: the map sending each
+        generator to zero.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = GradedCommutativeAlgebra(QQ, degrees=(1,2))
+            sage: B.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(1,1,1))
+            sage: zero = Hom(A,B).zero()
+            sage: zero(x) == zero(y) == 0
+            True
+        """
+        return GCAlgebraMorphism(self, [self.codomain().zero()]
+                                       * self.domain().ngens())
+
+    @cached_method
+    def identity(self):
+        """
+        Construct the identity morphism of this homset.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = GradedCommutativeAlgebra(QQ, degrees=(1,2))
+            sage: H = Hom(A,A)
+            sage: H([x,y]) == H.identity()
+            True
+            sage: H([x,x]) == H.identity()
+            False
+        """
+        if self.domain() != self.codomain():
+            raise TypeError('identity map is only defined for '
+                            'endomorphism sets')
+        return GCAlgebraMorphism(self, self.domain().gens())
+
+    def __call__(self, im_gens, check=True):
+        """
+        Create a homomorphism.
+
+        INPUT:
+
+        - ``im_gens`` -- the images of the generators of the domain
+
+        EXAMPLES::
+
+            sage: A.<w,x> = GradedCommutativeAlgebra(QQ, degrees=(1,2))
+            sage: B.<y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1))
+            sage: H = Hom(A,B)
+            sage: H([y,0])
+            Graded Commutative Algebra morphism:
+              From: Graded Commutative Algebra with generators ('w', 'x') in degrees (1, 2) over Rational Field
+              To:   Graded Commutative Algebra with generators ('y', 'z') in degrees (1, 1) over Rational Field
+              Defn: (w, x) --> (y, 0)
+            sage: H([y,y*z])
+            Graded Commutative Algebra morphism:
+              From: Graded Commutative Algebra with generators ('w', 'x') in degrees (1, 2) over Rational Field
+              To:   Graded Commutative Algebra with generators ('y', 'z') in degrees (1, 1) over Rational Field
+              Defn: (w, x) --> (y, y*z)
+        """
+        from sage.categories.map import Map
+        if isinstance(im_gens, Map):
+            return self._coerce_impl(im_gens)
+        else:
+            return GCAlgebraMorphism(self, im_gens, check=check)
+
 
 ################################################
 # Miscellaneous utility classes and functions

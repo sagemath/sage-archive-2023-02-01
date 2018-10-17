@@ -10,6 +10,7 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse12.html.
 import types
 from sage.structure.sage_object import SageObject
 
+
 def _integers_from(n):
     """
     Returns a generator for the integers starting at n.
@@ -129,11 +130,11 @@ class Stream_class(SageObject):
             sage: from sage.combinat.species.stream import Stream_class, Stream
             sage: s = Stream_class(const=4)
             sage: loads(dumps(s))
-            <class 'sage.combinat.species.stream.Stream_class'>
+            <sage.combinat.species.stream.Stream_class object at ...>
 
         ::
 
-            sage: list(sorted(s.__dict__.iteritems()))
+            sage: sorted(s.__dict__.items())
             [('_constant', 4),
              ('_gen', None),
              ('_last_index', 0),
@@ -143,7 +144,7 @@ class Stream_class(SageObject):
         ::
 
             sage: s = Stream(ZZ)
-            sage: list(sorted(s.__dict__.iteritems()))
+            sage: sorted(s.__dict__.items())
             [('_constant', None),
              ('_gen', <generator object at 0x...>),
              ('_last_index', -1),
@@ -176,7 +177,7 @@ class Stream_class(SageObject):
 
     def __setitem__(self, i, t):
         """
-        Sets the ith entry of self to t.
+        Set the i-th entry of self to t.
 
         EXAMPLES::
 
@@ -206,8 +207,8 @@ class Stream_class(SageObject):
             sage: s.data()
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, 10]
         """
-        #Compute all of the coefficients up to (and including) the ith one
-        test = self[i]
+        # Compute all of the coefficients up to (and including) the ith one
+        self[i]
 
         if i < len(self._list):
             #If we are here, we can just change the entry in self._list
@@ -219,7 +220,6 @@ class Stream_class(SageObject):
             self._list += [ self._constant ] * (i+1 - len(self._list))
             self._last_index = i
             self._list[i] = t
-
 
     def set_gen(self, gen):
         """
@@ -357,7 +357,6 @@ class Stream_class(SageObject):
             except IndexError:
                 break
             i += 1
-        raise StopIteration
 
     def __len__(self):
         """

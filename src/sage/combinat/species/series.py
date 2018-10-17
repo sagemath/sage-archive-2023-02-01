@@ -36,30 +36,33 @@ from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.algebras.algebra import Algebra
 import sage.structure.parent_base
 from sage.categories.all import Rings
 from sage.structure.element import Element, parent, AlgebraElement
 
+
 class LazyPowerSeriesRing(Algebra):
-    def __init__(self, R, element_class = None, names=None):
+    def __init__(self, R, element_class=None, names=None):
         """
         TESTS::
 
             sage: from sage.combinat.species.series import LazyPowerSeriesRing
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: loads(dumps(L))
-            Lazy Power Series Ring over Rational Field
+
+        Equality testing is undecidable in general, and not much
+        efforts are done at this stage to implement equality when
+        possible. Hence the failing tests below::
+
+            sage: TestSuite(L).run()
+            Failure in ...
+            The following tests failed: _test_additive_associativity, _test_associativity, _test_distributivity, _test_elements, _test_one, _test_prod, _test_zero
+
         """
         #Make sure R is a ring with unit element
-        if not R in Rings():
+        if R not in Rings():
             raise TypeError("Argument R must be a ring.")
-        try:
-            z = R(Integer(1))
-        except Exception:
-            raise ValueError("R must have a unit element")
 
         #Take care of the names
         if names is None:
@@ -70,7 +73,7 @@ class LazyPowerSeriesRing(Algebra):
         self._element_class = element_class if element_class is not None else LazyPowerSeries
         self._order = None
         self._name = names
-        sage.structure.parent_base.ParentWithBase.__init__(self, R)
+        sage.structure.parent_base.ParentWithBase.__init__(self, R, category=Rings())
 
     def ngens(self):
         """
@@ -90,8 +93,10 @@ class LazyPowerSeriesRing(Algebra):
         """
         return "Lazy Power Series Ring over %s"%self.base_ring()
 
-    def __cmp__(self, x):
+    def __eq__(self, x):
         """
+        Check whether ``self`` is equal to ``x``.
+
         EXAMPLES::
 
             sage: LQ = LazyPowerSeriesRing(QQ)
@@ -101,9 +106,40 @@ class LazyPowerSeriesRing(Algebra):
             sage: LZ == LQ
             False
         """
-        if self.__class__ is not x.__class__:
-            return cmp(self.__class__, x.__class__)
-        return cmp(self.base_ring(), x.base_ring())
+        if not isinstance(x, LazyPowerSeriesRing):
+            return False
+        return self.base_ring() == x.base_ring()
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: LQ = LazyPowerSeriesRing(QQ)
+            sage: LZ = LazyPowerSeriesRing(ZZ)
+            sage: LQ != LQ
+            False
+            sage: LZ != LQ
+            True
+        """
+        return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: LQ = LazyPowerSeriesRing(QQ)
+            sage: LZ = LazyPowerSeriesRing(ZZ)
+            sage: hash(LQ) == hash(LQ)
+            True
+            sage: hash(LZ) == hash(LQ)
+            False
+        """
+        # with a random number, so that the hash is not that of the base ring
+        return hash((16079305, self.base_ring()))
 
     def _coerce_impl(self, x):
         """
@@ -214,19 +250,8 @@ class LazyPowerSeriesRing(Algebra):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: L.zero()
             0
-
-        TESTS:
-
-        Check that the method `zero_element` raises a warning (:trac:`17694`)::
-
-            sage: L.zero_element()
-            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
-            See http://trac.sagemath.org/17694 for details.
-            0
         """
         return self(self.base_ring().zero())
-
-    zero_element = deprecated_function_alias(17694, zero)
 
     def identity_element(self):
         """
@@ -393,10 +418,9 @@ class LazyPowerSeriesRing(Algebra):
         """
         EXAMPLES::
 
-            sage: from builtins import map
             sage: from sage.combinat.species.stream import _integers_from
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: g = map(lambda i: L([1]+[0]*i+[1]), _integers_from(0))
+            sage: g = (L([1]+[0]*i+[1]) for i in _integers_from(0))
             sage: g2 = L._product_generator_gen(g)
             sage: [next(g2) for i in range(10)]
             [1, 1, 2, 4, 7, 12, 20, 33, 53, 84]
@@ -523,9 +547,9 @@ class LazyPowerSeries(AlgebraElement):
         """
         n = len(self._stream)
         m = ['1', x]
-        m += [x+"^"+str(i) for i in range(2, n)]
-        c = [ self._stream[i] for i in range(n) ]
-        return [ (m,c) for m,c in zip(m,c) if c != 0]
+        m += [x + "^" + str(i) for i in range(2, n)]
+        c = [self._stream[i] for i in range(n)]
+        return [(mo, co) for mo, co in zip(m, c) if co != 0]
 
     def __repr__(self):
         """
@@ -1116,8 +1140,8 @@ class LazyPowerSeries(AlgebraElement):
     times = _mul_
 
     def _times_gen(self, y, ao):
-        """
-        Returns an iterator for the coefficients of self \* y.
+        r"""
+        Return an iterator for the coefficients of self \* y.
 
         EXAMPLES::
 
@@ -1220,7 +1244,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def _compose_gen(self, y, ao):
         """
-        Returns a iterator for the coefficients of the composition of this
+        Return a iterator for the coefficients of the composition of this
         power series with the power series y.
 
         EXAMPLES::
@@ -1234,14 +1258,12 @@ class LazyPowerSeries(AlgebraElement):
         """
         assert y.coefficient(0) == 0
         yield self._stream[0]
-        z = self.tail().compose(y)*y
-        c = z.coefficient(1)
-
+        z = self.tail().compose(y) * y
+        z.coefficient(1)
         n = 1
         while True:
             yield z._stream[n]
             n += 1
-
 
     def tail(self):
         """
@@ -1475,7 +1497,7 @@ class LazyPowerSeries(AlgebraElement):
             #Check to see if the stream is finite
             if self.is_finite(n-1):
                 yield self._stream[n-1]
-                raise StopIteration
+                break
             else:
                 yield (Integer(1)/Integer(n))*self._stream[n-1]
                 n += 1
@@ -1498,19 +1520,18 @@ class LazyPowerSeries(AlgebraElement):
 
         if ao == inf:
             yield self._zero
-            raise StopIteration
         else:
             for _ in range(ao-1):
                 yield self._zero
 
-            n = max(1,ao)
+            n = max(1, ao)
             while True:
-                c = self.coefficient(n-1)
+                self.coefficient(n - 1)
 
                 #Check to see if the stream is finite
                 if self.is_finite(n-1):
                     yield self.coefficient(n-1)
-                    raise StopIteration
+                    break
                 else:
                     yield (Integer(1)/Integer(n))*self.coefficient(n-1)
                     n += 1

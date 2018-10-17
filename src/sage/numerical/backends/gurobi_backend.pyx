@@ -19,16 +19,19 @@ Methods
 -------
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.numerical.mip import MIPSolverException
 
@@ -49,7 +52,7 @@ cdef class GurobiBackend(GenericBackend):
         """
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="Gurobi")            # optional - Gurobi
         """
@@ -57,11 +60,13 @@ cdef class GurobiBackend(GenericBackend):
 
         # Initializing the master Environment. This one is kept to be
         # deallocated on __dealloc__
-        error = GRBloadenv(&self.env_master, NULL)
-
+        error = GRBemptyenv(&self.env_master)
         if self.env_master == NULL:
             raise RuntimeError("Could not initialize Gurobi environment")
-
+        check(self.env_master, error)
+        error = GRBsetintparam(self.env_master, "OutputFlag", 0)
+        check(self.env_master, error)
+        error = GRBstartenv(self.env_master)
         check(self.env_master, error)
 
         # Initializing the model
@@ -112,7 +117,7 @@ cdef class GurobiBackend(GenericBackend):
 
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                              # optional - Gurobi
@@ -212,7 +217,7 @@ cdef class GurobiBackend(GenericBackend):
             ``indices`` and ``coeffs`` are expected to be of the same
             length.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -221,7 +226,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.nrows()
             0
             sage: p.add_linear_constraints(5, 0, None)
-            sage: p.add_col(range(5), range(5))
+            sage: p.add_col(list(range(5)), list(range(5)))
             sage: p.nrows()
             5
         """
@@ -241,7 +246,7 @@ cdef class GurobiBackend(GenericBackend):
             *  0  Binary
             * -1 Real
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver  # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                               # optional - Gurobi
@@ -276,7 +281,7 @@ cdef class GurobiBackend(GenericBackend):
             * +1 => Maximization
             * -1 => Minimization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver   # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                # optional - Gurobi
@@ -307,7 +312,7 @@ cdef class GurobiBackend(GenericBackend):
         - ``coeff`` (double) -- its coefficient or ``None`` for
           reading (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver   # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                # optional - Gurobi
@@ -340,7 +345,7 @@ cdef class GurobiBackend(GenericBackend):
         - ``name`` (``char *``) -- the problem's name. When set to
           ``NULL`` (default), the method returns the problem's name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver      # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                   # optional - Gurobi
@@ -382,7 +387,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver     # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                  # optional - Gurobi
@@ -425,7 +430,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``level`` (integer) -- From 0 (no verbosity) to 3.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver   # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                # optional - Gurobi
@@ -448,7 +453,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``i`` -- index of the constraint to remove
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='Gurobi')# optional - Gurobi
             sage: v = p.new_variable(nonnegative=True)         # optional - Gurobi
@@ -490,7 +495,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``name`` - an optional name for this row (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver          # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                       # optional - Gurobi
@@ -560,7 +565,7 @@ cdef class GurobiBackend(GenericBackend):
         associates their coefficient on the model of the
         ``add_linear_constraint`` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver   # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                # optional - Gurobi
@@ -611,7 +616,7 @@ cdef class GurobiBackend(GenericBackend):
         to ``None`` if the constraint is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
@@ -652,7 +657,7 @@ cdef class GurobiBackend(GenericBackend):
         to ``None`` if the variable is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
@@ -686,7 +691,7 @@ cdef class GurobiBackend(GenericBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver  # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                               # optional - Gurobi
@@ -721,7 +726,7 @@ cdef class GurobiBackend(GenericBackend):
 
            Behaviour is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver  # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                               # optional - Gurobi
@@ -752,7 +757,7 @@ cdef class GurobiBackend(GenericBackend):
 
            Behaviour is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver   # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                # optional - Gurobi
@@ -781,7 +786,7 @@ cdef class GurobiBackend(GenericBackend):
         """
         Return the number of columns/variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver  # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                               # optional - Gurobi
@@ -800,7 +805,7 @@ cdef class GurobiBackend(GenericBackend):
         """
         Return the number of rows/constraints.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                              # optional - Gurobi
@@ -823,7 +828,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``index`` (integer) -- the col's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver  # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                               # optional - Gurobi
@@ -848,7 +853,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``index`` (integer) -- the row's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver  # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                               # optional - Gurobi
@@ -872,7 +877,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver   # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                # optional - Gurobi
@@ -897,7 +902,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver  # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                               # optional - Gurobi
@@ -921,7 +926,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver   # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                # optional - Gurobi
@@ -944,7 +949,7 @@ cdef class GurobiBackend(GenericBackend):
         """
         Test whether the problem is a maximization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
@@ -970,7 +975,7 @@ cdef class GurobiBackend(GenericBackend):
           variable has not upper bound. When set to ``False``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
@@ -1008,7 +1013,7 @@ cdef class GurobiBackend(GenericBackend):
           variable has not lower bound. When set to ``False``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
@@ -1044,7 +1049,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
@@ -1064,7 +1069,7 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
@@ -1162,7 +1167,7 @@ cdef class GurobiBackend(GenericBackend):
         """
         Returns a copy of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = MixedIntegerLinearProgram(solver = "GUROBI")                  # optional - Gurobi

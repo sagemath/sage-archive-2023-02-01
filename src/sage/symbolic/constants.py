@@ -1,4 +1,4 @@
-"""
+r"""
 Mathematical constants
 
 The following standard mathematical constants are defined in Sage,
@@ -59,7 +59,7 @@ can be coerced into other systems or evaluated.
     sage: a = pi + e*4/5; a
     pi + 4/5*e
     sage: maxima(a)
-    %pi+4*%e/5
+    %pi+(4*%e)/5
     sage: RealField(15)(a)           # 15 *bits* of precision
     5.316
     sage: gp(a)
@@ -357,19 +357,6 @@ class Constant(object):
         """
         return self._domain
 
-    def __lt__(self, other):
-        """
-        Perform float comparison with constant.
-
-        EXAMPLES::
-
-            sage: cmp(pi, 0)
-            1
-            sage: cmp(pi, SR(0))
-            1
-        """
-        return self.__float__() < other
-
     def expression(self):
         """
         Returns an expression for this constant.
@@ -554,7 +541,7 @@ class Constant(object):
 
 class Pi(Constant):
     def __init__(self, name="pi"):
-        """
+        r"""
         TESTS::
 
             sage: pi._latex_()
@@ -563,7 +550,6 @@ class Pi(Constant):
             \pi
             sage: mathml(pi)
             <mi>&pi;</mi>
-
         """
         conversions = dict(axiom='%pi', fricas='%pi', maxima='%pi', giac='pi', gp='Pi', kash='PI',
                            mathematica='Pi', matlab='pi', maple='pi',

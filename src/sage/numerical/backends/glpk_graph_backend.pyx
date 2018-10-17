@@ -20,7 +20,7 @@ Methods index
     :meth:`~GLPKGraphBackend.set_vertex_demand`   | Sets the vertex parameters.
     :meth:`~GLPKGraphBackend.set_vertices_demand` | Sets the parameters of selected vertices.
     :meth:`~GLPKGraphBackend.get_vertex`          | Returns a specific vertex as a ``dict`` Object.
-    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictonaries associated to each vertex.
+    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictionaries associated to each vertex.
     :meth:`~GLPKGraphBackend.vertices`            | Returns a ``list`` of all vertices.
     :meth:`~GLPKGraphBackend.delete_vertex`       | Removes a vertex from the graph.
     :meth:`~GLPKGraphBackend.delete_vertices`     | Removes vertices from the graph.
@@ -67,13 +67,16 @@ Classes and methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
+from __future__ import absolute_import, print_function
+
+from cysignals.memory cimport check_allocarray, sig_free
+
+from sage.cpython.string cimport str_to_bytes, char_to_str
+from sage.cpython.string import FS_ENCODING
 from sage.libs.glpk.constants cimport *
 from sage.libs.glpk.graph cimport *
 from sage.numerical.mip import MIPSolverException
-
-include "cysignals/memory.pxi"
 
 cdef class GLPKGraphBackend(object):
     """
@@ -119,7 +122,7 @@ cdef class GLPKGraphBackend(object):
      * - ``dimacs``
 
        - Read data from a plain ASCII text file in DIMACS format.
-         A discription of the DIMACS format can be found at
+         A description of the DIMACS format can be found at
          http://dimacs.rutgers.edu/Challenges/.
 
      * - ``mincost``
@@ -174,7 +177,7 @@ cdef class GLPKGraphBackend(object):
         sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
         sage: g = graphs.PappusGraph()
         sage: for ed in g.edges():
-        ...       g.set_edge_label(ed[0], ed[1], {"cap":1})
+        ....:     g.set_edge_label(ed[0], ed[1], {"cap":1})
         sage: gbe = GLPKGraphBackend(g)
         sage: gbe.maxflow_ffalg('1', '2')
         3.0
@@ -189,7 +192,7 @@ cdef class GLPKGraphBackend(object):
         :class:`Graph`. See documentation of :class:`GLPKGraphBackend` for
         details.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -206,8 +209,8 @@ cdef class GLPKGraphBackend(object):
         self.s = 1
         self.t = 1
 
-        if isinstance(data,str):
-            fname = data
+        if isinstance(data, str):
+            fname = str_to_bytes(data, FS_ENCODING, 'surrogateescape')
             res = 0
             if format == "plain":
                 res = glp_read_graph(self.graph, fname)
@@ -228,7 +231,7 @@ cdef class GLPKGraphBackend(object):
         else:
             ValueError("Input data is not supported")
 
-    cpdef add_vertex(self, char * name = NULL):
+    cpdef add_vertex(self, name=None):
         """
         Adds an isolated vertex to the graph.
 
@@ -236,7 +239,7 @@ cdef class GLPKGraphBackend(object):
 
         INPUT:
 
-        - ``name`` -- ``String`` of max 255 chars length. If no name is
+        - ``name`` -- ``str`` of max 255 chars length. If no name is
            specified, then the vertex will be represented by the string
            representation of the ID of the vertex or - if this already exists -
            a string representation of the least integer not already representing
@@ -247,7 +250,7 @@ cdef class GLPKGraphBackend(object):
         If no ``name`` is passed as an argument, the new vertex name is
         returned. ``None`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -259,31 +262,28 @@ cdef class GLPKGraphBackend(object):
         """
         cdef int n
         cdef vn_t = 0
-        cdef char* c_name
 
-        if name is not NULL and self._find_vertex(name) >= 0:
-                return None
+        if name is not None and self._find_vertex(name) >= 0:
+            return None
 
         cdef int vn = glp_add_vertices(self.graph, 1)
 
-        if name is not NULL:
-            glp_set_vertex_name(self.graph, vn, name)
+        if name is not None:
+            glp_set_vertex_name(self.graph, vn, str_to_bytes(name))
             return None
 
         else:
-            s = str(vn-1)
-            c_name = s
-            n = self._find_vertex(c_name)
+            s = str(vn - 1)
+            n = self._find_vertex(s)
 
             # This is costly, but hopefully will not happen often.
             while n >= 0:
                 vn_t += 1
-                s = str(vn_t-1)
-                c_name = s
-                n = self._find_vertex(c_name)
+                s = str(vn_t - 1)
+                n = self._find_vertex(s)
 
-            glp_set_vertex_name(self.graph, vn, c_name)
-            return c_name
+            glp_set_vertex_name(self.graph, vn, str_to_bytes(s))
+            return s
 
     cpdef __add_vertices_sage(self, g):
         """
@@ -292,12 +292,12 @@ cdef class GLPKGraphBackend(object):
         This function is only used when importing a
         :class:`~sage.graphs.generic_graph.GenericGraph` object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: g = graphs.PappusGraph()
             sage: for ed in g.edges():
-            ...       g.set_edge_label(ed[0], ed[1], {"cap":1})
+            ....:     g.set_edge_label(ed[0], ed[1], {"cap":1})
             sage: gbe = GLPKGraphBackend(g)
             sage: gbe.maxflow_ffalg('1', '2')
             3.0
@@ -306,7 +306,6 @@ cdef class GLPKGraphBackend(object):
         cdef int i
         cdef double rhs
         cdef glp_vertex* vert
-        cdef char* name
 
         verts = g.vertices()
         n = len(verts)
@@ -318,8 +317,7 @@ cdef class GLPKGraphBackend(object):
         for i in range(n):
             vert = self.graph.v[i+1]
             s = str(verts[i])
-            name = s
-            glp_set_vertex_name(self.graph, i+1, name)
+            glp_set_vertex_name(self.graph, i + 1, str_to_bytes(s))
 
             if g.get_vertex(verts[i]) is not None:
                 try:
@@ -345,7 +343,7 @@ cdef class GLPKGraphBackend(object):
         Generated names of new vertices if there is at least one ``None`` value
         present in ``vertices``. ``None`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -381,7 +379,7 @@ cdef class GLPKGraphBackend(object):
         else:
             return None
 
-    cpdef set_vertex_demand(self, char* vertex, demand):
+    cpdef set_vertex_demand(self, vertex, demand):
         """
         Sets the demand of the vertex in a mincost flow algorithm.
 
@@ -394,7 +392,7 @@ cdef class GLPKGraphBackend(object):
           sink, or `1` to represent a source and `0` for a neutral vertex). This
           can either be an ``int`` or ``float`` value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -428,7 +426,7 @@ cdef class GLPKGraphBackend(object):
           to each vertex. For more information, see the documentation of
           :meth:`set_vertex_demand`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -446,7 +444,7 @@ cdef class GLPKGraphBackend(object):
             except KeyError:
                 pass
 
-    cpdef dict get_vertex(self, char* vertex):
+    cpdef dict get_vertex(self, vertex):
         """
         Returns a specific vertex as a ``dict`` Object.
 
@@ -466,7 +464,7 @@ cdef class GLPKGraphBackend(object):
             * "es"   -- The earliest start of task (cpp alg)
             * "ls"   -- The latest start of task (cpp alg)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -495,7 +493,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef dict get_vertices(self, verts):
         """
-        Returns a dictionary of the dictonaries associated to each vertex.
+        Returns a dictionary of the dictionaries associated to each vertex.
 
         INPUT:
 
@@ -508,7 +506,7 @@ cdef class GLPKGraphBackend(object):
         more information, see the documentation of
         :meth:`GLPKGraphBackend.get_vertex`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -536,7 +534,7 @@ cdef class GLPKGraphBackend(object):
            If a vertex in the graph does not have a name / label it will appear
            as ``None`` in the resulting ``list``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -550,10 +548,11 @@ cdef class GLPKGraphBackend(object):
             ['A', 'B', 'C']
         """
 
-        return [self.graph.v[i+1].name if self.graph.v[i+1].name is not NULL
-                else None for i in range(self.graph.nv)]
+        return [char_to_str(self.graph.v[i+1].name)
+                if self.graph.v[i+1].name is not NULL else None
+                for i in range(self.graph.nv)]
 
-    cpdef add_edge(self, char* u, char* v, dict params=None):
+    cpdef add_edge(self, u, v, dict params=None):
         """
         Adds an edge between vertices ``u`` and ``v``.
 
@@ -575,7 +574,7 @@ cdef class GLPKGraphBackend(object):
 
             * ``cost`` -- The cost of transporting one unit through the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -583,7 +582,7 @@ cdef class GLPKGraphBackend(object):
             sage: gbe.vertices()
             ['A', 'B']
             sage: for ed in gbe.edges():
-            ....:       print((ed[0], ed[1], ed[2]['cap'], ed[2]['cost'], ed[2]['low']))
+            ....:     print((ed[0], ed[1], ed[2]['cap'], ed[2]['cost'], ed[2]['low']))
             ('A', 'B', 10.0, 5.0, 0.0)
             sage: gbe.add_edge("B", "C", {"low":0.0, "cap":10.0, "cost":'5'})
             Traceback (most recent call last):
@@ -625,11 +624,11 @@ cdef class GLPKGraphBackend(object):
 
         - ``edges`` -- An iterable container of pairs of the form ``(u, v)``,
           where ``u`` is name (as ``str``) of the tail vertex and ``v`` is the
-          name (as ``str``) of the head vertex or an interable container of
+          name (as ``str``) of the head vertex or an iterable container of
           triples of the form ``(u, v, params)`` where params is a ``dict`` as
           described in ``add_edge``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -661,12 +660,12 @@ cdef class GLPKGraphBackend(object):
 
         This function is only used when importing a ``GenericGraph``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: g = graphs.PappusGraph()
             sage: for ed in g.edges():
-            ...       g.set_edge_label(ed[0], ed[1], {"cap":1})
+            ....:     g.set_edge_label(ed[0], ed[1], {"cap":1})
             sage: gbe = GLPKGraphBackend(g)
             sage: gbe.maxflow_ffalg('1', '2')
             3.0
@@ -679,11 +678,11 @@ cdef class GLPKGraphBackend(object):
         cdef double low
         cdef int isdirected = g.is_directed()
 
-        for (eu,ev,label) in g.edges():
+        for eu, ev, label in g.edges():
             u_name = str(eu)
             v_name = str(ev)
-            u = glp_find_vertex(self.graph, u_name)
-            v = glp_find_vertex(self.graph, v_name)
+            u = glp_find_vertex(self.graph, str_to_bytes(u_name))
+            v = glp_find_vertex(self.graph, str_to_bytes(v_name))
             if u < 1 or v < 1:
                 raise IndexError(u_name + " or " + v_name + " not found")
 
@@ -710,7 +709,7 @@ cdef class GLPKGraphBackend(object):
                     if "low" in label:
                         (<c_a_data *>a.data).low = low
 
-    cpdef tuple get_edge(self, char* u, char* v):
+    cpdef tuple get_edge(self, u, v):
         """
         Returns an edge connecting two vertices.
 
@@ -735,7 +734,7 @@ cdef class GLPKGraphBackend(object):
             * ``cost`` -- The cost of transporting one unit through the edge
             * ``x`` -- The actual flow through the edge after solving
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -774,7 +773,7 @@ cdef class GLPKGraphBackend(object):
 
         A ``list`` of ``triples`` representing the edges of the graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -801,11 +800,11 @@ cdef class GLPKGraphBackend(object):
                 if vert_u.name is NULL:
                     u_name = None
                 else:
-                    u_name = vert_u.name
+                    u_name = char_to_str(vert_u.name)
                 if vert_v.name is NULL:
                     v_name = None
                 else:
-                    v_name = vert_v.name
+                    v_name = char_to_str(vert_v.name)
                 edge_list.append((u_name, v_name,
                               {"low":(<c_a_data *>a.data).low,
                                "cap":(<c_a_data *>a.data).cap,
@@ -815,7 +814,7 @@ cdef class GLPKGraphBackend(object):
             i += 1
         return edge_list
 
-    cpdef delete_vertex(self, char* vert):
+    cpdef delete_vertex(self, vert):
         r"""
         Removes a vertex from the graph.
 
@@ -825,7 +824,7 @@ cdef class GLPKGraphBackend(object):
 
         - ``vert`` -- The name (as ``str``) of the vertex to delete.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -845,15 +844,11 @@ cdef class GLPKGraphBackend(object):
         if i < 0:
             raise RuntimeError("Vertex %s does not exist."%(vert))
 
-        cdef int * num = <int *> sig_malloc(2 * sizeof(int))
+        cdef int num[2]
         num[1] = i + 1
         cdef int ndel = 1
 
-        if not num:
-            raise MemoryError("Error allocating memory.")
-
         glp_del_vertices(self.graph, ndel, num)
-        sig_free(num)
 
     cpdef delete_vertices(self, list verts):
         r"""
@@ -866,7 +861,7 @@ cdef class GLPKGraphBackend(object):
         - ``verts`` -- iterable container containing names (as ``str``) of the
           vertices to delete
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -889,9 +884,7 @@ cdef class GLPKGraphBackend(object):
             i = verts_val.index(-1)
             raise RuntimeError("Vertex %s does not exist."%(verts[i]))
 
-        cdef int * num = <int *> sig_malloc((len(verts_val)+1) * sizeof(int))
-        if not num:
-            raise MemoryError("Error allocating memory.")
+        cdef int * num = <int *>check_allocarray(len(verts_val) + 1, sizeof(int))
         cdef int ndel = len(verts_val)
 
         for i,(v) in enumerate(verts_val):
@@ -901,7 +894,7 @@ cdef class GLPKGraphBackend(object):
 
         sig_free(num)
 
-    cpdef delete_edge(self, char* u, char* v, dict params=None):
+    cpdef delete_edge(self, u, v, dict params=None):
         """
         Deletes an edge from the graph.
 
@@ -912,7 +905,7 @@ cdef class GLPKGraphBackend(object):
         - ``u`` -- The name (as ``str``) of the tail vertex of the edge
         - ``v`` -- The name (as ``str``) of the tail vertex of the edge
         - ``params`` -- ``params`` -- An optional ``dict`` containing the edge
-          parameters (see :meth:``add_edge``). If this parameter
+          parameters (see :meth:`add_edge`). If this parameter
           is not provided, all edges connecting ``u`` and ``v`` are deleted.
           Otherwise only edges with matching parameters are deleted.
 
@@ -920,7 +913,7 @@ cdef class GLPKGraphBackend(object):
 
             :meth:`delete_edges`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -994,7 +987,7 @@ cdef class GLPKGraphBackend(object):
 
             :meth:`delete_edge`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1013,7 +1006,7 @@ cdef class GLPKGraphBackend(object):
         for edge in edges:
             self.delete_edge(*edge)
 
-    cpdef int _find_vertex(self, char *name):
+    cpdef int _find_vertex(self, name):
         """
         Returns the index of a vertex specified by a name
 
@@ -1025,7 +1018,7 @@ cdef class GLPKGraphBackend(object):
 
         The index of the vertex or ``-1`` if the vertex is not found
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1038,9 +1031,9 @@ cdef class GLPKGraphBackend(object):
         """
 
         glp_create_v_index(self.graph)
-        return glp_find_vertex(self.graph, name) - 1
+        return glp_find_vertex(self.graph, str_to_bytes(name)) - 1
 
-    cpdef int write_graph(self, char * fname):
+    cpdef int write_graph(self, fname):
         r"""
         Writes the graph to a plain text file
 
@@ -1052,7 +1045,7 @@ cdef class GLPKGraphBackend(object):
 
         Zero if the operations was successful otherwise nonzero
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1063,14 +1056,15 @@ cdef class GLPKGraphBackend(object):
             0
         """
 
+        fname = str_to_bytes(fname, FS_ENCODING, 'surrogateescape')
         return glp_write_graph(self.graph, fname)
 
-    cpdef int write_ccdata(self, char * fname):
+    cpdef int write_ccdata(self, fname):
         r"""
         Writes the graph to a text file in DIMACS format.
 
         Writes the data to plain ASCII text file in DIMACS format.
-        A discription of the DIMACS format can be found at
+        A description of the DIMACS format can be found at
         http://dimacs.rutgers.edu/Challenges/.
 
         INPUT:
@@ -1081,7 +1075,7 @@ cdef class GLPKGraphBackend(object):
 
         Zero if the operations was successful otherwise nonzero
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1092,9 +1086,10 @@ cdef class GLPKGraphBackend(object):
             0
         """
 
+        fname = str_to_bytes(fname, FS_ENCODING, 'surrogateescape')
         return glp_write_ccdata(self.graph, 0, fname)
 
-    cpdef int write_mincost(self, char * fname):
+    cpdef int write_mincost(self, fname):
         """
         Writes the mincost flow problem data to a text file in DIMACS format
 
@@ -1106,7 +1101,7 @@ cdef class GLPKGraphBackend(object):
 
         Zero if successful, otherwise nonzero
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1117,6 +1112,7 @@ cdef class GLPKGraphBackend(object):
             0
         """
 
+        fname = str_to_bytes(fname, FS_ENCODING, 'surrogateescape')
         return glp_write_mincost(self.graph, 0, 0, sizeof(double),
                    sizeof(double) + sizeof(double), fname)
 
@@ -1138,7 +1134,7 @@ cdef class GLPKGraphBackend(object):
            the solution can not be computed for any reason (none
            exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1146,14 +1142,13 @@ cdef class GLPKGraphBackend(object):
             sage: vs = gbe.add_vertices([None for i in range(len(vertices))])
             sage: v_dict = {}
             sage: for i, v in enumerate(vs):
-            ...      v_dict[v] = vertices[i]
+            ....:     v_dict[v] = vertices[i]
             sage: gbe.set_vertices_demand(v_dict.items())
             sage: cost = ((8, 6, 10, 9), (9, 12, 13, 7), (14, 9, 16, 5))
-            sage: lcost = range(len(cost))
-            sage: lcost_0 = range(len(cost[0]))
-            sage: for i in lcost:
-            ...      for j in lcost_0:
-            ...           gbe.add_edge(str(i), str(j + len(cost)), {"cost":cost[i][j], "cap":100})
+
+            sage: for i in range(len(cost)):
+            ....:     for j in range(len(cost[0])):
+            ....:         gbe.add_edge(str(i), str(j + len(cost)), {"cost":cost[i][j], "cap":100})
             sage: gbe.mincost_okalg()
             1020.0
             sage: for ed in gbe.edges():
@@ -1191,7 +1186,7 @@ cdef class GLPKGraphBackend(object):
 
         return graph_sol
 
-    cpdef int write_maxflow(self, char * fname) except -1:
+    cpdef int write_maxflow(self, fname) except -1:
         """
         Writes the maximum flow problem data to a text file in DIMACS format.
 
@@ -1203,7 +1198,7 @@ cdef class GLPKGraphBackend(object):
 
         ``Zero`` if successful, otherwise ``non-zero``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1226,6 +1221,7 @@ cdef class GLPKGraphBackend(object):
         if self.graph.nv <= 0:
             raise IOError("Cannot write empty graph")
 
+        fname = str_to_bytes(fname, FS_ENCODING, 'surrogateescape')
         return glp_write_maxflow(self.graph, self.s+1, self.t+1,
                    sizeof(double), fname)
 
@@ -1259,15 +1255,15 @@ cdef class GLPKGraphBackend(object):
               solution can not be computed for any reason (none exists, or the
               LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
             sage: v = gbe.add_vertices([None for i in range(5)])
             sage: edges = ((0, 1, 2), (0, 2, 3), (1, 2, 3), (1, 3, 4),
-            ...           (3, 4, 1), (2, 4, 2))
+            ....:         (3, 4, 1), (2, 4, 2))
             sage: for a in edges:
-            ...       edge = gbe.add_edge(str(a[0]), str(a[1]), {"cap":a[2]})
+            ....:     edge = gbe.add_edge(str(a[0]), str(a[1]), {"cap":a[2]})
             sage: gbe.maxflow_ffalg('0', '4')
             3.0
             sage: gbe.maxflow_ffalg()
@@ -1325,7 +1321,7 @@ cdef class GLPKGraphBackend(object):
 
         The length of the critical path of the network
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()

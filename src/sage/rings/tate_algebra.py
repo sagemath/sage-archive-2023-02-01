@@ -699,6 +699,10 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: A.<x,y> = TateAlgebra(Zp(2), log_radii=1)
             sage: TestSuite(A).run()
 
+        We check that univariate Tate algebras work correctly::
+
+            sage: B.<t> = TateAlgebra(Zp(3))
+
         """
         from sage.misc.latex import latex_variable_name
         from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate

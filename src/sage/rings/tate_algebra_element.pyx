@@ -1579,7 +1579,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: g = f.sqrt(); g
             (...0000000001) + (...0000000010)*x^2 + (...1111111100)*x^4 + (...1111111200)*y^2 + (...1111112000)*x^6 + (...1111111000)*x^2*y^2 + ... + O(3^10)
 
-            sage: f.sqrt(prec=4)
+            sage: f.square_root(prec=4)
             (...0001) + (...0010)*x^2 + (...1100)*x^4 + (...1200)*y^2 + (...2000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
 
             sage: g^2 == f
@@ -1591,7 +1591,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         In this case, an error is raised::
 
             sage: f = x^2
-            sage: f.sqrt()
+            sage: f.square_root()
             Traceback (most recent call last):
             ...
             ValueError: not in the domain of convergence
@@ -2224,15 +2224,60 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return self._parent(self, prec=n)
 
-    def lift_to_precision(self, n):
+    def lift_to_precision(self, prec=None):
+        """
+        Return a lift of this series at precision ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``); if 
+          ``None``, the cap of the parent is used if it is higher than 
+          the current precision
+
+        EXAMPLES::
+
+            sage: R = Zp(2, prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = R(1,4)*x*y + R(1,5)*x + R(1,8)*y
+            sage: f
+            (1 + O(2^4))*x*y + (1 + O(2^5))*x + (1 + O(2^8))*y
+
+        This method lifts the precision of the coefficients::
+
+            sage: f.lift_to_precision()
+            (1 + O(2^10))*x*y + (1 + O(2^10))*x + (1 + O(2^10))*y
+
+        and also acts on the global ``O(.)`` of the series::
+
+            sage: g = f.add_bigoh(7)
+            sage: g
+            (1 + O(2^4))*x*y + (1 + O(2^5))*x + (1 + O(2^7))*y + O(2^7)
+            sage: g.lift_to_precision()
+            (1 + O(2^10))*x*y + (1 + O(2^10))*x + (1 + O(2^10))*y + O(2^10)
+
+            sage: g.lift_to_precision(9)
+            (1 + O(2^9))*x*y + (1 + O(2^9))*x + (1 + O(2^9))*y + O(2^9)
+
+        In the next example, the precision on the coefficient is only lifted
+        to ``O(2^10)`` because it is limited by the cap of the underlying
+        p-adic ring::
+
+            sage: g.lift_to_precision(20)
+            (1 + O(2^10))*x*y + (1 + O(2^10))*x + (1 + O(2^10))*y + O(2^20)
+
+        """
         cdef TateAlgebraElement ans = self._new_c()
-        def lift_without_error(coeff):
+        # Hmm, shouldn't we add a keyword argument to lift_to_precision()
+        # to specify that we don't want it to raise an error
+        def lift_without_error(elt):
             try:
-                return coeff.lift_to_precision(n)
+                return elt.lift_to_precision(prec)
             except PrecisionError:
-                return coeff.lift_to_precision()
+                return elt.lift_to_precision()
         ans._poly = PolyDict({ e: lift_without_error(c) for (e,c) in self._poly.__repn.iteritems() }, None)
-        ans._prec = max(self._prec, n)
+        if prec is None:
+            prec = self._parent.precision_cap()
+        ans._prec = max(self._prec, prec)
         return ans
 
     def precision_absolute(self):

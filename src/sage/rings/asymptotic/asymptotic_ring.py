@@ -2002,7 +2002,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: log(x-1)
             log(x) - x^(-1) - 1/2*x^(-2) - 1/3*x^(-3) - ... + O(x^(-21))
 
-        The coefficient ring aus automatically extended if needed::
+        The coefficient ring is automatically extended if needed::
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=ZZ, default_prec=3)
             sage: (49*x^3-1).log()

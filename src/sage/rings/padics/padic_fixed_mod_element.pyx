@@ -78,7 +78,7 @@ cdef class pAdicFixedModElement(FMElement):
         - Finite precision `p`-adics
         - Lazy `p`-adics
         - Elements of local extensions of THIS `p`-adic ring that actually
-          lie in `\ZZ_p`
+          lie in `\Bold{Z}_p`
 
     EXAMPLES::
 
@@ -259,7 +259,7 @@ cdef class pAdicFixedModElement(FMElement):
         OUTPUT:
 
         This element reduced modulo `p^\mathrm{absprec}` as an element of
-        `\ZZ/p^\mathrm{absprec}\ZZ`.
+        `\Bold{Z}/p^\mathrm{absprec}\Bold{Z}`.
 
         EXAMPLES::
 
@@ -331,7 +331,7 @@ cdef class pAdicFixedModElement(FMElement):
         OUTPUT:
 
         an integer -- the multiplicative order of this element.  This is the
-        minimum multiplicative order of all elements of `\ZZ_p` lifting this
+        minimum multiplicative order of all elements of `\Bold{Z}_p` lifting this
         element to infinite precision.
 
          EXAMPLES::

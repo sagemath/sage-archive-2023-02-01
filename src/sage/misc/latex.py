@@ -2614,10 +2614,16 @@ def latex_variable_name(x, is_fname=False):
         'C'
         sage: latex_variable_name('_K1')
         'K_{1}'
+
+        sage: latex_variable_name('5')
+        '5'
     """
+    import re
+    # if x is an integer (it might be the case for padics), we return x
+    if re.match('\d+$', x):
+        return x
     underscore = x.find("_")
     if underscore == -1:
-        import re
         # * The "\d|[.,]" means "decimal digit" or period or comma
         # * The "+" means "1 or more"
         # * The "$" means "at the end of the line"

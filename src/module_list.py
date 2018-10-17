@@ -1,5 +1,4 @@
 import os
-from glob import glob
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
 

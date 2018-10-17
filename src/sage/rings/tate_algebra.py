@@ -1,7 +1,7 @@
 r"""
 Tate algebras
 
-Let `K` be a finite extension of `\QQ_p` for some prime number `p`
+Let `K` be a finite extension of `\Bold{Q}_p` for some prime number `p`
 and let `(v_1, \dots, v_n)` be a tuple of real numbers.
 
 The associated Tate algebra consists of series of the form
@@ -135,13 +135,9 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.monoids.monoid import Monoid_class
 from sage.rings.ring import CommutativeAlgebra
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.rings.padics.padic_generic import pAdicGeneric
 
-from sage.categories.monoids import Monoids
 from sage.categories.commutative_algebras import CommutativeAlgebras
-from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings
-from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 from sage.categories.pushout import pushout
 
 from sage.structure.category_object import normalize_names
@@ -418,7 +414,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
             sage: A.<x,y> = TateAlgebra(R, log_radii=[1,1], order="lex")
             sage: M = A.monoid_of_terms()
             sage: M._latex_()
-            '\\verb"Terms"(\\QQ_{2}\\{x,y\\}_{(1,1)})'
+            '\\verb"Terms"(\\Bold{Q}_{2}\\{x,y\\}_{(1,1)})'
 
         """
         return '\\verb"Terms"(%s)' % self._parent_algebra._latex_()
@@ -1017,13 +1013,13 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits')
             sage: A.<x,y> = TateAlgebra(R)
             sage: A._latex_()
-            '\\QQ_{2}\\{x,y\\}'
+            '\\Bold{Q}_{2}\\{x,y\\}'
             sage: A.integer_ring()._latex_()
-            '\\QQ_{2}\\{x,y\\}^{\\circ}'
+            '\\Bold{Q}_{2}\\{x,y\\}^{\\circ}'
 
             sage: B.<u1,u2> = TateAlgebra(R, log_radii=[1,2])
             sage: B._latex_()
-            '\\QQ_{2}\\{u_{1},u_{2}\\}_{(1,2)}'
+            '\\Bold{Q}_{2}\\{u_{1},u_{2}\\}_{(1,2)}'
 
         """
         from sage.misc.latex import latex

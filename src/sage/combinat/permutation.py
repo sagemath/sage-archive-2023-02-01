@@ -2895,7 +2895,7 @@ class Permutation(CombinatorialElement):
 
         return len(self.fixed_points())
 
-    def is_derangement(p):
+    def is_derangement(self):
         r"""
         Return if ``self`` is a derangement.
 
@@ -2911,7 +2911,7 @@ class Permutation(CombinatorialElement):
             sage: P.is_derangement()
             True
         """
-        return len(p.fixed_points()) == 0
+        return not self.fixed_points()
 
 
     ############

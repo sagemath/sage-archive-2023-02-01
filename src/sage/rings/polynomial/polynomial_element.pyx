@@ -11028,10 +11028,11 @@ cdef class Polynomial_generic_dense(Polynomial):
     @coerce_binop
     def quo_rem(self, other):
         """
-        Returns the quotient and remainder of the Euclidean division of
+        Return the quotient and remainder of the Euclidean division of
         ``self`` and ``other``.
 
-        Raises ZerodivisionError if ``other`` is zero. Raises ArithmeticError if the division is not exact.
+        Raises a ``ZerodivisionError`` if ``other`` is zero. Raises an
+        ``ArithmeticError`` if the division is not exact.
 
         AUTHORS:
 
@@ -11052,12 +11053,12 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f.quo_rem(g)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Division non exact (consider coercing to polynomials over the fraction field)
+            ArithmeticError: division non exact (consider coercing to polynomials over the fraction field)
             sage: g = 0
             sage: f.quo_rem(g)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Division by zero polynomial
+            ZeroDivisionError: division by zero polynomial
 
         TESTS:
 
@@ -11076,28 +11077,43 @@ cdef class Polynomial_generic_dense(Polynomial):
             True
         """
         if other.is_zero():
-            raise ZeroDivisionError("Division by zero polynomial")
+            raise ZeroDivisionError("division by zero polynomial")
         if self.is_zero():
             return self, self
 
         R = self._parent.base_ring()
-        x = (<Polynomial_generic_dense>self).__coeffs[:] # make a copy
-        y = (<Polynomial_generic_dense>other).__coeffs
-        m = len(x)  # deg(self)=m-1
-        n = len(y)  # deg(other)=n-1
+        cdef list x = list((<Polynomial_generic_dense>self).__coeffs) # make a copy
+        cdef list y = (<Polynomial_generic_dense>other).__coeffs
+        cdef Py_ssize_t m = len(x)  # deg(self)=m-1
+        cdef Py_ssize_t n = len(y)  # deg(other)=n-1
         if m < n:
             return self._parent.zero(), self
 
-        quo = list()
-        for k from m-n >= k >= 0:
-            try:
-                q = R(x[n+k-1]/y[n-1])
-            except TypeError:
-                raise ArithmeticError("Division non exact (consider coercing to polynomials over the fraction field)")
-            x[n+k-1] = R.zero()
-            for j from n+k-2 >= j >= k:
-                x[j] -= q * y[j-k]
-            quo.insert(0,q)
+        cdef list quo = []
+        cdef bint convert = False
+        cdef Py_ssize_t j, k
+        try:
+            inv = y[n-1].inverse_of_unit()
+        except (ArithmeticError, ValueError):
+            inv = ~(y[n-1])
+            convert = True
+        if convert:
+            for k from m-n >= k >= 0:
+                q = inv * x[n+k-1]
+                try:
+                    q = R(q)
+                except TypeError:
+                    raise ArithmeticError("division non exact (consider coercing to polynomials over the fraction field)")
+                for j from n+k-2 >= j >= k:
+                    x[j] -= q * y[j-k]
+                quo.append(q)
+        else:
+            for k from m-n >= k >= 0:
+                q = inv * x[n+k-1]
+                for j from n+k-2 >= j >= k:
+                    x[j] -= q * y[j-k]
+                quo.append(q)
+        quo.reverse()
 
         return self._new_c(quo,self._parent), self._new_c(x,self._parent)._inplace_truncate(n-1)
 

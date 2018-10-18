@@ -315,6 +315,26 @@ def braid_in_segment(f, x0, x1):
         sage: x1 = CC(1, 0.5)
         sage: braid_in_segment(f, x0, x1) # optional - sirocco
         s1
+
+    TESTS::
+
+        # Check that # 26503 is fixed
+        sage: var('t')
+        sage: wp = QQ[t](t^2+t+1).roots(QQbar)[0][0]
+        sage: Kw.<wp>=NumberField(wp.minpoly(), embedding=wp)
+        sage: R.<x,y> = Kw[]
+        sage: z = 1
+        sage: f = y * (y + (-wp - 1)) * x * (x - 1) * (x - y) * (x + (-wp - 1)*y - 1) * (x + (-wp - 1)*y + (wp))
+        sage: from sage.schemes.curves import zariski_vankampen as zvk
+        sage: g = f.subs({x:x+y})
+        sage: g = g.subs({x:x+y})
+        sage: disc = zvk.discrim(g)
+        sage: segs = zvk.segments(disc)
+        sage: segs[16]
+        (0.577350269189626*I, 0.500000000000000 + 0.288675134594813*I)
+        sage: zvk.braid_in_segment(g, *segs[16])  # optional - sirocco
+        s0*s1*s3*s5*s1^-1*s0^-1*s3^-1
+
     """
     CC = ComplexField(64)
     (x, y) = f.variables()

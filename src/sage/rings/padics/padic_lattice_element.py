@@ -275,7 +275,7 @@ class pAdicLatticeElement(pAdicGenericElement):
         OUTPUT:
 
         This element reduced modulo `p^\mathrm{absprec}` as an element of
-        `\Bold{Z}/p^\mathrm{absprec}\Bold{Z}`
+        `\ZZ/p^\mathrm{absprec}\ZZ`
 
         EXAMPLES::
 

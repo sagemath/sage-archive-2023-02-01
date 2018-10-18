@@ -1588,7 +1588,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
 
 cdef class pAdicConvert_CA_frac_field(Morphism):
     """
-    The section of the inclusion from `\Bold{Z}_q`` to its fraction field.
+    The section of the inclusion from `\ZZ_q`` to its fraction field.
 
     EXAMPLES::
 

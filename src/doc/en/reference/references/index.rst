@@ -448,6 +448,10 @@ REFERENCES:
             (:arxiv:`0710.5614`) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BraLea2008] \C. Bracken and Gregor Leander: *New families of functions
+             with differential uniformity of 4*, Proceedings of the Conference
+             BFCA, Copenhagen, 2008.
+
 .. [BLV1999] Bernhard Beckermann, George Labahn, and Gilles Villard. "Shifted
              normal forms of polynomial matrices". In ISSAC'99, pages 189-196.
              ACM, 1999. https://doi.org/10.1145/309831.309929 .
@@ -602,6 +606,9 @@ REFERENCES:
 .. _ref-C:
 
 **C**
+
+.. [dCa2007] \C. de Canniere: *Analysis and Design of Symmetric Encryption
+             Algorithms*, PhD Thesis, 2007.
 
 .. [Car1972] \R. W. Carter. *Simple groups of Lie type*, volume 28 of
              Pure and Applied Mathematics. John Wiley and Sons, 1972.
@@ -816,6 +823,10 @@ REFERENCES:
 .. [CS2003] \John E. Cremona and Michael Stoll. On The Reduction Theory of Binary Forms.
             Journal für die reine und angewandte Mathematik, 565 (2003), 79-99.
 
+.. [CTTL2014] \C. Carlet, Deng Tang, Xiaohu Tang, and Qunying Liao: *New
+            Construction of Differentially 4-Uniform Bijections*, Inscrypt,
+            pp. 22-38, 2013.
+
 .. [Cu1984] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
             group `M_{12}`, and the kitten. *Computational group
             theory*, ed. M. Atkinson, Academic Press, 1984.
@@ -962,6 +973,14 @@ REFERENCES:
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
 
+.. [Dob1999a] \H. Dobbertin: *Almost perfect nonlinear power functions
+            on GF(2^n): the Niho case*. Information and Computation, 151 (1-2),
+            pp. 57-72, 1999.
+
+.. [Dob1999b] \H. Dobbertin: *Almost perfect nonlinear power functions
+            on GF(2^n): the Welch case*. IEEE Transactions on Information
+            Theory, 45 (4), pp. 1271-1275, 1999.
+
 .. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker,
              *Resonance in orbits of plane partitions and increasing
              tableaux*, JCTA 148 (2017), 244-274,
@@ -1053,7 +1072,7 @@ REFERENCES:
              for the Yokonuma-Hecke algebra and the algebra of braids
              and ties*. (2015) :arxiv:`1506.00715`.
 
-.. [ESSS2012] \D. Engels, M.-J. O. Saarinen, P. Schweitzer, and E. M. Smith,
+.. [ESSS2011] \D. Engels, M.-J. O. Saarinen, P. Schweitzer, and E. M. Smith,
               *The Hummingbird-2 lightweight authenticated encryption algorithm*; in
               RFIDSec, (2011), pp. 19-31.
 
@@ -1284,6 +1303,10 @@ REFERENCES:
               *Cellular algebras*. Invent. Math. 123 (1996), 1–34.
               :mathscinet:`MR1376244`
 
+.. [GLSV2014] \V. Grosso, G. Leurent, F.-X. Standaert, and K. Varici:
+              *LS-Designs: Bitslice Encryption for Efficient Masked
+              Software Implementations*, in FSE, 2014.
+
 .. [GLSVJGK2014] \V. Grosso, G. Leurent, F.-X. Standaert, K. Varici,
                  \F. D. A. Journault, L. Gaspar, and S. Kerckhof,
                  *SCREAM & iSCREAM Side-Channel Resistant Authenticated Encryption
@@ -1310,6 +1333,10 @@ REFERENCES:
 
 .. [God1968] \R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
              (Boston) (1968)
+
+.. [Gol1968] \R. Gold: *Maximal recursive sequences with 3-valued recursive
+             crosscorrelation functions*. IEEE Transactions on Information
+             Theory, 14, pp. 154-156, 1968.
 
 .. [Gor1980] Daniel Gorenstein, Finite Groups (New York: Chelsea
              Publishing, 1980)
@@ -1667,6 +1694,10 @@ REFERENCES:
 .. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
              groups*, Ann. Math. (2) 67 (1958), 282-312.
 
+.. [Kas1971] \T. Kasami: *The weight enumerators for several classes of
+             subcodes of the second order binary Reed-Muller codes*.
+             Information and Control, 18, pp. 369-394, 1971.
+
 .. [Kat1991] Nicholas M. Katz, *Exponential sums and differential equations*,
              Princeton University Press, Princeton NJ, 1991.
 
@@ -1688,6 +1719,10 @@ REFERENCES:
 
 .. [Ke2008] \B. Keller, *Cluster algebras, quiver representations
             and triangulated categories*, :arxiv:`0807.1960`.
+
+.. [KG2016] \P. Karpmann and Benjamin Gregoire, *The LITTLUN S-box and the FLY
+            block cipher*, Lightweight Cryptography Workshop, 2016.
+            https://www.nist.gov/sites/default/files/documents/2016/10/18/karpman-paper-lwc2016.pdf
 
 .. [KK1995] Victor Klee and Peter Kleinschmidt,
             *Convex polytopes and related complexes.*, in \R. L. Graham,
@@ -2091,7 +2126,7 @@ REFERENCES:
 .. [MagmaHGM] *Hypergeometric motives* in Magma,
    http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
 
-.. [Mas94] James L. Massey,
+.. [Mas1994] James L. Massey,
            *SAFER K-64: A byte-oriented block-ciphering algorithm*; in
            FSE’93, Volume 809 of LNCS, pages 1-17.
            Springer, Heidelberg, December 1994.
@@ -3062,7 +3097,10 @@ REFERENCES:
             *Analysis of the DVB Common Scrambling Algorithm*; in
             IFIP TC-6 TC-11, (2005).
 
-.. [WZY2015] WenLing Wu, Lei Zhang, and XiaoLi Yu, *The DBlock family of block ciphers*;
+.. [WZ2011] \W. Wu and L. Zhang, *The LBlock family of block ciphers*;
+            in ACNS, (2011), pp. 327-344.
+
+.. [WZY2015] Wenling Wu, Lei Zhang, and Xiaoli Yu, *The DBlock family of block ciphers*;
              in Science China Information Sciences, (2015), pp. 1-14.
 
 .. _ref-X:

@@ -436,6 +436,12 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
 
             sage: matrix([[sqrt(2), -1], [pi, e^2]]).charpoly()
             x^2 + (-sqrt(2) - e^2)*x + pi + sqrt(2)*e^2
+
+        Test that :trac:`26427` is fixed::
+
+            sage: M = matrix(SR, 7, 7, SR.var('a', 49))
+            sage: M.charpoly().degree() # long time
+            7
         """
         cache_key = 'charpoly'
         cp = self.fetch(cache_key)

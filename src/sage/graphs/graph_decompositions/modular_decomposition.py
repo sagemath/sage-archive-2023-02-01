@@ -511,6 +511,7 @@ def gamma_classes(graph):
                     del pieces[active_edge]
     return {tuple(sorted(vertex_set(loe))) : loe for loe in pieces.values()}
 
+
 def habib_maurer_algorithm(graph, g_classes=None):
     """
     Compute the modular decomposition by the algorithm of Habib and Maurer
@@ -3058,3 +3059,220 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
         if (graph.has_edge(u,v) != connected):
             return False
     return True
+
+def tree_to_nested_tuple(root):
+    r"""
+    Convert a tree to a nested tuple.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+              import tree_to_nested_tuple, modular_decomposition
+        sage: g = graphs.OctahedralGraph()
+        sage: tree_to_nested_tuple(modular_decomposition(g))
+        (SERIES, [(PARALLEL, [2, 3]), (PARALLEL, [1, 4]), (PARALLEL, [0, 5])])
+    """
+    if root.node_type == NodeType.NORMAL:
+        return root.children[0]
+    else:
+        return (root.node_type, [tree_to_nested_tuple(x) for x in root.children]) 
+
+def nested_tuple_to_tree(nest):
+    r"""
+    Turn a tuple representing the modular decomposition into a tree.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                 import NodeType, print_md_tree, nested_tuple_to_tree
+        sage: tree = (NodeType.SERIES, 1, 2, (NodeType.PARALLEL, 3, 4))
+        sage: print_md_tree(nested_tuple_to_tree(tree))
+        SERIES
+         1
+         2
+         PARALLEL
+          3
+          4
+    """
+    if not isinstance(nest, tuple):
+        return create_normal_node(nest)
+
+
+    root = Node(nest[0])
+    root.children = [nested_tuple_to_tree(n) for n in nest[1:]]
+    return root
+
+def equivalent_trees(root1, root2):
+    r"""
+    Check that two modular decomposition trees are the same.
+
+    EXAMPLES::
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                 import equivalent_trees, NodeType, nested_tuple_to_tree
+        sage: t1 = nested_tuple_to_tree((NodeType.SERIES, 1, 2, \
+                     (NodeType.PARALLEL, 3, 4)))
+        sage: t2 = nested_tuple_to_tree((NodeType.SERIES, \
+                     (NodeType.PARALLEL, 4, 3), 2, 1))
+        sage: equivalent_trees(t1, t2)
+        True
+    """
+
+    #internal definition
+    def node_id(root):
+        return (root.node_type, tuple(sorted(get_vertices(root))))
+
+    if root1.node_type != root2.node_type:
+        return False
+
+    if len(root1.children) != len(root2.children):
+        return False
+
+    if root1.node_type == NodeType.NORMAL:
+        return root1.children[0] == root2.children[0]
+
+    child_map = {}
+    for node in root2.children:
+        child_map[node_id(node)] = node
+
+    for node in root1.children:
+        id = node_id(node)
+        if id not in child_map:
+            return False
+        if not equivalent_trees(node, child_map[id]):
+            return False
+
+    return True
+
+
+def relabel_tree(root, perm):
+    r"""
+    Relabel the leaves of a tree according to a dictionary
+
+    INPUT:
+
+    - ``root`` -- The root of the tree.
+
+    - ``perm`` -- A dictionary representing the relabeling.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                 import NodeType, print_md_tree, nested_tuple_to_tree, \
+                 relabel_tree
+        sage: tuple_tree = (NodeType.SERIES, 1, 2, (NodeType.PARALLEL, 3, 4))
+        sage: tree = nested_tuple_to_tree(tuple_tree)
+        sage: print_md_tree(relabel_tree(tree, (4,3,2,1)))
+        SERIES
+         4
+         3
+         PARALLEL
+          2
+          1
+    """
+    # If perm is not a dictionary, we build one !
+    if perm is None:
+
+        # vertices() returns a sorted list:
+        # this guarantees consistent relabeling
+        perm = {v: i for i, v in enumerate(get_vertices(root))}
+        complete_partial_function = False
+        check_input = False
+
+    elif isinstance(perm, dict):
+        from copy import copy
+        # If all vertices do not have a new label, the code will touch the
+        # dictionary. Let us keep the one we received from the user clean !
+        perm = copy(perm)
+
+    elif isinstance(perm, (list, tuple)):
+        perm = dict(zip(sorted(get_vertices(root)), perm))
+
+    elif isinstance(perm, PermutationGroupElement):
+        n = len(get_vertices(root))
+        ddict = {}
+        for i in range(1,n):
+            ddict[i] = perm(i)%n
+        if n > 0:
+            ddict[0] = perm(n)%n
+        perm = ddict
+
+    elif callable(perm):
+        perm = dict( [ i, perm(i) ] for i in get_vertices(root) )
+        complete_partial_function = False
+
+    else:
+        raise TypeError("Type of perm is not supported for relabeling.")
+
+    if root.node_type == NodeType.NORMAL:
+        return create_normal_node(perm[root.children[0]])
+    else:
+        new_root = Node(root.node_type)
+        new_root.children = [relabel_tree(child, perm) for child in root.children]
+        return new_root
+
+from sage.misc.random_testing import random_testing
+@random_testing
+def test_gamma_modules(trials, vertices, prob, verbose=False):
+    r"""
+    Verify that the vertices of each gamma class are the modules of a
+    random graph.
+
+    INPUT:
+
+    - ``trials`` -- The number of trials to run.
+
+    - ``vertices`` -- The size of the graph to use.
+
+    - ``prob`` -- The probability that any given edge is in the graph.
+      See ``RandomGNP``
+
+    - ``verbose`` -- print information on each trial.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import test_gamma_modules, gamma_classes, either_connected_or_not_connected
+        sage: test_gamma_modules(3, 7, 0.5)
+    """
+    from sage.graphs.all import graphs
+    for _ in range(trials):
+        g = graphs.RandomGNP(vertices, prob)
+        if verbose:
+            print(g.graph6_string())
+        g_classes = gamma_classes(g)
+        for module in g_classes.keys():
+            s = set(module)
+            for v in g.vertices():
+                if v not in s:
+                    assert(either_connected_or_not_connected(v, module, g))
+        if verbose:
+            print("Passes!")
+
+@random_testing
+def permute_decomposition(trials, algorithm, vertices, prob, verbose=False):
+    r"""
+    Check that a graph and its permuted relabeling have the same modular decomposition.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
+                 permute_decomposition, habib_maurer_algorithm
+        sage: permute_decomposition(3, habib_maurer_algorithm, 10, 0.5)
+    """
+    from sage.graphs.all import graphs
+    from sage.combinat.permutation import Permutations
+    for _ in range(trials):
+        g1 = graphs.RandomGNP(vertices, prob)
+        tree1 = algorithm(g1)
+        random_perm = Permutations(list(g1.vertices())).random_element()
+        g2 = g1.relabel(perm = random_perm, inplace = False)
+        if verbose:
+            print(g1.graph6_string())
+            print(random_perm)
+        t1 = algorithm(g1)
+        t2 = algorithm(g2)
+        assert(test_modular_decomposition(t1, g1))
+        assert(test_modular_decomposition(t2, g2))
+        t1p = relabel_tree(t1, random_perm)
+        assert(equivalent_trees(t1p, t2))
+        if verbose:
+            print("Passses!")

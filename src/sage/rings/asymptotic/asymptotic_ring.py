@@ -3690,20 +3690,21 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
     @property
     def log(self):
         r"""
-        The customized log function of this asymptotic ring.
+        The log function used for computations in this asymptotic ring.
 
         EXAMPLES::
 
             sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
-            sage: AR.log_function is None
-            True
-            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ, log_function=log)
             sage: AR.log
             <function log at 0x...>
-
-        .. SEEALSO::
-
-            :doc:`term_monoid`
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ, log=log)
+            sage: AR.log
+            <function log at 0x...>
+            sage: def mylog(z):
+            ....:     return log(z)
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ, log=mylog)
+            sage: AR.log
+            <function mylog at 0x...>
         """
         if self._log_ is None:
             from sage.functions.log import log

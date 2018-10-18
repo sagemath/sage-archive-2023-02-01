@@ -2603,7 +2603,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         # check if all keys are generators
         gens_str = tuple(str(g) for g in gens)
         for k in locals:
-            if str(k) not in gens_str:
+            sk = str(k)
+            if sk not in gens_str and not sk.startswith('_'):
                 raise ValueError('Cannot substitute %s in %s '
                                  'since it is not a generator of %s.' %
                                  (k, self, self.parent()))

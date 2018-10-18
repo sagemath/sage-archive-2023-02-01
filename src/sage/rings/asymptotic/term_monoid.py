@@ -770,7 +770,7 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         raise NotImplementedError('Not implemented in abstract base classes')
 
-    def log_term(self, base=None, log_function=None):
+    def log_term(self, base=None, log=None):
         r"""
         Determine the logarithm of this term.
 
@@ -779,7 +779,7 @@ class GenericTerm(MultiplicativeGroupElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log_function`` -- a function. If ``None`` (default value)
+        - ``log`` -- a function. If ``None`` (default value)
           is used, then the usual
           :class:`log <sage.functions.log.Function_log>` is taken.
 
@@ -826,7 +826,7 @@ class GenericTerm(MultiplicativeGroupElement):
         raise NotImplementedError('This method is not implemented in this '
                                   'abstract base class.')
 
-    def _log_growth_(self, base=None, log_function=None):
+    def _log_growth_(self, base=None, log=None):
         r"""
         Helper function to calculate the logarithm of the growth of this element.
 
@@ -835,7 +835,7 @@ class GenericTerm(MultiplicativeGroupElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log_function`` -- a function. If ``None`` (default value)
+        - ``log`` -- a function. If ``None`` (default value)
           is used, then the usual
           :class:`log <sage.functions.log.Function_log>` is taken.
 
@@ -862,7 +862,7 @@ class GenericTerm(MultiplicativeGroupElement):
         return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in
                      self.growth.log_factor(base=base,
-                                            log_function=log_function))
+                                            log=log))
 
     _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
@@ -2304,7 +2304,7 @@ class OTerm(GenericTerm):
         """
         return self
 
-    def log_term(self, base=None, log_function=None):
+    def log_term(self, base=None, log=None):
         r"""
         Determine the logarithm of this O-term.
 
@@ -2313,7 +2313,7 @@ class OTerm(GenericTerm):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log_function`` -- a function. If ``None`` (default value)
+        - ``log`` -- a function. If ``None`` (default value)
           is used, then the usual
           :class:`log <sage.functions.log.Function_log>` is taken.
 
@@ -2348,7 +2348,7 @@ class OTerm(GenericTerm):
 
             :meth:`ExactTerm.log_term`.
         """
-        return self._log_growth_(base=base, log_function=log_function)
+        return self._log_growth_(base=base, log=log)
 
     def is_little_o_of_one(self):
         r"""
@@ -2968,7 +2968,7 @@ class TermWithCoefficient(GenericTerm):
                                 (self, exponent, self.parent(), self.coefficient)), e)
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, new_coefficient=c)
 
-    def _log_coefficient_(self, base=None, log_function=None):
+    def _log_coefficient_(self, base=None, log=None):
         r"""
         Helper function to calculate the logarithm of the coefficient of this element.
 
@@ -2977,7 +2977,7 @@ class TermWithCoefficient(GenericTerm):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log_function`` -- a function. If ``None`` (default value)
+        - ``log`` -- a function. If ``None`` (default value)
           is used, then the usual
           :class:`log <sage.functions.log.Function_log>` is taken.
 
@@ -3007,22 +3007,21 @@ class TermWithCoefficient(GenericTerm):
             sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), L)
             sage: T(3*x^2)._log_coefficient_()
             (log(3),)
-            sage: log_function=lambda z, base: log3 if z == 3 else log(z)
-            sage: T(3*x^2)._log_coefficient_(log_function=log_function)
+            sage: mylog=lambda z, base: log3 if z == 3 else log(z)
+            sage: T(3*x^2)._log_coefficient_(log=mylog)
             (log3,)
             sage: T(3*x^2).log_term()  # indirect doctest
             (log(3), 2*log(x))
-            sage: T(3*x^2).log_term(log_function=log_function)  # indirect doctest
+            sage: T(3*x^2).log_term(log=mylog)  # indirect doctest
             (log3, 2*log(x))
         """
         if self.coefficient.is_one():
             return tuple()
-        if log_function is None:
+        if log is None:
             from sage.functions.log import log
-            log_function = log
         return (self.parent()._create_element_in_extension_(
             self.parent().growth_group.one(),
-            log_function(self.coefficient, base=base)),)
+            log(self.coefficient, base=base)),)
 
     def _eq_(self, other):
         r"""
@@ -3519,7 +3518,7 @@ class ExactTerm(TermWithCoefficient):
         else:
             return self.parent()(self.growth, coeff_new)
 
-    def log_term(self, base=None, log_function=None):
+    def log_term(self, base=None, log=None):
         r"""
         Determine the logarithm of this exact term.
 
@@ -3528,7 +3527,7 @@ class ExactTerm(TermWithCoefficient):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log_function`` -- a function. If ``None`` (default value)
+        - ``log`` -- a function. If ``None`` (default value)
           is used, then the usual
           :class:`log <sage.functions.log.Function_log>` is taken.
 
@@ -3566,8 +3565,8 @@ class ExactTerm(TermWithCoefficient):
 
             :meth:`OTerm.log_term`.
         """
-        return self._log_coefficient_(base=base, log_function=log_function) \
-             + self._log_growth_(base=base, log_function=log_function)
+        return self._log_coefficient_(base=base, log=log) \
+             + self._log_growth_(base=base, log=log)
 
     def is_constant(self):
         r"""

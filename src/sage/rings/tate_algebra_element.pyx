@@ -35,6 +35,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.polynomial.polydict cimport PolyDict
 from sage.rings.polynomial.polydict cimport ETuple
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
+from sage.rings.padics.precision_error import PrecisionError
 
 
 
@@ -102,7 +103,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         sage: T(0)
         Traceback (most recent call last):
         ...
-        ValueError: a term cannot be zero
+        TypeError: a term cannot be zero
 
     """
     def __init__(self, parent, coeff, exponent=None):
@@ -135,9 +136,9 @@ cdef class TateAlgebraTerm(MonoidElement):
             self._coeff = field((<TateAlgebraTerm>coeff)._coeff)
             self._exponent = (<TateAlgebraTerm>coeff)._exponent
         else:
-            if coeff.is_zero():
-                raise ValueError("a term cannot be zero")
             self._coeff = field(coeff)
+            if self._coeff.is_zero():
+                raise TypeError("a term cannot be zero")
             self._exponent = ETuple([0] * parent.ngens())
         if exponent is not None:
             if not isinstance(exponent, ETuple):
@@ -150,6 +151,21 @@ cdef class TateAlgebraTerm(MonoidElement):
                 raise ValueError("only nonnegative exponents are allowed")
         if not parent.base_ring().is_field() and self.valuation() < 0:
             raise ValueError("this term is not in the ring of integers")
+
+    def __hash__(self):
+        """
+        Return a hash of this term.
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R);
+            sage: T = A.monoid_of_terms()
+            sage: t = T(x^2)
+
+            sage: hash(t) == hash((t.coefficient(), t.exponent()))
+            True
+
+        """
+        return hash((self._coeff, self._exponent))
 
     cdef TateAlgebraTerm _new_c(self):
         r"""
@@ -292,6 +308,29 @@ cdef class TateAlgebraTerm(MonoidElement):
         ans._exponent = self._exponent.eadd((<TateAlgebraTerm>other)._exponent)
         ans._coeff = self._coeff * (<TateAlgebraTerm>other)._coeff
         return ans
+
+    #def _div_(self, other):
+    #    """
+    #    Division of Tate series.
+    #
+    #    It is currently not implemented because fraction fields
+    #    of Tate algebras are not implemented.
+    #
+    #    EXAMPLES::
+    #
+    #        sage: A.<x,y> = TateAlgebra(Zp(2))
+    #        sage! x / y
+    #        Traceback (most recent call last):
+    #        ...
+    #        NotImplementedError: fraction fields of Tate algebras are not implemented; try inverse_of_unit()
+    #
+    #        sage: ~x  # indirect doctest
+    #        Traceback (most recent call last):
+    #        ...
+    #        NotImplementedError: fraction fields of Tate algebras are not implemented; try inverse_of_unit()
+    #
+    #    """
+    #    raise NotImplementedError("fraction fields of Tate algebras are not implemented; try inverse_of_unit()")
 
     cdef int _cmp_c(self, TateAlgebraTerm other):
         r"""
@@ -547,7 +586,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: t(1/2, 1)
             Traceback (most recent call last):
             ...
-            ValueError: the given values are outside the domain of convergence
+            ValueError: not in the domain of convergence
 
         TESTS::
 
@@ -570,7 +609,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         ratio = A.absolute_e() // parent._base.absolute_e()
         for i in range(parent._ngens):
             if args[i].valuation() < -ratio * parent._log_radii[i]:
-                raise ValueError("the given values are outside the domain of convergence")
+                raise ValueError("not in the domain of convergence")
         res = self._call_c(args)
         if parent._integral:
             try:
@@ -622,9 +661,9 @@ cdef class TateAlgebraTerm(MonoidElement):
         But coefficients play a role when we are working over
         the ring of integers of the Tate Algebra::
 
-            sage: AA = A.integer_ring()
-            sage: TT = AA.monoid_of_terms()
-            sage: TT(s).is_coprime_with(TT(t))
+            sage: Ao = A.integer_ring()
+            sage: To = Ao.monoid_of_terms()
+            sage: To(s).is_coprime_with(To(t))
             False
 
         """
@@ -641,8 +680,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the greatest common divisor of this term and ``other``.
 
-        The result is normalized so that its valuation is equal to
-        the smallest valuation of this term and ``other``.
+        The result is normalized so that:
+
+        - its valuation is equal to the smallest valuation of 
+          this term and ``other``
+
+        - its coefficient is a power of the uniformizer.
 
         INPUT:
 
@@ -667,8 +710,12 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the greatest common divisor of this term and ``other``.
 
-        The result is normalized so that its valuation is equal to
-        the smallest valuation of this term and ``other``.
+        The result is normalized so that:
+
+        - its valuation is equal to the smallest valuation of 
+          this term and ``other``
+
+        - its coefficient is a power of the uniformizer.
 
         INPUT:
 
@@ -686,13 +733,19 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: s.gcd(t)  # indirect doctest
             (...000000000100)*x*y^2
 
+        ::
+
+            sage: A.<x,y> = TateAlgebra(R, log_radii=1)
+            sage: T = A.monoid_of_terms()
+            sage: T(x^5).gcd(T(y^5))
+            (...00000.00001)
+
         """
         cdef TateAlgebraTerm ans = self._new_c()
+        cdef long val
         ans._exponent = self._exponent.emin(other._exponent)
-        if self._coeff.valuation() < other._coeff.valuation():
-            ans._coeff = self._coeff
-        else:
-            ans._coeff = other._coeff
+        val = min(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii)
+        ans._coeff = self._parent._field.uniformizer_pow(val)
         return ans
 
     @coerce_binop
@@ -700,8 +753,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the least common multiple of two Tate terms.
 
-        The result is normalized so that its valuation is equal to
-        the largest valuation of this term and ``other``.
+        The result is normalized so that `\gcd(a,b) \lcm(a,b) = ab`.
 
         INPUT:
 
@@ -728,8 +780,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         r"""
         Return the least common multiple of two Tate terms.
 
-        The result is normalized so that its valuation is equal to
-        the largest valuation of this term and ``other``.
+        The result is normalized so that `\gcd(a,b) \lcm(a,b) = ab`.
 
         INPUT:
 
@@ -744,18 +795,22 @@ cdef class TateAlgebraTerm(MonoidElement):
             sage: T = A.monoid_of_terms()
             sage: s = T(8*x^2*y^2); s
             (...0000000001000)*x^2*y^2
-            sage: t = T(4*x*y^3); t
-            (...000000000100)*x*y^3
+            sage: t = T(12*x*y^3); t
+            (...000000001100)*x*y^3
             sage: s.lcm(t)  # indirect doctest
-            (...0000000001000)*x^2*y^3
+            (...0000000011000)*x^2*y^3
+
+        TESTS::
+
+            sage: s.gcd(t) * s.lcm(t) == s * t
+            True
 
         """
         cdef TateAlgebraTerm ans = self._new_c()
+        cdef long val
         ans._exponent = self._exponent.emax(other._exponent)
-        if self._coeff.valuation() < other._coeff.valuation():
-            ans._coeff = other._coeff
-        else:
-            ans._coeff = self._coeff
+        val = max(self._valuation_c(), other._valuation_c()) + ans._exponent.dotprod(self._parent._log_radii)
+        ans._coeff = (self._coeff.unit_part() * other._coeff.unit_part()) << val
         return ans
 
     @coerce_binop
@@ -798,19 +853,19 @@ cdef class TateAlgebraTerm(MonoidElement):
         divisibility is always checked in the ring of integers (even if
         ``integral`` is set to ``False``)::
 
-            sage: AA = A.integer_ring()
-            sage: TT = AA.monoid_of_terms()
-            sage: ss = TT(s)
-            sage: tt = TT(t)
-            sage: ss.is_divisible_by(tt)
+            sage: Ao = A.integer_ring()
+            sage: To = Ao.monoid_of_terms()
+            sage: so = To(s)
+            sage: to = To(t)
+            sage: so.is_divisible_by(to)
             False
-            sage: ss.is_divisible_by(tt, integral=False)
+            sage: so.is_divisible_by(to, integral=False)
             False
 
         Be careful that coercion between the Tate algebra and its ring of
         integers can be done silently::
 
-            sage: s.is_divisible_by(tt)
+            sage: s.is_divisible_by(to)
             True
 
         """
@@ -856,19 +911,19 @@ cdef class TateAlgebraTerm(MonoidElement):
         divisibility is always checked in the ring of integers (even if
         ``integral`` is set to ``False``)::
 
-            sage: AA = A.integer_ring()
-            sage: TT = AA.monoid_of_terms()
-            sage: ss = TT(s)
-            sage: tt = TT(t)
-            sage: tt.divides(ss)
+            sage: Ao = A.integer_ring()
+            sage: To = Ao.monoid_of_terms()
+            sage: so = To(s)
+            sage: to = To(t)
+            sage: to.divides(so)
             False
-            sage: tt.divides(ss, integral=False)
+            sage: to.divides(so, integral=False)
             False
 
         Be careful that coercion between the Tate algebra and its ring of
         integers can be done silently::
 
-            sage: tt.divides(s)
+            sage: to.divides(s)
             True
 
         """
@@ -1007,14 +1062,14 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             xc = <TateAlgebraElement>x
             xparent = x.parent()
             if xparent is parent:
-                self._poly = PolyDict(xc._poly.__repn)
+                self._poly = PolyDict(xc._poly.__repn, None)
                 self._prec = xc._prec
             elif xparent.variable_names() == parent.variable_names():
                 ratio = parent._base.absolute_e() / xparent.base_ring().absolute_e()
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("cannot restrict to a bigger domain")
-                self._poly = PolyDict({ e: parent._field(v) for (e,v) in xc._poly.__repn.items() })
+                self._poly = PolyDict({ e: parent._field(v) for (e,v) in xc._poly.__repn.items() }, None)
                 if xc._prec is not Infinity:
                     self._prec = (xc._prec * ratio).ceil()
             else:
@@ -1026,14 +1081,23 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 for i in range(parent.ngens()):
                     if parent.log_radii()[i] > xparent.log_radii()[i] * ratio:
                         raise ValueError("cannot restrict to a bigger domain")
-                self._poly = PolyDict({(<TateAlgebraTerm>x)._exponent: parent._field((<TateAlgebraTerm>x)._coeff)})
+                self._poly = PolyDict({(<TateAlgebraTerm>x)._exponent: parent._field((<TateAlgebraTerm>x)._coeff)}, None)
         else:
-            poly = parent._polynomial_ring(x)
-            self._poly = PolyDict(poly.dict())
+            try:
+                poly = parent._polynomial_ring(x)
+                self._poly = PolyDict(poly.dict(), None)
+            except TypeError, e:
+                # last chance: we first try to convert to the rational Tate series
+                if parent._integral:
+                    xc = parent._rational_ring(x)
+                    self._poly = xc._poly
+                    self._prec = xc._prec
+                else:
+                    raise TypeError(e)
         if prec is not None:
             self._prec = min(self._prec, prec)
         self._normalize()
-        self._terms = None
+        self._terms = self._terms_nonzero = None
         if not parent.base_ring().is_field() and self.valuation() < 0:
             raise ValueError("this series is not in the ring of integers")
 
@@ -1052,6 +1116,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = TateAlgebraElement.__new__(TateAlgebraElement)
         ans._parent = self._parent
         ans._is_normalized = False
+        ans._terms = ans._terms_nonzero = None
         return ans
 
     cdef _normalize(self):
@@ -1067,9 +1132,16 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         self._is_normalized = True
         if self._prec is Infinity: return
         cdef int v
+        cdef pAdicGenericElement coeff
         for (e,c) in self._poly.__repn.items():
             v = (<ETuple>self._parent._log_radii).dotprod(<ETuple>e)
-            self._poly.__repn[e] = self._poly.__repn[e].add_bigoh(self._prec - v)
+            coeff = self._poly.__repn[e]
+            if coeff.precision_absolute() > self._prec - v:
+                coeff = coeff.add_bigoh(self._prec - v)
+            if coeff.valuation() >= self._prec - v:
+                del self._poly.__repn[e]
+            else:
+                self._poly.__repn[e] = coeff
 
     def __reduce__(self):
         """
@@ -1106,7 +1178,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         nvars = self._parent.ngens()
         vars = self._parent.variable_names()
         s = ""
-        for t in self.terms():
+        for t in self._terms_c():
             if t.valuation() >= self._prec:
                 continue
             s += " + %s" % t
@@ -1178,13 +1250,10 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             5
 
         """
-        # TODO: g = x + 2*y^2 + O(2^5) fails coercing O(2^5) into R, is that normal?
-        # If we force conversion with R(O(2^5)) the result is a Tate series with precision infinity... it's understandable but confusing, no?
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly + (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
-        if self._prec != (<TateAlgebraElement>other)._prec:
-            ans._normalize()
+        ans._normalize()
         return ans
 
     cpdef _neg_(self):
@@ -1237,8 +1306,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         ans._poly = self._poly - (<TateAlgebraElement>other)._poly
         ans._prec = min(self._prec, (<TateAlgebraElement>other)._prec)
-        if self._prec != (<TateAlgebraElement>other)._prec:
-            ans._normalize()
+        ans._normalize()
         return ans
 
     cpdef _mul_(self, other):
@@ -1273,7 +1341,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         b = self.valuation() + (<TateAlgebraElement>other)._prec
         ans._poly = self._poly * (<TateAlgebraElement>other)._poly
         ans._prec = min(a, b)
-        #ans._normalize()
+        ans._normalize()
         return ans
 
     cpdef _lmul_(self, Element right):
@@ -1297,6 +1365,364 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ans._poly = self._poly.scalar_lmult(right)
         ans._prec = self._prec + (<pAdicGenericElement>self._parent._base(right)).valuation_c()
         return ans
+
+    def inverse_of_unit(self, prec=None):
+        r"""
+        Return the inverse of this series if it is invertible.
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``); 
+          the precision at which the result is computed, if ``None``,
+          the result is truncated according to the cap of the parent
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = A(1); f
+            (...0000000001)
+            sage: f.inverse_of_unit()
+            (...0000000001) + O(2^10)
+
+            sage: f = 2*x + 1; f
+            (...0000000001) + (...00000000010)*x
+            sage: f.inverse_of_unit()
+            (...0000000001) + (...1111111110)*x + (...0000000100)*x^2 + (...1111111000)*x^3 + (...0000010000)*x^4 + (...1111100000)*x^5 + (...0001000000)*x^6 + (...1110000000)*x^7 + (...0100000000)*x^8 + (...1000000000)*x^9 + O(2^10)
+
+            sage: f.inverse_of_unit(prec=4)
+            (...0001) + (...1110)*x + (...0100)*x^2 + (...1000)*x^3 + O(2^4)
+
+        If the series is not invertible, an error is raised::
+
+            sage: f = 1 + x; f
+            (...0000000001)*x + (...0000000001)
+            sage: f.inverse_of_unit()
+            Traceback (most recent call last):
+            ...        
+            ValueError: this series in not invertible
+        
+        """
+        cdef TateAlgebraTerm t
+        cdef long v, curprec
+        cdef pAdicGenericElement c
+        cdef TateAlgebraElement inv, x
+        if not self.is_unit():
+            raise ValueError("this series in not invertible")
+        t = self.leading_term()
+        c = t.coefficient()
+        parent = self._parent
+        v, c = c.val_unit()
+        x = self >> v
+
+        rprec = self.precision_relative()
+        if prec is not None and prec + v < rprec:
+            rprec = prec + v
+        if rprec is Infinity:
+            rprec = self._parent.precision_cap()
+
+        x = x.add_bigoh(rprec)
+        inv = (<TateAlgebraElement>self)._new_c()
+        inv._poly = PolyDict({ ETuple({}, parent._ngens): parent._field(~c.residue()).lift_to_precision() }, None)
+        inv._prec = rprec
+        curprec = 1
+        while curprec < rprec:
+            curprec *= 2
+            inv = 2*inv - x*inv*inv
+        return inv >> v
+
+    def is_unit(self):
+        r"""
+        Return ``True`` if this series in invertible.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, print_mode='digits',prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 2*x + 1; f
+            (...0000000001) + (...00000000010)*x
+            sage: f.is_unit()
+            True
+
+            sage: f = 1 + x; f
+            (...0000000001)*x + (...0000000001)
+            sage: f.is_unit()
+            False
+
+        Note that invertibility is tested in the parent of this series::
+
+            sage: f = 4*x + 2
+            sage: f.is_unit()
+            True
+
+            sage: Ao = A.integer_ring()
+            sage: Ao(f).is_unit()
+            False
+
+        """
+        if self.is_zero():
+            return False
+        t = self.leading_term()
+        if max(t.exponent()) != 0:
+            return False
+        base = self.base_ring()
+        if not base.is_field() and t.valuation() > 0:
+            return False
+        return True
+
+    def __pow__(self, exponent, modulus):
+        """
+        Return this element raised to the power ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- either an integer, a rational number or a
+          Tate series
+
+        - ``modulus`` -- discarded
+
+        EXEMPLES::
+
+            sage: R = Zp(3, prec=4, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: (x + y)^3
+            (...0001)*x^3 + (...0001)*y^3 + (...0010)*x^2*y + (...0010)*x*y^2
+
+        This function can be used to compute the inverse of a Tate series::
+
+            sage: f = 1 + 6*x^2 + 9*y^2
+            sage: f^(-1)
+            (...0001) + (...2210)*x^2 + (...1100)*x^4 + (...2200)*y^2 + (...1000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+
+        or a square root (or more generally a nth root)::
+
+            sage: g = f^(1/2); g
+            (...0001) + (...0010)*x^2 + (...1100)*x^4 + (...1200)*y^2 + (...2000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+            sage: g^2 == f
+            True
+
+        When the exponent is not an integer, `f^e` is computed as `\exp(e \log(f))`.
+        This computation fails if `f` is outside the domain of the logarithm or if
+        `e \log(f)` is outside the domain of convergence of the exponential::
+
+            sage: f^(1/3)
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        The exponent can be a series as well::
+
+            sage: g = f^x; g
+            (...0001) + (...0020)*x^3 + (...1100)*x^9 + (...2200)*x^7 + ... + O(3^4)
+
+            sage: x0 = R.random_element()
+            sage: y0 = R.random_element()
+            sage: g(x0, y0) == f(x0, y0)^x0
+            True
+
+        TESTS::
+
+            sage: f^(x + y) == f^x * f^y
+            True
+            sage: f^(x*y) == (f^x)^y
+            True
+            sage: f^(x*y) == (f^y)^x
+            True
+
+        """
+        cdef TateAlgebraElement temp
+        cdef long p, v, e
+        if exponent in ZZ:
+            if exponent == 0:
+                return (<TateAlgebraElement>self)._parent.one()
+            elif exponent > 0:
+                # We handle precision
+                temp = (<TateAlgebraElement>self)._new_c()
+                temp._poly = (<TateAlgebraElement>self)._poly
+                if (<TateAlgebraElement>self)._prec is Infinity:
+                    temp._prec = Infinity
+                else:
+                    p = (<TateAlgebraElement>self)._parent.prime()
+                    e = (<TateAlgebraElement>self)._parent.absolute_e()
+                    v = (<TateAlgebraElement>self).valuation()
+                    temp._prec = p*v + (<TateAlgebraElement>self)._prec
+                    q = ZZ(exponent)
+                    while True:
+                        q, r = q.quo_rem(p)
+                        if r != 0: break
+                        temp._prec = min(p * temp._prec, temp._prec + e)
+                # and perform the exponentiation
+                return CommutativeAlgebraElement.__pow__(temp, exponent, None)
+            else:
+                return self.inverse_of_unit() ** (-exponent)
+        elif exponent in QQ:
+            exponent = QQ(exponent)
+            return self.nth_root(exponent.denominator()) ** exponent.numerator()
+        else:
+            return ((<TateAlgebraElement>self).log() * exponent).exp()
+
+    def square_root(self, prec=None):
+        r"""
+        Return the square root of this series.
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``);
+          the precision at which the result is computed, if ``None``,
+          the result is truncated according to the cap of the parent
+
+        EXAMPLES::
+
+            sage: R = Zp(3, prec=10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 6*x^2 + 9*y^2
+            sage: g = f.sqrt(); g
+            (...0000000001) + (...0000000010)*x^2 + (...1111111100)*x^4 + (...1111111200)*y^2 + (...1111112000)*x^6 + (...1111111000)*x^2*y^2 + ... + O(3^10)
+
+            sage: f.square_root(prec=4)
+            (...0001) + (...0010)*x^2 + (...1100)*x^4 + (...1200)*y^2 + (...2000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+
+            sage: g^2 == f
+            True
+
+        It's possible that `f` has a trivial square root (which is analytic on
+        the correct domain) but that it takes its values outside the domain of
+        convergence of the square root function.
+        In this case, an error is raised::
+
+            sage: f = x^2
+            sage: f.square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        """
+        return self.nth_root(2, prec)
+
+
+    def sqrt(self, prec=None):
+        r"""
+        Return the square root of this series.
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``);
+          the precision at which the result is computed, if ``None``,
+          the result is truncated according to the cap of the parent
+
+        EXAMPLES::
+
+            sage: R = Zp(3, prec=10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 6*x^2 + 9*y^2
+            sage: g = f.sqrt(); g
+            (...0000000001) + (...0000000010)*x^2 + (...1111111100)*x^4 + (...1111111200)*y^2 + (...1111112000)*x^6 + (...1111111000)*x^2*y^2 + ... + O(3^10)
+
+            sage: f.sqrt(prec=4)
+            (...0001) + (...0010)*x^2 + (...1100)*x^4 + (...1200)*y^2 + (...2000)*x^6 + (...1000)*x^2*y^2 + O(3^4)
+
+            sage: g^2 == f
+            True
+
+        It's possible that `f` has a trivial square root (which is analytic on
+        the correct domain) but that it takes its values outside the domain of
+        convergence of the square root function.
+        In this case, an error is raised::
+
+            sage: f = x^2
+            sage: f.sqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        """
+        return self.nth_root(2, prec)
+
+
+    def nth_root(self, n=2, prec=None):
+        r"""
+        Return the ``n``-th root of this series.
+
+        INPUT:
+
+        - ``n`` -- an integer (default: ``2``)
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``);
+          the precision at which the result is computed, if ``None``,
+          the result is truncated according to the cap of the parent
+
+        NOTE:
+
+        The ``n``-th root is computed as `\exp(\frac 1 n \log(f))`.
+
+        EXAMPLES::
+
+            sage: R = Zp(3, prec=10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 9*x^2 + 9*y^2
+            sage: g = f.nth_root(3, prec=3); g
+            (...001) + (...010)*x^2 + (...010)*y^2 + (...200)*x^6 + (...200)*y^6 + (...200)*x^4 + (...100)*x^2*y^2 + (...200)*y^4 + O(3^3)
+            sage: g^3 == f
+            True
+
+            sage: for n in range(2, 9):
+            ....:     if f.nth_root(n)^n != f: raise RuntimeError
+
+        It's possible that `f` has a trivial ``n``-th root (which is analytic on 
+        the correct domain) but that `\exp(\frac 1 n \log(f))` does not converge.
+        In this case, an error is raised::
+
+            sage: f = x^3
+            sage: f.nth_root(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        """
+        if not n in ZZ or n == 0:
+            raise ValueError("n must be a nonzero integer")
+        n = ZZ(n)
+
+        cdef TateAlgebraElement a, root
+        cdef long v, e, ep, curprec
+        cdef pAdicGenericElement scalar
+
+        parent = self._parent
+        p = parent.prime()
+        v = n.valuation(p)
+        e = parent.absolute_e()
+        ep = e // (p - 1)
+        if v == 0:
+            curprec = 1
+        else:
+            curprec = v*e + ep + 1
+        if (self - 1).valuation() < curprec:
+            raise ValueError("not in the domain of convergence")
+
+        aprec = self.precision_absolute()
+        if prec is not None and prec < aprec:
+            aprec = prec
+        if aprec is Infinity:
+            aprec = parent.precision_cap()
+
+        aprec += v*e
+        root = parent(1).add_bigoh(v*e+1)
+        if n > 0:
+            a = self.inverse_of_unit(aprec)
+        else:
+            n = -n
+            a = self.add_bigoh(aprec)
+        scalar = ~(parent._field(n))
+        while curprec < aprec:
+            if v == 0:
+                curprec *= 2
+            else:
+                curprec -= v*e
+                curprec = min(2*curprec + v*e, p*curprec + (v-1)*e)
+            root = root.lift_to_precision(min(aprec, curprec))
+            root += scalar * root * (1 - a * root**n)
+        return root
+
 
     cpdef _richcmp_(self, other, int op):
         r"""
@@ -1393,7 +1819,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f(1, 1)
             Traceback (most recent call last):
             ...
-            ValueError: the given values are outside the domain of convergence
+            ValueError: not in the domain of convergence
 
         Evaluation at points in extensions is allowed::
 
@@ -1408,7 +1834,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f(pi, pi)
             Traceback (most recent call last):
             ...
-            ValueError: the given values are outside the domain of convergence
+            ValueError: not in the domain of convergence
 
         This method can also be used to compose Tate series::
 
@@ -1430,8 +1856,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         ratio = A.absolute_e() // parent._base.absolute_e()
         for i in range(parent._ngens):
             if args[i].valuation() < -ratio * parent._log_radii[i]:
-                raise ValueError("the given values are outside the domain of convergence")
-        res = A(0, self._prec)
+                raise ValueError("not in the domain of convergence")
+        res = A(0, ratio * self._prec)
         for t in self._terms_c():
             if t._valuation_c() >= res.precision_absolute():
                 break
@@ -1455,7 +1881,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000011)*x^2
             sage: f = x^4 + 4*x*y + 1; f
             (...0000000001)*x^4 + (...0000000001) + (...000000000100)*x*y
-            sage: t*f # indirect doctest
+            sage: t*f  # indirect doctest
             (...0000000011)*x^6 + (...0000000011)*x^2 + (...000000001100)*x^3*y
 
         """
@@ -1489,7 +1915,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         for (e,c) in self._poly.__repn.items():
             coeffs[e] = c << n
-        ans._poly = PolyDict(coeffs, self._poly.__zero)
+        ans._poly = PolyDict(coeffs, None)
         ans._prec = self._prec + n
         return ans
 
@@ -1529,7 +1955,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 minval = ZZ(e.dotprod(<ETuple>parent._log_radii)).ceil()
                 coeffs[e] = field(base(c) >> (minval-n)) << minval
             ans._prec = max(ZZ(0), self._prec - n)
-        ans._poly = PolyDict(coeffs, self._poly.__zero)
+        ans._poly = PolyDict(coeffs, None)
         return ans
 
     def __lshift__(self, n):
@@ -1557,8 +1983,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         output is the result of the integer division of the Tate series by
         `\pi^{-n}` where `\pi` is a uniformizer.
 
-            sage: AA = A.integer_ring()
-            sage: AA(f) << -1
+            sage: Ao = A.integer_ring()
+            sage: Ao(f) << -1
             (...0000000001)*x^2 + (...000000000)*x^3 + (...000000000)*x
 
         """
@@ -1588,8 +2014,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         result is truncated -- that is, the output is the result of the integer
         division of the Tate series by `\pi^n` where `\pi` is a uniformizer.
 
-            sage: AA = A.integer_ring()
-            sage: AA(f) << -1
+            sage: Ao = A.integer_ring()
+            sage: Ao(f) << -1
             (...0000000001)*x^2 + (...000000000)*x^3 + (...000000000)*x
 
         """
@@ -1623,91 +2049,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             True
 
         """
+        cdef list terms = self._terms_c(include_zero=False)
         if prec is None:
             prec = self._prec
-        return self.valuation() >= prec
-
-    def inverse_of_unit(self):
-        r"""
-        Return the inverse of this series if it is invertible.
-
-        EXAMPLES::
-
-            sage: R = Zp(2, print_mode='digits', prec=10)
-            sage: A.<x,y> = TateAlgebra(R)
-            sage: f = A(1); f
-            (...0000000001)
-            sage: f.inverse_of_unit()
-            (...0000000001) + O(2^10)
-
-            sage: f = 2*x + 1; f
-            (...0000000001) + (...00000000010)*x
-            sage: f.inverse_of_unit()
-            (...0000000001) + (...1111111110)*x + (...0000000100)*x^2 + (...1111111000)*x^3 + (...0000010000)*x^4 + (...1111100000)*x^5 + (...0001000000)*x^6 + (...1110000000)*x^7 + (...0100000000)*x^8 + (...1000000000)*x^9 + O(2^10)
-
-        If the series is not invertible, an error is raised::
-
-            sage: f = 1 + x; f
-            (...0000000001)*x + (...0000000001)
-            sage: f.inverse_of_unit()
-            Traceback (most recent call last):
-            ...
-            ValueError: this series in not invertible
-
-        """
-        if not self.is_unit():
-            raise ValueError("this series in not invertible")
-        t = self.leading_term()
-        c = t.coefficient()
-        parent = self._parent
-        v, c = c.val_unit()
-        cap = parent.precision_cap()
-        inv = parent(c.inverse_of_unit()).add_bigoh(cap)
-        x = (self >> v).add_bigoh(cap)
-        prec = 1
-        while prec < cap:
-            prec *= 2
-            inv = 2*inv - x*inv*inv
-        return inv << v
-
-    def is_unit(self):
-        r"""
-        Return ``True`` if this series in invertible.
-
-        EXAMPLES::
-
-            sage: R = Zp(2, print_mode='digits',prec=10)
-            sage: A.<x,y> = TateAlgebra(R)
-            sage: f = 2*x + 1; f
-            (...0000000001) + (...00000000010)*x
-            sage: f.is_unit()
-            True
-
-            sage: f = 1 + x; f
-            (...0000000001)*x + (...0000000001)
-            sage: f.is_unit()
-            False
-
-        Note that invertibility is tested in the parent of this series::
-
-            sage: f = 4*x + 2
-            sage: f.is_unit()
-            True
-
-            sage: AA = A.integer_ring()
-            sage: AA(f).is_unit()
-            False
-
-        """
-        if self.is_zero():
-            return False
-        t = self.leading_term()
-        if max(t.exponent()) != 0:
-            return False
-        base = self.base_ring()
-        if not base.is_field() and t.valuation() > 0:
-            return False
-        return True
+        if not terms:
+            return True
+        return (<TateAlgebraTerm>terms[0])._valuation_c() >= prec
 
     def restriction(self, log_radii):
         r"""
@@ -1768,9 +2115,14 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             self._terms = None
         return self._terms_c()
 
-    cdef list _terms_c(self):
+    cdef list _terms_c(self, bint include_zero=True):
         r"""
         Return a list of the terms of this series sorted in descending order.
+
+        INPUT:
+
+        - ``include_zero`` -- a boolean (default: ``True``); if ``True``,
+          include terms which are indistinguishable from zero.
 
         EXAMPLES::
 
@@ -1781,19 +2133,24 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             [(...0000000001)*x, (...00000000010)*x^2]
 
         """
-        if self._terms is not None:
-            return self._terms
+        cdef pAdicGenericElement c
+        cdef ETuple e
         cdef TateAlgebraTerm oneterm = self._parent._oneterm
         cdef TateAlgebraTerm term
-        self._terms = []
-        for (e,c) in self._poly.__repn.items():
-            term = oneterm._new_c()
-            term._coeff = c
-            term._exponent = e
-            if term.valuation() < self._prec:
-                self._terms.append(term)
-        self._terms.sort(reverse=True)
-        return self._terms
+        if self._terms is None:
+            self._terms = []
+            for (e,c) in self._poly.__repn.items():
+                term = oneterm._new_c()
+                term._coeff = c
+                term._exponent = e
+                if term._valuation_c() < self._prec:
+                    self._terms.append(term)
+            self._terms.sort(reverse=True)
+            self._terms_nonzero = [ term for term in self._terms if not term.coefficient().is_zero() ]
+        if include_zero:
+            return self._terms
+        else:
+            return self._terms_nonzero
 
     def monomials(self):
         r"""
@@ -1809,6 +2166,23 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         """
         return [ t.monomial() for t in self.terms() ]
+
+    def dict(self):
+        """
+        Return a dictionary whose keys are the exponents are values
+        are the corresponding coefficients of this series.
+
+        EXAMPLES::
+
+            sage: R = Zp(2, prec=10, print_mode='digits')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 2*x^2 + x
+            sage: f.dict()
+            {(1, 0): ...0000000001, (2, 0): ...00000000010}
+        
+        """
+        self._normalize()
+        return dict(self._poly.__repn)
 
     def coefficients(self):
         r"""
@@ -1849,6 +2223,62 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         """
         return self._parent(self, prec=n)
+
+    def lift_to_precision(self, prec=None):
+        """
+        Return a lift of this series at precision ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``); if 
+          ``None``, the cap of the parent is used if it is higher than 
+          the current precision
+
+        EXAMPLES::
+
+            sage: R = Zp(2, prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = R(1,4)*x*y + R(1,5)*x + R(1,8)*y
+            sage: f
+            (1 + O(2^4))*x*y + (1 + O(2^5))*x + (1 + O(2^8))*y
+
+        This method lifts the precision of the coefficients::
+
+            sage: f.lift_to_precision()
+            (1 + O(2^10))*x*y + (1 + O(2^10))*x + (1 + O(2^10))*y
+
+        and also acts on the global ``O(.)`` of the series::
+
+            sage: g = f.add_bigoh(7)
+            sage: g
+            (1 + O(2^4))*x*y + (1 + O(2^5))*x + (1 + O(2^7))*y + O(2^7)
+            sage: g.lift_to_precision()
+            (1 + O(2^10))*x*y + (1 + O(2^10))*x + (1 + O(2^10))*y + O(2^10)
+
+            sage: g.lift_to_precision(9)
+            (1 + O(2^9))*x*y + (1 + O(2^9))*x + (1 + O(2^9))*y + O(2^9)
+
+        In the next example, the precision on the coefficient is only lifted
+        to ``O(2^10)`` because it is limited by the cap of the underlying
+        p-adic ring::
+
+            sage: g.lift_to_precision(20)
+            (1 + O(2^10))*x*y + (1 + O(2^10))*x + (1 + O(2^10))*y + O(2^20)
+
+        """
+        cdef TateAlgebraElement ans = self._new_c()
+        # Hmm, shouldn't we add a keyword argument to lift_to_precision()
+        # to specify that we don't want it to raise an error
+        def lift_without_error(elt):
+            try:
+                return elt.lift_to_precision(prec)
+            except PrecisionError:
+                return elt.lift_to_precision()
+        ans._poly = PolyDict({ e: lift_without_error(c) for (e,c) in self._poly.__repn.iteritems() }, None)
+        if prec is None:
+            prec = self._parent.precision_cap()
+        ans._prec = max(self._prec, prec)
+        return ans
 
     def precision_absolute(self):
         r"""
@@ -1959,7 +2389,259 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return self._prec - self.valuation()
 
-    def leading_term(self):
+    def log(self, prec=None):
+        """
+        Return the logarithm of this series.
+
+        INPUT:
+
+        - `prec` -- an integer or ``None`` (default: ``None``); the
+          absolute precision at which the result is computed, if ``None``
+          the cap of the Tate algebra is used
+
+        EXAMPLES::
+
+            sage: R = Zp(3, 10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 1 + 3*x + 9*y^2
+            sage: f.log()
+            (...0000000010)*x + (...0000000100)*x^3 + (...1111111100)*x^2 + (...0000000100)*y^2 + (...2222222000)*x*y^2 + ... + O(3^10)
+
+            sage: f.log(prec=4)
+            (...0010)*x + (...0100)*x^3 + (...1100)*x^2 + (...0100)*y^2 + (...2000)*x*y^2 + O(3^4)
+
+        If the precision on the input is not enough to determine the
+        result at precision ``prec``, a result with smaller precision
+        is returned::
+
+            sage: g = f.add_bigoh(4); g
+            (...0001) + (...0010)*x + (...0100)*y^2 + O(3^4)
+            sage: g.log()
+            (...0010)*x + (...0100)*x^3 + (...1100)*x^2 + (...0100)*y^2 + (...2000)*x*y^2 + O(3^4)
+            sage: g.log(prec=10)
+            (...0010)*x + (...0100)*x^3 + (...1100)*x^2 + (...0100)*y^2 + (...2000)*x*y^2 + O(3^4)
+
+        When the input value is outside the domain of convergence, an
+        error is raised::
+
+            sage: f = 1 + x
+            sage: f.log()
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        However `\log(1+x)` converges on a smaller disk::
+
+            sage: f.restriction(-1).log()
+            (...0000000001)*x + (...000000000.1)*x^3 + (...111111111)*x^2 + ... + O(3^10)
+
+        TESTS::
+
+            sage: f = 1 + 3 * A.random_element(integral=True)
+            sage: logf = f.log()
+
+            sage: x0 = 3 * R.random_element()
+            sage: y0 = 3 * R.random_element()
+            sage: f(x0, y0).log() == logf(x0, y0)
+            True
+
+            sage: logf.exp() == f
+            True
+
+        """
+        # This code is mostly copied from sage.rings.padics.padic_generic_element
+        # (should we find a way to share it?)
+        R = self.parent()
+        p = R.base_ring().prime()
+        e = R.absolute_e()
+        x = 1 - self
+        alpha = x.valuation()
+        if alpha <= 0:
+            raise ValueError("not in the domain of convergence")
+
+        aprec = self.precision_absolute()
+        if prec is not None and prec < aprec:
+            aprec = prec
+        if aprec is Infinity:
+            aprec = R.precision_cap()
+
+        mina = 0
+        if e != 1:
+            lamb = aprec - alpha
+            if lamb > 0 and lamb*(p-1) <= e:
+                # This is the precision region where the absolute
+                # precision of the answer might be less than the
+                # absolute precision of the input
+
+                # kink is the number of times we multiply the relative
+                # precision by p before starting to add e instead.
+                kink = (e // (lamb * (p-1))).exact_log(p) + 1
+
+                # deriv0 is within 1 of the n yielding the minimal
+                # absolute precision
+                tmp = (e / (aprec * p.log(prec=53))).floor()
+                if tmp > 0:
+                    deriv0 = tmp.exact_log(p)
+                else:
+                    deriv0 = 0
+
+                # These are the absolute precisions of x^(p^n) at potential minimum points
+                L = [(aprec * p**n - n * e, n) for n in [0, kink, deriv0, deriv0+1]]
+                L.sort()
+                aprec = L[0][0]
+                mina = L[0][1]
+
+        total = R.zero()
+        if mina == 0 and alpha*p - e > aprec:
+            # The value of x^p/p is not needed in that case
+            x2p_p = R(0)
+        else:
+            x2p_p = x**p / p
+
+        # To get result right to precision aprec, we need all terms for which
+        # the valuation of x^n/n is strictly smaller than aprec.
+        # If we rewrite n=u*p^a with u a p-adic unit, then these are the terms
+        # for which u<(aprec+a*v(p))/(v(x)*p^a).
+        # Two sum over these terms, we run two nested loops, the outer one
+        # iterates over the possible values for a, the inner one iterates over
+        # the possible values for u.
+        upper_u = (aprec/alpha).floor()
+        if mina > 0 or upper_u > 0:
+            a=0
+            p2a=1       # p^a
+            x2pa = x    # x^(p^a)
+
+            # In the unramified case, we can stop summing terms as soon as
+            # there are no u for a given a to sum over. In the ramified case,
+            # it can happen that for some initial a there are no such u but
+            # later in the series there are such u again. mina can be set to
+            # take care of this by summing at least to a=mina-1
+            while True:
+                # we compute the sum for the possible values for u using Horner's method
+                inner_sum = R.zero()
+                for u in xrange(upper_u,0,-1):
+                    # We want u to be a p-adic unit
+                    if u % p==0:
+                        new_term = R.zero()
+                    else:
+                        new_term = ~R.base_ring()(u)
+
+                    # This hack is to deal with rings that don't lift to fields
+                    if u > 1 or x2p_p.is_zero():
+                        inner_sum = (inner_sum+new_term)*x2pa
+                    else:
+                        inner_sum = (inner_sum+new_term)*(x2p_p**a)*(x**(p2a-a*p))
+
+                total -= inner_sum
+
+                # Now increase a and check if a new iteration of the loop is needed
+                a += 1
+                p2a *= p
+                upper_u = ((aprec + a*e)/(alpha * p2a)).floor()
+                if a >= mina and upper_u <= 0: break
+
+                # We perform this last operation after the test
+                # because it is costly and may raise OverflowError
+                x2pa = x2pa**p
+
+        return total.add_bigoh(aprec)
+
+    def exp(self, prec=None):
+        """
+        Return the exponential of this series.
+
+        INPUT:
+
+        - `prec` -- an integer or ``None`` (default: ``None``); the
+          absolute precision at which the result is computed, if ``None``
+          the cap of the Tate algebra is used
+
+        EXAMPLES::
+
+            sage: R = Zp(3, 10, print_mode="digits")
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 3*x^2 + 9*y
+            sage: f.exp()
+            (...0000000001) + (...0000000010)*x^2 + (...1111111200)*x^6 + (...1111111200)*x^4 + (...0000000100)*y + ... + O(3^10)
+
+            sage: f.exp(prec=3)
+            (...001) + (...010)*x^2 + (...200)*x^6 + (...200)*x^4 + (...100)*y + O(3^3)
+
+        If the precision on the input is not enough to determine the
+        result at precision ``prec``, a result with smaller precision
+        is returned::
+
+            sage: g = f.add_bigoh(3); g
+            (...010)*x^2 + (...100)*y + O(3^3)
+            sage: g.exp()
+            (...001) + (...010)*x^2 + (...200)*x^6 + (...200)*x^4 + (...100)*y + O(3^3)
+            sage: g.exp(prec=10)
+            (...001) + (...010)*x^2 + (...200)*x^6 + (...200)*x^4 + (...100)*y + O(3^3)
+
+        When the input value is outside the domain of convergence, an
+        error is raised::
+
+            sage: f = x
+            sage: f.exp()
+            Traceback (most recent call last):
+            ...
+            ValueError: not in the domain of convergence
+
+        However `\exp(x)` converges on a smaller disk::
+
+            sage: f.restriction(-1).exp()
+            (...0000000001) + (...0000000001)*x + (...111111111.2)*x^3 + (...111111112)*x^2 + ... + O(3^10)
+
+        TESTS::
+
+            sage: f = 3 * A.random_element(integral=True)
+            sage: expf = f.exp()
+
+            sage: x0 = 3 * R.random_element()
+            sage: y0 = 3 * R.random_element()
+            sage: f(x0, y0).exp() == expf(x0, y0)
+            True
+
+            sage: expf.log() == f
+            True
+
+        """
+        # This code is mostly copied from sage.rings.padics.padic_generic_element
+        # (should we find a way to share it?)
+        A = self.parent()
+        R = A.base_ring()
+        p = R.prime()
+        e = R.absolute_e()
+        x_val = self.valuation()
+
+        if (p-1) * x_val <= e:
+            raise ValueError("not in the domain of convergence")
+
+        aprec = self.precision_absolute()
+        if aprec is Infinity:
+            aprec = R.precision_cap()
+        if prec is not None and prec < aprec:
+            aprec = prec
+
+        # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
+        # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
+        # have to sum terms for which n does not exceed N
+        N = (aprec // (x_val - e/(p-1))).floor()
+
+        # We evaluate the exponential series:
+        # We compute the value of x^N + N*x^(N-1) + ... + (N-1)!*x + N!
+        # by Horner's method. Then, we divide by N!.
+        series = A.one()
+        nfactorial = R.one()
+        x = self.add_bigoh(aprec)
+        for n in range(N, 0, -1):
+            series *= x
+            nfactorial *= n
+            series += nfactorial
+        return series / nfactorial
+
+
+    def leading_term(self, secure=False):
         r"""
         Return the leading term of this series.
 
@@ -1969,6 +2651,13 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             compare the valuation and, in case of equality, we compare
             the monomials with respect to the order given at the
             creation of the parent.
+
+        INPUT:
+
+        - ``secure`` -- a boolean (default: ``False``); if ``True``,
+          raises an error if the leading term cannot be determined
+          due to the existence of terms which are indistinguishable 
+          from zero; if ``False``, discard silently these terms
 
         EXAMPLES::
 
@@ -1989,20 +2678,67 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f.restriction(-1).leading_term()
             (...0000000001)
 
+        TESTS::
+
+            sage: f = 1 + 64*x
+            sage: f -= R(1, 5)
+            sage: f
+            (...00000) + (...0000000001000000)*x
+
+            sage: f.leading_term()
+            (...0000000001000000)*x
+            sage: f.leading_term(secure=True)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision to determine the leading term
+
+            sage: g = A(0, 10); g
+            O(2^10)
+            sage: g.leading_term()
+            Traceback (most recent call last):
+            ...
+            ValueError: zero has no leading term
+            sage: g.leading_term(secure=True)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision to determine the leading term
+        
+        .. SEEALSO::
+
+            :meth:`leading_coefficient`, :meth:`leading_monomial`
+
         """
-        terms = self.terms()
+        cdef list terms
+        cdef TateAlgebraTerm term
+        if secure:
+            terms = self._terms_c()
+        else:
+            terms = self._terms_c(include_zero=False)
         if terms:
-            return terms[0]
+            term = terms[0]
+            if term.coefficient().is_zero():
+                raise PrecisionError("not enough precision to determine the leading term")
+            return term
+        if secure and self._prec is not Infinity:
+            raise PrecisionError("not enough precision to determine the leading term")
         else:
             raise ValueError("zero has no leading term")
 
-    def leading_coefficient(self):
+
+    def leading_coefficient(self, secure=False):
         """
         Return the leading coefficient of this series.
 
         .. NOTE::
 
             The leading coefficient is the coefficient of the leading term.
+
+        INPUT:
+
+        - ``secure`` -- a boolean (default: ``False``); if ``True``,
+          raises an error if the leading term cannot be determined
+          due to the existence of terms which are indistinguishable
+          from zero; if ``False``, discard silently these terms
 
         EXAMPLES::
 
@@ -2018,20 +2754,27 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: g.leading_coefficient()
             3 + O(2^10)
 
-        """
-        terms = self.terms()
-        if terms:
-            return terms[0].coefficient()
-        else:
-            return self.base_ring()(0)
+        .. SEEALSO::
 
-    def leading_monomial(self):
+            :meth:`leading_term`, :meth:`leading_monomial`
+
+        """
+        return self.leading_term(secure=secure).coefficient()
+
+    def leading_monomial(self, secure=False):
         """
         Return the leading coefficient of this series.
 
         .. NOTE::
 
             The leading monomial is the monomial of the leading term.
+
+        INPUT:
+
+        - ``secure`` -- a boolean (default: ``False``); if ``True``,
+          raises an error if the leading term cannot be determined
+          due to the existence of terms which are indistinguishable
+          from zero; if ``False``, discard silently these terms
 
         EXAMPLES::
 
@@ -2047,12 +2790,12 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: g.leading_monomial()
             (...0000000001)*x*y
 
+        .. SEEALSO::
+
+            :meth:`leading_term`, :meth:`leading_coefficient`
+
         """
-        terms = self.terms()
-        if terms:
-            return terms[0].monomial()
-        else:
-            raise ValueError("zero has no leading monomial")
+        return self.leading_term(secure=secure).monomial()
 
     cpdef TateAlgebraElement monic(self):
         r"""
@@ -2084,7 +2827,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         TESTS::
 
             sage: A(0).monic()
-            0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
 
         """
         cdef TateAlgebraElement ans = self._new_c()
@@ -2092,8 +2837,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef long shi
         cdef pAdicGenericElement u
         cdef list terms = self._terms_c()
-        if not terms:
-            return self
+        if not terms or terms[0].coefficient().is_zero():
+            raise ZeroDivisionError("rational division by zero")
         t = terms[0]
         shi, u = t._coeff.val_unit()
         shi -= t._exponent.dotprod(self._parent._log_radii)
@@ -2125,7 +2870,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if self.valuation() != 0:
             return False
         c = self.leading_coefficient()
-        if c == 0 or c.unit_part() == 1:
+        if c != 0 and c.unit_part() == 1:
             return True
         return False
 
@@ -2305,31 +3050,35 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef list quos = [ ]
         cdef list terms = self._terms_c()
         cdef int index = 0
+        cdef bint in_rem
 
         if quo:
             for d in divisors:
                 f = self._new_c()
-                f._poly = PolyDict({})
+                f._poly = PolyDict({}, None)
                 f._prec = d.precision_relative()
                 quos.append(f)
 
         f = self._new_c()
-        f._poly = PolyDict(self._poly.__repn)
+        f._poly = PolyDict(self._poly.__repn, None)
         f._prec = self._prec
         while len(terms) > index:
             lt = terms[index]
             if lt._valuation_c() >= f._prec:
                 break
-            for i in range(len(divisors)):
-                if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=integral):
-                    factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
-                    f = f - (<TateAlgebraElement>divisors[i])._term_mul_c(factor)
-                    terms = f._terms_c()
-                    index = 0
-                    if quo:
-                        quos[i] = (<TateAlgebraElement>quos[i]) + factor
-                    break
-            else:
+            in_rem = True
+            if not lt._coeff.is_zero():  # is it a good idea?
+                for i in range(len(divisors)):
+                    if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=integral):
+                        factor = lt._floordiv_c(<TateAlgebraTerm>ltds[i])
+                        f = f - (<TateAlgebraElement>divisors[i])._term_mul_c(factor)
+                        terms = f._terms_c()
+                        index = 0
+                        if quo:
+                            quos[i] = (<TateAlgebraElement>quos[i]) + factor
+                        in_rem = False
+                        break
+            if in_rem:
                 if rem:
                     if coeffs.has_key(lt._exponent):
                         coeffs[lt._exponent] += lt._coeff
@@ -2338,7 +3087,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 del f._poly.__repn[lt._exponent]
                 index += 1
         if rem:
-            f._poly += PolyDict(coeffs, self._poly.__zero)
+            f._poly += PolyDict(coeffs, None)
             f._terms = None
         return quos, f
 
@@ -2358,9 +3107,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
             sage: R = Zp(2, 10)
             sage: A.<u,v> = TateAlgebra(R)
-            sage: AA = A.integer_ring()
+            sage: Ao = A.integer_ring()
 
-            sage: f = AA(u^2 + 2*v^2)
+            sage: f = Ao(u^2 + 2*v^2)
             sage: f.quo_rem(u)  # indirect doctest
             ((1 + O(2^10))*u, (2 + O(2^10))*v^2 + O(2^10))
 
@@ -2558,6 +3307,20 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         - ``other`` -- a Tate series
 
+        NOTE:
+
+        If `f` and `g` are two Tate series with leading term
+        `t_f` and `t_g` respectively, the S-polynomial of `f`
+        and `g` is defined by
+
+        .. MATH::
+
+            S(f,g) = \frac{\text{lcm}(t_f,t_g)}{t_f}} f - \frac{\text{lcm}(t_f,t_g)}{t_g}} g
+
+        By construction the terms in `\text{lcm}(t_f,t_g)` cancel,
+        so that the leading term of `S(f,g)` is strictly smaller
+        than `\text{lcm}(t_f,t_g)`.
+
         EXAMPLES::
 
             sage: R = Zp(2, 5, print_mode="digits")
@@ -2606,4 +3369,6 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraTerm st = self._terms_c()[0]
         cdef TateAlgebraTerm ot = other._terms_c()[0]
         cdef TateAlgebraTerm t = st._lcm_c(ot)
-        return self._term_mul_c(t._floordiv_c(st)) - other._term_mul_c(t._floordiv_c(ot))
+        cdef TateAlgebraElement ans = self._term_mul_c(t._floordiv_c(st)) - other._term_mul_c(t._floordiv_c(ot))
+        ans._poly.__repn.pop(t._exponent, None)
+        return ans

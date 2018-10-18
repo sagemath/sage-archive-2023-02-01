@@ -396,7 +396,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         r"""
         Returns the fraction field of this ring or field.
 
-        For `\ZZ_p`, this is the `p`-adic field with the same options,
+        For `\Bold{Z}_p`, this is the `p`-adic field with the same options,
         and for extensions, it is just the extension of the fraction
         field of the base determined by the same polynomial.
 
@@ -459,7 +459,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         r"""
         Returns the ring of integers of this ring or field.
 
-        For `\QQ_p`, this is the `p`-adic ring with the same options,
+        For `\Bold{Q}_p`, this is the `p`-adic ring with the same options,
         and for extensions, it is just the extension of the ring
         of integers of the base determined by the same polynomial.
 
@@ -587,7 +587,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def teichmuller_system(self):
         r"""
-        Returns a set of teichmuller representatives for the invertible elements of `\ZZ / p\ZZ`.
+        Returns a set of teichmuller representatives for the invertible elements of `\Bold{Z} / p\Bold{Z}`.
 
         INPUT:
 
@@ -595,7 +595,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         OUTPUT:
 
-        - list of elements -- a list of teichmuller representatives for the invertible elements of `\ZZ / p\ZZ`
+        - list of elements -- a list of teichmuller representatives for the invertible elements of `\Bold{Z} / p\Bold{Z}`
 
         EXAMPLES::
 
@@ -622,19 +622,19 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
 #     def automorphisms(self):
 #         r"""
-#         Returns the group of automorphisms of `\ZZ_p`, i.e. the trivial group.
+#         Returns the group of automorphisms of `\Bold{Z}_p`, i.e. the trivial group.
 #         """
 #         raise NotImplementedError
 
 #     def galois_group(self):
 #         r"""
-#         Returns the Galois group of `\ZZ_p`, i.e. the trivial group.
+#         Returns the Galois group of `\Bold{Z}_p`, i.e. the trivial group.
 #         """
 #         raise NotImplementedError
 
 #     def hasGNB(self):
 #         r"""
-#         Returns whether or not `\ZZ_p` has a Gauss Normal Basis.
+#         Returns whether or not `\Bold{Z}_p` has a Gauss Normal Basis.
 #         """
 #         raise NotImplementedError
 

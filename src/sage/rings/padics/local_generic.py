@@ -218,7 +218,7 @@ class LocalGeneric(CommutativeRing):
         EXAMPLES::
 
             sage: latex(Zq(27,names='a')) #indirect doctest
-            \ZZ_{3^{3}}
+            \Bold{Z}_{3^{3}}
         """
         return self._repr_(do_latex = True)
 
@@ -259,7 +259,7 @@ class LocalGeneric(CommutativeRing):
         - ``field`` -- bool.  If ``True``, switch to a tower of fields via the fraction field.
                         If False, switch to a tower of rings of integers.
 
-        - ``q`` -- prime power.  Replace the initial unramified extension of `\QQ_p` or `\ZZ_p`
+        - ``q`` -- prime power.  Replace the initial unramified extension of `\Bold{Q}_p` or `\Bold{Z}_p`
                     with an unramified extension of residue cardinality `q`.
                     If the initial extension is ramified, add in an unramified extension.
 

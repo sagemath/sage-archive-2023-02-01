@@ -541,6 +541,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Zp(5,5)(1/3) # indirect doctest
             2 + 3*5 + 5^2 + 3*5^3 + 5^4 + O(5^5)
+
+        We check that trac:`26479` is fixed::
+
+            sage: K.<pi> = Qp(2).extension(x^3 - 2)
+            sage: latex(pi)
+            '\pi + O(\pi^{61})'
+
         """
         return self.parent()._printer.repr_gen(self, do_latex, mode=mode)
 
@@ -755,7 +762,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             NotImplementedError: One factor of the Artin-Hasse exponential does not converge
 
         There is however an important exception.
-        When we are working over `\ZZ_2` or `\QQ_2` and `x` is congruent to `2`
+        When we are working over `\Bold{Z}_2` or `\Bold{Q}_2` and `x` is congruent to `2`
         modulo `4`, then `x` and `x^2/2` are not in the domain of convergence of
         the exponential. However, `\exp(x + x^2/2)` does converge. 
         In this case, the Artin-Hasse exponential of `x`, denoted by `AH(x)`, is
@@ -1400,7 +1407,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Since the elements are only given with finite precision,
             their greatest common divisor is in general not unique (not even up
             to units). For example `O(3)` is a representative for the elements
-            0 and 3 in the 3-adic ring `\ZZ_3`. The greatest common
+            0 and 3 in the 3-adic ring `\Bold{Z}_3`. The greatest common
             divisor of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
             return an element of minimal valuation among the possible greatest
@@ -1553,7 +1560,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Since the elements are only given with finite precision, their
             greatest common divisor is in general not unique (not even up to
             units). For example `O(3)` is a representative for the elements 0
-            and 3 in the 3-adic ring `\ZZ_3`. The greatest common
+            and 3 in the 3-adic ring `\Bold{Z}_3`. The greatest common
             divisor of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
             return an element of minimal valuation among the possible greatest
@@ -2929,7 +2936,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # capped-relative elements and keep track of the unit part and the
         # valuation separately.
 
-        # the value of x^N+N*x^(N-1)+...+x*N!+N!
+        # the value of x^N + N*x^(N-1) + ... + (N-1)!*x + N!
         series_unit,series_val = R.one(), 0
 
         # we compute the value of N! as we go through the loop

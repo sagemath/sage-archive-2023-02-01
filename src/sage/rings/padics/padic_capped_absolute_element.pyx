@@ -183,7 +183,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         OUTPUT:
 
         This element reduced modulo `p^\mathrm{absprec}` as an element of
-        `\ZZ/p^\mathrm{absprec}\ZZ`
+        `\Bold{Z}/p^\mathrm{absprec}\Bold{Z}`
 
          EXAMPLES::
 
@@ -260,7 +260,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
         OUTPUT:
         the multiplicative order of self.  This is the minimum multiplicative
-        order of all elements of `\ZZ_p` lifting ``self`` to infinite
+        order of all elements of `\Bold{Z}_p` lifting ``self`` to infinite
         precision.
 
         EXAMPLES::

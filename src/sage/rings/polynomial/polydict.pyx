@@ -109,7 +109,7 @@ cdef class PolyDict:
 
         if force_int_exponents:
             new_pdict = {}
-            if remove_zero:
+            if remove_zero and zero is not None:
                 for k, c in pdict.iteritems():
                     if not c == zero:
                         new_pdict[ETuple([int(i) for i in k])] = c
@@ -118,9 +118,9 @@ cdef class PolyDict:
                     new_pdict[ETuple([int(i) for i in k])] = c
             pdict = new_pdict
         else:
-            if remove_zero:
+            if remove_zero and zero is not None:
                 for k in list(pdict):
-                    if pdict[k].is_zero(): # == zero:
+                    if pdict[k] == zero:
                         del pdict[k]
         self.__repn = pdict
         self.__zero = zero

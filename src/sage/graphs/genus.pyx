@@ -62,7 +62,7 @@ cdef class simple_connected_genus_backtracker:
     r"""
     A class which computes the genus of a DenseGraph through an extremely slow
     but relatively optimized algorithm.  This is "only" exponential for graphs
-    of bounded degree, and feels pretty snappy for 3-regular graphs.  The
+    of bounded degree, and feels pretty snappy for 3-regular graphs. The
     generic runtime is
 
       `|V(G)| \prod_{v \in V(G)} (deg(v)-1)!`
@@ -283,7 +283,7 @@ cdef class simple_connected_genus_backtracker:
 
         In this manner, we are able to quickly check if a particular element has
         been visited recently.  Moreover, we are able to distinguish what order
-        three elements of a single orbit come in.  This is important for
+        three elements of a single orbit come in. This is important for
         `self.flip()`, and discussed in more detail there.
         """
         if self.visited[i]:
@@ -302,7 +302,7 @@ cdef class simple_connected_genus_backtracker:
 
     cdef void flip(self, int v, int i):
         """
-        This is where the real work happens.  Once cycles have been counted for
+        This is where the real work happens. Once cycles have been counted for
         the initial face_map, we make small local changes, and look at their
         effect on the number of cycles.
 
@@ -339,10 +339,10 @@ cdef class simple_connected_genus_backtracker:
         * If all three elements are in the same orbit, a flip either disconnects
           them into three distinct orbits, or maintains status quo.
 
-          To differentiate these situations, we need only to look at the order
-          of `v0`, `v1`, and `v2` under the orbit.  If `e0 -> ... -> e2 ->
-          ... -> e1` before the flip, the cycle breaks into three.  Otherwise,
-          the number of cycles stays the same.
+        To differentiate these situations, we need only to look at the order of
+        `v0`, `v1`, and `v2` under the orbit. If `e0 -> ... -> e2 -> ... -> e1`
+        before the flip, the cycle breaks into three.  Otherwise, the number of
+        cycles stays the same.
         """
         cdef int cycles = 0
         cdef int *w = self.vertex_darts[v]

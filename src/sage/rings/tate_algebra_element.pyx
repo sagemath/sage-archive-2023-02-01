@@ -682,7 +682,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         The result is normalized so that:
 
-        - its valuation is equal to the smallest valuation of 
+        - its valuation is equal to the smallest valuation of
           this term and ``other``
 
         - its coefficient is a power of the uniformizer.
@@ -712,7 +712,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         The result is normalized so that:
 
-        - its valuation is equal to the smallest valuation of 
+        - its valuation is equal to the smallest valuation of
           this term and ``other``
 
         - its coefficient is a power of the uniformizer.
@@ -1372,7 +1372,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``prec`` -- an integer or ``None`` (default: ``None``); 
+        - ``prec`` -- an integer or ``None`` (default: ``None``);
           the precision at which the result is computed, if ``None``,
           the result is truncated according to the cap of the parent
 
@@ -1399,9 +1399,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             (...0000000001)*x + (...0000000001)
             sage: f.inverse_of_unit()
             Traceback (most recent call last):
-            ...        
+            ...
             ValueError: this series in not invertible
-        
+
         """
         cdef TateAlgebraTerm t
         cdef long v, curprec
@@ -1668,7 +1668,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: for n in range(2, 9):
             ....:     if f.nth_root(n)^n != f: raise RuntimeError
 
-        It's possible that `f` has a trivial ``n``-th root (which is analytic on 
+        It's possible that `f` has a trivial ``n``-th root (which is analytic on
         the correct domain) but that `\exp(\frac 1 n \log(f))` does not converge.
         In this case, an error is raised::
 
@@ -2179,7 +2179,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f = 2*x^2 + x
             sage: f.dict()
             {(1, 0): ...0000000001, (2, 0): ...00000000010}
-        
+
         """
         self._normalize()
         return dict(self._poly.__repn)
@@ -2230,8 +2230,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``prec`` -- an integer or ``None`` (default: ``None``); if 
-          ``None``, the cap of the parent is used if it is higher than 
+        - ``prec`` -- an integer or ``None`` (default: ``None``); if
+          ``None``, the cap of the parent is used if it is higher than
           the current precision
 
         EXAMPLES::
@@ -2656,7 +2656,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         - ``secure`` -- a boolean (default: ``False``); if ``True``,
           raises an error if the leading term cannot be determined
-          due to the existence of terms which are indistinguishable 
+          due to the existence of terms which are indistinguishable
           from zero; if ``False``, discard silently these terms
 
         EXAMPLES::
@@ -2702,7 +2702,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             PrecisionError: not enough precision to determine the leading term
-        
+
         .. SEEALSO::
 
             :meth:`leading_coefficient`, :meth:`leading_monomial`

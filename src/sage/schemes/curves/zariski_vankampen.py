@@ -171,7 +171,7 @@ def discrim(f):
     """
     x, y = f.variables()
     F = f.base_ring()
-    disc = F[x](f.discriminant(y).resultant(f, y)).roots(QQbar, multiplicities=False)
+    disc = F[x](f.discriminant(y).resultant(f, y)).radical().roots(QQbar, multiplicities=False)
     return disc
 
 def segments(points):
@@ -315,6 +315,26 @@ def braid_in_segment(f, x0, x1):
         sage: x1 = CC(1, 0.5)
         sage: braid_in_segment(f, x0, x1) # optional - sirocco
         s1
+
+    TESTS::
+
+        # Check that # 26503 is fixed
+        sage: var('t')
+        sage: wp = QQ[t](t^2+t+1).roots(QQbar)[0][0]
+        sage: Kw.<wp>=NumberField(wp.minpoly(), embedding=wp)
+        sage: R.<x,y> = Kw[]
+        sage: z = 1
+        sage: f = y * (y + (-wp - 1)) * x * (x - 1) * (x - y) * (x + (-wp - 1)*y - 1) * (x + (-wp - 1)*y + (wp))
+        sage: from sage.schemes.curves import zariski_vankampen as zvk
+        sage: g = f.subs({x:x+y})
+        sage: g = g.subs({x:x+y})
+        sage: disc = zvk.discrim(g)
+        sage: segs = zvk.segments(disc)
+        sage: segs[16]
+        (0.577350269189626*I, 0.500000000000000 + 0.288675134594813*I)
+        sage: zvk.braid_in_segment(g, *segs[16])  # optional - sirocco
+        s0*s1*s3*s5*s1^-1*s0^-1*s3^-1
+
     """
     CC = ComplexField(64)
     (x, y) = f.variables()
@@ -335,7 +355,7 @@ def braid_in_segment(f, x0, x1):
         if y0 in used:
             raise ValueError("different roots are too close")
         used.append(y0)
-        initialstrands.append([(0, CC(y0)), (1, y0ap)])
+        initialstrands.append([(0, y0), (1, y0ap)])
     initialbraid = braid_from_piecewise(initialstrands)
     F1 = QQbar[y](f(X1,y))
     y1s = F1.roots(multiplicities=False)
@@ -348,7 +368,7 @@ def braid_in_segment(f, x0, x1):
         if y1 in used:
             raise ValueError("different roots are too close")
         used.append(y1)
-        finalstrands.append([(0, y1ap), (1, CC(y1))])
+        finalstrands.append([(0, y1ap), (1, y1)])
     finallbraid = braid_from_piecewise(finalstrands)
     return initialbraid * centralbraid * finallbraid
 
@@ -415,7 +435,7 @@ def fundamental_group(f, simplified=True, projective=False):
     """
     (x, y) = f.variables()
     F = f.base_ring()
-    g = f.factor().radical().prod()
+    g = f.radical()
     d = g.degree(y)
     while not g.coefficient(y**d) in F or (projective and g.total_degree() > d):
         g = g.subs({x: x + y})

@@ -2569,6 +2569,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot substitute in u: duplicate key u.
+
+        ::
+
+            sage: B(0).subs({'_zero_': None}) is None
+            True
         """
         # check if nothing to do
         if not rules and not kwds:

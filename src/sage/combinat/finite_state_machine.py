@@ -13701,8 +13701,8 @@ class _FSMTapeCache_(sage.structure.sage_object.SageObject):
         it_word = iter(word)
 
         # check letters in cache
-        if any(letter_on_track != next(it_word)
-               for letter_on_track in track_cache):
+        if any(letter_on_track != letter_in_word
+               for letter_on_track, letter_in_word in zip(track_cache, it_word)):
             return False
 
         # check letters not already cached

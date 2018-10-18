@@ -3614,11 +3614,35 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return self._term_monoid_factory_
 
 
-    def term_monoid(self, term_monoid):
+    def term_monoid(self, type):
         r"""
+        Return the term monoid of this asymptotic ring of specified ``type``.
+
+        INPUT:
+
+        - ``type`` -- 'O' or 'exact', or an instance of an existing
+          term monoid.
+          See :class:`~sage.rings.asymptotic.term_monoid.TermMonoidFactory`
+          for more details.
+
+        OUTPUT:
+
+        A term monoid object derived from
+        :class:`~sage.rings.asymptotic.term_monoid.GenericTermMonoid`.
+
+        EXAMPLES::
+
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: AR.term_monoid('exact')
+            Exact Term Monoid x^ZZ with coefficients in Integer Ring
+            sage: AR.term_monoid('O')
+            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring
+            sage: AR.term_monoid(AR.term_monoid('exact'))
+            Exact Term Monoid x^ZZ with coefficients in Integer Ring
         """
         TermMonoid = self.term_monoid_factory
-        return TermMonoid(term_monoid, asymptotic_ring=self)
+        return TermMonoid(type, asymptotic_ring=self)
+
 
 
     def change_parameter(self, **kwds):

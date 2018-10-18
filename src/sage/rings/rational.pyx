@@ -50,7 +50,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 cimport cython
 from cpython cimport *
@@ -259,7 +259,8 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
         mpz_pow_ui(z.value, z.value, mpz_get_ui(mpq_numref(b.value)))
     return z
 
-cpdef rational_power_parts(a, b, factor_limit=10**5):
+
+cpdef rational_power_parts(a, Rational b, factor_limit=10**5):
     """
     Compute rationals or integers `c` and `d` such that `a^b = c*d^b`
     with `d` small. This is used for simplifying radicals.
@@ -315,36 +316,56 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
         True
         sage: all((-1)^(p/q) == cos(p*pi/q) + I * sin(p*pi/q) for p in srange(1,6) for q in srange(1,6))
         True
+
+    A few more tests added in :trac:`26414`::
+
+        sage: rational_power_parts(-1, 2/1)
+        (1, 1)
+        sage: rational_power_parts(-8, 2/3)
+        (4, -1)
+        sage: all(isinstance(z, Integer) for z in rational_power_parts(-1, 1/1))
+        True
+        sage: all(isinstance(z, Integer) for z in rational_power_parts(-1, 2/3))
+        True
     """
-    b_negative=False
-    if b < 0:
-        b_negative = True
+    cdef bint b_negative = (b < 0)
+    if b_negative:
         b = -b
         a = ~a
-    if isinstance(a, Rational):
+
+    if isinstance(a, Integer):
+        pass
+    elif isinstance(a, Rational):
         c1, d1 = rational_power_parts(a.numerator(), b)
         c2, d2 = rational_power_parts(a.denominator(), b)
         return (c1/c2, d1/d2) if not b_negative else (c1/c2, d2/d1)
-    elif not isinstance(a, Integer):
+    else:
         a = Integer(a)
+
     c = integer_rational_power(a, b)
     if c is not None:
-        return c, 1
+        return c, integer.smallInteger(1)
+
     numer, denom = b.numerator(), b.denominator()
-    if a == -1 and denom > 1:
-        return 1, -1
     if a < factor_limit*factor_limit:
         f = a.factor()
     else:
         from sage.rings.factorint import factor_trial_division
-        f = factor_trial_division(a,factor_limit)
-    c = 1
-    d = 1
+        f = factor_trial_division(a, factor_limit)
+    c = integer.smallInteger(1)
+    # The sign is not handled by the loop below. We don't want to
+    # simplify (-1)^(2/3) to 1 (see Trac #15605), so we always move
+    # the sign over to d. Note that the case (-1)^2 is already
+    # handled by integer_rational_power() above.
+    if a >= 0:
+        # d = 1
+        d = c
+    else:
+        # d = -1
+        d = integer.smallInteger(-1)
     for p, e in f:
         c *= p**((e // denom)*numer)
         d *= p**(e % denom)
-    if a < 0 and numer & 1:
-        d = -d
     return (c, d) if not b_negative else (c, ~d)
 
 

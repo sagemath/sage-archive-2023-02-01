@@ -3676,7 +3676,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: A.change_parameter(coefficient_ring=None) is A
             True
         """
-        parameters = ('growth_group', 'coefficient_ring', 'default_prec')
+        parameters = ('growth_group', 'coefficient_ring', 'default_prec',
+                      'term_monoid_factory')
         values = dict()
         for parameter in parameters:
             default = getattr(self, parameter)
@@ -4560,6 +4561,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             self.cls = cls
         self._default_prec_ = default_prec
         self._category_ = category
+        self._term_monoid_factory_ = term_monoid_factory
 
         from sage.categories.rings import Rings
         super(ConstructionFunctor, self).__init__(
@@ -4636,10 +4638,12 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         """
         kwds = {'growth_group': self.growth_group,
                 'coefficient_ring': coefficient_ring}
-        if self._category_ is not None:
-            kwds['category'] = self._category_
-        if self._default_prec_ is not None:
-            kwds['default_prec'] = self._default_prec_
+        parameters = ('category', 'default_prec',
+                      'term_monoid_factory')
+        for parameter in parameters:
+            value = getattr(self, '_{}_'.format(parameter))
+            if value is not None:
+                kwds[parameter] = value
         return self.cls(**kwds)
 
 

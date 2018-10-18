@@ -35,7 +35,7 @@ Check the fix from :trac:`8323`::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
@@ -674,19 +674,6 @@ def get_verbose():
     return LEVEL
 
 
-def cmp_props(left, right, props):
-    from sage.misc.superseded import deprecation
-    deprecation(23149, "cmp_props is deprecated")
-    for a in props:
-        lx = left.__getattribute__(a)()
-        rx = right.__getattribute__(a)()
-        if lx < rx:
-            return -1
-        elif lx > rx:
-            return 1
-    return 0
-
-
 def union(x, y=None):
     """
     Return the union of x and y, as a list. The resulting list need not
@@ -1251,7 +1238,7 @@ def some_tuples(elements, repeat, bound, max_samples=None):
     if max_samples is None:
         from itertools import islice, product
         P = elements if repeat is None else product(elements, repeat=repeat)
-        return islice(P, bound)
+        return islice(P, int(bound))
     else:
         if not (hasattr(elements, '__len__') and hasattr(elements, '__getitem__')):
             elements = list(elements)

@@ -2009,7 +2009,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=ZZ, default_prec=3)
             sage: (49*x^3-1).log()
-            3*log(x) + log(49) - 1/49*x^(-3) - 1/4802*x^(-6) ... + O(x^(-12))
+            3*log(x) + 2*log(7) - 1/49*x^(-3) - 1/4802*x^(-6) ... + O(x^(-12))
             sage: _.parent()
             Asymptotic Ring <x^ZZ * log(x)^ZZ> over Symbolic Ring
 

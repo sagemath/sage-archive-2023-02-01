@@ -1,7 +1,7 @@
 r"""
 `p`-Adic Base Leaves
 
-Implementations of `\ZZ_p` and `\QQ_p`
+Implementations of `\mathbb{Z}_p` and `\mathbb{Q}_p`
 
 AUTHORS:
 
@@ -99,7 +99,7 @@ when cast into the ring.::
     <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
 
 The fixed modulus type is the leanest of the p-adic rings: it is
-basically just a wrapper around `\ZZ / p^n \ZZ`
+basically just a wrapper around `\mathbb{Z} / p^n \mathbb{Z}`
 providing a unified interface with the rest of the `p`-adics.  This is
 the type you should use if your primary interest is in speed (though
 it's not all that much faster than other `p`-adic types).  It does not
@@ -112,7 +112,7 @@ track precision of elements.::
 
 `p`-Adic rings and fields should be created using the creation
 functions ``Zp`` and ``Qp`` as above.  This will ensure that there is
-only one instance of `\ZZ_p` and `\QQ_p` of a given
+only one instance of `\mathbb{Z}_p` and `\mathbb{Q}_p` of a given
 type, `p`, print mode and precision.  It also saves typing very long
 class names.::
 
@@ -125,7 +125,7 @@ class names.::
 
 Once one has a `p`-Adic ring or field, one can cast elements into it
 in the standard way.  Integers, ints, longs, Rationals, other `p`-Adic
-types, pari `p`-adics and elements of `\ZZ / p^n \ZZ`
+types, pari `p`-adics and elements of `\mathbb{Z} / p^n \mathbb{Z}`
 can all be cast into a `p`-Adic field.::
 
     sage: R = Qp(5, 5, 'capped-rel','series'); a = R(16); a

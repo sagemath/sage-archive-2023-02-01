@@ -357,7 +357,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         norm from L to ``base``.
 
         In all other cases, the norm is the absolute norm down to
-        `\QQ_p` or `\ZZ_p`.
+        `\mathbb{Q}_p` or `\mathbb{Z}_p`.
 
         EXAMPLES::
 
@@ -429,7 +429,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         norm from `L` to ``base``.
 
         In all other cases, the norm is the absolute norm down to
-        `\QQ_p` or `\ZZ_p`.
+        `\mathbb{Q}_p` or `\mathbb{Z}_p`.
 
         EXAMPLES::
 

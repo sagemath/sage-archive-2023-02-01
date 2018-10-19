@@ -1,7 +1,7 @@
 r"""
 `p`-Adic Base Generic
 
-A superclass for implementations of `\ZZ_p` and `\QQ_p`.
+A superclass for implementations of `\mathbb{Z}_p` and `\mathbb{Q}_p`.
 
 AUTHORS:
 
@@ -158,7 +158,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def is_isomorphic(self, ring):
         r"""
-        Returns whether ``self`` and ``ring`` are isomorphic, i.e. whether ``ring`` is an implementation of `\ZZ_p` for the same prime as ``self``.
+        Returns whether ``self`` and ``ring`` are isomorphic, i.e. whether ``ring`` is an implementation of `\mathbb{Z}_p` for the same prime as ``self``.
 
         INPUT:
 
@@ -168,7 +168,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
         OUTPUT:
 
-        - ``boolean`` -- whether ``ring`` is an implementation of \ZZ_p` for the same prime as ``self``.
+        - ``boolean`` -- whether ``ring`` is an implementation of \mathbb{Z}_p` for the same prime as ``self``.
 
         EXAMPLES::
 
@@ -307,7 +307,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def has_pth_root(self):
         r"""
-        Returns whether or not `\ZZ_p` has a primitive `p^{th}`
+        Returns whether or not `\mathbb{Z}_p` has a primitive `p^{th}`
         root of unity.
 
         EXAMPLES::
@@ -321,7 +321,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def has_root_of_unity(self, n):
         r"""
-        Returns whether or not `\ZZ_p` has a primitive `n^{th}`
+        Returns whether or not `\mathbb{Z}_p` has a primitive `n^{th}`
         root of unity.
 
         INPUT:
@@ -404,7 +404,7 @@ class pAdicBaseGeneric(pAdicGeneric):
         triangle.
 
         The resulting image attempts to capture the
-        algebraic and topological characteristics of `\ZZ_p`.
+        algebraic and topological characteristics of `\mathbb{Z}_p`.
 
         INPUT:
 

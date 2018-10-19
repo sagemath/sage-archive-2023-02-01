@@ -1178,15 +1178,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp._to_binary_tree_Aval_Boussicault()
             [[., [[., .], [[., [., .]], .]]], [[., .], .]]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp._to_binary_tree_Aval_Boussicault()
             [., .]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp._to_binary_tree_Aval_Boussicault()
             .
         """
@@ -1237,15 +1233,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.to_binary_tree()
             [[., [[., .], [[., [., .]], .]]], [[., .], .]]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.to_binary_tree()
             [., .]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp.to_binary_tree()
             .
         """
@@ -1309,15 +1301,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.to_ordered_tree(bijection='Boussicault-Socci')
             [[[[[]], [[[]]]]], [[]]]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp._to_ordered_tree_Bou_Socci()
             [[]]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp._to_ordered_tree_Bou_Socci()
             []
         """
@@ -1437,15 +1425,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.to_ordered_tree()
             [[[[[]], [[[]]]]], [[]]]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.to_ordered_tree()
             [[]]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp.to_ordered_tree()
             []
 
@@ -1855,15 +1839,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.width()
             6
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.width()
             1
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp.width()
             1
         """
@@ -1886,15 +1866,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.height()
             4
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.height()
             1
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp.height()
             0
         """
@@ -1924,15 +1900,11 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 0 1]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.get_array()
             [[1]]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp.get_array()
             []
         """
@@ -2161,6 +2133,10 @@ class ParallelogramPolyomino(ClonableList):
         You can visualize the two bounce paths by using the following
         commands.
 
+        INPUT:
+
+        - ``direction`` -- the initial direction of the bounce path (see above for the definition).
+
         EXAMPLES::
 
             sage: PP = ParallelogramPolyomino(
@@ -2194,17 +2170,13 @@ class ParallelogramPolyomino(ClonableList):
             ....: )
             sage: view(PP) # not tested
 
-            sage: PP = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: PP = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: PP.bounce_path(direction=1)
             [1]
             sage: PP.bounce_path(direction=0)
             [1]
 
-            sage: PP = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: PP = ParallelogramPolyomino([[1], [1]])
             sage: PP.bounce_path(direction=1)
             []
             sage: PP.bounce_path(direction=0)
@@ -2249,6 +2221,10 @@ class ParallelogramPolyomino(ClonableList):
 
         sum([(1+ floor(i/2))*p[i] for i in range(len(p))])
 
+        INPUT:
+
+        - ``direction`` -- the initial direction of the bounce path (see :meth:`bounce_path` for the definition).
+
         EXAMPLES::
 
             sage: PP = ParallelogramPolyomino(
@@ -2270,17 +2246,13 @@ class ParallelogramPolyomino(ClonableList):
             sage: PP.bounce(direction=0)
             10
 
-            sage: PP = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: PP = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: PP.bounce(direction=1)
             1
             sage: PP.bounce(direction=0)
             1
 
-            sage: PP = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: PP = ParallelogramPolyomino([[1], [1]])
             sage: PP.bounce(direction=1)
             0
             sage: PP.bounce(direction=0)
@@ -2304,15 +2276,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.area()
             13
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.area()
             1
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp.area()
             0
         """
@@ -3232,15 +3200,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.geometry()
             [1, 4]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.geometry()
             [1, 1]
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp.geometry()
             [0, 1]
         """
@@ -3260,15 +3224,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.size()
             8
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.size()
             2
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[1], [1]]
-            ....: )
+            sage: pp = ParallelogramPolyomino([[1], [1]])
             sage: pp.size()
             1
         """

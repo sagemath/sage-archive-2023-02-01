@@ -1253,7 +1253,7 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
     This class only caches a context and modulus for p^prec_cap.
 
     Designed for use with fixed modulus p-adic rings, in Eisenstein
-    and unramified extensions of `\Bold{Z}_p`.
+    and unramified extensions of `\ZZ_p`.
     """
 
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):

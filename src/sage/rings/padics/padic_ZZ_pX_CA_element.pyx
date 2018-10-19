@@ -17,7 +17,7 @@ element contains the following data:
   variable `x` is the uniformizer in the case of eisenstein extensions.
   This ZZ_pX is created with global ntl modulus determined by absprec.
   Let `a` be absprec and `e` be the ramification index over
-  `\mathbb{Q}_p` or `\mathbb{Z}_p`.  Then the modulus is given by
+  `\QQ_p` or `\ZZ_p`.  Then the modulus is given by
   `p^{ceil(a/e)}`.  Note that all kinds of problems arise if you try
   to mix moduli.  ``ZZ_pX_conv_modulus`` gives a semi-safe way to
   convert between different moduli without having to pass through ZZX.
@@ -1175,7 +1175,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         result.
 
         In computing `(a + O(\pi^k))^{b + O(p^m)}`, one needs that the
-        reduction of `a` mod `\pi` is in the prime field `\mathbb{F}_p` (so
+        reduction of `a` mod `\pi` is in the prime field `\Bold{F}_p` (so
         that the `p^m` power of the Teichmuller part is constant as
         `m` increases).  Given this restriction, we can factor out the
         Teichmuller part and use the above lemma to find the first

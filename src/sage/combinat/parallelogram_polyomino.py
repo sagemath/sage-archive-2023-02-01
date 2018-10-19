@@ -601,7 +601,7 @@ class _drawing_tool:
             ....: )
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
-            sage: dt.XY( [1, 1] )
+            sage: dt.XY([1, 1])
             [1.0, 1.0]
 
             sage: fct = lambda vec: [2*vec[0], vec[1]]
@@ -1105,7 +1105,7 @@ class ParallelogramPolyomino(ClonableList):
 
         EXAMPLES::
 
-            sage: dyck = DyckWord( [1, 1, 0, 1, 1, 0, 1, 0, 0, 0] )
+            sage: dyck = DyckWord([1, 1, 0, 1, 1, 0, 1, 0, 0, 0])
             sage: ParallelogramPolyomino._from_dyck_word_delest_viennot(dyck)
             [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
         """
@@ -1135,7 +1135,7 @@ class ParallelogramPolyomino(ClonableList):
 
         EXAMPLES::
 
-            sage: dyck = DyckWord( [1, 1, 0, 1, 1, 0, 1, 0, 0, 0] )
+            sage: dyck = DyckWord([1, 1, 0, 1, 1, 0, 1, 0, 0, 0])
             sage: pp = ParallelogramPolyomino.from_dyck_word(dyck)
             sage: pp
             [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
@@ -1949,7 +1949,7 @@ class ParallelogramPolyomino(ClonableList):
             ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
             ....:     ]
             ....: )
-            sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+            sage: row = ParallelogramPolyomino._polyomino_row(pp, 4)
             sage: row
             [0, 1, 1]
         """
@@ -1965,7 +1965,7 @@ class ParallelogramPolyomino(ClonableList):
                 ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
                 ....:     ]
                 ....: )
-                sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+                sage: row = ParallelogramPolyomino._polyomino_row(pp, 4)
             """
             self.polyomino = polyomino
             self.row = row
@@ -1991,7 +1991,7 @@ class ParallelogramPolyomino(ClonableList):
                 [0 1 1]
                 [0 0 1]
 
-                sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+                sage: row = ParallelogramPolyomino._polyomino_row(pp, 4)
                 sage: [row[-1], row[0], row[1], row[2], row[3]]
                 [0, 0, 1, 1, 0]
             """
@@ -2753,11 +2753,11 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: pp.box_is_node( [2,1] )
+            sage: pp.box_is_node([2,1])
             True
-            sage: pp.box_is_node( [2,0] )
+            sage: pp.box_is_node([2,0])
             False
-            sage: pp.box_is_node( [1,1] )
+            sage: pp.box_is_node([1,1])
             False
         """
         if self[pos[0]][pos[1]] == 0:
@@ -2782,9 +2782,9 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 1, 0, 1, 0, 0, 0, 0]]
             ....: )
-            sage: pp.box_is_root( [0, 0] )
+            sage: pp.box_is_root([0, 0])
             True
-            sage: pp.box_is_root( [0, 1] )
+            sage: pp.box_is_root([0, 1])
             False
         """
         return box[0] == 0 and box[1] == 0
@@ -2980,14 +2980,14 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_BS_nodes() )
+            sage: sorted(pp.get_BS_nodes())
             [[0, 1], [1, 0], [1, 2], [2, 1], [3, 1], [4, 1]]
 
         You can draw the point inside the parallelogram polyomino by typing
         (the left nodes are in blue, and the right node are in red) ::
 
-            sage: pp.set_options( drawing_components=dict( tree=True ) )
-            sage: view( pp ) # not tested
+            sage: pp.set_options(drawing_components=dict(tree=True))
+            sage: view(pp) # not tested
         """
         result = []
         for h in range(1, self.height()):
@@ -3014,7 +3014,7 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_right_BS_nodes() )
+            sage: sorted(pp.get_right_BS_nodes())
             [[1, 0], [1, 2]]
 
             sage: pp = ParallelogramPolyomino(
@@ -3027,14 +3027,14 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_right_BS_nodes() )
+            sage: sorted(pp.get_right_BS_nodes())
             [[1, 0], [1, 1], [1, 2], [2, 1], [3, 1], [4, 1]]
 
         You can draw the point inside the parallelogram polyomino by typing,
         (the left nodes are in blue, and the right node are in red) ::
 
-            sage: pp.set_options( drawing_components=dict( tree=True ) )
-            sage: view( pp ) # not tested
+            sage: pp.set_options(drawing_components=dict(tree=True))
+            sage: view(pp) # not tested
         """
         result = []
         for h in range(1, self.height()):
@@ -3065,7 +3065,7 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_left_BS_nodes() )
+            sage: sorted(pp.get_left_BS_nodes())
             [[0, 1], [2, 1], [3, 1], [4, 1]]
 
             sage: pp = ParallelogramPolyomino(
@@ -3078,14 +3078,14 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_left_BS_nodes() )
+            sage: sorted(pp.get_left_BS_nodes())
             []
 
         You can draw the point inside the parallelogram polyomino by typing
         (the left nodes are in blue, and the right node are in red) ::
 
-            sage: pp.set_options( drawing_components=dict( tree=True ) )
-            sage: view( pp ) # not tested
+            sage: pp.set_options(drawing_components=dict(tree=True))
+            sage: view(pp) # not tested
         """
         result = []
         for h in range(1, self.height()):
@@ -3241,7 +3241,7 @@ class ParallelogramPolyomino(ClonableList):
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino([[0,1],[1,0]])
-            sage: latex( pp )
+            sage: latex(pp)
             <BLANKLINE>
             \begin{tikzpicture}[scale=1]
             ...
@@ -3259,7 +3259,7 @@ class ParallelogramPolyomino(ClonableList):
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino([[0,1],[1,0]])
-            sage: print( pp._latex_drawing() )
+            sage: print(pp._latex_drawing())
             <BLANKLINE>
             \begin{tikzpicture}[scale=1]
             ...
@@ -3299,7 +3299,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
             sage: PPS = ParallelogramPolyominoes(size=4)
             sage: PPS
             Parallelogram polyominoes of size 4
-            sage: sorted( list(PPS) )
+            sage: sorted(list(PPS))
             [[[0, 0, 0, 1], [1, 0, 0, 0]],
              [[0, 0, 1, 1], [1, 0, 1, 0]],
              [[0, 0, 1, 1], [1, 1, 0, 0]],
@@ -3356,7 +3356,7 @@ class ParallelogramPolyominoes_size(
         sage: PPS = ParallelogramPolyominoes(4)
         sage: PPS
         Parallelogram polyominoes of size 4
-        sage: sorted( list(PPS) )
+        sage: sorted(list(PPS))
         [[[0, 0, 0, 1], [1, 0, 0, 0]],
          [[0, 0, 1, 1], [1, 0, 1, 0]],
          [[0, 0, 1, 1], [1, 1, 0, 0]],

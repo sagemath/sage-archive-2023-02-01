@@ -860,13 +860,13 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     MODULUS:
 
     The modulus needs to define an unramified extension of `\QQ_p`: when it
-    is reduced to a polynomial over `\mathbb{F}_p` it should be irreducible.
+    is reduced to a polynomial over `\Bold{F}_p` it should be irreducible.
 
     The modulus can be given in a number of forms.
 
     1. A **polynomial**.
 
-    The base ring can be `\ZZ`, `\QQ`, `\ZZ_p`, `\QQ_p`, `\mathbb{F}_p`.::
+    The base ring can be `\ZZ`, `\QQ`, `\ZZ_p`, `\QQ_p`, `\Bold{F}_p`.::
 
         sage: P.<x> = ZZ[]
         sage: R.<a> = Qq(27, modulus = x^3 + 2*x + 1); R.modulus()
@@ -910,7 +910,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         True
 
     By default, the polynomial chosen is the standard lift of the
-    generator chosen for `\mathbb{F}_q`.::
+    generator chosen for `\Bold{F}_q`.::
 
         sage: GF(125, 'a').modulus()
         x^3 + 3*x + 3
@@ -918,7 +918,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         (1 + O(5^20))*x^3 + O(5^20)*x^2 + (3 + O(5^20))*x + 3 + O(5^20)
 
     However, you can choose another polynomial if desired (as long as
-    the reduction to `\mathbb{F}_p[x]` is irreducible).::
+    the reduction to `\Bold{F}_p[x]` is irreducible).::
 
         sage: P.<x> = ZZ[]
         sage: Z.<a> = Qq(125, modulus = x^3 + 3*x^2 + x + 1); Z.modulus()
@@ -2068,13 +2068,13 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     MODULUS:
 
     The modulus needs to define an unramified extension of `\ZZ_p`: when it
-    is reduced to a polynomial over `\mathbb{F}_p` it should be irreducible.
+    is reduced to a polynomial over `\Bold{F}_p` it should be irreducible.
 
     The modulus can be given in a number of forms.
 
     1. A **polynomial**.
 
-    The base ring can be `\ZZ`, `\QQ`, `\ZZ_p`, `\mathbb{F}_p`, or anything that can
+    The base ring can be `\ZZ`, `\QQ`, `\ZZ_p`, `\Bold{F}_p`, or anything that can
     be converted to `\ZZ_p`.::
 
         sage: P.<x> = ZZ[]
@@ -2119,7 +2119,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         True
 
     By default, the polynomial chosen is the standard lift of the
-    generator chosen for `\mathbb{F}_q`.::
+    generator chosen for `\Bold{F}_q`.::
 
         sage: GF(125, 'a').modulus()
         x^3 + 3*x + 3
@@ -2127,7 +2127,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         (1 + O(5^20))*x^3 + O(5^20)*x^2 + (3 + O(5^20))*x + 3 + O(5^20)
 
     However, you can choose another polynomial if desired (as long as
-    the reduction to `\mathbb{F}_p[x]` is irreducible).::
+    the reduction to `\Bold{F}_p[x]` is irreducible).::
 
         sage: P.<x> = ZZ[]
         sage: Z.<a> = Zq(125, modulus = x^3 + 3*x^2 + x + 1); Z.modulus()

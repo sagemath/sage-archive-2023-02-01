@@ -1175,7 +1175,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         result.
 
         In computing `(a + O(\pi^k))^{b + O(p^m)}`, one needs that the
-        reduction of `a` mod `\pi` is in the prime field `\mathbb{F}_p` (so
+        reduction of `a` mod `\pi` is in the prime field `\Bold{F}_p` (so
         that the `p^m` power of the Teichmuller part is constant as
         `m` increases).  Given this restriction, we can factor out the
         Teichmuller part and use the above lemma to find the first

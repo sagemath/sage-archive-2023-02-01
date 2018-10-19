@@ -169,8 +169,10 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
     """
     G._scream_if_not_simple(allow_multiple_edges=True)
 
-    if not n: return
-    if n < 0: raise ValueError("n must be non-negative")
+    if not n:
+        return
+    if n < 0:
+        raise ValueError("n must be non-negative")
 
     V = list(G)
     E = G.edges(sort=False)
@@ -240,7 +242,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
                                 coloring[color_dict[colors[c]]] = [v]
             yield coloring
     except RuntimeError:
-        raise RuntimeError("Too much recursion!  Graph coloring failed.")
+        raise RuntimeError("too much recursion, Graph coloring failed")
 
 def first_coloring(G, n=0, hex_colors=False):
     r"""
@@ -906,7 +908,7 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0):
         obj = Integer(obj)
 
     except MIPSolverException:
-        raise ValueError("This graph can not be colored with k colors")
+        raise ValueError("this graph can not be colored with k colors")
 
     if value_only:
         return obj
@@ -1173,7 +1175,7 @@ def round_robin(n):
 
 
     For higher orders, the coloring is still proper and uses the expected
-    number of colors ::
+    number of colors::
 
         sage: g = round_robin(9)
         sage: sum([Set([e[2] for e in g.edges_incident(v)]).cardinality() for v in g]) == 2*g.size()
@@ -1331,7 +1333,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     elif not plus_one:
         k = (Integer(max(g.degree())) / 2).ceil()
     else:
-        raise ValueError("plus_one must be equal to 0,1, or to None !")
+        raise ValueError("plus_one must be equal to 0,1, or to None!")
 
     from sage.plot.colors import rainbow
 
@@ -1371,9 +1373,9 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     except MIPSolverException:
         if plus_one:
-            raise RuntimeError("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. I implore you ! Nathann Cohen ")
+            raise RuntimeError("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. We implore you!")
         else:
-            raise ValueError("This graph can not be colored with the given number of colors.")
+            raise ValueError("this graph can not be colored with the given number of colors")
 
     c = p.get_values(c)
 
@@ -1535,7 +1537,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
             except ValueError:
                 k += 1
 
-        raise RuntimeError("this should not happen. Please report a bug !")
+        raise RuntimeError("this should not happen, please report a bug!")
 
     elif not k:
         k = max(g.degree()) + 2
@@ -1585,7 +1587,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
 
     except MIPSolverException:
         if k == max(g.degree()) + 2:
-            raise RuntimeError("it looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. I implore you ! Nathann Cohen ")
+            raise RuntimeError("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. We implore you!")
         else:
             raise ValueError("this graph can not be colored with the given number of colors")
 
@@ -1653,26 +1655,24 @@ class Test:
             sage: from sage.graphs.graph_coloring import Test
             sage: Test().random_all_graph_colorings(1)
         """
-        from sage.all import Set
+        for _ in range(tests):
+            G = GraphGenerators().RandomGNP(10, .5)
+            Q = G.chromatic_polynomial()
+            chi = G.chromatic_number()
 
-        G = GraphGenerators().RandomGNP(10, .5)
-        Q = G.chromatic_polynomial()
-        N = G.chromatic_number()
-        m = N
+            S = set()
 
-        S = Set()
+            for C in all_graph_colorings(G, chi):
+                parts = [C[k] for k in C]
+                for P in parts:
+                    l = len(P)
+                    for i in range(l):
+                        for j in range(i+1, l):
+                            if G.has_edge(P[i], P[j]):
+                                raise RuntimeError("coloring failed")
 
-        for C in all_graph_colorings(G, m):
-            parts = [C[k] for k in C]
-            for P in parts:
-                l = len(P)
-                for i in range(l):
-                    for j in range(i+1, l):
-                        if G.has_edge(P[i], P[j]):
-                            raise RuntimeError("Coloring Failed.")
+                # make the dict into a frozenset for quick uniqueness checking
+                S.add(frozenset((k, frozenset(C[k])) for k in C))
 
-            # make the dict into a set for quick uniqueness checking
-            S += Set([Set([(k,tuple(C[k])) for k in C])])
-
-        if len(S) != Q(m):
-            raise RuntimeError("incorrect number of unique colorings")
+            if len(S) != Q(chi):
+                raise RuntimeError("incorrect number of unique colorings")

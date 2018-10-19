@@ -316,15 +316,14 @@ def braid_in_segment(f, x0, x1):
         sage: braid_in_segment(f, x0, x1) # optional - sirocco
         s1
 
-    TESTS::
+    TESTS:
 
-        # Check that # 26503 is fixed
-        sage: var('t')
-        sage: wp = QQ[t](t^2+t+1).roots(QQbar)[0][0]
-        sage: Kw.<wp>=NumberField(wp.minpoly(), embedding=wp)
-        sage: R.<x,y> = Kw[]
-        sage: z = 1
-        sage: f = y * (y + (-wp - 1)) * x * (x - 1) * (x - y) * (x + (-wp - 1)*y - 1) * (x + (-wp - 1)*y + (wp))
+    Check that :trac:`26503` is fixed::
+        sage: wp = QQ['t']([1, 1, 1]).roots(QQbar)[0][0]
+        sage: Kw.<wp> = NumberField(wp.minpoly(), embedding=wp)
+        sage: R.<x, y> = Kw[]
+        sage: z = -wp - 1
+        sage: f = y*(y + z)*x*(x - 1)*(x - y)*(x + z*y - 1)*(x + z*y + wp)
         sage: from sage.schemes.curves import zariski_vankampen as zvk
         sage: g = f.subs({x:x+y})
         sage: g = g.subs({x:x+y})

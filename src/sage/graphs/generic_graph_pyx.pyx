@@ -144,7 +144,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
                                         **options)
 
     G = G.to_undirected()
-    vlist = G.vertices() # this defines a consistent order
+    vlist = list(G) # this defines a consistent order
 
     cdef int i, j, x
     cdef int n = G.order()
@@ -1435,9 +1435,10 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
 
     return (True, output)
 
+
 def transitive_reduction_acyclic(G):
     r"""
-    Returns the transitive reduction of an acyclic digraph
+    Return the transitive reduction of an acyclic digraph.
 
     INPUT:
 
@@ -1451,7 +1452,7 @@ def transitive_reduction_acyclic(G):
         True
     """
     cdef int  n = G.order()
-    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
+    cdef dict v_to_int = {vv: i for i, vv in enumerate(G)}
     cdef int  u, v, i
 
     cdef list linear_extension

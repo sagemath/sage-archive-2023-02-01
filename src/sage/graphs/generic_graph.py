@@ -18094,7 +18094,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def layout(self, layout = None, pos = None, dim = 2, save_pos = False, **options):
         """
-        Returns a layout for the vertices of this graph.
+        Return a layout for the vertices of this graph.
 
         INPUT:
 
@@ -18120,11 +18120,13 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = digraphs.ButterflyGraph(1)
-            sage: g.layout()
+            sage: D = g.layout(); D  # random
             {('0', 0): [2.69..., 0.43...],
              ('0', 1): [1.35..., 0.86...],
              ('1', 0): [0.89..., -0.42...],
              ('1', 1): [2.26..., -0.87...]}
+            sage: len(D) == len(g)
+            True
 
             sage: g.layout(layout="acyclic_dummy", save_pos=True)
             {('0', 0): [0.3..., 0],
@@ -18132,11 +18134,13 @@ class GenericGraph(GenericGraph_pyx):
              ('1', 0): [0.6..., 0],
              ('1', 1): [0.6..., 1]}
 
-            sage: g.layout(dim = 3)
+            sage: D = g.layout(dim = 3); D  # random
             {('0', 0): [0.68..., 0.50..., -0.24...],
              ('0', 1): [1.02..., -0.02..., 0.93...],
              ('1', 0): [2.06..., -0.49..., 0.23...],
              ('1', 1): [1.74..., 0.01..., -0.92...]}
+            sage: sorted(D.keys()) == sorted(g)
+            True
 
         Here is the list of all the available layout options::
 

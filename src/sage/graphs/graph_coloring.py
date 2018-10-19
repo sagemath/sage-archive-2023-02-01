@@ -1638,7 +1638,7 @@ class Test:
         """
         self.random_all_graph_colorings(tests)
 
-    def random_all_graph_colorings(self, tests=1000):
+    def random_all_graph_colorings(self, tests=2):
         r"""
         Verify the results of ``all_graph_colorings()`` in three ways:
 

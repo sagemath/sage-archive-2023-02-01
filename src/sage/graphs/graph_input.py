@@ -323,8 +323,8 @@ def from_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
              (oriented and not ((M[NZ[0], i] == +1 and M[NZ[1], i] == -1) or \
                                 (M[NZ[0], i] == -1 and M[NZ[1], i] == +1))) or \
              (not oriented and (M[NZ[0], i] != 1 or M[NZ[1], i] != 1)):
-            msg  = "there must be one or two nonzero entries per column in an incidence matrix. "
-            msg += "Got entries {} in column {}".format([M[j, i] for j in NZ], i)
+            msg  = "there must be one or two nonzero entries per column in an incidence matrix, "
+            msg += "got entries {} in column {}".format([M[j, i] for j in NZ], i)
             raise ValueError(msg)
         else:
             positions.append(tuple(NZ))
@@ -379,7 +379,7 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
     for c in M.columns():
         NZ = c.nonzero_positions()
         if len(NZ) != 2:
-            raise ValueError("there must be two nonzero entries (-1 & 1) per columnt")
+            raise ValueError("there must be two nonzero entries (-1 & 1) per column")
         L = sorted(set(c.list()))
         if L != [-1, 0, 1]:
             raise ValueError("each column represents an edge: -1 goes to 1")

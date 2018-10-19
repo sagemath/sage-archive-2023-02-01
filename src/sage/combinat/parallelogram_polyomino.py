@@ -507,6 +507,26 @@ The options avalaible are :
 
 - latex : Same as display. The default is "drawing".
 
+See :meth:`ParallelogramPolyomino.get_options` for more details and for an 
+user use of options. 
+
+EXAMPLES::
+
+    sage: from sage.combinat.parallelogram_polyomino import (
+    ....:     ParallelogramPolyominoesOptions
+    ....: )
+    sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+    sage: opt
+    {'color_bounce_0': u'red',
+     'color_bounce_1': u'blue',
+     'color_line': u'black',
+     'color_point': u'black',
+     'line_size': 1,
+     'mirror': None,
+     'point_size': 3.5,
+     'rotation': 0,
+     'scale': 1,
+     'translation': [0, 0]}
 """
 
 
@@ -1068,9 +1088,10 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``bijection`` -- ``None`̀  (default) The name of the bijection.
-          If set to ``None`` then the ``'Delest-Viennot'`` bijection is used.
-          Expected values : ``'Delest-Viennot'``.
+        - ``bijection`` -- string or ``None`̀  (default:``None``) The name of 
+          the bijection. If it is set to ``None`` then the ``'Delest-Viennot'`` 
+          bijection is used.
+          Expected values are ``None`` or ``'Delest-Viennot'``.
 
         OUTPUT:
 
@@ -1128,9 +1149,8 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``dyck`` -- a Dyck word
 
-        - ``bijection`` -- ``None`` (default) the bijection to use, if set to None
-          then the ``'Delest-Viennot'`` bijection is used.
-          Expected values : ``'Delest-Viennot'``.
+        - ``bijection`` -- string or ``None`` (default:``None``) the bijection 
+          to use. See :meth:`to_dyck_word` for more details.
 
         OUTPUT:
 
@@ -1163,9 +1183,6 @@ class ParallelogramPolyomino(ClonableList):
         Reference: [ABBS2013]_
 
         INPUT:
-
-        - ``bijection`` -- ``None`` (default) The name of bijection to use for
-          the convertion. The possible values are, 'Aval-Boussicault'.
 
         - ``position`` -- the cell position. This is a recursive parameter.
           It should not be used directly.
@@ -1222,8 +1239,10 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``bijection`` -- ``None`` (default) The name of bijection to use for
-          the convertion. The possible value are, 'Aval-Boussicault'.
+        - ``bijection`` -- string or ``None`` (default:``None``) The name of 
+          bijection to use for the conversion. The possible values are ``None`` 
+          or ``'Aval-Boussicault'``. The ``None`` value is equivalent to 
+          ``'Aval-Boussicault'``. 
 
         EXAMPLES::
 
@@ -1412,10 +1431,10 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``bijection`` -- ``None`` (default) The name of bijection to use for
-          the convertion. The possible value are, 'Boussicault-Socci',
-          'via dyck and Delest-Viennot'. The default bijection is
-          'Boussicault-Socci'.
+        - ``bijection`` -- string or ``None`` (default:``None``) The name of 
+          bijection to use for the conversion. The possible value are ``None``,
+          ``'Boussicault-Socci'`` or ``'via dyck and Delest-Viennot'``.
+          The ``None`` value is equivalent to the ``'Boussicault-Socci'`` value.
 
         EXAMPLES::
 
@@ -1761,6 +1780,10 @@ class ParallelogramPolyomino(ClonableList):
 
         The degree of convexity of a convex polyomino P is the smallest integer
         k such that P is k-convex.
+
+        INPUT:
+
+            - ``k`` -- An non negative integer.
 
         EXAMPLES::
 
@@ -2138,7 +2161,8 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``direction`` -- the initial direction of the bounce path (see above for the definition).
+        - ``direction`` -- the initial direction of the bounce path (see above
+          for the definition).
 
         EXAMPLES::
 
@@ -2226,7 +2250,8 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``direction`` -- the initial direction of the bounce path (see :meth:`bounce_path` for the definition).
+        - ``direction`` -- the initial direction of the bounce path 
+          (see :meth:`bounce_path` for the definition).
 
         EXAMPLES::
 
@@ -2673,7 +2698,8 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``direction`` -- the direction (0 or 1).
 
-        - ``nb_crossed_nodes`` -- ``[0]`` (default) a list containg just one integer.
+        - ``nb_crossed_nodes`` -- ``[0]`` (default) a list containg just one 
+          integer.
 
         EXAMPLES::
 

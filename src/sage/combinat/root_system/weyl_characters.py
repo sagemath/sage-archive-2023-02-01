@@ -757,24 +757,6 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         return ZZ(2*wt.inner_product(self._highest)/self._hip)
 
-    def fusion_basis(self):
-        """
-        For FusionRings, this method returns the finite canonical basis
-        as a list.
-        
-        EXAMPLES::
-            sage: B22=FusionRing("B2",2)
-            sage: B22.fusion_basis()
-            [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
-        """
-        if self._k is None:
-            raise ValueError("fusion_basis method is only available for FusionRings")
-        fw = self._space.fundamental_weights()
-        def next_level(wt):
-            return [wt + la for la in fw if self.level(wt + la) <= self._k]
-        B = RecursivelyEnumeratedSet([self._space.zero()], next_level)
-        return [self._element_constructor_(x) for x in B]
-
     def _dual_helper(self, wt):
         """
         If `w_0` is the long Weyl group element and `wt` is an
@@ -2134,7 +2116,7 @@ class WeightRing(CombinatorialFreeModule):
                 except Exception:
                     raise ValueError("unknown index {}".format(i))
 
-def FusionRing(ct, k, base_ring=ZZ, prefix=None, style="coroots"):
+class FusionRing(WeylCharacterRing):
     r"""
     INPUT:
 
@@ -2163,4 +2145,30 @@ def FusionRing(ct, k, base_ring=ZZ, prefix=None, style="coroots"):
         A22(0,1) + A22(2,0),
         A22(1,0) + A22(0,2)]
     """
-    return WeylCharacterRing(ct, base_ring=base_ring, prefix=prefix, style=style, k=k)
+    @staticmethod
+    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots"):
+        return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k)
+
+    def fusion_basis(self):
+        """
+        For FusionRings, this method returns the finite canonical basis
+        as a list.
+        
+        EXAMPLES::
+            sage: B22=FusionRing("B2",2)
+            sage: B22.fusion_basis()
+            [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
+        """
+        if self._k is None:
+            raise ValueError("fusion_basis method is only available for FusionRings")
+        fw = self._space.fundamental_weights()
+        def next_level(wt):
+            return [wt + la for la in fw if self.level(wt + la) <= self._k]
+        B = RecursivelyEnumeratedSet([self._space.zero()], next_level)
+        return [self._element_constructor_(x) for x in B]
+    
+    class Element(WeylCharacterRing.Element):
+        def fusion_weight(self):
+            if len(self.monomial_coefficients()) != 1:
+                raise ValueError("fusion weight is valid for basis elements only")
+            return self.leading_support()

@@ -309,7 +309,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
     def has_root_of_unity(self, n):
         r"""
-        Return whether or not `\Bold{Z}_p` has a primitive `n^{\mbox{th}}`
+        Return whether or not `\ZZ_p` has a primitive `n^{\mbox{th}}`
         root of unity.
 
         INPUT:

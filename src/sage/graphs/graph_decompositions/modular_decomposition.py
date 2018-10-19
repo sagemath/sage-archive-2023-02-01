@@ -3338,7 +3338,10 @@ def md_tree_to_graph(root):
     r"""
     Create a graph having the given MD tree.
 
-    We use the fact that a path of length four or more is prime.
+    For the prime nodes we use that every path of length 4 or more is prime.
+
+    TODO: accept a function that generates prime graphs as a parameter and
+    use that in the prime nodes.
 
     EXAMPLES::
 
@@ -3356,7 +3359,7 @@ def md_tree_to_graph(root):
     from sage.graphs.graph import Graph
     def tree_to_vertices_and_edges(root):
         r"""
-        Give the list of vertices and edges of the graph having the given md tree
+        Give the list of vertices and edges of the graph having the given md tree.
         """
 
         if root.node_type == NodeType.NORMAL:
@@ -3383,6 +3386,10 @@ def recreate_decomposition(trials, algorithm, max_depth, max_fan_out,
                            leaf_probability, verbose=False):
     r"""
     Verify that we can recreate a random MD tree.
+
+    We create a random MD tree, then create a graph having that decomposition,
+    then find a modular decomposition for that graph, and verify that the two
+    modular decomposition trees are equivalent.
 
     EXAMPLES::
 

@@ -5,7 +5,7 @@ Parallelogram Polyominoes
 The goal of this module is to give some tools to manipulate the
 parallelogram polyominoes.
 """
-#******************************************************************************
+# *****************************************************************************
 #  Copyright (C) 2014,2015 Adrien Boussicault (boussica@labri.fr),
 #  Copyright (C) 2016 Patxi Laborde-Zubieta (plaborde@labri.fr),
 #
@@ -13,9 +13,10 @@ parallelogram polyominoes.
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#python 3 support
-#******************************************************************************
-from __future__ import division, absolute_import, print_function, unicode_literals
+# *****************************************************************************
+from __future__ import (
+    division, absolute_import, print_function, unicode_literals
+)
 
 from six.moves import range
 from six import add_metaclass
@@ -28,7 +29,9 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.sets.set import Set
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.disjoint_union_enumerated_sets import (
+    DisjointUnionEnumeratedSets
+)
 from sage.rings.integer import Integer
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
@@ -84,7 +87,9 @@ class LocalOptions:
         ....:     options=o
         ....:     def _repr_b(self): return "b"
         ....:     def _repr_p(self): return "p"
-        ....:     def __repr__(self): return self.options._dispatch(self, '_repr_','delim')
+        ....:     def __repr__(self): return self.options._dispatch(
+        ....:         self, '_repr_','delim'
+        ....:     )
         sage: e = Ex(); e
         b
         sage: e.options(delim='p'); e
@@ -114,12 +119,14 @@ class LocalOptions:
         - ``default`` -- the default value of the option
         - ``values`` -- a dictionary of the legal values for this option (this
           automatically defines the corresponding ``checker``); this dictionary
-          gives the possible options, as keys, together with a brief description
-          of them
+          gives the possible options, as keys, together with a brief
+          description of them.
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     LocalOptions
+            ....: )
             sage: o = LocalOptions(
             ....:     "Name Example",
             ....:     tikz_options=dict(
@@ -150,7 +157,9 @@ class LocalOptions:
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     LocalOptions
+            ....: )
             sage: o = LocalOptions(
             ....:     "Name Example",
             ....:     tikz_options=dict(
@@ -197,7 +206,9 @@ class LocalOptions:
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     LocalOptions
+            ....: )
             sage: o = LocalOptions(
             ....:     "Name Example",
             ....:     tikz_options=dict(
@@ -226,7 +237,9 @@ class LocalOptions:
             'diagramme'
             sage: o["display"]="?"
             Current value : diagramme
-            {'default': 'list', 'values': {'diagramme': 'representation en diagramme', 'list': 'representation en liste'}}
+            {'default': 'list', 'values':
+            {'diagramme': 'representation en diagramme',
+            'list': 'representation en liste'}}
             sage: o("size")
             1
             sage: o["size"]=3
@@ -263,7 +276,9 @@ class LocalOptions:
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     LocalOptions
+            ....: )
             sage: o = LocalOptions(
             ....:     "Name Example",
             ....:     tikz_options=dict(
@@ -288,7 +303,9 @@ class LocalOptions:
             'diagramme'
             sage: o(display="?")
             Current value : diagramme
-            {'default': 'list', 'values': {'diagramme': 'representation en diagramme', 'list': 'representation en liste'}}
+            {'default': 'list', 'values':
+            {'diagramme': 'representation en diagramme',
+            'list': 'representation en liste'}}
 
         """
         for key in options:
@@ -307,7 +324,9 @@ class LocalOptions:
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     LocalOptions
+            ....: )
             sage: o = LocalOptions(
             ....:     "Name Example",
             ....:     tikz_options=dict(
@@ -336,7 +355,9 @@ class LocalOptions:
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     LocalOptions
+            ....: )
             sage: o = LocalOptions(
             ....:     "Name Example",
             ....:     tikz_options=dict(
@@ -365,7 +386,9 @@ class LocalOptions:
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     LocalOptions
+            ....: )
             sage: o = LocalOptions(
             ....:     "Name Example",
             ....:     tikz_options=dict(
@@ -393,20 +416,25 @@ class LocalOptions:
     def _dispatch(self, obj, dispatch_to, option, *get_values, **set_values):
         r"""
 
-        The *dispatchable* options are options which dispatch related methods of
-        the corresponding class. The format for specifying a dispatchable option
-        is to include ``dispatch_to = <option name>`` in the specifications for
-        the options and then to add the options to the class.
+        The *dispatchable* options are options which dispatch related methods
+        of the corresponding class. The format for specifying a dispatchable
+        option is to include ``dispatch_to = <option name>`` in the
+        specifications for the options and then to add the options to the
+        class.
 
         The _dispatch method will then call:
-            obj.``<option name> + '_' + <current value of option>``(*get_values,**set_values)
+            obj.``<option name> + '_' + <current value of option>``(
+                *get_values,**set_values
+            )
 
         Note that the argument ``self`` is necessary here because the
         dispatcher is a method of the options class and not of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     LocalOptions
+            ....: )
             sage: o = LocalOptions(
             ....:     'Name Example',
             ....:     delim=dict(
@@ -418,7 +446,9 @@ class LocalOptions:
             ....:     options=o
             ....:     def _repr_b(self): return "b"
             ....:     def _repr_p(self): return "p"
-            ....:     def __repr__(self): return self.options._dispatch(self, '_repr_','delim')
+            ....:     def __repr__(self): return self.options._dispatch(
+            ....:         self, '_repr_','delim'
+            ....:     )
             sage: e = Ex(); e
             b
             sage: e.options(delim='p'); e
@@ -502,13 +532,15 @@ The options avalaible are :
 
 - display : this option is used to configurate the ASCII display.
   the option avalaible are :
-  - list : (this is the default value) is used to represent PP as a list containinge the upper and lower path.
-  - drawing : this value is used to explain we want to display an array with the PP drawn inside (with connected 1).
+  - list : (this is the default value) is used to represent PP as a list
+           containinge the upper and lower path.
+  - drawing : this value is used to explain we want to display an array with
+              the PP drawn inside (with connected 1).
 
 - latex : Same as display. The default is "drawing".
 
-See :meth:`ParallelogramPolyomino.get_options` for more details and for an 
-user use of options. 
+See :meth:`ParallelogramPolyomino.get_options` for more details and for an
+user use of options.
 
 EXAMPLES::
 
@@ -549,19 +581,22 @@ class _drawing_tool:
         sage: opt = ParallelogramPolyominoesOptions['tikz_options']
         sage: dt = _drawing_tool(opt)
         sage: dt.draw_line([1, 1], [-1, -1])
-        u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+        u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
+        (-1.000000, -1.000000);'
 
         sage: fct = lambda vec: [2*vec[0], vec[1]]
         sage: dt = _drawing_tool(opt, fct)
         sage: dt.draw_line([1, 1], [-1, -1])
-        u'\n  \\draw[color=black, line width=1] (2.000000, 1.000000) -- (-2.000000, -1.000000);'
+        u'\n  \\draw[color=black, line width=1] (2.000000, 1.000000) --
+        (-2.000000, -1.000000);'
 
         sage: import copy
         sage: opt = copy.deepcopy(opt)
         sage: opt['mirror'] = [0,1]
         sage: dt = _drawing_tool(opt)
         sage: dt.draw_line([1, 1], [-1, -1])
-        u'\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) -- (1.000000, -1.000000);'
+        u'\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) --
+        (1.000000, -1.000000);'
 
     """
     def __init__(self, options, XY=lambda v: v):
@@ -584,7 +619,8 @@ class _drawing_tool:
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_line([1, 1], [-1, -1])
-            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
+            (-1.000000, -1.000000);'
         """
         self._XY = lambda v: XY([float(v[0]), float(v[1])])
         self._translation = options['translation']
@@ -733,7 +769,8 @@ class _drawing_tool:
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_line([1, 1], [-1, -1])
-            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
+            (-1.000000, -1.000000);'
 
         """
         if color is None:
@@ -771,7 +808,9 @@ class _drawing_tool:
             sage: opt = ParallelogramPolyominoesOptions['tikz_options']
             sage: dt = _drawing_tool(opt)
             sage: dt.draw_polyline([[1, 1], [-1, -1], [0,0]])
-            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);\n  \\draw[color=black, line width=1] (-1.000000, -1.000000) -- (0.000000, 0.000000);'
+            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
+            (-1.000000, -1.000000);\n  \\draw[color=black, line width=1]
+            (-1.000000, -1.000000) -- (0.000000, 0.000000);'
         """
         res = ""
         for i in range(len(list_of_vertices)-1):
@@ -845,13 +884,20 @@ class ParallelogramPolyomino(ClonableList):
 
         TESTS::
 
-            sage: issubclass(ParallelogramPolyominoes().element_class, ParallelogramPolyomino)
+            sage: issubclass(
+            ....:     ParallelogramPolyominoes().element_class,
+            ....:     ParallelogramPolyomino
+            ....: )
             True
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.parent()
             Parallelogram polyominoes
-            sage: type(pp)
-            <class 'sage.combinat.parallelogram_polyomino.ParallelogramPolyominoes_all_with_category.element_class'>
+            sage: str(type(pp)) == (
+            ....:      "<class 'sage.combinat.parallelogram_polyomino" +
+            ....:      ".ParallelogramPolyominoes_all_with_category" +
+            ....:      ".element_class'>"
+            ....: )
+            True
 
             sage: pp1 = ParallelogramPolyominoes()([[0, 1], [1, 0]])
             sage: pp1.parent() is pp.parent()
@@ -900,27 +946,29 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp = ParallelogramPolyomino([[1], [1]])
 
-            sage: pp = ParallelogramPolyomino([[1, 0], [0, 1]])  # indirect doctest
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[1, 0], [0, 1]]
+            ....: ) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: lower and upper path are crossing
 
-            sage: pp = ParallelogramPolyomino([[1], [0, 1]])  # indirect doctest
+            sage: pp = ParallelogramPolyomino([[1], [0, 1]]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: lower and upper paths have different sizes (2 != 1)
 
-            sage: pp = ParallelogramPolyomino([[1], [0]])  # indirect doctest
+            sage: pp = ParallelogramPolyomino([[1], [0]]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: the two paths have distinct ends
 
-            sage: pp = ParallelogramPolyomino([[0], [1]])  # indirect doctest
+            sage: pp = ParallelogramPolyomino([[0], [1]]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: the two paths have distinct ends
 
-            sage: pp = ParallelogramPolyomino([[0], [0]])  # indirect doctest
+            sage: pp = ParallelogramPolyomino([[0], [0]]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: wrong input for the paths: [[0], [0]]
@@ -1088,8 +1136,8 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``bijection`` -- string or ``None`̀  (default:``None``) The name of 
-          the bijection. If it is set to ``None`` then the ``'Delest-Viennot'`` 
+        - ``bijection`` -- string or ``None`̀  (default:``None``) The name of
+          the bijection. If it is set to ``None`` then the ``'Delest-Viennot'``
           bijection is used.
           Expected values are ``None`` or ``'Delest-Viennot'``.
 
@@ -1149,7 +1197,7 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``dyck`` -- a Dyck word
 
-        - ``bijection`` -- string or ``None`` (default:``None``) the bijection 
+        - ``bijection`` -- string or ``None`` (default:``None``) the bijection
           to use. See :meth:`to_dyck_word` for more details.
 
         OUTPUT:
@@ -1239,10 +1287,10 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``bijection`` -- string or ``None`` (default:``None``) The name of 
-          bijection to use for the conversion. The possible values are ``None`` 
-          or ``'Aval-Boussicault'``. The ``None`` value is equivalent to 
-          ``'Aval-Boussicault'``. 
+        - ``bijection`` -- string or ``None`` (default:``None``) The name of
+          bijection to use for the conversion. The possible values are ``None``
+          or ``'Aval-Boussicault'``. The ``None`` value is equivalent to
+          ``'Aval-Boussicault'``.
 
         EXAMPLES::
 
@@ -1431,10 +1479,11 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``bijection`` -- string or ``None`` (default:``None``) The name of 
+        - ``bijection`` -- string or ``None`` (default:``None``) The name of
           bijection to use for the conversion. The possible value are ``None``,
           ``'Boussicault-Socci'`` or ``'via dyck and Delest-Viennot'``.
-          The ``None`` value is equivalent to the ``'Boussicault-Socci'`` value.
+          The ``None`` value is equivalent to the ``'Boussicault-Socci'``
+          value.
 
         EXAMPLES::
 
@@ -1479,9 +1528,13 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.get_options()
             Current options for ParallelogramPolyominoes_size
               - display:            list
-              - drawing_components: {'diagram': True, 'bounce_1': False, 'tree': False, 'bounce_0': False}
+              - drawing_components: {'diagram': True, 'bounce_1': False,
+            'tree': False, 'bounce_0': False}
               - latex:              drawing
-              - tikz_options:       {'color_bounce_1': u'blue', 'color_bounce_0': u'red', 'point_size': 3.5, 'line_size': 1, 'color_line': u'black', 'color_point': u'black', 'scale': 1, 'mirror': None, 'rotation': 0, 'translation': [0, 0]}
+              - tikz_options:       {'color_bounce_1': u'blue',
+            'color_bounce_0': u'red', 'point_size': 3.5, 'line_size': 1,
+            'color_line': u'black', 'color_point': u'black', 'scale': 1,
+            'mirror': None, 'rotation': 0, 'translation': [0, 0]}
         """
         if self._options is None:
             return self.parent().get_options()
@@ -2028,7 +2081,8 @@ class ParallelogramPolyomino(ClonableList):
 
         def is_inside(self):
             r"""
-            Return ``True`` if the row is inside the parallelogram polyomino, return ``False`` otherwise.
+            Return ``True`` if the row is inside the parallelogram polyomino,
+            return ``False`` otherwise.
 
             EXAMPLES::
 
@@ -2047,7 +2101,10 @@ class ParallelogramPolyomino(ClonableList):
                 [0 1 1]
                 [0 0 1]
 
-                sage: [PP._polyomino_row(pp, i).is_inside() for i in [-1,0,3,5,6]]
+                sage: [
+                ....:     PP._polyomino_row(pp, i).is_inside()
+                ....:     for i in [-1,0,3,5,6]
+                ....: ]
                 [False, True, True, True, False]
 
             """
@@ -2055,7 +2112,8 @@ class ParallelogramPolyomino(ClonableList):
 
         def is_outside(self):
             r"""
-            Return ``True`` if the row is outside the parallelogram polyomino, return ``False`` otherwise.
+            Return ``True`` if the row is outside the parallelogram polyomino,
+            return ``False`` otherwise.
 
             EXAMPLES::
 
@@ -2074,7 +2132,10 @@ class ParallelogramPolyomino(ClonableList):
                 [0 1 1]
                 [0 0 1]
 
-                sage: [PP._polyomino_row(pp, i).is_outside() for i in [-1,0,3,5,6]]
+                sage: [
+                ....:     PP._polyomino_row(pp, i).is_outside()
+                ....:     for i in [-1,0,3,5,6]
+                ....: ]
                 [True, False, False, False, True]
             """
             return not self.is_inside()
@@ -2250,7 +2311,7 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``direction`` -- the initial direction of the bounce path 
+        - ``direction`` -- the initial direction of the bounce path
           (see :meth:`bounce_path` for the definition).
 
         EXAMPLES::
@@ -2403,16 +2464,26 @@ class ParallelogramPolyomino(ClonableList):
             True
             sage: print(pp.to_tikz())
             <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 5.000000) -- (0.000000, 3.000000);
-              \draw[color=black, line width=1] (3.000000, 4.000000) -- (3.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 5.000000) -- (1.000000, 5.000000);
-              \draw[color=black, line width=1] (1.000000, 0.000000) -- (3.000000, 0.000000);
-              \draw[color=black, line width=1] (1.000000, 5.000000) -- (1.000000, 0.000000);
-              \draw[color=black, line width=1] (2.000000, 4.000000) -- (2.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (3.000000, 4.000000);
-              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
-              \draw[color=black, line width=1] (1.000000, 2.000000) -- (3.000000, 2.000000);
-              \draw[color=black, line width=1] (1.000000, 1.000000) -- (3.000000, 1.000000);
+              \draw[color=black, line width=1] (0.000000, 5.000000) --
+            (0.000000, 3.000000);
+              \draw[color=black, line width=1] (3.000000, 4.000000) --
+            (3.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 5.000000) --
+            (1.000000, 5.000000);
+              \draw[color=black, line width=1] (1.000000, 0.000000) --
+            (3.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 5.000000) --
+            (1.000000, 0.000000);
+              \draw[color=black, line width=1] (2.000000, 4.000000) --
+            (2.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) --
+            (3.000000, 4.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) --
+            (3.000000, 3.000000);
+              \draw[color=black, line width=1] (1.000000, 2.000000) --
+            (3.000000, 2.000000);
+              \draw[color=black, line width=1] (1.000000, 1.000000) --
+            (3.000000, 1.000000);
 
         """
         tikz_options = self.get_tikz_options()
@@ -2450,7 +2521,8 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return the tikz code to display one or both bounces of ``self``.
 
-        See :meth:`ParallelogramPolyomino.bounce_path` for more information about the bounce.
+        See :meth:`ParallelogramPolyomino.bounce_path` for more information
+        about the bounce.
 
         TESTS::
 
@@ -2459,33 +2531,56 @@ class ParallelogramPolyomino(ClonableList):
             ....: )
             sage: pp.to_tikz() == pp._to_tikz_bounce()
             False
-            sage: pp.set_options(drawing_components=dict(diagram= False, bounce_0=True))
+            sage: pp.set_options(drawing_components=dict(
+            ....:     diagram= False, bounce_0=True)
+            ....: )
             sage: pp.to_tikz() == pp._to_tikz_bounce([0])
             True
-            sage: pp.set_options(drawing_components=dict(diagram=False, bounce_1=True))
+            sage: pp.set_options(
+            ....:     drawing_components=dict(diagram=False, bounce_1=True)
+            ....: )
             sage: pp.to_tikz() == pp._to_tikz_bounce([1])
             True
-            sage: pp.set_options(drawing_components=dict(diagram=False, bounce_0= True, bounce_1=True))
+            sage: pp.set_options(
+            ....:     drawing_components=dict(
+            ....:         diagram=False, bounce_0= True, bounce_1=True
+            ....:     )
+            ....: )
             sage: pp.to_tikz() == pp._to_tikz_bounce([0,1])
             True
             sage: pp.to_tikz() == pp._to_tikz_bounce()
             True
-            sage: pp.set_options(drawing_components=dict(diagram=True, bounce_0=True))
+            sage: pp.set_options(
+            ....:     drawing_components=dict(diagram=True, bounce_0=True)
+            ....: )
             sage: print(pp.to_tikz()) # indirect doctest
             <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
-              \draw[color=black, line width=1] (4.000000, 2.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (1.000000, 4.000000);
-              \draw[color=black, line width=1] (2.000000, 0.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (1.000000, 4.000000) -- (1.000000, 1.000000);
-              \draw[color=black, line width=1] (2.000000, 3.000000) -- (2.000000, 0.000000);
-              \draw[color=black, line width=1] (3.000000, 3.000000) -- (3.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
-              \draw[color=black, line width=1] (0.000000, 2.000000) -- (4.000000, 2.000000);
-              \draw[color=black, line width=1] (0.000000, 1.000000) -- (4.000000, 1.000000);
-              \draw[color=red, line width=2] (1.000000, 4.000000) -- (1.000000, 1.000000);
-              \draw[color=red, line width=2] (1.000000, 1.000000) -- (4.000000, 1.000000);
-              \draw[color=red, line width=2] (4.000000, 1.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) --
+            (0.000000, 1.000000);
+              \draw[color=black, line width=1] (4.000000, 2.000000) --
+            (4.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) --
+            (1.000000, 4.000000);
+              \draw[color=black, line width=1] (2.000000, 0.000000) --
+            (4.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 4.000000) --
+            (1.000000, 1.000000);
+              \draw[color=black, line width=1] (2.000000, 3.000000) --
+            (2.000000, 0.000000);
+              \draw[color=black, line width=1] (3.000000, 3.000000) --
+            (3.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) --
+            (3.000000, 3.000000);
+              \draw[color=black, line width=1] (0.000000, 2.000000) --
+            (4.000000, 2.000000);
+              \draw[color=black, line width=1] (0.000000, 1.000000) --
+            (4.000000, 1.000000);
+              \draw[color=red, line width=2] (1.000000, 4.000000) --
+            (1.000000, 1.000000);
+              \draw[color=red, line width=2] (1.000000, 1.000000) --
+            (4.000000, 1.000000);
+              \draw[color=red, line width=2] (4.000000, 1.000000) --
+            (4.000000, 0.000000);
         """
         res = ""
         tikz_options = self.get_tikz_options()
@@ -2500,7 +2595,8 @@ class ParallelogramPolyomino(ClonableList):
             r"""
             Return the TIKZ code of the bounce path of ``self``.
 
-            See :meth:`ParallelogramPolyomino.bounce_path` for more information about the bounce.
+            See :meth:`ParallelogramPolyomino.bounce_path` for more information
+            about the bounce.
             """
             if (len(self.bounce_path(direction)) >
                     len(self.bounce_path(1 - direction))):
@@ -2536,7 +2632,8 @@ class ParallelogramPolyomino(ClonableList):
 
     def _to_tikz_tree(self):
         r"""
-        Return the tikz code to display a node inside the boxes which are nodes.
+        Return the tikz code to display a node inside the boxes which are
+        nodes.
         See :meth:`ParallelogramPolyomino.box_is_node` for more information.
 
         TESTS::
@@ -2546,22 +2643,36 @@ class ParallelogramPolyomino(ClonableList):
             ....: )
             sage: pp.to_tikz() == pp._to_tikz_tree()
             False
-            sage: pp.set_options(drawing_components=dict(diagram= False, tree=True))
+            sage: pp.set_options(
+            ....:     drawing_components=dict(diagram=False, tree=True)
+            ....: )
             sage: pp.to_tikz() == pp._to_tikz_tree()
             True
-            sage: pp.set_options(drawing_components=dict(diagram= True, tree=True))
+            sage: pp.set_options(
+            ....:     drawing_components=dict(diagram=True, tree=True)
+            ....: )
             sage: print(pp.to_tikz())  # indirect doctest
             <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
-              \draw[color=black, line width=1] (4.000000, 2.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (1.000000, 4.000000);
-              \draw[color=black, line width=1] (2.000000, 0.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (1.000000, 4.000000) -- (1.000000, 1.000000);
-              \draw[color=black, line width=1] (2.000000, 3.000000) -- (2.000000, 0.000000);
-              \draw[color=black, line width=1] (3.000000, 3.000000) -- (3.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
-              \draw[color=black, line width=1] (0.000000, 2.000000) -- (4.000000, 2.000000);
-              \draw[color=black, line width=1] (0.000000, 1.000000) -- (4.000000, 1.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) --
+            (0.000000, 1.000000);
+              \draw[color=black, line width=1] (4.000000, 2.000000) --
+              (4.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) --
+              (1.000000, 4.000000);
+              \draw[color=black, line width=1] (2.000000, 0.000000) --
+              (4.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 4.000000) --
+              (1.000000, 1.000000);
+              \draw[color=black, line width=1] (2.000000, 3.000000) --
+              (2.000000, 0.000000);
+              \draw[color=black, line width=1] (3.000000, 3.000000) --
+              (3.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) --
+              (3.000000, 3.000000);
+              \draw[color=black, line width=1] (0.000000, 2.000000) --
+              (4.000000, 2.000000);
+              \draw[color=black, line width=1] (0.000000, 1.000000) --
+              (4.000000, 1.000000);
               \filldraw[color=black] (0.500000, 2.500000) circle (3.5pt);
               \filldraw[color=black] (0.500000, 1.500000) circle (3.5pt);
               \filldraw[color=black] (2.500000, 0.500000) circle (3.5pt);
@@ -2698,7 +2809,7 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``direction`` -- the direction (0 or 1).
 
-        - ``nb_crossed_nodes`` -- ``[0]`` (default) a list containg just one 
+        - ``nb_crossed_nodes`` -- ``[0]`` (default) a list containg just one
           integer.
 
         EXAMPLES::
@@ -2820,27 +2931,27 @@ class ParallelogramPolyomino(ClonableList):
 
     def _get_number_of_nodes_in_the_bounding_path(self, box, direction):
         r"""
-        When we draw the bounding path from ``box`` to the top-left cell of 
+        When we draw the bounding path from ``box`` to the top-left cell of
         ``self``, the path is corssing some cells containing some nodes
         defined by the Boussicault-Socci bijection
         (see :meth:`_to_ordered_tree_Bou_Socci`).
 
-        This function return a list of number that represent the number of 
+        This function return a list of number that represent the number of
         nodes minus 1 that the path is crossing between each bounding.
         The starting box is excluded from the count of nodes.
 
-        This function is a specialized tool for 
-        :meth:`_get_path_in_pair_of_tree_from_row()` and 
+        This function is a specialized tool for
+        :meth:`_get_path_in_pair_of_tree_from_row()` and
         :meth:`_get_path_in_pair_of_tree_from_column()`
         each number is reduced by one to compute the path in the ordered tree
         of those functions.
 
         INPUT:
 
-        - ``box`` -- the x,y coordinate of the starting point of the bounding 
+        - ``box`` -- the x,y coordinate of the starting point of the bounding
                      path.
-        - ``direction`` -- the initial direction of the bounding path (1 or 0, 
-                           1 for left and 0 for top). 
+        - ``direction`` -- the initial direction of the bounding path (1 or 0,
+                           1 for left and 0 for top).
 
         EXAMPLES::
 
@@ -2901,15 +3012,15 @@ class ParallelogramPolyomino(ClonableList):
 
     def _get_path_in_pair_of_tree_from_row(self, line):
         r"""
-        When we draw the bounding path from the left-most cell of ``line`` to 
-        the top-left cell of ``self``, the path is bounding in some cells that 
-        are nodes in the ordered tree of the Boussicault-Socci bijection. 
-        This function returns the path of the bounding path inside the ordered 
+        When we draw the bounding path from the left-most cell of ``line`` to
+        the top-left cell of ``self``, the path is bounding in some cells that
+        are nodes in the ordered tree of the Boussicault-Socci bijection.
+        This function returns the path of the bounding path inside the ordered
         tree.
 
         The bijection is described in the paper [BRS2015]_
-        at page 7, the first (resp. second) ordered tree is obtained by 
-        gluing all roots of the ordered forest F_e (resp. F_s) to a virtual 
+        at page 7, the first (resp. second) ordered tree is obtained by
+        gluing all roots of the ordered forest F_e (resp. F_s) to a virtual
         root. An example can be read, page 8, Figure 6.
 
         INPUT:
@@ -2952,15 +3063,15 @@ class ParallelogramPolyomino(ClonableList):
 
     def _get_path_in_pair_of_tree_from_column(self, column):
         r"""
-        When we draw the bounding path from the top-most cell of ``column`` 
-        to the top-left cell of ``self``, the path is bounding in some cells 
-        that are nodes in the ordered tree of the Boussicault-Socci bijection. 
-        This function returns the path of the bounding path inside the ordered 
+        When we draw the bounding path from the top-most cell of ``column``
+        to the top-left cell of ``self``, the path is bounding in some cells
+        that are nodes in the ordered tree of the Boussicault-Socci bijection.
+        This function returns the path of the bounding path inside the ordered
         tree.
 
         The bijection is described in the paper [BRS2015]_
-        at page 7, the first (resp. second) ordered tree is obtained by 
-        gluing all roots of the ordered forest F_e (resp. F_s) to a virtual 
+        at page 7, the first (resp. second) ordered tree is obtained by
+        gluing all roots of the ordered forest F_e (resp. F_s) to a virtual
         root. An example can be read, page 8, Figure 6.
 
         INPUT:
@@ -2994,7 +3105,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def get_BS_nodes(self):
         r"""
-        Return the list of cells containing node of the left and right planar 
+        Return the list of cells containing node of the left and right planar
         tree in the Boussicault-Socci bijection.
 
         EXAMPLES::
@@ -3142,20 +3253,34 @@ class ParallelogramPolyomino(ClonableList):
             ....: )
             sage: print(pp.to_tikz())
             <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 6.000000) -- (0.000000, 3.000000);
-              \draw[color=black, line width=1] (6.000000, 2.000000) -- (6.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 6.000000) -- (3.000000, 6.000000);
-              \draw[color=black, line width=1] (3.000000, 0.000000) -- (6.000000, 0.000000);
-              \draw[color=black, line width=1] (1.000000, 6.000000) -- (1.000000, 3.000000);
-              \draw[color=black, line width=1] (2.000000, 6.000000) -- (2.000000, 2.000000);
-              \draw[color=black, line width=1] (3.000000, 6.000000) -- (3.000000, 0.000000);
-              \draw[color=black, line width=1] (4.000000, 4.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (5.000000, 4.000000) -- (5.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 5.000000) -- (3.000000, 5.000000);
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (5.000000, 4.000000);
-              \draw[color=black, line width=1] (0.000000, 3.000000) -- (5.000000, 3.000000);
-              \draw[color=black, line width=1] (2.000000, 2.000000) -- (6.000000, 2.000000);
-              \draw[color=black, line width=1] (3.000000, 1.000000) -- (6.000000, 1.000000);
+              \draw[color=black, line width=1] (0.000000, 6.000000) --
+            (0.000000, 3.000000);
+              \draw[color=black, line width=1] (6.000000, 2.000000) --
+            (6.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 6.000000) --
+            (3.000000, 6.000000);
+              \draw[color=black, line width=1] (3.000000, 0.000000) --
+            (6.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 6.000000) --
+            (1.000000, 3.000000);
+              \draw[color=black, line width=1] (2.000000, 6.000000) --
+            (2.000000, 2.000000);
+              \draw[color=black, line width=1] (3.000000, 6.000000) --
+            (3.000000, 0.000000);
+              \draw[color=black, line width=1] (4.000000, 4.000000) --
+            (4.000000, 0.000000);
+              \draw[color=black, line width=1] (5.000000, 4.000000) --
+            (5.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 5.000000) --
+            (3.000000, 5.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) --
+            (5.000000, 4.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) --
+            (5.000000, 3.000000);
+              \draw[color=black, line width=1] (2.000000, 2.000000) --
+            (6.000000, 2.000000);
+              \draw[color=black, line width=1] (3.000000, 1.000000) --
+            (6.000000, 1.000000);
             sage: pp.set_options(
             ....:     drawing_components=dict(
             ....:         diagram=True,
@@ -3166,29 +3291,52 @@ class ParallelogramPolyomino(ClonableList):
             ....: )
             sage: print(pp.to_tikz())
             <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 6.000000) -- (0.000000, 3.000000);
-              \draw[color=black, line width=1] (6.000000, 2.000000) -- (6.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 6.000000) -- (3.000000, 6.000000);
-              \draw[color=black, line width=1] (3.000000, 0.000000) -- (6.000000, 0.000000);
-              \draw[color=black, line width=1] (1.000000, 6.000000) -- (1.000000, 3.000000);
-              \draw[color=black, line width=1] (2.000000, 6.000000) -- (2.000000, 2.000000);
-              \draw[color=black, line width=1] (3.000000, 6.000000) -- (3.000000, 0.000000);
-              \draw[color=black, line width=1] (4.000000, 4.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (5.000000, 4.000000) -- (5.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 5.000000) -- (3.000000, 5.000000);
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (5.000000, 4.000000);
-              \draw[color=black, line width=1] (0.000000, 3.000000) -- (5.000000, 3.000000);
-              \draw[color=black, line width=1] (2.000000, 2.000000) -- (6.000000, 2.000000);
-              \draw[color=black, line width=1] (3.000000, 1.000000) -- (6.000000, 1.000000);
-              \draw[color=blue, line width=3] (0.000000, 5.000000) -- (3.000000, 5.000000);
-              \draw[color=blue, line width=3] (3.000000, 5.000000) -- (3.000000, 2.000000);
-              \draw[color=blue, line width=3] (3.000000, 2.000000) -- (5.000000, 2.000000);
-              \draw[color=blue, line width=3] (5.000000, 2.000000) -- (5.000000, 0.000000);
-              \draw[color=blue, line width=3] (5.000000, 0.000000) -- (6.000000, 0.000000);
-              \draw[color=red, line width=2] (1.000000, 6.000000) -- (1.000000, 3.000000);
-              \draw[color=red, line width=2] (1.000000, 3.000000) -- (5.000000, 3.000000);
-              \draw[color=red, line width=2] (5.000000, 3.000000) -- (5.000000, 0.000000);
-              \draw[color=red, line width=2] (5.000000, 0.000000) -- (6.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 6.000000) --
+            (0.000000, 3.000000);
+              \draw[color=black, line width=1] (6.000000, 2.000000) --
+            (6.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 6.000000) --
+            (3.000000, 6.000000);
+              \draw[color=black, line width=1] (3.000000, 0.000000) --
+            (6.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 6.000000) --
+            (1.000000, 3.000000);
+              \draw[color=black, line width=1] (2.000000, 6.000000) --
+            (2.000000, 2.000000);
+              \draw[color=black, line width=1] (3.000000, 6.000000) --
+            (3.000000, 0.000000);
+              \draw[color=black, line width=1] (4.000000, 4.000000) --
+            (4.000000, 0.000000);
+              \draw[color=black, line width=1] (5.000000, 4.000000) --
+            (5.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 5.000000) --
+            (3.000000, 5.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) --
+            (5.000000, 4.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) --
+            (5.000000, 3.000000);
+              \draw[color=black, line width=1] (2.000000, 2.000000) --
+            (6.000000, 2.000000);
+              \draw[color=black, line width=1] (3.000000, 1.000000) --
+            (6.000000, 1.000000);
+              \draw[color=blue, line width=3] (0.000000, 5.000000) --
+            (3.000000, 5.000000);
+              \draw[color=blue, line width=3] (3.000000, 5.000000) --
+            (3.000000, 2.000000);
+              \draw[color=blue, line width=3] (3.000000, 2.000000) --
+            (5.000000, 2.000000);
+              \draw[color=blue, line width=3] (5.000000, 2.000000) --
+            (5.000000, 0.000000);
+              \draw[color=blue, line width=3] (5.000000, 0.000000) --
+            (6.000000, 0.000000);
+              \draw[color=red, line width=2] (1.000000, 6.000000) --
+            (1.000000, 3.000000);
+              \draw[color=red, line width=2] (1.000000, 3.000000) --
+            (5.000000, 3.000000);
+              \draw[color=red, line width=2] (5.000000, 3.000000) --
+            (5.000000, 0.000000);
+              \draw[color=red, line width=2] (5.000000, 0.000000) --
+            (6.000000, 0.000000);
               \filldraw[color=black] (0.500000, 4.500000) circle (3.5pt);
               \filldraw[color=black] (0.500000, 3.500000) circle (3.5pt);
               \filldraw[color=black] (2.500000, 2.500000) circle (3.5pt);
@@ -3352,8 +3500,14 @@ class ParallelogramPolyominoesFactory(SetFactory):
 
         EXAMPLES::
 
-            sage: ParallelogramPolyominoes._default_policy
-            Set factory policy for <class 'sage.combinat.parallelogram_polyomino.ParallelogramPolyomino'> with parent Parallelogram polyominoes[=Factory for parallelogram polyominoes(())]
+            sage: str(ParallelogramPolyominoes._default_policy) == (
+            ....:    "Set factory policy for " +
+            ....:    "<class 'sage.combinat.parallelogram_polyomino" +
+            ....:    ".ParallelogramPolyomino'> " +
+            ....:    "with parent Parallelogram polyominoes" +
+            ....:    "[=Factory for parallelogram polyominoes(())]"
+            ....: )
+            True
         """
         return TopMostParentPolicy(self, (), ParallelogramPolyomino)
 
@@ -3438,7 +3592,9 @@ class ParallelogramPolyominoes_size(
         EXAMPLES::
 
             sage: PPS = ParallelogramPolyominoes(3)
-            sage: ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]]) in PPS # indirect doctest
+            sage: ParallelogramPolyomino(
+            ....:     [[0, 1, 1], [1, 1, 0]]
+            ....: ) in PPS # indirect doctest
             True
         """
         if el.size() != self.size():
@@ -3608,7 +3764,9 @@ class ParallelogramPolyominoes_all(
         EXAMPLES::
 
             sage: PPS = ParallelogramPolyominoes()
-            sage: ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]]) in PPS # indirect doctest
+            sage: ParallelogramPolyomino(
+            ....:     [[0, 1, 1], [1, 1, 0]]
+            ....: ) in PPS # indirect doctest
             True
         """
         pass

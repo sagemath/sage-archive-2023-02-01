@@ -1068,7 +1068,9 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``bijection`` -- The name of the bijection (default:'Delest-Viennot')
+        - ``bijection`` -- ``None`̀  (default) The name of the bijection.
+          If set to ``None`` then the ``'Delest-Viennot'`` bijection is used.
+          Expected values : ``'Delest-Viennot'``.
 
         OUTPUT:
 
@@ -1126,8 +1128,9 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``dyck`` -- a Dyck word
 
-        - ``bijection`` -- (default: 'Delest-Viennot') the bijection to use.
-          Expected values : 'Delest-Viennot'.
+        - ``bijection`` -- ``None`` (default) the bijection to use, if set to None
+          then the ``'Delest-Viennot'`` bijection is used.
+          Expected values : ``'Delest-Viennot'``.
 
         OUTPUT:
 
@@ -1403,7 +1406,7 @@ class ParallelogramPolyomino(ClonableList):
         dyck paths and ordered trees.
 
         The bijection between Dyck Word and ordered trees is described
-        in [DerZak1908]_ (See page 12 and 13 and Figure 3.1).
+        in [DerZak1980]_ (See page 12 and 13 and Figure 3.1).
 
         The bijection 'Boussicault-Socci' is described in [BRS2015]_.
 
@@ -2670,7 +2673,7 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``direction`` -- the direction (0 or 1).
 
-        - ``nb_crossed_nodes`` -- a list containg just one integer.
+        - ``nb_crossed_nodes`` -- ``[0]`` (default) a list containg just one integer.
 
         EXAMPLES::
 

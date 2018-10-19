@@ -298,7 +298,7 @@ class Qp_class(UniqueFactory):
 
     INPUT:
 
-    - ``p`` -- integer: the `p` in `\mathbb{Q}_p`
+    - ``p`` -- integer: the `p` in `\QQ_p`
 
     - ``prec`` -- integer (default: ``20``) the precision cap of the field.
       In the lattice capped case, ``prec`` can either be a
@@ -756,12 +756,12 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
        print_max_unram_terms = None, print_max_terse_terms = None, show_prec=None, check = True, implementation = 'FLINT'):
     r"""
     Given a prime power `q = p^n`, return the unique unramified
-    extension of `\mathbb{Q}_p` of degree `n`.
+    extension of `\QQ_p` of degree `n`.
 
     INPUT:
 
     - ``q`` -- integer, list, tuple or ``Factorization`` object. If ``q`` is an
-      integer, it is the prime power `q` in `\mathbb{Q}_q`. If ``q`` is a
+      integer, it is the prime power `q` in `\QQ_q`. If ``q`` is a
       ``Factorization`` object, it is the factorization of the prime power `q`.
       As a tuple it is the pair ``(p, n)``, and as a list it is a single
       element list ``[(p, n)]``.
@@ -775,7 +775,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
       and ``'lattice-float'``.  See TYPES and PRECISION below
 
     - ``modulus`` -- polynomial (default ``None``) A polynomial defining an
-      unramified extension of `\mathbb{Q}_p`.  See MODULUS below.
+      unramified extension of `\QQ_p`.  See MODULUS below.
 
     - ``names`` -- string or tuple (``None`` is only allowed when `q=p`).  The
       name of the generator, reducing to a generator of the residue
@@ -859,14 +859,14 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
 
     MODULUS:
 
-    The modulus needs to define an unramified extension of `\mathbb{Q}_p`: when it
+    The modulus needs to define an unramified extension of `\QQ_p`: when it
     is reduced to a polynomial over `\mathbb{F}_p` it should be irreducible.
 
     The modulus can be given in a number of forms.
 
     1. A **polynomial**.
 
-    The base ring can be `\mathbb{Z}`, `\mathbb{Q}`, `\mathbb{Z}_p`, `\mathbb{Q}_p`, `\mathbb{F}_p`.::
+    The base ring can be `\ZZ`, `\QQ`, `\ZZ_p`, `\QQ_p`, `\mathbb{F}_p`.::
 
         sage: P.<x> = ZZ[]
         sage: R.<a> = Qq(27, modulus = x^3 + 2*x + 1); R.modulus()
@@ -1397,7 +1397,7 @@ class Zp_class(UniqueFactory):
 
     INPUT:
 
-    - ``p`` -- integer: the `p` in `\mathbb{Z}_p`
+    - ``p`` -- integer: the `p` in `\ZZ_p`
 
     - ``prec`` -- integer (default: ``20``) the precision cap of the
       ring.  In the lattice capped case, ``prec`` can either be a
@@ -1516,7 +1516,7 @@ class Zp_class(UniqueFactory):
         1 + 2*5 + O(5^2)
 
     The fixed modulus type is the leanest of the `p`-adic rings: it is
-    basically just a wrapper around `\mathbb{Z} / p^n \mathbb{Z}` providing a unified
+    basically just a wrapper around `\ZZ / p^n \ZZ` providing a unified
     interface with the rest of the `p`-adics.  This is the type you
     should use if your sole interest is speed.  It does not track
     precision of elements.::
@@ -1928,11 +1928,11 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
        print_max_unram_terms = None, print_max_terse_terms = None, show_prec = None, check = True, implementation = 'FLINT'):
     r"""
     Given a prime power `q = p^n`, return the unique unramified
-    extension of `\mathbb{Z}_p` of degree `n`.
+    extension of `\ZZ_p` of degree `n`.
 
     INPUT:
 
-    - ``q`` -- integer, list or tuple: the prime power in `\mathbb{Q}_q`.  Or a
+    - ``q`` -- integer, list or tuple: the prime power in `\QQ_q`.  Or a
       factorization object, single element list ``[(p, n)]`` where ``p`` is
       a prime and ``n`` a positive integer, or the pair ``(p, n)``.
 
@@ -1945,7 +1945,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
       ``'floating-point'``.  See TYPES and PRECISION below
 
     - modulus -- polynomial (default None) A polynomial defining an
-      unramified extension of `\mathbb{Z}_p`.  See MODULUS below.
+      unramified extension of `\ZZ_p`.  See MODULUS below.
 
     - ``names`` -- string or tuple (``None`` is only allowed when
       `q=p`).  The name of the generator, reducing to a generator of
@@ -2067,15 +2067,15 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
 
     MODULUS:
 
-    The modulus needs to define an unramified extension of `\mathbb{Z}_p`: when it
+    The modulus needs to define an unramified extension of `\ZZ_p`: when it
     is reduced to a polynomial over `\mathbb{F}_p` it should be irreducible.
 
     The modulus can be given in a number of forms.
 
     1. A **polynomial**.
 
-    The base ring can be `\mathbb{Z}`, `\mathbb{Q}`, `\mathbb{Z}_p`, `\mathbb{F}_p`, or anything that can
-    be converted to `\mathbb{Z}_p`.::
+    The base ring can be `\ZZ`, `\QQ`, `\ZZ_p`, `\mathbb{F}_p`, or anything that can
+    be converted to `\ZZ_p`.::
 
         sage: P.<x> = ZZ[]
         sage: R.<a> = Zq(27, modulus = x^3 + 2*x + 1); R.modulus()
@@ -2659,7 +2659,7 @@ def ZpLC(p, prec=None, *args, **kwds):
 
     It is known for its numerical instability.
     On the one hand, one can show that if the initial values are
-    invertible in `\mathbb{Z}_p` and known at precision `O(p^N)`
+    invertible in `\ZZ_p` and known at precision `O(p^N)`
     then all the next terms of the SOMOS sequence will be known
     at the same precision as well.
     On the other hand, because of the division, when we unroll

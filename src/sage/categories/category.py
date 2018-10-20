@@ -37,10 +37,13 @@ Let's request the category of some objects::
     sage: V.category()
     Category of finite dimensional vector spaces with basis
      over (number fields and quotient fields and metric spaces)
+
     sage: G = SymmetricGroup(9)
     sage: G.category()
-    Join of Category of finite enumerated permutation groups
-     and Category of finite weyl groups
+    Join of Category of finite enumerated permutation groups and
+    Category of finite weyl groups and
+    Category of well generated finite irreducible complex reflection groups
+
     sage: P = PerfectMatchings(3)
     sage: P.category()
     Category of finite enumerated sets

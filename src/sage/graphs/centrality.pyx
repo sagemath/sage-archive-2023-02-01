@@ -31,8 +31,6 @@ from sage.graphs.base.static_sparse_backend cimport simple_BFS
 from sage.graphs.base.boost_graph import shortest_paths as boost_shortest_paths
 import random
 
-from six import iteritems
-
 ctypedef fused numerical_type:
     mpq_t
     double
@@ -666,7 +664,7 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     """
     if k >= G.order():
         closeness_dict = G.centrality_closeness(by_weight=False, algorithm='BFS')
-        return sorted([(closz, z) for z, closz in iteritems(closeness_dict)],
+        return sorted([(closz, z) for z, closz in closeness_dict.items()],
                           reverse=True, key=lambda zz: zz[0])
     if G.order() < 2:
         return []

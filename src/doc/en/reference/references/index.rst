@@ -383,7 +383,7 @@ REFERENCES:
 .. [Big1999] Stephen J. Bigelow. The Burau representation is not
              faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
 
-.. [Big2003] Stephen J. Bigelow, The Lawrence-Krammer representation,
+.. [Big2003] Stephen J. Bigelow, *The Lawrence-Krammer representation*,
              Geometric Topology, 2001 Georgia International Topology
              Conference, AMS/IP Studies in Advanced Mathematics 35
              (2003). :arxiv:`math/0204057v1`
@@ -401,11 +401,11 @@ REFERENCES:
                    *The SKINNY family of block ciphers and its low-latency
                    variant MANTIS*; in CRYPTO, (2016), pp. 123-153.
 
-.. [BK1992] \U. Brehm and W. Kuhnel, "15-vertex triangulations of an
-            8-manifold", Math. Annalen 294 (1992), no. 1, 167-193.
+.. [BK1992] \U. Brehm and W. Kuhnel, *15-vertex triangulations of an
+            8-manifold*, Math. Annalen 294 (1992), no. 1, 167-193.
 
-.. [BK2001] \W. Bruns and R. Koch, Computing the integral closure of an
-            affine semigroup. Uni. Iaggelonicae Acta Math. 39, (2001),
+.. [BK2001] \W. Bruns and R. Koch, *Computing the integral closure of an
+            affine semigroup*. Uni. Iaggelonicae Acta Math. 39, (2001),
             59-70
 
 .. [BK2008] \J. Brundan and A. Kleshchev.
@@ -789,7 +789,7 @@ REFERENCES:
             generators of an Artin group*. Invent. Math. **145**
             (2001). No 1, 19-36. :arxiv:`math/0003133`.
 
-.. [CPdA2014] Maria Chlouveraki and Loic Poulain
+.. [CPdA2014] Maria Chlouveraki and Loïc Poulain
               d'Andecy. *Representation theory of the Yokonuma-Hecke
               algebra*. (2014) :arxiv:`1302.6225v2`.
 
@@ -884,10 +884,10 @@ REFERENCES:
             schemes of coding theory, Philips Res. Rep., Suppl.,
             vol. 10, 1973.
 
-.. [De1974] \M. Demazure, Desingularisation des varietes de Schubert,
+.. [De1974] \M. Demazure, *Désingularisation des variétés de Schubert*,
             Ann. E. N. S., Vol. 6, (1974), p. 163-172
 
-.. [Deh2011] \P. Dehornoy, Le probleme d'isotopie des tresses, in
+.. [Deh2011] \P. Dehornoy, *Le problème d'isotopie des tresses*, in
              Leçons mathématiques de Bordeaux, vol. 4, pages 259-300,
              Cassini (2011).
 
@@ -968,9 +968,9 @@ REFERENCES:
               for Algorithms and Applications", Algorithms and
               Computation in Mathematics, Volume 25, Springer, 2011.
 
-.. [DN1990] Claude Danthony and Arnaldo Nogueira "Measured foliations
-            on nonorientable surfaces", Annales scientifiques de
-            l'Ecole Normale Superieure, Ser. 4, 23, no. 3 (1990) p
+.. [DN1990] Claude Danthony and Arnaldo Nogueira, *Measured foliations
+            on nonorientable surfaces*, Annales scientifiques de
+            l'École Normale Supérieure, Sér. 4, 23, no. 3 (1990) p
             469-494
 
 .. [Do2009] \P. Dobcsanyi et
@@ -1975,8 +1975,8 @@ REFERENCES:
 .. [Lee2013] \J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed.,
              Springer (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
 
-.. [Lev2014] Lionel Levine. Threshold state and a conjecture of
-             Poghosyan, Poghosyan, Priezzhev and Ruelle,
+.. [Lev2014] Lionel Levine. *Threshold state and a conjecture of
+             Poghosyan, Poghosyan, Priezzhev and Ruelle*,
              Communications in Mathematical Physics.
 
 .. [Lew2000] Robert Edward Lewand. *Cryptological Mathematics*. The
@@ -2112,9 +2112,9 @@ REFERENCES:
             local components of a newform*, Mathematics of Computation
             **81** (2012) 1179-1200. :doi:`10.1090/S0025-5718-2011-02530-5`
 
-.. [Lyo2003] \R. Lyons, Determinantal probability
-             measures. Publications Mathematiques de l'Institut des
-             Hautes Etudes Scientifiques 98(1)  (2003), pp. 167-212.
+.. [Lyo2003] \R. Lyons, *Determinantal probability
+             measures*. Publications Mathématiques de l'Institut des
+             Hautes Études Scientifiques 98(1)  (2003), pp. 167-212.
 
 .. _ref-M:
 
@@ -2226,7 +2226,7 @@ REFERENCES:
 .. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
                 http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
 
-.. [MJ1991] Mestre, Jean-Francois. *Construction de courbes de genre 2 a partir de
+.. [MJ1991] Mestre, Jean-François. *Construction de courbes de genre 2 à partir de
             leurs modules*. Effective methods in algebraic geometry (Castiglioncello,
             1990), 313--334, Progr. Math., 94, Birkhauser Boston, Boston, MA, 1991.
 
@@ -2472,7 +2472,7 @@ REFERENCES:
 
 .. [PS2011] \R. Pollack, and G. Stevens.  *Overconvergent modular
             symbols and p-adic L-functions.* Annales scientifiques de
-            l'Ecole normale superieure.
+            l'École normale supérieure.
             Vol. 44. No. 1. Elsevier, 2011.
 
 .. [PUNTOS] Jesus A. De Loera
@@ -2501,12 +2501,12 @@ REFERENCES:
              related topics in matroid theory. Ph.D. Thesis,
              Northwestern university, 1987.
 
-.. [Ram1991] Arun Ram.
+.. [Ram1991] Arun Ram,
              *A Frobenius formula for the characters of the Hecke algebras*.
              Invent. Math. **106** (1991), pp. 461-488.
 
-.. [Rau1979] Gerard Rauzy, "Echanges d'intervalles et transformations
-             induites", Acta Arith. 34, no. 3, 203-212, 1980
+.. [Rau1979] Gerard Rauzy, *Échanges d'intervalles et transformations
+             induites*, Acta Arith. 34, no. 3, 203-212, 1980
 
 .. [Red2001] Maria Julia Redondo. *Hochschild cohomology: some methods
              for computations*. Resenhas IME-USP 5 (2), 113-137
@@ -2657,15 +2657,15 @@ REFERENCES:
              Andrés Gómez, pp 507-519, Univ. La Rioja Serv. Publ., Logroño (2010).
 
 .. [Sey1981] \P. D. Seymour, Nowhere-zero 6-flows, J. Comb. Theory Ser B,
-             30 (1981), 130-135. :doi: `10.1016/0095-8956(81)90058-7`
+             30 (1981), 130-135. :doi:`10.1016/0095-8956(81)90058-7`
 
 .. [SH1995] \C. P. Schnorr and H. H. Hörner. *Attacking the
             Chor-Rivest Cryptosystem by Improved Lattice
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
-.. [Shim2016] Shimada, Ichiro, Connected components of the moduli of
-            elliptic K3 surfaces, https://arxiv.org/abs/1610.04706.
+.. [Shim2016] Shimada, Ichiro, *Connected components of the moduli of
+            elliptic K3 surfaces*, :arxiv:`1610.04706`.
 
 .. [Shi1971] Goro Shimura, *Introduction to the arithmetic theory of
              automorphic functions*. Publications of the Mathematical
@@ -2791,8 +2791,8 @@ REFERENCES:
               Anders Björner,
               Research Paper 9, 24 pp.
 
-.. [Ste2003] John R. Stembridge, A local characterization of
-             simply-laced crystals, Transactions of the American
+.. [Ste2003] John R. Stembridge, *A local characterization of
+             simply-laced crystals*, Transactions of the American
              Mathematical Society, Vol. 355, No. 12 (Dec., 2003),
              pp. 4807--4823
 
@@ -2945,7 +2945,7 @@ REFERENCES:
               Algorithmica, 1995, volume **14**, number 3, pages 249--260.
 
 .. [UNITTEST] unittest -- Unit testing framework --
-              http://docs.python.org/library/unittest.html
+              https://docs.python.org/library/unittest.html
 
 .. [U.S1998] \U.S. Department Of Commerce/National Institute of Standards and Technology,
              *Skipjack and KEA algorithms specifications, v2.0*, (1998).
@@ -3122,8 +3122,8 @@ REFERENCES:
                 associated with crystal base of* `U_q(D_4^{(3)})`.
                 \J. Math. Phys., **48** (4):043509, 28, (2007).
 
-.. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
-             college de France
+.. [Yoc2005] Jean-Christophe Yoccoz, *Échange d'Intervalles*, Cours au
+             collège de France
 
 .. [Yun1976] Yun, David YY. On square-free decomposition
              algorithms. In Proceedings of the third ACM symposium on

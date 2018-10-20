@@ -575,7 +575,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         TESTS::
 
             sage: ProjectiveSpace(3, Zp(5), 'y')._latex_()
-            '{\\mathbf P}_{\\ZZ_{5}}^3'
+            '{\\mathbf P}_{\\Bold{Z}_{5}}^3'
         """
         return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 

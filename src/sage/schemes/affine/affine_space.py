@@ -308,7 +308,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         TESTS::
 
             sage: AffineSpace(3, Zp(5), 'y')._latex_()
-            '\\mathbf{A}_{\\ZZ_{5}}^3'
+            '\\mathbf{A}_{\\Bold{Z}_{5}}^3'
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 

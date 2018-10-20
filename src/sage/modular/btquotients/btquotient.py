@@ -973,7 +973,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         Note that the translate of ``z`` belongs to the standard
         affinoid. That is, it is a `p`-adic unit and its reduction
-        modulo `p` is not in `\mathbb{F}_p`::
+        modulo `p` is not in `\GF{p}`::
 
             sage: gz = (v[0,0]*z+v[0,1])/(v[1,0]*z+v[1,1]); gz
             (a + 1) + O(5^19)
@@ -1597,9 +1597,9 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BruhatTitsQuotient(5,13); latex(X)
-            X(5 \cdot 13,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
+            X(5 \cdot 13,1)\otimes_{\Bold{Z}} \Bold{F}_{5}
         """
-        return "X(%s,%s)\\otimes_{\\mathbb{Z}} \\mathbb{F}_{%s}" % (latex(self.level().factor()), latex(self.Nplus().factor()), latex(self.prime()))
+        return "X(%s,%s)\\otimes_{\\Bold{Z}} \\Bold{F}_{%s}" % (latex(self.level().factor()), latex(self.Nplus().factor()), latex(self.prime()))
 
     def get_vertex_dict(self):
         r"""

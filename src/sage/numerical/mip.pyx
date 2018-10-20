@@ -23,7 +23,7 @@ in the following form
 with given `A \in \mathbb{R}^{m,n}`, `b \in \mathbb{R}^m`,
 `c \in \mathbb{R}^n` and unknown `x \in \mathbb{R}^{n}`.
 If some or all variables in the vector `x` are restricted over
-the integers `\mathbb{Z}`, the problem is called mixed integer
+the integers `\ZZ`, the problem is called mixed integer
 linear program (:wikipedia:`MILP <Mixed_integer_linear_programming>`).
 A wide variety of problems in optimization
 can be formulated in this standard form. Then, solvers are
@@ -42,7 +42,7 @@ and this additional inequality:
 
  - `w_0 - w_1 - w_2 \geq 0`
 
-where all `w_i \in \mathbb{Z}^+`. You know that the trivial solution is `w_i=0`,
+where all `w_i \in \ZZ^+`. You know that the trivial solution is `w_i=0`,
 but what is the first non-trivial one with `w_3 \geq 1`?
 
 A mixed integer linear program can give you an answer:

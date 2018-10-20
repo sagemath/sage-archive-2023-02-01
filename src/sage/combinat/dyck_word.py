@@ -189,7 +189,7 @@ class DyckWord(CombinatorialElement):
     A Dyck word may also be specified by either a noncrossing partition or
     by an area sequence or the sequence of heights.
 
-    A Dyck word may also be thought of as a lattice path in the `\mathbb{Z}^2`
+    A Dyck word may also be thought of as a lattice path in the `\ZZ^2`
     grid, starting at the origin `(0,0)`, and with steps in the North
     `N = (0,1)` and east `E = (1,0)` directions such that it does not pass
     below the `x = y` diagonal. The diagonal is referred to as the "main

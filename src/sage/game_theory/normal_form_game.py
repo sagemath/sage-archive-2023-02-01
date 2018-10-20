@@ -435,7 +435,10 @@ It is also possible to generate a Normal form game from a gambit Game::
     sage: gambitgame[int(1), int(1)][int(1)] = int(5)  # optional - gambit
     sage: g = NormalFormGame(gambitgame)  # optional - gambit
     sage: g  # optional - gambit
-    Normal Form Game with the following utilities: {(0, 1): [2.0, 10.0], (1, 0): [10.0, 2.0], (0, 0): [8.0, 8.0], (1, 1): [5.0, 5.0]}
+    Normal Form Game with the following utilities: {(0, 0): [8.0, 8.0],
+     (0, 1): [2.0, 10.0],
+     (1, 0): [10.0, 2.0],
+     (1, 1): [5.0, 5.0]}
 
 For more information on using Gambit in Sage see: :mod:`Using Gambit in
 Sage<sage.game_theory.gambit_docs>`. This includes how to access Gambit
@@ -616,17 +619,16 @@ AUTHOR:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 James Campbell james.campbell@tanti.org.uk
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 from collections import MutableMapping
 from itertools import product
@@ -717,7 +719,10 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: gambitgame[int(1), int(1)][int(1)] = int(5)  # optional - gambit
             sage: g = NormalFormGame(gambitgame)  # optional - gambit
             sage: g  # optional - gambit
-            Normal Form Game with the following utilities: {(0, 1): [2.0, 11.0], (1, 0): [10.0, 7.0], (0, 0): [5.0, 8.0], (1, 1): [5.0, 5.0]}
+            Normal Form Game with the following utilities: {(0, 0): [5.0, 8.0],
+             (0, 1): [2.0, 11.0],
+             (1, 0): [10.0, 7.0],
+             (1, 1): [5.0, 5.0]}
 
         TESTS:
 
@@ -977,9 +982,10 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame()  # optional - gambit
             sage: g._gambit_game(testgame)  # optional - gambit
             sage: g  # optional - gambit
-            Normal Form Game with the following utilities:
-             {(0, 1): [2.0, 10.0], (1, 0): [10.0, 2.0],
-              (0, 0): [8.0, 8.0], (1, 1): [5.0, 5.0]}
+            Normal Form Game with the following utilities: {(0, 0): [8.0, 8.0],
+            (0, 1): [2.0, 10.0],
+            (1, 0): [10.0, 2.0],
+            (1, 1): [5.0, 5.0]}
         """
         self.players = []
         self.utilities = {}

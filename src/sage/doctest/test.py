@@ -424,7 +424,8 @@ Test the ``--show-skipped`` option::
         2 tests not run due to known bugs
         1 gap test not run
         1 long test not run
-        1 other test skipped
+        1 not tested test not run
+        0 tests not run because we ran out of time
         [1 test, ... s]
     ----------------------------------------------------------------------
     All tests passed!
@@ -440,7 +441,8 @@ Optional tests are run correctly::
     sage -t --long --warn-long 0.0 show_skipped.rst
         1 unlabeled test not run
         2 tests not run due to known bugs
-        1 other test skipped
+        1 not tested test not run
+        0 tests not run because we ran out of time
         [3 tests, ... s]
     ----------------------------------------------------------------------
     All tests passed!
@@ -454,8 +456,9 @@ Optional tests are run correctly::
     sage -t --long --warn-long 0.0 show_skipped.rst
         1 unlabeled test not run
         2 tests not run due to known bugs
+        1 not tested test not run
         1 sage test not run
-        1 other test skipped
+        0 tests not run because we ran out of time
         [2 tests, ... s]
     ----------------------------------------------------------------------
     All tests passed!

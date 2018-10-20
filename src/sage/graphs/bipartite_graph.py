@@ -55,19 +55,25 @@ class BipartiteGraph(Graph):
     - ``data`` -- can be any of the following:
 
       #. Empty or ``None`` (creates an empty graph).
+
       #. An arbitrary graph.
+
       #. A reduced adjacency matrix.
+
+         A reduced adjacency matrix contains only the non-redundant
+         portion of the full adjacency matrix for the bipartite graph.
+         Specifically, for zero matrices of the appropriate size, for
+         the reduced adjacency matrix ``H``, the full adjacency matrix
+         is ``[[0, H'], [H, 0]]``. The columns correspond to vertices
+         on the left, and the rows correspond to vertices on the
+         right.
+
       #. A file in alist format.
+
+         The alist file format is described at
+         http://www.inference.phy.cam.ac.uk/mackay/codes/alist.html
+
       #. From a NetworkX bipartite graph.
-
-    A reduced adjacency matrix contains only the non-redundant portion of the
-    full adjacency matrix for the bipartite graph.  Specifically, for zero
-    matrices of the appropriate size, for the reduced adjacency matrix ``H``,
-    the full adjacency matrix is ``[[0, H'], [H, 0]]``. The columns correspond
-    to vertices on the left, and the rows correspond to vertices on the right.
-
-    The alist file format is described at
-    http://www.inference.phy.cam.ac.uk/mackay/codes/alist.html
 
     - ``partition`` -- (default: ``None``); a tuple defining vertices of the left
       and right partition of the graph. Partitions will be determined
@@ -116,12 +122,13 @@ class BipartiteGraph(Graph):
         sage: B.right
         {4, 5, 6}
 
-    #. If a ``Graph`` or ``DiGraph`` is used as data, you can specify a
-      partition using ``partition`` argument. Note that if such graph is not
-      bipartite, then Sage will raise an error. However, if one specifies
-      ``check=False``, the offending edges are simply deleted (along with those
-      vertices not appearing in either list).  We also lump creating one
-      bipartite graph from another into this category::
+    #. If a ``Graph`` or ``DiGraph`` is used as data, you can specify
+       a partition using ``partition`` argument. Note that if such
+       graph is not bipartite, then Sage will raise an error. However,
+       if one specifies ``check=False``, the offending edges are
+       simply deleted (along with those vertices not appearing in
+       either list).  We also lump creating one bipartite graph from
+       another into this category::
 
         sage: P = graphs.PetersenGraph()
         sage: partition = [list(range(5)), list(range(5, 10))]
@@ -135,7 +142,7 @@ class BipartiteGraph(Graph):
         {0, 1, 2, 3, 4}
         sage: B.show()
 
-      ::
+       ::
 
         sage: G = Graph({0: [5, 6], 1: [4, 5], 2: [4, 6], 3: [4, 5, 6]})
         sage: B = BipartiteGraph(G)
@@ -148,7 +155,7 @@ class BipartiteGraph(Graph):
         sage: B3 == B2
         True
 
-      ::
+       ::
 
         sage: G = Graph({0: [], 1: [], 2: []})
         sage: part = (list(range(2)), [2])
@@ -157,7 +164,7 @@ class BipartiteGraph(Graph):
         sage: B == B2
         True
 
-      ::
+       ::
 
         sage: d = DiGraph(6)
         sage: d.add_edge(0, 1)
@@ -194,7 +201,7 @@ class BipartiteGraph(Graph):
          (5, 9, None),
          (6, 10, None)]
 
-      ::
+       ::
 
         sage: M = Matrix([(1, 1, 2, 0, 0), (0, 2, 1, 1, 1), (0, 1, 2, 1, 1)])
         sage: B = BipartiteGraph(M, multiedges=True, sparse=True)
@@ -214,7 +221,7 @@ class BipartiteGraph(Graph):
          (4, 6, None),
          (4, 7, None)]
 
-      ::
+       ::
 
          sage: F.<a> = GF(4)
          sage: MS = MatrixSpace(F, 2, 3)
@@ -235,7 +242,7 @@ class BipartiteGraph(Graph):
                              1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
          sage: fi.close()
          sage: B = BipartiteGraph(file_name)
-         sage: B == H
+         sage: B.is_isomorphic(H)
          True
 
     #. From a NetworkX bipartite graph::
@@ -706,7 +713,7 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-        - ``vertices`` -- a sequence of vertices to remove.
+        - ``vertices`` -- a sequence of vertices to remove
 
         EXAMPLES::
 
@@ -1318,7 +1325,8 @@ class BipartiteGraph(Graph):
           only the cardinal (or the weight) of the matching is returned
 
         - ``algorithm`` -- string (default: ``"Hopcroft-Karp"`` if
-          ``use_edge_labels==False``, otherwise ``"Edmonds"``)
+          ``use_edge_labels==False``, otherwise ``"Edmonds"``); algorithm to use
+          among:
 
           - ``"Hopcroft-Karp"`` selects the default bipartite graph algorithm as
             implemented in NetworkX

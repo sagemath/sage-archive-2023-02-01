@@ -18094,7 +18094,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def layout(self, layout = None, pos = None, dim = 2, save_pos = False, **options):
         """
-        Returns a layout for the vertices of this graph.
+        Return a layout for the vertices of this graph.
 
         INPUT:
 
@@ -18120,7 +18120,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = digraphs.ButterflyGraph(1)
-            sage: g.layout()
+            sage: D2 = g.layout(); D2  # random
             {('0', 0): [2.69..., 0.43...],
              ('0', 1): [1.35..., 0.86...],
              ('1', 0): [0.89..., -0.42...],
@@ -18132,11 +18132,22 @@ class GenericGraph(GenericGraph_pyx):
              ('1', 0): [0.6..., 0],
              ('1', 1): [0.6..., 1]}
 
-            sage: g.layout(dim = 3)
+            sage: D3 = g.layout(dim = 3); D3  # random
             {('0', 0): [0.68..., 0.50..., -0.24...],
              ('0', 1): [1.02..., -0.02..., 0.93...],
              ('1', 0): [2.06..., -0.49..., 0.23...],
              ('1', 1): [1.74..., 0.01..., -0.92...]}
+
+        Some safety tests::
+
+            sage: sorted(D2.keys()) == sorted(D3.keys()) == sorted(g)
+            True
+            sage: isinstance(D2, dict) and isinstance(D3, dict)
+            True
+            sage: [c in RDF for c in D2[('0', 0)]]
+            [True, True]
+            sage: [c in RDF for c in D3[('0', 0)]]
+            [True, True, True]
 
         Here is the list of all the available layout options::
 

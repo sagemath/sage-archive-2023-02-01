@@ -2076,14 +2076,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
         span the saturation of the row span of self. This is not unique.
 
         The saturation of a `\ZZ` module `M`
-        embedded in `\ZZ^n` is the a module `S` that
+        embedded in `\ZZ^n` is a module `S` that
         contains `M` with finite index such that
         `\ZZ^n/S` is torsion free. This function takes the
         row span `M` of self, and finds another matrix of full rank
         with row span the saturation of `M`.
 
         INPUT:
-
 
         -  ``p`` - (default: 0); if nonzero given, saturate
            only at the prime `p`, i.e., return a matrix whose row span

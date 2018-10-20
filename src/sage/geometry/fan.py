@@ -1096,7 +1096,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
       whether this fan is complete or not. By default, it will be determined
       automatically if necessary;
 
-    - ``virtual_rays`` -- if given, must the a list of immutable primitive
+    - ``virtual_rays`` -- if given, must be a list of immutable primitive
       vectors in ``lattice``, see :meth:`virtual_rays` for details. By default,
       it will be determined automatically if necessary.
 

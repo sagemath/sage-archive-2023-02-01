@@ -19,6 +19,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.misc.functional import is_even
+from sage.misc.misc import inject_variable
 from sage.rings.all import ZZ
 
 class WeylCharacterRing(CombinatorialFreeModule):
@@ -130,6 +131,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             prefix = prefix + "%s"%k
         self._prefix = prefix
         self._style = style
+        self._fusion_labels = None
         self._k = k
         if ct.is_atomic():
             self._opposition = ct.opposition_automorphism()
@@ -828,7 +830,10 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: [G2._repr_term(x) for x in G2.fundamental_weights()]
             ['G2(1,0,-1)', 'G2(2,-1,-1)']
         """
-        return self.irr_repr(t)
+        if self._fusion_labels is not None:
+            return self._fusion_labels[t]
+        else:
+            return self.irr_repr(t)
 
     def cartan_type(self):
         """
@@ -2144,6 +2149,25 @@ class FusionRing(WeylCharacterRing):
         A22(0,0) + A22(1,1),
         A22(0,1) + A22(2,0),
         A22(1,0) + A22(0,2)]
+
+    You may assign your own labels to the basis elements. In the next
+    example, we create the SO(5) fusion ring of level 2, check the
+    weights of the basis elements, then assign new labels to them
+
+    EXAMPLES::
+
+        sage: B22=FusionRing("B2",2)
+        sage: B22.fusion_basis()
+        [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
+        sage: [x.fusion_weight() for x in B22.fusion_basis()]
+        [(0, 0), (1/2, 1/2), (1, 0), (2, 0), (3/2, 1/2), (1, 1)]
+        sage: B22.fusion_labels(['1','X','Y1','Z','Xp','Y2'])
+        sage: B22.fusion_basis()
+        [1, X, Y1, Z, Xp, Y2]
+        sage: X*Y1
+        X + Xp
+        sage: Z*Z
+        1
     """
     @staticmethod
     def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots"):
@@ -2155,9 +2179,9 @@ class FusionRing(WeylCharacterRing):
         as a list.
         
         EXAMPLES::
-            sage: B22=FusionRing("B2",2)
-            sage: B22.fusion_basis()
-            [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
+            sage: C22=FusionRing("C2",2)
+            sage: C22.fusion_basis()
+            [C22(0,0), C22(0,1), C22(1,0), C22(2,0), C22(0,2), C22(1,1)]
         """
         if self._k is None:
             raise ValueError("fusion_basis method is only available for FusionRings")
@@ -2167,6 +2191,35 @@ class FusionRing(WeylCharacterRing):
         B = RecursivelyEnumeratedSet([self._space.zero()], next_level)
         return [self._element_constructor_(x) for x in B]
     
+    def fusion_labels(self, labels):
+        """
+        INPUT:
+
+        - ``labels`` -- a list of strings
+
+        The length of the list ``labels`` must equal the
+        number of basis elements. These become the names of
+        the basis elements.
+
+        EXAMPLES::
+
+            sage: A13=FusionRing("A1",3)
+            sage: A13.fusion_labels(['x0','x1','x2','x3'])
+            sage: fb = A13.fusion_basis(); fb
+            [x0, x1, x2, x3]
+            sage: Matrix([[x*y for y in A13.fusion_basis()] for x in A13.fusion_basis()])
+            [     x0      x1      x2      x3]
+            [     x1 x0 + x2 x1 + x3      x2]
+            [     x2 x1 + x3 x0 + x2      x1]
+            [     x3      x2      x1      x0]
+        """
+        d = {}
+        fb = self.fusion_basis()
+        for j in range(len(fb)):
+            d[fb[j].fusion_weight()]=labels[j]
+            inject_variable(labels[j],fb[j])
+        self._fusion_labels = d
+
     class Element(WeylCharacterRing.Element):
         def fusion_weight(self):
             if len(self.monomial_coefficients()) != 1:

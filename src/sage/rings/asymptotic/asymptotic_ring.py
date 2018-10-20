@@ -4543,6 +4543,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     def __init__(self, growth_group,
                  default_prec=None, category=None,
+                 term_monoid_factory=None,
                  cls=None):
         r"""
         See :class:`AsymptoticRingFunctor` for details.

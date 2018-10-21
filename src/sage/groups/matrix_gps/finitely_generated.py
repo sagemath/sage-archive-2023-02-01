@@ -46,6 +46,8 @@ AUTHORS:
   for the construction of the Reynolds operator in Singular.
 
 - Volker Braun (2013-1) port to new Parent, libGAP.
+
+- Sebastian Oehms (2018-07): Added _permutation_group_element_ (Trac #25706)
 """
 
 ##############################################################################
@@ -56,7 +58,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function
 
@@ -86,8 +88,6 @@ from sage.groups.matrix_gps.matrix_group import (
     is_MatrixGroup, MatrixGroup_generic, MatrixGroup_gap )
 from sage.groups.matrix_gps.group_element import (
     is_MatrixGroupElement, MatrixGroupElement_generic, MatrixGroupElement_gap)
-
-
 
 
 def normalize_square_matrices(matrices):
@@ -148,6 +148,7 @@ def normalize_square_matrices(matrices):
     if MS.nrows() != MS.ncols():
         raise ValueError('matrices must be square')
     return gens
+
 
 def QuaternionMatrixGroupGF3():
     r"""
@@ -523,7 +524,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         Return a permutation group representation for the group.
 
         In most cases occurring in practice, this is a permutation
-        group of minimal degree (the degree begin determined from
+        group of minimal degree (the degree being determined from
         orbits under the group action). When these orbits are hard to
         compute, the procedure can be time-consuming and the degree
         may not be minimal.
@@ -585,6 +586,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: a, b= MatrixGroup([A, B]).as_permutation_group().gens()
             sage: a.order(), b.order()
             (2, 1)
+
+        Check that ``_permutation_group_morphism`` works (:trac:`25706`)::
+
+            sage: MG = GU(3,2).as_matrix_group()
+            sage: PG = MG.as_permutation_group()  # this constructs the morphism
+            sage: mg = MG.an_element()
+            sage: MG._permutation_group_morphism(mg)
+            (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of
@@ -601,12 +610,23 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             mats.append(m)
         mats_str = str(gap([[list(r) for r in m] for m in mats]))
         gap.eval("iso:=IsomorphismPermGroup(Group("+mats_str+"))")
+        gap_permutation_map = gap("iso;")
         if algorithm == "smaller":
             gap.eval("small:= SmallerDegreePermutationRepresentation( Image( iso ) );")
             C = gap("Image( small )")
         else:
             C = gap("Image( iso )")
-        return PermutationGroup(gap_group=C, canonicalize=False)
+        PG = PermutationGroup(gap_group=C, canonicalize=False)
+
+        def permutation_group_map(element):
+            return PG(gap_permutation_map.ImageElm(element.gap()))
+
+        from sage.categories.homset import Hom
+        self._permutation_group_morphism = Hom(self, PG)(permutation_group_map)
+
+        return PG
+
+    _permutation_group_ = as_permutation_group
 
     def module_composition_factors(self, algorithm=None):
         r"""
@@ -789,11 +809,11 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 singular.eval('matrix %s = invariant_algebra_reynolds(%s[1])'%(IRName,ReyName))
 
             OUT = [singular.eval(IRName+'[1,%d]'%(j))
-                   for j in range(1,1+singular('ncols('+IRName+')'))]
+                   for j in range(1, 1+int(singular('ncols('+IRName+')')))]
             return [PR(gen) for gen in OUT]
-        if self.cardinality()%q == 0:
-            PName = 't'+singular._next_var_name()
-            SName = 't'+singular._next_var_name()
+        if self.cardinality() % q == 0:
+            PName = 't' + singular._next_var_name()
+            SName = 't' + singular._next_var_name()
             singular.eval('matrix %s,%s=invariant_ring(%s)'%(PName,SName,Lgens))
             OUT = [
                 singular.eval(PName+'[1,%d]'%(j))
@@ -1002,7 +1022,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
             K[x]^G_{\chi} = \{f \in K[x] | \pi f = \chi(\pi) f \forall \pi\in G\}
 
-        be the ring of invarants of `G` relative to `\chi`. Then the Reynold's operator
+        be the ring of invariants of `G` relative to `\chi`. Then the Reynold's operator
         is a map `R` from `K[x]` into `K[x]^G_{\chi}` defined by
 
         .. MATH:
@@ -1036,11 +1056,11 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: K.<v> = CyclotomicField(4)
             sage: R.<x,y,z,w> = K[]
             sage: G.reynolds_operator(x, chi)
-            1/4*x + (1/4*v)*y - 1/4*z + (-1/4*v)*w
+            1/4*x + (-1/4*v)*y - 1/4*z + (1/4*v)*w
             sage: chi = G.character(G.character_table()[2])
             sage: R.<x,y,z,w> = QQ[]
             sage: G.reynolds_operator(x*y, chi)
-            1/4*x*y + (-1/4*zeta4)*y*z + (1/4*zeta4)*x*w - 1/4*z*w
+            1/4*x*y + (1/4*zeta4)*y*z + (-1/4*zeta4)*x*w - 1/4*z*w
 
         ::
 
@@ -1049,12 +1069,10 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
             sage: G.reynolds_operator(x*y^5, chi)
-            1/3*x*y^5 + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*x^5*z +
-            (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*y*z^5
+            1/3*x*y^5 + (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*x^5*z + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*y*z^5
             sage: R.<x,y,z> = QQbar[]
             sage: G.reynolds_operator(x*y^5, chi)
-            1/3*x*y^5 + (-0.1666666666666667? - 0.2886751345948129?*I)*x^5*z +
-            (-0.1666666666666667? + 0.2886751345948129?*I)*y*z^5
+            1/3*x*y^5 + (-0.1666666666666667? + 0.2886751345948129?*I)*x^5*z + (-0.1666666666666667? - 0.2886751345948129?*I)*y*z^5
 
         ::
 
@@ -1201,7 +1219,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         for g in self:
             F += L(chi(g)) * poly(*g.matrix().change_ring(L)*poly_gens)
         F /= self.order()
-        try: # attempt to move F to base_ring of polyomial
+        try:  # attempt to move F to base_ring of polynomial
             F = F.change_ring(R)
         except (TypeError, ValueError):
             pass
@@ -1231,11 +1249,11 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         EXAMPLES::
 
             sage: Gr = MatrixGroup(SymmetricGroup(2))
-            sage: Gr.invariants_of_degree(3)
-            [x0^3 + x1^3, x0^2*x1 + x0*x1^2]
+            sage: sorted(Gr.invariants_of_degree(3))
+            [x0^2*x1 + x0*x1^2, x0^3 + x1^3]
             sage: R.<x,y> = QQ[]
-            sage: Gr.invariants_of_degree(4, R=R)
-            [x^3*y + x*y^3, x^2*y^2, x^4 + y^4]
+            sage: sorted(Gr.invariants_of_degree(4, R=R))
+            [x^2*y^2, x^3*y + x*y^3, x^4 + y^4]
 
         ::
 
@@ -1243,9 +1261,9 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: Gr = MatrixGroup(DihedralGroup(3))
             sage: ct = Gr.character_table()
             sage: chi = Gr.character(ct[0])
-            sage: [f(*(g.matrix()*vector(R.gens()))) == chi(g)*f \
-                  for f in Gr.invariants_of_degree(3, R=R, chi=chi) for g in Gr]
-            [True, True, True, True, True, True]
+            sage: all(f(*(g.matrix()*vector(R.gens()))) == chi(g)*f
+            ....: for f in Gr.invariants_of_degree(3, R=R, chi=chi) for g in Gr)
+            True
 
         ::
 
@@ -1269,19 +1287,17 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G =  MatrixGroup(CyclicPermutationGroup(3))
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
-            sage: G.invariants_of_degree(2, R=R, chi=chi)
-            [x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z +
-             (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y*z,
-             x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 +
-             (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*z^2]
+            sage: sorted(G.invariants_of_degree(2, R=R, chi=chi))
+            [x*y + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*x*z + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*y*z,
+             x^2 + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*y^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*z^2]
 
         ::
 
             sage: S3 = MatrixGroup(SymmetricGroup(3))
             sage: chi = S3.character(S3.character_table()[0])
-            sage: S3.invariants_of_degree(5, chi=chi)
-            [x0^4*x1 - x0*x1^4 - x0^4*x2 + x1^4*x2 + x0*x2^4 - x1*x2^4,
-             x0^3*x1^2 - x0^2*x1^3 - x0^3*x2^2 + x1^3*x2^2 + x0^2*x2^3 - x1^2*x2^3]
+            sage: sorted(S3.invariants_of_degree(5, chi=chi))
+            [x0^3*x1^2 - x0^2*x1^3 - x0^3*x2^2 + x1^3*x2^2 + x0^2*x2^3 - x1^2*x2^3,
+            x0^4*x1 - x0*x1^4 - x0^4*x2 + x1^4*x2 + x0*x2^4 - x1*x2^4]
         """
         D = self.degree()
         deg = int(deg)
@@ -1299,7 +1315,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         for e in IntegerVectors(deg, D):
             F = self.reynolds_operator(R.monomial(*e), chi=chi)
             if not F.is_zero():
-                F = F/F.lc()
+                F = F / F.lc()
                 inv.add(F)
                 if len(inv) == ms[deg]:
                     break

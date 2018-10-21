@@ -117,7 +117,6 @@ cdef class Matrix_gap(Matrix_dense):
             [0]
         """
         ma = MatrixArgs_init(parent, entries)
-        Matrix_dense.__init__(self, ma.space)
         it = ma.iter(coerce)
         cdef list mat = []
         cdef long i, j
@@ -132,9 +131,7 @@ cdef class Matrix_gap(Matrix_dense):
         else:
             P = self.matrix_space(nrows, ncols)
 
-        cdef Matrix_gap M = Matrix_gap.__new__(Matrix_gap, P, None, None, None)
-        Matrix_dense.__init__(M, P)
-        return M
+        return Matrix_gap.__new__(Matrix_gap, P)
 
     def __copy__(self):
         r"""

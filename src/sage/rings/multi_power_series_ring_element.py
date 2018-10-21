@@ -123,7 +123,7 @@ Construct ring homomorphisms from one power series ring to another::
 
 Multiplicative inversion of power series::
 
-    sage: h = 1 + s + t + s*t + s^2*t^2 + 3*s^4 + 3*s^3*t + R.O(5);
+    sage: h = 1 + s + t + s*t + s^2*t^2 + 3*s^4 + 3*s^3*t + R.O(5)
     sage: k = h^-1; k
     1 - s - t + s^2 + s*t + t^2 - s^3 - s^2*t - s*t^2 - t^3 - 2*s^4 -
     2*s^3*t + s*t^3 + t^4 + O(s, t)^5
@@ -131,8 +131,8 @@ Multiplicative inversion of power series::
     1 + O(s, t)^5
 
     sage: f = 1 - 5*s^29 - 5*s^28*t + 4*s^18*t^35 + \
-    4*s^17*t^36 - s^45*t^25 - s^44*t^26 + s^7*t^83 + \
-    s^6*t^84 + R.O(101)
+    ....: 4*s^17*t^36 - s^45*t^25 - s^44*t^26 + s^7*t^83 + \
+    ....: s^6*t^84 + R.O(101)
     sage: h = ~f; h
     1 + 5*s^29 + 5*s^28*t - 4*s^18*t^35 - 4*s^17*t^36 + 25*s^58 + 50*s^57*t
     + 25*s^56*t^2 + s^45*t^25 + s^44*t^26 - 40*s^47*t^35 - 80*s^46*t^36
@@ -175,7 +175,7 @@ def is_MPowerSeries(f):
 
         sage: from sage.rings.power_series_ring_element import is_PowerSeries
         sage: from sage.rings.multi_power_series_ring_element import is_MPowerSeries
-        sage: M = PowerSeriesRing(ZZ,4,'v');
+        sage: M = PowerSeriesRing(ZZ,4,'v')
         sage: is_PowerSeries(M.random_element(10))
         True
         sage: is_MPowerSeries(M.random_element(10))
@@ -580,10 +580,19 @@ class MPowerSeries(PowerSeries):
             sage: f._latex_()
             '- t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
             2 t_{1} t_{2}^{12} + 2 t_{0}^{7} t_{1}^{5} t_{2}^{2}
-            + O(t0, t1, t2)^{15}'
+            + O(t_{0}, t_{1}, t_{2})^{15}'
+
+        TESTS:
+
+        Check that :trac:`25156` is fixed::
+
+            sage: R.<x1,y1> = PowerSeriesRing(QQ, ('x', 'y'))
+            sage: element = 1 + y1^10 + x1^5
+            sage: element._latex_()
+            '1 + x_{1}^{5} + y_{1}^{10}'
         """
         if self._prec == infinity:
-            return "%s" % self._value()
+            return "%s" % self._value()._latex_()
         return "%(val)s + O(%(gens)s)^{%(prec)s}" \
                %{'val':self._value()._latex_(),
                  'gens':', '.join(g._latex_() for g in self.parent().gens()),
@@ -1183,7 +1192,7 @@ class MPowerSeries(PowerSeries):
             sage: f.monomials()
             []
         """
-        return self.coefficients().keys()
+        return list(self.coefficients())
 
     def coefficients(self):
         """
@@ -1645,7 +1654,7 @@ class MPowerSeries(PowerSeries):
                 sage: (a^2).integral(a)
                 Traceback (most recent call last):
                 ...
-                ZeroDivisionError: Inverse does not exist.
+                ZeroDivisionError: inverse of Mod(0, 3) does not exist
         """
         from sage.misc.derivative import derivative_parse
         res = self
@@ -1672,7 +1681,7 @@ class MPowerSeries(PowerSeries):
         TESTS:
 
         We try to recognize variables even if they are not recognized as
-        genrators of the rings::
+        generators of the rings::
 
             sage: T.<a,b> = PowerSeriesRing(QQ,2)
             sage: a.is_gen()

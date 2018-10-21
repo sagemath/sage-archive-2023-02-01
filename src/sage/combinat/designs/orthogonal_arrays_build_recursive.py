@@ -540,7 +540,7 @@ def construction_q_x(k,q,x,check=True,explain_construction=False):
     PBD = [[relabel[xx] for xx in B if not xx in points_to_delete] for B in TD]
 
     # Taking the unique block of size x+2
-    assert map(len,PBD).count(x+2)==1
+    assert list(map(len,PBD)).count(x+2)==1
     for B in PBD:
         if len(B) == x+2:
             break
@@ -972,7 +972,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         Three-factor product with n=8.9.9 from:
            Peter J. Dukes, Alan C.H. Ling,
            A three-factor product construction for mutually orthogonal latin squares,
-           http://arxiv.org/abs/1401.1466
+           https://arxiv.org/abs/1401.1466
 
     REFERENCE:
 
@@ -994,7 +994,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         return ("Three-factor product with n={}.{}.{} from:\n"+
                 "   Peter J. Dukes, Alan C.H. Ling,\n"+
                 "   A three-factor product construction for mutually orthogonal latin squares,\n"+
-                "   http://arxiv.org/abs/1401.1466").format(n1,n2,n3)
+                "   https://arxiv.org/abs/1401.1466").format(n1, n2, n3)
 
     def assert_c_partition(classs,k,n,c):
         r"""

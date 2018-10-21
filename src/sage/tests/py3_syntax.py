@@ -35,6 +35,8 @@ import itertools
 import subprocess
 
 from sage.env import SAGE_SRC
+from sage.cpython.string import bytes_to_str
+
 
 class SortedDirectoryWalkerABC(object):
     r"""
@@ -172,22 +174,38 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
         EXAMPLES::
 
             sage: import os, tempfile
-            sage: src = tempfile.NamedTemporaryFile(suffix='.py', delete=False)
+            sage: src = tempfile.NamedTemporaryFile(suffix='.py', mode='w+', delete=False)
             sage: _ = src.write('print "invalid print statement"')
             sage: src.close()
             sage: from sage.tests.py3_syntax import Python3SyntaxTest
             sage: py3_syntax = Python3SyntaxTest()
             sage: py3_syntax.test(src.name)
             Invalid Python 3 syntax found:
-              File "...py", line 1
-                print "invalid print statement"
-                                              ^
-            SyntaxError: Missing parentheses in call to 'print'
+            Missing parentheses in call to 'print'.
+            Did you mean print("invalid print statement")? (...py, line 1)
             sage: os.unlink(src.name)
         """
+
+        # compile all given files in memory, printing all errors
+        # inspired by the py_compile module (but without writing to file)
+        script = """
+import sys
+import importlib.machinery
+rv = 0
+for file in sys.argv[1:]:
+    loader = importlib.machinery.SourceFileLoader('<sage_test>', file)
+    source_bytes = loader.get_data(file)
+    try:
+        code = loader.source_to_code(source_bytes, file)
+    except Exception as err:
+        print(err)
+        rv = 1
+sys.exit(rv)
+"""
         cmd = [
             'python3',
-            '-m', 'py_compile'
+            '-c',
+            script,
         ] + list(filenames)
         process = subprocess.Popen(
             cmd,
@@ -200,6 +218,6 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
             return
         print('Invalid Python 3 syntax found:')
         if stdout:
-            print(stdout)
+            print(bytes_to_str(stdout))
         if stderr:
-            print(stderr)
+            print(bytes_to_str(stderr))

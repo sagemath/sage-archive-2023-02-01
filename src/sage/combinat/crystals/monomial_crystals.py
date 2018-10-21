@@ -106,7 +106,6 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
-from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_space import MatrixSpace
@@ -831,7 +830,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         return c
 
     @staticmethod
-    def __classcall_private__(cls, ct, c=None, use_Y=None):
+    def __classcall_private__(cls, ct, c=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -847,20 +846,11 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             sage: M is M1 is M2
             True
         """
-        if use_Y is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(18895, 'use_Y is deprecated; use the set_variables() method instead.')
-        else:
-            use_Y = True
-
         cartan_type = CartanType(ct)
         n = len(cartan_type.index_set())
         c = InfinityCrystalOfNakajimaMonomials._normalize_c(c, n)
         M = super(InfinityCrystalOfNakajimaMonomials, cls).__classcall__(cls, cartan_type, c)
-        if not use_Y:
-            M.set_variables('A')
-        else:
-            M.set_variables('Y')
+        M.set_variables('Y')
         return M
 
     def __init__(self, ct, c, category=None):

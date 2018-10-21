@@ -20,6 +20,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+import operator
 from sage.misc.all import cached_method
 from sage.categories.semigroups import Semigroups
 from sage.categories.sets_cat import Sets
@@ -30,7 +31,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.sets.family import Family
 from sage.rings.integer import Integer
-import operator
+from sage.cpython.getattr import raw_getattr
+
 
 class AutomaticSemigroup(UniqueRepresentation, Parent):
     r"""
@@ -1012,7 +1014,7 @@ class AutomaticMonoid(AutomaticSemigroup):
         return self._one
 
     # This method takes the monoid generators and adds the unit
-    semigroup_generators = Monoids.ParentMethods.semigroup_generators.__func__
+    semigroup_generators = raw_getattr(Monoids.ParentMethods, "semigroup_generators")
 
     def monoid_generators(self):
         """

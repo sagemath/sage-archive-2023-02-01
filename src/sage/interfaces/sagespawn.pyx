@@ -30,6 +30,7 @@ from posix.unistd cimport getpid, getpgid, close, fork
 
 from time import sleep
 
+from sage.cpython.string cimport str_to_bytes
 from sage.interfaces.process cimport ContainChildren
 
 
@@ -191,7 +192,11 @@ class SagePtyProcess(PtyProcess):
             if self.quit_string is not None:
                 try:
                     # This can fail if the process already exited
-                    self.write(self.quit_string)
+                    # PtyProcess.write takes bytes; ideally we would use
+                    # an encoding picked specifically for the target process
+                    # but the default (UTF-8) will do now, since I don't
+                    # think we have any non-ASCII quit_strings anyways.
+                    self.write(str_to_bytes(self.quit_string))
                 except (OSError, IOError):
                     pass
             self.fileobj.close()

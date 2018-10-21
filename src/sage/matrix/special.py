@@ -48,8 +48,8 @@ The following constructions are available:
 The Combinatorics module provides further matrix constructors, such as Hadamard
 matrices and Latin squares. See:
 
-    - :ref:`sage.combinat.matrices.hadamard_matrix`
-    - :ref:`sage.combinat.matrices.latin`
+    - :mod:`sage.combinat.matrices.hadamard_matrix`
+    - :mod:`sage.combinat.matrices.latin`
 """
 
 #*****************************************************************************
@@ -76,6 +76,7 @@ from copy import copy
 from .constructor import matrix
 
 import sage.categories.pushout
+
 
 def matrix_method(func=None, name=None):
     """
@@ -134,19 +135,19 @@ def column_matrix(*args, **kwds):
         generally, when creating a matrix, input vectors and lists are
         treated as rows.  This function is a convenience that turns
         around this convention when creating a matrix.  If you are not
-        familiar with the usual :class:`matrix <MatrixFactory>`
+        familiar with the usual :func:`matrix`
         constructor, you might want to consider it first.
 
     INPUT:
 
-    Inputs are almost exactly the same as for the :class:`matrix
-    <MatrixFactory>` constructor, which are documented there.  But see
+    Inputs are almost exactly the same as for the :func:`matrix`
+    constructor, which are documented there.  But see
     examples below for how dimensions are handled.
 
     OUTPUT:
 
-    Output is exactly the transpose of what the :class:`matrix
-    <MatrixFactory>` constructor would return.  In other words, the
+    Output is exactly the transpose of what the :func:`matrix`
+    constructor would return.  In other words, the
     ``matrix`` constructor builds a matrix and then this function
     exchanges rows for columns, and columns for rows.
 
@@ -155,7 +156,7 @@ def column_matrix(*args, **kwds):
     The most compelling use of this function is when you have a
     collection of lists or vectors that you would like to become the
     columns of a matrix. In almost any other situation, the
-    :class:`matrix <MatrixFactory>` constructor can probably do the
+    :func:`matrix`` constructor can probably do the
     job just as easily, or easier. ::
 
         sage: col_1 = [1,2,3]
@@ -705,7 +706,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
 
         sage: import numpy
         sage: entries = numpy.array([1.2, 5.6]); entries
-        array([ 1.2,  5.6])
+        array([1.2, 5.6])
         sage: A = diagonal_matrix(3, entries); A
         [1.2 0.0 0.0]
         [0.0 5.6 0.0]
@@ -715,7 +716,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
 
         sage: j = numpy.complex(0,1)
         sage: entries = numpy.array([2.0+j, 8.1, 3.4+2.6*j]); entries
-        array([ 2.0+1.j ,  8.1+0.j ,  3.4+2.6j])
+        array([2. +1.j , 8.1+0.j , 3.4+2.6j])
         sage: A = diagonal_matrix(entries); A
         [2.0 + 1.0*I         0.0         0.0]
         [        0.0         8.1         0.0]
@@ -1477,14 +1478,13 @@ def circulant(v, sparse=None):
         sage: matrix.circulant([0,1,-1], sparse=True).is_sparse()
         True
     """
-    from exceptions import AttributeError
     if sparse is None:
         try:
             sparse = v.is_sparse()
         except AttributeError:
             sparse = False
     n = len(v)
-    return matrix(n, n, lambda i, j: v[(j-i)%n], sparse=sparse)
+    return matrix(n, n, lambda i, j: v[(j - i) % n], sparse=sparse)
 
 
 def _determine_block_matrix_grid(sub_matrices):

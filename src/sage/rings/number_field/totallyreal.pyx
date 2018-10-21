@@ -483,12 +483,12 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [[ZZ(counts[i]) for i in range(4)],
-                [[ZZ(s[0]), map(QQ, s[1].polrecip().Vec())] for s in S]]
+                [[ZZ(s[0]), [QQ(x) for x in s[1].polrecip().Vec()]] for s in S]]
     elif return_pari_objects:
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]
+        return [[ZZ(s[0]), Px([QQ(x) for x in s[1].list()])]
                 for s in S]
 
 def weed_fields(S, Py_ssize_t lenS=0):
@@ -532,41 +532,3 @@ def weed_fields(S, Py_ssize_t lenS=0):
        i += 1
 
     return lenS
-
-def timestr(m):
-    r"""
-    Converts seconds to a human-readable time string.
-
-    INPUT:
-
-    - m -- integer, number of seconds
-
-    OUTPUT:
-
-    The time in days, hours, etc.
-
-    EXAMPLES::
-
-        sage: sage.rings.number_field.totallyreal.timestr(3765)
-        '1h 2m 45.0s'
-    """
-
-    n = math.floor(m)
-    p = m-n
-    outstr = ''
-    if m >= 60*60*24:
-        t = n//(60*60*24)
-        outstr += str(t)[:len(str(t))-2] + 'd '
-        n -= t*(60*60*24)
-    if m >= 60*60:
-        t = n//(60*60)
-        outstr += str(t)[:len(str(t))-2] + 'h '
-        n -= t*(60*60)
-    if m >= 60:
-        t = n//60
-        outstr += str(t)[:len(str(t))-2] + 'm '
-        n -= t*60
-    n += p
-    outstr += '%.1f' % n + 's'
-
-    return outstr

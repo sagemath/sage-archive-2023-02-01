@@ -581,7 +581,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     We can also construct the `\bar{q}` basis that can be used
     to determine character tables for Hecke algebras (with quadratic
-    relation `T_i^2 = (1-q) T_i + q`::
+    relation `T_i^2 = (1-q) T_i + q`)::
 
         sage: Sym = SymmetricFunctions(ZZ['q'].fraction_field())
         sage: qbar = Sym.hecke_character()
@@ -649,8 +649,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: ksp3 = SymS3.ksplit()
         sage: ksp3(Qp[2,1,1,1])
         ksp3[2, 1, 1, 1] + t^2*ksp3[2, 2, 1] + (t^3+t^2)*ksp3[3, 1, 1] + t^4*ksp3[3, 2]
-        sage: [ks(ksp3(la)) for la in ksp3(Qp[2,1,1,1]).support()]
-        [ks3[2, 2, 1], ks3[2, 1, 1, 1] + t*ks3[2, 2, 1], ks3[3, 2], ks3[3, 1, 1]]
+        sage: [ks(ksp3(la)) for la in sorted(ksp3(Qp[2,1,1,1]).support())]
+        [ks3[2, 1, 1, 1] + t*ks3[2, 2, 1], ks3[2, 2, 1], ks3[3, 1, 1], ks3[3, 2]]
 
     .. rubric:: dual `k`-Schur functions
 
@@ -1004,12 +1004,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             -s[2, 2, 2]
             sage: list(SymmetricGroup(5).character_table()[-2])
             [4, 2, 0, 1, -1, 0, -1]
-            sage: list(reversed([st([1]).eval_at_permutation_roots(rho) \
+            sage: list(reversed([st([1]).eval_at_permutation_roots(rho)
             ....:   for rho in Partitions(5)]))
             [4, 2, 0, 1, -1, 0, -1]
         """
         from .character import irreducible_character_basis
         return irreducible_character_basis(self, 'st')
+
     st = irreducible_symmetric_group_character
 
     def induced_trivial_character(self):
@@ -1370,7 +1371,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return self.m().from_polynomial(f)
 
     def register_isomorphism(self, morphism, only_conversion=False):
-        """
+        r"""
         Register an isomorphism between two bases of ``self``, as a canonical coercion
         (unless the optional keyword ``only_conversion`` is set to ``True``,
         in which case the isomorphism is registered as conversion only).

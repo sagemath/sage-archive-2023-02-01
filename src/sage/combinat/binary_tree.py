@@ -59,7 +59,6 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -171,7 +170,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return BinaryTrees_all()
 
     def __init__(self, parent, children=None, check=True):
-        """
+        r"""
         TESTS::
 
             sage: BinaryTree([None, None]).parent()
@@ -240,6 +239,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         if not (not self or len(self) == 2):
             raise ValueError("this is not a binary tree")
+
+    __hash__ = ClonableArray.__hash__
 
     def _repr_(self):
         """
@@ -1052,7 +1053,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt.tamari_interval(BinaryTree([[None,[]],[]]))
             Traceback (most recent call last):
             ...
-            ValueError: The two binary trees are not comparable on the Tamari lattice.
+            ValueError: the two binary trees are not comparable on the Tamari lattice
 
         TESTS:
 
@@ -1892,7 +1893,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return tree
 
     def canopee(self):
-        """
+        r"""
         Return the canopee of ``self``.
 
         The *canopee* of a non-empty binary tree `T` with `n` internal nodes is
@@ -1962,7 +1963,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return res[1:-1]
 
     def in_order_traversal_iter(self):
-        """
+        r"""
         The depth-first infix-order traversal iterator for the binary
         tree ``self``.
 
@@ -2014,8 +2015,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [        o     o           o   o        ]
             [             / \                       ]
             [            o   o                      ]
-            sage: ascii_art(filter(lambda node: node.label() is not None,
-            ....:     b.canonical_labelling().in_order_traversal_iter()))
+            sage: ascii_art([node for node in
+            ....:     b.canonical_labelling().in_order_traversal_iter()
+            ....:     if node.label() is not None])
             [ 1,   _2_    , 3,   4  , 5 ]
             [     /   \         / \     ]
             [    1     4       3   5    ]
@@ -2124,8 +2126,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:    l.append(leaf)
             ....:    leaf = chr( ord(leaf)+1 )
             sage: n_action = lambda node: l.append( node.label() )
-            sage: b = BinaryTree([[None,[]],[[[],[]],[]]]).\
-            ....:     canonical_labelling()
+            sage: b = BinaryTree([[None,[]],[[[],[]],[]]])
+            sage: b = b.canonical_labelling()
             sage: b.in_order_traversal(n_action, l_action)
             sage: l
             ['a', 1, 'b', 2, 'c', 3, 'd', 4, 'e', 5, 'f', 6, 'g', 7, 'h', 8,
@@ -2475,7 +2477,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                 [B([self[0], d]) for d in self[1].tamari_succ()])
 
     def single_edge_cut_shapes(self):
-        """
+        r"""
         Return the list of possible single-edge cut shapes for the binary tree.
 
         This is used in :meth:`sage.combinat.interval_posets.TamariIntervalPoset.is_new`.
@@ -3673,7 +3675,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             False
             sage: BinaryTree([[[[],[]],[[],[]]], []]).is_full()
             True
-            sage: ascii_art(filter(lambda bt: bt.is_full(), BinaryTrees(5)))
+            sage: ascii_art([bt for bt in BinaryTrees(5) if bt.is_full()])
             [   _o_    ,     _o_   ]
             [  /   \        /   \  ]
             [ o     o      o     o ]
@@ -3839,7 +3841,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: lst = lambda i: filter(lambda bt: bt.is_perfect(), BinaryTrees(i))
+            sage: def lst(i):
+            ....:     return [bt for bt in BinaryTrees(i) if bt.is_perfect()]
             sage: for i in range(8): ascii_art(lst(i)) # long time
             [  ]
             [ o ]
@@ -3894,7 +3897,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: lst = lambda i: filter(lambda bt: bt.is_complete(), BinaryTrees(i))
+            sage: def lst(i):
+            ....:     return [bt for bt in BinaryTrees(i) if bt.is_complete()]
             sage: for i in range(8): ascii_art(lst(i)) # long time
             [  ]
             [ o ]
@@ -4806,8 +4810,10 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         resu = [(l, self.label())] + [u for t in self for u in t._sort_key()]
         return tuple(resu)
 
+    __hash__ = ClonableArray.__hash__
+
     def binary_search_insert(self, letter):
-        """
+        r"""
         Return the result of inserting a letter ``letter`` into the
         right strict binary search tree ``self``.
 
@@ -4907,7 +4913,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
                 return LT([self[0], fils], label=self.label(), check=False)
 
     def semistandard_insert(self, letter):
-        """
+        r"""
         Return the result of inserting a letter ``letter`` into the
         semistandard tree ``self`` using the bumping algorithm.
 

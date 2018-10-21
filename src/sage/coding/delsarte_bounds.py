@@ -207,7 +207,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        sage: codes.bounds.delsarte_bound_hamming_space(11,3,4)
        327680/3
 
-    An improvement of a known upper bound (150) from http://www.win.tue.nl/~aeb/codes/binary-1.html ::
+    An improvement of a known upper bound (150) from https://www.win.tue.nl/~aeb/codes/binary-1.html ::
 
        sage: a,p,x = codes.bounds.delsarte_bound_hamming_space(23,10,2,return_data=True,isinteger=True); x # long time
        148

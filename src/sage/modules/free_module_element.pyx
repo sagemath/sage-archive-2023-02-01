@@ -690,6 +690,7 @@ def zero_vector(arg0, arg1=None):
         return (arg0**arg1).zero_vector()
     raise TypeError("first argument must be a ring")
 
+
 def random_vector(ring, degree=None, *args, **kwds):
     r"""
     Returns a vector (or module element) with random entries.
@@ -987,7 +988,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.numpy()
             array([1, 2, 5/6], dtype=object)
             sage: v.numpy(dtype=float)
-            array([ 1.        ,  2.        ,  0.83333333])
+            array([1.        , 2.        , 0.83333333])
             sage: v.numpy(dtype=int)
             array([1, 2, 0])
             sage: import numpy
@@ -998,7 +999,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         be more efficient but may have unintended consequences::
 
             sage: v.numpy(dtype=None)
-            array([ 1.        ,  2.        ,  0.83333333])
+            array([1.        , 2.        , 0.83333333])
 
             sage: w = vector(ZZ, [0, 1, 2^63 -1]); w
             (0, 1, 9223372036854775807)
@@ -1545,20 +1546,29 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         from sage.arith.all import lcm
         return lcm(v)
 
-    def iteritems(self):
+    def items(self):
         """
-        Return iterator over self.
+        Return an iterator over ``self``.
 
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi])
-            sage: v.iteritems()
+            sage: v.items()
             <generator object at ...>
+            sage: list(v.items())
+            [(0, 1), (1, 2/3), (2, pi)]
+
+        TESTS:
+
+        Using iteritems as an alias::
+
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
         cdef dict d = self.dict(copy=False)
         yield from d.iteritems()
+
+    iteritems = items
 
     def __abs__(self):
         """
@@ -2628,7 +2638,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)" % (len(l), len(r)))
 
     def cross_product_matrix(self):
         r"""
@@ -3870,11 +3880,11 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers
-            [(0.5, 5.55111512312578e-15, 21, 0), (0.3333333333333..., 3.70074341541719e-15, 21, 0), (0.45969769413186..., 5.10366964392284e-15, 21, 0)]
+            [(0.5, 5.55111512312578...e-15, 21, 0), (0.3333333333333..., 3.70074341541719...e-15, 21, 0), (0.45969769413186..., 5.10366964392284...e-15, 21, 0)]
 
             sage: r=vector([t,0,1], sparse=True)
             sage: r.nintegral(t,0,1)
-            ((0.5, 0.0, 1.0), {0: (0.5, 5.55111512312578e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
+            ((0.5, 0.0, 1.0), {0: (0.5, 5.55111512312578...e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
 
         """
         # If Cython supported lambda functions, we would just do
@@ -3895,6 +3905,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 #############################################
 # Generic dense element
 #############################################
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_dense(parent, entries, degree):
     """
     EXAMPLES::
@@ -3913,6 +3925,8 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
     v._degree = degree
     return v
 
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable):
     """
     EXAMPLES::
@@ -4103,7 +4117,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 try:
                     entries = [coefficient_ring(x) for x in entries]
                 except TypeError:
-                    raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
+                    raise TypeError("Unable to coerce entries (=%s) to coefficients in %s" % (entries, coefficient_ring))
             elif copy:
                 entries = list(entries)  # make a copy/convert to list
         self._entries = entries
@@ -4201,7 +4215,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: v.__reduce__()
-            (<built-in function make_FreeModuleElement_generic_dense_v1>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
+            (<cyfunction make_FreeModuleElement_generic_dense_v1 at ...>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
         """
         return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
@@ -4345,6 +4359,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 #############################################
 # Generic sparse element
 #############################################
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     """
     EXAMPLES::
@@ -4359,6 +4375,8 @@ def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     v._degree = degree
     return v
 
+
+@cython.binding(True)
 def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable):
     """
     EXAMPLES::
@@ -4375,6 +4393,7 @@ def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable
     v._degree = degree
     v._is_mutable = is_mutable
     return v
+
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
@@ -4441,10 +4460,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return self._new_c(dict(self._entries))
 
-    def __init__(self, parent,
-                 entries=0,
-                 coerce=True,
-                 copy=True):
+    def __init__(self, parent, entries=0, coerce=True, copy=True):
         """
         EXAMPLES::
 
@@ -4519,39 +4535,42 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         FreeModuleElement.__init__(self, parent)
         R = self.base_ring()
         cdef Py_ssize_t i
+        cdef dict entries_dict, e
         if not entries:
-            entries = {}
+            entries_dict = {}
         else:
             if type(entries) is not dict:
                 if isinstance(entries, dict):
                     # Convert derived type to dict
                     copy = True
+                    entries_dict = <dict> entries
                 elif isinstance(entries, (list, tuple)):
                     if len(entries) != self._degree:
                         raise TypeError("entries has the wrong length")
-                    e = entries
-                    entries = {}
+                    entries_dict = {}
                     for i in range(self._degree):
-                        x = e[i]
+                        x = entries[i]
                         if x:
-                            entries[i] = x
+                            entries_dict[i] = x
                     copy = False
                 else:
-                    raise TypeError("entries must be a dict, list or tuple, not %s", type(entries))
+                    raise TypeError("entries must be a dict, list or tuple, not %s" % type(entries))
+            else:
+                entries_dict = <dict> entries
             if coerce:
                 coefficient_ring = parent.coordinate_ring()
-                e = entries
-                entries = {}
+                e = entries_dict
+                entries_dict = {}
                 try:
                     for k, x in e.iteritems():
                         x = coefficient_ring(x)
                         if x:
-                            entries[k] = x
+                            entries_dict[k] = x
                 except TypeError:
-                    raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
+                    raise TypeError("unable to coerce value (=%s) of entries dict (=%s) to %s" % (x, entries, coefficient_ring))
             elif copy:
-                entries = dict(entries)  # make a copy/convert to dict
-        self._entries = entries
+                entries_dict = dict(entries_dict)  # make a copy/convert to dict
+        self._entries = entries_dict
 
     cpdef _add_(left, right):
         """
@@ -4721,26 +4740,33 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: a < b
             True
         """
-        a = (<FreeModuleElement_generic_sparse>left)._entries.items()
-        a.sort()
-        b = (<FreeModuleElement_generic_sparse>right)._entries.items()
-        b.sort()
+        a = sorted((<FreeModuleElement_generic_sparse>left)._entries.iteritems())
+        b = sorted((<FreeModuleElement_generic_sparse>right)._entries.iteritems())
 
         return richcmp([(-x, y) for x, y in a], [(-x, y) for x, y in b], op)
 
-    def iteritems(self):
+    def items(self):
         """
-        Return iterator over the entries of self.
+        Return an iterator over the entries of ``self``.
 
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.iteritems()
+            sage: v.items()
             <dictionary-itemiterator object at ...>
+            sage: list(v.items())
+            [(0, 1), (1, 2/3), (2, pi)]
+
+        TESTS:
+
+        Using iteritems as an alias::
+
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
         return self._entries.iteritems()
+
+    iteritems = items
 
     def __reduce__(self):
         """
@@ -4748,7 +4774,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
             sage: v = vector([1,2/3,pi], sparse=True)
             sage: v.__reduce__()
-            (<built-in function make_FreeModuleElement_generic_sparse_v1>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
+            (<cyfunction make_FreeModuleElement_generic_sparse_v1 at ...>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
         """
         return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
@@ -4980,9 +5006,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: (v+w).nonzero_positions()
             [1]
         """
-        K = self._entries.keys()
-        K.sort()
-        return K
+        return sorted(self._entries)
 
     cpdef int hamming_weight(self):
         """

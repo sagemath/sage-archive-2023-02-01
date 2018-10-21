@@ -403,5 +403,5 @@ def WeightedIntegerVectors_nweight(n, weight):
     deprecation(12453, 'this class is deprecated. Use WeightedIntegerVectors instead')
     return WeightedIntegerVectors(n, weight)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.integer_vector_weighted', 'WeightedIntegerVectors_nweight', WeightedIntegerVectors)

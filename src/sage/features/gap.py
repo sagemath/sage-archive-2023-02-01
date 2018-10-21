@@ -38,8 +38,6 @@ class GapPackage(Feature):
             sage: from sage.features.gap import GapPackage
             sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional: gap_packages
             FeatureTestResult('GAP package grape', True)
-            sage: GapPackage("prim", spkg="database_gap").is_present()  # optional: database_gap
-            FeatureTestResult('GAP package prim', True)
         """
         from sage.libs.gap.libgap import libgap
         command = 'TestPackageAvailability("{package}")'.format(package=self.package)
@@ -84,6 +82,49 @@ class SmallGroupsLibrary(Feature):
         """
         from sage.libs.gap.libgap import libgap
         command = 'SmallGroup(13,1)'
+        output = None
+        presence = False
+        try:
+            output = str(libgap.eval(command))
+            presence = True
+        except ValueError as e:
+            output = str(e)
+        return FeatureTestResult(self, presence,
+            reason = "`{command}` evaluated to `{output}` in GAP.".format(command=command, output=output))
+
+
+class PrimitiveGroupsLibrary(Feature):
+    r"""
+    A feature describing the presence of the Primitive Groups Library for GAP.
+
+    EXMAPLES::
+
+        sage: from sage.features.gap import PrimitiveGroupsLibrary
+        sage: PrimitiveGroupsLibrary()
+        Feature('Primitive Groups Library')
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.gap import PrimitiveGroupsLibrary
+            sage: isinstance(PrimitiveGroupsLibrary(), PrimitiveGroupsLibrary)
+            True
+        """
+        Feature.__init__(self, "Primitive Groups Library", spkg="database_gap", url="www.gap-system.org/Datalib/prim.html")
+
+    def _is_present(self):
+        r"""
+        Return whether the Primitive Groups Library is available in GAP.
+
+        EXAMPLES::
+
+            sage: from sage.features.gap import PrimitiveGroupsLibrary
+            sage: PrimitiveGroupsLibrary().is_present()  # optional: database_gap
+            FeatureTestResult('Primitive Groups Library', True)
+        """
+        from sage.libs.gap.libgap import libgap
+        command = 'PrimitiveGroup(5,1)'
         output = None
         presence = False
         try:

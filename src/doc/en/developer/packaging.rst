@@ -255,10 +255,10 @@ If pip will not work but a command like ``python setup.py install``
 will, then the ``spkg-install`` script should call ``sage-python23``
 rather than ``python``. This will ensure that the correct version of
 Python is used to build and install the package. The same holds for
-``spkg-check`` scripts; for example, the ``pycrypto`` ``spkg-check``
+``spkg-check`` scripts; for example, the ``scipy`` ``spkg-check``
 file contains the line ::
 
-    sage-python23 setup.py test
+    exec sage-python23 spkg-check.py
 
 
 .. _section-spkg-SPKG-txt:

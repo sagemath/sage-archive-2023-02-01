@@ -363,7 +363,7 @@ class SymmetricIdeal( Ideal_generic ):
         return set(V) == set(self.ring().variable_names())
 
     def reduce(self, I, tailreduce=False):
-        """
+        r"""
         Symmetric reduction of self by another Symmetric Ideal or list of Infinite Polynomials,
         or symmetric reduction of a given Infinite Polynomial by self.
 

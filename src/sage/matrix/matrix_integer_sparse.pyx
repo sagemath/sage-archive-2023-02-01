@@ -47,25 +47,19 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
 cdef class Matrix_integer_sparse(Matrix_sparse):
-    def __cinit__(self, parent, entries, copy, coerce):
-        self._initialized = False
-        # set the parent, nrows, ncols, etc.
-        Matrix_sparse.__init__(self, parent)
-
-        self._matrix = <mpz_vector*>check_calloc(parent.nrows(), sizeof(mpz_vector))
-
-        # initialize the rows
-        for i from 0 <= i < parent.nrows():
+    def __cinit__(self):
+        self._matrix = <mpz_vector*>check_calloc(self._nrows, sizeof(mpz_vector))
+        # Initialize the rows
+        cdef Py_ssize_t i
+        for i in range(self._nrows):
             mpz_vector_init(&self._matrix[i], self._ncols, 0)
-        # record that rows have been initialized
-        self._initialized = True
 
     def __dealloc__(self):
         cdef Py_ssize_t i
-        if self._initialized:
-            for i from 0 <= i < self._nrows:
+        if self._matrix is not NULL:
+            for i in range(self._nrows):
                 mpz_vector_clear(&self._matrix[i])
-        sig_free(self._matrix)
+            sig_free(self._matrix)
 
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
@@ -345,7 +339,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``algorithm`` - determines which algorithm to use, options are:
 
-          - 'pari' - use the ``matkerint()`` function from the PARI library
+          - 'pari' - use the :pari:`matkerint` function from the PARI library
           - 'padic' - use the p-adic algorithm from the IML library
           - 'default' - use a heuristic to decide which of the two above
             routines is fastest.  This is the default value.
@@ -375,7 +369,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             'computed-pari-int'
             sage: X = result[1]; X
             [ 26 -31  30 -21  -2  10]
-            [ 47  13 -48  14  11 -18]
+            [-47 -13  48 -14 -11  18]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 

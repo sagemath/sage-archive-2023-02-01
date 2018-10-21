@@ -186,6 +186,7 @@ include "sage/data_structures/bitset.pxi"
 cimport cpython
 from libc.string cimport memset
 from libc.limits cimport INT_MAX
+from libc.math cimport sqrt
 from libcpp.vector cimport vector
 from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -203,17 +204,27 @@ cdef extern from "fenv.h":
     int fegetround ()
     int fesetround (int)
 
-cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
+cdef int init_short_digraph(short_digraph g, G, edge_labelled=False, vertex_list=None) except -1:
     r"""
-    Initializes ``short_digraph g`` from a Sage (Di)Graph.
+    Initialize ``short_digraph g`` from a Sage (Di)Graph.
 
     If ``G`` is a ``Graph`` objet (and not a ``DiGraph``), an edge between two
     vertices `u` and `v` is replaced by two arcs in both directions.
+
+    The optional argument ``vertex_list`` is assumed to be a list
+    of all vertices of the graph ``G`` in some order.
+    **Beware that no checks are made that this input is correct**.
+
+    If ``vertex_list`` is given, it will be used to map vertices
+    of the graph to consecutive integers. Otherwise, the result
+    of ``G.vertices()`` will be used instead. Because ``G.vertices()``
+    only works if the vertices can be sorted, using ``vertex_list``
+    is useful when working with possibly non-sortable objects in Python 3.
     """
     g.edge_labels = NULL
 
     if G.order() >= INT_MAX:
-        raise ValueError("This structure can handle at most "+str(INT_MAX)+" vertices !")
+        raise ValueError("This structure can handle at most " + str(INT_MAX) + " vertices !")
     else:
         g.n = G.order()
 
@@ -228,7 +239,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
     else:
         raise ValueError("The source graph must be either a DiGraph or a Graph object !")
 
-    cdef list vertices = G.vertices()
+    cdef list vertices = vertex_list if vertex_list is not None else G.vertices()
     cdef dict v_to_id = {}
     cdef int i,j,v_id
     cdef list neighbor_label
@@ -563,7 +574,7 @@ def tarjan_strongly_connected_components(G):
     the lowlink of `v`, that whole subtree is a new SCC.
 
     For more information, see the
-    :wikipedia:`Wikipedia article on Tarjan's algorithm <Tarjan's_strongly_connected_components_algorithm>`.
+    :wikipedia:`Tarjan's_strongly_connected_components_algorithm`.
 
     EXAMPLES::
 
@@ -918,9 +929,30 @@ def spectral_radius(G, prec=1e-10):
         sage: max(G.adjacency_matrix().eigenvalues(AA))
         2.414213562373095?
 
+    Some bipartite graphs::
+
+        sage: G = Graph([(0,1),(0,3),(2,3)])
+        sage: G.spectral_radius()  # abs tol 1e-10
+        (1.6180339887253428, 1.6180339887592732)
+
+        sage: G = DiGraph([(0,1),(0,3),(2,3),(3,0),(1,0),(1,2)])
+        sage: G.spectral_radius() # abs tol 1e-10
+        (1.5537739740270458, 1.553773974033029)
+
+        sage: G = graphs.CompleteBipartiteGraph(1,3)
+        sage: G.spectral_radius()  # abs tol 1e-10
+        (1.7320508075688772, 1.7320508075688774)
+
     TESTS::
 
-        sage: spectral_radius(G, 1e-20)
+        sage: from sage.graphs.base.static_sparse_graph import spectral_radius
+
+        sage: Graph(1).spectral_radius()
+        (0.0, 0.0)
+        sage: Graph([(0,0)], loops=True).spectral_radius()
+        (1.0, 1.0)
+
+        sage: spectral_radius(Graph([(0,1),(0,2)]), 1e-20)
         Traceback (most recent call last):
         ...
         ValueError: precision (=1.00000000000000e-20) is too small
@@ -932,12 +964,46 @@ def spectral_radius(G, prec=1e-10):
         ....:     e = max(G.adjacency_matrix().charpoly().roots(AA,multiplicities=False))
         ....:     e_min, e_max = G.spectral_radius(1e-13)
         ....:     assert e_min < e < e_max
+
+        sage: spectral_radius(Graph(), 1e-10)
+        Traceback (most recent call last):
+        ...
+        ValueError: empty graph
     """
+    if not G:
+        raise ValueError("empty graph")
     if G.is_directed():
         if not G.is_strongly_connected():
             raise ValueError("G must be strongly connected")
     elif not G.is_connected():
         raise ValueError("G must be connected")
+    
+    cdef double e_min, e_max
+
+    if G.num_verts() == 1:
+        e_min = e_max = G.num_edges()
+        return (e_min, e_max)
+
+    is_bipartite, colors = G.is_bipartite(certificate=True)
+    if is_bipartite:
+        # NOTE: for bipartite graph there are two eigenvalues of maximum modulus
+        # and the iteration is likely to reach a cycle of length 2 and hence the
+        # algorithm never terminate. Here we compute the "square" reduced to
+        # one component of the bipartition.
+        from sage.graphs.all import DiGraph
+        H = DiGraph(loops=True, multiedges=True)
+        if G.is_directed():
+            neighbors_iterator = G.neighbor_out_iterator
+        else:
+            neighbors_iterator = G.neighbor_iterator
+        for u0 in G:
+            if colors[u0] == 0:
+                for u1 in neighbors_iterator(u0):
+                    for u2 in neighbors_iterator(u1):
+                        H.add_edge(u0, u2)
+
+        e_min, e_max = spectral_radius(H, prec)
+        return sqrt(e_min), sqrt(e_max)
 
     cdef double c_prec = prec
     if 1+c_prec/2 == 1:
@@ -963,7 +1029,6 @@ def spectral_radius(G, prec=1e-10):
 
     cdef size_t i
     cdef uint32_t *p
-    cdef double e_min, e_max
     cdef double s
 
     for i in range(n):

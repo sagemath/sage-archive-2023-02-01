@@ -36,7 +36,7 @@ from sage.structure.dynamic_class import dynamic_class
 from sage.env import SAGE_SRC, SAGE_LOCAL
 
 # Python file parsing
-triple_quotes = re.compile("\s*[rRuU]*((''')|(\"\"\"))")
+triple_quotes = re.compile(r"\s*[rRuU]*((''')|(\"\"\"))")
 name_regex = re.compile(r".*\s(\w+)([(].*)?:")
 
 # LaTeX file parsing
@@ -50,7 +50,7 @@ skip = re.compile(r".*%skip.*")
 link_all = re.compile(r"^\s*\.\.\s+linkall\s*$")
 double_colon = re.compile(r"^(\s*).*::\s*$")
 
-whitespace = re.compile("\s*")
+whitespace = re.compile(r"\s*")
 bitness_marker = re.compile('#.*(32|64)-bit')
 bitness_value = '64' if sys.maxsize > (1 << 32) else '32'
 
@@ -272,7 +272,8 @@ class DocTestSource(object):
             tab_okay = isinstance(self,TexSource)
         self._init()
         self.line_shift = 0
-        self.parser = SageDocTestParser(self.options.long, self.options.optional)
+        self.parser = SageDocTestParser(self.options.optional,
+                                        self.options.long)
         self.linking = False
         doctests = []
         in_docstring = False
@@ -772,7 +773,7 @@ class FileDocTestSource(DocTestSource):
             There are 7 tests in sage/combinat/finite_state_machine.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
-            There are 3 tests in sage/rings/invariant_theory.py that are not being run
+            There are 3 tests in sage/rings/invariants/invariant_theory.py that are not being run
             sage: os.chdir(cwd)
         """
         expected = []
@@ -1509,7 +1510,7 @@ class RestSource(SourceLanguage):
             sage: from sage.doctest.util import NestedName
             sage: filename = "sage_doc.rst"
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
-            sage: FDS.parser = SageDocTestParser(False, set(['sage']))
+            sage: FDS.parser = SageDocTestParser(set(['sage']))
             sage: FDS.qualified_name = NestedName('sage_doc')
             sage: s = "Some text::\n\n    def example_python_function(a, \
             ....:      b):\n        '''\n        Brief description \

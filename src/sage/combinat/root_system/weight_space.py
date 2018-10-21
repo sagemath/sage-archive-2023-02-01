@@ -238,7 +238,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     @cached_method
     def fundamental_weight(self, i):
-        """
+        r"""
         Returns the `i`-th fundamental weight
 
         INPUT:
@@ -304,7 +304,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     @cached_method
     def simple_root(self, j):
-        """
+        r"""
         Returns the `j^{th}` simple root
 
         EXAMPLES::

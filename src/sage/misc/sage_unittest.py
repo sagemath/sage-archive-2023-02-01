@@ -15,7 +15,7 @@ Unit testing for Sage objects
 import unittest
 import sys
 import traceback
-import random
+
 
 class TestSuite(object):
     """
@@ -229,7 +229,8 @@ class TestSuite(object):
             Failure in _test_pickling:
             Traceback (most recent call last):
               ...
-            PicklingError: Can't pickle <class '__main__.Blah'>: attribute lookup __main__.Blah failed
+            ...PicklingError: Can't pickle <class '__main__.Blah'>: attribute
+            lookup ...Blah... failed
             ------------------------------------------------------------
             The following tests failed: _test_b, _test_d, _test_pickling
 
@@ -252,7 +253,8 @@ class TestSuite(object):
             running ._test_pickling() . . . fail
             Traceback (most recent call last):
               ...
-            PicklingError: Can't pickle <class '__main__.Blah'>: attribute lookup __main__.Blah failed
+            ...PicklingError: Can't pickle <class '__main__.Blah'>: attribute
+            lookup ...Blah... failed
             ------------------------------------------------------------
             The following tests failed: _test_b, _test_d, _test_pickling
 
@@ -373,6 +375,13 @@ class InstanceTester(unittest.TestCase):
         sage: QQ._tester()
         Testing utilities for Rational Field
     """
+
+    # On Python 3 this attribute defaults to True, causing the AssertionErrors
+    # output by failed test cases to produce longer error messages than the
+    # default error messages on Python 2.  So for backwards compatibility of
+    # existing test cases we disable these "long messages" (which don't gain us
+    # all that much anyways)
+    longMessage = False
 
     def __init__(self, instance, elements = None, verbose = False, prefix = "", max_runs = 4096, max_samples = None, **options):
         """
@@ -510,7 +519,7 @@ class InstanceTester(unittest.TestCase):
 
             sage: tester = InstanceTester(ZZ)
             sage: ZZ.some_elements()             # yikes, shamelessly trivial ...
-            <generator object _some_elements_from_iterator at 0x...>
+            <generator object ..._some_elements_from_iterator at 0x...>
             sage: list(tester.some_elements())
             [0, 1, -1, 2, -2, ..., 49, -49, 50]
 

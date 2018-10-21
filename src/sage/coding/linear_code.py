@@ -100,10 +100,10 @@ A ``LinearCode`` is instantiated by providing a generator matrix::
 Further references
 ------------------
 
-If you want to get started on Sage's linear codes library, see http://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
+If you want to get started on Sage's linear codes library, see https://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
 
 If you want to learn more on the design of this library, see
-http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
+https://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
 
 REFERENCES:
 
@@ -203,6 +203,9 @@ TESTS::
 #******************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
+
+import inspect
+
 from six.moves import range
 from six import iteritems
 
@@ -226,9 +229,10 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
 from sage.misc.cachefunc import cached_method
+from sage.misc.sageinspect import sage_getargspec
 from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.randstate import current_randstate
-from sage.misc.package import is_package_installed, PackageNotFoundError
+from sage.features.gap import GapPackage
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
@@ -304,13 +308,12 @@ def _explain_constructor(cl):
         sage: _explain_constructor(cl)
         "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
     """
-    import inspect
     if inspect.isclass(cl):
-        argspec = inspect.getargspec(cl.__init__)
+        argspec = sage_getargspec(cl.__init__)
         skip = 2 # skip the self and code arguments
     else:
         # Not a class, assume it's a factory function posing as a class
-        argspec = inspect.getargspec(cl)
+        argspec = sage_getargspec(cl)
         skip = 1 # skip code argument
     if argspec.defaults:
         args = argspec.args[skip:-len(argspec.defaults)]
@@ -377,9 +380,10 @@ class AbstractLinearCode(Module):
 
     .. NOTE::
 
-        :class:`AbstractLinearCode` has generic implementations of the comparison methods ``__cmp__``
-        and ``__eq__`` which use the generator matrix and are quite slow. In subclasses you are
-        encouraged to override these functions.
+        :class:`AbstractLinearCode` has a generic implementation of the
+        method ``__eq__`` which uses the generator matrix and is quite
+        slow. In subclasses you are encouraged to override ``__eq__``
+        and ``__hash__``.
 
     .. WARNING::
 
@@ -1324,8 +1328,7 @@ class AbstractLinearCode(Module):
             ...
             NotImplementedError: the GAP algorithm that Sage is using is limited to computing with fields of size at most 256
         """
-        if not is_package_installed('gap_packages'):
-            raise PackageNotFoundError('gap_packages')
+        GapPackage("guava", spkg="gap_packages").require()
         gap.load_package("guava")
         F = self.base_ring()
         if F.cardinality() > 256:
@@ -2549,8 +2552,9 @@ class AbstractLinearCode(Module):
             NotImplementedError: the GAP algorithm that Sage is using
              is limited to computing with fields of size at most 256
         """
-        if algorithm == "guava" and not is_package_installed('gap_packages'):
-            raise PackageNotFoundError('gap_packages')
+        if algorithm == "guava":
+            GapPackage("guava", spkg="gap_packages").require()
+
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
         # This is done only if algorithm is None.
@@ -2621,8 +2625,7 @@ class AbstractLinearCode(Module):
         current_randstate().set_seed_gap()
 
         if algorithm=="guava":
-            if not is_package_installed('gap_packages'):
-                raise PackageNotFoundError('gap_packages')
+            GapPackage("guava", spkg="gap_packages").require()
             gap.load_package("guava")
             from sage.interfaces.gap import gfq_gap_to_sage
             gap.eval("G:="+Gmat)
@@ -2787,8 +2790,7 @@ class AbstractLinearCode(Module):
         n = len(G.columns())
         k = len(G.rows())
         if "gap" in algorithm:
-            if not is_package_installed('gap_packages'):
-                raise PackageNotFoundError('gap_packages')
+            GapPackage("guava", spkg="gap_packages").require()
             gap.load_package('guava')
             wts = self.weight_distribution()                          # bottleneck 1
             nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
@@ -3339,7 +3341,7 @@ class AbstractLinearCode(Module):
         return E.unencode(c, nocheck)
 
     def weight_enumerator(self, names=None, bivariate=True):
-        """
+        r"""
         Return the weight enumerator polynomial of ``self``.
 
         This is the bivariate, homogeneous polynomial in `x` and `y` whose
@@ -3499,7 +3501,7 @@ class AbstractLinearCode(Module):
 
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.zeta_function()
-            (2/5*T^2 + 2/5*T + 1/5)/(2*T^2 - 3*T + 1)
+            (1/5*T^2 + 1/5*T + 1/10)/(T^2 - 3/2*T + 1/2)
         """
         P =  self.zeta_polynomial()
         q = (self.base_ring()).characteristic()
@@ -3701,7 +3703,7 @@ class LinearCode(AbstractLinearCode):
             return "[%s, %s] linear code over %s"%(self.length(), self.dimension(), R)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
@@ -4404,9 +4406,23 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D1 == D2
             True
         """
-        return isinstance(other, LinearCodeSyndromeDecoder)\
-                and self.code() == other.code()\
-                and self.maximum_error_weight() == other.maximum_error_weight()
+        return (isinstance(other, LinearCodeSyndromeDecoder) and
+                self.code() == other.code() and
+                self.maximum_error_weight() == other.maximum_error_weight())
+
+    def __hash__(self):
+        """
+        Return the hash of self.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+            sage: D1 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
+            sage: D2 = codes.decoders.LinearCodeSyndromeDecoder(LinearCode(G))
+            sage: hash(D1) == hash(D2)
+            True
+        """
+        return hash((self.code(), self.maximum_error_weight()))
 
     def _repr_(self):
         r"""
@@ -4479,7 +4495,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: H = Matrix(K,[[1,2,1],[2*a+1,a,1]])
             sage: C = codes.from_parity_check_matrix(H)
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
-            sage: D.syndrome_table()         
+            sage: D.syndrome_table()
              {(0, 0): (0, 0, 0),
               (0, 1): (0, 1, 0),
               (0, 2): (0, 2, 0),

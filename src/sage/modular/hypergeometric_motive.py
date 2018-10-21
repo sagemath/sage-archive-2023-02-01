@@ -74,7 +74,7 @@ from sage.misc.misc_c import prod
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer_ring import ZZ
-from sage.rings.padics.factory import Zp, Qp
+from sage.rings.padics.factory import Qp
 from sage.rings.padics.misc import gauss_sum as padic_gauss_sum
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -248,11 +248,8 @@ def cyclotomic_to_alpha(cyclo):
     """
     alpha = []
     for d in cyclo:
-        if d == 1:
-            alpha.append(QQ.zero())
-        else:
-            for k in ZZ(d).coprime_integers(d):
-                alpha.append(QQ((k, d)))
+        for k in ZZ(d).coprime_integers(d):
+            alpha.append(QQ((k, d)))
     return sorted(alpha)
 
 
@@ -277,7 +274,7 @@ def alpha_to_cyclotomic(alpha):
         [2]
         sage: alpha_to_cyclotomic([1/5,2/5,3/5,4/5])
         [5]
-        sage: alpha_to_cyclotomic([1/6, 1/3, 1/2, 2/3, 5/6, 1])
+        sage: alpha_to_cyclotomic([0, 1/6, 1/3, 1/2, 2/3, 5/6])
         [1, 2, 3, 6]
         sage: alpha_to_cyclotomic([1/3,2/3,1/2])
         [2, 3]
@@ -978,7 +975,7 @@ class HypergeometricData(object):
         beta = self._beta
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.padic_H_value(p, f, ~t, prec))
+            return H.padic_H_value(p, f, ~t, prec)
         t = QQ(t)
         gamma = self.gamma_array()
         q = p ** f
@@ -1004,7 +1001,7 @@ class HypergeometricData(object):
                        for r in range(q-1)]
 
         sigma = sum( ((-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
-                                for v, gv in gamma.items()) // (p - 1)) * 
+                                for v, gv in gamma.items()) // (p - 1)) *
                      prod(gauss_table[(v * r) % (q - 1)][1] ** gv
                           for v, gv in gamma.items()) * teich ** r)
                      << (f*(D+m[0]-m[r])) for r in range(q-1))
@@ -1072,7 +1069,7 @@ class HypergeometricData(object):
         beta = self._beta
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.H_value(p, f, ~t, ring))
+            return H.H_value(p, f, ~t, ring)
         if ring is None:
             ring = UniversalCyclotomicField()
         t = QQ(t)
@@ -1106,8 +1103,42 @@ class HypergeometricData(object):
             resu = resu.real_part().round()
         return resu
 
+    def sign(self, t, p):
+        """
+        Return the sign of the functional equation for the Euler factor of the motive `H_t` at the prime `p`.
+
+        For odd weight, the sign of the functional equation is +1. For even
+        weight, the sign is computed by a recipe found in 11.1 of [Watkins]_.
+
+        EXAMPLES::
+
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
+            sage: H = Hyp(cyclotomic=([6,2],[1,1,1]))
+            sage: H.weight(), H.degree()
+            (2, 3)
+            sage: [H.sign(1/4,p) for p in [5,7,11,13,17,19]]
+            [1, 1, -1, -1, 1, 1]
+
+            sage: H = Hyp(alpha_beta=([1/12,5/12,7/12,11/12],[0,1/2,1/2,1/2]))
+            sage: H.weight(), H.degree()
+            (2, 4)
+            sage: t = -5
+            sage: [H.sign(1/t,p) for p in [11,13,17,19,23,29]]
+            [-1, -1, -1, 1, 1, 1]
+        """
+        d = self.degree()
+        w = self.weight()
+
+        if w % 2:  # sign is always +1 for odd weight
+            sign = 1
+        elif d % 2:
+            sign = -kronecker_symbol((1 - t) * self._sign_param, p)
+        else:
+            sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
+        return sign
+    
     @cached_method
-    def euler_factor(self, t, p, degree=0):
+    def euler_factor(self, t, p):
         """
         Return the Euler factor of the motive `H_t` at prime `p`.
 
@@ -1116,8 +1147,6 @@ class HypergeometricData(object):
         - `t` -- rational number, not 0 or 1
 
         - `p` -- prime number of good reduction
-
-        - ``degree`` -- optional integer (default 0)
 
         OUTPUT:
 
@@ -1190,7 +1219,7 @@ class HypergeometricData(object):
         alpha = self._alpha
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.euler_factor(~t, p, degree))
+            return H.euler_factor(~t, p)
 
         if t not in QQ or t in [0, 1]:
             raise ValueError('wrong t')
@@ -1201,20 +1230,12 @@ class HypergeometricData(object):
         if (t.valuation(p) or (t - 1).valuation(p) > 0):
             raise NotImplementedError('p is tame')
         # now p is good
-        if degree == 0:
-            d = self.degree()
+        d = self.degree()
         bound = d // 2
         traces = [self.padic_H_value(p, i + 1, t) for i in range(bound)]
 
         w = self.weight()
-
-        if w % 2:  # sign is always +1 for odd weight
-            sign = 1
-        elif d % 2:
-            sign = -kronecker_symbol((1 - t) * self._sign_param, p)
-        else:
-            sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
-
+        sign = self.sign(t, p)
         return characteristic_polynomial_from_traces(traces, d, p, w, sign)
 
     def canonical_scheme(self, t=None):

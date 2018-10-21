@@ -23,9 +23,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
-from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.elementary_crystals import ElementaryCrystal
-from sage.combinat.crystals.tensor_product import TensorProductOfCrystals
 
 
 class StarCrystal(UniqueRepresentation, Parent):

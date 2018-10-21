@@ -37,15 +37,15 @@ AUTHORS:
   for the construction of the Reynolds operator in Singular.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import
 
@@ -54,7 +54,6 @@ from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.latex import latex
-from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_not_equal, rich_to_bool,
                                     richcmp_method, richcmp)
 from sage.misc.cachefunc import cached_method
@@ -126,12 +125,14 @@ class MatrixGroup_base(Group):
 
         EXAMPLES::
 
-            sage: G = SU(2,GF(5))
-            sage: G._check_matrix(identity_matrix(GF(5),2))
-            sage: G._check_matrix(matrix(GF(5),[[1,1],[0,1]]))
+            sage: G = SU(2,GF(5)); F = G.base_ring() # this is GF(5^2,'a')
+            sage: G._check_matrix(identity_matrix(F,2))
+            sage: G._check_matrix(matrix(F,[[1,1],[0,1]]))
             Traceback (most recent call last):
             ...
-            TypeError: matrix must be unitary
+            TypeError: matrix must be unitary with respect to the hermitian form
+            [0 1]
+            [1 0]
         """
         if not x.is_invertible():
             raise TypeError('matrix is not invertible')
@@ -355,7 +356,7 @@ class MatrixGroup_generic(MatrixGroup_base):
 
         if self is other:
             return rich_to_bool(op, 0)
-        
+
         lx = self.matrix_space()
         rx = other.matrix_space()
         if lx != rx:
@@ -389,82 +390,6 @@ class MatrixGroup_generic(MatrixGroup_base):
             if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
         return rich_to_bool(op, 0)
-
-    def _Hom_(self, G, cat=None):
-        """
-        Construct a homset.
-
-        INPUT:
-
-        - ``G`` -- group; the codomain
-
-        - ``cat`` -- category; must be unset
-
-        OUTPUT:
-
-        The set of homomorphisms from ``self`` to ``G``.
-
-        EXAMPLES::
-
-            sage: MS = MatrixSpace(SR, 2, 2)
-            sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
-            sage: G.Hom(G)
-            Set of Homomorphisms from Matrix group over Symbolic Ring with 2 generators (
-            [1 0]  [1 2]
-            [0 1], [3 4]
-            ) to Matrix group over Symbolic Ring with 2 generators (
-            [1 0]  [1 2]
-            [0 1], [3 4]
-            )
-
-        TESTS:
-
-        Check that :trac:`19407` is fixed::
-
-            sage: G = GL(2, GF(2))
-            sage: H = GL(3, ZZ)
-            sage: Hom(G, H)
-            Set of Homomorphisms from General Linear Group of degree 2
-             over Finite Field of size 2 to General Linear Group of degree 3
-             over Integer Ring
-        """
-        if not is_MatrixGroup(G):
-            raise TypeError("G (=%s) must be a matrix group."%G)
-        from . import homset
-        return homset.MatrixGroupHomset(self, G, cat)
-
-    def hom(self, x):
-        """
-        Return the group homomorphism defined by ``x``
-
-        INPUT:
-
-        - ``x`` -- a list/tuple/iterable of matrix group elements.
-
-        OUTPUT:
-
-        The group homomorphism defined by ``x``.
-
-        EXAMPLES::
-
-            sage: G = MatrixGroup([matrix(GF(5), [[1,3],[0,1]])])
-            sage: H = MatrixGroup([matrix(GF(5), [[1,2],[0,1]])])
-            sage: G.hom([H.gen(0)])
-            Homomorphism : Matrix group over Finite Field of size 5 with 1 generators (
-            [1 3]
-            [0 1]
-            ) --> Matrix group over Finite Field of size 5 with 1 generators (
-            [1 2]
-            [0 1]
-            )
-        """
-        v = Sequence(x)
-        U = v.universe()
-        if not is_MatrixGroup(U):
-            raise TypeError("u (=%s) must have universe a matrix group."%U)
-        return self.Hom(U)(x)
-
-
 
 ###################################################################
 #
@@ -600,7 +525,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
 
             sage: import itertools
             sage: W = WeylGroup(["A",3,1])
-            sage: list(itertools.islice(W, 4))
+            sage: list(itertools.islice(W, int(4)))
             [
             [1 0 0 0]  [-1  1  0  1]  [ 1  0  0  0]  [ 1  0  0  0]
             [0 1 0 0]  [ 0  1  0  0]  [ 1 -1  1  0]  [ 0  1  0  0]
@@ -610,8 +535,8 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
 
         and finite groups, too::
 
-            sage: G=GL(6,5)
-            sage: list(itertools.islice(G,4))
+            sage: G = GL(6,5)
+            sage: list(itertools.islice(G, int(4)))
             [
             [1 0 0 0 0 0]  [4 0 0 0 0 1]  [0 4 0 0 0 0]  [0 4 0 0 0 0]
             [0 1 0 0 0 0]  [4 0 0 0 0 0]  [0 0 4 0 0 0]  [0 0 4 0 0 0]
@@ -665,7 +590,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             TypeError: matrix is not in the finitely generated group
         """
         from sage.libs.gap.libgap import libgap
-        libgap_contains = libgap.eval('\in')
+        libgap_contains = libgap.eval(r'\in')
         is_contained = libgap_contains(x_gap, self.gap())
         if not is_contained.sage():
             raise TypeError('matrix is not in the finitely generated group')

@@ -275,7 +275,7 @@ AUTHORS:
     - Arnaud Bergeron: improvements to triangulation and rendering, 2008
     - Sebastien Barthelemy: documentation improvements, 2008
     - Volker Braun: refactoring, handle non-compact case, 2009 and 2010
-    - Andrey Novoseltsev: added Hasse_diagram_from_incidences, 2010
+    - Andrey Novoseltsev: added lattice_from_incidences, 2010
     - Volker Braun: rewrite to use PPL instead of cddlib, 2011
     - Volker Braun: Add support for arbitrary subfields of the reals
 """
@@ -291,7 +291,7 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-from sage.rings.all import QQ, ZZ, RDF, RR
+from sage.rings.all import ZZ, RDF, RR
 
 from .misc import _make_listlist, _common_length_of
 
@@ -301,7 +301,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
                ambient_dim=None, base_ring=None, minimize=True, verbose=False,
                backend=None):
-    """
+    r"""
     Construct a polyhedron object.
 
     You may either define it with vertex/ray/line or
@@ -433,6 +433,19 @@ def Polyhedron(vertices=None, rays=None, lines=None,
          A vertex at (0, 31/2, 31/2, 0, 0, 0), A vertex at (0, 31/2, 0, 0, 31/2, 0),
          A vertex at (0, 0, 0, 31/2, 31/2, 0))
 
+    Regular icosahedron, centered at `0` with edge length `2`, with vertices given
+    by the cyclic shifts of `(0, \pm 1, \pm (1+\sqrt(5))/2)`, cf.
+    :wikipedia:`Regular_icosahedron`. It needs a number field::
+
+        sage: R0.<r0> = QQ[]
+        sage: R1.<r1> = NumberField(r0^2-5, embedding=AA(5)**(1/2))
+        sage: grat = (1+r1)/2
+        sage: v = [[0, 1, grat], [0, 1, -grat], [0, -1, grat], [0, -1, -grat]]
+        sage: pp = Permutation((1, 2, 3))
+        sage: icosah = Polyhedron(map((pp^2).action,v) + map(pp.action,v) + v, base_ring=R1)
+        sage: len(icosah.faces(2))
+        20
+
     When the input contains elements of a Number Field, they require an
     embedding::
 
@@ -493,6 +506,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         Traceback (most recent call last):
         ...
         ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+
+    .. SEEALSO::
+
+        :mod:`Library of polytopes <sage.geometry.polyhedron.library>`
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)

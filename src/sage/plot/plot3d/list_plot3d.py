@@ -399,7 +399,6 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
     """
     from matplotlib import tri
     import numpy
-    import scipy
     from random import random
     from scipy import interpolate
     from .plot3d import plot3d
@@ -477,7 +476,6 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
         return G
 
     if interpolation_type == 'spline':
-        from .plot3d import plot3d
         kx = kwds['kx'] if 'kx' in kwds else 3
         ky = kwds['ky'] if 'ky' in kwds else 3
         if 'degree' in kwds:
@@ -487,4 +485,3 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
         s = interpolate.bisplrep(x, y, z, [int(1)]*len(x), xmin, xmax, ymin, ymax, kx=kx, ky=ky, s=s)
         f = lambda x,y: interpolate.bisplev(x, y, s)
         return plot3d(f, (xmin, xmax), (ymin, ymax), texture=texture, plot_points=[num_points, num_points], **kwds)
-

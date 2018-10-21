@@ -46,11 +46,12 @@ cdef class GenericGraph_pyx(SageObject):
 
 def spring_layout_fast_split(G, **options):
     """
-    Graphs each component of G separately, placing them adjacent to
-    each other. This is done because on a disconnected graph, the
-    spring layout will push components further and further from each
-    other without bound, resulting in very tight clumps for each
-    component.
+    Graph each component of G separately, placing them adjacent to
+    each other.
+
+    This is done because on a disconnected graph, the spring layout
+    will push components further and further from each other without
+    bound, resulting in very tight clumps for each component.
 
     .. NOTE::
 
@@ -63,7 +64,7 @@ def spring_layout_fast_split(G, **options):
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
-        sage: spring_layout_fast_split(G)
+        sage: D = spring_layout_fast_split(G); D  # random
         {0: [0.77..., 0.06...],
          ...
          902: [3.13..., 0.22...]}
@@ -88,12 +89,13 @@ def spring_layout_fast_split(G, **options):
         left += xmax - xmin + buffer
     return pos
 
+
 def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False, by_component = False, **options):
     """
     Spring force model layout
 
-    This function primarily acts as a wrapper around run_spring,
-    converting to and from raw c types.
+    This function primarily acts as a wrapper around :func:`run_spring`,
+    converting to and from raw C types.
 
     This kind of speed cannot be achieved by naive Cythonification of the
     function alone, especially if we require a function call (let alone
@@ -109,11 +111,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: pos = spring_layout_fast(G)
-        sage: pos[0]   # abs tol 0.1
+        sage: pos[0]  # random
         [0.00..., 0.03...]
-        sage: pos[902] # abs tol 0.1
-        [-0.48..., -0.10...]
-        sage: len(pos) == G.order()
+        sage: sorted(pos.keys()) == sorted(G)
         True
 
     With ``split=True``, each component of G is layed out separately,
@@ -130,21 +130,18 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: pos = spring_layout_fast(G, by_component = True)
-        sage: pos[0]   # abs tol 0.1
+        sage: pos[0]  # random
         [2.21..., -0.00...]
-        sage: pos[902] # abs tol 0.1
-        [3.07..., 0.86...]
         sage: len(pos) == G.order()
         True
     """
-
     if by_component:
         return spring_layout_fast_split(G, iterations=iterations, dim = dim,
                                         vpos = vpos, rescale = rescale, height = height,
                                         **options)
 
     G = G.to_undirected()
-    vlist = G.vertices() # this defines a consistent order
+    vlist = list(G) # this defines a consistent order
 
     cdef int i, j, x
     cdef int n = G.order()
@@ -1248,7 +1245,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     # To clean the output when find_path is None or a number
     find_path = (find_path > 0)
 
-    if G.is_clique():
+    if G.is_clique(induced=False):
         # We have an hamiltonian path since n >= 2, but we have an hamiltonian
         # cycle only if n >= 3
         return find_path or n >= 3, G.vertices()
@@ -1435,9 +1432,10 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
 
     return (True, output)
 
+
 def transitive_reduction_acyclic(G):
     r"""
-    Returns the transitive reduction of an acyclic digraph
+    Return the transitive reduction of an acyclic digraph.
 
     INPUT:
 
@@ -1451,7 +1449,7 @@ def transitive_reduction_acyclic(G):
         True
     """
     cdef int  n = G.order()
-    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
+    cdef dict v_to_int = {vv: i for i, vv in enumerate(G)}
     cdef int  u, v, i
 
     cdef list linear_extension

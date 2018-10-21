@@ -27,8 +27,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     EXAMPLES::
 
         sage: A = random_matrix(Integers(25)['x'],2); A
-        [    x^2 + 12*x + 2   4*x^2 + 13*x + 8]
-        [ 22*x^2 + 2*x + 17 19*x^2 + 22*x + 14]
+        [       0  8*x + 1]
+        [17*x + 4        0]
         sage: type(A)
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
         sage: TestSuite(A).run()
@@ -51,9 +51,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         ...
         TypeError: mutable matrices are unhashable
         sage: A.set_immutable()
-        sage: hash(A)
-        6226886770042072326  # 64-bit
-        -1594888954          # 32-bit
+        sage: H = hash(A)
     """
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
@@ -83,7 +81,6 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             sage: Matrix_generic_dense(M, (x, y), True, True)
             [x y]
         """
-        matrix.Matrix.__init__(self, parent)
         ma = MatrixArgs_init(parent, entries)
         self._entries = ma.list(coerce)
 
@@ -91,17 +88,13 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         r"""
         Return a new dense matrix with no entries set.
         """
-        cdef Matrix_generic_dense res
-        res = self.__class__.__new__(self.__class__, 0, 0, 0)
-
         if nrows == self._nrows and ncols == self._ncols:
-            res._parent = self._parent
+            MS = self._parent
         else:
-            res._parent = self.matrix_space(nrows, ncols)
-        res._ncols  = ncols
-        res._nrows  = nrows
-        res._base_ring = self._base_ring
-        return res
+            MS = self.matrix_space(nrows, ncols)
+
+        cdef type t = <type>type(self)
+        return <Matrix_generic_dense>t.__new__(t, MS)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         self._entries[i*self._ncols + j] = value

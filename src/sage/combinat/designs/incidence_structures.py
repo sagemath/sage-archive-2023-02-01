@@ -2134,14 +2134,15 @@ class IncidenceStructure(object):
         from sage.graphs.graph import Graph
 
         g = Graph()
-        for s in map(Set,self.blocks()):
+        for s in map(Set, self.blocks()):
             for x in s:
-                g.add_edge(s,x)
+                g.add_edge((0, s), (1, x))
 
         _ = g.plot(iterations = 50000,save_pos=True)
 
         # The values are rounded as TikZ does not like accuracy.
-        return {k:(round(x,3),round(y,3)) for k,(x,y) in g.get_pos().items()}
+        return {k[1]: (round(x, 3), round(y, 3))
+                for k, (x, y) in g.get_pos().items()}
 
     def _latex_(self):
         r"""

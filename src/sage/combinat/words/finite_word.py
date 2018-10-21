@@ -471,7 +471,7 @@ class FiniteWord_class(Word_class):
 
             sage: w = Word(range(6)); w
             word: 012345
-            sage: w^(.5)
+            sage: w^(1/2)
             word: 012
             sage: w^(1/3)
             word: 01
@@ -5037,25 +5037,26 @@ class FiniteWord_class(Word_class):
 
         a disjoint set data structure
 
+
         EXAMPLES::
 
-            sage: W = Words(list('abc') + list(range(6)))
+            sage: W = Words(list('abc012345'))
             sage: u = W('abc')
-            sage: v = W(range(5))
+            sage: v = W('01234')
             sage: u.overlap_partition(v)
-            {{0, 'a'}, {1, 'b'}, {2, 'c'}, {3}, {4}, {5}}
+            {{'0', 'a'}, {'1', 'b'}, {'2', 'c'}, {'3'}, {'4'}, {'5'}}
             sage: u.overlap_partition(v, 2)
-            {{'a'}, {'b'}, {0, 'c'}, {1}, {2}, {3}, {4}, {5}}
+            {{'0', 'c'}, {'1'}, {'2'}, {'3'}, {'4'}, {'5'}, {'a'}, {'b'}}
             sage: u.overlap_partition(v, -1)
-            {{0}, {1, 'a'}, {2, 'b'}, {3, 'c'}, {4}, {5}}
+            {{'0'}, {'1', 'a'}, {'2', 'b'}, {'3', 'c'}, {'4'}, {'5'}}
 
         You can re-use the same disjoint set and do more than one overlap::
 
             sage: p = u.overlap_partition(v, 2)
             sage: p
-            {{'a'}, {'b'}, {0, 'c'}, {1}, {2}, {3}, {4}, {5}}
+            {{'0', 'c'}, {'1'}, {'2'}, {'3'}, {'4'}, {'5'}, {'a'}, {'b'}}
             sage: u.overlap_partition(v, 1, p)
-            {{'a'}, {0, 1, 'b', 'c'}, {2}, {3}, {4}, {5}}
+            {{'0', '1', 'b', 'c'}, {'2'}, {'3'}, {'4'}, {'5'}, {'a'}}
 
         The function  ``overlap_partition`` can be used to study equations
         on words. For example, if a word `w` overlaps itself with delay `d`, then

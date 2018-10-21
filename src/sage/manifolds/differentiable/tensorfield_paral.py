@@ -284,8 +284,6 @@ as follows::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.rings.integer import Integer
-from sage.structure.element import ModuleElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.parallel.decorate import parallel
@@ -1014,7 +1012,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             if frame1 in other._components and isinstance(frame1, CoordFrame):
                 return frame1
         # 1b/ Search involving subframes
-        dom2 = other._domain
         for frame1 in self._components:
             if not isinstance(frame1, CoordFrame):
                 continue

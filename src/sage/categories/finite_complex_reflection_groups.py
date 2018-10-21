@@ -759,6 +759,10 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 EXAMPLES::
 
+                    sage: W = SymmetricGroup(4)
+                    sage: W.noncrossing_partition_lattice()
+                    Finite lattice containing 14 elements
+
                     sage: W = WeylGroup(['G', 2])
                     sage: W.noncrossing_partition_lattice()
                     Finite lattice containing 8 elements

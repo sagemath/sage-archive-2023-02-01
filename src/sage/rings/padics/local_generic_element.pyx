@@ -27,6 +27,7 @@ from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingE
 from sage.structure.element import coerce_binop
 from itertools import islice
 
+
 cdef class LocalGenericElement(CommutativeRingElement):
     #cpdef _add_(self, right):
     #    raise NotImplementedError
@@ -342,13 +343,14 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         # construct the return value
         ans = self.parent().zero()
-        for c in islice(self.expansion(lift_mode=lift_mode), start, stop, k):
+        for c in islice(self.expansion(lift_mode=lift_mode),
+                        int(start), int(stop), k):
             ans += ppow * c
             ppow *= pk
 
         # fix the precision of the return value
         if j < ans.precision_absolute() or self.precision_absolute() < ans.precision_absolute():
-            ans = ans.add_bigoh(min(j,self.precision_absolute()))
+            ans = ans.add_bigoh(min(j, self.precision_absolute()))
 
         return ans
 
@@ -940,7 +942,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         shift = self.parent().one()
         v = 0
         # so that this test doesn't take too long for large precision cap
-        prec_cutoff = min((10000 / (1 + self.precision_relative())).ceil(), 100)
+        prec_cutoff = int(min((10000 / (1 + self.precision_relative())).ceil(), 100))
 
         from sage.categories.all import Fields
         if self.parent() in Fields():
@@ -957,11 +959,11 @@ cdef class LocalGenericElement(CommutativeRingElement):
             expansion = self.expansion(lift_mode=mode)
             expansion_sum = sum(self.parent().maximal_unramified_subextension()(c) *
                                 (self.parent().one()<<i)
-                                for i,c in enumerate(islice(expansion, prec_cutoff))) * shift
+                                for i, c in enumerate(islice(expansion, prec_cutoff))) * shift
 
             tester.assertEqual(self.add_bigoh(prec_cutoff), expansion_sum.add_bigoh(prec_cutoff))
 
-            for i,c in enumerate(islice(expansion, prec_cutoff)):
+            for i, c in enumerate(islice(expansion, prec_cutoff)):
                 tester.assertEqual(c, self.expansion(lift_mode=mode, n=i+v))
 
             if mode == 'teichmuller':

@@ -1783,9 +1783,9 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         f = self.domain().coerce(f)
 
         if effective_degree is not None:
-            if (QQ(f.degree())/self.phi().degree()).ceil() > effective_degree:
+            if (QQ(f.degree()) / self.phi().degree()).ceil() > effective_degree:
                 from itertools import islice
-                f = self.domain().change_ring(self.domain())(list(islice(self.coefficients(f), 0, effective_degree + 1, 1)))(self.phi())
+                f = self.domain().change_ring(self.domain())(list(islice(self.coefficients(f), 0, int(effective_degree) + 1, 1)))(self.phi())
 
         if f.degree() < self.phi().degree():
             return self._base_valuation.simplify(f, error=error, force=force, size_heuristic_bound=size_heuristic_bound, phiadic=phiadic)
@@ -1815,9 +1815,10 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             # This is a quite expensive operation but small coefficients can
             # speed up the surrounding calls drastically.
             for i in range(f.degree(), -1, -1):
-                j = i//self.phi().degree()
+                j = i // self.phi().degree()
                 from itertools import islice
-                coefficients = list(islice(f.list(), j*self.phi().degree(), i+1))
+                coefficients = list(islice(f.list(), j * self.phi().degree(),
+                                           int(i) + 1))
                 g = self.domain()(coefficients)
                 ng = self._base_valuation.simplify(g, error=error-j*self._mu, force=force, phiadic=False)
                 if g != ng:

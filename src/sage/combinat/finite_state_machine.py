@@ -1824,6 +1824,52 @@ class FSMState(sage.structure.sage_object.SageObject):
         del self._deepcopy_relabel_
         return new
 
+    def __getstate__(self):
+        """
+        Return state for pickling excluding outgoing transitions.
+
+        INPUT:
+
+        None
+
+        OUTPUT:
+
+        A dictionary.
+
+        Outgoing transitions are in fact stored in states,
+        but must be pickled by the finite state machine
+        in order to avoid deep recursion.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: S = FSMState('S')
+            sage: S == loads(dumps(S))
+            True
+            sage: A = Automaton([[0, 1, 0]])
+            sage: T = A.state(0)
+            sage: T1 = loads(dumps(T))
+            sage: T == T1
+            True
+            sage: T.transitions
+            [Transition from 0 to 1: 0|-]
+            sage: T1.transitions
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'FSMState' object has no attribute 'transitions'
+            sage: A1 = loads(dumps(A))
+            sage: all(A.state(j) == A1.state(j) for j in [0, 1])
+            True
+            sage: all(A.state(j).transitions == A1.state(j).transitions
+            ....:     for j in [0, 1])
+            True
+        """
+        odict = self.__dict__.copy()  # copy the dict since we change it
+        try:
+            del odict['transitions']  # remove transitions entry
+        except KeyError:
+            pass                      # Standalone FSMState has no transitions
+        return odict
 
     def __hash__(self):
         """
@@ -3446,6 +3492,62 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             for transition in other.iter_transitions():
                 self.add_transition(deepcopy(transition, memo))
 
+    def __getstate__(self):
+        """
+        Return state for pickling excluding outgoing transitions.
+
+        INPUT:
+
+        None
+
+        OUTPUT:
+
+        A dictionary.
+
+        Outgoing transitions are in fact stored in states,
+        but must be pickled by the finite state machine
+        in order to avoid deep recursion.
+
+        TESTS::
+
+            sage: A = Automaton([(0, 1, 0)])
+            sage: loads(dumps(A)) == A
+            True
+        """
+        odict = self.__dict__.copy() # copy the dict since we change it
+        odict.update({
+            'transitions': self.transitions()
+        })
+        return odict
+
+    def __setstate__(self, d):
+        """
+        Set state from pickling.
+
+        INPUT:
+
+        - `d` -- a dictionary
+
+        OUTPUT:
+
+        None.
+
+        As transitions are in fact stored in states but not saved
+        by states in order to avoid deep recursion, transitions
+        have to be manually restored here.
+
+        TESTS::
+
+            sage: A = Automaton([(0, 1, 0)])
+            sage: loads(dumps(A)) == A
+            True
+        """
+        transitions = d.pop('transitions')
+        self.__dict__.update(d)
+        for state in self.iter_states():
+            state.transitions = []   #  clean outgoing transitions
+        for transition in transitions:
+            self.add_transition(transition)
 
     def relabeled(self, memo=None, labels=None):
         """

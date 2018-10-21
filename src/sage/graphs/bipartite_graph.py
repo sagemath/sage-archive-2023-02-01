@@ -1443,7 +1443,7 @@ class BipartiteGraph(Graph):
 
         if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
             if use_edge_labels:
-                raise ValueError('use_edge_labels can not be used with ' +
+                raise ValueError('use_edge_labels can not be used with '
                                  '"Hopcroft-Karp" or "Eppstein"')
             d = []
             if self.size():
@@ -1454,13 +1454,14 @@ class BipartiteGraph(Graph):
                     CC = [g for g in self.connected_components_subgraphs() if g.size()]
                 else:
                     CC = [self]
+                v2int = {v: i for i, v in enumerate(self)}
                 for g in CC:
                     h = g.networkx_graph()
                     if algorithm == "Hopcroft-Karp":
                         m = networkx.bipartite.hopcroft_karp_matching(h)
                     else:
                         m = networkx.bipartite.eppstein_matching(h)
-                    d.extend((u, v, g.edge_label(u,v)) for u,v in m.items() if u < v)
+                    d.extend((u, v, g.edge_label(u,v)) for u,v in iteritems(m) if v2int[u] < v2int[v])
 
             if value_only:
                 return Integer(len(d))

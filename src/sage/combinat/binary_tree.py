@@ -240,6 +240,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if not (not self or len(self) == 2):
             raise ValueError("this is not a binary tree")
 
+    __hash__ = ClonableArray.__hash__
+
     def _repr_(self):
         """
         TESTS::
@@ -4807,6 +4809,8 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             return ((0,),)
         resu = [(l, self.label())] + [u for t in self for u in t._sort_key()]
         return tuple(resu)
+
+    __hash__ = ClonableArray.__hash__
 
     def binary_search_insert(self, letter):
         r"""

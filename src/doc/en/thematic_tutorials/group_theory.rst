@@ -447,17 +447,17 @@ The command ::
     *  a b c d e f g h i j k l
      +------------------------
     a| a b c d e f g h i j k l
-    b| b c a e f d i g h l j k
-    c| c a b f d e h i g k l j
-    d| d e f b c a l j k g h i
-    e| e f d c a b k l j i g h
-    f| f d e a b c j k l h i g
-    g| g h i j k l a b c d e f
-    h| h i g k l j c a b f d e
-    i| i g h l j k b c a e f d
-    j| j k l h i g f d e a b c
-    k| k l j i g h e f d c a b
-    l| l j k g h i d e f b c a
+    b| b a d c f e h g j i l k
+    c| c k a e d g f i h l b j
+    d| d l b f c h e j g k a i
+    e| e j k g a i d l f b c h
+    f| f i l h b j c k e a d g
+    g| g h j i k l a b d c e f
+    h| h g i j l k b a c d f e
+    i| i f h l j b k c a e g d
+    j| j e g k i a l d b f h c
+    k| k c e a g d i f l h j b
+    l| l d f b h c j e k g i a
 
 
 will construct the Cayley table (or "multiplication table") of `H`.
@@ -471,7 +471,7 @@ element named ``e``::
     sage: T = H.cayley_table()
     sage: headings = T.row_keys()
     sage: headings[4]
-    (1,4)(2,5)(3,6)
+    (1,3)(4,6)
 
 Center
 ------

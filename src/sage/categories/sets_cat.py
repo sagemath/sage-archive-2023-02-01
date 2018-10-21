@@ -2165,7 +2165,10 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 # visualize an odometer, with "wheels" displaying "digits"...:
                 factors = list(self.cartesian_factors())
                 wheels = [iter(f) for f in factors]
-                digits = [next(it) for it in wheels]
+                try:
+                    digits = [next(it) for it in wheels]
+                except StopIteration:
+                    return
                 while True:
                     yield self._cartesian_product_of_elements(digits)
                     for i in range(len(digits)-1, -1, -1):
@@ -2174,7 +2177,10 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                             break
                         except StopIteration:
                             wheels[i] = iter(factors[i])
-                            digits[i] = next(wheels[i])
+                            try:
+                                digits[i] = next(wheels[i])
+                            except StopIteration:
+                                return
                     else:
                         break
 

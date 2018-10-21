@@ -1782,11 +1782,14 @@ class WordMorphism(SageObject):
         """
         w = iter(self.image(letter))
         while True:
-            for a in self.image(next(w)):
-                yield a
-            else:
-                next_w = next(w)
-                w = itertools.chain([next_w], w, self.image(next_w))
+            try:
+                for a in self.image(next(w)):
+                    yield a
+                else:
+                    next_w = next(w)
+                    w = itertools.chain([next_w], w, self.image(next_w))
+            except StopIteration:
+                return
 
 
     def fixed_point(self, letter):

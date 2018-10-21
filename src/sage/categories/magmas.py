@@ -910,7 +910,7 @@ class Magmas(Category_singleton):
             The default is to represent elements as lowercase
             ASCII letters.  ::
 
-                sage: G=CyclicPermutationGroup(5)
+                sage: G = CyclicPermutationGroup(5)
                 sage: G.multiplication_table()
                 *  a b c d e
                  +----------
@@ -927,22 +927,22 @@ class Magmas(Category_singleton):
             displaying the elements in different ways.  ::
 
                 sage: from sage.categories.examples.finite_semigroups import LeftRegularBand
-                sage: L=LeftRegularBand(('a','b'))
-                sage: T=L.multiplication_table(names='digits')
+                sage: L = LeftRegularBand(('a', 'b'))
+                sage: T = L.multiplication_table(names='digits')
                 sage: T.column_keys()
-                ('a', 'b', 'ab', 'ba')
+                ('a', 'ab', 'b', 'ba')
                 sage: T
                 *  0 1 2 3
                  +--------
-                0| 0 2 2 2
-                1| 3 1 3 3
-                2| 2 2 2 2
+                0| 0 1 1 1
+                1| 1 1 1 1
+                2| 3 3 2 3
                 3| 3 3 3 3
 
             Specifying the elements in an alternative order can provide
             more insight into how the operation behaves.  ::
 
-                sage: L=LeftRegularBand(('a','b','c'))
+                sage: L = LeftRegularBand(('a', 'b', 'c'))
                 sage: elts = sorted(L.list())
                 sage: L.multiplication_table(elements=elts)
                 *  a b c d e f g h i j k l m n o
@@ -989,12 +989,12 @@ class Magmas(Category_singleton):
                 sage: G=AlternatingGroup(3)
                 sage: T=G.multiplication_table()
                 sage: T.column_keys()
-                ((), (1,3,2), (1,2,3))
-                sage: sorted(T.translation().items())
-                [('a', ()), ('b', (1,3,2)), ('c', (1,2,3))]
+                ((), (1,2,3), (1,3,2))
+                sage: T.translation()
+                {'a': (), 'b': (1,2,3), 'c': (1,3,2)}
                 sage: T.change_names(['x', 'y', 'z'])
-                sage: sorted(T.translation().items())
-                [('x', ()), ('y', (1,3,2)), ('z', (1,2,3))]
+                sage: T.translation()
+                {'x': (), 'y': (1,2,3), 'z': (1,3,2)}
                 sage: T
                 *  x y z
                  +------

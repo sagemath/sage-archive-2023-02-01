@@ -778,12 +778,11 @@ class OverconvergentModularFormsSpace(Module):
         """
         return self(0)
 
-    zero_element = deprecated_function_alias(17694, zero)
-
     def _coerce_from_ocmf(self, f):
         r"""
-        Try to convert the overconvergent modular form `f` into an element of self. An error will be raised if this is
-        obviously nonsense.
+        Try to convert the overconvergent modular form `f` into an element of self.
+
+        An error will be raised if this is obviously nonsense.
 
         EXAMPLES::
 

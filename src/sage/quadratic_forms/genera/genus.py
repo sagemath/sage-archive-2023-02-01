@@ -1242,7 +1242,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         A `p`-adic square class `r` is called automorphous if it is
         the spinor norm of a proper `p`-adic integral automorphism of this form.
-        These classes form a group. See [CS]_ chapter 15 §9.6 for details.
+        These classes form a group. See [CS]_ Chapter 15, 9.6 for details.
 
         OUTPUT:
 

@@ -515,16 +515,63 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         EXAMPLES::
 
-            sage: L = IntegralLattice("D4")
+            sage: L = IntegralLattice("D4").direct_sum(IntegralLattice("A2"))
             sage: D = L.discriminant_group()
-            sage: Gen = D.genus(L.signature_pair())
-            sage: Gen == L.genus()
+            sage: genus = D.genus(L.signature_pair())
+            sage: genus
+            Genus of
+            None
+            Signature:  (6, 0)
+            Genus symbol at 2:    1^4:2^-2
+            Genus symbol at 3:     1^-5 3^-1
+            sage: genus == L.genus()
             True
+
+        Let `H` be an even unimodular lattice of signature `(9, 1)` and suppose
+        that `D4` is primitively embedded in `H`. We compute the discriminant
+        form of the orthogonal complement of `L` in `H`::
+
+            sage: DK = D.twist(-1)
+            sage: DK
+            Finite quadratic module over Integer Ring with invariants (2, 6)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [  1 1/2]
+            [1/2 1/3]
+
+        We know that  `K` has signature `(5, 1)` and thus we can compute
+        the genus of `K` as::
+
+            sage: DK.genus((3,1))
+            Genus of
+            None
+            Signature:  (3, 1)
+            Genus symbol at 2:    1^2:2^-2
+            Genus symbol at 3:     1^-3 3^1
+
+        We can also compute the discriminant group of an odd lattice::
+
+            sage: L = IntegralLattice(matrix.diagonal(range(1,5)))
+            sage: D = L.discriminant_group()
+            sage: D.genus((4,0))
+            Genus of
+            None
+            Signature:  (4, 0)
+            Genus symbol at 2:    [1^-2 2^1 4^1]_6
+            Genus symbol at 3:     1^-3 3^1
+
+        TESTS::
+
+            sage: L.genus() == D.genus((4,0))
+            True
+            sage: D.genus((1,0))
+            Traceback (most recent call last):
+            TypeError: all local symbols must be of the same dimension
         """
         from sage.quadratic_forms.genera.genus import (Genus_Symbol_p_adic_ring,
                                                     GenusSymbol_global_ring,
                                                     p_adic_symbol,
-                                                    is_GlobalGenus)
+                                                    is_GlobalGenus,
+                                                    _blocks)
         from sage.misc.misc_c import prod
         s_plus = signature_pair[0]
         s_minus = signature_pair[1]
@@ -546,14 +593,14 @@ class TorsionQuadraticModule(FGP_Module_class):
             rk = rank - len(D.invariants())
             if rk > 0:
                 if p == 2:
-                    det = determinant.prime_to_m_part(2) % 8
+                    det = determinant.prime_to_m_part(2)
                     det *= prod([di[2] for di in local_symbol])
                     det = det % 8
-                    local_symbol.append([0, rk, det, 0, 0])
+                    local_symbol.append([ZZ(0), rk, det, ZZ(0), ZZ(0)])
                 else:
                     det = legendre_symbol(determinant.prime_to_m_part(p),p)
                     det = (det * prod([di[2] for di in local_symbol]))
-                    local_symbol.append([0, rk, det])
+                    local_symbol.append([ZZ(0), rk, det])
             local_symbol.sort()
             local_symbol = Genus_Symbol_p_adic_ring(p, local_symbol)
             local_symbols.append(local_symbol)
@@ -561,53 +608,89 @@ class TorsionQuadraticModule(FGP_Module_class):
         # This genus has the right discriminant group
         # but it may be empty
         genus = GenusSymbol_global_ring(signature_pair, local_symbols)
-
-        if self.value_module_qf().n != 2:
-            raise NotImplementedError(
-                "Currently, this is only implemented for even genera. " +
-                "Want to help us implement this for odd lattices?")
-
-        # the symbol for p=2 and scale 1 is only well defined mod 4
-        # when a jordan block of scale 1 is odd.
-        # In this case the symbol is determined by the property
-        # that it forms a valid global genus symbol.
-        # We simply try out all possibilities untill we reach a valid symbol
-        if is_GlobalGenus(genus):
-            return genus
-
         sym2 = local_symbols[0].symbol_tuple_list()
 
-        if sym2[0][0] == 1:
-            i = 0
+        if sym2[0][0] != 0:
+            sym2 = [[ZZ(0), ZZ(0), ZZ(1), ZZ(0), ZZ(0)]] + sym2
+        if len(sym2) <= 1 or sym2[1][0] != 1:
+            sym2 = sym2[:1] + [[ZZ(1), ZZ(0), ZZ(1) , ZZ(0), ZZ(0)]] + sym2[1:]
+        if len(sym2) <= 2 or sym2[2][0] != 2:
+            sym2 = sym2[:2] + [[ZZ(2), ZZ(0), ZZ(1) , ZZ(0), ZZ(0)]] + sym2[2:]
+
+        if self.value_module_qf().n == 1:
+            # in this case the blocks of scales 1, 2, 4 are under determined
+            # make sure the first 3 symbols are of scales 1, 2, 4
+            # i.e. their valuations are 0, 1, 2
+
+            # the form is odd
+            block0 = [b for b in _blocks(sym2[0]) if b[3] == 1]
+
+            o = sym2[1][3]
+            # no restrictions on determinant and
+            # oddity beyond existence
+            # but we know if even or odd
+            block1 = [b for b in _blocks(sym2[1]) if b[3] == o]
+
+
+            d = sym2[2][2]
+            o = sym2[2][3]
+            t = sym2[2][4]
+            # if the jordan block of scale 2 is even we know it
+            if o == 0:
+                block2 = [sym2[2]]
+            # if it is odd we know det and oddity mod 4 at least
+            else:
+                block2 = [b for b in _blocks(sym2[2])
+                          if b[3] == o
+                          and (b[2] - d) % 4 == 0
+                          and (b[4] - t) % 4 == 0
+                          and (b[2] - d) % 8 == (b[4] - t) % 8 # if the oddity is altered by 4 then so is the determinant
+                          ]
+        elif self.value_module_qf().n == 2:
+            # the form is even
+            block0 = [b for b in _blocks(sym2[0]) if b[3] == 0]
+
+            # if the jordan block of scale 2 is even we know it
+            d = sym2[1][2]
+            o = sym2[1][3]
+            t = sym2[1][4]
+            if o == 0:
+                block1 = [sym2[1]]
+            else:
+                # the block is odd and we know det and oddity mod 4
+                block1 = [b for b in _blocks(sym2[1])
+                          if b[3] == o
+                          and (b[2] - d) % 4 == 0
+                          and (b[4] - t) % 4 == 0
+                          and (b[2] - d) % 8 == (b[4] - t) % 8 # if the oddity is altered by 4 then so is the determinant
+                          ]
+            # this is completely determined
+            block2 = [sym2[2]]
         else:
-            i = 1
+            raise ValueError("this is not a discriminant form")
 
-        # wrong oddity
-        sym2[i][4] = (sym2[i][4] + 4) % 8
-        local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
-        genus = GenusSymbol_global_ring(signature_pair, local_symbols)
-        if is_GlobalGenus(genus):
-            return genus
-
-        # wrong oddity and det
-        if i == 1:
-            # if there is a part of scale 0,
-            # then that has to change det as well
-            sym2[0][2] = (sym2[0][2] + 4) % 8
-        sym2[i][2] = (sym2[i][2] + 4) % 8
-        local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
-        genus = GenusSymbol_global_ring(signature_pair, local_symbols)
-        if is_GlobalGenus(genus):
-            return genus
-
-        # wrong det
-        sym2[i][4] = (sym2[i][4] + 4) % 8
-        local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
-        genus = GenusSymbol_global_ring(signature_pair, local_symbols)
-        if is_GlobalGenus(genus):
-            return genus
+        # figure out which symbol defines a genus and return that
+        for b0 in block0:
+            for b1 in block1:
+                for b2 in block2:
+                    sym2[:3] = [b0, b1, b2]
+                    local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
+                    genus = GenusSymbol_global_ring(signature_pair, local_symbols)
+                    if is_GlobalGenus(genus):
+                        # make the symbol sparse again.
+                        i = 0
+                        k = 0
+                        while i < 3:
+                            if sym2[k][1] == 0:
+                                sym2.pop(k)
+                            else:
+                                k = k + 1
+                            i = i + 1
+                        local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
+                        genus = GenusSymbol_global_ring(signature_pair, local_symbols)
+                        return genus
         else:
-            raise AssertionError("oops")
+            raise ValueError("this discriminant form and signature do not define a genus")
 
 
     def is_genus(self, signature_pair, even=True):

@@ -245,7 +245,12 @@ def _blocks(b, even_only=False):
     blocks = []
     rk = b[1]
     # recall: 2-genus_symbol is [scale, rank, det, even/odd, oddity]
-    if rk == 1 and not even_only:
+    if rk == 0:
+        assert b[2] == 1
+        assert b[3] == 0
+        assert b[4] == 0
+        blocks.append(copy(b))
+    elif rk == 1 and not even_only:
         for det in [1, 3, 5, 7]:
             b1 = copy(b)
             b1[2] = det

@@ -305,6 +305,8 @@ def _blocks(b, even_only=False):
                 b1[3] = 1
                 b1[4] = t
                 blocks.append(b1)
+    # convert ints to integers
+    blocks = [[ZZ(i) for i in b] for b in blocks]
     return blocks
 
 def Genus(A, factored_determinant=None):

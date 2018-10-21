@@ -136,20 +136,22 @@ AUTHOR:
 - Leo Perrin: initial collection of sboxes
 - Friedrich Wiemer (2017-05-12): refactored list for inclusion in SAGE
 """
+import sys
 
 from sage.crypto.sbox import SBox
 from sage.misc.functional import is_odd, is_even
 
+
 def bracken_leander(n):
-    """
-    Return the Bracken-Leander construction
+    r"""
+    Return the Bracken-Leander construction.
 
     For n = 4*k and odd k, the construction is `x \mapsto x^{2^{2k} + 2^k + 1}`
     over `\GF{2^n}`
 
     INPUT:
 
-    - ``n`` - size of the S-Box
+    - ``n`` -- size of the S-Box
 
     EXAMPLES::
 
@@ -167,16 +169,16 @@ def bracken_leander(n):
 
 def carlet_tang_tang_liao(n, c=None, bf=None):
     r"""
-    Return the Carlet-Tang-Tang-Liao construction
+    Return the Carlet-Tang-Tang-Liao construction.
 
     See [CTTL2014]_ for its definition.
 
     INPUT:
 
-    - ``n`` - integer, the bit length of inputs and outputs, has to be even and >= 6
-    - ``c`` - element of `\GF{2^{n-1}}` used in the construction
+    - ``n`` -- integer, the bit length of inputs and outputs, has to be even and >= 6
+    - ``c`` -- element of `\GF{2^{n-1}}` used in the construction
         (default: random element)
-    - ``f`` - Function from `\GF{2^n} \to \GF{2}` or BooleanFunction on `n-1` bits
+    - ``f`` -- Function from `\GF{2^n} \to \GF{2}` or BooleanFunction on `n-1` bits
         (default: ``x -> (1/(x+1)).trace())``
 
     EXAMPLES::
@@ -188,7 +190,7 @@ def carlet_tang_tang_liao(n, c=None, bf=None):
     from sage.crypto.boolean_function import BooleanFunction
     from sage.rings.finite_rings.finite_field_constructor import GF
 
-    if n < 6 or n % 2 == 1:
+    if n < 6 or n % 2:
         raise TypeError("n >= 6 has to be even")
     K = GF(2**(n-1))
     L = GF(2**n)
@@ -233,13 +235,13 @@ def carlet_tang_tang_liao(n, c=None, bf=None):
 
 
 def gold(n, i):
-    """
-    Return the Gold function defined by `x \mapsto x^{2^i + 1}` over `\GF{2^n}`
+    r"""
+    Return the Gold function defined by `x \mapsto x^{2^i + 1}` over `\GF{2^n}`.
 
     INPUT:
 
-    - ``n`` - size of the S-Box
-    - ``i`` - a positive integer
+    - ``n`` -- size of the S-Box
+    - ``i`` -- a positive integer
 
     EXAMPLES::
 
@@ -256,13 +258,13 @@ def gold(n, i):
 
 
 def kasami(n, i):
-    """
-    Return the Kasami function defined by `x \mapsto x^{2^{2i} - 2^i + 1}` over `\GF{2^n}`
+    r"""
+    Return the Kasami function defined by `x \mapsto x^{2^{2i} - 2^i + 1}` over `\GF{2^n}`.
 
     INPUT:
 
-    - ``n`` - size of the S-Box
-    - ``i`` - a positive integer
+    - ``n`` -- size of the S-Box
+    - ``i`` -- a positive integer
 
     EXAMPLES::
 
@@ -282,15 +284,15 @@ def kasami(n, i):
 
 
 def niho(n):
-    """
-    Return the Niho function over `\GF{2^n}`
+    r"""
+    Return the Niho function over `\GF{2^n}`.
 
     It is defined by `x \mapsto x^{2^t + 2^s - 1}` with `s = t/2` if t is even
     or `s = (3t+1)/2` if t is odd.
 
     INPUT:
 
-    - ``n`` - size of the S-Box
+    - ``n`` -- size of the S-Box
 
     EXAMPLES::
 
@@ -315,12 +317,12 @@ def niho(n):
 
 
 def welch(n):
-    """
-    Return the Welch function defined by `x \mapsto x^{2^{(n-1)/2} + 3}` over `\GF{2^n}`
+    r"""
+    Return the Welch function defined by `x \mapsto x^{2^{(n-1)/2} + 3}` over `\GF{2^n}`.
 
     INPUT:
 
-    - ``n`` - size of the S-Box
+    - ``n`` -- size of the S-Box
 
     EXAMPLES::
 
@@ -339,13 +341,13 @@ def welch(n):
 
 
 def monomial_function(n, e):
-    """
+    r"""
     Return an S-Box as a function `x^e` defined over `\GF{2^n}`.
 
     INPUT:
 
-    - ``n`` - size of the S-Box (i.e. the degree of the finite field extension)
-    - ``e`` - exponent of the monomial function
+    - ``n`` -- size of the S-Box (i.e. the degree of the finite field extension)
+    - ``e`` -- exponent of the monomial function
 
     EXAMPLES::
 
@@ -364,7 +366,6 @@ def monomial_function(n, e):
     base_ring = GF(2**n, name='x')
     R = PolynomialRing(base_ring, name='X')
     X = R.gen()
-
     return SBox(X**e)
 
 
@@ -1865,7 +1866,6 @@ affine_equiv_classes[4] = [
 
 # Dictionary of all available SBoxes
 sboxes = {}
-import sys
 for k in dir(sys.modules[__name__]):
     v = getattr(sys.modules[__name__], k)
     if isinstance(v, SBox):

@@ -155,9 +155,9 @@ cdef class ConvexityProperties:
         cdef int i = 0
         cdef int j, k
 
-        # Remembering integers instead of the labels, and building mapping in
-        # both directions.
-        self._list_integers_to_vertices = list(G)
+        # Build mappings integer <-> vertices.
+        # Must be consistent with the mappings used in c_distances_all_pairs
+        self._list_integers_to_vertices = G.vertices()
         self._dict_vertices_to_integers = {v: i for i, v in enumerate(self._list_integers_to_vertices)}
 
         # Computation of distances between all pairs. Costly.

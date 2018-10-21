@@ -56,13 +56,25 @@ cdef class StaticSparseCGraph(CGraph):
     <sage.graphs.base.static_sparse_graph>`.
     """
 
-    def __cinit__(self, G):
+    def __cinit__(self, G, vertex_list=None):
         r"""
         Cython constructor
 
         INPUT:
 
-        - ``G`` -- a :class:`Graph` object.
+        - ``G`` -- a :class:`Graph` object
+
+        - ``vertex_list`` -- optional list of all vertices of ``G``
+
+        The optional argument ``vertex_list`` is assumed to be a list of all
+        vertices of the graph ``G`` in some order.
+        **Beware that no serious checks are made that this input is correct**.
+
+        If ``vertex_list`` is given, it will be used to map vertices
+        of the graph to consecutive integers. Otherwise, the result
+        of ``G.vertices()`` will be used instead. Because ``G.vertices()``
+        only works if the vertices can be sorted, using ``vertex_list``
+        is useful when working with possibly non-sortable objects in Python 3.
 
         TESTS::
 
@@ -75,12 +87,29 @@ cdef class StaticSparseCGraph(CGraph):
             sage: G2 = G.copy(immutable=True)
             sage: G2.is_strongly_connected()
             True
+
+        Using the ``vertex_list`` optional argument::
+
+            sage: g = StaticSparseCGraph(DiGraph({0:[2]}),vertex_list=[2,0])
+            sage: g.has_arc(0,1)
+            False
+            sage: g.has_arc(1,0)
+            True
+
+            sage: g = StaticSparseCGraph(DiGraph({0:[2]}),vertex_list=[2,0,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex_list has wrong length
         """
         cdef int i, j, tmp
-        has_labels = any(l is not None for _,_,l in G.edge_iterator())
+        has_labels = any(l is not None for _, _, l in G.edge_iterator())
         self._directed = G.is_directed()
 
-        init_short_digraph(self.g, G, edge_labelled=has_labels)
+        if vertex_list is not None and len(vertex_list) != G.order():
+            raise ValueError('vertex_list has wrong length')
+
+        init_short_digraph(self.g, G, edge_labelled=has_labels,
+                           vertex_list=vertex_list)
         if self._directed:
             init_reverse(self.g_rev,self.g)
 
@@ -161,7 +190,6 @@ cdef class StaticSparseCGraph(CGraph):
             Traceback (most recent call last):
             ...
             ValueError: Thou shalt not add a vertex to an immutable graph
-
         """
         self.add_vertex_unsafe(k)
 
@@ -368,8 +396,12 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: gi=DiGraph(g,data_structure="static_sparse")
             sage: gi.edges()[0]
             ('000', '000', '0')
-            sage: gi.edges_incident('111')
-            [('111', '110', '0'), ('111', '111', '1'), ('111', '112', '2'), ('111', '113', '3')]
+            sage: sorted(gi.edges_incident('111'))
+            [('111', '110', '0'),
+            ('111', '111', '1'),
+            ('111', '112', '2'),
+            ('111', '113', '3')]
+
             sage: sorted(g.edges()) == sorted(gi.edges())
             True
 
@@ -423,12 +455,17 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}}, immutable=True).is_directed_acyclic()
             True
         """
-        cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G)
+        vertices = list(G)
+        try:
+            vertices.sort()
+        except TypeError:
+            pass
+        cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G, vertices)
         self._cg = cg
 
         self._directed = cg._directed
 
-        vertices = G.vertices()
+
         self._order = len(vertices)
 
         # Does it allow loops/multiedges ?
@@ -437,13 +474,13 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         # Dictionary translating a vertex int to a label, and the other way around.
         self._vertex_to_labels = vertices
-        self._vertex_to_int = {v:i for i,v in enumerate(vertices)}
+        self._vertex_to_int = {v: i for i, v in enumerate(vertices)}
 
         # Needed by CGraph. The first one is just an alias, and the second is
         # useless : accessing _vertex_to_labels (which is a list) is faster than
         # vertex_labels (which is a dictionary)
         self.vertex_ints = self._vertex_to_int
-        self.vertex_labels = {i:v for i,v in enumerate(vertices)}
+        self.vertex_labels = {i: v for i, v in enumerate(vertices)}
         self._multiple_edges = self._multiedges
 
     def has_vertex(self, v):

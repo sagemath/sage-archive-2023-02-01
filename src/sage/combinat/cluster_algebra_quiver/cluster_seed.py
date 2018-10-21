@@ -172,7 +172,7 @@ class ClusterSeed(SageObject):
             * self._quiver - the ClusterQuiver corresponding to the exchange matrix self._M .
             * self._mutation_type - the mutation type of self._quiver .
 
-            * self._track_mut - a boolean tracking whether the a ClusterSeed's mutation path is being recorded.
+            * self._track_mut - a boolean tracking whether the ClusterSeed's mutation path is being recorded.
             * self._mut_path - the list of integers recording the mutation path of a seed - with consecutive repeats deleted since mutations is an involution.
 
         TESTS::

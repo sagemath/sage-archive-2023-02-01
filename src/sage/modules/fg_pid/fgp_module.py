@@ -220,6 +220,7 @@ from sage.rings.all import Integer, ZZ
 from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
+from sage.matrix.constructor import matrix
 
 import sage.misc.weak_dict
 from functools import reduce
@@ -1040,8 +1041,193 @@ class FGP_Module_class(Module):
         v = self.invariants(include_ones=True)
         non1 = [i for i in range(Z.nrows()) if v[i] != 1]
         Z = Z.matrix_from_rows(non1)
-        self._gens = tuple([self(z, check=DEBUG) for z in Z.rows()])
-        return self._gens
+        self._gens_smith = tuple([self(z, check=DEBUG) for z in Z.rows()])
+        return self._gens_smith
+
+    def gens_to_smith(self):
+        r"""
+        Return the transformation matrix from the user to smith form generators.
+
+        To go in the other direction use :meth:`smith_to_gens`.
+
+        OUTPUT:
+
+        - a matrix over the base ring
+
+        EXAMLES::
+
+            sage: L2 = IntegralLattice(3 * matrix([[-2,0,0],[0,1,0],[0,0,-4]]))
+            sage: D = L2.discriminant_group().normal_form()
+            sage: D
+            Finite quadratic module over Integer Ring with invariants (3, 6, 12)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/2   0   0   0   0]
+            [  0 1/4   0   0   0]
+            [  0   0 1/3   0   0]
+            [  0   0   0 1/3   0]
+            [  0   0   0   0 2/3]
+            sage: D.gens_to_smith()
+            [0 3 0]
+            [0 0 3]
+            [0 2 0]
+            [1 0 0]
+            [0 0 4]
+            sage: T = D.gens_to_smith()*D.smith_to_gens()
+            sage: T
+            [ 3  0 15  0  0]
+            [ 0 33  0  0  3]
+            [ 2  0 10  0  0]
+            [ 0  0  0  1  0]
+            [ 0 44  0  0  4]
+
+        The matrix `T` now satisfies a certain congruence::
+
+            sage: for i in range(T.nrows()):
+            ....:     T[:,i] = T[:,i] % D.gens()[i].order()
+            sage: T
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+        """
+        gens_to_smith = matrix(self.base_ring(), [t.vector() for t in self.gens()])
+        gens_to_smith.set_immutable()
+        return gens_to_smith
+
+    @cached_method
+    def smith_to_gens(self):
+        r"""
+        Return the transformation matrix from smith form to user generators.
+
+        To go in the other direction use :meth:`gens_to_smith`.
+
+        OUTPUT:
+
+        - a matrix over the base ring
+
+        EXAMPLES::
+
+            sage: L2 = IntegralLattice(3 * matrix([[-2,0,0],[0,1,0],[0,0,-4]]))
+            sage: D = L2.discriminant_group().normal_form()
+            sage: D
+            Finite quadratic module over Integer Ring with invariants (3, 6, 12)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/2   0   0   0   0]
+            [  0 1/4   0   0   0]
+            [  0   0 1/3   0   0]
+            [  0   0   0 1/3   0]
+            [  0   0   0   0 2/3]
+            sage: D.smith_to_gens()
+            [ 0  0  0  1  0]
+            [ 1  0  5  0  0]
+            [ 0 11  0  0  1]
+            sage: T = D.smith_to_gens()*D.gens_to_smith()
+            sage: T
+            [ 1  0  0]
+            [ 0 13  0]
+            [ 0  0 37]
+
+        This matrix satisfies the congruence::
+
+            sage: for i in range(T.ncols()):
+            ....:     T[:, i] = T[:, i] % D.smith_form_gens()[i].order()
+            sage: T
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+        We create some element of our FGP_module::
+
+            sage: x = D.linear_combination_of_smith_form_gens((1,2,3))
+            sage: x
+            (1, 2, 3)
+
+        and want to know some (it is not unique) linear combination
+        of the user defined generators that is x::
+
+            sage: x.vector() * D.smith_to_gens()
+            (2, 33, 10, 1, 3)
+        """
+        if self.base_ring()!= ZZ:
+            # it is not
+            raise NotImplementedError("the base ring must be ZZ")
+        base = self.base_ring()
+        invs = self.invariants()
+        B = self.gens_to_smith()
+        n = len(invs)
+        smith_to_gens = []
+        for k in range(n):
+            R = base.quotient_ring(invs[k])
+            e = (R**n).gen(k)  # k-th standard basis vector
+            v = B.change_ring(R).solve_left(e)
+            smith_to_gens.append(v)
+        smith_to_gens = matrix(base, smith_to_gens)
+        smith_to_gens.set_immutable()
+        return smith_to_gens
+
+    def gens_vector(self, x, reduce=False):
+        r"""
+        Return coordinates of x with respect to the generators.
+
+        INPUT:
+
+        - ``x`` -- element of ``self``
+
+        - ``reduce`` -- (default: ``False``); if ``True``,
+          reduce coefficients modulo invariants; this is
+          ignored if the base ring isn't `\ZZ`
+
+        EXAMPLES:
+
+        We create a derived class and overwrite :meth:`gens`::
+
+             sage: from sage.modules.fg_pid.fgp_module import FGP_Module_class
+             sage: W = ZZ^3
+             sage: V = W.span(matrix.diagonal([1/6,1/3,1/12]))
+             sage: class FGP_with_gens(FGP_Module_class):
+             ....:     def __init__(self, V, W, gens):
+             ....:         FGP_Module_class.__init__(self, V, W)
+             ....:         self._gens = tuple([self(g) for g in gens])
+             ....:     def gens(self):
+             ....:         return self._gens
+             sage: gens = [(1/2, 0, 0), (0, 0, 1/4), (1/3, 0, 0), (0, 1/3, 0), (0, 0, 2/3)]
+             sage: gens = [V(g) for g in gens]
+             sage: D = FGP_with_gens(V, W, gens)
+             sage: D.gens()
+             ((0, 3, 0), (0, 0, 3), (0, 2, 0), (1, 0, 0), (0, 0, 8))
+
+
+        We create some element of D::
+
+            sage: x = D.linear_combination_of_smith_form_gens((1,2,3))
+            sage: x
+            (1, 2, 3)
+
+        In our generators::
+
+            sage: v = D.gens_vector(x)
+            sage: v
+            (2, 9, 10, 1, 33)
+
+        The output can be further reduced::
+
+            sage: D.gens_vector(x, reduce=True)
+            (0, 1, 1, 1, 0)
+
+        Let us check::
+
+            sage: x == sum(v[i]*D.gen(i) for i in range(len(D.gens())))
+            True
+        """
+        x = self(x)
+        v = x.vector() * self.smith_to_gens()
+        from sage.rings.all import infinity
+        if reduce and self.base_ring() == ZZ:
+            orders = [g.order() for g in self.gens()]
+            v = v.parent()([v[i] if  orders[i] == infinity
+                            else v[i] % orders[i] for i in range(len(self.gens()))])
+        return v
 
     def coordinate_vector(self, x, reduce=False):
         """

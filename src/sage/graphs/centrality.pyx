@@ -152,6 +152,8 @@ cdef dict centrality_betweenness_C(G, numerical_type _, bint normalize=True):
     # A second copy, to remember the edges used during the BFS (see doc)
     cdef short_digraph bfs_dag
 
+    cdef list int_to_vertex = list(G)
+
     cdef int n = G.order()
 
     cdef bitset_t seen # Vertices whose neighbors have been explored
@@ -177,7 +179,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, bint normalize=True):
         mpq_init(mpq_tmp)
 
     try:
-        init_short_digraph(g, G, edge_labelled=False)
+        init_short_digraph(g, G, edge_labelled=False, vertex_list=int_to_vertex)
         init_reverse(bfs_dag, g)
 
         queue               = <uint32_t*> check_allocarray(n, sizeof(uint32_t))
@@ -322,7 +324,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, bint normalize=True):
         else:
             betweenness_list = [2 * x / ((n - 1) * (n - 2)) for x in betweenness_list]
 
-    return {vv: betweenness_list[i] for i, vv in enumerate(G.vertices())}
+    return {vv: betweenness_list[i] for i, vv in enumerate(int_to_vertex)}
 
 cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* reachU):
     r"""
@@ -674,7 +676,8 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the
     # module sage.graphs.base.static_sparse_graph
-    init_short_digraph(sd, G)
+    cdef list V = list(G)
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=V)
     cdef int n = sd.n
     cdef int* reachL = <int*> mem.malloc(n * sizeof(int))
     cdef int* reachU
@@ -809,7 +812,6 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     if verbose > 0:
         print("Final performance ratio: {}".format(visited / (n * <double> (sd.neighbors[sd.n] - sd.edges))))
 
-    cdef list V = G.vertices()
     return sorted([(1.0 / farness[v], V[v]) for v in topk[:k] if v != -1], reverse=True, key=lambda vv: vv[0])
 
 def centrality_closeness_random_k(G, int k=1):
@@ -891,7 +893,10 @@ def centrality_closeness_random_k(G, int k=1):
     cdef double farness
     cdef int i, j
     cdef dict closeness_centrality_array = {}
-    cdef list int_to_vertex = G.vertices()
+    # Currently, the boost graph interface uses the ordering of the vertices
+    # given by G.vertices() while with short_digraph we can specify the ordering
+    # (see #26447). This will change in the futur
+    cdef list int_to_vertex = G.vertices() if G.weighted() else list(G)
     cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
     # Initialize
@@ -920,7 +925,7 @@ def centrality_closeness_random_k(G, int k=1):
         # Copying the whole graph as a static_sparse_graph for fast shortest
         # paths computation in unweighted graph. This data structure is well
         # documented in module sage.graphs.base.static_sparse_graph
-        init_short_digraph(sd, G)
+        init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
         distance = <uint32_t*> mem.malloc(n * sizeof(uint32_t))
         waiting_list = <uint32_t*> mem.malloc(n * sizeof(uint32_t))
         bitset_init(seen, n)

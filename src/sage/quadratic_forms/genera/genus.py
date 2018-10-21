@@ -55,15 +55,19 @@ def all_genera_by_det(sig_pair, determinant, max_level=None, even=True):
         sage: all_genera_by_det((4,0), 125, even=True)
         [Genus of
         None
+        Signature:  (4, 0)
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^1 5^3, Genus of
         None
+        Signature:  (4, 0)
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^-2 5^1 25^-1, Genus of
         None
+        Signature:  (4, 0)
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^2 5^1 25^1, Genus of
         None
+        Signature:  (4, 0)
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^3 125^1]
     """

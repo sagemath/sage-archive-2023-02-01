@@ -1015,7 +1015,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         else:
             f = repr
         s = ' + '.join(f(elem) for elem in
-                       self.summands.elements_topological(reverse=True))
+                       self.summands.elements_topological(reverse=True,
+                                                          key=repr))
         s = s.replace('+ -', '- ')
         if not s:
             return '0'

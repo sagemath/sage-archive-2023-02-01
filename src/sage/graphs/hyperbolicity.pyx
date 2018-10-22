@@ -390,7 +390,8 @@ def _greedy_dominating_set(H, verbose=False):
 
 cdef inline distances_and_far_apart_pairs(gg,
                                           unsigned short* distances,
-                                          unsigned short* far_apart_pairs):
+                                          unsigned short* far_apart_pairs,
+                                          list int_to_vertex):
     """
     Compute both distances between all pairs and far-apart pairs.
 
@@ -441,7 +442,7 @@ cdef inline distances_and_far_apart_pairs(gg,
     # calling out_neighbors. This data structure is well documented in the
     # module sage.graphs.base.static_sparse_graph
     cdef short_digraph sd
-    init_short_digraph(sd, gg)
+    init_short_digraph(sd, gg, edge_labelled=False, vertex_list=int_to_vertex)
     cdef uint32_t** p_vertices = sd.neighbors
     cdef uint32_t* p_tmp
     cdef uint32_t* end
@@ -1188,7 +1189,7 @@ def hyperbolicity(G,
         sage: hyperbolicity(G, algorithm='CCL', additive_gap=2)
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 3)
         sage: hyperbolicity(G, algorithm='dom')
-        (1, [(0, 0), (0, 8), (1, 3), (1, 9)], 5)
+        (1, [(0, 1), (0, 8), (1, 0), (1, 9)], 5)
 
     Asking for an approximation in a cycle graph::
 
@@ -1325,16 +1326,16 @@ def hyperbolicity(G,
     if G.num_verts() <= 3:
         # The hyperbolicity of a graph with 3 vertices is 0.
         # The certificate is the set of vertices.
-        return 0, G.vertices(), 0
+        return 0, list(G), 0
 
     elif G.num_verts() == G.num_edges() + 1:
         # G is a tree
         # Any set of 4 vertices is a valid certificate
-        return 0, G.vertices()[:4], 0
+        return 0, list(G)[:4], 0
 
     elif G.is_clique():
         # Any set of 4 vertices is a valid certificate
-        return 0, G.vertices()[:4], 0
+        return 0, list(G)[:4], 0
 
 
     cdef int i, j, D
@@ -1390,6 +1391,7 @@ def hyperbolicity(G,
     cdef unsigned short** distances
     cdef unsigned short* _far_apart_pairs_
     cdef unsigned short** far_apart_pairs
+    cdef list int_to_vertex = list(G)
 
     # We compute the distances and store the results in a 2D array
     distances = <unsigned short **>check_allocarray(N, sizeof(unsigned short *))
@@ -1401,13 +1403,13 @@ def hyperbolicity(G,
         _far_apart_pairs_ = <unsigned short *> check_allocarray(N * N, sizeof(unsigned short))
         far_apart_pairs   = <unsigned short **>check_allocarray(N, sizeof(unsigned short *))
 
-        distances_and_far_apart_pairs(G, _distances_, _far_apart_pairs_)
+        distances_and_far_apart_pairs(G, _distances_, _far_apart_pairs_, int_to_vertex)
 
         for i in range(N):
             far_apart_pairs[i] = _far_apart_pairs_ + i*N
 
     else:
-        _distances_ = c_distances_all_pairs(G)
+        _distances_ = c_distances_all_pairs(G, vertex_list=int_to_vertex)
         _far_apart_pairs_ = NULL
         far_apart_pairs = NULL
 
@@ -1470,8 +1472,7 @@ def hyperbolicity(G,
     sig_free(far_apart_pairs)
 
     # Map the certificate 'certif' with the corresponding vertices in the graph
-    V = G.vertices()
-    certificate = [V[i] for i in certif]
+    certificate = [int_to_vertex[i] for i in certif]
 
     # Last, we return the computed value and the certificate
     return  ZZ(hyp)/2, sorted(certificate), ZZ(hyp_UB)/2
@@ -1693,8 +1694,7 @@ def hyperbolicity_distribution(G, algorithm='sampling', sampling_size=10**6):
 
     # We compute the all pairs shortest path and store the result in a 2D array
     # for faster access.
-    H = G.relabel(inplace=False)
-    _distances_ = c_distances_all_pairs(H)
+    _distances_ = c_distances_all_pairs(G, vertex_list=list(G))
     distances = <unsigned short**>check_allocarray(N, sizeof(unsigned short*))
     if not distances:
         sig_free(_distances_)

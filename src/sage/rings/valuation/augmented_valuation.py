@@ -1817,7 +1817,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             for i in range(f.degree(), -1, -1):
                 j = i // self.phi().degree()
                 from itertools import islice
-                coefficients = list(islice(f.list(), j * self.phi().degree(),
+                coefficients = list(islice(f.list(), int(j * self.phi().degree()),
                                            int(i) + 1))
                 g = self.domain()(coefficients)
                 ng = self._base_valuation.simplify(g, error=error-j*self._mu, force=force, phiadic=False)

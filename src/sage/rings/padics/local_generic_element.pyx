@@ -344,7 +344,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         # construct the return value
         ans = self.parent().zero()
         for c in islice(self.expansion(lift_mode=lift_mode),
-                        int(start), int(stop), k):
+                        int(start), int(stop), int(k)):
             ans += ppow * c
             ppow *= pk
 

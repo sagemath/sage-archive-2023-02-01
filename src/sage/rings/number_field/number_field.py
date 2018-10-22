@@ -2980,11 +2980,11 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         r"""
         Computes the conductor of the abelian field `K`.
         If check_abelian is set to false and the field is not an
-        abelian extension of `\mathbb{Q}`, the output is not meaningful.
+        abelian extension of `\QQ`, the output is not meaningful.
 
         INPUT:
 
-        - ``check_abelian`` - a boolean (default: ``True``); check to see that this is an abelian extension of `\mathbb{Q}`
+        - ``check_abelian`` - a boolean (default: ``True``); check to see that this is an abelian extension of `\QQ`
 
         OUTPUT:
 

@@ -4426,14 +4426,14 @@ class ClusterSeed(SageObject):
 
     def get_upper_cluster_algebra_element(self,a):
         r"""
-        Computes an element in the upper cluster algebra of `B` corresponding to the vector `a \in \mathbb{Z}^n`.
+        Computes an element in the upper cluster algebra of `B` corresponding to the vector `a \in \ZZ^n`.
 
         See [LeeLiM]_ for more details. 
 
         INPUT:
 
         - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
-        - `a` -- a vector in `\mathbb{Z}^n` where `n` is the number of columns in `B`.
+        - `a` -- a vector in `\ZZ^n` where `n` is the number of columns in `B`.
 
         OUTPUT:
 
@@ -4530,7 +4530,7 @@ class ClusterSeed(SageObject):
         INPUT:
 
         - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
-        - `vd` -- a collection of tuples `(v,z)` with `v \in \{0,1\}^n` and `z \in \mathbb{Z}`.
+        - `vd` -- a collection of tuples `(v,z)` with `v \in \{0,1\}^n` and `z \in \ZZ`.
                     `n` must be the number of columns in `B`. Taken from the output of vector_decomposition.
 
         OUTPUT:
@@ -4916,11 +4916,11 @@ def _vector_decomposition(a, length):
 
     INPUT:
 
-    - `a` -- a vector in `\mathbb{Z}^n.`
+    - `a` -- a vector in `\ZZ^n.`
 
     OUTPUT:
 
-    A decomposition of `a` into vectors `b_i \in \{0,1\}^n` such that `a= \sum c_i b_i` for `c_i \in \mathbb{Z}.`
+    A decomposition of `a` into vectors `b_i \in \{0,1\}^n` such that `a= \sum c_i b_i` for `c_i \in \ZZ.`
     Returns an array of tuples `\right[b_i,c_i\left].` 
 
     EXAMPLES::

@@ -104,7 +104,7 @@ We are able to speed up the computation by making use of refinements
 (i.e. `(S_n)_C`-homomorphisms). Suppose we constructed a node
 `(C, I_C, y, G_{\Pi^{(I_C)}(y))})`. We define
 `Y := \{z \in X^n \mid \Pi^{(I_C)}(z) = \Pi^{(I_C)}(y)\}`
-and we search for functions `\omega: Y \rightarrow \mathbb{Z}^n` which are
+and we search for functions `\omega: Y \rightarrow \ZZ^n` which are
 constant on the orbits of `G_{\Pi^{(I_C)}(y)}` and compatible with the action
 of `(S_n)_C` on both sides. Then we compute a permutation `\pi \in (S_n)_C`
 which cell-wisely sorts the entries of `\omega(y)`. Afterwards we are allowed

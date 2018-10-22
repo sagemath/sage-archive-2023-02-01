@@ -1896,7 +1896,7 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
 
-        - ``field`` -- a field (default: `\mathbb{Q}`), to be used as the
+        - ``field`` -- a field (default: `\QQ`), to be used as the
           base ring for the algebra (can also be a commutative ring, but
           then certain representation-theoretical methods might misbehave)
 

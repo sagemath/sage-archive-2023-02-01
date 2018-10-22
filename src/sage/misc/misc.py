@@ -619,7 +619,7 @@ def set_verbose(level, files='all'):
         sage: set_verbose(0)
     """
     if level is None:
-        level = 0
+        level = -1
     if isinstance(level, str):
         set_verbose_files([level])
     global LEVEL

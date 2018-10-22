@@ -4,7 +4,7 @@
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #########################################################################
 r"""
 Quotients of the Bruhat-Tits tree
@@ -17,8 +17,7 @@ quaternion algebras.
 EXAMPLES:
 
 Create the quotient attached to a maximal order of the quaternion algebra of
-discriminant `13`, at the prime `p = 5`.
-::
+discriminant `13`, at the prime `p = 5`::
 
     sage: Y = BruhatTitsQuotient(5, 13)
 
@@ -38,9 +37,8 @@ REFERENCES:
    Cameron Franc, Marc Masdeu
    LMS Journal of Computation and Mathematics (2014), volume 17, issue 01, pp. 1-23.
 """
+from __future__ import print_function, absolute_import
 
-from __future__ import print_function
-from __future__ import absolute_import
 from sage.rings.integer import Integer
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix_space import MatrixSpace
@@ -243,7 +241,7 @@ class DoubleCosetReduction(SageObject):
         r"""
         The direction of the edge.
 
-        The Bruhat Tits quotients are directed graphs but we only store
+        The Bruhat-Tits quotients are directed graphs but we only store
         half the edges (we treat them more like unordered graphs).
         The sign tells whether the matrix self.x is equivalent to the
         representative in the quotient (sign = +1), or to the
@@ -1973,8 +1971,9 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if character is None:
             if not self._trivial_character:
                 character = self._character
-                kernel = filter(lambda r: gcd(r, lev * Nplus) == 1 and character(r) == 1,
-                                range(lev * Nplus))
+                lN = lev * Nplus
+                kernel = [r for r in lN.coprime_integers(lN)
+                          if character(r) == 1]
             else:
                 character = None
                 kernel = None
@@ -1988,16 +1987,16 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             return Gamma0(Nplus).dimension_cusp_forms(k=k)
 
         f = lev.factor()
-        if any([l[1] != 1 for l in f]):
+        if any(l[1] != 1 for l in f):
             raise NotImplementedError('The level should be squarefree for '
                                       'this function to work... Sorry!')
-        GH = lambda N,ker: Gamma0(N) if character is None else GammaH_constructor(N,ker)
+        GH = lambda N, ker: Gamma0(N) if character is None else GammaH_constructor(N, ker)
 
         def mumu(N):
             p = 1
-            for _,r in ZZ(N).factor():
+            for _, r in ZZ(N).factor():
                 if r > 2:
-                    return ZZ(0)
+                    return ZZ.zero()
                 elif r == 1:
                     p *= -2
             return ZZ(p)
@@ -3546,7 +3545,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: X = BruhatTitsQuotient(5,7)
             sage: X._find_elements_in_order(23)
             [[2, 9, -1, -5], [0, 8, 0, -5], [-2, 9, 1, -5], [6, 7, -3, -4], [2, 5, -1, -4], [0, 6, -1, -4], [0, 8, -1, -4], [2, 9, -1, -4], [-2, 5, 1, -4], [0, 6, 1, -4], [0, 8, 1, -4], [-2, 9, 1, -4], [-6, 7, 3, -4], [7, 6, -4, -3], [7, 6, -3, -3], [6, 7, -3, -3], [0, 8, 0, -3], [-7, 6, 3, -3], [-6, 7, 3, -3], [-7, 6, 4, -3], [0, 1, -1, -2], [0, 6, -1, -2], [0, 1, 1, -2], [0, 6, 1, -2], [9, 2, -5, -1], [6, 0, -4, -1], [8, 0, -4, -1], [5, 2, -4, -1], [9, 2, -4, -1], [1, 0, -2, -1], [6, 0, -2, -1], [0, -1, -1, -1], [-1, 0, -1, -1], [5, 2, -1, -1], [2, 5, -1, -1], [0, -1, 1, -1], [1, 0, 1, -1], [-5, 2, 1, -1], [-2, 5, 1, -1], [-6, 0, 2, -1], [-1, 0, 2, -1], [-8, 0, 4, -1], [-6, 0, 4, -1], [-9, 2, 4, -1], [-5, 2, 4, -1], [-9, 2, 5, -1], [8, 0, -5, 0], [8, 0, -3, 0]]
-            sage: X._find_elements_in_order(23,1)
+            sage: list(X._find_elements_in_order(23,1))
             [[1, 0, -2, -1], [1, 0, 1, -1]]
         """
         OQuadForm = self.get_eichler_order_quadform()

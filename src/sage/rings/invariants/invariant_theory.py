@@ -2305,6 +2305,41 @@ class BinaryQuintic(AlgebraicForm):
         invariants['I18'] = 2**8*R(3)**-1*5**15 * clebsch['R']
         return invariants
 
+    @cached_method
+    def canonical_form(self):
+        r"""
+        Return a canonical representant of the `GL(2,\bar{K})`-orbit of the
+        quintic.
+
+        OUTPUT:
+
+        A canonical `GL(2,\bar{K})`-equivalent binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<x0, x1> = QQ[]
+            sage: p = 2*x1^5 + 4*x1^4*x0 + 5*x1^3*x0^2 + 7*x1^2*x0^3 - 11*x1*x0^4 + x0^5
+            sage: f = invariant_theory.binary_quintic(p, x0, x1)
+            sage: g = matrix(QQ, [[11,5],[7,2]])
+            sage: gf = f.transformed(g)
+            sage: f.canonical_form() == gf.canonical_form()
+            True
+        """
+        from sage.rings.all import QQ
+        from sage.rings.invariants.reconstruction import binary_quintic_from_invariants
+        clebsch = self.clebsch_invariants(as_tuple=True)
+        K = self._ring.base_ring()
+        if K == QQ:
+            # Note this method works for any number field with class number 1, but
+            # the scaled method is a lot faster as computing the class number
+            # takes a lot of time.
+            coeffs = binary_quintic_from_invariants(clebsch, reduced=True)
+        else:
+            coeffs = binary_quintic_from_invariants(clebsch, scaled=True)
+        x, y = self._variables
+        form = sum([coeffs[i]*x**i*y**(5-i) for i in range(6)])
+        return invariant_theory.binary_quintic(form, x, y)
+
 ######################################################################
 def _covariant_conic(A_scaled_coeffs, B_scaled_coeffs, monomials):
     """

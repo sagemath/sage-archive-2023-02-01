@@ -19,8 +19,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ
-from sage.rings.fraction_field import FractionField
+
+
 
 
 def binary_form_from_invariants(degree, invariants):
@@ -81,6 +81,8 @@ def binary_quadratic_from_invariants(discriminant):
         sage: from sage.rings.invariants.reconstruction import binary_quadratic_from_invariants
         sage: binary_quadratic_from_invariants(1)
         (0, 0, 1)
+        sage: binary_quadratic_from_invariants(0)
+        (1, 0, 0)
     """
     if discriminant == 0:
         return (1, 0, 0) # x^2
@@ -220,6 +222,7 @@ def binary_quintic_from_invariants(invariants, K=None, scaled=False, reduced=Fal
             invariants = reduce_invariants(invariants, [2,4,6,9])
     A, B, C = invariants[0:3]
     if K is None:
+        from sage.rings.fraction_field import FractionField
         K = FractionField(A.parent())
     if K.characteristic() in [2, 3, 5]:
         raise NotImplementedError('No reconstruction implemented for fields \
@@ -309,7 +312,7 @@ def binary_quintic_from_invariants(invariants, K=None, scaled=False, reduced=Fal
     a.append(-D*B1 - K(2)**-1*Delta*a[1])
     a.append(D**2*C0 + D*Delta*B0 + K(4)**-1*Delta**2*a[0])
     a.append(D**2*C1 + D*Delta*B1 + K(4)**-1*Delta**2*a[1])
-    # D**(-5)*(a5*y**5 - 5*a4*x*y**4 + 10*a3*x**2*y**3 - 10*a2*x**3*y**2
+    # D**(-5)*(a5*y**5 - 5*a4*x*y**4 + 10*a3*x**2*y**3 - 10*a2*x**3*y**2 \
     #           + 5*a1*x**4*y - a0*x**5)
     coeffs = tuple([K((-1)**i*binomial(5,i)*scale[5-i]*a[i]) for i in range(6)])
     if reduced:
@@ -345,6 +348,7 @@ def reduce_invariants(invariants, weights):
         sage: reduce_invariants(invariants, weights)
         [3, 75, 250]
     """
+    from sage.rings.all import ZZ
     factors = [dict(I.factor()) for I in invariants]
     scalar = ZZ(1)
     n = len(weights)

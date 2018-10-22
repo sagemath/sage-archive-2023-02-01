@@ -2482,7 +2482,7 @@ def gamma_classes(graph):
     """
     Partition the edges of the graph into Gamma classes.
 
-    Two distinct edges are Gamma related if they share a vertex but are not
+    Two distinct edges are Gamma related if they share gaa vertex but are not
     part of a triangle.  A Gamma class of edges is a collection of edges such
     that any edge in the class can be reached from any other by a chain of
     Gamma related edges (that are also in the class).
@@ -2494,6 +2494,23 @@ def gamma_classes(graph):
     disconnected) then there is exactly one class that visits all the
     vertices of the graph, and this class consists of just the edges
     that connect the modules.
+
+    EXAMPLES:
+
+    The gamma_classes of the octahedral graph are the three 4-cycles corresponding to
+    the slices through the center of the octahedron::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import gamma_classes
+        sage: g = graphs.OctahedralGraph()
+        sage: gamma_classes(g).keys()
+        [frozenset({1, 2, 3, 4}), frozenset({0, 2, 3, 5}), frozenset({0, 1, 4, 5})]
+
+    TESTS:
+
+    Ensure that the returned vertex sets from some random graphs are modules.
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import test_gamma_modules
+        sage: test_gamma_modules(2, 10, 0.5)
     """
 
 
@@ -2522,14 +2539,13 @@ def habib_maurer_algorithm(graph, g_classes=None):
     - ``graph`` -- The graph for which modular decomposition
       tree needs to be computed
 
-    - ``g_classes`` -- A dictionary whose values are the gamma classes of
-      the graph, and whose keys are a sorted tuple of the vertices corresponding
-      to the class.  Used internally.
+    - ``g_classes`` -- A dictionary whose values are the gamma classes of the
+      graph, and whose keys are a frozenset of the vertices corresponding to
+      the class. Used internally.
 
     OUTPUT:
 
-    A nested list representing the modular decomposition tree computed
-    for the graph
+    The modular decomposition tree of the graph.
 
     EXAMPLES:
 
@@ -2649,6 +2665,13 @@ def habib_maurer_algorithm(graph, g_classes=None):
           4
          5
 
+    TESTS:
+
+    Ensure that a random graph and an isomorphic graph have identical modular
+    decompositions. ::
+
+        sage: from sage.graphs.graph_decompositions.modular_decomposition import permute_decomposition
+        sage: permute_decomposition(2, habib_maurer_algorithm, 20, 0.5)
     """
 
     if graph.is_directed():
@@ -3036,7 +3059,7 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
                 3
               PARALLEL
                 1
-                4
+                 4
               PARALLEL
                 0
                 5
@@ -3059,7 +3082,17 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
 
 def tree_to_nested_tuple(root):
     r"""
-    Convert a tree to a nested tuple.
+    Convert a modular decomposition tree to a nested tuple.
+
+    INPUT:
+
+    - ``root`` -- The root of the modular decomposition tree.
+
+    OUTPUT:
+
+    A tuple whose first element is the type of the root of the tree and whose
+    subsequent nodes are either vertex labels in the case of leaves or tuples
+    representing the child subtrees.
 
     EXAMPLES::
 
@@ -3077,6 +3110,14 @@ def tree_to_nested_tuple(root):
 def nested_tuple_to_tree(nest):
     r"""
     Turn a tuple representing the modular decomposition into a tree.
+
+    INPUT:
+
+    - ``nest`` -- A nested tuple of the form returned by ``tree_to_nested_tuple``.
+
+    OUTPUT:
+
+    The root node of a modular decomposition tree.
 
     EXAMPLES::
 
@@ -3103,13 +3144,19 @@ def equivalent_trees(root1, root2):
     r"""
     Check that two modular decomposition trees are the same.
 
+    Verify that the structure of the trees is the same. Two leaves are
+    equivalent if they represent the same vertex, two internal nodes are
+    equivalent if they have the same nodes type and the same number of children
+    and there is a matching between the children such that each pair of
+    children is a pair of equivalent subtrees.
+
     EXAMPLES::
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                 import equivalent_trees, NodeType, nested_tuple_to_tree
+        ....:         import equivalent_trees, NodeType, nested_tuple_to_tree
         sage: t1 = nested_tuple_to_tree((NodeType.SERIES, 1, 2, \
-                     (NodeType.PARALLEL, 3, 4)))
+        ....:             (NodeType.PARALLEL, 3, 4)))
         sage: t2 = nested_tuple_to_tree((NodeType.SERIES, \
-                     (NodeType.PARALLEL, 4, 3), 2, 1))
+        ....:             (NodeType.PARALLEL, 4, 3), 2, 1))
         sage: equivalent_trees(t1, t2)
         True
     """
@@ -3149,7 +3196,9 @@ def relabel_tree(root, perm):
 
     - ``root`` -- The root of the tree.
 
-    - ``perm`` -- A dictionary representing the relabeling.
+    - ``perm`` -- A function, dictionary, list, permutation, or ``None``
+      representing the relabeling. See ``Graph.relabel()`` for description of
+      the permutation input.
 
     EXAMPLES::
 
@@ -3216,8 +3265,8 @@ from sage.misc.random_testing import random_testing
 @random_testing
 def test_gamma_modules(trials, vertices, prob, verbose=False):
     r"""
-    Verify that the vertices of each gamma class are the modules of a
-    random graph.
+    Verify that the vertices of each gamma class of a random graph are modules
+    of that graph.
 
     INPUT:
 
@@ -3252,6 +3301,9 @@ def test_gamma_modules(trials, vertices, prob, verbose=False):
 def permute_decomposition(trials, algorithm, vertices, prob, verbose=False):
     r"""
     Check that a graph and its permuted relabeling have the same modular decomposition.
+
+    We generate a ``trials`` random graphs and then generate an isomorphic
+    graph by relabeling the original graph. We then verify
 
     EXAMPLES::
 

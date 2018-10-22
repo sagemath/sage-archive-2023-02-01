@@ -187,7 +187,8 @@ class DoubleCosetReduction(SageObject):
             sage: DoubleCosetReduction(Y,x)
             Double coset data (-1, [(4), (5), (-4), (-4)], 8)
         """
-        return "Double coset data (%s, %s, %s)"%(self.sign(), list(self.gamma), self.label)
+        return "Double coset data (%s, %s, %s)" % (self.sign(),
+                                                   list(self.gamma), self.label)
 
     def __eq__(self, other):
         """
@@ -456,11 +457,11 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             [0 1]
         """
         if normalized:
-            #then the normalized target vertex is also M and we save some
-            #row reductions with a simple return
+            # then the normalized target vertex is also M and we save some
+            # row reductions with a simple return
             return e
         else:
-            #must normalize the target vertex representative
+            # must normalize the target vertex representative
             return self.vertex(e)
 
     def origin(self, e, normalized=False):
@@ -488,7 +489,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             [1 7]
         """
         if not normalized:
-            #then normalize
+            # then normalize
             x = copy(self.edge(e))
         else:
             x = copy(e)
@@ -978,7 +979,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             sage: gz.valuation() == 0
             True
         """
-        #Assume z belongs to some extension of QQp.
+        # Assume z belongs to some extension of QQp.
         p = self._p
         if z.valuation() < 0:
             return self.vertex(self._Mat_22([0, 1, p, 0]) * self.find_containing_affinoid(1 / (p * z)))
@@ -1483,11 +1484,10 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                 else:
                     self._magma = magma_session
                 self._magma(p)
-                # print("Warning: this input needs magma to work...")
             except RuntimeError:
                 raise NotImplementedError('Sage does not know yet how to work with the kind of orders that you are trying to use. Try installing Magma first and set it up so that Sage can use it.')
 
-            ## This is added for debugging, in order to have reproducible results
+            # This is added for debugging, in order to have reproducible results
             if seed is not None:
                 self._magma.function_call('SetSeed', seed, nvals=0)
             self._use_magma = True
@@ -1981,7 +1981,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if k == 0:
             return 0
 
-        verbose('Computing dimension for (k,level,nplus,char) = (%s, %s, %s, %s)'%(k, lev, Nplus, character), level = 2)
+        verbose('Computing dimension for (k,level,nplus,char) = (%s, %s, %s, %s)' % (k, lev, Nplus, character), level=2)
 
         if lev == 1:
             return Gamma0(Nplus).dimension_cusp_forms(k=k)
@@ -1990,7 +1990,9 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if any(l[1] != 1 for l in f):
             raise NotImplementedError('The level should be squarefree for '
                                       'this function to work... Sorry!')
-        GH = lambda N, ker: Gamma0(N) if character is None else GammaH_constructor(N, ker)
+
+        def GH(N, ker):
+            return Gamma0(N) if character is None else GammaH_constructor(N, ker)
 
         def mumu(N):
             p = 1
@@ -2510,7 +2512,6 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             self._prec = prec
             self._Iotainv = self._Mat_44([self._Iotainv_lift[ii, jj] % self._pN for ii in range(4) for jj in range(4)])
             return self._Iota
-
 
     def embed_quaternion(self, g, exact=False, prec=None):
         r"""
@@ -3175,15 +3176,13 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             return tmp
         except KeyError:
             pass
-        # print('v1=',v1)
         chain, v = self._BT.find_path(v1, self.get_vertex_dict())
-        # print('chain =', chain)
         while len(chain):
             v0 = chain.pop()
             V = [e.target for e in v.leaving_edges]
             g, v = self._find_equivalent_vertex(v0, V)
             if v is None:
-                print('Given vertex:',  v0)
+                print('Given vertex:', v0)
                 print('Not equivalent to any existing vertex in the list:')
                 if V is not None:
                     print([ve.label for ve in V])
@@ -3264,8 +3263,8 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         twom = 2 * m
         E, A = self._find_lattice(e, e, as_edge, twom)
         n_units = len(self.get_units_of_order())
-        ## Using PARI to get the shortest vector in the lattice (via LLL)
-        ## We used to pass qfminim flag = 2
+        # Using PARI to get the shortest vector in the lattice (via LLL)
+        # We used to pass qfminim flag = 2
         mat = pari('qfminim(%s,,%s,flag = 2)' % (A.__pari__(), 2 * n_units))[2].sage().transpose()
         n_vecs = mat.nrows()
         stabs = []
@@ -3284,7 +3283,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         else:
             return stabs
 
-    def _nebentype_check(self, vec, twom, E, A, flag = 2):
+    def _nebentype_check(self, vec, twom, E, A, flag=2):
         r"""
         Check if a quaternion maps into a subgroup of matrices
         determined by a nontrivial Dirichlet character (associated to
@@ -3399,7 +3398,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                 self._cached_equivalent[(v1, v2, as_edges)] = None
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)
-        ## Using PARI to get the shortest vector in the lattice (via LLL)
+        # Using PARI to get the shortest vector in the lattice (via LLL)
         vec = pari('qfminim(%s,,1,flag = 2)' % (A.__pari__()))[2].sage()
 
         vect = vec.transpose()
@@ -3623,7 +3622,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             v = V.popleft()
             E = self._BT.leaving_edges(v.rep)
 
-            verbose('V = %s, E = %s, G = %s (target = %s), lenV = %s'%(num_verts,num_edges,1+num_edges-num_verts,genus,len(V)))
+            verbose('V = %s, E = %s, G = %s (target = %s), lenV = %s' % (num_verts, num_edges, 1 + num_edges - num_verts, genus, len(V)))
             for e in E:
                 edge_det = e.determinant()
                 edge_valuation = edge_det.valuation(p)
@@ -3648,12 +3647,12 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                     # new_parity = new_valuation % 2
                     g1, v1 = self._find_equivalent_vertex(target, V, valuation=new_valuation)
                     if v1 is None:
-                        #The vertex is also new
+                        # The vertex is also new
                         v1 = Vertex(p, num_verts, target, determinant=new_det,
                                     valuation=new_valuation)
                         vertex_list.append(v1)
                         num_verts += 1
-                        #Add the vertex to the list of pending vertices
+                        # Add the vertex to the list of pending vertices
                         V.append(v1)
                     else:
                         nontorsion_generators.add(g1[0])

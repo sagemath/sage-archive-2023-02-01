@@ -172,9 +172,9 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     See the module's documentation.
 
     Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `0..n-1` to vertex labels in ``gg``. When ``vertex_list`` is
-    ``None`` (default), the mapping is given by the ordering of
-    ``gg.vertices()``. When set, ``distances[i * n + j]`` is the shortest BFS
+    mapping from `(0, \ldots, n-1)` to vertex labels in ``gg``. When
+    ``vertex_list`` is ``None`` (default), the mapping is given by the ordering
+    of ``gg.vertices()``. When set, ``distances[i * n + j]`` is the shortest BFS
     distance between vertices ``vertex_list[i]`` and ``vertex_list[j]``.
     """
 
@@ -328,11 +328,11 @@ cdef unsigned short* c_shortest_path_all_pairs(G, vertex_list=None) except NULL:
     jump from `P[u,v]` to `v` as it is one of its outneighbors.
 
     Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `0..n-1` to vertex labels in `G`. When ``vertex_list`` is
-    ``None`` (default), the mapping is given by the ordering of
-    ``G.vertices()``. When set, ``predecessors[i * n + j]`` is the predecessor of
-    ``vertex_list[j]`` on the shortest path from ``vertex_list[i]`` to
-    ``vertex_list[j]``.
+    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When
+    ``vertex_list`` is ``None`` (default), the mapping is given by the ordering
+    of ``G.vertices()``. When set, ``predecessors[i * n + j]`` is the
+    predecessor of ``vertex_list[j]`` on the shortest path from
+    ``vertex_list[i]`` to ``vertex_list[j]``.
     """
 
     cdef unsigned int n = G.order()
@@ -421,9 +421,9 @@ cdef unsigned short * c_distances_all_pairs(G, vertex_list=None):
     set.
 
     Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `0..n-1` to vertex labels in `G`. When set, ``distances[i * n +
-    j]`` is the shortest BFS distance between vertices ``vertex_list[i]`` and
-    ``vertex_list[j]``.
+    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
+    ``distances[i * n + j]`` is the shortest BFS distance between vertices
+    ``vertex_list[i]`` and ``vertex_list[j]``.
     """
 
     cdef unsigned int n = G.order()
@@ -726,12 +726,12 @@ cdef uint32_t * c_eccentricity(G, vertex_list=None) except NULL:
     r"""
     Return the vector of eccentricities in G.
 
-    The array returned is of length `n`, and by default its `i`th component is
-    the eccentricity of the `i`th vertex in ``G.vertices()``.
+    The array returned is of length `n`, and by default its `i`-th component is
+    the eccentricity of the `i`-th vertex in ``G.vertices()``.
 
     Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `0..n-1` to vertex labels in `G`. When set, ``ecc[i]`` is the
-    eccentricity of vertex ``vertex_list[i]``.
+    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
+    ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
     """
     cdef unsigned int n = G.order()
 
@@ -746,12 +746,12 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
     r"""
     Return the vector of eccentricities in G using the algorithm of [TK13]_.
 
-    The array returned is of length `n`, and by default its `i`th component is
-    the eccentricity of the `i`th vertex in ``G.vertices()``.
+    The array returned is of length `n`, and by default its `i`-th component is
+    the eccentricity of the `i`-th vertex in ``G.vertices()``.
 
     Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `0..n-1` to vertex labels in `G`. When set, ``ecc[i]`` is the
-    eccentricity of vertex ``vertex_list[i]``.
+    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
+    ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
 
     The algorithm proposed in [TK13]_ is based on the observation that for all
     nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq

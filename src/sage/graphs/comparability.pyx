@@ -754,10 +754,14 @@ def is_transitive(g, certificate=False):
         (0, 2)
         sage: digraphs.RandomDirectedGNP(30,.2).is_transitive()
         False
-        sage: digraphs.DeBruijn(5,2).is_transitive()
+        sage: D = digraphs.DeBruijn(5, 2)
+        sage: D.is_transitive()
         False
-        sage: digraphs.DeBruijn(5,2).is_transitive(certificate=True)
-        ('22', '02')
+        sage: cert = D.is_transitive(certificate=True)
+        sage: D.has_edge(*cert)
+        False
+        sage: D.shortest_path(*cert) != []
+        True
         sage: digraphs.RandomDirectedGNP(20,.2).transitive_closure().is_transitive()
         True
     """

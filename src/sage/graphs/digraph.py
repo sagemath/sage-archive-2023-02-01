@@ -399,12 +399,12 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph('IRAaDCIIOEOKcPWAo')
             Traceback (most recent call last):
             ...
-            RuntimeError: The string (IRAaDCIIOEOKcPWAo) seems corrupt: for n = 10, the string is too short.
+            RuntimeError: the string (IRAaDCIIOEOKcPWAo) seems corrupt: for n = 10, the string is too short
 
             sage: D = DiGraph("IRAaDCI'OWEOKcPWAo")
             Traceback (most recent call last):
             ...
-            RuntimeError: The string seems corrupt: valid characters are
+            RuntimeError: the string seems corrupt: valid characters are
             ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
     #. A NetworkX XDiGraph::

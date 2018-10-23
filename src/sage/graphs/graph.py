@@ -126,7 +126,7 @@ covered here.
        sage: G = Graph('Ihe\n@GUA')
        Traceback (most recent call last):
        ...
-       RuntimeError: The string (Ihe) seems corrupt: for n = 10, the string is too short.
+       RuntimeError: the string (Ihe) seems corrupt: for n = 10, the string is too short
 
    In Python, the escaped character ``\`` is represented by ``\\``:
 
@@ -191,7 +191,7 @@ covered here.
        sage: DiGraph(matrix(2,[0,0,-1,1]), format="incidence_matrix")
        Traceback (most recent call last):
        ...
-       ValueError: There must be two nonzero entries (-1 & 1) per column.
+       ValueError: there must be two nonzero entries (-1 & 1) per column
 
 - a list of edges::
 
@@ -651,19 +651,19 @@ class Graph(GenericGraph):
            sage: G = Graph("G'?G?C")
            Traceback (most recent call last):
            ...
-           RuntimeError: The string seems corrupt: valid characters are
+           RuntimeError: the string seems corrupt: valid characters are
            ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
            sage: G = Graph('G??????')
            Traceback (most recent call last):
            ...
-           RuntimeError: The string (G??????) seems corrupt: for n = 8, the string is too long.
+           RuntimeError: the string (G??????) seems corrupt: for n = 8, the string is too long
 
        ::
 
           sage: G = Graph(":I'AKGsaOs`cI]Gb~")
           Traceback (most recent call last):
           ...
-          RuntimeError: The string seems corrupt: valid characters are
+          RuntimeError: the string seems corrupt: valid characters are
           ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
        There are also list functions to take care of lists of graphs::
@@ -721,7 +721,7 @@ class Graph(GenericGraph):
             sage: Graph(Matrix([[1],[1],[1]]))
             Traceback (most recent call last):
             ...
-            ValueError: There must be one or two nonzero entries per column in an incidence matrix. Got entries [1, 1, 1] in column 0
+            ValueError: there must be one or two nonzero entries per column in an incidence matrix, got entries [1, 1, 1] in column 0
             sage: Graph(Matrix([[1],[1],[0]]))
             Graph on 3 vertices
 
@@ -739,7 +739,7 @@ class Graph(GenericGraph):
             sage: Graph(M)
             Traceback (most recent call last):
             ...
-            ValueError: There must be one or two nonzero entries per column in an incidence matrix. Got entries [1, 1] in column 2
+            ValueError: there must be one or two nonzero entries per column in an incidence matrix, got entries [1, 1] in column 2
 
         Check that :trac:`9714` is fixed::
 
@@ -871,13 +871,13 @@ class Graph(GenericGraph):
         sage: Graph(m, format="seidel_adjacency_matrix")
         Traceback (most recent call last):
         ...
-        ValueError: Graph's Seidel adjacency matrix must be symmetric
+        ValueError: the adjacency matrix of a Seidel graph must be symmetric
 
         sage: m[0,1] = -1; m[1,1] = 1
         sage: Graph(m, format="seidel_adjacency_matrix")
         Traceback (most recent call last):
         ...
-        ValueError: Graph's Seidel adjacency matrix must have 0s on the main diagonal
+        ValueError: the adjacency matrix of a Seidel graph must have 0s on the main diagonal
 
     From a a list of vertices and a list of edges::
 
@@ -982,17 +982,15 @@ class Graph(GenericGraph):
             sage: Graph(matrix([[-1, 1, 0],[1, 0, 0]]))
             Traceback (most recent call last):
             ...
-            ValueError: Column 1 of the (oriented) incidence matrix contains
-            only one nonzero value
-            sage: Graph(matrix([[1,1], [1,1], [1,0]]))
+            ValueError: column 1 of the (oriented) incidence matrix contains only one nonzero value
+            sage: Graph(matrix([[1,1],[1,1],[1,0]]))
             Traceback (most recent call last):
             ...
-            ValueError: There must be one or two nonzero entries per column in an incidence matrix. Got entries [1, 1, 1] in column 0
-            sage: Graph(matrix([[3,1,1], [0,1,1]]))
+            ValueError: there must be one or two nonzero entries per column in an incidence matrix, got entries [1, 1, 1] in column 0
+            sage: Graph(matrix([[3,1,1],[0,1,1]]))
             Traceback (most recent call last):
             ...
-            ValueError: Each column of a non-oriented incidence matrix must sum
-            to 2, but column 0 does not
+            ValueError: each column of a non-oriented incidence matrix must sum to 2, but column 0 does not
         """
         GenericGraph.__init__(self)
 

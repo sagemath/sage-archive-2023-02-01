@@ -490,7 +490,7 @@ def length_and_string_from_graph6(s):
     else: # only first byte is N
         o = ord(s[0])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         n = o - 63
         s = s[1:]
     return n, s
@@ -521,7 +521,7 @@ def binary_string_from_graph6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -551,7 +551,7 @@ def binary_string_from_dig6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)

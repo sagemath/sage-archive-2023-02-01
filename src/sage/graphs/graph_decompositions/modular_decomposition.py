@@ -2517,8 +2517,8 @@ def gamma_classes(graph):
     from itertools import chain
     from sage.sets.disjoint_set import DisjointSet
 
-    pieces = DisjointSet([frozenset(e) for e in graph.edges(labels=False, sort=False)])
-    for v in graph.vertices():
+    pieces = DisjointSet(frozenset(e) for e in graph.edges(labels=False, sort=False))
+    for v in graph:
         neighborhood = graph.subgraph(vertices=graph.neighbors(v))
         for component in neighborhood.complement().connected_components():
             v1 = component[0]
@@ -2677,7 +2677,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
     if graph.is_directed():
         raise ValueError("Graph must be undirected")
 
-    if graph.order() == 0:
+    if not graph.order():
         return create_prime_node()
 
     if graph.order() == 1:
@@ -2690,24 +2690,18 @@ def habib_maurer_algorithm(graph, g_classes=None):
                  for sg in graph.connected_components()]
         return root
 
-    elif not graph.complement().is_connected():
-        root = create_series_node()
-        root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
-                 for sg in graph.complement().connected_components()]
-        return root
-
-    else:
+    g_comp = graph.complement()
+    if g_comp.is_connected():
         from collections import defaultdict
         root = create_prime_node()
-        if g_classes == None:
+        if g_classes is None:
             g_classes = gamma_classes(graph)
-        vertex_set = frozenset(graph.vertices())
-        assert(vertex_set in g_classes)
+        vertex_set = frozenset(graph.vertex_iterator())
         edges = g_classes[vertex_set]
         sub = graph.subgraph(edges=edges)
         d = defaultdict(list)
         for v in sub:
-            for v1 in sub.neighbors(v):
+            for v1 in sub.neighbor_iterator(v):
                 d[v1].append(v)
         d1 = defaultdict(list)
         for k,v in d.items():
@@ -2715,6 +2709,12 @@ def habib_maurer_algorithm(graph, g_classes=None):
         root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
                  for sg in d1.values()]
         return root
+
+    root = create_series_node()
+    root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
+                     for sg in g_comp.connected_components()]
+    return root
+
 
 #=============================================================================
 
@@ -3289,9 +3289,10 @@ def test_gamma_modules(trials, vertices, prob, verbose=False):
             print(g.graph6_string())
         g_classes = gamma_classes(g)
         for module in g_classes.keys():
+            m_list = list(module)
             for v in g.vertices():
                 if v not in module:
-                    assert(either_connected_or_not_connected(v, list(module), g))
+                    assert(either_connected_or_not_connected(v, m_list, g))
         if verbose:
             print("Passes!")
 
@@ -3355,6 +3356,11 @@ def random_md_tree(max_depth, max_fan_out, leaf_probability):
     #internal function
     def rand_md_tree(max_depth, parent_type):
         r"""
+        Create the subtrees of a node.
+
+        A child of a node cannot have the same node type as its parent if its
+        parent's node type is either PARALLEL or SERIES.  Also its ``max_depth``
+        is one less than its parent's.
         """
         if random() < leaf_probability or max_depth == 1:
             root = create_normal_node(current_leaf[0])

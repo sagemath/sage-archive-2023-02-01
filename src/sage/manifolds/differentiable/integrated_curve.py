@@ -71,6 +71,8 @@ required to plot::
 AUTHORS:
 
 - Karim Van Aelst (2017): initial version
+- Florentin Jaffredo (2018): integration over multiple charts, use of
+  ``fast_callable`` to improve the computation speed
 
 """
 
@@ -1386,7 +1388,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         EXAMPLES:
 
-        This example illustrate the use of the function
+        This example illustrates the use of the function
         :meth:`solve_across_charts` to integrate a geodesic of the
         Euclidean plane (a straight line) in polar coordinates.
 
@@ -1395,7 +1397,7 @@ class IntegratedCurve(DifferentiableCurve):
         the direction of the geodesic being different before and after
         getting close to the origin.
 
-        The solution to this problem is to switch to cartesian coordiantes
+        The solution to this problem is to switch to Cartesian coordinates
         near `(0,0)` to avoid any singularity.
 
         First let's declare the plane as a 2-dimensional manifold, with two
@@ -1403,10 +1405,8 @@ class IntegratedCurve(DifferentiableCurve):
         maps::
 
             sage: M = Manifold(2, 'M', structure="Riemannian")
-
             sage: C.<x,y> = M.chart()
             sage: P.<r,th> = M.chart()
-
             sage: P_to_C = P.transition_map(C,(r*cos(th), r*sin(th)))
             sage: C_to_P = C.transition_map(P,(sqrt(x**2+y**2), atan2(y,x)))
 
@@ -1421,7 +1421,6 @@ class IntegratedCurve(DifferentiableCurve):
         frame. The metric in the polar frame is computed automatically::
 
             sage: g = M.metric()
-
             sage: g[0,0,C]=1
             sage: g[1,1,C]=1
             sage: g[P.frame(), : ,P]
@@ -1429,7 +1428,7 @@ class IntegratedCurve(DifferentiableCurve):
             [  0 r^2]
 
         To visualize our manifold, let's declare a mapping between every chart
-        and the cartesian chart, and then plot each chart in term of this
+        and the Cartesian chart, and then plot each chart in term of this
         mapping::
 
             sage: phi = M.diff_map(M, {(C,C): [x, y], (P,C): [r*cos(th), r*sin(th)]})
@@ -1461,17 +1460,18 @@ class IntegratedCurve(DifferentiableCurve):
             sage: c = M.integrated_geodesic(g, (t, 0, 10), v, across_charts=True)
 
         The integration is done as usual, but using the method
-        :meth:`solve_across_chart` instead of ``solve``. This forces the use
-        of ``scipy.integrate.ode`` as the solver, because of event handling
+        :meth:`solve_across_charts` instead of :meth:`solve`. This forces the
+        use of ``scipy.integrate.ode`` as the solver, because of event handling
         support.
 
-        The argument``verbose=True`` will cause the solver to write a small
+        The argument ``verbose=True`` will cause the solver to write a small
         message each time it is switching chart::
 
             sage: sol = c.solve_across_charts(step=0.1, verbose=True)
             Performing numerical integration with method 'ode'.
             Integration will take place on the whole manifold domain.
             Resulting list of points will be associated with the key 'ode_multichart' by default.
+               ...
             Exiting chart, trying to switch to another chart.
             New chart found. Resuming integration.
             Exiting chart, trying to switch to another chart.
@@ -1480,7 +1480,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         As expected, two changes of chart occur.
 
-        The returned solution is a list of couple ``(chart, solution)``,
+        The returned solution is a list of pairs ``(chart, solution)``,
         where each solution is given on a unique chart, and the last
         point of a solution is the first of the next.
 
@@ -1498,10 +1498,8 @@ class IntegratedCurve(DifferentiableCurve):
 
         To plot the result, you must first be sure that the mapping
         encompasses all the chart, which is the case here.
-
         You must also specify ``across_charts=True`` in order to call
-        ``plot_integrated`` again on each part.
-
+        :meth:`plot_integrated` again on each part.
         Finally, ``color`` can be a list, which will be cycled through::
 
             sage: fig += c.plot_integrated(mapping=phi, color=["green","red"],
@@ -1512,22 +1510,18 @@ class IntegratedCurve(DifferentiableCurve):
         .. PLOT::
 
             M = Manifold(2, 'M', structure="Riemannian")
-
             C= M.chart(names = ("x", "y"))
             x, y = C[:]
             P = M.chart(names = ("r", "ph"))
             r, th = P[:]
-
             P_to_C = P.transition_map(C,(r*cos(th), r*sin(th)))
             C_to_P = C.transition_map(P,(sqrt(x**2+y**2), atan2(y,x)))
             P.add_restrictions(r > 2)
             C.add_restrictions(x**2+y**2 < 3**2)
-
             g = M.metric()
             g[0,0,C] = 1
             g[1,1,C] = 1
             g[P.frame(), : , P]
-
             phi = M.diff_map(M, {(C,C): [x, y], (P,C): [r*cos(th), r*sin(th)]})
             fig = P.plot(number_values=9, chart=C, mapping=phi, color='grey',
                          ranges= {r:(2, 6), th:(0,2*pi)})
@@ -1543,6 +1537,7 @@ class IntegratedCurve(DifferentiableCurve):
             fig += c.plot_integrated(mapping=phi, color=["green","red"],
                         thickness=3, plot_points=100, across_charts=True)
             sphinx_plot(fig)
+
         """
         import numpy as np
 
@@ -2631,7 +2626,8 @@ class IntegratedCurve(DifferentiableCurve):
 
             # fastf is the fast version of a substitution + numerical evaluation
             # using fast_callable.
-            fastf = [fast_callable(transf[chart[j]], vars=tuple(self._chart[:])) for j in ind_pc]
+            fastf = [fast_callable(transf[chart[i]], vars=tuple(self._chart[:]))
+                     for i in ind_pc]
 
             if not isinstance(interpolation[0], Spline):
                 # partial test, in case future interpolation objects do not

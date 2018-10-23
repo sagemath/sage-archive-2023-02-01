@@ -215,10 +215,10 @@ def is_long_hole_free(g, certificate=False):
     # documented in the module sage.graphs.base.static_sparse_graph.
     # Vertices are relabeled in 0..n-1
     cdef int n = g.order()
-    cdef list id_label = g.vertices()
+    cdef list id_label = list(g)
     cdef dict label_id = {label: i for i, label in enumerate(id_label)}
     cdef short_digraph sd
-    init_short_digraph(sd, g)
+    init_short_digraph(sd, g, edge_labelled=False, vertex_list=id_label)
 
     # Make a dense copy of the graph for quick adjacency tests
     cdef bitset_t dense_graph
@@ -369,7 +369,7 @@ cdef inline is_long_antihole_free_process(g, short_digraph sd, bitset_t dense_gr
 
     return True, []
 
-def is_long_antihole_free(g, certificate = False):
+def is_long_antihole_free(g, certificate=False):
     r"""
     Tests whether the given graph contains an induced subgraph that is
     isomorphic to the complement of a cycle of length at least 5.
@@ -418,7 +418,7 @@ def is_long_antihole_free(g, certificate = False):
         sage: r,a = g.is_long_antihole_free(certificate=True)
         sage: r
         False
-        sage: a.complement().is_isomorphic( graphs.CycleGraph(6) )
+        sage: a.complement().is_isomorphic(graphs.CycleGraph(6))
         True
 
     TESTS:
@@ -429,7 +429,7 @@ def is_long_antihole_free(g, certificate = False):
         sage: r,a = g.is_long_antihole_free(certificate=True)
         sage: r
         False
-        sage: a.complement().is_isomorphic( graphs.CycleGraph(9) )
+        sage: a.complement().is_isomorphic(graphs.CycleGraph(9))
         True
 
         sage: graphs.EmptyGraph().is_long_hole_free()
@@ -446,10 +446,10 @@ def is_long_antihole_free(g, certificate = False):
     # documented in the module sage.graphs.base.static_sparse_graph.
     # Vertices are relabeled in 0..n-1
     cdef int n = g.order()
-    cdef list id_label = g.vertices()
+    cdef list id_label = list(g)
     cdef dict label_id = {label: i for i, label in enumerate(id_label)}
     cdef short_digraph sd
-    init_short_digraph(sd, g)
+    init_short_digraph(sd, g, edge_labelled=False, vertex_list=id_label)
 
     # Make a dense copy of the graph for quick adjacency tests
     cdef bitset_t dense_graph
@@ -516,7 +516,7 @@ def is_long_antihole_free(g, certificate = False):
     else:
         return True
 
-def is_weakly_chordal(g, certificate = False):
+def is_weakly_chordal(g, certificate=False):
     r"""
     Tests whether the given graph is weakly chordal, i.e., the graph and its
     complement have no induced cycle of length at least 5.
@@ -545,11 +545,11 @@ def is_weakly_chordal(g, certificate = False):
     The Petersen Graph is not weakly chordal and contains a hole::
 
         sage: g = graphs.PetersenGraph()
-        sage: r,s = g.is_weakly_chordal(certificate = True)
+        sage: r,s = g.is_weakly_chordal(certificate=True)
         sage: r
         False
-        sage: l = len(s.vertices())
-        sage: s.is_isomorphic( graphs.CycleGraph(l) )
+        sage: l = s.order()
+        sage: s.is_isomorphic(graphs.CycleGraph(l))
         True
 
     TESTS::

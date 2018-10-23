@@ -863,7 +863,7 @@ class Lseries_ell(SageObject):
         C = 8 * d * t
         eps = omega / C
 
-        sqrtN = 2 * int(self.__E.conductor().sqrt())
+        sqrtN = 2 * self.__E.conductor().isqrt()
         k = sqrtN + 10
         while True:
             L1, error_bound = self.at1(k)

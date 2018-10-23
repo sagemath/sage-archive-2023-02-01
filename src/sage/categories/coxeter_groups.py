@@ -2165,9 +2165,9 @@ class CoxeterGroups(Category_singleton):
                 self = self.apply_simple_reflection(desc, side=prefix_side)
                 other = other.apply_simple_reflection(desc, side=prefix_side)
 
-        def weak_covers(self, side='right', index_set = None, positive=False):
+        def weak_covers(self, side='right', index_set=None, positive=False):
             """
-            Returns all elements that ``self`` covers in weak order.
+            Return all elements that ``self`` covers in weak order.
 
             INPUT:
 

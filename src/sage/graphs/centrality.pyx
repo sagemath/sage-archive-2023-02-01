@@ -670,7 +670,9 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         res = [(closz, z) for z, closz in closeness_dict.items()]
         try:
             res = sorted(res, reverse=True)
-        except:
+        except TypeError:
+            # A TypeError may occur in Python 3 when vertex labels are of
+            # different types. We then sort on values only.
             res = sorted(res, reverse=True, key=lambda zz: zz[0])
         return res
 
@@ -821,7 +823,9 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     res = [(1.0 / farness[v], V[v]) for v in topk[:k] if v != -1]
     try:
         res = sorted(res, reverse=True)
-    except:
+    except TypeError:
+        # A TypeError may occur in Python 3 when vertex labels are of
+        # different types. We then sort on values only.
         res = sorted(res, reverse=True, key=lambda vv: vv[0])
     return res
 

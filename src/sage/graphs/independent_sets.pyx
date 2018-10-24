@@ -126,7 +126,7 @@ cdef class IndependentSets:
         sage: [0, 'a', 'b', 'c'] in I
         Traceback (most recent call last):
         ...
-        ValueError: a is not a vertex of the graph.
+        ValueError: a is not a vertex of the graph
     """
     def __init__(self, G, maximal=False, complement=False):
         r"""
@@ -373,7 +373,7 @@ cdef class IndependentSets:
             try:
                 i = self.vertex_to_int[I]
             except KeyError:
-                raise ValueError(str(I) + " is not a vertex of the graph.")
+                raise ValueError(str(I) + " is not a vertex of the graph")
 
             # Adding the new vertex to s
             bitset_add(s, i)

@@ -705,7 +705,7 @@ class GraphClasses(UniqueRepresentation):
             sage: graph_classes.get_class(-1)
             Traceback (most recent call last):
             ...
-            ValueError: the given class id does not exist in the ISGCI database. Is the db too old ? You can update it with graph_classes.update_db()
+            ValueError: The given class id does not exist in the ISGCI database. Is the db too old ? You can update it with graph_classes.update_db().
         """
         classes = self.classes()
         if id in classes:
@@ -718,7 +718,7 @@ class GraphClasses(UniqueRepresentation):
 
             return GraphClass(name, id)
         else:
-            raise ValueError("the given class id does not exist in the ISGCI database. Is the db too old ? You can update it with graph_classes.update_db()")
+            raise ValueError("The given class id does not exist in the ISGCI database. Is the db too old ? You can update it with graph_classes.update_db().")
 
     @cached_method
     def classes(self):

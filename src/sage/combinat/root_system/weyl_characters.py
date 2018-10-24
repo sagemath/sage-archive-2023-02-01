@@ -782,25 +782,6 @@ class WeylCharacterRing(CombinatorialFreeModule):
             ret += wt.inner_product(alphacheck[i])*fw[self._opposition[i]]
         return ret
 
-    def dual(self, elt):
-        """
-        The involution that replaces a representation with
-        its contragredient. (For Fusion rings, this is the
-        conjugation map.)
-
-        EXAMPLES::
-
-            sage: A3=WeylCharacterRing("A3",style="coroots")
-            sage: A3(1,0,0)^2
-            A3(0,1,0) + A3(2,0,0)
-            sage: A3.dual(A3(1,0,0)^2)
-            A3(0,1,0) + A3(0,0,2)
-        """
-        if not self.cartan_type().is_atomic():
-            raise NotImplementedError("dual method is not implemented for reducible types")
-        d = elt.monomial_coefficients()
-        return sum(d[k]*self(self._dual_helper(k)) for k in d.keys())
-
     def _wt_repr(self, wt):
         """
         Produce a representation of a vector in either coweight or
@@ -1190,6 +1171,25 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 A2(-1/2,-1/2,-1/2) + A2(1/2,-1/2,-1/2) + A2(1/2,1/2,-1/2) + A2(1/2,1/2,1/2)]
             """
             return sage.combinat.root_system.branching_rules.branch_weyl_character(self, self.parent(), S, rule=rule)
+
+        def dual(self):
+            """
+            The involution that replaces a representation with
+            its contragredient. (For Fusion rings, this is the
+            conjugation map.)
+
+            EXAMPLES::
+
+                sage: A3=WeylCharacterRing("A3",style="coroots")
+                sage: A3(1,0,0)^2
+                A3(0,1,0) + A3(2,0,0)
+                sage: (A3(1,0,0)^2).dual()
+                A3(0,1,0) + A3(0,0,2)
+            """
+            if not self.parent().cartan_type().is_atomic():
+                raise NotImplementedError("dual method is not implemented for reducible types")
+            d = self.monomial_coefficients()
+            return sum(d[k]*self.parent()._element_constructor_(self.parent()._dual_helper(k)) for k in d.keys())
 
         def __pow__(self, n):
             """

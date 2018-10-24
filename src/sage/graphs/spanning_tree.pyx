@@ -66,6 +66,7 @@ from __future__ import absolute_import
 
 cimport cython
 
+from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 
 cpdef kruskal(G, wfunction=None, bint check=False):
     r"""
@@ -274,10 +275,9 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
 
-    sortedE_iter = None
     # sanity checks
     if check:
-        if G.order() == 0:
+        if not G.order():
             return []
         if not G.is_connected():
             return []
@@ -291,10 +291,11 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
     # G is assumed to be connected, undirected, and with at least a vertex
     # We sort edges, as specified.
+    sortedE_iter = None
     if wfunction is None:
         if g.weighted():
             from operator import itemgetter
-            sortedE_iter = iter(sorted(g.edges(), key=itemgetter(2)))
+            sortedE_iter = iter(sorted(g.edges(sort=False), key=itemgetter(2)))
         else:
             sortedE_iter = iter(sorted(g.edges()))
     else:
@@ -302,27 +303,16 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
 
     # Kruskal's algorithm
-    T = []
-    cdef int n = g.order()
-    cdef int m = n - 1
+    cdef list T = []
+    cdef int m = g.order() - 1
     cdef int i = 0  # count the number of edges added so far
-    union_find = dict()
+    cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
     while i < m:
         e = next(sortedE_iter)
-        components = []
         # acyclic test via union-find
-        for startv in iter(e[0:2]):
-            v = startv
-            children = []
-            # find the component a vertex lives in
-            while v in union_find:
-                children.append(v)
-                v = union_find[v]
-            # compress the paths as much as we can for efficiency reasons
-            for c in children:
-                union_find[c] = v
-            components.append(v)
-        if components[0] != components[1]:
+        u = union_find.find(e[0])
+        v = union_find.find(e[1])
+        if u != v:
             i += 1
             # NOTE: Once Cython supports generator and the yield statement,
             # we should replace the following line with a yield statement.
@@ -331,12 +321,10 @@ cpdef kruskal(G, wfunction=None, bint check=False):
             # edges to be found and return the edges as a list.
             T.append(e)
             # union the components by making one the parent of the other
-            union_find[components[0]] = components[1]
+            union_find.union(u, v)
     return sorted(T)
 
 
-
-from sage.sets.disjoint_set import *
 
 cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     r"""
@@ -345,34 +333,34 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     This function assumes that we can only compute minimum spanning trees for
     undirected graphs. Such graphs can be weighted or unweighted, and they can
     have multiple edges (since we are computing the minimum spanning tree, only
-    the minimum weight among all `(u,v)`-edges is considered, for each pair
-    of vertices `u`, `v`).
+    the minimum weight among all `(u,v)`-edges is considered, for each pair of
+    vertices `u`, `v`).
 
     INPUT:
 
     - ``G`` -- an undirected graph.
 
-    - ``wfunction`` (weight function) - a function that inputs an edge ``e``
-      and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
-      and ``v`` are vertices, ``l`` is a label (that can be of any kind).
-      The ``wfunction`` can be used to transform the label into a
-      weight. In particular:
+    - ``wfunction`` -- weight function (default: ``None``); a function that
+      inputs an edge ``e`` and outputs its weight. An edge has the form
+      ``(u,v,l)``, where ``u`` and ``v`` are vertices, ``l`` is a label (that
+      can be of any kind).  The ``wfunction`` can be used to transform the label
+      into a weight. In particular:
 
-      - if ``wfunction`` is not ``None``, the weight of an edge ``e``
-        is ``wfunction(e)``;
+      - if ``wfunction`` is not ``None``, the weight of an edge ``e`` is
+        ``wfunction(e)``;
 
-      - if ``wfunction`` is ``None`` (default) and ``g`` is weighted
-        (that is, ``g.weighted()==True``), the weight of an edge
-        ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
-        is: the ordering of labels relies on Python's operator ``<``;
+      - if ``wfunction`` is ``None`` (default) and ``g`` is weighted (that is,
+        ``g.weighted()==True``), the weight of an edge ``e=(u,v,l)`` is ``l``,
+        independently on which kind of object ``l`` is: the ordering of labels
+        relies on Python's operator ``<``;
 
-      - if ``wfunction`` is ``None`` and ``g`` is not weighted, we set
-        all weights to 1 (hence, the output can be any spanning tree).
+      - if ``wfunction`` is ``None`` and ``g`` is not weighted, we set all
+        weights to 1 (hence, the output can be any spanning tree).
 
-    - ``check`` -- Whether to first perform sanity checks on the input
-      graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
-      following sanity checks are first performed on ``G`` prior to running
-      Boruvka's algorithm on that input graph:
+    - ``check`` -- boolean (default: ``False``); whether to first perform sanity
+      checks on the input graph ``G``. Default: ``check=False``. If we toggle
+      ``check=True``, the following sanity checks are first performed on ``G``
+      prior to running Boruvka's algorithm on that input graph:
 
       - Is ``G`` the null graph or graph on one vertex?
       - Is ``G`` disconnected?
@@ -382,15 +370,15 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
       means that by default the function assumes that its input graph is
       connected, and has at least one vertex. Otherwise, you should set
       ``check=True`` to perform some sanity checks and preprocessing on the
-      input graph. 
+      input graph.
     
-    - ``by_weight`` -- Whether to find MST by using weights of edges provided.
-      Default: ``by_weight=True``. If ``wfunction`` is given, MST is calculated
-      using the weights of edges as per the function. If ``wfunction`` is 
-      ``None``, the weight of an edge ``e=(u,v,l)``  is ``l`` if graph is 
-      weighted, or all edge weights are considered ``1`` if graph is 
-      unweighted. If we toggle ``by_weight=False``, all weights are considered
-      as ``1`` and MST is calculated.
+    - ``by_weight`` -- boolean (default: ``False``); whether to find MST by
+      using weights of edges provided.  Default: ``by_weight=True``. If
+      ``wfunction`` is given, MST is calculated using the weights of edges as
+      per the function. If ``wfunction`` is ``None``, the weight of an edge
+      ``e=(u,v,l)`` is ``l`` if graph is weighted, or all edge weights are
+      considered ``1`` if graph is unweighted. If we toggle ``by_weight=False``,
+      all weights are considered as ``1`` and MST is calculated.
 
     OUTPUT:
 
@@ -403,7 +391,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     EXAMPLES:
 
-    An example from pages 727--728 in [Sahni2000]_. ::
+    An example from pages 727--728 in [Sahni2000]_::
 
         sage: from sage.graphs.spanning_tree import boruvka
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
@@ -415,7 +403,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         sage: boruvka(G, by_weight=False)
         [(1, 2, 28), (2, 3, 16), (3, 4, 12), (4, 5, 22), (1, 6, 10), (2, 7, 14)]
 
-    An example with custom edge labels ::
+    An example with custom edge labels::
 
         sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
         sage: weight = lambda e:3-e[0]-e[1]
@@ -424,7 +412,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         sage: boruvka(G, wfunction=lambda e:float(1/e[2]), by_weight=True)
         [(0, 2, 10), (0, 1, 1)]
 
-    An example of disconnected graph with ``check`` disabled ::
+    An example of disconnected graph with ``check`` disabled::
 
         sage: from sage.graphs.spanning_tree import boruvka
         sage: G = Graph({1:{2:28}, 3:{4:16}}, weighted=True)
@@ -433,13 +421,13 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     TESTS:
     
-    If the input graph is a tree, then return its edges. ::
+    If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 10))
         sage: T.edges() == boruvka(T, check=True)
         True
 
-    Check if the weight of MST returned by Prim's and Boruvka's is the same. ::
+    Check if the weight of MST returned by Prim's and Boruvka's is the same::
 
         sage: G = Graph([(u,v,randint(1,5)) for u,v in graphs.CompleteGraph(4).edges(labels=0)], weighted=True)
         sage: G.weighted()
@@ -454,18 +442,18 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         sage: boruvka("I am not a graph")
         Traceback (most recent call last):
         ...
-        ValueError: The input G must be an undirected graph.
+        ValueError: the input graph must be undirected
         sage: boruvka(digraphs.Path(10))
         Traceback (most recent call last):
         ...
-        ValueError: The input G must be an undirected graph.
+        ValueError: the input graph must be undirected
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
-        raise ValueError("The input G must be an undirected graph.")
+        raise ValueError("the input graph must be undirected")
 
     if G.order() <= 1:
-            return []
+        return []
 
     # sanity checks
     if check:
@@ -478,7 +466,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     # Boruvka's algorithm
 
-    # Store the list of active edges as (e,e_weight) in a list 
+    # Store the list of active edges as (e, e_weight) in a list 
     if by_weight:
         if wfunction is None:
             if G.weighted():
@@ -491,36 +479,32 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         edge_list = [(e, 1) for e in G.edge_iterator()]
 
     # initially, each vertex is a connected component
-    partitions = DisjointSet(G.vertices())
+    cdef DisjointSet_of_hashables partitions = DisjointSet_of_hashables(G.vertex_iterator())
     # a dictionary to store the least weight outgoing edge for each component
-    cheapest = {}
-    T = [] # stores the edges in minimum spanning tree
-    numConComp = G.order()
-    numConCompPrevIter = numConComp + 1
+    cdef dict cheapest = {}
+    cdef list T = [] # stores the edges in minimum spanning tree
+    cdef int numConComp = G.order()
+    cdef int numConCompPrevIter = numConComp + 1
 
     # Dictionary to maintain active cheapest edges between pairs of components
-    components_dict = {}
+    cdef dict components_dict = {}
 
     while numConComp > 1:
         # Check if number of connected components decreased.
         # Otherwise, the graph is not connected.
-        if (numConCompPrevIter == numConComp):
+        if numConCompPrevIter == numConComp:
             return []
         else:
             numConCompPrevIter = numConComp
 
-        # If the two endpoints of current edge belong to
-        # same component, ignore the edge.
-        # Else check if current edge has lesser weight than previous
-        # cheapest edges of component1 and component2.
-        # Before that, check if component1 and 2 are present in 'cheapest' dict
-        # Also, update active cheapest edges between pairs of components
+        # Iterate over all active edges to identify the cheapest edge between
+        # each pair of components (trees of the forest), as well as cheapest
+        # active edge incident to a component.
         for e, e_weight in edge_list:
             component1 = partitions.find(e[0])
             component2 = partitions.find(e[1])
 
             if component1 != component2:
-                pair = (component1, component2) if (component1 < component2) else (component2, component1)
                 if component1 in cheapest:
                     if cheapest[component1][1] > e_weight:
                         cheapest[component1] = (e, e_weight)
@@ -533,16 +517,18 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
                 else:
                     cheapest[component2] = (e, e_weight)
                 # store the cheapest edge between the two components
+                pair = frozenset((component1, component2))
                 if pair in components_dict:
                     if components_dict[pair][1] > e_weight:
                         components_dict[pair] = (e, e_weight)
                 else:
                     components_dict[pair] = (e, e_weight)
 
-        edge_list = components_dict.values() # active edges
+        # Update the list of active edges
+        edge_list = components_dict.values()
 
-        # Go through all the current connected components
-        # and merge wherever possible
+        # Go through all the current connected components and merge wherever
+        # possible
         for v in cheapest:
             e, e_weight = cheapest[v]
             component1 = partitions.find(e[0])
@@ -564,19 +550,18 @@ def random_spanning_tree(self, output_as_graph=False):
     r"""
     Return a random spanning tree of the graph.
 
-    This uses the Aldous-Broder algorithm ([Broder89]_, [Aldous90]_)
-    to generate a random spanning tree with the uniform distribution,
-    as follows.
+    This uses the Aldous-Broder algorithm ([Broder89]_, [Aldous90]_) to generate
+    a random spanning tree with the uniform distribution, as follows.
 
-    Start from any vertex. Perform a random walk by choosing at every
-    step one neighbor uniformly at random. Every time a new vertex `j`
-    is met, add the edge `(i, j)` to the spanning tree, where `i` is
-    the previous vertex in the random walk.
+    Start from any vertex. Perform a random walk by choosing at every step one
+    neighbor uniformly at random. Every time a new vertex `j` is met, add the
+    edge `(i, j)` to the spanning tree, where `i` is the previous vertex in the
+    random walk.
 
     INPUT:
 
-    - ``output_as_graph`` -- boolean (default: ``False``) whether to return a
-      list of edges or a graph.
+    - ``output_as_graph`` -- boolean (default: ``False``); whether to return a
+      list of edges or a graph
 
     .. SEEALSO::
 
@@ -630,20 +615,21 @@ def random_spanning_tree(self, output_as_graph=False):
 
     cdef int N = self.order()
 
-    if N == 0 or not self.is_connected():
+    if not N or not self.is_connected():
         raise ValueError('works only for non-empty connected graphs')
 
     s = next(self.vertex_iterator())
-    found = set([s])
+    cdef set found = set([s])
     cdef int found_nr = 1
-    tree_edges = []
+    cdef list tree_edges = []
+    cdef list neighbors
     while found_nr < N:
         neighbours = self.neighbors(s)
         new_s = neighbours[randint(0, len(neighbours) - 1)]
-        if not(new_s in found):
+        if new_s not in found:
             found.add(new_s)
             found_nr += 1
-            tree_edges += [(s, new_s)]
+            tree_edges.append((s, new_s))
         s = new_s
 
     if not output_as_graph:

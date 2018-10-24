@@ -643,9 +643,14 @@ class PseudoRiemannianMetric(TensorField):
                 rst.set(symbiform_rst)
 
 
-    def inverse(self):
+    def inverse(self, expansion_symbol=None, order=1):
         r"""
         Return the inverse metric.
+
+        INPUT:
+
+        - ``expansion_symbol`` -- ignored
+        - ``order`` -- ignored
 
         OUTPUT:
 
@@ -2220,9 +2225,21 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             rst = self.restrict(dom)
             rst.set(symbiform_rst)
 
-    def inverse(self):
+    def inverse(self, expansion_symbol=None, order=2):
         r"""
         Return the inverse metric.
+
+        INPUT:
+
+        - ``expansion_symbol`` -- (optional) if specified, the inverse will
+          be expanded with respect to this symbol
+        - ``order`` -- (default: ``2``) order of the big oh in the previous
+          development; currently only first order inverse is supported
+
+        If ``expansion_symbol``, then the zeroth order metric must be
+        invertible. Moreover, subsequent calls to this method will return
+        a cached value, even when called with the default value (to enable
+        computation of derived quantities). To reset, call :meth:`_del_derived`.
 
         OUTPUT:
 
@@ -2268,7 +2285,62 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ (x - 1)/(x**2*y**2 + x**2 - 1)      x*y/(x**2*y**2 + x**2 - 1)]
             [     x*y/(x**2*y**2 + x**2 - 1) -(x + 1)/(x**2*y**2 + x**2 - 1)]
 
+        Demonstration the development capabilities::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: C.<t,x,y,z> = M.chart()
+            sage: e = var('e')
+            sage: g = M.metric('g')
+            sage: h = M.tensor_field(0,2,sym=(0,1))
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: h[0, 1], h[1, 2], h[2, 3] = 1, 1, 1
+            sage: g.set_comp()[:] = (g+e*h)[:]
+            sage: g[:]
+            [ 1  e  0  0]
+            [ e -1  e  0]
+            [ 0  e -1  e]
+            [ 0  0  e -1]
+
+        g is now a tridiagonal metric approximation of the Minkowski metric.
+        The inverse, truncated to first order in ``e`` is::
+
+            sage: g.inverse(e)[:]
+            [ 1  e  0  0]
+            [ e -1 -e  0]
+            [ 0 -e -1 -e]
+            [ 0  0 -e -1]
+
+        If another method then calls ``inverse()``, the result will be the
+        same. This allows whole computations to be made in the first order::
+
+            sage: g.inverse()[:]
+            [ 1  e  0  0]
+            [ e -1 -e  0]
+            [ 0 -e -1 -e]
+            [ 0  0 -e -1]
+
         """
+        if symbol is not None:
+            if (self._inverse is not None and bool(self._inverse._components)
+                and self._inverse._components.values()[0][0,0]._symbol is symbol
+                and self._inverse._components.values()[0][0,0]._order == order):
+                return self._inverse
+
+            if order != 2:
+                raise NotImplementedError("only first order inverse is implemented")
+            decompo = self.series(symbol, 2)
+            g0 = decompo[0][0]
+            g1 = decompo[1][0]
+
+            g0m = self._new_instance()   # needed because only metrics have
+            g0m.set_comp()[:] = g0[:]    # an "inverse" method.
+
+            contraction = g1.contract(0, g0m.inverse(), 0)
+            contraction = contraction.contract(1, g0m.inverse(), 1)
+            self._inverse = g0m.inverse() - contraction * symbol
+            self._inverse.set_calc_order(symbol, 2)
+            return self._inverse
+
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullySym
         # Is the inverse metric up to date ?

@@ -3236,3 +3236,39 @@ class ScalarField(CommutativeAlgebraElement):
         for chart, func in self._express.items():
             resu._express[chart] = func.arctanh()
         return resu
+
+    def set_calc_order(self, symbol, order, truncate=False):
+        r"""
+        Develop the expression in series with respect to the
+        parameter ``symbol`` at order ``order``.
+
+        This property is propagated by usual operations. Internal
+        representation must be ``SR`` for this to take effect.
+
+        INPUT:
+
+        - ``symbol`` -- symbol used to develop the components around zero.
+        - ``order`` -- order of the big oh in the development; to keep only
+          the first order, set to 2
+        - ``truncate`` -- (default: ``False``) perform one step of the
+          simplification
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='Lorentzian')
+            sage: C.<t,x> = M.chart()
+            sage: tau = var('tau')
+            sage: s = M.scalar_field(exp(-tau*t))
+            sage: s.expr()
+            e^(-t*tau)
+            sage: s.set_calc_order(tau, 3, True)
+            sage: s.expr()
+            1/2*t^2*tau^2 - t*tau + 1
+        """
+        for expr in self._express.values():
+            expr._symbol = symbol
+            expr._order = order
+            if truncate:
+                expr.simplify()
+        self._del_derived()
+

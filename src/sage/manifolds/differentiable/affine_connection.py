@@ -1869,7 +1869,6 @@ class AffineConnection(SageObject):
                                                        gam_gam[[i,l,j,k]] -  \
                                                        gam_sc[[i,j,k,l]]
             self._riemann = resu
-
         return self._riemann
 
     def ricci(self):
@@ -2271,3 +2270,50 @@ class AffineConnection(SageObject):
                     forms[(i1,j1)] = omega
             self._curvature_forms[frame] = forms
         return  self._curvature_forms[frame][(i,j)]
+
+    def set_calc_order(self, symbol, order, truncate=False):
+        r"""
+        Tell the components to develop their expression in series with
+        respect to parameter ``symbol`` at order ``order``.
+
+        This property is propagated by usual operations. The internal
+        representation must be ``SR`` for this to take effect.
+
+        INPUT:
+
+        - ``symbol`` -- symbol used to develop the components around zero
+        - ``order`` -- order of the big oh in the development; to keep only
+          the first order, set to ``2``
+        - ``truncate`` -- (default: ``False``) perform one step of the
+          simplification
+
+        EXAMPLES::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: C.<t,x,y,z> = M.chart()
+            sage: e = var('e')
+            sage: g = M.metric('g')
+            sage: h = M.tensor_field(0,2,sym=(0,1))
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: h[0, 1] = x
+            sage: g.set_comp()[:] = (g+e*h)[:]
+            sage: g[:]
+            [  1 e*x   0   0]
+            [e*x  -1   0   0]
+            [  0   0  -1   0]
+            [  0   0   0  -1]
+            sage: nab = g.connection()
+            sage: nab[0, 1, 1]
+            e/(e^2*x^2 + 1)
+            sage: nab.set_calc_order(e, 2, truncate=True)
+            sage: nab[0, 1, 1]
+            e
+
+        """
+        for coef in self._coefficients.values():
+            for ind in coef.non_redundant_index_generator():
+                coef[ind]._symbol = symbol
+                coef[ind]._order = order
+                if truncate:
+                    coef[ind].simplify()
+        self._del_derived()

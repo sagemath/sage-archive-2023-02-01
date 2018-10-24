@@ -45,9 +45,25 @@ class NodeType(Enum):
     FOREST = -1
 
     def __str__(self):
+        r"""
+        String representation of this node type.
+
+        EXAMPLES::
+            sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+            sage: NodeType.PARALLEL
+            PARALLEL
+        """
         return self.name
 
     def __repr__(self):
+        r"""
+        String representation of this node type.
+
+        EXAMPLES::
+            sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+            sage: NodeType.PARALLEL
+            PARALLEL
+        """
         return self.name
 
 
@@ -124,6 +140,16 @@ class Node:
     """
 
     def __init__(self, node_type):
+        r"""
+        Create a node with the given node type.
+
+        EXAMPLES::
+            sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+            sage: n = Node(NodeType.SERIES); n.node_type
+            SERIES
+            sage: n.children
+            []
+        """
         self.node_type = node_type
         self.node_split = NodeSplit.NO_SPLIT
         self.index_in_root = -1
@@ -217,6 +243,18 @@ class Node:
                self.node_split == NodeSplit.BOTH_SPLIT
 
     def __str__(self):
+        r"""
+        Return a string representation of the node.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+            sage: n = Node(NodeType.PRIME)
+            sage: n.children.append(create_normal_node(1))
+            sage: n.children.append(create_normal_node(2))
+            sage: n
+            PRIME [NORMAL [1], NORMAL [2]]
+        """
         if self.node_type == NodeType.SERIES:
             s = "SERIES "
         elif self.node_type == NodeType.PARALLEL:
@@ -232,9 +270,34 @@ class Node:
         return s
 
     def __repr__(self):
+        r"""
+        Return a string representation of the node.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+            sage: n = Node(NodeType.PRIME)
+            sage: n.children.append(create_normal_node(1))
+            sage: n.children.append(create_normal_node(2))
+            sage: n
+            PRIME [NORMAL [1], NORMAL [2]]
+        """
         return self.__str__()
 
     def __eq__(self, other):
+        r"""
+        Compare two nodes for equality.
+
+        EXAMPLES::
+            sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+            sage: n1 = Node(NodeType.PRIME)
+            sage: n2 = Node(NodeType.PRIME)
+            sage: n3 = Node(NodeType.SERIES)
+            sage: n1 == n2
+            True
+            sage: n1 == n3
+            False
+        """
         return self.node_type == other.node_type and \
                self.node_split == other.node_split and \
                self.index_in_root == other.index_in_root and \

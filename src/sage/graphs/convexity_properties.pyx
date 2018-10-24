@@ -128,7 +128,7 @@ cdef class ConvexityProperties:
         sage: ConvexityProperties(digraphs.Circuit(5))
         Traceback (most recent call last):
         ...
-        ValueError: this is currently implemented for Graphs only, but only minor updates are needed if you want to make it support DiGraphs too
+        NotImplementedError: this is currently implemented for Graphs only, but only minor updates are needed if you want to make it support DiGraphs too
     """
 
     def __init__(self, G):
@@ -144,9 +144,9 @@ cdef class ConvexityProperties:
         """
         from sage.graphs.digraph import DiGraph
         if isinstance(G, DiGraph):
-            raise ValueError("this is currently implemented for Graphs only, "
-                             "but only minor updates are needed if you want "
-                             "to make it support DiGraphs too")
+            raise NotImplementedError("this is currently implemented for Graphs only, "
+                                      "but only minor updates are needed if you want "
+                                      "to make it support DiGraphs too")
 
         # Cached number of vertices
         cdef int n = G.order()

@@ -31,6 +31,7 @@ import operator
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.structure.parent cimport Parent
+import six
 
 
 def is_Morphism(x):
@@ -398,7 +399,10 @@ cdef class Morphism(Map):
         try:
             return self._is_nonzero()
         except Exception:
-            return super(Morphism, self).__nonzero__()
+            if six.PY2:
+                return super(Morphism, self).__nonzero__()
+            else:
+                return super().__bool__()
 
 
 cdef class FormalCoercionMorphism(Morphism):

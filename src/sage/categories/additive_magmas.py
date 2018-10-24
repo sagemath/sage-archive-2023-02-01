@@ -541,7 +541,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: A = S.algebra(QQ)
                     sage: a,b,c,d = A.algebra_generators()
                     sage: a * b + b * d * c
-                    B[c + b + d] + B[a + b]
+                    B[a + b] + B[b + c + d]
                 """
                 return self.monomial(g1 + g2)
 

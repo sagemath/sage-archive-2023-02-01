@@ -70,56 +70,49 @@ import sage.libs.meataxe
 # Fast conversion from field to int and int to field
 cdef class FieldConverter_class:
     """
-    An auxiliary class, used to convert between <int> and finite field element.
+    An auxiliary class, used to convert between meataxe ``FEL`` and
+    finite field elements.
 
-    This class is for non-prime fields only. The method
-    :meth:`int_to_field` exists for speed. The method
-    :meth:`field_to_int` exists in order to have a common interface
-    for elements of prime and non-prime fields; see
-    :class:`PrimeFieldConverter_class`.
+    This class is for Givaro finite fields only. It exists in order to
+    have a common interface for elements of prime and non-prime fields;
+    see :class:`PrimeFieldConverter_class`.
+
+    .. WARNING::
+
+        Before calling the ``fel_to_field`` or ``field_to_fel`` methods,
+        one should call the ``FfSetField`` function.
 
     EXAMPLES::
 
-        sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
+        sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense       # optional: meataxe
         sage: F.<y> = GF(125)
-        sage: C = FieldConverter_class(F)               # optional: meataxe
-        sage: C.int_to_field(15)                        # optional: meataxe
+        sage: M = MatrixSpace(F, 2, 2, implementation=Matrix_gfpn_dense).one()  # optional: meataxe
+        sage: C = M._converter                          # optional: meataxe
+        sage: C.fel_to_field(15)                        # optional: meataxe
         3*y
-        sage: F.fetch_int(15)                           # optional: meataxe
+        sage: F.fetch_int(15)
         3*y
-        sage: %timeit C.int_to_field(15)    # not tested
-        625 loops, best of 3: 1.04 µs per loop
-        sage: %timeit F.fetch_int(15)       # not tested
-        625 loops, best of 3: 3.97 µs per loop
-        sage: C.field_to_int(y)                         # optional: meataxe
+        sage: C.field_to_fel(y)                         # optional: meataxe
         5
         sage: y.integer_representation()
         5
-
     """
     def __init__(self, field):
         """
         INPUT:
 
-        A finite *non-prime* field. This assumption is not tested.
+        A finite field with Givaro implementation and at most 251
+        elements. These assumptions are not tested.
 
         EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class # optional: meataxe
-            sage: F.<y> = GF(125)
-            sage: C = FieldConverter_class(F)           # optional: meataxe
-            sage: C.int_to_field(15)                    # optional: meataxe
-            3*y
-            sage: F.fetch_int(15)
-            3*y
-            sage: C.field_to_int(y)                     # optional: meataxe
-            5
-            sage: y.integer_representation()
-            5
-
+            sage: FieldConverter_class(GF(13^2))  # optional: meataxe
+            <sage.matrix.matrix_gfpn_dense.FieldConverter_class object at ...>
         """
         self.field = field._cache.fetch_int
-    cpdef object int_to_field(self, int x):
+
+    cpdef fel_to_field(self, FEL x):
         """
         Fetch a python int into the field.
 
@@ -128,14 +121,14 @@ cdef class FieldConverter_class:
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
             sage: F.<y> = GF(125)
             sage: C = FieldConverter_class(F)           # optional: meataxe
-            sage: C.int_to_field(15)                    # optional: meataxe
+            sage: C.fel_to_field(15)                    # optional: meataxe
             3*y
             sage: F.fetch_int(15)
             3*y
-
         """
-        return self.field(x)
-    cpdef int field_to_int(self, x):
+        return self.field(FfToInt(x))
+
+    cpdef FEL field_to_fel(self, x) except 255:
         """
         Represent a field element by a python int.
 
@@ -144,61 +137,68 @@ cdef class FieldConverter_class:
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
             sage: F.<y> = GF(125)
             sage: C = FieldConverter_class(F)           # optional: meataxe
-            sage: C.field_to_int(y)                     # optional: meataxe
+            sage: C.field_to_fel(y)                     # optional: meataxe
             5
             sage: y.integer_representation()
             5
 
+        TESTS:
+
+        Test invalid input::
+
+            sage: C.field_to_fel('foo')
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'str' object has no attribute 'integer_representation'
         """
-        return x.integer_representation()
+        return FfFromInt(x.integer_representation())
+
 
 cdef class PrimeFieldConverter_class(FieldConverter_class):
     """
-    An auxiliary class, used to convert between <int> and finite field element.
+    An auxiliary class, used to convert between meataxe ``FEL`` and
+    finite field elements.
 
-    This class is for prime fields only. The methods
-    :meth:`int_to_field` and :meth:`field_to_int` exist in order to
-    have a common interface for elements of prime and non-prime fields;
-    see :class:`FieldConverter_class`.
+    This class is for prime fields only. It exists in order to have a
+    common interface for elements of prime and non-prime fields; see
+    :class:`FieldConverter_class`.
+
+    .. WARNING::
+
+        Before calling the ``fel_to_field`` or ``field_to_fel`` methods,
+        one should call the ``FfSetField`` function.
 
     EXAMPLES::
 
-        sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class # optional: meataxe
+        sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense       # optional: meataxe
         sage: F = GF(5)
-        sage: C = PrimeFieldConverter_class(F)      # optional: meataxe
-        sage: C.int_to_field(int(2))                # optional: meataxe
+        sage: M = MatrixSpace(F, 2, 2, implementation=Matrix_gfpn_dense).one()  # optional: meataxe
+        sage: C = M._converter                      # optional: meataxe
+        sage: C.fel_to_field(2)                     # optional: meataxe
         2
         sage: F(2)
         2
-        sage: C.field_to_int(F(2))                  # optional: meataxe
+        sage: C.field_to_fel(F(2))                  # optional: meataxe
         2
         sage: int(F(2))
         2
-
     """
     def __init__(self, field):
         """
         INPUT:
 
-        A finite *prime* field. This assumption is not tested.
+        A finite *prime* field with at most 251 elements.
+        This assumption is not tested.
 
         EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
-            sage: F = GF(5)
-            sage: C = PrimeFieldConverter_class(F)  # optional: meataxe
-            sage: C.int_to_field(int(2))            # optional: meataxe
-            2
-            sage: F(2)
-            2
-            sage: C.field_to_int(F(2))              # optional: meataxe
-            2
-            sage: int(F(2))
-            2
-
+            sage: PrimeFieldConverter_class(GF(251))  # optional: meataxe
+            <sage.matrix.matrix_gfpn_dense.PrimeFieldConverter_class object at ...>
         """
         self.field = field
-    cpdef object int_to_field(self, int x):
+
+    cpdef fel_to_field(self, FEL x):
         """
         Fetch a python int into the field.
 
@@ -207,14 +207,12 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
             sage: C = PrimeFieldConverter_class(F)  # optional: meataxe
-            sage: C.int_to_field(int(2))            # optional: meataxe
+            sage: C.fel_to_field(2)                 # optional: meataxe
             2
-            sage: F(2)
-            2
-
         """
-        return IntegerMod_int(self.field, x)
-    cpdef int field_to_int(self, x):
+        return IntegerMod_int(self.field, FfToInt(x))
+
+    cpdef FEL field_to_fel(self, x) except 255:
         """
         Represent a field element by a python int.
 
@@ -223,13 +221,20 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
             sage: C = PrimeFieldConverter_class(F)      # optional: meataxe
-            sage: C.field_to_int(F(2))                  # optional: meataxe
-            2
-            sage: int(F(2))
+            sage: C.field_to_fel(F(2))                  # optional: meataxe
             2
 
+        TESTS:
+
+        Test invalid input::
+
+            sage: C.field_to_fel('foo')
+            Traceback (most recent call last):
+            ...
+            TypeError: an integer is required
         """
-        return int(x)
+        return FfFromInt(x)
+
 
 cdef dict _converter_cache = {}
 cdef FieldConverter_class FieldConverter(field):
@@ -421,8 +426,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef long i,j
         for i in range(nr):
             for j in range(nc):
-                v = self._converter.field_to_int(self._coerce_element(next(it)))
-                FfInsert(x, j, FfFromInt(v))
+                c = self._converter.field_to_fel(self._coerce_element(next(it)))
+                FfInsert(x, j, c)
             FfStepPtr(&x)
 
         self._is_immutable = not mutable
@@ -538,7 +543,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self.Data == NULL:
             raise IndexError("Matrix is empty")
         FfSetField(self.Data.Field)
-        return self._converter.int_to_field(FfToInt(FfExtract(MatGetPtr(self.Data,i), j)))
+        return self._converter.fel_to_field(FfExtract(MatGetPtr(self.Data,i), j))
 
     cdef inline int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j):
         # NOTE:
@@ -609,7 +614,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self.Data == NULL:
             raise IndexError("Matrix is empty")
         FfSetField(self.Data.Field)
-        FfInsert(MatGetPtr(self.Data,i), j, FfFromInt(self._converter.field_to_int(value)))
+        FfInsert(MatGetPtr(self.Data,i), j, self._converter.field_to_fel(value))
 
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         # NOTE:
@@ -914,7 +919,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         for i in range(self.Data.Nor):
             sig_check()
             for j in range(self.Data.Noc):
-                x.append(self._converter.int_to_field(FfToInt(FfExtract(p,j))))
+                x.append(self._converter.fel_to_field(FfExtract(p,j)))
             FfStepPtr(&p)
         self.cache('list', x)
         return x
@@ -981,7 +986,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self.Data == NULL or start_col >= self.Data.Noc:
             return
         FfSetField(self.Data.Field)
-        cdef FEL c = FfFromInt(self._converter.field_to_int(self._base_ring(s)))
+        cdef FEL c = self._converter.field_to_fel(self._base_ring(s))
         cdef ssize_t byte_offset = start_col//MPB     # how many full bytes will remain unchanged?
         cdef ssize_t remains = start_col % MPB        # how many cols have to be treated separately?
         cdef ssize_t noc                              # what bunch of cols will be treated together?
@@ -1050,7 +1055,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self.Data == NULL or start_col >= self.Data.Noc:
             return
         FfSetField(self.Data.Field)
-        cdef FEL c = FfFromInt(self._converter.field_to_int(self._base_ring(multiple)))
+        cdef FEL c = self._converter.field_to_fel(self._base_ring(multiple))
         cdef ssize_t byte_offset = start_col//MPB     # how many full bytes will remain unchanged?
         cdef ssize_t remains = start_col % MPB        # how many cols have to be treated separately?
         cdef ssize_t noc                              # what bunch of cols will be treated together?
@@ -1109,7 +1114,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        return self._converter.int_to_field(FfToInt(MatTrace(self.Data)))
+        return self._converter.fel_to_field(MatTrace(self.Data))
 
     def stack(self, Matrix_gfpn_dense other):
         """
@@ -1234,7 +1239,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             return self.__copy__()
         FfSetField(self.Data.Field)
         mat = MatDup(self.Data)
-        MatMulScalar(mat, FfFromInt(self._converter.field_to_int(right)))
+        MatMulScalar(mat, self._converter.field_to_fel(right))
         return new_mtx(mat, self)
 
     cdef int _strassen_default_cutoff(self, sage.matrix.matrix0.Matrix right) except -2:
@@ -1359,7 +1364,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         p = self._base_ring(p)
         FfSetField(self.Data.Field)
         mat = MatDup(self.Data)
-        cdef FEL r = mtx_tmultinv[FfFromInt(self._converter.field_to_int(p))]
+        cdef FEL r = mtx_tmultinv[self._converter.field_to_fel(p)]
         MatMulScalar(mat, r)
         return new_mtx(mat, self)
 

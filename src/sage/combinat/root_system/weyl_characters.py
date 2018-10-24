@@ -17,9 +17,10 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.misc.functional import is_even
+from sage.misc.misc import inject_variable
 from sage.rings.all import ZZ
-
 
 class WeylCharacterRing(CombinatorialFreeModule):
     r"""
@@ -90,7 +91,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
     https://doc.sagemath.org/html/en/thematic_tutorials/lie.html
     """
     @staticmethod
-    def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice"):
+    def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice", k=None):
         """
         TESTS::
 
@@ -106,9 +107,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 prefix = ct[0]+str(ct[1])
             else:
                 prefix = repr(ct)
-        return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style)
+        return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k)
 
-    def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice"):
+    def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice", k=None):
         """
         EXAMPLES::
 
@@ -126,8 +127,17 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 prefix = ct[0]+str(ct[1])
             else:
                 prefix = repr(ct)
+        if k is not None:
+            prefix = prefix + "%s"%k
         self._prefix = prefix
         self._style = style
+        self._fusion_labels = None
+        self._k = k
+        if ct.is_atomic():
+            self._opposition = ct.opposition_automorphism()
+        if k is not None:
+            self._highest = self._space.highest_root()
+            self._hip = self._highest.inner_product(self._highest)
         if style == "coroots":
             self._word = self._space.weyl_group().long_element().reduced_word()
         # TODO: remove the Category.join once not needed anymore (bug in CombinatorialFreeModule)
@@ -335,7 +345,11 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: WeylCharacterRing("A3")
             The Weyl Character Ring of Type A3 with Integer Ring coefficients
         """
-        return "The Weyl Character Ring of Type {} with {} coefficients".format(self._cartan_type._repr_(compact=True), self._base_ring)
+        if self._k is None:
+            return "The Weyl Character Ring of Type {} with {} coefficients".format(self._cartan_type._repr_(compact=True), self._base_ring)
+        else:
+            return "The Fusion Ring of Type {} and level {} with {} coefficients".format(self._cartan_type._repr_(compact=True), self._k, self._base_ring)
+
 
     def __call__(self, *args):
         """
@@ -414,6 +428,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
         weight = self._space.from_vector_notation(weight, style = self._style)
         if not weight.is_dominant_weight():
             raise ValueError("{} is not a dominant element of the weight lattice".format(weight))
+        if self._k is not None:
+            if self.level(weight) > self._k:
+                raise ValueError("{} has level greater than {}".format(weight, self._k))
         return self.monomial(weight)
 
     def product_on_basis(self, a, b):
@@ -507,7 +524,32 @@ class WeylCharacterRing(CombinatorialFreeModule):
                     ret -= (1+c)*alpha[i]
                     done = False
                     break
+            if self._k is not None:
+                l = self.level(ret)
+                k = self._k
+                if l > k:
+                    if l == k+1:
+                        return [0, self._space.zero()]
+                    else:
+                        epsilon = -epsilon
+                        ret = self.affine_reflect(ret,k+1)
+                        done = False
         return [epsilon, ret]
+
+    def affine_reflect(self, wt, k=0):
+        r"""
+        INPUT:
+
+        - ``wt`` -- a weight
+        - ``k`` -- (optional) a positive integer
+
+        Returns the reflection of wt in the hyperplane
+        perpendicular to the longest root `\theta`.
+        Optionally shifts by a multiple `k`of `\theta`.
+        """
+
+        coef = ZZ(2*wt.inner_product(self._highest)/self._hip)
+        return wt+(k-coef)*self._highest
 
     def some_elements(self):
         """
@@ -710,6 +752,46 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         return self._prefix+self._wt_repr(hwv)
 
+    def level(self, wt):
+        """
+        Return the level of the weight, defined to be the value of
+        the weight on the coroot associated with the highest root.
+        """
+        return ZZ(2*wt.inner_product(self._highest)/self._hip)
+
+    def _dual_helper(self, wt):
+        """
+        If `w_0` is the long Weyl group element and `wt` is an
+        element of the weight lattice, this returns `-w_0(wt)`.
+        """
+        if self.cartan_type()[0] == 'A': # handled separately for GL(n) compatibility
+            return self.space()([-x for x in reversed(wt.to_vector().list())])
+        ret = 0
+        alphacheck = self._space.simple_coroots()
+        fw = self._space.fundamental_weights()
+        for i in self._space.index_set():
+            ret += wt.inner_product(alphacheck[i])*fw[self._opposition[i]]
+        return ret
+
+    def dual(self, elt):
+        """
+        The involution that replaces a representation with
+        its contragredient. (For Fusion rings, this is the
+        conjugation map.)
+
+        EXAMPLES::
+
+            sage: A3=WeylCharacterRing("A3",style="coroots")
+            sage: A3(1,0,0)^2
+            A3(0,1,0) + A3(2,0,0)
+            sage: A3.dual(A3(1,0,0)^2)
+            A3(0,1,0) + A3(0,0,2)
+        """
+        if not self.cartan_type().is_atomic():
+            raise NotImplementedError("dual method is not implemented for reducible types")
+        d = elt.monomial_coefficients()
+        return sum(d[k]*self(self._dual_helper(k)) for k in d.keys())
+
     def _wt_repr(self, wt):
         """
         Produce a representation of a vector in either coweight or
@@ -748,7 +830,10 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: [G2._repr_term(x) for x in G2.fundamental_weights()]
             ['G2(1,0,-1)', 'G2(2,-1,-1)']
         """
-        return self.irr_repr(t)
+        if self._fusion_labels is not None:
+            return self._fusion_labels[t]
+        else:
+            return self.irr_repr(t)
 
     def cartan_type(self):
         """
@@ -1598,7 +1683,6 @@ class WeightRing(CombinatorialFreeModule):
         category = AlgebrasWithBasis(self._base_ring)
         CombinatorialFreeModule.__init__(self, self._base_ring, self._space, category = category)
 
-
     def _repr_(self):
         """
         EXAMPLES::
@@ -2037,3 +2121,107 @@ class WeightRing(CombinatorialFreeModule):
                 except Exception:
                     raise ValueError("unknown index {}".format(i))
 
+class FusionRing(WeylCharacterRing):
+    r"""
+    INPUT:
+
+    - ``ct`` -- the Cartan type of a simple (finite-dimensional) Lie algebra
+    - ``k`` -- a nonnegative integer
+ 
+    Returns the Fusion Ring (Verlinde Algebra) of level k. See:
+
+    * J. Fuchs, Fusion Rules for Conformal Field Theory. arXiv:hep-th/9306162
+    * Walton, Mark A. Fusion rules in Wess-Zumino-Witten models. Nuclear Phys. B 340 (1990).
+    * Feingold, Fusion rules for affine Kac-Moody algebras. Contemp. Math., 343. arXiv:math/0212387
+
+    This algebra has a basis indexed by the weights of level `\leq k`. It is implemented
+    as a variant of the WeylCharacterRing.
+
+    EXAMPLES::
+
+        sage: A22=FusionRing("A2",2)
+        sage: [f1,f2]=A22.fundamental_weights()
+        sage: [m0,m1,m2,m3,m4,m5]=[A22(x) for x in [0*f1,2*f1,2*f2,f1+f2,f2,f1]]
+        sage: [m3*x for x in [m0,m1,m2,m3,m4,m5]]
+        [A22(1,1),
+        A22(0,1),
+        A22(1,0),
+        A22(0,0) + A22(1,1),
+        A22(0,1) + A22(2,0),
+        A22(1,0) + A22(0,2)]
+
+    You may assign your own labels to the basis elements. In the next
+    example, we create the SO(5) fusion ring of level 2, check the
+    weights of the basis elements, then assign new labels to them
+
+    EXAMPLES::
+
+        sage: B22=FusionRing("B2",2)
+        sage: B22.fusion_basis()
+        [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
+        sage: [x.fusion_weight() for x in B22.fusion_basis()]
+        [(0, 0), (1/2, 1/2), (1, 0), (2, 0), (3/2, 1/2), (1, 1)]
+        sage: B22.fusion_labels(['1','X','Y1','Z','Xp','Y2'])
+        sage: B22.fusion_basis()
+        [1, X, Y1, Z, Xp, Y2]
+        sage: X*Y1
+        X + Xp
+        sage: Z*Z
+        1
+    """
+    @staticmethod
+    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots"):
+        return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k)
+
+    def fusion_basis(self):
+        """
+        For FusionRings, this method returns the finite canonical basis
+        as a list.
+        
+        EXAMPLES::
+            sage: C22=FusionRing("C2",2)
+            sage: C22.fusion_basis()
+            [C22(0,0), C22(0,1), C22(1,0), C22(2,0), C22(0,2), C22(1,1)]
+        """
+        if self._k is None:
+            raise ValueError("fusion_basis method is only available for FusionRings")
+        fw = self._space.fundamental_weights()
+        def next_level(wt):
+            return [wt + la for la in fw if self.level(wt + la) <= self._k]
+        B = RecursivelyEnumeratedSet([self._space.zero()], next_level)
+        return [self._element_constructor_(x) for x in B]
+    
+    def fusion_labels(self, labels):
+        """
+        INPUT:
+
+        - ``labels`` -- a list of strings
+
+        The length of the list ``labels`` must equal the
+        number of basis elements. These become the names of
+        the basis elements.
+
+        EXAMPLES::
+
+            sage: A13=FusionRing("A1",3)
+            sage: A13.fusion_labels(['x0','x1','x2','x3'])
+            sage: fb = A13.fusion_basis(); fb
+            [x0, x1, x2, x3]
+            sage: Matrix([[x*y for y in A13.fusion_basis()] for x in A13.fusion_basis()])
+            [     x0      x1      x2      x3]
+            [     x1 x0 + x2 x1 + x3      x2]
+            [     x2 x1 + x3 x0 + x2      x1]
+            [     x3      x2      x1      x0]
+        """
+        d = {}
+        fb = self.fusion_basis()
+        for j in range(len(fb)):
+            d[fb[j].fusion_weight()]=labels[j]
+            inject_variable(labels[j],fb[j])
+        self._fusion_labels = d
+
+    class Element(WeylCharacterRing.Element):
+        def fusion_weight(self):
+            if len(self.monomial_coefficients()) != 1:
+                raise ValueError("fusion weight is valid for basis elements only")
+            return self.leading_support()

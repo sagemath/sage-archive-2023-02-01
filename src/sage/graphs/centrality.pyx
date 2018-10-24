@@ -617,10 +617,10 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         sage: g = graphs.PathGraph(5)
         sage: centrality_closeness_top_k(g, 10, 0)
         [(0.6666666666666666, 2),
-         (0.5714285714285714, 1),
          (0.5714285714285714, 3),
-         (0.4, 0),
-         (0.4, 4)]
+         (0.5714285714285714, 1),
+         (0.4, 4),
+         (0.4, 0)]
 
     Empty graph::
 
@@ -664,10 +664,16 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         sage: all(abs(topk[i][0] - sorted_centr[i]) < 1e-12 for i in range(len(topk)))
         True
     """
+    cdef list res
     if k >= G.order():
         closeness_dict = G.centrality_closeness(by_weight=False, algorithm='BFS')
-        return sorted([(closz, z) for z, closz in closeness_dict.items()],
-                          reverse=True, key=lambda zz: zz[0])
+        res = [(closz, z) for z, closz in closeness_dict.items()]
+        try:
+            res = sorted(res, reverse=True)
+        except:
+            res = sorted(res, reverse=True, key=lambda zz: zz[0])
+        return res
+
     if G.order() < 2:
         return []
 
@@ -812,7 +818,12 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     if verbose > 0:
         print("Final performance ratio: {}".format(visited / (n * <double> (sd.neighbors[sd.n] - sd.edges))))
 
-    return sorted([(1.0 / farness[v], V[v]) for v in topk[:k] if v != -1], reverse=True, key=lambda vv: vv[0])
+    res = [(1.0 / farness[v], V[v]) for v in topk[:k] if v != -1]
+    try:
+        res = sorted(res, reverse=True)
+    except:
+        res = sorted(res, reverse=True, key=lambda vv: vv[0])
+    return res
 
 def centrality_closeness_random_k(G, int k=1):
     r"""

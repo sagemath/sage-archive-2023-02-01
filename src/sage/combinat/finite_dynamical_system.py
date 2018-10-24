@@ -2,25 +2,37 @@ r"""
 Discrete dynamical systems
 ==========================
 
-A *discrete dynamical system* (short: *DDS*) is a pair `(S, \phi)`
-of a set `S` and a map `\phi : S \to S`.
+A *discrete dynamical system* (short: *DDS*) is a pair `(X, \phi)`
+of a set `X` and a map `\phi : X \to X`.
 (This is one of several things known as a "discrete dynamical
 system" in mathematics.)
 Thus, a DDS is the same as an endomorphism of a set.
-The DDS is said to be *finite* if `S` is finite.
+The DDS is said to be *finite* if `X` is finite.
 The DDS is said to be *invertible* if the map `\phi` is
 invertible.
-The set `S` is called the *ground set* of the DDS;
+The set `X` is called the *ground set* of the DDS;
 the map `\phi` is called the *evolution* of the DDS;
-the inverse map `\phi^{-1}` is called the *inverse evolution*
-of the DDS.
+the inverse map `\phi^{-1}` (when it exists) is called the
+*inverse evolution* of the DDS.
 
-Given a DDS `(S, \phi)`, we can study its orbits, its invariants
-(i.e., maps `f : S \to X` satisfying `f \circ \phi = f`),
-its homomesies (i.e., maps `h : S \to A` to a `\QQ`-vector space `A`
-such that the average of the values of `h` on each `\phi`-orbit is
-the same), and various other phenomena.
-(Some of these require `S` to be finite or at least to have finite
+Given a DDS `(X, \phi)`, we can study
+
+* its orbits (i.e., the lists
+  `(s, \phi(s), \phi^2(s), \phi^3(s), \ldots)` for `s \in X`),
+
+* its invariants (i.e., maps `f : X \to Y` satisfying
+  `f \circ \phi = f`),
+
+* its cycles (i.e., lists `(u_1, u_2, \ldots, u_k)` of elements
+  of `X` such that `\phi(u_i) = u_{i+1}` for each `i \leq k`,
+  where we set `u_{k+1} = u_1`),
+
+* its homomesies (i.e., maps `h : X \to A` to a
+  `\QQ`-vector space `A` such that the average of the values
+  of `h` on each cycle is the same),
+
+and various other features.
+(Some of these require `X` to be finite or at least to have finite
 orbits.)
 
 This file implements the following classes for discrete
@@ -47,29 +59,39 @@ dynamical systems:
 
 .. TODO::
 
-    - Implement basic functionality for homomesy and invariance testing
-    when the endo is an auto:
-    is_homomesic, is_invariant, orbits, orbit, orbit_lengths,
-    orbit_lengths_lcm.
+    - Implement some more functionality for homomesy and
+      invariance testing:
+      Checking invariance on a sublist;
+      computing the first `k` entries of an orbit (useful
+      when orbits can be too large);
+      orbits_iterator (for when there are too many orbits to
+      list);
+      etc.
 
-    - General classcall that delegates to subclasses?
+    - Further examples for non-auto functionality: e.g.,
+      infection on a chessboard; Conway's game of life.
 
-    - Subclasses for DDSes whose ground set is an enumerated set?
+    - General classcall that delegates to subclasses
+      (or factory for dynamical systems)?
+      (This is popular, but I don't really feel the need for this
+      in our case. The only advantage would be not having to
+      import 4 different classes into the global namespace.)
 
-    - Implement caching for orbits?
+    - Subclasses for DDSes whose ground set is an enumerated set.
+      Should we have those?
 
-    - Possibly implement lazy ground set -- or should this just be
-    what you get when you use DiscreteDynamicalSystem rather than
-    FiniteDynamicalSystem?
+    - Implement caching for orbits (can be useful: some DDSes
+      have a complicated evolution that shouldn't be recomputed
+      every time).
+      Does this require a whole new class?
 
-    - non-auto functionality: is_recurrent, recurrent_entries,
-    cycles, idempotent_power, etc.?
-
-    - Examples for non-auto functionality:
-    - infection on a chessboard;
-    - Conway's GoL.
+    - Further functionality for non-invertible DDSes:
+      is_recurrent, recurrent_entries, idempotent_power, etc.
 
     - Wrap (some of) the cyclic_sieving_phenomenon.py methods.
+
+    - Interact with sage.dynamics. This requires someone who
+      knows the latter part of the Sage library well.
 
 """
 #*****************************************************************************
@@ -101,8 +123,8 @@ class DiscreteDynamicalSystem(SageObject):
     A discrete dynamical system.
 
     A *discrete dynamical system* (henceforth *DDS*) is a
-    pair `(S, \phi)` of a set `S` and a map `\phi : S \to S`.
-    This set `S` is called the *ground set* of the DDS, while
+    pair `(X, \phi)` of a set `X` and a map `\phi : X \to X`.
+    This set `X` is called the *ground set* of the DDS, while
     the map `\phi` is called the *evolution* of the DDS.
 
     See the module-level doc for details.
@@ -115,10 +137,14 @@ class DiscreteDynamicalSystem(SageObject):
           ``None``) -- the ground set for the DDS; this can be
           ``None`` in case of a
           :class:`DiscreteDynamicalSystem` or a
-          :class:`InvertibleDiscreteDynamicalSystem`.
+          :class:`InvertibleDiscreteDynamicalSystem`
+          (in which case Sage does not know the ground set,
+          but can still apply evolution to any elements that
+          are provided to it).
           Make sure to set the ``create_tuple`` argument to
-          ``True`` if you provide an iterator or a list for
-          ``X``, as otherwise the input would be exposed.
+          ``True`` if the ``X`` you provide is an iterator or
+          a list, as otherwise your ``X`` would be exposed
+          (and thus subject to mutation or exhaustion).
 
         - ``phi`` (function, or callable that acts like a
           function) -- the evolution of the DDS.
@@ -126,12 +152,14 @@ class DiscreteDynamicalSystem(SageObject):
         - ``cache_orbits`` (boolean) -- (default: ``False``)
           whether or not the orbits should be cached once they
           are computed.
+          This currently does nothing, as we are not caching
+          orbits yet.
 
         - ``create_tuple`` (boolean) -- (default: ``False``)
           whether or not the input ``X`` should be translated
-          into a tuple (set this to ``True`` to prevent
+          into a tuple. Set this to ``True`` to prevent
           mutation if ``X`` is a list, and to prevent
-          exhaustion if ``X`` is an iterator).
+          exhaustion if ``X`` is an iterator.
 
         EXAMPLES::
 
@@ -177,7 +205,7 @@ class DiscreteDynamicalSystem(SageObject):
             will then corrupt ``self``.
 
         EXAMPLES::
-        
+
             sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
             sage: D.ground_set()
@@ -237,7 +265,7 @@ class DiscreteDynamicalSystem(SageObject):
     def _repr_(self):
         r"""
         String representation of ``self``.
-        
+
         EXAMPLES::
 
             sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
@@ -428,10 +456,10 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
     An invertible discrete dynamical system.
 
     A *discrete dynamical system* (henceforth *DDS*) is a
-    pair `(S, \phi)` of a set `S` and a map `\phi : S \to S`.
-    This set `S` is called the *ground set* of the DDS, while
+    pair `(X, \phi)` of a set `X` and a map `\phi : X \to X`.
+    This set `X` is called the *ground set* of the DDS, while
     the map `\phi` is called the *evolution* of the DDS.
-    An *invertible DDS* is a DDS `(S, \phi)` whose evolution
+    An *invertible DDS* is a DDS `(X, \phi)` whose evolution
     `\phi` is invertible.
     In that case, `\phi^{-1}` is called the *inverse evolution*
     of the DDS.
@@ -642,11 +670,11 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
     A finite discrete dynamical system.
 
     A *finite discrete dynamical system* (henceforth *FDDS*) is a
-    pair `(S, \phi)` of a finite set `S` and a map `\phi : S \to S`.
-    This set `S` is called the *ground set* of the FDDS, while
+    pair `(X, \phi)` of a finite set `X` and a map `\phi : X \to X`.
+    This set `X` is called the *ground set* of the FDDS, while
     the map `\phi` is called the *evolution* of the FDDS.
 
-    The ground set `S` should always be provided as an
+    The ground set `X` should always be provided as an
     iterable when defining a :class:`FiniteDynamicalSystem`.
 
     EXAMPLES::
@@ -673,9 +701,9 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
     def _repr_(self):
         r"""
         String representation of ``self``.
-        
+
         EXAMPLES::
-        
+
             sage: D = FiniteDynamicalSystem(tuple(range(11)), lambda x : (x**2) % 11)
             sage: D
             A finite discrete dynamical system with ground set
@@ -687,6 +715,11 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
     def is_invariant(self, f):
         r"""
         Check if ``f`` is an invariant of ``self``.
+
+        Let `(X, \phi)` be a discrete dynamical system.
+        Let `Y` be any set. Let `f : X \to Y` be any map.
+        Then, we say that `f` is an *invariant* of `(X, \phi)`
+        if and only if `f \circ \phi = f`.
 
         EXAMPLES::
 
@@ -701,7 +734,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
             sage: F.is_invariant(lambda w: sum(i**2 for i in w))
             True
 
-        An invariant of a permutation::
+        Invariants and non-invariants of a permutation::
 
             sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.permutation([3, 4, 5, 6, 1, 2])
@@ -709,6 +742,10 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
             True
             sage: F.is_invariant(lambda i: i % 3)
             False
+            sage: F.is_invariant(lambda i: i > 1)
+            False
+            sage: F.is_invariant(lambda i: i % 2 == 0)
+            True
         """
         phi = self._phi
         for i in self._X:
@@ -731,7 +768,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
         cycle in its orbit.
 
         EXAMPLES::
-        
+
             sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
             sage: BS = discrete_dynamical_systems.bulgarian_solitaire
             sage: BS(8).cycles()
@@ -768,7 +805,13 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
                 try:
                     l.remove(j)
                 except ValueError:
-                    pass
+                    # Here we break out of the for-loop, because
+                    # if ``j`` has already been removed from
+                    # ``l``, then all later elements of the orbit
+                    # must have been removed from ``l`` as well
+                    # (indeed, the set of elements that have been
+                    # removed from ``l`` is closed under ``phi``).
+                    break
         return cycs
 
 class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteDynamicalSystem):
@@ -776,14 +819,14 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
     An invertible finite discrete dynamical system.
 
     A *finite discrete dynamical system* (henceforth *FDDS*) is a
-    pair `(S, \phi)` of a finite set `S` and a map `\phi : S \to S`.
-    This set `S` is called the *ground set* of the FDDS, while
+    pair `(X, \phi)` of a finite set `X` and a map `\phi : X \to X`.
+    This set `X` is called the *ground set* of the FDDS, while
     the map `\phi` is called the *evolution* of the FDDS.
-    An FDDS `(S, \phi)` is called *invertible* if the map `\phi`
+    An FDDS `(X, \phi)` is called *invertible* if the map `\phi`
     is invertible; in this case, `\phi^{-1}` is called the
     *inverse evolution* of the FDDS.
 
-    The ground set `S` should always be provided as an
+    The ground set `X` should always be provided as an
     iterable when defining a :class:`FiniteDynamicalSystem`.
 
     EXAMPLES::
@@ -814,9 +857,9 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
     def _repr_(self):
         r"""
         String representation of ``self``.
-        
+
         EXAMPLES::
-        
+
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(5)), lambda x : (x + 2) % 5)
             sage: D
             An invertible finite discrete dynamical system with ground set
@@ -829,9 +872,9 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
         r"""
         Return a list of all orbits of ``self``, up to
         cyclic rotation.
-        
+
         EXAMPLES::
-        
+
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
             sage: D.orbits()
             [[5, 1, 3], [4, 0, 2]]
@@ -869,9 +912,9 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         Since ``self`` is invertible, the cycles of ``self``
         are the same as its orbits.
-        
+
         EXAMPLES::
-        
+
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
             sage: D.cycles()
             [[5, 1, 3], [4, 0, 2]]
@@ -885,9 +928,9 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
         r"""
         Return a list of the lengths of all orbits of
         ``self``.
-        
+
         EXAMPLES::
-        
+
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
             sage: D.orbit_lengths()
             [3, 3]

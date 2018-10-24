@@ -70,8 +70,8 @@ def centrality_betweenness(G, bint exact=False, bint normalize=True):
     For every vertex `s`, we compute the value of `c_s(v)` for all `v`, using
     the following remark (see [Brandes01]_):
 
-        Let `v_1,...,v_k` be the out-neighbors of `v` such that
-        `dist(s,v_i)=dist(s,v)+1`. Then
+        Let `v_1,\ldots,v_k` be the out-neighbors of `v` such that
+        `dist(s,v_i) = dist(s,v) + 1`. Then
 
         .. MATH::
 
@@ -81,7 +81,7 @@ def centrality_betweenness(G, bint exact=False, bint normalize=True):
 
     The number of shortest paths between `s` and every other vertex can be
     computed with a slightly modified BFS. While running this BFS we can also
-    store the list of the vertices `v_1,...,v_k` associated with each `v`.
+    store the list of the vertices `v_1,\ldots,v_k` associated with each `v`.
 
     EXAMPLES::
 
@@ -328,11 +328,11 @@ cdef dict centrality_betweenness_C(G, numerical_type _, bint normalize=True):
 
 cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* reachU):
     r"""
-    For each vertex `v`, bounds the number of vertices reachable from `v`.
+    For each vertex ``v``, bounds the number of vertices reachable from ``v``.
 
-    The lower bound is stored in `reachL[v]`, while the upper bound is stored in
-    `reachU[v]`. These two arrays must be pre-allocated and they must have size
-    at least `n`, where `n` is the number of nodes of `g`.
+    The lower bound is stored in ``reachL[v]``, while the upper bound is stored
+    in ``reachU[v]``. These two arrays must be pre-allocated and they must have
+    size at least ``n``, where ``n`` is the number of nodes of ``g``.
 
     The estimate works as follows: first, we compute the graph of strongly
     connected components `\mathcal{G=(V,E)}`, then, for each SCC `C`, we set:
@@ -349,8 +349,8 @@ cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* re
     vertices reachable from the biggest strongly connected component, and handle
     this component separately.
 
-    Then, for each vertex `v`, we set `reachL[v]=L(C)`, where `C` is the
-    strongly connected component containing `v`.
+    Then, for each vertex ``v``, we set ``reachL[v]=L(C)``, where `C` is the
+    strongly connected component containing ``v``.
 
     INPUT:
 
@@ -358,10 +358,10 @@ cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* re
 
     OUTPUT:
 
-    `reachL`, `reachU`: two arrays that should be allocated outside this
-    function and that should have size at least `g.n`. At the end, `reachL[v]`
-    (resp., `reachU[v]`) will contain the lower (resp., upper) bound on the
-    number of reachable vertices from `v`.
+    ``reachL``, ``reachU``: two arrays that should be allocated outside this
+    function and that should have size at least ``g.n``. At the end,
+    ``reachL[v]`` (resp., ``reachU[v]``) will contain the lower (resp., upper)
+    bound on the number of reachable vertices from ``v``.
     """
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int n = g.n
@@ -460,12 +460,12 @@ cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* re
 
 cdef void _compute_reachable_vertices_undir(short_digraph g, int* reachable):
     r"""
-    For each vertex `v`, compute the number of vertices reachable from `v`.
+    For each vertex ``v``, compute the number of vertices reachable from ``v``.
 
-    The number of vertices reachable from `v` (which is the size of the
-    connected component containing `v`) is stored in variable
-    `reachable[v]`. The array `reachable` is assumed to be allocated outside
-    this function, and it is assumed to have size at least `g.n`.
+    The number of vertices reachable from ``v`` (which is the size of the
+    connected component containing ``v``) is stored in variable
+    ``reachable[v]``. The array `reachable` is assumed to be allocated outside
+    this function, and it is assumed to have size at least ``g.n``.
     """
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int i
@@ -541,13 +541,13 @@ cdef void _sort_vertices_degree(short_digraph g, int* sorted_verts):
 
 def centrality_closeness_top_k(G, int k=1, int verbose=0):
     r"""
-    Compute the `k` vertices with largest closeness centrality.
+    Compute the ``k`` vertices with largest closeness centrality.
 
     The algorithm is based on performing a breadth-first-search (BFS) from each
     vertex, and to use bounds in order to cut these BFSes as soon as possible.
-    If `k` is small, it is much more efficient than computing all centralities
+    If ``k`` is small, it is much more efficient than computing all centralities
     with :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_closeness`.
-    Conversely, if `k` is close to the number of nodes, the running-time is
+    Conversely, if ``k`` is close to the number of nodes, the running-time is
     approximately the same (it might even be a bit longer, because more
     computations are needed).
 
@@ -558,12 +558,12 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
 
     - ``G`` -- a Sage Graph or DiGraph;
 
-    - ``k`` -- integer (default: 1); the algorithm will return the `k` vertices
-      with largest closeness centrality. This value should be between 1 and the
-      number of vertices with positive (out)degree, because the closeness
-      centrality is not defined for vertices with (out)degree 0. If `k` is
-      bigger than this value, the output will contain all vertices of positive
-      (out)degree.
+    - ``k`` -- integer (default: 1); the algorithm will return the ``k``
+      vertices with largest closeness centrality. This value should be between 1
+      and the number of vertices with positive (out)degree, because the
+      closeness centrality is not defined for vertices with (out)degree 0. If
+      ``k`` is bigger than this value, the output will contain all vertices of
+      positive (out)degree.
 
     - ``verbose`` -- integer (default: 0); define how "verbose" the algorithm
       should be. If 0, nothing is printed, if 1, we print only the performance
@@ -572,10 +572,10 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
 
     OUTPUT:
 
-    An ordered list of `k` pairs `(closv, v)`, where `v` is one of the `k` most
-    central vertices, and `closv` is its closeness centrality.  If `k` is bigger
-    than the number of vertices with positive (out)degree, the list might be
-    smaller.
+    An ordered list of ``k`` pairs `(closv, v)`, where `v` is one of the ``k``
+    most central vertices, and `closv` is its closeness centrality.  If `k` is
+    bigger than the number of vertices with positive (out)degree, the list might
+    be smaller.
 
     EXAMPLES::
 
@@ -598,7 +598,7 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
 
     TESTS:
 
-    If `k` or ``verbose`` is not an integer::
+    If ``k`` or ``verbose`` is not an integer::
 
         sage: from sage.graphs.centrality import centrality_closeness_top_k
         sage: g = digraphs.Path(10)
@@ -611,7 +611,7 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         ...
         TypeError: an integer is required
 
-    If `k` is bigger than the number of nodes::
+    If ``k`` is bigger than the number of nodes::
 
         sage: from sage.graphs.centrality import centrality_closeness_top_k
         sage: g = graphs.PathGraph(5)
@@ -895,7 +895,7 @@ def centrality_closeness_random_k(G, int k=1):
     cdef dict closeness_centrality_array = {}
     # Currently, the boost graph interface uses the ordering of the vertices
     # given by G.vertices() while with short_digraph we can specify the ordering
-    # (see #26447). This will change in the futur
+    # (see #26447). This will change in the future
     cdef list int_to_vertex = G.vertices() if G.weighted() else list(G)
     cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 

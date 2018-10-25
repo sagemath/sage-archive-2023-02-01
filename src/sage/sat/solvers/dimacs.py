@@ -530,10 +530,10 @@ class Glucose(DIMACS):
             sage: solver.add_clause((1,2))
             sage: solver.add_clause((-1,2))
             sage: solver.add_clause((1,-2))
-            sage: solver()
+            sage: solver()                           # optional - glucose
             (None, True, True)
             sage: solver.add_clause((-1,-2))
-            sage: solver()
+            sage: solver()                           # optional - glucose
             False
         """
         DIMACS.__call__(self)

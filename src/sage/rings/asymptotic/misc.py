@@ -57,6 +57,8 @@ def repr_short_to_parent(s):
         Symbolic Ring
         sage: repr_short_to_parent('NN')
         Non negative integer semiring
+        sage: repr_short_to_parent('U')
+        Group of Roots of Unity
 
     TESTS::
 
@@ -66,12 +68,17 @@ def repr_short_to_parent(s):
         ValueError: Cannot create a parent out of 'abcdef'.
         > *previous* NameError: name 'abcdef' is not defined
     """
+    from sage.groups.roots_of_unity_group import RootsOfUnityGroup
     from sage.misc.sage_eval import sage_eval
-    try:
-        P = sage_eval(s)
-    except Exception as e:
-        raise combine_exceptions(
-            ValueError("Cannot create a parent out of '%s'." % (s,)), e)
+
+    if s == 'U':
+        P = RootsOfUnityGroup()
+    else:
+        try:
+            P = sage_eval(s)
+        except Exception as e:
+            raise combine_exceptions(
+                ValueError("Cannot create a parent out of '%s'." % (s,)), e)
 
     from sage.misc.lazy_import import LazyImport
     if type(P) is LazyImport:
@@ -118,6 +125,7 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
+    from sage.groups.roots_of_unity_group import RootsOfUnityGroup
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
     from sage.symbolic.ring import SR
@@ -131,6 +139,8 @@ def parent_to_repr_short(P):
             return 'QQ'
         elif P is SR:
             return 'SR'
+        elif P == RootsOfUnityGroup():
+            return 'U'
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
     poly = is_PolynomialRing(P) or is_MPolynomialRing(P)

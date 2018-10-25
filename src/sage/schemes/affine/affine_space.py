@@ -21,7 +21,6 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.map import Map
 from sage.categories.fields import Fields
 _Fields = Fields()
-from sage.categories.homset import End
 from sage.categories.number_fields import NumberFields
 from sage.misc.all import latex
 from sage.structure.category_object import normalize_names

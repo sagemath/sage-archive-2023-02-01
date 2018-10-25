@@ -136,6 +136,7 @@ from sage.monoids.monoid import Monoid_class
 from sage.rings.ring import CommutativeAlgebra
 from sage.rings.integer_ring import ZZ
 from sage.rings.padics.padic_generic import pAdicGeneric
+from sage.misc.misc_c import prod
 
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.pushout import pushout
@@ -368,7 +369,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
 
             sage: A.<x,y> = TateAlgebra(Zp(2), log_radii=1)
             sage: T = A.monoid_of_terms()
-            sage: #TestSuite(T).run()
+            sage: TestSuite(T).run()
 
         """
         # This function is not exposed to the user
@@ -463,7 +464,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
             sage: U.has_coerce_map_from(T) # indirect doctest
             False
 
-        and appear in the same order:
+        and appear in the same order::
 
             sage: B.<y,x> = TateAlgebra(R); B
             Tate Algebra in y (val >= 0), x (val >= 0) over 2-adic Field with capped relative precision 10
@@ -675,7 +676,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
             sage: T.some_elements()
-            ((...0000000001)*x, (...0000000001)*y)
+            [(...00000000010), (...0000000001)*x, (...0000000001)*y, (...00000000010)*x*y]
 
         """
         elts = [ self(self._field.uniformizer()) ] + list(self.gens())
@@ -903,7 +904,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
         """
         Return the prime, that is the characteristic of the residue field.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R = Zp(3)
             sage: A.<x,y> = TateAlgebra(R)
@@ -979,7 +980,21 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits')
             sage: A.<x,y> = TateAlgebra(R)
             sage: A.some_elements()
-            ((...0000000001)*x, (...0000000001)*y)
+            [0,
+             (...00000000010),
+             (...0000000001)*x,
+             (...0000000001)*y,
+             (...00000000010)*x*y,
+             (...00000000100),
+             (...0000000001)*x + (...00000000010),
+             (...0000000001)*y + (...00000000010),
+             (...00000000010)*x*y + (...00000000010),
+             (...0000000010)*x,
+             (...0000000001)*x + (...0000000001)*y,
+             (...0000000001)*x + (...00000000010)*x*y,
+             (...0000000010)*y,
+             (...0000000001)*y + (...00000000010)*x*y,
+             (...00000000100)*x*y]
 
         """
         terms = [ self.zero() ] + [ self(t) for t in self.monoid_of_terms().some_elements() ]

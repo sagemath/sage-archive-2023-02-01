@@ -1202,6 +1202,23 @@ class WeylCharacterRing(CombinatorialFreeModule):
             d = self.monomial_coefficients()
             return sum(d[k]*self.parent()._element_constructor_(self.parent()._dual_helper(k)) for k in d.keys())
 
+        def highest_weight(self):
+            """
+            This method is only available for basis elements. Returns the
+            parametrizing dominant weight of an irreducible character or
+            simple element of a FusionRing.
+
+            Examples::
+
+                 sage: G2=WeylCharacterRing("G2",style="coroots")
+                 sage: [x.highest_weight() for x in [G2(1,0),G2(0,1)]]
+                 [(1, 0, -1), (2, -1, -1)]
+
+            """
+            if len(self.monomial_coefficients()) != 1:
+                raise ValueError("fusion weight is valid for basis elements only")
+            return self.leading_support()
+
         def __pow__(self, n):
             """
             Return the nth power of self.
@@ -2179,7 +2196,7 @@ class FusionRing(WeylCharacterRing):
         sage: B22 = FusionRing("B2",2)
         sage: list(B22.basis())
         [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
-        sage: [x.fusion_weight() for x in B22.basis()]
+        sage: [x.highest_weight() for x in B22.basis()]
         [(0, 0), (1/2, 1/2), (1, 0), (2, 0), (3/2, 1/2), (1, 1)]
         sage: B22.fusion_labels(['1','X','Y1','Z','Xp','Y2'])
         sage: list(B22.basis())
@@ -2234,15 +2251,9 @@ class FusionRing(WeylCharacterRing):
         d = {}
         fb = list(self.basis())
         for j,b in enumerate(fb):
-            wt = b.fusion_weight()
+            wt = b.highest_weight()
             t = tuple([wt.inner_product(x) for x in self.simple_coroots()])
             d[t] = labels[j]
             inject_variable(labels[j], b)
         self._fusion_labels = d
-
-    class Element(WeylCharacterRing.Element):
-        def fusion_weight(self):
-            if len(self.monomial_coefficients()) != 1:
-                raise ValueError("fusion weight is valid for basis elements only")
-            return self.leading_support()
 

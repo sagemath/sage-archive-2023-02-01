@@ -18,7 +18,8 @@ AUTHORS:
 - Marco Mancini (2017) : initial version
 - Eric Gourgoulhon (2015) : for a previous class implementing only SR
   calculus (CoordFunctionSymb)
-
+- Florentin Jaffredo (2018) : series expansion with respect to a given
+  parameter
 
 """
 #*****************************************************************************
@@ -84,11 +85,11 @@ class ChartFunction(AlgebraElement):
       - ``'sympy'``: SymPy
       - ``None``: the chart current calculus method is assumed
 
-    - ``expansion_symbol`` -- string (optional); the symbol used to develop
+    - ``expansion_symbol`` -- string (optional); the symbol used to expand
       the coordinate expression around the zero value of this symbol
 
     - ``order`` -- integer (default: ``0``); the order of the big oh in
-      the development; if ``0``, then this is unused; to keep only the
+      the expansion; if ``0``, then this is unused; to keep only the
       first order, set to ``2``
 
     EXAMPLES:
@@ -350,7 +351,7 @@ class ChartFunction(AlgebraElement):
 
         INPUT:
 
-        - ``epr`` -- expression to simplify
+        - ``expr`` -- expression to simplify
 
         OUTPUT:
 
@@ -366,7 +367,8 @@ class ChartFunction(AlgebraElement):
 
         """
         res = self._calc_method.simplify(expr)
-        if self._calc_method._current == 'SR' and self._expansion_symbol is not None:
+        if (self._expansion_symbol is not None and
+            self._calc_method._current == 'SR'):
             res = res.series(self._expansion_symbol, self._order).truncate()
         return res
 

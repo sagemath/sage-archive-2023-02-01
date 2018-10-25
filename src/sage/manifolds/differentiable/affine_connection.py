@@ -8,6 +8,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Marco Mancini (2015) : parallelization of some computations
+- Florentin Jaffredo (2018) : series expansion with respect to a given
+  parameter
 
 REFERENCES:
 
@@ -2273,19 +2275,21 @@ class AffineConnection(SageObject):
 
     def set_calc_order(self, symbol, order, truncate=False):
         r"""
-        Tell the components to develop their expression in series with
-        respect to parameter ``symbol`` at order ``order``.
+        Trigger a series expansion with respect to a given parameter in
+        computations involving ``self``.
 
         This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero
-        - ``order`` -- order of the big oh in the development; to keep only
-          the first order, set to ``2``
-        - ``truncate`` -- (default: ``False``) perform one step of the
-          simplification
+        - ``symbol`` -- symbolic variable with respect to which the components
+          are expanded
+        - ``order`` -- order of the big oh in the expansion with respect to
+          ``symbol``; to keep only the first order, use ``2``
+        - ``truncate`` -- (default: ``False``) determines whether the
+          connection coefficients are replaced by their expansions to the given
+          order
 
         EXAMPLES::
 

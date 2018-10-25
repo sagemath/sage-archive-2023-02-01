@@ -27,6 +27,8 @@ AUTHORS:
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2016): review tweaks
 - Eric Gourgoulhon (2018): method :meth:`TensorFieldParal.along`
+- Florentin Jaffredo (2018) : series expansion with respect to a given
+  parameter
 
 REFERENCES:
 
@@ -2038,17 +2040,17 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     def series(self, symbol, order=20):
         """
-        Develop the tensor in series with respect to parameter ``symbol`` at
-        order ``order``.
+        Expand the tensor field in series with respect to parameter ``symbol``
+        at order ``order``.
 
-        The result is return as a list of pair ``(tensor, order)``. The
+        The result is returned as a list of pair ``(tensor, order)``. The
         internal representation must be ``SR``. This function works by
         applying the ``SR`` method :meth:`~sage.symbolic.expression.series`
         on each component.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero
+        - ``symbol`` -- symbol used to expand the components around zero
         - ``order`` -- (default: 20) order of the big oh in the development;
           to keep only the first order, set to ``2``
 
@@ -2154,8 +2156,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     def set_calc_order(self, symbol, order, truncate=False):
         """
-        Determine the order of expansions with respect to a given parameter
-        in computations involving the tensor field.
+        Trigger a series expansion with respect to a given parameter in
+        computations involving the tensor field.
 
         This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
@@ -2166,8 +2168,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
           are expanded
         - ``order`` -- order of the big oh in the expansion with respect to
           ``symbol``; to keep only the first order, use ``2``
-        - ``truncate`` -- (default: ``False``) replace the components of the
-          tensor field by their expansions to the given order
+        - ``truncate`` -- (default: ``False``) determines whether the
+          components of the tensor field are replaced by their expansions to
+          the given order
 
         EXAMPLES::
 

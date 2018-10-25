@@ -16,6 +16,8 @@ AUTHORS:
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
 - Travis Scrimshaw (2016): review tweaks
 - Marco Mancini (2017): SymPy as an optional symbolic engine, alternative to SR
+- Florentin Jaffredo (2018) : series expansion with respect to a given
+  parameter
 
 REFERENCES:
 
@@ -3239,19 +3241,21 @@ class ScalarField(CommutativeAlgebraElement):
 
     def set_calc_order(self, symbol, order, truncate=False):
         r"""
-        Develop the expression in series with respect to the
-        parameter ``symbol`` at order ``order``.
+        Trigger a series expansion with respect to a given parameter in
+        computations involving the scalar field.
 
-        This property is propagated by usual operations. Internal
+        This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero.
-        - ``order`` -- order of the big oh in the development; to keep only
-          the first order, set to 2
-        - ``truncate`` -- (default: ``False``) perform one step of the
-          simplification
+        - ``symbol`` -- symbolic variable with respect to which the coordinate
+          expressions of ``self`` are expanded
+        - ``order`` -- order of the big oh in the expansion with respect to
+          ``symbol``; to keep only the first order, use ``2``
+        - ``truncate`` -- (default: ``False``) determines whether the
+          coordinate expressions of ``self`` are replaced by their expansions
+          to the given order
 
         EXAMPLES::
 
@@ -3261,7 +3265,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: s = M.scalar_field(exp(-tau*t))
             sage: s.expr()
             e^(-t*tau)
-            sage: s.set_calc_order(tau, 3, True)
+            sage: s.set_calc_order(tau, 3, truncate=True)
             sage: s.expr()
             1/2*t^2*tau^2 - t*tau + 1
         """
@@ -3271,4 +3275,3 @@ class ScalarField(CommutativeAlgebraElement):
             if truncate:
                 expr.simplify()
         self._del_derived()
-

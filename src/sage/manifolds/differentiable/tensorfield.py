@@ -27,6 +27,8 @@ AUTHORS:
 - Travis Scrimshaw (2016): review tweaks
 - Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian;
   method :meth:`TensorField.along`
+- Florentin Jaffredo (2018) : series expansion with respect to a given
+  parameter
 
 REFERENCES:
 
@@ -3977,8 +3979,8 @@ class TensorField(ModuleElement):
 
     def set_calc_order(self, symbol, order, truncate=False):
         r"""
-        Determine the order of expansions with respect to a given parameter
-        in computations involving the tensor field.
+        Trigger a series expansion with respect to a given parameter in
+        computations involving the tensor field.
 
         This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
@@ -3989,8 +3991,9 @@ class TensorField(ModuleElement):
           are expanded
         - ``order`` -- order of the big oh in the expansion with respect to
           ``symbol``; to keep only the first order, use ``2``
-        - ``truncate`` -- (default: ``False``) replace the components of the
-          tensor field by their expansions to the given order
+        - ``truncate`` -- (default: ``False``) determines whether the
+          components of the tensor field are replaced by their expansions to
+          the given order
 
         EXAMPLES:
 

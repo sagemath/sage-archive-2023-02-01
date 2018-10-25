@@ -9,7 +9,8 @@ parallelizable manifold.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
-- Pablo Angulo (2016): Schouten, Cotton and Cotton-York tensors
+- Pablo Angulo (2016) : Schouten, Cotton and Cotton-York tensors
+- Florentin Jaffredo (2018) : series expansion for the inverse metric
 
 REFERENCES:
 
@@ -2233,8 +2234,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         - ``expansion_symbol`` -- (optional) if specified, the inverse will
           be expanded with respect to this symbol
-        - ``order`` -- (default: ``2``) order of the big oh in the previous
-          development; currently only first order inverse is supported
+        - ``order`` -- (default: ``2``) order of the big oh in the expansion;
+          currently only first order inverse is supported
 
         If ``expansion_symbol``, then the zeroth order metric must be
         invertible. Moreover, subsequent calls to this method will return
@@ -2285,13 +2286,13 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ (x - 1)/(x**2*y**2 + x**2 - 1)      x*y/(x**2*y**2 + x**2 - 1)]
             [     x*y/(x**2*y**2 + x**2 - 1) -(x + 1)/(x**2*y**2 + x**2 - 1)]
 
-        Demonstration the development capabilities::
+        Demonstration of the series expansion capabilities::
 
             sage: M = Manifold(4, 'M', structure='Lorentzian')
             sage: C.<t,x,y,z> = M.chart()
             sage: e = var('e')
             sage: g = M.metric('g')
-            sage: h = M.tensor_field(0,2,sym=(0,1))
+            sage: h = M.tensor_field(0, 2, sym=(0,1))
             sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
             sage: h[0, 1], h[1, 2], h[2, 3] = 1, 1, 1
             sage: g.set_comp()[:] = (g+e*h)[:]
@@ -2301,17 +2302,17 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ 0  e -1  e]
             [ 0  0  e -1]
 
-        g is now a tridiagonal metric approximation of the Minkowski metric.
-        The inverse, truncated to first order in ``e`` is::
+        ``g`` is now a tridiagonal metric approximation of the Minkowski
+        metric. The inverse, truncated to first order in ``e`` is::
 
-            sage: g.inverse(e)[:]
+            sage: g.inverse(expansion_symbol=e)[:]
             [ 1  e  0  0]
             [ e -1 -e  0]
             [ 0 -e -1 -e]
             [ 0  0 -e -1]
 
-        If another method then calls ``inverse()``, the result will be the
-        same. This allows whole computations to be made in the first order::
+        If ``inverse()`` is called subsequently, the result will be the same.
+        This allows whole computations to be made in the first order::
 
             sage: g.inverse()[:]
             [ 1  e  0  0]

@@ -553,10 +553,15 @@ class WeylCharacterRing(CombinatorialFreeModule):
         - ``k`` -- (optional) a positive integer
 
         Returns the reflection of wt in the hyperplane
-        perpendicular to the longest root `\theta`.
-        Optionally shifts by a multiple `k`of `\theta`.
-        """
+        `\theta`. Optionally shifts by a multiple `k`of `\theta`.
 
+        EXAMPLES::
+            sage: B22=FusionRing("B2",2)
+            sage: fw = B22.fundamental_weights(); fw
+            Finite family {1: (1, 0), 2: (1/2, 1/2)}
+            sage: [B22.affine_reflect(x,2) for x in fw]
+            [(2, 1), (3/2, 3/2)]
+        """
         coef = ZZ(2*wt.inner_product(self._highest)/self._hip)
         return wt+(k-coef)*self._highest
 
@@ -765,6 +770,12 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         Return the level of the weight, defined to be the value of
         the weight on the coroot associated with the highest root.
+
+        EXAMPLES::
+            sage: R = FusionRing("F4",2); [R.level(x) for x in R.fundamental_weights()]
+            [2, 3, 2, 1]
+            sage: [CartanType("F4~").dual().a()[x] for x in [1..4]]
+            [2, 3, 2, 1]
         """
         return ZZ(2*wt.inner_product(self._highest)/self._hip)
 
@@ -2139,10 +2150,11 @@ class FusionRing(WeylCharacterRing):
     - ``k`` -- a nonnegative integer
  
     Returns the Fusion Ring (Verlinde Algebra) of level k. See:
-
+    
     * J. Fuchs, Fusion Rules for Conformal Field Theory. arXiv:hep-th/9306162
     * Walton, Mark A. Fusion rules in Wess-Zumino-Witten models. Nuclear Phys. B 340 (1990).
     * Feingold, Fusion rules for affine Kac-Moody algebras. Contemp. Math., 343. arXiv:math/0212387
+    * Di Francesco, Mathiew and Senechal, Conformal Field Theory, Chapter 16.
 
     This algebra has a basis indexed by the weights of level `\leq k`. It is implemented
     as a variant of the WeylCharacterRing.

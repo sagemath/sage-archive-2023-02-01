@@ -1,8 +1,8 @@
 """
 p-Adic Extension Element
 
-A common superclass for all elements of extension rings and field of `\Bold{Z}_p` and
-`\Bold{Q}_p`.
+A common superclass for all elements of extension rings and field of `\ZZ_p` and
+`\QQ_p`.
 
 AUTHORS:
 
@@ -420,7 +420,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
         This element reduced modulo `\pi^\mathrm{absprec}`.
 
-        If ``absprec`` is zero, then as an element of `\Bold{Z}/(1)`.
+        If ``absprec`` is zero, then as an element of `\ZZ/(1)`.
 
         If ``absprec`` is one, then as an element of the residue field.
 

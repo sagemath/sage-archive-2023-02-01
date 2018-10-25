@@ -1760,7 +1760,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
 
 cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
     r"""
-    The canonical inclusion of `\Bold{Z}_q` into its fraction field.
+    The canonical inclusion of `\ZZ_q` into its fraction field.
 
     EXAMPLES::
 
@@ -1942,7 +1942,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
 
 cdef class pAdicConvert_FP_frac_field(Morphism):
     r"""
-    The section of the inclusion from `\Bold{Z}_q` to its fraction field.
+    The section of the inclusion from `\ZZ_q` to its fraction field.
 
     EXAMPLES::
 

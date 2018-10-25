@@ -558,7 +558,7 @@ cdef class CRElement(pAdicTemplateElement):
         the result can therefore be greater than the precision of
         ``self``.
 
-        For `\alpha` in `\Bold{Z}_p` we can simplify the result a bit.  In
+        For `\alpha` in `\ZZ_p` we can simplify the result a bit.  In
         this case, the `p`-th power of `1 + \alpha p^{\lambda}`
         satisfies
 
@@ -603,7 +603,7 @@ cdef class CRElement(pAdicTemplateElement):
             If `\alpha` is a unit, but not congruent to `1` modulo
             `\pi_K`, the result will not be the limit over integers
             `b` converging to `\beta` since this limit does not exist.
-            Rather, the logarithm kills torsion in `\Bold{Z}_p^\times`, and
+            Rather, the logarithm kills torsion in `\ZZ_p^\times`, and
             `\alpha^\beta` will equal `(\alpha')^\beta`, where
             `\alpha'` is the quotient of `\alpha` by the Teichmuller
             representative congruent to `\alpha` modulo `\pi_K`.  Thus
@@ -2310,7 +2310,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
 
 cdef class pAdicConvert_CR_frac_field(Morphism):
     """
-    The section of the inclusion from `\Bold{Z}_q`` to its fraction field.
+    The section of the inclusion from `\ZZ_q`` to its fraction field.
 
     EXAMPLES::
 

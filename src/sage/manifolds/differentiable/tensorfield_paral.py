@@ -2154,19 +2154,20 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     def set_calc_order(self, symbol, order, truncate=False):
         """
-        The components will develop their expression in series with
-        respect to parameter ``symbol`` at order ``order``.
+        Determine the order of expansions with respect to a given parameter
+        in computations involving the tensor field.
 
-        This property is propagated by usual operations. Internal
+        This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero
-        - ``order`` -- order of the big oh in the development; to keep only
-          the first order, set to ``2``
-        - ``truncate`` -- (default: ``False``) perform one step of the
-          simplification
+        - ``symbol`` -- symbolic variable with respect to which the components
+          are expanded
+        - ``order`` -- order of the big oh in the expansion with respect to
+          ``symbol``; to keep only the first order, use ``2``
+        - ``truncate`` -- (default: ``False``) replace the components of the
+          tensor field by their expansions to the given order
 
         EXAMPLES::
 
@@ -2179,7 +2180,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
             sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
             sage: h2[0, 2], h2[1, 3] = 1, 1
-            sage: g.set(g+e*h1+e**2*h2)
+            sage: g.set(g+e*h1+e^2*h2)
             sage: g.set_calc_order(e, 2)
             sage: g[:]
             [  1   e e^2   0]
@@ -2196,7 +2197,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         """
         for frame in self._components:
             for ind in self._components[frame].non_redundant_index_generator():
-                self._components[frame][ind]._symbol = symbol
+                self._components[frame][ind]._expansion_symbol = symbol
                 self._components[frame][ind]._order = order
                 if truncate:
                     self._components[frame][ind].simplify()

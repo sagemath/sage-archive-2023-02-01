@@ -2320,15 +2320,16 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ 0  0 -e -1]
 
         """
-        if symbol is not None:
+        if expansion_symbol is not None:
             if (self._inverse is not None and bool(self._inverse._components)
-                and self._inverse._components.values()[0][0,0]._symbol is symbol
+                and self._inverse._components.values()[0][0,0]._expansion_symbol
+                    == expansion_symbol
                 and self._inverse._components.values()[0][0,0]._order == order):
                 return self._inverse
 
             if order != 2:
                 raise NotImplementedError("only first order inverse is implemented")
-            decompo = self.series(symbol, 2)
+            decompo = self.series(expansion_symbol, 2)
             g0 = decompo[0][0]
             g1 = decompo[1][0]
 
@@ -2337,8 +2338,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
             contraction = g1.contract(0, g0m.inverse(), 0)
             contraction = contraction.contract(1, g0m.inverse(), 1)
-            self._inverse = g0m.inverse() - contraction * symbol
-            self._inverse.set_calc_order(symbol, 2)
+            self._inverse = g0m.inverse() - contraction * expansion_symbol
+            self._inverse.set_calc_order(expansion_symbol, 2)
             return self._inverse
 
         from sage.matrix.constructor import matrix

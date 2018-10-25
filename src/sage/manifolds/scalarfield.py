@@ -3266,7 +3266,7 @@ class ScalarField(CommutativeAlgebraElement):
             1/2*t^2*tau^2 - t*tau + 1
         """
         for expr in self._express.values():
-            expr._symbol = symbol
+            expr._expansion_symbol = symbol
             expr._order = order
             if truncate:
                 expr.simplify()

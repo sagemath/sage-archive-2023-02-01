@@ -3977,46 +3977,74 @@ class TensorField(ModuleElement):
 
     def set_calc_order(self, symbol, order, truncate=False):
         r"""
-        The components will develop their expression in series with
-        respect to parameter ``symbol`` at order ``order``.
+        Determine the order of expansions with respect to a given parameter
+        in computations involving the tensor field.
 
         This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero
-        - ``order`` -- order of the big oh in the development; to keep only
-          the first order, set to ``2``
-        - ``truncate`` -- (default: ``False``) perform one step of the
-          simplification
+        - ``symbol`` -- symbolic variable with respect to which the components
+          are expanded
+        - ``order`` -- order of the big oh in the expansion with respect to
+          ``symbol``; to keep only the first order, use ``2``
+        - ``truncate`` -- (default: ``False``) replace the components of the
+          tensor field by their expansions to the given order
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: M = Manifold(4, 'M', structure='Lorentzian')
-            sage: C.<t,x,y,z> = M.chart()
-            sage: e = var('e')
-            sage: g = M.metric('g')
-            sage: h1 = M.tensor_field(0, 2, sym=(0,1))
-            sage: h2 = M.tensor_field(0, 2, sym=(0,1))
-            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
-            sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
-            sage: h2[0, 2], h2[1, 3] = 1, 1
-            sage: g.set(g+e*h1+e**2*h2)
-            sage: g[:]
-            [  1   e e^2   0]
-            [  e  -1   e e^2]
-            [e^2   e  -1   e]
-            [  0 e^2   e  -1]
-            sage: g.set_calc_order(e, 2, truncate=True)
-            sage: g[:]
-            [ 1  e  0  0]
-            [ e -1  e  0]
-            [ 0  e -1  e]
-            [ 0  0  e -1]
+        Let us consider two vector fields depending on a small parameter `h`
+        on a non-parallelizable manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+            ....:                              restrictions1= x>0, restrictions2= u+v>0)
+            sage: inv = transf.inverse()
+            sage: W = U.intersection(V)
+            sage: eU = c_xy.frame() ; eV = c_uv.frame()
+            sage: a = M.vector_field()
+            sage: h = var('h', domain='real')
+            sage: a[eU,:] = (cos(h*x), -y)
+            sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: b = M.vector_field()
+            sage: b[eU,:] = (exp(h*x), exp(h*y))
+            sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
+
+        If we set the calculus order on one of the vector fields, any operation
+        involving both of them is performed to that order::
+
+            sage: a.set_calc_order(h, 3)
+            sage: s = a + b
+            sage: s[eU,:]
+            [h*x + 2, 1/2*h^2*y^2 + h*y - y + 1]
+            sage: s[eV,:]
+            [1/8*(u^2 - 2*u*v + v^2)*h^2 + h*u - 1/2*u + 1/2*v + 3,
+             -1/8*(u^2 - 2*u*v + v^2)*h^2 + h*v + 1/2*u - 1/2*v + 1]
+
+        Note that the components of ``a`` have not been affected by the above
+        call to ``set_calc_order``::
+
+            sage: a[eU,:]
+            [cos(h*x), -y]
+            sage: a[eV,:]
+            [cos(1/2*h*u)*cos(1/2*h*v) - sin(1/2*h*u)*sin(1/2*h*v) - 1/2*u + 1/2*v,
+             cos(1/2*h*u)*cos(1/2*h*v) - sin(1/2*h*u)*sin(1/2*h*v) + 1/2*u - 1/2*v]
+
+        To have ``set_calc_order`` act on them, set the optional argument
+        ``truncate`` to ``True``::
+
+            sage: a.set_calc_order(h, 3, truncate=True)
+            sage: a[eU,:]
+            [-1/2*h^2*x^2 + 1, -y]
+            sage: a[eV,:]
+            [-1/8*(u^2 + 2*u*v + v^2)*h^2 - 1/2*u + 1/2*v + 1,
+             -1/8*(u^2 + 2*u*v + v^2)*h^2 + 1/2*u - 1/2*v + 1]
 
         """
         for rst in self._restrictions.values():
             rst.set_calc_order(symbol, order, truncate)
         self._del_derived()
-

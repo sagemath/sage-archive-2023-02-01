@@ -85,7 +85,7 @@ class ChartFunction(AlgebraElement):
       - ``None``: the chart current calculus method is assumed
 
     - ``expansion_symbol`` -- string (optional); the symbol used to develop
-      the coordinates around zero
+      the coordinate expression around the zero value of this symbol
 
     - ``order`` -- integer (default: ``0``); the order of the big oh in
       the development; if ``0``, then this is unused; to keep only the
@@ -1208,10 +1208,12 @@ class ChartFunction(AlgebraElement):
             # NB: "if res == 0" would be too expensive (cf. #22859)
             return self.parent().zero()
         if other._expansion_symbol is not None:
-            return type(self)(self.parent(), res, expansion_symbol=other._expansion_symbol,
+            return type(self)(self.parent(), res,
+                              expansion_symbol=other._expansion_symbol,
                               order=other._order)
         else:
-            return type(self)(self.parent(), res, expansion_symbol=self.expansion_symbol,
+            return type(self)(self.parent(), res,
+                              expansion_symbol=self._expansion_symbol,
                               order=self._order)
 
 
@@ -1272,10 +1274,12 @@ class ChartFunction(AlgebraElement):
             # NB: "if res == 0" would be too expensive (cf. #22859)
             return self.parent().zero()
         if other._expansion_symbol is not None:
-            return type(self)(self.parent(), res, expansion_symbol=other._expansion_symbol,
+            return type(self)(self.parent(), res,
+                              expansion_symbol=other._expansion_symbol,
                               order=other._order)
         else:
-            return type(self)(self.parent(), res, expansion_symbol=self._expansion_symbol,
+            return type(self)(self.parent(), res,
+                              expansion_symbol=self._expansion_symbol,
                               order=self._order)
 
     def _mul_(self, other):
@@ -1332,10 +1336,12 @@ class ChartFunction(AlgebraElement):
             # NB: "if res == 0" would be too expensive (cf. #22859)
             return self.parent().zero()
         if other._expansion_symbol is not None:
-            return type(self)(self.parent(), res, expansion_symbol=other._expansion_symbol,
+            return type(self)(self.parent(), res,
+                              expansion_symbol=other._expansion_symbol,
                               order=other._order)
         else:
-            return type(self)(self.parent(), res, expansion_symbol=self._expansion_symbol,
+            return type(self)(self.parent(), res,
+                              expansion_symbol=self._expansion_symbol,
                               order=self._order)
 
     def _rmul_(self, other):
@@ -1470,7 +1476,8 @@ class ChartFunction(AlgebraElement):
         if curr =='SR' and res.is_trivial_zero():
             # NB: "if res == 0" would be too expensive (cf. #22859)
             return self.parent().zero()
-        return type(self)(self.parent(), res, expansion_symbol=self._expansion_symbol,
+        return type(self)(self.parent(), res,
+                          expansion_symbol=self._expansion_symbol,
                           order=self._order)
 
     def exp(self):

@@ -2312,7 +2312,7 @@ class AffineConnection(SageObject):
         """
         for coef in self._coefficients.values():
             for ind in coef.non_redundant_index_generator():
-                coef[ind]._symbol = symbol
+                coef[ind]._expansion_symbol = symbol
                 coef[ind]._order = order
                 if truncate:
                     coef[ind].simplify()

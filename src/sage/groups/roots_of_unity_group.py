@@ -102,6 +102,84 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
     def _an_element_(self):
         return self.element_class(self, self.base().an_element())
 
+    def _element_constructor_(self, data, exponent=None):
+        r"""
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: C = UnitCircleGroup(RR)
+            sage: C(exponent=1/2)
+            e^(2*pi*0.500000000000000)
+
+            sage: U = RootsOfUnityGroup()
+            sage: U(exponent=0)
+            1
+            sage: U(exponent=1)
+            1
+            sage: U(exponent=1/2)
+            -1
+            sage: U(exponent=1/4)
+            I
+            sage: U(exponent=1/3)
+            zeta3
+
+            sage: C.<z> = CyclotomicField(6)
+            sage: z, U(z)
+            (z, zeta6)
+            sage: z^2, U(z^2)
+            (z - 1, zeta3)
+
+            sage: U(ZZ(-1))
+            -1
+            sage: U(QQ(-1))
+            -1
+            sage: U(int(-1))
+            -1
+        """
+        from sage.groups.generic import discrete_log
+        from sage.rings.asymptotic.misc import combine_exceptions
+        from sage.rings.rational_field import QQ
+        from sage.rings.number_field.number_field import NumberField_cyclotomic
+
+        if exponent is None:
+            if isinstance(data, int) and data == 0:
+                raise ValueError('no input specified')
+
+            elif isinstance(data, self.element_class):
+                if data.parent() == self:
+                    return data
+                exponent = data._exponent_
+
+            elif data == 1 or data == '1':
+                exponent = 0
+
+            elif data == -1 or data == '-1':
+                exponent = QQ(1)/QQ(2)
+
+            else:
+                try:
+                    P = data.parent()
+                except AttributeError:
+                    raise TypeError('{} is not in {}'.format(data, self))
+
+                if isinstance(P, NumberField_cyclotomic):
+                    zeta = P.gen()
+                    n = zeta.multiplicative_order()
+                    try:
+                        exponent = QQ(discrete_log(data, zeta)) / QQ(n)
+                    except ValueError as e:
+                        raise combine_exceptions(
+                            ValueError('{} is not in {}'.format(data, self)), e)
+
+            if exponent is None:
+                raise ValueError('{} is not in {}'.format(data, self))
+
+        elif not isinstance(data, int) or data != 0:
+            raise ValueError('input is ambigous: '
+                             '{} as well as exponent={} '
+                             'specified'.format(data, exponent))
+
+        return self.element_class(self, exponent)
 
 
 class RootOfUnity(UnitCirclePoint):

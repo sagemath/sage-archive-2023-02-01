@@ -678,7 +678,9 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
             ((...0000000001)*x, (...0000000001)*y)
 
         """
-        return self.gens()
+        elts = [ self(self._field.uniformizer()) ] + list(self.gens())
+        elts.append(prod(elts))
+        return elts
 
 
 
@@ -980,7 +982,8 @@ class TateAlgebra_generic(CommutativeAlgebra):
             ((...0000000001)*x, (...0000000001)*y)
 
         """
-        return self.gens()
+        terms = [ self.zero() ] + [ self(t) for t in self.monoid_of_terms().some_elements() ]
+        return [ terms[i] + terms[j] for i in range(len(terms)) for j in range(i, len(terms)) ]
 
     def _repr_(self):
         """

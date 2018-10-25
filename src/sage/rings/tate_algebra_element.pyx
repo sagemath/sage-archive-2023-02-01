@@ -1086,14 +1086,14 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             try:
                 poly = parent._polynomial_ring(x)
                 self._poly = PolyDict(poly.dict(), None)
-            except TypeError, e:
+            except TypeError:
                 # last chance: we first try to convert to the rational Tate series
                 if parent._integral:
                     xc = parent._rational_ring(x)
                     self._poly = xc._poly
                     self._prec = xc._prec
                 else:
-                    raise TypeError(e)
+                    raise
         if prec is not None:
             self._prec = min(self._prec, prec)
         self._normalize()
@@ -2169,7 +2169,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     def dict(self):
         """
-        Return a dictionary whose keys are the exponents are values
+        Return a dictionary whose keys are the exponents and whose values
         are the corresponding coefficients of this series.
 
         EXAMPLES::

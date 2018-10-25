@@ -4558,11 +4558,15 @@ cdef class Matrix(sage.structure.element.Matrix):
         return tmp
 
     def multiplicative_order(self):
-        """
+        r"""
         Return the multiplicative order of this matrix, which must
         therefore be invertible.
 
-        EXAMPLES::
+        Only implemented over finite fields and over `\ZZ`.
+
+        EXAMPLES:
+
+        Over finite fields::
 
             sage: A = matrix(GF(59),3,[10,56,39,53,56,33,58,24,55])
             sage: A.multiplicative_order()
@@ -4570,13 +4574,25 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: (A^580).is_one()
             True
 
-        ::
-
             sage: B = matrix(GF(10007^3,'b'),0)
             sage: B.multiplicative_order()
             1
 
-        ::
+            sage: E = MatrixSpace(GF(11^2,'e'),5).random_element()
+            sage: (E^E.multiplicative_order()).is_one()
+            True
+
+        Over `\ZZ`::
+
+            sage: P = posets.TamariLattice(4).coxeter_transformation()
+            sage: P.multiplicative_order()
+            10
+
+            sage: M = matrix(ZZ, 2, 2, [1, 1, 0, 1])
+            sage: M.multiplicative_order()
+            +Infinity
+
+        TESTS::
 
             sage: C = matrix(GF(2^10,'c'),2,3,[1]*6)
             sage: C.multiplicative_order()
@@ -4584,48 +4600,87 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             ArithmeticError: self must be invertible ...
 
-        ::
-
             sage: D = matrix(IntegerModRing(6),3,[5,5,3,0,2,5,5,4,0])
             sage: D.multiplicative_order()
             Traceback (most recent call last):
             ...
-            NotImplementedError: ... only ... over finite fields
-
-        ::
-
-            sage: E = MatrixSpace(GF(11^2,'e'),5).random_element()
-            sage: (E^E.multiplicative_order()).is_one()
-            True
+            NotImplementedError: ... only ... over finite fields or ZZ
 
         REFERENCES:
 
-        - Frank Celler and C. R. Leedham-Green, "Calculating the Order of an Invertible Matrix", 1997
+        .. [CLG1997] Frank Celler and C. R. Leedham-Green,
+           *Calculating the Order of an Invertible Matrix*, 1997
 
+        .. [KuPa2002] James Kuzmanovich; Andrey Pavlichenkov, *Finite
+           Groups of Matrices Whose Entries Are Integers*, The American
+           Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
         """
+        from sage.rings.integer import Integer
+        from sage.rings.integer_ring import is_IntegerRing
+        from sage.categories.fields import Fields
+
+        n = self.ncols()
+        if not n:
+            return Integer(1)
+
         if not self.is_invertible():
             raise ArithmeticError("self must be invertible to have a multiplicative order")
+
         K = self.base_ring()
-        if not (K.is_field() and K.is_finite()):
-            raise NotImplementedError("multiplicative order is only implemented for matrices over finite fields")
-        from sage.rings.integer import Integer
-        from sage.groups.generic import order_from_multiple
-        P = self.minimal_polynomial()
-        if P.degree()==0: #the empty square matrix
-            return 1
-        R = P.parent()
-        P = P.factor()
-        q = K.cardinality()
-        p = K.characteristic()
-        a = 0
-        res = Integer(1)
-        for f,m in P:
-            a = max(a,m)
-            S = R.quotient(f,'y')
-            res = res._lcm(order_from_multiple(S.gen(),q**f.degree()-1,operation='*'))
-        ppart = p**Integer(a).exact_log(p)
-        if ppart<a: ppart*=p
-        return res*ppart
+        if not(K in Fields().Finite() or is_IntegerRing(K)):
+            raise NotImplementedError("multiplicative order is only implemented for matrices over finite fields or ZZ")
+
+        if K.is_finite():
+            from sage.groups.generic import order_from_multiple
+            P = self.minimal_polynomial()
+            R = P.parent()
+            P = P.factor()
+            q = K.cardinality()
+            p = K.characteristic()
+            a = 0
+            res = Integer(1)
+            for f, m in P:
+                a = max(a, m)
+                S = R.quotient(f, 'y')
+                res = res._lcm(order_from_multiple(S.gen(),
+                                                   q**f.degree() - 1,
+                                                   operation='*'))
+            ppart = p**Integer(a).exact_log(p)
+            if ppart < a:
+                ppart *= p
+            return res * ppart
+        else:
+            # over ZZ
+            from sage.rings.infinity import Infinity
+
+            def impossible_order(m, n):
+                """
+                True iff m cannot be the order of a matrix in GL_n(QQ)
+
+                Uses Thm 2.7 [KuPa2002]
+                """
+                fac = m.factor()
+                S = sum((pi - 1) * pi**(ei - 1) for pi, ei in fac)
+                if fac[0] == (2, 1):
+                    return not(S <= n + 1)
+                else:
+                    return not(S <= n)
+
+            # two small odd prime numbers
+            p1 = Integer(3)
+            p2 = Integer(5)
+            o1 = self.mod(p1).multiplicative_order()
+            if impossible_order(o1, n):
+                return Infinity
+            o2 = self.mod(p2).multiplicative_order()
+            if o1 != o2:
+                return Infinity
+            P = self.minimal_polynomial()
+            x = P.parent().gen()
+            if x**o1 % P == 1:  # or (x % P)**o1 == 1 ?
+                return o1
+            else:
+                return Infinity
 
     ###################################################
     # Arithmetic

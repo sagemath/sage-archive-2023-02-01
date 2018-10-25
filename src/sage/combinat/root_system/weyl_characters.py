@@ -133,7 +133,6 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._k = k
         if ct.is_atomic():
             self._opposition = ct.opposition_automorphism()
-        if k is not None:
             self._highest = self._space.highest_root()
             self._hip = self._highest.inner_product(self._highest)
         if style == "coroots":
@@ -556,6 +555,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         `\theta`. Optionally shifts by a multiple `k`of `\theta`.
 
         EXAMPLES::
+
             sage: B22=FusionRing("B2",2)
             sage: fw = B22.fundamental_weights(); fw
             Finite family {1: (1, 0), 2: (1/2, 1/2)}
@@ -772,6 +772,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         the weight on the coroot associated with the highest root.
 
         EXAMPLES::
+
             sage: R = FusionRing("F4",2); [R.level(x) for x in R.fundamental_weights()]
             [2, 3, 2, 1]
             sage: [CartanType("F4~").dual().a()[x] for x in [1..4]]
@@ -783,6 +784,12 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         If `w_0` is the long Weyl group element and `wt` is an
         element of the weight lattice, this returns `-w_0(wt)`.
+
+        EXAMPLES::
+
+            sage: A3=WeylCharacterRing("A3")
+            sage: [A3._dual_helper(x) for x in A3.fundamental_weights()]
+            [(0, 0, 0, -1), (0, 0, -1, -1), (0, -1, -1, -1)]
         """
         if self.cartan_type()[0] == 'A': # handled separately for GL(n) compatibility
             return self.space()([-x for x in reversed(wt.to_vector().list())])

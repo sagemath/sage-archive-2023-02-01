@@ -1136,7 +1136,7 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``bijection`` -- string or ``None`̀  (default:``None``) The name of
+        - ``bijection`` -- string or ``None`` (default:``None``) The name of
           the bijection. If it is set to ``None`` then the ``'Delest-Viennot'``
           bijection is used.
           Expected values are ``None`` or ``'Delest-Viennot'``.
@@ -2584,7 +2584,6 @@ class ParallelogramPolyomino(ClonableList):
         """
         res = ""
         tikz_options = self.get_tikz_options()
-        grid_width = self.width() + 1
         grid_height = self.height() + 1
         drawing_tool = _drawing_tool(
             tikz_options,
@@ -2685,7 +2684,6 @@ class ParallelogramPolyomino(ClonableList):
         tikz_options = self.get_tikz_options()
         if self.size() == 1:
             return res
-        grid_width = self.width() + 1
         grid_height = self.height() + 1
         drawing_tool = _drawing_tool(
             tikz_options,

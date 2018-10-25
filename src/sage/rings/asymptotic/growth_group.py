@@ -1973,6 +1973,36 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         """
         pass
 
+    @staticmethod
+    def _split_raw_element_(raw_element):
+        r"""
+        Split ``raw_element`` in a part convertible to this growth group
+        and a part which needs to be converted by some compatible growth group.
+
+        INPUT:
+
+        - ``raw_element`` -- an object
+
+        OUTPUT:
+
+        A pair of objects.
+
+        .. NOTE::
+
+            This method is called by
+            :meth:`~sage.rings.asymptotic.growth_group.PartialConversionElement.split`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: G._split_raw_element_(0)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented in concrete realizations
+        """
+        raise NotImplementedError('only implemented in concrete realizations')
+
     def _coerce_map_from_(self, S):
         r"""
         Return whether ``S`` coerces into this growth group.
@@ -3124,6 +3154,38 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
                     return data.degree()
 
+    @staticmethod
+    def _split_raw_element_(raw_element):
+        r"""
+        Split ``raw_element`` in a part convertible to this growth group
+        and a part which needs to be converted by some compatible growth group.
+
+        For this monomial growth group the two parts are
+        real and imaginary part of ``raw_element``.
+
+        INPUT:
+
+        - ``raw_element`` -- an object
+
+        OUTPUT:
+
+        A pair of objects.
+
+        .. NOTE::
+
+            This method is called by
+            :meth:`~sage.rings.asymptotic.growth_group.PartialConversionElement.split`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('n^ZZ')
+            sage: G._split_raw_element_(3 + 4*I)
+            (3, 4)
+        """
+        from sage.functions.other import real, imag
+        return real(raw_element), imag(raw_element)
+
     def gens_monomial(self):
         r"""
         Return a tuple containing monomial generators of this growth
@@ -3817,6 +3879,87 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         elif data == 1:  # can be expensive, so let's put it at the end
             return self.base().one()
+
+    @staticmethod
+    def _split_raw_element_(base):
+        r"""
+        Split ``raw_element`` in a part convertible to this growth group
+        and a part which needs to be converted by some compatible growth group.
+
+        For this exponential growth group the two parts are
+        absolute value and argument of ``raw_element``.
+
+        INPUT:
+
+        - ``raw_element`` -- an object
+
+        OUTPUT:
+
+        A pair of objects.
+
+        .. NOTE::
+
+            This method is called by
+            :meth:`~sage.rings.asymptotic.growth_group.PartialConversionElement.split`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^n')
+            sage: G._split_raw_element_(ZZ(-2))
+            (2, -1)
+            sage: G._split_raw_element_(ZZ(2))
+            (2, None)
+            sage: G._split_raw_element_(QQ(-2/3))
+            (2/3, -1)
+            sage: G._split_raw_element_(QQ(2/3))
+            (2/3, None)
+            sage: G._split_raw_element_(AA(-3/4))
+            (3/4, -1)
+            sage: G._split_raw_element_(AA(3/4))
+            (3/4, None)
+            sage: G._split_raw_element_(RR(-3.14))
+            (3.14000000000000, -1)
+            sage: G._split_raw_element_(RR(3.14))
+            (3.14000000000000, None)
+           sage: G._split_raw_element_(RIF(-3.14))
+            (3.1400000000000002?, -1)
+            sage: G._split_raw_element_(RIF(3.14))
+            (3.1400000000000002?, None)
+            sage: G._split_raw_element_(RBF(-3.14))
+            ([3.140000000000000 +/- 1.25e-16], -1)
+            sage: G._split_raw_element_(RBF(3.14))
+            ([3.140000000000000 +/- 1.25e-16], None)
+            sage: G._split_raw_element_(CC(-3.14))
+            (3.14000000000000, -1.00000000000000)
+            sage: G._split_raw_element_(CC(3.14))
+            (3.14000000000000, 1.00000000000000)
+            sage: G._split_raw_element_(CC(1+I))
+            (1.41421356237310, 0.707106781186547 + 0.707106781186547*I)
+            sage: G._split_raw_element_(CC(I))
+            (1.00000000000000, 1.00000000000000*I)
+        """
+        from sage.rings.complex_field import ComplexField_class
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
+        from sage.rings.real_arb import RealBallField
+        from sage.rings.real_mpfr import RealField_class
+        from sage.rings.real_mpfi import RealIntervalField_class
+        from sage.rings.qqbar import AA
+
+        P = base.parent()
+        if P in (ZZ, QQ, AA) or isinstance(P, (RealField_class,
+                                               RealIntervalField_class,
+                                               RealBallField)):
+            if base > 0:
+                return base, None
+            if base < 0:
+                return -base, -1
+        elif isinstance(P, ComplexField_class):
+            size = abs(base)
+            direction = base / size
+            return size, direction
+        raise ValueError('cannot split {} into abs and arg'.format(base))
 
     def some_elements(self):
         r"""

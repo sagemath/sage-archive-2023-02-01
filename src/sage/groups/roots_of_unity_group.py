@@ -102,3 +102,65 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
     def _an_element_(self):
         return self.element_class(self, self.base().an_element())
 
+
+
+class RootOfUnity(UnitCirclePoint):
+
+    def exponent_numerator(self):
+        return self._exponent_.numerator()
+
+    def exponent_denominator(self):
+        return self._exponent_.denominator()
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: U(exponent=0)
+            1
+            sage: U(exponent=1/2)
+            -1
+            sage: U(exponent=1/4)
+            I
+            sage: U(exponent=3/4)
+            -I
+            sage: U(exponent=1/3)
+            zeta3
+            sage: U(exponent=2/3)
+            zeta3^2
+        """
+        from sage.rings.rational_field import QQ
+        if self._exponent_ == 0:
+            return '1'
+        if self._exponent_ == QQ(1)/QQ(2):
+            return '-1'
+        if self._exponent_ == QQ(1)/QQ(4):
+            return 'I'
+        if self._exponent_ == QQ(3)/QQ(4):
+            return '-I'
+        num = self.exponent_numerator()
+        den = self.exponent_denominator()
+        zeta = 'zeta{}'.format(den)
+        if num == 1:
+            return zeta
+        return '{}^{}'.format(zeta, num)
+
+
+class RootsOfUnityGroup(UnitCircleGroup):
+
+    Element = RootOfUnity
+
+    @staticmethod
+    def __classcall__(cls, category=None):
+        category = cls._determine_category_(category)
+        return super(UnitCircleGroup, cls).__classcall__(
+            cls, category)
+
+    def __init__(self, category):
+        from sage.rings.rational_field import QQ
+        return super(RootsOfUnityGroup, self).__init__(base=QQ,
+                                                         category=category)
+    def _repr_(self):
+        return 'Group of Roots of Unity'

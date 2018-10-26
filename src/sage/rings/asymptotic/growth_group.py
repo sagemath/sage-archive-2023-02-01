@@ -4441,6 +4441,11 @@ class ExponentialArgumentGrowthGroup(ExponentialGrowthGroup):
 
         sage: U(raw_element=int(-1))
         (-1)^n
+
+    ::
+
+        sage: U.category()
+        Join of Category of commutative groups and Category of posets
     """
 
     Element = ExponentialArgumentGrowthElement

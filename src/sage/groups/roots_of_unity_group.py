@@ -192,30 +192,94 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
 
 class UnitCircleGroup(UniqueRepresentation, Parent):
+    r"""
+    A group for points on the unit circle.
+
+    INPUT:
+
+    - ``base`` -- a SageMath parent representing a subset of the reals
+
+    - ``category`` -- a category
+
+    EXAMPLES::
+
+        sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+        sage: UnitCircleGroup(RR)
+        sage: UnitCircleGroup(QQ)
+    """
 
     Element = UnitCirclePoint
 
     @staticmethod
     def __classcall__(cls, base, category=None):
+        r"""
+        See :class:`UnitCircleGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: UnitCircleGroup(RR).category()  # indirect doctest
+        """
         category = cls._determine_category_(category)
         return super(UnitCircleGroup, cls).__classcall__(
             cls, base, category)
 
     @staticmethod
     def _determine_category_(category):
+        r"""
+        Return the category of this unit circle group.
+
+        INPUT:
+
+        - ``category`` -- a category or ``None`` (in which case the output
+          equals ``category``)
+
+        OUTPUT:
+
+        A category.
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: UnitCircleGroup._determine_category_(None)
+            sage: UnitCircleGroup._determine_category_(Groups())
+        """
         if category is None:
             from sage.categories.groups import Groups
             category = Groups().Commutative()
         return category
 
     def __init__(self, base, category):
+        r"""
+        See :class:`UnitCircleGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: UnitCircleGroup(RR).base()  # indirect doctest
+        """
         super(UnitCircleGroup, self).__init__(category=category,
                                               base=base)
 
     def _repr_(self):
+        r"""
+        Return a representation string of this unit circle group.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: UnitCircleGroup(RR)  # indirect doctest
+        """
         return 'Unit Circle Group with Exponents in {} modulo ZZ'.format(self.base())
 
     def _repr_short_(self):
+        r"""
+        Return a short representation string of this unit circle group.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: UnitCircleGroup(RR)  # indirect doctest
+            'U_RR'
+        """
         from sage.rings.asymptotic.misc import parent_to_repr_short
         s = parent_to_repr_short(self.base())
         if ' ' in s:
@@ -223,13 +287,42 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
         return 'U_{}'.format(s)
 
     def __hash__(self):
+        r"""
+        Return a hash value of this unit circle group.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: hash(UnitCircleGroup(RR))  # indirect doctest, random
+            42
+        """
         return hash((self.__class__, self.base()))
 
     def _an_element_(self):
+        r"""
+        Return an element of this unit circle group.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: UnitCircleGroup(RR).an_element()  # indirect doctest
+        """
         return self.element_class(self, self.base().an_element())
 
     def _element_constructor_(self, data, exponent=None):
         r"""
+        Construct an element out of the given data.
+
+        INPUT:
+
+        - ``data`` -- an object
+
+        - ``exponent`` -- a number (of a subset of the reals) or ``None``
+
+        OUTPUT:
+
+        A :class:`UnitCirclePoint`.
+
         TESTS::
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
@@ -320,7 +413,7 @@ class RootOfUnity(UnitCirclePoint):
         r"""
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: U(exponent=0)
             1

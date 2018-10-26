@@ -4408,6 +4408,11 @@ class GrowthGroupFactory(UniqueFactory):
         sage: GrowthGroup('(e^x)^ZZ * x^ZZ')
         Growth Group (e^x)^ZZ * x^ZZ
 
+    ::
+
+        sage: GrowthGroup('QQ^n * n^ZZ * U^n')
+        Growth Group QQ^n * n^ZZ * U^n
+
     TESTS::
 
         sage: G = GrowthGroup('(e^(n*log(n)))^ZZ')
@@ -4420,6 +4425,8 @@ class GrowthGroupFactory(UniqueFactory):
         sage: G, tuple(F._var_ for F in G.cartesian_factors())
         (Growth Group (e^(n*log(n)))^ZZ * (e^n)^ZZ * n^ZZ * log(n)^ZZ,
          (e^(n*log(n)), e^n, n, log(n)))
+
+    ::
 
         sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
@@ -4571,7 +4578,9 @@ class GrowthGroupFactory(UniqueFactory):
             > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* NameError: name 'y' is not defined
         """
+        from sage.groups.roots_of_unity_group import RootsOfUnityGroup
         from .misc import repr_short_to_parent, split_str_by_op
+
         groups = []
         for factor in factors:
             split = split_str_by_op(factor, '^')
@@ -4599,7 +4608,10 @@ class GrowthGroupFactory(UniqueFactory):
             elif B is None and E is not None:
                 groups.append(MonomialGrowthGroup(E, b, **kwds))
             elif B is not None and E is None:
-                groups.append(ExponentialGrowthGroup(B, e, **kwds))
+                if isinstance(B, RootsOfUnityGroup):
+                    groups.append(ExponentialArgumentGrowthGroup(B, e, **kwds))
+                else:
+                    groups.append(ExponentialGrowthGroup(B, e, **kwds))
             else:
                 raise ValueError("'%s' is an ambigous substring of a growth group "
                                  "description of '%s'." % (factor, ' * '.join(factors)))

@@ -2168,39 +2168,34 @@ class WeightRing(CombinatorialFreeModule):
 
 class FusionRing(WeylCharacterRing):
     r"""
+    Return the Fusion Ring (Verlinde Algebra) of level ``k``.
+
     INPUT:
 
     - ``ct`` -- the Cartan type of a simple (finite-dimensional) Lie algebra
     - ``k`` -- a nonnegative integer
- 
-    Returns the Fusion Ring (Verlinde Algebra) of level k. See:
-    
-    * J. Fuchs, Fusion Rules for Conformal Field Theory. arXiv:hep-th/9306162
-    * Walton, Mark A. Fusion rules in Wess-Zumino-Witten models. Nuclear Phys. B 340 (1990).
-    * Feingold, Fusion rules for affine Kac-Moody algebras. Contemp. Math., 343. arXiv:math/0212387
-    * Di Francesco, Mathiew and Senechal, Conformal Field Theory, Chapter 16.
 
-    This algebra has a basis indexed by the weights of level `\leq k`. It is implemented
-    as a variant of the WeylCharacterRing.
+    This algebra has a basis indexed by the weights of level `\leq k`.
+    It is implemented as a variant of the :class:`WeylCharacterRing`.
 
     EXAMPLES::
 
         sage: A22 = FusionRing("A2",2)
-        sage: [f1,f2]=A22.fundamental_weights()
-        sage: [m0,m1,m2,m3,m4,m5]=[A22(x) for x in [0*f1,2*f1,2*f2,f1+f2,f2,f1]]
-        sage: [m3*x for x in [m0,m1,m2,m3,m4,m5]]
+        sage: [f1, f2] = A22.fundamental_weights()
+        sage: M = [A22(x) for x in [0*f1, 2*f1, 2*f2, f1+f2, f2, f1]]
+        sage: [M[3] * x for x in M]
         [A22(1,1),
-        A22(0,1),
-        A22(1,0),
-        A22(0,0) + A22(1,1),
-        A22(0,1) + A22(2,0),
-        A22(1,0) + A22(0,2)]
+         A22(0,1),
+         A22(1,0),
+         A22(0,0) + A22(1,1),
+         A22(0,1) + A22(2,0),
+         A22(1,0) + A22(0,2)]
 
     You may assign your own labels to the basis elements. In the next
-    example, we create the SO(5) fusion ring of level 2, check the
+    example, we create the `SO(5)` fusion ring of level `2`, check the
     weights of the basis elements, then assign new labels to them::
 
-        sage: B22 = FusionRing("B2",2)
+        sage: B22 = FusionRing("B2", 2)
         sage: list(B22.basis())
         [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
         sage: [x.highest_weight() for x in B22.basis()]
@@ -2213,13 +2208,57 @@ class FusionRing(WeylCharacterRing):
         sage: Z*Z
         1
 
-        sage: C22 = FusionRing("C2",2)
+        sage: C22 = FusionRing("C2", 2)
         sage: list(C22.basis())
         [C22(0,0), C22(0,1), C22(1,0), C22(2,0), C22(0,2), C22(1,1)]
+
+    REFERENCES:
+
+    - [DFMS1996]_ Chapter 16
+    - [Feingold2004]_
+    - [Fuchs1994]_
+    - [Walton1990]_
     """
     @staticmethod
     def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots"):
-        return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k)
+        """
+        Normalize input to ensure a unique representation.
+
+        TESTS::
+
+            sage: F1 = FusionRing('B3', 2)
+            sage: F2 = FusionRing(CartanType('B3'), QQ(2), ZZ)
+            sage: F3 = FusionRing(CartanType('B3'), int(2), style="coroots")
+            sage: F1 is F2 and F2 is F3
+            True
+
+            sage: A23 = FusionRing('A2', 3)
+            sage: TestSuite(A23).run()
+
+            sage: B22 = FusionRing('B2', 2)
+            sage: TestSuite(B22).run()
+
+            sage: C31 = FusionRing('C3', 1)
+            sage: TestSuite(C31).run()
+
+            sage: D41 = FusionRing('D4', 1)
+            sage: TestSuite(D41).run()
+        """
+        return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring,
+                                                    prefix=prefix, style=style, k=k)
+
+    def some_elements(self):
+        """
+        Return some elements of ``self``.
+
+        EXAMPLES::
+
+            sage: D41 = FusionRing('D4', 1)
+            sage: D41.some_elements()
+            [D41(1,0,0,0), D41(0,0,1,0), D41(0,0,0,1)]
+        """
+        return [self.monomial(x) for x in self.fundamental_weights()
+                if self.level(x) <= self._k]
     
     def fusion_labels(self, labels=None):
         r"""

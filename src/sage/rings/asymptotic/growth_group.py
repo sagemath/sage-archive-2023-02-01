@@ -4139,9 +4139,13 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: G._split_raw_element_(CC(I))
             (1.00000000000000, 1.00000000000000*I)
             sage: G._split_raw_element_(CIF(1+I))
-            (1.41421356237310, 0.707106781186547 + 0.707106781186547*I)
+            (1.414213562373095?, 0.707106781186548? + 0.707106781186548?*I)
             sage: G._split_raw_element_(CBF(1+I))
-            (1.41421356237310, 0.707106781186547 + 0.707106781186547*I)
+            ([1.414213562373095 +/- 2.99e-16],
+             [0.707106781186548 +/- 6.50e-16] + [0.707106781186548 +/- 6.50e-16]*I)
+
+            sage: G._split_raw_element_(SR(-2/3))
+            (2/3, -1)
         """
         from sage.rings.complex_arb import ComplexBallField
         from sage.rings.complex_field import ComplexField_class
@@ -4152,8 +4156,18 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         from sage.rings.real_mpfr import RealField_class
         from sage.rings.real_mpfi import RealIntervalField_class
         from sage.rings.qqbar import AA
+        from sage.structure.element import parent
+        from sage.symbolic.ring import SymbolicRing
 
         P = base.parent()
+        if isinstance(P, SymbolicRing):
+            try:
+                base = base.pyobject()
+            except TypeError:
+                pass
+            else:
+                P = base.parent()
+
         if P in (ZZ, QQ, AA) or isinstance(P, (RealField_class,
                                                RealIntervalField_class,
                                                RealBallField)):

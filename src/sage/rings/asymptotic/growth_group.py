@@ -1031,6 +1031,12 @@ def _rpow_(self, base):
         2^n
         sage: _.parent()
         Growth Group QQ^n * n^QQ
+
+    ::
+
+        sage: n = GrowthGroup('QQ^n * n^QQ * U^n')('n')
+        sage: n.rpow(-2)
+        2^n*(-1)^n
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
@@ -1049,7 +1055,11 @@ def _rpow_(self, base):
             element = M(raw_element=ZZ(1))
         else:
             E = ExponentialGrowthGroup(base.parent(), var)
-            element = E(raw_element=base)
+            try:
+                element = E(raw_element=base)
+            except PartialConversionValueError as e:
+                EU = E.extend_by_roots_of_unity_group()
+                element = EU._convert_factors_([e.element])
 
     try:
         return self.parent().one() * element

@@ -2135,11 +2135,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: x.rpow(SR.var('y'))
+            sage: y = SR.var('y')
+            sage: assume(y > 0)
+            sage: x.rpow(y)
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
             > *previous* TypeError: unsupported operand parent(s) for *:
             'Growth Group x^ZZ' and 'Growth Group SR^x'
+            sage: forget()
 
         Check that :trac:`19946` is fixed::
 

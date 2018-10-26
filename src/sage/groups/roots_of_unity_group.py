@@ -217,7 +217,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+        sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
         sage: UnitCircleGroup(RR)
         Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
         sage: UnitCircleGroup(QQ)
@@ -233,7 +233,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         TESTS:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: UnitCircleGroup(RR).category()  # indirect doctest
             Category of commutative groups
         """
@@ -255,7 +255,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         A category.
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: UnitCircleGroup._determine_category_(None)
             Category of commutative groups
             sage: UnitCircleGroup._determine_category_(Groups())
@@ -272,7 +272,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         TESTS:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: UnitCircleGroup(RR).base()  # indirect doctest
             Real Field with 53 bits of precision
         """
@@ -285,7 +285,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: UnitCircleGroup(RR)  # indirect doctest
             Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
         """
@@ -297,7 +297,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: UnitCircleGroup(RR)._repr_short_()
             'U_RR'
         """
@@ -313,7 +313,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: hash(UnitCircleGroup(RR))  # indirect doctest, random
             42
         """
@@ -325,7 +325,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: UnitCircleGroup(RR).an_element()  # indirect doctest
             e^(2*pi*0.000000000000000)
         """

@@ -4402,6 +4402,49 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         return ExponentialGrowthGroup(base, self.var)
 
 
+class ExponentialArgumentGrowthElement(ExponentialGrowthElement):
+    r"""
+    An element of :class:`ExponentialArgumentGrowthGroup`.
+    """
+
+    def _lt_(self, other):
+        r"""
+        Return ``False`` as elements of type
+        :class:`ExponentialArgumentGrowthElement` are not comparable.
+
+        EXAMPLES::
+
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
+            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: U(raw_element=-1) < U(raw_element=1)
+            False
+            sage: U(raw_element=-1) > U(raw_element=1)
+            False
+        """
+        return False
+
+
+class ExponentialArgumentGrowthGroup(ExponentialGrowthGroup):
+    r"""
+    A growth group whose elements have a base with absolute value `1`.
+
+    EXAMPLES::
+
+        sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+        sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
+        sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+        sage: U(raw_element=-1)
+        (-1)^n
+
+    TESTS::
+
+        sage: U(raw_element=int(-1))
+        (-1)^n
+    """
+
+    Element = ExponentialArgumentGrowthElement
+
 class GrowthGroupFactory(UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.

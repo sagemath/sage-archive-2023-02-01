@@ -353,14 +353,11 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: GenericTerm(T, GrowthGroup('y^ZZ').gen())
             Traceback (most recent call last):
             ...
-            ValueError: y is not in Growth Group x^ZZ
+            ValueError: y is not in Growth Group x^ZZ.
         """
         if parent is None:
             raise ValueError('The parent must be provided')
-        try:
-            self.growth = parent.growth_group(growth)
-        except (ValueError, TypeError):
-            raise ValueError("%s is not in %s" % (growth, parent.growth_group))
+        self.growth = parent.growth_group(growth)
 
         super(GenericTerm, self).__init__(parent=parent)
 

@@ -1108,7 +1108,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ValueError: Cannot include n with parent Exact Term Monoid
             n^QQ with coefficients in Rational Field in Asymptotic Ring
             <m^QQ> over Rational Field
-            > *previous* ValueError: n is not in Growth Group m^QQ
+            > *previous* ValueError: n is not in Growth Group m^QQ.
 
         Only monomials are allowed::
 
@@ -3771,7 +3771,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ValueError: Cannot include m^3 with parent
             Exact Term Monoid m^ZZ with coefficients in Integer Ring
             in Asymptotic Ring <n^ZZ> over Rational Field
-            > *previous* ValueError: m^3 is not in Growth Group n^ZZ
+            > *previous* ValueError: m^3 is not in Growth Group n^ZZ.
 
         ::
 

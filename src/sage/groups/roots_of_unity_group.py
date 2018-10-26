@@ -71,6 +71,13 @@ class UnitCirclePoint(MultiplicativeGroupElement):
                             "for the roots of unity "
                             "{} and {}".format(self, other))
 
+    def is_one(self):
+        return self._exponent_ == 0
+
+    def is_minus_one(self):
+        from sage.rings.rational_field import QQ
+        return self._exponent_ == QQ(1)/QQ(2)
+
 
 class UnitCircleGroup(UniqueRepresentation, Parent):
 

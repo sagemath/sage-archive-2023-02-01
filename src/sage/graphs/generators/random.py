@@ -14,6 +14,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 from six.moves import range
+import sys
 # import from Sage library
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
@@ -30,7 +31,8 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
 
     - ``p`` -- probability of an edge
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
 
     - ``fast`` -- boolean set to True (default) to use the algorithm with
       time complexity in `O(n+m)` proposed in [BatBra2005]_. It is designed
@@ -98,7 +100,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
         sage: graphs.RandomGNP(50,.2, algorithm="Sage").size()
         243
         sage: graphs.RandomGNP(50,.2, algorithm="networkx").size()
-        258
+        245
     """
     if n < 0:
         raise ValueError("The number of nodes must be positive or null.")
@@ -106,7 +108,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
         raise ValueError("The probability p must be in [0..1].")
 
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     if p == 1:
         from sage.graphs.generators.basic import CompleteGraph
         return CompleteGraph(n)
@@ -140,7 +142,9 @@ def RandomBarabasiAlbert(n, m, seed=None):
 
     - ``m`` - number of edges to attach from each new node
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
+
 
     EXAMPLES:
 
@@ -149,7 +153,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
     ::
 
         sage: graphs.RandomBarabasiAlbert(6,2).edges(labels=False)
-        [(0, 2), (0, 3), (0, 4), (1, 2), (2, 3), (2, 4), (2, 5), (3, 5)]
+        [(0, 2), (0, 3), (1, 2), (1, 4), (1, 5), (2, 3), (2, 4), (3, 5)]
 
     We plot a random graph on 12 nodes with m = 3.
 
@@ -175,7 +179,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
 
     """
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     return Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
 
@@ -625,7 +629,9 @@ def RandomGNM(n, m, dense=False, seed=None):
     - ``dense`` - whether to use NetworkX's
       dense_gnm_random_graph or gnm_random_graph
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
+
 
     EXAMPLES: We show the edge list of a random graph on 5 nodes with
     10 edges.
@@ -658,7 +664,7 @@ def RandomGNM(n, m, dense=False, seed=None):
         sage: G.show()  # long time
     """
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     if dense:
         return Graph(networkx.dense_gnm_random_graph(n, m, seed=seed))
@@ -688,13 +694,15 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     - ``p`` - the probability of adding a new edge for
       each edge
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
+
 
     EXAMPLES: We show the edge list of a random graph on 7 nodes with 2
     "nearest neighbors" and probability `p = 0.2`::
 
         sage: graphs.RandomNewmanWattsStrogatz(7, 2, 0.2).edges(labels=False)
-        [(0, 1), (0, 2), (0, 3), (0, 6), (1, 2), (2, 3), (2, 4), (3, 4), (3, 6), (4, 5), (5, 6)]
+        [(0, 1), (0, 4), (0, 6), (1, 2), (1, 4), (2, 3), (3, 4), (4, 5), (5, 6)]
 
     ::
 
@@ -708,7 +716,7 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
       99, 2566-2572.
     """
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     return Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed=seed))
 
@@ -728,7 +736,9 @@ def RandomHolmeKim(n, m, p, seed=None):
     - ``p`` - probability of adding a triangle after
       adding a random edge.
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
+
 
     From the NetworkX documentation: The average clustering has a hard
     time getting above a certain cutoff that depends on m. This cutoff
@@ -750,8 +760,7 @@ def RandomHolmeKim(n, m, p, seed=None):
     ::
 
         sage: graphs.RandomHolmeKim(8, 2, 0.5).edges(labels=False)
-        [(0, 2), (0, 5), (1, 2), (1, 3), (2, 3), (2, 4), (2, 6), (2, 7),
-         (3, 4), (3, 6), (3, 7), (4, 5)]
+        [(0, 2), (0, 3), (0, 4), (0, 5), (0, 7), (1, 2), (1, 3), (1, 6), (2, 4), (2, 6), (3, 5), (4, 7)]
 
     ::
 
@@ -764,7 +773,7 @@ def RandomHolmeKim(n, m, p, seed=None):
       with tunable clustering, Phys. Rev. E (2002). vol 65, no 2, 026107.
     """
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     return Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
 
@@ -838,13 +847,15 @@ def RandomLobster(n, p, q, seed=None):
     - ``q`` - probability of adding an edge (claw) to the
       arms
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
+
 
     EXAMPLES: We show the edge list of a random graph with 3 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
         sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
-        [(0, 1), (1, 2)]
+        [(0, 1), (0, 5), (1, 2), (1, 6), (2, 3), (2, 7), (3, 4), (3, 8)]
 
     ::
 
@@ -852,7 +863,7 @@ def RandomLobster(n, p, q, seed=None):
         sage: G.show()  # long time
     """
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     return Graph(networkx.random_lobster(n, p, q, seed=seed))
 
@@ -924,7 +935,7 @@ def RandomTree(n):
 
     return g
 
-def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
+def RandomTreePowerlaw(n, gamma=3, tries=1000, seed=None):
     """
     Returns a tree with a power law degree distribution. Returns False
     on failure.
@@ -943,15 +954,17 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
     - ``tries`` - number of attempts to adjust sequence to
       make a tree
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
+
 
     EXAMPLES: We show the edge list of a random graph with 10 nodes and
     a power law exponent of 2.
 
     ::
 
-        sage: graphs.RandomTreePowerlaw(10, 2).edges(labels=False)
-        [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (6, 8), (6, 9)]
+        sage: graphs.RandomTreePowerlaw(10, 3).edges(labels=False)
+        [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (5, 8), (6, 7), (6, 9)]
 
     ::
 
@@ -960,7 +973,7 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
         ....:     G.show()  # random output, long time
     """
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     try:
         return Graph(networkx.random_powerlaw_tree(n, gamma, seed=seed, tries=tries))
@@ -981,7 +994,8 @@ def RandomRegular(d, n, seed=None):
 
     - ``d`` - degree
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
 
 
     EXAMPLES: We show the edge list of a random graph with 8 nodes each
@@ -990,7 +1004,7 @@ def RandomRegular(d, n, seed=None):
     ::
 
         sage: graphs.RandomRegular(3, 8).edges(labels=False)
-        [(0, 1), (0, 4), (0, 7), (1, 5), (1, 7), (2, 3), (2, 5), (2, 6), (3, 4), (3, 6), (4, 5), (6, 7)]
+        [(0, 3), (0, 5), (0, 6), (1, 2), (1, 3), (1, 7), (2, 4), (2, 6), (3, 6), (4, 5), (4, 7), (5, 7)]
 
     ::
 
@@ -1009,7 +1023,7 @@ def RandomRegular(d, n, seed=None):
       regular graphs quickly. Prob. and Comp. 8 (1999), pp 377-396.
     """
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     try:
         N = networkx.random_regular_graph(d, n, seed=seed)
@@ -1034,17 +1048,19 @@ def RandomShell(constructor, seed=None):
     - ``d`` - the ratio of inter (next) shell edges to
       intra shell edges
 
-    - ``seed`` -- a ``random.Random`` seed for random number generator (default ``None``).
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
+
 
     EXAMPLES::
 
         sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
         sage: G.edges(labels=False)
-        [(0, 3), (0, 7), (0, 8), (1, 2), (1, 5), (1, 8), (1, 9), (3, 6), (3, 11), (4, 6), (4, 7), (4, 8), (4, 21), (5, 8), (5, 9), (6, 9), (6, 10), (7, 8), (7, 9), (8, 18), (10, 11), (10, 13), (10, 19), (10, 22), (10, 26), (11, 18), (11, 26), (11, 28), (12, 13), (12, 14), (12, 28), (12, 29), (13, 16), (13, 21), (13, 29), (14, 18), (16, 20), (17, 18), (17, 26), (17, 28), (18, 19), (18, 22), (18, 27), (18, 28), (19, 23), (19, 25), (19, 28), (20, 22), (24, 26), (24, 27), (25, 27), (25, 29)]
+        [(0, 7), (0, 8), (0, 9), (1, 3), (1, 4), (1, 5), (1, 7), (1, 9), (1, 27), (2, 5), (2, 9), (2, 15), (2, 21), (3, 6), (3, 8), (3, 9), (4, 6), (4, 7), (6, 7), (8, 21), (10, 26), (12, 17), (12, 18), (12, 20), (12, 25), (12, 26), (13, 14), (13, 19), (14, 16), (14, 18), (14, 19), (14, 22), (14, 24), (15, 21), (16, 17), (16, 25), (16, 26), (16, 28), (17, 19), (17, 29), (18, 24), (18, 26), (19, 28), (20, 27), (20, 29), (22, 24), (22, 27), (22, 29), (23, 24), (23, 26), (24, 27), (26, 29)]
         sage: G.show()  # long time
     """
     if seed is None:
-        seed = current_randstate().python_random()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     return Graph(networkx.random_shell_graph(constructor, seed=seed))
 

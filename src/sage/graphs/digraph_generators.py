@@ -63,6 +63,7 @@ Functions and methods
 from __future__ import print_function, division
 from six.moves import range
 
+import sys
 from sage.misc.randstate import current_randstate
 from sage.graphs.digraph import DiGraph
 
@@ -1104,18 +1105,19 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``kernel`` - the attachment kernel
+        - ``kernel`` - the attachment kernel.
 
-        -  ``seed`` - a ``random.Random`` seed for the random number generator
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGN(25)
             sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (3, 1), (4, 0), (5, 0), (6, 1), (7, 0), (8, 3), (9, 0), (10, 8), (11, 3), (12, 9), (13, 8), (14, 0), (15, 11), (16, 11), (17, 5), (18, 11), (19, 6), (20, 5), (21, 14), (22, 5), (23, 18), (24, 11)]
+            [(1, 0), (2, 1), (3, 0), (4, 2), (5, 0), (6, 2), (7, 3), (8, 2), (9, 3), (10, 4), (11, 5), (12, 9), (13, 2), (14, 2), (15, 5), (16, 2), (17, 15), (18, 1), (19, 5), (20, 2), (21, 5), (22, 1), (23, 5), (24, 14)]
             sage: D.show()  # long time
 
         REFERENCE:
@@ -1124,7 +1126,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = current_randstate().python_random()
+            seed = int(current_randstate().long_seed() % sys.maxint)
         import networkx
         return DiGraph(networkx.gn_graph(n, kernel, seed=seed))
 
@@ -1142,16 +1144,17 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``seed`` - a ``random.Random`` seed for the random number generator
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNC(25)
             sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
+            [(1, 0), (2, 0), (3, 0), (3, 2), (4, 0), (5, 0), (5, 2), (5, 3), (6, 0), (6, 4), (7, 0), (7, 2), (7, 3), (8, 0), (8, 2), (8, 3), (8, 5), (9, 0), (9, 4), (9, 6), (10, 0), (10, 2), (10, 3), (10, 7), (11, 0), (11, 4), (11, 6), (11, 9), (12, 0), (12, 4), (13, 0), (13, 4), (14, 0), (14, 2), (14, 3), (14, 5), (14, 8), (15, 0), (15, 2), (15, 3), (16, 0), (16, 2), (16, 3), (16, 15), (17, 0), (17, 2), (18, 0), (18, 2), (18, 3), (18, 7), (18, 10), (19, 0), (19, 2), (19, 3), (19, 5), (20, 0), (20, 2), (20, 3), (20, 7), (20, 10), (21, 0), (21, 2), (22, 0), (22, 4), (22, 6), (22, 9), (22, 11), (23, 0), (23, 2), (23, 17), (24, 0), (24, 4), (24, 6), (24, 9)]
             sage: D.show()  # long time
 
         REFERENCE:
@@ -1160,7 +1163,7 @@ class DiGraphGenerators():
           Copying, Phys. Rev. E vol. 71 (2005), p. 036118.
         """
         if seed is None:
-            seed = current_randstate().python_random()
+            seed = int(current_randstate().long_seed() % sys.maxint)
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
@@ -1351,18 +1354,19 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``p`` - redirection probability
+        - ``p`` - redirection probability.
 
-        -  ``seed`` - a ``random.Random`` seed for the random number generator.
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNR(25, .2)
             sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
+            [(1, 0), (2, 0), (3, 0), (3, 2), (4, 0), (5, 0), (5, 2), (5, 3), (6, 0), (6, 4), (7, 0), (7, 2), (7, 3), (8, 0), (8, 2), (8, 3), (8, 5), (9, 0), (9, 4), (9, 6), (10, 0), (10, 2), (10, 3), (10, 7), (11, 0), (11, 4), (11, 6), (11, 9), (12, 0), (12, 4), (13, 0), (13, 4), (14, 0), (14, 2), (14, 3), (14, 5), (14, 8), (15, 0), (15, 2), (15, 3), (16, 0), (16, 2), (16, 3), (16, 15), (17, 0), (17, 2), (18, 0), (18, 2), (18, 3), (18, 7), (18, 10), (19, 0), (19, 2), (19, 3), (19, 5), (20, 0), (20, 2), (20, 3), (20, 7), (20, 10), (21, 0), (21, 2), (22, 0), (22, 4), (22, 6), (22, 9), (22, 11), (23, 0), (23, 2), (23, 17), (24, 0), (24, 4), (24, 6), (24, 9)]
             sage: D.show()  # long time
 
         REFERENCE:
@@ -1371,7 +1375,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = current_randstate().python_random()
+            seed = int(current_randstate().long_seed() % sys.maxint)
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 

@@ -28,13 +28,14 @@ from sage.structure.richcmp import richcmp_by_eq_and_lt
 
 class UnitCirclePoint(MultiplicativeGroupElement):
     r"""
-    An element of :class:`UnitCircleGroup`.
+    An element of :class:`UnitCircleGroup`
+    which is `e^{2\pi\mathit{exponent}}`.
 
     INPUT:
 
     - ``parent`` -- a SageMath parent
 
-    - ``element`` -- a number (of a subset of the reals)
+    - ``exponent`` -- a number (of a subset of the reals)
 
     - ``normalize`` -- a boolean
     """

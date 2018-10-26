@@ -688,9 +688,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         Check that :trac:`19999` is resolved::
 
-            sage: A.<x> = AsymptoticRing('QQ^x * x^QQ', QQ)
+            sage: A.<x> = AsymptoticRing('QQ^x * x^QQ * U^x', QQ)
             sage: 1 + (-1)^x + 2^x + (-2)^x
-            (-2)^x + 2^x + (-1)^x + 1
+            2^x + 2^x*(-1)^x + (-1)^x + 1
         """
         super(AsymptoticExpansion, self).__init__(parent=parent)
 

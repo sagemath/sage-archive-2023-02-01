@@ -218,7 +218,8 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
             sage: U(raw_element=0) >= U(raw_element=1/2)  # indirect doctest
             False
         """
-        return left == right
+        return self(left) <= self(right)
+
 
 class RootOfUnity(UnitCirclePoint):
 

@@ -658,6 +658,85 @@ class PartialConversionValueError(ValueError):
         self.element = element
 
 
+class PartialConversionElement(SageObject):
+    r"""
+    A not converted element of a growth group.
+
+    INPUT:
+
+    - ``growth_group`` -- a group group
+
+    - ``raw_element`` -- an object
+
+    A :class:`PartialConversionElement` is an element ``growth_group(raw_element)``
+    which usually appears in conjunction with :class:`PartialConversionValueError`.
+    In this case, it was to possible to create that element, although
+    the conversion went partially well in the sense that a `raw_element``
+    (e.g. an exponent for :class:`MonomialGrowthElement` or a base for
+    :class:`ExponentialGrowthElement`) could be extracted.
+
+    Its main purpose is to carry data used during the creation of
+    elements of
+    :mod:`cartesian products of growth groups <sage.rings.asymptotic.growth_group_cartesian>`.
+    """
+    def __init__(self, growth_group, raw_element):
+        r"""
+        See :class:`PartialConversionElement` for more information.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import PartialConversionElement, GrowthGroup
+            sage: PartialConversionElement(GrowthGroup('QQ^n'), -2)
+        """
+        self.growth_group = growth_group
+        self.raw_element = raw_element
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this partial conversion element.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import PartialConversionElement, GrowthGroup
+            sage: PartialConversionElement(GrowthGroup('QQ^n'), -42)  # indirect doctest
+        """
+        from sage.structure.element import parent
+        return 'element with parameter {} ({}) in {}'.format(self.raw_element,
+                                                             parent(self.raw_element),
+                                                             self.growth_group)
+
+    def split(self):
+        r"""
+        Split the contained ``raw_element`` according to the growth group's
+        :meth:`GrowthGroup._split_raw_element_`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, PartialConversionValueError
+            sage: E = ExponentialGrowthGroup(ZZ, 'x')
+            sage: try:
+            ....:     E((-2)^x)
+            ....: except PartialConversionValueError as e:
+            ....:     e.element.split()
+            (2^x, element with parameter -1 (<type 'int'>) in Growth Group ZZ^x)
+
+        TESTS::
+
+            sage: try:
+            ....:     E((2/3)^x)
+            ....: except PartialConversionValueError as e:
+            ....:     e.element.split()
+        """
+        raw_here, raw_other = self.growth_group._split_raw_element_(self.raw_element)
+        try:
+            here = self.growth_group.element_class(self.growth_group, raw_here)
+        except PartialConversionValueError as e:
+            from .misc import combine_exceptions
+            raise combine_exceptions(
+                ValueError('cannot split {}'.format(self)), e)
+
+        other = PartialConversionElement(self.growth_group, raw_other)
+        return here, other
 # The following function is used in the classes GenericGrowthElement and
 # GenericProduct.Element as a method.
 def _is_lt_one_(self):

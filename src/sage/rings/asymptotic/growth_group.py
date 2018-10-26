@@ -1111,7 +1111,18 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             raise ValueError('The parent must be provided')
         super(GenericGrowthElement, self).__init__(parent=parent)
 
-        self._raw_element_ = parent.base()(raw_element)
+        try:
+            self._raw_element_ = parent.base()(raw_element)
+        except (TypeError, ValueError) as e:
+            from .misc import combine_exceptions
+            from sage.structure.element import parent as parent_function
+            raise combine_exceptions(
+                PartialConversionValueError(
+                    PartialConversionElement(parent, raw_element),
+                    '{} ({}) is not in {}'.format(raw_element,
+                                                  parent_function(raw_element),
+                                                  parent.base())),
+                e)
 
     def _repr_(self):
         r"""
@@ -3532,6 +3543,14 @@ class ExponentialGrowthElement(GenericGrowthElement):
         sage: P.le(e1, P(1)) and P.le(P(1), e2)
         True
     """
+
+    def __init__(self, parent, raw_element):
+        super(ExponentialGrowthElement, self).__init__(
+            parent=parent, raw_element=raw_element)
+        if not self.base > 0:
+            raise PartialConversionValueError(
+                PartialConversionElement(parent, self.base),
+                'base {} must be positive'.format(self.base))
 
     @property
     def base(self):

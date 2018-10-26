@@ -632,6 +632,32 @@ class Variable(CachedRepresentation, SageObject):
             substitute_raise_exception(self, e)
 
 
+class PartialConversionValueError(ValueError):
+    r"""
+    A special :python:`ValueError<library/exceptions.html#exceptions.ValueError>`
+    which is raised when (partial) conversion fails.
+
+    INPUT:
+
+    - ``element`` -- a :class:`PartialConversionElement`
+
+    The remaining argument passed on to
+    :python:`ValueError<library/exceptions.html#exceptions.ValueError>`.
+    """
+    def __init__(self, element, *args, **kwds):
+        r"""
+        See :class:`PartialConversionValueError` for more information.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import PartialConversionError, PartialConversionElement, GrowthGroup
+            sage: raise PartialConversionError(
+            ....:     PartialConversionElement(GrowthGroup('QQ^n'), -2), 'wrong value')
+        """
+        super(PartialConversionValueError, self).__init__(*args, **kwds)
+        self.element = element
+
+
 # The following function is used in the classes GenericGrowthElement and
 # GenericProduct.Element as a method.
 def _is_lt_one_(self):

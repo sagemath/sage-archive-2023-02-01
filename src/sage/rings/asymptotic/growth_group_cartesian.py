@@ -536,19 +536,39 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: e1 = G._convert_factors_([x^2])
             sage: (e1, e1.parent())
             (x^2, Growth Group x^ZZ * log(x)^QQ * y^QQ)
+
+        ::
+
+            sage: G = GrowthGroup('QQ^n * n^ZZ * U^n')
+            sage: n = SR.var('n')
+            sage: G((-2)^n)
+            2^n*(-1)^n
         """
         from sage.misc.misc_c import prod
+        from .growth_group import PartialConversionValueError
 
-        def get_factor(data):
+        def get_factors(data):
+            result = []
             for factor in self.cartesian_factors():
                 try:
-                    return factor, factor(data)
-                except (ValueError, TypeError):
+                    try:
+                        result.append((factor, factor(data)))
+                        break
+                    except PartialConversionValueError as e:
+                        try:
+                            element, todo = e.element.split()
+                        except NotImplementedError as ae:
+                            raise ValueError()
+                        result.append((factor, element))
+                        data = todo
+                except (ValueError, TypeError) as ee:
                     pass
-            raise ValueError('%s is not in any of the factors of %s' % (data, self))
+            if not result:
+                raise ValueError('%s is not in any of the factors of %s' % (data, self))
+            return result
 
-        return prod(self.cartesian_injection(*get_factor(f))
-                    for f in factors)
+        return prod(self.cartesian_injection(*fs)
+                    for f in factors for fs in get_factors(f))
 
 
     def cartesian_injection(self, factor, element):

@@ -439,6 +439,7 @@ class RootOfUnity(UnitCirclePoint):
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: a = U(exponent=2/3); a
+            zeta3^2
             sage: a.exponent_numerator()
             2
         """
@@ -454,6 +455,7 @@ class RootOfUnity(UnitCirclePoint):
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: a = U(exponent=2/3); a
+            zeta3^2
             sage: a.exponent_denominator()
             3
         """
@@ -518,7 +520,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
         TESTS:
 
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-            sage: RootsOfUnitGroup().category()  # indirect doctest
+            sage: RootsOfUnityGroup().category()  # indirect doctest
             Category of commutative groups
         """
         category = cls._determine_category_(category)
@@ -532,7 +534,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
         TESTS:
 
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-            sage: RootsOfUnitGroup().base()  # indirect doctest
+            sage: RootsOfUnityGroup().base()  # indirect doctest
             Rational Field
         """
         from sage.rings.rational_field import QQ
@@ -545,7 +547,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
         TESTS:
 
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-            sage: RootsOfUnitGroup()  # indirect doctest
+            sage: RootsOfUnityGroup()  # indirect doctest
             Group of Roots of Unity
         """
         return 'Group of Roots of Unity'
@@ -557,7 +559,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
         TESTS:
 
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-            sage: RootsOfUnitGroup()._repr_short_()
+            sage: RootsOfUnityGroup()._repr_short_()
             'U'
         """
         return 'U'

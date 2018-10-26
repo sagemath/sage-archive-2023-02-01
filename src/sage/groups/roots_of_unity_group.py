@@ -27,8 +27,21 @@ from sage.structure.richcmp import richcmp_by_eq_and_lt
 
 
 class UnitCirclePoint(MultiplicativeGroupElement):
+    r"""
+    An element of :class:`UnitCircleGroup`.
+
+    INPUT:
+
+    - ``parent`` -- a SageMath parent
+
+    - ``element`` -- a number (of a subset of the reals)
+
+    - ``normalize`` -- a boolean
+    """
     def __init__(self, parent, exponent, normalize=True):
         r"""
+        See :class:`UnitCirclePoint` for more information.
+
         TESTS::
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
@@ -56,16 +69,54 @@ class UnitCirclePoint(MultiplicativeGroupElement):
         self._exponent_ = exponent
 
     def _repr_(self):
+        r"""
+        Return a representation string of this point on the unit circle.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: C = UnitCircleGroup(RR)
+            sage: C(exponent=1/3)
+        """
         return 'e^(2*pi*{})'.format(self._exponent_)
 
     def __hash__(self):
+        r"""
+        Return a hash value of this point on the unit circle.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: C = UnitCircleGroup(RR)
+            sage: hash(C(exponent=1/3))  # indirect doctest, random
+            42
+        """
         return hash((self.parent(), self._exponent_))
 
     def _mul_(self, other):
+        r"""
+        Return the product of this point on the unit circle and ``other``.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: C = UnitCircleGroup(RR)
+            sage: C(exponent=0.3) * C(exponent=0.4)
+        """
         P = self.parent()
         return P.element_class(P, self._exponent_ + other._exponent_)
 
     def __invert__(self):
+        r"""
+        Return the inverse of this point on the unit circle.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: C = UnitCircleGroup(RR)
+            sage: ~C(exponent=0.4)
+            sage: 1 / C(exponent=0.4)
+        """
         P = self.parent()
         return P.element_class(P, -self._exponent_)
 
@@ -73,6 +124,8 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
     def _eq_(self, other):
         r"""
+        Return whether this point on the unit circle equals ``other``.
+
         TESTS::
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
@@ -87,14 +140,53 @@ class UnitCirclePoint(MultiplicativeGroupElement):
         return self._exponent_ == other._exponent_
 
     def _lt_(self, other):
+        r"""
+        Raise an error since points on the unit circle are not comparable.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: U(raw_element=0) < U(raw_element=0)  # indirect doctest
+            sage: U(raw_element=0) < U(raw_element=1/2)  # indirect doctest
+            sage: U(raw_element=0) > U(raw_element=1/2)  # indirect doctest
+        """
         return RuntimeError("cannot decide '<' "
                             "for the roots of unity "
                             "{} and {}".format(self, other))
 
     def is_one(self):
+        r"""
+        Return whether this point on the unit circle is `1`.
+
+        EXAMPLES:
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: C = UnitCircleGroup(QQ)
+            sage: C(exponent=0).is_one()
+            True
+            sage: C(exponent=1/2).is_one()
+            False
+            sage: C(exponent=2/3).is_one()
+            False
+        """
         return self._exponent_ == 0
 
     def is_minus_one(self):
+        r"""
+        Return whether this point on the unit circle is `-1`.
+
+        EXAMPLES:
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: C = UnitCircleGroup(QQ)
+            sage: C(exponent=0).is_minus_one()
+            False
+            sage: C(exponent=1/2).is_minus_one()
+            True
+            sage: C(exponent=2/3).is_minus_one()
+            False
+        """
         from sage.rings.rational_field import QQ
         return self._exponent_ == QQ(1)/QQ(2)
 

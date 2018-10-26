@@ -3600,7 +3600,10 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         TESTS::
 
-            sage: P((-1)^x)  # indirect doctest
+            sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'x')
+            sage: U((-1)^x)  # indirect doctest
             (-1)^x
 
         ::
@@ -3651,7 +3654,10 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         ::
 
-            sage: latex(P((-1)^x))  # indirect doctest
+            sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'x')
+            sage: latex(U((-1)^x))  # indirect doctest
             \left(-1\right)^{x}
 
         ::
@@ -3826,7 +3832,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         Check that :trac:`19999` is fixed::
 
-            sage: P_ZZ((-2)^x) <= P_ZZ(2^x) or P_ZZ(2^x) <= P_ZZ((-2)^x)
+            sage: P_ZZ_U = GrowthGroup('ZZ^x * U^x')
+            sage: P_ZZ_U((-2)^x) <= P_ZZ_U(2^x) or P_ZZ_U(2^x) <= P_ZZ_U((-2)^x)
             False
         """
         return bool(abs(self.base) < abs(other.base))
@@ -3988,7 +3995,9 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P(2^x)  # indirect doctest
             2^x
             sage: P((-333)^x)  # indirect doctest
-            (-333)^x
+            Traceback (most recent call last):
+            ...
+            PartialConversionValueError: base -333 must be positive
             sage: P(0)  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -3999,7 +4008,9 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P('7^x')
             7^x
             sage: P('(-2)^x')
-            (-2)^x
+            Traceback (most recent call last):
+            ...
+            PartialConversionValueError: base -2 must be positive
 
         ::
 
@@ -4017,6 +4028,14 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')(1))
             1
+
+        ::
+
+            sage: E = GrowthGroup('QQ^x * U^x')
+            sage: E((-333)^x)  # indirect doctest
+            333^x*(-1)^x
+            sage: E('(-2)^x')
+            2^x*(-1)^x
         """
         if data == '1' or isinstance(data, int) and data == 1:
             return self.base().one()

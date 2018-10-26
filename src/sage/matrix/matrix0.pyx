@@ -12,16 +12,15 @@ EXAMPLES::
     [1 2]
     [3 4]
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 from cpython cimport *
@@ -4584,6 +4583,14 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         Over `\ZZ`::
 
+            sage: m = matrix(ZZ,2,2,[-1,1,-1,0])
+            sage: m.multiplicative_order()
+            3
+
+            sage: m = posets.ChainPoset(6).coxeter_transformation()
+            sage: m.multiplicative_order()
+            7
+
             sage: P = posets.TamariLattice(4).coxeter_transformation()
             sage: P.multiplicative_order()
             10
@@ -4591,6 +4598,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M = matrix(ZZ, 2, 2, [1, 1, 0, 1])
             sage: M.multiplicative_order()
             +Infinity
+
+            sage: for k in range(600):
+            ....:     m = SL2Z.random_element()
+            ....:     o = m.multiplicative_order()
+            ....:     if o != Infinity and m**o != SL2Z.one():
+            ....:         raise RuntimeError
 
         TESTS::
 

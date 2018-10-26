@@ -4026,6 +4026,62 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         return ExponentialGrowthGroupFunctor(self._var_), self.base()
 
 
+    def extend_by_roots_of_unity_group(self):
+        r"""
+        Extend to a cartesian product of this exponential growth group
+        and a suitable group of roots of unity.
+
+        OUTPUT:
+
+        A group group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('QQ^x').extend_by_roots_of_unity_group()
+            Growth Group QQ^x * U^x
+            sage: GrowthGroup('RR^x').extend_by_roots_of_unity_group()
+            Growth Group RR^x * U_RR^x
+            sage: GrowthGroup('RIF^x').extend_by_roots_of_unity_group()
+            Growth Group RIF^x * U_RIF^x
+            sage: GrowthGroup('RBF^x').extend_by_roots_of_unity_group()
+            Growth Group RBF^x * U_RBF^x
+            sage: GrowthGroup('CC^x').extend_by_roots_of_unity_group()
+            Growth Group CC^x * U_RR^x
+            sage: GrowthGroup('CIF^x').extend_by_roots_of_unity_group()
+            Growth Group CIF^x * U_RIF^x
+            sage: GrowthGroup('CBF^x').extend_by_roots_of_unity_group()
+            Growth Group CBF^x * U_RBF^x
+        """
+        from sage.categories.cartesian_product import cartesian_product
+        from sage.groups.roots_of_unity_group import RootsOfUnityGroup, UnitCircleGroup
+
+        from sage.rings.complex_arb import ComplexBallField
+        from sage.rings.complex_field import ComplexField_class
+        from sage.rings.complex_interval_field import ComplexIntervalField_class
+        from sage.rings.real_arb import RealBallField
+        from sage.rings.real_mpfr import RealField_class
+        from sage.rings.real_mpfi import RealIntervalField_class
+
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
+        from sage.rings.qqbar import AA
+
+        if isinstance(self.base(), (RealField_class,
+                                    RealIntervalField_class,
+                                    RealBallField)):
+            U = UnitCircleGroup(self.base())
+        elif isinstance(self.base(), (ComplexField_class,
+                                      ComplexIntervalField_class,
+                                      ComplexBallField)):
+            U = UnitCircleGroup(self.base()._real_field())
+        else:
+            U = RootsOfUnityGroup()
+
+        return cartesian_product(
+            [self, ExponentialArgumentGrowthGroup(U, self._var_)])
+
+
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`

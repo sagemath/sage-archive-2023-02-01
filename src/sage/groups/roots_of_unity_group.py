@@ -77,6 +77,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=1/3)
+            e^(2*pi*0.333333333333333)
         """
         return 'e^(2*pi*{})'.format(self._exponent_)
 
@@ -102,6 +103,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=0.3) * C(exponent=0.4)
+            e^(2*pi*0.700000000000000)
         """
         P = self.parent()
         return P.element_class(P, self._exponent_ + other._exponent_)
@@ -115,7 +117,9 @@ class UnitCirclePoint(MultiplicativeGroupElement):
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: C = UnitCircleGroup(RR)
             sage: ~C(exponent=0.4)
-            sage: 1 / C(exponent=0.4)
+            e^(2*pi*0.600000000000000)
+            sage: C(1) / C(exponent=0.4)
+            e^(2*pi*0.600000000000000)
         """
         P = self.parent()
         return P.element_class(P, -self._exponent_)
@@ -147,13 +151,22 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
-            sage: U(raw_element=0) < U(raw_element=0)  # indirect doctest
-            sage: U(raw_element=0) < U(raw_element=1/2)  # indirect doctest
-            sage: U(raw_element=0) > U(raw_element=1/2)  # indirect doctest
+            sage: U(exponent=0) < U(exponent=0)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cannot decide '<' for the roots of unity 1 and 1
+            sage: U(exponent=0) < U(exponent=1/2)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cannot decide '<' for the roots of unity 1 and -1
+            sage: U(exponent=0) > U(exponent=1/2)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cannot decide '<' for the roots of unity -1 and 1
         """
-        return RuntimeError("cannot decide '<' "
-                            "for the roots of unity "
-                            "{} and {}".format(self, other))
+        raise RuntimeError("cannot decide '<' "
+                           "for the roots of unity "
+                           "{} and {}".format(self, other))
 
     def is_one(self):
         r"""
@@ -205,7 +218,9 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
         sage: UnitCircleGroup(RR)
+        Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
         sage: UnitCircleGroup(QQ)
+        Unit Circle Group with Exponents in Rational Field modulo ZZ
     """
 
     Element = UnitCirclePoint
@@ -219,6 +234,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: UnitCircleGroup(RR).category()  # indirect doctest
+            Category of commutative groups
         """
         category = cls._determine_category_(category)
         return super(UnitCircleGroup, cls).__classcall__(
@@ -240,7 +256,9 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: UnitCircleGroup._determine_category_(None)
+            Category of commutative groups
             sage: UnitCircleGroup._determine_category_(Groups())
+            Category of groups
         """
         if category is None:
             from sage.categories.groups import Groups
@@ -255,6 +273,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: UnitCircleGroup(RR).base()  # indirect doctest
+            Real Field with 53 bits of precision
         """
         super(UnitCircleGroup, self).__init__(category=category,
                                               base=base)
@@ -267,6 +286,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: UnitCircleGroup(RR)  # indirect doctest
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
         """
         return 'Unit Circle Group with Exponents in {} modulo ZZ'.format(self.base())
 
@@ -277,7 +297,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
         TESTS::
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
-            sage: UnitCircleGroup(RR)  # indirect doctest
+            sage: UnitCircleGroup(RR)._repr_short_()
             'U_RR'
         """
         from sage.rings.asymptotic.misc import parent_to_repr_short
@@ -306,6 +326,7 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
             sage: UnitCircleGroup(RR).an_element()  # indirect doctest
+            e^(2*pi*0.000000000000000)
         """
         return self.element_class(self, self.base().an_element())
 

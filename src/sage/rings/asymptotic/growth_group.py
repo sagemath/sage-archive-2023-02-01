@@ -2074,6 +2074,29 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
 
             sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')('2^x'))
             2^x
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import PartialConversionValueError
+            sage: G = GrowthGroup('QQ^n')
+            sage: n = SR.var('n')
+            sage: try:
+            ....:     G((-1/42)^n)
+            ....: except PartialConversionValueError as e:
+            ....:     a = e.element
+            sage: a
+            element with parameter -1/42 (Rational Field) in Growth Group QQ^n
+            sage: G(a)
+            Traceback (most recent call last):
+            ...
+            PartialConversionValueError: no conversion of
+            element with parameter -1/42 (Rational Field)
+            in Growth Group QQ^n:
+            this was already unsuccessful earlier
+            sage: U = GrowthGroup('U^n')
+            sage: b, c = a.split()
+            sage: G(b), U(c)
+            ((1/42)^n, (-1)^n)
         """
         from .misc import combine_exceptions
 
@@ -2101,6 +2124,11 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
                     return self.one()
 
             elif isinstance(data, PartialConversionElement):
+                if data.growth_group is self:
+                    raise PartialConversionValueError(
+                        data,
+                        'no conversion of {}: this was already unsuccessful '
+                        'earlier'.format(data))
                 if not data.is_compatible(self):
                     raise TypeError(
                         'cannot (partially) convert {} because its '

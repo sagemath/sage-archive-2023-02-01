@@ -650,9 +650,12 @@ class PartialConversionValueError(ValueError):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.growth_group import PartialConversionError, PartialConversionElement, GrowthGroup
-            sage: raise PartialConversionError(
+            sage: from sage.rings.asymptotic.growth_group import PartialConversionValueError, PartialConversionElement, GrowthGroup
+            sage: raise PartialConversionValueError(
             ....:     PartialConversionElement(GrowthGroup('QQ^n'), -2), 'wrong value')
+            Traceback (most recent call last):
+            ...
+            PartialConversionValueError: wrong value
         """
         super(PartialConversionValueError, self).__init__(*args, **kwds)
         self.element = element
@@ -687,6 +690,7 @@ class PartialConversionElement(SageObject):
 
             sage: from sage.rings.asymptotic.growth_group import PartialConversionElement, GrowthGroup
             sage: PartialConversionElement(GrowthGroup('QQ^n'), -2)
+            element with parameter -2 (Integer Ring) in Growth Group QQ^n
         """
         self.growth_group = growth_group
         self.raw_element = raw_element
@@ -699,6 +703,7 @@ class PartialConversionElement(SageObject):
 
             sage: from sage.rings.asymptotic.growth_group import PartialConversionElement, GrowthGroup
             sage: PartialConversionElement(GrowthGroup('QQ^n'), -42)  # indirect doctest
+            element with parameter -42 (Integer Ring) in Growth Group QQ^n
         """
         from sage.structure.element import parent
         return 'element with parameter {} ({}) in {}'.format(self.raw_element,
@@ -726,6 +731,11 @@ class PartialConversionElement(SageObject):
             ....:     E((2/3)^x)
             ....: except PartialConversionValueError as e:
             ....:     e.element.split()
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot split element with parameter 2/3 (Symbolic Ring) in Growth Group ZZ^x
+            > *previous* PartialConversionValueError: 2/3 (Rational Field) is not in Integer Ring
+            >> *previous* TypeError: no conversion of this rational to integer
         """
         raw_here, raw_other = self.growth_group._split_raw_element_(self.raw_element)
         try:
@@ -3553,6 +3563,20 @@ class ExponentialGrowthElement(GenericGrowthElement):
     """
 
     def __init__(self, parent, raw_element):
+        r"""
+        See :class:`ExponentialGrowthElement` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('QQ^x')
+            sage: P(raw_element=2/3)  # indirect doctest
+            (2/3)^x
+            sage: P(raw_element=-2/3)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            PartialConversionValueError: base -2/3 must be positive
+        """
         super(ExponentialGrowthElement, self).__init__(
             parent=parent, raw_element=raw_element)
         if not self.base > 0:
@@ -4181,7 +4205,9 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             size = abs(base)
             direction = base / size
             return size, direction
-        raise ValueError('cannot split {} into abs and arg'.format(base))
+
+        raise ValueError('cannot split {} ({}) into '
+                         'abs and arg'.format(base, parent(base)))
 
     def some_elements(self):
         r"""

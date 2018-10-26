@@ -4605,6 +4605,18 @@ cdef class Matrix(sage.structure.element.Matrix):
             ....:     if o != Infinity and m**o != SL2Z.one():
             ....:         raise RuntimeError
 
+            sage: m24 = matrix.companion(cyclotomic_polynomial(24))
+            sage: def val(i, j):
+            ....:     if i < j:
+            ....:         return 0
+            ....:     elif i == j:
+            ....:         return 1
+            ....:     else:
+            ....:         return ZZ.random_element(-100,100)
+            sage: rnd = matrix(ZZ, 8, 8, val)
+            sage: (rnd * m24 * rnd.inverse_of_unit()).multiplicative_order()
+            24
+
         TESTS::
 
             sage: C = matrix(GF(2^10,'c'),2,3,[1]*6)

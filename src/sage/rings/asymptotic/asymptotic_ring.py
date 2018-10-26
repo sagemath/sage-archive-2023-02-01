@@ -2134,8 +2134,23 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         TESTS::
 
-            sage: x.rpow(SR.var('y'))
             sage: y = SR.var('y')
+            sage: x.rpow(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot construct the power of y to the exponent x
+            in Asymptotic Ring <x^ZZ> over Rational Field.
+            > *previous* ValueError: element with parameter y (Symbolic Ring)
+            in Growth Group SR^x is not in any of the factors
+            of Growth Group SR^x * U^x
+            >> *previous* ValueError: cannot split element with parameter y (Symbolic Ring)
+            in Growth Group SR^x after failed conversion into
+            element of Growth Group SR^x
+            >...> *previous* ValueError: cannot split y (Symbolic Ring) into abs and arg
+            >> *and* ValueError: cannot split element with parameter y (Symbolic Ring)
+            in Growth Group U^x after failed conversion into
+            element of Growth Group U^x
+            >...> *previous* ValueError: cannot split y (Symbolic Ring) into abs and arg
             sage: assume(y > 0)
             sage: x.rpow(y)
             Traceback (most recent call last):
@@ -3762,8 +3777,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             > *previous* ValueError: Growth c is not in
             Exact Term Monoid a^ZZ * b^ZZ with coefficients in Rational Field.
             >> *previous* ValueError: c is not in Growth Group a^ZZ * b^ZZ.
-            >...> *previous* ValueError: c is not in any of the factors of
-            Growth Group a^ZZ * b^ZZ
+            >...> *previous* ValueError: c is not in any of the factors
+            of Growth Group a^ZZ * b^ZZ
+            >...> *previous* ValueError: c is not in Growth Group a^ZZ.
+            >...> *and* ValueError: c is not in Growth Group b^ZZ.
 
         ::
 

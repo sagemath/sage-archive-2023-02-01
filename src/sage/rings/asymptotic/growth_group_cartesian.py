@@ -427,12 +427,16 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             ValueError: ['2^log(x)'] is not in Growth Group QQ^x * x^QQ.
             > *previous* ValueError: 2^log(x) is not in any of the factors of
             Growth Group QQ^x * x^QQ
+            >> *previous* ValueError: 2^log(x) is not in Growth Group QQ^x.
+            >> *and* ValueError: 2^log(x) is not in Growth Group x^QQ.
             sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)', 'x^55'])
             Traceback (most recent call last):
             ...
             ValueError: ['2^log(x)', 'x^55'] is not in Growth Group QQ^x * x^QQ.
             > *previous* ValueError: 2^log(x) is not in any of the factors of
             Growth Group QQ^x * x^QQ
+            >> *previous* ValueError: 2^log(x) is not in Growth Group QQ^x.
+            >> *and* ValueError: 2^log(x) is not in Growth Group x^QQ.
 
         ::
 

@@ -18,8 +18,8 @@ from six import integer_types
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
-    ('gamma', 'log_gamma', 'gamma_inc', 'incomplete_gamma',
-      'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
+            ('gamma', 'log_gamma', 'gamma_inc',
+             'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression

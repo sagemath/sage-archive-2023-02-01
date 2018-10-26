@@ -109,6 +109,30 @@ class UnitCirclePoint(MultiplicativeGroupElement):
         P = self.parent()
         return P.element_class(P, self._exponent_ + other._exponent_)
 
+    def __pow__(self, exponent):
+        r"""
+        Return the power of this point on the unit circle
+        to the given ``exponent``.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+
+            sage: C = UnitCircleGroup(RR)
+            sage: C(exponent=0.1)^2
+            e^(2*pi*0.200000000000000)
+            sage: C(exponent=0.1)^QQ(2/1)
+            e^(2*pi*0.200000000000000)
+
+            sage: U = RootsOfUnityGroup()
+            sage: a = U(exponent=1/7); a
+            zeta7
+            sage: a^(7/3)
+            zeta3
+        """
+        P = self.parent()
+        return P.element_class(P, self._exponent_ * exponent)
+
     def __invert__(self):
         r"""
         Return the inverse of this point on the unit circle.

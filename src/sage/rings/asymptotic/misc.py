@@ -112,6 +112,10 @@ def parent_to_repr_short(P):
         'QQ'
         sage: parent_to_repr_short(SR)
         'SR'
+        sage: parent_to_repr_short(RR)
+        'RR'
+        sage: parent_to_repr_short(CC)
+        'CC'
         sage: parent_to_repr_short(ZZ['x'])
         'ZZ[x]'
         sage: parent_to_repr_short(QQ['d, k'])
@@ -126,6 +130,7 @@ def parent_to_repr_short(P):
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
     from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+    from sage.rings.all import RR, CC, RIF, CIF, RBF, CBF
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
     from sage.symbolic.ring import SR
@@ -133,14 +138,18 @@ def parent_to_repr_short(P):
     from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
     from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
-        if P is ZZ:
-            return 'ZZ'
-        elif P is QQ:
-            return 'QQ'
-        elif P is SR:
-            return 'SR'
-        elif P == RootsOfUnityGroup():
-            return 'U'
+        try:
+            return P._repr_short_()
+        except AttributeError:
+            pass
+        abbreviations = {ZZ: 'ZZ', QQ: 'QQ', SR: 'SR',
+                         RR: 'RR', CC: 'CC',
+                         RIF: 'RIF', CIF: 'CIF',
+                         RBF: 'RBF', CBF: 'CBF'}
+        try:
+            return abbreviations[P]
+        except KeyError:
+            pass
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
     poly = is_PolynomialRing(P) or is_MPolynomialRing(P)

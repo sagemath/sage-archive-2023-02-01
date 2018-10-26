@@ -3836,7 +3836,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_ZZ_U((-2)^x) <= P_ZZ_U(2^x) or P_ZZ_U(2^x) <= P_ZZ_U((-2)^x)
             False
         """
-        return bool(abs(self.base) < abs(other.base))
+        return bool(self.base < other.base)
 
     def _substitute_(self, rules):
         r"""
@@ -4179,11 +4179,10 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: tuple(GrowthGroup('QQ^z').some_elements())
-            ((1/2)^z, (-1/2)^z, 2^z, (-2)^z, 1, (-1)^z,
-             42^z, (2/3)^z, (-2/3)^z, (3/2)^z, (-3/2)^z, ...)
+            ((1/2)^z, 2^z, 1, 42^z, (2/3)^z, (3/2)^z, ...)
         """
         return iter(self.element_class(self, e)
-                    for e in self.base().some_elements() if e != 0)
+                    for e in self.base().some_elements() if e > 0)
 
     def gens(self):
         r"""

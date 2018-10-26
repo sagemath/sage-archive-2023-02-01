@@ -423,15 +423,45 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
 
 class RootOfUnity(UnitCirclePoint):
+    r"""
+    A root of unity (i.e. an element of :class:`RootsOfUnityGroup`)
+    which is `e^{2\pi\mathit{exponent}}` for a rational ``exponent``.
+    """
 
     def exponent_numerator(self):
+        r"""
+        Return the numerator of the rational quotient in `[0,1)`
+        representing the exponent of this root of unity.
+
+        EXAMPLES::
+
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: a = U(exponent=2/3); a
+            sage: a.exponent_numerator()
+            2
+        """
         return self._exponent_.numerator()
 
     def exponent_denominator(self):
+        r"""
+        Return the denominator of the rational quotient in `[0,1)`
+        representing the exponent of this root of unity.
+
+        EXAMPLES::
+
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: a = U(exponent=2/3); a
+            sage: a.exponent_denominator()
+            3
+        """
         return self._exponent_.denominator()
 
     def _repr_(self):
         r"""
+        Return a representation string of this root of unity.
+
         TESTS::
 
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup

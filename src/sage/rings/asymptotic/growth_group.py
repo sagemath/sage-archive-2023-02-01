@@ -4232,6 +4232,19 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: G._split_raw_element_(SR(-2/3))
             (2/3, -1)
+
+            sage: G._split_raw_element_(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot split x (Symbolic Ring) into abs and arg
+            sage: assume(x > 0)
+            sage: G._split_raw_element_(x)
+            (x, None)
+            sage: forget()
+            sage: assume(x < 0)
+            sage: G._split_raw_element_(x)
+            (-x, -1)
+            sage: forget()
         """
         from sage.rings.complex_arb import ComplexBallField
         from sage.rings.complex_field import ComplexField_class
@@ -4254,7 +4267,8 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             else:
                 P = base.parent()
 
-        if P in (ZZ, QQ, AA) or isinstance(P, (RealField_class,
+        if P in (ZZ, QQ, AA) or isinstance(P, (SymbolicRing,
+                                               RealField_class,
                                                RealIntervalField_class,
                                                RealBallField)):
             if base > 0:

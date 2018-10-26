@@ -497,23 +497,68 @@ class RootOfUnity(UnitCirclePoint):
 
 
 class RootsOfUnityGroup(UnitCircleGroup):
+    r"""
+    The group of all roots of unity.
+
+    INPUT:
+
+    - ``category`` -- a category
+
+    This is a specialized :class:`UnitCircleGroup` with base `\QQ`.
+    """
 
     Element = RootOfUnity
 
     @staticmethod
     def __classcall__(cls, category=None):
+        r"""
+        See :class:`RootsOfUnityGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: RootsOfUnitGroup().category()  # indirect doctest
+            Category of commutative groups
+        """
         category = cls._determine_category_(category)
         return super(UnitCircleGroup, cls).__classcall__(
             cls, category)
 
     def __init__(self, category):
+        r"""
+        See :class:`RootsOfUnityGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: RootsOfUnitGroup().base()  # indirect doctest
+            Rational Field
+        """
         from sage.rings.rational_field import QQ
         return super(RootsOfUnityGroup, self).__init__(base=QQ,
                                                          category=category)
     def _repr_(self):
+        r"""
+        Return a representation string of this roots of unity group.
+
+        TESTS:
+
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: RootsOfUnitGroup()  # indirect doctest
+            Group of Roots of Unity
+        """
         return 'Group of Roots of Unity'
 
     def _repr_short_(self):
+        r"""
+        Return a short representation string of this roots of unity group.
+
+        TESTS:
+
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: RootsOfUnitGroup()._repr_short_()
+            'U'
+        """
         return 'U'
 
 

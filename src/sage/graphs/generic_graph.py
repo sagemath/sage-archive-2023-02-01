@@ -15689,7 +15689,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_paths(0, algorithm='Dijkstra_Boost', by_weight=True)
             Traceback (most recent call last):
             ...
-            RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
+            RuntimeError: Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead
             sage: D.shortest_paths(0, algorithm='Dijkstra_NetworkX', by_weight=True)
             Traceback (most recent call last):
             ...
@@ -16196,7 +16196,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.shortest_path_all_pairs(algorithm="Dijkstra_Boost", by_weight=True)
             Traceback (most recent call last):
             ...
-            RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
+            RuntimeError: Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead
         """
         if weight_function is not None:
             by_weight = True

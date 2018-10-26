@@ -2066,6 +2066,14 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
                 if data.is_one():
                     return self.one()
 
+            elif isinstance(data, PartialConversionElement):
+                if not data.is_compatible(self):
+                    raise TypeError(
+                        'cannot (partially) convert {} because its '
+                        'growth group {} is not compatible to this '
+                        'growth group {}'.format(data.raw_element, data.growth_group, self))
+                raw_element = data.raw_element
+
             else:
                 raw_element = self._convert_(data)
 

@@ -4445,6 +4445,54 @@ class ExponentialArgumentGrowthGroup(ExponentialGrowthGroup):
 
     Element = ExponentialArgumentGrowthElement
 
+    def construction(self):
+        r"""
+        Return the construction of this growth group.
+
+        OUTPUT:
+
+        A pair whose first entry is an
+        :class:`ExponentialArgumentGrowthGroupFunctor`
+        and its second entry the base.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('U^x').construction()
+            (ExponentialArgumentGrowthGroup[x], Group of Roots of Unity)
+        """
+        return ExponentialArgumentGrowthGroupFunctor(self._var_), self.base()
+
+
+class ExponentialArgumentGrowthGroupFunctor(ExponentialGrowthGroupFunctor):
+    r"""
+    A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
+    for :class:`ExponentialArgumentGrowthGroup`.
+    """
+
+    _functor_name = 'ExponentialArgumentGrowthGroup'
+
+    def _apply_functor(self, base):
+        r"""
+        Apply this functor to the given ``base``.
+
+        INPUT:
+
+        - ``base`` - anything :class:`ExponentialArgumentGrowthGroup` accepts.
+
+        OUTPUT:
+
+        An exponential argument growth group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F, R = GrowthGroup('U^z').construction()
+            sage: F(R)  # indirect doctest
+            Growth Group U^z
+        """
+        return ExponentialArgumentGrowthGroup(base, self.var)
+
 class GrowthGroupFactory(UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.

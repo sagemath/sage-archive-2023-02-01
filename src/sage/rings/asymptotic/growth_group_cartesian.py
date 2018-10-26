@@ -546,9 +546,11 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         """
         from sage.misc.misc_c import prod
         from .growth_group import PartialConversionValueError
+        from .misc import combine_exceptions
 
         def get_factors(data):
             result = []
+            errors = []
             for factor in self.cartesian_factors():
                 try:
                     try:
@@ -557,14 +559,26 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                     except PartialConversionValueError as e:
                         try:
                             element, todo = e.element.split()
-                        except NotImplementedError as ae:
-                            raise ValueError()
+                        except NotImplementedError as nie:
+                            raise combine_exceptions(
+                                ValueError('cannot split {}: no splitting '
+                                           'implemented'.format(e.element)),
+                                nie)
+                        except ValueError as ve:
+                            raise combine_exceptions(
+                                ValueError('cannot split {} after failed '
+                                           'conversion into element of '
+                                           '{}'.format(e.element, factor)),
+                                ve)
+                        assert todo is not None
                         result.append((factor, element))
                         data = todo
-                except (ValueError, TypeError) as ee:
-                    pass
+                except (ValueError, TypeError) as error:
+                    errors.append(error)
             if not result:
-                raise ValueError('%s is not in any of the factors of %s' % (data, self))
+                raise combine_exceptions(
+                    ValueError('%s is not in any of the factors of %s' % (data, self)),
+                    *errors)
             return result
 
         return prod(self.cartesian_injection(*fs)

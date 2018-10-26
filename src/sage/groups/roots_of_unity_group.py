@@ -75,7 +75,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=1/3)
             e^(2*pi*0.333333333333333)
@@ -88,7 +88,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: hash(C(exponent=1/3))  # indirect doctest, random
             42
@@ -101,7 +101,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=0.3) * C(exponent=0.4)
             e^(2*pi*0.700000000000000)
@@ -115,7 +115,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: ~C(exponent=0.4)
             e^(2*pi*0.600000000000000)
@@ -133,7 +133,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: U(exponent=0) == U(exponent=1)
             True
@@ -150,7 +150,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: U(exponent=0) < U(exponent=0)  # indirect doctest
             Traceback (most recent call last):
@@ -175,7 +175,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
         EXAMPLES:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroug
             sage: C = UnitCircleGroup(QQ)
             sage: C(exponent=0).is_one()
             True
@@ -192,7 +192,7 @@ class UnitCirclePoint(MultiplicativeGroupElement):
 
         EXAMPLES:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: C = UnitCircleGroup(QQ)
             sage: C(exponent=0).is_minus_one()
             False

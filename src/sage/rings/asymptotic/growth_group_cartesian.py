@@ -311,15 +311,15 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: G = GrowthGroup('QQ^y * x^QQ * log(x)^ZZ')
             sage: tuple(islice(G.some_elements(), 10))
             (x^(1/2)*(1/2)^y,
-             x^(-1/2)*log(x)*(-1/2)^y,
-             x^2*log(x)^(-1)*2^y,
-             x^(-2)*log(x)^2*(-2)^y,
-             log(x)^(-2),
-             x*log(x)^3*(-1)^y,
-             x^(-1)*log(x)^(-3)*42^y,
-             x^42*log(x)^4*(2/3)^y,
-             x^(2/3)*log(x)^(-4)*(-2/3)^y,
-             x^(-2/3)*log(x)^5*(3/2)^y)
+             x^(-1/2)*log(x)*2^y,
+             x^2*log(x)^(-1),
+             x^(-2)*log(x)^2*42^y,
+             log(x)^(-2)*(2/3)^y,
+             x*log(x)^3*(3/2)^y,
+             x^(-1)*log(x)^(-3)*(4/5)^y,
+             x^42*log(x)^4*(5/4)^y,
+             x^(2/3)*log(x)^(-4)*(6/7)^y,
+             x^(-2/3)*log(x)^5*(7/6)^y)
         """
         from builtins import zip
         return iter(

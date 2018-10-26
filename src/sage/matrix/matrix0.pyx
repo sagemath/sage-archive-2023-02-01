@@ -4616,7 +4616,7 @@ cdef class Matrix(sage.structure.element.Matrix):
            Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
         """
         from sage.rings.integer import Integer
-        from sage.rings.integer_ring import is_IntegerRing
+        from sage.rings.integer_ring import ZZ
         from sage.categories.fields import Fields
 
         n = self.ncols()
@@ -4627,10 +4627,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             raise ArithmeticError("self must be invertible to have a multiplicative order")
 
         K = self.base_ring()
-        if not(K in Fields().Finite() or is_IntegerRing(K)):
-            raise NotImplementedError("multiplicative order is only implemented for matrices over finite fields or ZZ")
 
-        if K.is_finite():
+        if K in Fields().Finite():
             from sage.groups.generic import order_from_multiple
             P = self.minimal_polynomial()
             R = P.parent()
@@ -4649,38 +4647,37 @@ cdef class Matrix(sage.structure.element.Matrix):
             if ppart < a:
                 ppart *= p
             return res * ppart
-        else:
-            # over ZZ
+        elif K is ZZ:
             from sage.rings.infinity import Infinity
-
-            def impossible_order(m, n):
-                """
-                True iff m cannot be the order of a matrix in GL_n(QQ)
-
-                Uses Thm 2.7 [KuPa2002]
-                """
-                fac = m.factor()
-                S = sum((pi - 1) * pi**(ei - 1) for pi, ei in fac)
-                if fac[0] == (2, 1):
-                    return not(S <= n + 1)
-                else:
-                    return not(S <= n)
 
             # two small odd prime numbers
             p1 = Integer(3)
             p2 = Integer(5)
             o1 = self.mod(p1).multiplicative_order()
-            if impossible_order(o1, n):
+
+            # Test if o1 cannot be the order of a matrix in GL_n(QQ)
+            # Uses Thm 2.7 [KuPa2002]
+            fac = o1.factor()
+            S = sum((pi - 1) * pi**(ei - 1) for pi, ei in fac)
+            if fac[0] == (2, 1):
+               impossible_order = not(S <= n + 1)
+            else:
+               impossible_order = not(S <= n)
+            if impossible_order:
                 return Infinity
+
             o2 = self.mod(p2).multiplicative_order()
             if o1 != o2:
                 return Infinity
             P = self.minimal_polynomial()
             x = P.parent().gen()
-            if x**o1 % P == 1:  # or (x % P)**o1 == 1 ?
+            if x**o1 % P == 1:  # or (x % P)**o1 == 1 ? maybe faster
                 return o1
             else:
                 return Infinity
+        else:
+            raise NotImplementedError("multiplicative order is only implemented"
+                                      " for matrices over finite fields or ZZ")
 
     ###################################################
     # Arithmetic

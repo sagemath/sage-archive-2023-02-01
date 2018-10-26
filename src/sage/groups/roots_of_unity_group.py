@@ -93,7 +93,8 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
     def _determine_category_(category):
         if category is None:
             from sage.categories.groups import Groups
-            category = Groups().Commutative()
+            from sage.categories.posets import Posets
+            category = Groups().Commutative() & Posets()
         return category
 
     def __init__(self, base, category):
@@ -188,6 +189,29 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
 
         return self.element_class(self, exponent)
 
+    def le(self, left, right):
+        r"""
+        Return whether ``left`` is smaller or equal than ``right``.
+
+        As the elements of this group are not comparable, this
+        method returns whether the two elements are equal.
+
+        INPUT:
+
+        - ``left``, ``right`` -- elements
+
+        EXAMPLES::
+
+            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: U(raw_element=0) <= U(raw_element=0)  # indirect doctest
+            True
+            sage: U(raw_element=0) <= U(raw_element=1/2)  # indirect doctest
+            False
+            sage: U(raw_element=0) >= U(raw_element=1/2)  # indirect doctest
+            False
+        """
+        return left == right
 
 class RootOfUnity(UnitCirclePoint):
 

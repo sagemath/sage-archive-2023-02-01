@@ -737,6 +737,23 @@ class PartialConversionElement(SageObject):
 
         other = PartialConversionElement(self.growth_group, raw_other)
         return here, other
+
+    def is_compatible(self, other):
+        r"""
+        Wrapper to :meth:`GenericGrowthGroup.is_compatible`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialArgumentGrowthGroup, PartialConversionElement
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: Q = ExponentialGrowthGroup(QQ, 'n')
+            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: PartialConversionElement(Q, -42/5).is_compatible(U)
+            True
+        """
+        return self.growth_group.is_compatible(other)
+
+
 # The following function is used in the classes GenericGrowthElement and
 # GenericProduct.Element as a method.
 def _is_lt_one_(self):
@@ -2077,6 +2094,38 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             True
         """
         pass
+
+    def is_compatible(self, other):
+        r"""
+        Return whether this growth group is compatible with ``other`` meaning
+        that both are of the same type and have the same variables, but
+        maybe a different base.
+
+        INPUT:
+
+        - ``other`` -- a growth group
+
+        EXAMPLES::
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialArgumentGrowthGroup
+            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: Q = ExponentialGrowthGroup(QQ, 'n')
+            sage: Z = ExponentialGrowthGroup(ZZ, 'n')
+            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: for a in (Q, Z, U):
+            ....:     for b in (Q, Z, U):
+            ....:         print('{} is {}compatible with {}'.format(
+            ....:             a, '' if a.is_compatible(b) else 'not ', b))
+            Growth Group QQ^n is compatible with Growth Group QQ^n
+            Growth Group QQ^n is compatible with Growth Group ZZ^n
+            Growth Group QQ^n is compatible with Growth Group U^n
+            Growth Group ZZ^n is compatible with Growth Group QQ^n
+            Growth Group ZZ^n is compatible with Growth Group ZZ^n
+            Growth Group ZZ^n is compatible with Growth Group U^n
+            Growth Group U^n is not compatible with Growth Group QQ^n
+            Growth Group U^n is not compatible with Growth Group ZZ^n
+            Growth Group U^n is compatible with Growth Group U^n
+        """
+        return isinstance(other, self._underlying_class()) and self._var_ == other._var_
 
     @staticmethod
     def _split_raw_element_(raw_element):

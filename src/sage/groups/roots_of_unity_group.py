@@ -104,6 +104,13 @@ class UnitCircleGroup(UniqueRepresentation, Parent):
     def _repr_(self):
         return 'Unit Circle Group with Exponents in {} modulo ZZ'.format(self.base())
 
+    def _repr_short_(self):
+        from sage.rings.asymptotic.misc import parent_to_repr_short
+        s = parent_to_repr_short(self.base())
+        if ' ' in s:
+            s = '({})'.format(s)
+        return 'U_{}'.format(s)
+
     def __hash__(self):
         return hash((self.__class__, self.base()))
 
@@ -273,3 +280,8 @@ class RootsOfUnityGroup(UnitCircleGroup):
                                                          category=category)
     def _repr_(self):
         return 'Group of Roots of Unity'
+
+    def _repr_short_(self):
+        return 'U'
+
+

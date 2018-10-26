@@ -3201,17 +3201,17 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         if data is None:
             pass
-        elif hasattr(data, 'iteritems'):
+        elif hasattr(data, 'items'):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
             for (sf, iter_transitions) in six.iteritems(data):
                 self.add_state(sf)
-                if hasattr(iter_transitions, 'iteritems'):
+                if hasattr(iter_transitions, 'items'):
                     for (st, transition) in six.iteritems(iter_transitions):
                         self.add_state(st)
                         if is_FSMTransition(transition):
                             self.add_transition(transition)
-                        elif hasattr(transition, 'iteritems'):
+                        elif hasattr(transition, 'items'):
                             self.add_transition(sf, st, **transition)
                         elif hasattr(transition, '__iter__'):
                             self.add_transition(sf, st, *transition)
@@ -3235,7 +3235,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             for transition in data:
                 if is_FSMTransition(transition):
                     self.add_transition(transition)
-                elif hasattr(transition, 'iteritems'):
+                elif hasattr(transition, 'items'):
                     self.add_transition(transition)
                 elif hasattr(transition, '__iter__'):
                     self.add_transition(transition)
@@ -6746,7 +6746,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                     return self._add_fsm_transition_(d)
             else:
                 d = next(itervalues(kwargs))
-            if hasattr(d, 'iteritems'):
+            if hasattr(d, 'items'):
                 args = []
                 kwargs = d
             elif hasattr(d, '__iter__'):

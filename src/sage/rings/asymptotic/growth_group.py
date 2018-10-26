@@ -1667,28 +1667,52 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         elif not isinstance(var, Variable):
             var = Variable(var, ignore=ignore_variables)
 
-        from sage.categories.posets import Posets
         if category is None:
-            # The following block can be removed once #19269 is fixed.
-            from sage.rings.integer_ring import ZZ
-            from sage.rings.rational_field import QQ
-            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            if base is ZZ or base is QQ or \
-                    is_PolynomialRing(base) and \
-                    (base.base_ring() is ZZ or base.base_ring() is QQ):
-                initial_category = Posets()
-            else:
-                initial_category = None
-
             from .misc import transform_category
             category = transform_category(
                 base.category(),
                 cls._determine_category_subcategory_mapping_,
                 cls._determine_category_axiom_mapping_,
-                initial_category=initial_category)
+                initial_category=cls._initial_category_(base))
 
         return super(GenericGrowthGroup, cls).__classcall__(
             cls, base, var, category)
+
+    @staticmethod
+    def _initial_category_(base):
+        r"""
+        Return a category with which creating the actual category
+        of this growth group starts.
+
+        INPUT:
+
+        - ``base`` -- a SageMath parent
+
+        OUTPUT:
+
+        A category or ``None``.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: GenericGrowthGroup._initial_category_(ZZ)
+            Category of posets
+            sage: GenericGrowthGroup._initial_category_(QQ)
+            Category of posets
+            sage: GenericGrowthGroup._initial_category_(SR) is None
+            True
+        """
+        from sage.categories.posets import Posets
+        # The following block can be removed once #19269 is fixed.
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if base is ZZ or base is QQ or \
+                is_PolynomialRing(base) and \
+                (base.base_ring() is ZZ or base.base_ring() is QQ):
+            return Posets()
+        else:
+            return None
 
     def __init__(self, base, var, category):
         r"""
@@ -4449,6 +4473,33 @@ class ExponentialArgumentGrowthGroup(ExponentialGrowthGroup):
     """
 
     Element = ExponentialArgumentGrowthElement
+
+    @staticmethod
+    def _initial_category_(base):
+        r"""
+        Return a category with which creating the actual category
+        of this growth group starts.
+
+        INPUT:
+
+        - ``base`` -- a SageMath parent
+
+        OUTPUT:
+
+        Always the category of posets.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
+            sage: ExponentialArgumentGrowthGroup._initial_category_(ZZ)
+            Category of posets
+            sage: ExponentialArgumentGrowthGroup._initial_category_(QQ)
+            Category of posets
+            sage: ExponentialArgumentGrowthGroup._initial_category_(SR)
+            Category of posets
+        """
+        from sage.categories.posets import Posets
+        return Posets()
 
     def construction(self):
         r"""

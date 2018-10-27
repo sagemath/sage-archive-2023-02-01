@@ -165,7 +165,7 @@ cdef class DenseGraph(CGraph):
             sage: D = DenseGraph(nverts=10, extra_vertices=10)
         """
         if not nverts and not extra_vertices:
-            raise RuntimeError('dense graphs must allocate space for vertices!')
+            raise RuntimeError('dense graphs must allocate space for vertices')
 
         self.num_verts = nverts
         self.num_arcs  = 0
@@ -248,7 +248,7 @@ cdef class DenseGraph(CGraph):
         """
         cdef int i, j
         if not total_verts:
-            raise RuntimeError('dense graphs must allocate space for vertices!')
+            raise RuntimeError('dense graphs must allocate space for vertices')
 
         cdef bitset_t bits
         cdef int min_verts, min_longs, old_longs = self.num_longs
@@ -943,25 +943,27 @@ cdef class DenseGraphBackend(CGraphBackend):
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
                     if u_int >= v_int or u_int not in vertices:
+                        u = self.vertex_label(u_int)
                         try:
-                            v, u = sorted((self.vertex_label(v_int),
-                                           self.vertex_label(u_int)))
+                            if u < v:
+                                v, u = u, v
                         except TypeError:
-                            v = self.vertex_label(v_int)
-                            u = self.vertex_label(u_int)
+                            pass
                         yield (v, u, None)
         else:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
                     if u_int >= v_int or u_int not in vertices:
+                        u = self.vertex_label(u_int)
                         try:
-                            v, u = sorted((self.vertex_label(v_int),
-                                           self.vertex_label(u_int)))
+                            if u < v:
+                                v, u = u, v
                         except TypeError:
-                            v = self.vertex_label(v_int)
-                            u = self.vertex_label(u_int)
+                            pass
                         yield (v, u)
 
     def iterator_in_edges(self, object vertices, bint labels):
@@ -992,15 +994,14 @@ cdef class DenseGraphBackend(CGraphBackend):
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.in_neighbors(v_int):
-                    yield (self.vertex_label(u_int),
-                           self.vertex_label(v_int),
-                           None)
+                    yield (self.vertex_label(u_int), v, None)
         else:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.in_neighbors(v_int):
-                    yield (self.vertex_label(u_int),
-                           self.vertex_label(v_int))
+                    yield (self.vertex_label(u_int), v)
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -1030,15 +1031,14 @@ cdef class DenseGraphBackend(CGraphBackend):
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
-                    yield (self.vertex_label(v_int),
-                           self.vertex_label(u_int),
-                           None)
+                    yield (v, self.vertex_label(u_int), None)
         else:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
-                    yield (self.vertex_label(v_int),
-                           self.vertex_label(u_int))
+                    yield (v, self.vertex_label(u_int))
 
     def multiple_edges(self, new):
         """

@@ -1188,7 +1188,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
     def face_codimension(self, point):
         r"""
-        Return the smallest `d\in\mathbb{Z}` such that ``point`` is
+        Return the smallest `d\in\ZZ` such that ``point`` is
         contained in the interior of a codimension-`d` face.
 
         EXAMPLES::

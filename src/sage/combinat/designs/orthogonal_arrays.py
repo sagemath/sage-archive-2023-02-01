@@ -1871,14 +1871,14 @@ def QDM_from_Vmt(m,t,V):
     **Definition**
 
     Let `q` be a prime power and let `q=mt+1` for `m,t` integers. Let `\omega`
-    be a primitive element of `\mathbb{F}_q`. A `V(m,t)` vector is a vector
+    be a primitive element of `\GF{q}`. A `V(m,t)` vector is a vector
     `(a_1,\dots,a_{m+1}` for which, for each `1\leq k < m`, the differences
 
     .. MATH::
 
         \{a_{i+k}-a_i:1\leq i \leq m+1,i+k\neq m+2\}
 
-    represent the `m` cyclotomic classes of `\mathbb{F}_{mt+1}` (compute subscripts
+    represent the `m` cyclotomic classes of `\GF{mt+1}` (compute subscripts
     modulo `m+2`). In other words, for fixed `k`, is
     `a_{i+k}-a_i=\omega^{mx+\alpha}` and `a_{j+k}-a_j=\omega^{my+\beta}` then
     `\alpha\not\equiv\beta \mod{m}`

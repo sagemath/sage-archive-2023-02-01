@@ -39,16 +39,15 @@ TESTS::
     (Univariate Polynomial Ring in x over Integer Ring, x)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import absolute_import, print_function
 
 cdef is_FractionField, is_RealField, is_ComplexField
 cdef ZZ, QQ, RR, CC, RDF, CDF
@@ -56,7 +55,9 @@ cdef ZZ, QQ, RR, CC, RDF, CDF
 cimport cython
 from cpython.number cimport PyNumber_TrueDivide, PyNumber_Check
 
-import operator, copy, re
+import operator
+import copy
+import re
 
 from sage.cpython.wrapperdescr cimport wrapperdescr_fastcall
 import sage.rings.rational
@@ -1103,7 +1104,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 if start < 0:
                     start = 0
-                from sage.misc.superseded import deprecation
                 deprecation(18940, "polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead")
             if stop is None or stop > d:
                 stop = d
@@ -1681,22 +1681,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             return self._mul_generic(right)
 
-    def _mul_trunc(self, right, n):
-        r"""
-        Deprecated alias of :meth:`_mul_trunc_`
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: x._mul_trunc(x, 1)
-            doctest:...: DeprecationWarning: _mul_trunc is deprecated, use
-            _mul_trunc_ instead
-            See http://trac.sagemath.org/18420 for details.
-            0
-        """
-        deprecation(18420, "_mul_trunc is deprecated, use _mul_trunc_ instead")
-        return self._mul_trunc_(right, n)
-
     cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
         r"""
         Return the truncated multiplication of two polynomials up to ``n``.
@@ -2144,7 +2128,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.roots(ring=ring, multiplicities=False)[0]
 
     def __truediv__(left, right):
-        """
+        r"""
         EXAMPLES::
 
             sage: x = QQ['x'].0
@@ -2633,19 +2617,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 if y.find("-") == 0:
                     y = y[1:]
                 if not atomic_repr and n > 0 and (y.find("+") != -1 or y.find("-") != -1):
-                    x = "\\left(%s\\right)"%x
+                    x = "\\left(%s\\right)" % x
                 if n > 1:
-                    var = "|%s^{%s}"%(name,n)
+                    var = "|%s^{%s}" % (name, n)
                 elif n==1:
-                    var = "|%s"%name
+                    var = "|%s" % name
                 else:
                     var = ""
-                s += "%s %s"%(x,var)
+                s += "%s %s" % (x, var)
         s = s.replace(" + -", " - ")
         s = re.sub(" 1(\.0+)? \|"," ", s)
         s = re.sub(" -1(\.0+)? \|", " -", s)
         s = s.replace("|","")
-        if s==" ":
+        if s == " ":
             return "0"
         return s[1:].lstrip().rstrip()
 
@@ -4410,7 +4394,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 F.append((R(unit), ZZ(1)))
                 unit = R.base_ring().one()
 
-        if not n is None:
+        if n is not None:
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
@@ -4585,7 +4569,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         raise NotImplementedError("splitting_field() is only implemented over number fields and finite fields")
 
     def pseudo_quo_rem(self,other):
-        """
+        r"""
         Compute the pseudo-division of two polynomials.
 
         INPUT:
@@ -5546,14 +5530,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1, 0, 2, 0, 1]
         """
         zero = self._parent.base_ring().zero()
-        if (sparse):
-          return [c for c in self.list() if c != zero]
+        if sparse:
+            return [c for c in self.list() if c != zero]
         else:
-          return self.list()
+            return self.list()
 
     def exponents(self):
         """
-        Return the exponents of the monomials appearing in self.
+        Return the exponents of the monomials appearing in ``self``.
 
         EXAMPLES::
 
@@ -5675,26 +5659,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return v + [z]*(n - len(v))
         else:
             return self[:int(n)].padded_list(n)
-
-    def coeffs(self):
-        r"""
-        Using ``coeffs()`` is now deprecated (:trac:`17518`).
-        Returns ``self.list()``.
-
-        (It is potentially slightly faster to use
-        ``self.list()`` directly.)
-
-        EXAMPLES::
-
-            sage: x = QQ['x'].0
-            sage: f = 10*x^3 + 5*x + 2/17
-            sage: f.coeffs()
-            doctest:...: DeprecationWarning: The use of coeffs() is now deprecated in favor of coefficients(sparse=False).
-            See http://trac.sagemath.org/17518 for details.
-            [2/17, 5, 0, 10]
-        """
-        deprecation(17518, 'The use of coeffs() is now deprecated in favor of coefficients(sparse=False).')
-        return self.list()
 
     def monomial_coefficient(self, m):
         """
@@ -6641,18 +6605,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         try:
-           k = ZZ(k)
+            k = ZZ(k)
         except ValueError("Cannot iterate {} times".format(k)):
-           return self
+            return self
         if k < 0:
-           raise ValueError("Cannot iterate a negative number {} of times".format(k))
+            raise ValueError("Cannot iterate a negative number {} of times".format(k))
         if k == 0:
-           return self.variables()[0] - 1
+            return self.variables()[0] - 1
         if k == 1:
-           return self
+            return self
         if k == 2:
-           return self.composed_op(self, operator.mul,
-                                   algorithm=algorithm, monic=monic)
+            return self.composed_op(self, operator.mul,
+                                    algorithm=algorithm, monic=monic)
         k2, k1 = k.quo_rem(2)
         # recurse to get the k/2 -iterate where k=2*k2+k1:
         R = self.compose_power(k2, algorithm=algorithm, monic=monic)
@@ -6711,7 +6675,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         R = (u - v**n).resultant(self(v), v)
         R = R([self.variables()[0], 0])
         if monic:
-           R = R.monic()
+            R = R.monic()
         return R
 
     def symmetric_power(self, k, monic=False):
@@ -6746,19 +6710,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
              x - a*b*c*d]
         """
         try:
-           k = ZZ(k)
+            k = ZZ(k)
         except (ValueError, TypeError):
-           raise ValueError("Cannot compute k'th symmetric power for k={}".format(k))
+            raise ValueError("Cannot compute k'th symmetric power for k={}".format(k))
         n = self.degree()
         if k < 0 or k > n:
-           raise ValueError("Cannot compute k'th symmetric power for k={}".format(k))
+            raise ValueError("Cannot compute k'th symmetric power for k={}".format(k))
         x = self.variables()[0]
         if k == 0:
-           return x - 1
+            return x - 1
         if k == 1:
-           if monic:
-              return self.monic()
-           return self
+            if monic:
+                return self.monic()
+            return self
         c = (-1)**n * self(0)
         if k == n:
             return x - c
@@ -6767,7 +6731,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             from sage.arith.all import binomial
             g = ((-x)**binomial(n,k) * g(c/x) / c**binomial(n-1,k)).numerator()
             if monic:
-               g = g.monic()
+                g = g.monic()
             return g
 
         def star(g, h):
@@ -6778,14 +6742,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if k == 2:
             g = (star(self, self) // rpow(self, 2)).nth_root(2)
             if monic:
-               g = g.monic()
+                g = g.monic()
             return g
         if k == 3:
             g = star(self.symmetric_power(2, monic=monic), self) * rpow(self, 3)
             h = star(rpow(self, 2), self)
             g = (g // h).nth_root(3)
             if monic:
-               g = g.monic()
+                g = g.monic()
             return g
 
         fkn = fkd = self._parent.one()
@@ -6800,12 +6764,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         assert fk * fkd == fkn
         g = fk.nth_root(k)
         if monic:
-           g = g.monic()
+            g = g.monic()
         return g
 
     def discriminant(self):
         r"""
-        Returns the discriminant of self.
+        Return the discriminant of ``self``.
 
         The discriminant is
 
@@ -7005,7 +6969,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._new_generic(v)
 
     def roots(self, ring=None, multiplicities=True, algorithm=None, **kwds):
-        """
+        r"""
         Return the roots of this polynomial (by default, in the base ring
         of this polynomial).
 
@@ -9436,7 +9400,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # compute the graeffe transform of self
         po_odd = P(coefs[1::2])
         po_even = P(coefs[0::2])
-        f1  = po_even*po_even - gen*(po_odd*po_odd)
+        f1 = po_even * po_even - gen * (po_odd * po_odd)
 
         # first case
         if f1 == self:
@@ -10360,7 +10324,7 @@ cdef list do_schoolbook_product(list x, list y, Py_ssize_t deg):
     coeffs = [None]*deg
     for k in range(deg):
         start = 0 if k <= d2 else k-d2  # max(0, k-d2)
-        end =   k if k <= d1 else d1    # min(k, d1)
+        end = k if k <= d1 else d1    # min(k, d1)
         sum = x[start] * y[k-start]
         for i from start < i <= end:
             sum = sum + x[i] * y[k-i]
@@ -11028,10 +10992,11 @@ cdef class Polynomial_generic_dense(Polynomial):
     @coerce_binop
     def quo_rem(self, other):
         """
-        Returns the quotient and remainder of the Euclidean division of
+        Return the quotient and remainder of the Euclidean division of
         ``self`` and ``other``.
 
-        Raises ZerodivisionError if ``other`` is zero. Raises ArithmeticError if the division is not exact.
+        Raises a ``ZerodivisionError`` if ``other`` is zero. Raises an
+        ``ArithmeticError`` if the division is not exact.
 
         AUTHORS:
 
@@ -11052,12 +11017,12 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f.quo_rem(g)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Division non exact (consider coercing to polynomials over the fraction field)
+            ArithmeticError: division non exact (consider coercing to polynomials over the fraction field)
             sage: g = 0
             sage: f.quo_rem(g)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Division by zero polynomial
+            ZeroDivisionError: division by zero polynomial
 
         TESTS:
 
@@ -11076,28 +11041,43 @@ cdef class Polynomial_generic_dense(Polynomial):
             True
         """
         if other.is_zero():
-            raise ZeroDivisionError("Division by zero polynomial")
+            raise ZeroDivisionError("division by zero polynomial")
         if self.is_zero():
             return self, self
 
         R = self._parent.base_ring()
-        x = (<Polynomial_generic_dense>self).__coeffs[:] # make a copy
-        y = (<Polynomial_generic_dense>other).__coeffs
-        m = len(x)  # deg(self)=m-1
-        n = len(y)  # deg(other)=n-1
+        cdef list x = list((<Polynomial_generic_dense>self).__coeffs) # make a copy
+        cdef list y = (<Polynomial_generic_dense>other).__coeffs
+        cdef Py_ssize_t m = len(x)  # deg(self)=m-1
+        cdef Py_ssize_t n = len(y)  # deg(other)=n-1
         if m < n:
             return self._parent.zero(), self
 
-        quo = list()
-        for k from m-n >= k >= 0:
-            try:
-                q = R(x[n+k-1]/y[n-1])
-            except TypeError:
-                raise ArithmeticError("Division non exact (consider coercing to polynomials over the fraction field)")
-            x[n+k-1] = R.zero()
-            for j from n+k-2 >= j >= k:
-                x[j] -= q * y[j-k]
-            quo.insert(0,q)
+        cdef list quo = []
+        cdef bint convert = False
+        cdef Py_ssize_t j, k
+        try:
+            inv = y[n-1].inverse_of_unit()
+        except (ArithmeticError, ValueError):
+            inv = ~(y[n-1])
+            convert = True
+        if convert:
+            for k from m-n >= k >= 0:
+                q = inv * x[n+k-1]
+                try:
+                    q = R(q)
+                except TypeError:
+                    raise ArithmeticError("division non exact (consider coercing to polynomials over the fraction field)")
+                for j from n+k-2 >= j >= k:
+                    x[j] -= q * y[j-k]
+                quo.append(q)
+        else:
+            for k from m-n >= k >= 0:
+                q = inv * x[n+k-1]
+                for j from n+k-2 >= j >= k:
+                    x[j] -= q * y[j-k]
+                quo.append(q)
+        quo.reverse()
 
         return self._new_c(quo,self._parent), self._new_c(x,self._parent)._inplace_truncate(n-1)
 
@@ -11181,6 +11161,7 @@ def universal_discriminant(n):
     pr2 = PolynomialRing(pr1, 'x')
     p = pr2(list(pr1.gens()))
     return (1 - (n&2))*p.resultant(p.derivative())//pr1.gen(n)
+
 
 cpdef Polynomial generic_power_trunc(Polynomial p, Integer n, long prec):
     r"""

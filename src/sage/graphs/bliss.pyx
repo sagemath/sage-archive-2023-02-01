@@ -511,7 +511,7 @@ cdef automorphism_group_gens_from_edge_list(int Vnr, Vout, Vin, int Lnr=1, label
     if int2vert == []:
         int2vert = list(range(Vnr))
 
-    # the following is needed because the the internal graph has
+    # the following is needed because the internal graph has
     # size Vnr*logLnr for labelled graphs
     if Lnr != 1:
         logLnr = len(numpy.binary_repr(Lnr))

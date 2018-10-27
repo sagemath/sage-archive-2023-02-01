@@ -392,7 +392,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
 
         Different lift modes affect the choice of `a_i`.  When
         ``lift_mode`` is ``'simple'``, the resulting `a_i` will be
-        non-negative: if the residue field is `\mathbb{F}_p` then they
+        non-negative: if the residue field is `\GF{p}` then they
         will be integers with `0 \le a_i < p`; otherwise they will be
         a list of integers in the same range giving the coefficients
         of a polynomial in the indeterminant representing the maximal

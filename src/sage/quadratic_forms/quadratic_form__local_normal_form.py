@@ -78,26 +78,27 @@ def find_entry_with_minimal_scale_at_prime(self, p):
     return ij_index
 
 
-
-
 def local_normal_form(self, p):
-    """
-    Returns the a locally integrally equivalent quadratic form over
-    the p-adic integers Z_p which gives the Jordan decomposition.  The
-    Jordan components are written as sums of blocks of size <= 2 and
-    are arranged by increasing scale, and then by increasing norm.
-    (This is equivalent to saying that we put the 1x1 blocks before
-    the 2x2 blocks in each Jordan component.)
+    r"""
+    Return a locally integrally equivalent quadratic form over
+    the `p`-adic integers `\ZZ_p` which gives the Jordan decomposition.
+
+    The Jordan components are written as sums of blocks of size <= 2
+    and are arranged by increasing scale, and then by increasing norm.
+    This is equivalent to saying that we put the 1x1 blocks before
+    the 2x2 blocks in each Jordan component.
 
     INPUT:
 
-        `p` -- a positive prime number.
+    - `p` -- a positive prime number.
 
     OUTPUT:
 
-        a quadratic form over ZZ
+    a quadratic form over `\ZZ`
 
-    WARNING:  Currently this only works for quadratic forms defined over ZZ.
+    .. WARNING::
+
+        Currently this only works for quadratic forms defined over `\ZZ`.
 
     EXAMPLES::
 
@@ -118,7 +119,6 @@ def local_normal_form(self, p):
         Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 1 0 ]
         [ * 6 ]
-
     """
     ## Sanity Checks
     if (self.base_ring() != IntegerRing()):

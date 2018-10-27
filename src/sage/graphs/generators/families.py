@@ -1523,10 +1523,11 @@ def FuzzyBallGraph(partition, q):
 
 def FibonacciTree(n):
     r"""
-    Returns the graph of the Fibonacci Tree `F_{i}` of order `n`.
-    `F_{i}` is recursively defined as the a tree with a root vertex
-    and two attached child trees `F_{i-1}` and `F_{i-2}`, where
-    `F_{1}` is just one vertex and `F_{0}` is empty.
+    Return the graph of the Fibonacci Tree `F_{i}` of order `n`.
+
+    The Fibonacci tree `F_{i}` is recursively defined as the tree
+    with a root vertex and two attached child trees `F_{i-1}` and
+    `F_{i-2}`, where `F_{1}` is just one vertex and `F_{0}` is empty.
 
     INPUT:
 
@@ -1549,9 +1550,11 @@ def FibonacciTree(n):
 
     - Harald Schilly and Yann Laigle-Chapuy (2010-03-25)
     """
-    T = Graph(name="Fibonacci-Tree-%d"%n)
-    if n == 1: T.add_vertex(0)
-    if n < 2: return T
+    T = Graph(name="Fibonacci-Tree-%d" % n)
+    if n == 1:
+        T.add_vertex(0)
+    if n < 2:
+        return T
 
     from sage.combinat.combinat import fibonacci_sequence
     F = list(fibonacci_sequence(n + 2))
@@ -1578,7 +1581,8 @@ def FibonacciTree(n):
 
     return T
 
-def GeneralizedPetersenGraph(n,k):
+
+def GeneralizedPetersenGraph(n, k):
     r"""
     Returns a generalized Petersen graph with `2n` nodes. The variables
     `n`, `k` are integers such that `n>2` and `0<k\leq\lfloor(n-1)`/`2\rfloor`
@@ -3162,11 +3166,13 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
     Supplying ``G`` and ``L`` (constructed from the automorphism group of ``G``). ::
 
-        sage: G=graphs.PaleyGraph(9)
-        sage: a=G.automorphism_group()
-        sage: r=list(map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()),
-        ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0]))
-        sage: ff=list(map(lambda y: (y[0]-1,y[1]-1),
+        sage: G = graphs.PaleyGraph(9)
+        sage: a = G.automorphism_group()
+        sage: it = (x for x in a.normal_subgroups() if x.order() == 9)
+        sage: subg = next(iter(it))
+        sage: r = [matrix(libgap.PermutationMat(libgap(z), 9).sage())
+        ....:      for z in subg]
+        sage: ff = list(map(lambda y: (y[0]-1,y[1]-1),
         ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:]))
         sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
         [ 0 -1  1 -2 -3 -4  2  4  3]
@@ -3235,10 +3241,12 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         a[i] = x
         a[-i-1] = y
     a.append(K(0))      # and append the 0 of K at the end
-    P = map(lambda b: matrix(ZZ,q,q,lambda i,j: 1 if a[j]==a[i]+b else 0), a)
+    P = [matrix(ZZ, q, q, lambda i, j: 1 if a[j] == a[i] + b else 0)
+         for b in a]
     g = K.primitive_element()
     F = sum(P[a.index(g**(2*i))] for i in range(1, 2*t))
-    E = matrix(ZZ,q,q, lambda i,j: 0 if (a[j]-a[0]).is_square() else 1)
+    E = matrix(ZZ, q, q, lambda i, j: 0 if (a[j] - a[0]).is_square() else 1)
+
     def B(m):
         I = identity_matrix(q)
         J = ones_matrix(q)

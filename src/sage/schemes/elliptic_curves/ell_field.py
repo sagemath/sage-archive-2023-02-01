@@ -327,7 +327,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         ``other`` is ``self.quadratic_twist(D)`` (up to isomorphism).
         If ``self`` and ``other`` are isomorphic, returns 1.
 
-        If the curves are defined over `\mathbb{Q}`, the output `D` is
+        If the curves are defined over `\QQ`, the output `D` is
         a squarefree integer.
 
         .. note::

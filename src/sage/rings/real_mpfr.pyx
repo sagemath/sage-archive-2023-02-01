@@ -1439,7 +1439,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: import numpy
             sage: numpy.arange(10.0)
-            array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
+            array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.])
             sage: numpy.array([1.0, 1.1, 1.2]).dtype
             dtype('float64')
             sage: numpy.array([1.000000000000000000000000000000000000]).dtype

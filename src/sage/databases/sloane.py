@@ -91,9 +91,9 @@ from six.moves.urllib.request import urlretrieve
 
 from sage.misc.all import verbose
 from sage.env import SAGE_SHARE
-import sage.rings.integer_ring
-ZZ = sage.rings.integer_ring.IntegerRing()
+from sage.rings.integer_ring import ZZ
 from sage.misc.superseded import deprecation
+
 
 class SloaneEncyclopediaClass:
     """
@@ -132,9 +132,7 @@ class SloaneEncyclopediaClass:
 
         INPUT:
 
-
-        -  ``N`` - int
-
+        -  ``N`` -- int
 
         OUTPUT: list
         """
@@ -153,7 +151,6 @@ class SloaneEncyclopediaClass:
         self.load()
         return len(self.__data__)
 
-
     def find(self, seq, maxresults=30):
         """
         Return a list of all sequences which have seq as a subsequence, up
@@ -162,11 +159,9 @@ class SloaneEncyclopediaClass:
 
         INPUT:
 
+        -  ``seq`` -- list
 
-        -  ``seq`` - list
-
-        -  ``maxresults`` - int
-
+        -  ``maxresults`` -- int
 
         OUTPUT: list of 2-tuples (i, v), where v is a sequence with seq as
         a subsequence.
@@ -184,7 +179,8 @@ class SloaneEncyclopediaClass:
 
         return answer
 
-    def install(self, oeis_url="http://oeis.org/stripped.gz", names_url="http://oeis.org/names.gz", overwrite=False):
+    def install(self, oeis_url="http://oeis.org/stripped.gz",
+                names_url="http://oeis.org/names.gz", overwrite=False):
         """
         Download and install the online encyclopedia, raising an IOError if
         either step fails.
@@ -259,7 +255,6 @@ class SloaneEncyclopediaClass:
         # automatically loaded next time the user tries to access it
         self.unload()
 
-
     def load(self):
         """
         Load the entire encyclopedia into memory from a file. This is done
@@ -315,7 +310,7 @@ class SloaneEncyclopediaClass:
 
         INPUT:
 
-        -  ``N`` - int
+        -  ``N`` -- int
 
         OUTPUT: string
 
@@ -342,19 +337,22 @@ class SloaneEncyclopediaClass:
         self.__loaded__ = False
         self.__loaded_names__ = False
 
+
 SloaneEncyclopedia = SloaneEncyclopediaClass()
+
 
 def copy_gz_file(gz_source, bz_destination):
     """
-    Decompress a gzipped file and install the bzipped verson.  This is
-    used by SloaneEncyclopedia.install_from_gz to install several
-    gzipped OEIS database files.
+    Decompress a gzipped file and install the bzipped verson.
+
+    This is used by SloaneEncyclopedia.install_from_gz to install
+    several gzipped OEIS database files.
 
     INPUT:
 
-    - ``gz_source`` - string. The name of the gzipped file.
+    - ``gz_source`` -- string. The name of the gzipped file.
 
-    - ``bz_destination`` - string.  The name of the newly compressed file.
+    - ``bz_destination`` -- string.  The name of the newly compressed file.
     """
     import gzip
     from sage.misc.misc import sage_makedirs
@@ -365,7 +363,7 @@ def copy_gz_file(gz_source, bz_destination):
         db_text = gz_input.read()
         gz_input.close()
     except IOError as msg:
-        raise IOError("Error reading gzipped input file:\n%s"%msg)
+        raise IOError("Error reading gzipped input file:\n%s" % msg)
 
     # Write the bzipped output
     try:
@@ -374,53 +372,4 @@ def copy_gz_file(gz_source, bz_destination):
         bz2_output.write(db_text)
         bz2_output.close()
     except IOError as msg:
-        raise IOError("Error writing bzipped output file:\n%s"%msg)
-
-def parse_sequence(text=''):
-    r"""
-    This internal function was only used by the sloane_find function,
-    which is now deprecated.
-
-    TESTS::
-
-        sage: from sage.databases.sloane import parse_sequence
-        sage: parse_sequence()
-        doctest:...: DeprecationWarning: The function parse_sequence is not used anymore (2012-01-01).
-        See http://trac.sagemath.org/10358 for details.
-    """
-    deprecation(10358, "The function parse_sequence is not used anymore (2012-01-01).")
-
-def sloane_sequence(number=1, verbose=True):
-    r"""
-    This function is broken. It is replaced by the
-    :mod:`OEIS <sage.databases.oeis>` module.
-
-    Type ``oeis?`` for more information.
-
-    TESTS::
-
-        sage: sloane_sequence(123)
-        doctest:...: DeprecationWarning: The function sloane_sequence is deprecated. Use oeis() instead (2012-01-01).
-        See http://trac.sagemath.org/10358 for details.
-    """
-    deprecation(10358,
-            "The function sloane_sequence is deprecated. "
-            "Use oeis() instead (2012-01-01).")
-
-def sloane_find(list=[], nresults=30, verbose=True):
-    r"""
-    This function is broken. It is replaced by the
-    :mod:`OEIS <sage.databases.oeis>` module.
-
-    Type ``oeis?`` for more information.
-
-    TESTS::
-
-        sage: sloane_find([1,2,3])
-        doctest:...: DeprecationWarning: The function sloane_find is deprecated. Use oeis() instead (2012-01-01).
-        See http://trac.sagemath.org/10358 for details.
-    """
-    deprecation(10358,
-            "The function sloane_find is deprecated. "
-            "Use oeis() instead (2012-01-01).")
-
+        raise IOError("Error writing bzipped output file:\n%s" % msg)

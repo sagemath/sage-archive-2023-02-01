@@ -131,7 +131,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._style = style
         self._fusion_labels = None
         self._k = k
-        if ct.is_atomic():
+        if ct.is_irreducible():
             self._opposition = ct.opposition_automorphism()
             self._highest = self._space.highest_root()
             self._hip = self._highest.inner_product(self._highest)
@@ -1198,16 +1198,18 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: A3=WeylCharacterRing("A3",style="coroots")
+                sage: A3 = WeylCharacterRing("A3", style="coroots")
                 sage: A3(1,0,0)^2
                 A3(0,1,0) + A3(2,0,0)
                 sage: (A3(1,0,0)^2).dual()
                 A3(0,1,0) + A3(0,0,2)
             """
-            if not self.parent().cartan_type().is_atomic():
+            if not self.parent().cartan_type().is_irreducible():
                 raise NotImplementedError("dual method is not implemented for reducible types")
             d = self.monomial_coefficients()
-            return sum(d[k]*self.parent()._element_constructor_(self.parent()._dual_helper(k)) for k in d.keys())
+            WCR = self.parent()
+            return sum(d[k] * WCR._element_constructor_(self.parent()._dual_helper(k))
+                       for k in d)
 
         def highest_weight(self):
             """

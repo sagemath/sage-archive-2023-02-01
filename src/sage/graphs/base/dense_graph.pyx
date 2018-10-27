@@ -938,14 +938,14 @@ cdef class DenseGraphBackend(CGraphBackend):
             [(1, 2, None)]
 
         """
-        cdef object v
+        cdef object v, u
         vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
                     if u_int >= v_int or u_int not in vertices:
+                        v = self.vertex_label(v_int)
                         u = self.vertex_label(u_int)
                         try:
                             if u < v:
@@ -955,9 +955,9 @@ cdef class DenseGraphBackend(CGraphBackend):
                         yield (v, u, None)
         else:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
                     if u_int >= v_int or u_int not in vertices:
+                        v = self.vertex_label(v_int)
                         u = self.vertex_label(u_int)
                         try:
                             if u < v:
@@ -994,14 +994,15 @@ cdef class DenseGraphBackend(CGraphBackend):
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
                 for u_int in self._cg.in_neighbors(v_int):
-                    yield (self.vertex_label(u_int), v, None)
+                    yield (self.vertex_label(u_int),
+                           self.vertex_label(v_int),
+                           None)
         else:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
                 for u_int in self._cg.in_neighbors(v_int):
-                    yield (self.vertex_label(u_int), v)
+                    yield (self.vertex_label(u_int),
+                           self.vertex_label(v_int))
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -1026,19 +1027,20 @@ cdef class DenseGraphBackend(CGraphBackend):
             [(1, 2, None)]
 
         """
-        cdef object u, v
+        cdef object v
         vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
-                    yield (v, self.vertex_label(u_int), None)
+                    yield (self.vertex_label(v_int),
+                           self.vertex_label(u_int),
+                           None)
         else:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
-                    yield (v, self.vertex_label(u_int))
+                    yield (self.vertex_label(v_int),
+                           self.vertex_label(u_int))
 
     def multiple_edges(self, new):
         """

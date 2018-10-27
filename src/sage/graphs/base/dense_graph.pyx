@@ -994,15 +994,14 @@ cdef class DenseGraphBackend(CGraphBackend):
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.in_neighbors(v_int):
-                    yield (self.vertex_label(u_int),
-                           self.vertex_label(v_int),
-                           None)
+                    yield (self.vertex_label(u_int), v, None)
         else:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.in_neighbors(v_int):
-                    yield (self.vertex_label(u_int),
-                           self.vertex_label(v_int))
+                    yield (self.vertex_label(u_int), v)
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -1032,15 +1031,14 @@ cdef class DenseGraphBackend(CGraphBackend):
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
-                    yield (self.vertex_label(v_int),
-                           self.vertex_label(u_int),
-                           None)
+                    yield (v, self.vertex_label(u_int), None)
         else:
             for v_int in vertices:
+                v = self.vertex_label(v_int)
                 for u_int in self._cg.out_neighbors(v_int):
-                    yield (self.vertex_label(v_int),
-                           self.vertex_label(u_int))
+                    yield (v, self.vertex_label(u_int))
 
     def multiple_edges(self, new):
         """

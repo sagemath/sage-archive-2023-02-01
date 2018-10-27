@@ -861,7 +861,7 @@ def triangles_count(G):
             count[u] += tmp_count
             count[v] += tmp_count
 
-    ans = {w: Integer(count[i]/2) for i,w in enumerate(int_to_vertex)}
+    ans = {w: Integer(count[i] // 2) for i, w in enumerate(int_to_vertex)}
 
     free_short_digraph(g)
     sig_free(count)

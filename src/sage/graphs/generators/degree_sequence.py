@@ -16,6 +16,8 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+
+import sys
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
 
@@ -142,10 +144,11 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
 
     INPUT:
 
-    -  ``deg_sequence`` - a list of integers with each
-       entry corresponding to the expected degree of a different vertex.
+    - ``deg_sequence`` - a list of integers with each entry corresponding to the
+      expected degree of a different vertex.
 
-    -  ``seed`` - for the random number generator.
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
 
 
     EXAMPLES::
@@ -172,7 +175,7 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
       networks, SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
     """
     if seed is None:
-        seed = current_randstate().long_seed()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     return Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed=seed), loops=True, multiedges=True, sparse=True)
 
@@ -210,17 +213,18 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
 
     INPUT:
 
-    -  ``deg_sequence`` - a list of integers with each
-       entry corresponding to the expected degree of a different vertex.
+    - ``deg_sequence`` - a list of integers with each entry corresponding to the
+      expected degree of a different vertex.
 
-    -  ``seed`` - for the random number generator.
+    - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+      number generator (default: ``None``).
 
 
     EXAMPLES::
 
         sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
         sage: G.edges(labels=False)
-        [(0, 2), (0, 3), (1, 1), (1, 4), (2, 3), (2, 4), (3, 4), (4, 4)]
+        [(0, 3), (1, 4), (2, 2), (2, 3), (2, 4), (4, 4)]
         sage: G.show()  # long time
 
     REFERENCE:
@@ -230,6 +234,6 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
       Ann. Combinatorics (6), 2002 pp. 125-145.
     """
     if seed is None:
-        seed = current_randstate().long_seed()
+        seed = int(current_randstate().long_seed() % sys.maxint)
     import networkx
     return Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed=seed), loops=True)

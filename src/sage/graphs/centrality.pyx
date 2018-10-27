@@ -27,7 +27,6 @@ from sage.graphs.base.static_sparse_graph cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
 from sage.ext.memory_allocator cimport MemoryAllocator
-from sage.graphs.base.static_sparse_backend cimport simple_BFS
 from sage.graphs.base.boost_graph import shortest_paths as boost_shortest_paths
 import random
 

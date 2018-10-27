@@ -688,7 +688,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 n = 0
             else:
                 n -= self.valuation()
-        return list(itertools.chain(itertools.islice(L, n), itertools.repeat(zero, n - len(L))))
+        return list(itertools.chain(itertools.islice(L, int(n)), itertools.repeat(zero, n - len(L))))
 
     def _ext_p_list(self, pos):
         """
@@ -1222,7 +1222,7 @@ cdef class ExpansionIterable(object):
             -2
         """
         if isinstance(n, slice):
-            return itertools.islice(iter(self), n.start, n.stop, n.step)
+            return itertools.islice(iter(self), int(n.start), int(n.stop), int(n.step))
         cdef long m = n - self.val_shift
         cdef celement value
         if n < 0:

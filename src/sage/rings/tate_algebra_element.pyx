@@ -216,13 +216,20 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         parent = self._parent
-        s = "(%s)" % self._coeff
+        if self._coeff._is_atomic() or (-self._coeff)._is_atomic():
+            s = repr(self._coeff)
+            if s == "1": s = ""
+        else:
+            s = "(%s)" % self._coeff
         for i in range(parent._ngens):
             if self._exponent[i] == 1:
                 s += "*%s" % parent._names[i]
             elif self._exponent[i] > 1:
                 s += "*%s^%s" % (parent._names[i], self._exponent[i])
-        return s
+        if s[0] == "*":
+            return s[1:]
+        else:
+            return s
 
     def _latex_(self):
         r"""
@@ -241,13 +248,21 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         from sage.misc.latex import latex
         parent = self._parent
-        s = "(%s)" % latex(self._coeff)
+        s = ""
+        if self._coeff._is_atomic() or (-self._coeff)._is_atomic():
+            s = latex(self._coeff)
+            if s == "1": s = ""
+        else:
+            s = "\\left(%s\\right)" % latex(self._coeff)
         for i in range(parent._ngens):
             if self._exponent[i] == 1:
                 s += "%s" % parent._latex_names[i]
             elif self._exponent[i] > 1:
                 s += "%s^{%s}" % (parent._latex_names[i], self._exponent[i])
-        return s
+        if s[0] == "*":
+            return s[1:]
+        else:
+            return s
 
     def coefficient(self):
         r"""
@@ -1181,12 +1196,40 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         for t in self._terms_c():
             if t.valuation() >= self._prec:
                 continue
-            s += " + %s" % t
+            st = repr(t)
+            if s == "":
+                s += st
+            elif st[0] == "-":
+                s += " - " + st[1:]
+            else:
+                s += " + " + st
         if self._prec is not Infinity:
-            s += " + %s" % base.change(show_prec="bigoh")(0, self._prec)
+            if s != "":
+                s += " + "
+            su = self._parent._uniformizer_repr
+            lr = self._parent.log_radii()
+            sv = [ ]
+            for i in range(len(vars)):
+                if lr[i] == 0:
+                    sv.append(vars[i])
+                elif lr[i] == -1:
+                    sv.append("%s*%s" % (su, vars[i]))
+                elif lr[i] == 1:
+                    sv.append("%s/%s" % (vars[i], su))
+                elif lr[i] < 0:
+                    sv.append("%s^%s*%s" % (su, -lr[i], vars[i]))
+                else:
+                    sv.append("%s/%s^%s" % (vars[i], su, lr[i]))
+            sv = ", ".join(sv)
+            if self._prec == 0:
+                s += "O(<%s>)" % sv
+            elif self._prec == 1:
+                s += "O(%s * <%s>)" % (self._parent._uniformizer_repr, sv)
+            else:
+                s += "O(%s^%s * <%s>)" % (self._parent._uniformizer_repr, self._prec, sv)
         if s == "":
             return "0"
-        return s[3:]
+        return s
 
     def _latex_(self):
         r"""
@@ -1214,12 +1257,24 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         for t in self.terms():
             if t.valuation() >= self._prec:
                 continue
-            s += " + %s" % latex(t)
+            st = latex(t)
+            if s == "":
+                s += st
+            elif st[0] == "-":
+                s += " - " + st[1:]
+            else:
+                s += " + " + st
         if self._prec is not Infinity:
-            s += " + %s" % latex(base.change(show_prec="bigoh")(0, self._prec))
-        if s == "":
-            return "0"
-        return s[3:]
+            if s != "":
+                s += " + "
+            sv = ",".join(vars)
+            if self._prec == 0:
+                s += "O\\left(%s\\right)" % latex(self._parent.integer_ring())
+            elif self._prec == 1:
+                s += "O\\left(%s %s\\right)" % (self._parent._uniformizer_latex, latex(self._parent.integer_ring()))
+            else:
+                s += "O\\left(%s^{%s} %s\\right)" % (self._parent._uniformizer_latex, self._prec, latex(self._parent.integer_ring()))
+        return s
 
     cpdef _add_(self, other):
         r"""

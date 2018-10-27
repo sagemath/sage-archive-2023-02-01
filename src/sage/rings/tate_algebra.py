@@ -711,6 +711,9 @@ class TateAlgebra_generic(CommutativeAlgebra):
         self._log_radii = ETuple(log_radii)  # TODO: allow log_radii in QQ
         self._names = names
         self._latex_names = [ latex_variable_name(var) for var in names ]
+        uniformizer = field.change(print_mode='terse', show_prec=False).uniformizer()
+        self._uniformizer_repr = uniformizer._repr_()
+        self._uniformizer_latex = uniformizer._latex_()
         self._ngens = len(names)
         self._order = order
         self._integral = integral

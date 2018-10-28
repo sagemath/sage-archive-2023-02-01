@@ -705,3 +705,216 @@ class RootsOfUnityGroup(UnitCircleGroup):
         return 'U'
 
 
+class ArgumentByElement(AbstractArgument):
+    r"""
+    An element of :class:`ArgumentByElementGroup`.
+
+    INPUT:
+
+    - ``parent`` -- a SageMath parent
+
+    - ``element`` -- a nonzero element of the parent's base
+
+    - ``normalize`` -- a boolean (default: ``True``)
+    """
+
+    def __init__(self, parent, element, normalize=True):
+        r"""
+        See :class:`ArgumentByElement` for more information.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(CC)
+            sage: C(1+2*I)  # indirect doctest
+            e^(I*arg(1.00000000000000 + 2.00000000000000*I))
+        """
+        super(ArgumentByElement, self).__init__(parent, element, normalize=normalize)
+        if self._element_ == 0:
+            raise ValueError('{} is not allowed'.format(element))
+
+    @staticmethod
+    def _normalize_(element):
+        r"""
+        Normalizes the given element.
+
+        This is the identity for :class:`ArgumentByElement`.
+
+        INPUT:
+
+        - ``element`` -- an element of the parent's base
+
+        OUTPUT:
+
+        An element.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElement
+            sage: ArgumentByElement._normalize_(3/2)
+            3/2
+        """
+        return element
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this argument by element.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(CC)
+            sage: C(2+3*I)  # indirect doctest
+            e^(I*arg(2.00000000000000 + 3.00000000000000*I))
+        """
+        return 'e^(I*arg({}))'.format(self._element_)
+
+    def _mul_(self, other):
+        r"""
+        Return the product of this argument by element with ``other``.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(CC)
+            sage: C(I) * C(1 + I)  # indirect doctest
+            e^(I*arg(-1.00000000000000 + 1.00000000000000*I))
+        """
+        P = self.parent()
+        return P.element_class(P, self._element_ * other._element_)
+
+    def __pow__(self, exponent):
+        r"""
+        Return the power of this argument by element
+        to the given ``exponent``.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(CC)
+            sage: C(I)^5  # indirect doctest
+            e^(I*arg(1.00000000000000*I))
+            sage: C(1+I)^3  # indirect doctest
+            e^(I*arg(-2.00000000000000 + 2.00000000000000*I))
+        """
+        P = self.parent()
+        return P.element_class(P, self._element_ ** exponent)
+
+    def __invert__(self):
+        r"""
+        Return the inverse of this argument by element.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(CC)
+            sage: ~C(I)  # indirect doctest
+            e^(I*arg(-1.00000000000000*I))
+        """
+        P = self.parent()
+        return P.element_class(P, ~self._element_)
+
+
+class ArgumentByElementGroup(AbstractArgumentGroup):
+    r"""
+    A group of (complex) arguments. The arguments are represented
+    by a the formal argument of an element, i.e.,
+    by `\mathrm{arg}(\mathit{element})`.
+
+    INPUT:
+
+    - ``base`` -- a SageMath parent representing a subset of the complex plane
+
+    - ``category`` -- a category
+
+    EXAMPLES::
+
+        sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+        sage: C = ArgumentByElementGroup(CC); C
+        Unit Circle Group with Argument of Elements in
+        Complex Field with 53 bits of precision
+        sage: C(1 + 2*I)
+        e^(I*arg(1.00000000000000 + 2.00000000000000*I))
+    """
+
+    Element = ArgumentByElement
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this argument by element group.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: ArgumentByElementGroup(CC)  # indirect doctest
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
+        """
+        return 'Unit Circle Group with Argument of Elements in {}'.format(self.base())
+
+    def _repr_short_(self):
+        r"""
+        Return a short representation string of this  argument by element group.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: ArgumentByElementGroup(CC)._repr_short_()
+            'Arg_CC'
+        """
+        from sage.rings.asymptotic.misc import parent_to_repr_short
+        s = parent_to_repr_short(self.base())
+        if ' ' in s:
+            s = '({})'.format(s)
+        return 'Arg_{}'.format(s)
+
+    def _element_constructor_(self, data):
+        r"""
+        Construct an element out of the given data.
+
+        INPUT:
+
+        - ``data`` -- an object
+
+        OUTPUT:
+
+        A :class:`ArgumentByElement`.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(CC)
+            sage: C(1 + 2*I)  # indirect doctest
+            e^(I*arg(1.00000000000000 + 2.00000000000000*I))
+            sage: C(1)
+            e^(I*arg(1.00000000000000))
+            sage: C(-1)
+            e^(I*arg(-1.00000000000000))
+            sage: C(ZZ(-1))
+            e^(I*arg(-1.00000000000000))
+            sage: C(QQ(-1))
+            e^(I*arg(-1.00000000000000))
+            sage: C(int(-1))
+            e^(I*arg(-1.00000000000000))
+            sage: C('-1')
+            e^(I*arg(-1.00000000000000))
+        """
+        if isinstance(data, int) and data == 0:
+            raise ValueError('no input specified')
+
+        elif isinstance(data, self.element_class):
+            if data.parent() == self:
+                return data
+            element = data._element_
+
+        elif data == 1 or data == '1':
+            element = 1
+
+        elif data == -1 or data == '-1':
+            element = -1
+
+        else:
+            element = data
+
+        return self.element_class(self, element)
+

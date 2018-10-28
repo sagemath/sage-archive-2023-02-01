@@ -332,7 +332,7 @@ class DiGraph(GenericGraph):
        ``[list of vertices, function]``).
 
        We construct a graph on the integers 1 through 12 such that there is a
-       directed edge from `i` to `j` if and only if `i` divides `j`.::
+       directed edge from `i` to `j` if and only if `i` divides `j`::
 
             sage: g = DiGraph([[1..12], lambda i,j: i != j and i.divides(j)])
             sage: g.vertices()
@@ -700,13 +700,16 @@ class DiGraph(GenericGraph):
         # Input is a list of edges
         if format is None and isinstance(data,list):
             format = "list_of_edges"
-            if weighted is None: weighted = False
+            if weighted is None:
+                    weighted = False
 
         if format == 'weighted_adjacency_matrix':
             if weighted is False:
                 raise ValueError("format was weighted_adjacency_matrix but weighted was False")
-            if weighted   is None: weighted   = True
-            if multiedges is None: multiedges = False
+            if weighted is None:
+                weighted = True
+            if multiedges is None:
+                multiedges = False
             format = 'adjacency_matrix'
 
         if format is None:
@@ -715,7 +718,8 @@ class DiGraph(GenericGraph):
         # At this point, format has been set. We build the graph
 
         if format == 'dig6':
-            if weighted is None: self._weighted = False
+            if weighted is None:
+                self._weighted = False
             self.allow_loops(True if loops else False, check=False)
             self.allow_multiple_edges(True if multiedges else False, check=False)
             from .graph_input import from_dig6
@@ -730,18 +734,21 @@ class DiGraph(GenericGraph):
             from_oriented_incidence_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'DiGraph':
-            if loops is None: loops = data.allows_loops()
+            if loops is None:
+                loops = data.allows_loops()
             elif not loops and data.has_loops():
                 raise ValueError("the digraph was built with loops=False but input data has a loop")
-            if multiedges is None: multiedges = data.allows_multiple_edges()
+            if multiedges is None:
+                multiedges = data.allows_multiple_edges()
             elif not multiedges:
-                e = data.edges(labels=False)
+                e = data.edges(labels=False, sort=False)
                 if len(e) != len(set(e)):
                     raise ValueError("no multiple edges but input digraph"
                                      " has multiple edges")
             self.allow_multiple_edges(multiedges, check=False)
             self.allow_loops(loops, check=False)
-            if weighted is None: weighted = data.weighted()
+            if weighted is None:
+                weighted = data.weighted()
             if data.get_pos() is not None:
                 pos = data.get_pos()
             self.add_vertices(data.vertex_iterator())
@@ -749,8 +756,10 @@ class DiGraph(GenericGraph):
             self.name(data.name())
         elif format == 'rule':
             f = data[1]
-            if loops is None: loops = any(f(v,v) for v in data[0])
-            if weighted is None: weighted = False
+            if loops is None:
+                loops = any(f(v,v) for v in data[0])
+            if weighted is None:
+                weighted = False
             self.allow_multiple_edges(True if multiedges else False, check=False)
             self.allow_loops(loops,check=False)
             self.add_vertices(data[0])
@@ -795,7 +804,7 @@ class DiGraph(GenericGraph):
                 r = lambda x: x
 
             self.allow_multiple_edges(multiedges, check=False)
-            self.allow_loops(loops ,check=False)
+            self.allow_loops(loops, check=False)
             self.add_vertices(data.nodes())
             self.add_edges((u, v, r(l)) for u, v, l in data.edges(data=True))
         elif format == 'igraph':
@@ -812,7 +821,8 @@ class DiGraph(GenericGraph):
                 self.relabel({v: vs[v]['name'] for v in self})
 
         elif format == 'int':
-            if weighted   is None: weighted   = False
+            if weighted is None:
+                weighted = False
             self.allow_loops(True if loops else False, check=False)
             self.allow_multiple_edges(True if multiedges else False, check=False)
             if data < 0:
@@ -1623,7 +1633,7 @@ class DiGraph(GenericGraph):
 
         if self.has_loops():
             # We solve the problem on a copy without loops of the digraph
-            D = DiGraph(self.edges(), multiedges=self.allows_multiple_edges(), loops=True)
+            D = DiGraph(self.edges(sort=False), multiedges=self.allows_multiple_edges(), loops=True)
             D.allow_loops(False)
             FAS = D.feedback_edge_set(constraint_generation=constraint_generation,
                                           value_only=value_only, solver=solver, verbose=verbose)
@@ -3573,14 +3583,14 @@ class DiGraph(GenericGraph):
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         if edges is None:
-            edges = self.edges()
+            edges = self.edges(sort=False)
         ineqs = [[0] + [Integer(j == u) for j in edges]
                  for u in edges]
 
         eqs = []
         for u in self:
-            ins = self.incoming_edges(u)
-            outs = self.outgoing_edges(u)
+            ins = set(self.incoming_edge_iterator(u))
+            outs = set(self.outgoing_edge_iterator(u))
             eq = [Integer(j in ins) - Integer(j in outs) for j in edges]
 
             const = 0

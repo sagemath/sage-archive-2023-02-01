@@ -1058,7 +1058,7 @@ def _rpow_(self, base):
             try:
                 element = E(raw_element=base)
             except PartialConversionValueError as e:
-                EU = E.extend_by_roots_of_unity_group()
+                EU = E.extended_by_argument_group()
                 element = EU._convert_factors_([e.element])
 
     try:
@@ -4348,11 +4348,74 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         """
         return ExponentialGrowthGroupFunctor(self._var_), self.base()
 
+    @classmethod
+    def group_factory(cls,
+                      base, var,
+                      return_factors=False,
+                      **kwds):
+        r"""
+        """
+        from sage.rings.complex_arb import ComplexBallField
+        from sage.rings.complex_field import ComplexField_class
+        from sage.rings.complex_interval_field import ComplexIntervalField_class
+        from sage.rings.number_field.number_field import NumberField_cyclotomic
+        from sage.rings.qqbar import QQbar, AA
 
-    def extend_by_roots_of_unity_group(self):
+        if base == QQbar or isinstance(base, NumberField_cyclotomic):
+            base = AA
+        elif isinstance(base, (ComplexField_class,
+                               ComplexIntervalField_class,
+                               ComplexBallField)):
+            base = base._real_field()
+
+        E = cls(base, var, **kwds)
+        return E.extended_by_argument_group(return_factors=return_factors)
+
+    def extended_by_argument_group(self, return_factors=False):
         r"""
         Extend to a cartesian product of this exponential growth group
         and a suitable group of roots of unity.
+
+        INPUT:
+
+        - ``return_factors`` -- a boolean (default: ``False``). When set,
+          then a tuple of the cartesian factors is returned instead
+          of the cartesian product.
+
+        OUTPUT:
+
+        A group group or a tuple of growth groups.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('QQ^x').extended_by_argument_group()
+            Growth Group QQ^x * U^x
+            sage: GrowthGroup('RR^x').extended_by_argument_group()
+            Growth Group RR^x * U_RR^x
+            sage: GrowthGroup('RIF^x').extended_by_argument_group()
+            Growth Group RIF^x * U_RIF^x
+            sage: GrowthGroup('RBF^x').extended_by_argument_group()
+            Growth Group RBF^x * U_RBF^x
+            sage: GrowthGroup('CC^x').extended_by_argument_group()
+            Growth Group CC^x * U_RR^x
+            sage: GrowthGroup('CIF^x').extended_by_argument_group()
+            Growth Group CIF^x * U_RIF^x
+            sage: GrowthGroup('CBF^x').extended_by_argument_group()
+            Growth Group CBF^x * U_RBF^x
+        """
+        from sage.categories.cartesian_product import cartesian_product
+
+        factors = (self, self.argument_group())
+        if return_factors:
+            return factors
+        else:
+            return cartesian_product(factors)
+
+    def argument_group(self):
+        r"""
+        Return a group of roots of unity compatible with
+        this exponential growth group.
 
         OUTPUT:
 
@@ -4361,48 +4424,24 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('QQ^x').extend_by_roots_of_unity_group()
-            Growth Group QQ^x * U^x
-            sage: GrowthGroup('RR^x').extend_by_roots_of_unity_group()
-            Growth Group RR^x * U_RR^x
-            sage: GrowthGroup('RIF^x').extend_by_roots_of_unity_group()
-            Growth Group RIF^x * U_RIF^x
-            sage: GrowthGroup('RBF^x').extend_by_roots_of_unity_group()
-            Growth Group RBF^x * U_RBF^x
-            sage: GrowthGroup('CC^x').extend_by_roots_of_unity_group()
-            Growth Group CC^x * U_RR^x
-            sage: GrowthGroup('CIF^x').extend_by_roots_of_unity_group()
-            Growth Group CIF^x * U_RIF^x
-            sage: GrowthGroup('CBF^x').extend_by_roots_of_unity_group()
-            Growth Group CBF^x * U_RBF^x
+            sage: GrowthGroup('QQ^x').argument_group()
+            Growth Group U^x
+            sage: GrowthGroup('RR^x').argument_group()
+            Growth Group U_RR^x
+            sage: GrowthGroup('RIF^x').argument_group()
+            Growth Group U_RIF^x
+            sage: GrowthGroup('RBF^x').argument_group()
+            Growth Group U_RBF^x
+            sage: GrowthGroup('CC^x').argument_group()
+            Growth Group U_RR^x
+            sage: GrowthGroup('CIF^x').argument_group()
+            Growth Group U_RIF^x
+            sage: GrowthGroup('CBF^x').argument_group()
+            Growth Group U_RBF^x
         """
-        from sage.categories.cartesian_product import cartesian_product
-        from sage.groups.roots_of_unity_group import RootsOfUnityGroup, UnitCircleGroup
-
-        from sage.rings.complex_arb import ComplexBallField
-        from sage.rings.complex_field import ComplexField_class
-        from sage.rings.complex_interval_field import ComplexIntervalField_class
-        from sage.rings.real_arb import RealBallField
-        from sage.rings.real_mpfr import RealField_class
-        from sage.rings.real_mpfi import RealIntervalField_class
-
-        from sage.rings.integer_ring import ZZ
-        from sage.rings.rational_field import QQ
-        from sage.rings.qqbar import AA
-
-        if isinstance(self.base(), (RealField_class,
-                                    RealIntervalField_class,
-                                    RealBallField)):
-            U = UnitCircleGroup(self.base())
-        elif isinstance(self.base(), (ComplexField_class,
-                                      ComplexIntervalField_class,
-                                      ComplexBallField)):
-            U = UnitCircleGroup(self.base()._real_field())
-        else:
-            U = RootsOfUnityGroup()
-
-        return cartesian_product(
-            [self, ExponentialArgumentGrowthGroup(U, self._var_)])
+        from sage.groups.roots_of_unity_group import ArgumentGroup
+        U = ArgumentGroup(domain=self.base())
+        return ExponentialArgumentGrowthGroup(U, self._var_)
 
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):

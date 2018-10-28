@@ -21,9 +21,10 @@ Classes and Methods
 from __future__ import absolute_import
 
 from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import richcmp_by_eq_and_lt
+from sage.structure.unique_representation import UniqueRepresentation
 
 
 class AbstractArgument(MultiplicativeGroupElement):

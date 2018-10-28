@@ -75,15 +75,13 @@ toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname)))
 # unconditionally. We still use the dependency checking from $(MAKE),
 # so this will not trigger useless rebuilds.
 # See #14168 and #14232.
-#
-# Note: This list consists of only the *runtime* dependencies of the toolchain.
-TOOLCHAIN_DEPS = zlib $(MP_LIBRARY) mpfr mpc
-TOOLCHAIN_DEP_INSTS = \
-	$(foreach pkgname,$(TOOLCHAIN_DEPS),$(inst_$(pkgname)))
-
+# Note: This list is determined from the dependencies of the TOOLCHAIN
+# packages which include gcc, and optionally ccache; in principle this
+# list is redundant.
+TOOLCHAIN_DEPS = zlib xz $(MP_LIBRARY) mpfr mpc
 toolchain-deps:
-	for target in $(TOOLCHAIN_DEP_INSTS); do \
-	    $(MAKE) $$target; \
+	for pkg in $(TOOLCHAIN_DEPS); do \
+	    $(MAKE) $$pkg; \
 	done
 
 all-toolchain: base-toolchain

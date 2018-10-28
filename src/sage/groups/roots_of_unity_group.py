@@ -1,5 +1,27 @@
 r"""
-Groups of elements on the unit circle (e.g. roots of unity).
+Groups of elements representing (complex) arguments.
+
+This includes
+
+- :class:`RootsOfUnityGroups` (containing all roots of unity)
+
+- :class:`UnitCircleGroup` (representing elements on the unit circle by
+  `e^{2\pi\mathit{exponent}}`)
+
+- :class:`ArgumentByElementGroup` (whose elements are defined via
+  formal arguments by `e^{I\mathrm{arg}(\mathit{element})}`.
+
+Use the factory :class:`ArgumentGroup` for creating such a group conveniently.
+
+.. NOTE::
+
+    One main purpose of such groups is in an
+    :doc:`asymptotic ring's <asymptotic_ring>`
+    :doc:`growth group <growth_group>` when an element like `z^n`
+    (for some constant `z`) is split into
+    `\lvert z \rvert^n \cdot e^{I \mathrm{arg}(z) n}`.
+    (Note that the first factor determines the growth of that product,
+    the second does not influence the growth.)
 
 AUTHORS:
 

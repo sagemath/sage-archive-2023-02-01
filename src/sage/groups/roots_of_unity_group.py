@@ -918,3 +918,226 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
 
         return self.element_class(self, element)
 
+
+def exactly_one_is_true(iterable):
+    r"""
+    Return whether exactly one element of ``iterable`` evaluates ``True``.
+
+    INPUT:
+
+    - ``iterable`` -- an iterable object
+
+    OUTPUT:
+
+    A boolean.
+
+    .. NOTE::
+
+        The implementation is suggested by
+        `stackoverflow entry <https://stackoverflow.com/a/16801605/1052778>`_.
+
+    EXAMPLES::
+
+        sage: from sage.groups.roots_of_unity_group import exactly_one_is_true
+        sage: exactly_one_is_true([])
+        False
+        sage: exactly_one_is_true([True])
+        True
+        sage: exactly_one_is_true([False])
+        False
+        sage: exactly_one_is_true([True, True])
+        False
+        sage: exactly_one_is_true([False, True])
+        True
+        sage: exactly_one_is_true([True, False, True])
+        False
+        sage: exactly_one_is_true([False, True, False])
+        True
+    """
+    it = iter(iterable)
+    return any(it) and not any(it)
+
+
+class ArgumentGroupFactory(UniqueFactory):
+    r"""
+    A factory for creating argument groups.
+
+    INPUT:
+
+    - ``data`` -- an object
+
+      The factory will analyze ``data`` and interpret it as
+      ``specification`` or ``domain``.
+
+    - ``specification`` -- a string
+
+      The following is possible:
+
+      - ``'U'`` give the :class:`RootsOfUnityGroup`,
+
+      - ``'U_P'``, where ``'P'`` is
+        a string representing a SageMath parent which is interpreted as
+        ``exponents``.
+
+      - ``'Arg_P'``, where ``'P'`` is
+        a string representing a SageMath parent which is interpreted as
+        ``domain``
+
+    - ``domain`` -- a SageMath parent representing a subset of the complex plane.
+      An instance of :class:`ArgumentByElementGroup` will be created with the given
+      ``domain``.
+
+    - ``exponents`` -- a SageMath parent representing a subset of the reals.
+      An instance of :class`UnitCircleGroup` will be created with the given
+      ``exponents``
+
+    Exactly one of ``data``, ``specification``, ``exponents`` has to be provided.
+
+    Further keyword parameters will be carried on to the initialization of
+    the group.
+
+    EXAMPLES::
+
+        sage: from sage.groups.roots_of_unity_group import ArgumentGroup
+
+        sage: ArgumentGroup('U')
+        Group of Roots of Unity
+
+        sage: ArgumentGroup(ZZ)
+        Group of Roots of Unity
+        sage: ArgumentGroup(QQ)
+        Group of Roots of Unity
+        sage: ArgumentGroup('U_QQ')
+        Group of Roots of Unity
+        sage: ArgumentGroup(AA)
+        Group of Roots of Unity
+
+        sage: ArgumentGroup(RR)
+        Unit Circle Group with Exponents in
+        Real Field with 53 bits of precision modulo ZZ
+        sage: ArgumentGroup('Arg_RR')
+        Unit Circle Group with Exponents in
+        Real Field with 53 bits of precision modulo ZZ
+        sage: ArgumentGroup(RIF)
+        Unit Circle Group with Exponents in
+        Real Interval Field with 53 bits of precision modulo ZZ
+        sage: ArgumentGroup(RBF)
+        Unit Circle Group with Exponents in
+        Real ball field with 53 bits of precision modulo ZZ
+
+        sage: ArgumentGroup(CC)
+        Unit Circle Group with Exponents in
+        Real Field with 53 bits of precision modulo ZZ
+        sage: ArgumentGroup('Arg_CC')
+        Unit Circle Group with Exponents in
+        Real Field with 53 bits of precision modulo ZZ
+        sage: ArgumentGroup(CIF)
+        Unit Circle Group with Exponents in
+        Real Interval Field with 53 bits of precision modulo ZZ
+        sage: ArgumentGroup(CBF)
+        Unit Circle Group with Exponents in
+        Real ball field with 53 bits of precision modulo ZZ
+
+        sage: ArgumentGroup(CyclotomicField(3))
+        Unit Circle Group with Argument of Elements in
+        Cyclotomic Field of order 3 and degree 2
+    """
+    def create_key_and_extra_args(self,
+                                  data=None,
+                                  specification=None,
+                                  domain=None,
+                                  exponents=None,
+                                  **kwds):
+        r"""
+        Normalize the input.
+
+        See :class:`ArgumentGroupFactory` for a description and examples.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentGroup
+
+            sage: ArgumentGroup('U') is ArgumentGroup(exponents=QQ)  # indirect doctest
+            True
+            sage: ArgumentGroup('Arg_RR') is ArgumentGroup(exponents=RR)  # indirect doctest
+            True
+            sage: ArgumentGroup('Arg_CC') is ArgumentGroup(domain=CC)  # indirect doctest
+            True
+        """
+        from sage.rings.complex_arb import ComplexBallField
+        from sage.rings.complex_field import ComplexField_class
+        from sage.rings.complex_interval_field import ComplexIntervalField_class
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.qqbar import AA
+        from sage.rings.rational_field import QQ
+        from sage.rings.real_arb import RealBallField
+        from sage.rings.real_mpfr import RealField_class
+        from sage.rings.real_mpfi import RealIntervalField_class
+
+        if not exactly_one_is_true(
+                (data is not None,
+                 specification is not None,
+                 domain is not None,
+                 exponents is not None)):
+            raise ValueError('input ambigous')
+
+        if data is not None:
+            if isinstance(data, str):
+                specification = data
+            else:
+                domain = data
+
+        if specification is not None:
+            if specification == 'U':
+                return (RootsOfUnityGroup, ()), kwds
+            elif specification.startswith('U_'):
+                from sage.rings.asymptotic.misc import repr_short_to_parent
+                exponents = repr_short_to_parent(specification[2:])
+            elif specification.startswith('Arg_') or specification.startswith('arg_'):
+                from sage.rings.asymptotic.misc import repr_short_to_parent
+                domain = repr_short_to_parent(specification[4:])
+            else:
+                raise ValueError('unknown specification {}'.format(specification))
+
+        if domain is not None:
+            if domain in (ZZ, QQ, AA):
+                # we only need +1 and -1
+                return (RootsOfUnityGroup, ()), kwds
+            elif isinstance(domain, (RealField_class,
+                                     RealIntervalField_class,
+                                     RealBallField)):
+                return (UnitCircleGroup, (domain,)), kwds
+            elif isinstance(domain, (ComplexField_class,
+                                     ComplexIntervalField_class,
+                                     ComplexBallField)):
+                return (UnitCircleGroup, (domain._real_field(),)), kwds
+            else:
+                return (ArgumentByElementGroup, (domain,)), kwds
+
+        elif exponents is not None:
+            if exponents in (ZZ, QQ):
+                return (RootsOfUnityGroup, ()), kwds
+            else:
+                return (UnitCircleGroup, (exponents,)), kwds
+            
+    def create_object(self, version, key, **kwds):
+        r"""
+        Create an object from the given arguments.
+
+        TESTS::
+
+            sage: from sage.groups.roots_of_unity_group import ArgumentGroup
+            sage: ArgumentGroup('U')  # indirect doctest
+            Group of Roots of Unity
+        """
+        cls, args = key
+        return cls(*args, **kwds)
+
+
+ArgumentGroup = ArgumentGroupFactory('sage.groups.roots_of_unity_group.ArgumentGroup')
+r"""
+A factory for argument groups.
+
+This is an instance of :class:`ArgumentGroupFactory` whose documentation
+provides more details.
+"""

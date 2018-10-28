@@ -1726,7 +1726,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
 
     def __init__(self, base, var, category):
         r"""
-        See :class:`GenericGrowthElement` for more information.
+        See :class:`GenericGrowthGroup` for more information.
 
         EXAMPLES::
 

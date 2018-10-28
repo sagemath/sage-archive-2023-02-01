@@ -4482,7 +4482,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         """
         from sage.groups.roots_of_unity_group import ArgumentGroup
         U = ArgumentGroup(domain=self.base())
-        return ExponentialArgumentGrowthGroup(U, self._var_)
+        return self._non_growth_group_(U, self._var_)
 
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
@@ -4667,6 +4667,9 @@ class ExponentialArgumentGrowthGroup(GenericNonGrowthGroup,
             (ExponentialArgumentGrowthGroup[x], Group of Roots of Unity)
         """
         return ExponentialArgumentGrowthGroupFunctor(self._var_), self.base()
+
+
+ExponentialGrowthGroup._non_growth_group_ = ExponentialArgumentGrowthGroup
 
 
 class ExponentialArgumentGrowthGroupFunctor(ExponentialGrowthGroupFunctor):

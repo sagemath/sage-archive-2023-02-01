@@ -68,17 +68,25 @@ def repr_short_to_parent(s):
         ValueError: Cannot create a parent out of 'abcdef'.
         > *previous* NameError: name 'abcdef' is not defined
     """
-    from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+    from sage.groups.roots_of_unity_group import ArgumentGroup
     from sage.misc.sage_eval import sage_eval
 
-    if s == 'U':
-        P = RootsOfUnityGroup()
-    else:
+    def extract(s):
         try:
-            P = sage_eval(s)
-        except Exception as e:
-            raise combine_exceptions(
-                ValueError("Cannot create a parent out of '%s'." % (s,)), e)
+            return ArgumentGroup(specfication=s)
+        except Exception as e_ucg:
+            pass
+
+        try:
+            return sage_eval(s)
+        except Exception as e_se:
+            pass
+
+        raise combine_exceptions(
+            ValueError("Cannot create a parent out of '%s'." % (s,)),
+            e_ucg, e_se)
+
+    P = extract(s)
 
     from sage.misc.lazy_import import LazyImport
     if type(P) is LazyImport:

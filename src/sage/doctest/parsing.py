@@ -42,8 +42,11 @@ float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
+find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)
 python_prompt = re.compile(r"^(\s*)>>>", re.M)
-ellipsis_tag = "<ELLIPSIS_TAG>" # Used to allow ... at the beginning of output
+# The following are used to allow ... at the beginning of output
+ellipsis_tag = "<TEMP_ELLIPSIS_TAG>"
+continuation_tag = "<TEMP_CONTINUATION_TAG>"
 random_marker = re.compile('.*random', re.I)
 tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(?:erance)?\b( +[0-9.e+-]+)?')
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
@@ -578,7 +581,6 @@ class OriginalSource(object):
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
             ....:     ex.source
-            ...
             u'doctest_var = 42; doctest_var^2\n'
         """
         if hasattr(self.example, 'sage_source'):
@@ -599,7 +601,6 @@ class OriginalSource(object):
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
             ....:     ex.source
-            ...
             u'doctest_var = 42; doctest_var^2\n'
             sage: ex.source # indirect doctest
             u'doctest_var = Integer(42); doctest_var**Integer(2)\n'
@@ -783,9 +784,9 @@ class SageDocTestParser(doctest.DocTestParser):
 
         replace_ellipsis = not python_prompt.search(string)
         if replace_ellipsis:
-            # There are no >>> prompts, so we need to allow ... to begin the output
+            # There are no >>> prompts, so we can allow ... to begin the output
             # We do so by replacing ellipses with a special tag, the putting them back after parsing
-            string = string.replace("...", ellipsis_tag)
+            string = find_python_continuation.sub(r"\1" + ellipsis_tag + r"\2", string)
         string = find_sage_prompt.sub(r"\1>>> sage: ", string)
         string = find_sage_continuation.sub(r"\1...", string)
         res = doctest.DocTestParser.parse(self, string, *args)

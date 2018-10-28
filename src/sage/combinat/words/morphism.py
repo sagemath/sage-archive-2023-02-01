@@ -756,7 +756,6 @@ class WordMorphism(SageObject):
 
             sage: for i in range(6):
             ....:   tm('a', i)
-            ...
             word: a
             word: ab
             word: abba

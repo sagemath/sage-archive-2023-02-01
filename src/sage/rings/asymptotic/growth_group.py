@@ -4354,6 +4354,34 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
                       return_factors=False,
                       **kwds):
         r"""
+        Create a growth group which is the cartesian product of
+        an exponential growth group whose bases are absolute values
+        of elements and of an exponential growth group handling the argument
+        of the base.
+
+        INPUT:
+
+        - ``base``, ``var``, keywords -- use in the initialization of the
+          exponential growth group; see :class:`ExponentialGrowthGroup`
+          for details.
+
+        - ``return_factors`` (default: ``False``) -- if set, then return the
+          individual cartesian factors instead of the product of the growth groups.
+
+        OUTPUT:
+
+        A growth group or tuple of growth groups.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: ExponentialGrowthGroup.group_factory(QQ, 'n')
+            Growth Group QQ^n * U^n
+
+        TESTS::
+
+            sage: ExponentialGrowthGroup.group_factory(QQ, 'n', return_factors=True)
+            (Growth Group QQ^n, Growth Group U^n)
         """
         from sage.rings.complex_arb import ComplexBallField
         from sage.rings.complex_field import ComplexField_class
@@ -4414,7 +4442,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
     def argument_group(self):
         r"""
-        Return a group of roots of unity compatible with
+        Return an argument group (e.g. roots of unity) compatible with
         this exponential growth group.
 
         OUTPUT:

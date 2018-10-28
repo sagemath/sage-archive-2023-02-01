@@ -4423,20 +4423,14 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         else:
             return cartesian_product(groups)
 
-    def extended_by_argument_group(self, return_factors=False):
+    def extended_by_argument_group(self):
         r"""
         Extend to a cartesian product of this exponential growth group
         and a suitable group of roots of unity.
 
-        INPUT:
-
-        - ``return_factors`` -- a boolean (default: ``False``). When set,
-          then a tuple of the cartesian factors is returned instead
-          of the cartesian product.
-
         OUTPUT:
 
-        A group group or a tuple of growth groups.
+        A group group.
 
         EXAMPLES::
 
@@ -4457,12 +4451,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             Growth Group CBF^x * U_RBF^x
         """
         from sage.categories.cartesian_product import cartesian_product
-
-        factors = (self, self.argument_group())
-        if return_factors:
-            return factors
-        else:
-            return cartesian_product(factors)
+        return cartesian_product((self, self.argument_group()))
 
     def argument_group(self):
         r"""

@@ -251,7 +251,7 @@ class DiGraph(GenericGraph):
          <http://igraph.org/python/>`__ digraph.
 
     - ``pos`` -- dict (default: ``None``); a positioning dictionary. For
-       example, the spring layout from NetworkX for the 5-cycle is::
+      example, the spring layout from NetworkX for the 5-cycle is::
 
          {0: [-0.91679746, 0.88169588],
           1: [ 0.47294849, 1.125     ],
@@ -263,13 +263,13 @@ class DiGraph(GenericGraph):
       name="complete")
 
     - ``loops`` -- boolean (default: ``None``); whether to allow loops (ignored
-       if data is an instance of the DiGraph class)
+      if data is an instance of the DiGraph class)
 
     - ``multiedges`` -- boolean (default: ``None``); whether to allow multiple
-       edges (ignored if data is an instance of the DiGraph class)
+      edges (ignored if data is an instance of the DiGraph class)
 
     - ``weighted`` -- boolean (default: ``None``); whether digraph thinks of
-       itself as weighted or not. See ``self.weighted()``
+      itself as weighted or not. See ``self.weighted()``
 
     - ``format`` -- string (default: ``None``); if set to ``None``,
       :class:`DiGraph` tries to guess input's format. To avoid this possibly
@@ -286,15 +286,15 @@ class DiGraph(GenericGraph):
     - ``data_structure`` -- string (default: ``"sparse"``); one of the following
       (for more information, see :mod:`~sage.graphs.base.overview`):
 
-       * ``"dense"`` -- selects the :mod:`~sage.graphs.base.dense_graph` backend
+      * ``"dense"`` -- selects the :mod:`~sage.graphs.base.dense_graph` backend
 
-       * ``"sparse"`` -- selects the :mod:`~sage.graphs.base.sparse_graph`
-         backend
+      * ``"sparse"`` -- selects the :mod:`~sage.graphs.base.sparse_graph`
+        backend
 
-       * ``"static_sparse"`` -- selects the
-         :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
-         than the sparse backend and smaller in memory, and it is immutable, so
-         that the resulting graphs can be used as dictionary keys).
+      * ``"static_sparse"`` -- selects the
+        :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
+        than the sparse backend and smaller in memory, and it is immutable, so
+        that the resulting graphs can be used as dictionary keys).
 
     - ``immutable`` -- boolean (default: ``False``); whether to create a
       immutable digraph. Note that ``immutable=True`` is actually a shortcut for
@@ -305,9 +305,9 @@ class DiGraph(GenericGraph):
       is the number of vertices.
 
     - ``convert_empty_dict_labels_to_None`` -- boolean (default: ``None``); this
-       arguments sets the default edge labels used by NetworkX (empty
-       dictionaries) to be replaced by ``None``, the default Sage edge label. It
-       is set to ``True`` iff a NetworkX graph is on the input.
+      arguments sets the default edge labels used by NetworkX (empty
+      dictionaries) to be replaced by ``None``, the default Sage edge label. It
+      is set to ``True`` iff a NetworkX graph is on the input.
 
     EXAMPLES:
 
@@ -2094,19 +2094,19 @@ class DiGraph(GenericGraph):
         - ``vertex`` -- the starting vertex of the paths
 
         - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-           vertices of the paths. If ``None``, then all vertices are allowed.
+          vertices of the paths. If ``None``, then all vertices are allowed.
 
         - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
-           only simple paths are considered. Simple paths are paths in which no
-           two arcs share a head or share a tail, i.e. every vertex in the path
-           is entered at most once and exited at most once.
+          only simple paths are considered. Simple paths are paths in which no
+          two arcs share a head or share a tail, i.e. every vertex in the path
+          is entered at most once and exited at most once.
 
         - ``max_length`` -- non negative integer (default: ``None``); the
-           maximum length of the enumerated paths. If set to ``None``, then all
-           lengths are allowed.
+          maximum length of the enumerated paths. If set to ``None``, then all
+          lengths are allowed.
 
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-           the empty paths are also enumerated.
+          the empty paths are also enumerated.
 
         OUTPUT:
 
@@ -2234,23 +2234,23 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``starting_vertices`` -- iterable (default: ``None``); vertices from
-           which the paths must start. If ``None``, then all vertices of the
-           graph can be starting points.
+          which the paths must start. If ``None``, then all vertices of the
+          graph can be starting points.
 
         - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-           vertices of the paths. If ``None``, then all vertices are allowed.
+          vertices of the paths. If ``None``, then all vertices are allowed.
 
         - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
-           only simple paths are considered. Simple paths are paths in which no
-           two arcs share a head or share a tail, i.e. every vertex in the path
-           is entered at most once and exited at most once.
+          only simple paths are considered. Simple paths are paths in which no
+          two arcs share a head or share a tail, i.e. every vertex in the path
+          is entered at most once and exited at most once.
 
         - ``max_length`` -- non negative integer (default: ``None``); the
-           maximum length of the enumerated paths. If set to ``None``, then all
-           lengths are allowed.
+          maximum length of the enumerated paths. If set to ``None``, then all
+          lengths are allowed.
 
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-           the empty paths are also enumerated.
+          the empty paths are also enumerated.
 
         OUTPUT:
 
@@ -2369,18 +2369,18 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``starting_vertices`` -- list (default: ``None``); vertices from which
-           the paths must start. If ``None``, then all vertices of the graph can
-           be starting points.
+          the paths must start. If ``None``, then all vertices of the graph can
+          be starting points.
 
         - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-           vertices of the paths. If ``None``, then all vertices are allowed.
+          vertices of the paths. If ``None``, then all vertices are allowed.
 
         - ``max_length`` -- non negative integer (default: ``None``); the
-           maximum length of the enumerated paths. If set to ``None``, then all
-           lengths are allowed.
+          maximum length of the enumerated paths. If set to ``None``, then all
+          lengths are allowed.
 
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-           the empty paths are also enumerated.
+          the empty paths are also enumerated.
 
         OUTPUT:
 
@@ -2442,29 +2442,29 @@ class DiGraph(GenericGraph):
         - ``vertex`` -- the starting vertex of the cycle
 
         - ``starting_vertices`` -- iterable (default: ``None``); vertices from
-           which the cycles must start. If ``None``, then all vertices of the
-           graph can be starting points. This argument is necessary if
-           ``rooted`` is set to ``True``.
+          which the cycles must start. If ``None``, then all vertices of the
+          graph can be starting points. This argument is necessary if ``rooted``
+          is set to ``True``.
 
         - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
-           only simple cycles are considered. A cycle is simple if the only
-           vertex occuring twice in it is the starting and ending one.
+          only simple cycles are considered. A cycle is simple if the only
+          vertex occuring twice in it is the starting and ending one.
 
         - ``rooted`` -- boolean (default: ``False``); if set to False, then
-           cycles differing only by their starting vertex are considered the
-           same (e.g. ``['a', 'b', 'c', 'a']`` and ``['b', 'c', 'a',
-           'b']``). Otherwise, all cycles are enumerated.
+          cycles differing only by their starting vertex are considered the same
+          (e.g. ``['a', 'b', 'c', 'a']`` and ``['b', 'c', 'a',
+          'b']``). Otherwise, all cycles are enumerated.
 
         - ``max_length`` -- non negative integer (default: ``None``); the
-           maximum length of the enumerated paths. If set to ``None``, then all
-           lengths are allowed.
+          maximum length of the enumerated paths. If set to ``None``, then all
+          lengths are allowed.
 
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-           the empty paths are also enumerated.
+          the empty paths are also enumerated.
 
         - ``remove_acyclic_edges`` -- boolean (default: ``True``); whether
-           acyclic edges must be removed from the graph.  Used to avoid
-           recomputing it for each vertex
+          acyclic edges must be removed from the graph.  Used to avoid
+          recomputing it for each vertex
 
         OUTPUT:
 
@@ -2562,33 +2562,33 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``starting_vertices`` -- iterable (default: ``None``); vertices from
-           which the cycles must start. If ``None``, then all vertices of the
-           graph can be starting points. This argument is necessary if
-           ``rooted`` is set to ``True``.
+          which the cycles must start. If ``None``, then all vertices of the
+          graph can be starting points. This argument is necessary if ``rooted``
+          is set to ``True``.
 
         - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
-           only simple cycles are considered. A cycle is simple if the only
-           vertex occuring twice in it is the starting and ending one.
+          only simple cycles are considered. A cycle is simple if the only
+          vertex occuring twice in it is the starting and ending one.
 
         - ``rooted`` -- boolean (default: ``False``); if set to False, then
-           cycles differing only by their starting vertex are considered the
-           same (e.g. ``['a', 'b', 'c', 'a']`` and ``['b', 'c', 'a',
-           'b']``). Otherwise, all cycles are enumerated.
+          cycles differing only by their starting vertex are considered the same
+          (e.g. ``['a', 'b', 'c', 'a']`` and ``['b', 'c', 'a',
+          'b']``). Otherwise, all cycles are enumerated.
 
         - ``max_length`` -- non negative integer (default: ``None``); the
-           maximum length of the enumerated paths. If set to ``None``, then all
-           lengths are allowed.
+          maximum length of the enumerated paths. If set to ``None``, then all
+          lengths are allowed.
 
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-           the empty paths are also enumerated.
+          the empty paths are also enumerated.
 
         OUTPUT:
 
             iterator
 
-        .. NOTE::
+        .. SEEALSO::
 
-            See also :meth:`all_simple_cycles`.
+            - :meth:`all_simple_cycles`
 
         AUTHOR:
 
@@ -2709,21 +2709,21 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``starting_vertices`` -- iterable (default: ``None``); vertices from
-           which the cycles must start. If ``None``, then all vertices of the
-           graph can be starting points. This argument is necessary if
-           ``rooted`` is set to ``True``.
+          which the cycles must start. If ``None``, then all vertices of the
+          graph can be starting points. This argument is necessary if ``rooted``
+          is set to ``True``.
 
         - ``rooted`` -- boolean (default: ``False``); if set to False, then
-           cycles differing only by their starting vertex are considered the
-           same (e.g. ``['a', 'b', 'c', 'a']`` and ``['b', 'c', 'a',
-           'b']``). Otherwise, all cycles are enumerated.
+          cycles differing only by their starting vertex are considered the same
+          (e.g. ``['a', 'b', 'c', 'a']`` and ``['b', 'c', 'a',
+          'b']``). Otherwise, all cycles are enumerated.
 
         - ``max_length`` -- non negative integer (default: ``None``); the
-           maximum length of the enumerated paths. If set to ``None``, then all
-           lengths are allowed.
+          maximum length of the enumerated paths. If set to ``None``, then all
+          lengths are allowed.
 
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-           the empty paths are also enumerated.
+          the empty paths are also enumerated.
 
         OUTPUT:
 
@@ -2888,7 +2888,7 @@ class DiGraph(GenericGraph):
 
             - :meth:`is_directed_acyclic` -- Tests whether a directed graph is
               acyclic (can also join a certificate -- a topological sort or a
-              circuit in the graph1).
+              circuit in the graph).
 
         EXAMPLES::
 
@@ -2948,13 +2948,13 @@ class DiGraph(GenericGraph):
         """
         Return a list of all topological sorts of the digraph.
 
-        If the digraph contains a directed cycle, a TypeError is raised.
+        If the digraph contains a directed cycle, a ``TypeError`` is raised.
 
         A topological sort is an ordering of the vertices of the digraph such
         that each vertex comes before all of its successors. That is, if u comes
         before v in the sort, then there may be a directed path from u to v, but
         there will be no directed path from v to u. See also
-        Graph.topological_sort().
+        :meth:`topological_sort`.
 
         AUTHORS:
 

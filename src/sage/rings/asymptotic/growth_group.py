@@ -4545,15 +4545,14 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         return ExponentialGrowthGroup(base, self.var)
 
 
-class ExponentialArgumentGrowthElement(ExponentialGrowthElement):
+class GenericNonGrowthElement(GenericGrowthElement):
     r"""
-    An element of :class:`ExponentialArgumentGrowthGroup`.
+    An element of :class:`GenericNonGrowthGroup`.
     """
 
     def _lt_(self, other):
         r"""
-        Return ``False`` as elements of type
-        :class:`ExponentialArgumentGrowthElement` are not comparable.
+        Return ``False`` as elements are not comparable.
 
         EXAMPLES::
 
@@ -4568,30 +4567,13 @@ class ExponentialArgumentGrowthElement(ExponentialGrowthElement):
         return False
 
 
-class ExponentialArgumentGrowthGroup(ExponentialGrowthGroup):
+class GenericNonGrowthGroup(GenericGroupGroup):
     r"""
-    A growth group whose elements have a base with absolute value `1`.
+    A (abstract) growth group whose elements are all of the same growth `1`.
 
-    EXAMPLES::
-
-        sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-        sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
-        sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
-        sage: U(raw_element=-1)
-        (-1)^n
-
-    TESTS::
-
-        sage: U(raw_element=int(-1))
-        (-1)^n
-
-    ::
-
-        sage: U.category()
-        Join of Category of commutative groups and Category of posets
+    See :class:`ExponentialArgumentGrowthGroup` for a concrete
+    realization.
     """
-
-    Element = ExponentialArgumentGrowthElement
 
     @staticmethod
     def _initial_category_(base):
@@ -4619,6 +4601,41 @@ class ExponentialArgumentGrowthGroup(ExponentialGrowthGroup):
         """
         from sage.categories.posets import Posets
         return Posets()
+
+
+class ExponentialArgumentGrowthElement(GenericNonGrowthElement,
+                                       ExponentialGrowthElement):
+    r"""
+    An element of :class:`ExponentialArgumentGrowthGroup`.
+    """
+    pass
+
+
+class ExponentialArgumentGrowthGroup(NonGrowthGroup,
+                                     ExponentialGrowthGroup):
+    r"""
+    A growth group whose elements have a base with absolute value `1`.
+
+    EXAMPLES::
+
+        sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+        sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
+        sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+        sage: U(raw_element=-1)
+        (-1)^n
+
+    TESTS::
+
+        sage: U(raw_element=int(-1))
+        (-1)^n
+
+    ::
+
+        sage: U.category()
+        Join of Category of commutative groups and Category of posets
+    """
+
+    Element = ExponentialArgumentGrowthElement
 
     def construction(self):
         r"""

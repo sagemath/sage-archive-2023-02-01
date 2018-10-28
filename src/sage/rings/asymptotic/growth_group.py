@@ -4923,10 +4923,11 @@ class GrowthGroupFactory(UniqueFactory):
             >> *previous* ValueError: unknown specification y^z
             >> *and* NameError: name 'y' is not defined
         """
-        from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+        from sage.groups.roots_of_unity_group import AbstractArgument
         from .misc import repr_short_to_parent, split_str_by_op
 
         groups = []
+        non_growth_groups = []
         for factor in factors:
             split = split_str_by_op(factor, '^')
             if len(split) != 2:
@@ -4953,13 +4954,17 @@ class GrowthGroupFactory(UniqueFactory):
             elif B is None and E is not None:
                 groups.append(MonomialGrowthGroup(E, b, **kwds))
             elif B is not None and E is None:
-                if isinstance(B, RootsOfUnityGroup):
-                    groups.append(ExponentialArgumentGrowthGroup(B, e, **kwds))
-                else:
-                    groups.append(ExponentialGrowthGroup(B, e, **kwds))
+                egroups = ExponentialGrowthGroup.group_factory(
+                    B, e,
+                    return_factors=True,
+                    **kwds)
+                groups.append(egroups[0])
+                non_growth_groups.extend(egroups[1:])
             else:
                 raise ValueError("'%s' is an ambigous substring of a growth group "
                                  "description of '%s'." % (factor, ' * '.join(factors)))
+
+        groups.extend(non_growth_groups)
 
         if len(groups) == 1:
             return groups[0]

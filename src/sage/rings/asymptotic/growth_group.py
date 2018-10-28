@@ -4351,13 +4351,14 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
     @classmethod
     def group_factory(cls,
                       base, var,
+                      split_base=True,
                       return_factors=False,
                       **kwds):
         r"""
-        Create a growth group which is the cartesian product of
-        an exponential growth group whose bases are absolute values
-        of elements and of an exponential growth group handling the argument
-        of the base.
+        Create an exponential growth group.
+
+        This factory takes care of the splitting of the bases into their
+        absolute values and arguments.
 
         INPUT:
 
@@ -4365,8 +4366,13 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
           exponential growth group; see :class:`ExponentialGrowthGroup`
           for details.
 
-        - ``return_factors`` (default: ``False``) -- if set, then return the
-          individual cartesian factors instead of the product of the growth groups.
+        - ``split_base`` -- a boolean (default ``True``). If set, then
+          the growth group consists of two parts, one part dealing with
+          the absolute values of the bases and one for their arguments.
+
+        - ``return_factors`` -- a boolean (default: ``False``). If set,
+          then a tuple of the (cartesian) factors of this growth group
+          is returned.
 
         OUTPUT:
 
@@ -4382,6 +4388,12 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: ExponentialGrowthGroup.group_factory(QQ, 'n', return_factors=True)
             (Growth Group QQ^n, Growth Group U^n)
+            sage: ExponentialGrowthGroup.group_factory(QQ, 'n', split_base=False)
+            Growth Group QQ^n
+            sage: from sage.groups.roots_of_unity_group import ArgumentGroup
+            sage: U = ArgumentGroup(exponents=QQ)
+            sage: ExponentialGrowthGroup.group_factory(U, 'n')
+            Growth Group U^n
         """
         from sage.rings.complex_arb import ComplexBallField
         from sage.rings.complex_field import ComplexField_class

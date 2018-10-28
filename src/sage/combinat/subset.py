@@ -672,7 +672,7 @@ class Subsets_sk(Subsets_s):
 
     def first(self):
         """
-        Returns the first subset of s of size k.
+        Return the first subset of s of size k.
 
         EXAMPLES::
 
@@ -690,11 +690,12 @@ class Subsets_sk(Subsets_s):
         if self._k < 0 or self._k > self._s.cardinality():
             raise EmptySetError
         else:
-            return self.element_class(list(itertools.islice(self._s, self._k)))
+            return self.element_class(list(itertools.islice(self._s,
+                                                            int(self._k))))
 
     def last(self):
         """
-        Returns the last subset of s of size k.
+        Return the last subset of s of size k.
 
         EXAMPLES::
 
@@ -711,8 +712,8 @@ class Subsets_sk(Subsets_s):
         """
         if self._k > self._s.cardinality():
             raise EmptySetError
-        else:
-            return self.element_class([i for i in itertools.islice(reversed(self._s),self._k)])
+
+        return self.element_class([i for i in itertools.islice(reversed(self._s), int(self._k))])
 
     def _fast_iterator(self):
         r"""

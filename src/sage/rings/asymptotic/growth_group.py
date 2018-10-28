@@ -4404,7 +4404,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         from sage.rings.qqbar import QQbar, AA
 
         if isinstance(base, AbstractArgumentGroup):
-            groups = (cls._non_growth_group_(base, var, **kwds),)
+            groups = (cls._non_growth_group_class_(base, var, **kwds),)
         elif split_base:
             if base == QQbar or isinstance(base, NumberField_cyclotomic):
                 base = AA
@@ -4482,7 +4482,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         """
         from sage.groups.roots_of_unity_group import ArgumentGroup
         U = ArgumentGroup(domain=self.base())
-        return self._non_growth_group_(U, self._var_)
+        return self._non_growth_group_class_(U, self._var_)
 
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
@@ -4669,7 +4669,7 @@ class ExponentialArgumentGrowthGroup(GenericNonGrowthGroup,
         return ExponentialArgumentGrowthGroupFunctor(self._var_), self.base()
 
 
-ExponentialGrowthGroup._non_growth_group_ = ExponentialArgumentGrowthGroup
+ExponentialGrowthGroup._non_growth_group_class_ = ExponentialArgumentGrowthGroup
 
 
 class ExponentialArgumentGrowthGroupFunctor(ExponentialGrowthGroupFunctor):

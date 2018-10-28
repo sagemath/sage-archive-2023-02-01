@@ -991,7 +991,7 @@ class AffinePermutationTypeA(AffinePermutation):
         Finds a tableau on the Lehmer code of ``self`` corresponding
         to the given reduced word.
 
-        For a full description of this algorithm, see [D2012]_.
+        For a full description of this algorithm, see [Den2012]_.
 
         INPUT:
 
@@ -1001,12 +1001,6 @@ class AffinePermutationTypeA(AffinePermutation):
         - ``side`` -- ``'right'`` or ``'left'``
         - ``alpha`` -- a content vector; ``w`` should be of type ``alpha``;
           specifying ``alpha`` produces semistandard tableaux
-
-        REFERENCES:
-
-        .. [D2012] tom denton. Canonical Decompositions of Affine Permutations,
-           Affine Codes, and Split `k`-Schur Functions.  Electronic Journal of
-           Combinatorics, 2012.
 
         EXAMPLES::
 
@@ -1860,13 +1854,7 @@ def AffinePermutationGroup(cartan_type):
 
     These are combinatorial implementations of the affine Weyl groups of
     types `A`, `B`, `C`, `D`, and `G` as permutations of the set of all integers.
-    the basic algorithms are derived from [BjBr]_ and [Erik]_.
-
-    REFERENCES:
-
-    .. [BjBr] Bjorner and Brenti. Combinatorics of Coxeter Groups. Springer, 2005.
-    .. [Erik] \H. Erikson.  Computational and Combinatorial Aspects of Coxeter
-       Groups.  Thesis, 1995.
+    the basic algorithms are derived from [BB2005]_ and [Eri1995]_.
 
     EXAMPLES::
 

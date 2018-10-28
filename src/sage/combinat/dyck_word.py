@@ -2035,12 +2035,6 @@ class DyckWord_complete(DyckWord):
         and ``self.major_index()`` to `n(n-1) - maj(\sigma) - maj(\sigma^{-1})`.
         Uses the function :func:`~sage.combinat.dyck_word.pealing`
 
-        REFERENCES:
-
-        .. [Stu2008] \C. Stump -- More bijective Catalan combinatorics on
-           permutations and on colored permutations, Preprint.
-           :arXiv:`0808.2822`.
-
         EXAMPLES::
 
             sage: DyckWord([1,1,0,0]).to_noncrossing_permutation()

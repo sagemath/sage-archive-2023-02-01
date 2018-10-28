@@ -1745,25 +1745,8 @@ class Partition(CombinatorialElement):
         `t`-*completion of* `\lambda` is defined as the partition
         `(t - \left\lvert \lambda \right\rvert, \lambda_1, \lambda_2,
         \lambda_3, \ldots)` of `t`. This partition is denoted by `\lambda[t]`
-        in [BOR09]_, by `\lambda_{[t]}` in [BdVO12]_, and by `\lambda(t)`
-        in [CO10]_.
-
-        REFERENCES:
-
-        .. [BOR09] Emmanuel Briand, Rosa Orellana, Mercedes Rosas.
-           *The stability of the Kronecker products of Schur
-           functions*.
-           :arxiv:`0907.4652v2`.
-
-        .. [CO10] Jonathan Comes, Viktor Ostrik.
-           *On blocks of Deligne's category*
-           `\underline{\mathrm{Rep}}(S_t)`.
-           :arxiv:`0910.5695v2`,
-           http://pages.uoregon.edu/jcomes/blocks.pdf
-
-        .. [BdVO12] Christopher Bowman, Maud De Visscher, Rosa Orellana.
-           *The partition algebra and the Kronecker coefficients*.
-           :arXiv:`1210.5579v6`.
+        in [BOR2009]_, by `\lambda_{[t]}` in [BdVO2012]_, and by `\lambda(t)`
+        in [CO2010]_.
 
         EXAMPLES::
 
@@ -3822,14 +3805,7 @@ class Partition(CombinatorialElement):
         labelled `i`, and `C_i` be the set of columns ending in a cell
         labelled `i`. Then the `j`-th component of the quotient of
         `\lambda` is the partition defined by intersecting `R_j` with
-        `C_{j+1}`. (See Theorem 2.7.37 in [JamesKerber]_.)
-
-        REFERENCES:
-
-        .. [JamesKerber] Gordon James, Adalbert Kerber,
-           *The Representation Theory of the Symmetric Group*,
-           Encyclopedia of Mathematics and its Applications, vol. 16,
-           Addison-Wesley 1981.
+        `C_{j+1}`. (See Theorem 2.7.37 in [JK1981]_.)
 
         EXAMPLES::
 

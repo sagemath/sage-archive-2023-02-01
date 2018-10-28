@@ -9,16 +9,6 @@ More information can be found in [LLMS2006]_ .
 
 .. SEEALSO:: :meth:`sage.combinat.k_tableau.StrongTableau`, :meth:`sage.combinat.k_tableau.WeakTableau`
 
-REFERENCES:
-
-.. [LLMS2006] \T. Lam, L. Lapointe, J. Morse, M. Shimozono,
-   Affine insertion and Pieri rules for the affine Grassmannian,
-   Memoirs of the AMS, 208 (2010), no. 977, :arxiv:`math.CO/0609110`
-
-.. [LLMSSZ2013] \T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
-   `k`-Schur functions and affine Schubert calculus,
-   preprint :arXiv:`1301.3569`
-
 Authors:
 
 - Anne Schilling and Mike Zabrocki (2013): initial version

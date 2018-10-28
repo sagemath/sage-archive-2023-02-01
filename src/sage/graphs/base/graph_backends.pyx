@@ -59,7 +59,6 @@ Classes and methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six import iteritems
 
 from .c_graph cimport CGraphBackend, CGraph
 
@@ -183,7 +182,7 @@ cdef class GenericGraphBackend(SageObject):
 
         OUTPUT:
 
-            degree of `v`
+        degree of `v`
 
         TESTS::
 
@@ -359,6 +358,9 @@ cdef class GenericGraphBackend(SageObject):
 
         Edges are assumed to be undirected.
 
+        This method returns an iterator over the edges `(u, v)` such that either
+        `u` or `v` is in ``vertices`` and the edge `(u, v)` is in ``self``.
+
         INPUT:
 
         - ``vertices`` -- a list of vertex labels
@@ -383,6 +385,9 @@ cdef class GenericGraphBackend(SageObject):
         """
         Iterate over the incoming edges incident to a sequence of vertices.
 
+        This method returns an iterator over the edges `(u, v)` such that `v` is
+        in ``vertices`` and the edge `(u, v)` is in ``self``.
+
         INPUT:
 
         - ``vertices`` -- a list of vertex labels
@@ -405,6 +410,9 @@ cdef class GenericGraphBackend(SageObject):
     def iterator_out_edges(self, vertices, labels):
         """
         Iterate over the outbound edges incident to a sequence of vertices.
+
+        This method returns an iterator over the edges `(v, u)` such that `v` is
+        in ``vertices`` and the edge `(v, u)` is in ``self``.
 
         INPUT:
 
@@ -430,6 +438,10 @@ cdef class GenericGraphBackend(SageObject):
         r"""
         Iterate over the vertices adjacent to `v`.
 
+        This method returns an iterator over the vertices `u` such that either
+        the edge `(u, v)` or the edge `(v, u)` is in ``self`` (that is,
+        neighbors of `v`).
+
         INPUT:
 
         - ``v`` -- vertex label
@@ -452,6 +464,9 @@ cdef class GenericGraphBackend(SageObject):
         r"""
         Iterate over the in-neighbors of vertex `v`.
 
+        This method returns an iterator over the vertices `u` such that the edge
+        `(u, v)` is in ``self`` (that is, predecessors of `v`).
+
         INPUT:
 
         - ``v`` -- vertex label
@@ -473,6 +488,9 @@ cdef class GenericGraphBackend(SageObject):
     def iterator_out_nbrs(self, v):
         r"""
         Iterate over the out-neighbors of `v`.
+
+        This method returns an iterator over the vertices `u` such that the edge
+        `(v, u)` is in ``self`` (that is, successors of `v`).
 
         INPUT:
 
@@ -837,9 +855,9 @@ class NetworkXGraphDeprecated(SageObject):
         import networkx
         new_adj = {}
 
-        for node1, edges in iteritems(self.adj):
+        for node1, edges in self.adj.iteritems():
             new_adj[node1] = {}
-            for node2, weights in iteritems(edges):
+            for node2, weights in edges.iteritems():
                 new_adj[node1][node2] = {}
                 if weights is not None:
                     try:
@@ -907,9 +925,9 @@ class NetworkXDiGraphDeprecated(SageObject):
         import networkx
         new_adj = {}
 
-        for node1, edges in iteritems(self.adj):
+        for node1, edges in self.adj.iteritems():
             new_adj[node1] = {}
-            for node2, weights in iteritems(edges):
+            for node2, weights in edges.iteritems():
                 new_adj[node1][node2] = {}
                 if weights is not None:
                     try:

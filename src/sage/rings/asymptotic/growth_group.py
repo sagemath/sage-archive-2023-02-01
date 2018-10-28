@@ -4862,7 +4862,7 @@ class GrowthGroupFactory(UniqueFactory):
         return cartesian_product(groups)
 
 
-GrowthGroup = GrowthGroupFactory("GrowthGroup")
+GrowthGroup = GrowthGroupFactory("sage.rings.asymptotic.growth_group.GrowthGroup")
 r"""
 A factory for growth groups.
 This is an instance of :class:`GrowthGroupFactory` whose documentation

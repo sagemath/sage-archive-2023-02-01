@@ -920,7 +920,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: long(CDF(1,1))
+            sage: long(CDF(1,1))  # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))

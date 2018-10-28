@@ -2790,7 +2790,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Return the normal form of vertices of ``self``.
 
         Two full-dimensional lattice polytopes are in the same
-        ``GL(\mathbb{Z})``-orbit if and only if their normal forms are the
+        ``GL(\ZZ)``-orbit if and only if their normal forms are the
         same. Normal form is not defined and thus cannot be used for polytopes
         whose dimension is smaller than the dimension of the ambient space.
 
@@ -3058,8 +3058,12 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
              [(), ()],
              [(2,3), (2,3)]]
             sage: PM_max.automorphisms_of_rows_and_columns()
-            [((), ()), ((2,3), (2,3)), ((1,2), (1,2)),
-             ((1,3,2), (1,3,2)), ((1,2,3), (1,2,3)), ((1,3), (1,3))]
+            [((), ()),
+             ((1,2,3), (1,2,3)),
+             ((1,3,2), (1,3,2)),
+             ((2,3), (2,3)),
+             ((1,2), (1,2)),
+             ((1,3), (1,3))]
             sage: PMs = [i._palp_PM_max(check=True)
             ....:        for i in ReflexivePolytopes(2)] # long time
             sage: all(len(i) == len(j.automorphisms_of_rows_and_columns())

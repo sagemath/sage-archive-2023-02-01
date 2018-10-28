@@ -443,7 +443,7 @@ class FiniteFieldFactory(UniqueFactory):
         sage: list(K.polynomial()) == list(L.polynomial())
         True
 
-    TESTS::
+    TESTS:
 
     Check that :trac:`16934` has been fixed::
 

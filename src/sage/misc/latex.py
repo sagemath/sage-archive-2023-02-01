@@ -624,8 +624,8 @@ def latex_extra_preamble():
         \newcommand{\QQ}{\Bold{Q}}
         \newcommand{\QQbar}{\overline{\QQ}}
         \newcommand{\GF}[1]{\Bold{F}_{#1}}
-        \newcommand{\Zp}[1]{\ZZ_{#1}}
-        \newcommand{\Qp}[1]{\QQ_{#1}}
+        \newcommand{\Zp}[1]{\Bold{Z}_{#1}}
+        \newcommand{\Qp}[1]{\Bold{Q}_{#1}}
         \newcommand{\Zmod}[1]{\ZZ/#1\ZZ}
         \newcommand{\CDF}{\Bold{C}}
         \newcommand{\CIF}{\Bold{C}}
@@ -2613,10 +2613,16 @@ def latex_variable_name(x, is_fname=False):
         'C'
         sage: latex_variable_name('_K1')
         'K_{1}'
+
+        sage: latex_variable_name('5')
+        '5'
     """
+    import re
+    # if x is an integer (it might be the case for padics), we return x
+    if re.match('\d+$', x):
+        return x
     underscore = x.find("_")
     if underscore == -1:
-        import re
         # * The "\d|[.,]" means "decimal digit" or period or comma
         # * The "+" means "1 or more"
         # * The "$" means "at the end of the line"

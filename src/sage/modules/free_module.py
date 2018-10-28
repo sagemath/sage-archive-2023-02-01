@@ -962,7 +962,7 @@ done from the right side.""")
         some_elements_base = iter(self.base().some_elements())
         n = self.degree()
         while True:
-            L = list(islice(some_elements_base, n))
+            L = list(islice(some_elements_base, int(n)))
             if len(L) != n:
                 return
             try:

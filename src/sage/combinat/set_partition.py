@@ -1284,10 +1284,7 @@ class SetPartition(AbstractSetPartition):
 
         REFERENCES:
 
-        .. [LM2011] \A. Lauve, M. Mastnak. *The primitives and antipode in
-           the Hopf algebra of symmetric functions in noncommuting variables*.
-           Advances in Applied Mathematics. **47** (2011). 536-544.
-           :arxiv:`1006.0367v3` :doi:`10.1016/j.aam.2011.01.002`.
+        - [LM2011]_
         """
         cur = 1
         ret = []

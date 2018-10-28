@@ -148,13 +148,12 @@ AUTHORS:
 - Simon King (08/2012): Use category and coercion framework, :trac:`13412`
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six import iteritems, integer_types
 
 from sage.structure.richcmp import richcmp
@@ -1183,11 +1182,11 @@ class MPowerSeries(PowerSeries):
             sage: R.<a,b,c> = PowerSeriesRing(ZZ); R
             Multivariate Power Series Ring in a, b, c over Integer Ring
             sage: f = 1 + a + b - a*b - b*c - a*c + R.O(4)
-            sage: f.monomials()
-            [1, b*c, b, a, a*c, a*b]
+            sage: sorted(f.monomials())
+            [b*c, a*c, a*b, b, a, 1]
             sage: f = 1 + 2*a + 7*b - 2*a*b - 4*b*c - 13*a*c + R.O(4)
-            sage: f.monomials()
-            [1, b*c, b, a, a*c, a*b]
+            sage: sorted(f.monomials())
+            [b*c, a*c, a*b, b, a, 1]
             sage: f = R.zero()
             sage: f.monomials()
             []

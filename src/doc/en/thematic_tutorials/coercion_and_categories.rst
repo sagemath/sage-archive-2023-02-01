@@ -136,6 +136,8 @@ This base class provides a lot more methods than a general parent::
      'class_group',
      'coerce_map_from_c',
      'content',
+     'derivation',
+     'derivation_module',
      'divides',
      'epsilon',
      'extension',
@@ -450,9 +452,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    82
+    81
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    121
+    119
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -539,8 +541,10 @@ methods are place-holders: There is no default implementation, but it is
     sage: from sage.misc.abstract_method import abstract_methods_of_class
     sage: abstract_methods_of_class(QuotientFields().element_class)['optional']
     ['_add_', '_mul_']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py2
     ['__nonzero__', 'denominator', 'numerator']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py3
+    ['__bool__', 'denominator', 'numerator']
 
 Hence, when implementing elements of a quotient field, it is *required* to
 implement methods returning the denominator and the numerator, and a method
@@ -1493,8 +1497,10 @@ The elements have to provide more::
 
     sage: abstract_methods_of_class(QuotientFields().element_class)['optional']
     ['_add_', '_mul_']
-    sage: abstract_methods_of_class(QuotientFields().element_class)['required']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py2
     ['__nonzero__', 'denominator', 'numerator']
+    sage: abstract_methods_of_class(QuotientFields().element_class)['required'] # py3
+    ['__bool__', 'denominator', 'numerator']
 
 .. end of output
 

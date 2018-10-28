@@ -99,7 +99,7 @@ def kfpoly(mu, nu, t=None):
 
     - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
       evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting polynomial
-      is in the polynomial ring `\mathbb{Z}['t']`.
+      is in the polynomial ring `\ZZ['t']`.
 
     EXAMPLES::
 

@@ -2707,7 +2707,7 @@ LIST_OF_VMT_VECTORS = "\n".join("    - `m={}` and `t=` ".format(m) +
                                 ", ".join("`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m)
                                 for m in _all_m)
 
-r""""
+r"""
 Tests for the Vmt vectors
 
 EXAMPLES::
@@ -3091,14 +3091,14 @@ DF = {
            [0,4,21,26,29,33,35,36,47,55,56,60]]},
 
 # a 133-cyclic set from Ken Smith database
-# see http://www.ccrwest.org/diffsets/diff_sets/DS_133_33_8_133.html
+# see https://math.ccrwest.org/diffsets/diff_sets/DS_133_33_8_133.html
 (133,33, 8):
   {(133,): [[0,4,7,8,15,17,19,22,24,25,29,30,38,
              47,49,50,55,58,61,62,71,73,76,77,78,
              82,95,111,113,114,121,123,127]]},
 
 # a 901-cyclic
-# see http://www.ccrwest.org/diffsets/diff_sets/DS_901_225_56_901.html
+# see https://math.ccrwest.org/diffsets/diff_sets/DS_901_225_56_901.html
 (901,225,56):
   {(901,): [[  0,  1,  5,  9, 12, 13, 14, 16, 22, 25, 41, 43,
               45, 47, 53, 59, 60, 65, 69, 70, 71, 79, 80, 81,
@@ -4214,7 +4214,7 @@ def BIBD_66_6_1():
     Return a (66,6,1)-BIBD.
 
     This BIBD was obtained from La Jolla covering repository
-    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+    (https://math.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
     EXAMPLES::
 
@@ -4238,7 +4238,7 @@ def BIBD_76_6_1():
     Return a (76,6,1)-BIBD.
 
     This BIBD was obtained from La Jolla covering repository
-    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+    (https://math.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
     EXAMPLES::
 
@@ -4262,7 +4262,7 @@ def BIBD_96_6_1():
     Return a (96,6,1)-BIBD.
 
     This BIBD was obtained from La Jolla covering repository
-    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+    (https://math.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
     EXAMPLES::
 

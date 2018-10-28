@@ -7,6 +7,9 @@
 #
 #  Options can be:
 #   -s: do not delete temporary build directory
+#   -k: do not uninstall existing installation of this package before
+#       installing; instead simply overwrite existing files. This overrides
+#       the setting of SAGE_SPKG_SKIP_UNINSTALL.
 #   -c: after installing, run the test suite for the spkg. This should
 #       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
 #   -d: only download the package
@@ -217,6 +220,8 @@ while true; do
         -c|--check)
             SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=yes;;
+        -k|--keep-existing)
+            SAGE_SPKG_SKIP_UNINSTALL=yes;;
         -*)
             echo >&2 "Error: unknown option '$1'"
             exit 2;;
@@ -841,7 +846,9 @@ export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
 export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_LOCAL}"
 
 # First uninstall the previous version of this package, if any
-sage-spkg-uninstall "$PKG_BASE"
+if [ x"$SAGE_SPKG_SKIP_UNINSTALL" != "xyes" ]; then
+    sage-spkg-uninstall "$PKG_BASE"
+fi
 
 
 if [ -f spkg-build ]; then
@@ -881,32 +888,17 @@ if [ -d "$SAGE_DESTDIR" ]; then
     fi
 
     # Generate installed file manifest
-    FILE_LIST=""
-    FIRST=1
-    old_IFS="$IFS"; IFS=$'\n'
-    for filename in $(find "$PREFIX" -type f -o -type l | sort); do
-        filename="${filename#$PREFIX/}"
-        if [ $FIRST -eq 1 ]; then
-            FILE_LIST="\"$filename\""
-            FIRST=0
-        else
-            FILE_LIST="${FILE_LIST},"$'\n        '"\"${filename}\""
-        fi
-        # Copy file from the temp install path into $SAGE_LOCAL
-        if [ ! -d "$SAGE_LOCAL/$(dirname "$filename")" ]; then
-            $SAGE_SUDO mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
-        fi
-        $SAGE_SUDO mv "$PREFIX/$filename" "${SAGE_LOCAL%/}/$filename"
-        if [ $? -ne 0 ]; then
-            error_msg "Error moving files for $PKG_NAME."
-            exit 1
-        fi
-    done
-    IFS="$old_IFS"
+    FILE_LIST="$(cd "$PREFIX" && find . -type f -o -type l | sed 's|^\./||' | sort)"
 
+    # Copy files into $SAGE_LOCAL
+    $SAGE_SUDO cp -Rp "$PREFIX/." "$SAGE_LOCAL"
+    rm -rf "$SAGE_DESTDIR"
+    if [ $? -ne 0 ]; then
+        error_msg "Error copying files for $PKG_NAME."
+        exit 1
+    fi
     # Remove the $SAGE_DESTDIR entirely once all files have been moved to their
     # final location.
-    rm -rf "$SAGE_DESTDIR"
 fi
 
 
@@ -983,6 +975,7 @@ if [ "$SAGE_CHECK" = "yes" ]; then
     fi
 fi
 
+FILE_LIST="$(echo "$FILE_LIST" | sed 's/^\(.\+\)$/"\1"/; 2,$s/^/        /; $!s/$/,/')"
 
 # Mark that the new package has been installed (and tested, if
 # applicable).

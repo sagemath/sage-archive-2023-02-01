@@ -399,12 +399,12 @@ class DiGraph(GenericGraph):
             sage: D = DiGraph('IRAaDCIIOEOKcPWAo')
             Traceback (most recent call last):
             ...
-            RuntimeError: The string (IRAaDCIIOEOKcPWAo) seems corrupt: for n = 10, the string is too short.
+            RuntimeError: the string (IRAaDCIIOEOKcPWAo) seems corrupt: for n = 10, the string is too short
 
             sage: D = DiGraph("IRAaDCI'OWEOKcPWAo")
             Traceback (most recent call last):
             ...
-            RuntimeError: The string seems corrupt: valid characters are
+            RuntimeError: the string seems corrupt: valid characters are
             ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
     #. A NetworkX XDiGraph::
@@ -1664,7 +1664,7 @@ class DiGraph(GenericGraph):
             # Variables are binary, and their coefficient in the objective is
             # the number of occurence of the corresponding edge, so 1 if the
             # graph is simple
-            p.set_objective( p.sum( b[u,v] for u,v in self.edges(labels=False)))
+            p.set_objective( p.sum( b[u,v] for u,v in self.edge_iterator(labels=False)))
 
             p.solve(log=verbose)
 
@@ -1673,7 +1673,7 @@ class DiGraph(GenericGraph):
 
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
-                for u,v in self.edges(labels=False):
+                for u,v in self.edge_iterator(labels=False):
                     if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
@@ -1707,7 +1707,7 @@ class DiGraph(GenericGraph):
 
             else:
                 # listing the edges contained in the MFAS
-                return [(u, v) for u, v in self.edges(labels=False)
+                return [(u, v) for u, v in self.edge_iterator(labels=False)
                         if p.get_values(b[u, v]) > .5]
 
         ######################################
@@ -1721,13 +1721,13 @@ class DiGraph(GenericGraph):
 
             n = self.order()
 
-            for u,v in self.edges(labels=None):
+            for u,v in self.edge_iterator(labels=None):
                 p.add_constraint(d[u] - d[v] + n * b[u,v], min=1)
 
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(p.sum(b[u,v] for u,v in self.edges(labels=None)))
+            p.set_objective(p.sum(b[u,v] for u,v in self.edge_iterator(labels=None)))
 
             if value_only:
                 return Integer(round(p.solve(objective_only=True, log=verbose)))
@@ -1736,7 +1736,7 @@ class DiGraph(GenericGraph):
 
                 b_sol = p.get_values(b)
 
-                return [(u,v) for u,v in self.edges(labels=None) if b_sol[u,v]==1]
+                return [(u,v) for u,v in self.edge_iterator(labels=None) if b_sol[u,v]==1]
 
     ### Construction
 

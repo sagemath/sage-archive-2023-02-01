@@ -3934,7 +3934,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Finitely presented group < e |  >
             sage: v1 = list(K.vertices())[-1]
             sage: K.fundamental_group(base_point=v1)
-            Finitely presented group < e1 | e1^2 >
+            Finitely presented group < e0 | e0^2 >
 
         Some other examples::
 
@@ -3943,7 +3943,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: simplicial_complexes.Torus().fundamental_group()
             Finitely presented group < e1, e4 | e4^-1*e1^-1*e4*e1 >
             sage: simplicial_complexes.MooreSpace(5).fundamental_group()
-            Finitely presented group < e0 | e0^5 >
+            Finitely presented group < e3 | e3^5 >
         """
         if not self.is_connected():
             if base_point is None:

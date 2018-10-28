@@ -6,6 +6,7 @@ Lie Algebras
 
    sage/algebras/lie_algebras/abelian
    sage/algebras/lie_algebras/affine_lie_algebra
+   sage/algebras/lie_algebras/bch
    sage/algebras/lie_algebras/classical_lie_algebra
    sage/algebras/lie_algebras/examples
    sage/algebras/lie_algebras/free_lie_algebra
@@ -16,6 +17,7 @@ Lie Algebras
    sage/algebras/lie_algebras/nilpotent_lie_algebra
    sage/algebras/lie_algebras/onsager
    sage/algebras/lie_algebras/poincare_birkhoff_witt
+   sage/algebras/lie_algebras/quotient
    sage/algebras/lie_algebras/structure_coefficients
    sage/algebras/lie_algebras/subalgebra
    sage/algebras/lie_algebras/verma_module

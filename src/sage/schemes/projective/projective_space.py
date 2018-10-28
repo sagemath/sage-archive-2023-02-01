@@ -575,7 +575,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         TESTS::
 
             sage: ProjectiveSpace(3, Zp(5), 'y')._latex_()
-            '{\\mathbf P}_{\\ZZ_{5}}^3'
+            '{\\mathbf P}_{\\Bold{Z}_{5}}^3'
         """
         return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
@@ -615,7 +615,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             [0]
             [0]
 
-        If the multiplicity `m` is 0, then the a matrix with zero rows
+        If the multiplicity `m` is 0, then a matrix with zero rows
         is returned::
 
             sage: P = ProjectiveSpace(GF(5), 2, names='x')

@@ -75,6 +75,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.arith.all import previous_prime
+from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power
 from sage.structure.element cimport Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
@@ -552,7 +553,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             for j from 0 <= j < self._ncols:
                 s = data[k]
                 k += 1
-                if fmpz_set_str(fmpz_mat_entry(self._matrix,i,j), s, 32):
+                if fmpz_set_str(fmpz_mat_entry(self._matrix, i, j), s, 32):
                     raise RuntimeError("invalid pickle data")
 
     def _unpickle_matrix_2x2_version0(self, data):
@@ -634,21 +635,21 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: a = MatrixSpace(ZZ, 2, 3)(range(6)); a
             [0 1 2]
             [3 4 5]
-            sage: a.__nonzero__()
+            sage: bool(a)
             True
-            sage: (a - a).__nonzero__()
+            sage: bool(a - a)
             False
 
         ::
 
             sage: a = MatrixSpace(ZZ, 0, 3)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
             sage: a = MatrixSpace(ZZ, 3, 0)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
             sage: a = MatrixSpace(ZZ, 0, 0)()
-            sage: a.__nonzero__()
+            sage: bool(a)
             False
         """
         return not fmpz_mat_is_zero(self._matrix)
@@ -915,11 +916,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
             raise ArithmeticError("self must be a square matrix")
 
         cdef unsigned long e
+        cdef long e_sgn
+        cdef int err
 
-        if isinstance(n, int):
-            if n < 0:
+        if integer_check_long_py(n, &e_sgn, &err) and not err:
+            if e_sgn < 0:
                 return (~self) ** (-n)
-            e = n
+            e = <unsigned long>e_sgn
         else:
             if not isinstance(n, Integer):
                 try:
@@ -2073,14 +2076,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
         span the saturation of the row span of self. This is not unique.
 
         The saturation of a `\ZZ` module `M`
-        embedded in `\ZZ^n` is the a module `S` that
+        embedded in `\ZZ^n` is a module `S` that
         contains `M` with finite index such that
         `\ZZ^n/S` is torsion free. This function takes the
         row span `M` of self, and finds another matrix of full rank
         with row span the saturation of `M`.
 
         INPUT:
-
 
         -  ``p`` - (default: 0); if nonzero given, saturate
            only at the prime `p`, i.e., return a matrix whose row span

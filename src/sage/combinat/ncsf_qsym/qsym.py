@@ -1147,10 +1147,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
 
-            def adams_operation(self, *args, **opts):
-                from sage.misc.superseded import deprecation
-                deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
-
             def star_involution(self):
                 r"""
                 Return the image of the quasisymmetric function ``self`` under

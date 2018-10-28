@@ -681,7 +681,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                                               point_labels=tuple(range(len(points))))
         indexsets = set([ frozenset([points.index(p) for p in ps]) for ps in pointsets ])
         orbits = []
-        while len(indexsets)>0:
+        while indexsets:
             idx = indexsets.pop()
             orbits.append(frozenset([points[i] for i in idx]))
             for g in Aut:

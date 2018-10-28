@@ -11,7 +11,7 @@ Base class for polyhedra
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import division, print_function, absolute_import
@@ -385,16 +385,21 @@ class Polyhedron_base(Element):
         """
         Return a new polyhedron over a larger base ring.
 
+        This method can also be used to change the backend.
+
         INPUT:
 
         - ``base_ring`` -- the new base ring.
 
         - ``backend`` -- the new backend, see
           :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+          If ``None`` (the default), use the same defaulting behavior
+          as described there; it is not attempted to keep the same
+          backend.
 
         OUTPUT:
 
-        The same polyhedron, but over a larger base ring.
+        The same polyhedron, but over a larger base ring and possibly with a changed backend.
 
         EXAMPLES::
 
@@ -404,6 +409,15 @@ class Polyhedron_base(Element):
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 1 ray
             sage: P.base_extend(QQ) == P
             True
+
+        TESTS:
+
+        Test that :trac:`22575` is fixed::
+
+            sage: Q = P.base_extend(ZZ, backend='field')
+            sage: Q.backend()
+            'field'
+
         """
         new_parent = self.parent().base_extend(base_ring, backend)
         return new_parent(self)
@@ -6178,10 +6192,10 @@ class Polyhedron_base(Element):
         We test groups for equality in a fool-proof way; they can have different generators, etc::
 
             sage: poly_g = P.restricted_automorphism_group(output="matrix")
-            sage: matrix_g = MatrixGroup(map(lambda t: matrix(QQ,t), mgens))
-            sage: all(map(lambda t: t.matrix() in poly_g, matrix_g.gens()))
+            sage: matrix_g = MatrixGroup([matrix(QQ,t) for t in mgens])
+            sage: all(t.matrix() in poly_g for t in matrix_g.gens())
             True
-            sage: all(map(lambda t: t.matrix() in matrix_g, poly_g.gens()))
+            sage: all(t.matrix() in matrix_g for t in poly_g.gens())
             True
 
         24-cell example::

@@ -2895,6 +2895,24 @@ class Permutation(CombinatorialElement):
 
         return len(self.fixed_points())
 
+    def is_derangement(self):
+        r"""
+        Return if ``self`` is a derangement.
+
+        A permutation `\sigma` is a derangement if `\sigma` has no
+        fixed points.
+
+        EXAMPLES::
+
+            sage: P = Permutation([1,4,2,3])
+            sage: P.is_derangement()
+            False
+            sage: P = Permutation([2,3,1])
+            sage: P.is_derangement()
+            True
+        """
+        return not self.fixed_points()
+
 
     ############
     # Recoils  #

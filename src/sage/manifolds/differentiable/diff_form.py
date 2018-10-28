@@ -758,8 +758,8 @@ class DiffForm(TensorField):
         self_r = self.restrict(dom_resu)
         qvect_r = qvect.restrict(dom_resu)
         if ambient_dom_resu.is_manifestly_parallelizable():
-            # call of the AlternatingContrTensor version:
-            return AlternatingContrTensor.interior_product(self_r, qvect_r)
+            # call of the FreeModuleAltForm version:
+            return FreeModuleAltForm.interior_product(self_r, qvect_r)
         # Otherwise, the result is created here:
         # Name of the result
         resu_name = None
@@ -921,7 +921,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     An example of 3-form is the volume element on `\RR^3` in Cartesian
     coordinates::
 
-        sage: M = Manifold(3, 'R3', '\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R3', r'\RR^3', start_index=1)
         sage: c_cart.<x,y,z> = M.chart()
         sage: eps = M.diff_form(3, 'epsilon', r'\epsilon')
         sage: eps[1,2,3] = 1  # the only independent component
@@ -1286,7 +1286,6 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         """
-        from sage.calculus.functional import diff
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)
         from sage.tensor.modules.comp import CompFullyAntiSym

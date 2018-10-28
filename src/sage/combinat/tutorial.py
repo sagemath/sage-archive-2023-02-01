@@ -890,7 +890,7 @@ structures like the dihedral groups::
     sage: G.cardinality()
     8
     sage: G.list()
-    [(), (1,4)(2,3), (1,2,3,4), (1,3)(2,4), (1,3), (2,4), (1,4,3,2), (1,2)(3,4)]
+    [(), (1,3)(2,4), (1,4,3,2), (1,2,3,4), (2,4), (1,3), (1,4)(2,3), (1,2)(3,4)]
 
 or the algebra of `2\times 2` matrices over the finite field
 `\ZZ/2\ZZ`::
@@ -1264,7 +1264,7 @@ or select only the elements in positions 2, 3, and 4 (analogue of
 ``l[1:4]``)::
 
     sage: import itertools
-    sage: list(itertools.islice(Permutations(3), 1, 4))
+    sage: list(itertools.islice(Permutations(3), int(1), int(4)))
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
 The itertools methods ``imap`` and ``ifilter`` have been renamed to

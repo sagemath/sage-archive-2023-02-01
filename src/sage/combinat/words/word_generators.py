@@ -593,7 +593,7 @@ class WordGenerator(object):
             sage: from sage.combinat.words.word_generators import WordGenerator
             sage: from itertools import islice
             sage: it = WordGenerator()._FibonacciWord_RecursiveConstructionIterator()
-            sage: list(islice(it,13))
+            sage: list(islice(it,13r))
             [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1]
         """
         Fib0 = [0]
@@ -935,21 +935,32 @@ class WordGenerator(object):
             sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
             word: 0100100101001001001010010010010100100101...
         """
-        if next(cf) != 0:
-            raise ValueError("The first term of the continued fraction expansion must be zero.")
+        try:
+            if next(cf) != 0:
+                raise ValueError("The first term of the continued fraction expansion must be zero.")
+        except StopIteration:
+            return
+
         s0 = [1]
         s1 = [0]
-        e = next(cf)
+        try:
+            e = next(cf)
+        except StopIteration:
+            return
+
         if not e >= 1:
             raise ValueError("The second term of the continued fraction expansion must be larger or equal to 1.")
         s1, s0 = s1*(e-1) + s0, s1
         n = 0
         while True:
-            for i in s1[n:]:
-                n += 1
-                yield alphabet[i]
-            else:
-                s1, s0 = s1*next(cf) + s0, s1
+            try:
+                for i in s1[n:]:
+                    n += 1
+                    yield alphabet[i]
+                else:
+                    s1, s0 = s1*next(cf) + s0, s1
+            except StopIteration:
+                return
 
     def KolakoskiWord(self, alphabet=(1,2)):
         r"""
@@ -1292,7 +1303,7 @@ class WordGenerator(object):
 
             sage: import itertools
             sage: it = words._StandardEpisturmianWord_LetterIterator(Word('ab'))
-            sage: list(itertools.islice(it, 13))
+            sage: list(itertools.islice(it, 13r))
             ['a', 'b', 'a', 'a', 'b', 'a', 'b', 'a', 'a', 'b', 'a', 'a', 'b']
         """
         if isinstance(directive_word, FiniteWord_class):
@@ -1615,10 +1626,10 @@ class WordGenerator(object):
 
         A less trivial infinite `s`-adic word::
 
-            sage: m = WordMorphism({4:tm,5:fib})
+            sage: D = {4:tm,5:fib}
             sage: tmword = words.ThueMorseWord([4,5])
-            sage: w = m(tmword)
-            sage: Word(words._s_adic_iterator(w, repeat('a')))
+            sage: it = (D[a] for a in tmword)
+            sage: Word(words._s_adic_iterator(it, repeat('a')))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
         The morphism `\sigma: a \mapsto ba, b \mapsto b` cannot satisfy the
@@ -1742,8 +1753,10 @@ class WordGenerator(object):
 
         A less trivial infinite `s`-adic word::
 
-            sage: t = words.ThueMorseWord([tm,fib])
-            sage: words.s_adic(t, repeat('a'))
+            sage: D = {4:tm,5:fib}
+            sage: tmword = words.ThueMorseWord([4,5])
+            sage: it = (D[a] for a in tmword)
+            sage: words.s_adic(it, repeat('a'))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
         The same thing using a sequence of indices::
@@ -1848,7 +1861,7 @@ class WordGenerator(object):
             sage: w.parent()
             Finite words over {'a', 'b'}
             sage: type(w)
-            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+            <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
 
         ::
 

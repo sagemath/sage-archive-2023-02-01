@@ -23,15 +23,15 @@ with ``delete()``.
     :widths: 30, 70
     :delim: |
 
-    :func:`clustering_coeff`  | Returns the clustering coefficient of all vertices in the graph.
-    :func:`edge_connectivity` | Returns the edge connectivity of the graph.
-    :func:`dominator_tree` | Returns a dominator tree of the graph.
-    :func:`bandwidth_heuristics` | Uses heuristics to approximate the bandwidth of the graph.
-    :func:`min_spanning_tree` | Computes a minimum spanning tree of a (weighted) graph.
-    :func:`shortest_paths` | Uses Dijkstra or Bellman-Ford algorithm to compute the single-source shortest paths.
-    :func:`johnson_shortest_paths` | Uses Johnson algorithm to compute the all-pairs shortest paths.
-    :func:`johnson_closeness_centrality` | Uses Johnson algorithm to compute the closeness centrality of all vertices.
-    :func:`blocks_and_cut_vertices` | Uses Tarjan's algorithm to compute the blocks and cut vertices of the graph.
+    :func:`clustering_coeff`  | Return the clustering coefficient of all vertices in the graph.
+    :func:`edge_connectivity` | Return the edge connectivity of the graph.
+    :func:`dominator_tree` | Return a dominator tree of the graph.
+    :func:`bandwidth_heuristics` | Use heuristics to approximate the bandwidth of the graph.
+    :func:`min_spanning_tree` | Compute a minimum spanning tree of a (weighted) graph.
+    :func:`shortest_paths` | Use Dijkstra or Bellman-Ford algorithm to compute the single-source shortest paths.
+    :func:`johnson_shortest_paths` | Use Johnson algorithm to compute the all-pairs shortest paths.
+    :func:`johnson_closeness_centrality` | Use Johnson algorithm to compute the closeness centrality of all vertices.
+    :func:`blocks_and_cut_vertices` | Use Tarjan's algorithm to compute the blocks and cut vertices of the graph.
 
 Functions
 ---------
@@ -52,26 +52,33 @@ cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
 
-cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, reverse=False):
+cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, vertex_to_int, reverse=False):
     r"""
-    Initializes the Boost graph ``g`` to be equal to ``g_sage``.
+    Initialize the Boost graph ``g`` to be equal to ``g_sage``.
 
-    The Boost graph ``*g`` must represent an empty graph (an exception is raised
-    otherwise).
+    INPUT:
 
-    When ``reverse==True`` the Boost graph is initialized with reversed edges.
+    - ``g`` -- a Boost graph; it must represent an empty graph (an exception is
+      raised otherwise)
+
+    - ``g_sage`` -- a Sage graph
+
+    - ``vertex_to_int`` -- a dictionary; it is a mapping from the vertex set of
+      ``g_sage`` to `(0, \ldots, n-1)`
+
+    - ``reverse`` -- boolean (default: ``False``); when set to ``True``, the
+      Boost graph is initialized with reversed edges
     """
-
     from sage.graphs.generic_graph import GenericGraph
 
     if not isinstance(g_sage, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    if g.num_verts() > 0:
+    if g.num_verts():
         raise AssertionError("the given Boost graph must be empty")
 
-    N = g_sage.num_verts()
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_sage.vertices())}
+    cdef int N = g_sage.num_verts()
+    cdef int i
 
     for i in range(N):
         g.add_vertex()
@@ -86,39 +93,48 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, reverse=False):
 
 cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
                                           g_sage,
+                                          vertex_to_int,
                                           weight_function=None,
                                           reverse=False):
     r"""
-    Initializes the Boost weighted graph ``g`` to be equal to ``g_sage``.
+    Initialize the Boost weighted graph ``g`` to be equal to ``g_sage``.
 
-    The Boost graph ``*g`` must represent an empty weighted graph. The edge
-    weights are chosen as follows, and they must be convertible to floats,
-    otherwise an error is raised.
+    INPUT:
 
-    - If ``weight_function`` is not ``None``, this function is used.
+    - ``g`` -- a Boost weighted graph; it must represent an empty weighted graph
+      (an exception is raised otherwise)
 
-    - If ``weight_function`` is ``None`` and ``g`` is weighted, the edge labels
-      of ``g`` are used; in other words, the weight of an edge ``e=(u,v,l)`` is
-      ``l``.
+    - ``g_sage`` -- a Sage graph
 
-    - Otherwise, all weights are set to 1.
+    - ``vertex_to_int`` -- a dictionary; it is a mapping from the vertex set of
+      ``g_sage`` to `(0, \ldots, n-1)`
 
-    In particular, the ``weight_function`` must be a function which inputs an
-    edge ``e`` and outputs a number.
+    - ``weight_function`` -- function (default: ``None``); a function which
+      inputs an edge ``e`` and outputs a number. The edge weights are chosen as
+      follows, and they must be convertible to floats, otherwise an error is
+      raised.
 
-    When ``reverse==True`` the Boost graph is initialized with reversed edges.
+      - If ``weight_function`` is not ``None``, this function is used
+
+      - If ``weight_function`` is ``None`` and ``g`` is weighted, the edge
+        labels of ``g`` are used; in other words, the weight of an edge
+        ``e = (u, v, l)`` is ``l``
+
+      - Otherwise, all weights are set to 1
+
+    - ``reverse`` -- boolean (default: ``False``); when set to ``True``, the
+      Boost graph is initialized with reversed edges
     """
-
     from sage.graphs.generic_graph import GenericGraph
 
     if not isinstance(g_sage, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    if g.num_verts() > 0:
+    if g.num_verts():
         raise AssertionError("the given Boost graph must be empty")
 
-    N = g_sage.num_verts()
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_sage.vertices())}
+    cdef int N = g_sage.num_verts()
+    cdef int i
 
     for i in range(N):
         g.add_vertex()
@@ -152,7 +168,7 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
 
 cdef boost_edge_connectivity(BoostVecGenGraph *g):
     r"""
-    Computes the edge connectivity of the input Boost graph.
+    Compute the edge connectivity of the input Boost graph.
 
     The output is a pair ``[ec,edges]``, where ``ec`` is the edge connectivity,
     ``edges`` is the list of edges in a minimum cut.
@@ -172,7 +188,7 @@ cdef boost_edge_connectivity(BoostVecGenGraph *g):
 
 cpdef edge_connectivity(g):
     r"""
-    Computes the edge connectivity of the input graph, using Boost.
+    Compute the edge connectivity of the input graph, using Boost.
 
     OUTPUT: a pair ``(ec, edges)``, where ``ec`` is the edge
     connectivity, ``edges`` is the list of edges in a minimum cut.
@@ -195,7 +211,7 @@ cpdef edge_connectivity(g):
         sage: from sage.graphs.base.boost_graph import edge_connectivity
         sage: g = graphs.GridGraph([2,2])
         sage: edge_connectivity(g)
-        (2, [((0, 0), (0, 1)), ((0, 0), (1, 0))])
+        (2, [((0, 1), (1, 1)), ((0, 1), (0, 0))])
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
@@ -203,10 +219,12 @@ cpdef edge_connectivity(g):
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
-    cdef list int_to_vertex = g.vertices()
+    cdef v_index i
+    cdef list int_to_vertex = list(g)
+    cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
     if isinstance(g, Graph):
-        boost_graph_from_sage_graph(&g_boost_und, g)
+        boost_graph_from_sage_graph(&g_boost_und, g, vertex_to_int)
         ec, edges = boost_edge_connectivity(&g_boost_und)
 
     elif isinstance(g, DiGraph):
@@ -214,18 +232,18 @@ cpdef edge_connectivity(g):
         stopgap("The edge connectivity of directed graphs is not implemented " +
                 "in Boost. The result may be mathematically unreliable.",18753)
 
-        boost_graph_from_sage_graph(&g_boost_dir, g)
+        boost_graph_from_sage_graph(&g_boost_dir, g, vertex_to_int)
         ec, edges = boost_edge_connectivity(&g_boost_dir)
 
     else:
         raise TypeError("the input must be a Sage graph")
 
-    return (ec, [(int_to_vertex[u], int_to_vertex[v]) for (u,v) in edges])
+    return (ec, [(int_to_vertex[u], int_to_vertex[v]) for u, v in edges])
 
 
 cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
     r"""
-    Computes the clustering coefficient of all vertices in the list provided.
+    Compute the clustering coefficient of all vertices in the list provided.
 
     The output is a pair ``[average_clustering_coefficient, clust_of_v]``, where
     ``average_clustering_coefficient`` is the average clustering of the vertices
@@ -241,7 +259,7 @@ cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
         sig_on()
         result = g[0].clustering_coeff_all()
         sig_off()
-        clust_of_v = {v:result.clust_of_v[v] for v in range(g.num_verts())}
+        clust_of_v = {v: result.clust_of_v[v] for v in range(g.num_verts())}
         return (result.average_clustering_coefficient, clust_of_v)
 
     else:
@@ -257,7 +275,7 @@ cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
 
 cpdef clustering_coeff(g, vertices=None):
     r"""
-    Computes the clustering coefficient of the input graph, using Boost.
+    Compute the clustering coefficient of the input graph, using Boost.
 
     .. SEEALSO::
 
@@ -265,10 +283,10 @@ cpdef clustering_coeff(g, vertices=None):
 
     INPUT:
 
-    - ``g`` (Graph) - the input graph.
+    - ``g`` -- the input Sage Graph
 
-    - ``vertices`` (list) - the list of vertices we need to analyze (if
-      ``None``, we will compute the clustering coefficient of all vertices).
+    - ``vertices`` -- list (default: ``None``); the list of vertices to analyze
+      (if ``None``, compute the clustering coefficient of all vertices)
 
     OUTPUT: a pair ``(average_clustering_coefficient, clust_of_v)``, where
     ``average_clustering_coefficient`` is the average clustering of the vertices
@@ -303,27 +321,28 @@ cpdef clustering_coeff(g, vertices=None):
 
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost
-    cdef list g_vertices = g.vertices()
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_vertices)}
+    cdef v_index i
+    cdef list g_vertices = list(g)
+    cdef dict vertex_to_int = {v: i for i, v in enumerate(g_vertices)}
 
     if not isinstance(g, Graph):
         raise TypeError("the input must be a Sage Graph")
 
-    boost_graph_from_sage_graph(&g_boost, g)
+    boost_graph_from_sage_graph(&g_boost, g, vertex_to_int)
 
     if vertices is None:
         vertices = g_vertices
 
-    vertices_boost = [vertex_to_int[v] for v in vertices]
+    cdef list vertices_boost = [vertex_to_int[v] for v in vertices]
     average_clustering, clust_v_int = boost_clustering_coeff(&g_boost, vertices_boost)
-    clust_v_sage = {g_vertices[v]: clust_v_int[v] for v in vertices_boost}
+    cdef dict clust_v_sage = {g_vertices[v]: clust_v_int[v] for v in vertices_boost}
     return (average_clustering, clust_v_sage)
 
 
 @cython.binding(True)
 cpdef dominator_tree(g, root, return_dict=False, reverse=False):
     r"""
-    Uses Boost to compute the dominator tree of ``g``, rooted at ``root``.
+    Use Boost to compute the dominator tree of ``g``, rooted at ``root``.
 
     A node `d` dominates a node `n` if every path from the entry node
     ``root`` to `n` must go through `d`. The immediate dominator of a node
@@ -348,17 +367,17 @@ cpdef dominator_tree(g, root, return_dict=False, reverse=False):
 
     INPUT:
 
-    - ``g`` (generic_graph) - the input graph.
+    - ``g`` -- the input Sage (Di)Graph
 
-    - ``root`` (vertex) - the root of the dominator tree.
+    - ``root`` -- the root of the dominator tree
 
-    - ``return_dict`` (boolean) - if ``True``, the function returns a
-      dictionary associating to each vertex its parent in the dominator
-      tree. If ``False`` (default), it returns the whole tree, as a ``Graph``
-      or a ``DiGraph``.
+    - ``return_dict`` -- boolean (default: ``False``); if ``True``, the function
+      returns a dictionary associating to each vertex its parent in the
+      dominator tree. If ``False`` (default), it returns the whole tree, as a
+      ``Graph`` or a ``DiGraph``.
 
-    - ``reverse`` - boolean (default: ``False``); when set to ``True``, computes
-      the dominator tree in the reverse graph.
+    - ``reverse`` -- boolean (default: ``False``); when set to ``True``,
+      computes the dominator tree in the reverse graph
 
     OUTPUT:
 
@@ -430,47 +449,47 @@ cpdef dominator_tree(g, root, return_dict=False, reverse=False):
 
     if not isinstance(g, (Graph, DiGraph)):
         raise TypeError("the input must be a Sage Graph or DiGraph")
-    if not root in g.vertices():
+    if root not in g:
         raise ValueError("the input root must be a vertex of the given graph")
 
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
     cdef vector[v_index] result
-    cdef v_index vi
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef list int_to_vertex = g.vertices()
+    cdef v_index i
+    cdef list int_to_vertex = list(g)
+    cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
     if isinstance(g, Graph):
-        boost_graph_from_sage_graph(&g_boost_und, g, reverse)
-        vi = vertex_to_int[root]
+        boost_graph_from_sage_graph(&g_boost_und, g, vertex_to_int, reverse)
+        i = vertex_to_int[root]
         sig_on()
-        result = g_boost_und.dominator_tree(vi)
+        result = g_boost_und.dominator_tree(i)
         sig_off()
 
     elif isinstance(g, DiGraph):
-        boost_graph_from_sage_graph(&g_boost_dir, g, reverse)
-        vi = vertex_to_int[root]
+        boost_graph_from_sage_graph(&g_boost_dir, g, vertex_to_int, reverse)
+        i = vertex_to_int[root]
         sig_on()
-        result = g_boost_dir.dominator_tree(vi)
+        result = g_boost_dir.dominator_tree(i)
         sig_off()
 
     cdef v_index no_parent = -1
 
     if return_dict:
-        return {v:(None if result[vertex_to_int[v]] == no_parent else int_to_vertex[<int> result[vertex_to_int[v]]]) for v in g.vertices()}
+        return {v: (None if result[i] == no_parent else int_to_vertex[<int> result[i]]) for i, v in enumerate(int_to_vertex)}
 
-    edges = [[int_to_vertex[<int> result[vertex_to_int[v]]], v] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
+    cdef list edges = [[int_to_vertex[<int> result[i]], v] for i, v in enumerate(int_to_vertex) if result[i] != no_parent]
 
     if g.is_directed():
-        if len(edges) == 0:
+        if not edges:
             g = DiGraph()
             g.add_vertex(root)
             return g
         else:
             return DiGraph(edges)
     else:
-        if len(edges) == 0:
+        if not edges:
             g = Graph()
             g.add_vertex(root)
             return g
@@ -480,7 +499,7 @@ cpdef dominator_tree(g, root, return_dict=False, reverse=False):
 
 cpdef bandwidth_heuristics(g, algorithm='cuthill_mckee'):
     r"""
-    Uses Boost heuristics to approximate the bandwidth of the input graph.
+    Use Boost heuristics to approximate the bandwidth of the input graph.
 
     The bandwidth `bw(M)` of a matrix `M` is the smallest integer `k` such that
     all non-zero entries of `M` are at distance `k` from the diagonal. The
@@ -502,10 +521,10 @@ cpdef bandwidth_heuristics(g, algorithm='cuthill_mckee'):
 
     INPUT:
 
-    - ``g`` (``Graph``) - the input graph.
+    - ``g`` -- the input Sage graph
 
-    - ``algorithm`` (``'cuthill_mckee'`` or ``'king'``) - the heuristic used to
-      compute the ordering: Cuthill-McKee, or King.
+    - ``algorithm`` -- string (default: ``'cuthill_mckee'``); the heuristic used
+      to compute the ordering among ``'cuthill_mckee'`` and ``'king'``
 
     OUTPUT:
 
@@ -519,9 +538,9 @@ cpdef bandwidth_heuristics(g, algorithm='cuthill_mckee'):
         sage: bandwidth_heuristics(graphs.PathGraph(10))
         (1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         sage: bandwidth_heuristics(graphs.GridGraph([3,3]))
-        (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
+        (3, [(2, 2), (2, 1), (1, 2), (2, 0), (1, 1), (0, 2), (1, 0), (0, 1), (0, 0)])
         sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')
-        (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
+        (3, [(2, 2), (2, 1), (1, 2), (2, 0), (1, 1), (0, 2), (1, 0), (0, 1), (0, 0)])
 
     TESTS:
 
@@ -561,24 +580,25 @@ cpdef bandwidth_heuristics(g, algorithm='cuthill_mckee'):
         raise TypeError("the input must be a Sage Graph")
     if not algorithm in ['cuthill_mckee', 'king']:
         raise ValueError(f"unknown algorithm {algorithm!r}")
-    if g.num_edges()==0:
-        return (0, g.vertices())
+    if not g.num_edges():
+        return (0, list(g))
 
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost
     cdef vector[v_index] result
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef list int_to_vertex = g.vertices()
+    cdef v_index i
+    cdef list int_to_vertex = list(g)
+    cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
-    boost_graph_from_sage_graph(&g_boost, g)
+    boost_graph_from_sage_graph(&g_boost, g, vertex_to_int)
     cdef bint use_cuthill_mckee = (algorithm == 'cuthill_mckee')
     sig_on()
     result = g_boost.bandwidth_ordering(use_cuthill_mckee)
     sig_off()
 
     cdef int n = g.num_verts()
-    cdef dict pos = {int_to_vertex[<int> result[i]]:i for i in range(n)}
-    cdef int bandwidth = max([abs(pos[u]-pos[v]) for u,v in g.edges(labels=False)])
+    cdef dict pos = {int_to_vertex[<int> result[i]]: i for i in range(n)}
+    cdef int bandwidth = max([abs(pos[u] - pos[v]) for u, v in g.edge_iterator(labels=False)])
 
     return (bandwidth, [int_to_vertex[<int> result[i]] for i in range(n)])
 
@@ -587,17 +607,17 @@ cpdef min_spanning_tree(g,
                         weight_function=None,
                         algorithm='Kruskal'):
     r"""
-    Uses Boost to compute the minimum spanning tree of the input graph.
+    Use Boost to compute the minimum spanning tree of the input graph.
 
     INPUT:
 
-    - ``g`` (``Graph``) - the input graph.
+    - ``g`` -- the input Sage graph
 
-    - ``weight_function`` (function) - a function that inputs an edge ``e`` and
-      outputs its weight. An edge has the form ``(u,v,l)``, where ``u`` and
-      ``v`` are vertices, ``l`` is a label (that can be of any kind). The
-      ``weight_function`` can be used to transform the label into a weight (see
-      the example below). In particular:
+    - ``weight_function`` -- function (default: ``None``); a function that
+      inputs an edge ``e`` and outputs its weight. An edge has the form
+      ``(u,v,l)``, where ``u`` and ``v`` are vertices, ``l`` is a label (that
+      can be of any kind). The ``weight_function`` can be used to transform the
+      label into a weight (see the example below). In particular:
 
       - if ``weight_function`` is not ``None``, the weight of an edge ``e`` is
         ``weight_function(e)``;
@@ -612,7 +632,8 @@ cpdef min_spanning_tree(g,
       Note that, if the weight is not convertible to a number with function
       ``float()``, an error is raised (see tests below).
 
-    - ``algorithm`` (``'Kruskal'`` or ``'Prim'``) - the algorithm used.
+    - ``algorithm`` -- string (default: ``'Kruskal'``); the algorithm to use
+      among ``'Kruskal'`` and ``'Prim'``
 
     OUTPUT:
 
@@ -647,7 +668,7 @@ cpdef min_spanning_tree(g,
         sage: min_spanning_tree(graphs.PathGraph(3), algorithm='tip top')
         Traceback (most recent call last):
         ...
-        ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+        ValueError: algorithm 'tip top' not yet implemented, please contribute
 
     If the weight is not a number::
 
@@ -655,20 +676,20 @@ cpdef min_spanning_tree(g,
         sage: min_spanning_tree(g)
         Traceback (most recent call last):
         ...
-        ValueError: could not convert string to float: a
+        ValueError: could not convert string to float:...
 
         sage: g = Graph([(0,1,1), (1,2,[1,2,3])], weighted=True)
         sage: min_spanning_tree(g)
         Traceback (most recent call last):
         ...
-        TypeError: float() argument must be a string or a number
+        TypeError: float() argument must be a string or a number...
     """
     from sage.graphs.graph import Graph
 
     if not isinstance(g, Graph):
         raise TypeError("the input must be a Sage Graph")
     if not algorithm in ['Kruskal', 'Prim']:
-        raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+        raise ValueError("algorithm '%s' not yet implemented, please contribute" %(algorithm))
 
     if g.allows_loops() or g.allows_multiple_edges():
         g = g.to_simple()
@@ -676,10 +697,11 @@ cpdef min_spanning_tree(g,
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecWeightedGraph g_boost
     cdef vector[v_index] result
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef list int_to_vertex = g.vertices()
+    cdef v_index i
+    cdef list int_to_vertex = list(g)
+    cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
-    boost_weighted_graph_from_sage_graph(&g_boost, g, weight_function)
+    boost_weighted_graph_from_sage_graph(&g_boost, g, vertex_to_int, weight_function)
 
     if algorithm == 'Kruskal':
         sig_on()
@@ -689,10 +711,7 @@ cpdef min_spanning_tree(g,
         sig_on()
         result = g_boost.prim_min_spanning_tree()
         sig_off()
-    else:
-        raise ValueError(f"unknown algorithm {algorithm!r}")
 
-    cdef size_t i
     cdef size_t n = g.num_verts()
 
     if result.size() != 2 * (n - 1):
@@ -704,14 +723,14 @@ cpdef min_spanning_tree(g,
 
 cpdef blocks_and_cut_vertices(g):
     r"""
-    Computes the blocks and cut vertices of the graph.
+    Compute the blocks and cut vertices of the graph.
 
     This method uses the implementation of Tarjan's algorithm available in the
     Boost library .
 
     INPUT:
 
-    - ``g`` (``Graph``) - the input graph.
+    - ``g`` -- the input Sage graph
 
     OUTPUT:
 
@@ -753,10 +772,12 @@ cpdef blocks_and_cut_vertices(g):
 
     cdef BoostVecGraph g_boost
     cdef vector[vector[v_index]] result
-    cdef list int_to_vertex = g.vertices()
-    cdef list vertex_status = [-1]*g.order()
+    cdef v_index vi
+    cdef list int_to_vertex = list(g)
+    cdef dict vertex_to_int = {vv: vi for vi, vv in enumerate(int_to_vertex)}
+    cdef list vertex_status = [-1] * g.order()
 
-    boost_graph_from_sage_graph(&g_boost, g)
+    boost_graph_from_sage_graph(&g_boost, g, vertex_to_int)
     sig_on()
     result = g_boost.blocks_and_cut_vertices()
     sig_off()
@@ -764,7 +785,6 @@ cpdef blocks_and_cut_vertices(g):
     cdef list result_blocks = []
     cdef set result_cut = set()
     cdef list result_temp = []
-    cdef int i
     cdef v_index v
 
     # We iterate over the vertices in the blocks and find articulation points
@@ -798,7 +818,7 @@ cpdef blocks_and_cut_vertices(g):
 
 cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     r"""
-    Computes the shortest paths from ``start`` to all other vertices.
+    Compute the shortest paths from ``start`` to all other vertices.
 
     This routine outputs all shortest paths from node ``start`` to any other
     node in the graph. The input graph can be weighted: if the algorithm is
@@ -818,22 +838,23 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
 
     INPUT:
 
-    - ``g`` (generic_graph) - the input graph.
+    - ``g`` -- the input Sage graph
 
-    - ``start`` (vertex) - the starting vertex to compute shortest paths.
+    - ``start`` -- the starting vertex to compute shortest paths
 
-    - ``weight_function`` (function) - a function that associates a weight to
-      each edge. If ``None`` (default), the weights of ``g`` are used, if
-      available, otherwise all edges have weight 1.
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if available, otherwise all edges have weight 1.
 
-    - ``algorithm`` (string) - one of the following algorithms:
+    - ``algorithm`` -- string (default: ``None``); one of the following
+      algorithms:
 
-      - ``'Dijkstra','Dijkstra_Boost'``: the Dijkstra algorithm implemented in
-        Boost (works only with positive weights).
+      - ``'Dijkstra'``, ``'Dijkstra_Boost'``: the Dijkstra algorithm implemented
+        in Boost (works only with positive weights)
 
-      - ``'Bellman-Ford','Bellman-Ford_Boost'``: the Bellman-Ford algorithm
+      - ``'Bellman-Ford'``, ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm
         implemented in Boost (works also with negative weights, if there is no
-        negative cycle).
+        negative cycle)
 
     OUTPUT:
 
@@ -886,33 +907,34 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         sage: shortest_paths(g, 1, algorithm='Dijkstra')
         Traceback (most recent call last):
         ...
-        RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
+        RuntimeError: Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead
 
-    Wrong starting vartex::
+    Wrong starting vertex::
 
-        sage: shortest_paths(g, [])
+        sage: shortest_paths(g, 55)
         Traceback (most recent call last):
         ...
-        ValueError: The starting vertex [] is not in the graph.
+        ValueError: the starting vertex 55 is not in the graph
     """
     from sage.graphs.generic_graph import GenericGraph
 
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    if g.num_edges() == 0:
+    if not g.num_edges():
         return ({start:0}, {start:None})
 
     # These variables are automatically deleted when the function terminates.
-    cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}
+    cdef v_index vi
+    cdef dict int_to_v = dict(enumerate(g))
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
     cdef result_distances result
 
     if start not in v_to_int.keys():
-        raise ValueError("The starting vertex " + str(start) + " is not in " +
-                         "the graph.")
+        raise ValueError("the starting vertex " + str(start) + " is not in " +
+                         "the graph")
 
     if algorithm is None:
         # Check if there are edges with negative weights
@@ -930,38 +952,37 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         if algorithm is None:
             algorithm = 'Dijkstra'
 
-    cdef v_index vi
     if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
         if g.is_directed():
-            boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+            boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
             vi = v_to_int[start]
             sig_on()
             result = g_boost_dir.bellman_ford_shortest_paths(vi)
             sig_off()
         else:
-            boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+            boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
             vi = v_to_int[start]
             sig_on()
             result = g_boost_und.bellman_ford_shortest_paths(vi)
             sig_off()
-        if result.distances.size() == 0:
+        if not result.distances.size():
             raise ValueError("the graph contains a negative cycle")
 
     elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
         if g.is_directed():
-            boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+            boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
             vi = v_to_int[start]
             sig_on()
             result = g_boost_dir.dijkstra_shortest_paths(vi)
             sig_off()
         else:
-            boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+            boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
             vi = v_to_int[start]
             sig_on()
             result = g_boost_und.dijkstra_shortest_paths(vi)
             sig_off()
-        if result.distances.size() == 0:
-            raise RuntimeError("Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead")
+        if not result.distances.size():
+            raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
 
     else:
         raise ValueError(f"unknown algorithm {algorithm!r}")
@@ -991,7 +1012,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
 
 cpdef johnson_shortest_paths(g, weight_function=None):
     r"""
-    Uses Johnson algorithm to solve the all-pairs-shortest-paths.
+    Use Johnson algorithm to solve the all-pairs-shortest-paths.
 
     This routine outputs the distance between each pair of vertices, using a
     dictionary of dictionaries. It works on all kinds of graphs, but it is
@@ -1003,12 +1024,11 @@ cpdef johnson_shortest_paths(g, weight_function=None):
 
     INPUT:
 
-    - ``g`` (generic_graph) - the input graph.
+    - ``g`` -- the input Sage graph
 
-    - ``weight_function`` (function) - a function that inputs an edge
-      ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-      is automatically set to ``True``. If ``None`` and ``by_weight`` is
-      ``True``, we use the edge label ``l`` as a weight.
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if available, otherwise all edges have weight 1.
 
     OUTPUT:
 
@@ -1057,28 +1077,29 @@ cpdef johnson_shortest_paths(g, weight_function=None):
 
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
-    elif g.num_edges() == 0:
-        return {v:{v:0} for v in g.vertices()}
+    elif not g.num_edges():
+        return {v: {v: 0} for v in g}
     # These variables are automatically deleted when the function terminates.
-    cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}
+    cdef v_index i
+    cdef list int_to_v = list(g)
+    cdef dict v_to_int = {v: i for i, v in enumerate(int_to_v)}
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
     cdef int N = g.num_verts()
     cdef vector[vector[double]] result
 
     if g.is_directed():
-        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
         sig_on()
         result = g_boost_dir.johnson_shortest_paths()
         sig_off()
     else:
-        boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
         sig_on()
         result = g_boost_und.johnson_shortest_paths()
         sig_off()
 
-    if result.size() == 0:
+    if not result.size():
         raise ValueError("the graph contains a negative cycle")
 
     if weight_function is not None:
@@ -1093,14 +1114,14 @@ cpdef johnson_shortest_paths(g, weight_function=None):
         correct_type = RR
 
     import sys
-    return {int_to_v[v]:{int_to_v[w]:correct_type(result[v][w])
+    return {int_to_v[v]: {int_to_v[w]: correct_type(result[v][w])
                     for w in range(N) if result[v][w] != sys.float_info.max}
             for v in range(N)}
 
 
 cpdef johnson_closeness_centrality(g, weight_function=None):
     r"""
-    Uses Johnson algorithm to compute the closeness centrality of all vertices.
+    Use Johnson algorithm to compute the closeness centrality of all vertices.
 
     This routine is preferrable to :func:`~johnson_shortest_paths` because it
     does not create a doubly indexed dictionary of distances, saving memory.
@@ -1110,12 +1131,11 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
 
     INPUT:
 
-    - ``g`` (generic_graph) - the input graph.
+    - ``g`` -- the input Sage graph
 
-    - ``weight_function`` (function) - a function that inputs an edge
-      ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
-      is automatically set to ``True``. If ``None`` and ``by_weight`` is
-      ``True``, we use the edge label ``l`` as a weight.
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if available, otherwise all edges have weight 1.
 
     OUTPUT:
 
@@ -1160,7 +1180,7 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
 
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
-    elif g.num_edges() == 0:
+    elif not g.num_edges():
         return {}
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecWeightedDiGraphU g_boost_dir
@@ -1170,19 +1190,21 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
     cdef vector[double] closeness
     cdef double farness
     cdef int i, j, reach
+    cdef list int_to_v = list(g)
+    cdef dict v_to_int = {v: i for i, v in enumerate(int_to_v)}
 
     if g.is_directed():
-        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
         sig_on()
         result = g_boost_dir.johnson_shortest_paths()
         sig_off()
     else:
-        boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
         sig_on()
         result = g_boost_und.johnson_shortest_paths()
         sig_off()
 
-    if result.size() == 0:
+    if not result.size():
         raise ValueError("the graph contains a negative cycle")
 
     import sys
@@ -1198,4 +1220,4 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
         else:
             closeness.push_back(sys.float_info.max)
         sig_check()
-    return {v: closeness[i] for i,v in enumerate(g.vertices()) if closeness[i] != sys.float_info.max}
+    return {v: closeness[i] for i,v in enumerate(int_to_v) if closeness[i] != sys.float_info.max}

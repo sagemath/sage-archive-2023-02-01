@@ -215,7 +215,7 @@ class BoundClass(functools.partial):
         sage: class mypartial(functools.partial):
         ....:     def __init__(self, f, i, j):
         ....:         functools.partial.__init__(self, f, i, j)
-        sage: g = mypartial(f, 2, 3)
+        sage: g = mypartial(f, 2, 3)  # py2; on Python 3 this is an error
         Traceback (most recent call last):
         ...
         DeprecationWarning: object.__init__() takes no parameters

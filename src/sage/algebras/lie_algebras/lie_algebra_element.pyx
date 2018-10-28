@@ -355,8 +355,8 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: L = LieAlgebra(associative=S)
             sage: x = L.gen(2); x
             (1,2,3)
-            sage: y = L.gen(1); y
-            (1,2)
+            sage: y = L.gen(3); y
+            (2,3)
             sage: u = x*3; u
             3*(1,2,3)
             sage: parent(u) == L
@@ -369,10 +369,10 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             b4 - b5
             sage: xp, yp = x.lift_associative(), y.lift_associative()
             sage: eltp = xp*yp - yp*xp; eltp
-            (2,3) - (1,3)
+            -(1,2) + (1,3)
             sage: G = list(S.basis())
             sage: G[4] - G[5]
-            (2,3) - (1,3)
+            -(1,2) + (1,3)
 
         TESTS::
 

@@ -86,4 +86,4 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
 from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
 
 from .gamma import (gamma, psi, beta, log_gamma,
-                    gamma_inc, incomplete_gamma, gamma_inc_lower)
+                    gamma_inc, gamma_inc_lower)

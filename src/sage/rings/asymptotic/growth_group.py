@@ -4395,21 +4395,33 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: ExponentialGrowthGroup.group_factory(U, 'n')
             Growth Group U^n
         """
+        from sage.categories.cartesian_product import cartesian_product
+        from sage.groups.roots_of_unity_group import AbstractArgumentGroup
         from sage.rings.complex_arb import ComplexBallField
         from sage.rings.complex_field import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.number_field.number_field import NumberField_cyclotomic
         from sage.rings.qqbar import QQbar, AA
 
-        if base == QQbar or isinstance(base, NumberField_cyclotomic):
-            base = AA
-        elif isinstance(base, (ComplexField_class,
-                               ComplexIntervalField_class,
-                               ComplexBallField)):
-            base = base._real_field()
+        if isinstance(base, AbstractArgumentGroup):
+            groups = (cls._non_growth_group_(base, var, **kwds),)
+        elif split_base:
+            if base == QQbar or isinstance(base, NumberField_cyclotomic):
+                base = AA
+            elif isinstance(base, (ComplexField_class,
+                                   ComplexIntervalField_class,
+                                   ComplexBallField)):
+                base = base._real_field()
 
-        E = cls(base, var, **kwds)
-        return E.extended_by_argument_group(return_factors=return_factors)
+            E = cls(base, var, **kwds)
+            groups = (E, E.argument_group())
+        else:
+            groups = (cls(base, var, **kwds),)
+
+        if return_factors:
+            return tuple(groups)
+        else:
+            return cartesian_product(groups)
 
     def extended_by_argument_group(self, return_factors=False):
         r"""

@@ -4580,7 +4580,7 @@ class GenericNonGrowthElement(GenericGrowthElement):
         return False
 
 
-class GenericNonGrowthGroup(GenericGroupGroup):
+class GenericNonGrowthGroup(GenericGrowthGroup):
     r"""
     A (abstract) growth group whose elements are all of the same growth `1`.
 
@@ -4624,7 +4624,7 @@ class ExponentialArgumentGrowthElement(GenericNonGrowthElement,
     pass
 
 
-class ExponentialArgumentGrowthGroup(NonGrowthGroup,
+class ExponentialArgumentGrowthGroup(GenericNonGrowthGroup,
                                      ExponentialGrowthGroup):
     r"""
     A growth group whose elements have a base with absolute value `1`.

@@ -724,7 +724,6 @@ class pAdicLseries(SageObject):
             sage: lpt._quotient_of_periods_to_twist(-3)
             3
         """
-        from sage.functions.all import sqrt
         # This function does not depend on p and could be moved out of
         # this file but it is needed only here
 

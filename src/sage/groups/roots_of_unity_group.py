@@ -1119,7 +1119,7 @@ class ArgumentGroupFactory(UniqueFactory):
                 return (RootsOfUnityGroup, ()), kwds
             else:
                 return (UnitCircleGroup, (exponents,)), kwds
-            
+
     def create_object(self, version, key, **kwds):
         r"""
         Create an object from the given arguments.

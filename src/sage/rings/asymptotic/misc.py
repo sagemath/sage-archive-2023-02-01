@@ -66,15 +66,16 @@ def repr_short_to_parent(s):
         Traceback (most recent call last):
         ...
         ValueError: Cannot create a parent out of 'abcdef'.
-        > *previous* NameError: name 'abcdef' is not defined
+        > *previous* ValueError: unknown specification abcdef
+        > *and* NameError: name 'abcdef' is not defined
     """
     from sage.groups.roots_of_unity_group import ArgumentGroup
     from sage.misc.sage_eval import sage_eval
 
     def extract(s):
         try:
-            return ArgumentGroup(specfication=s)
-        except Exception as e_ucg:
+            return ArgumentGroup(specification=s)
+        except Exception as e_ag:
             pass
 
         try:
@@ -84,7 +85,7 @@ def repr_short_to_parent(s):
 
         raise combine_exceptions(
             ValueError("Cannot create a parent out of '%s'." % (s,)),
-            e_ucg, e_se)
+            e_ag, e_se)
 
     P = extract(s)
 

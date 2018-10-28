@@ -1009,6 +1009,10 @@ REFERENCES:
 .. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
 
+.. [DFMS1996] Philipppe Di Francesco, Pierre Mathieu, and David Sénéchal.
+              *Conformal Field Theory*. Graduate Texts in Contemporary
+              Physics, Springer, 1996.
+
 .. [DG1982] Louise Dolan and Michael Grady.
             *Conserved charges from self-duality*,
             Phys. Rev. D(3) **25** (1982), no. 6, 1587-1604.
@@ -1244,6 +1248,10 @@ REFERENCES:
 .. [Fed2015] Federal Agency on Technical Regulation and Metrology (GOST),
              GOST R 34.12-2015, (2015)
 
+.. [Feingold2004] Alex J. Feingold. *Fusion rules for affine Kac-Moody algebras*.
+                  Contemp. Math., **343** (2004), pp. 53-96.
+                  :arXiv:`math/0212387`
+
 .. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
              Canonical Representatives of Their Semilinear Isometry
              Classes. Advances in Mathematics of Communications 3 (4),
@@ -1330,6 +1338,10 @@ REFERENCES:
 .. [Ful1997] William Fulton,
              *Young Tableaux*.
              Cambridge University Press, 1997.
+
+.. [Fuchs1994] \J. Fuchs. *Fusion Rules for Conformal Field Theory*.
+               Fortsch. Phys. **42** (1994), no. 1, pp. 1-48.
+               :doi:`10.1002/prop.2190420102`, :arXiv:`hep-th/9306162`.
 
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
@@ -3370,6 +3382,9 @@ REFERENCES:
 .. [Wal2001] Timothy Walsh, *Gray codes for involutions*, J. Combin.
              Math. Combin. Comput. **36** (2001), 95-118.
              http://www.info2.uqam.ca/~walsh_t/papers/Involutions%20paper.pdf
+
+.. [Walton1990] Mark A. Walton. *Fusion rules in Wess-Zumino-Witten models*.
+                Nuclear Phys. B **340** (1990).
 
 .. [Wam1999] van Wamelen, Paul. *Examples of genus two CM curves defined
              over the rationals*. Math. Comp. 68 (1999), no. 225, 307--320.

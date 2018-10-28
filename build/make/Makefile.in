@@ -191,7 +191,6 @@ $(1): $$(INST)/$(1)-$(2)
 $(1)-clean:
 	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
 		$(1) '$(SAGE_LOCAL)'
-
 endef
 
 $(foreach pkgname, $(NORMAL_PACKAGES),\

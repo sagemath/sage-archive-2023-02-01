@@ -1222,7 +1222,7 @@ cdef class ExpansionIterable(object):
             -2
         """
         if isinstance(n, slice):
-            return itertools.islice(iter(self), int(n.start), int(n.stop), int(n.step))
+            return itertools.islice(iter(self), n.start, n.stop, n.step)
         cdef long m = n - self.val_shift
         cdef celement value
         if n < 0:

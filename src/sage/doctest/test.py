@@ -500,12 +500,13 @@ Test ``atexit`` support in the doctesting framework::
     ....:     pass
 
 Test the ``--memlimit`` option and ``# optional - memlimit``
-(but only on Linux)::
+(but only on Linux). If this test fails, the memory needed to
+run it may have increased. Try increasing the limit. ::
 
     sage: from platform import system
     sage: ok = True
     sage: if system() == "Linux":
-    ....:     P = subprocess.Popen(["sage", "-t", "--warn-long", "0", "--memlimit=2000", "memlimit.rst"], stdout=subprocess.PIPE, **kwds)
+    ....:     P = subprocess.Popen(["sage", "-t", "--warn-long", "0", "--memlimit=2100", "memlimit.rst"], stdout=subprocess.PIPE, **kwds)
     ....:     out, err = P.communicate()
     ....:     ok = ("MemoryError: failed to allocate" in out)
     sage: ok or out

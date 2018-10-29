@@ -754,10 +754,10 @@ class PartialConversionElement(SageObject):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialArgumentGrowthGroup, PartialConversionElement
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialNonGrowthGroup, PartialConversionElement
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
             sage: Q = ExponentialGrowthGroup(QQ, 'n')
-            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
             sage: PartialConversionElement(Q, -42/5).is_compatible(U)
             True
         """
@@ -1058,7 +1058,7 @@ def _rpow_(self, base):
             try:
                 element = E(raw_element=base)
             except PartialConversionValueError as e:
-                EU = E.extended_by_argument_group()
+                EU = E.extended_by_non_growth_group()
                 element = EU._convert_factors_([e.element])
 
     try:
@@ -2197,11 +2197,11 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         - ``other`` -- a growth group
 
         EXAMPLES::
-            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialArgumentGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialNonGrowthGroup
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
             sage: Q = ExponentialGrowthGroup(QQ, 'n')
             sage: Z = ExponentialGrowthGroup(ZZ, 'n')
-            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
             sage: for a in (Q, Z, U):
             ....:     for b in (Q, Z, U):
             ....:         print('{} is {}compatible with {}'.format(
@@ -3686,9 +3686,9 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'x')
+            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'x')
             sage: U((-1)^x)  # indirect doctest
             (-1)^x
 
@@ -3740,9 +3740,9 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         ::
 
-            sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'x')
+            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'x')
             sage: latex(U((-1)^x))  # indirect doctest
             \left(-1\right)^{x}
 
@@ -4351,7 +4351,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
     @classmethod
     def factory(cls,
                 base, var,
-                split_base=True,
+                extend_by_non_growth_group=True,
                 return_factors=False,
                 **kwds):
         r"""
@@ -4366,7 +4366,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
           exponential growth group; see :class:`ExponentialGrowthGroup`
           for details.
 
-        - ``split_base`` -- a boolean (default ``True``). If set, then
+        - ``extend_by_non_growth_group`` -- a boolean (default ``True``). If set, then
           the growth group consists of two parts, one part dealing with
           the absolute values of the bases and one for their arguments.
 
@@ -4405,7 +4405,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         if isinstance(base, AbstractArgumentGroup):
             groups = (cls._non_growth_group_class_(base, var, **kwds),)
-        elif split_base:
+        elif extend_by_non_growth_group:
             if base == QQbar or isinstance(base, NumberField_cyclotomic):
                 base = AA
             elif isinstance(base, (ComplexField_class,
@@ -4414,7 +4414,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
                 base = base._real_field()
 
             E = cls(base, var, **kwds)
-            groups = (E, E.argument_group())
+            groups = (E, E.non_growth_group())
         else:
             groups = (cls(base, var, **kwds),)
 
@@ -4423,7 +4423,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         else:
             return cartesian_product(groups)
 
-    def extended_by_argument_group(self):
+    def extended_by_non_growth_group(self):
         r"""
         Extend to a cartesian product of this exponential growth group
         and a suitable group of roots of unity.
@@ -4435,28 +4435,28 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('QQ^x').extended_by_argument_group()
+            sage: GrowthGroup('QQ_+^x').extended_by_non_growth_group()
             Growth Group QQ^x * U^x
-            sage: GrowthGroup('RR^x').extended_by_argument_group()
+            sage: GrowthGroup('RR_+^x').extended_by_non_growth_group()
             Growth Group RR^x * U_RR^x
-            sage: GrowthGroup('RIF^x').extended_by_argument_group()
+            sage: GrowthGroup('RIF_+^x').extended_by_non_growth_group()
             Growth Group RIF^x * U_RIF^x
-            sage: GrowthGroup('RBF^x').extended_by_argument_group()
+            sage: GrowthGroup('RBF_+^x').extended_by_non_growth_group()
             Growth Group RBF^x * U_RBF^x
-            sage: GrowthGroup('CC^x').extended_by_argument_group()
+            sage: GrowthGroup('CC_+^x').extended_by_non_growth_group()
             Growth Group CC^x * U_RR^x
-            sage: GrowthGroup('CIF^x').extended_by_argument_group()
+            sage: GrowthGroup('CIF_+^x').extended_by_non_growth_group()
             Growth Group CIF^x * U_RIF^x
-            sage: GrowthGroup('CBF^x').extended_by_argument_group()
+            sage: GrowthGroup('CBF_+^x').extended_by_non_growth_group()
             Growth Group CBF^x * U_RBF^x
         """
         from sage.categories.cartesian_product import cartesian_product
-        return cartesian_product((self, self.argument_group()))
+        return cartesian_product((self, self.non_growth_group()))
 
-    def argument_group(self):
+    def non_growth_group(self):
         r"""
-        Return an argument group (e.g. roots of unity) compatible with
-        this exponential growth group.
+        Return a non-growth group (argument group, e.g. roots of unity)
+        compatible with this exponential growth group.
 
         OUTPUT:
 
@@ -4465,19 +4465,19 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('QQ^x').argument_group()
+            sage: GrowthGroup('QQ_+^x').non_growth_group()
             Growth Group U^x
-            sage: GrowthGroup('RR^x').argument_group()
+            sage: GrowthGroup('RR_+^x').non_growth_group()
             Growth Group U_RR^x
-            sage: GrowthGroup('RIF^x').argument_group()
+            sage: GrowthGroup('RIF_+^x').non_growth_group()
             Growth Group U_RIF^x
-            sage: GrowthGroup('RBF^x').argument_group()
+            sage: GrowthGroup('RBF_+^x').non_growth_group()
             Growth Group U_RBF^x
-            sage: GrowthGroup('CC^x').argument_group()
+            sage: GrowthGroup('CC_+^x').non_growth_group()
             Growth Group U_RR^x
-            sage: GrowthGroup('CIF^x').argument_group()
+            sage: GrowthGroup('CIF_+^x').non_growth_group()
             Growth Group U_RIF^x
-            sage: GrowthGroup('CBF^x').argument_group()
+            sage: GrowthGroup('CBF_+^x').non_growth_group()
             Growth Group U_RBF^x
         """
         from sage.groups.roots_of_unity_group import ArgumentGroup
@@ -4570,11 +4570,18 @@ class GenericNonGrowthElement(GenericGrowthElement):
         EXAMPLES::
 
             sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-            sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
-            sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
+            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
             sage: U(raw_element=-1) < U(raw_element=1)
             False
             sage: U(raw_element=-1) > U(raw_element=1)
+            False
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialImaginaryGrowthGroup
+            sage: M = MonomialImaginaryGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: M(raw_element=-1) < M(raw_element=1)
+            False
+            sage: M(raw_element=-1) > M(raw_element=1)
             False
         """
         return False
@@ -4604,27 +4611,27 @@ class GenericNonGrowthGroup(GenericGrowthGroup):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
-            sage: ExponentialArgumentGrowthGroup._initial_category_(ZZ)
+            sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
+            sage: ExponentialNonGrowthGroup._initial_category_(ZZ)
             Category of posets
-            sage: ExponentialArgumentGrowthGroup._initial_category_(QQ)
+            sage: ExponentialNonGrowthGroup._initial_category_(QQ)
             Category of posets
-            sage: ExponentialArgumentGrowthGroup._initial_category_(SR)
+            sage: ExponentialNonGrowthGroup._initial_category_(SR)
             Category of posets
         """
         from sage.categories.posets import Posets
         return Posets()
 
 
-class ExponentialArgumentGrowthElement(GenericNonGrowthElement,
+class ExponentialNonGrowthElement(GenericNonGrowthElement,
                                        ExponentialGrowthElement):
     r"""
-    An element of :class:`ExponentialArgumentGrowthGroup`.
+    An element of :class:`ExponentialNonGrowthGroup`.
     """
     pass
 
 
-class ExponentialArgumentGrowthGroup(GenericNonGrowthGroup,
+class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
                                      ExponentialGrowthGroup):
     r"""
     A growth group whose elements have a base with absolute value `1`.
@@ -4632,8 +4639,8 @@ class ExponentialArgumentGrowthGroup(GenericNonGrowthGroup,
     EXAMPLES::
 
         sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
-        sage: from sage.rings.asymptotic.growth_group import ExponentialArgumentGrowthGroup
-        sage: U = ExponentialArgumentGrowthGroup(RootsOfUnityGroup(), 'n')
+        sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
+        sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
         sage: U(raw_element=-1)
         (-1)^n
 
@@ -4648,7 +4655,7 @@ class ExponentialArgumentGrowthGroup(GenericNonGrowthGroup,
         Join of Category of commutative groups and Category of posets
     """
 
-    Element = ExponentialArgumentGrowthElement
+    Element = ExponentialNonGrowthElement
 
     def construction(self):
         r"""
@@ -4657,28 +4664,28 @@ class ExponentialArgumentGrowthGroup(GenericNonGrowthGroup,
         OUTPUT:
 
         A pair whose first entry is an
-        :class:`ExponentialArgumentGrowthGroupFunctor`
+        :class:`ExponentialNonGrowthGroupFunctor`
         and its second entry the base.
 
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('U^x').construction()
-            (ExponentialArgumentGrowthGroup[x], Group of Roots of Unity)
+            (ExponentialNonGrowthGroup[x], Group of Roots of Unity)
         """
-        return ExponentialArgumentGrowthGroupFunctor(self._var_), self.base()
+        return ExponentialNonGrowthGroupFunctor(self._var_), self.base()
 
 
-ExponentialGrowthGroup._non_growth_group_class_ = ExponentialArgumentGrowthGroup
+ExponentialGrowthGroup._non_growth_group_class_ = ExponentialNonGrowthGroup
 
 
-class ExponentialArgumentGrowthGroupFunctor(ExponentialGrowthGroupFunctor):
+class ExponentialNonGrowthGroupFunctor(ExponentialGrowthGroupFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
-    for :class:`ExponentialArgumentGrowthGroup`.
+    for :class:`ExponentialNonGrowthGroup`.
     """
 
-    _functor_name = 'ExponentialArgumentGrowthGroup'
+    _functor_name = 'ExponentialNonGrowthGroup'
 
     def _apply_functor(self, base):
         r"""
@@ -4686,7 +4693,7 @@ class ExponentialArgumentGrowthGroupFunctor(ExponentialGrowthGroupFunctor):
 
         INPUT:
 
-        - ``base`` - anything :class:`ExponentialArgumentGrowthGroup` accepts.
+        - ``base`` - anything :class:`ExponentialNonGrowthGroup` accepts.
 
         OUTPUT:
 
@@ -4699,7 +4706,7 @@ class ExponentialArgumentGrowthGroupFunctor(ExponentialGrowthGroupFunctor):
             sage: F(R)  # indirect doctest
             Growth Group U^z
         """
-        return ExponentialArgumentGrowthGroup(base, self.var)
+        return ExponentialNonGrowthGroup(base, self.var)
 
 class GrowthGroupFactory(UniqueFactory):
     r"""
@@ -4946,9 +4953,9 @@ class GrowthGroupFactory(UniqueFactory):
 
             if b.endswith('_+'):
                 b = b[:-2]
-                split_base = False
+                extend_by_non_growth_group = False
             else:
-                split_base = True
+                extend_by_non_growth_group = True
 
             try:
                 B = repr_short_to_parent(b)
@@ -4970,7 +4977,7 @@ class GrowthGroupFactory(UniqueFactory):
             elif B is not None and E is None:
                 egroups = ExponentialGrowthGroup.factory(
                     B, e,
-                    split_base=split_base,
+                    extend_by_non_growth_group=extend_by_non_growth_group,
                     return_factors=True,
                     **kwds)
                 groups.append(egroups[0])

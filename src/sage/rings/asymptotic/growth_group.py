@@ -4349,11 +4349,11 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         return ExponentialGrowthGroupFunctor(self._var_), self.base()
 
     @classmethod
-    def group_factory(cls,
-                      base, var,
-                      split_base=True,
-                      return_factors=False,
-                      **kwds):
+    def factory(cls,
+                base, var,
+                split_base=True,
+                return_factors=False,
+                **kwds):
         r"""
         Create an exponential growth group.
 
@@ -4381,18 +4381,18 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
-            sage: ExponentialGrowthGroup.group_factory(QQ, 'n')
+            sage: ExponentialGrowthGroup.factory(QQ, 'n')
             Growth Group QQ^n * U^n
 
         TESTS::
 
-            sage: ExponentialGrowthGroup.group_factory(QQ, 'n', return_factors=True)
+            sage: ExponentialGrowthGroup.factory(QQ, 'n', return_factors=True)
             (Growth Group QQ^n, Growth Group U^n)
-            sage: ExponentialGrowthGroup.group_factory(QQ, 'n', split_base=False)
+            sage: ExponentialGrowthGroup.factory(QQ, 'n', split_base=False)
             Growth Group QQ^n
             sage: from sage.groups.roots_of_unity_group import ArgumentGroup
             sage: U = ArgumentGroup(exponents=QQ)
-            sage: ExponentialGrowthGroup.group_factory(U, 'n')
+            sage: ExponentialGrowthGroup.factory(U, 'n')
             Growth Group U^n
         """
         from sage.categories.cartesian_product import cartesian_product
@@ -4968,7 +4968,7 @@ class GrowthGroupFactory(UniqueFactory):
             elif B is None and E is not None:
                 groups.append(MonomialGrowthGroup(E, b, **kwds))
             elif B is not None and E is None:
-                egroups = ExponentialGrowthGroup.group_factory(
+                egroups = ExponentialGrowthGroup.factory(
                     B, e,
                     split_base=split_base,
                     return_factors=True,

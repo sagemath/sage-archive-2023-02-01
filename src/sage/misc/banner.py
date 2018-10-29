@@ -12,6 +12,7 @@ SageMath version and banner info
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+import sys
 
 from sage.env import (SAGE_VERSION, SAGE_DATE, SAGE_VERSION_BANNER,
                       SAGE_SRC, SAGE_BANNER)
@@ -63,9 +64,8 @@ def banner_text(full=True):
     a = s.append
     a(u'┌' + bars + u'┐')
     a(u"\n│ %-66s │\n" % version())
-    a(u"│ %-66s │\n" % 'Type "notebook()" for the browser-based notebook interface.')
-    a(u"│ %-66s │\n" % 'Type "help()" for help.')
-    #s += u"│ %-66s │\n" % 'Distributed under the GNU General Public License V2.'
+    python_version = (sys.version_info.major, sys.version_info.minor)
+    a(u"│ %-66s │\n" % 'Using Python {}.{}. Type "help()" for help.'.format(*python_version))
     a(u'└' + bars + u'┘')
     pre = version_dict()['prerelease']
     if pre:
@@ -96,8 +96,7 @@ def banner():
         sage: banner()
         ┌────────────────────────────────────────────────────────────────────┐
         │ SageMath version ..., Release Date: ...                            │
-        │ Type "notebook()" for the browser-based notebook interface.        │
-        │ Type "help()" for help.                                            │
+        │ Using Python .... Type "help()" for help.                          │
         ...
     """
     typ = SAGE_BANNER.lower()

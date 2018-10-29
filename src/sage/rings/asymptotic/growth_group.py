@@ -228,6 +228,7 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from collections import namedtuple
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
@@ -4710,6 +4711,11 @@ class ExponentialNonGrowthGroupFunctor(ExponentialGrowthGroupFunctor):
         """
         return ExponentialNonGrowthGroup(base, self.var)
 
+GrowthGroupFactor = namedtuple('GrowthGroupFactor',
+                               ['cls', 'base', 'var',
+                                'extend_by_non_growth_group'])
+
+
 class GrowthGroupFactory(UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.
@@ -4877,27 +4883,6 @@ class GrowthGroupFactory(UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: 'asdf' is not a valid substring of 'asdf' describing a growth group.
-        """
-        from .misc import split_str_by_op
-        factors = split_str_by_op(specification, '*')
-        factors = tuple(f.replace('**', '^') for f in factors)
-
-        for f in factors:
-            if '^' not in f:
-                raise ValueError("'%s' is not a valid substring of '%s' describing "
-                                 "a growth group." % (f, specification))
-
-        kwds.setdefault('ignore_variables', ('e',))
-
-        return factors, kwds
-
-    def create_object(self, version, factors, **kwds):
-        r"""
-        Create an object from the given arguments.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('as^df')  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -4938,8 +4923,12 @@ class GrowthGroupFactory(UniqueFactory):
             >> *previous* ValueError: unknown specification y^z
             >> *and* NameError: name 'y' is not defined
         """
-        from sage.groups.roots_of_unity_group import AbstractArgument
         from .misc import repr_short_to_parent, split_str_by_op
+
+        kwds.setdefault('ignore_variables', ('e',))
+
+        sfactors = split_str_by_op(specification, '*')
+        sfactors = tuple(f.replace('**', '^') for f in sfactors)
 
         def remove_parentheses(s):
             while s.startswith('(') and s.endswith(')'):
@@ -4952,14 +4941,18 @@ class GrowthGroupFactory(UniqueFactory):
             else:
                 return s, False != invert
 
-        groups = []
-        non_growth_groups = []
-        for factor in factors:
+        factors = []
+
+        for factor in sfactors:
+            if '^' not in factor:
+                raise ValueError("'{}' is not a valid substring of '{}' describing "
+                                 "a growth group.".format(factor, specification))
+
             split = split_str_by_op(factor, '^')
             if len(split) != 2:
-                raise ValueError("'%s' is an ambigous substring of a growth group "
-                                 "description of '%s'. Use parentheses to make it "
-                                 "unique." % (factor, ' * '.join(factors)))
+                raise ValueError("'{}' is an ambigous substring of a growth group "
+                                 "description of '{}'. Use parentheses to make it "
+                                 "unique.".format(factor, ' * '.join(sfactors)))
 
             b, e = split
             b = remove_parentheses(b)
@@ -4980,26 +4973,44 @@ class GrowthGroupFactory(UniqueFactory):
             if B is None and E is None:
                 from .misc import combine_exceptions
                 raise combine_exceptions(
-                    ValueError("'%s' is not a valid substring of %s describing "
-                               "a growth group." % (factor, ' * '.join(factors))),
+                    ValueError("'{}' is not a valid substring of {} describing "
+                               "a growth group.".format(factor, ' * '.join(sfactors))),
                     exc_b, exc_e)
             elif B is None and E is not None:
-                cls = MonomialGrowthGroup
-                base = E
-                var = b
-                extend_by_non_growth_group = extend_E_by_non_growth_group
+                factors.append(GrowthGroupFactor(
+                    cls=MonomialGrowthGroup,
+                    base=E,
+                    var=b,
+                    extend_by_non_growth_group=extend_E_by_non_growth_group))
             elif B is not None and E is None:
-                cls = ExponentialGrowthGroup
-                base = B
-                var = e
-                extend_by_non_growth_group = extend_B_by_non_growth_group
+                factors.append(GrowthGroupFactor(
+                    cls=ExponentialGrowthGroup,
+                    base=B,
+                    var=e,
+                    extend_by_non_growth_group=extend_B_by_non_growth_group))
             else:
-                raise ValueError("'%s' is an ambigous substring of a growth group "
-                                 "description of '%s'." % (factor, ' * '.join(factors)))
+                raise ValueError("'{}' is an ambigous substring of a growth group "
+                                 "description of '{}'.".format(factor, ' * '.join(factors)))
 
-            grps = cls.factory(
-                base, var,
-                extend_by_non_growth_group=extend_by_non_growth_group,
+        return tuple(factors), kwds
+
+    def create_object(self, version, factors, **kwds):
+        r"""
+        Create an object from the given arguments.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('QQ^n')  # indirect doctest
+            Growth Group QQ^n * U^n
+        """
+        groups = []
+        non_growth_groups = []
+        for factor in factors:
+            grps = factor.cls.factory(
+                factor.base,
+                factor.var,
+                extend_by_non_growth_group=factor.extend_by_non_growth_group,
                 return_factors=True,
                 **kwds)
             groups.append(grps[0])

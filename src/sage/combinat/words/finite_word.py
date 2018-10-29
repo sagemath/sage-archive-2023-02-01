@@ -1260,9 +1260,9 @@ class FiniteWord_class(Word_class):
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
         if algorithm == 'suffix tree':
-            return self.suffix_tree().number_of_factors(n)
+            return ZZ(self.suffix_tree().number_of_factors(n))
         elif algorithm == 'naive':
-            return len(self.factor_set(n, algorithm='naive'))
+            return ZZ(len(self.factor_set(n, algorithm='naive')))
         else:
             raise ValueError('Unknown algorithm (={})'.format(algorithm))
 

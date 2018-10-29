@@ -4579,8 +4579,8 @@ class GenericNonGrowthElement(GenericGrowthElement):
             sage: U(raw_element=-1) > U(raw_element=1)
             False
 
-            sage: from sage.rings.asymptotic.growth_group import MonomialImaginaryGrowthGroup
-            sage: M = MonomialImaginaryGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: from sage.rings.asymptotic.growth_group import MonomialNonGrowthGroup
+            sage: M = MonomialNonGrowthGroup(RootsOfUnityGroup(), 'n')
             sage: M(raw_element=-1) < M(raw_element=1)
             False
             sage: M(raw_element=-1) > M(raw_element=1)
@@ -4626,7 +4626,7 @@ class GenericNonGrowthGroup(GenericGrowthGroup):
 
 
 class ExponentialNonGrowthElement(GenericNonGrowthElement,
-                                       ExponentialGrowthElement):
+                                  ExponentialGrowthElement):
     r"""
     An element of :class:`ExponentialNonGrowthGroup`.
     """
@@ -4634,7 +4634,7 @@ class ExponentialNonGrowthElement(GenericNonGrowthElement,
 
 
 class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
-                                     ExponentialGrowthGroup):
+                                ExponentialGrowthGroup):
     r"""
     A growth group whose elements have a base with absolute value `1`.
 

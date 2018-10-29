@@ -4926,6 +4926,11 @@ class GrowthGroupFactory(UniqueFactory):
         from sage.groups.roots_of_unity_group import AbstractArgument
         from .misc import repr_short_to_parent, split_str_by_op
 
+        def remove_parentheses(s):
+            while s.startswith('(') and s.endswith(')'):
+                s = s[1:-1]
+            return s
+
         groups = []
         non_growth_groups = []
         for factor in factors:
@@ -4936,6 +4941,15 @@ class GrowthGroupFactory(UniqueFactory):
                                  "unique." % (factor, ' * '.join(factors)))
 
             b, e = split
+            b = remove_parentheses(b)
+            e = remove_parentheses(e)
+
+            if b.endswith('_+'):
+                b = b[:-2]
+                split_base = False
+            else:
+                split_base = True
+
             try:
                 B = repr_short_to_parent(b)
             except ValueError as exc_b:
@@ -4956,6 +4970,7 @@ class GrowthGroupFactory(UniqueFactory):
             elif B is not None and E is None:
                 egroups = ExponentialGrowthGroup.group_factory(
                     B, e,
+                    split_base=split_base,
                     return_factors=True,
                     **kwds)
                 groups.append(egroups[0])

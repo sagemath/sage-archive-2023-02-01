@@ -4946,6 +4946,12 @@ class GrowthGroupFactory(UniqueFactory):
                 s = s[1:-1]
             return s
 
+        def has_r_property(s, p, invert=False):
+            if s.endswith('_+'):
+                return s[:-2], True != invert
+            else:
+                return s, False != invert
+
         groups = []
         non_growth_groups = []
         for factor in factors:
@@ -4959,11 +4965,8 @@ class GrowthGroupFactory(UniqueFactory):
             b = remove_parentheses(b)
             e = remove_parentheses(e)
 
-            if b.endswith('_+'):
-                b = b[:-2]
-                extend_by_non_growth_group = False
-            else:
-                extend_by_non_growth_group = True
+            b, extend_B_by_non_growth_group = has_r_property(b, '_+', invert=True)
+            e, extend_E_by_non_growth_group = has_r_property(e, '[I]', invert=False)
 
             try:
                 B = repr_short_to_parent(b)
@@ -4981,18 +4984,26 @@ class GrowthGroupFactory(UniqueFactory):
                                "a growth group." % (factor, ' * '.join(factors))),
                     exc_b, exc_e)
             elif B is None and E is not None:
-                groups.append(MonomialGrowthGroup(E, b, **kwds))
+                cls = MonomialGrowthGroup
+                base = E
+                var = b
+                extend_by_non_growth_group = extend_E_by_non_growth_group
             elif B is not None and E is None:
-                egroups = ExponentialGrowthGroup.factory(
-                    B, e,
-                    extend_by_non_growth_group=extend_by_non_growth_group,
-                    return_factors=True,
-                    **kwds)
-                groups.append(egroups[0])
-                non_growth_groups.extend(egroups[1:])
+                cls = ExponentialGrowthGroup
+                base = B
+                var = e
+                extend_by_non_growth_group = extend_B_by_non_growth_group
             else:
                 raise ValueError("'%s' is an ambigous substring of a growth group "
                                  "description of '%s'." % (factor, ' * '.join(factors)))
+
+            grps = cls.factory(
+                base, var,
+                extend_by_non_growth_group=extend_by_non_growth_group,
+                return_factors=True,
+                **kwds)
+            groups.append(grps[0])
+            non_growth_groups.extend(grps[1:])
 
         groups.extend(non_growth_groups)
 

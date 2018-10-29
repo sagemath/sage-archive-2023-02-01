@@ -11,7 +11,7 @@ supporting "giac --sage" ( roughly after 0.9.1 ). In this case you do not have
 to install any  optional Sage packages. If giac is not already installed, you can
 download binaries or sources or spkg (follow the sources link) from the homepage:
 
-Homepage <http://www-fourier.ujf-grenoble.fr/~parisse/giac.html>
+Homepage <https://www-fourier.ujf-grenoble.fr/~parisse/giac.html>
 
 Type ``giac.[tab]`` for a list of all the functions
 available from your Giac install. Type
@@ -219,7 +219,7 @@ For more details, see the documentation for ``._sage_()``.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #############################################################################
 from __future__ import print_function
 
@@ -230,6 +230,7 @@ from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 
+from sage.cpython.string import bytes_to_str
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.docs.instancedoc import instancedoc
@@ -288,7 +289,8 @@ class Giac(Expect):
 
     ::
 
-      sage: R.<a,b>=QQ[];f=(2+a+b);p=giac.gcd(f^3+5*f^5,f^2+f^5);p;R(p);
+      sage: R.<a,b> = QQ[]; f = (2+a+b)
+      sage: p = giac.gcd(f^3+5*f^5,f^2+f^5); p; R(p)
       a^2+2*a*b+4*a+b^2+4*b+4
       a^2 + 2*a*b + b^2 + 4*a + 4*b + 4
 
@@ -482,7 +484,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         if self._expect is None:
             self._start()
         E = self._expect
-        E.sendline('%s%s%s'%(s,chr(63),chr(13)))
+        E.sendline('%s%s%s' % (s, chr(63), chr(13)))
         t = E.timeout
         E.timeout=0.3  # since some things have no completion
         try:
@@ -491,7 +493,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             E.timeout = t
             return []
         E.timeout = t
-        v = E.before
+        v = bytes_to_str(E.before)
         E.expect(self._prompt)
         E.expect(self._prompt)
         return v.split()[1:]
@@ -834,7 +836,7 @@ class GiacElement(ExpectElement):
             sage: float(giac(1/2))
             0.5
             sage: type(_)
-            <... 'float'>
+            <type 'float'>
         """
         return float(giac.eval('evalf(%s)' % self.name()))
 
@@ -869,13 +871,12 @@ class GiacElement(ExpectElement):
         """
         return hash(giac.eval('string(%s);'%self.name()))
 
-
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare equality between self and other, using giac.
 
         These examples are optional, and require Giac to be installed. You
-        don't need to install any Sage packages for this.
+        do not need to install any Sage packages for this.
 
         EXAMPLES::
 
@@ -945,7 +946,6 @@ class GiacElement(ExpectElement):
             True
         """
         return self.parent()._tab_completion()
-
 
     def __len__(self):
         """
@@ -1034,15 +1034,15 @@ class GiacElement(ExpectElement):
         r"""
         Convert a giac expression back to a Sage expression, if possible.
 
-        NOTES:
+        .. NOTE::
 
-        This method works successfully when Giac returns a result
-        or list of results that consist only of:
-        - numbers, i.e. integers, floats, complex numbers;
-        - functions and named constants also present in Sage, where:
-            - Sage knows how to translate the function or constant's name
-            from Giac's naming scheme through the symbols_table, or
-            - you provide a translation dictionary ``locals``.
+            This method works successfully when Giac returns a result
+            or list of results that consist only of:
+            - numbers, i.e. integers, floats, complex numbers;
+            - functions and named constants also present in Sage, where:
+                - Sage knows how to translate the function or constant's name
+                from Giac's naming scheme through the symbols_table, or
+                - you provide a translation dictionary ``locals``.
 
         New conversions can be added using Pynac's ``register_symbol``.
         This is the recommended approach for library code.

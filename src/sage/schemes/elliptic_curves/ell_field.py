@@ -69,7 +69,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
     """
 
     def quadratic_twist(self, D=None):
-        """
+        r"""
         Return the quadratic twist of this curve by ``D``.
 
         INPUT:
@@ -327,7 +327,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         ``other`` is ``self.quadratic_twist(D)`` (up to isomorphism).
         If ``self`` and ``other`` are isomorphic, returns 1.
 
-        If the curves are defined over `\mathbb{Q}`, the output `D` is
+        If the curves are defined over `\QQ`, the output `D` is
         a squarefree integer.
 
         .. note::
@@ -723,7 +723,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                 if f.codomain() != L:
                     raise ValueError("embedding has wrong codomain")
             except AttributeError:
-                raise ValueError("invalid embedding: %s" % s)
+                raise ValueError("invalid embedding: %s" % f)
             try:
                 jK = f.preimage(j)
             except Exception:
@@ -1037,12 +1037,12 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         L = list(set(l))
         try:
-            L = [rings.ZZ(l) for l in L]
+            L = [rings.ZZ(ell) for ell in L]
         except TypeError:
             raise ValueError("%s is not a list of primes."%l)
 
         L.sort()
-        return sum([isogenies_prime_degree(self,l) for l in L],[])
+        return sum([isogenies_prime_degree(self,ell) for ell in L],[])
 
     def is_isogenous(self, other, field=None):
         """

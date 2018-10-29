@@ -2,23 +2,7 @@
 # Set up environment variables: #
 #################################
 
-if [[ -z $CFLAG64 ]]; then
-    CFLAG64=-m64
-fi
-if [[ -z $CXXFLAG64 ]]; then
-    CXXFLAG64="$CFLAG64"
-fi
-if [[ "$SAGE64" = yes ]]; then
-    echo "Building a 64-bit version of Givaro."
-    CFLAGS="$CFLAGS $CFLAG64"
-    CPPFLAGS="$CPPFLAGS $CFLAG64"
-    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"
-fi
-
-export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-
-cd src/
+cd src
 
 # When SAGE_FAT_BINARY is set, disable processor-specific optimizations
 if [ "$SAGE_FAT_BINARY" = yes ]; then

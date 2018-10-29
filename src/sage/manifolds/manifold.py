@@ -383,9 +383,9 @@ class TopologicalManifold(ManifoldSubset):
     - ``structure`` -- manifold structure (see
       :class:`~sage.manifolds.structure.TopologicalStructure` or
       :class:`~sage.manifolds.structure.RealTopologicalStructure`)
-    - ``ambient`` -- (default: ``None``) if not ``None``, must be a
+    - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
       topological manifold; the created object is then an open subset of
-      ``ambient``
+      ``base_manifold``
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the manifold; if none are provided, it is set to ``name``
     - ``start_index`` -- (default: 0) integer; lower value of the range of
@@ -508,7 +508,7 @@ class TopologicalManifold(ManifoldSubset):
 
         :mod:`sage.manifolds.manifold`
     """
-    def __init__(self, n, name, field, structure, ambient=None,
+    def __init__(self, n, name, field, structure, base_manifold=None,
                  latex_name=None, start_index=0, category=None,
                  unique_tag=None):
         r"""
@@ -555,14 +555,14 @@ class TopologicalManifold(ManifoldSubset):
                 self._field_type = 'neither_real_nor_complex'
         # Structure and category:
         self._structure = structure
-        if ambient is None:
-            ambient = self
+        if base_manifold is None:
+            base_manifold = self
             category = Manifolds(self._field).or_subcategory(category)
             category = self._structure.subcategory(category)
         else:
-            category = ambient.category().Subobjects()
+            category = base_manifold.category().Subobjects()
         # Initialization as a manifold set:
-        ManifoldSubset.__init__(self, ambient, name, latex_name=latex_name,
+        ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name,
                                 category=category)
         self._is_open = True
         self._open_covers.append([self])  # list of open covers of self
@@ -868,7 +868,7 @@ class TopologicalManifold(ManifoldSubset):
 
         """
         resu = TopologicalManifold(self._dim, name, self._field,
-                                   self._structure, ambient=self._manifold,
+                                   self._structure, base_manifold=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
         resu._calculus_method = self._calculus_method
@@ -2211,7 +2211,7 @@ class TopologicalManifold(ManifoldSubset):
 def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
              start_index=0, **extra_kwds):
     r"""
-    Construct a manifold of a given type over a topological field `K`.
+    Construct a manifold of a given type over a topological field.
 
     Given a topological field `K` (in most applications, `K = \RR` or
     `K = \CC`) and a non-negative integer `n`, a *topological manifold of
@@ -2222,8 +2222,13 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     - every point in `M` has a neighborhood homeomorphic to `K^n`.
 
     A *real manifold* is a manifold over `\RR`. A *differentiable* (resp.
-    *smooth*, resp. *analytic*) is a real manifold such that all transition
-    maps are *differentiable* (resp. *smooth*, resp. *analytic*).
+    *smooth*, resp. *analytic*) *manifold* is a manifold such that all
+    transition maps are *differentiable* (resp. *smooth*, resp. *analytic*). A
+    *pseudo-Riemannian manifold* is a real differentiable manifold equipped
+    with a metric tensor `g` (i.e. a field of non-degenerate symmetric bilinear
+    forms), with the two subcases of *Riemannian manifold* (`g`
+    positive-definite) and *Lorentzian manifold* (`g` has signature `n-2` or
+    `2-n`).
 
     INPUT:
 
@@ -2250,19 +2255,47 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
       - ``'differentiable'`` or ``'diff'`` for a differentiable manifold
       - ``'smooth'`` for a smooth manifold
       - ``'analytic'`` for an analytic manifold
+      - ``'pseudo-Riemannian'`` for a real differentiable manifold equipped
+        with a pseudo-Riemannian metric; the signature is specified via the
+        keyword argument ``signature`` (see below)
+      - ``'Riemannian'`` for a real differentiable manifold equipped with a
+        Riemannian (i.e. positive definite) metric
+      - ``'Lorentzian'`` for a real differentiable manifold equipped with a
+        Lorentzian metric; the signature convention is specified by the
+        keyword argument ``signature='positive'`` (default) or ``'negative'``
 
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
     - ``extra_kwds`` -- keywords meaningful only for some specific types
-      of manifolds
+      of manifolds:
+
+      - ``diff_degree``  -- (only for differentiable manifolds; default:
+        ``infinity``): the degree of differentiability
+      - ``ambient`` -- (only to construct a submanifold): the ambient manifold
+      - ``metric_name`` -- (only for pseudo-Riemannian manifolds; default:
+        ``'g'``) string; name (symbol) given to the metric
+      - ``metric_latex_name`` -- (only for pseudo-Riemannian manifolds;
+        default: ``None``) string; LaTeX symbol to denote the metric; if none
+        is provided, the symbol is set to ``metric_name``
+      - ``signature`` -- (only for pseudo-Riemannian manifolds; default:
+        ``None``) signature `S` of the metric as a single integer:
+        `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number of positive
+        terms (resp. negative terms) in any diagonal writing of the
+        metric components; if ``signature`` is not provided, `S` is set to the
+        manifold's dimension (Riemannian signature); for Lorentzian manifolds
+        the values ``signature='positive'`` (default) or
+        ``signature='negative'`` are allowed to indicate the chosen signature
+        convention.
 
     OUTPUT:
 
     - a manifold of the specified type, as an instance of
       :class:`~sage.manifolds.manifold.TopologicalManifold` or one of its
-      subclasses, e.g.
+      subclasses
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+      or
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
 
     EXAMPLES:
 
@@ -2332,8 +2365,10 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         +Infinity
 
     See the documentation of classes
-    :class:`~sage.manifolds.manifold.TopologicalManifold` and
+    :class:`~sage.manifolds.manifold.TopologicalManifold`,
     :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+    and
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
     for more detailed examples.
 
     .. RUBRIC:: Uniqueness of manifold objects
@@ -2406,6 +2441,10 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     from time import time
     from sage.rings.infinity import infinity
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
+    from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
+    from sage.manifolds.topological_submanifold import TopologicalSubmanifold
+    from sage.manifolds.differentiable.differentiable_submanifold import DifferentiableSubmanifold
+    from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
         raise TypeError("the manifold dimension must be an integer")
@@ -2417,27 +2456,108 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             structure = RealTopologicalStructure()
         else:
             structure = TopologicalStructure()
+        if 'ambient' in extra_kwds:
+            ambient = extra_kwds['ambient']
+            if not isinstance(ambient, TopologicalManifold):
+                raise TypeError("ambient must be a manifold")
+            if dim>ambient._dim:
+                raise ValueError("the submanifold must be of smaller "
+                                 + "dimension than its ambient manifold")
+            return TopologicalSubmanifold(dim, name, field, structure,
+                                          ambient=ambient,
+                                          latex_name=latex_name,
+                                          start_index=start_index,
+                                          unique_tag=getrandbits(128)*time())
         return TopologicalManifold(dim, name, field, structure,
                                    latex_name=latex_name,
                                    start_index=start_index,
                                    unique_tag=getrandbits(128)*time())
     elif structure in ['differentiable', 'diff', 'smooth']:
-        if structure == 'smooth':
-            diff_degree = infinity
-        elif 'diff_degree' in extra_kwds:
+        if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
+            if structure == 'smooth' and diff_degree != infinity:
+                raise ValueError("diff_degree = {} is ".format(diff_degree) +
+                                 "not compatible with a smooth structure")
         else:
-            diff_degree = None
+            diff_degree = infinity
         if field == 'real' or isinstance(field, RealField_class):
             structure = RealDifferentialStructure()
         else:
             structure = DifferentialStructure()
+        if 'ambient' in extra_kwds:
+            ambient = extra_kwds['ambient']
+            if not isinstance(ambient, DifferentiableManifold):
+                raise TypeError("ambient must be a differentiable manifold")
+            if dim>ambient._dim:
+                raise ValueError("the submanifold must be of smaller "
+                                 + "dimension than its ambient manifold")
+            return DifferentiableSubmanifold(dim, name, field, structure,
+                                             ambient=ambient,
+                                             diff_degree=diff_degree,
+                                             latex_name=latex_name,
+                                             start_index=start_index,
+                                             unique_tag=getrandbits(128)*time())
         return DifferentiableManifold(dim, name, field, structure,
                                       diff_degree=diff_degree,
                                       latex_name=latex_name,
                                       start_index=start_index,
                                       unique_tag=getrandbits(128)*time())
+    elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian']:
+        if 'diff_degree' in extra_kwds:
+            diff_degree = extra_kwds['diff_degree']
+        else:
+            diff_degree = infinity
+        if 'metric_name' in extra_kwds:
+            metric_name = extra_kwds['metric_name']
+        else:
+            metric_name = 'g'
+        if 'metric_latex_name' in extra_kwds:
+            metric_latex_name = extra_kwds['metric_latex_name']
+        else:
+            metric_latex_name = None
+        if structure == 'pseudo-Riemannian':
+            if 'signature' in extra_kwds:
+                signature = extra_kwds['signature']
+            else:
+                signature = None
+        elif structure == 'Riemannian':
+            signature = dim
+        elif structure == 'Lorentzian':
+            if 'signature' in extra_kwds:
+                signat = extra_kwds['signature']
+                if signat == 'positive' or signat == dim - 2:
+                    signature = dim - 2
+                elif signat == 'negative' or signat == 2 - dim:
+                    signature = 2 - dim
+                else:
+                    raise ValueError("signature {} not ".format(signat) +
+                                     "compatible with a Lorentzian " +
+                                     "manifold of dimension {}".format(dim))
+            else:
+                signature = dim - 2  # default value for a Lorentzian manifold
+        if 'ambient' in extra_kwds:
+            ambient = extra_kwds['ambient']
+            if not isinstance(ambient, PseudoRiemannianManifold):
+                raise TypeError("ambient must be a pseudo-Riemannian manifold")
+            if dim>ambient._dim:
+                raise ValueError("the submanifold must be of smaller "
+                                 + "dimension than its ambient manifold")
+            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient,
+                                               metric_name=metric_name,
+                                               signature=signature,
+                                               diff_degree=diff_degree,
+                                               latex_name=latex_name,
+                                               metric_latex_name=metric_latex_name,
+                                               start_index=start_index,
+                                               unique_tag=getrandbits(128)*time())
 
+        return PseudoRiemannianManifold(dim, name, metric_name=metric_name,
+                                        signature=signature,
+                                        diff_degree=diff_degree,
+                                        latex_name=latex_name,
+                                        metric_latex_name=metric_latex_name,
+                                        start_index=start_index,
+                                        unique_tag=getrandbits(128)*time())
     raise NotImplementedError("manifolds of type {} are ".format(structure) +
                               "not implemented")
 

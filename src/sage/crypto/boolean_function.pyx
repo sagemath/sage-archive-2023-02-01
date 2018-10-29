@@ -30,9 +30,11 @@ AUTHOR:
 """
 from __future__ import absolute_import
 
+from cysignals.signals cimport sig_check
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -79,6 +81,7 @@ cdef walsh_hadamard(long *f, int ldn):
             t1 = r
             t2 = r+mh
             for 0 <= j < mh:
+                sig_check()
                 u = f[t1]
                 v = f[t2]
                 f[t1] = u + v
@@ -104,6 +107,7 @@ cdef long yellow_code(unsigned long a):
     cdef unsigned long m = (~0UL) >> s
     cdef unsigned long r = a
     while(s):
+        sig_check()
         r ^= ( (r&m) << s )
         s >>= 1
         m ^= (m<<s)
@@ -145,6 +149,7 @@ cdef reed_muller(mp_limb_t* f, int ldn):
             t1 = r
             t2 = r+mh
             for 0 <= j < mh:
+                sig_check()
                 f[t2] ^= f[t1]
                 t1 += 1
                 t2 += 1
@@ -597,7 +602,7 @@ cdef class BooleanFunction(SageObject):
         """
         return 2**self._nvariables
 
-    def __cmp__(self, other):
+    def __richcmp__(BooleanFunction self, other, int op):
         """
         Boolean functions are considered to be equal if the number of
         input variables is the same, and all the values are equal.
@@ -616,8 +621,10 @@ cdef class BooleanFunction(SageObject):
             sage: b1 == b4
             False
         """
-        cdef BooleanFunction o=other
-        return bitset_cmp(self._truth_table, o._truth_table)
+        if not isinstance(other, BooleanFunction):
+            return NotImplemented
+        o = <BooleanFunction>other
+        return rich_to_bool(op, bitset_cmp(self._truth_table, o._truth_table))
 
     def __call__(self, x):
         """
@@ -649,7 +656,7 @@ cdef class BooleanFunction(SageObject):
         elif isinstance(x, list):
             if len(x) != self._nvariables:
                 raise ValueError("bad number of inputs")
-            return self(ZZ(map(bool,x),2))
+            return self(ZZ([bool(_) for _ in x], 2))
         else:
             raise TypeError("cannot apply Boolean function to provided element")
 
@@ -769,6 +776,7 @@ cdef class BooleanFunction(SageObject):
         """
         cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         for i in xrange(2**self._nvariables):
+            sig_check()
             if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
                 return False
         return True
@@ -830,6 +838,7 @@ cdef class BooleanFunction(SageObject):
             c = self._nvariables
             W = self.walsh_hadamard_transform()
             for 0 < i < len(W):
+                sig_check()
                 if (W[i] != 0):
                     c = min( c , hamming_weight_int(i) )
             self._correlation_immunity = ZZ(c-1)
@@ -876,7 +885,8 @@ cdef class BooleanFunction(SageObject):
             temp = <long *>sig_malloc(sizeof(long)*n)
             W = self.walsh_hadamard_transform()
 
-            for 0<= i < n:
+            for 0 <= i < n:
+                sig_check()
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
@@ -981,6 +991,7 @@ cdef class BooleanFunction(SageObject):
         for i in xrange(1, d + 1):
             C = Combinations(self._nvariables,i)
             for c in C:
+                sig_check()
                 r.append(prod([G[i] for i in c]))
 
         cdef BooleanFunction t
@@ -988,17 +999,18 @@ cdef class BooleanFunction(SageObject):
         for i,m in enumerate(r):
             t = BooleanFunction(m)
             for j,v in enumerate(s):
+                sig_check()
                 M[i,j] = bitset_in(t._truth_table,v)
 
         kg = M.kernel().gens()
 
-        if len(kg)>0:
+        if kg:
             res = sum([kg[0][i]*ri for i,ri in enumerate(r)])
         else:
             res = None
 
         if dim:
-            return res,len(kg)
+            return res, len(kg)
         else:
             return res
 
@@ -1034,10 +1046,31 @@ cdef class BooleanFunction(SageObject):
                 A = fun.annihilator(i)
                 if A is not None:
                     if annihilator:
-                        return i,A
+                        return i, A
                     else:
                         return i
         raise ValueError("you just found a bug!")
+
+    def algebraic_degree(self):
+        r"""
+        Return the algebraic degree of this Boolean function.
+
+        The algebraic degree of a Boolean function is defined as the degree
+        of its algebraic normal form. Note that the degree of the constant
+        zero function is defined to be equal to -1.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B.<x0, x1, x2, x3> = BooleanPolynomialRing()
+            sage: f = BooleanFunction(x1*x2 + x1*x2*x3 + x1)
+            sage: f.algebraic_degree()
+            3
+            sage: g = BooleanFunction([0, 0])
+            sage: g.algebraic_degree()
+            -1
+        """
+        return self.algebraic_normal_form().degree()
 
     def is_plateaued(self):
         r"""
@@ -1346,5 +1379,6 @@ def random_boolean_function(n):
     cdef bitset_t T
     T[0] = B._truth_table[0]
     for 0 <= i < T.limbs:
+        sig_check()
         T.bits[i] = r.randrange(0,Integer(1)<<(sizeof(unsigned long)*8))
     return B

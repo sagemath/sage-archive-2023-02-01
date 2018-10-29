@@ -42,8 +42,9 @@ def is_ModularSymbolsElement(x):
     """
     return isinstance(x, ModularSymbolsElement)
 
+
 def set_modsym_print_mode(mode="manin"):
-    """
+    r"""
     Set the mode for printing of elements of modular symbols spaces.
 
     INPUT:
@@ -315,7 +316,6 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         try:
             return self.__modular_symbols
         except AttributeError:
-            A = self.parent()
             v = self.manin_symbol_rep()
             if v == 0:
                 return v

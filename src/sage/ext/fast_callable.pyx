@@ -301,7 +301,6 @@ AUTHOR:
 #*****************************************************************************
 from __future__ import absolute_import
 
-
 import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
@@ -368,24 +367,24 @@ def fast_callable(x, domain=None, vars=None,
         sin(2) + 12
         sage: K.<x> = QQ[]
         sage: p = K.random_element(6); p
-        -x^6 - 12*x^5 + 1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
+        -1/4*x^6 + 1/2*x^5 - x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
-        [('load_arg', 0), ('load_const', -1.0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', ('load_arg', 0), 'mul', ('load_arg', 0), 'mul', ('load_const', -4.0), 'add', 'return']
+        [('load_arg', 0), ('load_const', -0.25), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -1.0), 'add', ('load_arg', 0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', 'return']
         sage: fp(3.14159)
-        -4594.161823640176
+        -552.4182988917153
         sage: K.<x,y,z> = QQ[]
         sage: p = K.random_element(degree=3, terms=5); p
-        -x*y^2 - x*z^2 - 6*x^2 - y^2 - 3*x*z
+        x*y^2 + 1/3*y^2 - x*z - y*z
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
-        [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 2), 'mul', 'mul', 'add', 'return']
+        [('load_const', 0.0), ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', 1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', 0.3333333333333333), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', 'return']
         sage: fp(e, pi, sqrt(2))   # abs tol 3e-14
-        -98.00156403362932
+        21.831120464939584
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
-        -pi^2*e - pi^2 - 3*sqrt(2)*e - 6*e^2 - 2*e
+        pi^2*e + 1/3*pi^2 - sqrt(2)*pi - sqrt(2)*e
         sage: n(symbolic_result)
-        -98.0015640336293
+        21.8311204649396
 
     ::
 
@@ -398,7 +397,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: fc = fast_callable(expr, domain=float)
         sage: fc(5, 7)
         0.5514266812416906
-         
+
     Check that fast_callable also works for symbolic functions with evaluation
     functions::
 
@@ -424,6 +423,39 @@ def fast_callable(x, domain=None, vars=None,
         Traceback (most recent call last):
             ...
         TypeError: unable to simplify to float approximation
+
+    Check :trac:`24805`--if a fast_callable expression involves division
+    on a Python object, it will always prefer Python 3 semantics (e.g.
+    ``x / y`` will try ``x.__truediv__`` instead of ``x.__div__``, as if
+    ``from __future__ import division`` is in effect).  However, for
+    classes that implement ``__div__`` but not ``__truediv__`` it will still
+    fall back on ``__div__`` for backwards-compatibility, but reliance on
+    this functionality is deprecated::
+
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder('x')
+        sage: x = etb.var('x')
+        sage: class One(object):
+        ....:     def __div__(self, other):
+        ....:         if not isinstance(other, Integer):
+        ....:             return NotImplemented
+        ....:         return 1 / other
+        sage: expr = One() / x
+        sage: f = fast_callable(expr, vars=[x])
+        sage: f(2)  # py2
+        doctest:warning...:
+        DeprecationWarning: use of __truediv__ should be preferred over __div__
+        See https://trac.sagemath.org/24805 for details.
+        1/2
+        sage: class ModernOne(One):
+        ....:     def __truediv__(self, other):
+        ....:         if not isinstance(other, Integer):
+        ....:             return NotImplemented
+        ....:         return 1 / other
+        sage: expr = ModernOne() / x
+        sage: f = fast_callable(expr, vars=[x])
+        sage: f(2)
+        1/2
     """
     cdef Expression et
     if isinstance(x, Expression):
@@ -947,9 +979,9 @@ cdef class Expression:
             div(v_0, 1)
             sage: 1/x
             div(1, v_0)
-            sage: x.__div__(1)
+            sage: x.__div__(1)  # py2
             div(v_0, 1)
-            sage: x.__rdiv__(1)
+            sage: x.__rdiv__(1)  # py2
             div(1, v_0)
         """
         return _expression_binop_helper(s, o, op_div)
@@ -1654,8 +1686,8 @@ cpdef dict get_builtin_functions():
 
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
-        sage: set(builtins.values())
-        {'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh'}
+        sage: sorted(set(builtins.values()))
+        ['abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
         sage: builtins[sin]
         'sin'
         sage: builtins[ln]
@@ -1677,7 +1709,8 @@ cpdef dict get_builtin_functions():
         op_neg: 'neg',
         op_inv: 'inv',
         op_pow: 'pow',
-        }
+    }
+
     # not handled: atan2, log2, log10
     import sage.functions.all as func_all
     for fn in ('sqrt', 'ceil', 'floor',

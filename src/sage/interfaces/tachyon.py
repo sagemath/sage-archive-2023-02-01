@@ -18,6 +18,7 @@ from __future__ import print_function
 
 import os
 
+from sage.cpython.string import bytes_to_str
 from sage.misc.pager import pager
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
@@ -124,7 +125,8 @@ class TachyonRT(SageObject):
 
             sage: from sage.env import SAGE_EXTCODE
             sage: filename = os.path.join(SAGE_EXTCODE, 'doctest', 'invalid', 'syntax_error.tachyon')
-            sage: syntax_error = open(filename, 'r').read()
+            sage: with open(filename, 'r') as f:
+            ....:    syntax_error = f.read()
             sage: t(syntax_error, outfile=os.devnull)
             Traceback (most recent call last):
             ...

@@ -462,9 +462,9 @@ class KleberTreeNode(Element):
             ret_str = repr(self.multiplicity()) + ret_str
         for pair in self.weight:
             if pair[1] > 1:
-                ret_str += repr(pair[1]) + "\omega_{" + repr(pair[0]) + "}+"
+                ret_str += repr(pair[1]) + r"\omega_{" + repr(pair[0]) + "}+"
             elif pair[1] == 1:
-                ret_str += "\omega_{" + repr(pair[0]) + "}+"
+                ret_str += r"\omega_{" + repr(pair[0]) + "}+"
 
         if ret_str[-1] == '{':
             ret_str += "0}"
@@ -1015,7 +1015,7 @@ class KleberTree(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: KT = KleberTree(['D', 4, 1], [[2, 2]])
-            sage: KT.digraph()  # optional - dot2tex graphviz
+            sage: KT.digraph()
             Digraph on 3 vertices
         """
         d = {}
@@ -1038,7 +1038,7 @@ class KleberTree(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: KT = KleberTree(['D', 4, 1], [[2, 2]])
-            sage: print(KT.plot())  # optional - dot2tex graphviz
+            sage: print(KT.plot())
             Graphics object consisting of 8 graphics primitives
         """
         return self.digraph().plot(edge_labels=True, vertex_size=0, **options)
@@ -1065,8 +1065,9 @@ class KleberTree(UniqueRepresentation, Parent):
 
     Element = KleberTreeNode
 
+
 class VirtualKleberTree(KleberTree):
-    """
+    r"""
     A virtual Kleber tree.
 
     We can use a modified version of the Kleber algorithm called the virtual

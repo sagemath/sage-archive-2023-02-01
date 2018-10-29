@@ -9,7 +9,7 @@ Finitely presented groups are constructed as quotients of
     sage: G
     Finitely presented group < a, b, c | a^2, b^2, c^2, (a*b*c)^2 >
 
-One can create their elements by mutiplying the generators or by
+One can create their elements by multiplying the generators or by
 specifying a Tietze list (see
 :meth:`~sage.groups.finitely_presented.FinitelyPresentedGroupElement.Tietze`)
 as in the case of free groups::
@@ -104,7 +104,7 @@ obtained by modding out the commutator subgroup of the free group::
 
     Some methods are not guaranteed to finish since the word problem
     for finitely presented groups is, in general, undecidable. In
-    those cases the process may run unil the available memory is
+    those cases the process may run until the available memory is
     exhausted.
 
 REFERENCES:
@@ -1130,7 +1130,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return ret_fpg
 
     def semidirect_product(self, H, hom, check=True, reduced=False):
-        """
+        r"""
         The semidirect product of ``self`` with ``H`` via ``hom``.
 
         If there exists a homomorphism `\phi` from a group `G` to the
@@ -1245,7 +1245,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: Se1 =  C.semidirect_product(D, id1)
             sage: id2 = (D.gens(), [(C.gens(),C.gens()),(C.gens(),C.gens())])
             sage: Se2 =  D.semidirect_product(C ,id2)
-            sage: Dp1 = C.direct_product(D);
+            sage: Dp1 = C.direct_product(D)
             sage: Dp1.is_isomorphic(Se1), Dp1.is_isomorphic(Se2)
             (True, True)
 

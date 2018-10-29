@@ -24,7 +24,7 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.misc.latex import latex_variable_name
-from sage.cpython.string cimport str_to_bytes
+from sage.cpython.string cimport str_to_bytes, bytes_to_str, char_to_str
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
@@ -50,7 +50,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: isinstance(SR, sage.symbolic.ring.SymbolicRing)
             True
-            sage: TestSuite(SR).run()
+            sage: TestSuite(SR).run(skip=['_test_divides'])
 
         """
         if base_ring is None:
@@ -336,7 +336,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return x
             else:
                 return new_Expression_from_GEx(self, (<Expression>x)._gobj)
-        elif hasattr(x, '_symbolic_'):
+        if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
         elif isinstance(x, str):
             try:
@@ -344,7 +344,8 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
+                raise TypeError("%s: %s !!! %s" %
+                        (msg, bytes_to_str(s[:pos]), bytes_to_str(s[pos:])))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
@@ -360,7 +361,7 @@ cdef class SymbolicRing(CommutativeRing):
                 from sage.symbolic.constants import NaN
                 return NaN
             exp = x
-        elif isinstance(x, (Integer, long)):
+        elif isinstance(x, long):
             exp = x
         elif isinstance(x, int):
             exp = GEx(<long>x)
@@ -685,7 +686,7 @@ cdef class SymbolicRing(CommutativeRing):
             # get symbol
             symb = ex_to_symbol(e._gobj)
             if latex_name is not None:
-                symb.set_texname(latex_name)
+                symb.set_texname(str_to_bytes(latex_name))
             if domain is not None:
                 symb.set_domain(sage_domain_to_ginac_domain(domain))
             e._gobj = GEx(symb)
@@ -896,7 +897,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: latex(var('theta') + 2)
             \theta + 2
         """
-        return GEx_to_str_latex(&x._gobj)
+        return char_to_str(GEx_to_str_latex(&x._gobj))
 
     def _call_element_(self, _the_element, *args, **kwds):
         """
@@ -1135,7 +1136,7 @@ cdef class NumpyToSRMorphism(Morphism):
         sage: cos(numpy.int('2'))
         cos(2)
         sage: numpy.cos(numpy.int('2'))
-        -0.41614683654714241
+        -0.4161468365471424
     """
     cdef _intermediate_ring
 
@@ -1219,7 +1220,7 @@ cdef class UnderscoreSageMorphism(Morphism):
             Symbolic Ring
         """
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(t), R))
 
     cpdef Element _call_(self, a):

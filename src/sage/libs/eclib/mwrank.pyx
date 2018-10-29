@@ -26,6 +26,8 @@ import sys
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
+from sage.cpython.string import FS_ENCODING
 from sage.libs.eclib cimport bigint, Curvedata, mw, two_descent
 
 cdef extern from "wrap.cpp":
@@ -72,7 +74,7 @@ cdef extern from "wrap.cpp":
 cdef object string_sigoff(char* s):
     sig_off()
     # Makes a python string and deletes what is pointed to by s.
-    t = str(s)
+    t = char_to_str(s)
     sig_free(s)
     return t
 
@@ -128,7 +130,8 @@ def initprimes(filename, verb=False):
     EXAMPLES::
 
         sage: file = os.path.join(SAGE_TMP, 'PRIMES')
-        sage: _ = open(file,'w').write(' '.join([str(p) for p in prime_range(10^7,10^7+20)]))
+        sage: with open(file, 'w') as fobj:
+        ....:     _ = fobj.write(' '.join([str(p) for p in prime_range(10^7,10^7+20)]))
         sage: mwrank_initprimes(file, verb=True)
         Computed 78519 primes, largest is 1000253
         reading primes from file ...
@@ -143,6 +146,7 @@ def initprimes(filename, verb=False):
     """
     if not os.path.exists(filename):
         raise IOError('No such file or directory: %s' % filename)
+    filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
     mwrank_initprimes(filename, verb)
     if verb:
         sys.stdout.flush()
@@ -181,7 +185,7 @@ cdef class _bigint:
         """
         s = str(x)
         if s.isdigit() or s[0] == "-" and s[1:].isdigit():
-            self.x = str_to_bigint(s)
+            self.x = str_to_bigint(str_to_bytes(s))
         else:
             raise ValueError("invalid _bigint: %r"%x)
 
@@ -330,7 +334,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             sage: E.silverman_bound()
             6.52226179519101...
             sage: type(E.silverman_bound())
-            <... 'float'>
+            <type 'float'>
         """
         return Curvedata_silverman_bound(self.x)
 
@@ -930,13 +934,11 @@ cdef class _mw:
             10 None []
             11 None [[3639568:106817593:4096]]
         """
-        cdef char* _h_lim
 
-        h_lim = str(h_lim)
-        _h_lim = h_lim
+        h_lim = str_to_bytes(str(h_lim))
 
         sig_on()
-        mw_search(self.x, _h_lim, moduli_option, verb)
+        mw_search(self.x, h_lim, moduli_option, verb)
         if verb:
             sys.stdout.flush()
             sys.stderr.flush()
@@ -1232,9 +1234,9 @@ cdef class _two_descent:
             sage: D2.saturate()
             Searching for points (bound = 8)...done:
               found points which generate a subgroup of rank 3
-              and regulator 0.417143558758383969817119544618093396749810106098479
+              and regulator 0.417...
             Processing points found during 2-descent...done:
-              now regulator = 0.417143558758383969817119544618093396749810106098479
+              now regulator = 0.417...
             No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
@@ -1279,9 +1281,9 @@ cdef class _two_descent:
             sage: D2.saturate()
             Searching for points (bound = 8)...done:
               found points which generate a subgroup of rank 3
-              and regulator 0.417143558758383969817119544618093396749810106098479
+              and regulator 0.417...
             Processing points found during 2-descent...done:
-              now regulator = 0.417143558758383969817119544618093396749810106098479
+              now regulator = 0.417...
             No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
@@ -1327,9 +1329,9 @@ cdef class _two_descent:
             sage: D2.saturate()
             Searching for points (bound = 8)...done:
               found points which generate a subgroup of rank 3
-              and regulator 0.417143558758383969817119544618093396749810106098479
+              and regulator 0.417...
             Processing points found during 2-descent...done:
-              now regulator = 0.417143558758383969817119544618093396749810106098479
+              now regulator = 0.417...
             No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'

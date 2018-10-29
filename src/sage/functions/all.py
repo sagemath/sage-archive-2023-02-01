@@ -4,7 +4,8 @@ from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.functions.piecewise_old', 'Piecewise')   # deprecated
 lazy_import('sage.functions.piecewise', 'piecewise')
-lazy_import('sage.functions.error', ['erf', 'erfc', 'erfi', 'erfinv'])
+lazy_import('sage.functions.error', ['erf', 'erfc', 'erfi', 'erfinv',
+    'fresnel_sin', 'fresnel_cos'])
 
 from .trig import ( sin, cos, sec, csc, cot, tan,
                    asin, acos, atan,
@@ -85,4 +86,4 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
 from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
 
 from .gamma import (gamma, psi, beta, log_gamma,
-                    gamma_inc, incomplete_gamma, gamma_inc_lower)
+                    gamma_inc, gamma_inc_lower)

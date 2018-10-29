@@ -375,10 +375,9 @@ class Stock:
         if enddate is None:
             enddate = date.today().strftime("%b+%d,+%Y")
 
-        cid = self.cid
         symbol = self.symbol
 
-        if self.cid=='':
+        if self.cid == '':
             if ':' in symbol:
                 R = self._get_data('', startdate, enddate, histperiod)
             else:
@@ -537,7 +536,8 @@ class Stock:
         object like so. Note that the path must be explicit::
 
             sage: filename = tmp_filename(ext='.csv')
-            sage: _ = open(filename,'w').write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
+            sage: with open(filename, 'w') as fobj:
+            ....:     _ = fobj.write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
             sage: finance.Stock('aapl').load_from_file(filename)[:5]
             [
             1212408060 188.00 188.00 188.00 188.00        687,
@@ -562,20 +562,11 @@ class Stock:
             1212407640 187.75 188.00 187.75 188.00       2000,
             1212405780 187.80 187.80 187.80 187.80        100
             ]
-
-        This tests a file that doesn't exist::
-
-            sage: finance.Stock("AAPL").load_from_file("I am not a file")
-            Traceback (most recent call last):
-            ...
-            IOError: [Errno 2] No such file or directory: 'I am not a file'
         """
-        file_obj = open(file, 'r')
-        R = file_obj.read();
-        self.__historical = self._load_from_csv(R)
-        file_obj.close()
+        with open(file) as file_obj:
+            R = file_obj.read()
+            self.__historical = self._load_from_csv(R)
         return self.__historical
-
 
     def _load_from_csv(self, R):
         r"""
@@ -584,7 +575,8 @@ class Stock:
         This indirectly tests ``_load_from_csv()``::
 
             sage: filename = tmp_filename(ext='.csv')
-            sage: _ = open(filename,'w').write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
+            sage: with open(filename,'w') as fobj:
+            ....:     _ = fobj.write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
             sage: finance.Stock('aapl').load_from_file(filename)
             [
             1212408060 188.00 188.00 188.00 188.00        687,
@@ -595,7 +587,6 @@ class Stock:
             ]
         """
         R = R.splitlines()
-        headings = R[0].split(',')
         hist_data = []
         for x in reversed(R[1:]):
             try:

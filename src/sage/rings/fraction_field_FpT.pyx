@@ -5,6 +5,8 @@ import sys
 
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT32_LIMIT
+
 from sage.libs.gmp.mpz cimport *
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
@@ -17,11 +19,11 @@ from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint, get_cparent
 import sage.algebras.algebra
 
-from sage.rings.finite_rings.integer_mod cimport jacobi_int, mod_inverse_int, mod_pow_int
+from sage.rings.finite_rings.integer_mod cimport mod_inverse_int
 
 class FpT(FractionField_1poly_field):
-    """
-    This class represents the fraction field GF(p)(T) for `2 < p < 2^16`.
+    r"""
+    This class represents the fraction field GF(p)(T) for `2 < p < \sqrt{2^31-1}`.
 
     EXAMPLES::
 
@@ -33,6 +35,8 @@ class FpT(FractionField_1poly_field):
         sage: parent(1-1/T) is K
         True
     """
+    INTEGER_LIMIT = INTEGER_MOD_INT32_LIMIT
+
     def __init__(self, R, names=None):  # we include names so that one can use the syntax K.<t> = FpT(GF(5)['t']).  It's actually ignored
         """
         INPUT:
@@ -46,7 +50,7 @@ class FpT(FractionField_1poly_field):
             Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 31
         """
         cdef long p = R.base_ring().characteristic()
-        assert 2 < p < 2**16
+        assert 2 < p < FpT.INTEGER_LIMIT
         self.p = p
         self.poly_ring = R
         FractionField_1poly_field.__init__(self, R, element_class = FpTElement)

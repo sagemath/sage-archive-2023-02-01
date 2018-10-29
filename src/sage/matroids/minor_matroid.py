@@ -359,10 +359,10 @@ class MinorMatroid(Matroid):
              4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
         """
         s = "M"
-        if len(self._contractions) > 0:
-            s = s + " / " + setprint_s(self._contractions, toplevel=True)
-        if len(self._deletions) > 0:
-            s = s + " \ " + setprint_s(self._deletions, toplevel=True)
+        if self._contractions:
+            s += r" / " + setprint_s(self._contractions, toplevel=True)
+        if self._deletions:
+            s += r" \ " + setprint_s(self._deletions, toplevel=True)
         s += ", where M is " + repr(self._matroid)
         return s
 
@@ -511,7 +511,7 @@ class MinorMatroid(Matroid):
         return N
 
     def __reduce__(self):
-        """
+        r"""
         Save the matroid for later reloading.
 
         EXAMPLES::

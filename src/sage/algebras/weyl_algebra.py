@@ -28,7 +28,7 @@ from sage.sets.family import Family
 import sage.data_structures.blas_dict as blas
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
+from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 import six
@@ -470,7 +470,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
              ((0, 0, 0), (0, 0, 0)),
              ((0, 0, 1), (1, 0, 0))]
         """
-        return self.__monomials.keys()
+        return list(self.__monomials)
 
     # This is essentially copied from
     #   sage.combinat.free_module.CombinatorialFreeModuleElement
@@ -583,7 +583,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: W1 is W2
             True
         """
-        if isinstance(R, (PolynomialRing_general, MPolynomialRing_generic)):
+        if isinstance(R, (PolynomialRing_general, MPolynomialRing_base)):
             if names is None:
                 names = R.variable_names()
                 R = R.base_ring()
@@ -789,7 +789,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: R.<x,y,z> = QQ[]
             sage: W = DifferentialWeylAlgebra(R)
             sage: W.algebra_generators()
-            Finite family {'dz': dz, 'dx': dx, 'dy': dy, 'y': y, 'x': x, 'z': z}
+            Finite family {'x': x, 'y': y, 'z': z, 'dx': dx, 'dy': dy, 'dz': dz}
         """
         d = {x: self.gen(i) for i,x in enumerate(self.variable_names())}
         return Family(self.variable_names(), lambda x: d[x])
@@ -807,7 +807,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
             sage: W.variables()
-            Finite family {'y': y, 'x': x, 'z': z}
+            Finite family {'x': x, 'y': y, 'z': z}
         """
         N = self.variable_names()[:self._n]
         d = {x: self.gen(i) for i,x in enumerate(N) }
@@ -826,7 +826,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
             sage: W.differentials()
-            Finite family {'dz': dz, 'dx': dx, 'dy': dy}
+            Finite family {'dx': dx, 'dy': dy, 'dz': dz}
         """
         N = self.variable_names()[self._n:]
         d = {x: self.gen(self._n+i) for i,x in enumerate(N) }

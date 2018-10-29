@@ -94,6 +94,12 @@ cdef extern from "arb.h":
     bint arb_contains_positive(const arb_t x)
     bint arb_contains_nonnegative(const arb_t x)
     bint arb_contains_int(const arb_t x)
+    bint arb_eq(const arb_t x, const arb_t y)
+    bint arb_ne(const arb_t x, const arb_t y)
+    bint arb_le(const arb_t x, const arb_t y)
+    bint arb_ge(const arb_t x, const arb_t y)
+    bint arb_lt(const arb_t x, const arb_t y)
+    bint arb_gt(const arb_t x, const arb_t y)
 
     void arb_neg(arb_t y, const arb_t x)
     void arb_neg_round(arb_t y, const arb_t x, long prec)

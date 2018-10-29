@@ -44,11 +44,13 @@ polynomial rings::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from inductive_valuation import NonFinalInductiveValuation
+from __future__ import absolute_import
+
+from .inductive_valuation import NonFinalInductiveValuation
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.factory import UniqueFactory
+
 
 class GaussValuationFactory(UniqueFactory):
     r"""
@@ -229,7 +231,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         return self.domain()(self._base_valuation.uniformizer())
 
     def valuations(self, f, coefficients=None, call_error=False):
-        """
+        r"""
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
 
         INPUT:
@@ -257,7 +259,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: f = x^2 + 2*x + 16
             sage: list(v.valuations(f))
             [4, 1, 0]
-
         """
         f = self.domain().coerce(f)
 
@@ -382,7 +383,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: F = v.reduce(f); F
             x^2 + 2*x + 1
             sage: g = v.lift(F); g
-            (1 + O(3^5))*x^2 + (2 + O(3^5))*x + (1 + O(3^5))
+            (1 + O(3^5))*x^2 + (2 + O(3^5))*x + 1 + O(3^5)
             sage: v.is_equivalent(f,g)
             True
             sage: g.parent() is v.domain()
@@ -411,7 +412,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         A polynomial `f` in the domain of this valuation which is a key
         polynomial for this valuation and which, for a suitable equivalence
-        unit `R`, satifies that the reduction of `Rf` is ``F``
+        unit `R`, satisfies that the reduction of `Rf` is ``F``
 
         EXAMPLES::
 
@@ -452,9 +453,9 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
-            (3^2 + O(3^7))
+            3^2 + O(3^7)
             sage: v.equivalence_unit(-2)
-            (3^-2 + O(3^3))
+            3^-2 + O(3^3)
 
         """
         if reciprocal:
@@ -631,7 +632,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
                Defn: (1 + O(2^5))*x |--> (2^-1 + O(2^4))*x,
              Ring endomorphism of Univariate Polynomial Ring in x over 2-adic Field with capped relative precision 5
                Defn: (1 + O(2^5))*x |--> (2 + O(2^6))*x,
-            (1 + O(2^5))*x^2 + (1 + 2^2 + 2^3 + O(2^5))*x + (1 + 2^2 + 2^3 + O(2^5)))
+             (1 + O(2^5))*x^2 + (1 + 2^2 + 2^3 + O(2^5))*x + 1 + 2^2 + 2^3 + O(2^5))
 
         """
         if not G.is_monic():
@@ -671,7 +672,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         if isinstance(other, GaussValuation_generic):
             return self._base_valuation >= other._base_valuation
-        from augmented_valuation import AugmentedValuation_base
+        from .augmented_valuation import AugmentedValuation_base
         if isinstance(other, AugmentedValuation_base):
             return False
         if other.is_trivial():
@@ -715,7 +716,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             6
 
         For performance reasons, only the constant coefficient is considered.
-        (In common appplications, the constant coefficient shows the most
+        (In common applications, the constant coefficient shows the most
         critical coefficient growth)::
 
             sage: v._relative_size(1024*x + 1)
@@ -796,7 +797,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             1
 
         """
-        from sage.rings.all import infinity, QQ
+        from sage.rings.all import infinity
         coefficients = f.coefficients(sparse=True)
         coefficients.reverse()
         ret = infinity

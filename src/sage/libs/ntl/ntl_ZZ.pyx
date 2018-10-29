@@ -252,8 +252,10 @@ cdef class ntl_ZZ(object):
 
             sage: ntl.ZZ(10^30).__int__()
             1000000000000000000000000000000L
-            sage: type(ntl.ZZ(10^30).__int__())
+            sage: type(ntl.ZZ(10^30).__int__())  # py2
             <type 'long'>
+            sage: type(ntl.ZZ(10^30).__int__())  # py3
+            <class 'int'>
         """
         return int(self._integer_())
 
@@ -335,7 +337,7 @@ cdef class ntl_ZZ(object):
 
     def valuation(self, ntl_ZZ prime):
         """
-        Uses code in ``ntlwrap.cpp`` to compute the number of times
+        Uses code in ``ntlwrap_impl.h`` to compute the number of times
         prime divides self.
 
         EXAMPLES::
@@ -364,7 +366,7 @@ cdef class ntl_ZZ(object):
 
     def val_unit(self, ntl_ZZ prime):
         """
-        Uses code in ``ntlwrap.cpp`` to compute p-adic valuation and
+        Uses code in ``ntlwrap_impl.h`` to compute p-adic valuation and
         unit of self.
 
         EXAMPLES::

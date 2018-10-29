@@ -32,9 +32,8 @@ REFERENCES:
   http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
 
 .. [HH12] Victoria Horan and Glenn Hurlbert,
-  Overlap Cycles for Steiner Quadruple Systems,
-  2012,
-  http://arxiv.org/abs/1204.3215
+  *Overlap Cycles for Steiner Quadruple Systems*,
+  2012, :arxiv:`1204.3215`
 
 AUTHORS:
 

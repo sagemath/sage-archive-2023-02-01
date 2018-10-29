@@ -27,6 +27,8 @@ from cpython.list cimport PyList_Append
 
 import math
 
+from sage.cpython.string cimport str_to_bytes, bytes_to_str
+
 def foo(*args, **kwds):
     """
     This is a function for testing that simply returns the arguments and
@@ -163,6 +165,7 @@ cdef class Tokenizer:
             sage: Tokenizer("?$%").test()
             ['ERROR', 'ERROR', 'ERROR']
         """
+        s = str_to_bytes(s)
         self.pos = 0
         self.last_pos = 0
         self.s = s
@@ -426,7 +429,9 @@ cdef class Tokenizer:
             sage: t.last_token_string()
             '1e5'
         """
-        return PyBytes_FromStringAndSize(&self.s[self.last_pos], self.pos-self.last_pos)
+        s = PyBytes_FromStringAndSize(&self.s[self.last_pos],
+                                      self.pos - self.last_pos)
+        return bytes_to_str(s)
 
 
 cdef class Parser:

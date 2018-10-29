@@ -291,7 +291,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             if not m.is_square():
                 raise ValueError("The matrix has to be a square")
             if self.matrices_dim.get(self.nrows()) is not None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
-                raise ValueError("The matrces have to be of the same dimension")
+                raise ValueError("the matrices have to be of the same dimension")
         self.coeffs_matrix.append(coefficients)
         self.matrices_dim[self.nrows()] = m.dimensions()[0] #
         self.row_name_var.append(name)

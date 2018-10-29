@@ -38,6 +38,7 @@ from sage.rings.infinity import infinity
 from .local_generic import LocalGeneric
 from sage.rings.ring import PrincipalIdealDomain
 from sage.rings.integer import Integer
+from sage.rings.infinity import Infinity
 from sage.rings.padics.padic_printing import pAdicPrinter
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
@@ -69,6 +70,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         category = category.Metric().Complete()
         LocalGeneric.__init__(self, base, prec, names, element_class, category)
         self._printer = pAdicPrinter(self, print_mode)
+        self._qth_roots_of_unity = [ (1, Infinity) ]
 
     def some_elements(self):
         r"""
@@ -260,9 +262,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5, 'fixed-mod')
             sage: R.uniformizer_pow(3)
-            3^3 + O(3^5)
+            3^3
             sage: R.uniformizer_pow(infinity)
-            O(3^5)
+            0
         """
         if n is infinity:
             return self(0)
@@ -366,10 +368,30 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5,'fixed-mod')
             sage: R.residue_system()
-            [O(3^5), 1 + O(3^5), 2 + O(3^5)]
+            [0, 1, 2]
         """
         return [self(i) for i in self.residue_class_field()]
 
+    def _fraction_field_key(self, print_mode=None):
+        """
+        Changes print_mode from a dictionary to a tuple and raises a deprecation warning if it is present.
+
+        EXAMPLES::
+
+            sage: Zp(5)._fraction_field_key()
+            sage: Zp(5)._fraction_field_key({"pos":False})
+            doctest:warning
+            ...
+            DeprecationWarning: Use the change method if you want to change print options in fraction_field()
+            See http://trac.sagemath.org/23227 for details.
+            (('pos', False),)
+        """
+        if print_mode is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(23227, "Use the change method if you want to change print options in fraction_field()")
+            return tuple(sorted(print_mode.items()))
+
+    @cached_method(key=_fraction_field_key)
     def fraction_field(self, print_mode=None):
         r"""
         Returns the fraction field of this ring or field.
@@ -392,16 +414,39 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: R = Zp(5, print_mode='digits')
-            sage: K = R.fraction_field(); repr(K(1/3))[3:]
-            '31313131313131313132'
-            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))[3:]
-            '3132'
+            sage: R = Zp(5, print_mode='digits', show_prec=False)
+            sage: K = R.fraction_field(); K(1/3)
+            31313131313131313132
+            sage: L = R.fraction_field({'max_ram_terms':4}); L(1/3)
+            doctest:warning
+            ...
+            DeprecationWarning: Use the change method if you want to change print options in fraction_field()
+            See http://trac.sagemath.org/23227 for details.
+            3132
             sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.fraction_field()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
+            17-adic Unramified Extension Field in a defined by x^4 + 7*x^2 + 10*x + 3
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
             False
+
+        TESTS::
+
+            sage: R = ZpLC(2); R
+            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/23505 for details.
+            2-adic Ring with lattice-cap precision
+            sage: K = R.fraction_field(); K
+            2-adic Field with lattice-cap precision
+
+            sage: K = QpLC(2); K2 = K.fraction_field({'mode':'terse'})
+            sage: K2 is K
+            False
+            sage: K = QpLC(2, label='test'); K
+            2-adic Field with lattice-cap precision (label: test)
+            sage: K.fraction_field()
+            2-adic Field with lattice-cap precision (label: test)
+            sage: K.fraction_field({'mode':'series'}) is K
+            True
         """
         if self.is_field() and print_mode is None:
             return self
@@ -429,16 +474,41 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: K = Qp(5, print_mode='digits')
-            sage: R = K.integer_ring(); repr(R(1/3))[3:]
-            '31313131313131313132'
-            sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
-            '3132'
+            sage: K = Qp(5, print_mode='digits', show_prec=False)
+            sage: R = K.integer_ring(); R(1/3)
+            31313131313131313132
+            sage: S = K.integer_ring({'max_ram_terms':4}); S(1/3)
+            doctest:warning
+            ...
+            DeprecationWarning: Use the change method if you want to change print options in integer_ring()
+            See http://trac.sagemath.org/23227 for details.
+            3132
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
-            sage: U.fraction_field({"pos":False}) == U.fraction_field()
+            17-adic Unramified Extension Ring in a defined by x^4 + 7*x^2 + 10*x + 3
+            sage: U.fraction_field({"print_mode":"terse"}) == U.fraction_field()
+            doctest:warning
+            ...
+            DeprecationWarning: Use the change method if you want to change print options in fraction_field()
+            See http://trac.sagemath.org/23227 for details.
             False
+
+        TESTS::
+
+            sage: K = QpLC(2); K
+            2-adic Field with lattice-cap precision
+            sage: R = K.integer_ring(); R
+            2-adic Ring with lattice-cap precision
+
+            sage: R = ZpLC(2); R2 = R.integer_ring({'mode':'terse'})
+            sage: R2 is R
+            False
+            sage: R = ZpLC(2, label='test'); R
+            2-adic Ring with lattice-cap precision (label: test)
+            sage: R.integer_ring()
+            2-adic Ring with lattice-cap precision (label: test)
+            sage: R.integer_ring({'mode':'series'}) is R
+            True
         """
         #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
         if not self.is_field() and print_mode is None:
@@ -446,6 +516,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         if print_mode is None:
             return self.change(field=False)
         else:
+            from sage.misc.superseded import deprecation
+            deprecation(23227, "Use the change method if you want to change print options in integer_ring()")
             return self.change(field=False, **print_mode)
 
     def teichmuller(self, x, prec = None):
@@ -474,7 +546,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
             sage: R = Zp(5, 10, 'fixed-mod', 'series')
             sage: R.teichmuller(2)
-            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9
             sage: R = Zp(5,5)
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
@@ -529,7 +601,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5,'fixed-mod', 'terse')
             sage: R.teichmuller_system()
-            [1 + O(3^5), 242 + O(3^5)]
+            [1, 242]
 
         Check that :trac:`20457` is fixed::
 
@@ -575,13 +647,25 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k = Qp(5)
             sage: R.<x> = k[]
             sage: l.<w> = k.extension(x^2-5); l
-            Eisenstein Extension in w defined by x^2 - 5 with capped relative precision 40 over 5-adic Field
+            5-adic Eisenstein Extension Field in w defined by x^2 - 5
 
             sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0]
             sage: L = Qp(19).extension(F, names='a')
             sage: L
-            Unramified Extension in a defined by x^2 + 8751674996211859573806383*x + 1 with capped relative precision 20 over 19-adic Field
+            19-adic Unramified Extension Field in a defined by x^2 + 8751674996211859573806383*x + 1
         """
+        if isinstance(modulus, list):
+            if len(modulus) == 0:
+                return self
+            else:
+                return self.extension(modulus[-1], prec=prec[-1],
+                                      names=names[-1],
+                                      implementation=implementation[-1],
+                                      print_mode=print_mode, **kwds).extension(
+                                          modulus[:-1], prec=prec[:-1],
+                                          names=names[:-1],
+                                          implementation=implementation[:-1],
+                                          print_mode=print_mode, **kwds)
         from sage.rings.padics.factory import ExtensionFactory
         if print_mode is None:
             print_mode = {}
@@ -637,7 +721,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             z = x + y
             tester.assertIs(z.parent(), self)
             zprec = min(x.precision_absolute(), y.precision_absolute())
-            if not self.is_floating_point():
+            if self.is_lattice_prec():
+                tester.assertGreaterEqual(z.precision_absolute(), zprec)
+            elif not self.is_floating_point():
                 tester.assertEqual(z.precision_absolute(), zprec)
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
@@ -675,7 +761,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             z = x - y
             tester.assertIs(z.parent(), self)
             zprec = min(x.precision_absolute(), y.precision_absolute())
-            if not self.is_floating_point():
+            if self.is_lattice_prec():
+                tester.assertGreaterEqual(z.precision_absolute(), zprec)
+            elif not self.is_floating_point():
                 tester.assertEqual(z.precision_absolute(), zprec)
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
@@ -785,8 +873,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 else:
                     tester.assertFalse(y.is_zero())
                     tester.assertIs(z.parent(), self if self.is_fixed_mod() else self.fraction_field())
-                    tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
-                    tester.assertEqual(z.valuation(), x.valuation() - y.valuation())
+                    # The following might be false if there is an absolute cap
+                    # tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+                    if not x.is_zero():
+                        tester.assertEqual(z.valuation(), x.valuation() - y.valuation())
                     tester.assertEqual(xx, x)
 
     def _test_neg(self, **options):
@@ -816,6 +906,49 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
 
+    def _test_shift(self, **options):
+        """
+        Test the shift operator on elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_shift()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+        cap = self.precision_cap()
+        k = self.residue_field()
+        for v in range(min(cap,10)):
+            if self.is_capped_absolute() or self.is_fixed_mod():
+                prec = cap - v
+            else:
+                prec = cap
+            b = self.uniformizer_pow(v)
+            for x in tester.some_elements():
+                y = (x << v) >> v
+                if x._is_exact_zero() or self.is_field():
+                    tester.assertEqual(x, y)
+                else:
+                    tester.assertTrue(x.is_equal_to(y, prec))
+                y = (x >> v) << v
+                if x._is_exact_zero() or self.is_field():
+                    tester.assertEqual(x, y)
+                else:
+                    for i in range(min(v,prec)):
+                        tester.assertEqual(k(y.expansion(i)), 0)
+                    for i in range(v,prec):
+                        tester.assertEqual(y.expansion(i), x.expansion(i))
+                    xx = y + (x % b)
+                    tester.assertTrue(xx.is_equal_to(x,prec))
+
+
     def _test_log(self, **options):
         """
         Test the log operator on elements of this ring.
@@ -835,17 +968,21 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         tester = self._tester(**options)
         for x in tester.some_elements():
             if x.is_zero(): continue
-            l = x.log(p_branch=0)
-            tester.assertIs(l.parent(), self)
-            tester.assertGreater(l.valuation(), 0)
+            try:
+                l = x.log(p_branch=0)
+                tester.assertIs(l.parent(), self)
+            except ValueError:
+                l = x.log(p_branch=0, change_frac=True)
             if self.is_capped_absolute() or self.is_capped_relative():
-                tester.assertEqual(x.precision_relative(), l.precision_absolute())
+                if self.absolute_e() == 1:
+                    tester.assertEqual(l.precision_absolute(), x.precision_relative())
+                else:
+                    tester.assertLessEqual(l.precision_absolute(), x.precision_relative())
 
         if self.is_capped_absolute() or self.is_capped_relative():
             # In the fixed modulus setting, rounding errors may occur
-            elements = list(tester.some_elements())
-            for x, y, b in some_tuples(elements, 3, tester._max_runs):
-                if x.is_zero() or y.is_zero(): continue
+            for x, y, b in tester.some_elements(repeat=3):
+                if (x*y).is_zero(): continue
                 r1 = x.log(pi_branch=b) + y.log(pi_branch=b)
                 r2 = (x*y).log(pi_branch=b)
                 tester.assertEqual(r1, r2)
@@ -921,7 +1058,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     @cached_method
     def _log_unit_part_p(self):
-        """
+        r"""
         Compute the logarithm of the unit-part of `p`.
 
         If `\pi` is the uniformizer in this ring, then we can uniquely write
@@ -945,7 +1082,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: W.<pi> = R.extension(x^3-3*x-3)
             sage: W._log_unit_part_p()
             2 + pi + 2*pi^2 + pi^4 + pi^5 + 2*pi^7 + 2*pi^8 + pi^9 + 2*pi^10 + pi^11 + pi^12 + 2*pi^14 + O(pi^15)
-
         """
         return self(self.prime()).unit_part().log()
 
@@ -964,21 +1100,21 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: K.<a> = Qq(3^5)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on 3-adic Unramified Extension ... lifting a |--> a^3 on the residue field
             sage: Frob(a) == a.frobenius()
             True
 
         We can specify a power::
 
             sage: K.frobenius_endomorphism(2)
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(3^2) on the residue field
+            Frobenius endomorphism on 3-adic Unramified Extension ... lifting a |--> a^(3^2) on the residue field
 
         The result is simplified if possible::
 
             sage: K.frobenius_endomorphism(6)
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on 3-adic Unramified Extension ... lifting a |--> a^3 on the residue field
             sage: K.frobenius_endomorphism(5)
-            Identity endomorphism of Unramified Extension ...
+            Identity endomorphism of 3-adic Unramified Extension ...
 
         Comparisons work::
 
@@ -1045,6 +1181,224 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         from sage.rings.padics.padic_valuation import pAdicValuation
         return pAdicValuation(self)
 
+    def _primitive_qth_root_of_unity(self, exponent):
+        """
+        Compute the ``p^exponent``-th roots of unity in this ring.
+
+        INPUT:
+
+        - ``exponent`` -- an integer or ``Infinity``
+
+        OUTPUT:
+
+        A triple ``(zeta,n,nextzeta)`` where
+
+        - ``zeta`` is a generator of the group of ``p^exponent``-th
+          roots of unity in this ring, and
+
+        - ``p^n`` is the order of ``zeta``.
+
+        - ``nextzeta`` is the result of ``zeta._inverse_pth_root()``
+          if ``n`` is positive and ``None`` otherwise
+
+        TESTS::
+
+            sage: K.<a> = Qq(2^3, 5)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^2 + 2*x + 2)
+            sage: zeta = L.primitive_root_of_unity(); zeta # indirect doctest
+            a + a*pi + pi^2 + a*pi^4 + a*pi^5 + a^2*pi^8 + a^2*pi^9 + O(pi^10)
+            sage: zeta.parent() is L
+            True
+        """
+        n = len(self._qth_roots_of_unity)
+
+        # We check if the result is cached
+        if exponent < n-1:
+            return self._qth_roots_of_unity[exponent][0], exponent, self._qth_roots_of_unity[exponent+1]
+        zeta, accuracy = self._qth_roots_of_unity[-1]
+        if accuracy is not Infinity:
+            return self._qth_roots_of_unity[-2][0], n-2, (zeta, accuracy)
+
+        # It is not, so we compute it
+        while accuracy is Infinity and n <= exponent + 1:
+            self._qth_roots_of_unity[-1] = (self(zeta), Infinity)  # to avoid multiple conversions
+            if n == 1:  # case of pth root of unity
+                p = self.prime()
+                e = self.absolute_e()
+                k = self.residue_field()
+                if e % (p-1) != 0:
+                    # No pth root of unity in this ring
+                    zeta = accuracy = None
+                else:
+                    rho = -k(self(p).expansion(e))
+                    try:
+                        r = rho.nth_root(p-1)
+                    except ValueError:
+                        # No pth root of unity in this ring
+                        zeta = accuracy = None
+                    else:
+                        # We compute a primitive pth root of unity
+                        m = e // (p-1)
+                        prec = self.precision_cap() + e * (1 + m.valuation(p))
+                        ring = self.change(prec=prec)
+                        zeta = 1 + (ring(r).lift_to_precision() << m)
+                        curprec = m*p + 1
+                        while curprec < prec:
+                            curprec -= e
+                            curprec = min(2*curprec + e, p*curprec)
+                            zeta = zeta.lift_to_precision(min(prec,curprec))
+                            zeta += zeta * (1 - zeta**p) // p
+            else:
+                zeta, accuracy = zeta._inverse_pth_root()
+                assert accuracy is not None
+            self._qth_roots_of_unity.append((zeta, accuracy))
+            n += 1
+        return self._qth_roots_of_unity[-2][0], n-2, self._qth_roots_of_unity[-1]
+
+    def primitive_root_of_unity(self, n=None, order=False):
+        """
+        Return a generator of the group of ``n``-th roots of unity
+        in this ring.
+
+        INPUT:
+
+        - ``n`` -- an integer or ``None`` (default: ``None``):
+
+        - ``order`` -- a boolean (default: ``False``)
+
+        OUTPUT:
+
+        A generator of the group of ``n``-th roots of unity.
+        If ``n`` is ``None``, a generator of the full group of roots
+        of unity is returned.
+
+        If ``order`` is ``True``, the order of the above group is
+        returned as well.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, 10)
+            sage: zeta = R.primitive_root_of_unity(); zeta
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            sage: zeta == R.teichmuller(2)
+            True
+
+        Now we consider an example with non trivial ``p``-th roots of unity::
+
+            sage: W = Zp(3, 2)
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension((x+1)^6 + (x+1)^3 + 1)
+
+            sage: zeta, order = R.primitive_root_of_unity(order=True)
+            sage: zeta
+            2 + 2*pi + 2*pi^3 + 2*pi^7 + 2*pi^8 + 2*pi^9 + pi^11 + O(pi^12)
+            sage: order
+            18
+            sage: zeta.multiplicative_order()
+            18
+
+            sage: zeta, order = R.primitive_root_of_unity(24, order=True)
+            sage: zeta
+            2 + pi^3 + 2*pi^7 + 2*pi^8 + 2*pi^10 + 2*pi^11 + O(pi^12)
+            sage: order   # equal to gcd(18,24)
+            6
+            sage: zeta.multiplicative_order()
+            6
+
+        """
+        p = self.prime()
+        k = self.residue_field()
+        prec = self.precision_cap()
+        c = k.cardinality()
+
+        # We compute a primitive qth root of unity
+        # where q is the highest power of p dividing exponent
+        if n is None:
+            qthzeta, s, _ = self._primitive_qth_root_of_unity(Infinity)
+            m = c - 1
+        else:
+            qthzeta, s, _ = self._primitive_qth_root_of_unity(n.valuation(p))
+            m = n.gcd(c - 1)
+        qthzeta = self(qthzeta)
+
+        # We now compute a primitive mth root of qthzeta
+        if m == 1:
+            zeta = qthzeta
+        else:
+            zeta = self(k.multiplicative_generator() ** ((c-1) // m))
+            invm = self(1/m)
+            curprec = 1
+            while curprec < prec:
+                curprec *= 2
+                zeta = zeta.lift_to_precision(min(prec,curprec))
+                zeta += invm * zeta * (1 - qthzeta*zeta**m)
+
+        if order:
+            return zeta, m * p**s
+        else:
+            return zeta
+
+    def roots_of_unity(self, n=None):
+        """
+        Return all the ``n``-th roots of unity in this ring.
+
+        INPUT:
+
+        - ``n`` -- an integer or ``None`` (default: ``None``); if
+          ``None``, the full group of roots of unity is returned.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, 10)
+            sage: roots = R.roots_of_unity(); roots
+            [1 + O(5^10),
+             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10),
+             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10),
+             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + 2*5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10)]
+
+            sage: R.roots_of_unity(10)
+            [1 + O(5^10),
+             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)]
+
+        In this case, the roots of unity are the Teichmuller representatives::
+
+            sage: R.teichmuller_system()
+            [1 + O(5^10),
+             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10),
+             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + 2*5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10),
+             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)]
+
+        In general, there might be more roots of unity (it happens when the ring has non 
+        trivial ``p``-th roots of unity)::
+
+            sage: W.<a> = Zq(3^2, 2)
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension((x+1)^2 + (x+1) + 1)
+
+            sage: roots = R.roots_of_unity(); roots
+            [1 + O(pi^4),
+             a + 2*a*pi + 2*a*pi^2 + a*pi^3 + O(pi^4),
+             ... 
+             1 + pi + O(pi^4),
+             a + a*pi^2 + 2*a*pi^3 + O(pi^4),
+             ...
+             1 + 2*pi + pi^2 + O(pi^4),
+             a + a*pi + a*pi^2 + O(pi^4),
+             ...]
+            sage: len(roots)
+            24
+
+        We check that the logarithm of each root of unity vanishes::
+
+            sage: for root in roots:
+            ....:     if root.log() != 0: raise ValueError
+
+        """
+        zeta, order = self.primitive_root_of_unity(n, order=True)
+        return [ zeta**i for i in range(order) ]
+
+
 class ResidueReductionMap(Morphism):
     """
     Reduction map from a p-adic ring or field to its residue field or ring.
@@ -1058,7 +1412,7 @@ class ResidueReductionMap(Morphism):
         sage: R.<a> = Zq(125); k = R.residue_field()
         sage: f = ResidueReductionMap._create_(R, k); f
         Reduction morphism:
-          From: Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
+          From: 5-adic Unramified Extension Ring in a defined by x^3 + 3*x + 3
           To:   Finite Field in a0 of size 5^3
     """
     @staticmethod
@@ -1202,7 +1556,7 @@ class ResidueLiftingMap(Morphism):
         sage: f = ResidueLiftingMap._create_(k, R); f
         Lifting morphism:
           From: Finite Field in a0 of size 5^3
-          To:   Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
+          To:   5-adic Unramified Extension Ring in a defined by x^3 + 3*x + 3
     """
     @staticmethod
     def _create_(k, R):
@@ -1243,7 +1597,7 @@ class ResidueLiftingMap(Morphism):
             sage: f = R.convert_map_from(k); f
             Lifting morphism:
               From: Finite Field in a0 of size 3^3
-              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Ring
+              To:   3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
             sage: f(a0 + 1)
             (a + 1) + O(3)
 
@@ -1251,13 +1605,16 @@ class ResidueLiftingMap(Morphism):
             O(3^4)
         """
         R = self.codomain()
-        if R.degree() == 1:
-            return R.element_class(R, x, self._n)
-        elif R.f() == 1:
-            return R([x], self._n)
-        elif R.e() == 1:
-            return R(x.polynomial().list(), self._n)
+        K = R.maximal_unramified_subextension()
+        if self._n == 1 or K is R:
+            unram_n = self._n
+            if K.absolute_degree() == 1:
+                lift = K._element_constructor_(x, unram_n)
+            else:
+                lift = K(x.polynomial().list(), unram_n)
+            return R(lift, self._n)
         else:
+            #unram_n = (self._n - 1) // R.absolute_e() + 1
             raise NotImplementedError
 
     def _call_with_args(self, x, args=(), kwds={}):
@@ -1271,16 +1628,20 @@ class ResidueLiftingMap(Morphism):
             1 + 2 + 2^2 + O(2^5)
         """
         R = self.codomain()
+        e = R.absolute_e()
+        kwds = dict(kwds) # we're changing it
         if args:
             args = (min(args[0], self._n),) + args[1:]
+            absprec = args[0]
         else:
-            kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
-        if R.degree() == 1:
-            return R.element_class(R, x, *args, **kwds)
-        elif R.f() == 1:
-            return R([x], *args, **kwds)
-        elif R.e() == 1:
-            return R(x.polynomial().list(), *args, **kwds)
+            absprec = kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
+        K = R.maximal_unramified_subextension()
+        if absprec == 1 or K is R:
+            if K.absolute_degree() == 1:
+                lift = K._element_constructor_(x, *args, **kwds)
+            else:
+                lift = K(x.polynomial().list(), *args, **kwds)
+            return R(lift, *args, **kwds)
         else:
             raise NotImplementedError
 

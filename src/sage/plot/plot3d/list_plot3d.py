@@ -140,8 +140,14 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: for i in range(-5, 5):
         ....:     for j in range(-5, 5):
         ....:         l.append((normalvariate(0, 1), normalvariate(0, 1), normalvariate(0, 1)))
-        sage: list_plot3d(l, interpolation_type='clough', texture='yellow', num_points=100)
+        sage: L = list_plot3d(l, interpolation_type='clough', texture='yellow', num_points=100)
+        sage: L
         Graphics3d Object
+
+    Check that no NaNs are produced (see :trac:`13135`)::
+
+        sage: any(math.isnan(c) for v in L.vertices() for c in v)
+        False
 
     TESTS:
 
@@ -388,12 +394,11 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
 
     ::
 
-        sage: list_plot3d([(1, 2, 3), (0, 1, 3), (2, 1, 4), (1, 0, -2)], texture='yellow', num_points=50)
+        sage: list_plot3d([(1, 2, 3), (0, 1, 3), (2, 1, 4), (1, 0, -2)], texture='yellow', num_points=50)  # long time
         Graphics3d Object
     """
     from matplotlib import tri
     import numpy
-    import scipy
     from random import random
     from scipy import interpolate
     from .plot3d import plot3d
@@ -471,7 +476,6 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
         return G
 
     if interpolation_type == 'spline':
-        from .plot3d import plot3d
         kx = kwds['kx'] if 'kx' in kwds else 3
         ky = kwds['ky'] if 'ky' in kwds else 3
         if 'degree' in kwds:
@@ -481,4 +485,3 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
         s = interpolate.bisplrep(x, y, z, [int(1)]*len(x), xmin, xmax, ymin, ymax, kx=kx, ky=ky, s=s)
         f = lambda x,y: interpolate.bisplev(x, y, s)
         return plot3d(f, (xmin, xmax), (ymin, ymax), texture=texture, plot_points=[num_points, num_points], **kwds)
-

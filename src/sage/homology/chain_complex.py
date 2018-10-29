@@ -203,8 +203,9 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
     differential is zero::
 
         sage: IZ = ChainComplex({0: identity_matrix(ZZ, 1)})
-        sage: IZ.differential()  # the differentials in the chain complex
-        {-1: [], 0: [1], 1: []}
+        sage: diff = IZ.differential()  # the differentials in the chain complex
+        sage: diff[-1], diff[0], diff[1]
+        ([], [1], [])
         sage: IZ.differential(1).parent()
         Full MatrixSpace of 0 by 1 dense matrices over Integer Ring
         sage: mat = ChainComplex({0: matrix(ZZ, 3, 4)}).differential(1)
@@ -265,7 +266,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
             base_ring = coercion_model.common_parent(*bases)
 
     # make sure values in data_dict are appropriate matrices
-    for n in data_dict.keys():
+    for n in list(data_dict):
         if not n in grading_group:
             raise ValueError('one of the dictionary keys is not an element of the grading group')
         mat = data_dict[n]
@@ -281,7 +282,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
         data_dict[n] = mat
 
     # include any "obvious" zero matrices that are not 0x0
-    for n in data_dict.keys():  # note: data_dict will be mutated in this loop
+    for n in list(data_dict):  # note: data_dict will be mutated in this loop
         mat1 = data_dict[n]
         if (mat1.nrows(), mat1.ncols()) == (0, 0):
             del data_dict[n]
@@ -302,7 +303,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
 
     # check that this is a complex: going twice is zero
     if check:
-        for n in data_dict.keys():
+        for n in data_dict:
             mat0 = data_dict[n]
             try:
                 mat1 = data_dict[n+degree]
@@ -875,7 +876,7 @@ class ChainComplex_class(Parent):
         """
         if start is None:
             result = []
-            degrees = set(self._diff.keys())
+            degrees = set(self._diff)
             while len(degrees) > 0:
                 ordered = self.ordered_degrees(degrees.pop())
                 degrees.difference_update(ordered)
@@ -938,17 +939,19 @@ class ChainComplex_class(Parent):
         EXAMPLES::
 
             sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
-            sage: D.differential()
-            {-1: [], 0: [1 0]
-             [0 2], 1: []}
             sage: D.differential(0)
             [1 0]
             [0 2]
+            sage: D.differential(-1)
+            []
             sage: C = ChainComplex({0: identity_matrix(ZZ, 40)})
-            sage: C.differential()
-            {-1: 40 x 0 dense matrix over Integer Ring,
-             0: 40 x 40 dense matrix over Integer Ring,
-             1: []}
+            sage: diff = C.differential()
+            sage: diff[-1]
+            40 x 0 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+            sage: diff[0]
+            40 x 40 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+            sage: diff[1]
+            []
         """
         if dim is None:
             return copy(self._diff)
@@ -1045,6 +1048,25 @@ class ChainComplex_class(Parent):
         else:
             rank = self.free_module_rank(degree)
         return FreeModule(self.base_ring(), rank)
+
+    def __hash__(self):
+        """
+        The hash is formed by combining the hashes of
+
+        - the base ring
+        - the differentials -- the matrices and their degrees
+        - the degree of the differential of the chain complex
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: D = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: hash(C) == hash(D)
+            True
+        """
+        return (hash(self.base_ring())
+                ^ hash(tuple(self.differential().items()))
+                ^ hash(self.degree_of_differential()))
 
     def __eq__(self, other):
         """
@@ -1833,6 +1855,15 @@ class ChainComplex_class(Parent):
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: C._latex_()
             '\\Bold{Z}^{3} \\xrightarrow{d_{0}} \\Bold{Z}^{2}'
+
+            sage: ChainComplex()._latex_()
+            '0'
+
+            sage: G = AdditiveAbelianGroup([0, 0])
+            sage: m = matrix([0])
+            sage: C = ChainComplex(grading_group=G, degree=G(vector([1,2])), data={G.zero(): m})
+            sage: C._latex_()
+            '\\Bold{Z}^{1} \\xrightarrow{d_{\\text{\\texttt{(0,{ }0)}}}} \\Bold{Z}^{1}'
         """
 #         Warning: this is likely to screw up if, for example, the
 #         degree of the differential is 2 and there are nonzero terms
@@ -1843,35 +1874,30 @@ class ChainComplex_class(Parent):
 #         dimension 3, etc.  I don't know how much effort should be
 #         put into trying to fix this.
         string = ""
-        dict = self._diff
+        diffs = self._diff
+        if len(diffs) == 0:
+            return "0"
         deg = self.degree_of_differential()
         ring = self.base_ring()
-        if self.grading_group() != ZZ:
-            guess = next(iter(dict.keys()))
-            if guess - deg in dict:
-                string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
+        backwards = bool(deg < 0)
+        sorted_list = sorted(diffs.keys(), reverse=backwards)
+        if len(diffs) <= 6:
+            for n in sorted_list[1:-1]:
+                mat = diffs[n]
+                string += _latex_module(ring, mat.ncols())
+                string += " \\xrightarrow{d_{%s}} " % latex(n)
+            mat = diffs[sorted_list[-1]]
             string += _latex_module(ring, mat.ncols())
-            string += " \\xrightarrow{d_{%s}} \\dots" % latex(guess)
         else:
-            backwards = (deg < 0)
-            sorted_list = sorted(dict.keys(), reverse=backwards)
-            if len(dict) <= 6:
-                for n in sorted_list[1:-1]:
-                    mat = dict[n]
-                    string += _latex_module(ring, mat.ncols())
-                    string += " \\xrightarrow{d_{%s}} " % latex(n)
-                mat = dict[sorted_list[-1]]
+            for n in sorted_list[:2]:
+                mat = diffs[n]
                 string += _latex_module(ring, mat.ncols())
-            else:
-                for n in sorted_list[:2]:
-                    mat = dict[n]
-                    string += _latex_module(ring, mat.ncols())
-                    string += " \\xrightarrow{d_{%s}} " % latex(n)
-                string += "\\dots "
-                n = sorted_list[-2]
-                string += "\\xrightarrow{d_{%s}} " % latex(n)
-                mat = dict[sorted_list[-1]]
-                string += _latex_module(ring, mat.ncols())
+                string += " \\xrightarrow{d_{%s}} " % latex(n)
+            string += "\\dots "
+            n = sorted_list[-2]
+            string += "\\xrightarrow{d_{%s}} " % latex(n)
+            mat = diffs[sorted_list[-1]]
+            string += _latex_module(ring, mat.ncols())
         return string
 
     def cartesian_product(self, *factors, **kwds):
@@ -2213,6 +2239,6 @@ class ChainComplex_class(Parent):
 
         return ret
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.homology.chain_complex', 'ChainComplex', ChainComplex_class)
 

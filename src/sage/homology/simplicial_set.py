@@ -962,7 +962,7 @@ class NonDegenerateSimplex(AbstractSimplex_class, WithEqualityById):
 
 def AbstractSimplex(dim, degeneracies=(), underlying=None,
                     name=None, latex_name=None):
-    """
+    r"""
     An abstract simplex, a building block of a simplicial set.
 
     In a simplicial set, a simplex either is non-degenerate or is
@@ -1827,7 +1827,7 @@ class SimplicialSet_arbitrary(Parent):
             [9, 36, 84, 90, 36]
             sage: K = CP2.quotient(sub)
             sage: K.f_vector()
-            [1, 0, 23, 45, 24]
+            [1, 0, 16, 30, 16]
             sage: K.homology()
             {0: 0, 1: 0, 2: Z, 3: 0, 4: Z}
 
@@ -3222,7 +3222,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
             ...
             ValueError: simplicial identity d_i d_j = d_{j-1} d_i fails in dimension 2
 
-        Returning a copy of the orignal::
+        Returning a copy of the original::
 
             sage: v = AbstractSimplex(0)
             sage: e = AbstractSimplex(1)
@@ -3262,7 +3262,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
                 for d in range(data.dimension()+1):
                     old_faces = faces
                     faces = {}
-                    for idx, sigma in enumerate(data.n_faces(d)):
+                    for idx, sigma in enumerate(data.n_cells(d)):
                         new_sigma = AbstractSimplex(d)
                         new_sigma.rename(str(sigma))
                         if d > 0:
@@ -4056,7 +4056,7 @@ def shrink_simplicial_complex(K):
         {0: 0, 1: Z^6, 2: Z}
         sage: M = shrink_simplicial_complex(Z)
         sage: M.f_vector()
-        [1, 32, 27]
+        [1, 30, 25]
         sage: M.homology()
         {0: 0, 1: Z^6, 2: Z}
     """

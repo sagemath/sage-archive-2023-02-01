@@ -61,7 +61,7 @@ def is_gale_ryser(r,s):
     If, given a binary matrix, these two vectors are easy to compute,
     the Gale-Ryser theorem lets us decide whether, given two
     non-negative vectors `r,s`, there exists a binary matrix
-    whose row/colum sums vectors are `r` and `s`.
+    whose row/column sums vectors are `r` and `s`.
 
     This functions answers accordingly.
 
@@ -1204,7 +1204,7 @@ class IntegerVectorsConstraints(IntegerVectors):
         """
         self.n = n
         self.k = k
-        if self.k >= 0:
+        if k is not None and self.k >= 0:
             constraints['length'] = self.k
         if 'outer' in constraints:
             constraints['ceiling'] = constraints['outer']
@@ -1270,6 +1270,23 @@ class IntegerVectorsConstraints(IntegerVectors):
             True
         """
         return not self.__eq__(rhs)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(IntegerVectors(min_slope=0)) == hash(IntegerVectors(min_slope=0))
+            True
+            sage: hash(IntegerVectors(2, min_slope=0)) == hash(IntegerVectors(2, min_slope=0))
+            True
+            sage: hash(IntegerVectors(2, 3, min_slope=0)) == hash(IntegerVectors(2, 3, min_slope=0))
+            True
+            sage: hash(IntegerVectors(min_slope=0)) != hash(IntegerVectors(min_slope=3))
+            True
+        """
+        return hash((self.n, self.k, tuple(self.constraints.items())))
 
     def __contains__(self, x):
         """
@@ -1525,6 +1542,6 @@ def IntegerVectors_nkconstraints(n=None, k=None, **constraints):
     return IntegerVectorsConstraints(n, k, **constraints)
 
 # October 2012: fixing outdated pickles which use classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nconstraints', IntegerVectorsConstraints)
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nkconstraints', IntegerVectorsConstraints)

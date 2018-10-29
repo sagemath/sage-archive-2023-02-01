@@ -1617,9 +1617,9 @@ cdef class Matrix(Matrix0):
         a more expansive ring.  Here we mix the rationals with a ring of
         polynomials with rational coefficients.  ::
 
-            sage: R = PolynomialRing(QQ, 'y')
+            sage: R.<y> = PolynomialRing(QQ)
             sage: A = matrix(QQ, 1, [1,2])
-            sage: B = matrix(R, 1, ['y', 'y^2'])
+            sage: B = matrix(R, 1, [y, y^2])
 
             sage: C = B.augment(A); C
             [  y y^2   1   2]
@@ -2178,6 +2178,10 @@ cdef class Matrix(Matrix0):
             sage: B = A.dense_matrix()
             sage: B.is_sparse()
             False
+            sage: A == B
+            True
+            sage: B.dense_matrix() is B
+            True
             sage: A*B
             [1 4]
             [0 1]
@@ -2218,10 +2222,8 @@ cdef class Matrix(Matrix0):
         if self.is_dense():
             return self
         cdef Matrix A
-        A = self.new_matrix(self._nrows, self._ncols, 0, coerce=False,
-                               copy=False, sparse=False)
-        for i,j in self.nonzero_positions():
-            A.set_unsafe(i,j,self.get_unsafe(i,j))
+        A = self.new_matrix(self._nrows, self._ncols, self,
+                coerce=False, sparse=False)
         A.subdivide(self.subdivisions())
         return A
 
@@ -2245,12 +2247,10 @@ cdef class Matrix(Matrix0):
             sage: B = A.sparse_matrix()
             sage: B.is_sparse()
             True
-            sage: A
-            [1 2]
-            [0 1]
-            sage: B
-            [1 2]
-            [0 1]
+            sage: A == B
+            True
+            sage: B.sparse_matrix() is B
+            True
             sage: A*B
             [1 4]
             [0 1]
@@ -2265,8 +2265,8 @@ cdef class Matrix(Matrix0):
         """
         if self.is_sparse():
             return self
-        A = self.new_matrix(self._nrows, self._ncols, entries = self.dict(), coerce=False,
-                               copy = False, sparse=True)
+        A = self.new_matrix(self._nrows, self._ncols, self,
+                coerce=False, sparse=True)
         A.subdivide(self.subdivisions())
         return A
 

@@ -15,6 +15,8 @@
 from __future__ import division, print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
+
+from sage.cpython.string cimport char_to_str
 from sage.ext.cplusplus cimport ccreadstr
 
 include "decl.pxi"
@@ -152,7 +154,7 @@ cdef class ntl_ZZX(object):
         """
         cdef char * val
         val = ZZX_repr(&self.x)
-        result = str(val)
+        result = char_to_str(val)
         cpp_delete_array(val)
         return result
 
@@ -962,7 +964,9 @@ cdef class ntl_ZZX(object):
         sig_on()
         cdef char* t
         t = ZZX_trace_list(&self.x)
-        return eval(string_delete(t).replace(' ', ','))
+        r = eval(char_to_str(t).replace(' ', ','))
+        string_delete(t)
+        return r
 
     def resultant(self, ntl_ZZX other, proof=None):
         """
@@ -981,18 +985,20 @@ cdef class ntl_ZZX(object):
             1345873
         """
         proof = proof_flag(proof)
-        # NOTES: Within a factor of 2 in speed compared to MAGMA.
+        # NOTE: Within a factor of 2 in speed compared to MAGMA.
         sig_on()
         return make_ZZ_sig_off(ZZX_resultant(&self.x, &other.x, proof))
 
     def norm_mod(self, ntl_ZZX modulus, proof=None):
         """
-        Return the norm of this polynomial modulo the modulus.  The
-        modulus must be monic, and of positive degree strictly greater
-        than the degree of self.  If proof=False (the default is
-        proof=None, see proof.polynomial or sage.structure.proof, but
-        the global default is proof=True) then it may use a randomized
-        strategy that errors with probability no more than $2^{-80}$.
+        Return the norm of this polynomial modulo the modulus.
+
+        The modulus must be monic, and of positive degree strictly
+        greater than the degree of self.  If proof=False (the default
+        is proof=None, see proof.polynomial or sage.structure.proof,
+        but the global default is proof=True) then it may use a
+        randomized strategy that errors with probability no more than
+        $2^{-80}$.
 
         EXAMPLES:
             sage: f = ntl.ZZX([1,2,0,3])

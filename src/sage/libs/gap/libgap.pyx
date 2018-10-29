@@ -49,13 +49,23 @@ equivalent::
     sage: libgap.eval('5/3 + 7*E(3)').sage()
     7*zeta3 + 5/3
 
-    sage: generators = libgap.AlternatingGroup(4).GeneratorsOfGroup().sage()
+    sage: gens_of_group = libgap.AlternatingGroup(4).GeneratorsOfGroup()
+    sage: generators = gens_of_group.sage()
     sage: generators   # a Sage list of Sage permutations!
-    [(1,2,3), (2,3,4)]
+    [[2, 3, 1], [1, 3, 4, 2]]
     sage: PermutationGroup(generators).cardinality()   # computed in Sage
     12
     sage: libgap.AlternatingGroup(4).Size()            # computed in GAP
     12
+
+We can also specify which group in Sage the permutations should
+consider themselves as elements of when converted to Sage::
+
+    sage: A4 = groups.permutation.Alternating(4)
+    sage: generators = gens_of_group.sage(parent=A4); generators
+    [(1,2,3), (2,3,4)]
+    sage: all(gen.parent() is A4 for gen in generators)
+    True
 
 So far, the following GAP data types can be directly converted to the
 corresponding Sage datatype:
@@ -241,17 +251,19 @@ AUTHORS:
 # stuff. Talk to me (Volker) if you want to work on that.
 #
 ##############################################################################
+
 from __future__ import print_function, absolute_import
 
 from .gap_includes cimport *
+from .util cimport *
+from .element cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, RingElement, Vector
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
-from sage.libs.gap.element cimport *
 
 
 ############################################################################
@@ -342,10 +354,17 @@ class Gap(Parent):
             0
             sage: libgap(int(0))
             0
+            sage: libgap(vector((0,1,2)))
+            [ 0, 1, 2 ]
+            sage: libgap(vector((1/3,2/3,4/5)))
+            [ 1/3, 2/3, 4/5 ]
+            sage: libgap(vector((1/3, 0.8, 3)))
+            [ 0.333333, 0.8, 3. ]
+
         """
         if isinstance(x, GapElement):
             return x
-        elif isinstance(x, (list, tuple)):
+        elif isinstance(x, (list, tuple, Vector)):
             return make_GapElement_List(self, make_gap_list(x))
         elif isinstance(x, dict):
             return make_GapElement_Record(self, make_gap_record(x))

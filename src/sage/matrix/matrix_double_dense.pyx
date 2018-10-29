@@ -47,12 +47,12 @@ TESTS::
 from __future__ import absolute_import
 
 import math
-from collections import Iterator, Sequence
 
 import sage.rings.real_double
 import sage.rings.complex_double
 
 from .matrix cimport Matrix
+from .args cimport MatrixArgs_init
 from sage.structure.element cimport ModuleElement,Vector
 from .constructor import matrix
 from sage.modules.free_module_element import vector
@@ -113,13 +113,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         6694819972852100501  # 64-bit
         1829383573           # 32-bit
     """
-    def __cinit__(self, parent, entries, copy, coerce):
-        """
-        Set up a new matrix
-        """
-        Matrix_dense.__init__(self,parent)
-        return
-
     def __create_matrix__(self):
         """
         Create a new uninitialized numpy matrix to hold the data for the class.
@@ -155,11 +148,23 @@ cdef class Matrix_double_dense(Matrix_dense):
         """
         return self.fetch('PLU_factors') is not None
 
-    def __init__(self, parent, entries, copy, coerce):
-        """
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
+        r"""
         Fill the matrix with entries.
 
         The numpy matrix must have already been allocated.
+
+        INPUT:
+
+        - ``parent`` -- a matrix space over ``RDF``
+
+        - ``entries`` -- see :func:`matrix`
+
+        - ``copy`` -- ignored (for backwards compatibility)
+
+        - ``coerce`` -- if True (the default), convert elements to the
+          base ring before passing them to NumPy. If False, pass the
+          elements to NumPy as given.
 
         EXAMPLES::
 
@@ -206,43 +211,12 @@ cdef class Matrix_double_dense(Matrix_dense):
             [        0.0 1.0 + 1.0*I]
             [2.0 + 2.0*I 3.0 + 3.0*I]
         """
-        cdef Py_ssize_t i,j
-        cdef cnumpy.npy_intp dims[2]
-        dims[0] = self._nrows
-        dims[1] = self._ncols
-        if isinstance(entries, (Iterator, Sequence)):
-            if not isinstance(entries, (list, tuple)):
-                entries = list(entries)
-
-            if len(entries) != self._nrows * self._ncols:
-                    raise TypeError("entries has wrong length")
-
-            if coerce:
-                for i from 0<=i<self._nrows:
-                    for j from 0<=j<self._ncols:
-                        self.set_unsafe(i,j,self._python_dtype(entries[i*self._ncols+j]))
-            else:
-                for i from 0<=i<self._nrows:
-                    for j from 0<=j<self._ncols:
-                        self.set_unsafe(i,j,entries[i*self._ncols+j])
-
-        else:
-            cnumpy.PyArray_FILLWBYTE(self._matrix_numpy, 0)
-
-            if entries is None:
-                z = self._python_dtype(0.0)
-            else:
-                try:
-                    z = self._python_dtype(entries)
-                except TypeError:
-                    raise TypeError("entries must be coercible to a list or float")
-            if z != 0:
-                if self._nrows != self._ncols:
-                    raise TypeError("scalar matrix must be square")
-                for i from 0<=i<self._ncols:
-                    self.set_unsafe(i,i,z)
-
-
+        ma = MatrixArgs_init(parent, entries)
+        cdef long i, j
+        it = ma.iter(coerce)
+        for i in range(ma.nrows):
+            for j in range(ma.ncols):
+                self.set_unsafe(i, j, next(it))
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object value):
         """
@@ -267,7 +241,6 @@ cdef class Matrix_double_dense(Matrix_dense):
                         cnumpy.PyArray_GETPTR2(self._matrix_numpy, i, j),
                         self._python_dtype(value))
         #TODO: Throw an error if status == -1
-
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
@@ -633,6 +606,9 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
             [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
             sage: B.condition()
+            doctest:warning
+            ...
+            ComplexWarning: Casting complex values to real discards the imaginary part
             203.851798...
             sage: B.condition(p='frob')
             203.851798...
@@ -681,9 +657,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             True
             sage: B = A.change_ring(CDF)
             sage: B.condition()
-            Traceback (most recent call last):
-            ...
-            LinAlgError: Singular matrix
+            +Infinity
 
         Improper values of ``p`` are caught.  ::
 
@@ -1024,12 +998,12 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         TESTS:
 
-        Bogus values of the ``eps`` keyword will be caught.  ::
+        Bogus values of the ``eps`` keyword will be caught::
 
             sage: A.singular_values(eps='junk')
             Traceback (most recent call last):
             ...
-            ValueError: could not convert string to float: junk
+            ValueError: could not convert string to float: ...
 
         AUTHOR:
 
@@ -1655,7 +1629,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         INPUT:
 
-        - ``self`` - a square matrix that is nonsigular (of full rank).
+        - ``self`` - a square matrix that is nonsingular (of full rank).
         - ``b`` - a vector of the correct size.  Elements of the vector
           must coerce into the base ring of the coefficient matrix.  In
           particular, if ``b`` has entries from ``CDF`` then ``self``
@@ -1794,7 +1768,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         INPUT:
 
-        - ``self`` - a square matrix that is nonsigular (of full rank).
+        - ``self`` - a square matrix that is nonsingular (of full rank).
         - ``b`` - a vector of the correct size.  Elements of the vector
           must coerce into the base ring of the coefficient matrix.  In
           particular, if ``b`` has entries from ``CDF`` then ``self``
@@ -2546,7 +2520,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: P.is_unitary(algorithm='orthonormal')
             Traceback (most recent call last):
             ...
-            ValueError: failed to create intent(cache|hide)|optional array-- must have defined dimensions but got (0,)
+            error: ((lwork==-1)||(lwork >= MAX(1,2*n))) failed for 3rd keyword lwork: zgees:lwork=0
 
         TESTS::
 
@@ -3662,8 +3636,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: m.numpy()
-            array([[ 0.,  1.,  2.],
-                   [ 3.,  4.,  5.]])
+            array([[0., 1., 2.],
+                   [3., 4., 5.]])
 
         Alternatively, numpy automatically calls this function (via
         the magic :meth:`__array__` method) to convert Sage matrices
@@ -3674,16 +3648,16 @@ cdef class Matrix_double_dense(Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
-            array([[ 0.,  1.,  2.],
-                   [ 3.,  4.,  5.]])
+            array([[0., 1., 2.],
+                   [3., 4., 5.]])
             sage: numpy.array(m).dtype
             dtype('float64')
             sage: m = matrix(CDF, 2, range(6)); m
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
-            array([[ 0.+0.j,  1.+0.j,  2.+0.j],
-                   [ 3.+0.j,  4.+0.j,  5.+0.j]])
+            array([[0.+0.j, 1.+0.j, 2.+0.j],
+                   [3.+0.j, 4.+0.j, 5.+0.j]])
             sage: numpy.array(m).dtype
             dtype('complex128')
 

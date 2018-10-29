@@ -152,7 +152,7 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0,
 
     verby = ~0 if verbose else 0
 
-    # Set the soefficient array:
+    # Set the coefficient array:
     coeffs = [Integer(a) for a in coeffs]
     args.degree = len(coeffs)-1
     args.cof = <mpz_t *> sig_malloc((args.degree+1) * sizeof(mpz_t))

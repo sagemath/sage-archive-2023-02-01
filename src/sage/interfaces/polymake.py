@@ -1,6 +1,12 @@
 r"""
 Interface to polymake
 
+polymake (https://polymake.org) is a mature open source package for
+research in polyhedral geometry and related fields, developed since 1997
+by Ewgenij Gawrilow and Michael Joswig and various contributors.
+
+polymake has been described in [GJ1997]_, [GJ2006]_, [JMP2009]_, [GJRW2010]_,
+[GHJ2016]_, and [AGHJLPR2017]_.
 """
 
 
@@ -105,12 +111,12 @@ class Polymake(ExtraTabCompletion, Expect):
 
     In order to use this interface, you need to either install the
     optional polymake package for Sage, or install polymake system-wide
-    on your computer.
+    on your computer; it is available from https://polymake.org.
 
     Type ``polymake.[tab]`` for a list of most functions
     available from your polymake install. Type
-    ``polymake.Function?`` for polymake's help about a given ``Function``
-    Type ``polymake(...)`` to create a new Magma
+    ``polymake.Function?`` for polymake's help about a given ``Function``.
+    Type ``polymake(...)`` to create a new polymake
     object, and ``polymake.eval(...)`` to run a string using
     polymake and get the result back as a string.
 
@@ -846,7 +852,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         When requesting help, polymake sometimes expect the user to choose
         from a list. In that situation, we abort with a warning, and show
-        the list from which the user can chose; we could demonstrate this using
+        the list from which the user can choose; we could demonstrate this using
         the :meth:`help` method, but here we use an explicit code evaluation::
 
             sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake # random
@@ -1192,7 +1198,7 @@ class Polymake(ExtraTabCompletion, Expect):
             raise ValueError("Unknown polymake application '{}'".format(app))
         self._application = app
         patterns = ["{} > ".format(app),            # 0: normal prompt
-                    "{} \([0-9]+\)> ".format(app),  # 1: continuation prompt
+                    r"{} \([0-9]+\)> ".format(app),  # 1: continuation prompt
                     "Please choose ".format(app),   # 2: user input expected when requesting "help"
                     "killed by signal",             # 3: what we are looking for when interrupting a computation
                     "polymake: +ERROR: +",          # 4: error
@@ -1393,7 +1399,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
                 out = P.get(name).strip()
         return out
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Comparison of polymake elements.
 

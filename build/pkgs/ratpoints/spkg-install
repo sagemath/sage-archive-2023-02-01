@@ -22,16 +22,6 @@ fi
 # Copy CFLAGS set externally to CCFLAGS.
 CCFLAGS="$CFLAGS"
 
-# When CFLAG64 is not set, set it to the default -m64
-if [[ -z $CFLAG64 ]]; then
-    CFLAG64=-m64
-fi
-
-if [[ "$SAGE64" = yes ]]; then
-    echo "Building with extra 64-bit flags for MacOS X and Open Solaris."
-    CCFLAGS="$CCFLAGS $CFLAG64"
-fi
-
 export CCFLAGS1
 export CCFLAGS2
 export CCFLAGS3

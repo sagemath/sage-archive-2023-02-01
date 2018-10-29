@@ -2,7 +2,7 @@ r"""
 Benchmarks
 
 Tests that will take a long time if something is wrong, but be very
-quick otherwise.  See http://wiki.sagemath.org/symbench.  The
+quick otherwise.  See https://wiki.sagemath.org/symbench.  The
 parameters chosen below are such that with pynac most of these take
 well less than a second, but would not even be feasible using Sage's
 Maxima-based symbolics.

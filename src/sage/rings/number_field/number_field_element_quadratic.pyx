@@ -255,16 +255,31 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         EXAMPLES::
 
             sage: K.<a> = QuadraticField(-1)
-            sage: f = 1 + a
-            sage: f._maxima_init_()
+            sage: (1 + a)._maxima_init_()
             '1+%i*1'
+            sage: (1+3*a)._fricas_init_()
+            '1+%i*3'
+
+            sage: K.<J> = QuadraticField(-1, embedding=CC(0,-1))
+            sage: J._maxima_init_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion implemented only for elements of quadratic fields with discriminant -1 and standard embedding
+
+            sage: K.<sqrt2> = QuadraticField(2, embedding=AA(2))
+            sage: sqrt2._maxima_init_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion implemented only for elements of quadratic fields with discriminant -1 and standard embedding
         """
         a = self.parent().gen()
-        if a**2 == -1:
+        if a**2 == -1 and self.standard_embedding:
             x0, x1 = self
             return str(x0) + "+" + "%i*" + str(x1)
-        else:
-            NumberFieldElement_absolute._maxima_init_(self, I)
+        raise NotImplementedError("conversion implemented only for elements of quadratic fields with discriminant -1 and standard embedding")
+
+    # by coincidence, maxima and fricas both use %i for the imaginary unit I
+    _fricas_init_ = _maxima_init_
 
     def _polymake_init_(self):
         """
@@ -748,7 +763,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         TESTS:
 
-        Check that coercions and conversions go throuh this method::
+        Check that coercions and conversions go through this method::
 
             sage: RBF.convert_map_from(QuadraticField(5))
             Conversion via _arb_ method map:

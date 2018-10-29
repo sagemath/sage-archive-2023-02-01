@@ -46,11 +46,12 @@ cdef class GenericGraph_pyx(SageObject):
 
 def spring_layout_fast_split(G, **options):
     """
-    Graphs each component of G separately, placing them adjacent to
-    each other. This is done because on a disconnected graph, the
-    spring layout will push components further and further from each
-    other without bound, resulting in very tight clumps for each
-    component.
+    Graph each component of G separately, placing them adjacent to
+    each other.
+
+    This is done because on a disconnected graph, the spring layout
+    will push components further and further from each other without
+    bound, resulting in very tight clumps for each component.
 
     .. NOTE::
 
@@ -63,7 +64,7 @@ def spring_layout_fast_split(G, **options):
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
-        sage: spring_layout_fast_split(G)
+        sage: D = spring_layout_fast_split(G); D  # random
         {0: [0.77..., 0.06...],
          ...
          902: [3.13..., 0.22...]}
@@ -88,12 +89,13 @@ def spring_layout_fast_split(G, **options):
         left += xmax - xmin + buffer
     return pos
 
+
 def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False, by_component = False, **options):
     """
     Spring force model layout
 
-    This function primarily acts as a wrapper around run_spring,
-    converting to and from raw c types.
+    This function primarily acts as a wrapper around :func:`run_spring`,
+    converting to and from raw C types.
 
     This kind of speed cannot be achieved by naive Cythonification of the
     function alone, especially if we require a function call (let alone
@@ -109,11 +111,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: pos = spring_layout_fast(G)
-        sage: pos[0]   # abs tol 0.1
+        sage: pos[0]  # random
         [0.00..., 0.03...]
-        sage: pos[902] # abs tol 0.1
-        [-0.48..., -0.10...]
-        sage: len(pos) == G.order()
+        sage: sorted(pos.keys()) == sorted(G)
         True
 
     With ``split=True``, each component of G is layed out separately,
@@ -130,21 +130,18 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: pos = spring_layout_fast(G, by_component = True)
-        sage: pos[0]   # abs tol 0.1
+        sage: pos[0]  # random
         [2.21..., -0.00...]
-        sage: pos[902] # abs tol 0.1
-        [3.07..., 0.86...]
         sage: len(pos) == G.order()
         True
     """
-
     if by_component:
         return spring_layout_fast_split(G, iterations=iterations, dim = dim,
                                         vpos = vpos, rescale = rescale, height = height,
                                         **options)
 
     G = G.to_undirected()
-    vlist = G.vertices() # this defines a consistent order
+    vlist = list(G) # this defines a consistent order
 
     cdef int i, j, x
     cdef int n = G.order()
@@ -493,7 +490,7 @@ def length_and_string_from_graph6(s):
     else: # only first byte is N
         o = ord(s[0])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         n = o - 63
         s = s[1:]
     return n, s
@@ -524,7 +521,7 @@ def binary_string_from_graph6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -554,7 +551,7 @@ def binary_string_from_dig6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -710,11 +707,21 @@ cdef class SubgraphSearch:
             sage: S._initialization()
             sage: S.__next__()
             [0, 1, 2]
-        """
 
-        memset(self.busy, 0, self.ng * sizeof(int))
-        # 0 is the first vertex we use, so it is at first busy
-        self.busy[0] = 1
+        TESTS:
+
+        Check that :trac:`21828` is fixed::
+
+            sage: Poset().is_incomparable_chain_free(1,1)   # indirect doctest
+            True
+        """
+        cdef int i
+
+        if self.ng > 0:
+            # 0 is the first vertex we use, so it is at first busy
+            self.busy[0] = 1
+            for i in range(1, self.ng):
+                self.busy[i] = 0
         # stack -- list of the vertices which are part of the partial copy of H
         # in G.
         #
@@ -743,6 +750,7 @@ cdef class SubgraphSearch:
             sage: g.subgraph_search(graphs.CycleGraph(5))
             Subgraph of (Petersen graph): Graph on 5 vertices
         """
+        self.mem = MemoryAllocator()
 
         # Storing the number of vertices
         self.ng = G.order()
@@ -759,27 +767,18 @@ cdef class SubgraphSearch:
 
         # A vertex is said to be busy if it is already part of the partial copy
         # of H in G.
-        self.busy       = <int *>  sig_malloc(self.ng * sizeof(int))
-        self.tmp_array  = <int *>  sig_malloc(self.ng * sizeof(int))
-        self.stack      = <int *>  sig_malloc(self.nh * sizeof(int))
-        self.vertices   = <int *>  sig_malloc(self.nh * sizeof(int))
-        self.line_h_out = <int **> sig_malloc(self.nh * sizeof(int *))
-        self.line_h_in  = <int **> sig_malloc(self.nh * sizeof(int *)) if self.directed else NULL
+        self.busy       = <int *>  self.mem.allocarray(self.ng, sizeof(int))
+        self.tmp_array  = <int *>  self.mem.allocarray(self.ng, sizeof(int))
+        self.stack      = <int *>  self.mem.allocarray(self.nh, sizeof(int))
+        self.vertices   = <int *>  self.mem.allocarray(self.nh, sizeof(int))
+        self.line_h_out = <int **> self.mem.allocarray(self.nh, sizeof(int *))
+        self.line_h_in  = <int **> self.mem.allocarray(self.nh, sizeof(int *)) if self.directed else NULL
 
-        if self.line_h_out is not NULL:
-            self.line_h_out[0] = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
-        if self.line_h_in is not NULL:
-            self.line_h_in[0]  = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
-
-        if (self.tmp_array     == NULL or
-            self.busy          == NULL or
-            self.stack         == NULL or
-            self.vertices      == NULL or
-            self.line_h_out    == NULL or
-            self.line_h_out[0] == NULL or
-            (self.directed and self.line_h_in == NULL) or
-            (self.directed and self.line_h_in[0] == NULL)):
-            raise MemoryError()
+        self.line_h_out[0] = <int *> self.mem.allocarray(self.nh*self.nh,
+                                            sizeof(int))
+        if self.directed:
+            self.line_h_in[0]  = <int *> self.mem.allocarray(self.nh*self.nh,
+                                            sizeof(int))
 
         # Should we look for induced subgraphs ?
         if induced:
@@ -833,6 +832,8 @@ cdef class SubgraphSearch:
             sage: S.__next__()
             [0, 1, 2]
         """
+        if self.ng == 0:
+            raise StopIteration
         sig_on()
         cdef bint is_admissible
         cdef int * tmp_array = self.tmp_array
@@ -902,23 +903,6 @@ cdef class SubgraphSearch:
 
         sig_off()
         raise StopIteration
-
-    def __dealloc__(self):
-        r"""
-        Freeing the allocated memory.
-        """
-        if self.line_h_in  is not NULL:
-            sig_free(self.line_h_in[0])
-        if self.line_h_out is not NULL:
-            sig_free(self.line_h_out[0])
-
-        # Free the memory
-        sig_free(self.busy)
-        sig_free(self.stack)
-        sig_free(self.tmp_array)
-        sig_free(self.vertices)
-        sig_free(self.line_h_out)
-        sig_free(self.line_h_in)
 
 cdef inline bint vectors_equal(int n, int *a, int *b):
     r"""
@@ -1261,7 +1245,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     # To clean the output when find_path is None or a number
     find_path = (find_path > 0)
 
-    if G.is_clique():
+    if G.is_clique(induced=False):
         # We have an hamiltonian path since n >= 2, but we have an hamiltonian
         # cycle only if n >= 3
         return find_path or n >= 3, G.vertices()
@@ -1448,9 +1432,10 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
 
     return (True, output)
 
+
 def transitive_reduction_acyclic(G):
     r"""
-    Returns the transitive reduction of an acyclic digraph
+    Return the transitive reduction of an acyclic digraph.
 
     INPUT:
 
@@ -1464,7 +1449,7 @@ def transitive_reduction_acyclic(G):
         True
     """
     cdef int  n = G.order()
-    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
+    cdef dict v_to_int = {vv: i for i, vv in enumerate(G)}
     cdef int  u, v, i
 
     cdef list linear_extension

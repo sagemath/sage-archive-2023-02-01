@@ -23,20 +23,19 @@ EXAMPLES::
     (IntSlider(value=5, description=u'x', max=10), Output())
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from ipywidgets.widgets import SelectionSlider, ValueWidget
-from ipywidgets.widgets.interaction import interactive, signature, ValueWidget
-from copy import copy
-from collections import Iterable, Iterator
+from ipywidgets.widgets import SelectionSlider, ValueWidget, ToggleButtons
+from ipywidgets.widgets.interaction import interactive, signature
+from collections import Iterable, Iterator, OrderedDict
 from .widgets import EvalText, SageColorPicker
 from sage.structure.element import parent
 from sage.symbolic.ring import SR
@@ -88,7 +87,7 @@ class sage_interactive(interactive):
 
         # Check for auto_update in signature
         sig = signature(f)
-        params = copy(sig.parameters)
+        params = OrderedDict(sig.parameters)
         try:
             p_auto_update = params.pop("auto_update")
         except KeyError:
@@ -101,6 +100,12 @@ class sage_interactive(interactive):
         if self.manual:
             # In Sage, manual interacts are always run once
             self.on_displayed(self.update)
+        else:
+            # In automatic mode, clicking on a ToggleButtons button
+            # should also run the interact
+            for widget in self.kwargs_widgets:
+                if isinstance(widget, ToggleButtons):
+                    widget.on_msg(self.update)
 
     def __repr__(self):
         """
@@ -116,8 +121,8 @@ class sage_interactive(interactive):
         s = "Manual interactive" if self.manual else "Interactive"
         widgets = [w for w in self.children if isinstance(w, ValueWidget)]
         n = len(widgets)
-        s += " function %r with %s widget%s" % (
-                self.f, n, "s" if n != 1 else "")
+        s += " function %r with %s widget%s" % (self.f, n,
+                                                "s" if n != 1 else "")
         for w in widgets:
             s += "\n  %s: %s" % (w._kwarg, w)
         return s
@@ -131,8 +136,10 @@ class sage_interactive(interactive):
 
             sage: from sage.repl.ipython_kernel.interact import sage_interactive
             sage: def myfunc(x=[1,2,3], auto_update=False): pass
-            sage: sage_interactive(myfunc).signature().parameters
+            sage: sage_interactive(myfunc).signature().parameters  # py2
             OrderedDict([('x', <Parameter ... 'x'>)])
+            sage: sage_interactive(myfunc).signature().parameters  # py3
+            mappingproxy({'x': <Parameter "x=[1, 2, 3]">})
         """
         return self.__signature
 
@@ -203,6 +210,7 @@ class sage_interactive(interactive):
             widget.value = abbrev[0]
             return widget
         # Numerically evaluate symbolic expressions
+
         def n(x):
             if parent(x) is SR:
                 return x.numerical_approx()

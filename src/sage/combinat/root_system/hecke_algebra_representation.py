@@ -81,8 +81,9 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
     REFERENCES:
 
     .. [HST2008] \F. Hivert, A. Schilling, N. Thiery,
-       Hecke group algebras as quotients of affine Hecke algebras at level 0,
-       Journal of Combinatorial Theory, Series A 116 (2009) 844-863 ( arXiv:0804.3781 [math.RT] )
+       *Hecke group algebras as quotients of affine Hecke algebras at level 0*,
+       Journal of Combinatorial Theory, Series A 116 (2009) 844-863
+       (:arxiv:`0804.3781`)
     """
     def __init__(self, domain, on_basis, cartan_type, q1, q2, q=ZZ.one(), side="right"):
         r"""
@@ -800,7 +801,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
         classical operators `T_1, \ldots, T_n` from `T` and `T_Y` coincide.
     """
     def __init__(self, T, T_Y = None, normalized = True):
-        """
+        r"""
         INPUT:
 
         - ``T`` -- a family `(T_i)_{i\in I}` implementing the action of
@@ -946,7 +947,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
 
     @abstract_method
     def affine_retract(self, mu):
-        """
+        r"""
         Retract `\mu` from a space admitting an action of the affine Weyl group.
 
         EXAMPLES::

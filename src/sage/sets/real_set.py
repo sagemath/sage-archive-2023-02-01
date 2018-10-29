@@ -610,6 +610,85 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             return self._upper_closed
         return False
 
+    def __mul__(left, right):
+        r"""
+        Scale an interval by a scalar on the left or right.
+
+        If scaled with a negative number, the interval is flipped.
+
+        EXAMPLES::
+
+            sage: i = RealSet.open_closed(0,2)[0]; i
+            (0, 2]
+            sage: 2 * i
+            (0, 4]
+            sage: 0 * i
+            {0}
+            sage: (-2) * i
+            [-4, 0)
+            sage: i * (-3)
+            [-6, 0)
+            sage: i * 0
+            {0}
+            sage: i * 1
+            (0, 2]
+
+        TESTS::
+
+            sage: from sage.sets.real_set import InternalRealInterval
+            sage: i = InternalRealInterval(RLF(0), False, RLF(0), False)
+            sage: (0 * i).is_empty()
+            True
+        """
+        if not isinstance(right, InternalRealInterval):
+            right = RLF(right)
+            if left.is_empty():
+                return left
+            lower = left._lower * right
+            lower_closed = left._lower_closed
+            upper = left._upper * right
+            upper_closed = left._upper_closed
+            scalar = right
+        elif not isinstance(left, InternalRealInterval):
+            left = RLF(left)
+            if right.is_empty():
+                return right
+            lower = left * right._lower
+            lower_closed = right._lower_closed
+            upper = left * right._upper
+            upper_closed = right._upper_closed
+            scalar = left
+        else:
+            return NotImplemented
+        if scalar == RLF(0):
+            return InternalRealInterval(RLF(0), True, RLF(0), True)
+        elif scalar < RLF(0):
+            lower, lower_closed, upper, upper_closed = upper, upper_closed, lower, lower_closed
+        if lower == -infinity:
+            lower = -infinity
+        if upper == infinity:
+            upper = infinity
+        return InternalRealInterval(lower, lower_closed,
+                                    upper, upper_closed)
+
+    def __rmul__(self, other):
+        r"""
+        Scale an interval by a scalar on the left.
+
+        If scaled with a negative number, the interval is flipped.
+
+        EXAMPLES::
+
+            sage: i = RealSet.open_closed(0,2)[0]; i
+            (0, 2]
+            sage: 2 * i
+            (0, 4]
+            sage: 0 * i
+            {0}
+            sage: (-2) * i
+            [-4, 0)
+        """
+        return self * other
 
 @richcmp_method
 class RealSet(UniqueRepresentation, Parent):
@@ -1624,3 +1703,40 @@ class RealSet(UniqueRepresentation, Parent):
             return sib.name('RealSet')()
         else:
             return sib.sum(interval_input(i) for i in self)
+
+    def __mul__(left, right):
+        r"""
+        Scale a real set by a scalar on the left or right.
+
+        EXAMPLES::
+
+            sage: A = RealSet([0, 1/2], (2, infinity)); A
+            [0, 1/2] + (2, +oo)
+            sage: 2 * A
+            [0, 1] + (4, +oo)
+            sage: A * 100
+            [0, 50] + (200, +oo)
+            sage: 1.5 * A
+            [0.000000000000000, 0.750000000000000] + (3.00000000000000, +oo)
+            sage: (-2) * A
+            (-oo, -4) + [-1, 0]
+        """
+        if not isinstance(right, RealSet):
+            return RealSet(*[e*right for e in left])
+        elif not isinstance(left, RealSet):
+            return RealSet(*[left*e for e in right])
+        else:
+            return NotImplemented
+
+    def __rmul__(self, other):
+        r"""
+        Scale a real set by a scalar on the left.
+
+        TESTS::
+
+            sage: A = RealSet([0, 1/2], RealSet.unbounded_above_closed(2)); A
+            [0, 1/2] + [2, +oo)
+            sage: pi * A
+            [0, 1/2*pi] + [2*pi, +oo)
+        """
+        return self * other

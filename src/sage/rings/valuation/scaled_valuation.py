@@ -20,9 +20,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.structure.factory import UniqueFactory
 
-from valuation import DiscreteValuation
+from .valuation import DiscreteValuation
+
 
 class ScaledValuationFactory(UniqueFactory):
     r"""
@@ -78,7 +81,7 @@ class ScaledValuationFactory(UniqueFactory):
 
         assert not isinstance(base, ScaledValuation_generic)
 
-        from valuation_space import DiscretePseudoValuationSpace
+        from .valuation_space import DiscretePseudoValuationSpace
         parent = DiscretePseudoValuationSpace(base.domain())
         return parent.__make_element_class__(ScaledValuation_generic)(parent, base, s)
 
@@ -226,7 +229,11 @@ class ScaledValuation_generic(DiscreteValuation):
             3 * 5-adic valuation
 
         """
-        return ScaledValuation(self._base_valuation.restriction(ring), self._scale)
+        restricted = self._base_valuation.restriction(ring)
+        if restricted.is_trivial():
+            # trivial valuations can not be scaled explicitly for caching reasons
+            return restricted
+        return ScaledValuation(restricted, self._scale)
 
     def _strictly_separating_element(self, other):
         r"""

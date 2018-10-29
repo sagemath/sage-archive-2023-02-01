@@ -213,7 +213,8 @@ if (!cdf_py_call_helper(i0, n_i1, i1, &o0)) {
 """)
             ]
         for (name, op) in [('add', '+'), ('sub', '-'),
-                           ('mul', '*'), ('div', '/')]:
+                           ('mul', '*'), ('div', '/'),
+                           ('truediv', '/')]:
             instrs.append(instr_infix(name, pg('SS', 'S'), op))
         instrs.append(instr_funcall_2args('pow', pg('SS', 'S'), 'cpow'))
         instrs.append(instr_funcall_2args('ipow', pg('SD', 'S'), 'cpow_int'))

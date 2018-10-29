@@ -77,6 +77,12 @@ cdef class FieldConverter_class:
     have a common interface for elements of prime and non-prime fields;
     see :class:`PrimeFieldConverter_class`.
 
+    .. NOTE::
+
+        This class is really meant to be used only from Cython.
+        We do make the methods available from Python, but that is
+        for testing only.
+
     .. WARNING::
 
         Before calling the ``fel_to_field`` or ``field_to_fel`` methods,
@@ -162,6 +168,12 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
     This class is for prime fields only. It exists in order to have a
     common interface for elements of prime and non-prime fields; see
     :class:`FieldConverter_class`.
+
+    .. NOTE::
+
+        This class is really meant to be used only from Cython.
+        We do make the methods available from Python, but that is
+        for testing only.
 
     .. WARNING::
 

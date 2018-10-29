@@ -1917,6 +1917,16 @@ def xgcd(a, b):
         (4, 1, 0)
         sage: xgcd(4, mpz(8))       # optional - gmpy2
         (4, 1, 0)
+
+    TESTS:
+
+    We check that :trac:`3330` has been fixed::
+
+        sage: R.<a,b> = NumberField(x^2-3,'g').extension(x^2-7,'h')[]
+        sage: h = R.base_ring().gen()
+        sage: S.<y> = R.fraction_field()[]
+        sage: xgcd(y^2, a*h*y+b)
+        (1, 7*a^2/b^2, (((-h)*a)/b^2)*y + 1/b)
     """
     try:
         return a.xgcd(b)

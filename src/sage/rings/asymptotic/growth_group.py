@@ -3577,6 +3577,67 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         """
         return MonomialGrowthGroupFunctor(self._var_), self.base()
 
+    @classmethod
+    def factory(cls,
+                base, var,
+                extend_by_non_growth_group=False,
+                return_factors=False,
+                **kwds):
+        r"""
+        Create a monomial growth group.
+
+        INPUT:
+
+        - ``base``, ``var``, keywords -- use in the initialization of the
+          exponential growth group; see :class:`MonomialGrowthGroup`
+          for details.
+
+        - ``extend_by_non_growth_group`` -- a boolean (default ``False``). If set, then
+          the growth group consists of two parts, one part dealing with
+          the absolute values of the bases and one for their arguments.
+
+        - ``return_factors`` -- a boolean (default: ``False``). If set,
+          then a tuple of the (cartesian) factors of this growth group
+          is returned.
+
+        OUTPUT:
+
+        A growth group or tuple of growth groups.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: MonomialGrowthGroup.factory(ZZ, 'n')
+            Growth Group n^ZZ
+            sage: MonomialGrowthGroup.factory(ImaginaryGroup(ZZ), 'n')
+            Growth Group n^(ZZ*I)
+
+        TESTS::
+
+            sage: MonomialGrowthGroup.factory(ZZ, 'n', return_factors=True)
+            (Growth Group n^ZZ,)
+            sage: MonomialGrowthGroup.factory(ZZ, 'n', extend_by_non_growth_group=True)
+            Growth Group n^ZZ * n^(ZZ*I)
+            sage: MonomialGrowthGroup.factory(ZZ, 'n', return_factors=True,
+            ....:                             extend_by_non_growth_group=True)
+            (Growth Group n^ZZ, Growth Group n^(ZZ*I))
+        """
+        from sage.categories.cartesian_product import cartesian_product
+        from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+
+        if isinstance(base, ImaginaryGroup):
+            groups = (cls._non_growth_group_class_(base, var, **kwds),)
+        elif extend_by_non_growth_group:
+            M = cls(base, var, **kwds)
+            groups = (M, M.non_growth_group())
+        else:
+            groups = (cls(base, var, **kwds),)
+
+        if return_factors:
+            return tuple(groups)
+        else:
+            return cartesian_product(groups)
 
     def non_growth_group(self):
         r"""

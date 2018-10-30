@@ -5064,14 +5064,20 @@ class GrowthGroupFactory(UniqueFactory):
 
         def remove_parentheses(s):
             while s.startswith('(') and s.endswith(')'):
-                s = s[1:-1]
+                s = s[1:-1].strip()
             return s
 
-        def has_r_property(s, p, invert=False):
-            if s.endswith('_+'):
-                return s[:-2], True != invert
-            else:
-                return s, False != invert
+        def has_l_property(s, properties, invert=False):
+            for p in properties:
+                if s.startswith(p):
+                    return s[len(p):].strip(), True != invert
+            return s, False != invert
+
+        def has_r_property(s, properties, invert=False):
+            for p in properties:
+                if s.endswith(p):
+                    return s[:-len(p)].strip(), True != invert
+            return s, False != invert
 
         factors = []
 
@@ -5090,8 +5096,16 @@ class GrowthGroupFactory(UniqueFactory):
             b = remove_parentheses(b)
             e = remove_parentheses(e)
 
-            b, extend_B_by_non_growth_group = has_r_property(b, '_+', invert=True)
-            e, extend_E_by_non_growth_group = has_r_property(e, '[I]', invert=False)
+            b, extend_B_by_non_growth_group = has_r_property(
+                b, ['_+'], invert=True)
+            e, extend_E_by_non_growth_group = has_r_property(
+                e, ['[I]', '[i]'], invert=False)
+            e, l_E_only_imaginary_group = has_l_property(e, ['I*', 'I *'])
+            e, r_E_only_imaginary_group = has_r_property(e, ['*I', '* I'])
+            E_only_imaginary_group = l_E_only_imaginary_group or r_E_only_imaginary_group
+            if E_only_imaginary_group and extend_E_by_non_growth_group:
+                raise ValueError("'{}' is not a valid substring of '{}' describing "
+                                 "a growth group.".format(factor, specification))
 
             try:
                 B = repr_short_to_parent(b)
@@ -5109,6 +5123,8 @@ class GrowthGroupFactory(UniqueFactory):
                                "a growth group.".format(factor, ' * '.join(sfactors))),
                     exc_b, exc_e)
             elif B is None and E is not None:
+                if E_only_imaginary_group:
+                    E = ImaginaryGroup(E)
                 factors.append(GrowthGroupFactor(
                     cls=MonomialGrowthGroup,
                     base=E,

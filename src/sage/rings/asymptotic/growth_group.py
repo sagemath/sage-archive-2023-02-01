@@ -4750,6 +4750,89 @@ class ExponentialNonGrowthGroupFunctor(ExponentialGrowthGroupFunctor):
         """
         return ExponentialNonGrowthGroup(base, self.var)
 
+
+class MonomialNonGrowthElement(GenericNonGrowthElement,
+                               MonomialGrowthElement):
+    r"""
+    An element of :class:`MonomialNonGrowthGroup`.
+    """
+    pass
+
+
+class MonomialNonGrowthGroup(GenericNonGrowthGroup,
+                             MonomialGrowthGroup):
+    r"""
+    A growth group whose base is an
+    :mod:`imaginary group <sage.groups.misc_gps.imaginary_groups>`.
+
+    EXAMPLES::
+
+        sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+        sage: from sage.rings.asymptotic.growth_group import MonomialNonGrowthGroup
+        sage: J = MonomialNonGrowthGroup(ImaginaryGroup(ZZ), 'n')
+        sage: J.an_element()
+        n^I
+
+    TESTS::
+
+        sage: J.category()
+        Join of Category of commutative groups and Category of posets
+    """
+
+    Element = MonomialNonGrowthElement
+
+    def construction(self):
+        r"""
+        Return the construction of this growth group.
+
+        OUTPUT:
+
+        A pair whose first entry is an
+        :class:`MonomialNonGrowthGroupFunctor`
+        and its second entry the base.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^(QQ*I)').construction()
+            (MonomialNonGrowthGroup[x], Imaginary Group over Rational Field)
+        """
+        return MonomialNonGrowthGroupFunctor(self._var_), self.base()
+
+
+MonomialGrowthGroup._non_growth_group_class_ = MonomialNonGrowthGroup
+
+
+class MonomialNonGrowthGroupFunctor(MonomialGrowthGroupFunctor):
+    r"""
+    A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
+    for :class:`MonomialNonGrowthGroup`.
+    """
+
+    _functor_name = 'MonomialNonGrowthGroup'
+
+    def _apply_functor(self, base):
+        r"""
+        Apply this functor to the given ``base``.
+
+        INPUT:
+
+        - ``base`` - anything :class:`MonomialNonGrowthGroup` accepts.
+
+        OUTPUT:
+
+        An exponential argument growth group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F, R = GrowthGroup('n^(ZZ*I)').construction()
+            sage: F(R)  # indirect doctest
+            Growth Group n^(ZZ*I)
+        """
+        return MonomialNonGrowthGroup(base, self.var)
+
+
 GrowthGroupFactor = namedtuple('GrowthGroupFactor',
                                ['cls', 'base', 'var',
                                 'extend_by_non_growth_group'])

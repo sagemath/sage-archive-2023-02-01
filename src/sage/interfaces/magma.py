@@ -376,7 +376,7 @@ class Magma(ExtraTabCompletion, Expect):
             sage: m.set_seed(1) # optional - magma
             1
             sage: [m.Random(100) for i in range(5)] # optional - magma
-            [95, 20, 61, 59, 24]
+            [13, 55, 84, 100, 37]
         """
         if seed is None:
             seed = self.rand_seed()
@@ -2801,10 +2801,6 @@ class MagmaGBLogPrettyPrinter:
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Cyclic(P)
             sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma, not tested
-
-            Homogeneous weights search
-            Number of variables: 3, nullity: 1
-            Exact search time: 0.000
             ********************
             FAUGERE F4 ALGORITHM
             ********************
@@ -2865,8 +2861,9 @@ class MagmaGBLogPrettyPrinter:
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Katsura(P)
             sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma
-            <BLANKLINE>
-            Homogeneous weights search
+            ********************
+            FAUGERE F4 ALGORITHM
+            ********************
             ...
             Total Faugere F4 time: ..., real time: ...
         """

@@ -1535,10 +1535,10 @@ class StdOutContext:
             self.interface._start()
         self._logfile_backup = self.interface._expect.logfile
 
-        if isinstance(sys.stdout, io.TextIOWrapper):
-            stdout = sys.stdout.buffer
+        if isinstance(self.stdout, io.TextIOWrapper):
+            stdout = self.stdout.buffer
         else:
-            stdout = sys.stdout
+            stdout = self.stdout
 
         if self.interface._expect.logfile:
             self.interface._expect.logfile = Multiplex(self.interface._expect.logfile, stdout)

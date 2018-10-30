@@ -1973,7 +1973,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             parent = self
         else:
             parent = self._underlying_class()(raw_element.parent(), self._var_,
-                                            category=self.category())
+                                              category=self.category())
         return parent(raw_element=raw_element)
 
     def le(self, left, right):

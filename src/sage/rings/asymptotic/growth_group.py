@@ -2798,6 +2798,14 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^(-1)
             sage: P(x^-42)  # indirect doctest
             x^(-42)
+
+        ::
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: from sage.rings.asymptotic.growth_group import MonomialNonGrowthGroup
+            sage: J = MonomialNonGrowthGroup(ImaginaryGroup(ZZ), 'n')
+            sage: J.an_element()  # indirect doctest
+            n^I
         """
         if latex:
             from sage.misc.latex import latex as latex_repr
@@ -2811,12 +2819,13 @@ class MonomialGrowthElement(GenericGrowthElement):
         var = f(self.parent()._var_)
         if self.exponent.is_zero():
             return '1'
-        elif self.exponent.is_one():
+        elif self.exponent == 1:
             return var
         elif latex:
             return repr_op(var, '^', latex=True) + \
                 '{' + latex_repr(self.exponent)._latex_() + '}'
-        elif self.exponent in ZZ and self.exponent > 0:
+        elif self.exponent in ZZ and self.exponent > 0 \
+                or str(self.exponent).isalpha():
             return repr_op(var, '^') + str(self.exponent)
         else:
             return repr_op(var, '^') + '(' + str(self.exponent) + ')'

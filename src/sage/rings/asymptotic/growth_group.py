@@ -756,7 +756,7 @@ class PartialConversionElement(SageObject):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialNonGrowthGroup, PartialConversionElement
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: Q = ExponentialGrowthGroup(QQ, 'n')
             sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
             sage: PartialConversionElement(Q, -42/5).is_compatible(U)
@@ -2201,7 +2201,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialNonGrowthGroup
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: Q = ExponentialGrowthGroup(QQ, 'n')
             sage: Z = ExponentialGrowthGroup(ZZ, 'n')
             sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
@@ -3585,9 +3585,9 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: GrowthGroup('n^ZZ').non_growth_group()
             Growth Group n^(ZZ*I)
         """
-        from sage.groups.roots_of_unity_group import ImaginaryGroup
-        I = ImaginaryGroup(self.base())
-        return self._non_growth_group_class_(I, self._var_)
+        from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+        J = ImaginaryGroup(self.base())
+        return self._non_growth_group_class_(J, self._var_)
 
 class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
@@ -3758,7 +3758,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'x')
             sage: U((-1)^x)  # indirect doctest
             (-1)^x
@@ -3812,7 +3812,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         ::
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'x')
             sage: latex(U((-1)^x))  # indirect doctest
             \left(-1\right)^{x}
@@ -4461,13 +4461,13 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             (Growth Group QQ^n, Growth Group U^n)
             sage: ExponentialGrowthGroup.factory(QQ, 'n', extend_by_non_growth_group=False)
             Growth Group QQ^n
-            sage: from sage.groups.roots_of_unity_group import ArgumentGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
             sage: U = ArgumentGroup(exponents=QQ)
             sage: ExponentialGrowthGroup.factory(U, 'n')
             Growth Group U^n
         """
         from sage.categories.cartesian_product import cartesian_product
-        from sage.groups.roots_of_unity_group import AbstractArgumentGroup
+        from sage.groups.misc_gps.argument_groups import AbstractArgumentGroup
         from sage.rings.complex_arb import ComplexBallField
         from sage.rings.complex_field import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
@@ -4522,7 +4522,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: GrowthGroup('(CBF_+)^x').non_growth_group()
             Growth Group U_RBF^x
         """
-        from sage.groups.roots_of_unity_group import ArgumentGroup
+        from sage.groups.misc_gps.argument_groups import ArgumentGroup
         U = ArgumentGroup(domain=self.base())
         return self._non_growth_group_class_(U, self._var_)
 
@@ -4611,7 +4611,7 @@ class GenericNonGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
             sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
             sage: U(raw_element=-1) < U(raw_element=1)
@@ -4680,7 +4680,7 @@ class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
 
     EXAMPLES::
 
-        sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+        sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
         sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
         sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
         sage: U(raw_element=-1)
@@ -4963,6 +4963,7 @@ class GrowthGroupFactory(UniqueFactory):
             >> *and* NameError: name 'y' is not defined
         """
         from .misc import repr_short_to_parent, split_str_by_op
+        from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
 
         kwds.setdefault('ignore_variables', ('e',))
 

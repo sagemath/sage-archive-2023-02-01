@@ -3959,8 +3959,16 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
             sage: (~P(raw_element=1)).parent()
             Growth Group QQ^x
+
+        ::
+
+            sage: U = GrowthGroup('U^n')
+            sage: zeta = U.an_element(); zeta
+            (-1)^n
+            sage: ~zeta
+            (-1)^n
         """
-        return self.parent()._create_element_in_extension_(1 / self.base)
+        return self.parent()._create_element_in_extension_(~self.base)
 
     def __pow__(self, exponent):
         r"""

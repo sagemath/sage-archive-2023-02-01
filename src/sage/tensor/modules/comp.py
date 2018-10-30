@@ -1800,16 +1800,16 @@ class Components(SageObject):
                     ind_step = max(1, int(len(ind_list)/nproc))
                     local_list = lol(ind_list, ind_step)
                     # list of input parameters:
-                    listParalInput = [(other, ind_part) for ind_part in local_list]
+                    listParalInput = [(self, ind_part) for ind_part in local_list]
 
                     @parallel(p_iter='multiprocessing',ncpus=nproc)
-                    def paral_mul2(a, local_list_ind):
+                    def paral_mul(a, local_list_ind):
                         partial = []
                         for ind in local_list_ind:
                             partial.append([ind, a[[ind[0]]]*a[[ind[1]]]])
                         return partial
 
-                    for ii,val in paral_mul2(listParalInput):
+                    for ii,val in paral_mul(listParalInput):
                         for jj in val:
                             result[[jj[0]]] = jj[1]
                 else:

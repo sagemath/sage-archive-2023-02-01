@@ -224,3 +224,244 @@ class ImaginaryElement(AdditiveGroupElement):
         P = self.parent()
         return P.element_class(P, -self._imag_)
 
+
+class ImaginaryGroup(UniqueRepresentation, Parent):
+    r"""
+    A group whose elements are purely imaginary.
+
+    INPUT:
+
+    - ``base`` -- a SageMath parent
+
+    - ``category`` -- a category
+    """
+
+    Element = ImaginaryElement
+
+    @staticmethod
+    def __classcall__(cls, base, category=None):
+        r"""
+        See :class:`ImaginaryGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: J = ImaginaryGroup(ZZ)  # indirect doctest
+            sage: J.category()
+            Category of commutative additive groups
+        """
+        category = cls._determine_category_(category)
+        return super(ImaginaryGroup, cls).__classcall__(
+            cls, base, category)
+
+    @staticmethod
+    def _determine_category_(category):
+        r"""
+        Return the category of this imaginary group.
+
+        INPUT:
+
+        - ``category`` -- a category or ``None`` (in which case the output
+          equals ``category``)
+
+        OUTPUT:
+
+        A category.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: from sage.categories.additive_groups import AdditiveGroups
+            sage: ImaginaryGroup._determine_category_(None)
+            Category of commutative additive groups
+            sage: ImaginaryGroup._determine_category_(AdditiveGroups())
+            Category of additive groups
+        """
+        if category is None:
+            from sage.categories.additive_groups import AdditiveGroups
+            category = AdditiveGroups().AdditiveCommutative()
+        return category
+
+    def __init__(self, base, category):
+        r"""
+        See :class:`ImaginaryGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: J = ImaginaryGroup(ZZ)  # indirect doctest
+        """
+        super(ImaginaryGroup, self).__init__(category=category,
+                                             base=base)
+
+    def __hash__(self):
+        r"""
+        Return a hash value of this imaginary group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: J = ImaginaryGroup(ZZ)
+            sage: hash(J)  # indirect doctest, random
+            42
+        """
+        return hash((self.__class__, self.base()))
+
+    def _an_element_(self):
+        r"""
+        Return an element of this imaginary group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: J = ImaginaryGroup(ZZ)
+            sage: J.an_element()  # indirect doctest
+            I
+        """
+        return self.element_class(self, self.base().an_element())
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this imaginary group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: J = ImaginaryGroup(ZZ)
+            sage: J  # indirect doctest
+            Imaginary Group over Integer Ring
+        """
+        return 'Imaginary Group over {}'.format(self.base())
+
+    def _repr_short_(self):
+        r"""
+        Return a short representation string of this imaginary group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: J = ImaginaryGroup(ZZ)
+            sage: J._repr_short_()
+            'ZZ*I'
+        """
+        from sage.rings.asymptotic.misc import parent_to_repr_short, repr_op
+        return repr_op(parent_to_repr_short(self.base()), '*', 'I')
+
+    def _element_constructor_(self, data, imag=None):
+        r"""
+        Construct an element out of the given data.
+
+        INPUT:
+
+        - ``data`` -- an object
+
+        - ``imag`` -- a number (of a subset of the reals) or ``None``
+
+        OUTPUT:
+
+        A :class:`ImaginaryElement`.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+            sage: J = ImaginaryGroup(ZZ)
+            sage: J(0)
+            0
+            sage: J('0')
+            0
+            sage: J('-I')
+            -I
+            sage: J(imag=100)
+            100*I
+
+            sage: J(3*I)
+            3*I
+            sage: J(1+2*I)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2*I + 1 is not in
+            Imaginary Group over Integer Ring
+            because it is not purely imaginary
+            sage: i = CC(I)
+            sage: J(3*i)
+            3*I
+            sage: J(1+2*i)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1.00000000000000 + 2.00000000000000*I is not in
+            Imaginary Group over Integer Ring
+            because it is not purely imaginary
+            sage: i = CBF(I)
+            sage: J(3*i)
+            3*I
+            sage: J(1+2*i)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1.000000000000000 + 2.000000000000000*I is not in
+            Imaginary Group over Integer Ring
+            because it is not purely imaginary
+            sage: i = CIF(I)
+            sage: J(3*i)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 (Real Interval Field with 53 bits of precision)
+            is not in Integer Ring
+            > *previous* TypeError: unable to coerce
+            <type 'sage.rings.real_mpfi.RealIntervalFieldElement'> to an integer
+            sage: J(1+2*i)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 + 2*I is not in
+            Imaginary Group over Integer Ring
+            because it is not purely imaginary
+
+            sage: J(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: x is not in
+            Imaginary Group over Integer Ring
+            because it is not purely imaginary
+            sage: J(imag=1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 (Rational Field) is not in Integer Ring
+            > *previous* TypeError: no conversion of this rational to integer
+        """
+        if imag is None:
+            if isinstance(data, int) and data == 0:
+                imag = data
+
+            elif isinstance(data, self.element_class):
+                if data.parent() == self:
+                    return data
+                imag = data._imag_
+
+            elif data == 0 or data == '0':
+                imag = 0
+
+            elif data == 'I':
+                imag = 1
+
+            elif data == '-I':
+                imag = -1
+
+            else:
+                try:
+                    if data.real() == 0:
+                        imag = data.imag()
+                    else:
+                        raise ValueError(
+                            '{} is not in {} because it is not '
+                            'purely imaginary'.format(data, self))
+                except AttributeError:
+                    pass
+
+            if imag is None:
+                raise ValueError('{} is not in {}'.format(data, self))
+
+        elif not isinstance(data, int) or data != 0:
+            raise ValueError('input is ambigous: '
+                             '{} as well as imag={} '
+                             'specified'.format(data, imag))
+
+        return self.element_class(self, imag)

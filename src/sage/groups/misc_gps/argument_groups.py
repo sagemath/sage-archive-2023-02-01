@@ -3,23 +3,24 @@ Groups of elements representing (complex) arguments.
 
 This includes
 
-- :class:`RootsOfUnityGroups` (containing all roots of unity)
+- :class:`RootsOfUnityGroup` (containing all roots of unity)
 
 - :class:`UnitCircleGroup` (representing elements on the unit circle by
-  `e^{2\pi\mathit{exponent}}`)
+  `e^{2\pi\cdot\mathit{exponent}}`)
 
 - :class:`ArgumentByElementGroup` (whose elements are defined via
-  formal arguments by `e^{I\mathrm{arg}(\mathit{element})}`.
+  formal arguments by `e^{I\cdot\mathrm{arg}(\mathit{element})}`.
 
 Use the factory :class:`ArgumentGroup` for creating such a group conveniently.
 
 .. NOTE::
 
     One main purpose of such groups is in an
-    :doc:`asymptotic ring's <asymptotic_ring>`
-    :doc:`growth group <growth_group>` when an element like `z^n`
+    :mod:`asymptotic ring's <sage.rings.asymptotic.asymptotic_ring>`
+    :mod:`growth group <sage.rings.asymptotic.growth_group>`
+    when an element like `z^n`
     (for some constant `z`) is split into
-    `\lvert z \rvert^n \cdot e^{I \mathrm{arg}(z) n}`.
+    `\lvert z \rvert^n \cdot e^{I\cdot \mathrm{arg}(z) n}`.
     (Note that the first factor determines the growth of that product,
     the second does not influence the growth.)
 
@@ -293,7 +294,7 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
 class UnitCirclePoint(AbstractArgument):
     r"""
     An element of :class:`UnitCircleGroup`
-    which is `e^{2\pi\mathit{exponent}}`.
+    which is `e^{2\pi\cdot\mathit{exponent}}`.
 
     INPUT:
 
@@ -330,7 +331,7 @@ class UnitCirclePoint(AbstractArgument):
         r"""
         The exponent of this point on the unit circle.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
@@ -410,7 +411,7 @@ class UnitCirclePoint(AbstractArgument):
         r"""
         Return whether this point on the unit circle is `1`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(QQ)
@@ -427,7 +428,7 @@ class UnitCirclePoint(AbstractArgument):
         r"""
         Return whether this point on the unit circle is `-1`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(QQ)
@@ -445,7 +446,7 @@ class UnitCirclePoint(AbstractArgument):
 class UnitCircleGroup(AbstractArgumentGroup):
     r"""
     A group of points on the unit circle. These points are
-    represented by `e^{2\pi\mathit{exponent}}`.
+    represented by `e^{2\pi\cdot\mathit{exponent}}`.
 
     INPUT:
 
@@ -593,7 +594,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
 class RootOfUnity(UnitCirclePoint):
     r"""
     A root of unity (i.e. an element of :class:`RootsOfUnityGroup`)
-    which is `e^{2\pi\mathit{exponent}}` for a rational ``exponent``.
+    which is `e^{2\pi\cdot\mathit{exponent}}` for a rational ``exponent``.
     """
 
     def exponent_numerator(self):

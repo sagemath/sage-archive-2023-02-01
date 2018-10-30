@@ -4,8 +4,9 @@ Groups of imaginary elements
 .. NOTE::
 
     One main purpose of such groups is in an
-    :doc:`asymptotic ring's <asymptotic_ring>`
-    :doc:`growth group <growth_group>` when an element like `n^z`
+    :mod:`asymptotic ring's <sage.rings.asymptotic.asymptotic_ring>`
+    :mod:`growth group <sage.rings.asymptotic.growth_group>`
+    when an element like `n^z`
     (for some constant `z`) is split into
     `n^{\Re z + I\Im z}`.
     (Note that the first summand in the exponent determines the growth,
@@ -234,6 +235,23 @@ class ImaginaryGroup(UniqueRepresentation, Parent):
     - ``base`` -- a SageMath parent
 
     - ``category`` -- a category
+
+    EXAMPLES::
+
+        sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
+        sage: J = ImaginaryGroup(ZZ)
+        sage: J(0)
+        0
+        sage: J(imag=100)
+        100*I
+        sage: J(3*I)
+        3*I
+        sage: J(1+2*I)
+        Traceback (most recent call last):
+        ...
+        ValueError: 2*I + 1 is not in
+        Imaginary Group over Integer Ring
+        because it is not purely imaginary
     """
 
     Element = ImaginaryElement

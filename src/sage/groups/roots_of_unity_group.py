@@ -250,7 +250,7 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
             Real Field with 53 bits of precision
         """
         super(AbstractArgumentGroup, self).__init__(category=category,
-                                              base=base)
+                                                    base=base)
 
     def __hash__(self):
         r"""

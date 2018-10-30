@@ -1105,8 +1105,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         cdef givaro.ZRing givZZ
         cdef linbox.SparseMatrix_integer * A = new_linbox_matrix_integer_sparse(givZZ, self)
-        cdef linbox.DenseVector_integer * b = new linbox.DenseVector_integer(givZZ, self._nrows)
-        cdef linbox.DenseVector_integer * res = new linbox.DenseVector_integer(givZZ, self._ncols)
+        cdef linbox.DenseVector_integer * b = new linbox.DenseVector_integer(givZZ, <size_t> self._nrows)
+        cdef linbox.DenseVector_integer * res = new linbox.DenseVector_integer(givZZ, <size_t> self._ncols)
         cdef givaro.Integer D
 
         cdef int algo = get_method(algorithm)

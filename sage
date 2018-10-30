@@ -20,7 +20,7 @@
 # Set SAGE_ROOT to the location of the sage install, i.e. the directory
 # containing this shell script.  If unset, we will try to figure it out
 # automatically.
-#SAGE_ROOT=/path/to/sage-version
+SAGE_ROOT=/home/bump/sagemath/sage2
 
 # Resolve all symbolic links in a filename.  This more or less behaves
 # like "readlink -f" except that it does not convert the filename to an

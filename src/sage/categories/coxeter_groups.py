@@ -1885,10 +1885,10 @@ class CoxeterGroups(Category_singleton):
 
             The algorithm is taken from Stembridge's 'coxeter/weyl' package for Maple.
             """
-            desc = self.first_descent()
+            desc = self.first_descent(side='right')
             if desc is not None:
-                ww = self.apply_simple_reflection(desc)
-                return [u.apply_simple_reflection(desc) for u in ww.bruhat_lower_covers() if not u.has_descent(desc)] + [ww]
+                ww = self.apply_simple_reflection(desc, side ='right')
+                return [u.apply_simple_reflection(desc, side='right') for u in ww.bruhat_lower_covers() if not u.has_descent(desc,side='right')] + [ww]
             else:
                 return []
 

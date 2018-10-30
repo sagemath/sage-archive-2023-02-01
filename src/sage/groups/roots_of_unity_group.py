@@ -1076,6 +1076,8 @@ class ArgumentGroupFactory(UniqueFactory):
 
             sage: from sage.groups.roots_of_unity_group import ArgumentGroup
 
+            sage: ArgumentGroup(specification='U')
+            Group of Roots of Unity
             sage: ArgumentGroup('U') is ArgumentGroup(exponents=QQ)  # indirect doctest
             True
             sage: ArgumentGroup('Arg_RR') is ArgumentGroup(exponents=RR)  # indirect doctest
@@ -1098,7 +1100,12 @@ class ArgumentGroupFactory(UniqueFactory):
                  specification is not None,
                  domain is not None,
                  exponents is not None)):
-            raise ValueError('input ambigous')
+            raise ValueError(
+                'input ambigous: ' +
+                ', '.join('{}={}'.format(s, v) for s, v in
+                          [('data', data), ('specification', specification),
+                           ('domain', domain), ('exponents', exponents)]
+                          if v is not None))
 
         if data is not None:
             if isinstance(data, str):

@@ -4,8 +4,9 @@ Groups of imaginary elements
 .. NOTE::
 
     One main purpose of such groups is in an
-    :doc:`asymptotic ring's <asymptotic_ring>`
-    :doc:`growth group <growth_group>` when an element like `n^z`
+    :mod:`asymptotic ring's <sage.rings.asymptotic.asymptotic_ring>`
+    :mod:`growth group <sage.rings.asymptotic.growth_group>`
+    when an element like `n^z`
     (for some constant `z`) is split into
     `n^{\Re z + I\Im z}`.
     (Note that the first summand in the exponent determines the growth,

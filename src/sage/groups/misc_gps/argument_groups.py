@@ -69,7 +69,7 @@ class AbstractArgument(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=1/2)  # indirect doctest
             e^(2*pi*0.500000000000000)
@@ -88,7 +88,18 @@ class AbstractArgument(MultiplicativeGroupElement):
             raise ValueError('parent must be provided')
         super(AbstractArgument, self).__init__(parent=parent)
 
-        element = parent.base()(element)
+        try:
+            element = parent.base()(element)
+        except (TypeError, ValueError) as e:
+            from sage.rings.asymptotic.misc import combine_exceptions
+            from sage.structure.element import parent as parent_function
+            raise combine_exceptions(
+                ValueError(
+                    '{} ({}) is not in {}'.format(element,
+                                                  parent_function(element),
+                                                  parent.base())),
+                e)
+
         if normalize:
             element = self._normalize_(element)
         self._element_ = element
@@ -108,7 +119,7 @@ class AbstractArgument(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import AbstractArgument
+            sage: from sage.groups.misc_gps.argument_groups import AbstractArgument
             sage: AbstractArgument._normalize_(3/2)
             Traceback (most recent call last):
             ...
@@ -122,7 +133,7 @@ class AbstractArgument(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: hash(C(exponent=1/3))  # indirect doctest, random
             42
@@ -137,7 +148,7 @@ class AbstractArgument(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: U(exponent=0) == U(exponent=1)
             True
@@ -148,7 +159,7 @@ class AbstractArgument(MultiplicativeGroupElement):
 
         ::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: C = ArgumentByElementGroup(CC)
             sage: C(I) == C(I)
             True
@@ -167,7 +178,7 @@ class AbstractArgument(MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: U(exponent=0) < U(exponent=0)  # indirect doctest
             Traceback (most recent call last):
@@ -206,7 +217,7 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
 
         TESTS:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: UnitCircleGroup(RR).category()  # indirect doctest
             Category of commutative groups
         """
@@ -228,7 +239,9 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
 
         A category.
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: UnitCircleGroup._determine_category_(None)
             Category of commutative groups
             sage: UnitCircleGroup._determine_category_(Groups())
@@ -245,12 +258,12 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
 
         TESTS:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: UnitCircleGroup(RR).base()  # indirect doctest
             Real Field with 53 bits of precision
         """
         super(AbstractArgumentGroup, self).__init__(category=category,
-                                              base=base)
+                                                    base=base)
 
     def __hash__(self):
         r"""
@@ -258,7 +271,7 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: hash(UnitCircleGroup(RR))  # indirect doctest, random
             42
         """
@@ -270,7 +283,7 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: UnitCircleGroup(RR).an_element()  # indirect doctest
             e^(2*pi*0.000000000000000)
         """
@@ -306,7 +319,7 @@ class UnitCirclePoint(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCirclePoint
+            sage: from sage.groups.misc_gps.argument_groups import UnitCirclePoint
             sage: UnitCirclePoint._normalize_(3/2)
             1/2
         """
@@ -319,7 +332,7 @@ class UnitCirclePoint(AbstractArgument):
 
         EXAMPLES:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=4/3).exponent
             0.333333333333333
@@ -332,7 +345,7 @@ class UnitCirclePoint(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=1/3)
             e^(2*pi*0.333333333333333)
@@ -345,7 +358,7 @@ class UnitCirclePoint(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=0.3) * C(exponent=0.4)
             e^(2*pi*0.700000000000000)
@@ -360,7 +373,7 @@ class UnitCirclePoint(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup
 
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=0.1)^2
@@ -383,7 +396,7 @@ class UnitCirclePoint(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(RR)
             sage: ~C(exponent=0.4)
             e^(2*pi*0.600000000000000)
@@ -399,7 +412,7 @@ class UnitCirclePoint(AbstractArgument):
 
         EXAMPLES:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(QQ)
             sage: C(exponent=0).is_one()
             True
@@ -416,7 +429,7 @@ class UnitCirclePoint(AbstractArgument):
 
         EXAMPLES:
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: C = UnitCircleGroup(QQ)
             sage: C(exponent=0).is_minus_one()
             False
@@ -442,7 +455,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
     EXAMPLES::
 
-        sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+        sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
 
         sage: R = UnitCircleGroup(RR); R
         Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
@@ -463,7 +476,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: UnitCircleGroup(RR)  # indirect doctest
             Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
         """
@@ -475,7 +488,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: UnitCircleGroup(RR)._repr_short_()
             'U_RR'
         """
@@ -501,7 +514,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import UnitCircleGroup, RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=1/2)
             e^(2*pi*0.500000000000000)
@@ -590,7 +603,7 @@ class RootOfUnity(UnitCirclePoint):
 
         EXAMPLES::
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: a = U(exponent=2/3); a
             zeta3^2
@@ -606,7 +619,7 @@ class RootOfUnity(UnitCirclePoint):
 
         EXAMPLES::
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: a = U(exponent=2/3); a
             zeta3^2
@@ -621,7 +634,7 @@ class RootOfUnity(UnitCirclePoint):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: U = RootsOfUnityGroup()
             sage: U(exponent=0)
             1
@@ -665,7 +678,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
 
     EXAMPLES::
 
-        sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+        sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
         sage: U = RootsOfUnityGroup(); U
         Group of Roots of Unity
         sage: U(exponent=1/4)
@@ -681,7 +694,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
 
         TESTS:
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: RootsOfUnityGroup().category()  # indirect doctest
             Category of commutative groups
         """
@@ -695,7 +708,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
 
         TESTS:
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: RootsOfUnityGroup().base()  # indirect doctest
             Rational Field
         """
@@ -708,7 +721,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
 
         TESTS:
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: RootsOfUnityGroup()  # indirect doctest
             Group of Roots of Unity
         """
@@ -720,7 +733,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
 
         TESTS:
 
-            sage: from sage.groups.roots_of_unity_group import RootsOfUnityGroup
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: RootsOfUnityGroup()._repr_short_()
             'U'
         """
@@ -746,7 +759,7 @@ class ArgumentByElement(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: C = ArgumentByElementGroup(CC)
             sage: C(1+2*I)  # indirect doctest
             e^(I*arg(1.00000000000000 + 2.00000000000000*I))
@@ -772,7 +785,7 @@ class ArgumentByElement(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElement
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElement
             sage: ArgumentByElement._normalize_(3/2)
             3/2
         """
@@ -784,7 +797,7 @@ class ArgumentByElement(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: C = ArgumentByElementGroup(CC)
             sage: C(2+3*I)  # indirect doctest
             e^(I*arg(2.00000000000000 + 3.00000000000000*I))
@@ -797,7 +810,7 @@ class ArgumentByElement(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: C = ArgumentByElementGroup(CC)
             sage: C(I) * C(1 + I)  # indirect doctest
             e^(I*arg(-1.00000000000000 + 1.00000000000000*I))
@@ -812,7 +825,7 @@ class ArgumentByElement(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: C = ArgumentByElementGroup(CC)
             sage: C(I)^5  # indirect doctest
             e^(I*arg(1.00000000000000*I))
@@ -828,7 +841,7 @@ class ArgumentByElement(AbstractArgument):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: C = ArgumentByElementGroup(CC)
             sage: ~C(I)  # indirect doctest
             e^(I*arg(-1.00000000000000*I))
@@ -851,7 +864,7 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
 
     EXAMPLES::
 
-        sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+        sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
         sage: C = ArgumentByElementGroup(CC); C
         Unit Circle Group with Argument of Elements in
         Complex Field with 53 bits of precision
@@ -867,7 +880,7 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: ArgumentByElementGroup(CC)  # indirect doctest
             Unit Circle Group with Argument of Elements in
             Complex Field with 53 bits of precision
@@ -880,15 +893,12 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: ArgumentByElementGroup(CC)._repr_short_()
             'Arg_CC'
         """
-        from sage.rings.asymptotic.misc import parent_to_repr_short
-        s = parent_to_repr_short(self.base())
-        if ' ' in s:
-            s = '({})'.format(s)
-        return 'Arg_{}'.format(s)
+        from sage.rings.asymptotic.misc import parent_to_repr_short, repr_op
+        return repr_op('Arg', '_', parent_to_repr_short(self.base()))
 
     def _element_constructor_(self, data):
         r"""
@@ -904,7 +914,7 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
             sage: C = ArgumentByElementGroup(CC)
             sage: C(1 + 2*I)  # indirect doctest
             e^(I*arg(1.00000000000000 + 2.00000000000000*I))
@@ -960,7 +970,7 @@ def exactly_one_is_true(iterable):
 
     EXAMPLES::
 
-        sage: from sage.groups.roots_of_unity_group import exactly_one_is_true
+        sage: from sage.groups.misc_gps.argument_groups import exactly_one_is_true
         sage: exactly_one_is_true([])
         False
         sage: exactly_one_is_true([True])
@@ -1020,7 +1030,7 @@ class ArgumentGroupFactory(UniqueFactory):
 
     EXAMPLES::
 
-        sage: from sage.groups.roots_of_unity_group import ArgumentGroup
+        sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
 
         sage: ArgumentGroup('U')
         Group of Roots of Unity
@@ -1077,8 +1087,10 @@ class ArgumentGroupFactory(UniqueFactory):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
 
+            sage: ArgumentGroup(specification='U')
+            Group of Roots of Unity
             sage: ArgumentGroup('U') is ArgumentGroup(exponents=QQ)  # indirect doctest
             True
             sage: ArgumentGroup('Arg_RR') is ArgumentGroup(exponents=RR)  # indirect doctest
@@ -1101,7 +1113,12 @@ class ArgumentGroupFactory(UniqueFactory):
                  specification is not None,
                  domain is not None,
                  exponents is not None)):
-            raise ValueError('input ambigous')
+            raise ValueError(
+                'input ambigous: ' +
+                ', '.join('{}={}'.format(s, v) for s, v in
+                          [('data', data), ('specification', specification),
+                           ('domain', domain), ('exponents', exponents)]
+                          if v is not None))
 
         if data is not None:
             if isinstance(data, str):
@@ -1148,7 +1165,7 @@ class ArgumentGroupFactory(UniqueFactory):
 
         TESTS::
 
-            sage: from sage.groups.roots_of_unity_group import ArgumentGroup
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
             sage: ArgumentGroup('U')  # indirect doctest
             Group of Roots of Unity
         """
@@ -1156,7 +1173,7 @@ class ArgumentGroupFactory(UniqueFactory):
         return cls(*args, **kwds)
 
 
-ArgumentGroup = ArgumentGroupFactory('sage.groups.roots_of_unity_group.ArgumentGroup')
+ArgumentGroup = ArgumentGroupFactory('sage.groups.misc_gps.argument_groups.ArgumentGroup')
 r"""
 A factory for argument groups.
 

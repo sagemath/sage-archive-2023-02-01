@@ -379,17 +379,46 @@ class UnitCirclePoint(AbstractArgument):
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=0.1)^2
             e^(2*pi*0.200000000000000)
+            sage: _.parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
             sage: C(exponent=0.1)^QQ(2/1)
             e^(2*pi*0.200000000000000)
+            sage: _.parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
 
             sage: U = RootsOfUnityGroup()
             sage: a = U(exponent=1/7); a
             zeta7
             sage: a^(7/3)
             zeta3
+            sage: _.parent()
+            Group of Roots of Unity
+
+            sage: U(exponent=1/3)^(0.25)
+            e^(2*pi*0.0833333333333333)
+            sage: _.parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
+
+            sage: U(exponent=1/3)^x
+            (1/2*I*sqrt(3) - 1/2)^x
+            sage: U(exponent=1/2)^x
+            (-1)^x
+            sage: U(exponent=1/4)^x
+            I^x
+            sage: U(exponent=1/4)^SR(8)
+            1
         """
-        P = self.parent()
-        return P.element_class(P, self.exponent * exponent)
+        from sage.functions.log import exp
+        from sage.symbolic.ring import SymbolicRing
+
+        new_exponent = self.exponent * exponent
+        parent = new_exponent.parent()
+        if isinstance(new_exponent.parent(), SymbolicRing):
+            return exp(2*parent('pi')*parent('I') * self.exponent) ** exponent
+        return self.parent()._create_element_in_extension_(new_exponent)
 
     def __invert__(self):
         r"""
@@ -589,6 +618,39 @@ class UnitCircleGroup(AbstractArgumentGroup):
                              'specified'.format(data, exponent))
 
         return self.element_class(self, exponent)
+
+    def _create_element_in_extension_(self, exponent):
+        r"""
+        Create an element in an extension of this unit circle group which
+        is chosen according to the input ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- the element data.
+
+        OUTPUT:
+
+        An element.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup
+
+            sage: C = UnitCircleGroup(QQ)
+            sage: C._create_element_in_extension_(2.12).parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
+
+            sage: U = RootsOfUnityGroup()
+            sage: U._create_element_in_extension_(2.12).parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
+        """
+        if exponent.parent() is self.base():
+            parent = self
+        else:
+            parent = ArgumentGroup(exponents=exponent.parent())
+        return parent(exponent=exponent)
 
 
 class RootOfUnity(UnitCirclePoint):
@@ -830,11 +892,37 @@ class ArgumentByElement(AbstractArgument):
             sage: C = ArgumentByElementGroup(CC)
             sage: C(I)^5  # indirect doctest
             e^(I*arg(1.00000000000000*I))
+            sage: _.parent()
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
             sage: C(1+I)^3  # indirect doctest
             e^(I*arg(-2.00000000000000 + 2.00000000000000*I))
+            sage: _.parent()
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
+
+            sage: C = ArgumentByElementGroup(RR)
+            sage: C(0.42)^CC(2.4)
+            e^(I*arg(0.124680431591996))
+            sage: _.parent()
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
+
+            sage: C = ArgumentByElementGroup(QQ)
+            sage: a = C(-20)^x; a
+            (-1)^x
+            sage: a.parent()
+            Symbolic Ring
         """
-        P = self.parent()
-        return P.element_class(P, self._element_ ** exponent)
+        from sage.functions.log import exp
+        from sage.functions.other import arg
+        from sage.symbolic.ring import SymbolicRing
+
+        element = self._element_ ** exponent
+        parent = element.parent()
+        if isinstance(parent, SymbolicRing):
+            return exp(parent('I')*arg(self._element_)) ** exponent
+        return self.parent()._create_element_in_extension_(element)
 
     def __invert__(self):
         r"""
@@ -951,6 +1039,41 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
 
         return self.element_class(self, element)
 
+    def _create_element_in_extension_(self, element):
+        r"""
+        Create an element in an extension of this
+        argument by element group which
+        is chosen according to the input ``element``.
+
+        INPUT:
+
+        - ``element`` -- the element data.
+
+        OUTPUT:
+
+        An element.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(ZZ)
+            sage: C._create_element_in_extension_(2/3).parent()
+            Unit Circle Group with Argument of Elements in
+            Rational Field
+            sage: C._create_element_in_extension_(0.23).parent()
+            Unit Circle Group with Argument of Elements in
+            Real Field with 53 bits of precision
+
+            sage: C = ArgumentByElementGroup(RR)
+            sage: C._create_element_in_extension_(CC(0.23)).parent()
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
+        """
+        if element.parent() is self.base():
+            parent = self
+        else:
+            parent = ArgumentByElementGroup(element.parent())
+        return parent(element)
 
 def exactly_one_is_true(iterable):
     r"""

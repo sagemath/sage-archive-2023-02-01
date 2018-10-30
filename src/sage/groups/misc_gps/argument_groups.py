@@ -88,7 +88,18 @@ class AbstractArgument(MultiplicativeGroupElement):
             raise ValueError('parent must be provided')
         super(AbstractArgument, self).__init__(parent=parent)
 
-        element = parent.base()(element)
+        try:
+            element = parent.base()(element)
+        except (TypeError, ValueError) as e:
+            from sage.rings.asymptotic.misc import combine_exceptions
+            from sage.structure.element import parent as parent_function
+            raise combine_exceptions(
+                ValueError(
+                    '{} ({}) is not in {}'.format(element,
+                                                  parent_function(element),
+                                                  parent.base())),
+                e)
+
         if normalize:
             element = self._normalize_(element)
         self._element_ = element
@@ -227,6 +238,8 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
         OUTPUT:
 
         A category.
+
+        EXAMPLES::
 
             sage: from sage.groups.roots_of_unity_group import UnitCircleGroup
             sage: UnitCircleGroup._determine_category_(None)

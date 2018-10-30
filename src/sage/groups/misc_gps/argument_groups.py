@@ -1028,10 +1028,10 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
                 return data
             element = data._element_
 
-        elif data == 1 or data == '1':
+        elif data == '1':
             element = 1
 
-        elif data == -1 or data == '-1':
+        elif data == '-1':
             element = -1
 
         else:

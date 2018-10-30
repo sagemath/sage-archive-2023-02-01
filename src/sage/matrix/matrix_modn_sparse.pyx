@@ -963,8 +963,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: m._solve_vector_linbox(b0, 'wiedemann')
             ((-1, -7, -3, -1), 1)
             sage: m._solve_vector_linbox(b0, 'blackbox')
-            ((-18, -92, -41, -17), 5)
+            ((-1, -7, -3, -1), 1)
 
+            sage: b1 = vector((1,1,-1,1))
             sage: a1, d1 = m._solve_vector_linbox(b1)
             sage: d1 * b1 == m * a1
             True

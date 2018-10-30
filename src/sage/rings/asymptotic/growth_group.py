@@ -2531,6 +2531,54 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
 
     CartesianProduct = CartesianProductGrowthGroups
 
+    def extended_by_non_growth_group(self):
+        r"""
+        Extend to a cartesian product of this growth group
+        and a suitable non growth group.
+
+        OUTPUT:
+
+        A group group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('(QQ_+)^x').extended_by_non_growth_group()
+            Growth Group QQ^x * U^x
+            sage: GrowthGroup('(RR_+)^x').extended_by_non_growth_group()
+            Growth Group RR^x * U_RR^x
+            sage: GrowthGroup('(RIF_+)^x').extended_by_non_growth_group()
+            Growth Group RIF^x * U_RIF^x
+            sage: GrowthGroup('(RBF_+)^x').extended_by_non_growth_group()
+            Growth Group RBF^x * U_RBF^x
+            sage: GrowthGroup('(CC_+)^x').extended_by_non_growth_group()
+            Growth Group CC^x * U_RR^x
+            sage: GrowthGroup('(CIF_+)^x').extended_by_non_growth_group()
+            Growth Group CIF^x * U_RIF^x
+            sage: GrowthGroup('(CBF_+)^x').extended_by_non_growth_group()
+            Growth Group CBF^x * U_RBF^x
+        """
+        from sage.categories.cartesian_product import cartesian_product
+        return cartesian_product((self, self.non_growth_group()))
+
+    def non_growth_group(self):
+        r"""
+        Return a non-growth group compatible with this growth group.
+
+        OUTPUT:
+
+        A group group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: GenericGrowthGroup(ZZ, 'n').non_growth_group()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented in concrete realizations
+        """
+        raise NotImplementedError('only implemented in concrete realizations')
+
 
 class AbstractGrowthGroupFunctor(ConstructionFunctor):
     r"""
@@ -4426,35 +4474,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         else:
             return cartesian_product(groups)
 
-    def extended_by_non_growth_group(self):
-        r"""
-        Extend to a cartesian product of this exponential growth group
-        and a suitable group of roots of unity.
-
-        OUTPUT:
-
-        A group group.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('(QQ_+)^x').extended_by_non_growth_group()
-            Growth Group QQ^x * U^x
-            sage: GrowthGroup('(RR_+)^x').extended_by_non_growth_group()
-            Growth Group RR^x * U_RR^x
-            sage: GrowthGroup('(RIF_+)^x').extended_by_non_growth_group()
-            Growth Group RIF^x * U_RIF^x
-            sage: GrowthGroup('(RBF_+)^x').extended_by_non_growth_group()
-            Growth Group RBF^x * U_RBF^x
-            sage: GrowthGroup('(CC_+)^x').extended_by_non_growth_group()
-            Growth Group CC^x * U_RR^x
-            sage: GrowthGroup('(CIF_+)^x').extended_by_non_growth_group()
-            Growth Group CIF^x * U_RIF^x
-            sage: GrowthGroup('(CBF_+)^x').extended_by_non_growth_group()
-            Growth Group CBF^x * U_RBF^x
-        """
-        from sage.categories.cartesian_product import cartesian_product
-        return cartesian_product((self, self.non_growth_group()))
 
     def non_growth_group(self):
         r"""

@@ -4904,6 +4904,17 @@ class GrowthGroupFactory(UniqueFactory):
         sage: GrowthGroup('(QQ_+)^n * n^ZZ')
         Growth Group QQ^n * n^ZZ
 
+    ::
+
+        sage: GrowthGroup('n^(ZZ)')
+        Growth Group n^ZZ
+        sage: GrowthGroup('n^(ZZ[I])')
+        Growth Group n^ZZ * n^(ZZ*I)
+        sage: GrowthGroup('n^(I*ZZ)')
+        Growth Group n^(ZZ*I)
+        sage: GrowthGroup('n^(ZZ*I)')
+        Growth Group n^(ZZ*I)
+
     TESTS::
 
         sage: G = GrowthGroup('(e^(n*log(n)))^ZZ')
@@ -4916,6 +4927,11 @@ class GrowthGroupFactory(UniqueFactory):
         sage: G, tuple(F._var_ for F in G.cartesian_factors())
         (Growth Group (e^(n*log(n)))^ZZ * (e^n)^ZZ * n^ZZ * log(n)^ZZ,
          (e^(n*log(n)), e^n, n, log(n)))
+
+    ::
+
+        sage: GrowthGroup('m^(ZZ[I]) * log(m)^(ZZ[I]) * n^(ZZ[I])')
+        Growth Group m^ZZ * log(m)^ZZ * m^(ZZ*I) * log(m)^(ZZ*I) * n^ZZ * n^(ZZ*I)
 
     ::
 

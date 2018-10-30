@@ -1008,7 +1008,10 @@ def spectral_radius(G, prec=1e-10):
     cdef double c_prec = prec
     if 1+c_prec/2 == 1:
         raise ValueError("precision (={!r}) is too small".format(prec))
-
+    
+    #test if the graph is aperiodic
+    if not G.is_aperiodic():
+        raise ValueError("The graph must be aperiodic.")
     # make a copy of G if needed to obtain a static sparse graph
     # NOTE: the following potentially copies the labels of the graph which is
     # completely useless for the computation!

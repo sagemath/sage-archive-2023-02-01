@@ -704,7 +704,7 @@ class Subsets_sk(Subsets_s):
         if self._k < 0 or self._k > self._s.cardinality():
             raise EmptySetError
         else:
-            return self.element_class(list(itertools.islice(self._s, int(self._k))))
+            return self.element_class(list(itertools.islice(self._s, self._k)))
 
     def last(self):
         """
@@ -726,7 +726,7 @@ class Subsets_sk(Subsets_s):
         if self._k > self._s.cardinality():
             raise EmptySetError
         else:
-            return self.element_class([i for i in itertools.islice(reversed(self._s),int(self._k))])
+            return self.element_class([i for i in itertools.islice(reversed(self._s),self._k)])
 
     def _fast_iterator(self):
         r"""

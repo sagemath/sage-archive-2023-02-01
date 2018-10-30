@@ -4555,7 +4555,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup, ExponentialGrowthGroupFunctor
         sage: cm = sage.structure.element.get_coercion_model()
-        sage: A = GrowthGroup('QQ^x')
+        sage: A = GrowthGroup('(QQ_+)^x')
         sage: B = ExponentialGrowthGroupFunctor('x')(ZZ['t'])
         sage: cm.common_parent(A, B)
         Growth Group QQ[t]^x
@@ -4593,7 +4593,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: F, R = GrowthGroup('QQ^z').construction()
+            sage: F, R = GrowthGroup('(QQ_+)^z').construction()
             sage: F(R)  # indirect doctest
             Growth Group QQ^z
         """

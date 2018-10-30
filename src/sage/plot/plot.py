@@ -2596,23 +2596,17 @@ def parametric_plot(funcs, *args, **kwargs):
         ...
         ValueError: there are more variables than variable ranges
     """
-    num_ranges=0
+    num_ranges = 0
     for i in args:
         if isinstance(i, (list, tuple)):
-            num_ranges+=1
+            num_ranges += 1
         else:
             break
 
-    if num_ranges==0 and len(args)>=2:
-        from sage.misc.superseded import deprecation
-        deprecation(7008, "variable ranges to parametric_plot must be given as tuples, like (2,4) or (t,2,3)")
-        args=tuple(args)
-        num_ranges=1
-
     num_funcs = len(funcs)
 
-    num_vars=len(sage.plot.misc.unify_arguments(funcs)[0])
-    if num_vars>num_ranges:
+    num_vars = len(sage.plot.misc.unify_arguments(funcs)[0])
+    if num_vars > num_ranges:
         raise ValueError("there are more variables than variable ranges")
 
     # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
@@ -3516,137 +3510,10 @@ def graphics_array(array, nrows=None, ncols=None):
         array = reshape(array, nrows, ncols)
     return GraphicsArray(array)
 
-def var_and_list_of_values(v, plot_points):
-    """
-    INPUT:
-
-
-    -  ``v`` - (v0, v1) or (var, v0, v1); if the former
-       return the range of values between v0 and v1 taking plot_points
-       steps; if var is given, also return var.
-
-    -  ``plot_points`` - integer = 2 (the endpoints)
-
-
-    OUTPUT:
-
-
-    -  ``var`` - a variable or None
-
-    -  ``list`` - a list of floats
-
-
-    EXAMPLES::
-
-        sage: from sage.plot.plot import var_and_list_of_values
-        sage: var_and_list_of_values((var('theta'), 2, 5),  5)
-        doctest:...: DeprecationWarning: var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable
-        See http://trac.sagemath.org/7008 for details.
-        (theta, [2.0, 2.75, 3.5, 4.25, 5.0])
-        sage: var_and_list_of_values((2, 5),  5)
-        (None, [2.0, 2.75, 3.5, 4.25, 5.0])
-        sage: var_and_list_of_values((var('theta'), 2, 5),  2)
-        (theta, [2.0, 5.0])
-        sage: var_and_list_of_values((2, 5),  2)
-        (None, [2.0, 5.0])
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(7008, "var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
-    plot_points = int(plot_points)
-    if plot_points < 2:
-        raise ValueError("plot_points must be greater than 1")
-    if not isinstance(v, (tuple, list)):
-        raise TypeError("v must be a tuple or list")
-    if len(v) == 3:
-        var = v[0]
-        a, b = v[1], v[2]
-    elif len(v) == 2:
-        var = None
-        a, b = v
-    else:
-        raise ValueError("parametric value range must be a list or tuple of length 2 or 3.")
-
-    a = float(a)
-    b = float(b)
-    if plot_points == 2:
-        return var, [a, b]
-    else:
-        step = (b-a)/float(plot_points-1)
-        values = [a + step * i for i in range(plot_points)]
-        return var, values
-
-
-
-def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
-    """
-    This function is deprecated.  Please use
-    ``sage.plot.misc.setup_for_eval_on_grid`` instead.  Please note that
-    that function has slightly different calling and return
-    conventions which make it more generally applicable.
-
-    INPUT:
-
-
-    -  ``v`` - a list of functions
-
-    -  ``xrange`` - 2 or 3 tuple (if 3, first is a
-       variable)
-
-    -  ``yrange`` - 2 or 3 tuple
-
-    -  ``plot_points`` - a positive integer
-
-
-    OUTPUT:
-
-
-    -  ``g`` - tuple of fast callable functions
-
-    -  ``xstep`` - step size in xdirection
-
-    -  ``ystep`` - step size in ydirection
-
-    -  ``xrange`` - tuple of 2 floats
-
-    -  ``yrange`` - tuple of 2 floats
-
-
-    EXAMPLES::
-
-        sage: x,y = var('x,y')
-        sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 11)
-        doctest:...: DeprecationWarning: sage.plot.plot.setup_for_eval_on_grid is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable
-        See http://trac.sagemath.org/7008 for details.
-        ([<sage.ext... object at ...>],
-         0.5,
-         0.3141592653589793,
-         (0.0, 5.0),
-         (0.0, 3.141592653589793))
-
-    We always plot at least two points; one at the beginning and one at the end of the ranges.
-
-    ::
-
-        sage: sage.plot.plot.setup_for_eval_on_grid([x^2+y^2], (x,0,1), (y,-1,1), 1)
-        ([<sage.ext... object at ...>],
-        1.0,
-        2.0,
-        (0.0, 1.0),
-        (-1.0, 1.0))
-
-
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(7008, "sage.plot.plot.setup_for_eval_on_grid is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
-
-    from sage.plot.misc import setup_for_eval_on_grid as setup
-    g, ranges=setup(v, [xrange, yrange], plot_points)
-    return list(g), ranges[0][2], ranges[1][2], ranges[0][:2], ranges[1][:2]
-
 
 def minmax_data(xdata, ydata, dict=False):
     """
-    Returns the minimums and maximums of xdata and ydata.
+    Return the minimums and maximums of xdata and ydata.
 
     If dict is False, then minmax_data returns the tuple (xmin, xmax,
     ymin, ymax); otherwise, it returns a dictionary whose keys are

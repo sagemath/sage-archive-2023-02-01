@@ -4685,7 +4685,8 @@ class ExponentialNonGrowthElement(GenericNonGrowthElement,
 class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
                                 ExponentialGrowthGroup):
     r"""
-    A growth group whose elements have a base with absolute value `1`.
+    A growth group whose base is an
+    :mod:`argument group <sage.groups.misc_gps.argument_groups>`.
 
     EXAMPLES::
 

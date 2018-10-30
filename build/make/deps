@@ -129,7 +129,6 @@ sagelib: \
 		$(inst_arb) \
 		$(BLAS) \
 		$(inst_brial) \
-		$(inst_cephes) \
 		$(inst_cliquer) \
 		$(inst_cypari) \
 		$(inst_cysignals) \

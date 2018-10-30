@@ -3569,6 +3569,26 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         return MonomialGrowthGroupFunctor(self._var_), self.base()
 
 
+    def non_growth_group(self):
+        r"""
+        Return a non-growth group
+        (with an imaginary group as base)
+        compatible with this monomial growth group.
+
+        OUTPUT:
+
+        A group group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('n^ZZ').non_growth_group()
+            Growth Group n^(ZZ*I)
+        """
+        from sage.groups.roots_of_unity_group import ImaginaryGroup
+        I = ImaginaryGroup(self.base())
+        return self._non_growth_group_class_(I, self._var_)
+
 class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
@@ -4474,10 +4494,10 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         else:
             return cartesian_product(groups)
 
-
     def non_growth_group(self):
         r"""
-        Return a non-growth group (argument group, e.g. roots of unity)
+        Return a non-growth group
+        (with an argument group, e.g. roots of unity, as base)
         compatible with this exponential growth group.
 
         OUTPUT:

@@ -478,13 +478,12 @@ class UnitCirclePoint(AbstractArgument):
             sage: U(exponent=1/4)^SR(8)
             1
         """
-        from sage.functions.log import exp
         from sage.symbolic.ring import SymbolicRing
 
         new_exponent = self.exponent * exponent
         parent = new_exponent.parent()
         if isinstance(new_exponent.parent(), SymbolicRing):
-            return exp(2*parent('pi')*parent('I') * self.exponent) ** exponent
+            return self._symbolic_(parent) ** exponent
         return self.parent()._create_element_in_extension_(new_exponent)
 
     def __invert__(self):
@@ -1013,14 +1012,12 @@ class ArgumentByElement(AbstractArgument):
             sage: a.parent()
             Symbolic Ring
         """
-        from sage.functions.log import exp
-        from sage.functions.other import arg
         from sage.symbolic.ring import SymbolicRing
 
         element = self._element_ ** exponent
         parent = element.parent()
         if isinstance(parent, SymbolicRing):
-            return exp(parent('I')*arg(self._element_)) ** exponent
+            return self._symbolic_(parent) ** exponent
         return self.parent()._create_element_in_extension_(element)
 
     def __invert__(self):

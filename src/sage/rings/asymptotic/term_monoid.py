@@ -3504,7 +3504,7 @@ class ExactTerm(TermWithCoefficient):
             sage: n.rpow(2)
             2^n
             sage: _.parent()
-            Exact Term Monoid QQ^n * n^SR with coefficients in Symbolic Ring
+            Exact Term Monoid QQ^n * n^QQ with coefficients in Symbolic Ring
 
         Above, we get ``QQ^n * n^SR``. The reason is the following:
         Since $n = 1_{SR} \cdot (1_{\QQ})^n \cdot n^{1_{\QQ}}$, we have
@@ -3786,7 +3786,7 @@ class TermMonoidFactory(UniqueFactory):
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
 
         sage: TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', ZZ)
-        Exact Term Monoid QQ^m * m^QQ * log(n)^ZZ
+        Exact Term Monoid QQ^m * m^QQ * U^m * log(n)^ZZ
         with coefficients in Integer Ring
 
     TESTS::

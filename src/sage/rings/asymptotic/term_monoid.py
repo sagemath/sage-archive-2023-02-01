@@ -3499,7 +3499,7 @@ class ExactTerm(TermWithCoefficient):
 
         ::
 
-            sage: T = TermMonoid('exact', GrowthGroup('QQ^n * n^QQ'), SR)
+            sage: T = TermMonoid('exact', GrowthGroup('(QQ_+)^n * n^QQ'), SR)
             sage: n = T('n')
             sage: n.rpow(2)
             2^n

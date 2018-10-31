@@ -141,6 +141,35 @@ class AbstractArgument(MultiplicativeGroupElement):
         """
         return hash((self.parent(), self._element_))
 
+    def _symbolic_(self, R=None):
+        r"""
+        Return this argument as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import AbstractArgument
+            sage: class MyArgument(AbstractArgument):
+            ....:     @staticmethod
+            ....:     def _normalize_(element):
+            ....:         return element
+            sage: a = MyArgument(ZZ, -1)
+            sage: a._symbolic_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented in concrete realizations
+        """
+        raise NotImplementedError('only implemented in concrete realizations')
+
     _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
     def _eq_(self, other):
@@ -197,6 +226,63 @@ class AbstractArgument(MultiplicativeGroupElement):
         raise RuntimeError("cannot decide '<' "
                            "for the roots of unity "
                            "{} and {}".format(self, other))
+
+    def _act_on_(self, other, is_left):
+        r"""
+        Return the action of this argument on ``other``.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: U(-1) * 4
+            -4
+            sage: _.parent()
+            Symbolic Ring
+            sage: 4 * U(-1)
+            -4
+            sage: _.parent()
+            Symbolic Ring
+
+            sage: P = Permutation([1,2,3])
+            sage: U(-1) * P
+            Traceback (most recent call last):
+            ...
+            TypeError: -1 (Group of Roots of Unity) cannot
+            (left-)act on [1, 2, 3] (Standard permutations)
+            > *previous* TypeError: no canonical coercion from
+              Standard permutations to Symbolic Ring
+
+        ::
+
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(SR)
+            sage: C(-1) * 4
+            -4
+            sage: _.parent()
+            Symbolic Ring
+            sage: 4 * C(-1)
+            -4
+            sage: _.parent()
+            Symbolic Ring
+        """
+        from sage.symbolic.ring import SymbolicRing, SR
+
+        P = other.parent()
+        S = P if isinstance(P, SymbolicRing) else SR
+        try:
+            other = S.coerce(other)
+        except (TypeError, ValueError) as e:
+            from sage.rings.asymptotic.misc import combine_exceptions
+            raise combine_exceptions(
+                TypeError('{} ({}) cannot ({}-)act on '
+                          '{} ({})'.format(
+                              self, self.parent(),
+                              'left' if is_left else 'right',
+                              other, P)),
+                e)
+        return self._symbolic_(S) * other
+
 
 class AbstractArgumentGroup(UniqueRepresentation, Parent):
     r"""
@@ -353,6 +439,44 @@ class UnitCirclePoint(AbstractArgument):
         """
         return 'e^(2*pi*{})'.format(self.exponent)
 
+    def _symbolic_(self, R=None):
+        r"""
+        Return this point on the unit circle as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
+            sage: C = UnitCircleGroup(RR)
+            sage: C(exponent=1/4)._symbolic_()
+            e^(0.500000000000000*I*pi)
+            sage: _.parent()
+            Symbolic Ring
+
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: U(exponent=1/4)._symbolic_()
+            I
+            sage: _.parent()
+            Symbolic Ring
+        """
+        from sage.functions.log import exp
+        from sage.symbolic.ring import SR
+
+        if R is None:
+            R = SR
+
+        return exp(2*R('pi')*R('I') * self.exponent)
+
     def _mul_(self, other):
         r"""
         Return the product of this point on the unit circle and ``other``.
@@ -379,17 +503,45 @@ class UnitCirclePoint(AbstractArgument):
             sage: C = UnitCircleGroup(RR)
             sage: C(exponent=0.1)^2
             e^(2*pi*0.200000000000000)
+            sage: _.parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
             sage: C(exponent=0.1)^QQ(2/1)
             e^(2*pi*0.200000000000000)
+            sage: _.parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
 
             sage: U = RootsOfUnityGroup()
             sage: a = U(exponent=1/7); a
             zeta7
             sage: a^(7/3)
             zeta3
+            sage: _.parent()
+            Group of Roots of Unity
+
+            sage: U(exponent=1/3)^(0.25)
+            e^(2*pi*0.0833333333333333)
+            sage: _.parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
+
+            sage: U(exponent=1/3)^x
+            (1/2*I*sqrt(3) - 1/2)^x
+            sage: U(exponent=1/2)^x
+            (-1)^x
+            sage: U(exponent=1/4)^x
+            I^x
+            sage: U(exponent=1/4)^SR(8)
+            1
         """
-        P = self.parent()
-        return P.element_class(P, self.exponent * exponent)
+        from sage.symbolic.ring import SymbolicRing
+
+        new_exponent = self.exponent * exponent
+        parent = new_exponent.parent()
+        if isinstance(new_exponent.parent(), SymbolicRing):
+            return self._symbolic_(parent) ** exponent
+        return self.parent()._create_element_in_extension_(new_exponent)
 
     def __invert__(self):
         r"""
@@ -589,6 +741,39 @@ class UnitCircleGroup(AbstractArgumentGroup):
                              'specified'.format(data, exponent))
 
         return self.element_class(self, exponent)
+
+    def _create_element_in_extension_(self, exponent):
+        r"""
+        Create an element in an extension of this unit circle group which
+        is chosen according to the input ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- the element data.
+
+        OUTPUT:
+
+        An element.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup
+
+            sage: C = UnitCircleGroup(QQ)
+            sage: C._create_element_in_extension_(2.12).parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
+
+            sage: U = RootsOfUnityGroup()
+            sage: U._create_element_in_extension_(2.12).parent()
+            Unit Circle Group with Exponents in
+            Real Field with 53 bits of precision modulo ZZ
+        """
+        if exponent.parent() is self.base():
+            parent = self
+        else:
+            parent = ArgumentGroup(exponents=exponent.parent())
+        return parent(exponent=exponent)
 
 
 class RootOfUnity(UnitCirclePoint):
@@ -805,6 +990,38 @@ class ArgumentByElement(AbstractArgument):
         """
         return 'e^(I*arg({}))'.format(self._element_)
 
+    def _symbolic_(self, R=None):
+        r"""
+        Return this argument by element as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(ZZ)
+            sage: C(-2)._symbolic_()
+            -1
+            sage: _.parent()
+            Symbolic Ring
+        """
+        from sage.functions.log import exp
+        from sage.functions.other import arg
+        from sage.symbolic.ring import SR
+
+        if R is None:
+            R = SR
+
+        return exp(R('I')*arg(self._element_))
+
     def _mul_(self, other):
         r"""
         Return the product of this argument by element with ``other``.
@@ -830,11 +1047,35 @@ class ArgumentByElement(AbstractArgument):
             sage: C = ArgumentByElementGroup(CC)
             sage: C(I)^5  # indirect doctest
             e^(I*arg(1.00000000000000*I))
+            sage: _.parent()
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
             sage: C(1+I)^3  # indirect doctest
             e^(I*arg(-2.00000000000000 + 2.00000000000000*I))
+            sage: _.parent()
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
+
+            sage: C = ArgumentByElementGroup(RR)
+            sage: C(0.42)^CC(2.4)
+            e^(I*arg(0.124680431591996))
+            sage: _.parent()
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
+
+            sage: C = ArgumentByElementGroup(QQ)
+            sage: a = C(-20)^x; a
+            (-1)^x
+            sage: a.parent()
+            Symbolic Ring
         """
-        P = self.parent()
-        return P.element_class(P, self._element_ ** exponent)
+        from sage.symbolic.ring import SymbolicRing
+
+        element = self._element_ ** exponent
+        parent = element.parent()
+        if isinstance(parent, SymbolicRing):
+            return self._symbolic_(parent) ** exponent
+        return self.parent()._create_element_in_extension_(element)
 
     def __invert__(self):
         r"""
@@ -940,11 +1181,368 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
                 return data
             element = data._element_
 
-        elif data == 1 or data == '1':
+        elif data == '1':
             element = 1
 
-        elif data == -1 or data == '-1':
+        elif data == '-1':
             element = -1
+
+        else:
+            element = data
+
+        return self.element_class(self, element)
+
+    def _create_element_in_extension_(self, element):
+        r"""
+        Create an element in an extension of this
+        argument by element group which
+        is chosen according to the input ``element``.
+
+        INPUT:
+
+        - ``element`` -- the element data.
+
+        OUTPUT:
+
+        An element.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(ZZ)
+            sage: C._create_element_in_extension_(2/3).parent()
+            Unit Circle Group with Argument of Elements in
+            Rational Field
+            sage: C._create_element_in_extension_(0.23).parent()
+            Unit Circle Group with Argument of Elements in
+            Real Field with 53 bits of precision
+
+            sage: C = ArgumentByElementGroup(RR)
+            sage: C._create_element_in_extension_(CC(0.23)).parent()
+            Unit Circle Group with Argument of Elements in
+            Complex Field with 53 bits of precision
+        """
+        if element.parent() is self.base():
+            parent = self
+        else:
+            parent = ArgumentByElementGroup(element.parent())
+        return parent(element)
+
+
+class Sign(AbstractArgument):
+    r"""
+    An element of :class:`SignGroup`.
+
+    INPUT:
+
+    - ``parent`` -- a SageMath parent
+
+    - ``element`` -- a nonzero element of the parent's base
+
+    - ``normalize`` -- a boolean (default: ``True``)
+    """
+
+    def __init__(self, parent, element, normalize=True):
+        r"""
+        See :class:`Sign` for more information.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S.an_element()  # indirect doctest
+            -1
+        """
+        super(Sign, self).__init__(parent, int(element), normalize=normalize)
+        if self._element_ not in (-1, 1):
+            raise ValueError('{} is not allowed '
+                             '(only -1 or 1 is)'.format(element))
+
+    @staticmethod
+    def _normalize_(element):
+        r"""
+        Normalizes the given element.
+
+        This is the identity for :class:`Sign`.
+
+        INPUT:
+
+        - ``element`` -- an element of the parent's base
+
+        OUTPUT:
+
+        An element.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import Sign
+            sage: Sign._normalize_(True)
+            True
+        """
+        return element
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this sign.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(1)
+            1
+            sage: S(-1)
+            -1
+        """
+        return repr(self._element_)
+
+    def _mul_(self, other):
+        r"""
+        Return the product of this sign with ``other``.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(1) * S(-1)  # indirect doctest
+            -1
+        """
+        P = self.parent()
+        return P.element_class(P, self._element_ * other._element_)
+
+    def __pow__(self, exponent):
+        r"""
+        Return the power of this sign to the given ``exponent``.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(-1)^4  # indirect doctest
+            1
+            sage: S(-1)^3  # indirect doctest
+            -1
+        """
+        P = self.parent()
+        return P.element_class(P, self._element_ ** exponent)
+
+    def __invert__(self):
+        r"""
+        Return the inverse of this sign.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: ~S(-1)  # indirect doctest
+            -1
+            sage: _.parent()
+            Sign Group
+        """
+        return self
+
+    def _act_on_(self, other, is_left):
+        r"""
+        Return the action of this sign on ``other``.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(-1) * 4
+            -4
+            sage: _.parent()
+            Integer Ring
+            sage: 4 * S(-1)
+            -4
+            sage: _.parent()
+            Integer Ring
+
+            sage: S(-1) * ZZ(4)
+            -4
+            sage: _.parent()
+            Integer Ring
+            sage: S(-1) * int(4)
+            -4
+            sage: type(_)
+            <type 'int'>
+            sage: S(-1) * QQ(4)
+            -4
+            sage: _.parent()
+            Rational Field
+            sage: S(-1) * RR(4)
+            -4.00000000000000
+            sage: _.parent()
+            Real Field with 53 bits of precision
+            sage: S(-1) * CC(4)
+            -4.00000000000000
+            sage: _.parent()
+            Complex Field with 53 bits of precision
+            sage: S(-1) * SR.var('x')
+            -x
+            sage: _.parent()
+            Symbolic Ring
+
+        ::
+
+            sage: P = Permutation([1,2,3])
+            sage: S(-1) * P
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent
+            for unary -: 'Standard permutations'
+        """
+        if self.is_one():
+            return other
+        if self.is_minus_one():
+            return -other
+
+    def is_one(self):
+        r"""
+        Return whether this sign is `1`.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(-1).is_one()
+            False
+            sage: S(1).is_one()
+            True
+        """
+        return self._element_ == 1
+
+    def is_minus_one(self):
+        r"""
+        Return whether this sign is `-1`.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(1).is_minus_one()
+            False
+            sage: S(-1).is_minus_one()
+            True
+        """
+        return self._element_ == -1
+
+
+class SignGroup(AbstractArgumentGroup):
+    r"""
+    A group of the signs `-1` and `1`.
+
+    INPUT:
+
+    - ``category`` -- a category
+
+    EXAMPLES::
+
+        sage: from sage.groups.misc_gps.argument_groups import SignGroup
+        sage: S = SignGroup(); S
+        Sign Group
+        sage: S(-1)
+        -1
+    """
+
+    Element = Sign
+
+    @staticmethod
+    def __classcall__(cls, category=None):
+        r"""
+        See :class:`SignGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S.category()  # indirect doctest
+            Category of commutative groups
+        """
+        category = cls._determine_category_(category)
+        return super(AbstractArgumentGroup, cls).__classcall__(
+            cls, category)
+
+    def __init__(self, category):
+        r"""
+        See :class:`SignGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S.base()  # indirect doctest
+            <type 'int'>
+        """
+        return super(SignGroup, self).__init__(base=int,
+                                               category=category)
+
+    def _repr_(self):
+        r"""
+        Return a representation string of the sign group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: SignGroup()  # indirect doctest
+            Sign Group
+        """
+        return 'Sign Group'
+
+    def _repr_short_(self):
+        r"""
+        Return a short representation string of this sign group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S._repr_short_()
+            'S'
+        """
+        return 'S'
+
+    def _an_element_(self):
+        r"""
+        Return a short representation string of this sign group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S.an_element()
+            -1
+        """
+        return self.element_class(self, -1)
+
+    def _element_constructor_(self, data):
+        r"""
+        Construct an element out of the given data.
+
+        INPUT:
+
+        - ``data`` -- an object
+
+        OUTPUT:
+
+        A :class:`Sign`.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(1)  # indirect doctest
+            1
+            sage: S(-1)  # indirect doctest
+            -1
+        """
+        if isinstance(data, int) and data == 0:
+            raise ValueError('no input specified')
+
+        elif isinstance(data, self.element_class):
+            if data.parent() == self:
+                return data
+            element = data._element_
 
         else:
             element = data

@@ -352,15 +352,15 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         A more interesting example::
 
             sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2), 4)
-            sage: l = [1, 1, 1, 1,     1, \
-                       0, 1, 0, 1,    x0, \
-                       0, 0, 1, 1,    x1, \
-                       1, 1, 0, 0,    y0, \
-                       0, 1, 0, 1,    y1, \
-                       0, 1, 0, 0, x0*y0, \
-                       0, 1, 0, 1, x0*y1, \
-                       0, 0, 0, 0, x1*y0, \
-                       0, 0, 0, 1, x1*y1]
+            sage: l = [1, 1, 1, 1,     1,
+            ....:      0, 1, 0, 1,    x0,
+            ....:      0, 0, 1, 1,    x1,
+            ....:      1, 1, 0, 0,    y0,
+            ....:      0, 1, 0, 1,    y1,
+            ....:      0, 1, 0, 0, x0*y0,
+            ....:      0, 1, 0, 1, x0*y1,
+            ....:      0, 0, 0, 0, x1*y0,
+            ....:      0, 0, 0, 1, x1*y1]
             sage: A = Matrix(P, 9, 5, l)
             sage: B = A.__copy__()
             sage: B.echelonize('row_reduction'); B
@@ -515,6 +515,16 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             x^4 - 4*y*x^3
             sage: m.det()
             0
+
+        Check :trac:`23535` is fixed::
+
+            sage: x = polygen(QQ)
+            sage: K.<a,b> = NumberField([x^2 - 2, x^2 - 5])
+            sage: R.<s,t> = K[]
+            sage: m = matrix(R, 4, [y^i for i in range(4) for y in [a,b,s,t]])
+            sage: m.det()
+            (a - b)*s^3*t^2 + (-a + b)*s^2*t^3 + 3*s^3*t + (-3)*s*t^3 + (-5*a + 2*b)*s^3 + (2*a - 5*b)*s^2*t +
+            (-2*a + 5*b)*s*t^2 + (5*a - 2*b)*t^3 + 3*b*a*s^2 + (-3*b*a)*t^2 + (10*a - 10*b)*s + (-10*a + 10*b)*t
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")

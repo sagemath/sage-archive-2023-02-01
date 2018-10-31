@@ -17,7 +17,6 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from .species import GenericCombinatorialSpecies
-from sage.misc.cachefunc import cached_function
 from .series_order import inf
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -130,7 +129,7 @@ class EmptySpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
     def _structures(self, structure_class, labels):
         """
-        Thanks to the couting optimisation, this is never called... Otherwise
+        Thanks to the counting optimisation, this is never called... Otherwise
         this should return an empty iterator.
 
         EXAMPLES::

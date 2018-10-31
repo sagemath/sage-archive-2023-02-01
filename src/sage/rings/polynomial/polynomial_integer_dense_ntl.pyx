@@ -36,6 +36,7 @@ from __future__ import absolute_import, print_function
 
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 include "sage/libs/ntl/decl.pxi"
 
@@ -381,10 +382,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             if sign:
                 if sign > 0:
                     sign_str = '+'
-                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])
+                    coeff_str = ccrepr(self.__poly.rep.elts()[i])
                 else:
                     sign_str = '-'
-                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])[1:]
+                    coeff_str = ccrepr(self.__poly.rep.elts()[i])[1:]
                 if i > 0:
                     if coeff_str == '1':
                         coeff_str = ''
@@ -1022,14 +1023,13 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         p = Integer(p)
         if not p.is_prime():
             raise ValueError("p must be prime")
-        if all([c%p==0 for c in self.coefficients()]):
+        if not any(c % p for c in self.coefficients()):
             raise ArithmeticError("factorization of 0 is not defined")
         f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
-
 
     def factor_padic(self, p, prec=10):
         """
@@ -1050,13 +1050,13 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = x^2 + 1
             sage: f.factor_padic(5, 4)
-            ((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) * ((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)))
+            ((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) * ((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))
 
         A more difficult example::
 
             sage: f = 100 * (5*x + 1)^2 * (x + 5)^2
             sage: f.factor_padic(5, 10)
-            (4 + O(5^10)) * ((5 + O(5^11)))^2 * ((1 + O(5^10))*x + (5 + O(5^10)))^2 * ((5 + O(5^10))*x + (1 + O(5^10)))^2
+            (4 + O(5^10)) * (5 + O(5^11))^2 * ((1 + O(5^10))*x + 5 + O(5^10))^2 * ((5 + O(5^10))*x + 1 + O(5^10))^2
 
         """
         from sage.rings.padics.factory import Zp

@@ -66,10 +66,6 @@ from six.moves import range
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.sets_cat import EmptySetError
-
-import os
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
 from sage.docs.instancedoc import instancedoc
@@ -522,7 +518,7 @@ class Decorator(object):
             sage: S = sage_getsourcelines(d)   # indirect doctest
             sage: S[0][2]
             '        Return the number of elements of this group.\n'
-            sage: S[0][18]
+            sage: S[0][25]
             '            return Integer(1)\n'
         """
         from sage.misc.sageinspect import sage_getsourcelines
@@ -692,25 +688,22 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
             sage: F(10).cardinality()
             10
         """
-        options = self.options
-
         if hasattr(self, 'f'): # yet initialized
             if hasattr(self,'name'):
-                if isinstance(self.name,str):
+                if isinstance(self.name, str):
                     if args or kwds:
-                        _,kk = self.af.fix_to_named(*args,**kwds)
-                        name = self.name%dict(kk)
+                        _, kk = self.af.fix_to_named(*args,**kwds)
+                        name = self.name % dict(kk)
                     else:
                         name = self.name
                 else:
-                    name = self.name(*args,**kwds)
+                    name = self.name(*args, **kwds)
                 return EnumeratedSetFromIterator(self.f, args, kwds, name=name, **self.options)
             return EnumeratedSetFromIterator(self.f, args, kwds, **self.options)
 
         else: # potential global options
             if args == ():
-                assert len(kwds.keys()) == 1
-                f = kwds.values()[0]
+                f, = kwds.values()
             else:
                 assert len(args) == 1
                 f = args[0]
@@ -936,12 +929,10 @@ class EnumeratedSetFromIterator_method_decorator(object):
             True
         """
         if f is not None:
-            import types
             self.f = f
             if hasattr(f,"__name__"):
                 self.__name__ = f.__name__
                 self.__module__ = f.__module__
-
             else:
                 if hasattr(f, '__module__'):
                     self.__module__ = f.__module__

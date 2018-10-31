@@ -100,7 +100,9 @@ cdef class PrimePi(BuiltinFunction):
             sage: prime_pi(sqrt(2357))
             15
             sage: prime_pi(mod(30957, 9750979))
-            3337
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce arguments: positive characteristic not allowed in symbolic computations
 
         We test non-trivial ``prime_bound`` values::
 

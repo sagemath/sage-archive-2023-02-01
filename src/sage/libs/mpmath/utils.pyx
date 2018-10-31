@@ -3,7 +3,7 @@ Utilities for Sage-mpmath interaction
 
 Also patches some mpmath functions for speed
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.ext.stdsage cimport PY_NEW
 
@@ -11,8 +11,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber
 from sage.rings.complex_number cimport ComplexNumber
 from sage.structure.element cimport Element
-
-import sage.all
 
 from sage.libs.mpfr cimport *
 from sage.libs.gmp.all cimport *

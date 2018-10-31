@@ -34,19 +34,16 @@ Basic Analysis
     sage: ring=RealField(3)
 
 To print the actual number (without rounding off the last few imprecise
-digits to only display correct digits), call the ``.str()`` method with
-the option ``truncate=False``.
-
-::
+digits to only display correct digits), call the ``.str()`` method::
 
     sage: print(ring('1').nextabove())
     1.2
 
 ::
 
-    sage: print(ring('1').nextabove().str(truncate=False))
+    sage: print(ring('1').nextabove().str())
     1.2
-    sage: print(ring('1').nextbelow().str(truncate=False))
+    sage: print(ring('1').nextbelow().str())
     0.88
 
 Let's change our precision.
@@ -54,9 +51,9 @@ Let's change our precision.
 ::
 
     sage: ring=RealField(20)
-    sage: print(ring('1').nextabove().str(truncate=False))
+    sage: print(ring('1').nextabove().str())
     1.0000019
-    sage: print(ring('1').nextbelow().str(truncate=False))
+    sage: print(ring('1').nextbelow().str())
     0.99999905
 
 You can also specify the rounding mode.
@@ -68,17 +65,17 @@ You can also specify the rounding mode.
 
 ::
 
-    sage: ring(1/9).str(truncate=False)
+    sage: ring(1/9).str()
     '0.11111116'
 
 ::
 
-    sage: ringup(1/9).str(truncate=False)
+    sage: ringup(1/9).str()
     '0.13'
 
 ::
 
-    sage: ringdown(1/9).str(truncate=False)
+    sage: ringdown(1/9).str()
     '0.10'
 
 ::

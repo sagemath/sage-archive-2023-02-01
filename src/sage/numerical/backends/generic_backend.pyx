@@ -1750,9 +1750,6 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         ....:     b.solver_parameter("simplex_or_intopt", "exact_simplex_only")
         ....:     return b
         sage: codes.bounds.delsarte_bound_additive_hamming_space(11,3,4,solver=glpk_exact_solver) # long time
-        glp_exact...
-        ...
-        OPTIMAL SOLUTION FOUND
         8
 
     """

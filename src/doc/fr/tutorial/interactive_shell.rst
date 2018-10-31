@@ -97,7 +97,7 @@ Voici un exemple :
     6: eval(_i1)
     7: %hist
 
-Dans la suite de ce tutorial et le reste de la documentation de Sage,
+Dans la suite de ce tutoriel et le reste de la documentation de Sage,
 nous omettrons la numérotation des sorties.
 
 Il est possible de créer (pour la durée d'une session) une macro qui
@@ -967,12 +967,10 @@ la variable ``b`` n'a pas été écrasée.
 
 .. _section-notebook:
 
-L'interface *notebook*
-======================
+L'ancienne interface *notebook*
+===============================
 
-Cette section concerne l'ancien bloc-note de Sage (“sagenb”). Pour plus de
-détails, voir la `documentation de sagenb
-<https://doc.sagemath.org/html/en/reference/notebook/index.html>`_.
+Cette section concerne l'ancien bloc-note de Sage (“sagenb”).
 
 SageMath est en cours de transition vers l'utilisation par défaut du
 `bloc-note Jupyter

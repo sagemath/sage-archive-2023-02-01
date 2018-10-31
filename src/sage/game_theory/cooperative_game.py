@@ -61,7 +61,7 @@ class CooperativeGame(SageObject):
         42 &\text{if } c = \{1,2,3\}. \\
         \end{cases}
 
-    The function `v` can be thought of as as a record of contribution of
+    The function `v` can be thought of as a record of contribution of
     individuals and coalitions of individuals. Of interest, becomes how to
     fairly share the value of the grand coalition (`\Omega`)? This class
     allows for such an answer to be formulated by calculating the Shapley
@@ -453,8 +453,8 @@ class CooperativeGame(SageObject):
             sage: long_game.is_monotone()
             True
         """
-        return not any([set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
-                        for p1, p2 in permutations(self.ch_f.keys(), 2)])
+        return not any(set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
+                       for p1, p2 in permutations(self.ch_f.keys(), 2))
 
     def is_superadditive(self):
         r"""
@@ -586,22 +586,22 @@ class CooperativeGame(SageObject):
             v(c) = \begin{cases}
             0, & \text{if } c = \emptyset \\
             6, & \text{if } c = \{A\} \\
-            42, & \text{if } c = \{C\} \\
             12, & \text{if } c = \{B\} \\
-            42, & \text{if } c = \{B, C\} \\
+            42, & \text{if } c = \{C\} \\
             12, & \text{if } c = \{A, B\} \\
             42, & \text{if } c = \{A, C\} \\
+            42, & \text{if } c = \{B, C\} \\
             42, & \text{if } c = \{A, B, C\} \\
             \end{cases}
         """
         cf = self.ch_f
         output = "v(c) = \\begin{cases}\n"
-        for key in sorted(cf.keys(), key=lambda key: len(key)):
+        for key, val in sorted(cf.items(), key=lambda kv: (len(kv[0]), kv[0])):
             if not key:  # == ()
                 coalition = "\\emptyset"
             else:
                 coalition = "\\{" + ", ".join(str(player) for player in key) + "\\}"
-            output += "{}, & \\text{{if }} c = {} \\\\\n".format(cf[key], coalition)
+            output += "{}, & \\text{{if }} c = {} \\\\\n".format(val, coalition)
         output += "\\end{cases}"
         return output
 

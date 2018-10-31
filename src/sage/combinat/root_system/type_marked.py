@@ -147,7 +147,7 @@ class CartanType(cartan_type.CartanType_decorator):
         cartan_type.CartanType_simply_laced,
         cartan_type.CartanType_crystallographic]
 
-    def _repr_(self, compact = False):
+    def _repr_(self, compact=False):
         """
         EXAMPLES::
 
@@ -159,10 +159,28 @@ class CartanType(cartan_type.CartanType_decorator):
 
            sage: CartanType(['F', 4, 1]).marked_nodes([0, 2])._repr_(compact = True)
            'F4~ with nodes (0, 2) marked'
+
+            sage: D = DynkinDiagram("A2")
+            sage: D.marked_nodes([1])
+            O---O
+            1   2
+            A2 with node 1 marked
+
+            sage: CM = CartanMatrix([[2,-4],[-5,2]])
+            sage: CM.marked_nodes([1])
+            [ 2 -4]
+            [-5  2] with node 1 marked
         """
+        if not compact:
+            base = repr(self._type)
+        else:
+            try:
+                base = self._type._repr_(compact=True)
+            except TypeError:
+                base = repr(self._type)
         if len(self._marked_nodes) == 1:
-            return self._type._repr_(compact = compact)+" with node {} marked".format(self._marked_nodes[0])
-        return self._type._repr_(compact = compact)+" with nodes {} marked".format(self._marked_nodes)
+            return base + " with node {} marked".format(self._marked_nodes[0])
+        return base + " with nodes {} marked".format(self._marked_nodes)
 
     def _latex_(self):
         r"""
@@ -329,7 +347,6 @@ class CartanType(cartan_type.CartanType_decorator):
             sage: sorted(CartanType(["F", 4, 1]).relabel(lambda n: 4-n).dynkin_diagram().edges())
             [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 2), (2, 3, 1), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
         """
-        from copy import copy
         result = self._type.dynkin_diagram().copy()
         result._cartan_type = self
         return result

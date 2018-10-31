@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Vertex separation
 
@@ -255,7 +256,7 @@ REFERENCES
   computing Pathwidth*, David Coudert, Dorian Mazauric, and Nicolas Nisse. In
   Symposium on Experimental Algorithms (SEA), volume 8504 of LNCS, Copenhagen,
   Denmark, pages 46-58, June 2014,
-  http://hal.inria.fr/hal-00943549/document
+  https://hal.inria.fr/hal-00943549/document
 
 Authors
 -------
@@ -324,7 +325,7 @@ def lower_bound(G):
         sage: lower_bound(g)
         1
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph or a DiGraph::
 
@@ -669,7 +670,7 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
         sage: pw, L = path_decomposition(g, algorithm = "MILP"); pw
         2
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph::
 
@@ -918,7 +919,7 @@ def vertex_separation_exp(G, verbose = False):
         sage: vertex_separation_exp(g)
         (1, [0, 1, 2, 3, 4, 5])
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph or a DiGraph::
 
@@ -963,7 +964,7 @@ def vertex_separation_exp(G, verbose = False):
     memset(neighborhoods, <uint8_t> -1, mem)
 
     cdef int i,j , k
-    for k in xrange(g.n):
+    for k in range(g.n):
         if verbose:
             print("Looking for a strategy of cost", str(k))
 
@@ -1006,7 +1007,7 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int current, int 
     cdef int next_set
 
 
-    for i in xrange(g.n):
+    for i in range(g.n):
         if (current >> i)&1:
             continue
 
@@ -1037,7 +1038,7 @@ cdef list find_order(FastDigraph g, uint8_t * neighborhoods, int cost):
     while n:
         # We look for n vertices
 
-        for i in xrange(g.n):
+        for i in range(g.n):
             if (current >> i)&1:
                 continue
 
@@ -1105,7 +1106,7 @@ def is_valid_ordering(G, L):
         sage: vertex_separation.is_valid_ordering(G, [1,2])
         False
 
-    TEST:
+    TESTS:
 
     Giving anything else than a Graph or a DiGraph::
 
@@ -1335,7 +1336,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
         raise ValueError("The first input parameter must be a Graph or a DiGraph.")
 
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-    p = MixedIntegerLinearProgram( maximization = False, solver = solver )
+    p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
     # Declaration of variables.
     x = p.new_variable(binary=integrality, nonnegative=True)
@@ -1343,40 +1344,40 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     y = p.new_variable(binary=True)
     z = p.new_variable(integer=True, nonnegative=True)
 
-    N = G.num_verts()
+    N = G.order()
     V = G.vertices()
     neighbors_out = G.neighbors_out if G.is_directed() else G.neighbors
 
     # (2) x[v,t] <= x[v,t+1]   for all v in V, and for t:=0..N-2
     # (3) y[v,t] <= y[v,t+1]   for all v in V, and for t:=0..N-2
     for v in V:
-        for t in xrange(N - 1):
+        for t in range(N - 1):
             p.add_constraint( x[v,t] - x[v,t+1] <= 0 )
             p.add_constraint( y[v,t] - y[v,t+1] <= 0 )
 
     # (4) y[v,t] <= x[w,t]  for all v in V, for all w in N^+(v), and for all t:=0..N-1
     for v in V:
         for w in neighbors_out(v):
-            for t in xrange(N):
+            for t in range(N):
                 p.add_constraint( y[v,t] - x[w,t] <= 0 )
 
     # (5) sum_{v in V} y[v,t] == t+1 for t:=0..N-1
-    for t in xrange(N):
+    for t in range(N):
         p.add_constraint( p.sum([ y[v,t] for v in V ]) == t+1 )
 
     # (6) u[v,t] >= x[v,t]-y[v,t]    for all v in V, and for all t:=0..N-1
     for v in V:
-        for t in xrange(N):
+        for t in range(N):
             p.add_constraint( x[v,t] - y[v,t] - u[v,t] <= 0 )
 
     # (7) z >= sum_{v in V} u[v,t]   for all t:=0..N-1
-    for t in xrange(N):
+    for t in range(N):
         p.add_constraint( p.sum([ u[v,t] for v in V ]) - z['z'] <= 0 )
 
     # (8)(9) 0 <= x[v,t] and u[v,t] <= 1
     if not integrality:
         for v in V:
-            for t in xrange(N):
+            for t in range(N):
                 p.add_constraint( 0 <= x[v,t] <= 1 )
                 p.add_constraint( 0 <= u[v,t] <= 1 )
 
@@ -1401,7 +1402,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     tabz = p.get_values( z )
     # since exactly one vertex is processed per step, we can reconstruct the sequence
     seq = []
-    for t in xrange(N):
+    for t in range(N):
         for v in V:
             if (taby[v,t] > 0) and (not v in seq):
                 seq.append(v)
@@ -1607,10 +1608,10 @@ def vertex_separation_BAB(G,
         sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
-        raise MemoryError("Unable to allocate data strutures.")
+        raise MemoryError("Unable to allocate data structures.")
 
     cdef list best_seq = list(range(n))
-    for i in xrange(n):
+    for i in range(n):
         prefix[i] = i
         positions[i] = i
 
@@ -1641,7 +1642,7 @@ def vertex_separation_BAB(G,
         sig_off()
 
         # ==> Build the final ordering
-        order = [int_to_vertex[best_seq[i]] for i in xrange(n)]
+        order = [int_to_vertex[best_seq[i]] for i in range(n)]
 
     finally:
         if verbose:
@@ -1735,7 +1736,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
     if level==n:
         if current_cost < upper_bound:
-            for i in xrange(n):
+            for i in range(n):
                 best_seq[i] = prefix[i]
             if verbose:
                 print("New upper bound: {}".format(current_cost))
@@ -1799,7 +1800,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     #
     if loc_level==n:
         if current_cost < upper_bound:
-            for i in xrange(n):
+            for i in range(n):
                 best_seq[i] = prefix[i]
             if verbose:
                 print("New upper bound: {}".format(current_cost))
@@ -1815,7 +1816,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     cdef frozenset frozen_prefix
 
     if loc_level<=max_prefix_length:
-        frozen_prefix = frozenset([prefix[i] for i in xrange(loc_level)])
+        frozen_prefix = frozenset([prefix[i] for i in range(loc_level)])
         if frozen_prefix in prefix_storage:
             return upper_bound
 

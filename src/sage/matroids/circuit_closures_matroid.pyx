@@ -67,6 +67,7 @@ Methods
 #*****************************************************************************
 from __future__ import absolute_import
 
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 from .matroid cimport Matroid
 from .set_system cimport SetSystem
 from .utilities import setprint_s
@@ -479,22 +480,15 @@ cdef class CircuitClosuresMatroid(Matroid):
         cdef CircuitClosuresMatroid lt, rt
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if not isinstance(left, CircuitClosuresMatroid) or not isinstance(right, CircuitClosuresMatroid):
+        if type(left) is not type(right):
             return NotImplemented
         lt = <CircuitClosuresMatroid> left
         rt = <CircuitClosuresMatroid> right
-        if op == Py_EQ:
-            res = True
-        if op == Py_NE:
-            res = False
-        # res gets inverted if matroids are deemed different.
         if lt.groundset() != rt.groundset():
-            return not res
+            return rich_to_bool(op, 1)
         if lt.full_rank() != rt.full_rank():
-            return not res
-        if lt._circuit_closures == rt._circuit_closures:
-            return res
-        return not res
+            return rich_to_bool(op, 1)
+        return richcmp(lt._circuit_closures, rt._circuit_closures, op)
 
     # COPYING, LOADING, SAVING
 

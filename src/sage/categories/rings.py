@@ -115,10 +115,23 @@ class Rings(CategoryWithAxiom):
 
                 sage: K.<x> = FunctionField(QQ)
                 sage: f = ZZ.hom(K); f
-                Ring Coercion morphism:
+                Composite map:
                   From: Integer Ring
                   To:   Rational function field in x over Rational Field
+                  Defn:   Conversion via FractionFieldElement_1poly_field map:
+                          From: Integer Ring
+                          To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                        then
+                          Isomorphism:
+                          From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                          To:   Rational function field in x over Rational Field
                 sage: f.is_injective()
+                True
+
+            A coercion to the fraction field is injective::
+
+                sage: R = ZpFM(3)
+                sage: R.fraction_field().coerce_map_from(R).is_injective()
                 True
 
             """
@@ -148,15 +161,44 @@ class Rings(CategoryWithAxiom):
                         if self.domain().fraction_field() in NumberFields():
                             return True
 
+            if self._is_coercion:
+                try:
+                    K = self.domain().fraction_field()
+                except (TypeError, AttributeError, ValueError):
+                    pass
+                else:
+                    if K is self.codomain():
+                        return True
+
             if self.domain().cardinality() > self.codomain().cardinality():
                 return False
 
             raise NotImplementedError
 
+        def _is_nonzero(self):
+            r"""
+            Return whether this is not the zero morphism.
+
+            .. NOTE::
+
+                We can not override ``is_zero()`` from the category framework
+                and we can not implement ``__nonzero__`` because it is a
+                special method. That this is why this has a cumbersome name.
+
+            EXAMPLES::
+
+                sage: ZZ.hom(ZZ)._is_nonzero()
+                True
+                sage: ZZ.hom(Zmod(1))._is_nonzero()
+                False
+
+            """
+            return bool(self.codomain().one())
+
     class SubcategoryMethods:
 
         def NoZeroDivisors(self):
-            """
+            r"""
             Return the full subcategory of the objects of ``self`` having
             no nonzero zero divisors.
 
@@ -904,9 +946,6 @@ class Rings(CategoryWithAxiom):
                   From: Number Field in i with defining polynomial x^2 + 1
                   To:   Complex Lazy Field
                   Defn: i -> 1*I
-                sage: QQi.<i> = QuadraticField(-1, embedding=None)
-                sage: QQ[i].coerce_embedding() is None
-                True
 
             TESTS:
 
@@ -920,14 +959,7 @@ class Rings(CategoryWithAxiom):
                 ...
                 TypeError: power series rings must have at least one variable
 
-            Some flexibility is allowed when specifying variables::
-
-                sage: QQ["x", SR.var('y'), polygen(CC, 'z')]
-                Multivariate Polynomial Ring in x, y, z over Rational Field
-                sage: QQ[["x", SR.var('y'), polygen(CC, 'z')]]
-                Multivariate Power Series Ring in x, y, z over Rational Field
-
-            but more baroque expressions do not work::
+            These kind of expressions do not work::
 
                 sage: QQ['a,b','c']
                 Traceback (most recent call last):
@@ -1182,7 +1214,7 @@ def _gen_names(elts):
     next(it) # skip empty word
     for x in elts:
         name = str(x)
-        m = re.match('^sqrt\((\d+)\)$', name)
+        m = re.match(r'^sqrt\((\d+)\)$', name)
         if m:
             name = "sqrt%s" % m.groups()[0]
         try:

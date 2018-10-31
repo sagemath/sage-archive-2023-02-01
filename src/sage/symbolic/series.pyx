@@ -24,10 +24,10 @@ it back to a polynomial::
     sage: f = (x^3 - sin(y)*x^2 - 5*x + 3); f
     x^3 - x^2*sin(y) - 5*x + 3
     sage: g = f.series(x, 4); g
-    3 + (-5)*x + (-sin(y))*x^2 + 1*x^3
+    3 + (-5)*x + (-sin(y))*x^2 + 1*x^3 + Order(x^4)
     sage: g.truncate()
     x^3 - x^2*sin(y) - 5*x + 3
-    sage: g = f.series(x==1, 4); g
+    sage: g = f.series(x==1, oo); g
     (-sin(y) - 1) + (-2*sin(y) - 2)*(x - 1) + (-sin(y) + 3)*(x - 1)^2 + 1*(x - 1)^3
     sage: h = g.truncate(); h
     (x - 1)^3 - (x - 1)^2*(sin(y) - 3) - 2*(x - 1)*(sin(y) + 1) - sin(y) - 1
@@ -88,7 +88,7 @@ TESTS:
 Check that :trac:`20088` is fixed::
 
     sage: ((1+x).series(x)^pi).series(x,3)
-    1 + (pi)*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
+    1 + pi*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
 
 Check that :trac:`14878` is fixed, this should take only microseconds::
 
@@ -281,7 +281,7 @@ cdef class SymbolicSeries(Expression):
         EXAMPLES::
 
             sage: ex=(gamma(1-x)).series(x,3); ex
-            1 + (euler_gamma)*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + Order(x^3)
+            1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + Order(x^3)
             sage: g=ex.power_series(SR); g
             1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + O(x^3)
             sage: g.parent()

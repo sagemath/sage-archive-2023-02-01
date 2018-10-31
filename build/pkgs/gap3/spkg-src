@@ -61,6 +61,7 @@ mv -f sage/init.g lib/init.g
 mv -f sage/gap.sh bin/gap.sh
 mv -f sage/Makefile src/Makefile
 chmod a+x bin/gap.sh
+rm -f sage/*
 rmdir sage
 
 cd ..

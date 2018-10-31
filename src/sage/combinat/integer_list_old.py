@@ -15,7 +15,7 @@ AUTHORS:
 - Travis Scrimshaw (2012-10-29): Made ``IntegerListsLex`` into a parent with
   the element class ``IntegerListsLexElement``.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
@@ -28,8 +28,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 from six.moves import builtins
 
@@ -410,8 +410,6 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: list(iterator(2, 3, 3, lambda i: 0, lambda i: 5, 0, 10))
         [[0, 1, 1], [0, 0, 2]]
     """
-    #from sage.misc.superseded import deprecation
-    #deprecation(13605, 'iterator(...) is deprecated. Use IntegerListLex(...) instead.')
     stopgap("Iterator uses the old implementation of IntegerListsLex, which does not allow for arbitrary input;"
             " non-allowed input can return wrong results,"
             " please see the documentation for IntegerListsLex for details.",
@@ -1023,6 +1021,18 @@ class IntegerListsLex(Parent):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Compute a hash for ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
+            sage: h = hash(C)
+        """
+        return hash(repr(self)) ^ 53397379531
+
     def _repr_(self):
         """
         Returns the name of this combinatorial class.
@@ -1098,7 +1108,7 @@ class IntegerListsLex(Parent):
     # FIXME: integrate them as methods of this class
     def build_args(self):
         """
-        Returns a list of arguments that can be passed into the pre-existing
+        Return a list of arguments that can be passed into the pre-existing
         ``first``, ``next``, ``is_a``, ... functions in this module.
 
         ``n`` is currently not included in this list.
@@ -1110,19 +1120,18 @@ class IntegerListsLex(Parent):
             sage: C.build_args()
             [3,
              3,
-             <function <lambda> at 0x...>,
-             <function <lambda> at 0x...>,
+             <function ...<lambda> at 0x...>,
+             <function ...<lambda> at 0x...>,
              -inf,
              inf]
-
         """
         return [self.min_length, self.max_length,
-                lambda i: self.floor(i-1), lambda i: self.ceiling(i-1),
+                lambda i: self.floor(i - 1), lambda i: self.ceiling(i - 1),
                 self.min_slope, self.max_slope]
 
     def first(self):
         """
-        Returns the lexicographically maximal element in ``self``.
+        Return the lexicographically maximal element in ``self``.
 
         EXAMPLES::
 
@@ -1160,8 +1169,8 @@ class IntegerListsLex(Parent):
         Default brute force implementation of count by iteration
         through all the objects.
 
-        Note that this skips the call to ``_element_constructor``, unlike
-        the default implementation.
+        Note that this skips the call to ``_element_constructor_``,
+        unlike the default implementation.
 
         .. TODO::
 

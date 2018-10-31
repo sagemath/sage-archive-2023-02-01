@@ -23,7 +23,7 @@ from copy import deepcopy
 
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
 from sage.misc.functional import denominator, is_even, is_field
@@ -90,7 +90,8 @@ class QuadraticForm(SageObject):
        - `R` -- ring for which the quadratic form is defined
        - `n` -- an integer >= 0
        - ``entries`` -- a list of `n(n+1)/2` coefficients of the quadratic form
-         in `R` (given lexographically, or equivalently, by rows of the matrix)
+         in `R` (given lexicographically, or equivalently, by rows of the
+         matrix)
 
     #. ``QuadraticForm(R, n)``, where
 
@@ -656,11 +657,6 @@ class QuadraticForm(SageObject):
         except Exception:
             raise RuntimeError("Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.")
 
-
-######################################
-# TO DO:    def __cmp__(self, other):
-######################################
-
     def __hash__(self):
         r"""
         TESTS::
@@ -705,9 +701,10 @@ class QuadraticForm(SageObject):
 
     def __add__(self, right):
           """
-          Returns the direct sum of two quadratic forms.
+          Return the direct sum of two quadratic forms.
 
           EXAMPLES::
+
               sage: Q = QuadraticForm(ZZ, 2, [1,4,10])
               sage: Q
               Quadratic form in 2 variables over Integer Ring with coefficients:
@@ -720,7 +717,6 @@ class QuadraticForm(SageObject):
               [ * 10 0 0 ]
               [ * * 1 4 ]
               [ * * * -10 ]
-
           """
           if not isinstance(right, QuadraticForm):
               raise TypeError("Oops!  Can't add these objects since they're not both quadratic forms. =(")
@@ -845,7 +841,7 @@ class QuadraticForm(SageObject):
             sage: Q([1,0])
             1
             sage: type(Q([1,0]))
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: Q = QuadraticForm(QQ, 2, range(1,4))
             sage: Q(matrix(2, [1,0]))
             Quadratic form in 1 variables over Rational Field with coefficients:
@@ -970,7 +966,7 @@ class QuadraticForm(SageObject):
                     return False
 
         ## Test that all entries coerce to R
-        if not ((A.base_ring() == R) or (ring_coerce_test == True)):
+        if not ((A.base_ring() == R) or ring_coerce_test):
             try:
                 for i in range(n):
                     for j in range(i, n):
@@ -1174,7 +1170,7 @@ class QuadraticForm(SageObject):
 
             sage: Q = DiagonalQuadraticForm(QQ,[1, 3, 5, 7])
             sage: P = Q.polynomial(); P
-            2*x0^2 + 6*x1^2 + 10*x2^2 + 14*x3^2
+            x0^2 + 3*x1^2 + 5*x2^2 + 7*x3^2
 
         ::
 
@@ -1182,23 +1178,25 @@ class QuadraticForm(SageObject):
             sage: Z = F.ring_of_integers()
             sage: Q = QuadraticForm(Z,3,[2*a, 3*a, 0 , 1 - a, 0, 2*a + 4])
             sage: P = Q.polynomial(names='y'); P
-            4*a*y0^2 + 6*a*y0*y1 + (-2*a + 2)*y1^2 + (4*a + 8)*y2^2
+            2*a*y0^2 + 3*a*y0*y1 + (-a + 1)*y1^2 + (2*a + 4)*y2^2
             sage: Q = QuadraticForm(F,4,[a, 3*a, 0, 1 - a, a - 3, 0, 2*a + 4, 4 + a, 0, 1])
             sage: Q.polynomial(names='z')
-            (2*a)*z0^2 + (6*a)*z0*z1 + (2*a - 6)*z1^2 + (2*a + 8)*z2^2 + (-2*a + 2)*z0*z3 + (4*a + 8)*z1*z3 + 2*z3^2
+            (a)*z0^2 + (3*a)*z0*z1 + (a - 3)*z1^2 + (a + 4)*z2^2 + (-a + 1)*z0*z3 + (2*a + 4)*z1*z3 + z3^2
             sage: B.<i,j,k> = QuaternionAlgebra(F,-1,-1)
             sage: Q = QuadraticForm(B, 3, [2*a, 3*a, i, 1 - a, 0, 2*a + 4])
             sage: Q.polynomial()
             Traceback (most recent call last):
             ...
             ValueError: Can only create polynomial rings over commutative rings.
-
         """
-        M = self.matrix()
-        n = self.dim()
         B = self.base_ring()
+        n = self.dim()
+        M = matrix(B, n)
+        for i in range(n):
+            for j in range(i, n):
+                M[i,j] = self[i,j]
         try:
-            R = PolynomialRing(self.base_ring(),names,n)
+            R = PolynomialRing(self.base_ring(), names, n)
         except Exception:
             raise ValueError('Can only create polynomial rings over commutative rings.')
         V = vector(R.gens())

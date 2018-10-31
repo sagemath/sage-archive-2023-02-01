@@ -87,7 +87,7 @@ class FunctionDiracDelta(BuiltinFunction):
 
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Dirac_delta_function
+    - :wikipedia:`Dirac_delta_function`
 
     """
     def __init__(self):
@@ -398,7 +398,7 @@ class FunctionSignum(BuiltinFunction):
 
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Sign_function
+    - :wikipedia:`Sign_function`
 
     """
     def __init__(self):
@@ -536,7 +536,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Kronecker_delta
+    - :wikipedia:`Kronecker_delta`
 
     """
     def __init__(self):
@@ -629,7 +629,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
         return 0
 
     def _print_latex_(self, m, n, **kwds):
-        """
+        r"""
         Return latex expression
 
         EXAMPLES::
@@ -638,9 +638,8 @@ class FunctionKroneckerDelta(BuiltinFunction):
             sage: m,n=var('m,n')
             sage: latex(kronecker_delta(m,n))
             \delta_{m,n}
-
         """
         from sage.misc.latex import latex
-        return "\\delta_{%s,%s}"%(latex(m), latex(n))
+        return r"\delta_{%s,%s}" % (latex(m), latex(n))
 
 kronecker_delta = FunctionKroneckerDelta()

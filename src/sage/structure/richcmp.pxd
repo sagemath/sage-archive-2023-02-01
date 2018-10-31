@@ -1,6 +1,56 @@
 from libc.stdint cimport uint32_t
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
-from cpython.object cimport PyObject_RichCompare as richcmp
+from cpython.object cimport (Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE,
+                             PyObject_RichCompare)
+
+
+cpdef inline richcmp(x, y, int op):
+    """
+    Return the result of the rich comparison of ``x`` and ``y`` with
+    operator ``op``.
+
+    INPUT:
+
+    - ``x``, ``y`` -- arbitrary Python objects
+
+    - ``op`` -- comparison operator (one of ``op_LT`, ``op_LE``,
+      ``op_EQ``, ``op_NE``, ``op_GT``, ``op_GE``).
+
+    EXAMPLES::
+
+        sage: from sage.structure.richcmp import *
+        sage: richcmp(3, 4, op_LT)
+        True
+        sage: richcmp(x, x^2, op_EQ)
+        x == x^2
+
+    The two examples above are completely equivalent to ``3 < 4``
+    and ``x == x^2``. For this reason, it only makes sense in practice
+    to call ``richcmp`` with a non-constant value for ``op``.
+
+    We can write a custom ``Element`` class which shows a more
+    realistic example of how to use this::
+
+        sage: from sage.structure.element import Element
+        sage: class MyElement(Element):
+        ....:     def __init__(self, parent, value):
+        ....:         Element.__init__(self, parent)
+        ....:         self.v = value
+        ....:     def _richcmp_(self, other, op):
+        ....:         return richcmp(self.v, other.v, op)
+        sage: P = Parent()
+        sage: x = MyElement(P, 3)
+        sage: y = MyElement(P, 3)
+        sage: x < y
+        False
+        sage: x == y
+        True
+        sage: x > y
+        False
+    """
+    return PyObject_RichCompare(x, y, op)
+
+
+cpdef richcmp_item(x, y, int op)
 
 
 cpdef inline richcmp_not_equal(x, y, int op):
@@ -146,65 +196,16 @@ cpdef inline bint rich_to_bool_sgn(int op, Py_ssize_t c):
     return rich_to_bool(op, (c > 0) - (c < 0))
 
 
-########################################################################
-# Technical Python stuff
-########################################################################
-
-from cpython.object cimport PyObject, PyTypeObject, Py_TYPE
-
-cdef extern from *:
-    struct wrapperbase:
-        PyObject* name_strobj
-
-    ctypedef struct PyWrapperDescrObject:
-        wrapperbase* d_base
-
-    PyTypeObject* wrapper_descriptor "(&PyWrapperDescr_Type)"
-
-    PyDescr_NewWrapper(PyTypeObject* cls, wrapperbase* wrapper, void* wrapped)
-
-    void PyType_Modified(PyTypeObject* cls)
-
-
-cdef inline wrapperbase* get_slotdef(slotwrapper) except NULL:
+cpdef inline int revop(int op):
     """
-    Given a "slot wrapper" object, return the corresponding ``slotdef``.
+    Return the reverse operation of ``op``.
 
-    A slot wrapper is installed in the dict of an extension type to
-    access a special method implemented in C. For example,
-    ``object.__init__`` or ``Integer.__lt__``.
+    For example, <= becomes >=, etc.
 
-    A ``slotdef`` is associated to a specific slot like ``__eq__``
-    and does not depend at all on the type. In other words, calling
-    ``get_slotdef(t.__eq__)`` will return the same ``slotdef``
-    independent of the type ``t`` (provided that the type implements
-    rich comparison in C).
+    EXAMPLES::
 
-    TESTS::
-
-        sage: cython('''
-        ....: from sage.structure.richcmp cimport get_slotdef
-        ....: from cpython.long cimport PyLong_FromVoidPtr
-        ....: def py_get_slotdef(slotwrapper):
-        ....:     return PyLong_FromVoidPtr(get_slotdef(slotwrapper))
-        ....: ''')
-        sage: py_get_slotdef(object.__init__)  # random
-        140016903442416
-        sage: py_get_slotdef(bytes.__lt__)  # random
-        140016903441800
-        sage: py_get_slotdef(bytes.__lt__) == py_get_slotdef(Integer.__lt__)
-        True
-        sage: py_get_slotdef(bytes.__lt__) == py_get_slotdef(bytes.__gt__)
-        False
-        sage: class X(object):
-        ....:     def __eq__(self, other):
-        ....:         return False
-        sage: py_get_slotdef(X.__eq__)
-        Traceback (most recent call last):
-        ...
-        TypeError: expected a slot wrapper descriptor, got <...>
+        sage: from sage.structure.richcmp import revop
+        sage: [revop(i) for i in range(6)]
+        [4, 5, 2, 3, 0, 1]
     """
-    if Py_TYPE(slotwrapper) is not wrapper_descriptor:
-        raise TypeError(f"expected a slot wrapper descriptor, got {type(slotwrapper)}")
-
-    return (<PyWrapperDescrObject*>slotwrapper).d_base
+    return (5 - op) ^ 1

@@ -96,7 +96,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
         sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
         sage: L.basis()
-        Finite family {'y': y, 'x': x}
+        Finite family {'x': x, 'y': y}
     """
     @staticmethod
     def __classcall_private__(cls, R, s_coeff, names=None, index_set=None, **kwds):
@@ -255,6 +255,14 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             Finite family {('x', 'y'): x, ('x', 'z'): 0, ('y', 'z'): 0}
             sage: S['x','z'].parent() is L
             True
+
+        TESTS:
+
+        Check that :trac:`23373` is fixed::
+
+            sage: L = lie_algebras.sl(QQ, 2)
+            sage: sorted(L.structure_coefficients(True), key=str)
+            [-2*E[-alpha[1]], -2*E[alpha[1]], h1]
         """
         if not include_zeros:
             pos_to_index = dict(enumerate(self._indices))
@@ -265,7 +273,12 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         zero = self._M.zero()
         for i,x in enumerate(self._indices):
             for j, y in enumerate(self._indices[i+1:]):
-                elt = self._s_coeff.get((i, j+i+1), zero)
+                if (i, j+i+1) in self._s_coeff:
+                    elt = self._s_coeff[i, j+i+1]
+                elif (j+i+1, i) in self._s_coeff:
+                    elt = -self._s_coeff[j+i+1, i]
+                else:
+                    elt = zero
                 ret[x,y] = self.element_class(self, elt) # +i+1 for offset
         return Family(ret)
 
@@ -318,6 +331,22 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return self.element_class(self, self._M.basis()[self._index_to_pos[k]])
 
+    def term(self, k, c=None):
+        """
+        Return the term indexed by ``i`` with coefficient ``c``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+            sage: L.term('x', 4)
+            4*x
+        """
+        if c is None:
+            c = self.base_ring().one()
+        else:
+            c = self.base_ring()(c)
+        return self.element_class(self, c * self._M.basis()[self._index_to_pos[k]])
+
     def from_vector(self, v):
         """
         Return an element of ``self`` from the vector ``v``.
@@ -341,6 +370,30 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             [X, Y, Z, X + Y + Z]
         """
         return list(self.basis()) + [self.sum(self.basis())]
+
+    def change_ring(self, R):
+        r"""
+        Return a Lie algebra with identical structure coefficients over ``R``.
+
+        INPUT:
+
+        - ``R`` -- a ring
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(ZZ, {('x','y'): {'z':1}})
+            sage: L.structure_coefficients()
+            Finite family {('x', 'y'): z}
+            sage: LQQ = L.change_ring(QQ)
+            sage: LQQ.structure_coefficients()
+            Finite family {('x', 'y'): z}
+            sage: LSR = LQQ.change_ring(SR)
+            sage: LSR.structure_coefficients()
+            Finite family {('x', 'y'): z}
+        """
+        return LieAlgebraWithStructureCoefficients(
+            R, self.structure_coefficients(),
+            names=self.variable_names(), index_set=self.indices())
 
     class Element(StructureCoefficientsElement):
         def _sorted_items_for_printing(self):

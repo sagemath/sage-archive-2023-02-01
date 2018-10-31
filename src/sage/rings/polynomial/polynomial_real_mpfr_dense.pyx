@@ -35,7 +35,8 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.element import parent, canonical_coercion, bin_op, coerce_binop
+from sage.structure.element cimport parent
+from sage.structure.element import coerce_binop
 from sage.libs.mpfr cimport *
 
 from sage.libs.all import pari_gen
@@ -512,7 +513,7 @@ cdef class PolynomialRealDense(Polynomial):
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
-            sage: f = PolynomialRealDense(RR['x'], [pi, 0, 2, 1]);
+            sage: f = PolynomialRealDense(RR['x'], [pi, 0, 2, 1])
             sage: f.derivative()
             3.00000000000000*x^2 + 4.00000000000000*x
         """

@@ -109,35 +109,6 @@ class _default_adjuster(Sigma0ActionAdjuster):
         """
         return tuple(g.list())
 
-class _default_adjuster(Sigma0ActionAdjuster):
-    """
-    A callable object that does nothing to a matrix, returning its entries
-    in the natural, by-row, order.
-
-    INPUT:
-
-    - ``g`` -- a `2 \times 2` matrix
-
-    OUTPUT:
-
-    - a 4-tuple consisting of the entries of the matrix
-
-    EXAMPLES::
-
-        sage: A = sage.modular.pollack_stevens.sigma0._default_adjuster(); A
-        <sage.modular.pollack_stevens.sigma0._default_adjuster object at 0x...>
-        sage: TestSuite(A).run()
-    """
-    def __call__(self, g):
-        """
-        EXAMPLES::
-
-            sage: T = sage.modular.pollack_stevens.sigma0._default_adjuster()
-            sage: T(matrix(ZZ,2,[1..4])) # indirect doctest
-            (1, 2, 3, 4)
-        """
-        return tuple(g.list())
-
 class Sigma0_factory(UniqueFactory):
     r"""
     Create the monoid of non-singular matrices, upper triangular mod `N`.
@@ -235,9 +206,8 @@ class Sigma0Element(MonoidElement):
             sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
             sage: s = Sigma0(3)([1,4,3,3])
             sage: hash(s) # indirect doctest
-            11
-
-        # TODO: the doctest is probably wrong on 32-bit machines
+            8095169151987216923  # 64-bit
+            619049499            # 32-bit
         """
         return hash(self.matrix())
 

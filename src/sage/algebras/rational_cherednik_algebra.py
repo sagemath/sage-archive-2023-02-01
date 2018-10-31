@@ -139,7 +139,7 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
                                          sorting_key=self._genkey)
 
     def _genkey(self, t):
-        """
+        r"""
         Construct a key for comparison for a term indexed by ``t``.
 
         The key we create is the tuple in the following order:
@@ -333,8 +333,8 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
 
         # Do Lac Ra if they are both non-trivial
         if dl and dr:
-            il = dl.keys()[0]
-            ir = dr.keys()[0]
+            il = next(iter(dl.keys()))
+            ir = next(iter(dr.keys()))
 
             # Compute the commutator
             terms = self._product_coroot_root(il, ir)
@@ -395,14 +395,29 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
             sage: k = QQ['c,t']
             sage: R = algebras.RationalCherednik(['A',3], k.gen(0), k.gen(1))
             sage: R._product_coroot_root(1, 1)
-            ((1, 2*t), (s1*s2*s3*s2*s1, 1/2*c), (s2*s3*s2, 1/2*c),
-             (s1*s2*s1, 1/2*c), (s1, 2*c), (s3, 0), (s2, 1/2*c))
+            ((1, 2*t),
+             (s2, 1/2*c),
+             (s3, 0),
+             (s1*s2*s3*s2*s1, 1/2*c),
+             (s2*s3*s2, 1/2*c),
+             (s1, 2*c),
+             (s1*s2*s1, 1/2*c))
             sage: R._product_coroot_root(1, 2)
-            ((1, -t), (s1*s2*s3*s2*s1, 0), (s2*s3*s2, -1/2*c),
-             (s1*s2*s1, 1/2*c), (s1, -c), (s3, 0), (s2, -c))
+            ((1, -t),
+             (s2, -c),
+             (s3, 0),
+             (s1*s2*s3*s2*s1, 0),
+             (s2*s3*s2, -1/2*c),
+             (s1, -c),
+             (s1*s2*s1, 1/2*c))
             sage: R._product_coroot_root(1, 3)
-            ((1, 0), (s1*s2*s3*s2*s1, 1/2*c), (s2*s3*s2, -1/2*c),
-             (s1*s2*s1, -1/2*c), (s1, 0), (s3, 0), (s2, 1/2*c))
+            ((1, 0),
+             (s2, 1/2*c),
+             (s3, 0),
+             (s1*s2*s3*s2*s1, 1/2*c),
+             (s2*s3*s2, -1/2*c),
+             (s1, 0),
+             (s1*s2*s1, -1/2*c))
         """
         Q = RootSystem(self._cartan_type).root_lattice()
         ac = Q.simple_coroot(i)
@@ -432,7 +447,7 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def trivial_idempotent(self):
-        """
+        r"""
         Return the trivial idempotent of ``self``.
 
         Let `e = |W|^{-1} \sum_{w \in W} w` is the trivial idempotent.

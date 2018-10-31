@@ -361,10 +361,10 @@ class GRSGuruswamiSudanDecoder(Decoder):
             if s<=0 or l<=0:
                 return -1
             return gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
-        if l ==None and s==None:
+        if l is None and s is None:
             tau = gilt(johnson_radius(n, n - k + 1))
             return (tau, GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k)))
-        if l!=None and s!=None:
+        if l is not None and s is not None:
             return (get_tau(s,l), (s,l))
 
         # Either s or l is set, but not both. First a shared local function
@@ -373,7 +373,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             the integers around `real_max` which gives the (local) integral
             maximum, and the value of at that point."""
             if real_max in ZZ:
-                int_max = Integer(real_max)
+                int_max = ZZ(real_max)
                 return (int_max, f(int_max))
             else:
                 x_f = floor(real_max)
@@ -381,7 +381,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
                 f_f, f_c = f(x_f), f(x_c)
                 return (x_f, f_f) if f_f >= f_c else (x_c, f_c)
 
-        if s!= None:
+        if s is not None:
             # maximising tau under condition
             # n*(s+1 choose 2) < (ell+1)*s*(n-tau) - (ell+1 choose 2)*(k-1)
             # knowing n and s, we can just minimise
@@ -390,10 +390,10 @@ class GRSGuruswamiSudanDecoder(Decoder):
             lmax = sqrt(n*s*(s+1.)/(k-1.)) - 1.
             #the best integral value will be
             (l,tau) = find_integral_max(lmax, lambda l: get_tau(s,l))
-            #Note that we have not proven that this ell is minimial in integral
+            #Note that we have not proven that this ell is minimal in integral
             #sense! It just seems that this most often happens
             return (tau,(s,l))
-        if l!= None:
+        if l is not None:
             # Acquired similarly to when restricting s
             smax = sqrt((k-1.)/n*l*(l+1.))
             (s,tau) = find_integral_max(smax, lambda s: get_tau(s,l))
@@ -481,7 +481,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         INPUT:
 
-        - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
+        - ``tau`` -- an integer, number of errors one expects Guruswami-Sudan algorithm
           to correct
         - ``s`` -- an integer, multiplicity parameter of Guruswami-Sudan algorithm
         - ``l`` -- an integer, list size parameter
@@ -600,7 +600,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             raise ValueError("Specify either tau or parameters")
         if hasattr(interpolation_alg, '__call__'):
             self._interpolation_alg = interpolation_alg
-        elif interpolation_alg == None or interpolation_alg == "LeeOSullivan":
+        elif interpolation_alg is None or interpolation_alg == "LeeOSullivan":
             self._interpolation_alg = gs_interpolation_lee_osullivan
         elif interpolation_alg == "LinearAlgebra":
             self._interpolation_alg = gs_interpolation_linalg
@@ -610,7 +610,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             self._root_finder = root_finder
         elif root_finder == "RothRuckenstein":
             self._root_finder = roth_ruckenstein_root_finder
-        elif root_finder == None or root_finder == "Alekhnovich":
+        elif root_finder is None or root_finder == "Alekhnovich":
             self._root_finder = alekhnovich_root_finder
         else:
             raise ValueError("Please provide a method or one of the allowed strings for root_finder")

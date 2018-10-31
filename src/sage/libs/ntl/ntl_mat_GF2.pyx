@@ -27,6 +27,7 @@ AUTHORS:
 #*****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -82,7 +83,7 @@ cdef class ntl_mat_GF2(object):
         cdef Py_ssize_t i, j
         cdef GF2_c _elem
 
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
 
         if is_Matrix(nrows):
             _nrows = nrows.nrows()
@@ -145,7 +146,7 @@ cdef class ntl_mat_GF2(object):
             [0 1 1 0]
             ]
         """
-        return mat_GF2_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __mul__(ntl_mat_GF2 self, other):
         """

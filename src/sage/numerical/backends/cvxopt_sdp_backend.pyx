@@ -22,7 +22,6 @@ from __future__ import print_function
 
 from sage.numerical.sdp import SDPSolverException
 from sage.matrix.all import Matrix
-from cvxopt import solvers
 from .generic_sdp_backend cimport GenericSDPBackend
 
 
@@ -127,7 +126,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         """
         i = 0
         for row in self.coeffs_matrix:
-            if self.matrices_dim.get(i) != None:
+            if self.matrices_dim.get(i) is not None:
                 row.append( Matrix.zero(self.matrices_dim[i], self.matrices_dim[i]) )
             else:
                 row.append(0)
@@ -284,15 +283,15 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: p.row_name(-1)
             'fun'
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         for t in coefficients:
             m = t[1]
             if not is_Matrix(m):
                 raise ValueError("The coefficients must be matrices")
             if not m.is_square():
                 raise ValueError("The matrix has to be a square")
-            if self.matrices_dim.get(self.nrows()) != None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
-                raise ValueError("The matrces have to be of the same dimension")
+            if self.matrices_dim.get(self.nrows()) is not None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
+                raise ValueError("the matrices have to be of the same dimension")
         self.coeffs_matrix.append(coefficients)
         self.matrices_dim[self.nrows()] = m.dimensions()[0] #
         self.row_name_var.append(name)
@@ -821,7 +820,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: p.solver_parameter("show_progress")
             True
         """
-        if value == None:
+        if value is None:
             return self.param[name]
         else:
             self.param[name] = value

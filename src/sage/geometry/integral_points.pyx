@@ -12,7 +12,7 @@ Cython helper methods to compute integral points in polyhedra.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_check
 import copy
@@ -851,7 +851,7 @@ cdef class Inequality_int:
     - ``b`` -- integer
 
     - ``max_abs_coordinates`` -- the maximum of the coordinates that
-      one wants to evalate the coordinates on; used for overflow
+      one wants to evaluate the coordinates on; used for overflow
       checking
 
     OUTPUT:

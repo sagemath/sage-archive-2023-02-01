@@ -248,7 +248,7 @@ class GelfandTsetlinPattern(ClonableArray):
 
     @combinatorial_map(name='to semistandard tableau')
     def to_tableau(self):
-        """
+        r"""
         Return ``self`` as a semistandard Young tableau.
 
         The conversion from a Gelfand-Tsetlin pattern to a semistandard Young
@@ -1142,7 +1142,7 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
             False
         """
         # Check if the top row matches (if applicable)
-        if tuple(gt[0]) != self._row:
+        if gt and tuple(gt[0]) != self._row:
             return False
         return GelfandTsetlinPatterns.__contains__(self, gt)
 

@@ -386,7 +386,7 @@ cdef class ActionEndomorphism(Morphism):
         self._action = action
         self._g = g
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for pickling and copying.
 
@@ -403,9 +403,10 @@ cdef class ActionEndomorphism(Morphism):
             sage: psi(x) == phi(x)
             True
         """
-        _slots['_action'] = self._action
-        _slots['_g'] = self._g
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots['_action'] = self._action
+        slots['_g'] = self._g
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

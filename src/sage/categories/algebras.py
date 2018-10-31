@@ -162,7 +162,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                     (containing the arrows a:x->y and b:x->y) over Rational Field
                     sage: S = A.semisimple_quotient()
                     sage: S.algebra_generators()
-                    Finite family {'y': B['y'], 'x': B['x'], 'b': 0, 'a': 0}
+                    Finite family {'x': B['x'], 'y': B['y'], 'a': 0, 'b': 0}
 
                 .. TODO:: this could possibly remove the elements that retract to zero.
                 """
@@ -176,7 +176,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
         discussion on:
 
          - http://groups.google.fr/group/sage-devel/browse_thread/thread/35a72b1d0a2fc77a/348f42ae77a66d16#348f42ae77a66d16
-         - http://en.wikipedia.org/wiki/Direct_product
+         - :wikipedia:`Direct_product`
         """
         def extra_super_categories(self):
             """

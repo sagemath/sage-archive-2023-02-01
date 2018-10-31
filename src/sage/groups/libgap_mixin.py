@@ -8,7 +8,7 @@ the parent/element.
 If your group implementation uses libgap, then you should add
 :class:`GroupMixinLibGAP` as the first class that you are deriving
 from. This ensures that it properly overrides any default methods that
-just raise ``NotImplemented``.
+just raise ``NotImplementedError``.
 """
 
 from sage.libs.all import libgap
@@ -398,13 +398,13 @@ class GroupMixinLibGAP(object):
             [ 2 -1  0]
             [ 1  1  1]
             sage: MatrixGroup(SymmetricGroup(5)).character_table()
-            [ 1  1  1  1  1  1  1]
             [ 1 -1 -1  1 -1  1  1]
             [ 4  0  1 -1 -2  1  0]
-            [ 4  0 -1 -1  2  1  0]
-            [ 5 -1  1  0  1 -1  1]
             [ 5  1 -1  0 -1 -1  1]
             [ 6  0  0  1  0  0 -2]
+            [ 5 -1  1  0  1 -1  1]
+            [ 4  0 -1 -1  2  1  0]
+            [ 1  1  1  1  1  1  1]
         """
         #code from function in permgroup.py, but modified for
         #how gap handles these groups.

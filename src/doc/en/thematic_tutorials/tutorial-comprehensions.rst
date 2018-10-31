@@ -118,9 +118,11 @@ idioms give the same results; however, the second idiom is much more
 memory efficient (for large examples) as it does not expand any list
 in memory::
 
-    sage: sum( [ binomial(8, i) for i in range(9) ] )
+    sage: sum([binomial(8, i) for i in range(9)])
     256
-    sage: sum( binomial(8, i) for i in xrange(9) )
+    sage: sum(binomial(8, i) for i in xrange(9))  # py2
+    256
+    sage: sum(binomial(8, i) for i in range(9))  # py3
     256
 
 .. TOPIC:: Exercises

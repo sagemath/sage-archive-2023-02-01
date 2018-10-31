@@ -375,7 +375,7 @@ class FormsRingElement(six.with_metaclass(
             True
         """
 
-        return self._weight != None
+        return self._weight is not None
 
     def weight(self):
         r"""
@@ -980,7 +980,8 @@ class FormsRingElement(six.with_metaclass(
 
     def sqrt(self):
         r"""
-        Try to return the square root of ``self``.
+        Return the square root of ``self`` if it exists.
+
         I.e. the element corresponding to ``sqrt(self.rat())``.
 
         Whether this works or not depends on whether
@@ -996,24 +997,21 @@ class FormsRingElement(six.with_metaclass(
         In particular this is the case if ``self``
         is a (homogeneous) element of a forms space.
 
-        .. TODO::
-
-            Make square root in the underlying rational field work.
-
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
-            sage: E2=QuasiModularForms(k=2, ep=-1).E2()
-            sage: sqrt(E2^2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: is_square() not implemented for elements of Multivariate Polynomial Ring in x, y, z, d over Integer Ring
+            sage: E2 = QuasiModularForms(k=2, ep=-1).E2()
+            sage: (E2^2).sqrt()
+            1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 + O(q^5)
+            sage: (E2^2).sqrt() == E2
+            True
         """
-
-        res = self.parent().rat_field()(self._rat.sqrt())
-        new_parent = self.parent().extend_type(ring=True)
+        res = self._rat.sqrt()
+        assert res.parent() is self.parent().rat_field()
+        #new_parent = self.parent().extend_type(ring=True)
         # The sqrt of a homogeneous element is homogeneous if it exists
-        return self.parent()(res).reduce()
+        new_parent = self.parent().extend_type(ring=True)
+        return new_parent(res).reduce()
 
     def diff_op(self, op, new_parent=None):
         r"""
@@ -1118,7 +1116,7 @@ class FormsRingElement(six.with_metaclass(
             mon_summand *= z**(mon.degree(Z))
             new_rat     += op.monomial_coefficient(mon)*mon_summand
         res = self.parent().rat_field()(new_rat)
-        if (new_parent == None):
+        if (new_parent is None):
             new_parent = self.parent().extend_type(["quasi", "mero"], ring=True)
         return new_parent(res).reduce()
 
@@ -1552,7 +1550,7 @@ class FormsRingElement(six.with_metaclass(
             True
         """
 
-        if (fix_prec == False):
+        if not fix_prec:
             #if (prec <1):
             #    print "Warning: non-positive precision!"
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
@@ -1692,9 +1690,9 @@ class FormsRingElement(six.with_metaclass(
             2*d*q^-1 + 1/2 + 39/(512*d)*q + O(q^2)
         """
 
-        if prec == None:
+        if prec is None:
             prec = self.parent().default_prec()
-        if d_num_prec == None:
+        if d_num_prec is None:
             d_num_prec = self.parent().default_num_prec()
         if not isinstance(fix_d, bool):
             subs_d = fix_d
@@ -1817,11 +1815,11 @@ class FormsRingElement(six.with_metaclass(
             (516987/(8388608*d^4), 442989/(33554432*d^5))
         """
 
-        if (max_exp == None):
+        if (max_exp is None):
             max_exp = self.parent().default_prec() - 1
         else:
             max_exp = ZZ(max_exp)
-        if (prec == None):
+        if (prec is None):
             prec = max_exp + 1
         else:
             prec = ZZ(prec)
@@ -1830,7 +1828,7 @@ class FormsRingElement(six.with_metaclass(
 
         qexp = self.q_expansion(prec=prec, **kwargs)
 
-        if (min_exp == None):
+        if (min_exp is None):
             min_exp = qexp.valuation()
         else:
             min_exp = ZZ(min_exp)
@@ -1847,7 +1845,7 @@ class FormsRingElement(six.with_metaclass(
         (and fail) for certain (many) choices of
         (``base_ring``, ``tau.parent()``).
 
-        It is possible to evalutate at points of ``HyperbolicPlane()``.
+        It is possible to evaluate at points of ``HyperbolicPlane()``.
         In this case the coordinates of the upper half plane model are used.
 
         To obtain a precise and fast result the parameters
@@ -1944,8 +1942,8 @@ class FormsRingElement(six.with_metaclass(
             2.525...e-10 - 3.884...e-6*I
             sage: f_i(i)
             0
-            sage: f_i(i + 1e-1000)
-            -6.084...e-14 - 4.101...e-1000*I
+            sage: f_i(i + 1e-1000)  # rel tol 5e-2
+            -6.08402217494586e-14 - 4.10147008296517e-1000*I
             sage: f_inf(infinity)
             0
 
@@ -2157,9 +2155,9 @@ class FormsRingElement(six.with_metaclass(
         if (tau in HyperbolicPlane()):
            tau = tau.to_model('UHP').coordinates()
 
-        if (prec == None):
+        if (prec is None):
             prec = self.parent().default_prec()
-        if (num_prec == None):
+        if (num_prec is None):
             num_prec = self.parent().default_num_prec()
 
         # In case the order is known

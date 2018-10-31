@@ -209,7 +209,7 @@ cdef class Polynomial_template(Polynomial):
             sage: P.<x> = GF(2)[]
             sage: del x
 
-        TEST:
+        TESTS:
 
         The following has been a problem in a preliminary version of
         :trac:`12313`::

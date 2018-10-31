@@ -22,13 +22,16 @@ AUTHORS:
 
 from __future__ import absolute_import, print_function
 
-from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+import cython
+
 include "sage/data_structures/binary_matrix.pxi"
-from libc.math cimport sqrt
+from libc.math cimport sqrt, fabs
 from libc.string cimport memset
 
+from sage.cpython.string cimport char_to_str
 from sage.libs.gmp.mpz cimport *
 from sage.misc.prandom import random
 from sage.ext.memory_allocator cimport MemoryAllocator
@@ -43,11 +46,12 @@ cdef class GenericGraph_pyx(SageObject):
 
 def spring_layout_fast_split(G, **options):
     """
-    Graphs each component of G separately, placing them adjacent to
-    each other. This is done because on a disconnected graph, the
-    spring layout will push components further and further from each
-    other without bound, resulting in very tight clumps for each
-    component.
+    Graph each component of G separately, placing them adjacent to
+    each other.
+
+    This is done because on a disconnected graph, the spring layout
+    will push components further and further from each other without
+    bound, resulting in very tight clumps for each component.
 
     .. NOTE::
 
@@ -60,8 +64,10 @@ def spring_layout_fast_split(G, **options):
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
-        sage: spring_layout_fast_split(G)
-        {0: [0.452..., 0.247...], ..., 502: [25.7..., 0.505...]}
+        sage: D = spring_layout_fast_split(G); D  # random
+        {0: [0.77..., 0.06...],
+         ...
+         902: [3.13..., 0.22...]}
 
     AUTHOR:
 
@@ -73,22 +79,23 @@ def spring_layout_fast_split(G, **options):
     buffer = 1/sqrt(len(G))
     for g in Gs:
         cur_pos = spring_layout_fast(g, **options)
-        xmin = min([x[0] for x in cur_pos.values()])
-        xmax = max([x[0] for x in cur_pos.values()])
+        xmin = min(x[0] for x in cur_pos.values())
+        xmax = max(x[0] for x in cur_pos.values())
         if len(g) > 1:
             buffer = (xmax - xmin)/sqrt(len(g))
-        for v, loc in cur_pos.iteritems():
+        for v, loc in cur_pos.items():
             loc[0] += left - xmin + buffer
             pos[v] = loc
         left += xmax - xmin + buffer
     return pos
 
+
 def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False, by_component = False, **options):
     """
     Spring force model layout
 
-    This function primarily acts as a wrapper around run_spring,
-    converting to and from raw c types.
+    This function primarily acts as a wrapper around :func:`run_spring`,
+    converting to and from raw C types.
 
     This kind of speed cannot be achieved by naive Cythonification of the
     function alone, especially if we require a function call (let alone
@@ -103,8 +110,11 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
-        sage: spring_layout_fast(G)
-        {0: [-0.0733..., 0.157...], ..., 502: [-0.551..., 0.682...]}
+        sage: pos = spring_layout_fast(G)
+        sage: pos[0]  # random
+        [0.00..., 0.03...]
+        sage: sorted(pos.keys()) == sorted(G)
+        True
 
     With ``split=True``, each component of G is layed out separately,
     placing them adjacent to each other. This is done because on a
@@ -119,49 +129,53 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
-        sage: spring_layout_fast(G, by_component = True)
-        {0: [2.12..., -0.321...], ..., 502: [26.0..., -0.812...]}
+        sage: pos = spring_layout_fast(G, by_component = True)
+        sage: pos[0]  # random
+        [2.21..., -0.00...]
+        sage: len(pos) == G.order()
+        True
     """
-
     if by_component:
         return spring_layout_fast_split(G, iterations=iterations, dim = dim,
                                         vpos = vpos, rescale = rescale, height = height,
                                         **options)
 
     G = G.to_undirected()
-    vlist = G.vertices() # this defines a consistent order
+    vlist = list(G) # this defines a consistent order
 
     cdef int i, j, x
     cdef int n = G.order()
     if n == 0:
         return {}
 
-    cdef double* pos = <double*>check_allocarray(n, dim * sizeof(double))
-
-    # convert or create the starting positions as a flat list of doubles
-    if vpos is None:  # set the initial positions randomly in 1x1 box
-        for i from 0 <= i < n*dim:
-            pos[i] = random()
-    else:
-        for i from 0 <= i < n:
-            loc = vpos[vlist[i]]
-            for x from 0 <= x <dim:
-                pos[i*dim + x] = loc[x]
-
-
-    # here we construct a lexicographically ordered list of all edges
-    # where elist[2*i], elist[2*i+1] represents the i-th edge
-    cdef int* elist
+    cdef double* pos = NULL  # position of each vertex (for dim=2: x1,y1,x2,y2,...)
+    cdef int* elist = NULL   # lexicographically ordered list of edges (u1,v1,u2,v2,...)
+    cdef double* cen = NULL  # array of 'dim' doubles
     try:
-        elist = <int*>check_allocarray(2 * len(G.edges()) + 2, sizeof(int))
+        elist = <int*>    check_allocarray(2 * G.size() + 2, sizeof(int))
+        pos   = <double*> check_allocarray(     n*dim      , sizeof(double))
+        cen   = <double*> check_calloc(dim, sizeof(double))
     except MemoryError:
         sig_free(pos)
+        sig_free(elist)
+        sig_free(cen)
         raise
 
+    # Initialize the starting positions
+    if vpos is None:
+        for i in range(n*dim):
+            pos[i] = random() # random in 1x1 box
+    else:
+        for i in range(n):
+            loc = vpos[vlist[i]]
+            for x in range(dim):
+                pos[i*dim + x] = loc[x]
+
+    # Lexicographically ordered list of edges
     cdef int cur_edge = 0
 
-    for i from 0 <= i < n:
-        for j from i < j < n:
+    for i in range(n):
+        for j in range(i+1, n):
             if G.has_edge(vlist[i], vlist[j]):
                 elist[cur_edge] = i
                 elist[cur_edge+1] = j
@@ -169,52 +183,51 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
 
     # finish the list with -1, -1 which never gets matched
     # but does get compared against when looking for the "next" edge
-    elist[cur_edge] = -1
+    elist[cur_edge]   = -1
     elist[cur_edge+1] = -1
 
-    run_spring(iterations, dim, pos, elist, n, height)
+    if dim == 2:
+        run_spring(<int> iterations, <D_TWO> NULL, <double*> pos, <int*>elist, <int> n, <int> G.size(), <bint> height)
+    elif dim == 3:
+        run_spring(<int> iterations, <D_THREE> NULL, <double*> pos, <int*>elist, <int> n, <int> G.size(), <bint> height)
+    else:
+        raise ValueError("'dim' must be equal to 2 or 3")
 
     # recenter
-    cdef double* cen
     cdef double r, r2, max_r2 = 0
     if rescale:
-        try:
-            cen = <double *>check_allocarray(dim, sizeof(double))
-        except MemoryError:
-            sig_free(elist)
-            sig_free(pos)
-            raise
-        for x from 0 <= x < dim: cen[x] = 0
-        for i from 0 <= i < n:
-            for x from 0 <= x < dim:
+        for i in range(n):
+            for x in range(dim):
                 cen[x] += pos[i*dim + x]
-        for x from 0 <= x < dim: cen[x] /= n
-        for i from 0 <= i < n:
+        for x in range(dim):
+            cen[x] /= n
+        for i in range(n):
             r2 = 0
-            for x from 0 <= x < dim:
+            for x in range(dim):
                 pos[i*dim + x] -= cen[x]
                 r2 += pos[i*dim + x] * pos[i*dim + x]
             if r2 > max_r2:
                 max_r2 = r2
         r = 1 if max_r2 == 0 else sqrt(max_r2)
-        for i from 0 <= i < n:
-            for x from 0 <= x < dim:
+        for i in range(n):
+            for x in range(dim):
                 pos[i*dim + x] /= r
-        sig_free(cen)
 
     # put the data back into a position dictionary
     vpos = {}
-    for i from 0 <= i < n:
-        vpos[vlist[i]] = [pos[i*dim+x] for x from 0 <= x < dim]
+    for i in range(n):
+        vpos[vlist[i]] = [pos[i*dim+x] for x in range(dim)]
 
     sig_free(pos)
     sig_free(elist)
+    sig_free(cen)
 
     return vpos
 
 
-cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint height):
-    """
+@cython.cdivision(True)
+cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n, int m, bint height):
+    r"""
     Find a locally optimal layout for this graph, according to the
     constraints that neighboring nodes want to be a fixed distance
     from each other, and non-neighboring nodes always repel.
@@ -229,7 +242,10 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     INPUT:
 
         iterations -- number of steps to take
-        dim        -- number of dimensions of freedom
+        _dim       -- number of dimensions of freedom. Provide a value of type
+                      `D_TWO` for 2 dimensions, or type `D_THREE` for three
+                      dimensions. The actual value does not matter: only its
+                      type is important.
         pos        -- already initialized initial positions
                       Each vertex is stored as [dim] consecutive doubles.
                       These doubles are then placed consecutively in the array.
@@ -249,18 +265,25 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
 
     Robert Bradshaw
     """
+    cdef int dim
     cdef int cur_iter, cur_edge
     cdef int i, j, x
 
+    if dimension_t is D_TWO:
+        dim = 2
+    else:
+        dim = 3
+
     # k -- the equilibrium distance between two adjacent nodes
     cdef double t = 1, dt = t/(1e-20 + iterations), k = sqrt(1.0/n)
-    cdef double square_dist, force, scale
+    cdef double square_dist, dist, force, scale
     cdef double* disp_i
     cdef double* disp_j
-    cdef double* delta
+    cdef double delta[3]
+    cdef double d_tmp
+    cdef double xx,yy,zz
 
-    cdef double* disp = <double*>check_allocarray(n+1, dim * sizeof(double))
-    delta = &disp[n*dim]
+    cdef double* disp = <double*>check_allocarray(n, dim * sizeof(double))
 
     if height:
         update_dim = dim-1
@@ -269,56 +292,91 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
 
     sig_on()
 
-    for cur_iter from 0 <= cur_iter < iterations:
+    for cur_iter in range(iterations):
       cur_edge = 1 # offset by one for fast checking against 2nd element first
       # zero out the disp vectors
       memset(disp, 0, n * dim * sizeof(double))
-      for i from 0 <= i < n:
+      for i in range(n):
           disp_i = disp + (i*dim)
-          for j from i < j < n:
+          for j in range(i+1, n):
               disp_j = disp + (j*dim)
 
-              for x from 0 <= x < dim:
+              for x in range(dim):
                   delta[x] = pos[i*dim+x] - pos[j*dim+x]
 
-              square_dist = delta[0] * delta[0]
-              for x from 1 <= x < dim:
-                  square_dist += delta[x] * delta[x]
+              xx = delta[0] * delta[0]
+              yy = delta[1] * delta[1]
+              if dim == 2:
+                  square_dist = xx+yy
+              else:
+                  zz = delta[2] * delta[2]
+                  square_dist = xx+yy+zz
 
-              if square_dist < 0.01:
-                  square_dist = 0.01
+              if square_dist < 0.0001:
+                  square_dist = 0.0001
 
               # they repel according to the (capped) inverse square law
-              force = k*k/square_dist
+              force = (k*k)/square_dist
 
               # and if they are neighbors, attract according Hooke's law
               if edges[cur_edge] == j and edges[cur_edge-1] == i:
-                  force -= sqrt(square_dist)/k
+                  if dim == 2:
+                      dist = sqrt_approx(delta[0],delta[1],xx,yy)
+                  else:
+                      dist = sqrt(square_dist)
+                  force -= dist/k
                   cur_edge += 2
 
               # add this factor into each of the involved points
-              for x from 0 <= x < dim:
-                  disp_i[x] += delta[x] * force
-                  disp_j[x] -= delta[x] * force
+              for x in range(dim):
+                  d_tmp = delta[x] * force
+                  disp_i[x] += d_tmp
+                  disp_j[x] -= d_tmp
 
       # now update the positions
-      for i from 0 <= i < n:
+      for i in range(n):
           disp_i = disp + (i*dim)
 
           square_dist = disp_i[0] * disp_i[0]
-          for x from 1 <= x < dim:
+          for x in range(1, dim):
               square_dist += disp_i[x] * disp_i[x]
 
-          scale = t / (1 if square_dist < 0.01 else sqrt(square_dist))
+          if square_dist < 0.0001:
+              scale = 1
+          else:
+              scale = t/sqrt(square_dist)
 
-          for x from 0 <= x < update_dim:
+          for x in range(update_dim):
               pos[i*dim+x] += disp_i[x] * scale
 
       t -= dt
 
     sig_off()
-
     sig_free(disp)
+
+@cython.cdivision(True)
+cdef inline double sqrt_approx(double x,double y,double xx,double yy):
+    r"""
+    Approximation of `\sqrt(x^2+y^2)`.
+
+    Assuming that `x > y > 0`, it is a taylor expansion at `x^2`. To see how
+    'bad' the approximation is::
+
+        sage: def dist(x,y):
+        ....:    x = abs(x)
+        ....:    y = abs(y)
+        ....:    return max(x,y) + min(x,y)**2/(2*max(x,y))
+
+        sage: polar_plot([1,lambda x:dist(cos(x),sin(x))], (0, 2*pi))
+        Graphics object consisting of 2 graphics primitives
+    """
+    if xx<yy:
+        x,y = y,x
+        xx,yy = yy,xx
+
+    x = fabs(x)
+
+    return x + yy/(2*x)
 
 def int_to_binary_string(n):
     """
@@ -338,10 +396,11 @@ def int_to_binary_string(n):
         '11111010111'
     """
     cdef mpz_t i
+    cdef char* s
     mpz_init(i)
-    mpz_set_ui(i,n)
-    cdef char* s=mpz_get_str(NULL, 2, i)
-    t=str(s)
+    mpz_set_ui(i, n)
+    s = mpz_get_str(NULL, 2, i)
+    t = char_to_str(s)
     sig_free(s)
     mpz_clear(i)
     return t
@@ -431,7 +490,7 @@ def length_and_string_from_graph6(s):
     else: # only first byte is N
         o = ord(s[0])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         n = o - 63
         s = s[1:]
     return n, s
@@ -462,7 +521,7 @@ def binary_string_from_graph6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -492,7 +551,7 @@ def binary_string_from_dig6(s, n):
     for i from 0 <= i < len(s):
         o = ord(s[i])
         if o > 126 or o < 63:
-            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
+            raise RuntimeError("the string seems corrupt: valid characters are \n" + ''.join(chr(i) for i in xrange(63, 127)))
         a = int_to_binary_string(o-63)
         l.append( '0'*(6-len(a)) + a )
     m = "".join(l)
@@ -648,11 +707,21 @@ cdef class SubgraphSearch:
             sage: S._initialization()
             sage: S.__next__()
             [0, 1, 2]
-        """
 
-        memset(self.busy, 0, self.ng * sizeof(int))
-        # 0 is the first vertex we use, so it is at first busy
-        self.busy[0] = 1
+        TESTS:
+
+        Check that :trac:`21828` is fixed::
+
+            sage: Poset().is_incomparable_chain_free(1,1)   # indirect doctest
+            True
+        """
+        cdef int i
+
+        if self.ng > 0:
+            # 0 is the first vertex we use, so it is at first busy
+            self.busy[0] = 1
+            for i in range(1, self.ng):
+                self.busy[i] = 0
         # stack -- list of the vertices which are part of the partial copy of H
         # in G.
         #
@@ -681,6 +750,7 @@ cdef class SubgraphSearch:
             sage: g.subgraph_search(graphs.CycleGraph(5))
             Subgraph of (Petersen graph): Graph on 5 vertices
         """
+        self.mem = MemoryAllocator()
 
         # Storing the number of vertices
         self.ng = G.order()
@@ -697,27 +767,18 @@ cdef class SubgraphSearch:
 
         # A vertex is said to be busy if it is already part of the partial copy
         # of H in G.
-        self.busy       = <int *>  sig_malloc(self.ng * sizeof(int))
-        self.tmp_array  = <int *>  sig_malloc(self.ng * sizeof(int))
-        self.stack      = <int *>  sig_malloc(self.nh * sizeof(int))
-        self.vertices   = <int *>  sig_malloc(self.nh * sizeof(int))
-        self.line_h_out = <int **> sig_malloc(self.nh * sizeof(int *))
-        self.line_h_in  = <int **> sig_malloc(self.nh * sizeof(int *)) if self.directed else NULL
+        self.busy       = <int *>  self.mem.allocarray(self.ng, sizeof(int))
+        self.tmp_array  = <int *>  self.mem.allocarray(self.ng, sizeof(int))
+        self.stack      = <int *>  self.mem.allocarray(self.nh, sizeof(int))
+        self.vertices   = <int *>  self.mem.allocarray(self.nh, sizeof(int))
+        self.line_h_out = <int **> self.mem.allocarray(self.nh, sizeof(int *))
+        self.line_h_in  = <int **> self.mem.allocarray(self.nh, sizeof(int *)) if self.directed else NULL
 
-        if self.line_h_out is not NULL:
-            self.line_h_out[0] = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
-        if self.line_h_in is not NULL:
-            self.line_h_in[0]  = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
-
-        if (self.tmp_array     == NULL or
-            self.busy          == NULL or
-            self.stack         == NULL or
-            self.vertices      == NULL or
-            self.line_h_out    == NULL or
-            self.line_h_out[0] == NULL or
-            (self.directed and self.line_h_in == NULL) or
-            (self.directed and self.line_h_in[0] == NULL)):
-            raise MemoryError()
+        self.line_h_out[0] = <int *> self.mem.allocarray(self.nh*self.nh,
+                                            sizeof(int))
+        if self.directed:
+            self.line_h_in[0]  = <int *> self.mem.allocarray(self.nh*self.nh,
+                                            sizeof(int))
 
         # Should we look for induced subgraphs ?
         if induced:
@@ -771,6 +832,8 @@ cdef class SubgraphSearch:
             sage: S.__next__()
             [0, 1, 2]
         """
+        if self.ng == 0:
+            raise StopIteration
         sig_on()
         cdef bint is_admissible
         cdef int * tmp_array = self.tmp_array
@@ -840,22 +903,6 @@ cdef class SubgraphSearch:
 
         sig_off()
         raise StopIteration
-
-    def __dealloc__(self):
-        r"""
-        Freeing the allocated memory.
-        """
-        if self.line_h_in  is not NULL:
-            sig_free(self.line_h_in[0])
-        if self.line_h_out is not NULL:
-            sig_free(self.line_h_out[0])
-
-        # Free the memory
-        sig_free(self.busy)
-        sig_free(self.stack)
-        sig_free(self.vertices)
-        sig_free(self.line_h_out)
-        sig_free(self.line_h_in)
 
 cdef inline bint vectors_equal(int n, int *a, int *b):
     r"""
@@ -1198,7 +1245,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     # To clean the output when find_path is None or a number
     find_path = (find_path > 0)
 
-    if G.is_clique():
+    if G.is_clique(induced=False):
         # We have an hamiltonian path since n >= 2, but we have an hamiltonian
         # cycle only if n >= 3
         return find_path or n >= 3, G.vertices()
@@ -1385,9 +1432,10 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
 
     return (True, output)
 
+
 def transitive_reduction_acyclic(G):
     r"""
-    Returns the transitive reduction of an acyclic digraph
+    Return the transitive reduction of an acyclic digraph.
 
     INPUT:
 
@@ -1401,7 +1449,7 @@ def transitive_reduction_acyclic(G):
         True
     """
     cdef int  n = G.order()
-    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
+    cdef dict v_to_int = {vv: i for i, vv in enumerate(G)}
     cdef int  u, v, i
 
     cdef list linear_extension

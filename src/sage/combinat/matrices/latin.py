@@ -192,7 +192,7 @@ class LatinSquare:
         elif len(args) == 1 and isinstance(args[0], Matrix_integer_dense):
             self.square = args[0]
         else:
-            raise NotImplemented
+            raise TypeError("bad input for latin square")
 
     def dumps(self):
         """
@@ -295,7 +295,8 @@ class LatinSquare:
             sage: L = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: L.set_immutable()
             sage: L.__hash__()
-            12
+            1677951251422179082  # 64-bit
+            -479138038           # 32-bit
         """
         return hash(self.square)
 
@@ -1197,7 +1198,7 @@ class LatinSquare:
                 # If this is an empty cell of self then we do nothing.
                 if self[r, c] < 0: continue
 
-                for e in uniq(valsrow.keys() + valscol.keys()):
+                for e in uniq(list(valsrow) + list(valscol)):
                     # These should be constants
                     c_OFFSET  = e + c*n
                     r_OFFSET  = e + r*n + n*n
@@ -1303,13 +1304,17 @@ class LatinSquare:
 def genus(T1, T2):
     """
     Returns the genus of hypermap embedding associated with the bitrade
-    (T1, T2). Informally, we compute the [tau_1, tau_2, tau_3]
+    (T1, T2).
+
+    Informally, we compute the [tau_1, tau_2, tau_3]
     permutation representation of the bitrade. Each cycle of tau_1,
     tau_2, and tau_3 gives a rotation scheme for a black, white, and
     star vertex (respectively). The genus then comes from Euler's
-    formula. For more details see Carlo Hamalainen: Partitioning
+    formula.
+
+    For more details see Carlo Hamalainen: Partitioning
     3-homogeneous latin bitrades. To appear in Geometriae Dedicata,
-    available at http://arxiv.org/abs/0710.0938
+    available at :arxiv:`0710.0938`
 
     EXAMPLES::
 
@@ -1327,9 +1332,12 @@ def genus(T1, T2):
     cells_map, t1, t2, t3 = tau123(T1, T2)
     return (len(t1.to_cycles()) + len(t2.to_cycles()) + len(t3.to_cycles()) - T1.nr_filled_cells() - 2) // (-2)
 
+
 def tau123(T1, T2):
-    """
-    Compute the tau_i representation for a bitrade (T1, T2). See the
+    r"""
+    Compute the tau_i representation for a bitrade (T1, T2).
+
+    See the
     functions tau1, tau2, and tau3 for the mathematical definitions.
 
     OUTPUT:
@@ -1433,7 +1441,6 @@ def tau123(T1, T2):
         sage: len((t1*t2*t3).fixed_points()) == T1.nr_filled_cells()
         True
     """
-
     assert is_bitrade(T1, T2)
 
     cells_map = T1.filled_cells_map()
@@ -1443,6 +1450,7 @@ def tau123(T1, T2):
     t3 = tau3(T1, T2, cells_map)
 
     return (cells_map, t1, t2, t3)
+
 
 def isotopism(p):
     """
@@ -1535,7 +1543,8 @@ def isotopism(p):
             return x
 
     # Not sure what we got!
-    raise NotImplemented
+    raise TypeError("unable to convert {!r} to isotopism".format(p))
+
 
 def cells_map_as_square(cells_map, n):
     """
@@ -2326,7 +2335,7 @@ def group_to_LatinSquare(G):
 
 
 def alternating_group_bitrade_generators(m):
-    """
+    r"""
     Construct generators a, b, c for the alternating group on 3m+1
     points, such that a\*b\*c = 1.
 
@@ -2353,7 +2362,6 @@ def alternating_group_bitrade_generators(m):
         [ 2  1  3 -1]
         [ 0  3 -1  2]
     """
-
     assert m >= 1
 
     a = tuple(range(1, 2*m+1 + 1))
@@ -2458,7 +2466,7 @@ def p3_group_bitrade_generators(p):
 
 
 def check_bitrade_generators(a, b, c):
-    """
+    r"""
     Three group elements a, b, c will generate a bitrade if a\*b\*c = 1
     and the subgroups a, b, c intersect (pairwise) in just the
     identity.
@@ -2477,7 +2485,8 @@ def check_bitrade_generators(a, b, c):
     B = PermutationGroup([b])
     C = PermutationGroup([c])
 
-    if a*b != c**(-1): return False
+    if a*b != c**(-1):
+        return False
 
     X = gap.Intersection(gap.Intersection(A, B), C)
     return X.Size() == 1

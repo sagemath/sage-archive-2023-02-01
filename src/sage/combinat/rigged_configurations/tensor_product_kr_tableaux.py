@@ -61,7 +61,6 @@ Type `D_n^{(1)}` examples::
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.combinat.crystals.tensor_product import FullTensorProductOfRegularCrystals

@@ -575,9 +575,9 @@ cdef class ClonableArray(ClonableElement):
         EXAMPLES::
 
             sage: from sage.structure.list_clone_demo import IncreasingArrays
-            sage: IncreasingArrays()([1,2,3]).__nonzero__()
+            sage: bool(IncreasingArrays()([1,2,3]))
             True
-            sage: IncreasingArrays()([]).__nonzero__()
+            sage: bool(IncreasingArrays()([]))
             False
         """
         return bool(self._list)
@@ -869,7 +869,7 @@ cdef class ClonableArray(ClonableElement):
             sage: elc = copy(el)
             sage: el is elc
             False
-            sage: elc.__nonzero__()
+            sage: bool(elc)
             False
             sage: elc.is_mutable()
             True
@@ -938,7 +938,13 @@ cdef class ClonableArray(ClonableElement):
             sage: loads(dumps(el))
             [1, 2, 4]
             sage: t = el.__reduce__(); t
-            (<built-in function _make_array_clone>, (<type 'sage.structure.list_clone_demo.IncreasingArray'>, <class 'sage.structure.list_clone_demo.IncreasingArrays_with_category'>, [1, 2, 4], True, True, None))
+            (<built-in function _make_array_clone>,
+             (<type 'sage.structure.list_clone_demo.IncreasingArray'>,
+              <sage.structure.list_clone_demo.IncreasingArrays_with_category object at ...>,
+              [1, 2, 4],
+              True,
+              True,
+              None))
             sage: t[0](*t[1])
             [1, 2, 4]
         """
@@ -1130,7 +1136,7 @@ cdef class ClonableList(ClonableArray):
 
     cpdef remove(self, el):
         """
-        Remove the first occurence of ``el`` from ``self``
+        Remove the first occurrence of ``el`` from ``self``
 
         INPUT: ``el`` - any object
 
@@ -1336,9 +1342,9 @@ cdef class ClonableIntArray(ClonableElement):
         EXAMPLES::
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
-            sage: IncreasingIntArrays()([1,2,3]).__nonzero__()
+            sage: bool(IncreasingIntArrays()([1,2,3]))
             True
-            sage: IncreasingIntArrays()([]).__nonzero__()
+            sage: bool(IncreasingIntArrays()([]))
             False
         """
         return self._len != 0
@@ -1643,7 +1649,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: elc = copy(el)
             sage: el is elc
             False
-            sage: elc.__nonzero__()
+            sage: bool(elc)
             True
             sage: elc.is_mutable()
             True
@@ -1718,7 +1724,13 @@ cdef class ClonableIntArray(ClonableElement):
             sage: loads(dumps(el))
             [1, 2, 4]
             sage: t = el.__reduce__(); t
-            (<built-in function _make_int_array_clone>, (<type 'sage.structure.list_clone_demo.IncreasingIntArray'>, <class 'sage.structure.list_clone_demo.IncreasingIntArrays_with_category'>, [1, 2, 4], True, True, None))
+            (<built-in function _make_int_array_clone>,
+             (<type 'sage.structure.list_clone_demo.IncreasingIntArray'>,
+              <sage.structure.list_clone_demo.IncreasingIntArrays_with_category object at ...>,
+              [1, 2, 4],
+              True,
+              True,
+              None))
             sage: t[0](*t[1])
             [1, 2, 4]
         """

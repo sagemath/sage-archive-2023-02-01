@@ -115,7 +115,7 @@ After these examples, you probably noticed that we use two methods,
 namely ``length()`` and ``dimension()`` without defining them.
 That is because their implementation is provided in
 :class:`sage.coding.linear_code.AbstractLinearCode`.
-The abstract class provides default implantation of the
+The abstract class provides a default implementation of the
 following getter methods:
 
 - :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`
@@ -494,7 +494,7 @@ So we only need to override ``transmit_unsafe``! Let us do it::
     ....:     number_err = self.number_errors()
     ....:     V = self.input_space()
     ....:     F = GF(2)
-    ....:     for i in sample(xrange(V.dimension()), number_err):
+    ....:     for i in sample(range(V.dimension()), number_err):
     ....:         w[i] += F.one()
     ....:     return w
 
@@ -699,7 +699,7 @@ derive from the one that follows.
             number_err = self.number_errors()
             V = self.input_space()
             F = GF(2)
-            for i in sample(xrange(V.dimension()), number_err):
+            for i in sample(range(V.dimension()), number_err):
                 w[i] += F.one()
             return w
 

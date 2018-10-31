@@ -13,6 +13,8 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
+from sage.rings.all import AA, UniversalCyclotomicField, QQbar, QQ
+from sage.rings.integer_ring import ZZ
 
 class FiniteCoxeterGroups(CategoryWithAxiom):
     r"""
@@ -496,7 +498,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         weak_lattice = weak_poset
 
         def inversion_sequence(self, word):
-            """
+            r"""
             Return the inversion sequence corresponding to the ``word``
             in indices of simple generators of ``self``.
 
@@ -674,7 +676,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             Return ``True`` since ``self`` is a real reflection group.
 
-            EXMAPLES::
+            EXAMPLES::
 
                 sage: CoxeterGroup(['F',4]).is_real()
                 True
@@ -714,11 +716,14 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
                 sage: W = CoxeterGroup(['H',3], base_ring=RDF)
                 sage: W.permutahedron()
+                doctest:warning
+                ...
+                UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
                 A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 120 vertices
 
                 sage: W = CoxeterGroup(['I',7])
                 sage: W.permutahedron()
-                A 2-dimensional polyhedron in (Universal Cyclotomic Field)^2 defined as the convex hull of 14 vertices
+                A 2-dimensional polyhedron in AA^2 defined as the convex hull of 14 vertices
                 sage: W.permutahedron(base_ring=RDF)
                 A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 14 vertices
 
@@ -750,11 +755,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             n = self.one().canonical_matrix().rank()
             weights = self.fundamental_weights()
             if point is None:
-                from sage.rings.integer_ring import ZZ
                 point = [ZZ.one()] * n
             v = sum(point[i-1] * weights[i] for i in weights.keys())
             from sage.geometry.polyhedron.constructor import Polyhedron
             vertices = [v*w for w in self]
+            if base_ring is None and v.base_ring() in [UniversalCyclotomicField(), QQbar]:
+                vertices = [v.change_ring(AA) for v in vertices]
+                base_ring = AA
             return Polyhedron(vertices=vertices, base_ring=base_ring)
 
     class ElementMethods:

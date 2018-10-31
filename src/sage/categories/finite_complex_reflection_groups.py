@@ -466,7 +466,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             irreducible complex reflection group is real if and only
             if `2` is a degree of ``self`` with multiplicity one.
             Hence, in general we just need to compare the number of
-            occurences of `2` as degree of ``self`` and the number of
+            occurrences of `2` as degree of ``self`` and the number of
             irreducible components.
 
             EXAMPLES::
@@ -759,6 +759,10 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 EXAMPLES::
 
+                    sage: W = SymmetricGroup(4)
+                    sage: W.noncrossing_partition_lattice()
+                    Finite lattice containing 14 elements
+
                     sage: W = WeylGroup(['G', 2])
                     sage: W.noncrossing_partition_lattice()
                     Finite lattice containing 8 elements
@@ -1050,9 +1054,17 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     EXAMPLES::
 
+                        sage: W = Permutations(4)
+                        sage: W.number_of_reflections_of_full_support()
+                        1
+
                         sage: W = ColoredPermutations(1,4)
                         sage: W.number_of_reflections_of_full_support()
                         1
+
+                        sage: W = CoxeterGroup("B3")
+                        sage: W.number_of_reflections_of_full_support()
+                        3
 
                         sage: W = ColoredPermutations(3,3)
                         sage: W.number_of_reflections_of_full_support()
@@ -1061,8 +1073,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     n = self.rank()
                     h = self.coxeter_number()
                     l = self.cardinality()
-                    codegrees = self.codegrees()[:-1]
-                    return (n * h * prod(codegrees)) // l
+                    return (n * h * prod(d for d in self.codegrees() if d != 0)) // l
 
                 @cached_method
                 def rational_catalan_number(self, p, polynomial=False):

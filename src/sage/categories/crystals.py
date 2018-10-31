@@ -1,14 +1,27 @@
 r"""
 Crystals
+
+TESTS:
+
+Catch warnings produced by :func:`check_tkz_graph`::
+
+    sage: from sage.graphs.graph_latex import check_tkz_graph
+    sage: check_tkz_graph()  # random
 """
+
 #*****************************************************************************
-#  Copyright (C) 2010    Anne Schilling <anne at math.ucdavis.edu>
+#       Copyright (C) 2010 Anne Schilling <anne at math.ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
+
 from __future__ import print_function
 from builtins import zip
+from six import itervalues
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -470,6 +483,20 @@ class Crystals(Category_singleton):
                 sage: B = crystals.Tableaux(['B',2], shape=[1])
                 sage: S.digraph().is_isomorphic(B.digraph(), edge_labels=True)
                 True
+
+            TESTS:
+
+            Check that :trac:`23942` is fixed::
+
+                sage: B = crystals.infinity.Tableaux(['A',2])
+                sage: S = B.subcrystal(max_depth=3, category=HighestWeightCrystals())
+                sage: S.category()
+                Category of finite highest weight crystals
+
+                sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,3)
+                sage: S = K.subcrystal(index_set=[1,3], category=HighestWeightCrystals())
+                sage: S.category()
+                Category of finite highest weight crystals
             """
             from sage.combinat.crystals.subcrystal import Subcrystal
             from sage.categories.finite_crystals import FiniteCrystals
@@ -494,8 +521,12 @@ class Crystals(Category_singleton):
                                       virtualization, scaling_factors,
                                       cartan_type, index_set, category)
 
+                # else self is a finite crystal
                 if direction == 'both':
-                    category = FiniteCrystals().or_subcategory(category)
+                    if category is None:
+                        category = FiniteCrystals()
+                    else:
+                        category = FiniteCrystals() & category
                     return Subcrystal(self, contained, generators,
                                       virtualization, scaling_factors,
                                       cartan_type, index_set, category)
@@ -527,7 +558,7 @@ class Crystals(Category_singleton):
             if category is None:
                 category = FiniteCrystals()
             else:
-               category = FiniteCrystals().join(category)
+               category = FiniteCrystals() & category
 
             if self in FiniteCrystals() and len(subset) == self.cardinality():
                 if index_set == self.index_set():
@@ -757,7 +788,7 @@ class Crystals(Category_singleton):
                         codomain = on_gens[0].parent()
                 elif isinstance(on_gens, dict):
                     if on_gens:
-                        codomain = on_gens.values()[0].parent()
+                        codomain = next(itervalues(on_gens)).parent()
                 else:
                     for x in self.module_generators:
                         y = on_gens(x)
@@ -890,14 +921,17 @@ class Crystals(Category_singleton):
 
         def latex_file(self, filename):
             r"""
-            Exports a file, suitable for pdflatex, to 'filename'. This requires
+            Export a file, suitable for pdflatex, to 'filename'.
+
+            This requires
             a proper installation of ``dot2tex`` in sage-python. For more
             information see the documentation for ``self.latex()``.
 
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.latex_file('/tmp/test.tex')  # optional - dot2tex graphviz
+                sage: fn = tmp_filename(ext='.tex')
+                sage: C.latex_file(fn)
             """
             header = r"""\documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -927,14 +961,14 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_()  # optional - dot2tex graphviz
+                sage: T._latex_()
                 '...tikzpicture...'
                 sage: view(T) # optional - dot2tex graphviz, not tested (opens external window)
 
             One can for example also color the edges using the following options::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
+                sage: T._latex_(color_by_label={0:"black", 1:"red", 2:"blue"})
                 '...tikzpicture...'
             """
             G = self.digraph()
@@ -1693,9 +1727,46 @@ class Crystals(Category_singleton):
                 [[[1, 4]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='lower'))
                 [[[1, 4]], [[2, 4]]]
+
+            TESTS:
+
+            Check that :trac:`23942` is fixed::
+
+                sage: K = crystals.KirillovReshetikhin(['A',2,1], 1,1)
+                sage: cat = HighestWeightCrystals().Finite()
+                sage: S = K.module_generator().subcrystal(index_set=[1,2], category=cat)
+                sage: S.category()
+                Category of finite highest weight crystals
             """
             return self.parent().subcrystal(generators=[self], index_set=index_set,
-                                            max_depth=max_depth, direction=direction)
+                                            max_depth=max_depth, direction=direction,
+                                            category=category)
+
+        def tensor(self, *elts):
+            r"""
+            Return the tensor product of ``self`` with the crystal
+            elements ``elts``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Letters(['A', 3])
+                sage: B = crystals.infinity.Tableaux(['A', 3])
+                sage: c = C[0]
+                sage: b = B.highest_weight_vector()
+                sage: t = c.tensor(c, b)
+                sage: ascii_art(t)
+                          1  1  1
+                1 # 1 #   2  2
+                          3
+                sage: tensor([c, c, b]) == t
+                True
+                sage: ascii_art(tensor([b, b, c]))
+                  1  1  1     1  1  1
+                  2  2    #   2  2    # 1
+                  3           3
+            """
+            T = self.parent().tensor(*[b.parent() for b in elts])
+            return T(self, *elts)
 
     class SubcategoryMethods:
         """
@@ -1908,7 +1979,7 @@ class CrystalMorphism(Morphism):
         return super(CrystalMorphism, self).__call__(x, *args, **kwds)
 
     def virtualization(self):
-        """
+        r"""
         Return the virtualization sets `\sigma_i`.
 
         EXAMPLES::
@@ -1922,7 +1993,7 @@ class CrystalMorphism(Morphism):
         return self._virtualization
 
     def scaling_factors(self):
-        """
+        r"""
         Return the scaling factors `\gamma_i`.
 
         EXAMPLES::

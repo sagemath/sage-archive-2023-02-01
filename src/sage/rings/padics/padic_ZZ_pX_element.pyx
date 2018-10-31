@@ -77,9 +77,9 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             sage: S.<x> = ZZ[]
             sage: W.<w> = R.ext(x^5 + 25*x^3 - 15*x - 5)
             sage: W([1,2,3,4]) #indirect doctest
-            1 + 2*w + 3*w^2 + 4*w^3 + O(w^25)
+            1 + 2*w + 3*w^2 + 4*w^3
             sage: W([5,10,15,20])
-            w^5 + 4*w^6 + w^7 + w^8 + 2*w^9 + 4*w^10 + 2*w^11 + 3*w^13 + 2*w^15 + w^16 + 2*w^17 + 2*w^18 + w^19 + 4*w^20 + w^21 + 4*w^22 + 4*w^23 + 2*w^24 + O(w^25)
+            w^5 + 4*w^6 + w^7 + w^8 + 2*w^9 + 4*w^10 + 2*w^11 + 3*w^13 + 2*w^15 + w^16 + 2*w^17 + 2*w^18 + w^19 + 4*w^20 + w^21 + 4*w^22 + 4*w^23 + 2*w^24
         """
         cdef ntl_ZZ_pContext_class ctx
         L, min_val, ctx = preprocess_list(self, L)
@@ -357,7 +357,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         norm from L to ``base``.
 
         In all other cases, the norm is the absolute norm down to
-        `\mathbb{Q}_p` or `\mathbb{Z}_p`.
+        `\QQ_p` or `\ZZ_p`.
 
         EXAMPLES::
 
@@ -385,9 +385,9 @@ cdef class pAdicZZpXElement(pAdicExtElement):
            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
            sage: W.<w> = R.ext(f)
            sage: ((1+2*w)^5).norm()
-           1 + 5^2 + O(5^5)
+           1 + 5^2
            sage: ((1+2*w)).norm()^5
-           1 + 5^2 + O(5^5)
+           1 + 5^2
 
         Check that :trac:`11586` has been resolved::
 
@@ -429,7 +429,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         norm from `L` to ``base``.
 
         In all other cases, the norm is the absolute norm down to
-        `\mathbb{Q}_p` or `\mathbb{Z}_p`.
+        `\QQ_p` or `\ZZ_p`.
 
         EXAMPLES::
 
@@ -467,11 +467,11 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             sage: a = (2+3*w)^7
             sage: b = (6+w^3)^5
             sage: a.trace()
-            3*5 + 2*5^2 + 3*5^3 + 2*5^4 + O(5^5)
+            3*5 + 2*5^2 + 3*5^3 + 2*5^4
             sage: a.trace() + b.trace()
-            4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+            4*5 + 5^2 + 5^3 + 2*5^4
             sage: (a+b).trace()
-            4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+            4*5 + 5^2 + 5^3 + 2*5^4
         """
         if base is not None:
             if base is self.parent():
@@ -539,8 +539,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             sage: R.<u> = K[]
             sage: L.<u> = K.extension(u^2 + 1)
             sage: L(R.gen())
-            u + O(3^20)
-
+            u
         """
         if shift != 0:
             raise NotImplementedError
@@ -558,7 +557,7 @@ def _test_preprocess_list(R, L):
       ``ntl_ZZ_ps``, ``ntl_ZZs``, ``IntegerMods`` or `p`-adic base
       elements
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``LL`` -- if all inputs are integral, a list of ``ntl_ZZs``.
       Otherwise, a list of ``ntl_ZZ_ps``, modulo `p^n` which is
@@ -680,7 +679,7 @@ def _find_val_aprec_test(R, L):
     - ``R`` -- a `p`-adic extension
     - ``L`` -- a list of integers, rationals, ``IntegerMods``, etc.
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``min_val`` -- the minimum valuation of any element in the list.
 
@@ -757,7 +756,7 @@ def _test_get_val_prec(R, a):
     - ``a`` -- A rational, integer, int, long, ``ntl_ZZ_p``,
       ``ntl_ZZ``, ``IntegerMod`` or `p`-adic base element.
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``val`` -- if ``a`` is exact, ``a.valuation(p)``, otherwise
       ``min(0, a.valuation())``

@@ -6,6 +6,8 @@ Algebras
 
    sage/algebras/catalog
 
+   quantum_groups
+
 Free associative algebras and quotients
 ---------------------------------------
 
@@ -40,6 +42,7 @@ Named associative algebras
    :maxdepth: 2
 
    sage/algebras/affine_nil_temperley_lieb
+   sage/algebras/askey_wilson
    sage/combinat/diagram_algebras
    sage/algebras/clifford_algebra
    sage/algebras/cluster_algebra
@@ -48,11 +51,13 @@ Named associative algebras
    sage/algebras/iwahori_hecke_algebra
    sage/combinat/posets/incidence_algebras
    sage/algebras/group_algebra
+   sage/combinat/grossman_larson_algebras
    sage/combinat/posets/moebius_algebra
    sage/algebras/nil_coxeter_algebra
    sage/algebras/orlik_solomon
    sage/algebras/quantum_matrix_coordinate_algebra
    sage/combinat/partition_algebra
+   sage/algebras/quantum_groups/quantum_group_gap
    sage/algebras/quatalg/quaternion_algebra
    sage/algebras/rational_cherednik_algebra
    sage/algebras/schur_algebra
@@ -71,6 +76,7 @@ Various associative algebras
    :maxdepth: 2
 
    sage/algebras/associated_graded
+   sage/algebras/cellular_basis
    sage/algebras/commutative_dga
    sage/algebras/q_system
 

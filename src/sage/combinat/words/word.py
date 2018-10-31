@@ -37,7 +37,7 @@ from .word_infinite_datatypes import (
                             WordDatatype_callable)
 from sage.monoids.free_monoid_element import FreeMonoidElement
 
-# TODO. Word needs to be replaced by Word. Consider renameing
+# TODO. Word needs to be replaced by Word. Consider renaming
 # Word_class to Word and imbedding Word as its __call__ method.
 
 def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK_data=None):
@@ -60,7 +60,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
        For iterators: Infinity if you know the iterator will not
        terminate (default); ``"unknown"`` if you do not know whether the
        iterator terminates; ``"finite"`` if you know that the iterator
-       terminates, but do know know the length.
+       terminates, but do not know the length.
 
     -  ``datatype`` -- (default: ``None``) ``None``, ``"list"``, ``"str"``,
        ``"tuple"``, ``"iter"``, ``"callable"``. If ``None``, then the function
@@ -160,7 +160,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w = Word("abbabaab"); w
         word: abbabaab
         sage: w.parent()
-        Finite words over Set of Python objects of type 'object'
+        Finite words over Set of Python objects of class 'object'
 
     We can also input a semistandard tableau and a standard tableau to
     obtain a word from the inverse RSK algorithm using the

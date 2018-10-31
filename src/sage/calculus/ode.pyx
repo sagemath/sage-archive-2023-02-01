@@ -18,10 +18,12 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.misc.sageinspect import sage_getargspec
 from sage.libs.gsl.all cimport *
 import sage.calculus.interpolation
 
@@ -405,9 +407,9 @@ class ode_solver(object):
         cdef PyFunctionWrapper wrapper #struct to pass information into GSL C function
         self.params=params
 
-        if t_span != False:
+        if t_span:
             self.t_span = t_span
-        if y_0 != False:
+        if y_0:
             self.y_0 = y_0
 
         dim = len(self.y_0)
@@ -422,9 +424,9 @@ class ode_solver(object):
                 wrapper.the_jacobian = None
             else:
                 wrapper.the_jacobian = self.jacobian
-            if self.params==[] and len(inspect.getargspec(wrapper.the_function)[0])==2:
+            if self.params==[] and len(sage_getargspec(wrapper.the_function)[0])==2:
                 wrapper.the_parameters=[]
-            elif self.params==[] and len(inspect.getargspec(wrapper.the_function)[0])>2:
+            elif self.params==[] and len(sage_getargspec(wrapper.the_function)[0])>2:
                 raise ValueError("ODE system has a parameter but no parameters specified")
             elif self.params!=[]:
                 wrapper.the_parameters = self.params
@@ -482,10 +484,10 @@ class ode_solver(object):
 
         cdef gsl_odeiv_control * c
 
-        if self.a == False and self.a_dydt==False:
+        if not self.a and not self.a_dydt:
             c  = gsl_odeiv_control_y_new (self.error_abs, self.error_rel)
-        elif self.a !=False and self.a_dydt != False:
-            if self.scale_abs==False:
+        elif self.a and self.a_dydt:
+            if not self.scale_abs:
                 c = gsl_odeiv_control_standard_new(self.error_abs,self.error_rel,self.a,self.a_dydt)
             elif hasattr(self.scale_abs,'__len__'):
                 if len(self.scale_abs)==dim:
@@ -530,7 +532,7 @@ class ode_solver(object):
         import copy
         cdef int n
 
-        if len(self.t_span)==2 and num_points!=False:
+        if len(self.t_span)==2 and num_points:
             try:
                 n = num_points
             except TypeError:

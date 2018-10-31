@@ -116,6 +116,7 @@ vertices. For more details about this, refer to the documentation for
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 

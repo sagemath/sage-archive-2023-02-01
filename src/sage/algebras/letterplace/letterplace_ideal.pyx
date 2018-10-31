@@ -43,7 +43,7 @@ from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.libs.singular.function import lib, singular_function
 from sage.algebras.letterplace.free_algebra_letterplace cimport FreeAlgebra_letterplace
 from sage.algebras.letterplace.free_algebra_element_letterplace cimport FreeAlgebraElement_letterplace
-from sage.all import Infinity
+from sage.rings.infinity import Infinity
 
 #####################
 # Define some singular functions
@@ -201,15 +201,15 @@ class LetterplaceIdeal(Ideal_nc):
         ideals, and the ring of coefficients must be a field. A
         `TypeError` is raised if one of these conditions is violated.
 
-        NOTES:
+        .. NOTE::
 
-        - The result is cached. The same Groebner basis is returned
-          if a smaller degree bound than the known one is requested.
-        - If the degree bound Infinity is requested, it is attempted to
-          compute a complete Groebner basis. But we can not guarantee
-          that the computation will terminate, since not all twosided
-          homogeneous ideals of a free algebra have a finite Groebner
-          basis.
+            - The result is cached. The same Groebner basis is returned
+              if a smaller degree bound than the known one is requested.
+            - If the degree bound ``Infinity`` is requested, it is attempted to
+              compute a complete Groebner basis. But we can not guarantee
+              that the computation will terminate, since not all twosided
+              homogeneous ideals of a free algebra have a finite Groebner
+              basis.
 
         EXAMPLES::
 

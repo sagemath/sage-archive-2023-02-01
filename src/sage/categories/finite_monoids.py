@@ -77,7 +77,7 @@ class FiniteMonoids(CategoryWithAxiom):
 
             The `k`-simplices of the nerve are named after the chains
             of `k` non-unit elements to be multiplied. The group
-            `\Sigma_2` has two elements, writen ``()`` (the identity
+            `\Sigma_2` has two elements, written ``()`` (the identity
             element) and ``(1,2)`` in Sage. So the 1-cells and 2-cells
             in `B\Sigma_2` are::
 
@@ -211,9 +211,10 @@ class FiniteMonoids(CategoryWithAxiom):
                         continue
                     try:
                         kSrad.retract(kS(m) - kS(n))
-                        res.append((m, n))
-                    except:
+                    except ValueError:
                         pass
+                    else:
+                        res.append((m, n))
             return res
 
     class ElementMethods:

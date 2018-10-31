@@ -24,9 +24,10 @@ from six import itervalues
 # import from Sage library
 from sage.graphs.graph import Graph
 
-def IntervalGraph(intervals, points_ordered = False):
+
+def IntervalGraph(intervals, points_ordered=False):
     r"""
-    Returns the graph corresponding to the given intervals.
+    Return the graph corresponding to the given intervals.
 
     An interval graph is built from a list `(a_i,b_i)_{1\leq i \leq n}` of
     intervals : to each interval of the list is associated one vertex, two
@@ -90,7 +91,7 @@ def IntervalGraph(intervals, points_ordered = False):
         sage: g.edges() == h.edges()
         True
     """
-
+    intervals = list(intervals)
     n = len(intervals)
     g = Graph(n)
 
@@ -99,20 +100,23 @@ def IntervalGraph(intervals, points_ordered = False):
             li,ri = intervals[i]
             for j in range(i+1,n):
                 lj,rj = intervals[j]
-                if ri < lj or rj < li: continue
+                if ri < lj or rj < li:
+                    continue
                 g.add_edge(i,j)
     else:
         for i in range(n-1):
             I = intervals[i]
             for j in range(i+1,n):
                 J = intervals[j]
-                if max(I) < min(J) or max(J) < min(I): continue
+                if max(I) < min(J) or max(J) < min(I):
+                    continue
                 g.add_edge(i,j)
 
-    rep = dict( zip(range(n),intervals) )
+    rep = dict(zip(range(n), intervals))
     g.set_vertices(rep)
 
     return g
+
 
 def PermutationGraph(second_permutation, first_permutation = None):
     r"""
@@ -333,7 +337,7 @@ def ToleranceGraph(tolrep):
         sage: g.is_isomorphic(graphs.PathGraph(3))
         True
 
-    TEST:
+    TESTS:
 
     Giving negative third value::
 
@@ -381,7 +385,7 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
     of them being adjacent if one of their coordinates match.
 
     For more information on these graphs, see `Andries Brouwer's page
-    on Orthogonal Array graphs <www.win.tue.nl/~aeb/graphs/OA.html>`_.
+    on Orthogonal Array graphs <https://www.win.tue.nl/~aeb/graphs/OA.html>`_.
 
     .. WARNING::
 

@@ -18,8 +18,9 @@ AUTHORS:
 
 
 from sage.structure.element import RingElement
-
+from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.interfaces.singular import singular as singular_default
+
 
 class QuotientRingElement(RingElement):
     """
@@ -136,7 +137,7 @@ class QuotientRingElement(RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category.element_class'>
-            sage: bool(a)     # indirect docteest
+            sage: bool(a)     # indirect doctest
             True
             sage: bool(S(0))
             False
@@ -209,7 +210,7 @@ class QuotientRingElement(RingElement):
         # That holds, in particular, if there are infinitely many
         # generators, as for Steenrod algebras.
         try:
-            names = P.variable_names()
+            P.variable_names()
         except ValueError:
             return str(self.__rep)
         with localvars(R, P.variable_names(), normalize=False):
@@ -602,7 +603,7 @@ class QuotientRingElement(RingElement):
         """
         return hash(self.__rep)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -617,10 +618,10 @@ class QuotientRingElement(RingElement):
 
         TESTS::
 
-            sage: a.__cmp__(a+1-1)
-            0
-            sage: a.__cmp__(b)
-            1
+            sage: a == (a+1-1)
+            True
+            sage: a > b
+            True
 
         See :trac:`7797`::
 
@@ -639,9 +640,7 @@ class QuotientRingElement(RingElement):
             sage: S.<x1,y1>=QuotientRing(R,I)
             sage: x1^4
             0
-
         """
-
         # A containment test is not implemented for univariate polynomial
         # ideals. There are cases in which one would not like to add
         # elements of different degrees. The whole quotient stuff relies
@@ -652,9 +651,9 @@ class QuotientRingElement(RingElement):
         # to use it for comparison in the case of an inequality as well.
         if self.__rep == other.__rep: # Use a shortpath, so that we
                                       # avoid expensive reductions
-             return 0
+             return rich_to_bool(op, 0)
         I = self.parent().defining_ideal()
-        return cmp(I.reduce(self.__rep), I.reduce(other.__rep))
+        return richcmp(I.reduce(self.__rep), I.reduce(other.__rep), op)
 
     def lt(self):
         """

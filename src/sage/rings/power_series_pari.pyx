@@ -400,8 +400,8 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         if len(kwds) >= 1:
             name = self._parent.variable_name()
-            if kwds.has_key(name):  # the series variable is specified by a keyword
-                if len(x) > 0:
+            if name in kwds:  # the series variable is specified by a keyword
+                if len(x):
                     raise ValueError("must not specify %s keyword and positional argument" % name)
                 x = [kwds[name]]
                 del kwds[name]
@@ -429,7 +429,7 @@ cdef class PowerSeries_pari(PowerSeries):
         from sage.rings.padics.padic_generic import pAdicGeneric
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
         from sage.rings.power_series_ring import PowerSeriesRing_generic
-        from sage.rings.laurent_series_ring import LaurentSeriesRing_generic
+        from sage.rings.laurent_series_ring import LaurentSeriesRing
         if isinstance(Q, pAdicGeneric):
             # Substitution of p-adic numbers in power series is
             # currently not implemented in PARI (2.8.0-development).
@@ -437,7 +437,7 @@ cdef class PowerSeries_pari(PowerSeries):
             if t <= 0:
                 raise ValueError("can only substitute elements of positive valuation")
             return Q(self.polynomial()(a)).add_bigoh(t * self._prec)
-        elif isinstance(Q, (PowerSeriesRing_generic, LaurentSeriesRing_generic)):
+        elif isinstance(Q, (PowerSeriesRing_generic, LaurentSeriesRing)):
             # In Sage, we want an error to be raised when trying to
             # substitute a series of non-positive valuation, but PARI
             # (2.8.0-development) does not do this.  For example,

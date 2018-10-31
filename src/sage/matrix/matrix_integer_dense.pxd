@@ -33,8 +33,3 @@ cdef class Matrix_integer_dense(Matrix_dense):
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows)
 
 cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=*)
-
-################################################################
-# fast conversion to PARI on the stack
-################################################################
-cdef inline GEN pari_GEN(Matrix_integer_dense B)

@@ -41,12 +41,13 @@ from sage.categories.cartesian_product import cartesian_product
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.sets_cat import Sets
-from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.cartan_type import CartanType, SuperCartanType_standard
 from sage.combinat.partition import Partition
 from .letters import CrystalOfLetters
 from .spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrystalsElement,
-        TensorProductOfRegularCrystalsElement, CrystalOfTableauxElement)
+        TensorProductOfRegularCrystalsElement, CrystalOfTableauxElement,
+        TensorProductOfSuperCrystalsElement, TensorProductOfQueerSuperCrystalsElement)
 from sage.misc.flatten import flatten
 from sage.structure.element import get_coercion_model
 
@@ -403,9 +404,8 @@ class TensorProductOfCrystals(CrystalOfWords):
         return FullTensorProductOfCrystals(tp, cartan_type=cartan_type)
 
     # add options to class
-    options=GlobalOptions('TensorProductOfCrystals', 
-        module='sage.combinat.crystals',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets the global options for tensor products of crystals. The default is to
         use the anti-Kashiwara convention.
 
@@ -413,8 +413,8 @@ class TensorProductOfCrystals(CrystalOfWords):
         and the difference between the two is the order of the tensor factors
         are reversed. This affects both the input and output. See the example
         below.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
 
         .. NOTE::
 
@@ -442,14 +442,15 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: T(C(2), C(1)) == elt
             True
             sage: crystals.TensorProduct.options._reset()
-        """,
-        convention=dict(default="antiKashiwara",
+        """
+        NAME = 'TensorProductOfCrystals'
+        module = 'sage.combinat.crystals'
+        convention = dict(default="antiKashiwara",
                         description='Sets the convention used for displaying/inputting tensor product of crystals',
                         values=dict(antiKashiwara='use the anti-Kashiwara convention',
                                     Kashiwara='use the Kashiwara convention'),
                             alias=dict(anti="antiKashiwara", opposite="antiKashiwara"),
                             case_sensitive=False)
-    )
 
     def _element_constructor_(self, *crystalElements):
         """
@@ -630,6 +631,61 @@ class TensorProductOfRegularCrystalsWithGenerators(TensorProductOfCrystalsWithGe
     class Element(TensorProductOfRegularCrystalsElement):
         pass
 
+class FullTensorProductOfSuperCrystals(FullTensorProductOfCrystals):
+    r"""
+    Tensor product of super crystals.
+
+    EXAMPLES::
+
+        sage: L = crystals.Letters(['A', [1,1]])
+        sage: T = tensor([L,L,L])
+        sage: T.cardinality()
+        64
+    """
+    class Element(TensorProductOfSuperCrystalsElement):
+        pass
+
+class FullTensorProductOfQueerSuperCrystals(FullTensorProductOfCrystals):
+    r"""
+    Tensor product of queer super crystals.
+    """
+    @cached_method
+    def index_set(self):
+        """
+        Return the enlarged index set.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3])
+            sage: T = tensor([Q,Q])
+            sage: T.index_set()
+            (-4, -3, -2, -1, 1, 2)
+        """
+        n = self.cartan_type().n
+        return tuple(range(-2*n,0)) + tuple(range(1,n+1))
+
+    @cached_method
+    def _long_element(self):
+        r"""
+        Return the long element in `S_n`.
+
+        This method is used in the construction of the crystal operators
+        `e_i` and `f_i`.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q', 4])
+            sage: T = tensor([Q,Q,Q,Q])
+            sage: T._long_element()
+            (3, 2, 1, 3, 2, 3)
+        """
+        from sage.combinat.permutation import Permutations
+        n = self.cartan_type().n
+        return tuple(Permutations(n+1).long_element().reduced_word())
+
+    class Element(TensorProductOfQueerSuperCrystalsElement):
+        pass
+
 #########################################################
 ## Crystal of tableaux
 
@@ -743,6 +799,13 @@ class CrystalOfTableaux(CrystalOfWords):
         ([++-, [[1]]],)
         sage: TestSuite(T).run()
 
+    We can also construct the tableaux for `\mathfrak{gl}(m|n)` as
+    given by [BKK2000]_::
+
+        sage: T = crystals.Tableaux(['A', [1,2]], shape=[4,2,1,1,1])
+        sage: T.cardinality()
+        1392
+
     TESTS:
 
     Base cases::
@@ -810,8 +873,20 @@ class CrystalOfTableaux(CrystalOfWords):
             sage: T3 = crystals.Tableaux(['A',3],             shapes = ([2,2],))
             sage: T2 is T1, T3 is T1
             (True, True)
+
+            sage: T1 = crystals.Tableaux(['A', [1,1]], shape=[3,1,1,1])
+            sage: T1
+            Crystal of BKK tableaux of shape [3, 1, 1, 1] of gl(2|2)
+            sage: T2 = crystals.Tableaux(['A', [1,1]], [3,1,1,1])
+            sage: T1 is T2
+            True
         """
         cartan_type = CartanType(cartan_type)
+        if cartan_type.letter == 'A' and isinstance(cartan_type, SuperCartanType_standard):
+            if shape is None:
+                shape = shapes
+            from sage.combinat.crystals.bkk_crystals import CrystalOfBKKTableaux
+            return CrystalOfBKKTableaux(cartan_type, shape=shape)
         n = cartan_type.rank()
         # standardize shape/shapes input into a tuple of tuples
         assert operator.xor(shape is not None, shapes is not None)

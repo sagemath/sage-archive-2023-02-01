@@ -2,6 +2,7 @@
 """
 Dependency usage tracking for citations
 """
+from __future__ import absolute_import
 
 from sage.misc.all import tmp_filename
 from sage.env import SAGE_ROOT
@@ -79,7 +80,12 @@ def get_systems(cmd):
         sage: get_systems('I.primary_decomposition()')
         ['Singular']
 
+    Here we get a spurious ``MPFR`` because some coercions need to be
+    initialized. The second time it is gone::
+
         sage: a = var('a')
+        sage: get_systems('((a+1)^2).expand()')
+        ['MPFR', 'ginac']
         sage: get_systems('((a+1)^2).expand()')
         ['ginac']
     """
@@ -116,10 +122,11 @@ def get_systems(cmd):
             else:
                 i += 1
 
-    #Check to see which systems appear in the profiled run
+    # Check to see which systems appear in the profiled run
     systems_used = []
     for system in systems:
-        if any([(r in s) or (r.replace('.','/') in s) for r in systems[system] for s in strings]):
+        if any((r in s) or (r.replace('.', '/') in s)
+               for r in systems[system] for s in strings):
             systems_used.append(system)
     return systems_used
 

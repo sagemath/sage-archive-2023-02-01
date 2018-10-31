@@ -67,7 +67,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         [ 7/3  2/3    6    1]
         [ 4/3    1  4/3  5/3]
 
-    TEST:
+    TESTS:
 
     Check that :trac:`9345` is fixed::
 
@@ -154,7 +154,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
         [  7   2   2   3]
         [  4   3   4 5/7]
 
-    TEST:
+    TESTS:
 
     Check that :trac:`9345` is fixed::
 
@@ -375,7 +375,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                     E.set_unsafe(i, i, one)
                 return E, tuple(range(self._nrows))
 
-            c = cmp_pivots(best_pivots, list(A.pivots()))
+            c = cmp_pivots(best_pivots, A.pivots())
             if c <= 0:
                 best_pivots = A.pivots()
                 X.append(A)
@@ -391,7 +391,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         prod = 1
         t = verbose("now comparing pivots and dropping any bad ones", level=2, t=t, caller_name="multimod echelon")
         for i in range(len(X)):
-            if cmp_pivots(best_pivots, list(X[i].pivots())) <= 0:
+            if cmp_pivots(best_pivots, X[i].pivots()) <= 0:
                 p = X[i].base_ring().order()
                 if p not in lifts:
                     t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
@@ -442,7 +442,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
 
 ###########################
 
-def cmp_pivots(x,y):
+def cmp_pivots(x, y):
     """
     Compare two sequences of pivot columns.
 
@@ -454,7 +454,7 @@ def cmp_pivots(x,y):
 
     INPUT:
 
-    - x, y -- list of integers
+    - x, y -- lists or tuples of integers
 
     EXAMPLES:
 
@@ -471,6 +471,8 @@ def cmp_pivots(x,y):
         sage: sage.matrix.misc.cmp_pivots([1,2,3], [1,2,4])
         1
     """
+    x = tuple(x)
+    y = tuple(y)
     if len(x) < len(y):
         return -1
     if len(x) > len(y):

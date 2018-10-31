@@ -1,4 +1,4 @@
-$(PYTHON) $(inst_six)
+$(PYTHON) | six
 
 ----------
 All lines of this file are ignored except the first.

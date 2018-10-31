@@ -1,11 +1,13 @@
 r"""
 Lists of Manin symbols (elements of `\mathbb{P}^1(\ZZ/N\ZZ)`) over `\QQ`
 """
+from __future__ import absolute_import
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_check
 
 from sage.misc.search import search
+from sage.structure.richcmp cimport rich_to_bool
 
 cimport sage.rings.fast_arith
 import sage.rings.fast_arith
@@ -291,6 +293,16 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
         0
         sage: (7*24) % 90
         78
+
+    TESTS:
+
+    This test reflects :trac:`20932`::
+
+        sage: N = 3*61379
+        sage: import sage.modular.modsym.p1list as p1list
+        sage: p1 = p1list.P1List(N) # not tested -- too long
+        sage: p1.normalize_with_scalar(21, -1) # not tested -- too long
+        (3, 105221, 7)
     """
     cdef int d, k, g, s, t, min_v, min_t, Ng, vNg
     cdef llong ll_s, ll_t, ll_N
@@ -359,7 +371,7 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
     uu[0] = u
     vv[0] = v
     if compute_s:
-        ss[0] = <int> (arith_llong.c_inverse_mod_longlong(s*min_t, N) % ll_N)
+        ss[0] = <int> (arith_llong.c_inverse_mod_longlong((<llong> s)*(<llong> min_t), N) % ll_N)
     return 0
 
 def p1_normalize_llong(N, u, v):
@@ -427,6 +439,14 @@ def p1list_llong(int N):
         (0, 1)
         sage: L[len(L)-1]
         (25000, 1)
+
+    TESTS:
+
+    This test shows that :trac:`20932` has been resolved::
+
+        sage: import sage.modular.modsym.p1list as p1list
+        sage: [(i,j) for (i,j) in p1list.P1List(103809) if i != 1 and i != 3] # not tested -- too long
+        [(0, 1), (34603, 1), (34603, 2), (34603, 3)]
     """
     cdef int g, u, v, s, c, d, h, d1, cmax
     if N==1: return [(0,0)]
@@ -438,7 +458,7 @@ def p1list_llong(int N):
 
     cmax = N/2
     if N%2:   # N odd, max divisor is <= N/3
-        if N%5:  # N not a multiple of 3 either, max is N/5
+        if N%3:  # N not a multiple of 3 either, max is N/5
             cmax = N/5
         else:
             cmax = N/3
@@ -634,7 +654,8 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
         ss[0] = t_a[(s*min_t)%N]
     return 0
 
-cdef class P1List:
+
+cdef class P1List(object):
     """
     The class for `\mathbb{P}^1(\ZZ/N\ZZ)`, the projective line modulo `N`.
 
@@ -712,7 +733,7 @@ cdef class P1List:
         sig_free(self.s)
         sig_free(self.t)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Comparison function for objects of the class P1List.
 
@@ -735,14 +756,14 @@ cdef class P1List:
             [23, 45, 100]
         """
         if not isinstance(other, P1List):
-            return -1
-        cdef P1List O
-        O = other
-        if self.__N < O.__N:
-            return -1
-        elif self.__N > O.__N:
-            return 1
-        return 0
+            return NotImplemented
+        cdef P1List S = <P1List> self
+        cdef P1List O = <P1List> other
+        if S.__N < O.__N:
+            return rich_to_bool(op, -1)
+        elif S.__N > O.__N:
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
     def __reduce__(self):
         """
@@ -752,10 +773,9 @@ cdef class P1List:
 
             sage: L = P1List(8)
             sage: L.__reduce__()
-            (<built-in function _make_p1list>, (8,))
+            (<type 'sage.modular.modsym.p1list.P1List'>, (8,))
         """
-        import sage.modular.modsym.p1list
-        return sage.modular.modsym.p1list._make_p1list, (self.__N, )
+        return type(self), (self.__N, )
 
     def __getitem__(self, n):
         r"""
@@ -1351,7 +1371,10 @@ def _make_p1list(n):
 
         sage: from sage.modular.modsym.p1list import _make_p1list
         sage: _make_p1list(3)
+        doctest:...: DeprecationWarning: _make_p1list() is deprecated
+        See https://trac.sagemath.org/25848 for details.
         The projective line over the integers modulo 3
-
     """
+    from sage.misc.superseded import deprecation
+    deprecation(25848, '_make_p1list() is deprecated')
     return P1List(n)

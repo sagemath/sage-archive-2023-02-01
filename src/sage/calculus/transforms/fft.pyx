@@ -19,6 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -145,7 +146,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-        - ``i`` -- An integer peresenting the index.
+        - ``i`` -- An integer, the index.
         - ``xy`` -- An object to store as `i`-th element of the array ``self[i]``.
 
         EXAMPLES::

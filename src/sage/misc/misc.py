@@ -28,15 +28,15 @@ Check the fix from :trac:`8323`::
     False
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 from six import integer_types
@@ -46,14 +46,20 @@ import stat
 import sys
 import time
 import resource
-import sage.misc.prandom as random
+import pdb
 import warnings
+import sage.misc.prandom as random
 from .lazy_string import lazy_string
-
+import sage.server.support
 
 from sage.env import DOT_SAGE, HOSTNAME
 
-LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
+LOCAL_IDENTIFIER = '%s.%s' % (HOSTNAME, os.getpid())
+
+#################################################################
+# File and directory utilities
+#################################################################
+
 
 def sage_makedirs(dir):
     """
@@ -111,9 +117,109 @@ if hasattr(os, 'chmod'):
                   "can read and write it.")
 
 
+def try_read(obj, splitlines=False):
+    r"""
+    Determine if a given object is a readable file-like object and if so
+    read and return its contents.
+
+    That is, the object has a callable method named ``read()`` which takes
+    no arguments (except ``self``) then the method is executed and the
+    contents are returned.
+
+    Alternatively, if the ``splitlines=True`` is given, first ``splitlines()``
+    is tried, then if that fails ``read().splitlines()``.
+
+    If either method fails, ``None`` is returned.
+
+    INPUT:
+
+    - ``obj`` -- typically a `file` or `io.BaseIO` object, but any other
+      object with a ``read()`` method is accepted.
+
+    - ``splitlines`` -- `bool`, optional; if True, return a list of lines
+      instead of a string.
+
+    EXAMPLES::
+
+        sage: import io
+        sage: filename = tmp_filename()
+        sage: from sage.misc.misc import try_read
+        sage: with open(filename, 'w') as fobj:
+        ....:     _ = fobj.write('a\nb\nc')
+        sage: with open(filename) as fobj:
+        ....:     print(try_read(fobj))
+        a
+        b
+        c
+        sage: with open(filename) as fobj:
+        ....:     try_read(fobj, splitlines=True)
+        ['a\n', 'b\n', 'c']
+
+    The following example is identical to the above example on Python 3,
+    but different on Python 2 where ``open != io.open``::
+
+        sage: with io.open(filename) as fobj:
+        ....:     print(try_read(fobj))
+        a
+        b
+        c
+
+    I/O buffers::
+
+        sage: buf = io.StringIO(u'a\nb\nc')
+        sage: print(try_read(buf))
+        a
+        b
+        c
+        sage: _ = buf.seek(0); try_read(buf, splitlines=True)
+        [u'a\n', u'b\n', u'c']
+        sage: buf = io.BytesIO(b'a\nb\nc')
+        sage: try_read(buf) == b'a\nb\nc'
+        True
+        sage: _ = buf.seek(0)
+        sage: try_read(buf, splitlines=True) == [b'a\n', b'b\n', b'c']
+        True
+
+    Custom readable::
+
+        sage: class MyFile(object):
+        ....:     def read(self): return 'Hello world!'
+        sage: try_read(MyFile())
+        'Hello world!'
+        sage: try_read(MyFile(), splitlines=True)
+        ['Hello world!']
+
+    Not readable::
+
+        sage: try_read(1) is None
+        True
+    """
+
+    if splitlines:
+        try:
+            return obj.readlines()
+        except (AttributeError, TypeError):
+            pass
+
+    try:
+        data = obj.read()
+    except (AttributeError, TypeError):
+        return
+
+    if splitlines:
+        try:
+            data = data.splitlines()
+        except (AttributeError, TypeError):
+            # Not a string??
+            data = [data]
+
+    return data
+
+
 #################################################
 # Next we create the Sage temporary directory.
 #################################################
+
 
 @lazy_string
 def SAGE_TMP():
@@ -128,6 +234,24 @@ def SAGE_TMP():
     sage_makedirs(d)
     return d
 
+
+@lazy_string
+def ECL_TMP():
+    """
+    Temporary directory that should be used by ECL interfaces launched from
+    Sage.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import ECL_TMP
+        sage: ECL_TMP
+        l'.../temp/.../ecl'
+    """
+    d = os.path.join(str(SAGE_TMP), 'ecl')
+    sage_makedirs(d)
+    return d
+
+
 @lazy_string
 def SPYX_TMP():
     """
@@ -137,7 +261,8 @@ def SPYX_TMP():
         sage: SPYX_TMP
         l'.../temp/.../spyx'
     """
-    return os.path.join(SAGE_TMP, 'spyx')
+    return os.path.join(str(SAGE_TMP), 'spyx')
+
 
 @lazy_string
 def SAGE_TMP_INTERFACE():
@@ -148,9 +273,10 @@ def SAGE_TMP_INTERFACE():
         sage: SAGE_TMP_INTERFACE
         l'.../temp/.../interface'
     """
-    d = os.path.join(SAGE_TMP, 'interface')
+    d = os.path.join(str(SAGE_TMP), 'interface')
     sage_makedirs(d)
     return d
+
 
 SAGE_DB = os.path.join(DOT_SAGE, 'db')
 sage_makedirs(SAGE_DB)
@@ -162,17 +288,9 @@ except KeyError:
     pass
 
 #################################################################
-# Functions to help with interfacing with CXX code that
-# uses the GMP library
-#################################################################
-def to_gmp_hex(n):
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "to_gmp_hex() is deprecated")
-    return hex(n).replace("L","").replace("0x","")
-
-#################################################################
 # timing
 #################################################################
+
 
 def cputime(t=0, subprocesses=False):
     """
@@ -228,15 +346,15 @@ def cputime(t=0, subprocesses=False):
         started and terminated at any given time.
     """
     if isinstance(t, GlobalCputime):
-        subprocesses=True
+        subprocesses = True
 
     if not subprocesses:
         try:
             t = float(t)
         except TypeError:
             t = 0.0
-        u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
-        return u+s - t
+        u, s = resource.getrusage(resource.RUSAGE_SELF)[:2]
+        return u + s - t
     else:
         if t == 0:
             ret = GlobalCputime(cputime())
@@ -264,6 +382,7 @@ def cputime(t=0, subprocesses=False):
                     except NotImplementedError:
                         pass
             return ret
+
 
 class GlobalCputime:
     """
@@ -368,6 +487,7 @@ class GlobalCputime:
         """
         return float(self.total)
 
+
 def walltime(t=0):
     """
     Return the wall time in second, or with optional argument t, return
@@ -397,9 +517,10 @@ def walltime(t=0):
 #################################################################
 # simple verbosity system
 #################################################################
-LEVEL=0  # default
+LEVEL = 0  # default
 
 verbose_files = []
+
 
 def verbose(mesg="", t=0, level=1, caller_name=None):
     """
@@ -433,13 +554,13 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         VERBOSE1 (william): This is Sage. (time = 0.0)
         sage: set_verbose(0)
     """
-    if level>LEVEL:
+    if level > LEVEL:
         return cputime()
 
     frame = sys._getframe(1).f_code
     file_name = frame.co_filename
     lineno = frame.co_firstlineno
-    if 'all' in verbose_files or level<=0:
+    if 'all' in verbose_files or level <= 0:
         show = True
     else:
         show = False
@@ -451,7 +572,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     if not show:
         return cputime()
 
-    if t != 0 and mesg=="":
+    if t != 0 and mesg == "":
         mesg = "Finished."
 
     # see recipe 14.7 in Python Cookbook
@@ -461,20 +582,16 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
             caller_name = ""
     short_file_name = os.path.split(frame.co_filename)[1]
     if '<' in short_file_name and '>' in short_file_name:
-        s = "verbose %s (%s) %s"%(level, caller_name, mesg)
+        s = "verbose %s (%s) %s" % (level, caller_name, mesg)
     else:
-        s = "verbose %s (%s: %s, %s) %s"%(level, lineno, short_file_name, caller_name, mesg)
-    if t!=0:
-        s = s + " (time = %s)"%cputime(t)
+        s = "verbose %s (%s: %s, %s) %s" % (level, lineno,
+                                            short_file_name, caller_name, mesg)
+    if t != 0:
+        s = s + " (time = %s)" % cputime(t)
     print(s)
     sys.stdout.flush()
     return cputime()
 
-def todo(mesg=""):
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "todo() is deprecated")
-    caller_name = sys._getframe(1).f_code.co_name
-    raise NotImplementedError("{}: todo -- {}".format(caller_name, mesg))
 
 def set_verbose(level, files='all'):
     """
@@ -482,7 +599,7 @@ def set_verbose(level, files='all'):
 
     INPUT:
 
-    - ``level`` - an integer between 0 and 2, inclusive.
+    - ``level`` -- an integer between 0 and 2, inclusive.
 
     - ``files`` (default: 'all'): list of files to make verbose, or
        'all' to make ALL files verbose (the default).
@@ -501,6 +618,8 @@ def set_verbose(level, files='all'):
         [no output]
         sage: set_verbose(0)
     """
+    if level is None:
+        level = -1
     if isinstance(level, str):
         set_verbose_files([level])
     global LEVEL
@@ -508,6 +627,7 @@ def set_verbose(level, files='all'):
     if isinstance(files, str):
         files = [files]
     set_verbose_files(files)
+
 
 def set_verbose_files(file_name):
     """
@@ -518,11 +638,13 @@ def set_verbose_files(file_name):
     global verbose_files
     verbose_files = file_name
 
+
 def get_verbose_files():
     """
 
     """
     return verbose_files
+
 
 def unset_verbose_files(file_name):
     """
@@ -555,33 +677,6 @@ def get_verbose():
     return LEVEL
 
 
-
-def generic_cmp(x,y):
-    """
-    Compare x and y and return -1, 0, or 1.
-
-    This is similar to x.__cmp__(y), but works even in some cases
-    when a .__cmp__ method isn't defined.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "generic_cmp() is deprecated")
-    if x<y:
-        return -1
-    elif x==y:
-        return 0
-    return 1
-
-
-def cmp_props(left, right, props):
-    from sage.misc.superseded import deprecation
-    deprecation(23149, "cmp_props is deprecated")
-    for a in props:
-        c = cmp(left.__getattribute__(a)(), right.__getattribute__(a)())
-        if c:
-            return c
-    return 0
-
-
 def union(x, y=None):
     """
     Return the union of x and y, as a list. The resulting list need not
@@ -612,6 +707,7 @@ def union(x, y=None):
         return list(set(x))
     return list(set(x).union(y))
 
+
 def uniq(x):
     """
     Return the sublist of all elements in the list x that is sorted and
@@ -640,15 +736,17 @@ def coeff_repr(c, is_latex=False):
     if is_latex and hasattr(c, '_latex_'):
         s = c._latex_()
     else:
-        s = str(c).replace(' ','')
+        s = str(c).replace(' ', '')
     if s.find("+") != -1 or s.find("-") != -1:
         if is_latex:
-            return "\\left(%s\\right)"%s
+            return "\\left(%s\\right)" % s
         else:
-            return "(%s)"%s
+            return "(%s)" % s
     return s
 
-def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False, repr_monomial = None, latex_scalar_mult = None):
+
+def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False,
+                 repr_monomial=None, latex_scalar_mult=None):
     """
     Compute a string representation of a linear combination of some
     formal symbols.
@@ -735,7 +833,9 @@ def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False, repr_m
 
     if repr_monomial is None:
         if is_latex:
-            repr_monomial = lambda monomial: monomial._latex_() if hasattr(monomial, '_latex_') else str(monomial)
+
+            def repr_monomial(monomial):
+                return monomial._latex_() if hasattr(monomial, '_latex_') else str(monomial)
         else:
             repr_monomial = str
 
@@ -745,11 +845,11 @@ def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False, repr_m
     if scalar_mult is None:
         scalar_mult = "" if is_latex else "*"
 
-    for (monomial,c) in terms:
+    for (monomial, c) in terms:
         if c != 0:
             coeff = coeff_repr(c)
             negative = False
-            if len(coeff)>0 and coeff[0] == "-":
+            if len(coeff) and coeff[0] == "-":
                 negative = True
             try:
                 if c < 0:
@@ -766,32 +866,33 @@ def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False, repr_m
             if coeff != "0":
                 if negative:
                     if first:
-                        sign = "-" # add trailing space?
+                        sign = "-"  # add trailing space?
                     else:
                         sign = " - "
                 else:
                     if first:
                         sign = ""
                     else:
-                        sign= " + "
+                        sign = " + "
                 b = repr_monomial(monomial)
-                if len(b) > 0:
-                    if  coeff != "":
-                        if b =="1" and strip_one:
+                if len(b):
+                    if coeff != "":
+                        if b == "1" and strip_one:
                             b = ""
                         else:
                             b = scalar_mult + b
-                s += "%s%s%s"%(sign, coeff, b)
+                s += "%s%s%s" % (sign, coeff, b)
                 first = False
     if first:
-        return "0" # this can happen only if are only terms with coeff_repr(c) == "0"
-    #elif s == "":
-        #return "1" # is empty string representation invalid?
+        return "0"
+        # this can happen only if are only terms with coeff_repr(c) == "0"
+    # elif s == "":
+        # return "1"  # is empty string representation invalid?
     else:
         return s
 
 
-def strunc(s, n = 60):
+def strunc(s, n=60):
     """
     Truncate at first space after position n, adding '...' if
     nontrivial truncation.
@@ -803,9 +904,7 @@ def strunc(s, n = 60):
         while i < len(s) and s[i] != ' ':
             i += 1
         return s[:i] + " ..."
-        #return s[:n-4] + " ..."
     return s
-
 
 
 def newton_method_sizes(N):
@@ -859,26 +958,8 @@ def newton_method_sizes(N):
 #################################################################
 
 
-def assert_attribute(x, attr, init=None):
-    """
-    If the object x has the attribute attr, do nothing. If not, set
-    x.attr to init.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "assert_attribute() is deprecated")
-    if attr in x.__dict__: return
-    if attr[:2] == "__":
-        z = str(x.__class__).split("'")
-        if len(z) > 1:
-            z = z[1]
-        else:
-            z = z[0]
-        attr = "_" + z[len(x.__module__)+1:] + attr
-    x.__dict__[attr] = init
-
-
 def compose(f, g):
-    """
+    r"""
     Return the composition of one-variable functions: `f \circ g`
 
     See also :func:`nest()`
@@ -911,56 +992,6 @@ def compose(f, g):
 
     """
     return lambda x: f(g(x))
-
-
-def self_compose(f, n):
-    """
-    Return the function `f` composed with itself `n` times.
-
-    See :func:`nest()` if you want `f(f(...(f(x))...))` for
-    known `x`.
-
-
-    INPUT:
-        - `f` -- a function of one variable
-        - `n` -- a nonnegative integer
-
-    OUTPUT:
-        A function, the result of composing `f` with itself `n` times
-
-    EXAMPLES::
-
-        sage: def f(x): return x^2 + 1
-        sage: g = self_compose(f, 3)
-        doctest:... DeprecationWarning: self_compose() is deprecated, use nest() instead
-        See http://trac.sagemath.org/21926 for details.
-        sage: x = var('x')
-        sage: g(x)
-        ((x^2 + 1)^2 + 1)^2 + 1
-
-    ::
-
-        sage: def f(x): return x + 1
-        sage: g = self_compose(f, 10000)
-        sage: g(0)
-        10000
-
-    ::
-
-        sage: x = var('x')
-        sage: self_compose(sin, 0)(x)
-        x
-
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "self_compose() is deprecated, use nest() instead")
-    from sage.rings.all import Integer
-    n = Integer(n)
-
-    if n < 0:
-        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
-
-    return lambda x: nest(f, n, x)
 
 
 def nest(f, n, x):
@@ -1015,27 +1046,27 @@ def nest(f, n, x):
 #################################################################
 
 class BackslashOperator:
-    """
+    r"""
     Implements Matlab-style backslash operator for solving systems::
 
-        A \\ b
+        A \ b
 
     The preparser converts this to multiplications using
     ``BackslashOperator()``.
 
     EXAMPLES::
 
-        sage: preparse("A \ matrix(QQ,2,1,[1/3,'2/3'])")
+        sage: preparse("A \\ matrix(QQ,2,1,[1/3,'2/3'])")
         "A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),'2/3'])"
-        sage: preparse("A \ matrix(QQ,2,1,[1/3,2*3])")
+        sage: preparse("A \\ matrix(QQ,2,1,[1/3,2*3])")
         'A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),Integer(2)*Integer(3)])'
-        sage: preparse("A \ B + C")
+        sage: preparse("A \\ B + C")
         'A  * BackslashOperator() * B + C'
-        sage: preparse("A \ eval('C+D')")
+        sage: preparse("A \\ eval('C+D')")
         "A  * BackslashOperator() * eval('C+D')"
-        sage: preparse("A \ x / 5")
+        sage: preparse("A \\ x / 5")
         'A  * BackslashOperator() * x / Integer(5)'
-        sage: preparse("A^3 \ b")
+        sage: preparse("A^3 \\ b")
         'A**Integer(3)  * BackslashOperator() * b'
     """
     def __rmul__(self, left):
@@ -1055,7 +1086,7 @@ class BackslashOperator:
         return self
 
     def __mul__(self, right):
-        """
+        r"""
         EXAMPLES::
 
             sage: A = matrix(RDF, 5, 5, 2)
@@ -1090,19 +1121,29 @@ def is_iterator(it):
         sage: is_iterator(it)
         True
 
-        sage: class wrong():
+        sage: class wrong():  # py2
         ....:    def __init__(self): self.n = 5
         ....:    def next(self):
+        ....:        self.n -= 1
+        ....:        if self.n == 0: raise StopIteration
+        ....:        return self.n
+        sage: class wrong():  # py3
+        ....:    def __init__(self): self.n = 5
+        ....:    def __next__(self):
         ....:        self.n -= 1
         ....:        if self.n == 0: raise StopIteration
         ....:        return self.n
         sage: x = wrong()
         sage: is_iterator(x)
         False
-        sage: list(x)
+        sage: list(x)  # py2
         Traceback (most recent call last):
         ...
         TypeError: iteration over non-sequence
+        sage: list(x)  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: 'wrong' object is not iterable
 
         sage: class good(wrong):
         ....:    def __iter__(self): return self
@@ -1156,10 +1197,29 @@ def random_sublist(X, s):
     return [a for a in X if random.random() <= s]
 
 
-def some_tuples(elements, repeat, bound):
+def some_tuples(elements, repeat, bound, max_samples=None):
     r"""
     Return an iterator over at most ``bound`` number of ``repeat``-tuples of
     ``elements``.
+
+    INPUT:
+
+    - ``elements`` -- an iterable
+    - ``repeat`` -- integer (default ``None``), the length of the tuples to be returned.
+      If ``None``, just returns entries from ``elements``.
+    - ``bound`` -- the maximum number of tuples returned (ignored if ``max_samples`` given)
+    - ``max_samples`` -- non-negative integer (default ``None``).  If given,
+      then a sample of the possible tuples will be returned,
+      instead of the first few in the standard order.
+
+    OUTPUT:
+
+    If ``max_samples`` is not provided, an iterator over the first
+    ``bound`` tuples of length ``repeat``, in the standard nested-for-loop order.
+
+    If ``max_samples`` is provided, a list of at most ``max_samples`` tuples,
+    sampled uniformly from the possibilities.  In this case, ``elements``
+    must be finite.
 
     TESTS::
 
@@ -1174,15 +1234,46 @@ def some_tuples(elements, repeat, bound):
         sage: len(list(l))
         10
 
-    .. TODO::
-
-        Currently, this only return an iterator over the first element of the
-        Cartesian product. It would be smarter to return something more
-        "random like" as it is used in tests. However, this should remain
-        deterministic.
+        sage: l = some_tuples(range(3), 2, None, max_samples=10)
+        sage: len(list(l))
+        9
     """
-    from itertools import islice, product
-    return islice(product(elements, repeat=repeat), bound)
+    if max_samples is None:
+        from itertools import islice, product
+        P = elements if repeat is None else product(elements, repeat=repeat)
+        return islice(P, int(bound))
+    else:
+        if not (hasattr(elements, '__len__') and hasattr(elements, '__getitem__')):
+            elements = list(elements)
+        n = len(elements)
+        N = n if repeat is None else n**repeat
+        if N <= max_samples:
+            from itertools import product
+            return elements if repeat is None else product(elements, repeat=repeat)
+        return _some_tuples_sampling(elements, repeat, max_samples, n)
+
+
+def _some_tuples_sampling(elements, repeat, max_samples, n):
+    """
+    Internal function for :func:`some_tuples`.
+
+    TESTS::
+
+        sage: from sage.misc.misc import _some_tuples_sampling
+        sage: list(_some_tuples_sampling(range(3), 3, 2, 3))
+        [(0, 1, 0), (1, 1, 1)]
+        sage: list(_some_tuples_sampling(range(20), None, 4, 20))
+        [0, 6, 9, 3]
+    """
+    from sage.rings.integer import Integer
+    N = n if repeat is None else n**repeat
+    # We sample on range(N) and create tuples manually since we don't want to create the list of all possible tuples in memory
+    for a in random.sample(range(N), max_samples):
+        if repeat is None:
+            yield elements[a]
+        else:
+            yield tuple(elements[j] for j in Integer(a).digits(n, padto=repeat))
+
 
 def powerset(X):
     r"""
@@ -1220,14 +1311,13 @@ def powerset(X):
     You may also use subsets as an alias for powerset::
 
         sage: subsets([1,2,3])
-        <generator object powerset at 0x...>
+        <generator object ...powerset at 0x...>
         sage: list(subsets([1,2,3]))
         [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 
         The reason we return lists instead of sets is that the elements of
         sets must be hashable and many structures on which one wants the
         powerset consist of non-hashable objects.
-
 
     AUTHORS:
 
@@ -1239,67 +1329,12 @@ def powerset(X):
     yield []
     pairs = []
     for x in X:
-        pairs.append((2**len(pairs),x))
-        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
+        pairs.append((2**len(pairs), x))
+        for w in range(2**(len(pairs) - 1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
+
 subsets = powerset
-
-#################################################################
-# Type checking
-#################################################################
-def typecheck(x, C, var="x"):
-    """
-    Check that x is of instance C. If not raise a TypeError with an
-    error message.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "typecheck is deprecated, use isinstance instead")
-    if not isinstance(x, C):
-        raise TypeError("{} (={}) must be of type {}.".format(var, x, C))
-
-#################################################################
-# This will likely eventually be useful.
-#################################################################
-
-# From the Python Cookbook Ver 2, Recipe 20.4
-class cached_attribute(object):
-    """
-    Computes attribute value and caches it in the instance.
-    """
-    def __init__(self, method, name=None):
-        from sage.misc.superseded import deprecation
-        deprecation(21926, "cached_attribute is deprecated")
-        # record the unbound-method and the name
-        self.method = method
-        self.name = name or method.__name__
-    def __get__(self, inst, cls):
-        if inst is None:
-            # instance attribute accessed on class, return self
-            return self
-        # compute, cache and return the instance's attribute value
-        result = self.method(inst)
-        setattr(inst, self.name, result)
-        return result
-
-class lazy_prop(object):
-    def __init__(self, calculate_function):
-        from sage.misc.superseded import deprecation
-        deprecation(21926, "lazy_prop is deprecated")
-        self._calculate = calculate_function
-        self.__doc__ = calculate_function.__doc__
-
-    def __call__(self, obj, _=None):
-        if obj is None:
-            return self
-        value = self._calculate(obj)
-        setattr(obj, self._calculate.__name__, value)
-        return value
-
-def prop(f):
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "prop() is deprecated")
-    return property(f, None, None, f.__doc__)
 
 
 #################################################################
@@ -1353,8 +1388,10 @@ def exists(S, P):
         (False, None)
     """
     for x in S:
-        if P(x): return True, x
+        if P(x):
+            return True, x
     return False, None
+
 
 def forall(S, P):
     """
@@ -1410,28 +1447,15 @@ def forall(S, P):
         (True, None)
     """
     for x in S:
-        if not P(x): return False, x
+        if not P(x):
+            return False, x
     return True, None
-
-#################################################################
-# which source file?
-#################################################################
-import inspect
-def sourcefile(object):
-    """
-    Work out which source or compiled file an object was defined in.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "sourcefile(x) is deprecated, use inspect.getfile(x) instead")
-    return inspect.getfile(object)
 
 
 #################################################################
 # debug tracing
 #################################################################
-import pdb
 set_trace = pdb.set_trace
-
 
 
 #################################################################
@@ -1456,49 +1480,13 @@ def word_wrap(s, ncols=85):
                 end = ''
             t.append(x[:k] + end)
             x = x[k:]
-            k=0
+            k = 0
             while k < len(x) and x[k] == ' ':
                 k += 1
             x = x[k:]
         t.append(x)
     return '\n'.join(t)
 
-
-def getitem(v, n):
-    r"""
-    Variant of getitem that coerces to an int if a TypeError is
-    raised.
-
-    (This is not needed anymore - classes should define an
-    __index__ method.)
-
-    Thus, e.g., ``getitem(v,n)`` will work even if
-    `v` is a Python list and `n` is a Sage integer.
-
-    EXAMPLES::
-
-        sage: v = [1,2,3]
-
-    The following used to fail in Sage <= 1.3.7. Now it works fine::
-
-        sage: v[ZZ(1)]
-        2
-
-    This always worked.
-
-    ::
-
-        sage: getitem(v, ZZ(1))
-        doctest:... DeprecationWarning: getitem(v, n) is deprecated, use v[n] instead
-        See http://trac.sagemath.org/21926 for details.
-        2
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(21926, "getitem(v, n) is deprecated, use v[n] instead")
-    try:
-        return v[n]
-    except TypeError:
-        return v[int(n)]
 
 def pad_zeros(s, size=3):
     """
@@ -1515,9 +1503,8 @@ def pad_zeros(s, size=3):
         sage: pad_zeros(389, 10)
         '0000000389'
     """
-    return "0"*(size-len(str(s))) + str(s)
+    return "0" * (size - len(str(s))) + str(s)
 
-import sage.server.support
 
 def embedded():
     """
@@ -1564,12 +1551,13 @@ class AttrCallObject(object):
             sage: series(sin(x), 4)
             1*x + (-1/6)*x^3 + Order(x^4)
         """
-        return getattr(x, self.name)(*(self.args+args), **self.kwds)
+        return getattr(x, self.name)(*(self.args + args), **self.kwds)
 
     def __repr__(self):
         """
-        Returns a string representation of this object. The star in the
-        output represents the object passed into self.
+        Return a string representation of this object.
+
+        The star in the output represents the object passed into ``self``.
 
         EXAMPLES::
 
@@ -1580,11 +1568,11 @@ class AttrCallObject(object):
             sage: attrcall('hooks', 3, flatten=True)
             *.hooks(3, flatten=True)
         """
-        s =  "*.%s(%s"%(self.name, ", ".join(map(repr, self.args)))
+        s = "*.%s(%s" % (self.name, ", ".join(map(repr, self.args)))
         if self.kwds:
-            if len(self.args) > 0:
+            if self.args:
                 s += ", "
-            s += ", ".join("%s=%s"%keyvalue for keyvalue in self.kwds.items())
+            s += ", ".join("%s=%s" % keyvalue for keyvalue in self.kwds.items())
         s += ")"
         return s
 
@@ -1636,7 +1624,7 @@ class AttrCallObject(object):
             sage: hash(x)       # random # indirect doctest
             210434060
             sage: type(hash(x))
-            <... 'int'>
+            <type 'int'>
             sage: y = attrcall('core', 3, blah = 1, flatten = True)
             sage: hash(y) == hash(x)
             True
@@ -1653,6 +1641,7 @@ class AttrCallObject(object):
         as input; see :trac:`8911`.
         """
         return hash((self.args, tuple(self.kwds.items())))
+
 
 def attrcall(name, *args, **kwds):
     """
@@ -1677,6 +1666,7 @@ def attrcall(name, *args, **kwds):
     """
     return AttrCallObject(name, args, kwds)
 
+
 def call_method(obj, name, *args, **kwds):
     """
     Call the method ``name`` on ``obj``.
@@ -1692,6 +1682,7 @@ def call_method(obj, name, *args, **kwds):
         3
     """
     return getattr(obj, name)(*args, **kwds)
+
 
 def is_in_string(line, pos):
     r"""
@@ -1721,8 +1712,8 @@ def is_in_string(line, pos):
         # which is the case if the previous character isn't
         # a backslash, or it is but both previous characters
         # are backslashes.
-        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
-            if line[i:i+3] in ['"""', "'''"]:
+        if line[i - 1: i] != '\\' or line[i - 2: i] == '\\\\':
+            if line[i: i + 3] in ['"""', "'''"]:
                 if not in_quote():
                     in_triple_quote = True
                 elif in_triple_quote:
@@ -1842,7 +1833,8 @@ def inject_variable(name, value, warn=True):
     # also from functions in various modules.
     G = get_main_globals()
     if name in G and warn:
-        warnings.warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
+        warnings.warn("redefining global value `%s`" % name,
+                      RuntimeWarning, stacklevel=2)
     G[name] = value
 
 

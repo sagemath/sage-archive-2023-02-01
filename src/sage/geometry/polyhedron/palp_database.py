@@ -10,20 +10,20 @@ EXAMPLES::
     ....:     X = ToricVariety(fan)
     ....:     ideal = X.affine_algebraic_patch(cone).defining_ideal()
     ....:     print("{} {}".format(lp.n_vertices(), ideal.hilbert_series()))
-    3 (-t^2 - 7*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
-    3 (-t^2 - t - 1)/(t^3 - 3*t^2 + 3*t - 1)
+    3 (t^2 + 7*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
+    3 (t^2 + t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     3 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     3 (t^2 + 2*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     3 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
-    4 (-t^2 - 5*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
-    4 (-t^2 - 3*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
+    4 (t^2 + 5*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
+    4 (t^2 + 3*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 2*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 2*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
-    5 (-t^2 - 3*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
-    5 (-t^2 - 5*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
+    5 (t^2 + 3*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
+    5 (t^2 + 5*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     5 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     6 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
 """
@@ -332,7 +332,7 @@ class PALPreader(SageObject):
             sage: polygons = PALPreader(2)
             sage: func = polygons._iterate(output='list')
             sage: func
-            <bound method PALPreader._iterate_list of <class 'sage.geometry.polyhedron.palp_database.PALPreader'>>
+            <bound method PALPreader._iterate_list of <sage.geometry.polyhedron.palp_database.PALPreader object at ...>>
             sage: iter = func(0,1,1)
             sage: next(iter)
             [[1, 0], [0, 1], [-1, -1]]
@@ -363,7 +363,7 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: polygons.__iter__()
-            <generator object _iterate_Polyhedron at 0x...>
+            <generator object ..._iterate_Polyhedron at 0x...>
         """
         iterator = self._iterate()
         return iterator(None, None, None)

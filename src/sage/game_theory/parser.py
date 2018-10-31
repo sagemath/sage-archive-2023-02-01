@@ -256,9 +256,9 @@ class Parser():
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
-            [<NashProfile for '': [1.0, 0.0, 1.0, 0.0]>,
-             <NashProfile for '': [0.6666666667, 0.3333333333, 0.3333333333, 0.6666666667]>,
-             <NashProfile for '': [0.0, 1.0, 0.0, 1.0]>]
+            [<NashProfile for '': [[1.0, 0.0], [1.0, 0.0]]>,
+             <NashProfile for '': [[0.6666666667, 0.3333333333], [0.3333333333, 0.6666666667]]>,
+             <NashProfile for '': [[0.0, 1.0], [0.0, 1.0]]>]
 
         The Parser class outputs the equilibrium::
 
@@ -283,7 +283,7 @@ class Parser():
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
-            [<NashProfile for '': [1.0, 0.0, 1.0, 0.0]>]
+            [<NashProfile for '': [[1.0, 0.0], [1.0, 0.0]]>]
 
         The corresponding parsed equilibrium::
 
@@ -318,9 +318,9 @@ class Parser():
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
-            [<NashProfile for '': [1.0, 0.0, 0.0, 0.0, 0.0, 1.0]>,
-             <NashProfile for '': [0.3333333333, 0.6666666667, 0.0, 0.1428571429, 0.0, 0.8571428571]>,
-             <NashProfile for '': [0.0, 1.0, 0.0, 1.0, 0.0, 0.0]>]
+            [<NashProfile for '': [[1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]>,
+             <NashProfile for '': [[0.3333333333, 0.6666666667, 0.0], [0.1428571429, 0.0, 0.8571428571]]>,
+             <NashProfile for '': [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0]]>]
 
         The corresponding parsed equilibrium::
 

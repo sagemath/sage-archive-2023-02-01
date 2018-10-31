@@ -22,7 +22,6 @@ from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
 from sage.libs.ntl.ZZ_pEX cimport *
-from sage.libs.ntl.ZZ_pE cimport ZZ_pE_from_str
 from sage.libs.ntl.ntl_ZZ_pE cimport ntl_ZZ_pE
 from sage.libs.ntl.types cimport ZZ_pX_c, ZZ_pEX_c
 

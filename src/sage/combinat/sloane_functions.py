@@ -5087,7 +5087,7 @@ class A006882(SloaneSequence):
         self._b += [next(f) for i in range(how_many)]
 
     def df(self):
-        """
+        r"""
         Double factorials n!!: a(n)=n\*a(n-2).
 
         EXAMPLES::
@@ -7615,7 +7615,7 @@ class A001836(SloaneSequence):
 
 # a group of sequences uses this function:
 def recur_gen2(a0,a1,a2,a3):
-    """
+    r"""
     homogeneous general second-order linear recurrence generator with
     fixed coefficients
 
@@ -8619,7 +8619,7 @@ class A061084(SloaneSequence):
 
 # a group of sequences uses this function:
 def recur_gen3(a0,a1,a2,a3,a4,a5):
-    """
+    r"""
     homogeneous general third-order linear recurrence generator with
     fixed coefficients
 
@@ -9020,8 +9020,7 @@ class A109814(SloaneSequence):
 
     .. SEEALSO::
 
-        * `Wikipedia article on polite numbers
-          <http://en.wikipedia.org/wiki/Polite_number>`_.
+        * :wikipedia:`Polite_number`
 
         * `An exercise sheet (with answers) about sums of
           consecutive integers

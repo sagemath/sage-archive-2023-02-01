@@ -37,6 +37,7 @@ from __future__ import absolute_import
 from .number_field_ideal import NumberFieldFractionalIdeal
 from sage.structure.factorization import Factorization
 from sage.structure.proof.proof import get_flag
+from sage.structure.richcmp import richcmp
 
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
@@ -75,7 +76,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         ...
         The following tests failed: _test_category
     """
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare an ideal of a relative number field to something else.
 
@@ -88,8 +89,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             False
         """
         if not isinstance(other, NumberFieldFractionalIdeal):
-            return cmp(type(self), type(other))
-        return cmp(self.pari_rhnf(), other.pari_rhnf())
+            return NotImplemented
+        return richcmp(self.pari_hnf().sage(), other.pari_hnf().sage(), op)
 
     def _contains_(self, x):
         """
@@ -275,8 +276,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             (2, 15*a*b + 3*a + 1)
         """
         try:
-            ## Compute the single generator, if it exists
-            dummy = self.is_principal()
+            # Compute the single generator, if it exists
+            self.is_principal()
             return self.__reduced_generators
         except AttributeError:
             L = self.number_field()
@@ -599,14 +600,13 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             True
             sage: J == d*I
             True
-
         """
         d = self.absolute_ideal().integral_split()[1]
         return (d*self, d)
 
     def is_prime(self):
         """
-        Return True if this ideal of a relative number field is prime.
+        Return ``True`` if this ideal of a relative number field is prime.
 
         EXAMPLES::
 
@@ -620,7 +620,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             return self._pari_prime is not None
         except AttributeError:
             abs_ideal = self.absolute_ideal()
-            _ = abs_ideal.is_prime()
+            abs_ideal.is_prime()
             self._pari_prime = abs_ideal._pari_prime
             return self._pari_prime is not None
 

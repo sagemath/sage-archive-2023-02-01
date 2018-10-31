@@ -32,11 +32,11 @@ class Polygon(GraphicPrimitive_xydata):
 
     INPUT:
 
-    - xdata - list of `x`-coordinates of points defining Polygon
+    - xdata -- list of `x`-coordinates of points defining Polygon
 
-    - ydata - list of `y`-coordinates of points defining Polygon
+    - ydata -- list of `y`-coordinates of points defining Polygon
 
-    - options - dict of valid plot options to pass to constructor
+    - options -- dict of valid plot options to pass to constructor
 
     EXAMPLES:
 
@@ -183,7 +183,6 @@ class Polygon(GraphicPrimitive_xydata):
 
         INPUT:
 
-
         -  ``z`` - optional 3D height above `xy`-plane, or a list of
            heights corresponding to the list of 2D polygon points.
 
@@ -235,7 +234,8 @@ class Polygon(GraphicPrimitive_xydata):
         else:
             zdata = [z]*len(self.xdata)
         if len(zdata) == len(self.xdata):
-            return IndexFaceSet([[(x, y, z) for x, y, z in zip(self.xdata, self.ydata, zdata)]], **options)
+            return IndexFaceSet([list(zip(self.xdata, self.ydata, zdata))],
+                                **options)
         else:
             raise ValueError('Incorrect number of heights given')
 

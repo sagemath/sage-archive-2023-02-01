@@ -349,7 +349,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
         return cod.module_morphism(matrix=bdry.matrix().transpose(), codomain=dom)
 
     def homology(self, d):
-        """
+        r"""
         Return the ``d``-th homology group.
 
         EXAMPLES::
@@ -403,7 +403,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
         return ker.quotient_module(im_retract)
 
     def cohomology(self, d):
-        """
+        r"""
         Return the ``d``-th cohomology group.
 
         EXAMPLES::
@@ -622,7 +622,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 return 'Trivial chain'
 
             if n == 1:
-                deg, vec = self._vec.items()[0]
+                (deg, vec), = self._vec.items()
                 return 'Chain({0}: {1})'.format(deg, vec)
 
             return 'Chain with {0} nonzero terms over {1}'.format(n,

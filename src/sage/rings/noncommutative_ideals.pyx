@@ -1,12 +1,3 @@
-###############################################################################
-#
-#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#
-###############################################################################
-
 """
 Ideals of non-commutative rings
 
@@ -55,12 +46,23 @@ TESTS::
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_pickling() . . . pass
-
 """
 
-from sage.rings.ideal_monoid import IdealMonoid_c
-from sage.structure.parent import Parent
+#*****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from __future__ import absolute_import
+
+from sage.structure.element cimport MonoidElement
+from sage.structure.parent cimport Parent
 from sage.categories.monoids import Monoids
+from sage.rings.ideal_monoid import IdealMonoid_c
 from sage.rings.ideal import Ideal_generic
 import sage
 
@@ -140,8 +142,8 @@ class IdealMonoid_nc(IdealMonoid_c):
             x = x.gens()
         elif isinstance(x, Ideal_generic):
             x = x.gens()
-        y = self._IdealMonoid_c__R.ideal(x, side=side)
-        y._set_parent(self)
+        cdef MonoidElement y = self._IdealMonoid_c__R.ideal(x, side=side)
+        y._parent = self
         return y
 
 
@@ -269,7 +271,6 @@ class Ideal_nc(Ideal_generic):
              False
              sage: IR == [A.1+A.2,A.1^2]*A
              True
-
         """
         if not isinstance(right, Ideal_nc):
             return False
@@ -296,9 +297,25 @@ class Ideal_nc(Ideal_generic):
              True
              sage: IR != [A.1+A.2,A.1^2]*A
              False
-
         """
         return not self.__eq__(right)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+             sage: A = SteenrodAlgebra(2)
+             sage: IR = [A.1+A.2,A.1^2]*A
+             sage: IL = A*[A.1+A.2,A.1^2]
+             sage: IT = A*[A.1+A.2,A.1^2]*A
+             sage: hash(IT) == hash(IL)
+             False
+             sage: hash(IR) == hash([A.1^2,A.1+A.2]*A)
+             True
+        """
+        return hash((self.parent(), self.__side, frozenset(self.gens())))
 
     def side(self):
         """

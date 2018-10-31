@@ -331,7 +331,7 @@ class SageMagics(Magics):
         Cython cell magic
 
         This is syntactic sugar on the
-        :func:`~sage.misc.cython_c.cython` function.
+        :func:`~sage.misc.cython.cython_compile` function.
 
         INPUT:
 
@@ -352,9 +352,10 @@ class SageMagics(Magics):
             ....: def f():
             ....:     print('test')
             ....: ''')
-            ....: shell.run_cell('f()')
+            sage: f()
+            test
         """
-        from sage.misc.cython_c import cython_compile
+        from sage.misc.cython import cython_compile
         return cython_compile(cell)
 
     @cell_magic
@@ -530,7 +531,7 @@ class SageJupyterCustomizations(SageCustomizations):
         return all_jupyter
 
 
-# from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
+# from https://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
 from functools import wraps
 def run_once(func):
     """

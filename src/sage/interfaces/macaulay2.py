@@ -74,9 +74,9 @@ AUTHORS:
   __floordiv__, __mod__, __iter__, __len__; stripped extra
   leading space and trailing newline from output.
 
-TODO:
+.. TODO::
 
-- get rid of all numbers in output, e.g., in ideal function below.
+    Get rid of all numbers in output, e.g., in ideal function below.
 """
 
 #*****************************************************************************
@@ -587,8 +587,8 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
     def new_from(self, type, value):
         """
-        Returns a new Macaulay2Element of type type constructed from
-        value.
+        Return a new ``Macaulay2Element`` of type ``type`` constructed from
+        ``value``.
 
         EXAMPLES::
 
@@ -607,7 +607,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
 @instancedoc
 class Macaulay2Element(ExtraTabCompletion, ExpectElement):
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: m = macaulay2('matrix {{1,2},{3,4}}') # optional - macaulay2

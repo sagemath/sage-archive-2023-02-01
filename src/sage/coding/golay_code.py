@@ -8,10 +8,12 @@ perfect codes, while their extended versions are self-dual codes.
 
 REFERENCES:
 
-    - [HP2003]_ pp. 31-33 for a definition of Golay codes.
+- [HP2003]_ pp. 31-33 for a definition of Golay codes.
 
-    .. [WS] F.J. MacWilliams, N.J.A. Sloane, The Theory of Error-Correcting
-         Codes, North-Holland, Amsterdam, 1977
+.. [WS] \F. J. MacWilliams, N. J. A. Sloane, *The Theory of Error-Correcting
+        Codes*, North-Holland, Amsterdam, 1977
+
+- :wikipedia:`Golay_code`
 """
 
 #*****************************************************************************
@@ -47,12 +49,12 @@ class GolayCode(AbstractLinearCode):
     EXAMPLES::
 
         sage: codes.GolayCode(GF(2))
-        [24, 12, 8] Extended Golay code over Finite Field of size 2
+        [24, 12, 8] Extended Golay code over GF(2)
 
     Another example with the perfect binary Golay code::
 
         sage: codes.GolayCode(GF(2), False)
-        [23, 12, 7]  Golay code over Finite Field of size 2
+        [23, 12, 7]  Golay code over GF(2)
 
     TESTS:
 
@@ -128,15 +130,14 @@ class GolayCode(AbstractLinearCode):
         EXAMPLES::
 
             sage: codes.GolayCode(GF(2),extended=True)
-            [24, 12, 8] Extended Golay code over Finite Field of size 2
+            [24, 12, 8] Extended Golay code over GF(2)
         """
         n = self.length()
         ext = ""
         if n % 2 == 0:
             ext = "Extended"
-        return "[%s, %s, %s] %s Golay code over %s"\
-                % (n, self.dimension(), self.minimum_distance(),
-                ext, self.base_field())
+        return "[%s, %s, %s] %s Golay code over GF(%s)"\
+                % (n, self.dimension(), self.minimum_distance(), ext, self.base_field().cardinality())
 
     def _latex_(self):
         r"""
@@ -168,7 +169,7 @@ class GolayCode(AbstractLinearCode):
 
             sage: C = codes.GolayCode(GF(2), extended=True)
             sage: Cd = C.dual_code(); Cd
-            [24, 12, 8] Extended Golay code over Finite Field of size 2
+            [24, 12, 8] Extended Golay code over GF(2)
 
             sage: Cd == C
             True
@@ -251,6 +252,24 @@ class GolayCode(AbstractLinearCode):
             sage: C = codes.GolayCode(GF(3))
             sage: C.weight_distribution()
             [1, 0, 0, 0, 0, 0, 264, 0, 0, 440, 0, 0, 24]
+
+        TESTS::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: C.weight_distribution() == super(codes.GolayCode, C).weight_distribution()
+            True
+
+            sage: C = codes.GolayCode(GF(2), extended=False)
+            sage: C.weight_distribution() == super(codes.GolayCode, C).weight_distribution()
+            True
+
+            sage: C = codes.GolayCode(GF(3))
+            sage: C.weight_distribution() == super(codes.GolayCode, C).weight_distribution()
+            True
+
+            sage: C = codes.GolayCode(GF(3), extended=False)
+            sage: C.weight_distribution() == super(codes.GolayCode, C).weight_distribution()
+            True
         """
         n = self.length()
         if n == 23:

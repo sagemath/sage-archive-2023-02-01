@@ -16,8 +16,8 @@ Lie Algebras
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from lie_algebra import LieAlgebra
+from .lie_algebra import LieAlgebra
 #from kac_moody import KacMoodyAlgebra
-import examples as lie_algebras
-
+from . import examples as lie_algebras

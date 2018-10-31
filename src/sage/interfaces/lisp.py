@@ -113,7 +113,7 @@ class Lisp(Expect):
             sage: lisp.eval('(+ 2 2)')
             '4'
 
-        TEST:
+        TESTS:
 
         Verify that it works when input == output::
 
@@ -158,7 +158,7 @@ class Lisp(Expect):
             sage: lisp.get('x')
             '2'
 
-        TEST:
+        TESTS:
 
         It must also be possible to eval the variable by name::
 
@@ -387,7 +387,7 @@ class Lisp(Expect):
 # Inherit from RingElement to make __pow__ work
 @instancedoc
 class LispElement(RingElement, ExpectElement):
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 

@@ -123,7 +123,7 @@ AUTHORS:
   :meth:`~sage.logic.boolformula.BooleanFormula.implies()`
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein.gmail.com>
 #       Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
@@ -967,7 +967,7 @@ class BooleanFormula(object):
                 s += '0 '
             else:
                 varname = ''
-                while i < self.__expression[i] not in '|) ':
+                if self.__expression[i] not in '|) ':
                     varname += self.__expression[i]
                     i += 1
                 s += vars_num[varname] + ' '
@@ -1183,11 +1183,8 @@ class BooleanFormula(object):
         """
         bits = []
         while x > 0:
-            if x % 2 == 0:
-                b = False
-            else:
-                b = True
-            x = int(x / 2)
+            b = bool(x % 2)
+            x = x // 2
             bits.append(b)
         if c > len(bits) - 1:
             return False

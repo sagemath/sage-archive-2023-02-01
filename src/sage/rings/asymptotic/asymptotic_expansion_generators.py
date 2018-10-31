@@ -570,7 +570,7 @@ class AsymptoticExpansionGenerators(SageObject):
         from sage.rings.rational_field import QQ
 
         P = S.parent().change_parameter(
-                growth_group='QQ^{n} * {n}^QQ'.format(n=var),
+                growth_group='(QQ_+)^{n} * {n}^QQ'.format(n=var),
                 coefficient_ring=QQ)
         n = P.gen()
 

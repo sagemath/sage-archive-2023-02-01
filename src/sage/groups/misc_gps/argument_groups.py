@@ -1228,6 +1228,242 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
             parent = ArgumentByElementGroup(element.parent())
         return parent(element)
 
+
+class Sign(AbstractArgument):
+    r"""
+    An element of :class:`SignGroup`.
+
+    INPUT:
+
+    - ``parent`` -- a SageMath parent
+
+    - ``element`` -- a nonzero element of the parent's base
+
+    - ``normalize`` -- a boolean (default: ``True``)
+    """
+
+    def __init__(self, parent, element, normalize=True):
+        r"""
+        See :class:`Sign` for more information.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S.an_element()  # indirect doctest
+            -1
+        """
+        super(Sign, self).__init__(parent, int(element), normalize=normalize)
+        if self._element_ not in (-1, 1):
+            raise ValueError('{} is not allowed '
+                             '(only -1 or 1 is)'.format(element))
+
+    @staticmethod
+    def _normalize_(element):
+        r"""
+        Normalizes the given element.
+
+        This is the identity for :class:`Sign`.
+
+        INPUT:
+
+        - ``element`` -- an element of the parent's base
+
+        OUTPUT:
+
+        An element.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import Sign
+            sage: Sign._normalize_(True)
+            True
+        """
+        return element
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this sign.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(1)
+            1
+            sage: S(-1)
+            -1
+        """
+        return repr(self._element_)
+
+    def _mul_(self, other):
+        r"""
+        Return the product of this sign with ``other``.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(1) * S(-1)  # indirect doctest
+            -1
+        """
+        P = self.parent()
+        return P.element_class(P, self._element_ * other._element_)
+
+    def __pow__(self, exponent):
+        r"""
+        Return the power of this sign to the given ``exponent``.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(-1)^4  # indirect doctest
+            1
+            sage: S(-1)^3  # indirect doctest
+            -1
+        """
+        P = self.parent()
+        return P.element_class(P, self._element_ ** exponent)
+
+    def __invert__(self):
+        r"""
+        Return the inverse of this sign.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: ~S(-1)  # indirect doctest
+            -1
+            sage: _.parent()
+            Sign Group
+        """
+        return self
+
+
+class SignGroup(AbstractArgumentGroup):
+    r"""
+    A group of the signs `-1` and `1`.
+
+    INPUT:
+
+    - ``category`` -- a category
+
+    EXAMPLES::
+
+        sage: from sage.groups.misc_gps.argument_groups import SignGroup
+        sage: S = SignGroup(); S
+        Sign Group
+        sage: S(-1)
+        -1
+    """
+
+    Element = Sign
+
+    @staticmethod
+    def __classcall__(cls, category=None):
+        r"""
+        See :class:`SignGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S.category()  # indirect doctest
+            Category of commutative groups
+        """
+        category = cls._determine_category_(category)
+        return super(AbstractArgumentGroup, cls).__classcall__(
+            cls, category)
+
+    def __init__(self, category):
+        r"""
+        See :class:`SignGroup` for more information.
+
+        TESTS:
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S.base()  # indirect doctest
+            <type 'int'>
+        """
+        return super(SignGroup, self).__init__(base=int,
+                                               category=category)
+
+    def _repr_(self):
+        r"""
+        Return a representation string of the sign group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: SignGroup()  # indirect doctest
+            Sign Group
+        """
+        return 'Sign Group'
+
+    def _repr_short_(self):
+        r"""
+        Return a short representation string of this sign group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S._repr_short_()
+            'S'
+        """
+        return 'S'
+
+    def _an_element_(self):
+        r"""
+        Return a short representation string of this sign group.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S.an_element()
+            -1
+        """
+        return self.element_class(self, -1)
+
+    def _element_constructor_(self, data):
+        r"""
+        Construct an element out of the given data.
+
+        INPUT:
+
+        - ``data`` -- an object
+
+        OUTPUT:
+
+        A :class:`Sign`.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(1)  # indirect doctest
+            1
+            sage: S(-1)  # indirect doctest
+            -1
+        """
+        if isinstance(data, int) and data == 0:
+            raise ValueError('no input specified')
+
+        elif isinstance(data, self.element_class):
+            if data.parent() == self:
+                return data
+            element = data._element_
+
+        else:
+            element = data
+
+        return self.element_class(self, element)
+
+
 def exactly_one_is_true(iterable):
     r"""
     Return whether exactly one element of ``iterable`` evaluates ``True``.

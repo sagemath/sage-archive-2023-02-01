@@ -20,7 +20,7 @@ ACKNOWLEDGEMENT:
 TESTS::
 
     sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-    sage: A = GrowthGroup('QQ^x * x^ZZ'); A
+    sage: A = GrowthGroup('(QQ_+)^x * x^ZZ'); A
     Growth Group QQ^x * x^ZZ
     sage: A.construction()
     (The cartesian_product functorial construction,
@@ -48,10 +48,10 @@ TESTS::
 ::
 
     sage: cm = sage.structure.element.get_coercion_model()
-    sage: D = GrowthGroup('QQ^x * x^QQ')
+    sage: D = GrowthGroup('(QQ_+)^x * x^QQ')
     sage: cm.common_parent(A, D)
     Growth Group QQ^x * x^QQ
-    sage: E = GrowthGroup('ZZ^x * x^QQ')
+    sage: E = GrowthGroup('(ZZ_+)^x * x^QQ')
     sage: cm.record_exceptions()  # not tested, see #19411
     sage: cm.common_parent(A, E)
     Growth Group QQ^x * x^QQ
@@ -308,7 +308,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             sage: from itertools import islice
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G = GrowthGroup('QQ^y * x^QQ * log(x)^ZZ')
+            sage: G = GrowthGroup('(QQ_+)^y * x^QQ * log(x)^ZZ')
             sage: tuple(islice(G.some_elements(), 10))
             (x^(1/2)*(1/2)^y,
              x^(-1/2)*log(x)*2^y,
@@ -421,7 +421,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             x*log(x)
             sage: type(l)
             <class 'sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct_with_category.element_class'>
-            sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)'])
+            sage: GrowthGroup('(QQ_+)^x * x^QQ')(['2^log(x)'])
             Traceback (most recent call last):
             ...
             ValueError: ['2^log(x)'] is not in Growth Group QQ^x * x^QQ.
@@ -429,7 +429,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group QQ^x * x^QQ
             >> *previous* ValueError: 2^log(x) is not in Growth Group QQ^x.
             >> *and* ValueError: 2^log(x) is not in Growth Group x^QQ.
-            sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)', 'x^55'])
+            sage: GrowthGroup('(QQ_+)^x * x^QQ')(['2^log(x)', 'x^55'])
             Traceback (most recent call last):
             ...
             ValueError: ['2^log(x)', 'x^55'] is not in Growth Group QQ^x * x^QQ.
@@ -441,7 +441,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         ::
 
             sage: n = GrowthGroup('n^ZZ * log(n)^ZZ')('n')
-            sage: G = GrowthGroup('QQ^n * n^ZZ * log(n)^ZZ')
+            sage: G = GrowthGroup('(QQ_+)^n * n^ZZ * log(n)^ZZ')
             sage: G(n).value
             (1, n, 1)
         """
@@ -543,7 +543,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         ::
 
-            sage: G = GrowthGroup('QQ^n * n^ZZ * U^n')
+            sage: G = GrowthGroup('(QQ_+)^n * n^ZZ * U^n')
             sage: n = SR.var('n')
             sage: G((-2)^n)
             2^n*(-1)^n
@@ -659,7 +659,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.categories.pushout import pushout
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: A = GrowthGroup('QQ^x * x^ZZ')
+            sage: A = GrowthGroup('(QQ_+)^x * x^ZZ')
             sage: B = GrowthGroup('x^ZZ * log(x)^ZZ')
             sage: A._pushout_(B)
             Growth Group QQ^x * x^ZZ * log(x)^ZZ
@@ -679,8 +679,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         ::
 
-            sage: C = GrowthGroup('QQ^x * x^QQ * y^ZZ')
-            sage: D = GrowthGroup('x^ZZ * log(x)^QQ * QQ^z')
+            sage: C = GrowthGroup('(QQ_+)^x * x^QQ * y^ZZ')
+            sage: D = GrowthGroup('x^ZZ * log(x)^QQ * (QQ_+)^z')
             sage: C._pushout_(D)
             Growth Group QQ^x * x^QQ * log(x)^QQ * y^ZZ * QQ^z
             sage: cm.common_parent(C, D)
@@ -708,14 +708,14 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         ::
 
-            sage: pushout(GrowthGroup('QQ^x * x^ZZ'), GrowthGroup('ZZ^x * x^QQ'))
+            sage: pushout(GrowthGroup('(QQ_+)^x * x^ZZ'), GrowthGroup('(ZZ_+)^x * x^QQ'))
             Growth Group QQ^x * x^QQ
-            sage: cm.common_parent(GrowthGroup('QQ^x * x^ZZ'), GrowthGroup('ZZ^x * x^QQ'))
+            sage: cm.common_parent(GrowthGroup('(QQ_+)^x * x^ZZ'), GrowthGroup('(ZZ_+)^x * x^QQ'))
             Growth Group QQ^x * x^QQ
 
         ::
 
-            sage: pushout(GrowthGroup('QQ^n * n^QQ'), GrowthGroup('SR^n'))
+            sage: pushout(GrowthGroup('(QQ_+)^n * n^QQ'), GrowthGroup('(SR_+)^n'))
             Growth Group SR^n * n^QQ
         """
         from .growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
@@ -942,7 +942,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: L = GrowthGroup('log(x)^ZZ')
                 sage: latex(cartesian_product([P, L], order='lex').an_element())  # indirect doctest
                 x^{\frac{1}{2}} \log\left(x\right)
-                sage: latex(GrowthGroup('QQ^n * n^QQ').an_element())  # indirect doctest
+                sage: latex(GrowthGroup('(QQ_+)^n * n^QQ').an_element())  # indirect doctest
                 \left(\frac{1}{2}\right)^{n} n^{\frac{1}{2}}
             """
             return self._repr_(latex=True)
@@ -1185,7 +1185,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             TESTS::
 
                  sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-                 sage: G = GrowthGroup('ZZ^x * x^ZZ')
+                 sage: G = GrowthGroup('(ZZ_+)^x * x^ZZ')
                  sage: g = G('2^x * x^3')
                  sage: (~g).parent()
                  Growth Group QQ^x * x^ZZ

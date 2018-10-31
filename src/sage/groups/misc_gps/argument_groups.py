@@ -141,6 +141,35 @@ class AbstractArgument(MultiplicativeGroupElement):
         """
         return hash((self.parent(), self._element_))
 
+    def _symbolic_(self, R=None):
+        r"""
+        Return this argument as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output is will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import AbstractArgument
+            sage: class MyArgument(AbstractArgument):
+            ....:     @staticmethod
+            ....:     def _normalize_(element):
+            ....:         return element
+            ....: a = MyArgument(ZZ, -1)
+            ....: a._symbolic_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented in concrete realizations
+        """
+        raise NotImplementedError('only implemented in concrete realizations')
+
     _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
     def _eq_(self, other):
@@ -352,6 +381,44 @@ class UnitCirclePoint(AbstractArgument):
             e^(2*pi*0.333333333333333)
         """
         return 'e^(2*pi*{})'.format(self.exponent)
+
+    def _symbolic_(self, R=None):
+        r"""
+        Return this point on the unit circle as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output is will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
+            sage: C = UnitCircleGroup(RR)
+            sage: C(exponent=1/4)._symbolic_()
+            e^(0.500000000000000*I*pi)
+            sage: _.parent()
+            Symbolic Ring
+
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: U(exponent=1/4)._symbolic_()
+            I
+            sage: _.parent()
+            Symbolic Ring
+        """
+        from sage.functions.log import exp
+        from sage.symbolic.ring import SR
+
+        if R is None:
+            R = SR
+
+        return exp(2*R('pi')*R('I') * self.exponent)
 
     def _mul_(self, other):
         r"""
@@ -866,6 +933,38 @@ class ArgumentByElement(AbstractArgument):
             e^(I*arg(2.00000000000000 + 3.00000000000000*I))
         """
         return 'e^(I*arg({}))'.format(self._element_)
+
+    def _symbolic_(self, R=None):
+        r"""
+        Return this argument by element as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output is will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(ZZ)
+            sage: C(-2)._symbolic_()
+            -1
+            sage: _.parent()
+            Symbolic Ring
+        """
+        from sage.functions.log import exp
+        from sage.functions.other import arg
+        from sage.symbolic.ring import SR
+
+        if R is None:
+            R = SR
+
+        return exp(R('I')*arg(self._element_))
 
     def _mul_(self, other):
         r"""

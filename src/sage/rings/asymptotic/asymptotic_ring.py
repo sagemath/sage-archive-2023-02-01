@@ -2960,7 +2960,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         INPUT:
 
         - ``R`` -- (a subring of) the symbolic ring or ``None``.
-          The output is will be an element of ``R``. If ``None``,
+          The output will be an element of ``R``. If ``None``,
           then the symbolic ring is used.
 
         OUTPUT:

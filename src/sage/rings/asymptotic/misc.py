@@ -589,6 +589,51 @@ def log_string(element, base=None):
     return 'log(%s%s)' % (element, basestr)
 
 
+def strip_symbolic(expression):
+    r"""
+    Return, if possible, the underlying (numeric) object of
+    the symbolic expression.
+
+    If ``expression`` is not symbolic, then ``expression`` is returned.
+
+    INPUT:
+
+    - ``expression`` -- an object
+
+    OUTPUT:
+
+    An object.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import strip_symbolic
+        sage: strip_symbolic(SR(2)); _.parent()
+        2
+        Integer Ring
+        sage: strip_symbolic(SR(2/3)); _.parent()
+        2/3
+        Rational Field
+        sage: strip_symbolic(SR('x')); _.parent()
+        x
+        Symbolic Ring
+        sage: strip_symbolic(pi); _.parent()
+        pi
+        Symbolic Ring
+    """
+    from sage.structure.element import parent, Element
+    from sage.symbolic.ring import SymbolicRing
+
+    P = parent(expression)
+    if isinstance(P, SymbolicRing):
+        try:
+            stripped = expression.pyobject()
+            if isinstance(stripped, Element):
+                return stripped
+        except TypeError:
+            pass
+    return expression
+
+
 class NotImplementedOZero(NotImplementedError):
     r"""
     A special :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`

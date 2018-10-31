@@ -148,7 +148,7 @@ class AbstractArgument(MultiplicativeGroupElement):
         INPUT:
 
         - ``R`` -- (a subring of) the symbolic ring or ``None``.
-          The output is will be an element of ``R``. If ``None``,
+          The output will be an element of ``R``. If ``None``,
           then the symbolic ring is used.
 
         OUTPUT:
@@ -162,8 +162,8 @@ class AbstractArgument(MultiplicativeGroupElement):
             ....:     @staticmethod
             ....:     def _normalize_(element):
             ....:         return element
-            ....: a = MyArgument(ZZ, -1)
-            ....: a._symbolic_()
+            sage: a = MyArgument(ZZ, -1)
+            sage: a._symbolic_()
             Traceback (most recent call last):
             ...
             NotImplementedError: only implemented in concrete realizations
@@ -229,7 +229,7 @@ class AbstractArgument(MultiplicativeGroupElement):
 
     def _act_on_(self, other, is_left):
         r"""
-        Return the action of this point on the unit circle onto ``other``.
+        Return the action of this argument on ``other``.
 
         TESTS::
 
@@ -256,7 +256,7 @@ class AbstractArgument(MultiplicativeGroupElement):
         ::
 
             sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
-            sage: C = ArgumentByElementGroup(CC)
+            sage: C = ArgumentByElementGroup(SR)
             sage: C(-1) * 4
             -4
             sage: _.parent()
@@ -446,7 +446,7 @@ class UnitCirclePoint(AbstractArgument):
         INPUT:
 
         - ``R`` -- (a subring of) the symbolic ring or ``None``.
-          The output is will be an element of ``R``. If ``None``,
+          The output will be an element of ``R``. If ``None``,
           then the symbolic ring is used.
 
         OUTPUT:
@@ -997,7 +997,7 @@ class ArgumentByElement(AbstractArgument):
         INPUT:
 
         - ``R`` -- (a subring of) the symbolic ring or ``None``.
-          The output is will be an element of ``R``. If ``None``,
+          The output will be an element of ``R``. If ``None``,
           then the symbolic ring is used.
 
         OUTPUT:
@@ -1426,6 +1426,7 @@ class Sign(AbstractArgument):
             True
         """
         return self._element_ == -1
+
 
 class SignGroup(AbstractArgumentGroup):
     r"""

@@ -6806,6 +6806,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ....:         (2^100).binomial(2^22, algorithm='pari')
             ....:     except AlarmInterrupt:
             ....:         pass
+            doctest:...: RuntimeWarning: cypari2 leaked ... bytes on the PARI stack...
         """
         cdef Integer x
         cdef Integer mm

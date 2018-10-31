@@ -711,7 +711,7 @@ class GenericCombinatorialSpecies(SageObject):
              Product of (Combinatorial species) and (Combinatorial species),
              Singleton species,
              Sum of (Singleton species) and
-            (Product of (Combinatorial species) and (Combinatorial species))]
+              (Product of (Combinatorial species) and (Combinatorial species))]
 
             sage: d = {sp: i for i, sp in enumerate(g)}
             sage: g.relabel(d)
@@ -725,7 +725,7 @@ class GenericCombinatorialSpecies(SageObject):
 
     def _add_to_digraph(self, d):
         """
-        Adds this species as a vertex to the digraph d along with any
+        Add this species as a vertex to the digraph d along with any
         'children' of this species. For example, sum species would add
         itself as a vertex and an edge between itself and each of its
         summands.

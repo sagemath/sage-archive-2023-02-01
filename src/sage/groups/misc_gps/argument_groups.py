@@ -1342,6 +1342,36 @@ class Sign(AbstractArgument):
         return self
 
 
+    def is_one(self):
+        r"""
+        Return whether this sign is `1`.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(-1).is_one()
+            False
+            sage: S(1).is_one()
+            True
+        """
+        return self._element_ == 1
+
+    def is_minus_one(self):
+        r"""
+        Return whether this sign is `-1`.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(1).is_minus_one()
+            False
+            sage: S(-1).is_minus_one()
+            True
+        """
+        return self._element_ == -1
+
 class SignGroup(AbstractArgumentGroup):
     r"""
     A group of the signs `-1` and `1`.

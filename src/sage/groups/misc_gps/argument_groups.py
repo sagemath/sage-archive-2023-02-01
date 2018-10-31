@@ -227,6 +227,63 @@ class AbstractArgument(MultiplicativeGroupElement):
                            "for the roots of unity "
                            "{} and {}".format(self, other))
 
+    def _act_on_(self, other, is_left):
+        r"""
+        Return the action of this point on the unit circle onto ``other``.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: U(-1) * 4
+            -4
+            sage: _.parent()
+            Symbolic Ring
+            sage: 4 * U(-1)
+            -4
+            sage: _.parent()
+            Symbolic Ring
+
+            sage: P = Permutation([1,2,3])
+            sage: U(-1) * P
+            Traceback (most recent call last):
+            ...
+            TypeError: -1 (Group of Roots of Unity) cannot
+            (left-)act on [1, 2, 3] (Standard permutations)
+            > *previous* TypeError: no canonical coercion from
+              Standard permutations to Symbolic Ring
+
+        ::
+
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
+            sage: C = ArgumentByElementGroup(CC)
+            sage: C(-1) * 4
+            -4
+            sage: _.parent()
+            Symbolic Ring
+            sage: 4 * C(-1)
+            -4
+            sage: _.parent()
+            Symbolic Ring
+        """
+        from sage.symbolic.ring import SymbolicRing, SR
+
+        P = other.parent()
+        S = P if isinstance(P, SymbolicRing) else SR
+        try:
+            other = S.coerce(other)
+        except (TypeError, ValueError) as e:
+            from sage.rings.asymptotic.misc import combine_exceptions
+            raise combine_exceptions(
+                TypeError('{} ({}) cannot ({}-)act on '
+                          '{} ({})'.format(
+                              self, self.parent(),
+                              'left' if is_left else 'right',
+                              other, P)),
+                e)
+        return self._symbolic_(S) * other
+
+
 class AbstractArgumentGroup(UniqueRepresentation, Parent):
     r"""
     A group whose elements represent (complex) arguments.

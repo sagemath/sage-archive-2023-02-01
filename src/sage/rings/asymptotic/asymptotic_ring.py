@@ -1661,6 +1661,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: w^QQbar(sqrt(2))
             w^(1.414213562373095?)
         """
+        from .misc import strip_symbolic
+        exponent = strip_symbolic(exponent)
+
         if not self.summands:
             if exponent == 0:
                 return self.parent().one()

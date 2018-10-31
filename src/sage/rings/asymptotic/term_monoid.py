@@ -2082,7 +2082,8 @@ class OTerm(GenericTerm):
             ZeroDivisionError: Cannot take O(z) to exponent -1.
             > *previous* ZeroDivisionError: rational division by zero
         """
-        return self._calculate_pow_test_zero_(exponent)
+        from .misc import strip_symbolic
+        return self._calculate_pow_test_zero_(strip_symbolic(exponent))
 
     def can_absorb(self, other):
         r"""
@@ -3220,7 +3221,8 @@ class ExactTerm(TermWithCoefficient):
             sage: t^(1/2)  # indirect doctest
             sqrt(2)*z^(1/2)
         """
-        return self._calculate_pow_(exponent)
+        from .misc import strip_symbolic
+        return self._calculate_pow_(strip_symbolic(exponent))
 
     def can_absorb(self, other):
         r"""
@@ -3520,6 +3522,17 @@ class ExactTerm(TermWithCoefficient):
             (Rational Field, Symbolic Ring)
 
         was used.
+
+        TESTS::
+
+            sage: SCR = SR.subring(no_variables=True)
+            sage: T = TermMonoid('exact', GrowthGroup('QQ^x * x^ZZ'), SCR)
+            sage: x = T('x')
+            sage: x.rpow(SCR(5))
+            5^x
+            sage: _.parent()
+            Exact Term Monoid (Symbolic Constants Subring)^x * x^ZZ * U^x
+            with coefficients in Symbolic Constants Subring
         """
         P = self.parent()
 

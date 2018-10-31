@@ -1038,6 +1038,16 @@ def _rpow_(self, base):
         sage: n = GrowthGroup('QQ^n * n^QQ')('n')
         sage: n.rpow(-2)
         2^n*(-1)^n
+
+    TESTS::
+
+        sage: SCR = SR.subring(no_variables=True)
+        sage: G = GrowthGroup('QQ^x * x^ZZ')
+        sage: x = G('x')
+        sage: x.rpow(SCR(5))
+        5^x
+        sage: _.parent()
+        Growth Group (Symbolic Constants Subring)^x * x^ZZ * U^x
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
@@ -2955,7 +2965,9 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: b^12
             x^42
         """
-        return self.parent()._create_element_in_extension_(self.exponent * exponent)
+        from .misc import strip_symbolic
+        return self.parent()._create_element_in_extension_(
+            self.exponent * strip_symbolic(exponent))
 
     def _log_factor_(self, base=None):
         r"""
@@ -3996,8 +4008,21 @@ class ExponentialGrowthElement(GenericGrowthElement):
             Growth Group SR^x
             sage: b^12
             117649^x
+
+        TESTS::
+
+             sage: SCR = SR.subring(no_variables=True)
+             sage: G = GrowthGroup('QQ^x * x^ZZ'); G
+             Growth Group QQ^x * x^ZZ * U^x
+             sage: x = G('x')
+             sage: x^SCR(1)
+             x
+             sage: _.parent()
+             Growth Group QQ^x * x^ZZ * U^x
         """
-        return self.parent()._create_element_in_extension_(self.base ** exponent)
+        from .misc import strip_symbolic
+        return self.parent()._create_element_in_extension_(
+            self.base ** strip_symbolic(exponent))
 
     def _log_factor_(self, base=None):
         r"""

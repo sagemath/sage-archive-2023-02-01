@@ -695,7 +695,7 @@ class GenericCombinatorialSpecies(SageObject):
 
     def digraph(self):
         """
-        Returns a directed graph where the vertices are the individual
+        Return a directed graph where the vertices are the individual
         species that make up this one.
 
         EXAMPLES::
@@ -706,20 +706,17 @@ class GenericCombinatorialSpecies(SageObject):
             sage: g = B.digraph(); g
             Multi-digraph on 4 vertices
 
-        ::
-
-            sage: g_c, labels = g.canonical_label(certificate=True)
-            sage: g.relabel()
-            sage: g_r = g.canonical_label()
-            sage: g_c == g_r
-            True
-            sage: sorted(labels)
+            sage: sorted(g, key=str)
             [Combinatorial species,
              Product of (Combinatorial species) and (Combinatorial species),
              Singleton species,
-             Sum of (Singleton species) and (Product of (Combinatorial species) and (Combinatorial species))]
-            sage: sorted(labels.values())
-            [0, 1, 2, 3]
+             Sum of (Singleton species) and
+            (Product of (Combinatorial species) and (Combinatorial species))]
+
+            sage: d = {sp: i for i, sp in enumerate(g)}
+            sage: g.relabel(d)
+            sage: g.canonical_label().edges()
+            [(0, 3, None), (2, 0, None), (2, 0, None), (3, 1, None), (3, 2, None)]
         """
         from sage.graphs.digraph import DiGraph
         d = DiGraph(multiedges=True)
@@ -759,7 +756,8 @@ class GenericCombinatorialSpecies(SageObject):
 
     def algebraic_equation_system(self):
         """
-        Returns a system of algebraic equations satisfied by this species.
+        Return a system of algebraic equations satisfied by this species.
+
         The nodes are numbered in the order that they appear as vertices of
         the associated digraph.
 
@@ -771,7 +769,7 @@ class GenericCombinatorialSpecies(SageObject):
 
         ::
 
-            sage: B.digraph().vertices()
+            sage: sorted(B.digraph().vertex_iterator(), key=str)
             [Combinatorial species,
              Product of (Combinatorial species) and (Combinatorial species),
              Singleton species,
@@ -786,19 +784,20 @@ class GenericCombinatorialSpecies(SageObject):
 
         Qz = QQ['z'].fraction_field()
 
-        #Generate the variable names and the corresponding polynomial rings
+        # Generate the variable names and the corresponding polynomial rings
         var_names = ["node%s" % i for i in range(d.num_verts())]
         R = Qz[", ".join(var_names)]
         R_gens_dict = R.gens_dict()
 
-        #A dictionary mapping the nodes to variables
+        # A dictionary mapping the nodes to variables
+        vertices = sorted(d.vertex_iterator(), key=str)
         var_mapping = {node: R_gens_dict[name]
-                       for node, name in zip(d.vertices(), var_names)}
+                       for node, name in zip(vertices, var_names)}
         var_mapping['z'] = Qz.gen()
 
         eqns = []
         subs = {}
-        for species in d.vertices():
+        for species in vertices:
             try:
                 eqn = species._equation(var_mapping)
                 if eqn in Qz or eqn in R.gens():

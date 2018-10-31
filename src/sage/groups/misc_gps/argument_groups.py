@@ -1341,6 +1341,61 @@ class Sign(AbstractArgument):
         """
         return self
 
+    def _act_on_(self, other, is_left):
+        r"""
+        Return the action of this sign on ``other``.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: S(-1) * 4
+            -4
+            sage: _.parent()
+            Integer Ring
+            sage: 4 * S(-1)
+            -4
+            sage: _.parent()
+            Integer Ring
+
+            sage: S(-1) * ZZ(4)
+            -4
+            sage: _.parent()
+            Integer Ring
+            sage: S(-1) * int(4)
+            -4
+            sage: type(_)
+            <type 'int'>
+            sage: S(-1) * QQ(4)
+            -4
+            sage: _.parent()
+            Rational Field
+            sage: S(-1) * RR(4)
+            -4.00000000000000
+            sage: _.parent()
+            Real Field with 53 bits of precision
+            sage: S(-1) * CC(4)
+            -4.00000000000000
+            sage: _.parent()
+            Complex Field with 53 bits of precision
+            sage: S(-1) * SR.var('x')
+            -x
+            sage: _.parent()
+            Symbolic Ring
+
+        ::
+
+            sage: P = Permutation([1,2,3])
+            sage: S(-1) * P
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent
+            for unary -: 'Standard permutations'
+        """
+        if self.is_one():
+            return other
+        if self.is_minus_one():
+            return -other
 
     def is_one(self):
         r"""

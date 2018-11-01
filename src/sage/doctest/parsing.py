@@ -785,7 +785,7 @@ class SageDocTestParser(doctest.DocTestParser):
         replace_ellipsis = not python_prompt.search(string)
         if replace_ellipsis:
             # There are no >>> prompts, so we can allow ... to begin the output
-            # We do so by replacing ellipses with a special tag, the putting them back after parsing
+            # We do so by replacing ellipses with a special tag, then putting them back after parsing
             string = find_python_continuation.sub(r"\1" + ellipsis_tag + r"\2", string)
         string = find_sage_prompt.sub(r"\1>>> sage: ", string)
         string = find_sage_continuation.sub(r"\1...", string)
@@ -818,6 +818,8 @@ class SageDocTestParser(doctest.DocTestParser):
                     continue
                 if replace_ellipsis:
                     item.want = item.want.replace(ellipsis_tag, "...")
+                    if item.exc_msg is not None:
+                        item.exc_msg = item.exc_msg.replace(ellipsis_tag, "...")
                 item.want = parse_tolerance(item.source, item.want)
                 if item.source.startswith("sage: "):
                     item.sage_source = item.source[6:]

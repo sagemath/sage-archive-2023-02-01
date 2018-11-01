@@ -61,7 +61,6 @@ Option contexts can also be safely stacked::
     ....:     with opt_ctx:
     ....:         opt['red_through'] = False
     ....:         print(opt)
-    ...
     general options for libSingular (current value 0x00000082)
     general options for libSingular (current value 0x00000002)
 

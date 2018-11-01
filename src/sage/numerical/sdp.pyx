@@ -1000,7 +1000,6 @@ cdef class SemidefiniteProgram(SageObject):
         TESTS::
 
             sage: p.dual_variable(7)
-            ...
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
@@ -1049,7 +1048,6 @@ cdef class SemidefiniteProgram(SageObject):
         TESTS::
 
             sage: p.slack(7)
-            ...
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
@@ -1184,7 +1182,6 @@ class SDPSolverException(RuntimeError):
         sage: b = matrix([[1,9],[9,4]])
         sage: p.add_constraint( a*x[0] == b   )
         sage: p.solve()
-        ...
         Traceback (most recent call last):
         ...
         SDPSolverException: ...

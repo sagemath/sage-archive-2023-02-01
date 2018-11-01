@@ -158,7 +158,7 @@ Distributions::
 
     sage: r.options(width="60")
     $width
-    [1] 80
+    [1] 100
 
     sage: rr = r.dnorm(r.seq(-3,3,0.1))
     sage: rr
@@ -268,7 +268,7 @@ from __future__ import print_function, absolute_import
 from six.moves import range
 import six
 
-from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from .interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement
 from sage.env import DOT_SAGE
 import re
 import sage.rings.integer
@@ -279,8 +279,6 @@ from rpy2 import robjects
 from rpy2.robjects import packages
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
-PROMPT = '__SAGE__R__PROMPT__> '
-prompt_re = re.compile("^>", re.M)
 
 #there is a mirror network, but lets take #1 for now
 RRepositoryURL = "http://cran.r-project.org/"
@@ -335,7 +333,6 @@ def _numeric_vector(obj):
 r_to_sage_converter.ri2ro.register(FloatVector, _numeric_vector)
 r_to_sage_converter.ri2ro.register(IntVector, _numeric_vector)
 
-# @default_converter.ri2ro.register(Matrix)
 def _matrix(mat):
     # TODO what about more than 2 dimensions?
     #      additional checks!!
@@ -353,7 +350,6 @@ def _matrix(mat):
         pass
 r_to_sage_converter.ri2ro.register(Matrix, _matrix)
 
-# @default_converter.ri2ro.register(ListVector)
 def _list_vector(obj):
     # preserve the behaviour of the old r parser, e.g. seperate DATA and Names
     return {
@@ -367,12 +363,10 @@ r_to_sage_converter.ri2ro.register(ListVector, _list_vector)
 
 r_to_sage_converter = default_converter + r_to_sage_converter
 
-class R(ExtraTabCompletion, Expect):
+class R(ExtraTabCompletion, Interface):
     def __init__(self,
-                 maxread=None, script_subdirectory=None,
-                 server_tmpdir = None,
+                 maxread=None,
                  logfile=None,
-                 server=None,
                  init_list_length=1024,
                  seed=None):
         """
@@ -398,46 +392,13 @@ class R(ExtraTabCompletion, Expect):
             sage: r == loads(dumps(r))
             True
         """
-        Expect.__init__(self,
+        Interface.__init__(
+                self,
+                name = 'r', # The capitalized version of this is used for printing.
+        )
 
-                  # The capitalized version of this is used for printing.
-                  name = 'r',
-
-                  # This is regexp of the input prompt.  If you can change
-                  # it to be very obfuscated that would be better.   Even
-                  # better is to use sequence numbers.
-                  # options(prompt=\"<prompt> \")
-                  prompt = '> ', #default, later comes the change
-
-                  # This is the command that starts up your program
-                  # See #25806 for the --no-readline switch which fixes hangs for some
-                  command = "R --no-readline --vanilla --quiet",
-
-                  server=server,
-                  server_tmpdir=server_tmpdir,
-
-                  script_subdirectory = script_subdirectory,
-
-                  # If this is true, then whenever the user presses Control-C to
-                  # interrupt a calculation, the whole interface is restarted.
-                  restart_on_ctrlc = False,
-
-                  # If true, print out a message when starting
-                  # up the command when you first send a command
-                  # to this interface.
-                  verbose_start = False,
-
-                  logfile=logfile,
-
-                  # If an input is longer than this number of characters, then
-                  # try to switch to outputting to a file.
-                  eval_using_file_cutoff=1024)
-
-        self.__seq = 0
-        self.__var_store_len = 0
-        self.__init_list_length = init_list_length
-        self._prompt_wait = [self._prompt]
         self._seed = seed
+        self._start()
 
     def set_seed(self, seed=None):
         """
@@ -473,7 +434,7 @@ class R(ExtraTabCompletion, Expect):
         # width is line width, what's a good value? maximum is 10000!
         # pager needed to replace help view from less to printout
         # option device= is for plotting, is set to x11, NULL would be better?
-        self.eval('options(prompt=\"%s\",continue=\"%s\", width=100,pager="cat",device="png")'%(PROMPT, PROMPT))
+        self.eval('options(width=100,pager="cat",device="png")')
         self.eval('options(repos="%s")'%RRepositoryURL)
         self.eval('options(CRAN="%s")'%RRepositoryURL)
 
@@ -1223,24 +1184,6 @@ class R(ExtraTabCompletion, Expect):
         RFunction(self, 'plot')(*args, **kwds)
         return RFunction(self, 'dev.off')()
 
-    def _strip_prompt(self, code):
-        """
-        Remove the standard R prompt from the beginning of lines in code.
-
-        INPUT:
-
-        - code -- a string
-
-        OUTPUT: a string
-
-        EXAMPLES::
-
-            sage: s = '> a <- 2\n> b <- 3'
-            sage: r._strip_prompt(s)
-            ' a <- 2\n b <- 3'
-        """
-        return prompt_re.sub("", code)
-
     def eval(self, code, globals=None, locals=None, synchronize=True, *args, **kwds):
         """
         Evaluates a command inside the R interpreter and returns the output
@@ -1355,7 +1298,7 @@ class R(ExtraTabCompletion, Expect):
 
 
 @instancedoc
-class RElement(ExtraTabCompletion, ExpectElement):
+class RElement(ExtraTabCompletion, InterfaceElement):
 
     def _tab_completion(self):
         """
@@ -1898,7 +1841,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
 
 @instancedoc
-class RFunctionElement(FunctionElement):
+class RFunctionElement(InterfaceFunctionElement):
     def __reduce__(self):
         """
         EXAMPLES::
@@ -1963,7 +1906,7 @@ class RFunctionElement(FunctionElement):
 
 
 @instancedoc
-class RFunction(ExpectFunction):
+class RFunction(InterfaceFunction):
     def __init__(self, parent, name, r_name=None):
         """
         A Function in the R interface.

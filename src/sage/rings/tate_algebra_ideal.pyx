@@ -60,11 +60,11 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
         sage: f = 3*x^2 + 5*x*y^2
         sage: g = 5*x^2*y + 3
         sage: I = A.ideal([f,g]); I
-        Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
+        Ideal (...0000000012*x*y^2 + ...00000000010*x^2, ...0000000012*x^2*y + ...00000000010) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
         sage: I.groebner_basis()  # indirect doctest
-        [(...000000001)*x^3 + (...222222222)*y + O(3^9),
-         (...0000000001)*x^2*y + (...1210121020) + O(3^10),
-         (...000000001)*y^2 + (...210121020)*x + O(3^9)]
+        [...000000001*x^3 + ...222222222*y + O(3^9 * <x, y>),
+         ...0000000001*x^2*y + ...1210121020 + O(3^10 * <x, y>),
+         ...000000001*y^2 + ...210121020*x + O(3^9 * <x, y>)]
 
     """
     cdef list gb, rgb, indices, ts, S = [ ]
@@ -195,7 +195,7 @@ class TateAlgebraIdeal(Ideal_generic):
         sage: f = 3*x^2 + 5*x*y^2
         sage: g = 5*x^2*y + 3
         sage: I = A.ideal([f,g]); I
-        Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010)) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
+        Ideal (...0000000012*x*y^2 + ...00000000010*x^2, ...0000000012*x^2*y + ...00000000010) of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
 
     """
 
@@ -248,9 +248,9 @@ class TateAlgebraIdeal(Ideal_generic):
             sage: g = 5*x^2*y + 3
             sage: I = A.ideal([f,g])
             sage: I.groebner_basis()
-            [(...000000001)*x^3 + (...222222222)*y + O(3^9),
-             (...0000000001)*x^2*y + (...1210121020) + O(3^10),
-             (...000000001)*y^2 + (...210121020)*x + O(3^9)]
+            [...000000001*x^3 + ...222222222*y + O(3^9 * <x, y>),
+             ...0000000001*x^2*y + ...1210121020 + O(3^10 * <x, y>),
+             ...000000001*y^2 + ...210121020*x + O(3^9 * <x, y>)]
 
         The algorithm ``buchberger`` is faster than ``buchberger-integral``
         but may lose more precision::
@@ -262,9 +262,13 @@ class TateAlgebraIdeal(Ideal_generic):
             sage: h = 2*x^6*y^4 + 2*x^4 + 4*x^5*y^2 + 8*x^8*y^2 + 8*x^7*y^3 + 8*x^6*y
             sage: I = A.ideal([f,g,h])
             sage: I.groebner_basis()
-            [(...0001)*x^4 + O(2^4), (...0001)*x^2*y + O(2^4), (...0001)*y^2 + O(2^4)]
+            [...0001*x^4 + O(2^4 * <x, y>), 
+             ...0001*x^2*y + O(2^4 * <x, y>),
+             ...0001*y^2 + O(2^4 * <x, y>)]
             sage: I.groebner_basis(algorithm='buchberger')
-            [(...01)*x^4 + O(2^2), (...1)*x^2*y + O(2), (...01)*y^2 + O(2^2)]
+            [...01*x^4 + O(2^2 * <x, y>),
+             ...1*x^2*y + O(2 * <x, y>),
+             ...01*y^2 + O(2^2 * <x, y>)]
 
        TESTS::
 
@@ -430,10 +434,10 @@ class TateAlgebraIdeal(Ideal_generic):
             sage: Io.is_saturated()
             False
             sage: Io.groebner_basis()
-            [(...0000000001)*x^2*y + (...1210121020) + O(3^10),
-             (...0000000001)*x*y^2 + (...1210121020)*x^2 + O(3^10),
-             (...0000000010)*x^3 + (...2222222220)*y + O(3^10),
-             (...0000000010)*y^2 + (...2101210200)*x + O(3^10)]
+            [...0000000001*x^2*y + ...1210121020 + O(3^10 * <x, y>),
+             ...0000000001*x*y^2 + ...1210121020*x^2 + O(3^10 * <x, y>),
+             ...0000000010*x^3 + ...2222222220*y + O(3^10 * <x, y>),
+             ...0000000010*y^2 + ...2101210200*x + O(3^10 * <x, y>)]
 
         Principal ideals are not always saturated::
 
@@ -476,10 +480,10 @@ class TateAlgebraIdeal(Ideal_generic):
             sage: f = 3*x^2 + 5*x*y^2
             sage: g = 5*x^2*y + 3
             sage: I = A.ideal([f,g]); I
-            Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010))
+            Ideal (...0000000012*x*y^2 + ...00000000010*x^2, ...0000000012*x^2*y + ...00000000010)
              of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
             sage: I.saturate()
-            Ideal ((...0000000012)*x*y^2 + (...00000000010)*x^2, (...0000000012)*x^2*y + (...00000000010))
+            Ideal (...0000000012*x*y^2 + ...00000000010*x^2, ...0000000012*x^2*y + ...00000000010)
              of Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
 
             sage: I.saturate() == I
@@ -491,10 +495,10 @@ class TateAlgebraIdeal(Ideal_generic):
             sage: Ao = A.integer_ring()
             sage: Io = Ao.ideal([f,g])
             sage: Ios = Io.saturate(); Ios
-            Ideal ((...0000000001)*x^2*y + (...1210121020) + O(3^10),
-                   (...0000000001)*x*y^2 + (...1210121020)*x^2 + O(3^10),
-                   (...000000001)*x^3 + (...222222222)*y + O(3^9),
-                   (...000000001)*y^2 + (...210121020)*x + O(3^9))
+            Ideal (...0000000001*x^2*y + ...1210121020 + O(3^10 * <x, y>),
+                   ...0000000001*x*y^2 + ...1210121020*x^2 + O(3^10 * <x, y>),
+                   ...000000001*x^3 + ...222222222*y + O(3^9 * <x, y>),
+                   ...000000001*y^2 + ...210121020*x + O(3^9 * <x, y>))
              of Integer ring of the Tate Algebra in x (val >= 0), y (val >= 0) over 3-adic Field with capped relative precision 10
 
             sage: Io == Ios

@@ -58,23 +58,23 @@ by `1` on the domain of convergence::
 Now we can build elements::
 
     sage: f = 5 + 2*x*y^3 + 4*x^2*y^2; f
-    (...00101) + (...000010)*x*y^3 + (...0000100)*x^2*y^2
+    ...00101 + ...000010*x*y^3 + ...0000100*x^2*y^2
     sage: g = x^3*y + 2*x*y; g
-    (...00001)*x^3*y + (...000010)*x*y
+    ...00001*x^3*y + ...000010*x*y
 
 and perform all usual arithmetic operations on them::
 
     sage: f + g
-    (...00001)*x^3*y + (...00101) + (...000010)*x*y^3 + (...000010)*x*y + (...0000100)*x^2*y^2
+    ...00001*x^3*y + ...00101 + ...000010*x*y^3 + ...000010*x*y + ...0000100*x^2*y^2
     sage: f * g
-    (...00101)*x^3*y + (...000010)*x^4*y^4 + (...001010)*x*y + (...0000100)*x^5*y^3 + (...0000100)*x^2*y^4 + (...00001000)*x^3*y^3
+    ...00101*x^3*y + ...000010*x^4*y^4 + ...001010*x*y + ...0000100*x^5*y^3 + ...0000100*x^2*y^4 + ...00001000*x^3*y^3
 
 An element in the integer ring is invertible if and only if its
 reduction modulo `p` is a nonzero constant. In our example,
 `f` is invertible (its reduction modulo `2` is `1`) but `g` is not::
 
     sage: f.inverse_of_unit()
-    (...01101) + (...01110)*x*y^3 + (...10100)*x^2*y^6 + ... + O(2^5)
+    ...01101 + ...01110*x*y^3 + ...10100*x^2*y^6 + ... + O(2^5 * <x, y>)
     sage: g.inverse_of_unit()
     Traceback (most recent call last):
     ...
@@ -103,10 +103,10 @@ Computations with ideals in Tate algebras are also supported::
     sage: g = x*y^4 + 8*x^3 - 3*y^3 + 1
     sage: I = A.ideal([f, g])
     sage: I.groebner_basis()
-    [(...00001)*x^2*y^3 + (...00001)*y^4 + (...10001)*x^2 + ... + O(2^5),
-     (...00001)*x*y^4 + (...11101)*y^3 + (...00001) + ... + O(2^5),
-     (...00001)*y^5 + (...11111)*x*y^3 + (...01001)*x^2*y + ... + O(2^5),
-     (...00001)*x^3 + (...01001)*x*y + (...10110)*y^4 + (...01110)*x + O(2^5)]
+    [...00001*x^2*y^3 + ...00001*y^4 + ...10001*x^2 + ... + O(2^5 * <x, y>),
+     ...00001*x*y^4 + ...11101*y^3 + ...00001 + ... + O(2^5 * <x, y>),
+     ...00001*y^5 + ...11111*x*y^3 + ...01001*x^2*y + ... + O(2^5 * <x, y>),
+     ...00001*x^3 + ...01001*x*y + ...10110*y^4 + ...01110*x + O(2^5 * <x, y>)]
 
     sage: (x^2 + 3*y)*f + 1/2*(x^3*y + x*y)*g in I
     True
@@ -221,13 +221,13 @@ class TateAlgebraFactory(UniqueFactory):
         sage: A.term_order()
         Lexicographic term order
         sage: f = 2 + y^5 + x^2; f
-        (...0000000001)*x^2 + (...0000000001)*y^5 + (...00000000010)
+        ...0000000001*x^2 + ...0000000001*y^5 + ...00000000010
         sage: B.<x,y> = TateAlgebra(R); B
         Tate Algebra in x (val >= 0), y (val >= 0) over 2-adic Field with capped relative precision 10
         sage: B.term_order()
         Degree reverse lexicographic term order
         sage: B(f)
-        (...0000000001)*y^5 + (...0000000001)*x^2 + (...00000000010)
+        ...0000000001*y^5 + ...0000000001*x^2 + ...00000000010
 
     Here are examples of Tate algebra with smaller radii of convergence::
 
@@ -633,7 +633,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
             sage: T.gens()
-            ((...0000000001)*x, (...0000000001)*y)
+            (...0000000001*x, ...0000000001*y)
 
         """
         return tuple([self(g) for g in self._parent_algebra.gens()])
@@ -653,11 +653,11 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
             sage: T.gen()
-            (...0000000001)*x
+            ...0000000001*x
             sage: T.gen(0)
-            (...0000000001)*x
+            ...0000000001*x
             sage: T.gen(1)
-            (...0000000001)*y
+            ...0000000001*y
             sage: T.gen(2)
             Traceback (most recent call last):
             ...
@@ -676,7 +676,7 @@ class TateTermMonoid(Monoid_class, UniqueRepresentation):
             sage: A.<x,y> = TateAlgebra(R)
             sage: T = A.monoid_of_terms()
             sage: T.some_elements()
-            [(...00000000010), (...0000000001)*x, (...0000000001)*y, (...00000000010)*x*y]
+            [...00000000010, ...0000000001*x, ...0000000001*y, ...00000000010*x*y]
 
         """
         elts = [ self(self._field.uniformizer()) ] + list(self.gens())
@@ -930,11 +930,11 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits')
             sage: A.<x,y> = TateAlgebra(R)
             sage: A.gen()
-            (...0000000001)*x
+            ...0000000001*x
             sage: A.gen(0)
-            (...0000000001)*x
+            ...0000000001*x
             sage: A.gen(1)
-            (...0000000001)*y
+            ...0000000001*y
             sage: A.gen(2)
             Traceback (most recent call last):
             ...
@@ -955,7 +955,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, 10, print_mode='digits')
             sage: A.<x,y> = TateAlgebra(R)
             sage: A.gens()
-            ((...0000000001)*x, (...0000000001)*y)
+            (...0000000001*x, ...0000000001*y)
 
         """
         return tuple(self._gens)
@@ -984,20 +984,20 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: A.<x,y> = TateAlgebra(R)
             sage: A.some_elements()
             [0,
-             (...00000000010),
-             (...0000000001)*x,
-             (...0000000001)*y,
-             (...00000000010)*x*y,
-             (...00000000100),
-             (...0000000001)*x + (...00000000010),
-             (...0000000001)*y + (...00000000010),
-             (...00000000010)*x*y + (...00000000010),
-             (...0000000010)*x,
-             (...0000000001)*x + (...0000000001)*y,
-             (...0000000001)*x + (...00000000010)*x*y,
-             (...0000000010)*y,
-             (...0000000001)*y + (...00000000010)*x*y,
-             (...00000000100)*x*y]
+             ...00000000010,
+             ...0000000001*x,
+             ...0000000001*y,
+             ...00000000010*x*y,
+             ...00000000100,
+             ...0000000001*x + ...00000000010,
+             ...0000000001*y + ...00000000010,
+             ...00000000010*x*y + ...00000000010,
+             ...0000000010*x,
+             ...0000000001*x + ...0000000001*y,
+             ...0000000001*x + ...00000000010*x*y,
+             ...0000000010*y,
+             ...0000000001*y + ...00000000010*x*y,
+             ...00000000100*x*y]
 
         """
         terms = [ self.zero() ] + [ self(t) for t in self.monoid_of_terms().some_elements() ]
@@ -1242,20 +1242,20 @@ class TateAlgebra_generic(CommutativeAlgebra):
             sage: R = Zp(2, prec=10, print_mode="digits")
             sage: A.<x,y> = TateAlgebra(R)
             sage: A.random_element()  # random
-            (...00101000.01)*y + (...1111011111)*x^2 + (...0010010001)*x*y + (...110000011) + (...010100100)*y^2
+            (...00101000.01)*y + ...1111011111*x^2 + ...0010010001*x*y + ...110000011 + ...010100100*y^2
 
             sage: A.random_element(degree=5, terms=3)  # random
-            (...0101100.01)*x^2*y + (...01000011.11)*y^2 + (...00111011)*x*y
+            (...0101100.01)*x^2*y + (...01000011.11)*y^2 + ...00111011*x*y
 
             sage: A.random_element(integral=True)  # random
-            (...0001111101)*x + (...1101110101) + (...00010010110)*y + (...101110001100)*x*y + (...000001100100)*y^2
+            ...0001111101*x + ...1101110101 + ...00010010110*y + ...101110001100*x*y + ...000001100100*y^2
 
         Note that if we are already working on the ring of integers,
         specifying ``integral=False`` has no effect::
 
             sage: Ao = A.integer_ring()
             sage: f = Ao.random_element(integral=False); f  # random
-            (...1100111011)*x^2 + (...1110100101)*x + (...1100001101)*y + (...1110110001) + (...01011010110)*y^2
+            ...1100111011*x^2 + ...1110100101*x + ...1100001101*y + ...1110110001 + ...01011010110*y^2
             sage: f in Ao
             True
 
@@ -1264,7 +1264,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
 
             sage: B.<x,y> = TateAlgebra(R, log_radii=[-1,-2])
             sage: B.random_element(integral=True)  # random
-            (...1111111.001)*x*y + (...111000101.1)*x + (...11010111.01)*y^2 + (...0010011011)*y + (...0010100011000)
+            (...1111111.001)*x*y + (...111000101.1)*x + (...11010111.01)*y^2 + ...0010011011*y + ...0010100011000
 
         """
         if integral or self._integral:

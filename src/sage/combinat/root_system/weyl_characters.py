@@ -150,8 +150,10 @@ class WeylCharacterRing(CombinatorialFreeModule):
             B = self._space
 
         # TODO: remove the Category.join once not needed anymore (bug in CombinatorialFreeModule)
-        category = Category.join([AlgebrasWithBasis(base_ring).Graded(),
+        category = Category.join([AlgebrasWithBasis(base_ring),
                                   Algebras(base_ring).Subobjects()])
+        if k is None:
+            category = category.Graded()
         CombinatorialFreeModule.__init__(self, base_ring, B, category=category)
 
         # Register the embedding of self into ambient as a coercion

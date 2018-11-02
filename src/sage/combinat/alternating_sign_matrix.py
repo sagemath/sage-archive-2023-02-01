@@ -89,15 +89,7 @@ class AlternatingSignMatrix(Element):
     such that the sum of each row and column is `1` and the non-zero
     entries in each row and column alternate in sign.
 
-    These were introduced in [MiRoRu]_.
-
-    REFERENCES:
-
-    .. [MiRoRu] \W. H. Mills, David P Robbins, Howard Rumsey Jr.,
-       *Alternating sign matrices and descending plane partitions*,
-       Journal of Combinatorial Theory, Series A,
-       Volume 34, Issue 3, May 1983, Pages 340--359.
-       http://www.sciencedirect.com/science/article/pii/0097316583900687
+    These were introduced in [MRR1983]_.
     """
     @staticmethod
     def __classcall_private__(cls, asm, check=True):
@@ -312,7 +304,7 @@ class AlternatingSignMatrix(Element):
         When restricted to permutation matrices, this gives the usual inversion
         number of the permutation.
 
-        This definition is equivalent to the one given in [MiRoRu]_.
+        This definition is equivalent to the one given in [MRR1983]_.
 
         EXAMPLES::
 
@@ -665,18 +657,12 @@ class AlternatingSignMatrix(Element):
     def ASM_compatible(self, B):
         r"""
         Return ``True`` if ``self`` and ``B`` are compatible alternating sign
-        matrices in the sense of [EKLP92]_. (If ``self`` is of size `n`, ``B``
+        matrices in the sense of [EKLP1992]_. (If ``self`` is of size `n`, ``B``
         must  be of size `n+1`.)
 
-        In [EKLP92]_, there is a notion of a pair of ASM's with sizes differing
+        In [EKLP1992]_, there is a notion of a pair of ASM's with sizes differing
         by 1 being compatible, in the sense that they can be combined to encode
         a tiling of the Aztec Diamond.
-
-        REFERENCES:
-
-        .. [EKLP92] \N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
-           *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic
-           Combinatorics, volume 1 (1992), p. 111-132.
 
         EXAMPLES::
 
@@ -708,7 +694,7 @@ class AlternatingSignMatrix(Element):
 
         Given an `n \times n` alternating sign matrix `A`, there are as many
         ASM's of size `n+1` compatible with `A` as 2 raised to the power of
-        the number of 1's in `A` [EKLP92]_.
+        the number of 1's in `A` [EKLP1992]_.
 
         EXAMPLES::
 
@@ -774,7 +760,7 @@ class AlternatingSignMatrix(Element):
 
         Given an alternating sign matrix `A` of size `n`, there are as many
         ASM's of size `n-1` compatible with it as 2 raised to the power of
-        the number of `-1`'s in `A` [EKLP92]_.
+        the number of `-1`'s in `A` [EKLP1992]_.
 
         EXAMPLES::
 
@@ -976,7 +962,7 @@ class AlternatingSignMatrix(Element):
         Return the left key of the alternating sign matrix ``self``.
 
         The left key of an alternating sign matrix was defined by Lascoux
-        in [LascouxPreprint]_ and is obtained by successively removing all the
+        in [Lasc]_ and is obtained by successively removing all the
         `-1`'s until what remains is a permutation matrix. This notion
         corresponds to the notion of left key for semistandard tableaux. So
         our algorithm proceeds as follows: we map ``self`` to its
@@ -984,13 +970,7 @@ class AlternatingSignMatrix(Element):
         semistandard tableaux, take its left key, and then map back through
         monotone triangles to the permutation matrix which is the left key.
 
-        REFERENCES:
-
-        .. [Aval07] \J.-C. Aval. *Keys and alternating sign matrices*.
-           Sem. Lothar. Combin. 59 (2007/10), Art. B59f, 13 pp.
-
-        .. [LascouxPreprint] \A. Lascoux. *Chern and Yang through ice*.
-           Preprint.
+        See also [Ava2007]_.
 
         EXAMPLES::
 

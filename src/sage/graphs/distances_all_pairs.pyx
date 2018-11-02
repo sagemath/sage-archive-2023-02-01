@@ -160,8 +160,11 @@ from sage.graphs.base.c_graph cimport CGraphBackend
 from sage.graphs.base.c_graph cimport CGraph
 from sage.ext.memory_allocator cimport MemoryAllocator
 
-from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph, out_degree
-from sage.graphs.base.static_sparse_backend cimport simple_BFS
+from sage.graphs.base.static_sparse_graph cimport (short_digraph,
+                                                   init_short_digraph,
+                                                   free_short_digraph,
+                                                   out_degree,
+                                                   simple_BFS)
 
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short* predecessors,

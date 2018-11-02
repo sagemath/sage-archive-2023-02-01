@@ -310,8 +310,6 @@ class Word_class(SageObject):
 
             sage: Words([0,1,2])([0,1,0,1]) ==  Words([0,1])([0,1,0,1])
             True
-            sage: Words('abc')('abab') == Words([0,9])([0,0,9])
-            False
             sage: Word('ababa') == Words('abcd')('ababa')
             True
 

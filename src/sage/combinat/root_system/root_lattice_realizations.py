@@ -1649,7 +1649,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 \tau_+( \beta ) = (\prod_{i \in J} s_i) (\beta)
 
-            See Equation (1.2) of [CFZ]_.
+            See Equation (1.2) of [CFZ2002]_.
 
             EXAMPLES::
 
@@ -1706,11 +1706,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 tau((0, 0, 1)                                ) = (0, 0, -1)
 
             .. SEEALSO:: :meth:`tau_plus_minus`
-
-            REFERENCES:
-
-            .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of
-               generalized associahedra, :arxiv:`math/0202004`.
             """
             W = self.weyl_group()
             t = W.from_reduced_word(J)
@@ -1746,7 +1741,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES:
 
-            We explore the example of [CFZ]_ Eq.(1.3)::
+            We explore the example of [CFZ2002]_ Eq.(1.3)::
 
                 sage: S = RootSystem(['A',2]).root_lattice()
                 sage: taup, taum = S.tau_plus_minus()

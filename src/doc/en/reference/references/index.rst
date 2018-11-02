@@ -33,8 +33,18 @@ REFERENCES:
 
 **A**
 
+.. [Ab1995] Julian R. Abel,
+            On the Existence of Balanced Incomplete Block Designs and Transversal Designs,
+            PhD Thesis,
+            University of New South Wales,
+            1995
+
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
               *ACM Transactions on Mathematical Software*, **39** no. 1 (2012), 1-28.
+
+.. [AC1994] \R.J.R. Abel and Y.W. Cheng,
+            Some new MOLS of order 2np for p a prime power,
+            The Australasian Journal of Combinatorics, vol 10 (1994)
 
 .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
               W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
@@ -176,9 +186,16 @@ REFERENCES:
              Math., Combinatorics (T. S. Motzkin, ed.), vol. 19, AMS,
              Providence 1971
 
+.. [At1992] \M. D. Atkinson. *Solomon's descent algebra revisited.*
+            Bull. London Math. Soc. 24 (1992) 545-551.
+            http://www.cs.otago.ac.nz/staffpriv/mike/Papers/Descent/DescAlgRevisited.pdf
+
 .. [Av2000] \D. Avis, *A revised implementation of the reverse search
             vertex enumeration algorithm.* Polytopes-combinatorics and
             computation. Birkhauser Basel, 2000.
+
+.. [Ava2007] \J.-C. Aval. *Keys and alternating sign matrices*.
+            Sem. Lothar. Combin. 59 (2007/10), Art. B59f, 13 pp.
 
 .. [Ava2017] \R. Avanzi,
              *The QARMA block cipher family*; in ToSC, (2017.1), pp. 4-44.
@@ -208,9 +225,15 @@ REFERENCES:
             (1997). No. 3,
             445-470. www.math.ou.edu/~nbrady/papers/morse.ps.
 
+.. [BB2005] \A. Bjorner, F. Brenti. *Combinatorics of Coxeter
+            groups*. New York: Springer, 2005.
+
 .. [BB2009] Tomas J. Boothby and Robert W. Bradshaw. *Bitslicing and
             the Method of Four Russians Over Larger Finite
             Fields*. :arxiv:`0901.1413`, 2009.
+
+.. [BeBo2009] Olivier Bernardi and Nicolas Bonichon, *Intervals in Catalan
+              lattices and realizers of triangulations*, JCTA 116 (2009)
 
 .. [BBISHAR2015] \S. Banik, A. Bogdanov, T. Isobe, K. Shibutani, H. Hiwatari,
                  \T. Akishita, and F. Regazzoni,
@@ -223,6 +246,10 @@ REFERENCES:
 .. [BBLSW1999] Babson, Bjorner, Linusson, Shareshian, and Welker,
                "Complexes of not i-connected graphs," Topology 38
                (1999), 271-299
+
+.. [BBMF2008] \N. Bonichon, M. Bousquet-Mélou, E. Fusy.
+              *Baxter permutations and plane bipolar orientations*.
+              Séminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
 
 .. [BPPSST2017] Banik, Pandey, Peyrin, Sasaki, Sim, and Todo,
                 GIFT : A Small Present Towards Reaching the Limit of Lightweight
@@ -303,6 +330,10 @@ REFERENCES:
               and Applications - FQ9, volume 518 of Contemporary Mathematics,
               pages 33–42. AMS, 2010.
 
+.. [BdVO2012] Christopher Bowman, Maud De Visscher, Rosa Orellana.
+              *The partition algebra and the Kronecker coefficients*.
+              :arXiv:`1210.5579v6`.
+
 .. [Bec1992] Bernhard Beckermann. "A reliable method for computing M-Padé
              approximants on arbitrary staircases". J. Comput. Appl. Math.,
              40(1):19-42, 1992. https://doi.org/10.1016/0377-0427(92)90039-Z.
@@ -317,6 +348,10 @@ REFERENCES:
 .. [Bel2011] Belarusian State University,
              *Information technologies. Data protection. Cryptograpic algorithms for
              encryption and integrity control*; in STB 34.101.31-2011, (2011).
+
+.. [Bel1927] E.T. Bell, "Partition Polynomials",
+             Annals of Mathematics,
+             Second Series, Vol. 29, No. 1/4 (1927 - 1928), pp. 38-46
 
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
@@ -340,7 +375,7 @@ REFERENCES:
               :arxiv:`math/0509265v3`.
 
 .. [BeukersHeckman] \F. Beukers and \G. Heckman,
-   *Monodromy for the hypergeometric function `{}_n F_{n-1}`*,
+   *Monodromy for the hypergeometric function* `{}_n F_{n-1}`,
    Invent. Math. 95 (1989)
 
 .. [BF1999] Thomas Britz, Sergey Fomin,
@@ -476,6 +511,15 @@ REFERENCES:
             LMS Journal of Computation and Mathematics, Volume 15
             (2012), pp 400-417.
 
+.. [BMS2006] Bugeaud, Mignotte, and Siksek. "Classical and modular
+             approaches to exponential Diophantine
+             equations: I. Fibonacci and Lucas perfect powers." Annals
+             of Math, 2006.
+
+.. [BN2010] \D. Bump and M. Nakasuji.
+            Integration on `p`-adic groups and crystal bases.
+            Proc. Amer. Math. Soc. 138(5), pp. 1595--1605.
+
 .. [BN2008] Victor V. Batyrev and Benjamin Nill. Combinatorial aspects
             of mirror symmetry. In *Integer points in polyhedra ---
             geometry, number theory, representation theory, algebra,
@@ -488,6 +532,11 @@ REFERENCES:
              10, 2013. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
 .. [Bo2009] Bosch, S., Algebra, Springer 2009
+
+.. [BOR2009] Emmanuel Briand, Rosa Orellana, Mercedes Rosas.
+             *The stability of the Kronecker products of Schur
+             functions*.
+             :arxiv:`0907.4652v2`.
 
 .. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
@@ -505,7 +554,7 @@ REFERENCES:
             83–96. :arxiv:`1406.5337`
 
 .. [BPRS2009] \J. Bastian, \T. Prellberg, \M. Rubey, \C. Stump, *Counting the
-            number of elements in the mutation classes of `\tilde{A}_n`-quivers*;
+            number of elements in the mutation classes of* `\tilde{A}_n`-*quivers*;
             :arxiv:`0906.0487`
 
 .. [BPU2016] Alex Biryukov, Léo Perrin, Aleksei Udovenko,
@@ -546,7 +595,7 @@ REFERENCES:
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
 .. [Bru1994] Richard A. Brualdi, Hyung Chan Jung, William T.Trotter Jr
-             *On the poset of all posets on `n` elements*
+             *On the poset of all posets on* `n` *elements*
              Volume 50, Issue 2, 6 May 1994, Pages 111-123
              Discrete Applied Mathematics
              http://www.sciencedirect.com/science/article/pii/0166218X9200169M
@@ -576,7 +625,7 @@ REFERENCES:
             pp. 81-90. 2011. https://hal.inria.fr/inria-00607341/document
 
 .. [BS2012] Jonathan Bloom and Dan Saracino, *Modified growth
-            diagrams, permutation pivots, and the BWX map `Phi^*`*,
+            diagrams, permutation pivots, and the BWX map* `Phi^*`,
             Journal of Combinatorial Theory, Series A Volume 119,
             Number 6 (2012), pp. 1280-1298.
 
@@ -593,6 +642,24 @@ REFERENCES:
 .. [BUVO2007] Johannes Buchmann, Ullrich Vollmer: Binary Quadratic Forms,
               An Algorithmic Approach, Algorithms and Computation in Mathematics,
               Volume 20, Springer (2007)
+
+.. [BV2004] Jean-Luc Baril, Vincent Vajnovszki. *Gray code for derangements*.
+            Discrete Applied Math. 140 (2004)
+            :doi:`10.1016/j.dam.2003.06.002`
+            http://jl.baril.u-bourgogne.fr/derange.pdf
+
+.. [BvR1982] Andries Brouwer and John van Rees,
+             More mutually orthogonal Latin squares,
+             Discrete Mathematics,
+             vol.39, num.3, pages 263-281,
+             1982
+             http://oai.cwi.nl/oai/asset/304/0304A.pdf
+
+.. [BW1988] Anders Bjoerner, Michelle L. Wachs,
+            *Generalized quotients in Coxeter groups*.
+            Transactions of the American Mathematical Society,
+            vol. 308, no. 1, July 1988.
+            http://www.ams.org/journals/tran/1988-308-01/S0002-9947-1988-0946427-X/S0002-9947-1988-0946427-X.pdf
 
 .. [BW1996] Anders Bjorner and Michelle L. Wachs. *Shellable nonpure
             complexes and posets. I*. Trans. of
@@ -625,6 +692,12 @@ REFERENCES:
             rationalité d'une série génératrice associée
             aux arbres*, RAIRO, Inf. Théor. 16, 113--128 (1982)
 
+.. [CD1996] Charles Colbourn and Jeffrey Dinitz,
+            Making the MOLS table,
+            Computational and constructive design theory,
+            vol 368, pages 67-134,
+            1996
+
 .. [CDL2015] \A. Canteaut, Sebastien Duval, Gaetan Leurent
              *Construction of Lightweight S-Boxes using Feistel and
              MISTY Structures*; in Proceedings of SAC 2015; LNCS 9566;
@@ -647,6 +720,9 @@ REFERENCES:
 
 .. [CFI1992] Cai, JY., Fürer, M. & Immerman, N. Combinatorica (1992) 12: 389.
              :doi:`10.1007/BF01305232`
+
+.. [CFZ2002] Chapoton, Fomin, Zelevinsky - Polytopal realizations of
+             generalized associahedra, :arxiv:`math/0202004`.
 
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
@@ -671,6 +747,11 @@ REFERENCES:
 
 .. [Cha18] Frédéric Chapoton, *Some properties of a new partial
            order on Dyck paths*, 2018, :arxiv:`1809.10981`
+
+.. [Cha2008] Frédéric Chapoton.
+             *Sur le nombre d'intervalles dans les treillis de Tamari*.
+             Sém. Lothar. Combin. (2008).
+             :arxiv:`math/0602368v1`.
 
 .. [ChLi] \F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
           operad*, International Math. Research Notices (2001) no 8, pages 395-408.
@@ -761,6 +842,12 @@ REFERENCES:
 .. [Co1999] John Conway, Neil Sloan. *Sphere Packings, Lattices and Groups*,
             Springer Verlag 1999.
 
+.. [CO2010] Jonathan Comes, Viktor Ostrik.
+            *On blocks of Deligne's category*
+            `\underline{\mathrm{Rep}}(S_t)`.
+            :arxiv:`0910.5695v2`,
+            http://pages.uoregon.edu/jcomes/blocks.pdf
+
 .. [Coh1993] Henri Cohen. A Course in Computational Algebraic Number
              Theory. Graduate Texts in Mathematics 138. Springer, 1993.
 
@@ -789,6 +876,14 @@ REFERENCES:
             generators of an Artin group*. Invent. Math. **145**
             (2001). No 1, 19-36. :arxiv:`math/0003133`.
 
+.. [CP2012] Grégory Châtel, Viviane Pons.
+            *Counting smaller trees in the Tamari order*,
+            :arxiv:`1212.0751v1`.
+
+.. [CP2015] Grégory Châtel and Viviane Pons.
+            *Counting smaller elements in the tamari and m-tamari lattices*.
+            Journal of Combinatorial Theory, Series A. (2015). :arxiv:`1311.3922`.
+
 .. [CPdA2014] Maria Chlouveraki and Loïc Poulain
               d'Andecy. *Representation theory of the Yokonuma-Hecke
               algebra*. (2014) :arxiv:`1302.6225v2`.
@@ -809,7 +904,7 @@ REFERENCES:
                   :wikipedia:`Cross_product`
 
 .. [CRS2016] Dean Crnković, Sanja Rukavina, and Andrea Švob. *Strongly regular
-             graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`*.
+             graphs from orthogonal groups* `O^+(6,2)` *and* `O^-(6,2)`.
              :arxiv:`1609.07133`
 
 .. [CRV2018] Xavier Caruso, David Roe and Tristan Vaccon.
@@ -899,6 +994,10 @@ REFERENCES:
              *Constructing homomorphisms between Verma modules*.
              Journal of Lie Theory. **15** (2005) pp. 415-428.
 
+.. [Den2012] Tom Denton. Canonical Decompositions of Affine Permutations,
+             Affine Codes, and Split `k`-Schur Functions.  Electronic Journal of
+             Combinatorics, 2012.
+
 .. [Deo1987a] \V. Deodhar, A splitting criterion for the Bruhat
               orderings on Coxeter groups. Comm. Algebra,
               15:1889-1894, 1987.
@@ -910,9 +1009,17 @@ REFERENCES:
 .. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
 
+.. [DFMS1996] Philipppe Di Francesco, Pierre Mathieu, and David Sénéchal.
+              *Conformal Field Theory*. Graduate Texts in Contemporary
+              Physics, Springer, 1996.
+
 .. [DG1982] Louise Dolan and Michael Grady.
             *Conserved charges from self-duality*,
             Phys. Rev. D(3) **25** (1982), no. 6, 1587-1604.
+
+.. [DG1994] \S. Dulucq and O. Guibert. Mots de piles, tableaux
+            standards et permutations de Baxter, proceedings of
+            Formal Power Series and Algebraic Combinatorics, 1994.
 
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard
               von Stengel. *Enumeration of Nash equilibria for
@@ -1026,6 +1133,9 @@ REFERENCES:
 .. [DW2007] \I. Dynnikov and B. Wiest, On the complexity of
             braids, J. Europ. Math. Soc. 9 (2007)
 
+.. [Dy1993] \M. J. Dyer. *Hecke algebras and shellings of Bruhat
+            intervals*. Compositio Mathematica, 1993, 89(1): 91-115.
+
 .. _ref-E:
 
 **E**
@@ -1050,6 +1160,15 @@ REFERENCES:
              1981, Pages 108-125, ISSN 0097-3165,:doi:`10.1016/0097-3165(81)90007-8`.
              (http://www.sciencedirect.com/science/article/pii/0097316581900078)
 
+.. [EGHLSVY] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai
+             Liu, Alex Schwendner, Dmitry Vaintrob, Elena Yudovina,
+             "Introduction to representation theory",
+             :arXiv:`0901.0827v5`.
+
+.. [EKLP1992] \N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
+              *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic
+              Combinatorics, volume 1 (1992), p. 111-132.
+
 .. [Eh2013] Ehrhardt, Wolfgang. "The AMath and DAMath Special
             Functions: Reference Manual and Implementation Notes,
             Version
@@ -1070,6 +1189,9 @@ REFERENCES:
 .. [EP2013b] David Einstein, James Propp. *Piecewise-linear and
              birational toggling*. Extended abstract for
              FPSAC 2014. http://faculty.uml.edu/jpropp/fpsac14.pdf
+
+.. [Eri1995] \H. Erikson.  Computational and Combinatorial Aspects
+             of Coxeter Groups.  Thesis, 1995.
 
 .. [ERH2015] Jorge Espanoza and Steen Ryom-Hansen. *Cell structures
              for the Yokonuma-Hecke algebra and the algebra of braids
@@ -1126,6 +1248,10 @@ REFERENCES:
 .. [Fed2015] Federal Agency on Technical Regulation and Metrology (GOST),
              GOST R 34.12-2015, (2015)
 
+.. [Feingold2004] Alex J. Feingold. *Fusion rules for affine Kac-Moody algebras*.
+                  Contemp. Math., **343** (2004), pp. 53-96.
+                  :arXiv:`math/0212387`
+
 .. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
              Canonical Representatives of Their Semilinear Isometry
              Classes. Advances in Mathematics of Communications 3 (4),
@@ -1165,6 +1291,11 @@ REFERENCES:
               :doi:`10.1016/j.jalgebra.2015.04.024`,
               :arxiv:`1407.0476v2`.
 
+.. [FOS2009] \G. Fourier, M. Okado, A. Schilling.
+             *Kirillov-Reshetikhin crystals for nonexceptional types*.
+             Advances in Mathematics. **222** (2009). Issue 3. 1080-1116.
+             :arxiv:`0810.5067`.
+
 .. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
              Kirillov-Reshetikhin crystals for nonexceptional types*.
              Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
@@ -1174,6 +1305,10 @@ REFERENCES:
             of Lecture Notes in Computer Science, page
             91-111. Springer (1996)
 
+.. [FPR2015] Wenjie Fang and Louis-François Préville-Ratelle,
+             *From generalized Tamari intervals to non-separable planar maps*.
+             :arxiv:`1511.05937`
+
 .. [FR1985] Friedl, Katalin, and Lajos Rónyai. "Polynomial time
             solutions of some problems of computational
             algebra". Proceedings of the seventeenth annual ACM
@@ -1182,6 +1317,11 @@ REFERENCES:
 .. [FRT1990] Faddeev, Reshetikhin and Takhtajan.
              *Quantization of Lie Groups and Lie Algebras*.
              Leningrad Math. J. vol. **1** (1990), no. 1.
+
+.. [FS1978] Dominique Foata, Marcel-Paul Schuetzenberger.
+            *Major Index and Inversion Number of Permutations*.
+            Mathematische Nachrichten, volume 83, Issue 1, pages 143-159, 1978.
+            http://igm.univ-mlv.fr/~berstel/Mps/Travaux/A/1978-3MajorIndexMathNachr.pdf
 
 .. [FS2009] Philippe Flajolet and Robert Sedgewick,
             `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
@@ -1198,6 +1338,10 @@ REFERENCES:
 .. [Ful1997] William Fulton,
              *Young Tableaux*.
              Cambridge University Press, 1997.
+
+.. [Fuchs1994] \J. Fuchs. *Fusion Rules for Conformal Field Theory*.
+               Fortsch. Phys. **42** (1994), no. 1, pp. 1-48.
+               :doi:`10.1002/prop.2190420102`, :arXiv:`hep-th/9306162`.
 
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
@@ -1259,7 +1403,7 @@ REFERENCES:
               CHES, (2013), pp. 383-399.
 
 .. [GGOR2003] \V. Ginzberg, N. Guay, E. Opdam, R. Rouquier.
-              *On the category `\mathcal{O}` for rational Cherednik algebras*.
+              *On the category* `\mathcal{O}` *for rational Cherednik algebras*.
               Invent. Math. **154** (2003). :arxiv:`math/0212036`.
 
 .. [GHJ2016] Ewgenij Gawrilow, Simon Hampe, and Michael Joswig, The polymake XML
@@ -1272,6 +1416,10 @@ REFERENCES:
 .. [GHJV1994] \E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design
               Patterns: Elements of Reusable Object-Oriented
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
+
+.. [Gir2012] Samuele Giraudo,
+             *Algebraic and combinatorial structures on pairs of twin binary trees*,
+             :arxiv:`1204.4776v1`.
 
 .. [GJ1997] Ewgenij Gawrilow and Michael Joswig, polymake: a framework for
             analyzing convex polytopes, Polytopes—combinatorics and
@@ -1369,6 +1517,10 @@ REFERENCES:
               *Hopf Algebras in Combinatorics*,
               :arxiv:`1409.8356v5`.
 
+.. [GR1989] \A. M. Garsia, C. Reutenauer. *A decomposition of Solomon's
+            descent algebra.* Adv. Math. **77** (1989).
+            http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1989/Decomposition%20Solomon.pdf
+
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.
             http://www.cip.ifi.lmu.de/~grinberg/algebra/skeletal.pdf
@@ -1387,6 +1539,10 @@ REFERENCES:
 
 .. [GS1999] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
             Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
+
+.. [Go1993] David M. Goldschmidt.
+            *Group characters, symmetric functions, and the Hecke algebras*.
+            AMS 1993.
 
 .. [GT1996] \P. Gianni and B. Trager. "Square-free algorithms in
             positive characteristic". Applicable Algebra in Engineering,
@@ -1435,6 +1591,13 @@ REFERENCES:
              Young tableaux*. Journal of Combinatorial Theory, Series
              A Volume 50, Number 2 (1989), pp. 196-225.
 
+.. [Han1960] Haim Hanani,
+             On quadruple systems,
+             pages 145--157, vol. 12,
+             Canadian Journal of Mathematics,
+             1960
+             http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
+
 .. [Har1994] Frank Harary. *Graph Theory*. Reading, MA: Addison-Wesley, 1994.
 
 .. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
@@ -1455,6 +1618,10 @@ REFERENCES:
               International Algorithmic Number Theory Symposium (pp. 357-371).
               Springer Berlin Heidelberg, 2002.
 
+.. [HH2012] Victoria Horan and Glenn Hurlbert,
+            *Overlap Cycles for Steiner Quadruple Systems*,
+            2012, :arxiv:`1204.3215`
+
 .. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
              Society for Industrial and Applied Mathematics (2008).
 
@@ -1467,6 +1634,10 @@ REFERENCES:
 .. [HKP2010] \T. J. Haines, R. E. Kottwitz, A. Prasad, Iwahori-Hecke
              Algebras, J. Ramanujan Math. Soc., 25 (2010),
              113--145. :arxiv:`0309168v3` :mathscinet:`MR2642451`
+
+.. [HL2008] \J. Hong and H. Lee.
+            Young tableaux and crystal `B(\infty)` for finite simple Lie algebras.
+            J. Algebra 320, pp. 3680--3693, 2008.
 
 .. [HL2014] Thomas Hamilton and David Loeffler, "Congruence testing
             for odd modular subgroups", LMS J. Comput. Math. 17
@@ -1497,9 +1668,17 @@ REFERENCES:
                 pp. 216--221.
                 :doi:`10.1016/0097-3165(76)90065-0`
 
+.. [HK2002] *Introduction to Quantum Groups and Crystal Bases.*
+            Jin Hong and Seok-Jin Kang. 2002. Volume 42.
+            Graduate Studies in Mathematics. American Mathematical Society.
+
 .. [HN2006] Florent Hivert and Janvier Nzeutchap. *Dual Graded Graphs
             in Combinatorial Hopf Algebras*.
             https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
+
+.. [HNT2005] Florent Hivert, Jean-Christophe Novelli, and Jean-Yves Thibon.
+             *The algebra of binary search trees*,
+             :arxiv:`math/0401089v2`.
 
 .. [HP2003] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
             Codes, Cambridge Univ. Press, 2003.
@@ -1560,6 +1739,12 @@ REFERENCES:
              Mapping Class Groups and Moduli, volume 243 of LMS
              Lect. Notes, 67-77, Cambridge Univ. Press (1997)
 
+.. [HT1972] Samuel Huang and Dov Tamari.
+            *Problems of associativity: A simple proof for the lattice property
+            of systems ordered by a semi-associative law*.
+            J. Combinatorial Theory Ser. A. (1972).
+            http://www.sciencedirect.com/science/article/pii/0097316572900039 .
+
 .. [Hutz2007] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
               than one. PhD Thesis, Brown University 2007
 
@@ -1617,6 +1802,11 @@ REFERENCES:
 .. [Ja1971] \N. Jacobson. *Exceptional Lie Algebras*. Marcel Dekker,
             Inc. New York. 1971. IBSN No. 0-8247-1326-5.
 
+.. [JK1981] Gordon James, Adalbert Kerber,
+            *The Representation Theory of the Symmetric Group*,
+            Encyclopedia of Mathematics and its Applications, vol. 16,
+            Addison-Wesley 1981.
+
 .. [JK2002] Zvonimir Jankoa and Hadi Kharaghani. *A Block Negacyclic Bush-Type
             Hadamard Matrix and Two Strongly Regular Graphs*.
             J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
@@ -1667,6 +1857,11 @@ REFERENCES:
             for Yokonuma-Hecke algebras and applications to link
             invariants*. (2015) :arxiv:`1501.06389v3`.
 
+.. [JS2010] \B. Jones, A. Schilling.
+            "Affine structures and a tableau model for `E_6` crystals",
+            J. Algebra. **324** (2010). 2512-2542.
+            :doi:`10.1016/j.bbr.2011.03.031`, :arxiv:`0909.2442`.
+
 .. _ref-K:
 
 **K**
@@ -1681,6 +1876,11 @@ REFERENCES:
 .. [Ka1993] Masaki Kashiwara, The crystal base and Littelmann's
             refined Demazure character formula, Duke Math. J. 71
             (1993), no. 3, 839--858.
+
+.. [Ka2003] \M. Kashiwara.
+            Realizations of Crystals.
+            Combinatorial and geometric representation theory (Seoul, 2001),
+            Contemp. Math. **325**, Amer. Math. Soc., pp. 133--139, 2003.
 
 .. [Kai1980] Thomas Kailath. "Linear Systems", Prentice-Hall, 1980.
 
@@ -1741,6 +1941,14 @@ REFERENCES:
                        \S. Chee, D. Han, and J. Hong,
                        *New block cipher: ARIA*; in ICISC, (2004), pp. 432-445.
 
+.. [KKS2007] \S.-J. Kang, J.-A. Kim, and D.-U. Shin.
+             Modified Nakajima Monomials and the Crystal `B(\infty)`.
+             J. Algebra **308**, pp. 524--535, 2007.
+
+.. [KL1979] \D. Kazhdan and G. Lusztig. *Representations of Coxeter
+            groups and Hecke algebras*. Invent. Math. **53** (1979).
+            no. 2, 165--184. :doi:`10.1007/BF01390031` :mathscinet:`MR0560412`
+
 .. [KL1990] \P. Kleidman and M. Liebeck. *The subgroup structure of
             the finite classical groups*. Cambridge University Press, 1990.
 
@@ -1779,6 +1987,10 @@ REFERENCES:
              Compositio Mathematica, **149** (2013), no. 10.
              :arxiv:`1111.3660`.
 
+.. [KM1994] \S.-J. Kang and K. C. Misra.
+            Crystal bases and tensor product decompositions of `U_q(G_2)`-modules.
+            J. Algebra 163, pp. 675--691, 1994.
+
 .. [KMAUTOM2000] Masayuki Kanda, Shiho Moriai, Kazumaro Aoki, Hiroki Ueda,
                  Youichi Takashima, Kazuo Ohta, and Tsutomu Matsumoto,
                  *E2 - a new 128-bit block cipher*; in IEICE Transactions on
@@ -1792,9 +2004,17 @@ REFERENCES:
              indicators. Yevgenia Kashina and Susan Montgomery and
              Richard Ng. Israel J. Math., v.188, 2012.
 
+.. [KMOY2007] \M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
+              *Perfect crystals for* `U_q(D_4^{(3)})`, J. Algebra. **317** (2007).
+
 .. [KN1963] \S. Kobayashi & K. Nomizu : *Foundations of Differential
             Geometry*, vol. 1, Interscience Publishers (New York)
             (1963).
+
+.. [KN1994] \M. Kashiwara and T. Nakashima.
+            Crystal graphs for representations of the `q`-analogue of
+            classical Lie algebras.
+            J. Algebra **165**, no. 2, pp. 295--345, 1994.
 
 .. [KNS2011] Atsuo Kuniba and Tomoki Nakanishi and Junji Suzuki,
              `T`-*systems and* `Y`-*systems in integrable systems*.
@@ -1949,6 +2169,9 @@ REFERENCES:
              moduli spaces of quadratic differentials", Annales
              sci. de l'ENS, serie 4, fascicule 1, 41, 1-56 (2008)
 
+.. [Lasc] \A. Lascoux. *Chern and Yang through ice*.
+          Preprint.
+
 .. [Lau2011] Alan G.B. Lauder, "Computations with classical and p-adic
              modular forms", LMS J. of Comput. Math. 14 (2011),
              214-231.
@@ -1985,6 +2208,9 @@ REFERENCES:
 .. [Li1995] Peter Littelmann, Crystal graphs and Young
             tableaux, J. Algebra 175 (1995), no. 1, 65--87.
 
+.. [Li1995b] \P. Littelmann, Paths and root operators in representation
+             theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
+
 .. [Lic1977] \A. Lichnerowicz, *Les variétés de Poisson et leurs
              algèbres de Lie associées*, Journal of Differential
              Geometry **12**, 253 (1977); :doi:`10.4310/jdg/1214433987`
@@ -2008,6 +2234,18 @@ REFERENCES:
              Algebra 207 (2006), no 1, pages 1-18.
              Preprint: :arxiv:`math/0504296v2`.
 
+.. [LLM2014] Lee, Li, Mills, A combinatorial formula for certain
+             elements in the upper cluster algebra, :arxiv:`1409.8177`
+
+.. [LLMS2006] \T. Lam, L. Lapointe, J. Morse, M. Shimozono,
+              Affine insertion and Pieri rules for the affine Grassmannian,
+              Memoirs of the AMS, 208 (2010), no. 977, :arxiv:`math.CO/0609110`
+
+.. [LLMSSZ2013] Thomas Lam, Luc Lapointe, Jennifer Morse, Anne
+                Schilling, Mark Shimozono and Mike Zabrocki.
+                *k-Schur functions and affine Schubert calculus*.
+                :arxiv:`1301.3569`.
+
 .. [LLT1996] Alain Lascoux, Bernard Leclerc, and Jean-Yves Thibon.
              *Hecke algebras at roots of unity and crystal bases of
              quantum affine algebras*. Comm. Math. Phys.
@@ -2020,11 +2258,6 @@ REFERENCES:
 
 .. [LLZ2014] \K. Lee, \L. Li, and \A. Zelevinsky, *Greedy elements in rank 2
              cluster algebras*, Selecta Math. 20 (2014), 57-82.
-
-.. [LLMSSZ2013] Thomas Lam, Luc Lapointe, Jennifer Morse, Anne
-                Schilling, Mark Shimozono and Mike Zabrocki.
-                *k-Schur functions and affine Schubert calculus*.
-                :arxiv:`1301.3569`.
 
 .. [LM2006] Vadim Lyubashevsky and Daniele Micciancio. Generalized
             compact knapsacks are collision resistant. ICALP,
@@ -2042,6 +2275,10 @@ REFERENCES:
              -- a new family of hypertrees", Discrete & Computational
              Geometry, 2010, Volume 44, Number 3, Pages 622-636
 
+.. [LNSSS2013] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
+               *A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.*
+               DMTCS proc, to appear ( :arXiv:`1211.6019` )
+
 .. [Lod1995] Jean-Louis Loday. *Cup-product for Leibniz cohomology and
              dual Leibniz algebras*. Math. Scand., pp. 189--196
              (1995). http://www.math.uiuc.edu/K-theory/0015/cup_product.pdf
@@ -2050,11 +2287,20 @@ REFERENCES:
              modular functions*, Int. Math. Res. Not 2007 (050).
              :arxiv:`math/0701168`.
 
+.. [LOS2012] \C. Lecouvey, M. Okado, M. Shimozono.
+             "Affine crystals, one-dimensional sums and parabolic Lusztig
+             `q`-analogues". Mathematische Zeitschrift. **271** (2012). Issue 3-4.
+             819-865. :doi:`10.1007/s00209-011-0892-9`, :arxiv:`1002.3715`.
+
 .. [Lot2005] \M. Lothaire, *Applied combinatorics on
              words*. Cambridge University Press (2005).
 
 .. [LP2007] \G. Leander and A. Poschmann,
             *On the Classification of 4 Bit S-boxes*; in WAIFI, (2007), pp. 159-176.
+
+.. [LP2008] \C. Lenart and A. Postnikov. *A combinatorial model for
+            crystals of Kac-Moody algebras*. Trans. Amer. Math. Soc. 360 (2008),
+            4349-4381.
 
 .. [LP2011] Richard Lindner and Chris Peikert. Better key sizes (and
             attacks) for LWE-based encryption. in Proceeding of the
@@ -2067,6 +2313,17 @@ REFERENCES:
              Advances in Cryptology --
              EUROCRYPT 2010. Springer 2010. :doi:`10.1007/978-3-642-13190-5_1`
 
+.. [LR1998] Jean-Louis Loday and Maria O. Ronco.
+            *Hopf algebra of the planar binary trees*,
+            Advances in Mathematics, volume 139, issue 2,
+            10 November 1998, pp. 293-309.
+            http://www.sciencedirect.com/science/article/pii/S0001870898917595
+
+.. [LR0102066] Jean-Louis Loday and Maria O. Ronco.
+               Order structure on the algebra of permutations
+               and of planar binary trees.
+               :arXiv:`math/0102066v1`.
+
 .. [LS2007] Thomas Lam and Mark Shimozono.  *Dual graded graphs for
             Kac-Moody algebras*.  Algebra & Number Theory 1.4 (2007)
             pp. 451-488.
@@ -2075,6 +2332,10 @@ REFERENCES:
              polynomials for the affine Grassmannian of the symplectic
              group*. Mathematische Zeitschrift 264(4) (2010) 765-811
              (:arxiv:`0710.2720`)
+
+.. [LS2012] \K.-H. Lee and B. Salisbury.
+            Young tableaux, canonical bases, and the Gindikin-Karpelevich formula.
+            :arXiv:`1205.6006`.
 
 .. [LS2017] Xuan Liu and Travis Scrimshaw. *A uniform approach to soliton
             cellular automata using rigged configurations*.
@@ -2115,6 +2376,14 @@ REFERENCES:
 .. [Lyo2003] \R. Lyons, *Determinantal probability
              measures*. Publications Mathématiques de l'Institut des
              Hautes Études Scientifiques 98(1)  (2003), pp. 167-212.
+
+.. [LZ2004] S. Lando and A. Zvonkine, "Graphs on surfaces and their
+            applications", Springer-Verlag, 2004.
+
+.. [LZ2011] Bin Li and Hechun Zhang.
+            *Path realization of crystal* `B(\infty)`.
+            Front. Math. China, **6** (4), (2011) pp. 689--706.
+            :doi:`10.1007/s11464-010-0073-x`
 
 .. _ref-M:
 
@@ -2268,13 +2537,29 @@ REFERENCES:
 .. [MoPa1994] \P. Morton and P. Patel. The Galois theory of periodic points
               of polynomial maps. Proc. London Math. Soc., 68 (1994), 225-263.
 
+.. [MPP2008] Conrado Martinez, Alois Panholzer and Helmut Prodinger,
+             *Generating random derangements*
+             :doi:`10.1137/1.9781611972986.7`
+             http://www.siam.org/proceedings/analco/2008/anl08_022martinezc.pdf
+
 .. [MR1989] \G. Melançon and C. Reutenauer.
             *Lyndon words, free algebras and shuffles*,
             Can. J. Math., Vol. XLI, No. 4, 1989, pp. 577-591.
 
+.. [MR1995] \C. Malvenuto, C. Reutenauer, *Duality between
+            quasi-symmetric functions and the Solomon descent algebra*,
+            Journal of Algebra 177 (1995), no. 3, 967-982.
+            http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Duality.pdf
+
 .. [MR2002] \S. Murphy, M. Robshaw *Essential Algebraic Structure
             Within the AES*\; in Advances in Cryptology \- CRYPTO
             2002\; LNCS 2442\; Springer Verlag 2002
+
+.. [MRR1983] \W. H. Mills, David P Robbins, Howard Rumsey Jr.,
+             *Alternating sign matrices and descending plane partitions*,
+             Journal of Combinatorial Theory, Series A,
+             Volume 34, Issue 3, May 1983, Pages 340--359.
+             http://www.sciencedirect.com/science/article/pii/0097316583900687
 
 .. [MS2003] \T. Mulders, A. Storjohann, "On lattice reduction for
             polynomial matrices", J. Symbolic Comput. 35 (2003),
@@ -2282,6 +2567,11 @@ REFERENCES:
 
 .. [MS2011] \G. Musiker and \C. Stump, *A compendium on the cluster algebra
             and quiver package in sage*, :arxiv:`1102.4844`.
+
+.. [MS2015] Jennifer Morse and Anne Schilling.
+            *Crystal approach to affine Schubert calculus*.
+            Int. Math. Res. Not. (2015).
+            :doi:`10.1093/imrn/rnv194`, :arxiv:`1408.0320`.
 
 .. [MSZ2013] Michael Maschler, Solan Eilon, and Zamir Shmuel. *Game
              Theory*. Cambridge: Cambridge University Press,
@@ -2346,6 +2636,10 @@ REFERENCES:
 .. [NovThi06] Jean-Christophe Novelli, Jean-Yves Thibon,
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
+
+.. [NZ1997] \T. Nakashima and A. Zelevinsky.
+            Polyhedral Realizations of Crystal Bases for Quantized Kac-Moody Algebras.
+            Adv. Math. **131**, pp. 253--278, 1997.
 
 .. [NZ2012] \T. Nakanishi and \A. Zelevinsky, *On tropical dualities in
             cluster algebras*, Algebraic groups and quantum groups,
@@ -2444,6 +2738,14 @@ REFERENCES:
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.
 
+.. [Pons2013] Viviane Pons,
+              *Combinatoire algébrique liée aux ordres sur les permutations*.
+              PhD Thesis. (2013). :arxiv:`1310.1805v1`.
+
+.. [Pons2018] Viviane Pons,
+              *The Rise-Contact involution on Tamari intervals*.
+              :arxiv:`1802.08335`
+
 .. [Pop1972] \V. M. Popov. "Invariant description of linear, time-invariant
              controllable systems". SIAM Journal on Control, 10(2):252-264,
              1972. https://doi.org/10.1137/0310020 .
@@ -2505,8 +2807,17 @@ REFERENCES:
              *A Frobenius formula for the characters of the Hecke algebras*.
              Invent. Math. **106** (1991), pp. 461-488.
 
+.. [Ram1997] Arun Ram. *Seminormal representations of Weyl groups
+             and Iwahori-Hecke algebras*. Proc. London Math. Soc. (3)
+             **75** (1997). 99-133. :arxiv:`math/9511223v1`.
+             http://www.ms.unimelb.edu.au/~ram/Publications/1997PLMSv75p99.pdf
+
 .. [Rau1979] Gerard Rauzy, *Échanges d'intervalles et transformations
              induites*, Acta Arith. 34, no. 3, 203-212, 1980
+
+.. [Rea2004] Nathan Reading.
+             *Cambrian Lattices*.
+             :arxiv:`math/0402086v2`.
 
 .. [Red2001] Maria Julia Redondo. *Hochschild cohomology: some methods
              for computations*. Resenhas IME-USP 5 (2), 113-137
@@ -2579,8 +2890,15 @@ REFERENCES:
 .. [Roc1970] \R.T. Rockafellar, *Convex Analysis*. Princeton
              University Press, Princeton, 1970.
 
+.. [Rog2018] Baptiste Rognerud,
+             *Exceptional and modern intervals of the Tamari lattice*.
+             :arxiv:`1801.04097`
+
 .. [Ros1999] \K. Rosen *Handbook of Discrete and Combinatorial
              Mathematics* (1999), Chapman and Hall.
+
+.. [Ros2002] Rosenfeld, Vladimir Raphael, 2002: Enumerating De Bruijn
+             Sequences. *Communications in Math. and in Computer Chem.*
 
 .. [Rot2001] Gunter Rote, *Division-Free Algorithms for the
              Determinant and the Pfaffian: Algebraic and Combinatorial
@@ -2599,6 +2917,10 @@ REFERENCES:
 
 .. [RSS] :wikipedia:`Residual_sum_of_squares`, accessed 13th
          October 2009.
+
+.. [RSW2011] Victor Reiner, Franco Saliola, Volkmar Welker.
+             *Spectra of Symmetrized Shuffling Operators*.
+             :arXiv:`1102.2460v2`.
 
 .. [Rud1958] \M. E. Rudin. *An unshellable triangulation of a
              tetrahedron*. Bull. Amer. Math. Soc. 64 (1958), 90-91.
@@ -2629,8 +2951,16 @@ REFERENCES:
 .. [Sch1996] \E. Schaefer. A simplified data encryption
              algorithm. Cryptologia, 20(1):77--84, 1996.
 
+.. [Sch2004] Manfred Schocker, *The descent algebra of the
+             symmetric group*. Fields Inst. Comm. 40 (2004), pp. 145-161.
+             http://www.mathematik.uni-bielefeld.de/~ringel/schocker-neu.ps
+
 .. [Sch2006] Oliver Schiffmann. *Lectures on Hall algebras*,
              preprint, 2006. :arxiv:`0611617v2`.
+
+.. [Sch2008] \A. Schilling. "Combinatorial structure of
+             Kirillov-Reshetikhin crystals of type `D_n(1)`, `B_n(1)`, `A_{2n-1}(2)`".
+             J. Algebra. **319** (2008). 2938-2962. :arxiv:`0704.2046`.
 
 .. [Sch2013] Schmidt, Jens M
              "A Simple Test on 2-Vertex- and 2-Edge-Connectivity",
@@ -2663,6 +2993,12 @@ REFERENCES:
             Chor-Rivest Cryptosystem by Improved Lattice
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
+
+.. [Shi2002] \M. Shimozono
+             *Affine type A crystal structure on tensor products of rectangles,
+             Demazure characters, and nilpotent varieties*,
+             J. Algebraic Combin. **15** (2002). no. 2. 151-187.
+             :arxiv:`math.QA/9804039`.
 
 .. [Shim2016] Shimada, Ichiro, *Connected components of the moduli of
             elliptic K3 surfaces*, :arxiv:`1610.04706`.
@@ -2725,6 +3061,10 @@ REFERENCES:
 .. [Squ1984] \C. C. Squier. *The Burau representation is unitary*.
              Proceedings of the American Mathematical Society,
              Volume 90. Number 2, February 1984, pp. 199-202.
+
+.. [SS1983] Shorey and Stewart. "On the Diophantine equation a
+            x^{2t} + b x^t y + c y^2 = d and pure powers in recurrence
+            sequences." Mathematica Scandinavica, 1983.
 
 .. [SS1990] Bruce E. Sagan and Richard P. Stanley.
             *Robinson-Schensted algorithms for skew tableaux*.
@@ -2825,6 +3165,10 @@ REFERENCES:
 .. [Stu1993] \B. Sturmfels, Algorithms in invariant theory, Springer-Verlag,
              1993.
 
+.. [Stu2008] \C. Stump -- More bijective Catalan combinatorics on
+             permutations and on colored permutations, Preprint.
+             :arXiv:`0808.2822`.
+
 .. [STW2013] \J. Schejbal, E. Tews, and J. Wälde,
              *Reverse engineering of chiasmus from gstool*; in
              30c3, (2013).
@@ -2855,6 +3199,10 @@ REFERENCES:
             *CS-Cipher*; in
             First Open NESSIE Workshop, (2000).
 
+.. [SV2013] Silliman and Vogt. "Powers in Lucas Sequences via Galois
+            Representations." Proceedings of the American Mathematical
+            Society, 2013. :arxiv:`1307.5078v2`
+
 .. [SW2002] William Stein and Mark Watkins, *A database of elliptic
             curves---first report*. In *Algorithmic number theory
             (ANTS V), Sydney, 2002*, Lecture Notes in Computer Science
@@ -2877,9 +3225,17 @@ REFERENCES:
                   \J. Yajima, N. Torii, and H. Tanaka, *The block cipher SC2000*; in
                   FSE, (2001), pp. 312-327.
 
+.. [SZ2001] \M. Shimozono, M. Zabrocki,
+            Hall-Littlewood vertex operators and generalized Kostka polynomials.
+            Adv. Math. 158 (2001), no. 1, 66-85.
+
 .. _ref-T:
 
 **T**
+
+.. [Tam1962] Dov Tamari.
+             *The algebra of bracketings and their enumeration*.
+             Nieuw Arch. Wisk. (1962).
 
 .. [Tar1976] Robert E. Tarjan, *Edge-disjoint spanning trees and
              depth-first search*, Acta Informatica 6 (2), 1976,
@@ -2965,7 +3321,7 @@ REFERENCES:
              representations*. Reprint of the 1974 edition. Graduate Texts in
              Mathematics, 102. Springer-Verlag, New York, 1984.
 
-.. [Vat2008] \D. Vatne, *The mutation class of `D_n` quivers*, :arxiv:`0810.4789v1`.
+.. [Vat2008] \D. Vatne, *The mutation class of* `D_n` *quivers*, :arxiv:`0810.4789v1`.
 
 .. [Vazirani2002] Monica Vazirani. *Parameterizing Hecek algebra modules:
                   Bernstein-Zelevinsky multisegments, Kleshchev
@@ -3026,6 +3382,9 @@ REFERENCES:
 .. [Wal2001] Timothy Walsh, *Gray codes for involutions*, J. Combin.
              Math. Combin. Comput. **36** (2001), 95-118.
              http://www.info2.uqam.ca/~walsh_t/papers/Involutions%20paper.pdf
+
+.. [Walton1990] Mark A. Walton. *Fusion rules in Wess-Zumino-Witten models*.
+                Nuclear Phys. B **340** (1990).
 
 .. [Wam1999] van Wamelen, Paul. *Examples of genus two CM curves defined
              over the rationals*. Math. Comp. 68 (1999), no. 225, 307--320.

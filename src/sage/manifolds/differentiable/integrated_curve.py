@@ -2340,7 +2340,7 @@ class IntegratedCurve(DifferentiableCurve):
         if across_charts:
             len_tot = sum(len(interp[1][0]) for interp in interpolation)
             if isinstance(color, list):
-                color = color * (len(interpolation)/3 + 1)
+                color = color * (len(interpolation) // 3 + 1)
             else:
                 color = color * len(interpolation)
             res = 0

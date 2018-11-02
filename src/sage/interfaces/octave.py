@@ -173,6 +173,15 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
         sage: octave.eval("c")                                 # optional - octave; random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
+
+    TESTS:
+
+    We check that the interface can handle large inputs (see :trac:`940`)::
+
+        sage: t = '"{}"'.format(10^10000)
+        sage: a = octave(t)                     # optional - octave
+        sage: str(a) == ' {}'.format(10^10000)  # optional - octave
+        True
     """
 
     def __init__(self, maxread=None, script_subdirectory=None, logfile=None,

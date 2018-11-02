@@ -2198,10 +2198,10 @@ class FusionRing(WeylCharacterRing):
     weights of the basis elements, then assign new labels to them::
 
         sage: B22 = FusionRing("B2", 2)
-        sage: list(B22.basis())
-        [B22(0,0), B22(0,1), B22(1,0), B22(2,0), B22(1,1), B22(0,2)]
-        sage: [x.highest_weight() for x in B22.basis()]
-        [(0, 0), (1/2, 1/2), (1, 0), (2, 0), (3/2, 1/2), (1, 1)]
+        sage: sorted(B22.basis(), key=str)
+        [B22(0,0), B22(0,1), B22(0,2), B22(1,0), B22(1,1), B22(2,0)]
+        sage: sorted([x.highest_weight() for x in B22.basis()], key=str)
+        [(0, 0), (1, 0), (1, 1), (1/2, 1/2), (2, 0), (3/2, 1/2)]
         sage: B22.fusion_labels(['1','X','Y1','Z','Xp','Y2'])
         sage: list(B22.basis())
         [1, X, Y1, Z, Xp, Y2]
@@ -2211,8 +2211,8 @@ class FusionRing(WeylCharacterRing):
         1
 
         sage: C22 = FusionRing("C2", 2)
-        sage: list(C22.basis())
-        [C22(0,0), C22(0,1), C22(1,0), C22(2,0), C22(0,2), C22(1,1)]
+        sage: sorted(C22.basis(), key=str)
+        [C22(0,0), C22(0,1), C22(0,2), C22(1,0), C22(1,1), C22(2,0)]
 
     REFERENCES:
 

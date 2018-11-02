@@ -1670,7 +1670,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             The action on all almost positive roots::
 
                 sage: for root in L.almost_positive_roots():
-                ....:     print('tau({:<41}) = {}'.format(root, tau(root)))
+                ....:     print('tau({:<41}) = {}'.format(str(root), tau(root)))
                 tau(-alpha[1]                                ) = alpha[1]
                 tau(alpha[1]                                 ) = -alpha[1]
                 tau(alpha[1] + alpha[2]                      ) = alpha[2] + alpha[3]
@@ -1691,7 +1691,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(['B',3]).ambient_space()
                 sage: tau = L.tau_epsilon_operator_on_almost_positive_roots([1,3])
                 sage: for root in L.almost_positive_roots():
-                ....:     print('tau({:<41}) = {}'.format(root, tau(root)))
+                ....:     print('tau({:<41}) = {}'.format(str(root), tau(root)))
                 tau((-1, 1, 0)                               ) = (1, -1, 0)
                 tau((1, 0, 0)                                ) = (0, 1, 0)
                 tau((1, -1, 0)                               ) = (-1, 1, 0)
@@ -2257,9 +2257,9 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                  sage: list(RootSystem(["A",2]).ambient_lattice().plot_roots())
                  [Arrow from (0.0,0.0) to (1.5,0.86...),
-                  Text '$\alpha_{1}$' at the point (1.575,0.90...),
+                  Text '$\alpha_{1}$' at the point (1.575...,0.90...),
                   Arrow from (0.0,0.0) to (-1.5,0.86...),
-                  Text '$\alpha_{2}$' at the point (-1.575,0.90...)]
+                  Text '$\alpha_{2}$' at the point (-1.575...,0.90...)]
 
                  sage: list(RootSystem(["B",2]).ambient_space().plot_roots())
                  [Arrow from (0.0,0.0) to (1.0,-1.0),
@@ -2385,10 +2385,10 @@ class RootLatticeRealizations(Category_over_base_ring):
                  Text '$\Lambda_{2}$' at the point (0.0,1.05)]
 
                  sage: sorted(RootSystem(["A",2]).ambient_lattice().plot_fundamental_weights(), key=str)
-                 [Arrow from (0.0,0.0) to (-0.5,0.866024518389),
-                  Arrow from (0.0,0.0) to (0.5,0.866024518389),
-                  Text '$\Lambda_{1}$' at the point (0.525,0.909325744308),
-                  Text '$\Lambda_{2}$' at the point (-0.525,0.909325744308)]
+                 [Arrow from (0.0,0.0) to (-0.5,0.86602451838...),
+                  Arrow from (0.0,0.0) to (0.5,0.86602451838...),
+                  Text '$\Lambda_{1}$' at the point (0.525,0.909325744308...),
+                  Text '$\Lambda_{2}$' at the point (-0.525,0.909325744308...)]
             """
             plot_options = self.plot_parse_options(**options)
             # We build the family of fundamental weights in this space,
@@ -2447,24 +2447,24 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(["A",2]).ambient_space()
                 sage: print(L.plot_reflection_hyperplanes().description())
-                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15...)
+                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15...)
                 Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
                 Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
 
                 sage: print(L.plot_reflection_hyperplanes("all").description())
-                Text '$H_{\alpha^\vee_{1} + \alpha^\vee_{2}}$' at the point (3.15,0.0)
-                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Text '$H_{\alpha^\vee_{1} + \alpha^\vee_{2}}$' at the point (3.15...,0.0)
+                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15...)
+                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15...)
                 Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
                 Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
                 Line defined by 2 points: [(3.0, 0.0), (-3.0, 0.0)]
 
                 sage: L = RootSystem(["A",2,1]).ambient_space()
                 sage: print(L.plot_reflection_hyperplanes().description())
-                Text '$H_{\alpha^\vee_{0}}$' at the point (3.15,0.90...)
-                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Text '$H_{\alpha^\vee_{0}}$' at the point (3.15...,0.90...)
+                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15...)
+                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15...)
                 Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
                 Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
                 Line defined by 2 points: [(3.0, 0.86...), (-3.0, 0.86...)]
@@ -4013,22 +4013,22 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(["A",3]).root_lattice()
                 sage: positive_roots = L.positive_roots()
-                sage: for alpha in positive_roots:
+                sage: for alpha in sorted(positive_roots):
                 ....:     print("{} {}".format(alpha, alpha.to_simple_root()))
                 alpha[1] 1
-                alpha[2] 2
-                alpha[3] 3
                 alpha[1] + alpha[2] 2
-                alpha[2] + alpha[3] 3
                 alpha[1] + alpha[2] + alpha[3] 3
-                sage: for alpha in positive_roots:
+                alpha[2] 2
+                alpha[2] + alpha[3] 3
+                alpha[3] 3
+                sage: for alpha in sorted(positive_roots):
                 ....:     print("{} {}".format(alpha, alpha.to_simple_root(reduced_word=True)))
                 alpha[1] (1, ())
-                alpha[2] (2, ())
-                alpha[3] (3, ())
                 alpha[1] + alpha[2] (2, (1,))
-                alpha[2] + alpha[3] (3, (2,))
                 alpha[1] + alpha[2] + alpha[3] (3, (1, 2))
+                alpha[2] (2, ())
+                alpha[2] + alpha[3] (3, (2,))
+                alpha[3] (3, ())
 
             ALGORITHM:
 

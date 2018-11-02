@@ -8,24 +8,22 @@ including minimum spanning trees.
 
 .. SEEALSO::
 
-   * :meth:`GenericGraph.min_spanning_tree
-     <sage.graphs.generic_graph.GenericGraph.min_spanning_tree>`.
+    - :meth:`GenericGraph.min_spanning_tree
+      <sage.graphs.generic_graph.GenericGraph.min_spanning_tree>`.
 
-**Todo**
+.. TODO::
 
-* Rewrite :func:`kruskal` to use priority queues. Once Cython has support
-  for generators and the ``yield`` statement, rewrite :func:`kruskal` to use
-  ``yield``.
-* Parallel version of Boruvka's algorithm.
-* Randomized spanning tree construction.
+    - Rewrite :func:`kruskal` to use priority queues.
+    - Parallel version of Boruvka's algorithm.
+    - Randomized spanning tree construction.
 
 REFERENCES:
 
-.. [Aldous90] \D. Aldous, 'The random walk construction of
-  uniform spanning trees', SIAM J Discrete Math 3 (1990),
+.. [Aldous90] \D. Aldous, *The random walk construction of
+  uniform spanning trees*, SIAM J Discrete Math 3 (1990),
   450-465.
 
-.. [Broder89] \A. Broder, 'Generating random spanning trees',
+.. [Broder89] \A. Broder, *Generating random spanning trees*,
   Proceedings of the 30th IEEE Symposium on Foundations of
   Computer Science, 1989, pp. 442-447. :doi:`10.1109/SFCS.1989.63516`,
   <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_
@@ -50,7 +48,7 @@ Methods
 -------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (c) 2007 Jason Grout <jason-sage@creativetrax.com>
 #       Copyright (c) 2009 Mike Hansen <mhansen@gmail.com>
 #       Copyright (c) 2010 Gregory McWhirter <gmcwhirt@uci.edu>
@@ -60,13 +58,14 @@ Methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 cimport cython
 
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
+
 
 cpdef kruskal(G, wfunction=None, bint check=False):
     r"""
@@ -128,6 +127,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+        - :func:`kruskal_iterator`
 
     EXAMPLES:
 
@@ -271,6 +271,27 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ...
         ValueError: The input G must be an undirected graph.
     """
+    return sorted(kruskal_iterator(G, wfunction=wfunction, check=check))
+
+
+def kruskal_iterator(G, wfunction=None, bint check=False):
+    """
+    Return an iterator implementation of Kruskal algorithm.
+
+    OUTPUT:
+
+    The edges of a minimum spanning tree of ``G``, one by one.
+
+    .. SEEALSO:: :func:`kruskal`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.spanning_tree import kruskal_iterator
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: next(kruskal_iterator(G, check=True))
+        (1, 6, 10)
+    """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
@@ -278,13 +299,13 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     # sanity checks
     if check:
         if not G.order():
-            return []
+            return
         if not G.is_connected():
-            return []
+            return
         # G is now assumed to be a nonempty connected graph
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
-            return G.edges()
+            yield from G.edge_iterator()
         g = G.to_simple(to_undirected=False, keep_label='min')
     else:
         g = G
@@ -301,9 +322,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     else:
         sortedE_iter = iter(sorted(g.edges(), key=wfunction))
 
-
     # Kruskal's algorithm
-    cdef list T = []
     cdef int m = g.order() - 1
     cdef int i = 0  # count the number of edges added so far
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
@@ -314,16 +333,9 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         v = union_find.find(e[1])
         if u != v:
             i += 1
-            # NOTE: Once Cython supports generator and the yield statement,
-            # we should replace the following line with a yield statement.
-            # That way, we could access the edge of a minimum spanning tree
-            # immediately after it is found, instead of waiting for all the
-            # edges to be found and return the edges as a list.
-            T.append(e)
+            yield e
             # union the components by making one the parent of the other
             union_find.union(u, v)
-    return sorted(T)
-
 
 
 cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):

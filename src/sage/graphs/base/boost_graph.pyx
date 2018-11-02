@@ -921,6 +921,10 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
+    if start not in g:
+        raise ValueError("the starting vertex " + str(start) + " is not in " +
+                         "the graph")
+
     if not g.num_edges():
         return ({start:0}, {start:None})
 
@@ -931,10 +935,6 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
     cdef result_distances result
-
-    if start not in v_to_int.keys():
-        raise ValueError("the starting vertex " + str(start) + " is not in " +
-                         "the graph")
 
     if algorithm is None:
         # Check if there are edges with negative weights

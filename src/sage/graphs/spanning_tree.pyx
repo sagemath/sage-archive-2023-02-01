@@ -8,24 +8,22 @@ including minimum spanning trees.
 
 .. SEEALSO::
 
-   * :meth:`GenericGraph.min_spanning_tree
-     <sage.graphs.generic_graph.GenericGraph.min_spanning_tree>`.
+    - :meth:`GenericGraph.min_spanning_tree
+      <sage.graphs.generic_graph.GenericGraph.min_spanning_tree>`.
 
-**Todo**
+.. TODO::
 
-* Rewrite :func:`kruskal` to use priority queues. Once Cython has support
-  for generators and the ``yield`` statement, rewrite :func:`kruskal` to use
-  ``yield``.
-* Parallel version of Boruvka's algorithm.
-* Randomized spanning tree construction.
+    - Rewrite :func:`kruskal` to use priority queues.
+    - Parallel version of Boruvka's algorithm.
+    - Randomized spanning tree construction.
 
 REFERENCES:
 
-.. [Aldous90] \D. Aldous, 'The random walk construction of
-  uniform spanning trees', SIAM J Discrete Math 3 (1990),
+.. [Aldous90] \D. Aldous, *The random walk construction of
+  uniform spanning trees*, SIAM J Discrete Math 3 (1990),
   450-465.
 
-.. [Broder89] \A. Broder, 'Generating random spanning trees',
+.. [Broder89] \A. Broder, *Generating random spanning trees*,
   Proceedings of the 30th IEEE Symposium on Foundations of
   Computer Science, 1989, pp. 442-447. :doi:`10.1109/SFCS.1989.63516`,
   <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_

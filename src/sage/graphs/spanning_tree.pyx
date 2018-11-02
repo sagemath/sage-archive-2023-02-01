@@ -254,10 +254,10 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: kruskal(G, check=True)  # long time
         []
 
-    If the input graph is a tree, then return its edges. ::
+    If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: T.edges() == kruskal(T, check=True)  # long time
+        sage: sorted(T.edge_iterator()) == kruskal(T, check=True)  # long time
         True
 
     If the input is not a Graph::
@@ -306,6 +306,7 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
             yield from G.edge_iterator()
+            return
         g = G.to_simple(to_undirected=False, keep_label='min')
     else:
         g = G

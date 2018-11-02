@@ -15439,7 +15439,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path_length(4, 1, by_weight=True, algorithm=None)
             Traceback (most recent call last):
             ...
-            ValueError: The graph contains an edge with negative weight!
+            ValueError: the graph contains an edge with negative weight
             sage: G.shortest_path_length(4, 1, by_weight=True, algorithm='Bellman-Ford_Boost')
             -1
 

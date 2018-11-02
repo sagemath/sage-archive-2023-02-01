@@ -2843,7 +2843,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = SimplicialComplex([[1,2,3],[1,4,5]])
             sage: S.is_cohen_macaulay(ncpus=3)
-            ...
             False
 
         The choice of base ring can matter.  The real projective plane `\RR P^2`

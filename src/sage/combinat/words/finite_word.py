@@ -6290,7 +6290,6 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: for x in Word([1,1,3,1,2,3,1])._rsk_iter(): x
-            ...
             (1, 1)
             (2, 1)
             (3, 3)

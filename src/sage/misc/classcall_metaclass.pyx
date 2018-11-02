@@ -366,7 +366,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
             sage: from sage.misc.classcall_metaclass import ClasscallMetaclass
             sage: class Outer:
             ....:     __metaclass__ = NestedClassMetaclass # workaround for python pickling bug
-            ...
+            ....:
             ....:     class Inner(object):
             ....:         __metaclass__ = ClasscallMetaclass
             ....:         @staticmethod

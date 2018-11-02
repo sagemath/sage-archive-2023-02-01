@@ -8163,8 +8163,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             q = A(abs(val)**(2/d))
         except (TypeError, ValueError):
             raise ValueError("Polynomial not self-reciprocal")
-        for i in range(d/2+1):
-            if self.get_unsafe(d-i) != sg * self.get_unsafe(i) / q**(d/2-i):
+        for i in range(d//2 + 1):
+            if self.get_unsafe(d-i) != sg * self.get_unsafe(i) / q**(d//2-i):
                 raise ValueError("Polynomial not self-reciprocal")
         Q = self
         if sg == -1 and Q.degree() % 2 == 0:

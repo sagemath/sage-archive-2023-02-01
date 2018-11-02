@@ -83,6 +83,7 @@ from __future__ import absolute_import
 from collections import Iterator, Sequence
 
 from libc.stdint cimport uint64_t
+from libc.limits cimport UINT_MAX
 
 from cysignals.memory cimport check_calloc, sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -674,19 +675,28 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # TODO: bug in linbox (gives segfault)
             return 0, self.base_ring().one()
 
-        cdef size_t A_rank = 0
+        # NOTE: the rank would more naturally be size_t but it is unsigned long
+        # in LinBox
+        # see https://github.com/linbox-team/linbox/issues/144
+        cdef unsigned long A_rank = 0
         cdef uint64_t A_det = 0
 
         if not is_prime(self.p):
             raise TypeError("only GF(p) supported via LinBox")
 
-        cdef givaro.Modular_uint64 * F = new givaro.Modular_uint64(self.p)
+        cdef givaro.Modular_uint64 * F = new givaro.Modular_uint64(<uint64_t> self.p)
         cdef linbox.SparseMatrix_Modular_uint64 * A
         A = new_linbox_matrix_modn_sparse(F[0], self)
 
         cdef linbox.GaussDomain_Modular_uint64 * dom = new linbox.GaussDomain_Modular_uint64(F[0])
 
-        dom.InPlaceLinearPivoting(A_rank, A_det, A[0], A.rowdim(), A.coldim())
+        # NOTE: see above for the reason of casting...
+        if A.rowdim() >= <size_t> UINT_MAX or A.coldim() >= <size_t> UINT_MAX:
+            raise ValueError("row/column size unsupported in LinBox")
+
+        dom.InPlaceLinearPivoting(A_rank, A_det, A[0],
+                <unsigned long> A.rowdim(),
+                <unsigned long> A.coldim())
 
         del A
         del F

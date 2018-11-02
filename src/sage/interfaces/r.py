@@ -288,84 +288,106 @@ RFilteredPackages = ['.GlobalEnv']
 # but package:base should cover this. i think.
 RBaseCommands = ['c', "NULL", "NA", "True", "False", "Inf", "NaN"]
 
-
 def _setup_r_to_sage_converter():
-    from rpy2.robjects.vectors import FloatVector, IntVector, ListVector, StrVector, Matrix
-    from rpy2.robjects import default_converter
+    """
+    Set up a the converter used to convert from rpy2's
+    representation of R objects to the one sage expects.
+
+    EXAMPLES::
+
+    Test
+
+        sage: r(1.0).sage()
+        1
+
+        sage: r([1.0]).sage()
+        1
+
+        sage: r([1.0, 42]).sage()
+        [1, 42]
+
+        sage: r('matrix(c(2,4,3,1,5,7), nrow=2, ncol=3)').sage()
+        [2 3 5]
+        [4 1 7]
+
+        sage: r.summary(1).sage()
+        {'DATA': [1, 1, 1, 1, 1, 1],
+         '_Names': ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.'],
+         '_r_class': ['summaryDefault', 'table']}
+
+    """
+    from rpy2.rinterface import SexpVector, ListSexpVector, FloatSexpVector
     from rpy2.robjects.conversion import Converter
 
-    r_to_sage_converter = Converter('r to sage converter')
+    # convert rpy2's representation of r objects to the one sage expects (as defined by the old
+    # expect interface)
+    cv = Converter('r to sage converter')
 
-    def _strvector(obj):
-        not_none_names = [ name for (name, value) in obj.items() if name is not None ]
+    # fallback
+    cv.ri2py.register(object, lambda obj: obj)
 
-        data = [val for val in obj]
-        if len(not_none_names) == 0: # simple list
+    def float_to_int_if_possible(f):
+        # preserve the behaviour of the old r parser, e.g. return 1 instead of 1.0
+        return int(f) if isinstance(f, int) or f.is_integer() else f
+    cv.ri2py.register(float, float_to_int_if_possible)
+
+    def _vector(vec):
+        attrs = vec.list_attrs()
+        # Recursive calls have to be made explicitly
+        # https://bitbucket.org/rpy2/rpy2/issues/363/custom-converters-are-not-applied
+        data = [ cv.ri2py(val) for val in vec ]
+        rclass = list(vec.do_slot('class')) if 'class' in attrs else vec.rclass
+
+        if 'names' in attrs:
+            # seperate names and values, call ri2py recursively to convert elements
+            names = list(vec.do_slot('names'))
+            return {
+                'DATA': data,
+                '_Names': names,
+                '_r_class': rclass,
+            }
+        else:
+            # if not names are present, convert to a normal list or a single value
             if len(data) == 1:
                 return data[0]
             else:
                 return data
-        else:
-            return {
-                'DATA': data,
-                '_Names': [ name for (name, value) in obj.items() ],
-                '_r_class': list(obj.rclass),
-            }
-    r_to_sage_converter.ri2ro.register(StrVector, _strvector)
-
-    def _numeric_vector(obj):
-        def float_to_int_if_possible(f):
-            # preserve the behaviour of the old r parser, e.g. return [1, 4.2] instead of [1.0, 4.2]
-            return int(f) if isinstance(f, int) or f.is_integer() else f
-
-        not_none_names = [ name for (name, value) in obj.items() if name is not None ]
-
-        data = [float_to_int_if_possible(val) for val in obj]
-        if len(not_none_names) == 0: # simple list
-            if len(data) == 1:
-                return data[0]
-            else:
-                return data
-        else:
-            return {
-                'DATA': data,
-                '_Names': [ name for (name, value) in obj.items() ],
-                '_r_class': list(obj.rclass),
-            }
-    r_to_sage_converter.ri2ro.register(FloatVector, _numeric_vector)
-    r_to_sage_converter.ri2ro.register(IntVector, _numeric_vector)
+    cv.ri2py.register(SexpVector, _vector)
 
     def _matrix(mat):
-        try:
-            from sage.matrix.constructor import matrix
-            # TODO: higher dimensions? happens often in statistics
-            if len(mat.dim) != 2:
-                raise TypeError
-            #since R does it the other way round, we assign
-            #transposed and then transpose the matrix :)
-            m = matrix(mat.ncol, mat.nrow, [i for i in mat])
-            return m.transpose()
-        except TypeError:
-            pass
-    r_to_sage_converter.ri2ro.register(Matrix, _matrix)
+        if 'dim' in mat.list_attrs():
+            try:
+                from sage.matrix.constructor import matrix
+                dimensions = mat.do_slot("dim")
+                # TODO: higher dimensions? happens often in statistics
+                if len(dimensions) != 2:
+                    raise TypeError
+                (nrow, ncol) = dimensions
+                #since R does it the other way round, we assign
+                #transposed and then transpose the matrix :)
+                m = matrix(ncol, nrow, [cv.ri2py(i) for i in mat])
+                return m.transpose()
+            except TypeError:
+                pass
+        else:
+            return _vector(mat)
+    cv.ri2py.register(FloatSexpVector, _matrix)
 
-    def _list_vector(obj):
-        # preserve the behaviour of the old r parser, e.g. seperate DATA and Names
+    def _list_vector(vec):
+        # we have a R list (vector of arbitrary elements)
+        attrs = vec.list_attrs()
+        names = list(vec.do_slot('names'))
+        values = [ cv.ri2py(val) for val in vec ]
+        rclass = list(vec.do_slot('class')) if 'class' in attrs else vec.rclass
+        data = zip(names, values)
         return {
-            # Recursive calls have to be made explicitly
-            # https://bitbucket.org/rpy2/rpy2/issues/363/custom-converters-are-not-applied
-            'DATA': dict([(key, r_to_sage_converter.ri2ro(val)) for (key, val) in obj.items()]),
-            '_Names': [ name for (name, value) in obj.items() ],
-            '_r_class': list(obj.rclass),
+            'DATA': dict(data),
+            '_Names': names,
+            '_r_class': rclass,
         };
-    r_to_sage_converter.ri2ro.register(ListVector, _list_vector)
+    cv.ri2py.register(ListSexpVector, _list_vector)
 
-    r_to_sage_converter = default_converter + r_to_sage_converter
-    return r_to_sage_converter
-
-# It would be better to make this an attribute of `R`, but that leads to problems since
-# we override `__getattr__`.
-_r_to_sage_converter = _setup_r_to_sage_converter()
+    return cv
 
 class R(ExtraTabCompletion, Interface):
     def __init__(self,
@@ -397,11 +419,15 @@ class R(ExtraTabCompletion, Interface):
             True
         """
 
-
         Interface.__init__(
                 self,
                 name = 'r', # The capitalized version of this is used for printing.
         )
+
+        # It would be better to make this an attribute of `R`, but that leads to problems since
+        # we override `__getattr__`.
+        global _r_to_sage_converter
+        _r_to_sage_converter = _setup_r_to_sage_converter()
 
         self._seed = seed
         self._start()

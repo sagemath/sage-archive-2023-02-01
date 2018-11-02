@@ -1,0 +1,7 @@
+cd src
+
+echo "print configuration"
+$MAKE MY_METIS_LIB=none CHOLMOD_CONFIG=-DNPARTITION BLAS="$(pkg-config --libs blas)" LAPACK="$(pkg-config --libs lapack)" config INSTALL="$SAGE_LOCAL"
+# build and install
+$MAKE MY_METIS_LIB=none CHOLMOD_CONFIG=-DNPARTITION BLAS="$(pkg-config --libs blas)" LAPACK="$(pkg-config --libs lapack)" install INSTALL="$SAGE_LOCAL"
+

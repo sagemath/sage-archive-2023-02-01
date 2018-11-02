@@ -1,0 +1,16 @@
+diff --git a/SuiteSparse_config/SuiteSparse_config.mk b/SuiteSparse_config/SuiteSparse_config.mk
+index f991b7a..59ae6da 100644
+--- a/SuiteSparse_config/SuiteSparse_config.mk
++++ b/SuiteSparse_config/SuiteSparse_config.mk
+@@ -360,8 +360,8 @@ SUITESPARSE_VERSION = 5.3.0
+         # command line in the Terminal, before doing 'make':
+         # xcode-select --install
+         CF += -fno-common
+-        BLAS = -framework Accelerate
+-        LAPACK = -framework Accelerate
++        #BLAS = -framework Accelerate
++        #LAPACK = -framework Accelerate
+         # OpenMP is not yet supported by default in clang
+         CFOPENMP =
+     endif
+

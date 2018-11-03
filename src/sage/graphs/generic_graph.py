@@ -21169,7 +21169,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.automorphism_group(partition=[[0],list(range(1,10))], return_group=False, orbits=True,algorithm='sage')
             [[0], [2, 3, 6, 7, 8, 9], [1, 4, 5]]
             sage: C = graphs.CubeGraph(3)
-            sage: C.automorphism_group(orbits=True, return_group=False,algorithm='sage')
+            sage: orb = C.automorphism_group(orbits=True, return_group=False,algorithm='sage')
+            sage: [sorted(o) for o in orb]
             [['000', '001', '010', '011', '100', '101', '110', '111']]
 
         One can also use the faster algorithm for computing the automorphism
@@ -21195,12 +21196,12 @@ class GenericGraph(GenericGraph_pyx):
         Labeled automorphism group::
 
             sage: digraphs.DeBruijn(3,2).automorphism_group(algorithm='sage')
-            Permutation Group with generators [('01','02')('10','20')('11','22')('12','21'), ('00','11')('01','10')('02','12')('20','21')]
+            Permutation Group with generators [('02','10','21')('00','11','22')('01','12','20'), ('02','01')('10','20')('21','12')('22','11')]
             sage: d = digraphs.DeBruijn(3,2)
             sage: d.allow_multiple_edges(True)
             sage: d.add_edge(d.edges()[0])
             sage: d.automorphism_group(algorithm='sage')
-            Permutation Group with generators [('01','02')('10','20')('11','22')('12','21')]
+            Permutation Group with generators [('02','01')('10','20')('21','12')('22','11')]
 
         The labeling is correct::
 
@@ -21270,7 +21271,8 @@ class GenericGraph(GenericGraph_pyx):
         dig = (self._directed or self.has_loops())
 
         if partition is None:
-            partition = [self.vertices()]
+            partition = [list(self)]
+
         if edge_labels or self.has_multiple_edges():
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
             G_vertices = sum(partition, [])
@@ -21361,7 +21363,7 @@ class GenericGraph(GenericGraph_pyx):
                 gens = [ [ tuple([int_to_vertex[i] for i in cycle]) for cycle in gen] for gen in gens]
                 output.append(PermutationGroup(gens = gens, domain = int_to_vertex.values()))
             else:
-                output.append(PermutationGroup([[]], domain = self.vertices()))
+                output.append(PermutationGroup([[]], domain=list(self)))
         if order:
             output.append(c)
         if orbits:

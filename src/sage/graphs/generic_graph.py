@@ -2169,9 +2169,11 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``weighted`` -- boolean (default: ``None``);
+
           - If ``True``, the weighted adjacency matrix is used for `M`, and the
             diagonal matrix `D` takes into account the weight of edges (replace
             in the definition "degree" by "sum of the incident edges")
+
           - Else, each edge is assumed to have weight 1
 
           Default is to take weights into consideration if and only if the graph
@@ -2179,20 +2181,24 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``indegree`` -- boolean (default: ``True``); this parameter is
           considered only for digraphs.
+
           - If ``True``, each diagonal entry of `D` is equal to the in-degree of
             the corresponding vertex
+
           - Else, each diagonal entry of `D` is equal to the out-degree of the
             corresponding vertex.
 
           By default, ``indegree`` is set to ``True``
 
         - ``normalized`` -- boolean (default: ``False``);
+
           - If ``True``, the returned matrix is `D^{-1/2}(D-M)D^{-1/2}`, a
             normalized version of the Laplacian matrix.
             More accurately, the normalizing matrix used is equal to `D^{-1/2}`
             only for non-isolated vertices.  If vertex `i` is isolated, then
             diagonal entry `i` in the matrix is 1, rather than a division by
             zero.
+
           - Else, the matrix `D-M` is returned
 
         Note that any additional keywords will be passed on to either the
@@ -20278,7 +20284,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``laplacian`` -- boolean (default: ``False``); if ``True``, use the
-           Laplacian matrix (see :meth:`kirchhoff_matrix`)
+          Laplacian matrix (see :meth:`kirchhoff_matrix`)
 
         OUTPUT:
 
@@ -20398,7 +20404,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``laplacian`` -- boolean (default: ``False``); if ``True``, use the
-           Laplacian matrix (see :meth:`kirchhoff_matrix`)
+          Laplacian matrix (see :meth:`kirchhoff_matrix`)
 
         OUTPUT:
 

@@ -12,8 +12,8 @@ can be applied on both. Here is what it can do:
     :widths: 30, 70
     :delim: |
 
-    :meth:`~GenericGraph.networkx_graph` | Create a new NetworkX graph from the Sage graph
-    :meth:`~GenericGraph.igraph_graph` | Create a new igraph graph from the Sage graph
+    :meth:`~GenericGraph.networkx_graph` | Return a new ``NetworkX`` graph from the Sage graph
+    :meth:`~GenericGraph.igraph_graph` | Return an ``igraph`` graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Create a dictionary encoding the graph.
     :meth:`~GenericGraph.copy` | Return a copy of the graph.
     :meth:`~GenericGraph.export_to_file` | Export the graph to a file.
@@ -917,7 +917,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_immutable(self):
         """
-        Returns whether the graph is immutable.
+        Check whether the graph is immutable.
 
         EXAMPLES::
 
@@ -938,31 +938,32 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-         - ``weighted`` boolean (default: ``None``) -- weightedness for
-           the copy. Might change the equality class if not ``None``.
+        - ``weighted`` -- boolean (default: ``None``); weightedness for the
+          copy. Might change the equality class if not ``None``.
 
-         - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
-           ``data_structure="sparse"``, and ``sparse=False`` is an alias for
-           ``data_structure="dense"``. Only used when
-           ``implementation='c_graph'`` and ``data_structure=None``.
+        - ``sparse`` -- boolean (default: ``None``); ``sparse=True`` is an alias
+          for ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+          ``data_structure="dense"``. Only used when
+          ``implementation='c_graph'`` and ``data_structure=None``.
 
-         - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
-           ``"dense"``. See the documentation of :class:`Graph` or
-           :class:`DiGraph`. Only used when ``implementation='c_graph'``.
+        - ``data_structure`` -- string (default: ``None``); one of ``"sparse"``,
+          ``"static_sparse"``, or ``"dense"``. See the documentation of
+          :class:`Graph` or :class:`DiGraph`. Only used when
+          ``implementation='c_graph'``.
 
-         - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           copy. Only used when ``implementation='c_graph'`` and
-           ``data_structure=None``.
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable copy. Only used when ``implementation='c_graph'``
+          and ``data_structure=None``.
 
-           * ``immutable=None`` (default) means that the graph and its copy will
-             behave the same way.
+          * ``immutable=None`` (default) means that the graph and its copy will
+            behave the same way.
 
-           * ``immutable=True`` is a shortcut for
-             ``data_structure='static_sparse'`` and ``implementation='c_graph'``
+          * ``immutable=True`` is a shortcut for
+            ``data_structure='static_sparse'`` and ``implementation='c_graph'``
 
-           * ``immutable=False`` sets ``implementation`` to ``'c_graph'``. When
-             ``immutable=False`` is used to copy an immutable graph, the data
-             structure used is ``"sparse"`` unless anything else is specified.
+          * ``immutable=False`` sets ``implementation`` to ``'c_graph'``. When
+            ``immutable=False`` is used to copy an immutable graph, the data
+            structure used is ``"sparse"`` unless anything else is specified.
 
         .. NOTE::
 
@@ -975,29 +976,29 @@ class GenericGraph(GenericGraph_pyx):
 
         A Graph object.
 
-        .. warning::
+        .. WARNING::
 
            Please use this method only if you need to copy but change the
-           underlying implementation or weightedness.  Otherwise simply
-           do ``copy(g)`` instead of ``g.copy()``.
+           underlying implementation or weightedness. Otherwise simply do
+           ``copy(g)`` instead of ``g.copy()``.
 
-        .. warning::
+        .. WARNING::
 
            If ``weighted`` is passed and is not the weightedness of the
            original, then the copy will not equal the original.
 
         EXAMPLES::
 
-            sage: g=Graph({0:[0,1,1,2]},loops=True,multiedges=True,sparse=True)
-            sage: g==copy(g)
+            sage: g = Graph({0: [0, 1, 1, 2]}, loops=True, multiedges=True, sparse=True)
+            sage: g == copy(g)
             True
-            sage: g=DiGraph({0:[0,1,1,2],1:[0,1]},loops=True,multiedges=True,sparse=True)
-            sage: g==copy(g)
+            sage: g = DiGraph({0: [0, 1, 1, 2], 1: [0, 1]}, loops=True, multiedges=True, sparse=True)
+            sage: g == copy(g)
             True
 
         Note that vertex associations are also kept::
 
-            sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
+            sage: d = {0: graphs.DodecahedralGraph(), 1: graphs.FlowerSnark(), 2: graphs.MoebiusKantorGraph(), 3: graphs.PetersenGraph()}
             sage: T = graphs.TetrahedralGraph()
             sage: T.set_vertices(d)
             sage: T2 = copy(T)
@@ -1017,7 +1018,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             False
             sage: G1 = G.copy(sparse=True)
-            sage: G1==G
+            sage: G1 == G
             True
             sage: G1 is G
             False
@@ -1048,8 +1049,8 @@ class GenericGraph(GenericGraph_pyx):
             False
 
         We make sure that one can make immutable copies by providing the
-        ``data_structure`` optional argument, and that copying an immutable graph
-        returns the graph::
+        ``data_structure`` optional argument, and that copying an immutable
+        graph returns the graph::
 
             sage: G = graphs.PetersenGraph()
             sage: hash(G)
@@ -1065,16 +1066,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: (g is g.copy()) and (g is not copy(g))
             True
 
-        ``immutable=True`` is a short-cut for ``data_structure='static_sparse'``::
+        ``immutable=True`` is a short-cut for
+        ``data_structure='static_sparse'``::
 
             sage: g is g.copy(data_structure='static_sparse') is g.copy(immutable=True)
             True
 
-        If a graph pretends to be immutable, but does not use the
-        static sparse backend, then the copy is not identical with the
-        graph, even though it is considered to be hashable::
+        If a graph pretends to be immutable, but does not use the static sparse
+        backend, then the copy is not identical with the graph, even though it
+        is considered to be hashable::
 
-            sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
+            sage: P = Poset(([1, 2, 3, 4], [[1, 3], [1, 4], [2, 3]]), linear_extension=True, facade=False)
             sage: H = P.hasse_diagram()
             sage: H._immutable = True
             sage: hash(H)   # random
@@ -1087,15 +1089,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.copy(data_structure="sparse", sparse=False)
             Traceback (most recent call last):
             ...
-            ValueError: You cannot define 'immutable' or 'sparse' when 'data_structure' has a value.
+            ValueError: you cannot define 'immutable' or 'sparse' when 'data_structure' has a value
             sage: G.copy(data_structure="sparse", immutable=True)
             Traceback (most recent call last):
             ...
-            ValueError: You cannot define 'immutable' or 'sparse' when 'data_structure' has a value.
+            ValueError: you cannot define 'immutable' or 'sparse' when 'data_structure' has a value
             sage: G.copy(immutable=True, sparse=False)
             Traceback (most recent call last):
             ...
-            ValueError: There is no dense immutable backend at the moment.
+            ValueError: there is no dense immutable backend at the moment
 
         Which backend? ::
 
@@ -1131,15 +1133,15 @@ class GenericGraph(GenericGraph_pyx):
             # data_structure is already defined so there is nothing left to do
             # here ! Did the user try to define too much ?
             if immutable is not None or sparse is not None:
-                raise ValueError("You cannot define 'immutable' or 'sparse' "
-                                 "when 'data_structure' has a value.")
+                raise ValueError("you cannot define 'immutable' or 'sparse' "
+                                 "when 'data_structure' has a value")
         # At this point :
         # - implementation is 'c_graph'
         # - data_structure is None.
         elif immutable is True:
             data_structure = 'static_sparse'
             if sparse is False:
-                raise ValueError("There is no dense immutable backend at the moment.")
+                raise ValueError("there is no dense immutable backend at the moment")
         elif immutable is False:
             # If the users requests a mutable graph and input is immutable, we
             # choose the 'sparse' cgraph backend. Unless the user explicitly
@@ -1196,12 +1198,12 @@ class GenericGraph(GenericGraph_pyx):
 
         OUTPUT:
 
-        A new graph instance that is as close as possible to the
-        original graph. The output is always mutable.
+        A new graph instance that is as close as possible to the original
+        graph. The output is always mutable.
 
         EXAMPLES:
 
-            sage: g = Graph({0:[1,2,3], 2:[4]}, immutable=True)
+            sage: g = Graph({0: [1, 2, 3], 2: [4]}, immutable=True)
             sage: g.weighted(list(range(5)))
             Traceback (most recent call last):
             ...
@@ -1219,13 +1221,13 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``filename`` (string) -- a file name.
+        - ``filename`` -- string; a file name
 
-        - ``format`` (string) -- select the output format explicitly. If set to
-          ``None`` (default), the format is set to be the file extension of
-          ``filename``. Admissible formats are: ``adjlist``, ``dot``,
-          ``edgelist``, ``gexf``, ``gml``, ``graphml``, ``multiline_adjlist``,
-          ``pajek``, ``yaml``.
+        - ``format`` -- string (default: ``None``); select the output format
+          explicitly. If set to ``None`` (default), the format is set to be the
+          file extension of ``filename``. Admissible formats are: ``adjlist``,
+          ``dot``, ``edgelist``, ``gexf``, ``gml``, ``graphml``,
+          ``multiline_adjlist``, ``pajek``, ``yaml``.
 
         - All other arguments are forwarded to the subfunction. For more
           information, see their respective documentation:
@@ -1248,7 +1250,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             * :meth:`~sage.structure.sage_object.SageObject.save` -- save a Sage
-              object to a 'sobj' file (preserves all its attributes).
+              object to a 'sobj' file (preserves all its attributes)
 
         .. NOTE::
 
@@ -1272,14 +1274,14 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: g.export_to_file("hey",format="When I feel heavy metaaaaaallll...")
+            sage: g.export_to_file("hey", format="When I feel heavy metaaaaaallll...")
             Traceback (most recent call last):
             ...
-            ValueError: Format 'When I feel heavy metaaaaaallll...' unknown.
+            ValueError: format 'When I feel heavy metaaaaaallll...' unknown
             sage: g.export_to_file("my_file.Yeeeeppeeeeee")
             Traceback (most recent call last):
             ...
-            RuntimeError: The file format could not be guessed from 'my_file.Yeeeeppeeeeee'
+            RuntimeError: the file format could not be guessed from 'my_file.Yeeeeppeeeeee'
         """
         import networkx
 
@@ -1294,24 +1296,24 @@ class GenericGraph(GenericGraph_pyx):
                    "yaml"              : networkx.write_yaml}
 
         if format is None:
-            ext = filename[1+filename.rfind("."):]
+            ext = filename[1 + filename.rfind("."):]
             if ext not in formats:
-                raise RuntimeError("The file format could not be guessed from '{}'".format(filename))
+                raise RuntimeError("the file format could not be guessed from '{}'".format(filename))
             format = ext
 
         if format not in formats:
-            raise ValueError("Format '{}' unknown.".format(format))
+            raise ValueError("format '{}' unknown".format(format))
 
         formats[format](self.networkx_graph(),filename,**kwds)
 
     def _scream_if_not_simple(self, allow_loops=False, allow_multiple_edges=False):
         r"""
-        Raises an exception if the graph is not simple.
+        Raise an exception if the graph is not simple.
 
         This function is called by some functions of the Graph library when they
-        have been written for simple graphs only (i.e. neither loops nor multiple
-        edges). It raises an exception inviting the user to convert the graph to
-        a simple graph first, before calling the function again.
+        have been written for simple graphs only (i.e. neither loops nor
+        multiple edges). It raises an exception inviting the user to convert the
+        graph to a simple graph first, before calling the function again.
 
         Note that this function does not check the existence of loops or
         multiple edges, which would take linear time: it merely checks that the
@@ -1320,11 +1322,11 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``allow_loops`` (boolean) -- whether to tolerate loops. Set to
-          ``False`` by default.
+        - ``allow_loops`` -- boolean (default: ``False``); whether to tolerate
+          loops
 
-        - ``allow_multiple_edges`` (boolean) -- whether to tolerate multiple
-          edges. Set to ``False`` by default.
+        - ``allow_multiple_edges`` -- boolean (default: ``False``); whether to
+          tolerate multiple edges
 
         .. SEEALSO::
 
@@ -1338,10 +1340,10 @@ class GenericGraph(GenericGraph_pyx):
         No scream::
 
             sage: from itertools import product
-            sage: for p,q in product((True,False),repeat=2):
+            sage: for p, q in product((True, False), repeat=2):
             ....:     g.allow_loops(p)
             ....:     g.allow_multiple_edges(q)
-            ....:     g._scream_if_not_simple(p,q)
+            ....:     g._scream_if_not_simple(p, q)
 
         A lot of them::
 
@@ -1381,23 +1383,21 @@ class GenericGraph(GenericGraph_pyx):
             elif pb_with_multiple_edges:
                 name = "multiedges"
                 functions = "allow_multiple_edges()"
-            msg = ("This method is not known to work on graphs with "+name+". "+
-                   "Perhaps this method can be updated to handle them, but in the "+
-                   "meantime if you want to use it please disallow "+name+" using "+
-                   functions+".")
+            msg = ("This method is not known to work on graphs with " + name + ". "
+                   "Perhaps this method can be updated to handle them, but in the " +
+                   "meantime if you want to use it please disallow " + name + " using " +
+                   functions + ".")
             raise ValueError(msg)
 
     def networkx_graph(self, copy=True):
         """
-        Creates a new NetworkX graph from the Sage graph.
+        Return a new ``NetworkX`` graph from the Sage graph.
 
         INPUT:
 
-
-        -  ``copy`` - if False, and the underlying
-           implementation is a NetworkX graph, then the actual object itself
-           is returned.
-
+        - ``copy`` -- boolean (default: ``False``); if ``False``, and the
+          underlying implementation is a ``NetworkX`` graph, then the actual
+          object itself is returned
 
         EXAMPLES::
 
@@ -1406,7 +1406,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: type(N)
             <class 'networkx.classes.graph.Graph'>
         """
-
         try:
             if copy:
                 return self._backend._nxg.copy()
@@ -1425,20 +1424,20 @@ class GenericGraph(GenericGraph_pyx):
             N = class_type(selfloops=self.allows_loops(), multiedges=self.allows_multiple_edges(),
                            name=self.name())
             N.add_nodes_from(self.vertices())
-            for u,v,l in self.edges():
+            from networkx import NetworkXError
+            for u, v, l in self.edge_iterator():
                 if l is None:
-                    N.add_edge(u,v)
+                    N.add_edge(u, v)
                 else:
-                    from networkx import NetworkXError
                     try:
-                        N.add_edge(u,v,l)
+                        N.add_edge(u, v, l)
                     except (TypeError, ValueError, NetworkXError):
-                        N.add_edge(u,v,weight=l)
+                        N.add_edge(u, v, weight=l)
             return N
 
-    def igraph_graph(self, vertex_attrs={}, edge_attrs={}):
+    def igraph_graph(self, vertex_list=None, vertex_attrs={}, edge_attrs={}):
         r"""
-        Converts the graph into an igraph graph.
+        Return an ``igraph`` graph from the Sage graph.
 
         Optionally, it is possible to add vertex attributes and edge attributes
         to the output graph.
@@ -1446,29 +1445,37 @@ class GenericGraph(GenericGraph_pyx):
         .. NOTE::
 
             This routine needs the optional package igraph to be installed:
-            to do so, it is enough to
-            run ``sage -i python_igraph``. For
-            more information on the Python version of igraph, see
+            to do so, it is enough to run ``sage -i python_igraph``. For more
+            information on the Python version of igraph, see
             http://igraph.org/python/.
 
         INPUT:
 
-        - ``vertex_attrs`` (dictionary) - a dictionary where the key is a string
-          (the attribute name), and the value is an iterable containing in
-          position i the label of the ith vertex returned by :meth:`vertices`
-          (see http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for
-          more information).
+        - ``vertex_list`` -- list (default: ``None``); defines a mapping from
+          the vertices of the graph to consecutive integers in ``(0, \ldots,
+          n-1)`. Otherwise, the result of :meth:`vertices` will be used
+          instead. Because :meth:`vertices` only works if the vertices can be
+          sorted, using ``vertex_list`` is useful when working with possibly
+          non-sortable objects in Python 3.
 
-        - ``edge_attrs`` (dictionary) - a dictionary where the key is a string
-          (the attribute name), and the value is an iterable containing in
-          position i the label of the ith edge in the list outputted by
-          :meth:`edge_iterator` (see
+        - ``vertex_attrs`` -- dictionary (default: ``{}``); a dictionary where
+          the key is a string (the attribute name), and the value is an iterable
+          containing in position `i` the label of the `i`-th vertex in the list
+          ``vertex_list`` if it is given or in :meth:`vertices` when
+          ``vertex_list == None`` (see
           http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for more
-          information).
+          information)
+
+        - ``edge_attrs`` -- dictionary (default: ``{}``); a dictionary where the
+          key is a string (the attribute name), and the value is an iterable
+          containing in position `i` the label of the `i`-th edge in the list
+          outputted by :meth:`edge_iterator` (see
+          http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for more
+          information)
 
         .. NOTE::
 
-            In igraph, a graph is weighted if the edge labels have attribute
+            In ``igraph``, a graph is weighted if the edge labels have attribute
             ``weight``. Hence, to create a weighted graph, it is enough to add
             this attribute.
 
@@ -1492,95 +1499,111 @@ class GenericGraph(GenericGraph_pyx):
 
         Adding edge attributes::
 
-            sage: G = Graph([(1,2,'a'),(2,3,'b')])                                     # optional - python_igraph
-            sage: H = G.igraph_graph(edge_attrs = {'label':[e[2] for e in G.edges()]}) # optional - python_igraph
-            sage: H.es['label']                                                        # optional - python_igraph
+            sage: G = Graph([(1, 2, 'a'), (2, 3, 'b')])                       # optional - python_igraph
+            sage: E = list(G.edge_iterator())                                 # optional - python_igraph
+            sage: H = G.igraph_graph(edge_attrs={'label': [e[2] for e in E]}) # optional - python_igraph
+            sage: H.es['label']                                               # optional - python_igraph
             ['a', 'b']
 
 
         If edges have an attribute ``weight``, the igraph graph is considered
         weighted::
 
-            sage: G = Graph([(1,2,{'weight':1}),(2,3,{'weight':2})])                              # optional - python_igraph
-            sage: H = G.igraph_graph(edge_attrs = {'weight':[e[2]['weight'] for e in G.edges()]}) # optional - python_igraph
-            sage: H.is_weighted()                                                                 # optional - python_igraph
+            sage: G = Graph([(1, 2, {'weight': 1}), (2, 3, {'weight': 2})])              # optional - python_igraph
+            sage: E = list(G.edge_iterator())                                            # optional - python_igraph
+            sage: H = G.igraph_graph(edge_attrs={'weight': [e[2]['weight'] for e in E]}) # optional - python_igraph
+            sage: H.is_weighted()                                                        # optional - python_igraph
             True
-            sage: H.es['weight']                                                                  # optional - python_igraph
+            sage: H.es['weight']                                                         # optional - python_igraph
             [1, 2]
 
         Adding vertex attributes::
 
-            sage: G = graphs.GridGraph([2,2])                            # optional - python_igraph
-            sage: H = G.igraph_graph(vertex_attrs={'name':G.vertices()}) # optional - python_igraph
-            sage: H.vs()['name']                                         # optional - python_igraph
+            sage: G = graphs.GridGraph([2, 2])                            # optional - python_igraph
+            sage: H = G.igraph_graph(vertex_attrs={'name': G.vertices()}) # optional - python_igraph
+            sage: H.vs()['name']                                          # optional - python_igraph
             [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+        Providing a mapping from vertices to consecutive integers::
+
+            sage: G = graphs.GridGraph([2, 2])                                # optional - python_igraph
+            sage: V = list(G)                                                 # optional - python_igraph
+            sage: H = G.igraph_graph(vertex_list=V, vertex_attrs={'name': V}) # optional - python_igraph
+            sage: H.vs()['name']                                              # optional - python_igraph
+            [(0, 1), (1, 0), (0, 0), (1, 1)]
 
         Sometimes, Sage integer/floats are not compatible with igraph::
 
-            sage: G = Graph([(0,1,2)])                                                    # optional - python_igraph
-            sage: H = G.igraph_graph(edge_attrs = {'capacity':[e[2] for e in G.edges()]}) # optional - python_igraph
-            sage: H.maxflow_value(0, 1, 'capacity')                                       # optional - python_igraph
+            sage: G = Graph([(0, 1, 2)])                                         # optional - python_igraph
+            sage: E = list(G.edge_iterator())                                    # optional - python_igraph
+            sage: H = G.igraph_graph(edge_attrs={'capacity': [e[2] for e in E]}) # optional - python_igraph
+            sage: H.maxflow_value(0, 1, 'capacity')                              # optional - python_igraph
             1.0
-            sage: H = G.igraph_graph(edge_attrs = {'capacity':[float(e[2]) for e in G.edges()]}) # optional - python_igraph
-            sage: H.maxflow_value(0, 1, 'capacity')                                              # optional - python_igraph
+            sage: H = G.igraph_graph(edge_attrs={'capacity': [float(e[2]) for e in E]}) # optional - python_igraph
+            sage: H.maxflow_value(0, 1, 'capacity')                                     # optional - python_igraph
             2.0
 
         TESTS:
 
         Converting a DiGraph back and forth::
 
-            sage: G = DiGraph([('a','b',{'w':1}),('b','c',{'w':2})])    # optional - python_igraph
-            sage: vertex_attrs={'name':G.vertices()}                    # optional - python_igraph
-            sage: edge_attrs={'w':[e[2]['w'] for e in G.edges()]}       # optional - python_igraph
-            sage: H = DiGraph(G.igraph_graph(vertex_attrs, edge_attrs)) # optional - python_igraph
-            sage: G == H                                                # optional - python_igraph
+            sage: G = DiGraph([('a', 'b', {'w': 1}), ('b', 'c', {'w': 2})])                     # optional - python_igraph
+            sage: vertex_attrs = {'name': G.vertices()}                                         # optional - python_igraph
+            sage: E = list(G.edge_iterator())                                                   # optional - python_igraph
+            sage: edge_attrs = {'w': [e[2]['w'] for e in E]}                                    # optional - python_igraph
+            sage: H = DiGraph(G.igraph_graph(vertex_attrs=vertex_attrs, edge_attrs=edge_attrs)) # optional - python_igraph
+            sage: G == H                                                                        # optional - python_igraph
             True
-            sage: G.edges() == H.edges()                                # optional - python_igraph
+            sage: G.edges() == H.edges()                                                        # optional - python_igraph
             True
-            sage: H = DiGraph(G.igraph_graph(edge_attrs=edge_attrs))    # optional - python_igraph
-            sage: G == H                                                # optional - python_igraph
+            sage: H = DiGraph(G.igraph_graph(edge_attrs=edge_attrs))                            # optional - python_igraph
+            sage: G == H                                                                        # optional - python_igraph
             False
 
         When checking for equality, edge labels are not taken into account::
 
-            sage: H = DiGraph(G.igraph_graph(vertex_attrs)) # optional - python_igraph
-            sage: G == H                                    # optional - python_igraph
+            sage: H = DiGraph(G.igraph_graph(vertex_attrs=vertex_attrs)) # optional - python_igraph
+            sage: G == H                                                 # optional - python_igraph
             True
-            sage: G.edges() == H.edges()                    # optional - python_igraph
+            sage: G.edges() == H.edges()                                 # optional - python_igraph
             False
 
         Converting a Graph back and forth::
 
-            sage: G = Graph([('a','b',{'w':1}),('b','c',{'w':2})])    # optional - python_igraph
-            sage: vertex_attrs={'name':G.vertices()}                  # optional - python_igraph
-            sage: edge_attrs={'w':[e[2]['w'] for e in G.edges()]}     # optional - python_igraph
-            sage: H = Graph(G.igraph_graph(vertex_attrs, edge_attrs)) # optional - python_igraph
-            sage: G == H                                              # optional - python_igraph
+            sage: G = Graph([('a', 'b', {'w': 1}), ('b', 'c', {'w': 2})])                     # optional - python_igraph
+            sage: vertex_attrs = {'name': G.vertices()}                                       # optional - python_igraph
+            sage: E = list(G.edge_iterator())                                                 # optional - python_igraph
+            sage: edge_attrs = {'w': [e[2]['w'] for e in E]}                                  # optional - python_igraph
+            sage: H = Graph(G.igraph_graph(vertex_attrs=vertex_attrs, edge_attrs=edge_attrs)) # optional - python_igraph
+            sage: G == H                                                                      # optional - python_igraph
             True
-            sage: G.edges() == H.edges()                              # optional - python_igraph
+            sage: G.edges() == H.edges()                                                      # optional - python_igraph
             True
-            sage: H = Graph(G.igraph_graph(edge_attrs=edge_attrs))    # optional - python_igraph
-            sage: G == H                                              # optional - python_igraph
+            sage: H = Graph(G.igraph_graph(edge_attrs=edge_attrs))                            # optional - python_igraph
+            sage: G == H                                                                      # optional - python_igraph
             False
 
         When checking for equality, edge labels are not taken into account::
 
-            sage: H = Graph(G.igraph_graph(vertex_attrs)) # optional - python_igraph
-            sage: G == H                                  # optional - python_igraph
+            sage: H = Graph(G.igraph_graph(vertex_attrs=vertex_attrs)) # optional - python_igraph
+            sage: G == H                                               # optional - python_igraph
             True
-            sage: G.edges() == H.edges()                  # optional - python_igraph
+            sage: G.edges() == H.edges()                               # optional - python_igraph
             False
         """
         import igraph
 
-        v_to_int = {v: i for i, v in enumerate(self.vertices())}
-        edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
+        if vertex_list is None:
+            v_to_int = {v: i for i, v in enumerate(self.vertices())}
+        else:
+            v_to_int = {v: i for i, v in enumerate(vertex_list)}
+        edges = [(v_to_int[v], v_to_int[w]) for v, w in self.edge_iterator(labels=False)]
 
-        return igraph.Graph(n = self.num_verts(),
-                            edges = edges,
+        return igraph.Graph(n=self.num_verts(),
+                            edges=edges,
                             directed=self.is_directed(),
-                            vertex_attrs = vertex_attrs,
-                            edge_attrs = edge_attrs)
+                            vertex_attrs=vertex_attrs,
+                            edge_attrs=edge_attrs)
 
     def to_dictionary(self, edge_labels=False, multiple_edges=False):
         r"""
@@ -8152,14 +8175,15 @@ class GenericGraph(GenericGraph_pyx):
         if (algorithm == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (algorithm == 'igraph'):
-            vertices = self.vertices()
+            vertices = list(self)
             x_int = vertices.index(x)
             y_int = vertices.index(y)
             if use_edge_labels:
-                g_igraph = self.igraph_graph(edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
+                g_igraph = self.igraph_graph(vertex_list=vertices,
+                                             edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
                 maxflow = g_igraph.maxflow(x_int, y_int, 'capacity')
             else:
-                g_igraph = self.igraph_graph()
+                g_igraph = self.igraph_graph(vertex_list=vertices)
                 maxflow = g_igraph.maxflow(x_int, y_int)
 
             if value_only:

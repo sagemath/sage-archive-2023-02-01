@@ -797,9 +797,9 @@ class Graph(GenericGraph):
     #. An igraph Graph (see also
        :meth:`~sage.graphs.generic_graph.GenericGraph.igraph_graph`)::
 
-           sage: import igraph                   # optional - python_igraph
-           sage: g = igraph.Graph([(0,1),(0,2)]) # optional - python_igraph
-           sage: Graph(g)                        # optional - python_igraph
+           sage: import igraph                      # optional - python_igraph
+           sage: g = igraph.Graph([(0, 1), (0, 2)]) # optional - python_igraph
+           sage: Graph(g)                           # optional - python_igraph
            Graph on 3 vertices
 
        If ``vertex_labels`` is ``True``, the names of the vertices are given by
@@ -6843,9 +6843,9 @@ class Graph(GenericGraph):
              (0, 2): [[(0, 1), (0, 2)], [(1, 2), (0, 2)]],
              (1, 0): [[(1, 0), (0, 0)], [(1, 0), (1, 1)]],
              (1, 1): [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]],
-             (1, 2): [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]}
+             (1, 2): [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]}
             sage: F.cliques_containing_vertex(vertices=[(0, 1), (1, 2)])
-            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], (1, 2): [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]}
+            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], (1, 2): [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]}
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_containing_vertex()

@@ -2,7 +2,7 @@ r"""
 Cyclic sieving phenomenon
 
 Implementation of the Cyclic Sieving Phenomenon as described by
-Reiner, Stanton, and White in [RWS2004]_.
+Reiner, Stanton, and White in [RSW2004]_.
 
 We define the :func:`CyclicSievingPolynomial` of a finite set `S`
 together with cyclic action ``cyc_act`` (of order `n`) to be the
@@ -15,7 +15,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [RWS2004] Reiner, Stanton, White - *The cyclic sieving phenomenon*,
+.. [RSW2004] Reiner, Stanton, White - *The cyclic sieving phenomenon*,
              Journal of Combinatorial Theory A 108 (2004)
 """
 # ****************************************************************************

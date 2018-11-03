@@ -157,11 +157,11 @@ cdef class ConvexityProperties:
 
         # Build mappings integer <-> vertices.
         # Must be consistent with the mappings used in c_distances_all_pairs
-        self._list_integers_to_vertices = G.vertices()
+        self._list_integers_to_vertices = list(G)
         self._dict_vertices_to_integers = {v: i for i, v in enumerate(self._list_integers_to_vertices)}
 
         # Computation of distances between all pairs. Costly.
-        cdef unsigned short* c_distances = c_distances_all_pairs(G)
+        cdef unsigned short* c_distances = c_distances_all_pairs(G, vertex_list=self._list_integers_to_vertices)
         # Temporary variables
         cdef unsigned short* d_i
         cdef unsigned short* d_j

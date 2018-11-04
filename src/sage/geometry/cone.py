@@ -189,7 +189,10 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+
+# Use python-3.x versions of print() and range().
 from __future__ import print_function
+from six.moves import range
 
 import collections
 import copy

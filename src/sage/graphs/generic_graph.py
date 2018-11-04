@@ -2000,19 +2000,18 @@ class GenericGraph(GenericGraph_pyx):
         position to the vertex at the `j`-th position.
 
         Note that even when the vertices are consecutive integers starting from
-        one, usually the vertex is not equal to it's index.
+        one, usually the vertex is not equal to its index.
 
         INPUT:
 
         - ``vertices`` -- list (default: ``None``); the ordering of the vertices
           defining how they should appear in the matrix. By default, the
-          ordering given by :meth:`GenericGraph.vertices` is used. Because
-          :meth:`GenericGraph.vertices` only works if the vertices can be
-          sorted, using ``vertices`` is useful when working with possibly
-          non-sortable objects in Python 3.
+          ordering given by :meth:`vertices` is used. Because :meth:`vertices`
+          only works if the vertices can be sorted, using ``vertices`` is useful
+          when working with possibly non-sortable objects in Python 3.
 
         - All other arguments are forwarded to the subfunction
-          :meth:`GenericGraph.distance_all_pairs`
+          :meth:`distance_all_pairs`
 
         EXAMPLES::
 

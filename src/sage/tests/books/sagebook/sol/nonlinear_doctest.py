@@ -43,10 +43,10 @@ Sage example in ./sol/nonlinear.tex, line 49::
   ....:     assert isinstance(series, GeneratorType)
   ....:     assert isinstance(check, FunctionType)
   ....:     niter = 2
-  ....:     v, w = series.next(), series.next()
+  ....:     v, w = next(series), next(series)
   ....:     while (niter <= maxit):
   ....:         niter += 1
-  ....:         u, v, w = v, w, series.next()
+  ....:         u, v, w = v, w, next(series)
   ....:         if check(u, v, w, prec):
   ....:             print('After {0} iterations: {1}'.format(niter, w))
   ....:             return
@@ -106,7 +106,7 @@ Sage example in ./sol/nonlinear.tex, line 141::
   sage: a, b = pi/2, pi
   sage: f(x) = 4 * sin(x) - exp(x) / 2 + 1
   sage: generator = quadraticgen(f, a, b)
-  sage: generator.next()
+  sage: next(generator)
   1/2*pi - (e^(1/2*pi) - 10)*e^(-1/2*pi)
 
 """

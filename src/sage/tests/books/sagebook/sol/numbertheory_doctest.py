@@ -28,7 +28,7 @@ Sage example in ./sol/numbertheory.tex, line 26::
 Sage example in ./sol/numbertheory.tex, line 52::
 
   sage: def enum_carmichael_pq(n,a,m,p,q,verbose):
-  ....:    if (a-q) % gcd(m,q*(q-1)) <> 0: return 0
+  ....:    if (a-q) % gcd(m,q*(q-1)) != 0: return 0
   ....:    s = 0
   ....:    a = crt (a, q, m, q*(q-1)); m = lcm(m,q*(q-1))
   ....:    while a <= p*q^2: a += m
@@ -62,7 +62,7 @@ Sage example in ./sol/numbertheory.tex, line 94::
 
   sage: def aliq(n):
   ....:    l = [n]
-  ....:    while n <> 1:
+  ....:    while n != 1:
   ....:       n = sigma(n) - n
   ....:       if n in l: break
   ....:       l.append(n)
@@ -113,7 +113,7 @@ Sage example in ./sol/numbertheory.tex, line 219::
   ....:                     ybmin = 1
   ....:                 for yb in range(ybmin,ybmax+1):
   ....:                     d = 2*abs(xb*ya - xa*yb)
-  ....:                     if d <> 0:
+  ....:                     if d != 0:
   ....:                         ra2 = xa^2+ya^2; rb2 = xb^2+yb^2
   ....:                         xc = abs(ra2*yb - rb2*ya)
   ....:                         yc = abs(rb2*xa - ra2*xb)

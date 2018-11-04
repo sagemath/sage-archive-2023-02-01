@@ -210,9 +210,9 @@ Sage example in ./calculus.tex, line 943::
   sage: solve([x^2 * y * z == 18, x * y^3 * z == 24,\
   ....:        x * y * z^4 == 6], x, y, z)
   [[x == 3, y == 2, z == 1],
-   [x == (1.337215067329613 - 2.685489874065195*I),
-    y == (-1.700434271459228 + 1.052864325754712*I),
-    z == (0.9324722294043555 - 0.3612416661871523*I)], ...]
+   [x == (1.3372150673296... - 2.685489874065...*I),
+    y == (-1.7004342714592... + 1.0528643257547...*I),
+    z == (0.93247222940435... - 0.36124166618715...*I)], ...]
 
 Sage example in ./calculus.tex, line 975::
 
@@ -222,7 +222,7 @@ Sage example in ./calculus.tex, line 975::
 
 Sage example in ./calculus.tex, line 983::
 
-  sage: find_root(expr, 0.1, pi)
+  sage: find_root(expr, 0.1, pi)  # abs tol 1e-12
   2.0943951023931957
 
 Sage example in ./calculus.tex, line 989::

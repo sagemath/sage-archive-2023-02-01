@@ -20,7 +20,7 @@ Sage example in ./mpoly.tex, line 78::
 Sage example in ./mpoly.tex, line 84::
 
   sage: x = R.gens()
-  sage: sum(x[i] for i in xrange(5))
+  sage: sum(x[i] for i in range(5))
   x0 + x1 + x2 + x3 + x4
 
 Sage example in ./mpoly.tex, line 96::
@@ -392,9 +392,9 @@ Sage example in ./mpoly.tex, line 1863::
 
 Sage example in ./mpoly.tex, line 1882::
 
-  sage: ys = CDF['y'](Jy.0).roots(); ys
-  [(-0.8000000000000002, 1), (0.0, 1), (0.8, 1)]
-  sage: [CDF['x'](p(y=ys[0][0])).roots() for p in J.gens()]
+  sage: ys = CDF['y'](Jy.0).roots(); ys # abs tol 2e-15
+  [(-0.8, 1), (0.0, 1), (0.8, 1)]
+  sage: [CDF['x'](p(y=ys[0][0])).roots() for p in J.gens()] # abs tol 2e-15
   [[(-0.5999999999999999 - 1.306289919090511e-16*I, 1),
    (0.6000000000000001 + 1.3062899190905113e-16*I, 1)],
    [(0.6000000000000001 - 3.1350958058172247e-16*I, 1),

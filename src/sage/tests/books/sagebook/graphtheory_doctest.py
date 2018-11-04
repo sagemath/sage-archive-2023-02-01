@@ -63,9 +63,9 @@ Sage example in ./graphtheory.tex, line 252::
   sage: P = graphs.PetersenGraph()
   sage: P.is_planar()
   False
-  sage: P.minor(graphs.CompleteBipartiteGraph(3,3))
+  sage: P.minor(graphs.CompleteBipartiteGraph(3,3))  # random
   {0: [1], 1: [8], 2: [4], 3: [6, 7, 9], 4: [2, 3], 5: [0, 5]}
-  sage: P.minor(graphs.CompleteGraph(5))
+  sage: P.minor(graphs.CompleteGraph(5))  # random
   {0: [1, 6], 1: [0, 5], 2: [2, 7], 3: [4, 9], 4: [3, 8]}
   sage: P.girth()
   5
@@ -331,7 +331,7 @@ Sage example in ./graphtheory.tex, line 1989::
   ....:      # and its potential images in G
   ....:      candidates = [u for u in G_remain if
   ....:             all([H.has_edge(h,v) == G.has_edge(f_h,u)
-  ....:                     for h, f_h in f.iteritems()])]
+  ....:                     for h, f_h in f.items()])]
   ....:      # if no candidate is found, we abort immediately
   ....:      if not candidates:
   ....:          raise ValueError("No copy of H has been found in G")
@@ -360,9 +360,11 @@ Sage example in ./graphtheory.tex, line 2070::
 
 Sage example in ./graphtheory.tex, line 2084::
 
-  sage: G.independent_set()
+  sage: X = G.independent_set(); X  # random with python3
   [4, 6, 9, 11, 16, 21, 23, 26, 28, 33, 38, 43, 50,
   56, 61, 71, 76, 78, 83, 88, 93, 95, 98, 100]
+  sage: G.is_independent_set(X)
+  True
 
 Sage example in ./graphtheory.tex, line 2139::
 

@@ -21,7 +21,7 @@ Sage example in ./integration.tex, line 78::
 
 Sage example in ./integration.tex, line 104::
 
-  sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
+  sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))  # abs tol 2e-15
   0.285736646322853 - 6.93889390390723e-18*I
 
 Sage example in ./integration.tex, line 108::
@@ -34,7 +34,7 @@ Sage example in ./integration.tex, line 162::
   sage: fp = plot(f, 1, 3, color='red')
   sage: n = 4
   sage: interp_points = [(1+2*u/(n-1), N(f(1+2*u/(n-1))))
-  ....:                  for u in xrange(n)]
+  ....:                  for u in range(n)]
   sage: A = PolynomialRing(RR, 'x')
   sage: pp = plot(A.lagrange_polynomial(interp_points), 1, 3, fill='axis')
   sage: fp+pp
@@ -42,7 +42,7 @@ Sage example in ./integration.tex, line 162::
 
 Sage example in ./integration.tex, line 522::
 
-  sage: N(integrate(exp(-x^2)*log(x), x, 17, 42))
+  sage: N(integrate(exp(-x^2)*log(x), x, 17, 42))  # rel tol 2e-12
   2.5657285006962035e-127
 
 Sage example in ./integration.tex, line 536::
@@ -54,15 +54,15 @@ Sage example in ./integration.tex, line 536::
 
 Sage example in ./integration.tex, line 562::
 
-  sage: numerical_integral(exp(-x^2)*log(x), 17, 42)
+  sage: numerical_integral(exp(-x^2)*log(x), 17, 42)  # rel tol 2e-11
   (2.5657285006962035e-127, 3.3540254049238093e-128)
 
 Sage example in ./integration.tex, line 600::
 
   sage: numerical_integral(exp(-x^100), 0, 1.1)
   (0.99432585119150..., 4.0775730...e-09)
-  sage: numerical_integral(exp(-x^100), 0, 1.1, algorithm='qng')
-  (0.994327538576531..., 0.016840666914688864)
+  sage: numerical_integral(exp(-x^100), 0, 1.1, algorithm='qng') # abs tol 2e-12
+  (0.9943275385765319, 0.016840666914705607)
 
 Sage example in ./integration.tex, line 612::
 
@@ -71,7 +71,7 @@ Sage example in ./integration.tex, line 612::
 
 Sage example in ./integration.tex, line 622::
 
-  sage: N(integrate(exp(-x^2)*log(x), x, 17, 42), digits=60)
+  sage: N(integrate(exp(-x^2)*log(x), x, 17, 42), digits=60) # rel tol 2e-12
   2.5657285006962035e-127
 
 Sage example in ./integration.tex, line 628::
@@ -93,11 +93,11 @@ Sage example in ./integration.tex, line 654::
 Sage example in ./integration.tex, line 703::
 
   sage: gp('intnum(x=17, 20, exp(-x^2)*log(x))')
-  2.5657285005610514829173563961304785900 E-127
+  2.565728500561051482917356396... E-127
 
 Sage example in ./integration.tex, line 717::
 
-  sage: gp('intnum(x=0, 1, sin(sin(x)))')
+  sage: gp('intnum(x=0, 1, sin(sin(x)))') # abs tol 2e-20
   0.43060610312069060491237735524846578643
   sage: old_prec = gp.set_precision(50)
   sage: gp('intnum(x=0, 1, sin(sin(x)))')
@@ -111,7 +111,7 @@ Sage example in ./integration.tex, line 746::
 
 Sage example in ./integration.tex, line 754::
 
-  sage: gp('intnum(x=[0, -99/100], 1, x^(-99/100))')
+  sage: gp('intnum(x=[0, -99/100], 1, x^(-99/100))') # abs tol 2e-16
   100.00000000000000000000000000000000000
 
 Sage example in ./integration.tex, line 766::
@@ -175,26 +175,26 @@ Sage example in ./integration.tex, line 990::
 
   sage: f = lambda y: numerical_integral(lambda x: exp(y*sin(x)),  \
                                          0, sqrt(y))[0]
-  sage: f(0.0), f(0.5), f(1.0)
+  sage: f(0.0), f(0.5), f(1.0) # abs tol 2e-15
   (0.0, 0.8414895067661431, 1.6318696084180513)
 
 Sage example in ./integration.tex, line 998::
 
-  sage: numerical_integral(f, 0, 1)
+  sage: numerical_integral(f, 0, 1) # abs tol 2e-16
   (0.8606791942204567, 6.301207560882073e-07)
 
 Sage example in ./integration.tex, line 1008::
 
   sage: f = lambda y: sage.calculus.calculus.nintegral(exp(y*sin(x)), \
                                                        x, 0, sqrt(y))[0]
-  sage: numerical_integral(f, 0, 1)
-  (0.860679194220456..., 6.301207560882096e-07)
+  sage: numerical_integral(f, 0, 1) # abs tol 2e-16
+  (0.8606791942204567, 6.301207560882096e-07)
 
 Sage example in ./integration.tex, line 1016::
 
   sage: f = lambda y: RDF(mpmath.quad(lambda x: mpmath.exp(y*mpmath.sin(x)), \
                                       [0, sqrt(y)]))
-  sage: numerical_integral(f, 0, 1)
+  sage: numerical_integral(f, 0, 1) # abs tol 2e-16
   (0.8606791942204567, 6.301207561187562e-07)
 
 Sage example in ./integration.tex, line 1027::
@@ -210,7 +210,7 @@ Sage example in ./integration.tex, line 1044::
   ....:   f = lambda y: numerical_integral(lambda x: exp(y*sin(x)),
   ....:               0, sqrt(y), algorithm='qng', max_points=n)[0]
   ....:   return numerical_integral(f, 0, 1, algorithm='qng', max_points=n)
-  sage: evalI(100)
+  sage: evalI(100) # abs tol 2e-12
   (0.8606792028826138, 5.553962923506737e-07)
 
 Sage example in ./integration.tex, line 1228::

@@ -290,7 +290,7 @@ Sage example in ./combinat.tex, line 1179::
 
 Sage example in ./combinat.tex, line 1203::
 
-  sage: len(S)
+  sage: len(S)  # py2
   Traceback (most recent call last):
   ...
   OverflowError: Python int too large to convert to C long
@@ -426,8 +426,8 @@ Sage example in ./combinat.tex, line 1528::
   Dihedral group of order 8 as a permutation group
   sage: G.cardinality()
   8
-  sage: G.list()
-  [(), (1,4)(2,3), (1,2,3,4), (1,3)(2,4), (1,3), (2,4), (1,4,3,2), (1,2)(3,4)]
+  sage: sorted(G.list(), key=str)
+  [(), (1,2)(3,4), (1,2,3,4), (1,3), (1,3)(2,4), (1,4)(2,3), (1,4,3,2), (2,4)]
 
 Sage example in ./combinat.tex, line 1542::
 
@@ -491,18 +491,18 @@ Sage example in ./combinat.tex, line 1718::
 
 Sage example in ./combinat.tex, line 1724::
 
-  sage: it.next()
+  sage: next(it)
   1
-  sage: it.next()
+  sage: next(it)
   3
-  sage: it.next()
+  sage: next(it)
   3
-  sage: it.next()
+  sage: next(it)
   1
 
 Sage example in ./combinat.tex, line 1736::
 
-  sage: it.next()
+  sage: next(it)
   Traceback (most recent call last):
     ...
   StopIteration
@@ -531,14 +531,14 @@ Sage example in ./combinat.tex, line 1772::
 
 Sage example in ./combinat.tex, line 1784::
 
-  sage: sum( binomial(8, i) for i in xrange(9) )
+  sage: sum( binomial(8, i) for i in range(9) )
   256
 
 Sage example in ./combinat.tex, line 1811::
 
-  sage: list(binomial(8, i) for i in xrange(9))
+  sage: list(binomial(8, i) for i in range(9))
   [1, 8, 28, 56, 70, 56, 28, 8, 1]
-  sage: tuple(binomial(8, i) for i in xrange(9))
+  sage: tuple(binomial(8, i) for i in range(9))
   (1, 8, 28, 56, 70, 56, 28, 8, 1)
 
 Sage example in ./combinat.tex, line 1823::
@@ -554,7 +554,7 @@ Sage example in ./combinat.tex, line 1823::
 
 Sage example in ./combinat.tex, line 1839::
 
-  sage: all( is_odd(p) for p in xrange(3,100) if is_prime(p) )
+  sage: all( is_odd(p) for p in range(3,100) if is_prime(p) )
   True
 
 Sage example in ./combinat.tex, line 1852::
@@ -582,17 +582,17 @@ Sage example in ./combinat.tex, line 1895::
   sage: counter_examples = \
   ....:   (p for p in range(1000)
   ....:      if is_prime(p) and not is_prime(mersenne(p)))
-  sage: counter_examples.next()
+  sage: next(counter_examples)
   11
-  sage: counter_examples.next()
+  sage: next(counter_examples)
   23
 
 Sage example in ./combinat.tex, line 1909::
 
   sage: cubes = [t**3 for t in range(-999,1000)]
-  sage: exists([(x,y) for x in cubes for y in cubes], lambda (x,y): x+y == 218) # long
+  sage: exists([(x,y) for x in cubes for y in cubes], lambda xy: sum(xy) == 218) # long
   (True, (-125, 343))
-  sage: exists(((x,y) for x in cubes for y in cubes), lambda (x,y): x+y == 218) # long
+  sage: exists(((x,y) for x in cubes for y in cubes), lambda xy: sum(xy) == 218) # long
   (True, (-125, 343))
 
 Sage example in ./combinat.tex, line 1927::
@@ -662,23 +662,23 @@ Sage example in ./combinat.tex, line 2039::
 
 Sage example in ./combinat.tex, line 2048::
 
-  sage: list(itertools.islice(Permutations(3), 1, 4))
+  sage: list(itertools.islice(Permutations(3), 1r, 4r))
   [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
 Sage example in ./combinat.tex, line 2054::
 
-  sage: list(itertools.imap(lambda z: z.cycle_type(), Permutations(3)))
+  sage: list(map(lambda z: z.cycle_type(), Permutations(3)))
   [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 Sage example in ./combinat.tex, line 2060::
 
-  sage: list(itertools.ifilter(lambda z: z.has_pattern([1,2]),
+  sage: list(filter(lambda z: z.has_pattern([1,2]),
   ....:                        Permutations(3)))
   [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 
 Sage example in ./combinat.tex, line 2069::
 
-  sage: list(itertools.imap(attrcall("cycle_type"), Permutations(3)))
+  sage: list(map(attrcall("cycle_type"), Permutations(3)))
   [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 Sage example in ./combinat.tex, line 2084::
@@ -690,18 +690,18 @@ Sage example in ./combinat.tex, line 2084::
 Sage example in ./combinat.tex, line 2097::
 
   sage: g = f(4)
-  sage: g.next()
+  sage: next(g)
   0
-  sage: g.next()
+  sage: next(g)
   1
-  sage: g.next()
+  sage: next(g)
   2
-  sage: g.next()
+  sage: next(g)
   3
 
 Sage example in ./combinat.tex, line 2108::
 
-  sage: g.next()
+  sage: next(g)
   Traceback (most recent call last):
     ...
   StopIteration
@@ -988,11 +988,11 @@ Sage example in ./combinat.tex, line 3109::
 
 Sage example in ./combinat.tex, line 3117::
 
-  sage: [ sigma for sigma in G if sigma.cycle_type() == [4,2] ]
-  [({1,2},{2,3},{3,4},{1,4})({1,3},{2,4}),
-   ({1,2},{2,4},{3,4},{1,3})({1,4},{2,3}),
-   ({1,2},{1,3},{3,4},{2,4})({1,4},{2,3}),
+  sage: sorted(sigma for sigma in G if sigma.cycle_type() == [4,2])
+  [({1,2},{1,3},{3,4},{2,4})({1,4},{2,3}),
    ({1,2},{1,4},{3,4},{2,3})({1,3},{2,4}),
+   ({1,2},{2,3},{3,4},{1,4})({1,3},{2,4}),
+   ({1,2},{2,4},{3,4},{1,3})({1,4},{2,3}),
    ({1,2},{3,4})({1,3},{1,4},{2,4},{2,3}),
    ({1,2},{3,4})({1,3},{2,3},{2,4},{1,4})]
 

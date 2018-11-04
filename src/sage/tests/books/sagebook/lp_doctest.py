@@ -160,7 +160,7 @@ Sage example in ./lp.tex, line 573::
 Sage example in ./lp.tex, line 586::
 
   sage: matching = p.get_values(matching)
-  sage: [e for e, b in matching.iteritems() if b == 1]
+  sage: [e for e, b in matching.items() if b == 1]
   [(0, 1), (4, 9), (6, 8), (5, 7), (2, 3)]
 
 Sage example in ./lp.tex, line 665::

@@ -176,7 +176,7 @@ Sage example in ./float.tex, line 990::
   sage: def sumharmo(p):
   ....:    RFP = RealField(p)
   ....:    y = RFP(1.); x = RFP(0.); n = 1
-  ....:    while x <> y:
+  ....:    while x != y:
   ....:        y = x; x += 1/n; n += 1
   ....:    return p, n, x
 
@@ -285,9 +285,9 @@ Sage example in ./float.tex, line 1628::
 Sage example in ./float.tex, line 1649::
 
   sage: RBF(pi)
-  [3.141592653589793 +/- 5.61e-16]
+  [3.141592653589793 +/- ...e-16]
   sage: RealBallField(100)(pi)
-  [3.14159265358979323846264338328 +/- 3.83e-30]
+  [3.14159265358979323846264338328 +/- ...e-30]
 
 Sage example in ./float.tex, line 1662::
 
@@ -429,13 +429,13 @@ Sage example in ./float.tex, line 2095::
 Sage example in ./float.tex, line 2135::
 
   sage: CBF(sqrt(2),pi)
-  [1.414213562373095 +/- 4.10e-16] + [3.141592653589793 +/- 5.61e-16]*I
+  [1.414213562373095 +/- 4.10e-16] + [3.141592653589793 +/- ...e-16]*I
   sage: CIF(sqrt(2),pi)
   1.414213562373095? + 3.141592653589794?*I
   sage: CIF(sqrt(2)+pi*I)
   1.414213562373095? + 3.141592653589794?*I
   sage: CBF(sqrt(2)+pi*I)
-  [1.414213562373095 +/- 4.10e-16] + [3.141592653589793 +/- 5.61e-16]*I
+  [1.414213562373095 +/- 4.10e-16] + [3.141592653589793 +/- ...e-16]*I
 
 Sage example in ./float.tex, line 2146::
 
@@ -460,7 +460,7 @@ Sage example in ./float.tex, line 2167::
   sage: ComplexIntervalField(100)(1+I*pi).arg()
   1.26262725567891168344432208361?
   sage: ComplexBallField(100)(1+I*pi).arg()
-  [1.26262725567891168344432208360 +/- 6.60e-30]
+  [1.26262725567891168344432208360 +/- ...e-30]
   sage: ComplexIntervalField(100)(1+I*pi).norm()
   10.8696044010893586188344909999?
 

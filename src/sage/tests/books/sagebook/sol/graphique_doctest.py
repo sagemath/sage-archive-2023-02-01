@@ -80,7 +80,7 @@ Sage example in ./sol/graphique.tex, line 185::
   sage: def g(x,y): v = vector(dX_dt([x, y])); return v / v.norm()
   sage: x, y = var('x, y'); n = len(CI)
   sage: q = plot_vector_field(g(x, y), (x, -3, 3), (y, -y0, y0))
-  sage: for j in xrange(n):
+  sage: for j in range(n):
   ....:     X = integrate.odeint(dX_dt, CI[j], t)
   ....:     q += line(X, color=(1.7*j/(4*n),1.5*j/(4*n),1-3*j/(8*n)))
   sage: X = integrate.odeint(dX_dt, [0.01,0], t)
@@ -91,10 +91,10 @@ Sage example in ./sol/graphique.tex, line 234::
   sage: from scipy import integrate
   sage: t = srange(0, 40, 0.2)
   sage: n = 35; CI_cart = [[4, .2 * i] for i in range(n)]
-  sage: CI = map(lambda x: [sqrt(x[0]^2+x[1]^2),\
-  ....:      pi - arctan(x[1]/x[0])], CI_cart)
+  sage: CI = list(map(lambda x: [sqrt(x[0]^2+x[1]^2),
+  ....:      pi - arctan(x[1]/x[0])], CI_cart))
   sage: for alpha in [0.1, 0.5, 1, 1.25]:                      # long time
-  ....:     dX_dt = lambda X, t=0: [cos(X[1])*(1-1/X[0]^2), \
+  ....:     dX_dt = lambda X, t=0: [cos(X[1])*(1-1/X[0]^2),
   ....:             -sin(X[1]) * (1/X[0]+1/X[0]^3) + 2*alpha/X[0]^2]
   ....:     q = circle((0, 0), 1, fill=True, rgbcolor='purple')
   ....:     for j in range(n):
@@ -104,4 +104,3 @@ Sage example in ./sol/graphique.tex, line 234::
   ....:     q.show(aspect_ratio = 1, axes = False)
 
 """
-

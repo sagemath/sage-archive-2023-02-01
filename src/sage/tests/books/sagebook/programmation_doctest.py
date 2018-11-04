@@ -23,11 +23,8 @@ Sage example in ./programmation.tex, line 137::
 
 Sage example in ./programmation.tex, line 201::
 
-  sage: import keyword; keyword.kwlist
-  ['and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del',
-  'elif', 'else', 'except', 'exec', 'finally', 'for', 'from',
-  'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 'pass',
-  'print', 'raise', 'return', 'try', 'while', 'with', 'yield']
+  sage: import keyword; sorted(keyword.kwlist)
+  [...'and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del'...]
 
 Sage example in ./programmation.tex, line 338::
 
@@ -132,7 +129,7 @@ Sage example in ./programmation.tex, line 1166::
 Sage example in ./programmation.tex, line 1404::
 
   sage: u = 6 ; n = 0
-  sage: while u != 1:    # the test u <> 1 is also possible
+  sage: while u != 1:
   ....:   if u % 2 == 0: # the operator % yields the remainder
   ....:     u = u//2     # //: Euclidean division quotient
   ....:   else:
@@ -335,59 +332,59 @@ Sage example in ./programmation.tex, line 2459::
 
 Sage example in ./programmation.tex, line 2485::
 
-  sage: map (cos, [0, pi/6, pi/4, pi/3, pi/2])
+  sage: list(map (cos, [0, pi/6, pi/4, pi/3, pi/2]))
   [1, 1/2*sqrt(3), 1/2*sqrt(2), 1/2, 0]
 
 Sage example in ./programmation.tex, line 2496::
 
-  sage: map (lambda t: cos(t), [0, pi/6, pi/4, pi/3, pi/2])
+  sage: list(map (lambda t: cos(t), [0, pi/6, pi/4, pi/3, pi/2]))
   [1, 1/2*sqrt(3), 1/2*sqrt(2), 1/2, 0]
 
 Sage example in ./programmation.tex, line 2534::
 
-  sage: map (lambda t: N(cos(t)), [0, pi/6, pi/4, pi/3, pi/2])
+  sage: list(map (lambda t: N(cos(t)), [0, pi/6, pi/4, pi/3, pi/2]))
   [1.00000000000000, 0.866025403784439, 0.707106781186548,
   0.500000000000000, 0.000000000000000]
 
 Sage example in ./programmation.tex, line 2546::
 
-  sage: map (N, map (cos, [0, pi/6, pi/4, pi/3, pi/2]))
+  sage: list(map (N, map (cos, [0, pi/6, pi/4, pi/3, pi/2])))
   [1.00000000000000, 0.866025403784439, 0.707106781186548,
   0.500000000000000, 0.000000000000000]
 
 Sage example in ./programmation.tex, line 2551::
 
-  sage: map (compose(N, cos), [0, pi/6, pi/4, pi/3, pi/2])
+  sage: list(map (compose(N, cos), [0, pi/6, pi/4, pi/3, pi/2]))
   [1.00000000000000, 0.866025403784439, 0.707106781186548,
   0.500000000000000, 0.000000000000000]
 
 Sage example in ./programmation.tex, line 2564::
 
-  sage: filter (is_prime, [1..55])
+  sage: list(filter (is_prime, [1..55]))
   [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
 
 Sage example in ./programmation.tex, line 2578::
 
-  sage: p = 37 ; filter (lambda n: n^4 % p == 7, [0..p-1])
+  sage: p = 37 ; list(filter (lambda n: n^4 % p == 7, [0..p-1]))
   [3, 18, 19, 34]
 
 Sage example in ./programmation.tex, line 2595::
 
-  sage: map(lambda n:2*n+1, [0..15])
+  sage: list(map(lambda n:2*n+1, [0..15]))
   [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31]
   sage: [2*n+1 for n in [0..15]]
   [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31]
 
 Sage example in ./programmation.tex, line 2607::
 
-  sage: filter (is_prime, [1..55])
+  sage: list(filter (is_prime, [1..55]))
   [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
   sage: [p for p in [1..55] if is_prime(p)]
   [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
 
 Sage example in ./programmation.tex, line 2621::
 
-  sage: filter (is_prime, [4*n+1 for n in [0..20]])
+  sage: list(filter (is_prime, [4*n+1 for n in [0..20]]))
   [5, 13, 17, 29, 37, 41, 53, 61, 73]
   sage: [n^2 for n in [1..20] if is_prime(n)]
   [4, 9, 25, 49, 121, 169, 289, 361]
@@ -437,7 +434,7 @@ Sage example in ./programmation.tex, line 2800::
 
 Sage example in ./programmation.tex, line 2810::
 
-  sage: map (lambda x, y: [x, y], [1..3], [6..8])
+  sage: list(map (lambda x, y: [x, y], [1..3], [6..8]))
   [[1, 6], [2, 7], [3, 8]]
 
 Sage example in ./programmation.tex, line 2829::
@@ -455,7 +452,7 @@ Sage example in ./programmation.tex, line 2852::
   sage: x = var('x')
   sage: factor(diff(x*exp(x), [x, x]))
   (x + 2)*e^x
-  sage: map(lambda n: factor(diff(x*exp(x), n*[x])), [0..6])
+  sage: list(map(lambda n: factor(diff(x*exp(x), n*[x])), [0..6]))
   [x*e^x, (x + 1)*e^x, (x + 2)*e^x, (x + 3)*e^x, (x + 4)*e^x,
   (x + 5)*e^x, (x + 6)*e^x]
   sage: [factor (diff (x*exp(x), n*[x])) for n in [0..6]]
@@ -506,8 +503,8 @@ Sage example in ./programmation.tex, line 3038::
 Sage example in ./programmation.tex, line 3121::
 
   sage: def fct1(L):
-  ....:   return [filter (lambda n: n % 2 == 0, L),
-  ....:           filter (lambda n: n % 2 == 1, L)]
+  ....:   return [list(filter(lambda n: n % 2 == 0, L)),
+  ....:           list(filter(lambda n: n % 2 == 1, L))]
 
 Sage example in ./programmation.tex, line 3126::
 
@@ -559,8 +556,7 @@ Sage example in ./programmation.tex, line 3255::
 
 Sage example in ./programmation.tex, line 3277::
 
-  sage: S = 'This is a déjà-vu example.'; S
-  'This is a d\xc3\xa9j\xc3\xa0-vu example.'
+  sage: S = 'This is a déjà-vu example.'
   sage: print(S)
   This is a déjà-vu example.
 
@@ -612,9 +608,9 @@ Sage example in ./programmation.tex, line 3610::
 Sage example in ./programmation.tex, line 3627::
 
   sage: L1 = [0..4]; L2 = [5..9]
-  sage: zip(L1, L2)
+  sage: list(zip(L1, L2))
   [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
-  sage: map(lambda x, y:(x, y), L1, L2)
+  sage: list(map(lambda x, y:(x, y), L1, L2))
   [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
 
 Sage example in ./programmation.tex, line 3656::
@@ -642,10 +638,10 @@ Sage example in ./programmation.tex, line 3713::
 
 Sage example in ./programmation.tex, line 3728::
 
-  sage: Set([Set([]), Set([1]), Set([2]), Set([1, 2])])
-  {{1, 2}, {}, {2}, {1}}
-  sage: Set([    (),     (1, ),    (2, ),    (1, 2) ])
-  {(1, 2), (2,), (), (1,)}
+  sage: sorted(Set([Set([]), Set([1]), Set([2]), Set([1, 2])]), key=str)
+  [{1, 2}, {1}, {2}, {}]
+  sage: sorted(Set([    (),     (1, ),    (2, ),    (1, 2) ]))
+  [(), (1,), (1, 2), (2,)]
 
 Sage example in ./programmation.tex, line 3744::
 
@@ -661,8 +657,8 @@ Sage example in ./programmation.tex, line 3754::
 
 Sage example in ./programmation.tex, line 3762::
 
-  sage: Parts(Set([1, 2, 3]))
-  {{3}, {1, 2}, {}, {2, 3}, {1}, {1, 3}, {1, 2, 3}, {2}}
+  sage: sorted(Parts(Set([1, 2, 3])), key=str)
+  [{1, 2, 3}, {1, 2}, {1, 3}, {1}, {2, 3}, {2}, {3}, {}]
 
 Sage example in ./programmation.tex, line 3804::
 

@@ -18,7 +18,7 @@ Sage example in ./sol/polynomes.tex, line 78::
   sage: def to_chebyshev_basis(pol):
   ....:     (x,) = pol.variables()
   ....:     res = 0
-  ....:     for n in xrange(pol.degree(), -1, -1):
+  ....:     for n in range(pol.degree(), -1, -1):
   ....:         quo, pol = pol.quo_rem(chebyshev_T(n, x))
   ....:         res += quo * T(n, x)
   ....:     return res
@@ -38,7 +38,7 @@ Sage example in ./sol/polynomes.tex, line 131::
   sage: def mydiv(u, v, n):
   ....:     v0 = v.constant_coefficient()
   ....:     quo = 0; rem = u
-  ....:     for k in xrange(n+1):
+  ....:     for k in range(n+1):
   ....:         c = rem[0]/v0
   ....:         rem = (rem - c*v) >> 1  # shifting the coefficients
   ....:         quo += c*x^k

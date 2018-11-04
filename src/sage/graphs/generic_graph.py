@@ -34,7 +34,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.allows_multiple_edges` | Return whether multiple edges are permitted in the (di)graph.
     :meth:`~GenericGraph.allow_multiple_edges` | Change whether multiple edges are permitted in the (di)graph.
     :meth:`~GenericGraph.multiple_edges` | Return any multiple edges in the (di)graph.
-    :meth:`~GenericGraph.name` | Return or sets the graph's name.
+    :meth:`~GenericGraph.name` | Return or set the graph's name.
     :meth:`~GenericGraph.is_immutable` | Return whether the graph is immutable.
     :meth:`~GenericGraph.weighted` | Whether the (di)graph is to be considered as a weighted (di)graph.
     :meth:`~GenericGraph.antisymmetric` | Test whether the graph is antisymmetric
@@ -2244,16 +2244,16 @@ class GenericGraph(GenericGraph_pyx):
 
     def set_embedding(self, embedding):
         """
-        Sets a combinatorial embedding dictionary to ``_embedding`` attribute.
+        Set a combinatorial embedding dictionary to ``_embedding`` attribute.
 
-        Dictionary is organized with vertex labels as keys and a list of
-        each vertex's neighbors in clockwise order.
+        Dictionary is organized with vertex labels as keys and a list of each
+        vertex's neighbors in clockwise order.
 
         Dictionary is error-checked for validity.
 
         INPUT:
 
-        -  ``embedding`` - a dictionary
+        - ``embedding`` -- a dictionary
 
         EXAMPLES::
 
@@ -2262,17 +2262,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.set_embedding({'s': [1, 5, 4], 1: [0, 2, 6], 2: [1, 3, 7], 3: [8, 2, 4], 4: [0, 9, 3], 5: [0, 8, 7], 6: [8, 1, 9], 7: [9, 2, 5], 8: [3, 5, 6], 9: [4, 6, 7]})
             Traceback (most recent call last):
             ...
-            ValueError: The following vertices from the embedding do not belong to the graph: ['s']
+            ValueError: vertices in ['s'] from the embedding do not belong to the graph
         """
-        self._check_embedding_validity(embedding,boolean=False)
+        self._check_embedding_validity(embedding, boolean=False)
         self._embedding = embedding
 
     def get_embedding(self):
         """
-        Returns the attribute _embedding if it exists.
+        Return the attribute ``_embedding`` if it exists.
 
-        ``_embedding`` is a dictionary organized with vertex labels as keys and a
-        list of each vertex's neighbors in clockwise order.
+        ``_embedding`` is a dictionary organized with vertex labels as keys and
+        a list of each vertex's neighbors in clockwise order.
 
         Error-checked to insure valid embedding is returned.
 
@@ -2291,15 +2291,17 @@ class GenericGraph(GenericGraph_pyx):
 
     def _check_embedding_validity(self, embedding=None, boolean=True):
         """
-        Checks whether an _embedding attribute is well defined.
+        Check whether an ``_embedding`` attribute is well defined.
 
         INPUT:
 
-        - ``embedding`` -- the embedding to test. If set to ``None`` (default),
-          the test is performed on ``_embedding``
+        - ``embedding`` -- dictionary (default: ``None``); the embedding to
+          test. If set to ``None`` (default), the test is performed on
+          ``_embedding``
 
-        - ``boolean`` (boolean; ``True``) -- whether to return a boolean answer
-          or raise a ``ValueError`` exception if the embedding is invalid.
+        - ``boolean`` -- boolean (default: ``True``); -- whether to return a
+          boolean answer or raise a ``ValueError`` exception if the embedding is
+          invalid
 
         EXAMPLES::
 
@@ -2314,23 +2316,27 @@ class GenericGraph(GenericGraph_pyx):
             sage: g._check_embedding_validity(boolean=False)
             Traceback (most recent call last):
             ...
-            ValueError: No embedding has been defined
-            sage: g._check_embedding_validity({8:[],9:[]},boolean=False)
+            ValueError: no embedding has been defined
+            sage: g._check_embedding_validity({8: [], 9: []}, boolean=False)
             Traceback (most recent call last):
             ...
-            ValueError: The following vertices from the embedding do not belong to the graph: [8, 9]
-            sage: g._check_embedding_validity({0:[],1:[0]},boolean=False)
+            ValueError: vertices in [8, 9] from the embedding do not belong to the graph
+            sage: g._check_embedding_validity({0: []}, boolean=False)
             Traceback (most recent call last):
             ...
-            ValueError: The list associated with vertex 0 has length 0 but d(0)=1
-            sage: g._check_embedding_validity({0:[5],1:[0]},boolean=False)
+            ValueError: vertices in [1] have no corresponding entry in the embedding
+            sage: g._check_embedding_validity({0: [], 1: [0]}, boolean=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: the list associated with vertex 0 has length 0 but d(0)=1
+            sage: g._check_embedding_validity({0: [5], 1: [0]}, boolean=False)
             Traceback (most recent call last):
             ...
             ValueError: 5 and 0 are not neighbors but 5 is in the list associated with 0
             sage: graphs.PathGraph(3)._check_embedding_validity({0:[1],1:[0,0],2:[1]},boolean=False)
             Traceback (most recent call last):
             ...
-            ValueError: The list associated with vertex 1 contains >1 occurrences of: [0]
+            ValueError: the list associated with vertex 1 contains >1 occurrences of [0]
 
         """
         if embedding is None:
@@ -2338,34 +2344,34 @@ class GenericGraph(GenericGraph_pyx):
         if embedding is None:
             if boolean:
                 return False
-            raise ValueError("No embedding has been defined")
+            raise ValueError("no embedding has been defined")
 
         if set(embedding) != set(self):
             if boolean:
                 return False
             if set(embedding).difference(self):
-                raise ValueError("The following vertices from the embedding do not belong to the graph: {}".format(list(set(embedding).difference(self))))
+                raise ValueError("vertices in {} from the embedding do not belong to the graph".format(list(set(embedding).difference(self))))
             else:
-                raise ValueError("The following vertices have no corresponding entry in the embedding: {}".format(list(set(self).difference(embedding))))
+                raise ValueError("vertices in {} have no corresponding entry in the embedding".format(list(set(self).difference(embedding))))
 
         if self._directed:
-            connected = lambda u,v : self.has_edge(u,v) or self.has_edge(v,u)
+            connected = lambda u, v: self.has_edge(u, v) or self.has_edge(v, u)
         else:
-            connected = lambda u,v : self.has_edge(u,v)
+            connected = lambda u, v: self.has_edge(u, v)
         for v in embedding:
             if len(embedding[v]) != self.degree(v):
                 if boolean:
                     return False
-                raise ValueError("The list associated with vertex {} has length {} but d({})={}".format(v,len(embedding[v]),v,self.degree(v)))
+                raise ValueError("the list associated with vertex {} has length {} but d({})={}".format(v, len(embedding[v]), v, self.degree(v)))
             if len(embedding[v]) != len(set(embedding[v])):
                 if boolean:
                     return False
-                raise ValueError("The list associated with vertex {} contains >1 occurrences of: {}".format(v,[x for x in set(embedding[v]) if embedding[v].count(x)>1]))
+                raise ValueError("the list associated with vertex {} contains >1 occurrences of {}".format(v, [x for x in set(embedding[v]) if embedding[v].count(x) > 1]))
             for u in embedding[v]:
-                if not connected(v,u):
+                if not connected(v, u):
                     if boolean:
                         return False
-                    raise ValueError("{} and {} are not neighbors but {} is in the list associated with {}".format(u,v,u,v))
+                    raise ValueError("{} and {} are not neighbors but {} is in the list associated with {}".format(u, v, u, v))
         return True
 
     def has_loops(self):
@@ -2380,7 +2386,7 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: G.allows_loops()
             True
-            sage: G.add_edge((0,0))
+            sage: G.add_edge((0, 0))
             sage: G.has_loops()
             True
             sage: G.loops()
@@ -2398,7 +2404,7 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: D.allows_loops()
             True
-            sage: D.add_edge((0,0))
+            sage: D.add_edge((0, 0))
             sage: D.has_loops()
             True
             sage: D.loops()
@@ -2410,11 +2416,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             []
         """
-        if self.allows_loops():
-            for v in self:
-                if self.has_edge(v,v):
-                    return True
-        return False
+        return self.allows_loops() and any(self.has_edge(v, v) for v in self)
 
     def allows_loops(self):
         """
@@ -2428,7 +2430,7 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: G.allows_loops()
             True
-            sage: G.add_edge((0,0))
+            sage: G.add_edge((0, 0))
             sage: G.has_loops()
             True
             sage: G.loops()
@@ -2446,7 +2448,7 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: D.allows_loops()
             True
-            sage: D.add_edge((0,0))
+            sage: D.add_edge((0, 0))
             sage: D.has_loops()
             True
             sage: D.loops()
@@ -2466,7 +2468,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``new`` - boolean.
+        - ``new`` -- boolean
+
+        - ``check`` -- boolean (default: ``True``); whether to remove existing
+          loops from the (di)graph when the new status is ``False``
 
         EXAMPLES::
 
@@ -2476,7 +2481,7 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: G.allows_loops()
             True
-            sage: G.add_edge((0,0))
+            sage: G.add_edge((0, 0))
             sage: G.has_loops()
             True
             sage: G.loops()
@@ -2494,7 +2499,7 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: D.allows_loops()
             True
-            sage: D.add_edge((0,0))
+            sage: D.add_edge((0, 0))
             sage: D.has_loops()
             True
             sage: D.loops()
@@ -2516,8 +2521,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``labels`` -- whether returned edges have labels (``(u,v,l)``) or not
-          (``(u,v)``)
+        - ``labels`` -- boolean (default: ``True``); whether returned edges have
+          labels (``(u,v,l)``) or not (``(u,v)``)
 
         EXAMPLES::
 
@@ -2527,7 +2532,7 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: G.allows_loops()
             True
-            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: G.add_edges([(0, 0), (1, 1), (2, 2), (3, 3), (2, 3)])
             sage: G.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
             sage: G.loop_edges(labels=False)
@@ -2550,7 +2555,7 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: D.allows_loops()
             True
-            sage: D.add_edge((0,0))
+            sage: D.add_edge((0, 0))
             sage: D.has_loops()
             True
             sage: D.loops()
@@ -2569,14 +2574,14 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph(4, loops=True)
-            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: D.add_edges([(0, 0), (1, 1), (2, 2), (3, 3), (2, 3)])
             sage: D.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
 
         ::
 
             sage: G = Graph(4, loops=True, multiedges=True, sparse=True)
-            sage: G.add_edges([(i,i) for i in range(4)])
+            sage: G.add_edges((i, i) for i in range(4))
             sage: G.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
             sage: G.add_edges([(0, 0), (1, 1)])
@@ -2585,13 +2590,13 @@ class GenericGraph(GenericGraph_pyx):
         """
         if self.allows_multiple_edges():
             if labels:
-                return [(v,v,l) for v in self.loop_vertices() for l in self.edge_label(v,v)]
+                return [(v, v, l) for v in self.loop_vertices() for l in self.edge_label(v, v)]
             else:
-                return [(v,v) for v in self.loop_vertices() for l in self.edge_label(v,v)]
+                return [(v, v) for v in self.loop_vertices() for l in self.edge_label(v, v)]
         elif labels:
-            return [(v,v,self.edge_label(v,v)) for v in self.loop_vertices()]
+            return [(v, v, self.edge_label(v, v)) for v in self.loop_vertices()]
         else:
-            return [(v,v) for v in self.loop_vertices()]
+            return [(v, v) for v in self.loop_vertices()]
 
     # As discussed in trac 22911, we make method loops an alias for loop_edges
     loops = loop_edges
@@ -2603,7 +2608,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph(4, loops=True)
-            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: G.add_edges([(0, 0), (1, 1), (2, 2), (3, 3), (2, 3)])
             sage: G.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
             sage: G.number_of_loops()
@@ -2612,7 +2617,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph(4, loops=True)
-            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: D.add_edges([(0, 0), (1, 1), (2, 2), (3, 3), (2, 3)])
             sage: D.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
             sage: D.number_of_loops()
@@ -2626,33 +2631,34 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = Graph({0 : [0], 1: [1,2,3], 2: [3]}, loops=True)
+            sage: G = Graph({0: [0], 1: [1, 2, 3], 2: [3]}, loops=True)
             sage: G.loop_vertices()
             [0, 1]
         """
         if self.allows_loops():
-            return [v for v in self if self.has_edge(v,v)]
+            return [v for v in self if self.has_edge(v, v)]
         else:
             return []
 
     def has_multiple_edges(self, to_undirected=False):
         """
-        Returns whether there are multiple edges in the (di)graph.
+        Return whether there are multiple edges in the (di)graph.
 
         INPUT:
 
-        - ``to_undirected`` -- (default: False) If True, runs the test on the undirected version of a DiGraph.
-          Otherwise, treats DiGraph edges (u,v) and (v,u) as unique individual edges.
+        - ``to_undirected`` -- (default: ``False)``; if ``True``, runs the test
+          on the undirected version of a DiGraph. Otherwise, treats DiGraph
+          edges ``(u, v)`` and ``(v, u)`` as unique individual edges.
 
         EXAMPLES::
 
-            sage: G = Graph(multiedges=True,sparse=True); G
+            sage: G = Graph(multiedges=True, sparse=True); G
             Multi-graph on 0 vertices
             sage: G.has_multiple_edges()
             False
             sage: G.allows_multiple_edges()
             True
-            sage: G.add_edges([(0,1)]*3)
+            sage: G.add_edges([(0, 1)] * 3)
             sage: G.has_multiple_edges()
             True
             sage: G.multiple_edges()
@@ -2664,13 +2670,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges()
             [(0, 1, None)]
 
-            sage: D = DiGraph(multiedges=True,sparse=True); D
+            sage: D = DiGraph(multiedges=True, sparse=True); D
             Multi-digraph on 0 vertices
             sage: D.has_multiple_edges()
             False
             sage: D.allows_multiple_edges()
             True
-            sage: D.add_edges([(0,1)]*3)
+            sage: D.add_edges([(0, 1)] * 3)
             sage: D.has_multiple_edges()
             True
             sage: D.multiple_edges()
@@ -2682,7 +2688,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None)]
 
-            sage: G = DiGraph({1:{2: 'h'}, 2:{1:'g'}},sparse=True)
+            sage: G = DiGraph({1: {2: 'h'}, 2: {1: 'g'}}, sparse=True)
             sage: G.has_multiple_edges()
             False
             sage: G.has_multiple_edges(to_undirected=True)
@@ -2694,8 +2700,8 @@ class GenericGraph(GenericGraph_pyx):
 
         A loop is not a multiedge::
 
-            sage: g = Graph(loops=True,multiedges=True)
-            sage: g.add_edge(0,0)
+            sage: g = Graph(loops=True, multiedges=True)
+            sage: g.add_edge(0, 0)
             sage: g.has_multiple_edges()
             False
         """
@@ -2703,19 +2709,19 @@ class GenericGraph(GenericGraph_pyx):
             if self._directed:
                 for u in self:
                     s = set()
-                    for a,b,c in self.outgoing_edge_iterator(u):
+                    for a, b in self.outgoing_edge_iterator(u, labels=False):
                         if b in s:
                             return True
                         s.add(b)
                     if to_undirected:
-                        for a,b,c in self.incoming_edge_iterator(u):
+                        for a, b in self.incoming_edge_iterator(u, labels=False):
                             if a in s:
                                 return True
                             s.add(a)
             else:
                 for u in self:
                     s = set()
-                    for a,b,c in self.edge_iterator(u):
+                    for a, b in self.edge_iterator(u, labels=False):
                         if a is u:
                             if b in s:
                                 return True
@@ -2728,17 +2734,17 @@ class GenericGraph(GenericGraph_pyx):
 
     def allows_multiple_edges(self):
         """
-        Returns whether multiple edges are permitted in the (di)graph.
+        Return whether multiple edges are permitted in the (di)graph.
 
         EXAMPLES::
 
-            sage: G = Graph(multiedges=True,sparse=True); G
+            sage: G = Graph(multiedges=True, sparse=True); G
             Multi-graph on 0 vertices
             sage: G.has_multiple_edges()
             False
             sage: G.allows_multiple_edges()
             True
-            sage: G.add_edges([(0,1)]*3)
+            sage: G.add_edges([(0, 1)] * 3)
             sage: G.has_multiple_edges()
             True
             sage: G.multiple_edges()
@@ -2750,13 +2756,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges()
             [(0, 1, None)]
 
-            sage: D = DiGraph(multiedges=True,sparse=True); D
+            sage: D = DiGraph(multiedges=True, sparse=True); D
             Multi-digraph on 0 vertices
             sage: D.has_multiple_edges()
             False
             sage: D.allows_multiple_edges()
             True
-            sage: D.add_edges([(0,1)]*3)
+            sage: D.add_edges([(0, 1)] * 3)
             sage: D.has_multiple_edges()
             True
             sage: D.multiple_edges()
@@ -2772,33 +2778,41 @@ class GenericGraph(GenericGraph_pyx):
 
     def allow_multiple_edges(self, new, check=True, keep_label='any'):
         """
-        Changes whether multiple edges are permitted in the (di)graph.
+        Change whether multiple edges are permitted in the (di)graph.
 
         INPUT:
 
-        - ``new`` (boolean): if ``True``, the new graph will allow multiple
-          edges.
+        - ``new`` -- boolean; if ``True``, the new graph will allow multiple
+          edges
 
-        - ``check`` (boolean): if ``True`` and ``new`` is ``False``, we remove
-          all multiple edges from the graph.
+        - ``check`` -- boolean (default: ``True``); if ``True`` and ``new`` is
+          ``False``, we remove all multiple edges from the graph
 
-        - ``keep_label`` (``'any','min','max'``): used only if ``new`` is
+        - ``keep_label`` -- string (default: ``'any'``); used only if ``new`` is
           ``False`` and ``check`` is ``True``. If there are multiple edges with
           different labels, this variable defines which label should be kept:
-          any label (``'any'``), the smallest label (``'min'``), or the largest
-          (``'max'``).
+
+          - ``'any'`` -- any label
+          - ``'min'`` -- the smallest label
+          - ``'max'`` -- the largest label
+
+        .. WARNING::
+
+            ``'min'`` and ``'max'`` only works if the labels can be compared. A
+            ``TypeError`` might be raised when working with non-comparable
+            objects in Python 3.
 
         EXAMPLES:
 
         The standard behavior with undirected graphs::
 
-            sage: G = Graph(multiedges=True,sparse=True); G
+            sage: G = Graph(multiedges=True, sparse=True); G
             Multi-graph on 0 vertices
             sage: G.has_multiple_edges()
             False
             sage: G.allows_multiple_edges()
             True
-            sage: G.add_edges([(0,1,1), (0,1,2), (0,1,3)])
+            sage: G.add_edges([(0, 1, 1), (0, 1, 2), (0, 1, 3)])
             sage: G.has_multiple_edges()
             True
             sage: G.multiple_edges(sort=True)
@@ -2808,31 +2822,31 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.has_multiple_edges()
             False
             sage: G.edges()
-            [(0, 1, 1)]
+            [(0, 1, 3)]
 
         If we ask for the minimum label::
 
-            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True,sparse=True)
+            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True, sparse=True)
             sage: G.allow_multiple_edges(False, keep_label='min')
             sage: G.edges()
             [(0, 1, 1)]
 
         If we ask for the maximum label::
 
-            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True,sparse=True)
+            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True, sparse=True)
             sage: G.allow_multiple_edges(False, keep_label='max')
             sage: G.edges()
             [(0, 1, 3)]
 
         The standard behavior with digraphs::
 
-            sage: D = DiGraph(multiedges=True,sparse=True); D
+            sage: D = DiGraph(multiedges=True, sparse=True); D
             Multi-digraph on 0 vertices
             sage: D.has_multiple_edges()
             False
             sage: D.allows_multiple_edges()
             True
-            sage: D.add_edges([(0,1)]*3)
+            sage: D.add_edges([(0, 1)] * 3)
             sage: D.has_multiple_edges()
             True
             sage: D.multiple_edges()
@@ -2844,28 +2858,27 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None)]
         """
-        seen = dict()
-
-        if not keep_label in ['any','min','max']:
-            raise ValueError("Variable keep_label must be 'any', 'min', or 'max'")
+        if not keep_label in ['any', 'min', 'max']:
+            raise ValueError("variable keep_label must be 'any', 'min', or 'max'")
 
         # TODO: this should be much faster for c_graphs, but for now we just do this
         if self.allows_multiple_edges() and new is False and check:
-            for u,v,l in self.multiple_edges(sort=True):
+            seen = dict()
+            for u,v,l in self.multiple_edges(sort=False):
                 if not (u,v) in seen:
                     # This is the first time we see this edge
-                    seen[(u,v)] = l
+                    seen[u,v] = l
                 else:
                     # This edge has already been seen: we have to remove
                     # something from the graph.
-                    oldl = seen[(u,v)]
-                    if ((keep_label=='min' and l<oldl) or (keep_label=='max' and l>oldl)):
+                    oldl = seen[u,v]
+                    if ((keep_label == 'min' and l < oldl) or (keep_label == 'max' and l > oldl)):
                         # Keep the new edge, delete the old one
-                        self.delete_edge((u,v,oldl))
-                        seen[(u,v)] = l
+                        self.delete_edge((u, v, oldl))
+                        seen[u,v] = l
                     else:
                         # Delete the new edge
-                        self.delete_edge((u,v,l))
+                        self.delete_edge((u, v, l))
 
         self._backend.multiple_edges(new)
 
@@ -2877,19 +2890,19 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``to_undirected`` -- boolean (default ``False``)
 
-        - ``labels`` -- boolean (default ``True``) whether to include labels
+        - ``labels`` -- boolean (default ``True``); whether to include labels
 
-        - ``sort`` - boolean (default ``False``) whether to sort the result
+        - ``sort`` - boolean (default ``False``); whether to sort the result
 
         EXAMPLES::
 
-            sage: G = Graph(multiedges=True,sparse=True); G
+            sage: G = Graph(multiedges=True, sparse=True); G
             Multi-graph on 0 vertices
             sage: G.has_multiple_edges()
             False
             sage: G.allows_multiple_edges()
             True
-            sage: G.add_edges([(0,1)]*3)
+            sage: G.add_edges([(0, 1)] * 3)
             sage: G.has_multiple_edges()
             True
             sage: G.multiple_edges(sort=True)
@@ -2901,13 +2914,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges()
             [(0, 1, None)]
 
-            sage: D = DiGraph(multiedges=True,sparse=True); D
+            sage: D = DiGraph(multiedges=True, sparse=True); D
             Multi-digraph on 0 vertices
             sage: D.has_multiple_edges()
             False
             sage: D.allows_multiple_edges()
             True
-            sage: D.add_edges([(0,1)]*3)
+            sage: D.add_edges([(0, 1)] * 3)
             sage: D.has_multiple_edges()
             True
             sage: D.multiple_edges(sort=True)
@@ -2919,7 +2932,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None)]
 
-            sage: G = DiGraph({1:{2: 'h'}, 2:{1:'g'}},sparse=True)
+            sage: G = DiGraph({1: {2: 'h'}, 2: {1: 'g'}}, sparse=True)
             sage: G.has_multiple_edges()
             False
             sage: G.has_multiple_edges(to_undirected=True)
@@ -2933,31 +2946,34 @@ class GenericGraph(GenericGraph_pyx):
         if self._directed and not to_undirected:
             for v in self:
                 for u in self.neighbor_in_iterator(v):
-                    edges = self.edge_boundary([u], [v], labels, sort=sort)
+                    edges = self.edge_boundary([u], [v], labels)
                     if len(edges) > 1:
-                        multi_edges += edges
+                        multi_edges.extend(edges)
         else:
             to_undirected *= self._directed
             for v in self:
                 for u in self.neighbor_iterator(v):
                     if hash(u) >= hash(v):
-                        edges = self.edge_boundary([v], [u],
-                                                   labels, sort=sort)
+                        edges = self.edge_boundary([v], [u], labels)
                         if to_undirected:
-                            edges += self.edge_boundary([u],[v],
-                                                        labels, sort=sort)
+                            edges += self.edge_boundary([u], [v], labels)
                         if len(edges) > 1:
-                            multi_edges += edges
+                            multi_edges.extend(edges)
+
+        if sort:
+            multi_edges.sort()
         return multi_edges
 
     def name(self, new=None):
         """
-        Returns or sets the graph's name.
+        Return or set the graph's name.
 
         INPUT:
 
-        - ``new`` - if not None, then this becomes the new name of the (di)graph.
-          (if new == '', removes any name)
+        - ``new`` -- string (default: ``None``); by default (``new == None``),
+          the method returns the name of the graph. When ``name`` is set, the
+          string representation of that object becomes the new name of the
+          (di)graph (``new == ''`` removes any name).
 
         EXAMPLES::
 
@@ -2970,6 +2986,10 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 10 vertices
             sage: G.name()
             ''
+            sage: G.name(42); G
+            42: Graph on 10 vertices
+            sage: G.name()
+            '42'
 
         TESTS:
 
@@ -2982,22 +3002,30 @@ class GenericGraph(GenericGraph_pyx):
             sage: gi.name("Hey")
             Traceback (most recent call last):
             ...
-            NotImplementedError: An immutable graph does not change name
+            NotImplementedError: an immutable graph does not change name
         """
         if new is None:
             return getattr(self, '_name', "")
 
         if self.is_immutable():
-            raise NotImplementedError("An immutable graph does not change name")
+            raise NotImplementedError("an immutable graph does not change name")
 
         self._name = str(new)
 
-    def get_pos(self, dim = 2):
+    def get_pos(self, dim=2):
         """
-        Returns the position dictionary, a dictionary specifying the
-        coordinates of each vertex.
+        Return the position dictionary.
 
-        EXAMPLES: By default, the position of a graph is None::
+        The position dictionary specifies the coordinates of each vertex.
+
+        INPUT:
+
+        - ``dim`` -- integer (default: 2); whether to return the position
+          dictionary in the plane (``dim == 2``) or in the 3-dimensional space
+
+        EXAMPLES:
+
+        By default, the position of a graph is None::
 
             sage: G = Graph()
             sage: G.get_pos()
@@ -3022,20 +3050,23 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("dim must be 2 or 3")
 
-    def _check_pos_validity(self, pos=None, dim = 2):
+    def _check_pos_validity(self, pos=None, dim=2):
         r"""
-        Checks whether pos specifies two (resp. 3) coordinates for every vertex (and no more vertices).
+        Check whether ``pos`` specifies two (resp. 3) coordinates for every
+        vertex of the (di)graph (and no more vertices).
 
         INPUT:
 
-            - ``pos`` - a position dictionary for a set of vertices
-            - ``dim`` - 2 or 3 (default: 3
+        - ``pos`` -- dictionary (default: ``None``); a position dictionary for
+          the vertices of the (di)graph
+
+        - ``dim`` -- integer (default: 2); the number of coordinates per vertex
 
         OUTPUT:
 
         If ``pos`` is ``None`` then the position dictionary of ``self`` is
-        investigated, otherwise the position dictionary provided in  ``pos`` is
-        investigated.  The function returns ``True`` if the dictionary is of the
+        investigated, otherwise the position dictionary provided in ``pos`` is
+        investigated. The function returns ``True`` if the dictionary is of the
         correct form for ``self``.
 
         EXAMPLES::
@@ -3046,7 +3077,7 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         if pos is None:
-            pos = self.get_pos(dim = dim)
+            pos = self.get_pos(dim=dim)
         if pos is None:
             return False
         if len(pos) != self.order():
@@ -3058,13 +3089,22 @@ class GenericGraph(GenericGraph_pyx):
                 return False
         return True
 
-    def set_pos(self, pos, dim = 2):
+    def set_pos(self, pos, dim=2):
         """
-        Sets the position dictionary, a dictionary specifying the
-        coordinates of each vertex.
+        Set the position dictionary.
 
-        EXAMPLES: Note that set_pos will allow you to do ridiculous things,
-        which will not blow up until plotting::
+        The position dictionary specifies the coordinates of each vertex.
+
+        INPUT:
+
+        - ``pos`` -- a position dictionary for the vertices of the (di)graph
+
+        - ``dim`` -- integer (default: 2); the number of coordinates per vertex
+
+        EXAMPLES:
+
+        Note that :meth:`~GenericGraph.set_pos` will allow you to do ridiculous
+        things, which will not blow up until plotting::
 
             sage: G = graphs.PetersenGraph()
             sage: G.get_pos()
@@ -3093,13 +3133,14 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``new`` (optional bool): If it is provided, then the weightedness
-          flag is set accordingly. This is not allowed for immutable graphs.
+        - ``new`` -- boolean (default: ``None``); if it is provided, then the
+          weightedness flag is set accordingly. This is not allowed for
+          immutable graphs.
 
         .. NOTE::
 
-            Changing the weightedness flag changes the ``==``-class of
-            a graph and is thus not allowed for immutable graphs.
+            Changing the weightedness flag changes the ``==``-class of a graph
+            and is thus not allowed for immutable graphs.
 
             Edge weightings can still exist for (di)graphs ``G`` where
             ``G.weighted()`` is ``False``.
@@ -3109,13 +3150,13 @@ class GenericGraph(GenericGraph_pyx):
         Here we have two graphs with different labels, but ``weighted()`` is
         ``False`` for both, so we just check for the presence of edges::
 
-            sage: G = Graph({0:{1:'a'}}, sparse=True)
-            sage: H = Graph({0:{1:'b'}}, sparse=True)
+            sage: G = Graph({0: {1: 'a'}}, sparse=True)
+            sage: H = Graph({0: {1: 'b'}}, sparse=True)
             sage: G == H
             True
 
-        Now one is weighted and the other is not, and thus the graphs are
-        not equal::
+        Now one is weighted and the other is not, and thus the graphs are not
+        equal::
 
             sage: G.weighted(True)
             sage: H.weighted()
@@ -3131,10 +3172,10 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Ensure that :trac:`10490` is fixed: allows a weighted graph to be
-        set as unweighted. ::
+        Ensure that :trac:`10490` is fixed: allows a weighted graph to be set as
+        unweighted::
 
-            sage: G = Graph({1:{2:3}})
+            sage: G = Graph({1: {2: 3}})
             sage: G.weighted()
             False
             sage: G.weighted(True)
@@ -4287,7 +4328,7 @@ class GenericGraph(GenericGraph_pyx):
               ('Hey', 'Wuuhuu', None),
               ('Wuuhuu', 'Really ?', None)],
              [(0, 2, 'a'), (2, 0, 'b')],
-             [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')]]
+             [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'b')]]
 
         Graph that allows multiple edges but does not contain any::
 

@@ -192,7 +192,7 @@ def orbit_decomposition(L, cyc_act):
         sage: cyc_act([1,4])
         {1, 2}
         sage: orbits = orbit_decomposition(S42, cyc_act)
-        sage: sorted([sorted(orb, key=sorted) for orb in orbits])
+        sage: sorted([sorted(orb, key=sorted) for orb in orbits], key=len)
         [[{1, 3}, {2, 4}], [{1, 2}, {1, 4}, {2, 3}, {3, 4}]]
     """
     orbits = []

@@ -615,9 +615,10 @@ class TypeSpace(SageObject):
             [ 0  1 -2  1]
         """
         f = self.prime() ** self.u()
-        if len(Zmod(f).unit_gens()) != 1:
-            raise NotImplementedError
-        a = ZZ(Zmod(f).unit_gens()[0])
+        if not (f % 8):
+            a = ZZ(5)
+        else:
+            a = ZZ(Zmod(f).unit_gens()[0])
 
         mats = self._intertwining_basis(a)
         V = self.t_space.nonembedded_free_module()
@@ -683,18 +684,22 @@ class TypeSpace(SageObject):
             except AttributeError:
                 self._discover_torus_action()
                 a = self._a
+
+            if not (f % 8):
+                if d % 4 == 3: return self.rho([-g[0], g[1], -g[2], g[3]]) * self.t_space.star_involution().matrix().transpose()
+
             i = 0
             while (d * a**i) % f != 1:
                 i += 1
                 if i > f: raise ArithmeticError
             return self._rho_s([a**i*g[0], g[1], a**i*g[2], g[3]]) * self._amat**(-i)
 
-        # funny business
+        # det(g) is not a unit
 
         if (self.conductor() % 2 == 0):
             if all([x.valuation(p) > 0 for x in g]):
                 eps = self.form().character()(crt(1, p, f, self.tame_level()))
-                return ~eps * self.rho([x // p for x in g])
+                return ~eps * p**(self.form().weight() - 2) * self.rho([x // p for x in g])
             else:
                 raise ArithmeticError( "g(={0}) not in K".format(g) )
 
@@ -718,4 +723,8 @@ class TypeSpace(SageObject):
             [ 0 -1]
 
         """
-        return self.t_space.atkin_lehner_operator(self.prime()).matrix().transpose() * self.prime() ** (-1 + self.form().weight() // 2)
+        p = self.prime()
+        k = self.form().weight()
+        return self.t_space.atkin_lehner_operator(p).matrix().transpose()  \
+            * p ** ( -(k-2)*self.u() ) \
+            * self.t_space.diamond_bracket_matrix( crt(1, p**self.u(), p**self.u(), self.tame_level()) ).transpose()

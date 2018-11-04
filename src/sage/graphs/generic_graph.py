@@ -3191,37 +3191,39 @@ class GenericGraph(GenericGraph_pyx):
 
     def antisymmetric(self):
         r"""
-        Tests whether the graph is antisymmetric.
+        Check whether the graph is antisymmetric.
 
-        A graph represents an antisymmetric relation if there being a path
-        from a vertex x to a vertex y implies that there is not a path from
-        y to x unless x=y.
+        A graph represents an antisymmetric relation if the existence of a path
+        from a vertex `x` to a vertex `y` implies that there is not a path from
+        `y` to `x` unless `x = y`.
 
-        A directed acyclic graph is antisymmetric. An undirected graph is
-        never antisymmetric unless it is just a union of isolated
-        vertices.
+        EXAMPLES:
 
-        ::
+        A directed acyclic graph is antisymmetric::
 
-            sage: graphs.RandomGNP(20,0.5).antisymmetric()
+            sage: digraphs.RandomDirectedGNR(20, 0.5).antisymmetric()
+            True
+
+        An undirected graph is never antisymmetric unless it is just a union of
+        isolated vertices (with possible loops)::
+
+            sage: graphs.RandomGNP(20, 0.5).antisymmetric()
             False
-            sage: digraphs.RandomDirectedGNR(20,0.5).antisymmetric()
+            sage: Graph(3).antisymmetric()
+            True
+            sage: Graph([(i, i) for i in range(3)], loops=True).antisymmetric()
+            True
+            sage: DiGraph([(i, i) for i in range(3)], loops=True).antisymmetric()
             True
         """
         if not self._directed:
-            if self.size()-len(self.loop_edges())>0:
-                return False
-            else:
-                return True
-        g = copy(self)
-        g.allow_multiple_edges(False)
-        g.allow_loops(False)
-        g = g.transitive_closure()
-        gpaths = g.edges(labels=False)
-        for e in gpaths:
-            if (e[1],e[0]) in gpaths:
-                return False
-        return True
+            # An undirected graph is antisymmetric only if all it's edges are
+            # loops
+            return self.size() == len(self.loop_edges())
+        if self.has_loops():
+            return self.transitive_closure(loops=False).is_directed_acyclic()
+        else:
+            return self.is_directed_acyclic()
 
     def density(self):
         """
@@ -17817,28 +17819,32 @@ class GenericGraph(GenericGraph_pyx):
                     G.add_edge((u,v), (w,x))
         return G
 
-    def transitive_closure(self):
+    def transitive_closure(self, loops=None):
         r"""
-        Computes the transitive closure of a graph and returns it. The
-        original graph is not modified.
+        Return the transitive closure of a graph.
 
-        The transitive closure of a graph G has an edge (x,y) if and only
-        if there is a path between x and y in G.
+        The transitive closure of a graph `G` has an edge `(x, y)` if and only
+        if there is a path between `x` and `y` in `G`.
 
-        The transitive closure of any strongly connected component of a
-        graph is a complete graph. In particular, the transitive closure of
-        a connected undirected graph is a complete graph. The transitive
-        closure of a directed acyclic graph is a directed acyclic graph
-        representing the full partial order.
+        The transitive closure of any (strongly) connected component of a
+        (di)graph is a complete graph. The transitive closure of a directed
+        acyclic graph is a directed acyclic graph representing the full partial
+        order.
+
+        INPUT:
+
+        - ``loops`` -- boolean (default: ``None``); whether to add loops to the
+          transitive closure. When ``loops == None``, loops are added only if
+          the (di)graph allows loops.
 
         EXAMPLES::
 
-            sage: g=graphs.PathGraph(4)
+            sage: g = graphs.PathGraph(4)
             sage: g.transitive_closure()
             Transitive closure of Path graph: Graph on 4 vertices
-            sage: g.transitive_closure()==graphs.CompleteGraph(4)
+            sage: g.transitive_closure().is_isomorphic(graphs.CompleteGraph(4))
             True
-            sage: g=DiGraph({0:[1,2], 1:[3], 2:[4,5]})
+            sage: g = DiGraph({0: [1, 2], 1: [3], 2: [4, 5]})
             sage: g.transitive_closure().edges(labels=False)
             [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 3), (2, 4), (2, 5)]
 
@@ -17846,21 +17852,56 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: digraphs.Path(5).copy(immutable=True).transitive_closure()
             Transitive closure of Path: Digraph on 5 vertices
+
+        Effect of parameter ``loops``::
+
+            sage: G = digraphs.Circuit(4)
+            sage: G.transitive_closure(loops=None).loop_edges(labels=False)
+            []
+            sage: G.transitive_closure(loops=False).loop_edges(labels=False)
+            []
+            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            sage: G.allow_loops(True)
+            sage: G.transitive_closure(loops=None).loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            sage: G.transitive_closure(loops=False).loop_edges(labels=False)
+            []
+            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (3, 3)]
+
+        ::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: G.transitive_closure(loops=None).loop_edges(labels=False)
+            []
+            sage: G.transitive_closure(loops=False).loop_edges(labels=False)
+            []
+            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            sage: G.allow_loops(True)
+            sage: G.transitive_closure(loops=None).loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            sage: G.transitive_closure(loops=False).loop_edges(labels=False)
+            []
+            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (3, 3)]
         """
         G = copy(self)
+        if loops is not None:
+            G.allow_loops(loops)
         G.name('Transitive closure of ' + self.name())
-        G.add_edges(((v, e) for v in G for e in G.breadth_first_search(v)), loops=None)
+        G.add_edges(((u, v) for u in G for v in G.breadth_first_search(u)), loops=loops)
         return G
 
     def transitive_reduction(self):
         r"""
-        Returns a transitive reduction of a graph. The original graph is
-        not modified.
+        Return a transitive reduction of a graph.
 
-        A transitive reduction H of G has a path from x to y if and only if
-        there was a path from x to y in G. Deleting any edge of H destroys
-        this property. A transitive reduction is not unique in general. A
-        transitive reduction has the same transitive closure as the
+        A transitive reduction `H` of `G` has a path from `x` to `y` if and only
+        if there was a path from `x` to `y` in `G`. Deleting any edge of `H`
+        destroys this property. A transitive reduction is not unique in
+        general. A transitive reduction has the same transitive closure as the
         original graph.
 
         A transitive reduction of a complete graph is a tree. A transitive
@@ -17872,57 +17913,79 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.transitive_reduction() == g
             True
             sage: g = graphs.CompleteGraph(5)
-            sage: edges = g.transitive_reduction().edges(); len(edges)
+            sage: h = g.transitive_reduction(); h.size()
             4
-            sage: g = DiGraph({0:[1,2], 1:[2,3,4,5], 2:[4,5]})
+            sage: g = DiGraph({0: [1, 2], 1: [2, 3, 4, 5], 2: [4, 5]})
             sage: g.transitive_reduction().size()
             5
         """
-        if self.is_directed() and self.is_directed_acyclic():
-            from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
-            return transitive_reduction_acyclic(self)
+        if self.is_directed():
+            if self.is_directed_acyclic():
+                from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
+                return transitive_reduction_acyclic(self)
 
-        G = copy(self)
-        n = G.order()
-        for e in self.edge_iterator():
-            # Try deleting the edge, see if we still have a path
-            # between the vertices.
-            G.delete_edge(e)
-            if G.distance(e[0], e[1]) > n:
-                # oops, we shouldn't have deleted it
-                G.add_edge(e)
-        return G
+            G = copy(self)
+            G.allow_multiple_edges(False)
+            n = G.order()
+            for e in G.edges(sort=False):
+                # Try deleting the edge, see if we still have a path between
+                # the vertices.
+                G.delete_edge(e)
+                if G.distance(e[0], e[1]) > n:
+                    # oops, we shouldn't have deleted it
+                    G.add_edge(e)
+            return G
+
+        else:
+            # The transitive reduction of each connected component of an
+            # undirected graph is a spanning tree
+            from sage.graphs.graph import Graph
+            if self.is_connected():
+                return Graph(self.min_spanning_tree(weight_function=lambda e: 1))
+            else:
+                G = Graph(list(self))
+                for cc in self.connected_components():
+                    if len(cc) > 1:
+                        edges = self.subgraph(cc).min_spanning_tree(weight_function=lambda e: 1)
+                        G.add_edges(edges)
+                return G
 
     def is_transitively_reduced(self):
         r"""
-        Tests whether the digraph is transitively reduced.
+        Check whether the digraph is transitively reduced.
 
         A digraph is transitively reduced if it is equal to its transitive
-        reduction.
+        reduction. A graph is transitively reduced if it is a forest.
 
         EXAMPLES::
 
-            sage: d = DiGraph({0:[1],1:[2],2:[3]})
+            sage: d = DiGraph({0: [1], 1: [2], 2: [3]})
             sage: d.is_transitively_reduced()
             True
 
-            sage: d = DiGraph({0:[1,2],1:[2]})
+            sage: d = DiGraph({0: [1, 2], 1: [2]})
             sage: d.is_transitively_reduced()
             False
 
-            sage: d = DiGraph({0:[1,2],1:[2],2:[]})
+            sage: d = DiGraph({0: [1, 2], 1: [2], 2: []})
             sage: d.is_transitively_reduced()
             False
         """
-        from sage.rings.infinity import Infinity
-        G = copy(self)
-        for e in self.edge_iterator():
-            G.delete_edge(e)
-            if G.distance(e[0],e[1]) == Infinity:
-                G.add_edge(e)
-            else:
-                return False
-        return True
+        if self.is_directed():
+            if self.is_directed_acyclic():
+                return self == self.transitive_reduction()
+
+            from sage.rings.infinity import Infinity
+            G = copy(self)
+            for e in self.edge_iterator():
+                G.delete_edge(e)
+                if G.distance(e[0], e[1]) == Infinity:
+                    G.add_edge(e)
+                else:
+                    return False
+            return True
+
+        return self.is_forest()
 
 
     ### Visualization

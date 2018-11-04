@@ -331,7 +331,6 @@ def integer_points_in_polytope(matrix, interval_radius):
         sage: m = matrix([[1,2,3,7],[4,5,6,2],[7,8,9,3],[0,3,4,5]])
         sage: integer_points_in_polytope(m,0)
         [(0, 0, 0, 0)]
-
     """
     T = matrix
     d = interval_radius
@@ -531,7 +530,7 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
     # Find generators for principal ideals of bounded norm
     possible_norm_set = set([])
     for n in range(class_number):
-        for m in range(1, B.floor() + 1):
+        for m in range(1, (B + 1).ceil()):
             possible_norm_set.add(m * class_group_rep_norms[n])
     bdd_ideals = bdd_norm_pr_ideal_gens(K, possible_norm_set)
 
@@ -549,8 +548,8 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
         this_ideal = class_group_reps[l]
         this_ideal_norm = class_group_rep_norms[l]
         gens = []
-        for i in range(1, B.floor() + 1):
-            for g in bdd_ideals[i*this_ideal_norm]:
+        for i in range(1, (B + 1).ceil()):
+            for g in bdd_ideals[i * this_ideal_norm]:
                 if g in this_ideal:
                     gens.append(g)
         generator_lists.append(gens)

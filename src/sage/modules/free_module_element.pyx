@@ -4563,7 +4563,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 e = entries_dict
                 entries_dict = {}
                 try:
-                    for k, x in e.items():
+                    for k, x in (<dict> e).iteritems():
                         x = coefficient_ring(x)
                         if x:
                             entries_dict[k] = x

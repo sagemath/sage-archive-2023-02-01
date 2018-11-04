@@ -3225,20 +3225,22 @@ class GenericGraph(GenericGraph_pyx):
 
     def density(self):
         """
-        Returns the density (number of edges divided by number of possible
-        edges).
+        Return the density of the (di)graph.
 
-        In the case of a multigraph, raises an error, since there is an
-        infinite number of possible edges.
+        The density of a (di)graph is defined as the number of edges divided by
+        number of possible edges.
+
+        In the case of a multigraph, raises an error, since there is an infinite
+        number of possible edges.
 
         EXAMPLES::
 
             sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
             sage: G = Graph(d); G.density()
             1/3
-            sage: G = Graph({0:[1,2], 1:[0] }); G.density()
+            sage: G = Graph({0: [1, 2], 1: [0]}); G.density()
             2/3
-            sage: G = DiGraph({0:[1,2], 1:[0] }); G.density()
+            sage: G = DiGraph({0: [1, 2], 1: [0]}); G.density()
             1/2
 
         Note that there are more possible edges on a looped graph::
@@ -3248,33 +3250,33 @@ class GenericGraph(GenericGraph_pyx):
             1/3
         """
         if self.has_multiple_edges():
-            raise TypeError("Density is not well-defined for multigraphs.")
+            raise TypeError("density is not well-defined for multigraphs")
         n = self.order()
         if self.allows_loops():
-            if n == 0:
+            if not n:
                 return Rational(0)
             if self._directed:
-                return Rational(self.size())/Rational(n**2)
+                return Rational(self.size()) / Rational(n ** 2)
             else:
-                return Rational(self.size())/Rational((n**2 + n)/2)
+                return Rational(self.size()) / Rational((n ** 2 + n) / 2)
         else:
             if n < 2:
                 return Rational(0)
             if self._directed:
-                return Rational(self.size())/Rational((n**2 - n))
+                return Rational(self.size()) / Rational((n ** 2 - n))
             else:
-                return Rational(self.size())/Rational((n**2 - n)/2)
+                return Rational(self.size()) / Rational((n ** 2 - n) / 2)
 
-    def is_bipartite(self, certificate = False):
-        """
-        Returns ``True`` if graph `G` is bipartite, ``False`` if not.
+    def is_bipartite(self, certificate=False):
+        r"""
+        Check whether the graph is bipartite.
 
-        Traverse the graph G with breadth-first-search and color nodes.
+        Traverse the graph `G` with breadth-first-search and color nodes.
 
         INPUT:
 
-        - ``certificate`` -- whether to return a certificate (``False`` by
-          default). If set to ``True``, the certificate returned in a proper
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate. If set to ``True``, the certificate returned in a proper
           2-coloring when `G` is bipartite, and an odd cycle otherwise.
 
         EXAMPLES::
@@ -3283,7 +3285,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: graphs.CycleGraph(5).is_bipartite()
             False
-            sage: graphs.RandomBipartite(100,100,0.7).is_bipartite()
+            sage: graphs.RandomBipartite(10, 10, 0.7).is_bipartite()
             True
 
         A random graph is very rarely bipartite::
@@ -3291,7 +3293,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PetersenGraph()
             sage: g.is_bipartite()
             False
-            sage: false, oddcycle = g.is_bipartite(certificate = True)
+            sage: false, oddcycle = g.is_bipartite(certificate=True)
             sage: len(oddcycle) % 2
             1
 
@@ -3300,7 +3302,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = DiGraph({0: [1, 2, 3], 2: [1], 3: [4]})
             sage: g.is_bipartite()
             False
-            sage: false, oddcycle = g.is_bipartite(certificate = True)
+            sage: false, oddcycle = g.is_bipartite(certificate=True)
             sage: len(oddcycle) % 2
             1
 
@@ -3315,14 +3317,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edge(0, 0)
             sage: G.is_bipartite()
             False
-            sage: G.is_bipartite(certificate = True)
+            sage: G.is_bipartite(certificate=True)
             (False, [0])
         """
-        if self.has_loops():
-            if certificate:
-                return (False, [self.loops()[0][0]])
-            else:
-                return False
+        if self.allows_loops():
+            # We use the first found loop as certificate, if any
+            for u in self:
+                if self.has_edge(u, u):
+                    if certificate:
+                        return (False, [u])
+                    else:
+                        return False
 
         color = {}
         tree = {}  # inheritance of colors along the DFS to recover an odd
@@ -3340,7 +3345,7 @@ class GenericGraph(GenericGraph_pyx):
             tree[u] = None
             while queue:
                 v = queue.pop(0)
-                c = 1-color[v]
+                c = 1 - color[v]
                 for w in self.neighbor_iterator(v):
 
                     # If the vertex has already been colored
@@ -3389,23 +3394,26 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_eulerian(self, path=False):
         r"""
-        Return true if the graph has a (closed) tour that visits each edge exactly
-        once.
+        Check whether the graph is Eulerian.
+
+        A graph is Eulerian if it has a (closed) tour that visits each edge
+        exactly once.
 
         INPUT:
 
-        - ``path`` -- by default this function finds if the graph contains a closed
-          tour visiting each edge once, i.e. an Eulerian cycle. If you want to test
-          the existence of an Eulerian path, set this argument to ``True``. Graphs
-          with this property are sometimes called semi-Eulerian.
+        - ``path`` -- boolean (default: ``False``); by default this function
+          finds if the graph contains a closed tour visiting each edge once,
+          i.e. an Eulerian cycle. If you want to test the existence of an
+          Eulerian path, set this argument to ``True``. Graphs with this
+          property are sometimes called semi-Eulerian.
 
         OUTPUT:
 
         ``True`` or ``False`` for the closed tour case. For an open tour search
         (``path``=``True``) the function returns ``False`` if the graph is not
-        semi-Eulerian, or a tuple (u, v) in the other case. This tuple defines the
-        edge that would make the graph Eulerian, i.e. close an existing open tour.
-        This edge may or may not be already present in the graph.
+        semi-Eulerian, or a tuple (u, v) in the other case. This tuple defines
+        the edge that would make the graph Eulerian, i.e. close an existing open
+        tour.  This edge may or may not be already present in the graph.
 
         EXAMPLES::
 
@@ -3461,7 +3469,7 @@ class GenericGraph(GenericGraph_pyx):
 
         uv = [None, None]
         if self._directed:
-            for v in self.vertex_iterator():
+            for v in self:
                 # loops don't matter since they count in both the in and out degree.
                 if self.in_degree(v) != self.out_degree(v):
                     if path:
@@ -3470,16 +3478,16 @@ class GenericGraph(GenericGraph_pyx):
                             return False
                         else:
                             # if there was another vertex with the same sign of difference...
-                            if uv[(diff+1)//2] is not None:
+                            if uv[(diff + 1) // 2] is not None:
                                 return False # ... the graph is not semi-Eulerian
                             else:
-                                uv[(diff+1)//2] = v
+                                uv[(diff + 1) // 2] = v
                     else:
                         return False
         else:
-            for v in self.vertex_iterator():
+            for v in self:
                 # loops don't matter since they add an even number to the degree
-                if self.degree(v) % 2 != 0:
+                if self.degree(v) % 2:
                     if not path:
                         return False
                     else:
@@ -3488,15 +3496,17 @@ class GenericGraph(GenericGraph_pyx):
                         else:
                             return False
 
-        if path and (uv[0] is None or uv[1] is None):
+        if path and None in uv:
             return False
 
         return True if not path else tuple(uv)
 
     def order(self):
         """
-        Returns the number of vertices. Note that len(G) returns the number
-        of vertices in G also.
+        Return the number of vertices.
+
+        Note that ``len(G)`` and :meth:`num_verts` also return the number of
+        vertices in `G`.
 
         EXAMPLES::
 
@@ -3518,7 +3528,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def size(self):
         """
-        Returns the number of edges.
+        Return the number of edges.
+
+        Note that :meth:`num_edges` also returns the number of edges in `G`.
 
         EXAMPLES::
 
@@ -3534,22 +3546,23 @@ class GenericGraph(GenericGraph_pyx):
 
     def eulerian_orientation(self):
         r"""
-        Returns a DiGraph which is an Eulerian orientation of the current graph.
+        Return a DiGraph which is an Eulerian orientation of the current graph.
 
         An Eulerian graph being a graph such that any vertex has an even degree,
         an Eulerian orientation of a graph is an orientation of its edges such
         that each vertex `v` verifies `d^+(v)=d^-(v)=d(v)/2`, where `d^+` and
-        `d^-` respectively represent the out-degree and the in-degree of a vertex.
+        `d^-` respectively represent the out-degree and the in-degree of a
+        vertex.
 
-        If the graph is not Eulerian, the orientation verifies for any vertex `v`
-        that `| d^+(v)-d^-(v) | \leq 1`.
+        If the graph is not Eulerian, the orientation verifies for any vertex
+        `v` that `| d^+(v)-d^-(v) | \leq 1`.
 
         ALGORITHM:
 
         This algorithm is a random walk through the edges of the graph, which
         orients the edges according to the walk. When a vertex is reached which
-        has no non-oriented edge ( this vertex must have odd degree ), the
-        walk resumes at another vertex of odd degree, if any.
+        has no non-oriented edge (this vertex must have odd degree), the walk
+        resumes at another vertex of odd degree, if any.
 
         This algorithm has complexity `O(m)`, where `m` is the number of edges
         in the graph.
@@ -3557,22 +3570,22 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES:
 
         The CubeGraph with parameter 4, which is regular of even degree, has an
-        Eulerian orientation such that `d^+=d^-`::
+        Eulerian orientation such that `d^+ = d^-`::
 
-            sage: g=graphs.CubeGraph(4)
+            sage: g = graphs.CubeGraph(4)
             sage: g.degree()
             [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
-            sage: o=g.eulerian_orientation()
+            sage: o = g.eulerian_orientation()
             sage: o.in_degree()
             [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
             sage: o.out_degree()
             [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-        Secondly, the Petersen Graph, which is 3 regular has an orientation
-        such that the difference between `d^+` and `d^-` is at most 1::
+        Secondly, the Petersen Graph, which is 3 regular has an orientation such
+        that the difference between `d^+` and `d^-` is at most 1::
 
-            sage: g=graphs.PetersenGraph()
-            sage: o=g.eulerian_orientation()
+            sage: g = graphs.PetersenGraph()
+            sage: o = g.eulerian_orientation()
             sage: o.in_degree()
             [2, 2, 2, 2, 2, 1, 1, 1, 1, 1]
             sage: o.out_degree()
@@ -3588,17 +3601,16 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.graphs.digraph import DiGraph
 
-        if self.size() == 0:
-            return DiGraph(self.order())
+        d = DiGraph()
+        d.add_vertices(self.vertex_iterator())
 
-        g=copy(self)
-        d=DiGraph()
-        d.add_vertices(g.vertex_iterator())
+        if not self.size():
+            return d
 
+        g = copy(self)
 
         # list of vertices of odd degree
-        odd = [x for (x, deg) in zip(g.vertex_iterator(), g.degree_iterator())
-               if deg % 2 == 1]
+        odd = [x for x in g.vertex_iterator() if g.degree(x) % 2]
 
         # Picks the first vertex, which is preferably an odd one
         if odd:
@@ -3610,23 +3622,23 @@ class GenericGraph(GenericGraph_pyx):
         while True:
 
             # If there is an edge adjacent to the current one
-            if g.degree(v)>0:
+            if g.degree(v):
                 e = next(g.edge_iterator(v))
                 g.delete_edge(e)
-                if e[0]!=v:
-                    e=(e[1],e[0],e[2])
+                if e[0] != v:
+                    e = (e[1], e[0], e[2])
                 d.add_edge(e)
-                v=e[1]
+                v = e[1]
 
             # The current vertex is isolated
             else:
                 odd.remove(v)
 
                 # jumps to another odd vertex if possible
-                if len(odd)>0:
-                    v=odd.pop()
-                # Else jumps to an ever vertex which is not isolated
-                elif g.size()>0:
+                if odd:
+                    v = odd.pop()
+                # Else jumps to an even vertex which is not isolated
+                elif g.size():
                     v = next(g.edge_iterator())[0]
                     odd.append(v)
                 # If there is none, we are done !
@@ -3636,19 +3648,21 @@ class GenericGraph(GenericGraph_pyx):
     def eulerian_circuit(self, return_vertices=False, labels=True, path=False):
         r"""
         Return a list of edges forming an Eulerian circuit if one exists.
-        Otherwise return False.
+
+        If no Eulerian circuit is found, the method returns ``False``.
 
         This is implemented using Hierholzer's algorithm.
 
         INPUT:
 
-        -  ``return_vertices`` -- (default: ``False``) optionally provide a list of
-           vertices for the path
+        - ``return_vertices`` -- boolean (default: ``False``); optionally
+           provide a list of vertices for the path
 
-        -  ``labels`` -- (default: ``True``) whether to return edges with labels
-           (3-tuples)
+        - ``labels`` -- boolean (default: ``True``); whether to return edges
+           with labels (3-tuples)
 
-        -  ``path`` -- (default: ``False``) find an Eulerian path instead
+        - ``path`` -- boolean (default: ``False``); find an Eulerian path
+           instead
 
         OUTPUT:
 
@@ -3702,7 +3716,7 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 1), (1, 0), (0, 1), (1, 0), (0, 0)]
         """
         # trivial case
-        if self.order() == 0:
+        if not self.order():
             return ([], []) if return_vertices else []
 
         # check if the graph has proper properties to be Eulerian
@@ -3722,29 +3736,33 @@ class GenericGraph(GenericGraph_pyx):
             g = copy(self)
 
         if not path:
-            # get the first vertex with degree>0
+            # get the first vertex with degree > 0
             start_vertex = None
-            for v in g.vertex_iterator():
-                if g.degree(v) != 0:
+            for v in g:
+                if g.degree(v):
                     start_vertex = v
                     break
 
         # (where to return?, what was the way?)
-        stack = [ (start_vertex, None) ]
+        stack = [(start_vertex, None)]
+
+        if self.is_directed():
+            g_degree = g.out_degree
+            g_edge_iter = g.outgoing_edge_iterator
+        else:
+            g_degree = g.degree
+            g_edge_iter = g.edge_iterator
 
         while stack:
             v, e = stack.pop()
 
-            degr = g.out_degree(v) if self.is_directed() else g.degree(v)
-            if degr == 0:
+            degr = g_degree(v)
+            if not degr:
                 vertices.append(v)
                 if e is not None:
                     edges.append(e if labels else (e[0], e[1]))
             else:
-                if self.is_directed():
-                    next_edge = next(g.outgoing_edge_iterator(v))
-                else:
-                    next_edge = next(g.edge_iterator(v))
+                next_edge = next(g_edge_iter(v))
 
                 if next_edge[0] == v:  # in the undirected case we want to
                                        # save the direction of traversal
@@ -3769,7 +3787,7 @@ class GenericGraph(GenericGraph_pyx):
                           starting_vertex=None,
                           check=False):
         r"""
-        Returns the edges of a minimum spanning tree.
+        Return the edges of a minimum spanning tree.
 
         At the moment, no algorithm for directed graph is implemented: if the
         graph is directed, a minimum spanning tree of the corresponding
@@ -3780,12 +3798,13 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``e`` and outputs its weight. An edge has the form ``(u,v,l)``,
-          where ``u`` and ``v`` are vertices, ``l`` is a label (that can be of
-          any kind).  The ``weight_function`` can be used to transform the label
-          into a weight (note that, if the weight returned is not convertible to
-          a float, an error is raised). In particular:
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``e`` and outputs its weight. An edge has the
+          form ``(u, v, l)``, where ``u`` and ``v`` are vertices, ``l`` is a
+          label (that can be of any kind). The ``weight_function`` can be used
+          to transform the label into a weight (note that, if the weight
+          returned is not convertible to a float, an error is raised). In
+          particular:
 
           - if ``weight_function`` is not ``None``, the weight of an edge ``e``
             is ``weight_function(e)``;
@@ -3797,36 +3816,35 @@ class GenericGraph(GenericGraph_pyx):
           - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
             all weights to 1 (hence, the output can be any spanning tree).
 
-        - ``algorithm`` -- The algorithm to use in computing a minimum spanning
-          tree of ``G``. The following algorithms are supported:
+        - ``algorithm`` -- string (default: ``"Prim_Boost"``); the algorithm to
+          use in computing a minimum spanning tree of ``G``. The following
+          algorithms are supported:
 
-          - ``"Prim_Boost"`` (default) -- Prim's algorithm
-            (Boost implementation).
+          - ``"Prim_Boost"`` -- Prim's algorithm (Boost implementation)
 
-          - ``"Prim_fringe"`` -- a variant of Prim's algorithm.
-            ``"Prim_fringe"`` ignores the labels on the edges.
+          - ``"Prim_fringe"`` -- a variant of Prim's algorithm that ignores the
+            labels on the edges
 
-          - ``"Prim_edge"`` -- a variant of Prim's algorithm.
+          - ``"Prim_edge"`` -- a variant of Prim's algorithm
 
-          - ``"Kruskal"`` -- Kruskal's algorithm.
+          - ``"Kruskal"`` -- Kruskal's algorithm
 
-          - ``"Kruskal_Boost"`` -- Kruskal's algorithm (Boost implementation).
+          - ``"Kruskal_Boost"`` -- Kruskal's algorithm (Boost implementation)
 
-          - ``"Boruvka"`` -- Boruvka's algorithm.
+          - ``"Boruvka"`` -- Boruvka's algorithm
 
-          - ``NetworkX`` -- Uses NetworkX's minimum spanning tree
-            implementation.
+          - ``NetworkX`` -- uses NetworkX's minimum spanning tree
+            implementation
 
-        - ``starting_vertex`` -- The vertex from which to begin the search
-          for a minimum spanning tree (available only for ``Prim_fringe`` and
-          ``Prim_edge``).
+        - ``starting_vertex`` -- a vertex (default: ``None``); the vertex from
+          which to begin the search for a minimum spanning tree (available only
+          for ``Prim_fringe`` and ``Prim_edge``).
 
-        - ``check`` -- Boolean; default: ``False``. Whether to first perform
-          sanity checks on the input graph ``G``. If appropriate, ``check``
-          is passed on to any minimum spanning tree functions that are
-          invoked from the current method. See the documentation of the
-          corresponding functions for details on what sort of sanity checks
-          will be performed.
+        - ``check`` -- boolean (default: ``False``); whether to first perform
+          sanity checks on the input graph ``G``. If appropriate, ``check`` is
+          passed on to any minimum spanning tree functions that are invoked from
+          the current method. See the documentation of the corresponding
+          functions for details on what sort of sanity checks will be performed.
 
         OUTPUT:
 
@@ -3853,7 +3871,7 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
-            sage: g.add_edges(g.edges())
+            sage: g.add_edges(g.edge_iterator())
             sage: g.min_spanning_tree()
             [(0, 1, None), (0, 4, None), (0, 5, None), (1, 2, None), (1, 6, None), (3, 8, None), (5, 7, None), (5, 8, None), (6, 9, None)]
 
@@ -3886,15 +3904,20 @@ class GenericGraph(GenericGraph_pyx):
         If the graph is not weighted, edge labels are not considered, even if
         they are numbers::
 
-            sage: g = Graph([[1,2,1], [1,3,2], [2,3,1]])
+            sage: g = Graph([(1, 2, 1), (1, 3, 2), (2, 3, 1)])
             sage: g.min_spanning_tree()
             [(1, 2, 1), (1, 3, 2)]
 
-        In order to use weights, we need to set variable ``weighted`` to
-        ``True``::
+        In order to use weights, we need either to set variable ``weighted`` to
+        ``True``, or to specify a weight function::
 
             sage: g.weighted(True)
             sage: g.min_spanning_tree()
+            [(1, 2, 1), (2, 3, 1)]
+            sage: g.weighted(False)
+            sage: g.min_spanning_tree()
+            [(1, 2, 1), (1, 3, 2)]
+            sage: g.min_spanning_tree(weight_function=lambda e: e[2])
             [(1, 2, 1), (2, 3, 1)]
 
         TESTS:
@@ -3903,7 +3926,7 @@ class GenericGraph(GenericGraph_pyx):
         are used::
 
             sage: g = Graph(weighted=True)
-            sage: g.add_edges([[0,1,1],[1,2,1],[2,0,10]])
+            sage: g.add_edges([[0, 1, 1], [1, 2, 1], [2, 0, 10]])
             sage: g.min_spanning_tree()
             [(0, 1, 1), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='Kruskal_Boost')
@@ -3922,8 +3945,8 @@ class GenericGraph(GenericGraph_pyx):
         Check that, if ``weight_function`` is provided, it overrides edge
         weights::
 
-            sage: g = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
-            sage: weight = lambda e:3-e[0]-e[1]
+            sage: g = Graph([[0, 1, 1], [1, 2, 1], [2, 0, 10]], weighted=True)
+            sage: weight = lambda e: 3 - e[0] - e[1]
             sage: g.min_spanning_tree(weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='Kruskal_Boost', weight_function=weight)
@@ -3950,7 +3973,7 @@ class GenericGraph(GenericGraph_pyx):
         If at least an edge weight is not convertible to a float, an error is
         raised::
 
-            sage: g = Graph([(0,1,1), (1,2,'a')], weighted=True)
+            sage: g = Graph([(0, 1, 1), (1, 2, 'a')], weighted=True)
             sage: g.min_spanning_tree(algorithm="Prim_Boost")
             Traceback (most recent call last):
             ...
@@ -3980,7 +4003,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: could not convert string to float:...
 
-            sage: g = Graph([(0,1,1), (1,2,[1,2,3])], weighted=True)
+            sage: g = Graph([(0, 1, 1), (1, 2, [1, 2, 3])], weighted=True)
 
             sage: g.min_spanning_tree(algorithm="Prim_Boost")
             Traceback (most recent call last):
@@ -4010,16 +4033,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.EmptyGraph().min_spanning_tree()
             []
         """
-        if self.order() == 0:
+        if not self.order():
             return []
 
         if weight_function is None:
             if self.weighted():
-                weight_function = lambda e:e[2]
+                weight_function = lambda e: e[2]
             else:
-                weight_function = lambda e:1
+                weight_function = lambda e: 1
 
-        wfunction_float = lambda e:float(weight_function(e))
+        wfunction_float = lambda e: float(weight_function(e))
 
         if algorithm in ["Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
             if self.is_directed():
@@ -4047,20 +4070,23 @@ class GenericGraph(GenericGraph_pyx):
             tree = set([v])
             edges = []
             # Initialize fringe_list with v's neighbors. Fringe_list
-            # contains fringe_vertex: (vertex_in_tree, weight) for each
+            # contains fringe_vertex: (weight, vertex_in_tree) for each
             # fringe vertex.
-            fringe_list = dict([e[0] if e[0]!=v else e[1], (wfunction_float(e), v)] for e in self.edges_incident(v))
-            cmp_fun = lambda x: fringe_list[x]
+            fringe_list = {e[0] if e[0] != v else e[1]: (wfunction_float(e), v) for e in self.edges_incident(v)}
+            cmp_fun = lambda x: fringe_list[x][0]
             for i in range(self.order() - 1):
                 # find the smallest-weight fringe vertex
                 u = min(fringe_list, key=cmp_fun)
                 x = fringe_list[u][1]
-                edges.append((min(x,u), max(x,u), self.edge_label(x,u)))
+                if hash(u) < hash(x):
+                    edges.append((u, x, self.edge_label(u, x)))
+                else:
+                    edges.append((x, u, self.edge_label(x, u)))
                 tree.add(u)
                 fringe_list.pop(u)
                 # update fringe list
                 for e in self.edges_incident(u):
-                    neighbor = e[0] if e[0]!=u else e[1]
+                    neighbor = e[0] if e[0] !=u else e[1]
                     if neighbor in tree:
                         continue
                     w = wfunction_float(e)
@@ -4073,13 +4099,13 @@ class GenericGraph(GenericGraph_pyx):
                 v = next(self.vertex_iterator())
             else:
                 v = starting_vertex
-            sorted_edges = sorted(self.edges(), key=wfunction_float)
+            sorted_edges = self.edges(key=wfunction_float)
             tree = set([v])
             edges = []
             for _ in range(self.order() - 1):
-                # Find a minimum-weight edge connecting a vertex in the tree
-                # to something outside the tree. Remove the edges between
-                # tree vertices for efficiency.
+                # Find a minimum-weight edge connecting a vertex in the tree to
+                # something outside the tree. Remove the edges between tree
+                # vertices for efficiency.
                 i = 0
                 while True:
                     e = sorted_edges[i]
@@ -4102,11 +4128,13 @@ class GenericGraph(GenericGraph_pyx):
 
         elif algorithm == "NetworkX":
             import networkx
-            G = networkx.Graph([(u, v, dict(weight=wfunction_float((u, v, l)))) for u, v, l in self.edge_iterator()])
-            return sorted([(u,v,self.edge_label(u,v)) if u<v else (v,u,self.edge_label(u,v)) for (u,v) in networkx.minimum_spanning_tree(G).edges()])
+            G = networkx.Graph([(e[0], e[1], {'weight': wfunction_float(e)}) for e in self.edge_iterator()])
+            E = networkx.minimum_spanning_tree(G).edges()
+            return sorted([(u, v, self.edge_label(u, v)) if hash(u) < hash(v) else (v, u, self.edge_label(u, v))
+                               for u, v in E])
 
         else:
-            raise NotImplementedError("Minimum Spanning Tree algorithm '%s' is not implemented." % algorithm)
+            raise NotImplementedError("minimum Sspanning tree algorithm '%s' is not implemented" % algorithm)
 
     def spanning_trees_count(self, root_vertex=None):
         """
@@ -4196,24 +4224,23 @@ class GenericGraph(GenericGraph_pyx):
 
     def cycle_basis(self, output='vertex'):
         r"""
-        Returns a list of cycles which form a basis of the cycle space
-        of ``self``.
+        Return a list of cycles which form a basis of the cycle space of
+        ``self``.
 
         A basis of cycles of a graph is a minimal collection of cycles
-        (considered as sets of edges) such that the edge set of any
-        cycle in the graph can be written as a `Z/2Z` sum of the
-        cycles in the basis.
+        (considered as sets of edges) such that the edge set of any cycle in the
+        graph can be written as a `Z/2Z` sum of the cycles in the basis.
 
         INPUT:
 
-        - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether
-          every cycle is given as a list of vertices or a list of
-          edges.
+        - ``output`` -- string (default: ``'vertex'``); whether every cycle is
+          given as a list of vertices (``output == 'vertex'``) or a list of
+          edges (``output == 'edges'``)
 
         OUTPUT:
 
-        A list of lists, each of them representing the vertices (or
-        the edges) of a cycle in a basis.
+        A list of lists, each of them representing the vertices (or the edges)
+        of a cycle in a basis.
 
         ALGORITHM:
 
@@ -4243,24 +4270,23 @@ class GenericGraph(GenericGraph_pyx):
 
         Checking the given cycles are algebraically free::
 
-            sage: g = graphs.RandomGNP(30,.4)
+            sage: g = graphs.RandomGNP(30, .4)
             sage: basis = g.cycle_basis()
 
-        Building the space of (directed) edges over `Z/2Z`. On the way,
-        building a dictionary associating an unique vector to each
-        undirected edge::
+        Building the space of (directed) edges over `Z/2Z`. On the way, building
+        a dictionary associating an unique vector to each undirected edge::
 
             sage: m = g.size()
-            sage: edge_space = VectorSpace(FiniteField(2),m)
-            sage: edge_vector = dict( zip( g.edges(labels = False), edge_space.basis() ) )
-            sage: for (u,v),vec in list(edge_vector.items()):
-            ....:    edge_vector[(v,u)] = vec
+            sage: edge_space = VectorSpace(FiniteField(2), m)
+            sage: edge_vector = dict(zip(g.edges(labels=False, sort=False), edge_space.basis()))
+            sage: for (u, v), vec in edge_vector.items():
+            ....:    edge_vector[(v, u)] = vec
 
-        Defining a lambda function associating a vector to the
-        vertices of a cycle::
+        Defining a lambda function associating a vector to the vertices of a
+        cycle::
 
-            sage: vertices_to_edges = lambda x : zip( x, x[1:] + [x[0]] )
-            sage: cycle_to_vector = lambda x : sum( edge_vector[e] for e in vertices_to_edges(x) )
+            sage: vertices_to_edges = lambda x: zip(x, x[1:] + [x[0]])
+            sage: cycle_to_vector = lambda x: sum(edge_vector[e] for e in vertices_to_edges(x))
 
         Finally checking the cycles are a free set::
 
@@ -4270,12 +4296,11 @@ class GenericGraph(GenericGraph_pyx):
 
         For undirected graphs with multiple edges::
 
-            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
+            sage: G = Graph([(0, 2, 'a'), (0, 2, 'b'), (0, 1, 'c'), (1, 2, 'd')], multiedges=True)
             sage: G.cycle_basis()
             [[0, 2], [2, 1, 0]]
             sage: G.cycle_basis(output='edge')
-            [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'),
-            (0, 2, 'a')]]
+            [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')]]
 
         Disconnected graph::
 
@@ -4302,8 +4327,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.cycle_basis()
             Traceback (most recent call last):
             ...
-            NotImplementedError: not implemented for directed graphs
-            with multiple edges
+            NotImplementedError: not implemented for directed graphs with multiple edges
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
@@ -4321,7 +4345,7 @@ class GenericGraph(GenericGraph_pyx):
             T = self.min_spanning_tree()
             return [self.subgraph(edges=T + [e]).is_forest(certificate=True,
                                                            output=output)[1]
-                    for e in self.edges() if not e in T]
+                    for e in self.edge_iterator() if not e in T]
 
         # second case: there are no multiple edges
         import networkx

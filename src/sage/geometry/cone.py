@@ -5491,6 +5491,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The Lyapunov rank of the positive operators is the product of
         the Lyapunov ranks of the associated cones if both are proper::
 
+            sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=3,
             ....:                  strictly_convex=True,
             ....:                  solid=True)
@@ -5511,6 +5512,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         cone can be computed from the Lyapunov-like operators on the cones
         with respect to which the operators are positive::
 
+            sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=3,
             ....:                  strictly_convex=True,
             ....:                  solid=True)

@@ -27,15 +27,15 @@ AUTHORS:
 - Joel B. Mohler (2008-03-17) -- ETuple rewrite as sparse C array
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 from libc.string cimport memcpy
@@ -192,7 +192,7 @@ cdef class PolyDict:
         Compare two `PolyDict`s.  If a ``sortkey`` argument is given it should
         be a sort key used to specify a term order.
 
-        If not sort key is provded than only comparison by equality (``==`` or
+        If not sort key is provided than only comparison by equality (``==`` or
         ``!=``) is supported.
 
         EXAMPLES::

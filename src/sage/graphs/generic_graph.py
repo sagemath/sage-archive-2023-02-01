@@ -1985,29 +1985,48 @@ class GenericGraph(GenericGraph_pyx):
 
         return m
 
-    def distance_matrix(self):
-        """
+    def distance_matrix(self, vertices=None, **kwds):
+        r"""
         Return the distance matrix of (di)graph.
 
         The (di)graph is expected to be (strongly) connected.
 
         The distance matrix of a (strongly) connected (di)graph is a matrix
-        whose rows and columns are indexed with the positions of the vertices
-        of the (di)graph in the ordering ``G.vertices()``. The intersection
-        of a row and a column contains the respective distance between the
-        vertices indexed at these positions.
+        whose rows and columns are by default (``vertices == None``) indexed
+        with the positions of the vertices of the (di)graph in the ordering
+        :meth:`vertices`. When ``vertices`` is set, the position of the vertices
+        in this ordering is used. The intersection of row `i` and column `j`
+        contains the shortest path distance from the vertex at the `i`-th
+        position to the vertex at the `j`-th position.
 
-        Note that even when the vertices are consecutive integers
-        starting from one, usually the vertex is not equal to it's index.
+        Note that even when the vertices are consecutive integers starting from
+        one, usually the vertex is not equal to it's index.
+
+        INPUT:
+
+        - ``vertices`` -- list (default: ``None``); the ordering of the vertices
+          defining how they should appear in the matrix. By default, the
+          ordering given by :meth:`GenericGraph.vertices` is used. Because
+          :meth:`GenericGraph.vertices` only works if the vertices can be
+          sorted, using ``vertices`` is useful when working with possibly
+          non-sortable objects in Python 3.
+
+        - All other arguments are forwarded to the subfunction
+          :meth:`GenericGraph.distance_all_pairs`
 
         EXAMPLES::
 
             sage: d = DiGraph({1: [2, 3], 2: [3], 3: [4], 4: [1]})
             sage: d.distance_matrix()
             [0 1 1 2]
-            [1 0 1 2]
-            [1 1 0 1]
-            [2 2 1 0]
+            [3 0 1 2]
+            [2 3 0 1]
+            [1 2 2 0]
+            sage: d.distance_matrix(vertices=[4, 3, 2, 1])
+            [0 2 2 1]
+            [1 0 3 2]
+            [2 1 0 3]
+            [2 1 1 0]
 
             sage: G = graphs.CubeGraph(3)
             sage: G.distance_matrix()
@@ -2021,7 +2040,7 @@ class GenericGraph(GenericGraph_pyx):
             [3 2 2 1 2 1 1 0]
 
         The well known result of Graham and Pollak states that the determinant
-        of the distance matrix of any tree of order n is
+        of the distance matrix of any tree of order `n` is
         `(-1)^{n-1}(n-1)2^{n-2}`::
 
             sage: all(T.distance_matrix().det() == (-1)^9*(9)*2^8 for T in graphs.trees(10))
@@ -2038,15 +2057,26 @@ class GenericGraph(GenericGraph_pyx):
             (not self.is_directed() and not self.is_connected())):
             raise ValueError("input (di)graph must be (strongly) connected")
 
+        if vertices is None:
+            vertices = self.vertices()
+        elif (len(vertices) != self.order() or
+            set(vertices) != set(self.vertex_iterator())):
+            raise ValueError("``vertices`` must be a permutation of the vertices")
+
         n = self.order()
         ret = matrix(n, n)
-        V = self.vertices()
+        V = vertices
 
-        dist = self.distance_all_pairs()
+        dist = self.distance_all_pairs(**kwds)
 
-        for i in range(n):
-            for j in range(i+1,n):
-                ret[i, j] = ret[j, i] = (dist[V[i]])[V[j]]
+        if self.is_directed():
+            for i in range(n):
+                for j in range(n):
+                    ret[i, j] = (dist[V[i]])[V[j]]
+        else:
+            for i in range(n):
+                for j in range(i + 1, n):
+                    ret[i, j] = ret[j, i] = (dist[V[i]])[V[j]]
 
         return ret
 

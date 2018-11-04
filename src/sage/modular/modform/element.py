@@ -2242,7 +2242,7 @@ class Newform(ModularForm_abstract):
             while len(candidates) > 1:
                 l = l.next_prime()
                 if l==p: continue
-                candidates = [(g, chi) for (g, chi) in candidates if g[l] == chi(l)*self[l] ]
+                candidates = [(h, chi) for (h, chi) in candidates if h[l] == chi(l)*self[l] ]
                 if l > 10000 or len(candidates) == 0:
                     raise RuntimeError("bug finding minimal twist")
             return candidates[0]
@@ -2276,20 +2276,20 @@ class Newform(ModularForm_abstract):
                         raise RuntimeError("bug finding minimal twist")
                 return (g, chis[0])
 
-    def local_component(self, p):
+    def local_component(self, p, twist_factor=None):
         """
         Calculate the local component at the prime `p` of the automorphic
         representation attached to this newform. For more information, see the
         documentation of the :func:`LocalComponent` function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: f = Newform("49a")
             sage: f.local_component(7)
             Smooth representation of GL_2(Q_7) with conductor 7^2
         """
         from sage.modular.local_comp.local_comp import LocalComponent
-        return LocalComponent(self, p)
+        return LocalComponent(self, p, twist_factor)
 
 class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
     def __init__(self, parent, x, check=True):

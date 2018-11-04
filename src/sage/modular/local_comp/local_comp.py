@@ -21,13 +21,11 @@ AUTHORS:
 from __future__ import absolute_import
 
 from sage.structure.sage_object     import SageObject
-from sage.rings.all                 import ZZ, Zmod, QQbar, PolynomialRing, polygen
+from sage.rings.all                 import ZZ, QQbar, PolynomialRing, polygen
 from sage.misc.abstract_method      import abstract_method
 from sage.misc.cachefunc            import cached_method
 from sage.misc.misc                 import verbose
-from sage.modular.dirichlet         import DirichletGroup
 from sage.modular.modform.element   import Newform
-from sage.sets.set                  import Set
 from sage.structure.sequence        import Sequence
 
 from .type_space                    import TypeSpace
@@ -704,7 +702,7 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
         Examples where `K^\times / \QQ_p^\times` is not topologically cyclic
         (which complicates the computations greatly)::
 
-            sage: Newforms(DirichletGroup(64, QQ).1, 2, names='a')[0].local_component(2).characters() # long time
+            sage: Newforms(DirichletGroup(64, QQ).1, 2, names='a')[0].local_component(2).characters() # long time
             [
             Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> -1/4*a0, 4*s + 1 |--> -1, -1 |--> 1, 2 |--> 1,
             Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> -1/4*a0, 4*s + 1 |--> 1, -1 |--> 1, 2 |--> 1
@@ -741,12 +739,12 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
 
             gvals = [x[0] for x in theta_poly.roots(G.base_ring())]
             if len(gs) == 1:
+                # This is always the case if p != 2
                 chi1, chi2 = [G.extend_character(n, self.central_character(), [x]) for x in gvals]
             else:
                 # 2-adic cases, conductor >= 64. Here life is complicated
                 # because the quotient (O_K* / p^n)^* / (image of Z_2^*) is not
                 # cyclic.
-                chis = []
                 g0 = gs[0]
                 try:
                     G._reduce_Qp(1, g0)

@@ -1153,7 +1153,7 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
             P = self.ideal(1)
             I = self.ideal(level)
             gens = [self.number_field().coerce(g) for g in gens]
-            i = min([i for i in xrange(len(gens)) if gens[i].valuation(P) == 1]) # lazy!
+            i = min([i for i in range(len(gens)) if gens[i].valuation(P) == 1]) # lazy!
             pi = gens[i]
             genvals = []
             genunits = []
@@ -1166,10 +1166,9 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
             xunit = I.reduce(xunit * xunit.denominator_ideal().element_1_mod(I))
             verbose("computing log of %s in basis %s" % (xunit, genunits), level=1)
             dl = I.ideallog(xunit, genunits)
-            Xunit = prod(genunits[j] ** dl[j] for j in xrange(len(gens)))
-            pi_term = x.valuation(P) - sum(dl[j] * genvals[j] for j in xrange(len(gens)))
+            pi_term = x.valuation(P) - sum(dl[j] * genvals[j] for j in range(len(gens)))
             dl[i] += pi_term
-            X = prod(gens[j] ** dl[j] for j in xrange(len(gens)))
+            X = prod(gens[j] ** dl[j] for j in range(len(gens)))
             assert (X/x - 1).valuation(P) >= level
             return dl
 
@@ -1228,7 +1227,7 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
         d = len(es)
 
         A = ZZ**d
-        R = [A.gen(i)*es[i] for i in xrange(d)]
+        R = [A.gen(i)*es[i] for i in range(d)]
         r = I.smallest_integer()
         S = []
         for s in Zmod(r).unit_gens() + (p,):
@@ -1241,9 +1240,9 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
             if vv[-1] < 0: vv *= -1
             while vv[-1] not in [0, 1]:
                 t = self.discrete_log(n, p)
-                vv = [vv[i] - t[i] for i in xrange(d)]
+                vv = [vv[i] - t[i] for i in range(d)]
             assert (Q(A(vv)) == v or Q(A(vv)) == -v)
-            qgs.append( I.reduce(prod([gs[i] ** (vv[i] % es[i]) for i in xrange(d-1)])) * gs[-1]**vv[-1] )
+            qgs.append( I.reduce(prod([gs[i] ** (vv[i] % es[i]) for i in range(d-1)])) * gs[-1]**vv[-1] )
 
         if len(qgs) == 2:
             x,y = qgs
@@ -1374,11 +1373,11 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
 
         for x in standard_gens:
             d = self.discrete_log(level, x, custom_gens)
-            chix = prod(values_on_custom_gens[i]**d[i] for i in xrange(len(d)))
+            chix = prod(values_on_custom_gens[i]**d[i] for i in range(len(d)))
             values_on_standard_gens.append(chix)
 
         chiE = self.character(level, values_on_standard_gens)
-        if not all( chiE(qs[i]) == vals[i] for i in xrange(len(qs)) ) or chiE.restrict_to_Qp() != chi:
+        if not all( chiE(qs[i]) == vals[i] for i in range(len(qs)) ) or chiE.restrict_to_Qp() != chi:
             raise ValueError("Invalid values for extension")
         return chiE
 
@@ -1647,7 +1646,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupQuadratic):
         self._flag = flag
 
         # Find an integer a such that sqrt(a*p) generates the right field and ZZ(sqrt(a*p)) is integrally closed
-        for a in xrange(4*prime):
+        for a in range(4*prime):
             if (not a%prime) or (not ZZ(a).is_squarefree()) or ( (a*prime) % 4 == 1):
                 continue
             if (flag == 0 and Zmod(prime)(a).is_square()) or \

@@ -297,252 +297,66 @@ def _setup_r_to_sage_converter():
 
     Test
 
-        sage: r(1.0).sage()
-        1
+    Simple numeric values are represented as vecotrs in R. So `1` would actually
+    be an array of length 1. We convert all vectory of length 1 to simple values,
+    weather or not they "originally" were simple values or not:
 
-        sage: r([1.0]).sage()
-        1
+        sage: r([42]).sage()
+        42
 
-        sage: r([1.0, 42]).sage()
-        [1, 42]
+        sage: r(42).sage()
+        42
+
+        sage: r('c("foo")').sage()
+        'foo'
+
+    Arrays of length greater than one are treated normally:
+
+        sage: r([42, 43]).sage()
+        [42, 43]
+
+    We also convert all numeric values to integers if that is possible without
+    loss of precision:
+
+        sage: type(r([1.0]).sage()) == int
+        True
+
+        sage: r([1.0, 42.5]).sage()
+        [1, 42.5]
+
+    Matrices are converted to sage matrices:
 
         sage: r('matrix(c(2,4,3,1,5,7), nrow=2, ncol=3)').sage()
         [2 3 5]
         [4 1 7]
+
+    More complex r structures are represented by dictionaries:
 
         sage: r.summary(1).sage()
         {'DATA': [1, 1, 1, 1, 1, 1],
          '_Names': ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.'],
          '_r_class': ['summaryDefault', 'table']}
 
-        sage: x = r([10.4,5.6,3.1,6.4,21.7]); x.sage()
-        [10.4, 5.6, 3.1, 6.4, 21.7]
-
-    You can invert elements of a vector x in R by using the
-    invert operator or by doing 1/x::
-
-        sage: (~x).sage() # abs tol 1e-12
-        [0.0961538461538461,
-         0.178571428571429,
-         0.32258064516129,
-         0.15625,
-         0.0460829493087558]
-        sage: (1/x).sage() # abs tol 1e-12
-        [0.0961538461538461,
-         0.178571428571429,
-         0.32258064516129,
-         0.15625,
-         0.0460829493087558]
-
-    The following assignment creates a vector $y$ with 11 entries which
-    consists of two copies of $x$ with a 0 in between::
-
-        sage: y = r([x,0,x]); y.sage()
-        [10.4, 5.6, 3.1, 6.4, 21.7, 0, 10.4, 5.6, 3.1, 6.4, 21.7]
-
-    Vector Arithmetic
-
-    The following command generates a new vector $v$ of length 11 constructed
-    by adding together (element by element) $2x$ repeated 2.2 times, $y$
-    repeated just once, and 1 repeated 11 times::
-
-        sage: v = 2*x+y+1; v.sage() # abs tol 1e-12
-        [32.2, 17.8, 10.3, 20.2, 66.1, 21.8, 22.6, 12.8, 16.9, 50.8, 43.5]
-
-    One can compute the sum of the elements of an R vector in the following
-    two ways::
-
-        sage: sum(x).sage()
-        47.2
-        sage: x.sum().sage()
-        47.2
-
-    One can calculate the sample variance of a list of numbers::
-
-        sage: ((x-x.mean())^2/(x.length()-1)).sum().sage() # abs tol 1e-12
-        53.853
-        sage: x.var().sage() # abs tol 1e-12
-        53.853
-
-        sage: x.sort().sage()
-        [3.1, 5.6, 6.4, 10.4, 21.7]
-        sage: x.min().sage()
-        3.1
-        sage: x.max().sage()
-        21.7
-        sage: x.sage()
-        [10.4, 5.6, 3.1, 6.4, 21.7]
-
-        sage: r(-17).sqrt().sage() # used to throw a NameError
-        nan
-        sage: r('-17+0i').sqrt().sage() # used to fail parsing
-        4.123105625617661j
-
-    Generating an arithmetic sequence::
-
-        sage: r('1:10').sage()
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-    Because ``from`` is a keyword in Python, it can't be used
-    as a keyword argument.  Instead, ``from_`` can be passed, and
-    R will recognize it as the correct thing::
-
-        sage: r.seq(length=10, from_=-1, by=.2).sage() # abs tol 1e-12
-        [-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8]
-
-        sage: x = r([10.4,5.6,3.1,6.4,21.7])
-        sage: x.rep(2).sage()
-        [10.4, 5.6, 3.1, 6.4, 21.7, 10.4, 5.6, 3.1, 6.4, 21.7]
-        sage: x.rep(times=2).sage()
-        [10.4, 5.6, 3.1, 6.4, 21.7, 10.4, 5.6, 3.1, 6.4, 21.7]
-        sage: x.rep(each=2).sage()
-        [10.4, 10.4, 5.6, 5.6, 3.1, 3.1, 6.4, 6.4, 21.7, 21.7]
-
-    Missing Values::
-
-        sage: na = r('NA')
-        sage: z = r([1,2,3,na])
-        sage: z.sage() # this used to display `None` instead of nan
-        [1, 2, 3, nan]
-        sage: ind = r.is_na(z)
-        sage: ind.sage()
-        [False, False, False, True]
-        sage: zero = r(0)
-        sage: (zero / zero).sage() # used to throw a NameError
-        nan
-        sage: inf = r('Inf'); inf.sage() # used to throw a NameError
-        inf
-        sage: (inf-inf).sage()
-        nan
-        sage: r.is_na(inf).sage()
-        False
-        sage: r.is_na(inf-inf).sage()
-        True
-        sage: r.is_na(zero/zero).sage()
-        True
-        sage: r.is_na(na).sage()
-        True
-        sage: r.is_nan(inf-inf).sage()
-        True
-        sage: r.is_nan(zero/zero).sage()
-        True
-        sage: r.is_nan(na).sage()
-        False
-
-
-    Character Vectors::
-
-        sage: labs = r.paste('c("X","Y")', '1:10', sep='""'); labs.sage()
-        ['X1', 'Y2', 'X3', 'Y4', 'X5', 'Y6', 'X7', 'Y8', 'X9', 'Y10']
-
-
-    Index vectors; selecting and modifying subsets of a data set::
-
-        sage: na = r('NA')
-        sage: x = r([10.4,5.6,3.1,6.4,21.7,na]); x.sage() # used to give None instead of nan
-        [10.4, 5.6, 3.1, 6.4, 21.7, nan]
-        sage: x['!is.na(self)'].sage()
-        [10.4, 5.6, 3.1, 6.4, 21.7]
-
-        sage: x = r([10.4,5.6,3.1,6.4,21.7,na]); x.sage() # used to return None instead of nan
-        [10.4, 5.6, 3.1, 6.4, 21.7, nan]
-        sage: (x+1)['(!is.na(self)) & self>0'].sage()
-        [11.4, 6.6, 4.1, 7.4, 22.7]
-        sage: x = r([10.4,-2,3.1,-0.5,21.7,na]); x.sage() # used to return None instead of NA
-        [10.4, -2, 3.1, -0.5, 21.7, nan]
-        sage: (x+1)['(!is.na(self)) & self>0'].sage()
-        [11.4, 4.1, 0.5, 22.7]
-
-    Distributions::
-
         sage: r.options(width="60").sage()
         {'DATA': {'width': 60}, '_Names': 'width'}
 
-        sage: rr = r.dnorm(r.seq(-3,3,0.1))
-        sage: rr.sage() # abs tol 1e-12
-        [0.00443184841193801,
-         0.00595253241977585,
-         0.00791545158297997,
-         0.0104209348144226,
-         0.0135829692336856,
-         0.0175283004935685,
-         0.0223945302948429,
-         0.0283270377416012,
-         0.0354745928462314,
-         0.0439835959804272,
-         0.0539909665131881,
-         0.0656158147746766,
-         0.0789501583008942,
-         0.0940490773768869,
-         0.110920834679456,
-         0.129517595665892,
-         0.149727465635745,
-         0.171368592047807,
-         0.194186054983213,
-         0.217852177032551,
-         0.241970724519143,
-         0.266085249898755,
-         0.289691552761483,
-         0.312253933366761,
-         0.3332246028918,
-         0.3520653267643,
-         0.368270140303323,
-         0.381387815460524,
-         0.391042693975456,
-         0.396952547477012,
-         0.398942280401433,
-         0.396952547477012,
-         0.391042693975456,
-         0.381387815460524,
-         0.368270140303323,
-         0.3520653267643,
-         0.3332246028918,
-         0.312253933366761,
-         0.289691552761483,
-         0.266085249898755,
-         0.241970724519143,
-         0.21785217703255,
-         0.194186054983213,
-         0.171368592047807,
-         0.149727465635745,
-         0.129517595665892,
-         0.110920834679455,
-         0.0940490773768869,
-         0.0789501583008941,
-         0.0656158147746766,
-         0.0539909665131881,
-         0.0439835959804272,
-         0.0354745928462314,
-         0.0283270377416011,
-         0.0223945302948429,
-         0.0175283004935685,
-         0.0135829692336856,
-         0.0104209348144226,
-         0.00791545158297995,
-         0.00595253241977585,
-         0.00443184841193801]
+    The conversion can handle "not a number", infintiy, imaginary values and
+    missing values:
 
-    Convert R Data Structures to Python/Sage::
+        sage: r(-17).sqrt().sage()
+        nan
+        sage: r('-17+0i').sqrt().sage()
+        4.123105625617661j
+        sage: r('NA').sage()
+        NA
+        sage: inf = r('Inf'); inf.sage()
+        inf
 
-        sage: rr = r.dnorm(r.seq(-3,3,0.1))
-        sage: sum(rr._sage_())
-        9.9772125168981...
 
-    Or you get a dictionary to be able to access all the information::
+    Character Vectors are represented by regular python arrays:
 
-        sage: rs = r.summary(r.c(1,4,3,4,3,2,5,1))
-        sage: rs.sage()
-        {'DATA': [1, 1.75, 3, 2.875, 4, 5],
-         '_Names': ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.'],
-         '_r_class': ['summaryDefault', 'table']}
-        sage: d = rs._sage_()
-        sage: d['DATA']
-        [1, 1.75, 3, 2.875, 4, 5]
-        sage: d['_Names']
-        ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.']
-        sage: d['_r_class']
-        ['summaryDefault', 'table']
-
+        sage: labs = r.paste('c("X","Y")', '1:10', sep='""'); labs.sage()
+        ['X1', 'Y2', 'X3', 'Y4', 'X5', 'Y6', 'X7', 'Y8', 'X9', 'Y10']
     """
     from rpy2.rinterface import SexpVector, ListSexpVector, FloatSexpVector
     from rpy2.robjects.conversion import Converter

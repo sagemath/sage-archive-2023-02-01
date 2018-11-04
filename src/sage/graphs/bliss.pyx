@@ -148,7 +148,7 @@ cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels,
     - ``partition`` -- a partition of the vertex set
     """
     cdef Py_ssize_t i, j
-    cdef int logLnr
+    cdef int logLnr = 0
     cdef str binrep
 
     cdef Graph *g
@@ -227,7 +227,7 @@ cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, lab
     - ``partition`` -- a partition of the vertex set
     """
     cdef Py_ssize_t i, j
-    cdef int logLnr
+    cdef int logLnr = 0
     cdef str binrep
 
     cdef Digraph *g

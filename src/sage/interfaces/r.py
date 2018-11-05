@@ -297,9 +297,9 @@ def _setup_r_to_sage_converter():
 
     Test
 
-    Simple numeric values are represented as vecotrs in R. So `1` would actually
-    be an array of length 1. We convert all vectory of length 1 to simple values,
-    weather or not they "originally" were simple values or not:
+    Simple numeric values are represented as vectors in R. So `1` would actually
+    be an array of length 1. We convert all vectors of length 1 to simple values,
+    whether or not they "originally" were simple values or not:
 
         sage: r([42]).sage()
         42
@@ -395,7 +395,7 @@ def _setup_r_to_sage_converter():
                 '_r_class': rclass,
             }
         else:
-            # if not names are present, convert to a normal list or a single value
+            # if no names are present, convert to a normal list or a single value
             return data
     cv.ri2py.register(SexpVector, _vector)
 

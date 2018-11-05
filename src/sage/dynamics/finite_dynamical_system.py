@@ -163,7 +163,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
             sage: D.ground_set()
             Non negative integer semiring
@@ -206,7 +206,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
             sage: D.ground_set()
             (1, 3, 4)
@@ -219,7 +219,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
             sage: ev = D.evolution()
             sage: ev(1)
@@ -238,7 +238,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
             sage: D[:3]
             [0, 1, 2]
@@ -268,7 +268,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
             sage: D # indirect doctest
             A discrete dynamical system with ground set
@@ -391,7 +391,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         Now, let us check homomesy restricted to specific cycles::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.bitstring_rotation(7)
             sage: descents = lambda x: sum(1 for i in range(6) if x[i] > x[i+1])
             sage: F.is_homomesic(descents)
@@ -407,7 +407,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         And here is a non-invertible finite dynamical system::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.one_line([9, 1, 1, 6, 5, 4, 5, 5, 1])
             sage: F.is_homomesic(lambda i: i)
             True
@@ -500,7 +500,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = InvertibleDiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 4 < 2 else x - 2))
             sage: D.ground_set()
             Non negative integer semiring
@@ -626,7 +626,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = InvertibleDiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8)
             sage: D.ground_set()
             (0, 1, 2, 3, 4, 5, 6, 7)
@@ -736,7 +736,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
 
         Invariants and non-invariants of a permutation::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.permutation([3, 4, 5, 6, 1, 2])
             sage: F.is_invariant(lambda i: i % 2)
             True
@@ -769,7 +769,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: BS = discrete_dynamical_systems.bulgarian_solitaire
             sage: BS(8).cycles()
             [[[4, 3, 1], [3, 3, 2], [3, 2, 2, 1], [4, 2, 1, 1]],
@@ -787,7 +787,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
             sage: D.cycles()
             [[10, 0], [8], [4]]
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.one_line([4, 7, 2, 6, 2, 10, 9, 11, 5, 6, 12, 12, 12, 6])
             sage: F.cycles()
             [[6, 10], [12], [9, 5, 2, 7]]
@@ -965,7 +965,7 @@ class discrete_dynamical_systems():
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.permutation([3, 5, 4, 1, 2])
             sage: F.verify_inverse_evolution()
             True
@@ -995,7 +995,7 @@ class discrete_dynamical_systems():
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.one_line([2, 2, 1, 2, 3])
             sage: F.orbit(3)
             [3, 1, 2]
@@ -1025,7 +1025,7 @@ class discrete_dynamical_systems():
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.bitstring_rotation(5)
             sage: sorted(F.orbit_lengths())
             [1, 1, 5, 5, 5, 5, 5, 5]
@@ -1120,7 +1120,7 @@ class discrete_dynamical_systems():
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: StS = discrete_dynamical_systems.striker_sweep
             sage: E = range(1, 5)
             sage: lac = lambda S: all(s + 1 not in S for s in S) # lacunarity predicate
@@ -1178,7 +1178,7 @@ class discrete_dynamical_systems():
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.syt_promotion([4, 4, 4])
             sage: sorted(F.orbit_lengths())
             [3, 3, 4, 4, 4, 6, 6, 6, 6, 12, 12, 12, 12, 12, 12,
@@ -1207,7 +1207,7 @@ class discrete_dynamical_systems():
         EXAMPLES::
 
             sage: P = RootSystem(["A", 6]).root_poset()
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.order_ideal_rowmotion(P)
             sage: sorted(F.orbit_lengths())
             [2, 7, 7, 7, 7, 7, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
@@ -1218,7 +1218,7 @@ class discrete_dynamical_systems():
             True
 
             sage: P = RootSystem(["A", 3]).root_poset()
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: F = discrete_dynamical_systems.order_ideal_rowmotion(P)
             sage: F.verify_inverse_evolution()
             True
@@ -1259,7 +1259,7 @@ class discrete_dynamical_systems():
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_dynamical_system import discrete_dynamical_systems
+            sage: from sage.dynamics.finite_dynamical_system import discrete_dynamical_systems
             sage: BS = discrete_dynamical_systems.bulgarian_solitaire
             sage: BS(3).evolution()(Partition([3]))
             [2, 1]

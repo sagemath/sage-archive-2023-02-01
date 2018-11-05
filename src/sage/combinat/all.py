@@ -221,8 +221,4 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
 
-# Discrete dynamical systems
-lazy_import('sage.combinat.finite_dynamical_system',
-            ['DiscreteDynamicalSystem',
-             'FiniteDynamicalSystem', 'InvertibleDiscreteDynamicalSystem',
-             'InvertibleFiniteDynamicalSystem'])
+

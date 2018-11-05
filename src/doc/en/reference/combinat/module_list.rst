@@ -121,7 +121,6 @@ Comprehensive Module list
     sage/combinat/expnums
     sage/combinat/family
     sage/combinat/finite_class
-    sage/combinat/finite_dynamical_system
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/fqsym

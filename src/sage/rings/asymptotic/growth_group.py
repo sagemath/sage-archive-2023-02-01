@@ -1901,15 +1901,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
-        Return an element of ``self``.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An element of ``self``.
+        Return an element of this growth group.
 
         EXAMPLES::
 
@@ -4458,6 +4450,42 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         raise ValueError('cannot split {} ({}) into '
                          'abs and arg'.format(base, parent(base)))
+
+    def _an_element_(self):
+        r"""
+        Return an element of this exponential growth group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: ExponentialGrowthGroup(SR, 'n').an_element()  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            PartialConversionValueError: base abs(some_variable) must be positive
+
+            sage: assume(SR.an_element() > 0)
+            sage: ExponentialGrowthGroup(SR, 'n').an_element()  # indirect doctest
+            some_variable^n
+            sage: forget()
+            sage: ExponentialGrowthGroup(SR.subring(no_variables=True), 'n').an_element()  # indirect doctest
+            (pi*e)^n
+        """
+        return self.element_class(self, self._an_element_base_())
+
+    def _an_element_base_(self):
+        r"""
+        Return a base for :meth:`_an_element_` of this exponential growth group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: ExponentialGrowthGroup(SR, 'n')._an_element_base_()
+            abs(some_variable)
+            sage: ExponentialGrowthGroup(SR.subring(no_variables=True), 'n')._an_element_base_()
+            pi*e
+        """
+        e = self.base().an_element()
+        return e if e > 0 else abs(e)
 
     def some_elements(self):
         r"""

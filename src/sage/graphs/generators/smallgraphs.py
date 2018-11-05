@@ -14,9 +14,10 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 import six
 from six.moves import range
+
 # import from Sage library
 from sage.graphs.graph import Graph
 from math import sin, cos, pi
@@ -4675,7 +4676,7 @@ def _EllipticLinesProjectivePlaneScheme(k):
     orbitals = gp.Orbits(list(product(gp.Orbit(1), gp.Orbit(1))),
                          libgap.OnTuples)
     mats = map(lambda o: [(int(x[0]) - 1, int(x[1]) - 1) for x in o], orbitals)
-    return [matrix(q * (q - 1) / 2, lambda i, j: 1 if (i, j) in x else 0)
+    return [matrix((q * (q - 1)) // 2, lambda i, j: 1 if (i, j) in x else 0)
             for x in mats]
 
 

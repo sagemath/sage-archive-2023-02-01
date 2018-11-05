@@ -3493,9 +3493,10 @@ class ExactTerm(TermWithCoefficient):
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot construct 2^(x^2) in
-            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ * S^x
             > *previous* TypeError: unsupported operand parent(s) for *:
-            'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
+            'Growth Group QQ^x * x^ZZ * log(x)^ZZ * S^x' and
+            'Growth Group ZZ^(x^2)'
 
         ::
 
@@ -3531,7 +3532,7 @@ class ExactTerm(TermWithCoefficient):
             sage: x.rpow(SCR(5))
             5^x
             sage: _.parent()
-            Exact Term Monoid (Symbolic Constants Subring)^x * x^ZZ * U^x
+            Exact Term Monoid (Symbolic Constants Subring)^x * x^ZZ * S^x
             with coefficients in Symbolic Constants Subring
         """
         P = self.parent()
@@ -3786,7 +3787,7 @@ class TermMonoidFactory(UniqueFactory):
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
 
         sage: TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', ZZ)
-        Exact Term Monoid QQ^m * m^QQ * U^m * log(n)^ZZ
+        Exact Term Monoid QQ^m * m^QQ * S^m * log(n)^ZZ
         with coefficients in Integer Ring
 
     TESTS::

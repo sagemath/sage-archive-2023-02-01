@@ -1728,6 +1728,8 @@ class ArgumentGroupFactory(UniqueFactory):
         if specification is not None:
             if specification == 'U':
                 return (RootsOfUnityGroup, ()), kwds
+            if specification == 'S':
+                return (SignGroup, ()), kwds
             elif specification.startswith('U_'):
                 from sage.rings.asymptotic.misc import repr_short_to_parent
                 exponents = repr_short_to_parent(specification[2:])
@@ -1738,13 +1740,11 @@ class ArgumentGroupFactory(UniqueFactory):
                 raise ValueError('unknown specification {}'.format(specification))
 
         if domain is not None:
-            if domain in (ZZ, QQ, AA):
-                # we only need +1 and -1
-                return (RootsOfUnityGroup, ()), kwds
-            elif isinstance(domain, (RealField_class,
-                                     RealIntervalField_class,
-                                     RealBallField)):
-                return (UnitCircleGroup, (domain,)), kwds
+            if domain in (ZZ, QQ, AA) \
+               or isinstance(domain, (RealField_class,
+                                      RealIntervalField_class,
+                                      RealBallField)):
+                return (SignGroup, ()), kwds
             elif isinstance(domain, (ComplexField_class,
                                      ComplexIntervalField_class,
                                      ComplexBallField)):
@@ -1753,7 +1753,9 @@ class ArgumentGroupFactory(UniqueFactory):
                 return (ArgumentByElementGroup, (domain,)), kwds
 
         elif exponents is not None:
-            if exponents in (ZZ, QQ):
+            if exponents == ZZ:
+                return (SignGroup, ()), kwds
+            elif exponents == QQ:
                 return (RootsOfUnityGroup, ()), kwds
             else:
                 return (UnitCircleGroup, (exponents,)), kwds

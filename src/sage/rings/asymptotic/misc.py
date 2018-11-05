@@ -332,12 +332,17 @@ def repr_op(left, op, right=None, latex=False):
 
         sage: print(repr_op(r'\frac{1}{2}', '^', 'c', latex=True))
         \left(\frac{1}{2}\right)^c
+
+    ::
+
+        sage: repr_op('Arg', '_', 'Symbolic Ring')
+        'Arg_(Symbolic Ring)'
     """
     left = str(left)
     right = str(right) if right is not None else ''
 
     def add_parentheses(s, op):
-        if op == '^':
+        if op in ('^', '_'):
             signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s

@@ -1047,7 +1047,7 @@ def _rpow_(self, base):
         sage: x.rpow(SCR(5))
         5^x
         sage: _.parent()
-        Growth Group (Symbolic Constants Subring)^x * x^ZZ * U^x
+        Growth Group (Symbolic Constants Subring)^x * x^ZZ * S^x
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
@@ -2548,13 +2548,13 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('(QQ_+)^x').extended_by_non_growth_group()
-            Growth Group QQ^x * U^x
+            Growth Group QQ^x * S^x
             sage: GrowthGroup('(RR_+)^x').extended_by_non_growth_group()
-            Growth Group RR^x * U_RR^x
+            Growth Group RR^x * S^x
             sage: GrowthGroup('(RIF_+)^x').extended_by_non_growth_group()
-            Growth Group RIF^x * U_RIF^x
+            Growth Group RIF^x * S^x
             sage: GrowthGroup('(RBF_+)^x').extended_by_non_growth_group()
-            Growth Group RBF^x * U_RBF^x
+            Growth Group RBF^x * S^x
             sage: GrowthGroup('(CC_+)^x').extended_by_non_growth_group()
             Growth Group CC^x * U_RR^x
             sage: GrowthGroup('(CIF_+)^x').extended_by_non_growth_group()
@@ -4009,12 +4009,12 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
              sage: SCR = SR.subring(no_variables=True)
              sage: G = GrowthGroup('QQ^x * x^ZZ'); G
-             Growth Group QQ^x * x^ZZ * U^x
+             Growth Group QQ^x * x^ZZ * S^x
              sage: x = G('x')
              sage: x^SCR(1)
              x
              sage: _.parent()
-             Growth Group QQ^x * x^ZZ * U^x
+             Growth Group QQ^x * x^ZZ * S^x
         """
         from .misc import strip_symbolic
         return self.parent()._create_element_in_extension_(
@@ -4624,12 +4624,12 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
             sage: ExponentialGrowthGroup.factory(QQ, 'n')
-            Growth Group QQ^n * U^n
+            Growth Group QQ^n * S^n
 
         TESTS::
 
             sage: ExponentialGrowthGroup.factory(QQ, 'n', return_factors=True)
-            (Growth Group QQ^n, Growth Group U^n)
+            (Growth Group QQ^n, Growth Group S^n)
             sage: ExponentialGrowthGroup.factory(QQ, 'n', extend_by_non_growth_group=False)
             Growth Group QQ^n
             sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
@@ -4679,13 +4679,13 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('(QQ_+)^x').non_growth_group()
-            Growth Group U^x
+            Growth Group S^x
             sage: GrowthGroup('(RR_+)^x').non_growth_group()
-            Growth Group U_RR^x
+            Growth Group S^x
             sage: GrowthGroup('(RIF_+)^x').non_growth_group()
-            Growth Group U_RIF^x
+            Growth Group S^x
             sage: GrowthGroup('(RBF_+)^x').non_growth_group()
-            Growth Group U_RBF^x
+            Growth Group S^x
             sage: GrowthGroup('(CC_+)^x').non_growth_group()
             Growth Group U_RR^x
             sage: GrowthGroup('(CIF_+)^x').non_growth_group()
@@ -5052,7 +5052,7 @@ class GrowthGroupFactory(UniqueFactory):
         sage: GrowthGroup('(QQ_+)^x * x^ZZ * y^QQ * (QQ_+)^z')
         Growth Group QQ^x * x^ZZ * y^QQ * QQ^z
         sage: GrowthGroup('QQ^x * x^ZZ * y^QQ * QQ^z')
-        Growth Group QQ^x * x^ZZ * U^x * y^QQ * QQ^z * U^z
+        Growth Group QQ^x * x^ZZ * S^x * y^QQ * QQ^z * S^z
         sage: GrowthGroup('exp(x)^ZZ * x^ZZ')
         Growth Group exp(x)^ZZ * x^ZZ
         sage: GrowthGroup('(e^x)^ZZ * x^ZZ')
@@ -5061,7 +5061,7 @@ class GrowthGroupFactory(UniqueFactory):
     ::
 
         sage: GrowthGroup('QQ^n * n^ZZ')
-        Growth Group QQ^n * n^ZZ * U^n
+        Growth Group QQ^n * n^ZZ * S^n
         sage: GrowthGroup('(QQ_+)^n * n^ZZ * U^n')
         Growth Group QQ^n * n^ZZ * U^n
         sage: GrowthGroup('(QQ_+)^n * n^ZZ')
@@ -5329,7 +5329,7 @@ class GrowthGroupFactory(UniqueFactory):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('QQ^n')  # indirect doctest
-            Growth Group QQ^n * U^n
+            Growth Group QQ^n * S^n
         """
         groups = []
         non_growth_groups = []

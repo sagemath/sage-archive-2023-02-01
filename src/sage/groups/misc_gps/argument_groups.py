@@ -1635,26 +1635,22 @@ class ArgumentGroupFactory(UniqueFactory):
         Group of Roots of Unity
 
         sage: ArgumentGroup(ZZ)
-        Group of Roots of Unity
+        Sign Group
         sage: ArgumentGroup(QQ)
-        Group of Roots of Unity
+        Sign Group
         sage: ArgumentGroup('U_QQ')
         Group of Roots of Unity
         sage: ArgumentGroup(AA)
-        Group of Roots of Unity
+        Sign Group
 
         sage: ArgumentGroup(RR)
-        Unit Circle Group with Exponents in
-        Real Field with 53 bits of precision modulo ZZ
+        Sign Group
         sage: ArgumentGroup('Arg_RR')
-        Unit Circle Group with Exponents in
-        Real Field with 53 bits of precision modulo ZZ
+        Sign Group
         sage: ArgumentGroup(RIF)
-        Unit Circle Group with Exponents in
-        Real Interval Field with 53 bits of precision modulo ZZ
+        Sign Group
         sage: ArgumentGroup(RBF)
-        Unit Circle Group with Exponents in
-        Real ball field with 53 bits of precision modulo ZZ
+        Sign Group
 
         sage: ArgumentGroup(CC)
         Unit Circle Group with Exponents in
@@ -1692,7 +1688,7 @@ class ArgumentGroupFactory(UniqueFactory):
             Group of Roots of Unity
             sage: ArgumentGroup('U') is ArgumentGroup(exponents=QQ)  # indirect doctest
             True
-            sage: ArgumentGroup('Arg_RR') is ArgumentGroup(exponents=RR)  # indirect doctest
+            sage: ArgumentGroup('Arg_CC') is ArgumentGroup(exponents=RR)  # indirect doctest
             True
             sage: ArgumentGroup('Arg_CC') is ArgumentGroup(domain=CC)  # indirect doctest
             True

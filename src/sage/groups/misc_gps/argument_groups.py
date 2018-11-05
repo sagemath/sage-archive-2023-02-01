@@ -816,7 +816,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
             sage: Q = UnitCircleGroup(QQ)
             sage: U = RootsOfUnityGroup()
             sage: S = SignGroup()
-            sage: for A in (S, U, Q, R):
+            sage: for A in (S, U, Q, R):  # indirect doctest
             ....:     for B in (S, U, Q, R):
             ....:         print('{} has {}coerce map from {}'.format(
             ....:             A,
@@ -1273,7 +1273,16 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
             e^(I*arg(-1.00000000000000))
             sage: C('-1')
             e^(I*arg(-1.00000000000000))
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: C(S(1))
+            e^(I*arg(1.00000000000000))
+            sage: C(S(-1))
+            e^(I*arg(-1.00000000000000))
         """
+        from sage.structure.element import parent
+
         if isinstance(data, int) and data == 0:
             raise ValueError('no input specified')
 
@@ -1289,7 +1298,16 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
             element = -1
 
         else:
-            element = data
+            P = parent(data)
+
+            if isinstance(P, SignGroup):
+                if data.is_one():
+                    element = 1
+                elif data.is_minus_one():
+                    element = -1
+
+            else:
+                element = data
 
         return self.element_class(self, element)
 
@@ -1328,6 +1346,30 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
         else:
             parent = ArgumentByElementGroup(element.parent())
         return parent(element)
+
+    def _coerce_map_from_(self, R):
+        r"""
+        Return whether ``R`` coerces into this argument by element group.
+
+        INPUT:
+
+        - ``R`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: C = ArgumentByElementGroup(ZZ)
+            sage: S = SignGroup()
+            sage: C.has_coerce_map_from(S)  # indirect doctest
+            True
+        """
+        if isinstance(R, SignGroup):
+            return True
 
 
 class Sign(AbstractArgument):

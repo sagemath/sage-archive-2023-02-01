@@ -64,7 +64,7 @@ TESTS::
     sage: F = GrowthGroup('(SR_+)^n * n^ZZ * U^n'); F
     Growth Group SR^n * n^ZZ * U^n
     sage: G = GrowthGroup('QQ^n * n^QQ'); G
-    Growth Group QQ^n * n^QQ * U^n
+    Growth Group QQ^n * n^QQ * S^n
     sage: cm.common_parent(F, G)
     Growth Group SR^n * n^QQ * U^n
     sage: forget()

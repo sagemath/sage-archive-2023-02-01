@@ -775,6 +775,85 @@ class UnitCircleGroup(AbstractArgumentGroup):
             parent = ArgumentGroup(exponents=exponent.parent())
         return parent(exponent=exponent)
 
+    def _coerce_map_from_(self, R):
+        r"""
+        Return whether ``R`` coerces into this unit circle group.
+
+        INPUT:
+
+        - ``R`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup, SignGroup
+            sage: R = UnitCircleGroup(RR)
+            sage: Q = UnitCircleGroup(QQ)
+            sage: U = RootsOfUnityGroup()
+            sage: S = SignGroup()
+            sage: for A in (S, U, Q, R):
+            ....:     for B in (S, U, Q, R):
+            ....:         print('{} has {}coerce map from {}'.format(
+            ....:             A,
+            ....:             '' if A.has_coerce_map_from(B) else 'no ',
+            ....:             B))
+            Sign Group
+              has coerce map from
+              Sign Group
+            Sign Group
+              has no coerce map from
+              Group of Roots of Unity
+            Sign Group
+              has no coerce map from
+              Unit Circle Group with Exponents in Rational Field modulo ZZ
+            Sign Group
+              has no coerce map from
+              Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+            Group of Roots of Unity
+              has coerce map from
+              Sign Group
+            Group of Roots of Unity
+              has coerce map from
+              Group of Roots of Unity
+            Group of Roots of Unity
+              has coerce map from
+              Unit Circle Group with Exponents in Rational Field modulo ZZ
+            Group of Roots of Unity
+              has no coerce map from
+              Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+            Unit Circle Group with Exponents in Rational Field modulo ZZ
+              has coerce map from
+              Sign Group
+            Unit Circle Group with Exponents in Rational Field modulo ZZ
+              has coerce map from
+              Group of Roots of Unity
+            Unit Circle Group with Exponents in Rational Field modulo ZZ
+              has coerce map from
+              Unit Circle Group with Exponents in Rational Field modulo ZZ
+            Unit Circle Group with Exponents in Rational Field modulo ZZ
+              has no coerce map from
+              Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+              has coerce map from
+              Sign Group
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+              has coerce map from
+              Group of Roots of Unity
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+              has coerce map from
+              Unit Circle Group with Exponents in Rational Field modulo ZZ
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+              has coerce map from
+              Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+        """
+        if isinstance(R, UnitCircleGroup):
+            return self.base().has_coerce_map_from(R.base())
+        if isinstance(R, SignGroup):
+            return True
+
 
 class RootOfUnity(UnitCirclePoint):
     r"""

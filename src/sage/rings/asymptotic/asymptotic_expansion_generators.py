@@ -790,7 +790,7 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=1, zeta=CyclotomicField(3).gen(),
             ....:      precision=3)
-            (-zeta3 - 1)^n
+            (e^(I*arg(-zeta3 - 1)))^n
             sage: asymptotic_expansions.SingularityAnalysis(
             ....:     'n', alpha=4, zeta=2, precision=3)
             1/6*(1/2)^n*n^3 + (1/2)^n*n^2 + 11/6*(1/2)^n*n + O((1/2)^n)
@@ -938,13 +938,16 @@ class AsymptoticExpansionGenerators(SageObject):
             raise NotImplementedError("not implemented for delta!=0")
 
         groups = []
+        non_growth_groups = []
         if zeta != 1:
-            groups.append(ExponentialGrowthGroup((1/zeta).parent(), var))
-
+            E = ExponentialGrowthGroup.factory((1/zeta).parent(), var,
+                                               return_factors=True)
+            groups.append(E[0])
+            non_growth_groups.extend(E[1:])
         groups.append(MonomialGrowthGroup(alpha.parent(), var))
         if beta != 0:
             groups.append(MonomialGrowthGroup(beta.parent(), 'log({})'.format(var)))
-
+        groups.extend(non_growth_groups)
         group = cartesian_product(groups)
         A = AsymptoticRing(growth_group=group, coefficient_ring=coefficient_ring,
                            default_prec=precision)
@@ -1319,6 +1322,7 @@ class AsymptoticExpansionGenerators(SageObject):
         expansions for the number of binary trees of size `n` obtained via
         `C_n` and obtained via the analysis of `B(z)`::
 
+            sage: assume(SR.an_element() > 0)
             sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
             sage: binomial_expansion = asymptotic_expansions.Binomial_kn_over_n(n, k=2, precision=3)
             sage: catalan_expansion = binomial_expansion / (n+1)
@@ -1343,6 +1347,8 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:                                               tau=1, precision=8)
             1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
             + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-9/2))
+
+            sage: forget()
 
         .. SEEALSO::
 

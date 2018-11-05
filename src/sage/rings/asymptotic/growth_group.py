@@ -1065,11 +1065,11 @@ def _rpow_(self, base):
                                     ignore_variables=('e',))
             element = M(raw_element=ZZ(1))
         else:
-            E = ExponentialGrowthGroup(base.parent(), var)
+            EU = ExponentialGrowthGroup.factory(base.parent(), var)
+            E = EU.cartesian_factors()[0]
             try:
                 element = E(raw_element=base)
             except PartialConversionValueError as e:
-                EU = E.extended_by_non_growth_group()
                 element = EU._convert_factors_([e.element])
 
     try:
@@ -4636,9 +4636,15 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: U = ArgumentGroup(exponents=QQ)
             sage: ExponentialGrowthGroup.factory(U, 'n')
             Growth Group U^n
+
+            sage: ExponentialGrowthGroup.factory(CC, 'n')
+            Growth Group RR^n * U_RR^n
+            sage: ExponentialGrowthGroup.factory(CyclotomicField(3), 'n')
+            Growth Group (Algebraic Real Field)^n * (Arg_(Cyclotomic Field of order 3 and degree 2))^n
         """
         from sage.categories.cartesian_product import cartesian_product
         from sage.groups.misc_gps.argument_groups import AbstractArgumentGroup
+        from sage.groups.misc_gps.argument_groups import ArgumentGroup
         from sage.rings.complex_arb import ComplexBallField
         from sage.rings.complex_field import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
@@ -4649,14 +4655,20 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             groups = (cls._non_growth_group_class_(base, var, **kwds),)
         elif extend_by_non_growth_group:
             if base == QQbar or isinstance(base, NumberField_cyclotomic):
-                base = AA
+                E = cls(AA, var, **kwds)
+                U = cls._non_growth_group_class_(
+                    ArgumentGroup(domain=base), var)
+                groups = (E, U)
             elif isinstance(base, (ComplexField_class,
                                    ComplexIntervalField_class,
                                    ComplexBallField)):
-                base = base._real_field()
-
-            E = cls(base, var, **kwds)
-            groups = (E, E.non_growth_group())
+                E = cls(base._real_field(), var, **kwds)
+                U = cls._non_growth_group_class_(
+                    ArgumentGroup(exponents=base._real_field()), var)
+                groups = (E, U)
+            else:
+                E = cls(base, var, **kwds)
+                groups = (E, E.non_growth_group())
         else:
             groups = (cls(base, var, **kwds),)
 

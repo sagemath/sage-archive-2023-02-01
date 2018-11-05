@@ -2151,30 +2151,21 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         TESTS::
 
+            sage: assume(SR.an_element() > 0)
             sage: y = SR.var('y')
             sage: x.rpow(y)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot construct the power of y to the exponent x
-            in Asymptotic Ring <x^ZZ> over Rational Field.
-            > *previous* ValueError: element with parameter y (Symbolic Ring)
-            in Growth Group SR^x is not in any of the factors
-            of Growth Group SR^x * U^x
-            >> *previous* ValueError: cannot split element with parameter y (Symbolic Ring)
-            in Growth Group SR^x after failed conversion into
-            element of Growth Group SR^x
-            >...> *previous* ValueError: cannot split y (Symbolic Ring) into abs and arg
-            >> *and* ValueError: cannot split element with parameter y (Symbolic Ring)
-            in Growth Group U^x after failed conversion into
-            element of Growth Group U^x
-            >...> *previous* ValueError: cannot split y (Symbolic Ring) into abs and arg
+            ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
+            > *previous* TypeError: unsupported operand parent(s) for *:
+              'Growth Group x^ZZ' and 'Growth Group SR^x * Arg_SR^x'
             sage: assume(y > 0)
             sage: x.rpow(y)
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
             > *previous* TypeError: unsupported operand parent(s) for *:
-            'Growth Group x^ZZ' and 'Growth Group SR^x'
+              'Growth Group x^ZZ' and 'Growth Group SR^x'
             sage: forget()
 
         Check that :trac:`19946` is fixed::

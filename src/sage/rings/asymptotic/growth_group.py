@@ -4188,6 +4188,40 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         ('Inverse', 'Inverse', False),
         ('Commutative', 'Commutative', False)]
 
+    def __init__(self, base, *args, **kwds):
+        r"""
+        See :class:`ExponentialGrowthGroup` for more information.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: ExponentialGrowthGroup(SR.subring(no_variables=True), 't')  # indirect doctest
+            Growth Group (Symbolic Constants Subring)^t
+            sage: ExponentialGrowthGroup(SR, 't')  # indirect doctest
+            doctest:warning
+            ...
+            RuntimeWarning: When using the Exponential Growth Group SR^t,
+            make assumptions on the used symbolic elements.
+            In particular, use something like 'assume(SR.an_element() > 0)'
+            to make coercions work properly.
+            Growth Group SR^t
+            sage: assume(SR.an_element() > 0)
+            sage: ExponentialGrowthGroup(SR, 't')  # indirect doctest
+            Growth Group SR^t
+            sage: forget()
+        """
+        from warnings import warn
+        from sage.symbolic.ring import SymbolicRing
+
+        super(ExponentialGrowthGroup, self).__init__(base, *args, **kwds)
+        if isinstance(base, SymbolicRing) and not self._an_element_base_() > 0:
+            warn("When using the Exponential {}, make "
+                 "assumptions on the used symbolic elements.\n"
+                 "In particular, use something like "
+                 "'assume(SR.an_element() > 0)' to make "
+                 "coercions work properly.".format(self),
+                 RuntimeWarning, 2)
+
     def _repr_short_(self):
         r"""
         A short representation string of this exponential growth group.

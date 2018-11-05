@@ -892,13 +892,14 @@ if [ -d "$SAGE_DESTDIR" ]; then
 
     # Copy files into $SAGE_LOCAL
     $SAGE_SUDO cp -Rp "$PREFIX/." "$SAGE_LOCAL"
-    rm -rf "$SAGE_DESTDIR"
     if [ $? -ne 0 ]; then
         error_msg "Error copying files for $PKG_NAME."
         exit 1
     fi
+
     # Remove the $SAGE_DESTDIR entirely once all files have been moved to their
     # final location.
+    rm -rf "$SAGE_DESTDIR"
 fi
 
 

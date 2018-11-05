@@ -667,9 +667,9 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
         TESTS::
 
-            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup
-            sage: C = UnitCircleGroup(RR)
-            sage: C(exponent=1/2)
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup, SignGroup
+            sage: R = UnitCircleGroup(RR)
+            sage: R(exponent=1/2)
             e^(2*pi*0.500000000000000)
 
             sage: U = RootsOfUnityGroup()
@@ -696,6 +696,19 @@ class UnitCircleGroup(AbstractArgumentGroup):
             -1
             sage: U(int(-1))
             -1
+
+            sage: S = SignGroup()
+            sage: R(S(1))
+            e^(2*pi*0.000000000000000)
+            sage: R(S(-1))
+            e^(2*pi*0.500000000000000)
+            sage: U(S(1))
+            1
+            sage: U(S(-1))
+            -1
+
+            sage: R(U(exponent=1/3))
+            e^(2*pi*0.333333333333333)
         """
         from sage.groups.generic import discrete_log
         from sage.rings.asymptotic.misc import combine_exceptions
@@ -723,7 +736,16 @@ class UnitCircleGroup(AbstractArgumentGroup):
                 except AttributeError:
                     raise TypeError('{} is not in {}'.format(data, self))
 
-                if isinstance(P, NumberField_cyclotomic):
+                if isinstance(P, SignGroup):
+                    if data.is_one():
+                        exponent = 0
+                    elif data.is_minus_one():
+                        exponent = QQ(1)/QQ(2)
+
+                elif isinstance(P, UnitCircleGroup):
+                    exponent = data.exponent
+
+                elif isinstance(P, NumberField_cyclotomic):
                     zeta = P.gen()
                     n = zeta.multiplicative_order()
                     try:
@@ -774,6 +796,85 @@ class UnitCircleGroup(AbstractArgumentGroup):
         else:
             parent = ArgumentGroup(exponents=exponent.parent())
         return parent(exponent=exponent)
+
+    def _coerce_map_from_(self, R):
+        r"""
+        Return whether ``R`` coerces into this unit circle group.
+
+        INPUT:
+
+        - ``R`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup, SignGroup
+            sage: R = UnitCircleGroup(RR)
+            sage: Q = UnitCircleGroup(QQ)
+            sage: U = RootsOfUnityGroup()
+            sage: S = SignGroup()
+            sage: for A in (S, U, Q, R):  # indirect doctest
+            ....:     for B in (S, U, Q, R):
+            ....:         print('{} has {}coerce map from {}'.format(
+            ....:             A,
+            ....:             '' if A.has_coerce_map_from(B) else 'no ',
+            ....:             B))
+            Sign Group
+              has coerce map from
+              Sign Group
+            Sign Group
+              has no coerce map from
+              Group of Roots of Unity
+            Sign Group
+              has no coerce map from
+              Unit Circle Group with Exponents in Rational Field modulo ZZ
+            Sign Group
+              has no coerce map from
+              Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+            Group of Roots of Unity
+              has coerce map from
+              Sign Group
+            Group of Roots of Unity
+              has coerce map from
+              Group of Roots of Unity
+            Group of Roots of Unity
+              has coerce map from
+              Unit Circle Group with Exponents in Rational Field modulo ZZ
+            Group of Roots of Unity
+              has no coerce map from
+              Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+            Unit Circle Group with Exponents in Rational Field modulo ZZ
+              has coerce map from
+              Sign Group
+            Unit Circle Group with Exponents in Rational Field modulo ZZ
+              has coerce map from
+              Group of Roots of Unity
+            Unit Circle Group with Exponents in Rational Field modulo ZZ
+              has coerce map from
+              Unit Circle Group with Exponents in Rational Field modulo ZZ
+            Unit Circle Group with Exponents in Rational Field modulo ZZ
+              has no coerce map from
+              Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+              has coerce map from
+              Sign Group
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+              has coerce map from
+              Group of Roots of Unity
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+              has coerce map from
+              Unit Circle Group with Exponents in Rational Field modulo ZZ
+            Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+              has coerce map from
+              Unit Circle Group with Exponents in Real Field with 53 bits of precision modulo ZZ
+        """
+        if isinstance(R, UnitCircleGroup):
+            return self.base().has_coerce_map_from(R.base())
+        if isinstance(R, SignGroup):
+            return True
 
 
 class RootOfUnity(UnitCirclePoint):
@@ -1172,7 +1273,16 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
             e^(I*arg(-1.00000000000000))
             sage: C('-1')
             e^(I*arg(-1.00000000000000))
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: C(S(1))
+            e^(I*arg(1.00000000000000))
+            sage: C(S(-1))
+            e^(I*arg(-1.00000000000000))
         """
+        from sage.structure.element import parent
+
         if isinstance(data, int) and data == 0:
             raise ValueError('no input specified')
 
@@ -1188,7 +1298,16 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
             element = -1
 
         else:
-            element = data
+            P = parent(data)
+
+            if isinstance(P, SignGroup):
+                if data.is_one():
+                    element = 1
+                elif data.is_minus_one():
+                    element = -1
+
+            else:
+                element = data
 
         return self.element_class(self, element)
 
@@ -1227,6 +1346,30 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
         else:
             parent = ArgumentByElementGroup(element.parent())
         return parent(element)
+
+    def _coerce_map_from_(self, R):
+        r"""
+        Return whether ``R`` coerces into this argument by element group.
+
+        INPUT:
+
+        - ``R`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import ArgumentByElementGroup
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: C = ArgumentByElementGroup(ZZ)
+            sage: S = SignGroup()
+            sage: C.has_coerce_map_from(S)  # indirect doctest
+            True
+        """
+        if isinstance(R, SignGroup):
+            return True
 
 
 class Sign(AbstractArgument):
@@ -1635,26 +1778,22 @@ class ArgumentGroupFactory(UniqueFactory):
         Group of Roots of Unity
 
         sage: ArgumentGroup(ZZ)
-        Group of Roots of Unity
+        Sign Group
         sage: ArgumentGroup(QQ)
-        Group of Roots of Unity
+        Sign Group
         sage: ArgumentGroup('U_QQ')
         Group of Roots of Unity
         sage: ArgumentGroup(AA)
-        Group of Roots of Unity
+        Sign Group
 
         sage: ArgumentGroup(RR)
-        Unit Circle Group with Exponents in
-        Real Field with 53 bits of precision modulo ZZ
+        Sign Group
         sage: ArgumentGroup('Arg_RR')
-        Unit Circle Group with Exponents in
-        Real Field with 53 bits of precision modulo ZZ
+        Sign Group
         sage: ArgumentGroup(RIF)
-        Unit Circle Group with Exponents in
-        Real Interval Field with 53 bits of precision modulo ZZ
+        Sign Group
         sage: ArgumentGroup(RBF)
-        Unit Circle Group with Exponents in
-        Real ball field with 53 bits of precision modulo ZZ
+        Sign Group
 
         sage: ArgumentGroup(CC)
         Unit Circle Group with Exponents in
@@ -1692,7 +1831,7 @@ class ArgumentGroupFactory(UniqueFactory):
             Group of Roots of Unity
             sage: ArgumentGroup('U') is ArgumentGroup(exponents=QQ)  # indirect doctest
             True
-            sage: ArgumentGroup('Arg_RR') is ArgumentGroup(exponents=RR)  # indirect doctest
+            sage: ArgumentGroup('Arg_CC') is ArgumentGroup(exponents=RR)  # indirect doctest
             True
             sage: ArgumentGroup('Arg_CC') is ArgumentGroup(domain=CC)  # indirect doctest
             True
@@ -1728,6 +1867,8 @@ class ArgumentGroupFactory(UniqueFactory):
         if specification is not None:
             if specification == 'U':
                 return (RootsOfUnityGroup, ()), kwds
+            if specification == 'S':
+                return (SignGroup, ()), kwds
             elif specification.startswith('U_'):
                 from sage.rings.asymptotic.misc import repr_short_to_parent
                 exponents = repr_short_to_parent(specification[2:])
@@ -1738,13 +1879,11 @@ class ArgumentGroupFactory(UniqueFactory):
                 raise ValueError('unknown specification {}'.format(specification))
 
         if domain is not None:
-            if domain in (ZZ, QQ, AA):
-                # we only need +1 and -1
-                return (RootsOfUnityGroup, ()), kwds
-            elif isinstance(domain, (RealField_class,
-                                     RealIntervalField_class,
-                                     RealBallField)):
-                return (UnitCircleGroup, (domain,)), kwds
+            if domain in (ZZ, QQ, AA) \
+               or isinstance(domain, (RealField_class,
+                                      RealIntervalField_class,
+                                      RealBallField)):
+                return (SignGroup, ()), kwds
             elif isinstance(domain, (ComplexField_class,
                                      ComplexIntervalField_class,
                                      ComplexBallField)):
@@ -1753,7 +1892,9 @@ class ArgumentGroupFactory(UniqueFactory):
                 return (ArgumentByElementGroup, (domain,)), kwds
 
         elif exponents is not None:
-            if exponents in (ZZ, QQ):
+            if exponents == ZZ:
+                return (SignGroup, ()), kwds
+            elif exponents == QQ:
                 return (RootsOfUnityGroup, ()), kwds
             else:
                 return (UnitCircleGroup, (exponents,)), kwds

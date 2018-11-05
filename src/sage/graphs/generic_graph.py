@@ -17819,7 +17819,7 @@ class GenericGraph(GenericGraph_pyx):
                     G.add_edge((u,v), (w,x))
         return G
 
-    def transitive_closure(self, loops=None):
+    def transitive_closure(self, loops=True):
         r"""
         Return the transitive closure of a graph.
 
@@ -17833,9 +17833,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``loops`` -- boolean (default: ``None``); whether to add loops to the
-          transitive closure. When ``loops == None``, loops are added only if
-          the (di)graph allows loops.
+        - ``loops`` -- boolean (default: ``True``); whether to add the loops of
+          ``self`` to the transitive closure
 
         EXAMPLES::
 
@@ -17856,42 +17855,34 @@ class GenericGraph(GenericGraph_pyx):
         Effect of parameter ``loops``::
 
             sage: G = digraphs.Circuit(4)
-            sage: G.transitive_closure(loops=None).loop_edges(labels=False)
-            []
-            sage: G.transitive_closure(loops=False).loop_edges(labels=False)
-            []
-            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
-            [(0, 0), (1, 1), (2, 2), (3, 3)]
             sage: G.allow_loops(True)
-            sage: G.transitive_closure(loops=None).loop_edges(labels=False)
-            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            sage: G.add_edge(0, 0)
             sage: G.transitive_closure(loops=False).loop_edges(labels=False)
             []
             sage: G.transitive_closure(loops=True).loop_edges(labels=False)
-            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            [(0, 0)]
+            sage: G.allow_loops(False)
+            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
+            []
 
         ::
 
             sage: G = graphs.CycleGraph(4)
-            sage: G.transitive_closure(loops=None).loop_edges(labels=False)
-            []
-            sage: G.transitive_closure(loops=False).loop_edges(labels=False)
-            []
-            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
-            [(0, 0), (1, 1), (2, 2), (3, 3)]
             sage: G.allow_loops(True)
-            sage: G.transitive_closure(loops=None).loop_edges(labels=False)
-            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            sage: G.add_edge(0, 0)
             sage: G.transitive_closure(loops=False).loop_edges(labels=False)
             []
             sage: G.transitive_closure(loops=True).loop_edges(labels=False)
-            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            [(0, 0)]
+            sage: G.allow_loops(False)
+            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
+            []
         """
         G = copy(self)
-        if loops is not None:
-            G.allow_loops(loops)
         G.name('Transitive closure of ' + self.name())
-        G.add_edges(((u, v) for u in G for v in G.breadth_first_search(u)), loops=loops)
+        G.add_edges(((u, v) for u in G for v in G.breadth_first_search(u)), loops=False)
+        if G.allows_loops() and not loops:
+            G.allow_loops(False, check=True)
         return G
 
     def transitive_reduction(self):

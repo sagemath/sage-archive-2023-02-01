@@ -37,7 +37,7 @@ bug, see :trac:`17527`)::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
 
@@ -6517,7 +6517,7 @@ cdef class Matrix(Matrix1):
 
         TESTS:
 
-        Check that http://trac.sagemath.org/sage_trac/ticket/11558 is fixed::
+        Check that :trac:`11558` is fixed::
 
             sage: matrix(ZZ, [[1,2],[4,6]], sparse=False).echelon_form(transformation=True)
             (
@@ -15465,37 +15465,6 @@ cdef class Matrix(Matrix1):
         """
         return self.conjugate().transpose()
 
-    @property
-    def I(self):
-        r"""
-        Returns the inverse of the matrix, if it exists.
-
-        EXAMPLES::
-
-            sage: A = matrix(QQ, [[-5, -3, -1, -7],
-            ....:                 [ 1,  1,  1,  0],
-            ....:                 [-1, -2, -2,  0],
-            ....:                 [-2, -1,  0, -4]])
-            sage: A.I
-            doctest:...: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
-            See http://trac.sagemath.org/20904 for details.
-            [ 0  2  1  0]
-            [-4 -8 -2  7]
-            [ 4  7  1 -7]
-            [ 1  1  0 -2]
-
-            sage: B = matrix(QQ, [[-11, -5, 18,  -6],
-            ....:                 [  1,  2, -6,   8],
-            ....:                 [ -4, -2,  7,  -3],
-            ....:                 [  1, -2,  5, -11]])
-            sage: B.I
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: input matrix must be nonsingular
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
-        return ~self
 
 def _smith_diag(d, transformation=True):
     r"""

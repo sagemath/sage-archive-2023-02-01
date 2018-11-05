@@ -158,7 +158,7 @@ Distributions::
 
     sage: r.options(width="60")
     $width
-    [1] 100
+    [1] 80
 
     sage: rr = r.dnorm(r.seq(-3,3,0.1))
     sage: rr
@@ -370,7 +370,8 @@ def _setup_r_to_sage_converter():
 
     def float_to_int_if_possible(f):
         # preserve the behaviour of the old r parser, e.g. return 1 instead of 1.0
-        return int(f) if isinstance(f, int) or f.is_integer() else round(f, 16) # TODO investigate the rounding
+         # TODO(timo) investigate the precision difference to the expect interface
+        return int(f) if isinstance(f, int) or f.is_integer() else f
     cv.ri2py.register(float, float_to_int_if_possible)
 
     def list_to_singleton_if_possible(l):
@@ -404,12 +405,11 @@ def _setup_r_to_sage_converter():
             try:
                 from sage.matrix.constructor import matrix
                 dimensions = mat.do_slot("dim")
-                # TODO: higher dimensions? happens often in statistics
                 if len(dimensions) != 2:
-                    raise TypeError
+                    raise NotImplementedError("Higher-dimension matrices are currently not supported")
                 (nrow, ncol) = dimensions
-                #since R does it the other way round, we assign
-                #transposed and then transpose the matrix :)
+                # Since R does it the other way round, we assign transposed and
+                # then transpose the matrix :)
                 m = matrix(ncol, nrow, [cv.ri2py(i) for i in mat])
                 return m.transpose()
             except TypeError:
@@ -428,7 +428,8 @@ def _setup_r_to_sage_converter():
         return {
             'DATA': dict(data),
             '_Names': cv.ri2py(names),
-            # '_r_class': rclass, # FIXME why not?
+            # We don't give the rclass here because the old expect interface
+            # didn't do that either and we want to maintain compatibility.
         };
     cv.ri2py.register(ListSexpVector, _list_vector)
 
@@ -469,13 +470,9 @@ class R(ExtraTabCompletion, Interface):
                 name = 'r', # The capitalized version of this is used for printing.
         )
 
-        # It would be better to make this an attribute of `R`, but that leads to problems since
-        # we override `__getattr__`.
-        global _r_to_sage_converter
-        _r_to_sage_converter = _setup_r_to_sage_converter()
-
+        self._r_to_sage_converter = _setup_r_to_sage_converter()
         self._seed = seed
-        self._start()
+        self._is_started = False # lazy start
 
     def set_seed(self, seed=None):
         """
@@ -508,10 +505,10 @@ class R(ExtraTabCompletion, Interface):
             sage: r = R()
             sage: r._start()
         """
-        # width is line width, what's a good value? maximum is 10000!
         # pager needed to replace help view from less to printout
         # option device= is for plotting, is set to x11, NULL would be better?
-        self.eval('options(width=100,pager="cat",device="png")')
+        self._is_started = True
+        self.eval('options(pager="cat",device="png")')
         self.eval('options(repos="%s")'%RRepositoryURL)
         self.eval('options(CRAN="%s")'%RRepositoryURL)
 
@@ -583,12 +580,10 @@ class R(ExtraTabCompletion, Interface):
              'Autoloads',
              'package:base']
         """
-        pl = []
-        l = "".join(l.split("\n"))
-        l = l[2:len(l)-1]
-        for l in l.split(","):
-            pl.append(l.strip().strip('"'))
-        return pl
+        # This function is only kept for legacy reasons. It was used internally
+        # in the old expect based interface and for some reason was made part
+        # of the public api.
+        return self(l).sage()
 
     def install_packages(self, package_name):
         """
@@ -644,22 +639,17 @@ class R(ExtraTabCompletion, Interface):
             sage: type(c)
             <class 'sage.interfaces.r.RFunction'>
         """
-        if attrname[:1] == "_":
-            raise AttributeError
-        return RFunction(self, attrname)
+        try:
+            # First try to get a regular python attribute. This makes it
+            # possible to still use attributes like _r_to_sage_converter
+            # internally.
+            self.__getattribute__(attrname)
+        except AttributeError:
+            # if there is no such attribute, get the r attribute
+            if attrname[:1] == "_":
+                raise AttributeError("Attribute {} is not allowed to start with an underscore.".format(attrname))
+            return RFunction(self, attrname)
 
-
-    def _quit_string(self):
-        r"""
-        Return the string that when typed into R causes the R
-        interpreter to exit.
-
-        EXAMPLES::
-
-            sage: r._quit_string()
-            'quit(save="no")'
-        """
-        return 'quit(save="no")'
 
     def _read_in_file_command(self, filename):
         r"""
@@ -848,13 +838,6 @@ class R(ExtraTabCompletion, Interface):
 
             sage: r._true_symbol()
             '[1] TRUE'
-
-        This is used behinds the scenes to implement comparison::
-
-            sage: r('1') == r('1')
-            [1] TRUE
-            sage: r('1') == r('2')
-            [1] FALSE
         """
         # return the string rep of truth, i.e., what the system outputs
         # when you type 1==1.
@@ -900,7 +883,7 @@ class R(ExtraTabCompletion, Interface):
             title
             -----
             <BLANKLINE>
-            Combine Values into a Vector or List 
+            Combine Values into a Vector or List
             <BLANKLINE>
             name
             ----
@@ -908,9 +891,17 @@ class R(ExtraTabCompletion, Interface):
             c
             ...
         """
-        s = robjects.help.pages(command)[0].to_docstring()
+        # This is looking for the topic in all existing namespaces.
+        # Theoretically, there may be multiple options. We ignore that.
+        pages_for_topic = robjects.help.pages(command)
+        if len(pages_for_topic) == 0:
+            raise ValueError("There is no help page for the given topic")
 
-        # TODO what is this for?
+        s = pages_for_topic[0].to_docstring()
+
+        # Maybe this can be removed now (it is a leftover from the old expect
+        # interface). Since I don't understand why it was needed in the first
+        # place, I'm keeping it for now.
         import sage.plot.plot
         if sage.plot.plot.EMBEDDED_MODE:
             s = s.replace('_\x08','')
@@ -1029,7 +1020,7 @@ class R(ExtraTabCompletion, Interface):
             '[1] 5'
         """
         cmd = '%s <- %s'%(var,value)
-        # FIXME this is how it behaved before since the output was only compared to 'error'
+        # FIXME(timo) this is how it behaved before since the output was only compared to 'error'
         # while the actual error message started with an upper-case 'Error'.
         # The doctests rely on this when doing `loads(dumps(r('"abc"')))` which will load
         # simply `"abc"` which will then again be set as `sage0 <- abc` (notice the missing
@@ -1059,7 +1050,7 @@ class R(ExtraTabCompletion, Interface):
             sage: r.get('a')
             '[1] 2'
         """
-        # FIXME again, this is how it behaved before. The doctest `L.hom(r, base_morphism=phi)`
+        # FIXME(timo) again, this is how it behaved before. The doctest `L.hom(r, base_morphism=phi)`
         # in sage/rings/function_field/function_field.py relies on this. It somehow ends up
         # requesting a non-existant r object resulting in
         # `RRuntimeError: Error in (function (expr, envir = parent.frame(), enclos = if (is.list(envir) ||  : 
@@ -1261,7 +1252,7 @@ class R(ExtraTabCompletion, Interface):
         RFunction(self, 'plot')(*args, **kwds)
         return RFunction(self, 'dev.off')()
 
-    def eval(self, code, globals=None, locals=None, synchronize=True, *args, **kwds):
+    def eval(self, code, *args, **kwds):
         """
         Evaluates a command inside the R interpreter and returns the output
         as a string.
@@ -1271,6 +1262,8 @@ class R(ExtraTabCompletion, Interface):
             sage: r.eval('1+1')
             '[1] 2'
         """
+        if not self._is_started: # FIXME(timo)
+            self._start()
         return str(robjects.r(code)).rstrip()
 
 
@@ -1426,7 +1419,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
             sage: len(x)
             5
         """
-        return self.parent()('length(%s)'%self.name())._sage_()
+        return self.parent()('length(%s)'%self.name()).sage()
 
     def __getattr__(self, attrname):
         """
@@ -1448,10 +1441,16 @@ class RElement(ExtraTabCompletion, InterfaceElement):
             sage: length()
             [1] 3
         """
-        self._check_valid()
-        if attrname[:1] == "_":
-            raise AttributeError
-        return RFunctionElement(self, attrname)
+        try:
+            # First try to get a regular python attribute. This makes it
+            # possible to still use attributes like _r_to_sage_converter
+            # internally.
+            self.__getattribute__(attrname)
+        except AttributeError:
+            self._check_valid()
+            if attrname[:1] == "_":
+                raise AttributeError("Attribute {} is not allowed to start with an underscore.".format(attrname))
+            return RFunctionElement(self, attrname)
 
     def __getitem__(self, n):
         """
@@ -1704,166 +1703,6 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         # the R operator is %*% for matrix multiplication
         return P('%s %%*%% %s'%(self.name(), Q.name()))
 
-    def _subs_dots(self, x):
-        r"""
-        Replace dots by underscores; used internally to implement
-        conversation from R expression to Sage objects.
-
-        INPUT:
-
-        - x -- regular expression match: ``<type '_sre.SRE_Match'>``
-
-        OUTPUT: string
-
-        EXAMPLES::
-
-            sage: import re
-            sage: a = r([1,2,3])
-            sage: rel_re_param = re.compile(r'\s([\w\.]+)\s=')
-            sage: rel_re_param.sub(a._subs_dots, ' test.test =')
-             ' test_test ='
-        """
-        return x.group().replace('.','_')
-
-    def _subs_range(self, x):
-        r"""
-        Change endpoints of ranges.  This is used internally in the
-        code for converting R expressions to Sage objects.
-
-        INPUT:
-
-        - x -- regular expression match: ``<type '_sre.SRE_Match'>``
-
-        OUTPUT: string
-
-        EXAMPLES::
-
-            sage: import re
-            sage: a = r([1,2,3])
-            sage: rel_re_range = re.compile(r'([\d]+):([\d]+)')
-            sage: rel_re_range.sub(a._subs_range, ' 1:10')
-            ' range(1,11)'
-        """
-        g = x.groups()
-        g1 = int(g[1]) + 1
-        return 'range(%s,%s)' % (g[0],  g1)
-
-    def _subs_integer(self, x):
-        r"""
-        Replaces strings like 'dL' with 'Integer(d)' where d is some
-        integer.  This is used internally in the code for converting R
-        expressions to Sage objects.
-
-        EXAMPLES::
-
-            sage: import re
-            sage: a = r([1,2,3])
-            sage: rel_re_integer = re.compile(r'([^\d])([\d]+)L')
-            sage: rel_re_integer.sub(a._subs_integer, ' 1L 2L')
-            ' Integer(1) Integer(2)'
-            sage: rel_re_integer.sub(a._subs_integer, '1L 2L')
-            '1L Integer(2)'
-
-        """
-        return '%sInteger(%s)'%x.groups()
-
-    def _convert_nested_r_list(self, exp):
-        """
-        Converts a string representing a (possibly) nested list in R
-        to a (possibly) nested Python list.  This is used internally
-        in the code for converting R expressions to Sage objects.
-
-        INPUT:
-
-        - exp -- a string
-
-        OUTPUT: a string
-
-        EXAMPLES::
-
-            sage: a = r([1,2,3])
-            sage: s = 'c(1, 2, 3)'
-            sage: a._convert_nested_r_list(s)
-            '[1, 2, 3]'
-        """
-        from re import compile as re_compile
-        from re import split   as re_split
-        splt = re_compile(r'(c\(|\(|\))') # c( or ( or )
-        lvl = 0
-        ret = []
-        for token in re_split(splt, exp):
-            if token == 'c(':
-                ret.append('[')
-                lvl += 1
-            elif token == '(':
-                ret.append(token)
-                if lvl > 0 : lvl += 1
-            elif token == ')':
-                if lvl == 1:
-                    ret.append(']')
-                    lvl -= 1
-                else:
-                    ret.append(token)
-                    if lvl > 0:
-                        lvl -= 1
-            else:
-                ret.append(token)
-
-        return ''.join(ret)
-
-    def _r_list(self, *args, **kwds):
-        """
-        This is used internally in the code for converting R
-        expressions to Sage objects.
-
-        EXAMPLES::
-
-            sage: a = r([1,2,3])
-            sage: sorted(a._r_list(1,2,3,k=5).items())
-            [('#0', 1), ('#1', 2), ('#2', 3), ('k', 5)]
-        """
-        ret = dict(kwds)
-        i = 0
-        for k in args:
-            ret['#%s' % i] = k
-            i += 1
-        return ret
-
-    def _r_structure(self, __DATA__, **kwds):
-        """
-        This is used internally in the code for converting R
-        expressions to Sage objects.
-
-        EXAMPLES::
-
-            sage: a = r([1,2,3])
-            sage: d = a._r_structure('data', a=1, b=2)
-            sage: sorted(d.items())
-            [('DATA', 'data'), ('a', 1), ('b', 2)]
-            sage: a._r_structure([1,2,3,4], _Dim=(2,2))
-            [1 3]
-            [2 4]
-
-        """
-        if '_Dim' in kwds: #we have a matrix
-            # TODO what about more than 2 dimensions?
-            #      additional checks!!
-            try:
-                from sage.matrix.constructor import matrix
-                d = kwds.get('_Dim')
-                # TODO: higher dimensions? happens often in statistics
-                if len(d) != 2:
-                    raise TypeError
-                #since R does it the other way round, we assign
-                #transposed and then transpose the matrix :)
-                m = matrix(d[1], d[0], [i for i in __DATA__])
-                return m.transpose()
-            except TypeError:
-                pass
-        d = dict(DATA=__DATA__)
-        d.update(kwds)
-        return d
-
     def _sage_(self):
         r"""
         Returns Sage representation of the R object.
@@ -1888,7 +1727,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         self._check_valid()
         P = self.parent()
 
-        with localconverter(_r_to_sage_converter) as cv:
+        with localconverter(P._r_to_sage_converter) as cv:
             parsed = robjects.r(self.name())
             return parsed
 

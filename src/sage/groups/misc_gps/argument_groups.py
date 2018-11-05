@@ -667,9 +667,9 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
         TESTS::
 
-            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup
-            sage: C = UnitCircleGroup(RR)
-            sage: C(exponent=1/2)
+            sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup, RootsOfUnityGroup, SignGroup
+            sage: R = UnitCircleGroup(RR)
+            sage: R(exponent=1/2)
             e^(2*pi*0.500000000000000)
 
             sage: U = RootsOfUnityGroup()
@@ -696,6 +696,19 @@ class UnitCircleGroup(AbstractArgumentGroup):
             -1
             sage: U(int(-1))
             -1
+
+            sage: S = SignGroup()
+            sage: R(S(1))
+            e^(2*pi*0.000000000000000)
+            sage: R(S(-1))
+            e^(2*pi*0.500000000000000)
+            sage: U(S(1))
+            1
+            sage: U(S(-1))
+            -1
+
+            sage: R(U(exponent=1/3))
+            e^(2*pi*0.333333333333333)
         """
         from sage.groups.generic import discrete_log
         from sage.rings.asymptotic.misc import combine_exceptions
@@ -723,7 +736,16 @@ class UnitCircleGroup(AbstractArgumentGroup):
                 except AttributeError:
                     raise TypeError('{} is not in {}'.format(data, self))
 
-                if isinstance(P, NumberField_cyclotomic):
+                if isinstance(P, SignGroup):
+                    if data.is_one():
+                        exponent = 0
+                    elif data.is_minus_one():
+                        exponent = QQ(1)/QQ(2)
+
+                elif isinstance(P, UnitCircleGroup):
+                    exponent = data.exponent
+
+                elif isinstance(P, NumberField_cyclotomic):
                     zeta = P.gen()
                     n = zeta.multiplicative_order()
                     try:

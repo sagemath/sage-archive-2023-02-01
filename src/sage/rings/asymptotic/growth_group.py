@@ -1762,8 +1762,10 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
             sage: ExponentialGrowthGroup(QQ, 'x')
             Growth Group QQ^x
+            sage: assume(SR.an_element() > 0)
             sage: ExponentialGrowthGroup(SR, ZZ['y'].gen())
             Growth Group SR^y
+            sage: forget()
 
         TESTS::
 
@@ -3992,6 +3994,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: P = GrowthGroup('(ZZ_+)^x')
+            sage: assume(SR.an_element() > 0)
             sage: a = P(7^x); a
             7^x
             sage: b = a^(1/2); b
@@ -4000,6 +4003,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             Growth Group SR^x
             sage: b^12
             117649^x
+            sage: forget()
 
         TESTS::
 
@@ -4077,10 +4081,12 @@ class ExponentialGrowthElement(GenericGrowthElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: assume(SR.an_element() > 0)
             sage: P_ZZ = GrowthGroup('(ZZ_+)^x')
             sage: P_SR = GrowthGroup('(SR_+)^x')
             sage: P_ZZ(2^x) <= P_SR(sqrt(3)^x)^2  # indirect doctest
             True
+            sage: forget()
 
         Check that :trac:`19999` is fixed::
 

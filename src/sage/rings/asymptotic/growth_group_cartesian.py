@@ -760,11 +760,11 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         S.next_custom()
         O.next_custom()
         while S.var is not None or O.var is not None:
-            if S.var is not None and S.var < O.var:
+            if S.var is not None and O.var is not None and S.var < O.var:
                 newS.extend(S.factors)
                 newO.extend(S.factors)
                 S.next_custom()
-            elif O.var is not None and S.var > O.var:
+            elif S.var is not None and O.var is not None and S.var > O.var:
                 newS.extend(O.factors)
                 newO.extend(O.factors)
                 O.next_custom()

@@ -1087,6 +1087,12 @@ def spectral_radius(G, prec=1e-10):
         Traceback (most recent call last):
         ...
         ValueError: empty graph
+
+        sage: G = DiGraph([(0,1),(1,2),(2,0),(2,0)], multiedges=True)
+        sage: G.spectral_radius()
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph must be aperiodic        
     """
     if not G:
         raise ValueError("empty graph")
@@ -1126,6 +1132,11 @@ def spectral_radius(G, prec=1e-10):
     cdef double c_prec = prec
     if 1+c_prec/2 == 1:
         raise ValueError("precision (={!r}) is too small".format(prec))
+
+    # test if the graph is aperiodic
+    from sage.graphs.digraph import DiGraph
+    if not DiGraph(G).is_aperiodic():
+        raise ValueError("the graph must be aperiodic")
 
     # make a copy of G if needed to obtain a static sparse graph
     # NOTE: the following potentially copies the labels of the graph which is

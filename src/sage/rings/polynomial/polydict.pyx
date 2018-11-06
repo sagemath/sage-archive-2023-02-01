@@ -109,7 +109,7 @@ cdef class PolyDict:
 
         if force_int_exponents:
             new_pdict = {}
-            if remove_zero:
+            if remove_zero and zero is not None:
                 for k, c in pdict.iteritems():
                     if not c == zero:
                         new_pdict[ETuple([int(i) for i in k])] = c
@@ -118,7 +118,7 @@ cdef class PolyDict:
                     new_pdict[ETuple([int(i) for i in k])] = c
             pdict = new_pdict
         else:
-            if remove_zero:
+            if remove_zero and zero is not None:
                 for k in list(pdict):
                     if pdict[k] == zero:
                         del pdict[k]
@@ -746,6 +746,69 @@ cdef class PolyDict:
             for e, c in self.__repn.iteritems():
                 v[e] = s*c
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
+
+    def term_lmult(self, exponent, s):
+        """
+        Return this element multiplied by ``s`` on the left
+        and with exponents shifted by ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- a ETuple
+
+        - ``s`` -- a scalar
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple, PolyDict
+            sage: x, y = FreeMonoid(2, 'x, y').gens()  # a strange object to live in a polydict, but non-commutative!
+            sage: f = PolyDict({(2, 3): x})
+            sage: f.term_lmult(ETuple((1, 2)), y)
+            PolyDict with representation {(3, 5): y*x}
+
+            sage: f = PolyDict({(2,3): 2, (1,2): 3, (2,1): 4})
+            sage: f.term_lmult(ETuple((1, 2)), -2)
+            PolyDict with representation {(2, 4): -6, (3, 3): -8, (3, 5): -4}
+
+        """
+        v = {}
+        # if s is 0, then all the products will be zero
+        if not s == self.__zero:
+            for e, c in self.__repn.iteritems():
+                v[e.eadd(exponent)] = s*c
+        return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
+
+    def term_rmult(self, exponent, s):
+        """
+        Return this element multiplied by ``s`` on the right
+        and with exponents shifted by ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- a ETuple
+
+        - ``s`` -- a scalar
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple, PolyDict
+            sage: x, y = FreeMonoid(2, 'x, y').gens()  # a strange object to live in a polydict, but non-commutative!
+            sage: f = PolyDict({(2, 3): x})
+            sage: f.term_rmult(ETuple((1, 2)), y)
+            PolyDict with representation {(3, 5): x*y}
+
+            sage: f = PolyDict({(2,3): 2, (1,2): 3, (2,1): 4})
+            sage: f.term_rmult(ETuple((1, 2)), -2)
+            PolyDict with representation {(2, 4): -6, (3, 3): -8, (3, 5): -4}
+
+        """
+        v = {}
+        # if s is 0, then all the products will be zero
+        if not s == self.__zero:
+            for e, c in self.__repn.iteritems():
+                v[e.eadd(exponent)] = c*s
+        return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
+
 
     def __sub__(PolyDict self, PolyDict  other):
         """
@@ -1686,6 +1749,36 @@ cdef class ETuple:
                 result._data[2*result._nonzero] = index
                 result._data[2*result._nonzero+1] = exp2
                 result._nonzero += 1
+        return result
+
+    cpdef int dotprod(ETuple self, ETuple other):
+        """
+        Return the dot product of this tuple by ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: f = ETuple([0,1,1])
+            sage: e.dotprod(f)
+            2
+            sage: e = ETuple([1,1,-1])
+            sage: f = ETuple([0,-2,1])
+            sage: e.dotprod(f)
+            -3
+
+        """
+        if self._length != other._length:
+            raise ArithmeticError
+
+        cdef size_t ind1 = 0
+        cdef size_t ind2 = 0
+        cdef size_t index
+        cdef int exp1
+        cdef int exp2
+        cdef int result = 0
+        while dual_etuple_iter(self, other, &ind1, &ind2, &index, &exp1, &exp2):
+            result += exp1 * exp2
         return result
 
     cpdef ETuple escalar_div(ETuple self, int n):

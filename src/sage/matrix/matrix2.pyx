@@ -7347,7 +7347,10 @@ cdef class Matrix(Matrix1):
             PermutationGroupElement
         B = self.as_bipartite_graph()
         nrows = self.nrows()
-        A = B.automorphism_group(edge_labels = True)
+        ncols = self.ncols()
+        parts = [list(range(1, nrows + 1)),
+                 list(range(nrows + 1, nrows + ncols + 1))]
+        A = B.automorphism_group(partition=parts, edge_labels=True)
         permutations = []
         for p in A:
             p = p.domain()

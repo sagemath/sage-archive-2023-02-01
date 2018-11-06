@@ -1161,6 +1161,29 @@ cdef class MatrixArgs:
         change ``self.entries``.
 
         If the entries are invalid, return ``MA_ENTRIES_UNKNOWN``.
+
+        TESTS:
+
+        Check that :trac:`26655` is fixed::
+
+            sage: F.<a> = GF(9)
+            sage: M = MatrixSpace(F, 2, 2)
+            sage: A = M([[1, a], [0, 1]])
+            sage: M(pari(A))
+            [1 a]
+            [0 1]
+
+        Constructing a matrix from a PARI ``t_VEC`` or ``t_COL`` with
+        ``t_VEC`` or ``t_COL`` elements is currently not supported::
+
+            sage: M(pari([1, a, 0, 1]))
+            Traceback (most recent call last):
+            ...
+            NameError: name 'a' is not defined
+            sage: M(pari([[1, a], [0, 1]]))
+            Traceback (most recent call last):
+            ...
+            NameError: name 'a' is not defined
         """
         # Check basic Python types. This is very fast, so it doesn't
         # hurt to do these first.
@@ -1204,7 +1227,11 @@ cdef class MatrixArgs:
         if isinstance(self.entries, Gen):  # PARI object
             t = typ((<Gen>self.entries).g)
             if t == t_MAT:
-                self.entries = self.entries.Col().sage()
+                R = self.base
+                if R is None:
+                    self.entries = self.entries.Col().sage()
+                else:
+                    self.entries = map(lambda v: map(R, v), self.entries.mattranspose())
                 return MA_ENTRIES_SEQ_SEQ
             elif t in [t_VEC, t_COL, t_VECSMALL, t_LIST]:
                 self.entries = self.entries.sage()

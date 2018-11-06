@@ -447,15 +447,14 @@ class GenericGraph(GenericGraph_pyx):
 
     def __init__(self):
         r"""
-        Every graph carries a dictionary of options, which is set
-        here to ``None``.  Some options are added to the global
-        :data:`sage.misc.latex.latex` instance which will insure
-        that if LaTeX is used to render the graph,
-        then the right packages are loaded and MathJax reacts
-        properly.
+        Every graph carries a dictionary of options, set here to ``None``.
 
-        Most other initialization is done in the directed
-        and undirected subclasses.
+        Some options are added to the global :data:`sage.misc.latex.latex`
+        instance which will insure that if LaTeX is used to render the graph,
+        then the right packages are loaded and MathJax reacts properly.
+
+        Most other initialization is done in the directed and undirected
+        subclasses.
 
         TESTS::
 
@@ -515,18 +514,16 @@ class GenericGraph(GenericGraph_pyx):
         """
         Compare self and other for equality.
 
-        Do not call this method directly. That is, for ``G.__eq__(H)``
-        write ``G == H``.
+        Do not call this method directly. That is, for ``G.__eq__(H)`` write
+        ``G == H``.
 
         Two graphs are considered equal if the following hold:
          - they are either both directed, or both undirected;
-         - they have the same settings for loops, multiedges, and
-           weightedness;
+         - they have the same settings for loops, multiedges, and weightedness;
          - they have the same set of vertices;
-         - they have the same (multi)set of arrows/edges, where labels
-           of arrows/edges are taken into account if *and only if*
-           the graphs are considered weighted. See
-           :meth:`~GenericGraph.weighted`.
+         - they have the same (multi)set of arrows/edges, where labels of
+           arrows/edges are taken into account if *and only if* the graphs are
+           considered weighted. See :meth:`~GenericGraph.weighted`.
 
         Note that this is *not* an isomorphism test.
 
@@ -538,25 +535,25 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G.to_directed() == H.to_directed()
             True
-            sage: G = graphs.RandomGNP(8,.9999)
+            sage: G = graphs.RandomGNP(8, .9999)
             sage: H = graphs.CompleteGraph(8)
             sage: G == H # most often true
             True
-            sage: G = Graph( {0:[1,2,3,4,5,6,7]} )
-            sage: H = Graph( {1:[0], 2:[0], 3:[0], 4:[0], 5:[0], 6:[0], 7:[0]} )
+            sage: G = Graph({0: [1, 2, 3, 4, 5, 6, 7]} )
+            sage: H = Graph({1: [0], 2: [0], 3: [0], 4: [0], 5: [0], 6: [0], 7: [0]} )
             sage: G == H
             True
             sage: G.allow_loops(True)
             sage: G == H
             False
-            sage: G = graphs.RandomGNP(9,.3).to_directed()
-            sage: H = graphs.RandomGNP(9,.3).to_directed()
+            sage: G = graphs.RandomGNP(9, .3).to_directed()
+            sage: H = graphs.RandomGNP(9, .3).to_directed()
             sage: G == H # most often false
             False
             sage: G = Graph(multiedges=True, sparse=True)
-            sage: G.add_edge(0,1)
+            sage: G.add_edge(0, 1)
             sage: H = copy(G)
-            sage: H.add_edge(0,1)
+            sage: H.add_edge(0, 1)
             sage: G == H
             False
 
@@ -600,15 +597,15 @@ class GenericGraph(GenericGraph_pyx):
                        for edge in self.edge_iterator(labels=self._weighted))
         # The problem with multiple edges is that labels may not have total
         # ordering, which makes it difficult to compare lists of labels.
-        last_i = last_j = None
-        for i, j in self.edge_iterator(labels=False):
-            if i == last_i and j == last_j:
+        seen = set()
+        for e in self.edge_iterator(labels=False):
+            if e in seen:
                 continue
-            last_i, last_j = i, j
-            # All labels between i and j
-            labels1 = self.edge_label(i, j)
+            seen.add(e)
+            # All labels between e[0] and e[1]
+            labels1 = self.edge_label(*e)
             try:
-                labels2 = other.edge_label(i, j)
+                labels2 = other.edge_label(*e)
             except LookupError:
                 return False
             if len(labels1) != len(labels2):
@@ -627,14 +624,14 @@ class GenericGraph(GenericGraph_pyx):
     @cached_method
     def __hash__(self):
         """
-        Computes a hash for self, if self is immutable.
+        Compute a hash for ``self``, if ``self`` is immutable.
 
         Only immutable graphs are hashable. The resulting value is cached.
 
         EXAMPLES::
 
             sage: G = graphs.PetersenGraph()
-            sage: {G:1}[G]
+            sage: {G: 1}[G]
             Traceback (most recent call last):
             ...
             TypeError: This graph is mutable, and thus not hashable. Create
@@ -642,7 +639,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G_imm = Graph(G, data_structure="static_sparse")
             sage: G_imm == G
             True
-            sage: {G_imm:1}[G_imm]  # indirect doctest
+            sage: {G_imm: 1}[G_imm]  # indirect doctest
             1
             sage: G_imm.__hash__() is G_imm.__hash__()
             True
@@ -650,13 +647,13 @@ class GenericGraph(GenericGraph_pyx):
         TESTS:
 
         Equality and hash do not depend on ordering of vertices. In other words,
-        `G1==G2` can be `True` even when `G1.vertices() == G2.vertices()` is
+        `G1 == G2` can be `True` even when `G1.vertices() == G2.vertices()` is
         `False`. This is parts 1 and 2 of ticket :trac:`17086`. ::
 
             sage: import functools
             sage: @functools.total_ordering
             ....: class C:
-            ....:     order = ((0,0), (0,1), (1,1), (1,0))
+            ....:     order = ((0, 0), (0, 1), (1, 1), (1, 0))
             ....:     # Hasse diagram:
             ....:     #   0,0 < 0,1
             ....:     #    ^     ^
@@ -695,7 +692,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         if self.is_immutable():
-            edge_items = self.edge_iterator(labels = self._weighted)
+            edge_items = self.edge_iterator(labels=self._weighted)
             if self.allows_multiple_edges():
                 from collections import Counter
                 edge_items = Counter(edge_items).items()
@@ -706,17 +703,17 @@ class GenericGraph(GenericGraph_pyx):
                         "Create an immutable copy by `g.copy(immutable=True)`")
 
     def __mul__(self, n):
-        """
-        Returns the sum of a graph with itself n times.
+        r"""
+        Return the sum of a graph with itself `n` times.
 
         EXAMPLES::
 
             sage: G = graphs.CycleGraph(3)
-            sage: H = G*3; H
+            sage: H = G * 3; H
             Cycle graph disjoint_union Cycle graph disjoint_union Cycle graph: Graph on 9 vertices
             sage: H.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8]
-            sage: H = G*1; H
+            sage: H = G * 1; H
             Cycle graph: Graph on 3 vertices
         """
         if isinstance(n, integer_types + (Integer,)):
@@ -724,13 +721,13 @@ class GenericGraph(GenericGraph_pyx):
                 raise TypeError('multiplication of a graph and a nonpositive integer is not defined')
             if n == 1:
                 return copy(self)
-            return sum([self]*(n-1), self)
+            return sum([self] * (n - 1), self)
         else:
             raise TypeError('multiplication of a graph and something other than an integer is not defined')
 
     def __ne__(self, other):
         """
-        Tests for inequality, complement of __eq__.
+        Test for inequality, complement of ``__eq__``.
 
         EXAMPLES::
 
@@ -753,17 +750,17 @@ class GenericGraph(GenericGraph_pyx):
 
     def __rmul__(self, n):
         """
-        Returns the sum of a graph with itself n times.
+        Return the sum of a graph with itself `n` times.
 
         EXAMPLES::
 
             sage: G = graphs.CycleGraph(3)
-            sage: H = int(3)*G; H
+            sage: H = int(3) * G; H
             Cycle graph disjoint_union Cycle graph disjoint_union Cycle graph: Graph on 9 vertices
             sage: H.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8]
         """
-        return self*n
+        return self * n
 
     def __str__(self):
         """
@@ -783,8 +780,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def _bit_vector(self):
         """
-        Returns a string representing the edges of the (simple) graph for
-        graph6 and dig6 strings.
+        Return a string representing the edges of the (simple) graph for
+        ``graph6`` and ``dig6`` strings.
 
         EXAMPLES::
 
@@ -799,38 +796,36 @@ class GenericGraph(GenericGraph_pyx):
         self._scream_if_not_simple()
         n = self.order()
         if self._directed:
-            total_length = n*n
-            bit = lambda x,y : x*n + y
+            total_length = n * n
+            bit = lambda x, y: x * n + y
         else:
-            total_length = (n*(n - 1))//2
-            n_ch_2 = lambda b : int(b*(b-1))//2
-            bit = lambda x,y : n_ch_2(max([x,y])) + min([x,y])
+            total_length = (n * (n - 1)) // 2
+            n_ch_2 = lambda b: int(b * (b - 1)) // 2
+            bit = lambda x, y: n_ch_2(max(x, y)) + min(x, y)
         bit_vector = set()
 
-        v_to_int = {v: i for i, v in enumerate(self.vertices())}
+        v_to_int = {v: i for i, v in enumerate(self)}
         for u,v,_ in self.edge_iterator():
             bit_vector.add(bit(v_to_int[u], v_to_int[v]))
         bit_vector = sorted(bit_vector)
         s = []
         j = 0
         for i in bit_vector:
-            s.append( '0'*(i - j) + '1' )
+            s.append( '0' * (i - j) + '1' )
             j = i + 1
         s = "".join(s)
-        s += '0'*(total_length-len(s))
+        s += '0' * (total_length - len(s))
         return s
 
     def _latex_(self):
         r"""
-        Return a string to render the graph using LaTeX.
+        Return a string to render the graph using `\LaTeX`.
 
-        To adjust the string, use the
-        :meth:`set_latex_options` method to set options,
-        or call the :meth:`latex_options` method to
-        get a :class:`~sage.graphs.graph_latex.GraphLatex`
-        object that may be used to also customize the
-        output produced here.  Possible options are documented at
-        :meth:`sage.graphs.graph_latex.GraphLatex.set_option`.
+        To adjust the string, use the :meth:`set_latex_options` method to set
+        options, or call the :meth:`latex_options` method to get a
+        :class:`~sage.graphs.graph_latex.GraphLatex` object that may be used to
+        also customize the output produced here.  Possible options are
+        documented at :meth:`sage.graphs.graph_latex.GraphLatex.set_option`.
 
         EXAMPLES::
 
@@ -861,11 +856,11 @@ class GenericGraph(GenericGraph_pyx):
 
     def _matrix_(self, R=None):
         """
-        Returns the adjacency matrix of the graph over the specified ring.
+        Return the adjacency matrix of the graph over the specified ring.
 
         EXAMPLES::
 
-            sage: G = graphs.CompleteBipartiteGraph(2,3)
+            sage: G = graphs.CompleteBipartiteGraph(2, 3)
             sage: m = matrix(G); m.parent()
             Full MatrixSpace of 5 by 5 dense matrices over Integer Ring
             sage: m
@@ -890,7 +885,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def _repr_(self):
         """
-        Return a string representation of self.
+        Return a string representation of the graph.
 
         EXAMPLES::
 

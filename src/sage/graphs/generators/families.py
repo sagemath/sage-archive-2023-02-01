@@ -90,20 +90,21 @@ def KneserGraph(n,k):
 
     EXAMPLES::
 
-        sage: KG=graphs.KneserGraph(5,2)
-        sage: print(KG.vertices())
-        [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
-        sage: P=graphs.PetersenGraph()
+        sage: KG = graphs.KneserGraph(5,2)
+        sage: sorted(KG.vertex_iterator(), key=str)
+        [{1, 2}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5},
+         {3, 4}, {3, 5}, {4, 5}]
+        sage: P = graphs.PetersenGraph()
         sage: P.is_isomorphic(KG)
         True
 
     TESTS::
 
-        sage: KG=graphs.KneserGraph(0,0)
+        sage: KG = graphs.KneserGraph(0,0)
         Traceback (most recent call last):
         ...
         ValueError: Parameter n should be a strictly positive integer
-        sage: KG=graphs.KneserGraph(5,6)
+        sage: KG = graphs.KneserGraph(5,6)
         Traceback (most recent call last):
         ...
         ValueError: Parameter k should be a strictly positive integer inferior to n
@@ -2076,16 +2077,17 @@ def OddGraph(n):
 
     EXAMPLES::
 
-        sage: OG=graphs.OddGraph(3)
-        sage: print(OG.vertices())
-        [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
-        sage: P=graphs.PetersenGraph()
+        sage: OG = graphs.OddGraph(3)
+        sage: sorted(OG.vertex_iterator(), key=str)
+        [{1, 2}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5},
+         {3, 4}, {3, 5}, {4, 5}]
+        sage: P = graphs.PetersenGraph()
         sage: P.is_isomorphic(OG)
         True
 
     TESTS::
 
-        sage: KG=graphs.OddGraph(1)
+        sage: KG = graphs.OddGraph(1)
         Traceback (most recent call last):
         ...
         ValueError: Parameter n should be an integer strictly greater than 1

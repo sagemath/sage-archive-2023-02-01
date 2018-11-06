@@ -907,10 +907,7 @@ def centrality_closeness_random_k(G, int k=1):
     cdef double farness
     cdef int i, j
     cdef dict closeness_centrality_array = {}
-    # Currently, the boost graph interface uses the ordering of the vertices
-    # given by G.vertices() while with short_digraph we can specify the ordering
-    # (see #26447). This will change in the future
-    cdef list int_to_vertex = G.vertices() if G.weighted() else list(G)
+    cdef list int_to_vertex = list(G)
     cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
     # Initialize

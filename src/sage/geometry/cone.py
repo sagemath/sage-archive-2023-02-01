@@ -179,7 +179,7 @@ REFERENCES:
 - [Fu1993]_
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2012 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
@@ -187,8 +187,8 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 import collections
@@ -2972,7 +2972,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (1, 0)
             sage: classify_cone_2d(*cone2.rays())
             (3, 2)
-            
+
         We check that :trac:`18613` is fixed::
 
             sage: K = Cone([], ToricLattice(0))
@@ -3727,11 +3727,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <N(1, -1, 1), N(0, 1, 0)>
             sage: c12.orthogonal_sublattice()
             Sublattice <M(1, 0, -1)>
-            
+
         TESTS:
-        
+
         We check that :trac:`24541` is fixed::
-        
+
             sage: c = Cone([(1,0)], lattice=ZZ^2)
             sage: c.orthogonal_sublattice()
             Free module of degree 2 and rank 1 over Integer Ring
@@ -3984,8 +3984,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         A non-simplicial cone works, too::
 
             sage: cone = Cone([(3,0,-1), (1,-1,0), (0,1,0), (0,0,1)])
-            sage: cone.semigroup_generators()
-            (N(1, 0, 0), N(0, 0, 1), N(0, 1, 0), N(3, 0, -1), N(1, -1, 0))
+            sage: sorted(cone.semigroup_generators())
+            [N(0, 0, 1), N(0, 1, 0), N(1, -1, 0), N(1, 0, 0), N(3, 0, -1)]
 
         GAP's toric package thinks this is challenging::
 
@@ -4002,11 +4002,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: line.semigroup_generators()
             (N(1, 1, 1), N(-1, -1, -1))
             sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
-            sage: wedge.semigroup_generators()
-            (N(1, 0, 0), N(1, 1, 0), N(1, 2, 0), N(0, 0, 1), N(0, 0, -1))
+            sage: sorted(wedge.semigroup_generators())
+            [N(0, 0, -1), N(0, 0, 1), N(1, 0, 0), N(1, 1, 0), N(1, 2, 0)]
 
-        Nor does it have to be full-dimensional (see
-        http://trac.sagemath.org/sage_trac/ticket/11312)::
+        Nor does it have to be full-dimensional (see :trac:`11312`)::
 
             sage: Cone([(1,1,0), (-1,1,0)]).semigroup_generators()
             N( 0, 1, 0),
@@ -4021,8 +4020,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             [1, 1, 1, 0]
             sage: cone3d = Cone([(3,0,-1), (1,-1,0), (0,1,0), (0,0,1)])
             sage: rays = [ A*vector(v) for v in cone3d.rays() ]
-            sage: gens = Cone(rays).semigroup_generators(); gens
-            (N(1, -1, 1, 15), N(0, 1, -2, 0), N(-2, -1, 0, 17), N(3, -4, 5, 45), N(3, 0, 1, -2))
+            sage: gens = Cone(rays).semigroup_generators(); sorted(gens)
+            [N(-2, -1, 0, 17),
+             N(0, 1, -2, 0),
+             N(1, -1, 1, 15),
+             N(3, -4, 5, 45),
+             N(3, 0, 1, -2)]
             sage: set(map(tuple,gens)) == set([ tuple(A*r) for r in cone3d.semigroup_generators() ])
             True
 
@@ -4168,8 +4171,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         Not a strictly convex cone::
 
             sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
-            sage: wedge.semigroup_generators()
-            (N(1, 0, 0), N(1, 1, 0), N(1, 2, 0), N(0, 0, 1), N(0, 0, -1))
+            sage: sorted(wedge.semigroup_generators())
+            [N(0, 0, -1), N(0, 0, 1), N(1, 0, 0), N(1, 1, 0), N(1, 2, 0)]
             sage: wedge.Hilbert_basis()
             N(1, 2,  0),
             N(1, 0,  0),
@@ -4178,8 +4181,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             N(1, 1,  0)
             in 3-d lattice N
 
-        Not full-dimensional cones are ok, too (see
-        http://trac.sagemath.org/sage_trac/ticket/11312)::
+        Not full-dimensional cones are ok, too (see :trac:`11312`)::
 
             sage: Cone([(1,1,0), (-1,1,0)]).Hilbert_basis()
             N( 1, 1, 0),
@@ -6315,16 +6317,16 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             raise ValueError(msg)
 
         if min_rays > 2 and max_ambient_dim < 2:
-           msg  = 'all cones in zero/one dimensions have two or fewer '
-           msg += 'generators. Please increase max_ambient_dim to at least '
-           msg += '2, or decrease min_rays.'
-           raise ValueError(msg)
+            msg  = 'all cones in zero/one dimensions have two or fewer '
+            msg += 'generators. Please increase max_ambient_dim to at least '
+            msg += '2, or decrease min_rays.'
+            raise ValueError(msg)
 
         if min_rays > 0 and max_ambient_dim == 0:
-           msg  = 'all cones in zero dimensions have no generators. '
-           msg += 'Please increase max_ambient_dim to at least 1, or '
-           msg += 'decrease min_rays.'
-           raise ValueError(msg)
+            msg  = 'all cones in zero dimensions have no generators. '
+            msg += 'Please increase max_ambient_dim to at least 1, or '
+            msg += 'decrease min_rays.'
+            raise ValueError(msg)
 
     if max_rays is not None:
         if max_rays < 0:
@@ -6341,14 +6343,14 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             raise ValueError(msg)
 
         if min_rays > 2 and lattice.dimension() < 2:
-           msg  = 'all cones in the given lattice have two or fewer '
-           msg += 'generators. Please decrease min_rays.'
-           raise ValueError(msg)
+            msg  = 'all cones in the given lattice have two or fewer '
+            msg += 'generators. Please decrease min_rays.'
+            raise ValueError(msg)
 
         if min_rays > 0 and lattice.dimension() == 0:
-           msg  = 'all cones in the given lattice have no generators. '
-           msg += 'Please decrease min_rays.'
-           raise ValueError(msg)
+            msg  = 'all cones in the given lattice have no generators. '
+            msg += 'Please decrease min_rays.'
+            raise ValueError(msg)
 
     # Sanity checks for strictly_convex.
     if strictly_convex is not None and not strictly_convex:

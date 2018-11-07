@@ -71,7 +71,9 @@ REFERENCES:
 from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
-from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.regular_crystals import RegularCrystals
+from sage.categories.supercrystals import SuperCrystals
+from sage.categories.regular_supercrystals import RegularSuperCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -267,9 +269,13 @@ class TCrystal(UniqueRepresentation, Parent):
             sage: B = crystals.elementary.T("A2", 5*la[2])
             sage: TestSuite(B).run()
         """
-        Parent.__init__(self, category = (FiniteCrystals(), HighestWeightCrystals()))
         self._weight = weight
         self._cartan_type = cartan_type
+        if self._cartan_type.type() == 'Q':
+            category = SuperCrystals().Finite()
+        else:
+            category = (FiniteCrystals(), HighestWeightCrystals())
+        Parent.__init__(self, category=category)
         self.module_generators = (self.element_class(self),)
 
     def _repr_(self):
@@ -507,9 +513,13 @@ class RCrystal(UniqueRepresentation, Parent):
             sage: B = crystals.elementary.R("A2",5*la[2])
             sage: TestSuite(B).run()
         """
-        Parent.__init__(self, category = (FiniteCrystals(),HighestWeightCrystals()))
         self._weight = weight
         self._cartan_type = cartan_type
+        if self._cartan_type.type() == 'Q':
+            category = SuperCrystals().Finite()
+        else:
+            category = (FiniteCrystals(), HighestWeightCrystals())
+        Parent.__init__(self, category=category)
         self.module_generators = (self.element_class(self),)
 
     def _repr_(self):
@@ -1031,14 +1041,15 @@ class ComponentCrystal(UniqueRepresentation, Parent):
         """
         if cartan_type in RootLatticeRealizations:
             P = cartan_type
+            cartan_type = P.cartan_type()
         elif P is None:
             cartan_type = CartanType(cartan_type)
             P = cartan_type.root_system().ambient_space()
             if P is None:
                 P = cartan_type.root_system().weight_lattice()
-        return super(ComponentCrystal, cls).__classcall__(cls, P)
+        return super(ComponentCrystal, cls).__classcall__(cls, cartan_type, P)
 
-    def __init__(self, P):
+    def __init__(self, cartan_type, P):
         r"""
         Initialize ``self``.
 
@@ -1047,9 +1058,13 @@ class ComponentCrystal(UniqueRepresentation, Parent):
             sage: B = crystals.elementary.Component("D4")
             sage: TestSuite(B).run()
         """
-        Parent.__init__(self, category = ClassicalCrystals())
         self._weight_lattice_realization = P
-        self._cartan_type = P.cartan_type()
+        self._cartan_type = cartan_type
+        if self._cartan_type.type() == 'Q':
+            category = RegularSuperCrystals()
+        else:
+            category = (RegularCrystals().Finite(), HighestWeightCrystals())
+        Parent.__init__(self, category=category)
         self.module_generators = (self.element_class(self),)
 
     def _repr_(self):

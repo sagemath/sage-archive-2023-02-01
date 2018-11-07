@@ -320,7 +320,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: from itertools import islice
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('(QQ_+)^y * x^QQ * log(x)^ZZ')
-            sage: tuple(islice(G.some_elements(), 10))
+            sage: tuple(islice(G.some_elements(), 10r))
             (x^(1/2)*(1/2)^y,
              x^(-1/2)*log(x)*2^y,
              x^2*log(x)^(-1),

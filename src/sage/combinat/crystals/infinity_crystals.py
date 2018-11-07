@@ -31,6 +31,7 @@ from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.crystals import Crystals
+from sage.categories.supercrystals import SuperCrystals
 from sage.categories.homset import Hom
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
@@ -660,7 +661,7 @@ class DualInfinityQueerCrystalOfTableaux(CrystalOfWords):
             sage: B = crystals.infinity.Tableaux(['A',2])
             sage: TestSuite(B).run() # long time
         """
-        Parent.__init__(self, category=(Crystals(), InfiniteEnumeratedSets()))
+        Parent.__init__(self, category=(SuperCrystals(), InfiniteEnumeratedSets()))
         self._cartan_type = cartan_type
         self.letters = CrystalOfLetters(cartan_type)
         self.module_generators = (self.module_generator(),)

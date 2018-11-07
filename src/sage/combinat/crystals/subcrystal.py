@@ -29,6 +29,7 @@ from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.supercrystals import SuperCrystals
 from sage.categories.regular_supercrystals import RegularSuperCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.integer import Integer
@@ -140,10 +141,10 @@ class Subcrystal(UniqueRepresentation, Parent):
             generators = ambient.module_generators
 
         category = Crystals().or_subcategory(category)
+        if ambient in SuperCrystals():
+            category = category & SuperCrystals()
         if ambient in FiniteCrystals() or isinstance(contained, frozenset):
             category = category.Finite()
-        if ambient in RegularSuperCrystals():
-            category = category & RegularSuperCrystals()
 
         if virtualization is not None:
             if scaling_factors is None:

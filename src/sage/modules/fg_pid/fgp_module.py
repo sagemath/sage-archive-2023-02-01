@@ -205,10 +205,9 @@ AUTHOR:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule
@@ -312,16 +311,15 @@ class FGP_Module_class(Module):
         sage: type(Q)
         <class 'sage.modules.fg_pid.fgp_module.FGP_Module_class_with_category'>
 
-    TESTS::
+    TESTS:
 
-    Make sure that the problems in
-    http://trac.sagemath.org/sage_trac/ticket/7516 are fixed::
+    Make sure that the problems in :trac:`7516` are fixed::
 
         sage: V = FreeModule(QQ, 2)
         sage: W = V.submodule([V([1,1])])
         sage: Z = W.submodule([])
         sage: WmodZ = W / Z
-        sage: loads(dumps(WmodZ))==WmodZ
+        sage: loads(dumps(WmodZ)) == WmodZ
         True
     """
 
@@ -532,13 +530,11 @@ class FGP_Module_class(Module):
         True, it may be the case that ``M != N`` may also return True.
         In particular, for derived classes whose __init__ methods just
         call the __init__ method for this class need this.  See
-        http://trac.sagemath.org/sage_trac/ticket/9940 for
-        illustrations.
+        :trac:`9940` for illustrations.
 
         EXAMPLES:
 
-        Make sure that the problems in
-        http://trac.sagemath.org/sage_trac/ticket/9940 are fixed::
+        Make sure that the problems in :trac:`9940` are fixed::
 
             sage: G = AdditiveAbelianGroup([0,0])
             sage: H = AdditiveAbelianGroup([0,0])

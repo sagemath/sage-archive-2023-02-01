@@ -286,10 +286,10 @@ class UnitGroup(AbelianGroupWithValues_class):
 
             sage: K = QuadraticField(-3).composite_fields(QuadraticField(2))[0]
             sage: U = K.unit_group()
-            sage: [U(K(u)) for u in U.gens()] == U.gens()
+            sage: tuple(U(K(u)) for u in U.gens()) == U.gens()
             True
             sage: US = K.S_unit_group(3)
-            sage: [US(K(u)) for u in US.gens()] == US.gens()
+            sage: tuple(US(K(u)) for u in US.gens()) == US.gens()
             True
 
         """

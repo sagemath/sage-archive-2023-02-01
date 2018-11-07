@@ -283,6 +283,19 @@ class AbstractArgument(MultiplicativeGroupElement):
                 e)
         return self._symbolic_(S) * other
 
+    def __abs__(self):
+        r"""
+        Return the absolute value of this argument which equals `1`
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
+            sage: U = RootsOfUnityGroup()
+            sage: abs(U(exponent=1/4))  # indirect doctest
+            1
+        """
+        return 1
+
 
 class AbstractArgumentGroup(UniqueRepresentation, Parent):
     r"""

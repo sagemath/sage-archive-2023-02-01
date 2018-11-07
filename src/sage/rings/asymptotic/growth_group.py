@@ -4883,6 +4883,19 @@ class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
 
     Element = ExponentialNonGrowthElement
 
+    def _an_element_base_(self):
+        r"""
+        Return a base for :meth:`_an_element_` of this exponential non growth group.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
+            sage: ExponentialNonGrowthGroup(SignGroup(), 'n').an_element()  # indirect doctest
+            (-1)^n
+        """
+        return self.base().an_element()
+
     def construction(self):
         r"""
         Return the construction of this growth group.

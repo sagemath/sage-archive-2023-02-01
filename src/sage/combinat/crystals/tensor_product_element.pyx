@@ -1729,8 +1729,15 @@ cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrysta
         ret = super(InfinityQueerCrystalOfTableauxElement, self).weight()
         L = self._parent.letters
         n = self._parent._cartan_type.n + 1
-        for i, l in enumerate(self._row_lens[1:]):
+        zero = self._parent.weight_lattice_realization().zero()
+        La = self._parent.weight_lattice_realization().fundamental_weights()
+        def fwt(i):
+            return zero if i == n else La[i]
+        ret -= sum((self._row_lengths[i] - 1 - self._row_lengths[i+1])*(fwt(n-i)-fwt(n-i-1))
+                   for i in range(n-1))
+        for i, l in enumerate(self._row_lengths[1:]):
             ret -= L(n-i).weight() * (l + 1)
+        ret -= L(1).weight()  # From the 1 on the bottom row
         return ret
 
 cdef Py_ssize_t count_leading(list row, letter):

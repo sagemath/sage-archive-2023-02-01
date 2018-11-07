@@ -171,8 +171,8 @@ can be applied on both. Here is what it can do:
     :delim: |
 
     :meth:`~GenericGraph.is_eulerian` | Return ``True`` if the graph has a (closed) tour that visits each edge exactly once.
-    :meth:`~GenericGraph.is_planar` | Test whether the graph is planar.
-    :meth:`~GenericGraph.is_circular_planar` | Test whether the graph is circular planar (outerplanar)
+    :meth:`~GenericGraph.is_planar` | Check whether the graph is planar.
+    :meth:`~GenericGraph.is_circular_planar` | Check whether the graph is circular planar (outerplanar)
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
     :meth:`~GenericGraph.is_bipartite` | Test whether the given graph is bipartite.
@@ -266,12 +266,13 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.set_embedding` | Set a combinatorial embedding dictionary to ``_embedding`` attribute.
     :meth:`~GenericGraph.get_embedding` | Return the attribute _embedding if it exists.
     :meth:`~GenericGraph.faces` | Return the faces of an embedded graph.
+    :meth:`~GenericGraph.genus` | Return the number of faces of an embedded graph.
     :meth:`~GenericGraph.planar_dual` | Return the planar dual of an embedded graph.
     :meth:`~GenericGraph.get_pos` | Return the position dictionary
     :meth:`~GenericGraph.set_pos` | Set the position dictionary.
     :meth:`~GenericGraph.set_planar_positions` | Compute a planar layout for self using Schnyder's algorithm
-    :meth:`~GenericGraph.layout_planar` | Use Schnyder's algorithm to compute a planar layout for self.
-    :meth:`~GenericGraph.is_drawn_free_of_edge_crossings` | Test whether the position dictionary gives a planar embedding.
+    :meth:`~GenericGraph.layout_planar` | Compute a planar layout of the graph using Schnyder's algorithm.
+    :meth:`~GenericGraph.is_drawn_free_of_edge_crossings` | Check whether the position dictionary gives a planar embedding.
     :meth:`~GenericGraph.latex_options` | Return an instance of :class:`~sage.graphs.graph_latex.GraphLatex` for the graph.
     :meth:`~GenericGraph.set_latex_options` | Set multiple options for rendering a graph with LaTeX.
     :meth:`~GenericGraph.layout` | Return a layout for the vertices of this graph.
@@ -316,7 +317,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subgraph_search_iterator` | Return an iterator over the labelled copies of ``G`` in ``self``.
     :meth:`~GenericGraph.characteristic_polynomial` | Return the characteristic polynomial of the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.genus` | Return the minimal genus of the graph.
-    :meth:`~GenericGraph.crossing_number` | Return the minimum number of edge crossings needed to draw the graph.
+    :meth:`~GenericGraph.crossing_number` | Return the crossing number of the graph.
 
 Methods
 -------
@@ -4339,7 +4340,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):
         r"""
-        Test whether the graph is planar.
+        Check whether the graph is planar.
 
         This wraps the reference implementation provided by John Boyer of the
         linear time planarity algorithm by edge addition due to Boyer
@@ -4362,33 +4363,36 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-          - "Almost planar graph": :meth:`~Graph.is_apex`
-          - "Measuring non-planarity": :meth:`~genus`, :meth:`~crossing_number`
-          - :meth:`planar_dual`
-          - :meth:`faces`
-          - :meth:`~sage.graphs.graph.Graph.is_polyhedral`
+            - "Almost planar graph": :meth:`~Graph.is_apex`
+            - "Measuring non-planarity": :meth:`~genus`, :meth:`~crossing_number`
+            - :meth:`planar_dual`
+            - :meth:`faces`
+            - :meth:`~sage.graphs.graph.Graph.is_polyhedral`
 
         INPUT:
 
-        - ``kuratowski`` - returns a tuple with boolean as first entry. If the
-          graph is nonplanar, will return the Kuratowski subgraph (i.e. an edge
-          subdivision of `K_5` or `K_{3,3}`) as the second tuple entry.  If the
-          graph is planar, returns ``None`` as the second entry.
+        - ``on_embedding`` -- dictionary (default: ``None``); the embedding
+          dictionary to test planarity on (i.e.: will return ``True`` or
+          ``False`` only for the given embedding)
 
-        - ``on_embedding`` - the embedding dictionary to test planarity
-          on. (i.e.: will return ``True`` or ``False`` only for the given
-          embedding.)
+        - ``kuratowski`` -- boolean (default: ``False``); whether to return a
+          tuple with boolean as first entry. If the graph is nonplanar, will
+          return the Kuratowski subgraph (i.e. an edge subdivision of `K_5` or
+          `K_{3,3}`) as the second tuple entry.  If the graph is planar, returns
+          ``None`` as the second entry. When set to ``False``, only a boolean
+          answer is returned.
 
-        - ``set_embedding`` - whether or not to set the instance field variable
-          that contains a combinatorial embedding (clockwise ordering of
-          neighbors at each vertex). This value will only be set if a planar
-          embedding is found. It is stored as a Python dict: ``v1: [n1,n2,n3]``
-          where ``v1`` is a vertex and ``n1,n2,n3`` are its neighbors.
+        - ``set_embedding`` -- boolean (default: ``False``); whether to set the
+          instance field variable that contains a combinatorial embedding
+          (clockwise ordering of neighbors at each vertex). This value will only
+          be set if a planar embedding is found. It is stored as a Python dict:
+          ``v1: [n1,n2,n3]`` where ``v1`` is a vertex and ``n1,n2,n3`` are its
+          neighbors.
 
-        - ``set_pos`` - whether or not to set the position
-          dictionary (for plotting) to reflect the combinatorial embedding.
-          Note that this value will default to False if set_emb is set to
-          False. Also, the position dictionary will only be updated if a
+        - ``set_pos`` -- boolean (default: ``False``); whether to set the
+          position dictionary (for plotting) to reflect the combinatorial
+          embedding.  Note that this value will default to False if set_emb is
+          set to False. Also, the position dictionary will only be updated if a
           planar embedding is found.
 
         EXAMPLES::
@@ -4428,29 +4432,29 @@ class GenericGraph(GenericGraph_pyx):
 
         ::
 
-            sage: k43 = graphs.CompleteBipartiteGraph(4,3)
+            sage: k43 = graphs.CompleteBipartiteGraph(4, 3)
             sage: result = k43.is_planar(kuratowski=True); result
             (False, Graph on 6 vertices)
-            sage: result[1].is_isomorphic(graphs.CompleteBipartiteGraph(3,3))
+            sage: result[1].is_isomorphic(graphs.CompleteBipartiteGraph(3, 3))
             True
 
         Multi-edged and looped graphs are partially supported::
 
-            sage: G = Graph({0:[1,1]}, multiedges=True)
+            sage: G = Graph({0: [1, 1]}, multiedges=True)
             sage: G.is_planar()
             True
             sage: G.is_planar(on_embedding={})
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot compute with embeddings of multiple-edged or looped graphs.
+            NotImplementedError: cannot compute with embeddings of multiple-edged or looped graphs
             sage: G.is_planar(set_pos=True)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot compute with embeddings of multiple-edged or looped graphs.
+            NotImplementedError: cannot compute with embeddings of multiple-edged or looped graphs
             sage: G.is_planar(set_embedding=True)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot compute with embeddings of multiple-edged or looped graphs.
+            NotImplementedError: cannot compute with embeddings of multiple-edged or looped graphs
             sage: G.is_planar(kuratowski=True)
             (True, None)
 
@@ -4458,7 +4462,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.CompleteGraph(5)
             sage: G = Graph(G, multiedges=True)
-            sage: G.add_edge(0,1)
+            sage: G.add_edge(0, 1)
             sage: G.is_planar()
             False
             sage: b,k = G.is_planar(kuratowski=True)
@@ -4493,24 +4497,24 @@ class GenericGraph(GenericGraph_pyx):
         # Quick check first
         if (on_embedding is None and not kuratowski and not set_embedding and not set_pos
             and not self.allows_loops() and not self.allows_multiple_edges()):
-            if self.order() > 4 and self.size() > 3*self.order()-6:
+            if self.order() > 4 and self.size() > 3 * self.order() - 6:
                 return False
 
         if self.has_multiple_edges() or self.has_loops():
             if set_embedding or (on_embedding is not None) or set_pos:
-                raise NotImplementedError("Cannot compute with embeddings of multiple-edged or looped graphs.")
+                raise NotImplementedError("cannot compute with embeddings of multiple-edged or looped graphs")
             else:
                 return self.to_simple().is_planar(kuratowski=kuratowski)
 
         if on_embedding is not None:
             self._check_embedding_validity(on_embedding,boolean=False)
-            return (0 == self.genus(minimal=False,set_embedding=False,on_embedding=on_embedding))
+            return (0 == self.genus(minimal=False, set_embedding=False, on_embedding=on_embedding))
         else:
             from sage.graphs.planarity import is_planar
             G = self.to_undirected()
             if hasattr(G, '_immutable'):
                 G = copy(G)
-            planar = is_planar(G,kuratowski=kuratowski,set_pos=set_pos,set_embedding=set_embedding)
+            planar = is_planar(G,kuratowski=kuratowski, set_pos=set_pos, set_embedding=set_embedding)
             if kuratowski:
                 bool_result = planar[0]
             else:
@@ -4525,8 +4529,8 @@ class GenericGraph(GenericGraph_pyx):
     def is_circular_planar(self, on_embedding=None, kuratowski=False,
                            set_embedding=True, boundary=None,
                            ordered=False, set_pos=False):
-        """
-        Tests whether the graph is circular planar (outerplanar)
+        r"""
+        Check whether the graph is circular planar (outerplanar)
 
         A graph is circular planar if it has a planar embedding in which all
         vertices can be drawn in order on a circle. This method can also be used
@@ -4538,35 +4542,36 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``kuratowski`` (boolean) - if set to True, returns a tuple with
-          boolean first entry and the Kuratowski subgraph (i.e. an edge
-          subdivision of `K_5` or `K_{3,3}`) as the second entry (see OUTPUT below).
-          It is set to ``False`` by default.
+        - ``on_embedding`` -- dictionary (default: ``None``); the embedding
+          dictionary to test planarity on (i.e.: will return ``True`` or
+          ``False`` only for the given embedding)
 
-        - ``on_embedding`` (boolean) - the embedding dictionary to test
-          planarity on. (i.e.: will return ``True`` or ``False`` only for the
-          given embedding). It is set to ``False`` by default.
+        - ``kuratowski`` -- boolean (default: ``False``); whether to return a
+          tuple with boolean first entry and the Kuratowski subgraph (i.e. an
+          edge subdivision of `K_5` or `K_{3,3}`) as the second entry (see
+          OUTPUT below)
 
-        - ``set_embedding`` (boolean) - whether or not to set the instance field
-          variable that contains a combinatorial embedding (clockwise ordering
-          of neighbors at each vertex). This value will only be set if a
-          circular planar embedding is found. It is stored as a Python dict:
-          ``v1: [n1,n2,n3]`` where ``v1`` is a vertex and ``n1,n2,n3`` are its
-          neighbors. It is set to ``True`` by default.
+        - ``set_embedding`` -- boolean (default: ``True``); whether or not to
+          set the instance field variable that contains a combinatorial
+          embedding (clockwise ordering of neighbors at each vertex). This value
+          will only be set if a circular planar embedding is found. It is stored
+          as a Python dict: ``v1: [n1,n2,n3]`` where ``v1`` is a vertex and
+          ``n1,n2,n3`` are its neighbors.
 
-        - ``boundary`` - a set of vertices that are required to be drawn on the
-          circle, all others being drawn inside of it. It is set to ``None`` by
-          default, meaning that *all* vertices should be drawn on the boundary.
+        - ``boundary`` -- list (default: ``None``); an ordered list of vertices
+          that are required to be drawn on the circle, all others being drawn
+          inside of it. It is set to ``None`` by default, meaning that *all*
+          vertices should be drawn on the boundary.
 
-        - ``ordered`` (boolean) - whether or not to consider the order of the
-          boundary. It is set to ``False`` by default, and required
-          ``boundary`` to be defined.
+        - ``ordered`` -- boolean (default: ``False``); whether or not to
+          consider the order of the boundary. It required ``boundary`` to be
+          defined.
 
-        - ``set_pos`` - whether or not to set the position dictionary (for
-          plotting) to reflect the combinatorial embedding.  Note that this
-          value will default to False if set_emb is set to False. Also, the
-          position dictionary will only be updated if a circular planar
-          embedding is found.
+        - ``set_pos`` -- boolean (default: ``False``); whether or not to set the
+          position dictionary (for plotting) to reflect the combinatorial
+          embedding. Note that this value will default to ``False`` if
+          ``set_embedding`` is set to ``False``. Also, the position dictionary
+          will only be updated if a circular planar embedding is found.
 
         OUTPUT:
 
@@ -4576,20 +4581,19 @@ class GenericGraph(GenericGraph_pyx):
         If ``kuratowski`` is set to ``True``, then this function will return a
         tuple, whose first entry is a boolean and whose second entry is the
         Kuratowski subgraph (i.e. an edge subdivision of `K_5` or `K_{3,3}`)
-        isolated by the Boyer-Myrvold algorithm. Note that this graph
-        might contain a vertex or edges that were not in the initial graph.
-        These would be elements referred to below
-        as parts of the wheel and the star, which were added to the graph to
-        require that the boundary can be drawn on the boundary of a disc, with
-        all other vertices drawn inside (and no edge crossings).
+        isolated by the Boyer-Myrvold algorithm. Note that this graph might
+        contain a vertex or edges that were not in the initial graph.  These
+        would be elements referred to below as parts of the wheel and the star,
+        which were added to the graph to require that the boundary can be drawn
+        on the boundary of a disc, with all other vertices drawn inside (and no
+        edge crossings).
 
         ALGORITHM:
 
         This is a linear time algorithm to test for circular planarity. It
-        relies on the edge-addition planarity algorithm due to
-        Boyer-Myrvold. We accomplish linear time for circular planarity by
-        modifying the graph before running the general planarity
-        algorithm.
+        relies on the edge-addition planarity algorithm due to Boyer-Myrvold. We
+        accomplish linear time for circular planarity by modifying the graph
+        before running the general planarity algorithm.
 
         REFERENCE:
 
@@ -4600,13 +4604,13 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]})
+            sage: g439 = Graph({1: [5, 7], 2: [5, 6], 3: [6, 7], 4: [5, 6, 7]})
             sage: g439.show()
-            sage: g439.is_circular_planar(boundary = [1,2,3,4])
+            sage: g439.is_circular_planar(boundary=[1, 2, 3, 4])
             False
-            sage: g439.is_circular_planar(kuratowski=True, boundary = [1,2,3,4])
+            sage: g439.is_circular_planar(kuratowski=True, boundary=[1, 2, 3, 4])
             (False, Graph on 8 vertices)
-            sage: g439.is_circular_planar(kuratowski=True, boundary = [1,2,3])
+            sage: g439.is_circular_planar(kuratowski=True, boundary=[1, 2, 3])
             (True, None)
             sage: g439.get_embedding()
             {1: [7, 5],
@@ -4619,15 +4623,15 @@ class GenericGraph(GenericGraph_pyx):
 
         Order matters::
 
-            sage: K23 = graphs.CompleteBipartiteGraph(2,3)
-            sage: K23.is_circular_planar(boundary = [0,1,2,3])
+            sage: K23 = graphs.CompleteBipartiteGraph(2, 3)
+            sage: K23.is_circular_planar(boundary=[0, 1, 2, 3])
             True
-            sage: K23.is_circular_planar(ordered=True, boundary = [0,1,2,3])
+            sage: K23.is_circular_planar(ordered=True, boundary=[0, 1, 2, 3])
             False
 
         With a different order::
 
-            sage: K23.is_circular_planar(set_embedding=True, boundary = [0,2,1,3])
+            sage: K23.is_circular_planar(set_embedding=True, boundary=[0, 2, 1, 3])
             True
 
         TESTS:
@@ -4640,13 +4644,13 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         if ordered and boundary is None:
-            raise ValueError("boundary must be set when ordered is True.")
+            raise ValueError("boundary must be set when ordered is True")
 
         # Quick check first
         if (on_embedding is None and not kuratowski and set_embedding and
             boundary is None and not ordered and not set_pos and
             not self.allows_loops() and not self.allows_multiple_edges()):
-            if self.order() > 3 and self.size() > 2*self.order()-3:
+            if self.order() > 3 and self.size() > 2 * self.order() - 3:
                 return False
 
         if boundary is None:
@@ -4659,15 +4663,10 @@ class GenericGraph(GenericGraph_pyx):
         if hasattr(graph, '_embedding'):
             del(graph._embedding)
 
-        # Adds a new vertex to the graph
-        extra = 0
-        while graph.has_vertex(extra):
-            extra=extra+1
-        graph.add_vertex(extra)
-
-        # Adds edges from the new vertex to all vertices of the boundary
-        for vertex in boundary:
-            graph.add_edge(vertex,extra)
+        # Adds a new vertex to the graph and connects it to all vertices of the
+        # boundary
+        extra = graph.add_vertex()
+        graph.add_edges((vertex, extra) for vertex in boundary)
 
         extra_edges = []
 
@@ -4683,7 +4682,7 @@ class GenericGraph(GenericGraph_pyx):
 
             graph.add_edges(extra_edges)
 
-        result = is_planar(graph,kuratowski=kuratowski,set_embedding=set_embedding,circular=True)
+        result = is_planar(graph, kuratowski=kuratowski, set_embedding=set_embedding, circular=True)
 
         if kuratowski:
             bool_result = result[0]
@@ -4736,22 +4735,25 @@ class GenericGraph(GenericGraph_pyx):
 
     def layout_planar(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False, **options):
         """
-        Uses Schnyder's algorithm to compute a planar layout for self,
-        raising an error if self is not planar.
+        Compute a planar layout of the graph using Schnyder's algorithm.
+
+        If the graph is not planar, an error is raised.
 
         INPUT:
 
-        -  ``set_embedding`` - if True, sets the combinatorial
-           embedding used (see self.get_embedding())
+        - ``set_embedding`` -- boolean (default: ``False``); whether to set the
+           combinatorial embedding used (see
+           :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
 
-        -  ``on_embedding`` - dict: provide a combinatorial
-           embedding
+        - ``on_embedding`` -- dictionary (default: ``None``); provide a
+           combinatorial embedding
 
-        -  ``external_face`` - ignored
+        -  ``external_face`` -- ignored
 
-        -  ``test`` - if True, perform sanity tests along the way
+        - ``test`` -- boolean (default: ``False``); whether to perform sanity
+           tests along the way
 
-        -  ``circular`` - ignored
+        -  ``circular`` -- ignored
 
 
         EXAMPLES::
@@ -4759,14 +4761,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PathGraph(10)
             sage: g.set_planar_positions(test=True)
             True
-            sage: g = graphs.BalancedTree(3,4)
+            sage: g = graphs.BalancedTree(3, 4)
             sage: g.set_planar_positions(test=True)
             True
             sage: g = graphs.CycleGraph(7)
             sage: g.set_planar_positions(test=True)
             True
             sage: g = graphs.CompleteGraph(5)
-            sage: g.set_planar_positions(test=True,set_embedding=True)
+            sage: g.set_planar_positions(test=True, set_embedding=True)
             Traceback (most recent call last):
             ...
             ValueError: Complete graph is not a planar graph
@@ -4781,18 +4783,18 @@ class GenericGraph(GenericGraph_pyx):
             pass
         embedding_copy = None
         if set_embedding:
-            if not (G.is_planar(set_embedding=True)):
+            if not G.is_planar(set_embedding=True):
                 raise ValueError('%s is not a planar graph'%self)
             embedding_copy = G._embedding
         else:
             if on_embedding is not None:
                 G._check_embedding_validity(on_embedding,boolean=False)
-                if not (G.is_planar(on_embedding=on_embedding)):
+                if not G.is_planar(on_embedding=on_embedding):
                     raise ValueError('provided embedding is not a planar embedding for %s'%self )
             else:
                 if hasattr(G,'_embedding'):
                     if G._check_embedding_validity():
-                        if not (G.is_planar(on_embedding=G._embedding)):
+                        if not G.is_planar(on_embedding=G._embedding):
                             raise ValueError('%s has nonplanar _embedding attribute.  Try putting set_embedding=True'%self)
                         embedding_copy = G._embedding
                     else:
@@ -4838,13 +4840,13 @@ class GenericGraph(GenericGraph_pyx):
         G.is_planar(set_embedding=True)
         faces = G.faces(G._embedding)
         # Assign a normal label to the graph
-        label = _normal_label( G, G._embedding, faces[0] )
+        label = _normal_label(G, G._embedding, faces[0])
 
         # Get dictionary of tree nodes from the realizer
-        tree_nodes = _realizer( G, label)
+        tree_nodes = _realizer(G, label)
 
         # Compute the coordinates and store in position dictionary (attr self._pos)
-        _compute_coordinates( G, tree_nodes )
+        _compute_coordinates(G, tree_nodes)
 
         # Delete all the edges added to the graph
         #G.delete_edges( extra_edges )
@@ -4857,16 +4859,16 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_drawn_free_of_edge_crossings(self):
         """
-        Returns True is the position dictionary for this graph is set and
-        that position dictionary gives a planar embedding.
+        Check whether the position dictionary for this graph is set and that
+        position dictionary gives a planar embedding.
 
         This simply checks all pairs of edges that don't share a vertex to
         make sure that they don't intersect.
 
-        .. note::
+        .. NOTE::
 
-           This function require that _pos attribute is set. (Returns
-           False otherwise.)
+           This function require that ``_pos`` attribute is set (Returns False
+           otherwise)
 
         EXAMPLES::
 
@@ -4879,8 +4881,8 @@ class GenericGraph(GenericGraph_pyx):
             return False
 
         G = self.to_undirected()
-        for edge1 in G.edges(labels = False):
-            for edge2 in G.edges(labels = False):
+        for edge1 in G.edge_iterator(labels=False):
+            for edge2 in G.edge_iterator(labels=False):
                 if edge1[0] == edge2[0] or edge1[0] == edge2[1] or edge1[1] == edge2[0] or edge1[1] == edge2[1]:
                     continue
                 p1, p2 = self._pos[edge1[0]], self._pos[edge1[1]]
@@ -4890,15 +4892,15 @@ class GenericGraph(GenericGraph_pyx):
                 db = Rational(q2[1] - q1[1])
                 da = Rational(q2[0] - q1[0])
                 if(da * dy == db * dx):
-                    if dx != 0:
-                        t1 = Rational(q1[0] - p1[0])/dx
-                        t2 = Rational(q2[0] - p1[0])/dx
+                    if dx:
+                        t1 = Rational(q1[0] - p1[0]) / dx
+                        t2 = Rational(q2[0] - p1[0]) / dx
                         if (0 <= t1 and t1 <= 1) or (0 <= t2 and t2 <= 1):
                             if p1[1] + t1 * dy == q1[1] or p1[1] + t2 * dy == q2[1]:
                                 return False
                     else:
-                        t1 = Rational(q1[1] - p1[1])/dy
-                        t2 = Rational(q2[1] - p1[1])/dy
+                        t1 = Rational(q1[1] - p1[1]) / dy
+                        t2 = Rational(q2[1] - p1[1]) / dy
                         if (0 <= t1 and t1 <= 1) or (0 <= t2 and t2 <= 1):
                             if p1[0] + t1 * dx == q1[0] or p1[0] + t2 * dx == q2[0]:
                                 return False
@@ -4906,7 +4908,7 @@ class GenericGraph(GenericGraph_pyx):
                     s = (dx * Rational(q1[1] - p1[1]) + dy * Rational(p1[0] - q1[0])) / (da * dy - db * dx)
                     t = (da * Rational(p1[1] - q1[1]) + db * Rational(q1[0] - p1[0])) / (db * dx - da * dy)
 
-                    if s >= 0 and s <= 1 and t >= 0 and t <= 1:
+                    if 0 <= s and s <= 1 and 0 <= t and t <= 1:
                         print('fail on', p1, p2, ' : ',q1, q2)
                         print(edge1, edge2)
                         return False
@@ -4914,58 +4916,61 @@ class GenericGraph(GenericGraph_pyx):
 
     def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=None, ordered=True):
         r"""
-        Returns the minimal genus of the graph.
+        Return the minimal genus of the graph.
 
-        The genus of a compact surface is the number of handles it
-        has. The genus of a graph is the minimal genus of the surface
-        it can be embedded into. It can be seen as a measure of non-planarity;
-        a planar graph has genus zero.
+        The genus of a compact surface is the number of handles it has. The
+        genus of a graph is the minimal genus of the surface it can be embedded
+        into. It can be seen as a measure of non-planarity; a planar graph has
+        genus zero.
 
-        Note - This function uses Euler's formula and thus it is necessary
-        to consider only connected graphs.
+        .. NOTE::
+
+            This function uses Euler's formula and thus it is necessary to
+            consider only connected graphs.
 
         INPUT:
 
-        -  ``set_embedding (boolean)`` - whether or not to
-           store an embedding attribute of the computed (minimal) genus of the
-           graph. (Default is True).
+        - ``set_embedding`` -- boolean (default: ``True``); whether or not to
+          store an embedding attribute of the computed (minimal) genus of the
+          graph
 
-        -  ``on_embedding`` (default: ``None``) - two kinds of input are allowed:
+        - ``on_embedding`` -- two kinds of input are allowed (default:
+           ``None``):
 
-           - a dictionary representing a combinatorial embedding on which the
-             genus should be computed. Note that this must be a valid embedding
-             for the graph. The dictionary structure is given by: ``vertex1:
-             [neighbor1, neighbor2, neighbor3], vertex2: [neighbor]`` where
-             there is a key for each vertex in the graph and a (clockwise)
-             ordered list of each vertex's neighbors as values. The value of
-             ``on_embedding`` takes precedence over a stored ``_embedding``
-             attribute if minimal is set to ``False``.
+          - a dictionary representing a combinatorial embedding on which the
+            genus should be computed. Note that this must be a valid embedding
+            for the graph. The dictionary structure is given by: ``vertex1:
+            [neighbor1, neighbor2, neighbor3], vertex2: [neighbor]`` where there
+            is a key for each vertex in the graph and a (clockwise) ordered list
+            of each vertex's neighbors as values. The value of ``on_embedding``
+            takes precedence over a stored ``_embedding`` attribute if
+            ``minimal`` is set to ``False``.
 
-           - The value ``True``, in order to indicate that the embedding stored
-             as ``_embedding`` should be used (see examples).
+          - The value ``True``, in order to indicate that the embedding stored
+            as ``_embedding`` should be used (see examples).
 
-        -  ``minimal (boolean)`` - whether or not to compute
-           the minimal genus of the graph (i.e., testing all embeddings). If
-           minimal is False, then either maximal must be True or on_embedding
-           must not be None. If on_embedding is not None, it will take
-           priority over minimal. Similarly, if maximal is True, it will take
-           priority over minimal.
+        - ``minimal`` -- boolean (default: ``True``); whether or not to compute
+          the minimal genus of the graph (i.e., testing all embeddings). If
+          minimal is ``False``, then either ``maximal`` must be ``True`` or
+          ``on_embedding`` must not be ``None``. If ``on_embedding`` is not
+          ``None``, it will take priority over ``minimal``. Similarly, if
+          ``maximal`` is ``True``, it will take priority over ``minimal``.
 
-        -  ``maximal (boolean)`` - whether or not to compute
-           the maximal genus of the graph (i.e., testing all embeddings). If
-           maximal is False, then either minimal must be True or on_embedding
-           must not be None. If on_embedding is not None, it will take
-           priority over maximal. However, maximal takes priority over the
-           default minimal.
+        - ``maximal`` -- boolean (default: ``False``); whether or not to compute
+          the maximal genus of the graph (i.e., testing all embeddings). If
+          ``maximal`` is ``False``, then either ``minimal`` must be ``True`` or
+          ``on_embedding`` must not be ``None``. If ``on_embedding`` is not
+          ``None``, it will take priority over ``maximal``. However, ``maximal``
+          takes priority over the default ``minimal``.
 
-        - ``circular (list)`` - if ``circular`` is a list of vertices, the
-          method computes the genus preserving a planar embedding of the this
-          list. If circular is defined, ``on_embedding`` is not a valid
-          option. It is set to ``None`` by default.
+        - ``circular`` -- list (default: ``None``); if ``circular`` is a list of
+          vertices, the method computes the genus preserving a planar embedding
+          of the this list. If ``circular`` is defined, ``on_embedding`` is not
+          a valid option.
 
-        -  ``ordered (boolean)`` - if circular is True, then
-           whether or not the boundary order may be permuted. (Default is
-           True, which means the boundary order is preserved.)
+        - ``ordered`` -- boolean (default: ``True``); if ``circular`` is
+          ``True``, then whether or not the boundary order may be permuted
+          (default is ``True``, which means the boundary order is preserved)
 
         EXAMPLES::
 
@@ -4987,8 +4992,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: K33.genus()
             1
 
-        Using the circular argument, we can compute the minimal genus
-        preserving a planar, ordered boundary::
+        Using the circular argument, we can compute the minimal genus preserving
+        a planar, ordered boundary::
 
             sage: cube = graphs.CubeGraph(2)
             sage: cube.genus(circular=['01','10'])
@@ -5002,19 +5007,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: cube.genus(circular=['01','10'], maximal=True)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot compute the maximal genus of a genus respecting a boundary.
+            NotImplementedError: cannot compute the maximal genus of a genus respecting a boundary
 
-        Note: not everything works for multigraphs, looped graphs or digraphs.  But the
-        minimal genus is ultimately computable for every connected graph -- but the
-        embedding we obtain for the simple graph can't be easily converted to an
-        embedding of a non-simple graph.  Also, the maximal genus of a multigraph does
-        not trivially correspond to that of its simple graph. ::
+        Note: not everything works for multigraphs, looped graphs or digraphs.
+        But the minimal genus is ultimately computable for every connected graph
+        -- but the embedding we obtain for the simple graph can't be easily
+        converted to an embedding of a non-simple graph.  Also, the maximal
+        genus of a multigraph does not trivially correspond to that of its
+        simple graph::
 
-            sage: G = DiGraph({ 0 : [0,1,1,1], 1 : [2,2,3,3], 2 : [1,3,3], 3:[0,3]})
+            sage: G = DiGraph({0: [0, 1, 1, 1], 1: [2, 2, 3, 3], 2: [1, 3, 3], 3: [0, 3]})
             sage: G.genus()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Can't work with embeddings of non-simple graphs
+            NotImplementedError: can't work with embeddings of non-simple graphs
             sage: G.to_simple().genus()
             0
             sage: G.genus(set_embedding=False)
@@ -5022,25 +5028,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.genus(maximal=True, set_embedding=False)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Can't compute the maximal genus of a graph with loops or multiple edges
+            NotImplementedError: can't compute the maximal genus of a graph with loops or multiple edges
 
+        We break graphs with cut vertices into their blocks, which greatly
+        speeds up computation of minimal genus. This is not implemented for
+        maximal genus::
 
-        We break graphs with cut vertices into their blocks, which greatly speeds up
-        computation of minimal genus.  This is not implemented for maximal genus. ::
-
-            sage: K5 = graphs.CompleteGraph(5)
-            sage: G = K5.copy()
-            sage: s = 4
-            sage: for i in range(1,100):
-            ....:     k = K5.relabel(list(range(s,s+5)),inplace=False)
-            ....:     G.add_edges(k.edges())
-            ....:     s += 4
+            sage: G = graphs.RandomBlockGraph(10, 5)
             sage: G.genus()
-            100
+            10
 
         """
         if not self.is_connected():
-            raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
+            raise TypeError("the input Graph must be connected to use Euler's Formula to compute minimal genus")
 
         G = self.to_simple(immutable=False)
         verts = G.order()
@@ -5050,62 +5050,57 @@ class GenericGraph(GenericGraph_pyx):
             minimal = False
 
         if circular is not None:
-            if not isinstance(circular,list):
+            if not isinstance(circular, list):
                 raise ValueError("'circular' is expected to be a list")
             if maximal:
-                raise NotImplementedError("Cannot compute the maximal genus of a genus respecting a boundary.")
+                raise NotImplementedError("cannot compute the maximal genus of a genus respecting a boundary")
             boundary = circular
             if hasattr(G, '_embedding'):
                 del(G._embedding)
 
-            extra = 0
-            while G.has_vertex(extra):
-                extra=extra+1
-            G.add_vertex(extra)
+            extra = G.add_vertex()
+            G.add_edges((vertex, extra) for vertex in boundary)
             verts += 1
-
-            for vertex in boundary:
-                G.add_edge(vertex,extra)
 
             extra_edges = []
             if ordered: # WHEEL
-                for i in range(len(boundary)-1):
-                    if not G.has_edge(boundary[i],boundary[i+1]):
-                        G.add_edge(boundary[i],boundary[i+1])
-                        extra_edges.append((boundary[i],boundary[i+1]))
-                if not G.has_edge(boundary[-1],boundary[0]):
-                    G.add_edge(boundary[-1],boundary[0])
-                    extra_edges.append((boundary[-1],boundary[0]))
+                for e in zip(boundary[-1], boundary[1:]):
+                    if not G.has_edge(e):
+                        G.add_edge(e)
+                        extra_edges.append(e)
+                if not G.has_edge(boundary[-1], boundary[0]):
+                    G.add_edge(boundary[-1], boundary[0])
+                    extra_edges.append((boundary[-1], boundary[0]))
                 # else STAR (empty list of extra edges)
 
             edges = G.size()
 
         if on_embedding is not None:
             if self.has_loops() or self.is_directed() or self.has_multiple_edges():
-                raise NotImplementedError("Can't work with embeddings of non-simple graphs")
+                raise NotImplementedError("can't work with embeddings of non-simple graphs")
 
-            if isinstance(on_embedding,dict):
+            if isinstance(on_embedding, dict):
                 faces = len(self.faces(on_embedding))
-                return (2-verts+edges-faces) // 2
+                return (2 - verts + edges - faces) // 2
             elif on_embedding:
                 try:
                     faces = len(self.faces(self._embedding))
                 except AttributeError:
                     raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
-                return (2-verts+edges-faces) // 2
+                return (2 - verts + edges - faces) // 2
         else: # then compute either maximal or minimal genus of all embeddings
             from . import genus
 
             if set_embedding:
                 if self.has_loops() or self.is_directed() or self.has_multiple_edges():
-                    raise NotImplementedError("Can't work with embeddings of non-simple graphs")
+                    raise NotImplementedError("can't work with embeddings of non-simple graphs")
                 if minimal:
                     B,C = G.blocks_and_cut_vertices()
                     embedding = {}
                     g = 0
                     for block in B:
                         H = G.subgraph(block)
-                        g += genus.simple_connected_graph_genus(H, set_embedding = True, check = False, minimal = True)
+                        g += genus.simple_connected_graph_genus(H, set_embedding=True, check=False, minimal=True)
                         emb = H.get_embedding()
                         for v in emb:
                             if v in embedding:
@@ -5114,30 +5109,29 @@ class GenericGraph(GenericGraph_pyx):
                                 embedding[v] = emb[v]
                     self._embedding = embedding
                 else:
-                    g = genus.simple_connected_graph_genus(G, set_embedding = True, check = False, minimal = minimal)
+                    g = genus.simple_connected_graph_genus(G, set_embedding=True, check=False, minimal=minimal)
                     self._embedding = G._embedding
                 return g
             else:
                 if maximal and (self.has_multiple_edges() or self.has_loops()):
-                    raise NotImplementedError("Can't compute the maximal genus of a graph with loops or multiple edges")
+                    raise NotImplementedError("can't compute the maximal genus of a graph with loops or multiple edges")
                 if minimal:
                     B,C = G.blocks_and_cut_vertices()
                     g = 0
                     for block in B:
                         H = G.subgraph(block)
-                        g += genus.simple_connected_graph_genus(H, set_embedding = False, check = False, minimal = True)
+                        g += genus.simple_connected_graph_genus(H, set_embedding=False, check=False, minimal=True)
                     return g
                 else:
-                    return genus.simple_connected_graph_genus(G, set_embedding = False, check=False, minimal=minimal)
+                    return genus.simple_connected_graph_genus(G, set_embedding=False, check=False, minimal=minimal)
 
     def crossing_number(self):
-        """
+        r"""
         Return the crossing number of the graph.
 
-        The crossing number of a graph is the minimum number of
-        edge crossings needed to draw the graph on a plane. It can
-        be seen as a measure of non-planarity; a planar graph has
-        crossing number zero.
+        The crossing number of a graph is the minimum number of edge crossings
+        needed to draw the graph on a plane. It can be seen as a measure of
+        non-planarity; a planar graph has crossing number zero.
 
         See the :wikipedia:`Crossing_number` for more information.
 
@@ -5149,9 +5143,9 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        This is slow brute force implementation: for every `k` pairs of
-        edges try adding a new vertex for a crossing point for them. If
-        the result is not planar in any of those, try `k+1` pairs.
+        This is slow brute force implementation: for every `k` pairs of edges
+        try adding a new vertex for a crossing point for them. If the result is
+        not planar in any of those, try `k+1` pairs.
 
         Computing the crossing number is NP-hard problem.
 
@@ -5188,21 +5182,20 @@ class GenericGraph(GenericGraph_pyx):
             0
 
             sage: g = graphs.CompleteGraph(5)
-            sage: g.subdivide_edges(g.edges(), 2)
+            sage: g.subdivide_edges(g.edges(sort=False), 2)
             sage: g.add_edge(0, g.add_vertex())
             sage: g.crossing_number()
             1
         """
         def _crossing_number(G):
             """
-            Return the crossing number of a biconnected non-planar
-            graph ``G``.
+            Return the crossing number of a biconnected non-planar graph ``G``.
             """
             from sage.combinat.subset import Subsets
 
-            # Splitting an edge does not increase the
-            # crossing number, so reversedly we can shrink those. We must
-            # check that un-splitting would not create multiple edges.
+            # Splitting an edge does not increase the crossing number, so
+            # reversedly we can shrink those. We must check that un-splitting
+            # would not create multiple edges.
             two = [v for v in G if G.degree(v) == 2]
             for v in two:
                 u, w = G.neighbors(v)
@@ -5210,7 +5203,7 @@ class GenericGraph(GenericGraph_pyx):
                     G.add_edge(u, w)
                     G.delete_vertex(v)
 
-            edgepairs = Subsets(G.edges(labels=False, sort=False), 2)
+            edgepairs = Subsets(G.edge_iterator(labels=False), 2)
             edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and
                          x[0][1] not in [x[1][0], x[1][1]]]
 
@@ -5241,7 +5234,7 @@ class GenericGraph(GenericGraph_pyx):
                     k += _crossing_number(g)
         return k
 
-    def faces(self, embedding = None):
+    def faces(self, embedding=None):
         """
         Return the faces of an embedded graph.
 
@@ -5251,12 +5244,13 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``embedding`` - a combinatorial embedding dictionary. Format:
-          ``{v1:[v2,v3], v2:[v1], v3:[v1]}`` (clockwise ordering of neighbors at
-          each vertex). If set to ``None`` (default) the method will use the
-          embedding stored as ``self._embedding``. If none is stored, the method
-          will compute the set of faces from the embedding returned by
-          :meth:`is_planar` (if the graph is, of course, planar).
+        - ``embedding`` -- dictionary (default: ``None``); a combinatorial
+          embedding dictionary. Format: ``{v1: [v2,v3], v2: [v1], v3: [v1]}``
+          (clockwise ordering of neighbors at each vertex). If set to ``None``
+          (default) the method will use the embedding stored as
+          ``self._embedding``. If none is stored, the method will compute the
+          set of faces from the embedding returned by :meth:`is_planar` (if the
+          graph is, of course, planar).
 
         .. NOTE::
 
@@ -5295,7 +5289,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.PetersenGraph().faces()
             Traceback (most recent call last):
             ...
-            ValueError: No embedding is provided and the graph is not planar.
+            ValueError: no embedding is provided and the graph is not planar
 
         TESTS:
 
@@ -5324,7 +5318,7 @@ class GenericGraph(GenericGraph_pyx):
                     embedding = self._embedding
                     self._embedding = None
                 else:
-                    raise ValueError("No embedding is provided and the graph is not planar.")
+                    raise ValueError("no embedding is provided and the graph is not planar")
 
         # Establish set of possible edges
         edgeset = set()
@@ -5340,7 +5334,7 @@ class GenericGraph(GenericGraph_pyx):
         while edgeset:
             u,v = path[-1]
             neighbors = embedding[v]
-            next_node = neighbors[(neighbors.index(u)+1)%(len(neighbors))]
+            next_node = neighbors[(neighbors.index(u) + 1) % len(neighbors)]
             e = (v, next_node)
             if e == path[0]:
                 faces.append(path)
@@ -5348,12 +5342,23 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 path.append(e)
                 edgeset.discard(e)
-        if path: faces.append(path)
+        if path:
+            faces.append(path)
         return faces
 
-    def num_faces(self,embedding=None):
+    def num_faces(self, embedding=None):
         """
-        Returns the number of faces of an embedded graph.
+        Return the number of faces of an embedded graph.
+
+        INPUT:
+
+        - ``embedding`` -- dictionary (default: ``None``); a combinatorial
+          embedding dictionary. Format: ``{v1: [v2,v3], v2: [v1], v3: [v1]}``
+          (clockwise ordering of neighbors at each vertex). If set to ``None``
+          (default) the method will use the embedding stored as
+          ``self._embedding``. If none is stored, the method will compute the
+          set of faces from the embedding returned by :meth:`is_planar` (if the
+          graph is, of course, planar).
 
         EXAMPLES::
 
@@ -5363,13 +5368,12 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G = graphs.CompleteMultipartiteGraph([3,3])
+            sage: G = graphs.CompleteBipartiteGraph(3, 3)
             sage: G.num_faces()
             Traceback (most recent call last):
             ...
-            ValueError: No embedding is provided and the graph is not planar.
+            ValueError: no embedding is provided and the graph is not planar
         """
-
         return len(self.faces(embedding))
 
     def planar_dual(self, embedding=None):
@@ -5377,18 +5381,19 @@ class GenericGraph(GenericGraph_pyx):
         Return the planar dual of an embedded graph.
 
         A combinatorial embedding of a graph is a clockwise ordering of the
-        neighbors of each vertex. From this information one can obtain
-        the dual of a plane graph, which is what the method returns. The
-        vertices of the dual graph correspond to faces of the primal graph.
+        neighbors of each vertex. From this information one can obtain the dual
+        of a plane graph, which is what the method returns. The vertices of the
+        dual graph correspond to faces of the primal graph.
 
         INPUT:
 
-        - ``embedding`` - a combinatorial embedding dictionary. Format:
-          ``{v1:[v2, v3], v2:[v1], v3:[v1]}`` (clockwise ordering of neighbors at
-          each vertex). If set to ``None`` (default) the method will use the
-          embedding stored as ``self._embedding``. If none is stored, the method
-          will compute the set of faces from the embedding returned by
-          :meth:`is_planar` (if the graph is, of course, planar).
+        - ``embedding`` -- dictionary (default: ``None``); a combinatorial
+          embedding dictionary. Format: ``{v1: [v2,v3], v2: [v1], v3: [v1]}``
+          (clockwise ordering of neighbors at each vertex). If set to ``None``
+          (default) the method will use the embedding stored as
+          ``self._embedding``. If none is stored, the method will compute the
+          set of faces from the embedding returned by :meth:`is_planar` (if the
+          graph is, of course, planar).
 
         EXAMPLES::
 
@@ -5413,11 +5418,11 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G = graphs.CompleteMultipartiteGraph([3, 3])
+            sage: G = graphs.CompleteBipartiteGraph(3, 3)
             sage: G.planar_dual()
             Traceback (most recent call last):
             ...
-            ValueError: No embedding is provided and the graph is not planar.
+            ValueError: no embedding is provided and the graph is not planar
             sage: G = Graph([[1, 2, 3, 4], [[1, 2], [2, 3], [3, 1], [3, 2], [1, 4], [2, 4], [3, 4]]], multiedges=True)
             sage: G.planar_dual()
             Traceback (most recent call last):
@@ -5427,7 +5432,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.planar_dual()
             Traceback (most recent call last):
             ...
-            NotImplementedError: the graph must be 3-vertex-connected.
+            NotImplementedError: the graph must be 3-vertex-connected
 
         .. TODO::
 
@@ -5438,7 +5443,7 @@ class GenericGraph(GenericGraph_pyx):
         self._scream_if_not_simple()
 
         if not self.vertex_connectivity(k=3):
-            raise NotImplementedError("the graph must be 3-vertex-connected.")
+            raise NotImplementedError("the graph must be 3-vertex-connected")
 
         from sage.graphs.graph import Graph
         return Graph([[tuple(_) for _ in self.faces()], lambda f, g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)

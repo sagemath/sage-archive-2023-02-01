@@ -75,13 +75,15 @@ def repr_short_to_parent(s):
     def extract(s):
         try:
             return ArgumentGroup(specification=s)
-        except Exception as e_ag:
-            pass
+        except Exception as e:
+            e_ag = e
+            e_ag.__traceback__ = None
 
         try:
             return sage_eval(s)
-        except Exception as e_se:
-            pass
+        except Exception as e:
+            e_se = e
+            e_se.__traceback__ = None
 
         raise combine_exceptions(
             ValueError("Cannot create a parent out of '%s'." % (s,)),

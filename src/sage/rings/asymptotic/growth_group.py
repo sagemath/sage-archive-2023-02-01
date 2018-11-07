@@ -3804,12 +3804,13 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P(raw_element=-2/3)  # indirect doctest
             Traceback (most recent call last):
             ...
-            PartialConversionValueError: base -2/3 must be positive
+            PartialConversionValueError: base -2/3 (Rational Field) must be positive
         """
         if not self.base > 0:
+            from sage.structure.element import parent
             raise PartialConversionValueError(
-                PartialConversionElement(parent, self.base),
-                'base {} must be positive'.format(self.base))
+                PartialConversionElement(self.parent(), self.base),
+                'base {} ({}) must be positive'.format(self.base, parent(self.base)))
 
     @property
     def base(self):
@@ -4307,7 +4308,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P((-333)^x)  # indirect doctest
             Traceback (most recent call last):
             ...
-            PartialConversionValueError: base -333 must be positive
+            PartialConversionValueError: base -333 (Rational Field) must be positive
             sage: P(0)  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -4320,7 +4321,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P('(-2)^x')
             Traceback (most recent call last):
             ...
-            PartialConversionValueError: base -2 must be positive
+            PartialConversionValueError: base -2 (Rational Field) must be positive
 
         ::
 
@@ -4519,7 +4520,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: ExponentialGrowthGroup(SR, 'n').an_element()  # indirect doctest
             Traceback (most recent call last):
             ...
-            PartialConversionValueError: base abs(some_variable) must be positive
+            PartialConversionValueError: base abs(some_variable) (Symbolic Ring) must be positive
 
             sage: assume(SR.an_element() > 0)
             sage: ExponentialGrowthGroup(SR, 'n').an_element()  # indirect doctest

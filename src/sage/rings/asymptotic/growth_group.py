@@ -5354,11 +5354,15 @@ class GrowthGroupFactory(UniqueFactory):
 
             try:
                 B = repr_short_to_parent(b)
-            except ValueError as exc_b:
+            except ValueError as exc:
+                exc_b = exc
+                exc_b.__traceback__ = None
                 B = None
             try:
                 E = repr_short_to_parent(e)
-            except ValueError as exc_e:
+            except ValueError as exc:
+                exc_e = exc
+                exc_e.__traceback__ = None
                 E = None
 
             if B is None and E is None:

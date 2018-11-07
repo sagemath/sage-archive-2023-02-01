@@ -2021,7 +2021,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:     try:
             ....:         if ZZ(z).is_power_of(7):
             ....:             return log(ZZ(z), 7) * log7
-            ....:     except TypeError, ValueError:
+            ....:     except (TypeError, ValueError):
             ....:         pass
             ....:     return log(z, base)
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=L, default_prec=3)

@@ -1648,6 +1648,98 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             x = x.f(i)
         return string_length
 
+cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrystalsElement):
+    def __init__(self, parent, list, row_lengths=[]):
+        self._row_lengths = row_lengths
+        super(InfinityQueerCrystalOfTableauxElement, self).__init__(parent, list)
+
+    def _repr_(self):
+        return repr([list(reversed(row)) for row in self.rows()])
+
+    def _ascii_art_(self):
+        from sage.typeset.ascii_art import AsciiArt
+        ret = [" "*(3*i) + "".join("%3s" % str(x) for x in reversed(row))
+               for i, row in enumerate(self.rows())]
+        return AsciiArt(ret)
+
+    def _latex_(self):
+        from sage.combinat.output import tex_from_array
+        return tex_from_array([[None]*i + list(reversed(row))
+                              for i, row in enumerate(self.rows())])
+
+    def rows(self):
+        """
+        Return the list of rows of ``self``.
+        """
+        if not self:
+            return []
+
+        cdef list ret = []
+        cdef Py_ssize_t pos = 0
+        for l in self._row_lengths:
+            ret.append(self._list[pos:pos+l])
+            pos += l
+        return ret
+
+    def e(self, i):
+        ret = super(InfinityQueerCrystalOfTableauxElement, self).e(i)
+        if ret is None:
+            return None
+        (<InfinityQueerCrystalOfTableauxElement> ret)._row_lengths = self._row_lengths
+        if i < 0:
+            i = -i
+        L = self._parent.letters
+        n = self._parent._cartan_type.n
+        rows = ret.rows()
+        row_lens = list(self._row_lengths)
+        if count_leading(rows[n-i], L(i+1)) != len(rows[n-i+1]) + 1:
+            for j in range(n-i+1):
+                rows[j].append(L(n+1-j))
+                row_lens[j] += 1
+        return type(self)(self._parent, sum(rows, []), row_lens)
+
+    def f(self, i):
+        #print(self._list)
+        ret = super(InfinityQueerCrystalOfTableauxElement, self).f(i)
+        #from sage.categories.tensor import tensor
+        #print(tensor(self._list).f(i))
+        if ret is None:
+            return None
+        #print((<InfinityQueerCrystalOfTableauxElement> ret)._list)
+        (<InfinityQueerCrystalOfTableauxElement> ret)._row_lengths = self._row_lengths
+        if i < 0:
+            i = -i
+        L = self._parent.letters
+        n = self._parent._cartan_type.n
+        rows = ret.rows()
+        row_lens = list(self._row_lengths)
+        #print(rows[n-i], L(i+1), count_leading(rows[n-i], L(i+1)), rows[n-i+1])
+        if count_leading(rows[n-i], L(i+1)) != len(rows[n-i+1]) + 1:
+            for j in range(n-i+1):
+                rows[j].pop()
+                row_lens[j] -= 1
+        return type(self)(self._parent, sum(rows, []), row_lens)
+
+    def epsilon(self, i):
+        P = self._parent.weight_lattice_realization()
+        h = P.simple_coroots()
+        return self.phi(i) - P(self.weight()).scalar(h[i])
+
+    def weight(self):
+        ret = super(InfinityQueerCrystalOfTableauxElement, self).weight()
+        L = self._parent.letters
+        n = self._parent._cartan_type.n + 1
+        for i, l in enumerate(self._row_lens[1:]):
+            ret -= L(n-i).weight() * (l + 1)
+        return ret
+
+cdef Py_ssize_t count_leading(list row, letter):
+    cdef Py_ssize_t i
+    for i in range(len(row)-1,-1,-1):
+        if row[i] != letter:
+            return len(row) - 1 - i
+    return len(row)
+
 # for unpickling
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.crystals.tensor_product', 'ImmutableListWithParent',  ImmutableListWithParent)

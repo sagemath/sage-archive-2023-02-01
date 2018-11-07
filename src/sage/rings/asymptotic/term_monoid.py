@@ -2980,7 +2980,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^QQ')
             sage: T = TermMonoid('exact', G, ZZ)
-            sage: tuple(islice(T.some_elements(), 10))
+            sage: tuple(islice(T.some_elements(), int(10)))
             (z^(1/2), z^(-1/2), -z^(1/2), z^2, -z^(-1/2), 2*z^(1/2),
              z^(-2), -z^2, 2*z^(-1/2), -2*z^(1/2))
         """

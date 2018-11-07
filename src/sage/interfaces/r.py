@@ -273,7 +273,6 @@ from sage.env import DOT_SAGE
 import re
 import sage.rings.integer
 from sage.structure.element import parent
-from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 
@@ -671,10 +670,11 @@ class R(ExtraTabCompletion, Expect):
             ImportError: ...
         """
         ret = self.eval('require("%s")' % library_name)
-        try:
-            ret = ret.decode('utf-8')
-        except UnicodeDecodeError:
-            ret = ret.decode('latin-1')
+        if six.PY2:
+            try:
+                ret = ret.decode('utf-8')
+            except UnicodeDecodeError:
+                ret = ret.decode('latin-1')
         # try hard to parse the message string in a locale-independent way
         if ' library(' in ret:       # locale-independent key-word
             raise ImportError("%s"%ret)

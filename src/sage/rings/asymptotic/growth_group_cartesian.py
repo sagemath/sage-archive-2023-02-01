@@ -284,6 +284,15 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('x^ZZ * y^ZZ')  # indirect doctest
             Growth Group x^ZZ * y^ZZ
+
+        Check :trac:`26452`::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: R = QQ.extension(x^2+1, 'i')
+            sage: P = MonomialGrowthGroup(R, 'w')
+            sage: L = MonomialGrowthGroup(ZZ, 'log(w)')
+            sage: cartesian_product([P, L])
+            Growth Group w^(Number Field in i with defining polynomial x^2 + 1) * log(w)^ZZ
         """
         order = kwds.pop('order')
         CartesianProductPoset.__init__(self, sets, category, order, **kwds)
@@ -306,10 +315,6 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         Return some elements of this Cartesian product of growth groups.
 
         See :class:`TestSuite` for a typical use case.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 

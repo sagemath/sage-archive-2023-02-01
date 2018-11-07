@@ -975,7 +975,7 @@ class AsymptoticExpansionGenerators(SageObject):
             # because it does not exist in growth group.
             log_n = 1
 
-        it = reversed(list(islice(it, precision+1)))
+        it = reversed(list(islice(it, int(precision) + 1)))
         if normalized:
             beta_denominator = beta
         else:

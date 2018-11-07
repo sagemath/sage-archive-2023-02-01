@@ -220,7 +220,7 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
         sage: type(K.module_generators[0])
         <class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_vertical_with_category.element_class'>
 
-    The following gives some tests with regards to Lemma 3.11 in [LOS12]_.
+    The following gives some tests with regards to Lemma 3.11 in [LOS2012]_.
 
     TESTS::
 
@@ -314,30 +314,15 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
 
     REFERENCES:
 
-    .. [Shimozono02] \M. Shimozono
-       *Affine type A crystal structure on tensor products of rectangles,
-       Demazure characters, and nilpotent varieties*,
-       J. Algebraic Combin. **15** (2002). no. 2. 151-187.
-       :arxiv:`math.QA/9804039`.
+    - [Shi2002]_
 
-    .. [Schilling08] \A. Schilling. "Combinatorial structure of
-       Kirillov-Reshetikhin crystals of type `D_n(1)`, `B_n(1)`, `A_{2n-1}(2)`".
-       J. Algebra. **319** (2008). 2938-2962. :arxiv:`0704.2046`.
+    - [Sch2008]_
 
-    .. [JS2010] \B. Jones, A. Schilling.
-       "Affine structures and a tableau model for `E_6` crystals",
-       J. Algebra. **324** (2010). 2512-2542.
-       :doi:`10.1016/j.bbr.2011.03.031`, :arxiv:`0909.2442`.
+    - [JS2010]_
 
-    .. [FOS09] \G. Fourier, M. Okado, A. Schilling.
-       *Kirillov-Reshetikhin crystals for nonexceptional types*.
-       Advances in Mathematics. **222** (2009). Issue 3. 1080-1116.
-       :arxiv:`0810.5067`.
+    - [FOS2009]_
 
-    .. [LOS12] \C. Lecouvey, M. Okado, M. Shimozono.
-       "Affine crystals, one-dimensional sums and parabolic Lusztig
-       `q`-analogues". Mathematische Zeitschrift. **271** (2012). Issue 3-4.
-       819-865. :doi:`10.1007/s00209-011-0892-9`, :arxiv:`1002.3715`.
+    - [LOS2012]_
     """
     if model in ['KN', 'KashiwaraNakashimaTableaux']:
         return KashiwaraNakashimaTableaux(cartan_type, r, s)
@@ -371,11 +356,11 @@ def KashiwaraNakashimaTableaux(cartan_type, r, s):
 
     For example, for type `A_n^{(1)}` the Kirillov-Reshetikhin crystal `B^{r,s}`
     is obtained from the classical crystal `B(s \omega_r)` using the
-    promotion operator. For other types, see [Shimozono02]_, [Schilling08]_,
+    promotion operator. For other types, see [Shi2002]_, [Sch2008]_,
     and [JS2010]_.
 
     Other Kirillov-Reshetikhin crystals are constructed using similarity methods.
-    See Section 4 of [FOS09]_.
+    See Section 4 of [FOS2009]_.
 
     For more information on Kirillov-Reshetikhin crystals, see
     :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`.
@@ -3213,13 +3198,8 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
     r"""
     Class of Kirillov-Reshetikhin crystals `B^{1,s}` of type `D_4^{(3)}`.
 
-    The crystal structure was defined in Section 4 of [KMOY07]_ using
+    The crystal structure was defined in Section 4 of [KMOY2007]_ using
     the coordinate representation.
-
-    REFERENCES:
-
-    .. [KMOY07] \M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
-       *Perfect crystals for* `U_q(D_4^{(3)})`, J. Algebra. **317** (2007).
     """
     def __init__(self, ct, s):
         r"""
@@ -3459,7 +3439,7 @@ class PMDiagram(CombinatorialObject):
     r"""
     Class of `\pm` diagrams. These diagrams are in one-to-one bijection with
     `X_{n-1}` highest weight vectors in an `X_n` highest weight crystal
-    `X=B,C,D`. See Section 4.1 of [Schilling08]_.
+    `X=B,C,D`. See Section 4.1 of [Sch2008]_.
 
     The input is a list `pm = [[a_0,b_0], [a_1,b_1], ...,
     [a_{n-1},b_{n-1}], [b_n]]` of pairs and a last 1-tuple (or list of

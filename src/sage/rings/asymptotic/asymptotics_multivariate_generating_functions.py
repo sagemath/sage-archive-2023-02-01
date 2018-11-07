@@ -3148,8 +3148,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         """
         return self.base().base_ring()
 
-    from sage.misc.decorators import rename_keyword
-    @rename_keyword(deprecation=10519, reduce_='reduce')
     def _element_constructor_(self, *args, **kwargs):
         r"""
         Returns an element of this ring.
@@ -3168,43 +3166,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         """
         R = self.base()
         Q = R.fraction_field()
-
-        # process deprecated keyword arguments
-        hasn = 'numerator' in kwargs
-        hasdf = 'denominator_factored' in kwargs
-        if hasn:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'numerator' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(n, df).")
-        if hasdf:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'denominator_factored' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(n, df).")
-        if hasn or hasdf:
-            args = [kwargs.pop('numerator') if hasn else R(0),
-                    kwargs.pop('denominator_factored') if hasdf else []]
-
-        hasq = 'quotient' in kwargs
-        if hasq:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'quotient' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(q).")
-            args = [kwargs.pop('quotient')]
-
-        if (hasn or hasdf) and hasq:
-            raise ValueError('parameters ambiguous')
 
         # process keyword arguments
         reduce = kwargs.pop('reduce', None)

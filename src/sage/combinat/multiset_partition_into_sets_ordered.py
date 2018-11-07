@@ -560,14 +560,15 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             sage: c.weight(as_weak_comp=True)
             Traceback (most recent call last):
             ...
-            ValueError: {'a': 2, 'c': 2, 'b': 4} is not a numeric multiset
+            ValueError: {'a': 2, 'b': 4, 'c': 2} is not a numeric multiset
         """
+        from pprint import pformat
         w = self._weight
         if as_weak_comp:
             if all(v in ZZ for v in w):
-                w = [w.get(i, 0) for i in range(1, self.max_letter()+1)]
+                w = [w.get(i, 0) for i in range(1, self.max_letter() + 1)]
             else:
-                raise ValueError("%s is not a numeric multiset"%w)
+                raise ValueError("%s is not a numeric multiset" % pformat(w))
         return w
 
     def deconcatenate(self, k=2):
@@ -696,8 +697,8 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             sage: C = OrderedMultisetPartitionIntoSets([[3,2]]).finer()
             sage: len(C)
             3
-            sage: list(C)
-            [[{3}, {2}], [{2,3}], [{2}, {3}]]
+            sage: sorted(C)
+            [[{3}, {2}], [{2}, {3}], [{2,3}]]
             sage: OrderedMultisetPartitionIntoSets([]).finer()
             {[]}
             sage: O = OrderedMultisetPartitionsIntoSets([1, 1, 'a', 'b'])
@@ -734,12 +735,14 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             return False
 
         # trim common prefix and suffix to make the search-space smaller
-        co1 = map(set, self)
-        co2 = map(set, co)
+        co1 = list(map(set, self))
+        co2 = list(map(set, co))
         while co1[0] == co2[0]:
-            co1 = co1[1:]; co2 = co2[1:]
+            co1 = co1[1:]
+            co2 = co2[1:]
         while co1[-1] == co2[-1]:
-            co1 = co1[:-1]; co2 = co2[:-1]
+            co1 = co1[:-1]
+            co2 = co2[:-1]
 
         co1 = OrderedMultisetPartitionIntoSets(co1)
         co2 = OrderedMultisetPartitionIntoSets(co2)
@@ -822,10 +825,10 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             sage: C = OrderedMultisetPartitionIntoSets([{1,4,5}, {2}, {1,7}]).fatter()
             sage: len(C)
             3
-            sage: list(C)
+            sage: sorted(C)
             [[{1,4,5}, {2}, {1,7}], [{1,4,5}, {1,2,7}], [{1,2,4,5}, {1,7}]]
-            sage: list(OrderedMultisetPartitionIntoSets([['a','b'],['c'],['a']]).fatter())
-            [[{'a','b'}, {'a','c'}], [{'a','b','c'}, {'a'}], [{'a','b'}, {'c'}, {'a'}]]
+            sage: sorted(OrderedMultisetPartitionIntoSets([['a','b'],['c'],['a']]).fatter())
+            [[{'a','b'}, {'c'}, {'a'}], [{'a','b'}, {'a','c'}], [{'a','b','c'}, {'a'}]]
 
         Some extreme cases::
 
@@ -1088,7 +1091,8 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             for term in ShuffleProduct(self, other, element_constructor=P):
                 yield term
         else:
-            A = map(tuple, self); B = map(tuple, other)
+            A = list(map(tuple, self))
+            B = list(map(tuple, other))
             for term in ShuffleProduct_overlapping(A, B):
                 if len(_concatenate(map(frozenset, term))) == len(P._Xtup):
                     yield P(term)
@@ -1384,7 +1388,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             sage: OrderedMultisetPartitionsIntoSets([1,1,4], weight={1:3, 2:1}, order=2).list()
             Traceback (most recent call last):
             ...
-            ValueError: cannot pass multiset as first argument and {'order', 'weight'} as keyword arguments
+            ValueError: cannot pass multiset as first argument and ['order', 'weight'] as keyword arguments
 
         The size keyword cannot be used if it is also passed as a required argument,
         even if the value is compatible::
@@ -1445,7 +1449,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                 if over_determined:
                     if len(over_determined) > 1:
                         suff = "s"
-                        offenses = str(Set(over_determined))
+                        offenses = str(sorted(over_determined))
                     else:
                         suff = ""
                         offenses = str(over_determined.pop())
@@ -1514,7 +1518,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             sage: OrderedMultisetPartitionsIntoSets(**c).constraints
             Traceback (most recent call last):
             ...
-            ValueError: cannot pass multiset as first argument and {'alphabet', 'order', 'max_order'} as keyword arguments
+            ValueError: cannot pass multiset as first argument and ['alphabet', 'max_order', 'order'] as keyword arguments
         """
         constraints = dict(constraints)
 
@@ -1612,10 +1616,14 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             cdict = dict(self.constraints)
         if "alphabet" in cdict:
             # make, e.g., `set([2,3,4])` print as `{2, 3, 4}`
-            A = set(cdict["alphabet"])
-            cdict["alphabet"] = "{" + repr(A)[5:-2] + "}"
+            if not all(l in ZZ for l in cdict["alphabet"]):
+                A = sorted(cdict["alphabet"], key=str)
+            else:
+                A = sorted(cdict["alphabet"])
+            cdict["alphabet"] = "{" + repr(A)[1:-1] + "}"
         constr = ""
-        ss = ['%s=%s'%(key, val) for (key,val) in iteritems(cdict)]
+        ss = ['%s=%s' % item for item in iteritems(cdict)]
+        ss = sorted(ss)
         if len(ss) > 1:
             constr = " with constraints: " + ", ".join(ss)
         elif len(ss) == 1:
@@ -1649,12 +1657,12 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         if not lst:
             omp = []
         else:
-            omp = map(list, lst)
+            omp = [list(z) for z in lst]
 
         if omp in self:
-            return self.element_class(self, map(frozenset, omp))
+            return self.element_class(self, list(map(frozenset, omp)))
         else:
-            raise ValueError("cannot convert %s into an element of %s"%(lst, self))
+            raise ValueError("cannot convert %s into an element of %s" % (lst, self))
 
     Element = OrderedMultisetPartitionIntoSets
 
@@ -1994,10 +2002,10 @@ class OrderedMultisetPartitionsIntoSets_all_constraints(OrderedMultisetPartition
         TESTS::
 
             sage: OrderedMultisetPartitionsIntoSets(min_length=3, max_order=5)
-            Ordered Multiset Partitions into Sets with constraints: min_length=3, max_order=5
+            Ordered Multiset Partitions into Sets with constraints: max_order=5, min_length=3
             sage: OrderedMultisetPartitionsIntoSets(min_length=3, max_order=5, alphabet=[1,'a'])
             Ordered Multiset Partitions into Sets with constraints:
-             alphabet={'a', 1}, max_order=5, min_length=3
+             alphabet={1, 'a'}, max_order=5, min_length=3
         """
         return "Ordered Multiset Partitions into Sets" + self._constraint_repr_()
 
@@ -2305,7 +2313,7 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
 
             sage: OMP = OrderedMultisetPartitionsIntoSets([1,1,3,3])
             sage: d = {}
-            sage: for _ in range(1e00):
+            sage: for _ in range(1000):
             ....:     x = OMP.random_element()
             ....:     d[x] = d.get(x, 0) + 1
             sage: d.values()  # random
@@ -2326,10 +2334,13 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
         TESTS::
 
             sage: O = OrderedMultisetPartitionsIntoSets(['a', 'b', 'a'])
-            sage: list(O)
-            [[{'a'}, {'a'}, {'b'}], [{'a'}, {'a','b'}],
-             [{'a'}, {'b'}, {'a'}], [{'a','b'}, {'a'}],
-             [{'b'}, {'a'}, {'a'}]]
+            sage: sorted(O)
+            [[{'a'}, {'a'}, {'b'}],
+             [{'a'}, {'b'}, {'a'}],
+             [{'a'}, {'a','b'}],
+             [{'b'}, {'a'}, {'a'}],
+             [{'a','b'}, {'a'}]]
+
             sage: O = OrderedMultisetPartitionsIntoSets([1, 1, 2])
             sage: list(O)
             [[{1}, {1}, {2}], [{1}, {1,2}], [{1}, {2}, {1}],
@@ -2337,6 +2348,7 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
         """
         for co in _iterator_weight(weight=dict(self._X)):
             yield self.element_class(self, co)
+
 
 class OrderedMultisetPartitionsIntoSets_X_constraints(OrderedMultisetPartitionsIntoSets):
     """
@@ -2368,7 +2380,7 @@ class OrderedMultisetPartitionsIntoSets_X_constraints(OrderedMultisetPartitionsI
             sage: O = OrderedMultisetPartitionsIntoSets([2,2,2,3,4,4,5], min_length=4, max_length=5)
             sage: O
             Ordered Multiset Partitions into Sets of multiset {{2, 2, 2, 3, 4, 4, 5}}
-             with constraints: min_length=4, max_length=5
+             with constraints: max_length=5, min_length=4
         """
         cdict = dict(self.constraints)
         cdict.pop("weight", None)
@@ -2725,7 +2737,7 @@ def _base_iterator(constraints):
         True
         sage: constraints = {"alphabet": frozenset([3, 4]), "max_length":2}
         sage: it = _base_iterator(constraints)
-        sage: map(OMP, it)
+        sage: list(map(OMP, it))
         [[], [{3}], [{4}], [{3,4}], [{3}, {3}], [{3}, {4}],
          [{4}, {3}], [{4}, {4}], [{3,4}, {3}], [{3,4}, {4}],
          [{3}, {3,4}], [{4}, {3,4}], [{3,4}, {3,4}]]
@@ -2783,7 +2795,7 @@ def _iterator_weight(weight):
          [{1,'b'}, {1}], [{'b'}, {1}, {1}]]))
         True
         sage: OMP = OrderedMultisetPartitionsIntoSets({1:3, 3:1})
-        sage: map(OMP, _iterator_weight([3,0,1]))
+        sage: list(map(OMP, _iterator_weight([3,0,1])))
         [[{1}, {1}, {1}, {3}], [{1}, {1}, {1,3}], [{1}, {1}, {3}, {1}],
          [{1}, {1,3}, {1}], [{1}, {3}, {1}, {1}],
          [{1,3}, {1}, {1}], [{3}, {1}, {1}, {1}]]
@@ -2843,11 +2855,11 @@ def _iterator_size(size, length=None, alphabet=None):
 
         sage: from sage.combinat.multiset_partition_into_sets_ordered import _iterator_size
         sage: OMP = OrderedMultisetPartitionsIntoSets(3)
-        sage: map(OMP, _iterator_size(3))
+        sage: list(map(OMP, _iterator_size(3)))
         [[{3}], [{1,2}], [{2}, {1}], [{1}, {2}], [{1}, {1}, {1}]]
 
         sage: OMP = OrderedMultisetPartitionsIntoSets(5, alphabet=(1,3))
-        sage: map(OMP, _iterator_size(5, alphabet={1,3}))
+        sage: list(map(OMP, _iterator_size(5, alphabet={1,3})))
         [[{1,3}, {1}], [{3}, {1}, {1}], [{1}, {1,3}], [{1}, {3}, {1}],
          [{1}, {1}, {3}], [{1}, {1}, {1}, {1}, {1}]]
 
@@ -2892,16 +2904,16 @@ def _iterator_order(A, d, lengths=None):
 
         sage: from sage.combinat.multiset_partition_into_sets_ordered import _iterator_order
         sage: OMP = OrderedMultisetPartitionsIntoSets([1,4], 3)
-        sage: map(OMP, _iterator_order({1,4}, 3))
+        sage: list(map(OMP, _iterator_order({1,4}, 3)))
         [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
          [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}],
          [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
-        sage: map(OMP, _iterator_order([1,4], 3, [3]))
+        sage: list(map(OMP, _iterator_order([1,4], 3, [3])))
         [[{1}, {1}, {1}], [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}],
          [{4}, {1}, {1}], [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
 
         sage: OMP = OrderedMultisetPartitionsIntoSets([1,2,4], 3)
-        sage: map(OMP, _iterator_order([1,2,4], 3, [1,2]))[:10]
+        sage: list(map(OMP, _iterator_order([1,2,4], 3, [1,2])))[:10]
         [[{1,2,4}],  [{1,2}, {1}], [{1,2}, {2}], [{1,2}, {4}], [{1,4}, {1}],
          [{1,4}, {2}], [{1,4}, {4}], [{2,4}, {1}], [{2,4}, {2}], [{2,4}, {4}]]
 

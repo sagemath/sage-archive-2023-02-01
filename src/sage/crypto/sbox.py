@@ -725,7 +725,6 @@ class SBox(SageObject):
             gens = X + Y
 
         m = self.input_size()
-        n = self.output_size()
 
         solutions = []
         for i in range(1<<m):
@@ -833,7 +832,6 @@ class SBox(SageObject):
 
         m = self.input_size()
         n = self.output_size()
-        F = self._F
 
         if X is None and Y is None:
             P = self.ring()
@@ -1338,12 +1336,12 @@ class SBox(SageObject):
 
         Boomerang connectivity matrix of an invertible `m \times m`
         S-Box `S` is an `2^m \times 2^m` matrix with entry at row
-        `\Delta_i \in \mathbb{F}_2^m` and column `\Delta_o \in \mathbb{F}_2^m`
+        `\Delta_i \in \GF{2}^m` and column `\Delta_o \in \GF{2}^m`
         equal to
 
         .. MATH::
 
-            |\{ x \in \mathbb{F}_2^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
+            |\{ x \in \GF{2}^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
                S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
 
         For more results concerning boomerang connectivity matrix, see [CHPSS18]_ .
@@ -1636,7 +1634,7 @@ class SBox(SageObject):
     def is_plateaued(self):
         r"""
         Return ``True`` if this S-Box is plateaued, i.e. for all nonzero
-        `b \in \mathbb{F}_2^n` the Boolean function `b \cdot S(x)`
+        `b \in \GF{2}^n` the Boolean function `b \cdot S(x)`
         is plateaued.
 
         EXAMPLES::

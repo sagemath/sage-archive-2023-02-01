@@ -3,9 +3,9 @@ r"""
 Connectivity related functions
 
 This module implements the connectivity based functions for graphs and digraphs.
-The methods in this module are also available as part of GenericGraph, DiGraph 
-or Graph classes as aliases, and these methods can be accessed through this module
-or as class methods.
+The methods in this module are also available as part of GenericGraph, DiGraph
+or Graph classes as aliases, and these methods can be accessed through this
+module or as class methods.
 Here is what the module can do:
 
 **For both directed and undirected graphs:**
@@ -15,14 +15,14 @@ Here is what the module can do:
     :widths: 30, 70
     :delim: |
 
-    :meth:`is_connected` | Test whether the (di)graph is connected.
+    :meth:`is_connected` | Check whether the (di)graph is connected.
     :meth:`connected_components` | Return the list of connected components
     :meth:`connected_components_number` | Return the number of connected components.
     :meth:`connected_components_subgraphs` | Return a list of connected components as graph objects.
     :meth:`connected_component_containing_vertex` | Return a list of the vertices connected to vertex.
     :meth:`connected_components_sizes` | Return the sizes of the connected components as a list.
-    :meth:`blocks_and_cut_vertices` | Compute the blocks and cut vertices of the graph.
-    :meth:`blocks_and_cuts_tree` | Compute the blocks-and-cuts tree of the graph.
+    :meth:`blocks_and_cut_vertices` | Return the blocks and cut vertices of the graph.
+    :meth:`blocks_and_cuts_tree` | Return the blocks-and-cuts tree of the graph.
     :meth:`is_cut_edge` | Return True if the input edge is a cut-edge or a bridge.
     :meth:`is_cut_vertex` | Return True if the input vertex is a cut-vertex.
     :meth:`edge_connectivity` | Return the edge connectivity of the graph.
@@ -63,13 +63,13 @@ from cysignals.memory cimport sig_malloc, sig_free
 
 def is_connected(G):
     """
-    Test whether the (di)graph is connected.
+    Check whether the (di)graph is connected.
 
     Note that in a graph, path connected is equivalent to connected.
 
     INPUT:
 
-    - ``G`` (generic_graph) -- the input graph.
+    - ``G`` -- the input graph
 
     .. SEEALSO::
 
@@ -110,7 +110,7 @@ def is_connected(G):
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    if G.order() == 0:
+    if not G.order():
         return True
 
     try:
@@ -125,16 +125,15 @@ def connected_components(G, sort=True):
     """
     Return the list of connected components.
 
-    This returns a list of lists of vertices, each list representing a
-    connected component. The list is ordered from largest to smallest
-    component.
+    This returns a list of lists of vertices, each list representing a connected
+    component. The list is ordered from largest to smallest component.
 
     INPUT:
 
-    - ``G`` (generic_graph) -- the input graph.
+    - ``G`` -- the input graph
 
-    - ``sort`` -- boolean (default ``True``)
-      whether to sort vertices inside each component
+    - ``sort`` -- boolean (default ``True``); whether to sort vertices inside
+      each component
 
     EXAMPLES::
 
@@ -162,8 +161,8 @@ def connected_components(G, sort=True):
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    seen = set()
-    components = []
+    cdef set seen = set()
+    cdef list components = []
     for v in G:
         if v not in seen:
             c = connected_component_containing_vertex(G, v, sort=sort)
@@ -179,7 +178,7 @@ def connected_components_number(G):
 
     INPUT:
 
-    - ``G`` (generic_graph) -- the input graph.
+    - ``G`` -- the input graph
 
     EXAMPLES::
 
@@ -236,11 +235,7 @@ def connected_components_subgraphs(G):
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    cc = connected_components(G, sort=False)
-    list = []
-    for c in cc:
-        list.append(G.subgraph(c, inplace=False))
-    return list
+    return [G.subgraph(c, inplace=False) for c in connected_components(G, sort=False)]
 
 
 def connected_component_containing_vertex(G, vertex, sort=True):
@@ -249,22 +244,22 @@ def connected_component_containing_vertex(G, vertex, sort=True):
 
     INPUT:
 
-    - ``G`` (generic_graph) -- the input graph.
+    - ``G`` -- the input graph
 
-    - ``v`` -- the vertex to search for.
+    - ``v`` -- the vertex to search for
 
-    - ``sort`` -- boolean (default ``True``)
-      whether to sort vertices inside the component
+    - ``sort`` -- boolean (default ``True``); whether to sort vertices inside
+      the component
 
     EXAMPLES::
 
         sage: from sage.graphs.connectivity import connected_component_containing_vertex
-        sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+        sage: G = Graph({0: [1, 3], 1: [2], 2: [3], 4: [5, 6], 5: [6]})
         sage: connected_component_containing_vertex(G,0)
         [0, 1, 2, 3]
         sage: G.connected_component_containing_vertex(0)
         [0, 1, 2, 3]
-        sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+        sage: D = DiGraph({0: [1, 3], 1: [2], 2: [3], 4: [5, 6], 5: [6]})
         sage: connected_component_containing_vertex(D,0)
         [0, 1, 2, 3]
 
@@ -273,7 +268,7 @@ def connected_component_containing_vertex(G, vertex, sort=True):
     If ``G`` is not a Sage graph, an error is raised::
 
         sage: from sage.graphs.connectivity import connected_component_containing_vertex
-        sage: connected_component_containing_vertex('I am not a graph',0)
+        sage: connected_component_containing_vertex('I am not a graph', 0)
         Traceback (most recent call last):
         ...
         TypeError: the input must be a Sage graph
@@ -330,9 +325,9 @@ def connected_components_sizes(G):
                   reverse=True)
 
 
-def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
+def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost", sort=False):
     """
-    Compute the blocks and cut vertices of the graph.
+    Return the blocks and cut vertices of the graph.
 
     In the case of a digraph, this computation is done on the underlying
     graph.
@@ -344,14 +339,17 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
 
     INPUT:
 
-    - ``algorithm`` -- The algorithm to use in computing the blocks
-        and cut vertices of ``G``. The following algorithms are supported:
+    - ``algorithm`` -- string (default: ``"Tarjan_Boost"``); the algorithm to
+      use among:
 
-      - ``"Tarjan_Boost"`` (default) -- Tarjan's algorithm
-        (Boost implementation).
+      - ``"Tarjan_Boost"`` (default) -- Tarjan's algorithm (Boost
+        implementation)
 
-      - ``"Tarjan_Sage"`` -- Tarjan's algorithm
-        (Sage implementation).
+      - ``"Tarjan_Sage"`` -- Tarjan's algorithm (Sage implementation)
+
+    - ``sort`` -- boolean (default: ``False``); whether to sort vertices inside
+      the components and the list of cut vertices
+      **currently only available for ``"Tarjan_Sage"``**
 
     OUTPUT: ``(B, C)``, where ``B`` is a list of blocks - each is a list of
     vertices and the blocks are the corresponding induced subgraphs - and
@@ -380,8 +378,10 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
         ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
         sage: rings.blocks_and_cut_vertices()
         ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
-        sage: blocks_and_cut_vertices(rings, algorithm="Tarjan_Sage")
+        sage: blocks_and_cut_vertices(rings, algorithm="Tarjan_Sage", sort=True)
         ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
+        sage: blocks_and_cut_vertices(rings, algorithm="Tarjan_Sage", sort=False)
+        ([[0, 1, 2, 3, 4], [8, 9, 0, 6, 7]], [0])
 
     The Petersen graph is biconnected, hence has no cut vertices::
 
@@ -429,12 +429,12 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    if (algorithm=="Tarjan_Boost"):
+    if algorithm == "Tarjan_Boost":
         from sage.graphs.base.boost_graph import blocks_and_cut_vertices
         return blocks_and_cut_vertices(G)
 
-    if (algorithm!="Tarjan_Sage"):
-        raise NotImplementedError("Blocks and cut vertices algorithm '%s' is not implemented." % algorithm)
+    if algorithm != "Tarjan_Sage":
+        raise NotImplementedError("blocks and cut vertices algorithm '%s' is not implemented" % algorithm)
 
     # If algorithm is "Tarjan_Sage"
     blocks = []
@@ -528,7 +528,11 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
                         new_block.add(u1)
                         u1,u2 = edge_stack.pop()
                     new_block.add(u1)
-                    blocks.append(sorted(list(new_block)))
+                    if sort:
+                        this_block = sorted(new_block)
+                    else:
+                        this_block = list(new_block)
+                    blocks.append(this_block)
 
                     # We update the set of cut vertices.
                     #
@@ -539,24 +543,25 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
                     else:
                         start_already_seen = True
 
-    return blocks,sorted(list(cut_vertices))
+    if sort:
+        return blocks, sorted(cut_vertices)
+    else:
+        return blocks, list(cut_vertices)
 
 
 def blocks_and_cuts_tree(G):
     """
-    Returns the blocks-and-cuts tree of ``self``.
+    Return the blocks-and-cuts tree of ``self``.
 
-    This new graph has two different kinds of vertices, some representing
-    the blocks (type B) and some other the cut vertices of the graph
-    ``self`` (type C).
+    This new graph has two different kinds of vertices, some representing the
+    blocks (type B) and some other the cut vertices of the graph (type C).
 
-    There is an edge between a vertex `u` of type B and a vertex `v` of type
-    C if the cut-vertex corresponding to `v` is in the block corresponding
-    to `u`.
+    There is an edge between a vertex `u` of type B and a vertex `v` of type C
+    if the cut-vertex corresponding to `v` is in the block corresponding to `u`.
 
-    The resulting graph is a tree, with the additional characteristic
-    property that the distance between two leaves is even. When ``self`` is
-    not connected, the resulting graph is a forest.
+    The resulting graph is a tree, with the additional characteristic property
+    that the distance between two leaves is even. When ``self`` is not
+    connected, the resulting graph is a forest.
 
     When ``self`` is biconnected, the tree is reduced to a single node of
     type `B`.
@@ -596,7 +601,8 @@ def blocks_and_cuts_tree(G):
 
     TESTS:
 
-    When ``self`` is not connected, the resulting graph is a forest (:trac:`24163`)::
+    When ``self`` is not connected, the resulting graph is a forest
+    (:trac:`24163`)::
 
         sage: from sage.graphs.connectivity import blocks_and_cuts_tree
         sage: T = blocks_and_cuts_tree(Graph(2))
@@ -617,11 +623,12 @@ def blocks_and_cuts_tree(G):
     from sage.graphs.graph import Graph
     B, C = G.blocks_and_cut_vertices()
     B = map(tuple, B)
+    set_C = set(C)
     g = Graph()
     for bloc in B:
         g.add_vertex(('B', bloc))
         for c in bloc:
-            if c in C:
+            if c in set_C:
                 g.add_edge(('B', bloc), ('C', c))
     return g
 

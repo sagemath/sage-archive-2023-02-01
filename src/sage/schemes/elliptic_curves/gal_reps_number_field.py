@@ -219,7 +219,7 @@ class GaloisRepresentation(SageObject):
     def is_surjective(self, p, A=100):
         r"""
         Return ``True`` if the mod-p representation is (provably)
-        surjective onto `Aut(E[p]) = GL_2(\mathbb{F}_p)`.  Return
+        surjective onto `Aut(E[p]) = GL_2(\GF{p})`.  Return
         ``False`` if it is (probably) not.
 
         INPUT:

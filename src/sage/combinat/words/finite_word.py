@@ -471,7 +471,7 @@ class FiniteWord_class(Word_class):
 
             sage: w = Word(range(6)); w
             word: 012345
-            sage: w^(.5)
+            sage: w^(1/2)
             word: 012
             sage: w^(1/3)
             word: 01
@@ -700,7 +700,7 @@ class FiniteWord_class(Word_class):
         Return word ``self`` under the Foata bijection.
 
         The Foata bijection `\phi` is a bijection on the set of words
-        of given content (by a slight generalization of Section 2 in [FoSc78]_).
+        of given content (by a slight generalization of Section 2 in [FS1978]_).
         It can be defined by induction on the size of the word: Given a word
         `w_1 w_2 \cdots w_n`, start with `\phi(w_1) = w_1`. At the `i`-th step, if
         `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define
@@ -1260,9 +1260,9 @@ class FiniteWord_class(Word_class):
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
         if algorithm == 'suffix tree':
-            return self.suffix_tree().number_of_factors(n)
+            return ZZ(self.suffix_tree().number_of_factors(n))
         elif algorithm == 'naive':
-            return len(self.factor_set(n, algorithm='naive'))
+            return ZZ(len(self.factor_set(n, algorithm='naive')))
         else:
             raise ValueError('Unknown algorithm (={})'.format(algorithm))
 
@@ -5037,25 +5037,26 @@ class FiniteWord_class(Word_class):
 
         a disjoint set data structure
 
+
         EXAMPLES::
 
-            sage: W = Words(list('abc') + list(range(6)))
+            sage: W = Words(list('abc012345'))
             sage: u = W('abc')
-            sage: v = W(range(5))
+            sage: v = W('01234')
             sage: u.overlap_partition(v)
-            {{0, 'a'}, {1, 'b'}, {2, 'c'}, {3}, {4}, {5}}
+            {{'0', 'a'}, {'1', 'b'}, {'2', 'c'}, {'3'}, {'4'}, {'5'}}
             sage: u.overlap_partition(v, 2)
-            {{'a'}, {'b'}, {0, 'c'}, {1}, {2}, {3}, {4}, {5}}
+            {{'0', 'c'}, {'1'}, {'2'}, {'3'}, {'4'}, {'5'}, {'a'}, {'b'}}
             sage: u.overlap_partition(v, -1)
-            {{0}, {1, 'a'}, {2, 'b'}, {3, 'c'}, {4}, {5}}
+            {{'0'}, {'1', 'a'}, {'2', 'b'}, {'3', 'c'}, {'4'}, {'5'}}
 
         You can re-use the same disjoint set and do more than one overlap::
 
             sage: p = u.overlap_partition(v, 2)
             sage: p
-            {{'a'}, {'b'}, {0, 'c'}, {1}, {2}, {3}, {4}, {5}}
+            {{'0', 'c'}, {'1'}, {'2'}, {'3'}, {'4'}, {'5'}, {'a'}, {'b'}}
             sage: u.overlap_partition(v, 1, p)
-            {{'a'}, {0, 1, 'b', 'c'}, {2}, {3}, {4}, {5}}
+            {{'0', '1', 'b', 'c'}, {'2'}, {'3'}, {'4'}, {'5'}, {'a'}}
 
         The function  ``overlap_partition`` can be used to study equations
         on words. For example, if a word `w` overlaps itself with delay `d`, then

@@ -723,26 +723,25 @@ class pAdicLseries(SageObject):
             sage: lpt = Et.padic_lseries(5)
             sage: lpt._quotient_of_periods_to_twist(-3)
             3
-
         """
-        from sage.functions.all import sqrt
-        # This function does not depend on p and could be moved out of this file but it is needed only here
+        # This function does not depend on p and could be moved out of
+        # this file but it is needed only here
 
         # Note that the number of real components does not change by twisting.
         if D == 1:
             return 1
         Et = self._E.quadratic_twist(D)
         if D > 1:
-            qt = Et.period_lattice().basis()[0]/self._E.period_lattice().basis()[0]
-            qt *= sqrt(qt.parent()(D))
+            qt = Et.period_lattice().basis()[0] / self._E.period_lattice().basis()[0]
+            qt *= qt.parent()(D).sqrt()
         else:
-            qt = Et.period_lattice().basis()[1].imag()/self._E.period_lattice().basis()[0]
+            qt = Et.period_lattice().basis()[1].imag() / self._E.period_lattice().basis()[0]
             if Et.real_components() == 1:
                 qt *= 2
-            qt *= sqrt(qt.parent()(-D))
-        verbose('the real approximation is %s'%qt)
+            qt *= qt.parent()(-D).sqrt()
+        verbose('the real approximation is %s' % qt)
         # we know from MTT that the result has a denominator 1
-        return QQ(int(round(8*qt)))/8
+        return QQ((8 * qt).round()) / 8
 
 
 class pAdicLseriesOrdinary(pAdicLseries):

@@ -20,7 +20,7 @@ AUTHORS:
   for affine/projective, height functionality
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -29,8 +29,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.categories.integral_domains import IntegralDomains
@@ -1720,9 +1720,9 @@ class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projecti
         """
         p = self.codomain().base_ring().order()
         N = self.codomain().ambient_space().dimension_relative()
-        return sum(hash(self[i])*p**i for i in range(N+1))
+        return hash(sum(hash(self[i]) * p**i for i in range(N + 1)))
 
-    def orbit_structure(self,f):
+    def orbit_structure(self, f):
         r"""
         This function returns the pair `[m,n]` where `m` is the
         preperiod and `n` is the period of the point by the map ``f``.

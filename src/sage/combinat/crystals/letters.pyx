@@ -41,7 +41,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     component of the tensor product of several copies of this crystal
     (plus possibly one copy of the spin crystal, see
     :class:`~sage.combinat.crystals.spins.CrystalOfSpins`).
-    See [KN94]_. Elements of this irreducible component have a fixed shape,
+    See [KN1994]_. Elements of this irreducible component have a fixed shape,
     and can be fit inside a tableau shape. Otherwise said, any irreducible
     classical crystal is isomorphic to a crystal of tableaux with cells
     filled by elements of the crystal of letters (possibly tensored with
@@ -56,13 +56,6 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     INPUT:
 
     - ``T`` -- a Cartan type
-
-    REFERENCES:
-
-    .. [KN94] \M. Kashiwara and T. Nakashima.
-       Crystal graphs for representations of the `q`-analogue of classical Lie
-       algebras.
-       J. Algebra **165**, no. 2, pp. 295--345, 1994.
 
     EXAMPLES::
 

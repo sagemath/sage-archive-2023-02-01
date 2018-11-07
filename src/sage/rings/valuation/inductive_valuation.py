@@ -729,7 +729,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         from itertools import islice
         from sage.misc.misc import verbose
-        verbose("Augmenting %s towards %s"%(self, G), level=10)
+        verbose("Augmenting %s towards %s" % (self, G), level=10)
 
         if not G.is_monic():
             raise ValueError("G must be monic")
@@ -737,12 +737,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if coefficients is None:
             coefficients = self.coefficients(G)
             if principal_part_bound:
-                coefficients = islice(coefficients, 0, principal_part_bound + 1, 1)
+                coefficients = islice(coefficients, 0,
+                                      int(principal_part_bound) + 1, 1)
             coefficients = list(coefficients)
         if valuations is None:
             valuations = self.valuations(G, coefficients=coefficients)
             if principal_part_bound:
-                valuations = islice(valuations, 0, principal_part_bound + 1, 1)
+                valuations = islice(valuations, 0,
+                                    int(principal_part_bound) + 1, 1)
             valuations = list(valuations)
 
         if check and min(valuations) < 0:
@@ -780,7 +782,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert len(F) == 1
                     break
 
-                verbose("Determining the augmentation of %s for %s"%(self, phi), level=11)
+                verbose("Determining the augmentation of %s for %s" % (self, phi), level=11)
                 old_mu = self(phi)
                 w = self.augmentation(phi, old_mu, check=False)
 
@@ -794,12 +796,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
                 w_coefficients = w.coefficients(G)
                 if principal_part_bound:
-                    w_coefficients = islice(w_coefficients, 0, principal_part_bound + 1, 1)
+                    w_coefficients = islice(w_coefficients, 0,
+                                            int(principal_part_bound) + 1, 1)
                 w_coefficients = list(w_coefficients)
 
                 w_valuations = w.valuations(G, coefficients=w_coefficients)
                 if principal_part_bound:
-                    w_valuations = islice(w_valuations, 0, principal_part_bound + 1, 1)
+                    w_valuations = islice(w_valuations, 0,
+                                          int(principal_part_bound) + 1, 1)
                 w_valuations = list(w_valuations)
 
                 from sage.geometry.newton_polygon import NewtonPolygon

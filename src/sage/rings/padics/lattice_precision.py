@@ -30,6 +30,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
+from __future__ import division
 from collections import defaultdict
 
 from sage.misc.misc import walltime
@@ -376,7 +377,7 @@ class pRational:
             val = self._valuation + other._valuation
         return self.__class__(self.p, self.x * other.x, self.exponent + other.exponent, valuation=val)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of ``self`` by ``other``.
 
@@ -395,6 +396,8 @@ class pRational:
         else:
             val = self._valuation - other._valuation
         return self.__class__(self.p, self.x / other.x, self.exponent - other.exponent, valuation=val)
+
+    __div__ = __truediv__
 
     def _quo_rem(self, other):
         """

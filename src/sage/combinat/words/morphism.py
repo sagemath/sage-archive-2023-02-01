@@ -1052,7 +1052,7 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: m = WordMorphism('a->ab,b->ba')
-            sage: n = WordMorphism({0:1,1:0,'a':5})
+            sage: n = WordMorphism({'0':'1','1':'0','a':'5'})
             sage: m.extend_by(n)
             WordMorphism: 0->1, 1->0, a->ab, b->ba
             sage: n.extend_by(m)
@@ -1264,12 +1264,12 @@ class WordMorphism(SageObject):
 
         ::
 
-            sage: s = WordMorphism({0:[1,2], 'a':(2,3,4), ():[9,8,7]})
+            sage: s = WordMorphism({0:[1,2], 'a':(2,3,4), 'z':[9,8,7]})
             sage: s.image(0)
             word: 12
             sage: s.image('a')
             word: 234
-            sage: s.image(())
+            sage: s.image('z')
             word: 987
         """
         return self._morph[letter]
@@ -1281,10 +1281,10 @@ class WordMorphism(SageObject):
 
         EXAMPLES::
 
-            sage: WordMorphism('a->ab,b->a').images()
-            [word: ab, word: a]
-            sage: WordMorphism('6->ab,y->5,0->asd').images()
-            [word: 5, word: asd, word: ab]
+            sage: sorted(WordMorphism('a->ab,b->a').images())
+            [word: a, word: ab]
+            sage: sorted(WordMorphism('6->ab,y->5,0->asd').images())
+            [word: 5, word: ab, word: asd]
         """
         return list(six.itervalues(self._morph))
 
@@ -1782,11 +1782,14 @@ class WordMorphism(SageObject):
         """
         w = iter(self.image(letter))
         while True:
-            for a in self.image(next(w)):
-                yield a
-            else:
-                next_w = next(w)
-                w = itertools.chain([next_w], w, self.image(next_w))
+            try:
+                for a in self.image(next(w)):
+                    yield a
+                else:
+                    next_w = next(w)
+                    w = itertools.chain([next_w], w, self.image(next_w))
+            except StopIteration:
+                return
 
 
     def fixed_point(self, letter):

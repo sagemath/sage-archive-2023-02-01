@@ -428,7 +428,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -436,8 +436,8 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
@@ -946,31 +946,6 @@ class DifferentiableManifold(TopologicalManifold):
                                  " defined on the {}".format(codomain))
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name)
-
-    def diff_mapping(self, codomain, coord_functions=None, chart1=None,
-                     chart2=None, name=None, latex_name=None):
-        r"""
-        Deprecated.
-
-        Use :meth:`diff_map` instead.
-
-        EXAMPLES::
-
-            sage: M = Manifold(2, 'M'); X.<x,y> = M.chart()
-            sage: N = Manifold(2, 'N'); Y.<u,v> = N.chart()
-            sage: Phi = M.diff_mapping(N, {(X,Y): [x+y, x-y]}, name='Phi')
-            doctest:...: DeprecationWarning: Use diff_map() instead.
-            See http://trac.sagemath.org/18783 for details.
-            sage: Phi
-            Differentiable map Phi from the 2-dimensional differentiable
-             manifold M to the 2-dimensional differentiable manifold N
-
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(18783, 'Use diff_map() instead.')
-        return self.diff_map(codomain, coord_functions=coord_functions,
-                             chart1=chart1, chart2=chart2, name=name,
-                             latex_name=latex_name)
 
     def diffeomorphism(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
@@ -2749,7 +2724,7 @@ class DifferentiableManifold(TopologicalManifold):
 
     def integrated_curve(self, equations_rhs, velocities, curve_param,
                          initial_tangent_vector, chart=None, name=None,
-                         latex_name=None, verbose=False):
+                         latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct a curve defined by a system of second order
         differential equations in the coordinate functions.
@@ -2858,11 +2833,12 @@ class DifferentiableManifold(TopologicalManifold):
         return integrated_curve_set(equations_rhs, velocities, t,
                                     initial_tangent_vector, chart=chart,
                                     name=name, latex_name=latex_name,
-                                    verbose=verbose)
+                                    verbose=verbose, across_charts=across_charts)
 
     def integrated_autoparallel_curve(self, affine_connection,
                         curve_param, initial_tangent_vector, chart=None,
-                        name=None, latex_name=None, verbose=False):
+                        name=None, latex_name=None, verbose=False,
+                        across_charts=False):
         r"""
         Construct an autoparallel curve on the manifold with respect to
         a given affine connection.
@@ -2994,11 +2970,13 @@ class DifferentiableManifold(TopologicalManifold):
                                       initial_tangent_vector,
                                       chart=chart, name=name,
                                       latex_name=latex_name,
-                                      verbose=verbose)
+                                      verbose=verbose,
+                                      across_charts=across_charts)
 
     def integrated_geodesic(self, metric, curve_param,
                             initial_tangent_vector, chart=None,
-                            name=None, latex_name=None, verbose=False):
+                            name=None, latex_name=None, verbose=False,
+                            across_charts=False):
         r"""
         Construct a geodesic on the manifold with respect to a given metric.
 
@@ -3110,7 +3088,8 @@ class DifferentiableManifold(TopologicalManifold):
         return integrated_geodesic_set(metric, t, initial_tangent_vector,
                                        chart=chart, name=name,
                                        latex_name=latex_name,
-                                       verbose=verbose)
+                                       verbose=verbose,
+                                       across_charts=across_charts)
 
     def affine_connection(self, name, latex_name=None):
         r"""
@@ -3253,27 +3232,6 @@ class DifferentiableManifold(TopologicalManifold):
         dim = vmodule.ambient_domain().dimension()
         return vmodule.metric(name, signature=dim, latex_name=latex_name)
 
-    def riemann_metric(self, name, latex_name=None, dest_map=None):
-        r"""
-        Deprecated.
-
-        Use :meth:`riemannian_metric` instead.
-
-        EXAMPLES::
-
-            sage: M = Manifold(3, 'M')
-            sage: g = M.riemann_metric('g')
-            doctest:...: DeprecationWarning: Use riemannian_metric() instead.
-            See http://trac.sagemath.org/19209 for details.
-            sage: g
-            Riemannian metric g on the 3-dimensional differentiable manifold M
-
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19209, 'Use riemannian_metric() instead.')
-        return self.riemannian_metric(name, latex_name=latex_name,
-                                      dest_map=dest_map)
-
     def lorentzian_metric(self, name, signature='positive', latex_name=None,
                           dest_map=None):
         r"""
@@ -3343,25 +3301,3 @@ class DifferentiableManifold(TopologicalManifold):
         else:
             signat = 2 - dim
         return vmodule.metric(name, signature=signat, latex_name=latex_name)
-
-    def lorentz_metric(self, name, signature='positive', latex_name=None,
-                       dest_map=None):
-        r"""
-        Deprecated.
-
-        Use :meth:`lorentzian_metric` instead.
-
-        EXAMPLES::
-
-            sage: M = Manifold(4, 'M')
-            sage: g = M.lorentz_metric('g')
-            doctest:...: DeprecationWarning: Use lorentzian_metric() instead.
-            See http://trac.sagemath.org/19209 for details.
-            sage: g
-            Lorentzian metric g on the 4-dimensional differentiable manifold M
-
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19209, 'Use lorentzian_metric() instead.')
-        return self.lorentzian_metric(name, signature=signature,
-                                      latex_name=latex_name, dest_map=dest_map)

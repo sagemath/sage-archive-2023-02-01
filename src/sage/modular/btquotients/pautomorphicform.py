@@ -940,7 +940,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BruhatTitsQuotient(5,23)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: latex(H) # indirect doctest
-            \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
+            \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\Bold{Z}} \Bold{F}_{5}
         """
         s = '\\text{Space of harmonic cocycles of weight } '
         s += (self._k)._latex_() + ' \\text{ on } ' + self._X._latex_()

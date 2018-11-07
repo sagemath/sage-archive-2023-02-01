@@ -259,7 +259,7 @@ Classes and functions
 ---------------------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
@@ -267,8 +267,8 @@ Classes and functions
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
 
@@ -6511,7 +6511,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         R = PolynomialRing(QQ, 'q')
         q = R.gen()
-        g = R.sum(q**len(ch) for ch in self._hasse_diagram.chains())
+
+        g = self.chain_polynomial()
         n = g.degree()
         f = R(g[max(n, 1)])
         while n > 1:
@@ -6559,14 +6560,25 @@ class FinitePoset(UniqueRepresentation, Parent):
             1
         """
         q = polygen(ZZ, 'q')
+        one = q.parent().one()
         hasse = self._hasse_diagram
         if len(hasse) == 1:
-            return q.parent().one()
+            return one
         maxi = hasse.top()
         mini = hasse.bottom()
-        if (mini is None) or (maxi is None):
+        if mini is None or maxi is None:
             raise ValueError("the poset is not bounded")
-        return sum(q**(len(ch)+1) for ch in hasse.chains(exclude=[mini, maxi]))
+
+        hasse_size = hasse.cardinality()
+        chain_polys = [0] * hasse_size
+        # chain_polys[i] will be the generating function for the
+        # chains with topmost vertex i (in the labelling of the
+        # Hasse diagram).
+        for i in range(1, hasse_size - 1):
+            chain_polys[i] = q + sum(q * chain_polys[j]
+                                     for j in hasse.principal_order_ideal(i)
+                                     if j)
+        return q + q * sum(chain_polys)
 
     def h_polynomial(self):
         r"""
@@ -6834,6 +6846,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             in [St1986]_. The latter is identical with the order
             polynomial in SageMath (:meth:`order_polynomial`).
 
+        .. SEEALSO:: :meth:`f_polynomial`, :meth:`order_polynomial`
+
         EXAMPLES::
 
             sage: P = posets.ChainPoset(3)
@@ -6866,12 +6880,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         q = polygen(ZZ, 'q')
         one = q.parent().one()
         hasse_size = hasse.cardinality()
-        chain_polys = [0]*hasse_size
+        chain_polys = [0] * hasse_size
         # chain_polys[i] will be the generating function for the
         # chains with topmost vertex i (in the labelling of the
         # Hasse diagram).
         for i in range(hasse_size):
-            chain_polys[i] = q + sum(q*chain_polys[j]
+            chain_polys[i] = q + sum(q * chain_polys[j]
                                      for j in hasse.principal_order_ideal(i))
         return one + sum(chain_polys)
 

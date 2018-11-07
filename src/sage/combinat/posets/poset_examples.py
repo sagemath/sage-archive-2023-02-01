@@ -30,6 +30,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
     :meth:`~posets.ChainPoset` | Return a chain on `n` elements.
     :meth:`~posets.Crown` | Return the crown poset on `2n` elements.
+    :meth:`~posets.DexterSemilattice` | Return the Dexter semilattice.
     :meth:`~posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
     :meth:`~posets.DivisorLattice` | Return the divisor lattice of an integer.
     :meth:`~posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
@@ -1237,6 +1238,7 @@ class Posets(object):
     # Tamari lattices
     import sage.combinat.tamari_lattices
     TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
+    DexterSemilattice = staticmethod(sage.combinat.tamari_lattices.DexterSemilattice)
 
     @staticmethod
     def CoxeterGroupAbsoluteOrderPoset(W, use_reduced_words=True):

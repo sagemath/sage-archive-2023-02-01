@@ -586,22 +586,22 @@ class CooperativeGame(SageObject):
             v(c) = \begin{cases}
             0, & \text{if } c = \emptyset \\
             6, & \text{if } c = \{A\} \\
-            42, & \text{if } c = \{C\} \\
             12, & \text{if } c = \{B\} \\
-            42, & \text{if } c = \{B, C\} \\
+            42, & \text{if } c = \{C\} \\
             12, & \text{if } c = \{A, B\} \\
             42, & \text{if } c = \{A, C\} \\
+            42, & \text{if } c = \{B, C\} \\
             42, & \text{if } c = \{A, B, C\} \\
             \end{cases}
         """
         cf = self.ch_f
         output = "v(c) = \\begin{cases}\n"
-        for key in sorted(cf.keys(), key=lambda key: len(key)):
+        for key, val in sorted(cf.items(), key=lambda kv: (len(kv[0]), kv[0])):
             if not key:  # == ()
                 coalition = "\\emptyset"
             else:
                 coalition = "\\{" + ", ".join(str(player) for player in key) + "\\}"
-            output += "{}, & \\text{{if }} c = {} \\\\\n".format(cf[key], coalition)
+            output += "{}, & \\text{{if }} c = {} \\\\\n".format(val, coalition)
         output += "\\end{cases}"
         return output
 

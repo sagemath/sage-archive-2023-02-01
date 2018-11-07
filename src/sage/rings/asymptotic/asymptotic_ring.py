@@ -3369,7 +3369,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         sage: from itertools import islice
         sage: TestSuite(A).run(  # not tested  # long time  # see #19424
         ....:     verbose=True,
-        ....:     elements=tuple(islice(A.some_elements(), 10)),
+        ....:     elements=tuple(islice(A.some_elements(), int(10))),
         ....:     skip=('_test_some_elements',  # to many elements
         ....:           '_test_distributivity'))  # due to cancellations: O(z) != O(z^2)
     """
@@ -4052,7 +4052,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: from itertools import islice
             sage: A = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ)
-            sage: tuple(islice(A.some_elements(), 10))
+            sage: tuple(islice(A.some_elements(), int(10)))
             (z^(3/2) + O(z^(1/2)),
              O(z^(1/2)),
              z^(3/2) + O(z^(-1/2)),

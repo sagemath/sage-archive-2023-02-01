@@ -4012,7 +4012,8 @@ cdef class Expression(CommutativeRingElement):
 
         Check that :trac:`23921` is resolved::
 
-            sage: A.<n> = AsymptoticRing('SR^n * n^SR', SR)
+            sage: assume(SR.an_element() > 0)
+            sage: A.<n> = AsymptoticRing('(SR_+)^n * n^SR', SR)
             sage: elem = SR(2)^n
             sage: (elem, elem.parent())
             (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)

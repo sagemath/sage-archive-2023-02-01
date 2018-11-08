@@ -190,7 +190,7 @@ ptestoptional: all
 ptestoptionallong: all
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-configure: configure.ac src/bin/sage-version.sh m4/*.m4
+configure: configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4
 	./bootstrap -d
 
 install: all

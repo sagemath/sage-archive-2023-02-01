@@ -3503,6 +3503,12 @@ class ParallelogramPolyominoesFactory(SetFactory):
             Parallelogram polyominoes
             sage: PPS.cardinality()
             +Infinity
+
+            sage: PPS = ParallelogramPolyominoes(size=None)
+            sage: PPS
+            Parallelogram polyominoes
+            sage: PPS.cardinality()
+            +Infinity
         """
         if policy is None:
             policy = self._default_policy

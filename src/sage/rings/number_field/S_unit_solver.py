@@ -911,7 +911,7 @@ def cx_LLL_bound(SUK, A, prec=106):
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
         sage: A = K.roots_of_unity()
 
-        sage: cx_LLL_bound(SUK,A)
+        sage: cx_LLL_bound(SUK,A) # long time
         22
     """
     cx_LLL = 0

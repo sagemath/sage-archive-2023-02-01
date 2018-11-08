@@ -789,7 +789,7 @@ def is_cut_vertex(G, u, weak=False):
         sage: is_cut_vertex(G, 7)
         Traceback (most recent call last):
         ...
-        LookupError: vertex (7) is not a vertex of the graph
+        ValueError: vertex (7) is not a vertex of the graph
 
     TESTS:
 
@@ -805,7 +805,7 @@ def is_cut_vertex(G, u, weak=False):
         raise TypeError("the input must be a Sage graph")
 
     if not u in G:
-        raise LookupError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
+        raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
 
     # Initialization
     cdef set CC
@@ -1028,8 +1028,7 @@ def edge_connectivity(G,
         ....:     g = graphs.RandomGNP(30, 0.3)
         ....:     e1 = edge_connectivity(g, implementation="boost")
         ....:     e2 = edge_connectivity(g, implementation="sage")
-        ....:     if e1 != e2:
-        ....:         print("Something goes wrong")
+        ....:     assert (e1 == e2)
 
     Disconnected graphs and ``vertices=True``::
 
@@ -1699,7 +1698,7 @@ def strongly_connected_component_containing_vertex(G, v):
         sage: strongly_connected_component_containing_vertex(DiGraph(1), 'z')
         Traceback (most recent call last):
         ...
-        LookupError: vertex ('z') is not a vertex of the DiGraph
+        ValueError: vertex ('z') is not a vertex of the DiGraph
 
     """
     from sage.graphs.digraph import DiGraph
@@ -1707,7 +1706,7 @@ def strongly_connected_component_containing_vertex(G, v):
         raise TypeError("the input must be a Sage DiGraph")
 
     if v not in G:
-        raise LookupError("vertex ({0}) is not a vertex of the DiGraph".format(repr(v)))
+        raise ValueError("vertex ({0}) is not a vertex of the DiGraph".format(repr(v)))
 
     if G.order() == 1:
         return [v]

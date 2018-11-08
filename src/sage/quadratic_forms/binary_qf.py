@@ -895,7 +895,7 @@ class BinaryQF(SageObject):
         """
         Return the cycle of reduced forms to which ``self`` belongs.
 
-        This is Algorithm 6.1 of [BUVO2007]]_.
+        This is Algorithm 6.1 of [BUVO2007]_.
 
         INPUT:
 
@@ -944,8 +944,8 @@ class BinaryQF(SageObject):
             raise ValueError("%s must be indefinite and reduced" % self)
         if self.discriminant().is_square():
             # Buchmann/Vollmer assume the discriminant to be non-square
-            raise NotImplementedError('computation of cycles is only ' +
-                    'implemented for non-square discrimiants')
+            raise NotImplementedError('computation of cycles is only '
+                    'implemented for non-square discriminants')
         if proper:
             # Prop 6.10.5 in Buchmann Vollmer
             C = self.cycle(proper=False)
@@ -1139,10 +1139,12 @@ class BinaryQF(SageObject):
             return False
         Q1 = self.reduced_form()
         Q2 = other.reduced_form()
+        if Q1 == Q2:
+            return True
         if not proper:
             Q1e = BinaryQF(self._c, self._b, self._a).reduced_form()
-            return Q1 == Q2 or Q1e == Q2
-        return Q1 == Q2
+            return Q1e == Q2
+        return False
 
     @cached_method
     def is_reduced(self):

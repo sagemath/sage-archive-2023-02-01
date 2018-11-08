@@ -533,9 +533,9 @@ The options avalaible are :
 - display : this option is used to configurate the ASCII display.
   the option avalaible are :
   - list : (this is the default value) is used to represent PP as a list
-           containinge the upper and lower path.
+  containinge the upper and lower path.
   - drawing : this value is used to explain we want to display an array with
-              the PP drawn inside (with connected 1).
+  the PP drawn inside (with connected 1).
 
 - latex : Same as display. The default is "drawing".
 
@@ -744,18 +744,21 @@ class _drawing_tool:
 
     def draw_line(self, v1, v2, color=None, size=None):
         r"""
-        Return the TIKZ code for a line according the drawing option given
-        to ``_drawing_tool``.
+        Return the TIKZ code for a line.
 
         INPUT:
 
-        - ``v1`` -- The first point of the line.
+        - ``v1`` -- point, The first point of the line.
 
-        - ``v2`` -- The second point of the line.
+        - ``v2`` -- point, The second point of the line.
 
-        - ``color`` -- The color of the line.
+        - ``color`` -- string (default:``None``), The color of the line.
+                       If set to ``None``, the color is choosen according the
+                       drawing option given by ``_drawing_tool``.
 
-        - ``size`` -- The size of the line.
+        - ``size`` -- integer (default:``None``), The size of the line.
+                      If set to ``None``, the size is choosen according the
+                      drawing option given by ``_drawing_tool``.
 
         OUTPUT:
 
@@ -785,16 +788,19 @@ class _drawing_tool:
 
     def draw_polyline(self, list_of_vertices, color=None, size=None):
         r"""
-        Return the TIKZ code for a polyline according the drawing option given
-        to ``_drawing_tool``.
+        Return the TIKZ code for a polyline.
 
         INPUT:
 
         - ``list_of_vertices`` -- A list of points
 
-        - ``color`` -- The color of the line.
+        - ``color`` -- string (default:``None``), The color of the line.
+                       If set to ``None``, the color is choosen according the
+                       drawing option given by ``_drawing_tool``.
 
-        - ``size`` -- The size of the line.
+        - ``size`` -- integer (default:``None``), The size of the line.
+                      If set to ``None``, the size is choosen according the
+                      drawing option given by ``_drawing_tool``.
 
         OUTPUT:
 
@@ -821,16 +827,20 @@ class _drawing_tool:
 
     def draw_point(self, p1, color=None, size=None):
         r"""
-        Return the TIKZ code for a point according the drawing option given
-        to ``_drawing_tool``.
+        Return the TIKZ code for a point.
+
 
         INPUT:
 
         - ``p1`` -- A point
 
-        - ``color`` -- The color of the line.
+        - ``color`` -- string (default:``None``), The color of the line.
+                       If set to ``None``, the color is choosen according the
+                       drawing option given by ``_drawing_tool``.
 
-        - ``size`` -- The size of the point.
+        - ``size`` -- integer (default:``None``), The size of the line.
+                      If set to ``None``, the size is choosen according the
+                      drawing option given by ``_drawing_tool``.
 
         OUTPUT:
 
@@ -1836,7 +1846,7 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-            - ``k`` -- An non negative integer.
+        - ``k`` -- An non negative integer.
 
         EXAMPLES::
 
@@ -3469,6 +3479,13 @@ class ParallelogramPolyominoesFactory(SetFactory):
         Return a family of parallelogram polyominoes enumerated with the
         parameter constraints.
 
+        INPUT:
+
+        - ``size`` -- integer (default: ``None``), the size of the paralleogram
+                      polyominoes contained in the family.
+                      If set to ``None``, the family returned contains all
+                      the parallelogram polyominoes.
+
         EXAMPLES::
 
             sage: PPS = ParallelogramPolyominoes(size=4)
@@ -3480,6 +3497,12 @@ class ParallelogramPolyominoesFactory(SetFactory):
              [[0, 0, 1, 1], [1, 1, 0, 0]],
              [[0, 1, 0, 1], [1, 1, 0, 0]],
              [[0, 1, 1, 1], [1, 1, 1, 0]]]
+
+            sage: PPS = ParallelogramPolyominoes()
+            sage: PPS
+            Parallelogram polyominoes
+            sage: PPS.cardinality()
+            +Infinity
         """
         if policy is None:
             policy = self._default_policy
@@ -3700,9 +3723,8 @@ class ParallelogramPolyominoes_size(
     """
 
 
-class ParallelogramPolyominoes_all(
-    ParentWithSetFactory, DisjointUnionEnumeratedSets
-):
+class ParallelogramPolyominoes_all(ParentWithSetFactory,
+                                   DisjointUnionEnumeratedSets):
     r"""
     This class enumerates all the parallelogram polyominoes.
 

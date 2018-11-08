@@ -46,16 +46,15 @@ Check lazy import of ``interacts``::
     sage: interacts
     <module 'sage.interacts.all' from '...'>
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 # Future statements which apply to this module. We delete the
 # future globals because we do not want these to appear in the sage.all
@@ -78,6 +77,7 @@ from cysignals.signals import (AlarmInterrupt, SignalError,
         sig_on_reset as sig_on_count)
 
 from time                import sleep
+from functools import reduce  # in order to keep reduce in python3
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while

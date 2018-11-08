@@ -646,7 +646,7 @@ def minimal_vector(A, y, prec=106):
     c1 = 2**(n-1)
     ALLL = A.LLL()
     ALLLinv = ALLL.inverse()
-    ybrace = [R(a-round(a)).abs() for a in y * ALLLinv if (a-round(a)) != 0]
+    ybrace = [R(a-a.round()).abs() for a in y * ALLLinv if (a-a.round()) != 0]
 
     if len(ybrace) == 0:
         return (ALLL.rows()[0].norm())**2 / c1
@@ -658,7 +658,7 @@ def reduction_step_real_case(place, B0, G, c7):
     r"""
     INPUT:
 
-    - ``place`` -- (ring morphism) an infinite place of a number field `K`
+    - ``place`` -- (ring morphism) a real place of a number field `K`
     - ``B0`` -- the initial bound
     - ``G`` -- a set of generators of the free part of the group
     - ``c7`` -- a positive real number
@@ -688,33 +688,29 @@ def reduction_step_real_case(place, B0, G, c7):
         sage: reduction_step_real_case(p1, 10**10, G, 2)
         (58, False)
     """
-    prec = place.codomain().precision()
+    R = place.codomain()
+    prec = R.precision()
     n = len(G)
 
-    def e_s_real(a, place):
-        if place(a) < 0:
-            return (-1) * a
-        else:
-            return a
-    Glog = [log(place(e_s_real(g, place))) for g in G]
-    if len([1 for g in G if place(e_s_real(g, place)).is_zero()]) > 0:
+    if any(place(g).is_zero() for g in G):
         return 0, True
+    Glog = [place(g).abs().log() for g in G]
 
     #We choose the initial value of C such that the vector v not to have 0 everywhere
-    C = round(max([1/abs(l) for l in Glog if l != 0]) + 1)
+    C = (max([1/l.abs() for l in Glog if l != 0]) + 1).round()
 
     #if the precision we have is not high enough we have to increase it and evaluate c7 again
-    if prec < log(C)/log(2):
+    if prec < R(C).log()/R(2).log():
         return 0, True
 
     S = (n-1) * (B0)**2
     T = (1 + n*B0) / 2
     finish = False
     while not finish:
-        A = copy(identity_matrix(ZZ, n))
-        v = vector([round(g*C) for g in Glog])
+        A = identity_matrix(ZZ, n)
+        v = vector([(g*C).round() for g in Glog])
 
-        if v[n-1] == 0: #we replace the last element of v with an other non zero
+        if v[n-1] == 0: # we replace the last element of v with another non zero
             k = [i for i,a in enumerate(v) if not a.is_zero()][0]
             v[n-1] = v[k]
             v[k] = 0
@@ -723,7 +719,7 @@ def reduction_step_real_case(place, B0, G, c7):
         #We have to work with rows because of the .LLL() function
 
         A = A.transpose()
-        y = copy(zero_vector(ZZ, n))
+        y = zero_vector(ZZ, n)
         l = minimal_vector(A, y)
 
         #On the following lines I apply Lemma VI.1 from Smart's book page 83
@@ -731,11 +727,11 @@ def reduction_step_real_case(place, B0, G, c7):
         if l < T**2 + S:
             C = 2 * C
             #Again if our precision is not high enough
-            if prec < log(C)/log(2):
+            if prec < R(C).log()/R(2).log():
                 return 0, True
         else:
             if sqrt(l-S) - T > 0:
-                return round((log(C*2)-log(sqrt(l-S)-T)) / c7), False
+                return ((R(C*2).log()-((l-S).sqrt()-T).log()) / c7).round(), False
             else:
                 return B0, False
 
@@ -743,7 +739,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
     r"""
     INPUT:
 
-    - ``place`` -- (ring morphism) an infinite place of a number field `K`
+    - ``place`` -- (ring morphism) a complex place of a number field `K`
     - ``B0`` -- the initial bound
     - ``G`` -- a set of generators of the free part of the group
     - ``g0`` -- an element of the torsion part of the group
@@ -801,8 +797,8 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
         T = ((n+1)*B0 + 1) / 2
         finish = False
         while not finish:
-            A = copy(identity_matrix(ZZ, n+1))
-            v = vector([round(g * C) for g in Glog_imag])
+            A = identity_matrix(ZZ, n+1)
+            v = vector([(g * C).round() for g in Glog_imag])
 
             if v[n] == 0:
                 #we replace the last element of v with an other non zero
@@ -819,7 +815,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
                 A = A.transpose()
                 y = copy(zero_vector(ZZ, n+1))
-                y[n] = (-1) * round(a0log_imag*C)
+                y[n] = (-1) * (a0log_imag*C).round()
                 l = minimal_vector(A, y)
 
                 #On the following lines I apply Lemma VI.1 of the reference page 83
@@ -828,10 +824,10 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
                     C = ZZ(2*C)
 
                     #The same as above if for the new C the precision is low
-                    if prec < log(C)/log(2):
+                    if prec < R(C).log()/R(2).log():
                         return 0, True
                 else:
-                    Bnew = round((log(C * 2)-log(sqrt(l-S)-T)) / c7)
+                    Bnew = ((R(C * 2).log() - ((l-S).sqrt()-T)).log() / c7).round()
                     finish = True
                     if mod(y[n], A[n,n]) == 0:
                         return max(Bnew,(y[n]/A[n,n]).abs()), False
@@ -861,8 +857,8 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
             A = copy(identity_matrix(ZZ, n+1))
             #return [g * C for g in Glog_imag]
-            A[n-1] = vector([round(g*C) for g in Glog_real])
-            A[n] = vector([round(g*C) for g in Glog_imag])
+            A[n-1] = vector([(g*C).round() for g in Glog_real])
+            A[n] = vector([(g*C).round() for g in Glog_imag])
 
             if A.is_singular():
                 C *= 2
@@ -871,18 +867,18 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
                 A = A.transpose()
                 y = copy(zero_vector(ZZ, n+1))
-                y[n] = (-1) * round(a0log_imag*C)
-                y[n-1] = (-1) * round(a0log_real*C)
+                y[n] = (-1) * (a0log_imag*C).round()
+                y[n-1] = (-1) * (a0log_real*C).round()
                 l = minimal_vector(A,y)
 
 
                 if l <= T**2 + S:
                     C *= 2
                     #The same as above if for the new C the precision is low
-                    if prec < log(C)/log(2):
+                    if prec < R(C).log()/R(2).log():
                         return 0, True
                 else:
-                    Bnew = round( ((C * 2).log() - ((l-S).sqrt()-T).log()) / c7 )
+                    Bnew = ((R(C * 2).log() - ((l-S).sqrt()-T).log()) / c7).round()
 
                     #we take into account the second case of the theorem VI.2 of the reference page 85
 
@@ -1079,7 +1075,7 @@ def log_p_series_part(a, prime, prec):
     R = RealField(prec)
 
     divisor = q.divisors()
-    order = min([d for d in divisor if (a**d - 1).valuation(prime) > 0])
+    order = min(d for d in divisor if (a**d - 1).valuation(prime) > 0)
     gamma= a**order
     t = 0
     while (gamma-1).valuation(prime) <= e:
@@ -1093,17 +1089,23 @@ def log_p_series_part(a, prime, prec):
     while n < (R(n).log()/R(p).log() + prec)/m:
         n += step
     #could use smaller stepsize to get actual smallest integer n, however this seems to run faster.
-    w = R(R(prec).log()/R(p).log()).floor()
-    gamma = sum([ZZ(gi%(p**(prec+w)))* g**i if gi.valuation(p) >= 0 else ZZ((gi * p**(-gi.valuation(p)))%(p**(prec+w-gi.valuation(p)))) * p**(gi.valuation(p)) * g**i for i,gi in enumerate(gamma) if gi != 0])
+    w = (R(prec).log()/R(p).log()).floor()
+    gamma = sum([ZZ(gi % (p**(prec+w))) * g**i
+                 if gi.valuation(p) >= 0 else
+                 ZZ((gi * p**(-gi.valuation(p))) % (p**(prec+w-gi.valuation(p)))) * p**(gi.valuation(p)) * g**i
+                 for i,gi in enumerate(gamma) if gi != 0])
 
 
     beta = 0
-    delta = 1-gamma
+    delta = 1 - gamma
     for i in range(1, n+1):
         beta -= delta / i
         delta *= (1 - gamma)
-        delta = sum([ZZ(di%(p**(prec+w)))* g**e if di.valuation(p) >= 0 else ZZ((di * p**(-di.valuation(p)))%(p**(prec+w-di.valuation(p)))) * p**(di.valuation(p)) * g**e for e,di in enumerate(delta) if di != 0],0)
-    beta = beta/(order*p**t)
+        delta = sum([ZZ(di % (p**(prec+w))) * g**e
+                     if di.valuation(p) >= 0 else
+                     ZZ((di * p**(-di.valuation(p))) % (p**(prec + w - di.valuation(p)))) * p**(di.valuation(p)) * g**e
+                     for e,di in enumerate(delta) if di != 0])
+    beta = beta / (order * p**t)
 
     #we try to make the coefficients small
 
@@ -1129,7 +1131,7 @@ def defining_polynomial_for_Kp(prime, prec=106):
 
     OUTPUT:
 
-    A polynomial with integer coefficients that is equivalent ``mod p^prec`` to the defining polynomial of the completion of `K` associate to the defining polynomial of `K`
+    A polynomial with integer coefficients that is equivalent ``mod p^prec`` to a defining polynomial for the completion of `K` associated to the specified prime.
 
     .. NOTE::
 
@@ -1165,19 +1167,17 @@ def defining_polynomial_for_Kp(prime, prec=106):
     p = prime.smallest_integer()
     e = prime.absolute_ramification_index()
 
-    find = False
     N = prec
-    while find == False:
+    while True:
         RQp = Qp(p, prec=N, type='capped-rel', print_mode='series')
 
         #We factor f in Integers(p**(precision)) using the factorization in Qp
 
-        g = f.change_ring(RQp)
-        factors = g.factor()
+        factors = f.change_ring(RQp).factor()
 
         #We are going to find which factor of f is related to the prime ideal 'prime'
 
-        L = [factors[i][0].change_ring(ZZ) for i in range(len(factors))]
+        L = [g.change_ring(ZZ) for g, e in factors]
         A = [g for g in L if (g(theta)).valuation(prime) >= e*N/2];
 
         if len(A) == 1:
@@ -1199,7 +1199,7 @@ def embedding_to_Kp(a, prime, prec):
 
     .. NOTE::
 
-        `K` has to be an absolute extension
+        `K` has to be an absolute number field
 
     EXAMPLES::
 
@@ -1222,9 +1222,8 @@ def embedding_to_Kp(a, prime, prec):
     if not K.is_absolute():
         raise ValueError('K has to be an absolute extension')
 
-    g = defining_polynomial_for_Kp(prime, prec)
+    g = defining_polynomial_for_Kp(prime, prec).change_ring(QQ)
     gen = K.gen()
-    g = g.change_ring(QQ)
     f = K(a).lift()
 
     return K( sum([b*gen**j for j,b in enumerate(f.mod(g))]) )
@@ -1288,7 +1287,7 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
         False
     """
     if any(g.valuation(prime) != 0 for g in M+[m0]):
-        raise ValueError('There is an element with non zero valuation at prime')
+        raise ValueError('There is an element with non zero valuation')
 
     K = prime.ring()
     p = prime.smallest_integer()
@@ -1318,22 +1317,21 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     #Let's check the mathematics here
     #We evaluate lambda
 
-    c8 = min([min([a.valuation(p) for a in g]) for g in M_logp])
+    c8 = min(min(a.valuation(p) for a in g) for g in M_logp)
     lam = p**c8
 
     #we apply lemma VI.5 of [Smart] page 90
     #c6 is 0 here because we seek to solve the equation x+y=1, so our set A
     #is contained in the roots of unity of K
 
-    low_bound = round(1/c5)
+    low_bound = (1/c5).round()
     for a in m0_logp:
-        if a != 0:
-            if c8 > a.valuation(p):
-                B1 = (c8 + ordp_Disc/2) / c5
-                if B1 > low_bound:
-                    return RR(B1).floor(), False
-                else:
-                    return low_bound, False
+        if a != 0 and c8 > a.valuation(p):
+            B1 = (c8 + ordp_Disc/2) / c5
+            if B1 > low_bound:
+                return RR(B1).floor(), False
+            else:
+                return low_bound, False
 
     c8 = min([a.valuation(p) for a in m0_logp] + [c8])
     B = [g/lam for g in M_logp]
@@ -1350,15 +1348,15 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
 
         #We construct the matrix A as a block matrix
 
-        A11 = copy(identity_matrix(ZZ, n))
-        A12 = copy(zero_matrix(ZZ, n, m))
-        A21 = copy(zero_matrix(ZZ, n, m))
-        A22 = p**u * copy(identity_matrix(ZZ, m))
+        A11 = identity_matrix(ZZ, n)
+        A12 = zero_matrix(ZZ, n, m)
+        A21 = zero_matrix(ZZ, n, m)
+        A22 = p**u * identity_matrix(ZZ, m)
         for i,b in enumerate(B):
             A21[i] = vector([mod(b[j],p**u) for j in range(m)])
         A = block_matrix( [[A11,A12], [A21.transpose(),A22]] )
 
-        y = copy(zero_vector(ZZ, n+m))
+        y = zero_vector(ZZ, n+m)
         for i in range(m):
             y[i+n] = -mod(b0[i], p**u)
         #This refers to c10 from Smart
@@ -1480,13 +1478,8 @@ def split_primes_large_lcm(SUK, bound):
     """
 
     K = SUK.number_field()
-    S0 = []
     # we recover the rational primes below S:
-    for prime_ideal in SUK.primes():
-        q0 = prime_ideal.residue_field().characteristic()
-        if q0 not in S0:
-            S0.append(q0)
-
+    S0 = set(prime_ideal.smallest_integer() for prime_ideal in SUK.primes())
     split_prime_list = K.completely_split_primes(4*bound + 4)
     lcm_list = []
     L = 1
@@ -1517,7 +1510,7 @@ def sieve_ordering(SUK, q):
 
     1. ``ideals_over_q`` is a list of the `d = [K:\mathbb{Q}]` ideals in `K` over `q`
     2. ``residue_fields[i]`` is the residue field of ``ideals_over_q[i]``
-    3. ``rho_images[i]`` is a list of the generators in `rho`, modulo ``ideals_over_q[i]``
+    3. ``rho_images[i]`` is a list of the reductions of the generators in of the `S`-unit group, modulo ``ideals_over_q[i]``
     4. ``product_rho_orders[i]`` is the product of the multiplicative orders of the elements in ``rho_images[i]``
 
     .. NOTE::
@@ -1690,8 +1683,8 @@ def clean_rfv_dict(rfv_dictionary):
         {(1, 3): [3, 2], (2, 1): [4, 6], (3, 0): [6, 6], (5, 4): [3, 6]}
     """
 
-    for a in rfv_dictionary.keys():
-        if 1 in rfv_dictionary[a]:
+    for a, val in rfv_dictionary.items():
+        if 1 in val:
             rfv_dictionary.pop(a)
 
 def construct_rfv_to_ev(rfv_dictionary, q, d, verbose=False):
@@ -2106,15 +2099,14 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
 
         if verbose:
             print("construct_comp_exp_vec executed.")
-
-        if verbose:
             print("Size of comp_exp_vec[q]: ", len(comp_exp_vec[q]))
 
         # Now that we have a new dictionary, we compare all the dictionaries pairwise,
         # looking for opportunities to remove 'impossible' solutions.
 
-        for p in [qi for qi in comp_exp_vec.keys() if qi != q]:
-
+        for p in comp_exp_vec.keys():
+            if p == q:
+                continue
             if verbose:
                 print("Comparing dictionaries for p = ", p, "and q = ", q, ".")
 
@@ -2126,9 +2118,9 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
                 print("Length of compatible_vectors: ", cv_size, ".")
                 print("Product: ", old_size_p*cv_size)
 
-            for exp_vec in comp_exp_vec[p].copy():
+            for exp_vec in comp_exp_vec[p].keys():
                 if drop_vector(exp_vec, p, q, comp_exp_vec):
-                    trash = comp_exp_vec[p].pop(exp_vec)
+                    comp_exp_vec[p].pop(exp_vec)
 
             if verbose:
                 print("Shrunk dictionary p from ", old_size_p, " to ", len(comp_exp_vec[p]))
@@ -2143,7 +2135,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
                 print("Length of compatible_vectors: ", cv_size, ".")
                 print("Product: ", old_size_q * cv_size)
 
-            for exp_vec in comp_exp_vec[q].copy():
+            for exp_vec in comp_exp_vec[q].keys():
                 if drop_vector(exp_vec, q, p, comp_exp_vec):
                     comp_exp_vec[q].pop(exp_vec)
 
@@ -2214,7 +2206,7 @@ def compatible_vectors_check(a0, a1, m0, m1):
 
     OUTPUT:
 
-    True if there is an integer exponent vector a satisfying 
+    True if there is an integer exponent vector a satisfying
 
     .. MATH::
 
@@ -2251,19 +2243,10 @@ def compatible_vectors_check(a0, a1, m0, m1):
     g = gcd(m0, m1)
 
     length = len(a0)
-    if length != len(a1):
+    if len(a0) != len(a1):
         raise ValueError("Exponent vectors a0 and a1 are not the same length.")
-
-    if a0[0] != a1[0]:
-        # exponent vectors must agree exactly in the 0th coordinate.
-        return False
-    else:
-        for j in range(1, length):
-            if (a0[j]-a1[j]) % g != 0:
-                return False
-
-    # all conditions hold
-    return True
+    # exponent vectors must agree exactly in the 0th coordinate.
+    return a0[0] == a1[0] and all((x0 - x1) % g == 0 for x0,x1 in zip(a0[1:],a1[1:]))
 
 def compatible_vectors(a, m0, m1):
     r"""
@@ -2360,43 +2343,30 @@ def compatible_systems(split_prime_list, complement_exp_vec_dict):
         sage: compatible_systems(split_primes_list, checking_dict)
         [[[(0, 1, 0), (1, 0, 0)], [(0, 1, 0), (1, 0, 0)]]]
     """
-    S0 = split_prime_list[:]
+    S0 = split_prime_list
 
-    if len(S0) == 0:
-        return []
-    elif len(S0) == 1:
-        system_list = []
+    system_list = []
+    if len(S0) == 1:
         q = S0[0]
         for exponent_vector in complement_exp_vec_dict[q]:
             for complementary_vector in complement_exp_vec_dict[q][exponent_vector]:
                 pair = [[exponent_vector, complementary_vector]]
                 system_list.append(pair)
-        return system_list
-    else:
-        system_list = []
+    elif len(S0) > 1:
         S1 = S0[:-1]
         num_primes = len(S1)
         old_systems = compatible_systems(S1, complement_exp_vec_dict)
         q = S0[-1]
         for exp_vec in complement_exp_vec_dict[q]:
             for comp_vec in complement_exp_vec_dict[q][exp_vec]:
-                CompatibleSystem = True
                 for old_system in old_systems:
-                    for j in range(num_primes):
-                        qj = S1[j]
-                        exp_vec_qj = old_system[j][0]
-                        comp_vec_qj = old_system[j][1]
-                        CompatibleSystem = compatible_vectors_check(exp_vec, exp_vec_qj, q-1, qj-1)
-                        if CompatibleSystem:
-                            CompatibleSystem = compatible_vectors_check(comp_vec, comp_vec_qj, q-1, qj-1)
-                        if not CompatibleSystem:
-                            # no reason to finish the j loop.
-                            break
-                    if CompatibleSystem:
+                    if all((compatible_vectors_check(exp_vec, exp_vec_qj, q-1, qj-1) and
+                            compatible_vectors_check(comp_vec, comp_vec_qj, q-1, qj-1))
+                           for qj, (exp_vec_qj, comp_vec_qj) in zip(S1, old_system)):
                         # build the new system and append it to the list.
                         new_system = old_system + [[exp_vec, comp_vec]]
                         system_list.append(new_system)
-        return system_list
+    return system_list
 
 def compatible_system_lift(compatible_system, split_primes_list):
     r"""
@@ -2430,20 +2400,18 @@ def compatible_system_lift(compatible_system, split_primes_list):
     if len(split_primes_list) != len(compatible_system):
         raise ValueError("The number of primes does not match the length of the given exponent vectors.")
 
-    m = len(split_primes_list)
-    t = len(compatible_system[0][0])
-
     # the first entries are already determined.
-    exponent_vector_lift = (ZZ(compatible_system[0][0][0]),)
-    complement_vector_lift = (ZZ(compatible_system[0][1][0]),)
+    exponent_vector_lift = [ZZ(compatible_system[0][0][0])]
+    complement_vector_lift = [ZZ(compatible_system[0][1][0])]
 
     # fill in exponent_vector_lift
     moduli_list = [q-1 for q in split_primes_list]
     L = lcm(moduli_list)
 
+    t = len(compatible_system[0][0])
     for i in range(1,t):
-        exp_coord_residues = [compatible_system[j][0][i] for j in range(m)]
-        comp_coord_residues = [compatible_system[j][1][i] for j in range(m)]
+        exp_coord_residues = [pair[0][i] for pair in compatible_system]
+        comp_coord_residues = [pair[1][i] for pair in compatible_system]
 
         ev_lift_coordinate = CRT(exp_coord_residues, moduli_list)
         cv_lift_coordinate = CRT(comp_coord_residues, moduli_list)
@@ -2455,10 +2423,10 @@ def compatible_system_lift(compatible_system, split_primes_list):
         if cv_lift_coordinate > L/2:
             cv_lift_coordinate -= L
 
-        exponent_vector_lift = exponent_vector_lift + (ev_lift_coordinate, )
-        complement_vector_lift = complement_vector_lift + (cv_lift_coordinate, )
+        exponent_vector_lift.append(ev_lift_coordinate)
+        complement_vector_lift.append(cv_lift_coordinate)
 
-    return [exponent_vector_lift, complement_vector_lift]
+    return [tuple(exponent_vector_lift), tuple(complement_vector_lift)]
 
 def solutions_from_systems(SUK, bound, cs_list, split_primes_list):
     r"""
@@ -2502,21 +2470,8 @@ def solutions_from_systems(SUK, bound, cs_list, split_primes_list):
     solutions = []
 
     for system in cs_list:
-        lift = compatible_system_lift(system, split_primes_list)
-        ev = lift[0]
-        cv = lift[1]
-        ValidLift = True
-        for x in ev[1:]:
-        # coordinates must be less than or equal to H in absolute value
-            if abs(x) > bound:
-                ValidLift = False
-                break
-        else:
-            for x in cv[1:]:
-                if abs(x) > bound:
-                    ValidLift = False
-                    break
-        if ValidLift:
+        ev, cv = compatible_system_lift(system, split_primes_list)
+        if all(abs(x) <= bound for x in ev[1:] + cv[1:]):
             # the entries are all below the bound, so there is nothing left to do
             # except construct the elements and see if they are solutions to
             # the S-unit equation
@@ -2559,10 +2514,7 @@ def clean_sfs(sfs_list):
     new_sfs = []
     for entry in sfs_list:
         swapped_entry = [entry[1], entry[0], entry[3], entry[2]]
-        repeat = False
-        if entry in new_sfs or swapped_entry in new_sfs:
-            repeat = True
-        if not repeat:
+        if entry not in new_sfs and swapped_entry not in new_sfs:
             new_sfs.append(entry)
     return new_sfs
 
@@ -2599,11 +2551,9 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[], verbose
          [(2, 0), (1, 1), xi, -xi + 1],
          [(5, 0), (1, 0), -xi, xi + 1]]
     """
-    S = list(S)
     SUK = UnitGroup(K, S=tuple(S))
     initial_bound = bound
 
-    #split_primes_list = []
     while len(split_primes_list) == 0:
         try:
             split_primes_list = split_primes_large_lcm(SUK, initial_bound)
@@ -2677,18 +2627,17 @@ def solve_S_unit_equation(K, S, prec=106, returnBound=False, verbose=False):
     # S must be a finite set of primes
     try:
         SUK = UnitGroup(K, S=tuple(S))
-    except:
+    except Exception:
         raise ValueError("S must consist only of prime ideals, or a single element from which a prime ideal can be constructed.")
 
     # Gather the roots of unity of the number field
     A = K.roots_of_unity()
 
     # First find a bound using the LLL reduction method
-    if len(S) == 0:
-        # this handles the case of S empty; the p-adic bound is not necessary
-        all_LLL_bounds = [cx_LLL_bound(SUK, A, prec)]
-    else:
-        all_LLL_bounds = [p_adic_LLL_bound(SUK, A, prec)] + [cx_LLL_bound(SUK, A, prec)]
+    all_LLL_bounds = [cx_LLL_bound(SUK, A, prec)]
+    if S:
+        # only need p-adic bound when S nonempty
+        all_LLL_bounds.append(p_adic_LLL_bound(SUK, A, prec))
 
     # Take the largest of all of the bounds we found
     final_LLL_bound = max(all_LLL_bounds)

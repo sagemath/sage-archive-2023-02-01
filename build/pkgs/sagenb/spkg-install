@@ -1,8 +1,12 @@
 cd src
 
-# Install a flat package (not an egg), which is the same as how pip
-# installs packages.
 sdh_pip_install .
+
+cd doc
+$MAKE html || sdh_die "Error building the documentation"
+docdir="$SAGE_LOCAL/share/doc/sagenb"
+rm -rf "$docdir"
+mv build/html "$docdir"
 
 # let sagenb use mathjax
 if [ "$SAGE_PYTHON3" = yes ]; then

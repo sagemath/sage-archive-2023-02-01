@@ -781,9 +781,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         G = L.groebner_basis() #eliminate
         newL = []
         #get only the elimination ideal portion
-        for i in range (len(G)-1,0,-1):
+        for i in range (len(G) - 1, 0, -1):
             v = G[i].variables()
-            if all([Rvars[j] not in v for j in range(n)]):
+            if all(Rvars[j] not in v for j in range(n)):
                 newL.append(psi(G[i]))
         return(codom.subscheme(newL))
 
@@ -1160,14 +1160,14 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         mind = max(degs)
         # need the smallest degree form that did not reduce to 0
         for d in degs:
-            if d < mind and d >0:
+            if d < mind and d > 0:
                 mind = d
         ind = degs.index(mind)
         CF = reduced[ind] #this should be the Chow form of X
         # check that it is correct (i.e., it is a principal generator for CH + the relations)
         rel2 = rel + [CF]
-        assert all([f in rel2 for f in CH.gens()]), "did not find a principal generator"
-        return(alp(CF))
+        assert all(f in rel2 for f in CH.gens()), "did not find a principal generator"
+        return alp(CF)
 
     def degree(self):
         r"""

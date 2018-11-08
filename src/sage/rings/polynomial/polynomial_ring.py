@@ -632,7 +632,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: PP(f)
             1 - x
             sage: 1/f
-            1/(-x + 1)
+            -1/(x - 1)
             sage: 1/PP(f)
             1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + x^11 + x^12 + x^13 + x^14 + x^15 + x^16 + x^17 + x^18 + x^19 + O(x^20)
         """
@@ -2372,7 +2372,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         - If ``precision = k`` for some integer ``k``, then all `f \in \F[x]` such
           that `Q(f) \equiv 0 \mod x^k` are computed. This set is infinite, thus it
-          represented as a list of pairs in `F[x] \times \mathbb{Z}_+`, where
+          represented as a list of pairs in `F[x] \times \ZZ_+`, where
           `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^k` for any `h \in
           F[[x]]`.
 
@@ -2466,7 +2466,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         - If ``precision = k`` for some integer ``k``, then all `f \in \F[x]` such
           that `Q(f) \equiv 0 \mod x^k` are computed. This set is infinite, thus it
-          represented as a list of pairs in `F[x] \times \mathbb{Z}_+`, where
+          represented as a list of pairs in `F[x] \times \ZZ_+`, where
           `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^k` for any `h \in
           F[[x]]`.
 

@@ -250,8 +250,6 @@ class Gp(ExtraTabCompletion, Expect):
         self._eval_line('default(breakloop,0);')
         # list of directories where gp will look for scripts (only current working directory)
         self._eval_line('default(path,".");')
-        # location of elldata, seadata, galdata
-        self._eval_line('default(datadir, "$GP_DATA_DIR");')
         # executable for gp ?? help
         self._eval_line('default(help, "gphelp -detex");')
         # logfile disabled since Expect already logs
@@ -883,7 +881,6 @@ class GpElement(ExpectElement):
             True
             sage: gp(E.sage()) == E
             False
-
         """
         return repr(self)
 
@@ -910,7 +907,17 @@ class GpElement(ExpectElement):
             [3 4]
             sage: gp(M).sage() == M
             True
+
+        Conversion of strings::
+
+           sage: s = gp('"foo"')
+           sage: s.sage()
+           'foo'
+           sage: type(s.sage())
+           <type 'str'>
         """
+        if self.is_string():
+            return str(self)
         return pari(str(self)).sage()
 
     def is_string(self):
@@ -923,9 +930,8 @@ class GpElement(ExpectElement):
             True
             sage: gp('[1,2,3]').is_string()
             False
-
         """
-        return repr(self.type())=='t_STR'
+        return repr(self.type()) == 't_STR'
 
     def __long__(self):
         """

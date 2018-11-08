@@ -1190,8 +1190,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             coords = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
             C = PP.curve(baseC.defining_polynomial()(coords))
             # check tangents at (0 : 0 : 1)
-            T = C.tangents(PP([0,0,1]), factor=False)[0]
-            if all([e[0] > 0 for e in T.exponents()]) or all([e[1] > 0 for e in T.exponents()]):
+            T = C.tangents(PP([0, 0, 1]), factor=False)[0]
+            if all(e[0] > 0 for e in T.exponents()) or all(e[1] > 0 for e in T.exponents()):
                 continue
             # check that the other intersections of C with the exceptional lines are correct
             need_continue = False

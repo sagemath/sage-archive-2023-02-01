@@ -370,7 +370,6 @@ def _setup_r_to_sage_converter():
 
     def float_to_int_if_possible(f):
         # preserve the behaviour of the old r parser, e.g. return 1 instead of 1.0
-         # TODO(timo) investigate the precision difference to the expect interface
         return int(f) if isinstance(f, int) or f.is_integer() else f
     cv.ri2py.register(float, float_to_int_if_possible)
 
@@ -1018,21 +1017,10 @@ class R(ExtraTabCompletion, Interface):
             sage: r.set('a', '2 + 3')
             sage: r.get('a')
             '[1] 5'
+
         """
         cmd = '%s <- %s'%(var,value)
-        # FIXME(timo) this is how it behaved before since the output was only compared to 'error'
-        # while the actual error message started with an upper-case 'Error'.
-        # The doctests rely on this when doing `loads(dumps(r('"abc"')))` which will load
-        # simply `"abc"` which will then again be set as `sage0 <- abc` (notice the missing
-        # quotes). The test will pass anyway because the identifier is reused for some reason.
-        # That means `sage0` will already be "abc" from the first `r('"abc"')` call.
-        from rpy2.rinterface import RRuntimeWarning, RRuntimeError
-        import warnings
-        warnings.filterwarnings("ignore", category = RRuntimeWarning)
-        try:
-            out = self.eval(cmd)
-        except RRuntimeError:
-            pass
+        out = self.eval(cmd)
 
     def get(self, var):
         """
@@ -1050,20 +1038,7 @@ class R(ExtraTabCompletion, Interface):
             sage: r.get('a')
             '[1] 2'
         """
-        # FIXME(timo) again, this is how it behaved before. The doctest `L.hom(r, base_morphism=phi)`
-        # in sage/rings/function_field/function_field.py relies on this. It somehow ends up
-        # requesting a non-existant r object resulting in
-        # `RRuntimeError: Error in (function (expr, envir = parent.frame(), enclos = if (is.list(envir) ||  : 
-        #     object 'sage2' not found`
-        # I haven't figured out how or why it does that.
-        from rpy2.rinterface import RRuntimeWarning, RRuntimeError
-        import warnings
-        warnings.filterwarnings("ignore", category = RRuntimeWarning)
-        try:
-            s = self.eval('%s'%var)
-            return s
-        except RRuntimeError:
-            return ''
+        return self.eval('%s'%var)
 
     def na(self):
         """
@@ -1406,6 +1381,20 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         return par.new("%s ~ %s" % (self.name(), rx.name()))
 
     stat_model = tilde
+
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: r('"abc"').is_string()
+            True
+            sage: r([1,2,3]).is_string()
+            False
+
+        """
+        return isinstance(self.sage(), str)
 
     def __len__(self):
         """

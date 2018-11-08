@@ -48,7 +48,6 @@ cdef class CallableDict(dict):
         Traceback (most recent call last):
         ....
         ValueError: 1 is not in dict
-
     """
     def __call__(self, key):
         r"""
@@ -63,7 +62,6 @@ cdef class CallableDict(dict):
         TESTS::
 
             sage: from sage.misc.callable_dict import CallableDict
-            sage: from sage.combinat.words.morphism import CallableDict
             sage: d = CallableDict({'one': 1, 'zwei': 2, 'trois': 3})
             sage: d('one'), d('zwei'), d('trois')
             (1, 2, 3)
@@ -84,7 +82,6 @@ cdef class CallableDict(dict):
         EXAMPLES::
 
             sage: from sage.misc.callable_dict import CallableDict
-            sage: from sage.combinat.words.morphism import CallableDict
             sage: d = CallableDict({1: 'a', 3: 'b', 2: 'c'}); d
             {1: 'a', 2: 'c', 3: 'b'}
         """

@@ -43,7 +43,7 @@ from sage.misc.stopgap import stopgap
 
 def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    Return the lexicographically smallest valid composition of `n`
+    Return the lexicographically smallest valid composition of ``n``
     satisfying the conditions.
 
     .. warning::
@@ -188,7 +188,7 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
 def lower_regular(comp, min_slope, max_slope):
     """
-    Returns the uppest regular composition below ``comp``
+    Return the uppest regular composition below ``comp``
 
     TESTS::
 

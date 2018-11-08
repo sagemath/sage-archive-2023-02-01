@@ -471,7 +471,7 @@ class R(ExtraTabCompletion, Interface):
 
         self._r_to_sage_converter = _setup_r_to_sage_converter()
         self._seed = seed
-        self._is_started = False # lazy start
+        self._start()
 
     def set_seed(self, seed=None):
         """
@@ -506,7 +506,6 @@ class R(ExtraTabCompletion, Interface):
         """
         # pager needed to replace help view from less to printout
         # option device= is for plotting, is set to x11, NULL would be better?
-        self._is_started = True
         self.eval('options(pager="cat",device="png")')
         self.eval('options(repos="%s")'%RRepositoryURL)
         self.eval('options(CRAN="%s")'%RRepositoryURL)
@@ -1237,8 +1236,6 @@ class R(ExtraTabCompletion, Interface):
             sage: r.eval('1+1')
             '[1] 2'
         """
-        if not self._is_started: # FIXME(timo)
-            self._start()
         return str(robjects.r(code)).rstrip()
 
 

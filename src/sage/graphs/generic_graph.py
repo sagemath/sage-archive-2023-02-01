@@ -5020,7 +5020,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.genus()
             Traceback (most recent call last):
             ...
-            NotImplementedError: can't work with embeddings of non-simple graphs
+            NotImplementedError: cannot work with embeddings of non-simple graphs
             sage: G.to_simple().genus()
             0
             sage: G.genus(set_embedding=False)
@@ -5028,7 +5028,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.genus(maximal=True, set_embedding=False)
             Traceback (most recent call last):
             ...
-            NotImplementedError: can't compute the maximal genus of a graph with loops or multiple edges
+            NotImplementedError: cannot compute the maximal genus of a graph with loops or multiple edges
 
         We break graphs with cut vertices into their blocks, which greatly
         speeds up computation of minimal genus. This is not implemented for
@@ -5077,7 +5077,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if on_embedding is not None:
             if self.has_loops() or self.is_directed() or self.has_multiple_edges():
-                raise NotImplementedError("can't work with embeddings of non-simple graphs")
+                raise NotImplementedError("cannot work with embeddings of non-simple graphs")
 
             if isinstance(on_embedding, dict):
                 faces = len(self.faces(on_embedding))
@@ -5093,7 +5093,7 @@ class GenericGraph(GenericGraph_pyx):
 
             if set_embedding:
                 if self.has_loops() or self.is_directed() or self.has_multiple_edges():
-                    raise NotImplementedError("can't work with embeddings of non-simple graphs")
+                    raise NotImplementedError("cannot work with embeddings of non-simple graphs")
                 if minimal:
                     B,C = G.blocks_and_cut_vertices()
                     embedding = {}
@@ -5114,7 +5114,7 @@ class GenericGraph(GenericGraph_pyx):
                 return g
             else:
                 if maximal and (self.has_multiple_edges() or self.has_loops()):
-                    raise NotImplementedError("can't compute the maximal genus of a graph with loops or multiple edges")
+                    raise NotImplementedError("cannot compute the maximal genus of a graph with loops or multiple edges")
                 if minimal:
                     B,C = G.blocks_and_cut_vertices()
                     g = 0

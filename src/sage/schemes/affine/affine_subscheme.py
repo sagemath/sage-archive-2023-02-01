@@ -56,7 +56,8 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
           x^2 - y*z
     """
-    def __init__(self, A, polynomials):
+    def __init__(self, A, polynomials, embedding_center=None,
+                 embedding_codomain=None, embedding_images=None):
         """
         EXAMPLES::
 
@@ -66,11 +67,13 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               -x*y + y^2 - x*z
         """
         AlgebraicScheme_subscheme.__init__(self, A, polynomials)
-        if A._ambient_projective_space is not None:
+        if embedding_images is not None:
+            self._embedding_morphism = self.hom(embedding_images, embedding_codomain)
+        elif A._ambient_projective_space is not None:
             self._embedding_morphism = self.projective_embedding \
                 (A._default_embedding_index, A._ambient_projective_space)
-        else:
-            self._embedding_morphism = None
+        if embedding_center is not None:
+            self._embedding_center = self.point(embedding_center)
 
     def _morphism(self, *args, **kwds):
         r"""
@@ -199,12 +202,11 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         AA = self.ambient_space()
         n = AA.dimension_relative()
         if i is None:
-            if self._embedding_morphism is not None:
+            try:
                 return self._embedding_morphism
-            else:
-                i = int(n)
-        else:
-            i = int(i)
+            except AttributeError:
+                i = n
+        i = int(i)
         if i < 0 or i > n:
             raise ValueError("Argument i (=%s) must be between 0 and %s, inclusive"%(i, n))
         try:

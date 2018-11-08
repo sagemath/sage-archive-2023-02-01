@@ -390,12 +390,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             phi[j+1] = phi[j+1] + R.gen(j)
 
         pullback_polys = [f(phi) for f in self.defining_polynomials()]
-        patch = patch_cover.subscheme(pullback_polys)
-        patch_hom = patch.hom(phi,self)
-        # TODO: make these into parameters
-        patch._embedding_center = patch.point([0]*n)
-        patch._embedding_morphism = patch_hom
-        return patch
+        return patch_cover.subscheme(pullback_polys, embedding_center=[0]*n,
+                                     embedding_codomain=self, embedding_images=phi)
 
     def is_smooth(self, point=None):
         r"""

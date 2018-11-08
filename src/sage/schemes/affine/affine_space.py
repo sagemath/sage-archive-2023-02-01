@@ -164,7 +164,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
         AffineScheme.__init__(self, self.coordinate_ring(), R)
-        
+
         index = default_embedding_index
         if index is not None:
             index = int(index)
@@ -762,7 +762,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         PP.affine_patch(i,self)
         return phi
 
-    def subscheme(self, X):
+    def subscheme(self, X, **kwds):
         """
         Return the closed subscheme defined by ``X``.
 
@@ -805,7 +805,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             0
         """
         from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
-        return AlgebraicScheme_subscheme_affine(self, X)
+        return AlgebraicScheme_subscheme_affine(self, X, **kwds)
 
     def _an_element_(self):
         r"""

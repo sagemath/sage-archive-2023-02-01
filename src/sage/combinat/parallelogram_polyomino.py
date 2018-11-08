@@ -889,7 +889,7 @@ class ParallelogramPolyomino(ClonableList):
     def __classcall_private__(cls, *args, **opts):
         r"""
         Ensure that parallelogram polyominoes created by the enumerated sets
-        are instances of :class:`ParallelogramPolyomino` and have the same 
+        are instances of :class:`ParallelogramPolyomino` and have the same
         parent.
 
         TESTS::

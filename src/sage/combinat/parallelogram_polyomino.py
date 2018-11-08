@@ -139,8 +139,8 @@ class LocalOptions:
             ....:     display=dict(
             ....:         default="list",
             ....:         values=dict(
-            ....:             list="representation en liste",
-            ....:             diagramme="representation en diagramme"
+            ....:             list="list representation",
+            ....:             diagram="diagram representation"
             ....:         )
             ....:     )
             ....: )
@@ -172,8 +172,8 @@ class LocalOptions:
             ....:     display=dict(
             ....:         default="list",
             ....:         values=dict(
-            ....:             list="representation en liste",
-            ....:             diagramme="representation en diagramme"
+            ....:             list="list representation",
+            ....:             diagram="diagram representation"
             ....:         )
             ....:     )
             ....: )
@@ -221,8 +221,8 @@ class LocalOptions:
             ....:     display=dict(
             ....:         default="list",
             ....:         values=dict(
-            ....:             list="representation en liste",
-            ....:             diagramme="representation en diagramme"
+            ....:             list="list representation",
+            ....:             diagram="diagram representation"
             ....:         )
             ....:     ),
             ....:     size=dict(
@@ -232,14 +232,14 @@ class LocalOptions:
             ....: )
             sage: o("display")
             'list'
-            sage: o["display"]="diagramme"
+            sage: o["display"]="diagram"
             sage: o("display")
-            'diagramme'
+            'diagram'
             sage: o["display"]="?"
-            Current value : diagramme
+            Current value : diagram
             {'default': 'list', 'values':
-            {'diagramme': 'representation en diagramme',
-            'list': 'representation en liste'}}
+            {'diagram': 'diagram representation',
+            'list': 'list representation'}}
             sage: o("size")
             1
             sage: o["size"]=3
@@ -291,21 +291,21 @@ class LocalOptions:
             ....:     display=dict(
             ....:         default="list",
             ....:         values=dict(
-            ....:             list="representation en liste",
-            ....:             diagramme="representation en diagramme"
+            ....:             list="list representation",
+            ....:             diagram="diagram representation"
             ....:         )
             ....:     )
             ....: )
             sage: o("display")
             'list'
-            sage: o(display="diagramme")
+            sage: o(display="diagram")
             sage: o("display")
-            'diagramme'
+            'diagram'
             sage: o(display="?")
-            Current value : diagramme
+            Current value : diagram
             {'default': 'list', 'values':
-            {'diagramme': 'representation en diagramme',
-            'list': 'representation en liste'}}
+            {'diagram': 'diagram representation',
+            'list': 'list representation'}}
 
         """
         for key in options:
@@ -339,8 +339,8 @@ class LocalOptions:
             ....:     display=dict(
             ....:         default="list",
             ....:         values=dict(
-            ....:             list="representation en liste",
-            ....:             diagramme="representation en diagramme"
+            ....:             list="list representation",
+            ....:             diagram="diagram representation"
             ....:         )
             ....:     )
             ....: )
@@ -370,8 +370,8 @@ class LocalOptions:
             ....:     display=dict(
             ....:         default="list",
             ....:         values=dict(
-            ....:             list="representation en liste",
-            ....:             diagramme="representation en diagramme"
+            ....:             list="list representation",
+            ....:             diagram="diagram representation"
             ....:         )
             ....:     )
             ....: )
@@ -401,8 +401,8 @@ class LocalOptions:
             ....:     display=dict(
             ....:         default="list",
             ....:         values=dict(
-            ....:             list="representation en liste",
-            ....:             diagramme="representation en diagramme"
+            ....:             list="list representation",
+            ....:             diagram="diagram representation"
             ....:         )
             ....:     )
             ....: )
@@ -889,8 +889,8 @@ class ParallelogramPolyomino(ClonableList):
     def __classcall_private__(cls, *args, **opts):
         r"""
         Ensure that parallelogram polyominoes created by the enumerated sets
-        and directly are the same and that they are instances of
-        :class:`ParallelogramPolyomino`.
+        are instances of :class:`ParallelogramPolyomino` and have the same 
+        parent.
 
         TESTS::
 
@@ -961,12 +961,12 @@ class ParallelogramPolyomino(ClonableList):
             ....: ) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: lower and upper path are crossing
+            ValueError: the lower and upper paths are crossing
 
             sage: pp = ParallelogramPolyomino([[1], [0, 1]]) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: lower and upper paths have different sizes (2 != 1)
+            ValueError: the lower and upper paths have different sizes (2 != 1)
 
             sage: pp = ParallelogramPolyomino([[1], [0]]) # indirect doctest
             Traceback (most recent call last):
@@ -981,36 +981,36 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino([[0], [0]]) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: wrong input for the paths: [[0], [0]]
+            ValueError: the lower or the upper path can't be equal to [0]
 
             sage: pp = ParallelogramPolyomino([[], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: lower and upper path cannot be []
+            ValueError: the lower or the upper path can't be equal to []
 
             sage: pp = ParallelogramPolyomino([[0], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: lower and upper path cannot be []
+            ValueError: the lower or the upper path can't be equal to []
 
             sage: pp = ParallelogramPolyomino([[], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: lower and upper path cannot be []
+            ValueError: the lower or the upper path can't be equal to []
         """
         lower_path = self.lower_path()
         upper_path = self.upper_path()
         if lower_path == [0] and upper_path == [0]:
             raise ValueError(
-                "wrong input for the paths: [[0], [0]]"
+                "the lower or the upper path can't be equal to [0]"
             )
         if lower_path == [] or upper_path == []:
             raise ValueError(
-                "lower and upper path cannot be []"
+                "the lower or the upper path can't be equal to []"
             )
         if len(upper_path) != len(lower_path):
             raise ValueError(
-                "lower and upper paths have different sizes (%s != %s)" % (
+                "the lower and upper paths have different sizes (%s != %s)" % (
                     len(upper_path), len(lower_path)
                 )
             )
@@ -1020,7 +1020,7 @@ class ParallelogramPolyomino(ClonableList):
             p_up[1-upper_path[i]] += 1
             p_down[1-lower_path[i]] += 1
             if(p_up[0] <= p_down[0] or p_down[1] <= p_up[1]):
-                raise ValueError("lower and upper path are crossing")
+                raise ValueError("the lower and upper paths are crossing")
         p_up[1-upper_path[-1]] += 1
         p_down[1-lower_path[-1]] += 1
         if (p_up[0] != p_down[0] or p_up[1] != p_down[1]):
@@ -1967,6 +1967,54 @@ class ParallelogramPolyomino(ClonableList):
             return 0
         return self.lower_heights()[-1]
 
+    def cell_is_inside(self, w, h):
+        r"""
+        Determine whether the cell at a given position
+        is inside the parallelogram polyomino.
+
+        INPUT:
+
+        - ``w`` -- The x coordinate of the box position.
+
+        - ``h`` -- The y coordinate of the box position.
+
+        OUTPUT:
+
+        Return 0 if there is no cell at the given position,
+        return 1 if there is a cell.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [
+            ....:         [0, 1, 0, 0, 1, 1, 0, 1, 1, 1],
+            ....:         [1, 1, 1, 0, 1, 0, 0, 1, 1, 0]
+            ....:     ]
+            ....: )
+            sage: pp.cell_is_inside(0, 0)
+            1
+            sage: pp.cell_is_inside(1, 0)
+            1
+            sage: pp.cell_is_inside(0, 1)
+            0
+            sage: pp.cell_is_inside(3, 0)
+            0
+            sage: pp.cell_is_inside(pp.width()-1,pp.height()-1)
+            1
+            sage: pp.cell_is_inside(pp.width(),pp.height()-1)
+            0
+            sage: pp.cell_is_inside(pp.width()-1,pp.height())
+            0
+        """
+        lower_widths = self.lower_widths()
+        widths = self.widths()
+
+        if h >= len(widths) or h < 0:
+            return 0
+        if lower_widths[h] <= w and w < lower_widths[h] + widths[h]:
+            return 1
+        return 0
+
     @cached_method
     def get_array(self):
         r"""
@@ -1999,31 +2047,10 @@ class ParallelogramPolyomino(ClonableList):
         """
         width = self.width()
         height = self.height()
-        lower_widths = self.lower_widths()
-        widths = self.widths()
-
-        def val(w, h):
-            r"""
-            Determine whether the cell at a given position
-            is inside the parallelogram polyomino.
-
-            INPUT:
-
-            - ``w`` -- The x coordinate of the box position.
-
-            - ``h`` -- The y coordinate of the box position.
-
-            OUTPUT:
-
-            Return 0 if there is no cell at the given position,
-            return 1 if there is a cell.
-            """
-            if w >= len(widths) or w < 0:
-                return 0
-            if lower_widths[w] <= h and h < lower_widths[w] + widths[w]:
-                return 1
-            return 0
-        return [[val(h, w) for w in range(width)] for h in range(height)]
+        return [
+            [self.cell_is_inside(w, h) for w in range(width)]
+            for h in range(height)
+        ]
 
     class _polyomino_row:
         r"""

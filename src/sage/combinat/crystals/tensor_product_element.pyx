@@ -1502,22 +1502,23 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             [2, 2, 1, 1]
         """
         if i > 0:
-            return TensorProductOfRegularCrystalsElement.e(self, i)
+            from sage.categories.regular_supercrystals import RegularSuperCrystals
+            if self._parent in RegularSuperCrystals():
+                return TensorProductOfRegularCrystalsElement.e(self, i)
+            else:
+                return TensorProductOfCrystalsElement.e(self, i)
         cdef tuple w
         cdef int k, a, l
         l = len(self._list)
         if i == -1:
-            k = 0
-            wt = self._list[k].weight()
-            v = wt[0] + wt[1]
-            while v == 0 and k < l - 1:
-                  k += 1
-                  wt = self[k].weight()
-                  v += wt[0] + wt[1]
-            b = self._list[k].e(i)
-            if b is None:
-               return None
-            return self._set_index(k, b)
+            for k in range(l):
+                b = self._list[k].e(i)
+                if b is not None:
+                    return self._set_index(k, b)
+                if self._list[k].f(i) is not None:
+                    # There are no (-1)-string of length > 1
+                    return None
+            return None
         n = self._parent.cartan_type().n
         if i < -1 and i >= -n:
             j = -i
@@ -1561,22 +1562,23 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             [2, 1]
         """
         if i > 0:
-            return TensorProductOfRegularCrystalsElement.f(self, i)
+            from sage.categories.regular_supercrystals import RegularSuperCrystals
+            if self._parent in RegularSuperCrystals():
+                return TensorProductOfRegularCrystalsElement.f(self, i)
+            else:
+                return TensorProductOfCrystalsElement.f(self, i)
         cdef tuple w
         cdef int k, a, l
         l = len(self._list)
         if i == -1:
-            k = 0
-            wt = self._list[k].weight()
-            v = wt[0] + wt[1]
-            while v == 0 and k < l - 1:
-                  k += 1
-                  wt = self._list[k].weight()
-                  v += wt[0] + wt[1]
-            b = self._list[k].f(i)
-            if b is None:
-               return None
-            return self._set_index(k, b)
+            for k in range(l):
+                b = self._list[k].f(i)
+                if b is not None:
+                    return self._set_index(k, b)
+                if self._list[k].e(i) is not None:
+                    # There are no (-1)-string of length > 1
+                    return None
+            return None
         n = self._parent.cartan_type().n
         if i < -1 and i >= -n:
             j = -i

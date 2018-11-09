@@ -198,9 +198,6 @@ import string
 
 WORKSPACE = gap_workspace_file()
 
-from sage.env import GAP_ROOT_DIR
-GAP_BINARY = os.path.join(GAP_ROOT_DIR, 'bin', 'gap.sh')
-
 first_try = True
 
 gap_cmd = "gap -r"

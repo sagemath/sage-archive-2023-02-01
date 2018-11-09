@@ -6638,12 +6638,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         sage: K.<xi> = NumberField(x^2+x+1)
         sage: S = K.primes_above(3)
-        sage: K.S_unit_solutions(S)
+        sage: K.S_unit_solutions(S) # random, due to ordering
         [(xi + 2, -xi - 1), (1/3*xi + 2/3, -1/3*xi + 1/3), (-xi, xi + 1), (-xi + 1, xi)]
 
     You can get the exponent vectors::
 
-        sage: K.S_unit_solutions(S, include_exponents=True)
+        sage: K.S_unit_solutions(S, include_exponents=True) # random, due to ordering
         [((2, 1), (4, 0), xi + 2, -xi - 1),
          ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
          ((5, 0), (1, 0), -xi, xi + 1),

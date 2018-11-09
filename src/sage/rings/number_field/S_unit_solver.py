@@ -17,14 +17,16 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation
+    sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation, eq_up_to_order
     sage: K.<xi> = NumberField(x^2+x+1)
     sage: S = K.primes_above(3)
-    sage: solve_S_unit_equation(K, S, 200)
-    [[(2, 1), (4, 0), xi + 2, -xi - 1],
-     [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
-     [(5, 0), (1, 0), -xi, xi + 1],
-     [(1, 1), (2, 0), -xi + 1, xi]]
+    sage: expected = [((2, 1), (4, 0), xi + 2, -xi - 1),
+    ....:             ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+    ....:             ((5, 0), (1, 0), -xi, xi + 1),
+    ....:             ((1, 1), (2, 0), -xi + 1, xi)]
+    sage: sols = solve_S_unit_equation(K, S, 200)
+    sage: eq_up_to_order(sols, expected)
+    True
 
 .. TODO::
 
@@ -2387,15 +2389,18 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[], verbose
 
     EXAMPLES::
 
-        sage: from sage.rings.number_field.S_unit_solver import sieve_below_bound
+        sage: from sage.rings.number_field.S_unit_solver import sieve_below_bound, eq_up_to_order
         sage: K.<xi> = NumberField(x^2+x+1)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
         sage: S = SUK.primes()
-        sage: sieve_below_bound(K, S, 10)
-        [((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-         ((2, 1), (4, 0), xi + 2, -xi - 1),
-         ((2, 0), (1, 1), xi, -xi + 1),
-         ((5, 0), (1, 0), -xi, xi + 1)]
+        sage: sols = sieve_below_bound(K, S, 10)
+        sage: expected = [
+        ....: ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+        ....: ((2, 1), (4, 0), xi + 2, -xi - 1),
+        ....: ((2, 0), (1, 1), xi, -xi + 1),
+        ....: ((5, 0), (1, 0), -xi, xi + 1)]
+        sage: eq_up_to_order(sols, expected)
+        True
     """
     SUK = UnitGroup(K, S=tuple(S))
     initial_bound = bound
@@ -2445,14 +2450,17 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
 
     EXAMPLES::
 
-        sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation
+        sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation, eq_up_to_order
         sage: K.<xi> = NumberField(x^2+x+1)
         sage: S = K.primes_above(3)
-        sage: solve_S_unit_equation(K, S, 200)
-        [((2, 1), (4, 0), xi + 2, -xi - 1),
-         ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-         ((5, 0), (1, 0), -xi, xi + 1),
-         ((1, 1), (2, 0), -xi + 1, xi)]
+        sage: sols = solve_S_unit_equation(K, S, 200)
+        sage: expected = [
+        ....: ((2, 1), (4, 0), xi + 2, -xi - 1),
+        ....: ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+        ....: ((5, 0), (1, 0), -xi, xi + 1),
+        ....: ((1, 1), (2, 0), -xi + 1, xi)]
+        sage: eq_up_to_order(sols, expected)
+        True
 
     In order to see the bound as well use the optional parameter ``include_bound``::
 
@@ -2462,8 +2470,10 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
 
     You can omit the exponent vectors::
 
-        sage: solve_S_unit_equation(K, S, 200, include_exponents=False)
-        [(xi + 2, -xi - 1), (1/3*xi + 2/3, -1/3*xi + 1/3), (-xi, xi + 1), (-xi + 1, xi)]
+        sage: sols = solve_S_unit_equation(K, S, 200, include_exponents=False)
+        sage: expected = [(xi + 2, -xi - 1), (1/3*xi + 2/3, -1/3*xi + 1/3), (-xi, xi + 1), (-xi + 1, xi)]
+        sage: set(frozenset(a) for a in sols) == set(frozenset(b) for b in expected)
+        True
 
     It is an error to use values in S that are not primes in K::
 
@@ -2503,8 +2513,33 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
     S_unit_solutions = sieve_below_bound(K, list(S), final_LLL_bound, verbose=verbose)
 
     if not include_exponents:
-        S_unit_solutsion = [sol[2:] for sol in S_unit_solutions]
+        S_unit_solutions = [sol[2:] for sol in S_unit_solutions]
     if include_bound:
         return S_unit_solutions, final_LLL_bound
     else:
         return S_unit_solutions
+
+def eq_up_to_order(A, B):
+    """
+    If A and B are lists of four-tuples ``[a0,a1,a2,a3]`` and ``[b0,b1,b2,b3]``,
+    checks that there is some reordering so that either ``ai=bi`` for all ``i`` or
+    ``a0==b1``, ``a1==b0``, ``a2==b3``, ``a3==b2``.
+
+    The entries must be hashable.
+
+    EXAMPLES::
+
+        sage: from sage.rings.number_field.S_unit_solver import eq_up_to_order
+        sage: L = [(1,2,3,4),(5,6,7,8)]
+        sage: L1 = [L[1],L[0]]
+        sage: L2 = [(2,1,4,3),(6,5,8,7)]
+        sage: eq_up_to_order(L, L1)
+        True
+        sage: eq_up_to_order(L, L2)
+        True
+        sage: eq_up_to_order(L, [(1,2,4,3),(5,6,8,7)])
+        False
+    """
+    Adup = set(A + [(a[1],a[0],a[3],a[2]) for a in A])
+    Bdup = set(B + [(b[1],b[0],b[3],b[2]) for b in B])
+    return Adup == Bdup

@@ -28,6 +28,7 @@ import re
 
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.structure.factorization import Factorization
 
 
 class Polynomial_padic(Polynomial):
@@ -193,6 +194,12 @@ class Polynomial_padic(Polynomial):
             ...
             PrecisionError: p-adic factorization not well-defined since the discriminant is zero up to the requestion p-adic precision
 
+        An example of factoring a constant polynomial (see :trac:`26669`)::
+
+            sage: R.<x> = Qp(5)[]
+            sage: R(2).factor()
+            2 + O(5^20)
+
         More examples over `\ZZ_p`::
 
             sage: R.<w> = PolynomialRing(Zp(5, prec=6, type = 'capped-abs', print_mode = 'val-unit'))
@@ -223,6 +230,9 @@ class Polynomial_padic(Polynomial):
         """
         if self == 0:
             raise ArithmeticError("factorization of {!r} is not defined".format(self))
+        elif self.is_constant():
+            return Factorization((), self.constant_coefficient())
+
         # Scale self such that 0 is the lowest valuation
         # amongst the coefficients
         try:
@@ -337,5 +347,4 @@ def _pari_padic_factorization_to_sage(G, R, leading_coeff):
             pols.append(R(p))
             exps.append(c)
 
-    from sage.structure.factorization import Factorization
     return Factorization(zip(pols, exps), leading_coeff)

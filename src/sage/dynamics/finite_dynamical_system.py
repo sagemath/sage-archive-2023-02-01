@@ -113,11 +113,15 @@ dynamical systems:
 #from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 #from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 #from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+from six import add_metaclass
+from sage.categories.sets_cat import Sets
 from sage.misc.abstract_method import abstract_method
 from sage.rings.rational_field import QQ
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_generic
 from sage.structure.sage_object import SageObject
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 
+@add_metaclass(ClasscallMetaclass)
 class DiscreteDynamicalSystem(SageObject):
     r"""
     A discrete dynamical system.
@@ -129,6 +133,25 @@ class DiscreteDynamicalSystem(SageObject):
 
     See the module-level doc for details.
     """
+    @staticmethod
+    def __classcall_private__(cls, X, phi, cache_orbits=False, create_tuple=False, inverse=None):
+        """
+        Return the correct object based on input.
+        """
+        is_finite = (X in Sets().Finite() or isinstance(X, (list,tuple,set,frozenset)))
+        if inverse:
+            if inverse is True:
+                # This is how the input for these subclasses work
+                inverse = None
+            ret_cls = (InvertibleFiniteDynamicalSystem if is_finite
+                   else InvertibleDiscreteDynamicalSystem)
+            return ret_cls(X, phi, cache_orbits=cache_orbits,
+                           create_tuple=create_tuple, inverse=inverse)
+        if is_finite:
+            return FiniteDynamicalSystem(X, phi, cache_orbits=cache_orbits,
+                                         create_tuple=create_tuple)
+        return typecall(cls, X, phi, cache_orbits=cache_orbits, create_tuple=create_tuple)
+
     def __init__(self, X, phi, cache_orbits=False, create_tuple=False):
         r"""
         INPUT:

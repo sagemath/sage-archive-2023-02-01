@@ -2,12 +2,11 @@
 
 # GAP startup script, installed in $SAGE_LOCAL/bin/gap
 
-
 if [ -z "$SAGE_LOCAL" ]; then
     echo "Set the environment variable SAGE_LOCAL."
     exit 1
 fi
 
-GAP_DIR="$SAGE_LOCAL/gap/latest"
+GAP_ROOT="$SAGE_LOCAL/share/gap"
 
-exec "$GAP_DIR/gap" -l "$GAP_DIR" -m 64m "$@"
+exec "$SAGE_LOCAL/bin/gap-bin" -l "$GAP_ROOT" -m 64m "$@"

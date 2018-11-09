@@ -13,7 +13,7 @@ REFERENCES:
 
 AUTHORS:
 
-- Alejandra Alvarado, Angelos Koutsianas, Beth Malmskog, Christopher Rasmussen, Christelle Vincent, Mckenzie West (2018-04-25): original version
+- Alejandra Alvarado, Angelos Koutsianas, Beth Malmskog, Christopher Rasmussen, David Roe, Christelle Vincent, Mckenzie West (2018-04-25 to 2018-11-09): original version
 
 EXAMPLES::
 
@@ -73,6 +73,7 @@ from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 from sage.misc.functional import round
 import itertools
+from six.moves import range
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -1308,19 +1309,18 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     m0_logp = log_p(m0, prime, prec)
     m0_logp = embedding_to_Kp(m0_logp, prime, prec)
     n = len(M_logp)
-    #Below we implement paragraph VI.4.2 of [Smart], pages 89-93
+    #Below we implement paragraph VI.4.2 of [Sma1998], pages 89-93
 
     #we evaluate the order of discriminant of theta
 
     Theta = [theta**i for i in range(K.absolute_degree())]
     ordp_Disc = (K.disc(Theta)).valuation(p)
-    #Let's check the mathematics here
-    #We evaluate lambda
+    #We evaluate Lambda
 
     c8 = min(min(a.valuation(p) for a in g) for g in M_logp)
     lam = p**c8
 
-    #we apply lemma VI.5 of [Smart] page 90
+    #we apply lemma VI.5 of [Sma1998] page 90
     #c6 is 0 here because we seek to solve the equation x+y=1, so our set A
     #is contained in the roots of unity of K
 
@@ -1419,6 +1419,7 @@ def p_adic_LLL_bound(SUK, A, prec=106):
                 while increase_precision:
                     local_prec *= 2
                     Log_p_Mus = [log_p(a, v, local_prec) for a in Mus]
+                    Log_p_Mus = [embedding_to_Kp(a, v, prec) for a in Log_p_Mus]
                     m0_Kv_new,increase_precision = p_adic_LLL_bound_one_prime(v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK, local_prec), local_prec)
 
             if m0_Kv_old > val:
@@ -1562,92 +1563,6 @@ def sieve_ordering(SUK, q):
     q_data.sort(key=lambda X: [X[3],X[0],X[1],X[2]])
     # zip() will change the list of n list of length m to m tuples of length n
     return zip(*q_data)
-
-def bounded_integer_lifts(r, m, bound):
-    r"""
-    Return all integers up to a given bound which are equivalent to ``r`` modulo ``m``.
-
-    INPUT:
-
-    - ``r`` -- an integer, representing a residue class modulo ``m``
-    - ``m`` -- an integer; the modulus under consideration
-    - ``bound`` -- a positive integer
-
-    OUTPUT:
-
-    A list of integers ``x`` satisfying both ``x == r % m`` and ``abs(x) <= bound``.
-
-    EXAMPLES::
-
-        sage: from sage.rings.number_field.S_unit_solver import bounded_integer_lifts
-        sage: bounded_integer_lifts(2, 7, 13)
-        [2, 9, -5, -12]
-
-    ::
-
-        sage: bounded_integer_lifts(4, 12, 1)
-        []
-
-    """
-
-    r0 = r % m
-    lifts = []
-    r_plus = r0
-    # first find the lifts in the range [0, bound]
-    while r_plus <= bound:
-        lifts.append(r_plus)
-        r_plus += m
-
-    r_minus = r0 - m
-    # now, find the lifts in the range [-bound, 0)
-    while r_minus >= -bound:
-        lifts.append(r_minus)
-        r_minus -= m
-
-    return lifts
-
-def bounded_vector_lifts(exponent_vector, m, bound):
-    r"""
-    Given an exponent vector modulo ``m``, construct the possible lifts which agree modulo ``m`` and with no entry exceeding ``bound`` in absolute value.
-
-    INPUT:
-
-    - ``exponent_vector`` -- an exponent vector (to be viewed as an exponent vector modulo ``m``)
-    - ``m`` -- a positive integer > 1
-    - ``bound`` -- a positive integer, bounding the absolute value of entries in lifts
-
-    OUTPUT:
-
-    A list of all exponent vectors with integer entries which satisfy the following criteria:
-
-    1. the 0th entry matches the 0th entry of ``exponent_vector``
-    2. for each ``j > 0``, the ``j`` th entry is congruent to the ``j`` th entry of ``exponent_vector`` modulo ``m``
-    3. all entries, except possibly the first, are bounded in absolute value by ``bound``.
-
-    EXAMPLES::
-
-        sage: from sage.rings.number_field.S_unit_solver import bounded_vector_lifts
-        sage: bounded_vector_lifts((2,7), 16, 44)
-        [(2, 7), (2, 23), (2, 39), (2, -9), (2, -25), (2, -41)]
-
-    """
-
-    length = len(exponent_vector)
-    if length == 0:
-        return [ () ]
-    elif length == 1:
-        return [(exponent_vector[0],)]
-    else:
-        # We work recursively. First, lift the final entry of the vector.
-        final_entry_lifts = bounded_integer_lifts(exponent_vector[-1], m, bound)
-        # Second, get the lifts of the shorter vector:
-        start_of_exponent_vector = exponent_vector[:-1]
-        lifted_vectors = []
-        for start_of_lift in bounded_vector_lifts(start_of_exponent_vector, m, bound):
-            for final_entry in final_entry_lifts:
-                new_vector = start_of_lift + (final_entry,)
-                lifted_vectors.append(new_vector)
-        return lifted_vectors
 
 def clean_rfv_dict(rfv_dictionary):
     r"""
@@ -1917,13 +1832,14 @@ def drop_vector(ev, p, q, complement_ev_dict):
     # returns True if it is OK to drop exp_vec given the current comp_exp_vec dictionary associated to some q.
     # returns False otherwise
     # loop over the possible compatible vectors in the other modulus
-    for compatible_exp_vec in compatible_vectors(ev, p-1, q-1):
+    g = gcd(p-1, q-1)
+    for compatible_exp_vec in compatible_vectors(ev, p-1, q-1, g):
         # do they appear in the other dictionary?
         if compatible_exp_vec in complement_ev_dict[q]:
             # OK, but the complements need to be compatible, too!
             ev_complement_list = complement_ev_dict[p][ev]
             for ev_comp in ev_complement_list:
-                for compatible_cv in compatible_vectors(ev_comp, p-1, q-1):
+                for compatible_cv in compatible_vectors(ev_comp, p-1, q-1, g):
                     if compatible_cv in complement_ev_dict[q][compatible_exp_vec]:
                         return False
     return True
@@ -2029,9 +1945,9 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
             # returns the value of rho_j^a_j inside the
             # residue field of Qi. (Necessarily isomorphic to F_q.)
             # rho_images[i][j] == rho[j] modulo Q[i]
-            eps_value = rho_images[i][0]**a[0] % q
+            eps_value = rho_images[i][0]**a[0]
             for j in range(1, rho_length):
-                eps_value = (eps_value * rho_images[i][j]**a[j]) % q
+                eps_value *= rho_images[i][j]**a[j]
             return eps_value
 
         if verbose:
@@ -2049,9 +1965,8 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
             # This should consist of all vectors (a0,...,a_{t-1}), where
             # a0 is in the range 0 .. w_0 - 1 and
             # aj is in the range 0 .. q - 2   (for j > 0)
-
-            lumpy_ev_iterator = itertools.product(range(w0), itertools.product(range(q-1), repeat=rho_length-1))
-            ev_iterator = itertools.imap(ev_flatten, lumpy_ev_iterator)
+            ranges = [range(w0)] + [range(q-1) for _ in range(rho_length-1)]
+            ev_iterator = itertools.product(*ranges)
 
             # With the iterator built, we construct the exponent vector to residue field dictionary.
 
@@ -2069,9 +1984,10 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
             # we only consider those evs which are compatible with the mod q0 - 1 vectors.
 
             # Loop over exponent vectors modulo q0 - 1
+            g = gcd(q0-1, q-1)
             for exp_vec_mod_q0 in comp_exp_vec[q0]:
                 # Loop only over exponent vectors modulo q-1 which are compatible with exp_vec_mod_q0
-                for exp_vec in compatible_vectors(exp_vec_mod_q0, q0-1, q-1):
+                for exp_vec in compatible_vectors(exp_vec_mod_q0, q0-1, q-1, g):
                     # fill the dictionary with the residue field vectors using the evaluation function.
                     ev_to_rfv_dict[exp_vec] = [epsilon_q(exp_vec, i) for i in range(nK)]
 
@@ -2144,65 +2060,16 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
 
     return comp_exp_vec
 
-def compatible_classes(a, m0, m1):
-    r"""
-    Given a congruence class `a` modulo `m_0`, returns those `b` modulo `m_1` such that `x = a \mod m_0`, `x = b \mod m_1` has a solution
-
-    INPUT:
-
-    - ``a`` -- an integer
-    - ``m0`` -- a positive integer
-    - ``m1`` -- a positive integer
-
-    OUTPUT:
-
-    A list of integers ``b`` in the range ``0..(m1-1)`` such that the Chinese Remainder Theorem problem
-
-    .. MATH::
-
-        \begin{aligned}
-        x & = a \mod m_0\\
-        x & = b \mod m_1
-        \end{aligned}
-
-    has a solution.
-
-    .. NOTE::
-
-        - For efficiency, the solutions are not computed.
-        - A necessary and sufficient condition is that ``a`` and ``b`` are congruent modulo ``g = gcd(m0, m1)``
-
-    EXAMPLES::
-
-        sage: from sage.rings.number_field.S_unit_solver import compatible_classes
-        sage: compatible_classes(2, 18, 27)
-        [2, 11, 20]
-
-    Use CRT to check the output::
-
-        sage: CRT(2, 2, 18, 27)
-        2
-        sage: CRT(2, 11, 18, 27)
-        38
-        sage: CRT(2, 20, 18, 27)
-        20
-
-    """
-
-    g = gcd(m0, m1)
-    a0 = a % g
-    return [a0 + b0*g for b0 in range(m1/g)]
-
-def compatible_vectors_check(a0, a1, m0, m1):
+def compatible_vectors_check(a0, a1, g, l):
     r"""
     Given exponent vectors with respect to two moduli, determines if they are compatible.
 
     INPUT:
 
     - ``a0`` -- an exponent vector modulo ``m0``
-    - ``a1`` -- an exponent vector modulo ``m1``
-    - ``m0`` -- a positive integer giving the modulus of ``a0``
-    - ``m1`` -- a positive integer giving the modulus of ``a1``
+    - ``a1`` -- an exponent vector modulo ``m1`` (must have the same length as ``a0``)
+    - ``g`` -- the gcd of ``m0`` and ``m1``
+    - ``l`` -- the length of ``a0`` and of ``a1``
 
     OUTPUT:
 
@@ -2229,34 +2096,24 @@ def compatible_vectors_check(a0, a1, m0, m1):
         sage: a0 = (3, 1, 8, 11)
         sage: a1 = (3, 5, 6, 13)
         sage: a2 = (5, 5, 6, 13)
-        sage: a3 = (3, 1, 8)
-        sage: compatible_vectors_check(a0, a1, 12, 22)
+        sage: compatible_vectors_check(a0, a1, gcd(12, 22), 4)
         True
-        sage: compatible_vectors_check(a0, a2, 12, 22)
+        sage: compatible_vectors_check(a0, a2, gcd(12, 22), 4)
         False
-        sage: compatible_vectors_check(a3, a0, 12, 22)
-        Traceback (most recent call last):
-        ...
-        ValueError: Exponent vectors a0 and a1 are not the same length.
     """
-
-    g = gcd(m0, m1)
-
-    length = len(a0)
-    if len(a0) != len(a1):
-        raise ValueError("Exponent vectors a0 and a1 are not the same length.")
     # exponent vectors must agree exactly in the 0th coordinate.
-    return a0[0] == a1[0] and all((x0 - x1) % g == 0 for x0,x1 in zip(a0[1:],a1[1:]))
+    return a0[0] == a1[0] and all((x0 - x1) % g == 0 for x0,x1 in itertools.izip(itertools.islice(a0, 1,l), itertools.islice(a1,1,l)))
 
-def compatible_vectors(a, m0, m1):
+def compatible_vectors(a, m0, m1, g):
     r"""
-    Given an exponent vector ``a`` modulo ``m0``, returns a list of exponent vectors for the modulus ``m1``, such that a lift to the lcm modulus exists.
+    Given an exponent vector ``a`` modulo ``m0``, returns an iterator over the exponent vectors for the modulus ``m1``, such that a lift to the lcm modulus exists.
 
     INPUT:
 
     - ``a``  -- an exponent vector for the modulus ``m0``
     - ``m0`` -- a positive integer (specifying the modulus for ``a``)
     - ``m1`` -- a positive integer (specifying the alternate modulus)
+    - ``g`` -- the gcd of m0 and m1
 
     OUTPUT:
 
@@ -2270,7 +2127,7 @@ def compatible_vectors(a, m0, m1):
 
         sage: from sage.rings.number_field.S_unit_solver import compatible_vectors
         sage: a = (3, 1, 8, 1)
-        sage: compatible_vectors(a, 18, 12)
+        sage: list(compatible_vectors(a, 18, 12, gcd(18,12)))
         [(3, 1, 2, 1),
         (3, 1, 2, 7),
         (3, 1, 8, 1),
@@ -2282,27 +2139,14 @@ def compatible_vectors(a, m0, m1):
 
     The order of the moduli matters. ::
 
-        sage: len(compatible_vectors(a, 18, 12))
+        sage: len(list(compatible_vectors(a, 18, 12, gcd(18,12))))
         8
-        sage: len(compatible_vectors(a, 12, 18))
+        sage: len(list(compatible_vectors(a, 12, 18, gcd(18,12))))
         27
     """
-
-    # to start, recall that the 0th entry must be an exact match.
-    compatible_list = [( a[0], )]
-
-    # we now build a new list, extending the length of the compatible vectors.
-    compatible_list_new = []
-
-    for entry in a[1:]:
-        compatible_entries = compatible_classes(entry, m0, m1)
-        for compatible_vector in compatible_list:
-            for new_entry in compatible_entries:
-                compatible_list_new.append(tuple(list(compatible_vector) + [new_entry]))
-        compatible_list = compatible_list_new
-        compatible_list_new = []
-
-    return compatible_list
+    # recall that the 0th entry must be an exact match.
+    ranges = [[a[0]]] + [range(a[i]%g, (a[i]%g) + m1, g) for i in range(1, len(a))]
+    return itertools.product(*ranges)
 
 def compatible_systems(split_prime_list, complement_exp_vec_dict):
     r"""
@@ -2357,12 +2201,14 @@ def compatible_systems(split_prime_list, complement_exp_vec_dict):
         num_primes = len(S1)
         old_systems = compatible_systems(S1, complement_exp_vec_dict)
         q = S0[-1]
+        gcds = [gcd(q-1, qj-1) for qj in S1]
         for exp_vec in complement_exp_vec_dict[q]:
+            l = len(exp_vec)
             for comp_vec in complement_exp_vec_dict[q][exp_vec]:
                 for old_system in old_systems:
-                    if all((compatible_vectors_check(exp_vec, exp_vec_qj, q-1, qj-1) and
-                            compatible_vectors_check(comp_vec, comp_vec_qj, q-1, qj-1))
-                           for qj, (exp_vec_qj, comp_vec_qj) in zip(S1, old_system)):
+                    if all((compatible_vectors_check(exp_vec, exp_vec_qj, g, l) and
+                            compatible_vectors_check(comp_vec, comp_vec_qj, g, l))
+                           for g, (exp_vec_qj, comp_vec_qj) in itertools.izip(gcds, old_system)):
                         # build the new system and append it to the list.
                         new_system = old_system + [[exp_vec, comp_vec]]
                         system_list.append(new_system)
@@ -2465,7 +2311,7 @@ def solutions_from_systems(SUK, bound, cs_list, split_primes_list):
         sage: split_primes_list = [7, 17]
         sage: a_compatible_system = [[[(0, 0, 5), (0, 0, 5)], [(0, 0, 15), (0, 0, 15)]]]
         sage: solutions_from_systems( SUK, 20, a_compatible_system, split_primes_list )
-        [[(0, 0, -1), (0, 0, -1), 1/2, 1/2]]
+        [((0, 0, -1), (0, 0, -1), 1/2, 1/2)]
     """
     solutions = []
 
@@ -2478,7 +2324,7 @@ def solutions_from_systems(SUK, bound, cs_list, split_primes_list):
             iota_exp = SUK.exp( ev )
             iota_comp = SUK.exp( cv )
             if iota_exp + iota_comp == 1:
-                sol = [ ev, cv, iota_exp, iota_comp ]
+                sol = ( ev, cv, iota_exp, iota_comp )
                 solutions.append( sol )
 
     return solutions
@@ -2505,15 +2351,15 @@ def clean_sfs(sfs_list):
     The function is not dependent on the number field and removes redundancies in any list. ::
 
         sage: from sage.rings.number_field.S_unit_solver import clean_sfs
-        sage: sols = [[(1, 0, 0), (0, 0, 1), -1, 2], [(0, 0, 1), (1, 0, 0), 2, -1]]
+        sage: sols = [((1, 0, 0), (0, 0, 1), -1, 2), ((0, 0, 1), (1, 0, 0), 2, -1)]
         sage: clean_sfs( sols )
-        [[(1, 0, 0), (0, 0, 1), -1, 2]]
+        [((1, 0, 0), (0, 0, 1), -1, 2)]
     """
     # given the output from solutions_from_systems,
     # look for trivial redundancies: swapping exp_vec, comp_vec, particularly.
     new_sfs = []
     for entry in sfs_list:
-        swapped_entry = [entry[1], entry[0], entry[3], entry[2]]
+        swapped_entry = (entry[1], entry[0], entry[3], entry[2])
         if entry not in new_sfs and swapped_entry not in new_sfs:
             new_sfs.append(entry)
     return new_sfs
@@ -2533,7 +2379,7 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[], verbose
 
     OUTPUT:
 
-    A list of lists ``[[ A_1, B_1, x_1, y_1], [A_2, B_2, x_2, y_2], ... [ A_n, B_n, x_n, y_n]]`` such that:
+    A list of tuples ``[( A_1, B_1, x_1, y_1), (A_2, B_2, x_2, y_2), ... ( A_n, B_n, x_n, y_n)]`` such that:
 
     1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.
     2. The last two entries are ``S``-units ``x_i`` and ``y_i`` in ``K`` with ``x_i + y_i = 1``.
@@ -2546,10 +2392,10 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[], verbose
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
         sage: S = SUK.primes()
         sage: sieve_below_bound(K, S, 10)
-        [[(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
-         [(2, 1), (4, 0), xi + 2, -xi - 1],
-         [(2, 0), (1, 1), xi, -xi + 1],
-         [(5, 0), (1, 0), -xi, xi + 1]]
+        [((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+         ((2, 1), (4, 0), xi + 2, -xi - 1),
+         ((2, 0), (1, 1), xi, -xi + 1),
+         ((5, 0), (1, 0), -xi, xi + 1)]
     """
     SUK = UnitGroup(K, S=tuple(S))
     initial_bound = bound
@@ -2574,7 +2420,7 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[], verbose
 
     return S_unit_solutions
 
-def solve_S_unit_equation(K, S, prec=106, returnBound=False, verbose=False):
+def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=False, proof=None, verbose=False):
     r"""
     Return all solutions to the S-unit equation ``x + y = 1`` over K.
 
@@ -2582,17 +2428,20 @@ def solve_S_unit_equation(K, S, prec=106, returnBound=False, verbose=False):
 
     - ``K`` -- a number field (an absolute extension of the rationals)
     - ``S`` -- a list of finite primes of ``K``
-    - ``prec`` -- precision used for computations in real field, complex field, and p-adic field (default: 106)
-    - ``returnBound`` -- an optional parameter allowing the user to return the final computed bound (default: False)
-    - ``verbose`` -- an optional parameter allowing the user to print information during the sieving step (default: False)
+    - ``prec`` -- precision used for computations in real, complex, and p-adic fields (default: 106)
+    - ``include_exponents`` -- whether to include the exponent vectors in the returned value (default: True).
+    - ``include_bound`` -- whether to return the final computed bound (default: False)
+    - ``verbose`` -- whether to print information during the sieving step (default: False)
 
     OUTPUT:
 
-    A list of lists ``[[ A_1, B_1, x_1, y_1], [A_2, B_2, x_2, y_2], ... [ A_n, B_n, x_n, y_n]]`` such that:
+    A list of tuples ``[( A_1, B_1, x_1, y_1), (A_2, B_2, x_2, y_2), ... ( A_n, B_n, x_n, y_n)]`` such that:
 
-    1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.
+    1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.  These will be ommitted if ``include_exponents`` is ``False``.
     2. The last two entries are ``S``-units ``x_i`` and ``y_i`` in ``K`` with ``x_i + y_i = 1``.
     3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(b_i)``.
+
+    If ``include_bound``, will return a pair ``(sols, bound)`` where ``sols`` is as above and ``bound`` is the bound used for the entries in the exponent vectors.
 
     EXAMPLES::
 
@@ -2600,16 +2449,21 @@ def solve_S_unit_equation(K, S, prec=106, returnBound=False, verbose=False):
         sage: K.<xi> = NumberField(x^2+x+1)
         sage: S = K.primes_above(3)
         sage: solve_S_unit_equation(K, S, 200)
-        [[(2, 1), (4, 0), xi + 2, -xi - 1],
-         [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
-         [(5, 0), (1, 0), -xi, xi + 1],
-         [(1, 1), (2, 0), -xi + 1, xi]]
+        [((2, 1), (4, 0), xi + 2, -xi - 1),
+         ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+         ((5, 0), (1, 0), -xi, xi + 1),
+         ((1, 1), (2, 0), -xi + 1, xi)]
 
-    In order to see the bound as well use the optional parameter returnBound::
+    In order to see the bound as well use the optional parameter ``include_bound``::
 
-        sage: solutions, bound = solve_S_unit_equation(K, S, 100, returnBound = True)
+        sage: solutions, bound = solve_S_unit_equation(K, S, 100, include_bound=True)
         sage: bound
         2
+
+    You can omit the exponent vectors::
+
+        sage: solve_S_unit_equation(K, S, 200, include_exponents=False)
+        [(xi + 2, -xi - 1), (1/3*xi + 2/3, -1/3*xi + 1/3), (-xi, xi + 1), (-xi + 1, xi)]
 
     It is an error to use values in S that are not primes in K::
 
@@ -2626,7 +2480,7 @@ def solve_S_unit_equation(K, S, prec=106, returnBound=False, verbose=False):
         raise ValueError("K must be an absolute extension.")
     # S must be a finite set of primes
     try:
-        SUK = UnitGroup(K, S=tuple(S))
+        SUK = UnitGroup(K, proof=proof, S=tuple(S))
     except Exception:
         raise ValueError("S must consist only of prime ideals, or a single element from which a prime ideal can be constructed.")
 
@@ -2645,10 +2499,12 @@ def solve_S_unit_equation(K, S, prec=106, returnBound=False, verbose=False):
     if verbose:
         print("The LLL bound is: ", final_LLL_bound)
 
-    # Use the sieve to more easily find all bounds 
+    # Use the sieve to more easily find all bounds
     S_unit_solutions = sieve_below_bound(K, list(S), final_LLL_bound, verbose=verbose)
 
-    if returnBound:
+    if not include_exponents:
+        S_unit_solutsion = [sol[2:] for sol in S_unit_solutions]
+    if include_bound:
         return S_unit_solutions, final_LLL_bound
     else:
         return S_unit_solutions

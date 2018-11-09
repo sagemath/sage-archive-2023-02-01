@@ -29,7 +29,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.loop_edges` | Return a list of all loops in the (di)graph
     :meth:`~GenericGraph.number_of_loops` | Return the number of edges that are loops
     :meth:`~GenericGraph.loop_vertices` | Return a list of vertices with loops
-    :meth:`~GenericGraph.remove_loops` | Remove loops on vertices in vertices. If vertices is None, removes all loops.
+    :meth:`~GenericGraph.remove_loops` | Remove loops on vertices in ``vertices``.
     :meth:`~GenericGraph.has_multiple_edges` | Return whether there are multiple edges in the (di)graph.
     :meth:`~GenericGraph.allows_multiple_edges` | Return whether multiple edges are permitted in the (di)graph.
     :meth:`~GenericGraph.allow_multiple_edges` | Change whether multiple edges are permitted in the (di)graph.
@@ -42,41 +42,41 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.order` | Return the number of vertices.
     :meth:`~GenericGraph.size` | Return the number of edges.
     :meth:`~GenericGraph.add_vertex` | Create an isolated vertex.
-    :meth:`~GenericGraph.add_vertices` | Add vertices to the (di)graph from an iterable container
-    :meth:`~GenericGraph.delete_vertex` | Delete a vertex, removing all incident edges.
-    :meth:`~GenericGraph.delete_vertices` | Remove vertices from the (di)graph taken from an iterable container of vertices.
-    :meth:`~GenericGraph.has_vertex` | Return ``True`` if vertex is one of the vertices of this graph.
-    :meth:`~GenericGraph.random_vertex` | Return a random vertex of self.
-    :meth:`~GenericGraph.random_vertex_iterator` | Return an iterator over random vertices of self.
-    :meth:`~GenericGraph.random_edge` | Return a random edge of self.
-    :meth:`~GenericGraph.random_edge_iterator` | Return an iterator over random edges of self.
-    :meth:`~GenericGraph.vertex_boundary` | Return a list of all vertices in the external boundary of vertices1, intersected with vertices2.
+    :meth:`~GenericGraph.add_vertices` | Add vertices to the (di)graph from an iterable container of vertices
+    :meth:`~GenericGraph.delete_vertex` | Delete vertex, removing all incident edges.
+    :meth:`~GenericGraph.delete_vertices` | Delete vertices from the (di)graph taken from an iterable container of vertices.
+    :meth:`~GenericGraph.has_vertex` | Check if ``vertex`` is one of the vertices of this graph.
+    :meth:`~GenericGraph.random_vertex` | Return a random vertex of ``self``.
+    :meth:`~GenericGraph.random_vertex_iterator` | Return an iterator over random vertices of ``self``.
+    :meth:`~GenericGraph.random_edge` | Return a random edge of ``self``.
+    :meth:`~GenericGraph.random_edge_iterator` | Return an iterator over random edges of ``self``.
+    :meth:`~GenericGraph.vertex_boundary` | Return a list of all vertices in the external boundary of ``vertices1``, intersected with ``vertices2``.
     :meth:`~GenericGraph.set_vertices` | Associate arbitrary objects with each vertex
     :meth:`~GenericGraph.set_vertex` | Associate an arbitrary object with a vertex.
     :meth:`~GenericGraph.get_vertex` | Retrieve the object associated with a given vertex.
     :meth:`~GenericGraph.get_vertices` | Return a dictionary of the objects associated to each vertex.
-    :meth:`~GenericGraph.vertex_iterator` | Return an iterator over the vertices.
-    :meth:`~GenericGraph.neighbor_iterator` | Return an iterator over neighbors of vertex.
+    :meth:`~GenericGraph.vertex_iterator` | Return an iterator over the given vertices.
+    :meth:`~GenericGraph.neighbor_iterator` | Return an iterator over neighbors of ``vertex``.
     :meth:`~GenericGraph.vertices` | Return a list of the vertices.
-    :meth:`~GenericGraph.neighbors` | Return a list of neighbors (in and out if directed) of vertex.
+    :meth:`~GenericGraph.neighbors` | Return a list of neighbors (in and out if directed) of ``vertex``.
     :meth:`~GenericGraph.merge_vertices` | Merge vertices.
-    :meth:`~GenericGraph.add_edge` | Add an edge from u and v.
+    :meth:`~GenericGraph.add_edge` | Add an edge from `u` to `v`.
     :meth:`~GenericGraph.add_edges` | Add edges from an iterable container.
     :meth:`~GenericGraph.subdivide_edge` | Subdivide an edge `k` times.
-    :meth:`~GenericGraph.subdivide_edges` | Subdivide k times edges from an iterable container.
-    :meth:`~GenericGraph.delete_edge` | Delete the edge from u to v
+    :meth:`~GenericGraph.subdivide_edges` | Subdivide `k` times edges from an iterable container.
+    :meth:`~GenericGraph.delete_edge` | Delete the edge from `u` to `v`
     :meth:`~GenericGraph.delete_edges` | Delete edges from an iterable container.
     :meth:`~GenericGraph.contract_edge` | Contract an edge from `u` to `v`.
     :meth:`~GenericGraph.contract_edges` | Contract edges from an iterable container.
-    :meth:`~GenericGraph.delete_multiedge` | Delete all edges from u and v.
+    :meth:`~GenericGraph.delete_multiedge` | Delete all edges from `u` to `v`.
     :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
-    :meth:`~GenericGraph.has_edge` | Return True if (u, v) is an edge, False otherwise.
+    :meth:`~GenericGraph.has_edge` | Check whether ``(u, v)`` is an edge of the (di)graph.
     :meth:`~GenericGraph.edges` | Return a list of edges.
     :meth:`~GenericGraph.edge_boundary` | Return a list of edges `(u,v,l)` with `u` in ``vertices1``
     :meth:`~GenericGraph.edge_iterator` | Return an iterator over edges.
     :meth:`~GenericGraph.edges_incident` | Return incident edges to some vertices.
     :meth:`~GenericGraph.edge_label` | Return the label of an edge.
-    :meth:`~GenericGraph.edge_labels` | Return a list of edge labels.
+    :meth:`~GenericGraph.edge_labels` | Return a list of the labels of all edges in ``self``.
     :meth:`~GenericGraph.remove_multiple_edges` | Remove all multiple edges, retaining one edge for each.
     :meth:`~GenericGraph.clear` | Empty the graph of vertices and edges and removes name, associated objects, and position information.
     :meth:`~GenericGraph.degree` | Return the degree (in + out for digraphs) of a vertex or of vertices.
@@ -9223,7 +9223,7 @@ class GenericGraph(GenericGraph_pyx):
     ### Vertex handlers
 
     def add_vertex(self, name=None):
-        """
+        r"""
         Create an isolated vertex.
 
         If the vertex already exists, then nothing is done.
@@ -9584,7 +9584,7 @@ class GenericGraph(GenericGraph_pyx):
                 yield choice(E)
 
     def vertex_boundary(self, vertices1, vertices2=None):
-        """
+        r"""
         Return a list of all vertices in the external boundary of ``vertices1``,
         intersected with ``vertices2``.
 
@@ -9917,7 +9917,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def neighbors(self, vertex):
         """
-        Return a list of neighbors (in and out if directed) of vertex.
+        Return a list of neighbors (in and out if directed) of ``vertex``.
 
         ``G[vertex]`` also works.
 
@@ -10048,8 +10048,8 @@ class GenericGraph(GenericGraph_pyx):
     ### Edge handlers
 
     def add_edge(self, u, v=None, label=None):
-        """
-        Add an edge from u and v.
+        r"""
+        Add an edge from `u` to `v`.
 
         INPUT: The following forms are all accepted:
 
@@ -10186,7 +10186,7 @@ class GenericGraph(GenericGraph_pyx):
                 self._backend.add_edge(u, v, label, self._directed)
 
     def subdivide_edge(self, *args):
-        """
+        r"""
         Subdivide an edge `k` times.
 
         INPUT:
@@ -10301,7 +10301,7 @@ class GenericGraph(GenericGraph_pyx):
         self.add_edges(edges)
 
     def subdivide_edges(self, edges, k):
-        """
+        r"""
         Subdivide `k` times edges from an iterable container.
 
         For more information on the behaviour of this method, please refer to
@@ -10354,8 +10354,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def delete_edge(self, u, v=None, label=None):
         r"""
-        Delete the edge from u to v, returning silently if vertices or edge does
-        not exist.
+        Delete the edge from `u` to `v`, returning silently if vertices or edge
+        does not exist.
 
         INPUT: The following forms are all accepted:
 
@@ -10450,7 +10450,7 @@ class GenericGraph(GenericGraph_pyx):
             self.delete_edge(e)
 
     def contract_edge(self, u, v=None, label=None):
-        """
+        r"""
         Contract an edge from `u` to `v`.
 
         This method returns silently if the edge does not exist.
@@ -10540,7 +10540,7 @@ class GenericGraph(GenericGraph_pyx):
         self.merge_vertices([u, v])
 
     def contract_edges(self, edges):
-        """
+        r"""
         Contract edges from an iterable container.
 
         If `e` is an edge that is not contracted but the vertices of `e` are
@@ -10668,8 +10668,8 @@ class GenericGraph(GenericGraph_pyx):
                 self.add_edge(root_u, root_v, label)
 
     def delete_multiedge(self, u, v):
-        """
-        Delete all edges from `u` and `v`.
+        r"""
+        Delete all edges from `u` to `v`.
 
         EXAMPLES::
 

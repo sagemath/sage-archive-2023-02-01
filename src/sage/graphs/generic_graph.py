@@ -84,7 +84,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.degree_histogram` | Return a list, whose ith entry is the frequency of degree i.
     :meth:`~GenericGraph.degree_iterator` | Return an iterator over the degrees of the (di)graph.
     :meth:`~GenericGraph.degree_sequence` | Return the degree sequence of this (di)graph.
-    :meth:`~GenericGraph.random_subgraph` | Return a random subgraph that contains each vertex with prob. p.
+    :meth:`~GenericGraph.random_subgraph` | Return a random subgraph containing each vertex with probability ``p``.
     :meth:`~GenericGraph.add_clique` | Add a clique to the graph with the given vertices.
     :meth:`~GenericGraph.add_cycle` | Add a cycle to the graph with the given vertices.
     :meth:`~GenericGraph.add_path` | Add a cycle to the graph with the given vertices.
@@ -96,7 +96,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.relabel` | Relabel the vertices of ``self``
     :meth:`~GenericGraph.degree_to_cell` | Return the number of edges from vertex to an edge in cell.
     :meth:`~GenericGraph.subgraph` | Return the subgraph containing the given vertices and edges.
-    :meth:`~GenericGraph.is_subgraph` | Test whether self is a subgraph of other.
+    :meth:`~GenericGraph.is_subgraph` | Check whether ``self`` is a subgraph of ``other``.
 
 **Graph products:**
 
@@ -174,14 +174,14 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_planar` | Test whether the graph is planar.
     :meth:`~GenericGraph.is_circular_planar` | Test whether the graph is circular planar (outerplanar)
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
-    :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
+    :meth:`~GenericGraph.is_chordal` | Check whether the given graph is chordal.
     :meth:`~GenericGraph.is_bipartite` | Test whether the given graph is bipartite.
-    :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.
+    :meth:`~GenericGraph.is_circulant` | Check whether the graph is a circulant graph.
     :meth:`~GenericGraph.is_interval` | Check whether the graph is an interval graph.
     :meth:`~GenericGraph.is_gallai_tree` | Return whether the current graph is a Gallai tree.
-    :meth:`~GenericGraph.is_clique` | Test whether a set of vertices is a clique
-    :meth:`~GenericGraph.is_cycle` | Test whether self is a (directed) cycle graph.
-    :meth:`~GenericGraph.is_independent_set` | Test whether a set of vertices is an independent set
+    :meth:`~GenericGraph.is_clique` | Check whether a set of vertices is a clique
+    :meth:`~GenericGraph.is_cycle` | Check whether ``self`` is a (directed) cycle graph.
+    :meth:`~GenericGraph.is_independent_set` | Check whether ``vertices`` is an independent set of ``self``
     :meth:`~GenericGraph.is_transitively_reduced` | Test whether the digraph is transitively reduced.
     :meth:`~GenericGraph.is_equitable` | Check whether the given partition is equitable with respect to self.
     :meth:`~GenericGraph.is_self_complementary` | Check whether the graph is self-complementary.
@@ -13210,7 +13210,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_subgraph(self, other, induced=True):
         """
-        Check whether the graph is a subgraph of ``other``.
+        Check whether ``self`` is a subgraph of ``other``.
 
         .. WARNING::
 

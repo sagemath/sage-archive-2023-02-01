@@ -6651,7 +6651,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
     And the computed bound::
 
-        sage: solutions, bound = K.S_unit_solutions(prec=100, include_bound=True)
+        sage: solutions, bound = K.S_unit_solutions(S, prec=100, include_bound=True)
         sage: bound
         2
         """

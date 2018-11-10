@@ -69,11 +69,8 @@ from sage.arith.all import factorial
 from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix, zero_matrix
 from sage.modules.free_module_element import zero_vector
 from itertools import combinations_with_replacement
-from sage.functions.log import log
-from sage.functions.other import sqrt
 from sage.arith.all import gcd, lcm, CRT
 from copy import copy
-from sage.misc.functional import round
 import itertools
 from six.moves import range
 
@@ -733,7 +730,7 @@ def reduction_step_real_case(place, B0, G, c7):
             if prec < R(C).log()/R(2).log():
                 return 0, True
         else:
-            if sqrt(l-S) - T > 0:
+            if (l-S).sqrt() - T > 0:
                 return ((R(C*2).log()-((l-S).sqrt()-T).log()) / c7).round(), False
             else:
                 return B0, False
@@ -1104,10 +1101,10 @@ def log_p_series_part(a, prime, prec):
     for i in range(1, n+1):
         beta -= delta / i
         delta *= (1 - gamma)
-        delta = sum([ZZ(di % (p**(prec+w))) * g**e
+        delta = sum([ZZ(di % (p**(prec+w))) * g**b
                      if di.valuation(p) >= 0 else
-                     ZZ((di * p**(-di.valuation(p))) % (p**(prec + w - di.valuation(p)))) * p**(di.valuation(p)) * g**e
-                     for e,di in enumerate(delta) if di != 0])
+                     ZZ((di * p**(-di.valuation(p))) % (p**(prec + w - di.valuation(p)))) * p**(di.valuation(p)) * g**b
+                     for b,di in enumerate(delta) if di != 0])
     beta = beta / (order * p**t)
 
     #we try to make the coefficients small
@@ -1180,7 +1177,7 @@ def defining_polynomial_for_Kp(prime, prec=106):
 
         #We are going to find which factor of f is related to the prime ideal 'prime'
 
-        L = [g.change_ring(ZZ) for g, e in factors]
+        L = [g.change_ring(ZZ) for g, _ in factors]
         A = [g for g in L if (g(theta)).valuation(prime) >= e*N/2];
 
         if len(A) == 1:
@@ -2200,7 +2197,6 @@ def compatible_systems(split_prime_list, complement_exp_vec_dict):
                 system_list.append(pair)
     elif len(S0) > 1:
         S1 = S0[:-1]
-        num_primes = len(S1)
         old_systems = compatible_systems(S1, complement_exp_vec_dict)
         q = S0[-1]
         gcds = [gcd(q-1, qj-1) for qj in S1]
@@ -2482,6 +2478,11 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
         ...
         ValueError: S must consist only of prime ideals, or a single element from which a prime ideal can be constructed.
 
+    We check the case that the rank is 0::
+
+        sage: K.<xi> = NumberField(x^2+x+1)
+        sage: solve_S_unit_equation(K, [])
+        [((1,), (5,), xi + 1, -xi)]
     """
 
     # Checks to make sure inputs are legal
@@ -2496,21 +2497,30 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
 
     # Gather the roots of unity of the number field
     A = K.roots_of_unity()
+    if SUK.rank() == 0:
+        # Since the rank is 0, K is imaginary quadratic and S is empty
+        # Only possibilities are combinations of roots of unity
+        # and this can only occur when there are 6 roots of unity, when
+        # (1+sqrt(-3))/2 + (1-sqrt(-3))/2 = 1 is the unique solution.
+        if len(A) == 6:
+            S_unit_solutions = [((ZZ(1),), (ZZ(5),), A[0], A[-2])]
+        else:
+            S_unit_solutions = []
+    else:
+        # First find a bound using the LLL reduction method
+        all_LLL_bounds = [cx_LLL_bound(SUK, A, prec)]
+        if S:
+            # only need p-adic bound when S nonempty
+            all_LLL_bounds.append(p_adic_LLL_bound(SUK, A, prec))
 
-    # First find a bound using the LLL reduction method
-    all_LLL_bounds = [cx_LLL_bound(SUK, A, prec)]
-    if S:
-        # only need p-adic bound when S nonempty
-        all_LLL_bounds.append(p_adic_LLL_bound(SUK, A, prec))
+        # Take the largest of all of the bounds we found
+        final_LLL_bound = max(all_LLL_bounds)
 
-    # Take the largest of all of the bounds we found
-    final_LLL_bound = max(all_LLL_bounds)
+        if verbose:
+            print("The LLL bound is: ", final_LLL_bound)
 
-    if verbose:
-        print("The LLL bound is: ", final_LLL_bound)
-
-    # Use the sieve to more easily find all bounds
-    S_unit_solutions = sieve_below_bound(K, list(S), final_LLL_bound, verbose=verbose)
+        # Use the sieve to more easily find all bounds
+        S_unit_solutions = sieve_below_bound(K, list(S), final_LLL_bound, verbose=verbose)
 
     if not include_exponents:
         S_unit_solutions = [sol[2:] for sol in S_unit_solutions]

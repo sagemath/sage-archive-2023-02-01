@@ -60,19 +60,19 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.vertices` | Return a list of the vertices.
     :meth:`~GenericGraph.neighbors` | Return a list of neighbors (in and out if directed) of ``vertex``.
     :meth:`~GenericGraph.merge_vertices` | Merge vertices.
-    :meth:`~GenericGraph.add_edge` | Add an edge from `u` to `v`.
+    :meth:`~GenericGraph.add_edge` | Add an edge from ``u`` to ``v``.
     :meth:`~GenericGraph.add_edges` | Add edges from an iterable container.
     :meth:`~GenericGraph.subdivide_edge` | Subdivide an edge `k` times.
     :meth:`~GenericGraph.subdivide_edges` | Subdivide `k` times edges from an iterable container.
-    :meth:`~GenericGraph.delete_edge` | Delete the edge from `u` to `v`
+    :meth:`~GenericGraph.delete_edge` | Delete the edge from ``u`` to ``v``
     :meth:`~GenericGraph.delete_edges` | Delete edges from an iterable container.
-    :meth:`~GenericGraph.contract_edge` | Contract an edge from `u` to `v`.
+    :meth:`~GenericGraph.contract_edge` | Contract an edge from ``u`` to ``v``.
     :meth:`~GenericGraph.contract_edges` | Contract edges from an iterable container.
-    :meth:`~GenericGraph.delete_multiedge` | Delete all edges from `u` to `v`.
+    :meth:`~GenericGraph.delete_multiedge` | Delete all edges from ``u`` to ``v``.
     :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
     :meth:`~GenericGraph.has_edge` | Check whether ``(u, v)`` is an edge of the (di)graph.
     :meth:`~GenericGraph.edges` | Return a list of edges.
-    :meth:`~GenericGraph.edge_boundary` | Return a list of edges `(u,v,l)` with `u` in ``vertices1``
+    :meth:`~GenericGraph.edge_boundary` | Return a list of edges ``(u,v,l)`` with ``u`` in ``vertices1``
     :meth:`~GenericGraph.edge_iterator` | Return an iterator over edges.
     :meth:`~GenericGraph.edges_incident` | Return incident edges to some vertices.
     :meth:`~GenericGraph.edge_label` | Return the label of an edge.
@@ -9393,12 +9393,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertex`` -- the name of an vertex (see :meth:`add_vertex`)
-
-        OUTPUT:
-
-        Returns ``True`` if ``vertex`` is one of the vertices of the (di)graph,
-        and ``False`` otherwise.
+        - ``vertex`` -- the name of a vertex (see :meth:`add_vertex`)
 
         EXAMPLES::
 
@@ -9909,7 +9904,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: sort keyword is False, yet a key function is given
         """
-        if not sort and key:
+        if (not sort) and key:
             raise ValueError('sort keyword is False, yet a key function is given')
         if sort:
             return sorted(list(self.vertex_iterator()), key=key)
@@ -10049,7 +10044,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def add_edge(self, u, v=None, label=None):
         r"""
-        Add an edge from `u` to `v`.
+        Add an edge from ``u`` to ``v``.
 
         INPUT: The following forms are all accepted:
 
@@ -10354,8 +10349,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def delete_edge(self, u, v=None, label=None):
         r"""
-        Delete the edge from `u` to `v`, returning silently if vertices or edge
-        does not exist.
+        Delete the edge from ``u`` to ``v``.
+
+        This method returns silently if vertices or edge does not
+        exist.
 
         INPUT: The following forms are all accepted:
 
@@ -10451,7 +10448,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def contract_edge(self, u, v=None, label=None):
         r"""
-        Contract an edge from `u` to `v`.
+        Contract an edge from ``u`` to ``v``.
 
         This method returns silently if the edge does not exist.
 
@@ -10669,7 +10666,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def delete_multiedge(self, u, v):
         r"""
-        Delete all edges from `u` to `v`.
+        Delete all edges from ``u`` to ``v``.
 
         EXAMPLES::
 
@@ -10906,7 +10903,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges()
             [(0, 1, [8]), (0, 2, [7])]
         """
-        if not sort and key:
+        if (not sort) and key:
             raise ValueError('sort keyword is False, yet a key function is given')
         L = list(self.edge_iterator(labels=labels))
         if sort:
@@ -10915,8 +10912,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=False):
         r"""
-        Return a list of edges `(u,v,l)` with `u` in ``vertices1``
-        and `v` in ``vertices2``.
+        Return a list of edges ``(u,v,l)`` with ``u`` in ``vertices1``
+        and ``v`` in ``vertices2``.
 
         If ``vertices2`` is ``None``, then it is set to the complement of
         ``vertices1``.

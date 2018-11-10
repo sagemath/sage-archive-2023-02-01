@@ -11273,7 +11273,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.get_vertex(0)
         """
         self.name('')
-        self.delete_vertices(self.vertices())
+        self.delete_vertices(self.vertex_iterator())
 
     ### Degree functions
 

@@ -11275,23 +11275,35 @@ class GenericGraph(GenericGraph_pyx):
 
     def degree(self, vertices=None, labels=False):
         """
-        Gives the degree (in + out for digraphs) of a vertex or of
-        vertices.
+        Return the degree (in + out for digraphs) of a vertex or of vertices.
 
         INPUT:
 
+        - ``vertices`` -- a vertex or an iterable container of vertices
+          (default: ``None``); if ``vertices`` is a single vertex, returns the
+          number of neighbors of that vertex. If ``vertices`` is an iterable
+          container of vertices, returns a list of degrees. If ``vertices`` is
+          ``None``, same as listing all vertices.
 
-        -  ``vertices`` - If vertices is a single vertex,
-           returns the number of neighbors of vertex. If vertices is an
-           iterable container of vertices, returns a list of degrees. If
-           vertices is None, same as listing all vertices.
+        - ``labels`` -- boolean (default: ``False``); when ``True``, return a
+          dictionary mapping each vertex in ``vertices`` to its
+          degree. Otherwise, return the degree of a single vertex or a list of
+          the degrees of each vertex in ``vertices``
 
-        -  ``labels`` - see OUTPUT
+        OUTPUT:
 
+        - When ``vertices`` is a single vertex and ``labels`` is ``False``,
+          returns the degree of that vertex as an integer
 
-        OUTPUT: Single vertex- an integer. Multiple vertices- a list of
-        integers. If labels is True, then returns a dictionary mapping each
-        vertex to its degree.
+        - When ``vertices`` is an interable container of vertices (or ``None``)
+          and ``labels`` is ``False``, returns a list of integers. The `i`-th
+          value is the degree of the `i`-th vertex in the list
+          ``vertices``. When ``vertices`` is ``None``, the `i`-th value is the
+          degree of `i`-th vertex in the ordering ``list(self)``, which might be
+          different from the ordering of the vertices given by ``g.vertices()``.
+
+        - When ``labels`` is ``True``, returns a dictionary mapping each vertex
+          in ``vertices`` to its degree
 
         EXAMPLES::
 
@@ -11307,65 +11319,74 @@ class GenericGraph(GenericGraph_pyx):
 
         ::
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.degree(vertices = [0,1,2], labels=True)
+            sage: D = DiGraph({0: [1, 2, 3], 1: [0, 2], 2: [3], 3: [4], 4: [0,5], 5: [1]})
+            sage: D.degree(vertices=[0, 1, 2], labels=True)
             {0: 5, 1: 4, 2: 3}
             sage: D.degree()
             [5, 4, 3, 3, 3, 2]
+
+        When ``vertices=None`` and ``labels=False``, the `i`-th value of the
+        returned list is the degree of the `i`-th vertex in the list
+        ``list(self)``::
+
+            sage: D = digraphs.DeBruijn(4, 2)
+            sage: D.delete_vertex('20')
+            sage: print(D.degree())
+            [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
+            sage: print(D.degree(vertices=list(D)))
+            [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
+            sage: print(D.degree(vertices=D.vertices()))
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
         """
         if labels:
-            return dict(self.degree_iterator(vertices,labels))
+            return dict(self.degree_iterator(vertices, labels))
         elif vertices in self and not labels:
-            return next(self.degree_iterator(vertices,labels))
+            return next(self.degree_iterator(vertices, labels))
         else:
-            return list(self.degree_iterator(vertices,labels))
+            return list(self.degree_iterator(vertices, labels))
 
     def average_degree(self):
         r"""
-        Returns the average degree of the graph.
+        Return the average degree of the graph.
 
-        The average degree of a graph `G=(V,E)` is equal to
-        ``\frac {2|E|}{|V|}``.
+        The average degree of a graph `G=(V,E)` is equal to `\frac{2|E|}{|V|}`.
 
         EXAMPLES:
 
-        The average degree of a regular graph is equal to the
-        degree of any vertex::
+        The average degree of a regular graph is equal to the degree of any
+        vertex::
 
             sage: g = graphs.CompleteGraph(5)
             sage: g.average_degree() == 4
             True
 
-        The average degree of a tree is always strictly less than
-        `2`::
+        The average degree of a tree is always strictly less than `2`::
 
-           sage: g = graphs.RandomGNP(20,.5)
-           sage: tree = Graph()
-           sage: tree.add_edges(g.min_spanning_tree())
+           sage: tree = graphs.RandomTree(20)
            sage: tree.average_degree() < 2
            True
 
-        For any graph, it is equal to ``\frac {2|E|}{|V|}``::
+        For any graph, it is equal to `\frac{2|E|}{|V|}`::
 
-            sage: g = graphs.RandomGNP(50,.8)
-            sage: g.average_degree() == 2*g.size()/g.order()
+            sage: g = graphs.RandomGNP(20, .4)
+            sage: g.average_degree() == 2 * g.size() / g.order()
             True
         """
-        return 2*Integer(self.size())/Integer(self.order())
+        return 2 * Integer(self.size()) / Integer(self.order())
 
     def degree_histogram(self):
-        """
-        Return a list, whose ith entry is the frequency of degree i.
+        r"""
+        Return a list, whose `i`-th entry is the frequency of degree `i`.
 
         EXAMPLES::
 
-            sage: G = graphs.Grid2dGraph(9,12)
+            sage: G = graphs.Grid2dGraph(9, 12)
             sage: G.degree_histogram()
             [0, 0, 4, 34, 70]
 
         ::
 
-            sage: G = graphs.Grid2dGraph(9,12).to_directed()
+            sage: G = graphs.Grid2dGraph(9, 12).to_directed()
             sage: G.degree_histogram()
             [0, 0, 0, 0, 4, 0, 34, 0, 70]
 
@@ -11374,18 +11395,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph().degree_histogram()
             []
         """
-        if self.order() == 0:
+        if not self.order():
             return []
         degree_sequence = self.degree()
         dmax = max(degree_sequence) + 1
-        frequency = [0]*dmax
+        frequency = [0] * dmax
         for d in degree_sequence:
             frequency[d] += 1
         return frequency
 
     def degree_iterator(self, vertices=None, labels=False):
         """
-        Returns an iterator over the degrees of the (di)graph.
+        Return an iterator over the degrees of the (di)graph.
 
         In the case of a digraph, the degree is defined as the sum of the
         in-degree and the out-degree, i.e. the total number of edges incident to
@@ -11393,17 +11414,27 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``labels`` (boolean) -- if set to ``False`` (default) the method
-          returns an iterator over degrees. Otherwise it returns an iterator
-          over tuples (vertex, degree).
+        - ``vertices`` -- a vertex or an iterable container of vertices
+          (default: ``None``); if ``vertices`` is a single vertex, the iterator
+          will yield the number of neighbors of that vertex. If ``vertices`` is
+          an iterable container of vertices, return an iterator over the degrees
+          of these vertices. If ``vertices`` is ``None``, same as listing all
+          vertices.
 
-        -  ``vertices`` - if specified, restrict to this
-           subset.
+        - ``labels`` -- boolean (default: ``False``); whether to return an
+          iterator over degrees (``labels=False``), or over tuples ``(vertex,
+          degree)``
 
+        .. NOTE::
+
+            The returned iterator yields values in order specified by
+            ``list(vertices)``. When ``vertices`` is ``None``, it yields values
+            in the same order as ``list(self)``, which might be different from
+            the ordering of the vertices given by ``g.vertices()``.
 
         EXAMPLES::
 
-            sage: G = graphs.Grid2dGraph(3,4)
+            sage: G = graphs.Grid2dGraph(3, 4)
             sage: for i in G.degree_iterator():
             ....:  print(i)
             3
@@ -11438,6 +11469,16 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ((1, 0), 4)
             ((0, 2), 6)
+
+        When ``vertices=None`` yields values in the order of ``list(D)``::
+
+            sage: V = list(D)
+            sage: D = digraphs.DeBruijn(4, 2)
+            sage: D.delete_vertex('20')
+            sage: print(list(D.degree_iterator()))
+            [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
+            sage: print([D.degree(v) for v in D])
+            [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
         """
         if vertices is None:
             vertices = self
@@ -11481,13 +11522,13 @@ class GenericGraph(GenericGraph_pyx):
         """
         return sorted(self.degree_iterator(), reverse=True)
 
-    def is_regular(self, k = None):
+    def is_regular(self, k=None):
         """
-        Return ``True`` if this graph is (`k`-)regular.
+        Check whether this graph is (`k`-)regular.
 
         INPUT:
 
-        - ``k`` (default: ``None``) - the degree of regularity to
+        - ``k`` -- integer (default: ``None``); the degree of regularity to
           check for
 
         EXAMPLES::
@@ -11498,9 +11539,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_regular(9)
             False
 
-        So the Hoffman-Singleton graph is regular, but not
-        9-regular.  In fact, we can now find the degree easily as
-        follows::
+        So the Hoffman-Singleton graph is regular, but not 9-regular. In fact,
+        we can now find the degree easily as follows::
 
             sage: next(G.degree_iterator())
             7
@@ -11515,7 +11555,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph().is_regular()
             True
         """
-        if self.order() == 0:
+        if not self.order():
             return True
 
         deg_it = self.degree_iterator()

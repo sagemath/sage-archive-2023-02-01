@@ -26,7 +26,7 @@ Classes and functions
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# http://www.gnu.org/licenses/
+# https://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
 
@@ -86,12 +86,13 @@ def frequency_table(string):
     The frequency of an empty string::
 
         sage: frequency_table("")
-        defaultdict(<class 'int'>, {})
+        defaultdict(<... 'int'>, {})
     """
     d = defaultdict(int)
     for s in string:
         d[s] += 1
     return d
+
 
 class Huffman(SageObject):
     r"""

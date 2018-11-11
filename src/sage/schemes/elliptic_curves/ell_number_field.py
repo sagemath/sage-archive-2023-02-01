@@ -4011,4 +4011,4 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # we change E to be a plain curve to allow the generic rational
         # points code to reduce mod any prime, whereas an EllipticCurve
         # can only be base changed to good primes.
-        return Curve(self).rational_points(**kwds)
+        return map(self, Curve(self).rational_points(**kwds))

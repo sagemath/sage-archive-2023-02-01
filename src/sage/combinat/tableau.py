@@ -944,7 +944,7 @@ class Tableau(ClonableList):
 
         - ``descents`` -- boolean (default: ``False``); if ``True``,
           then the descents are marked in the tableau; only valid if
-        ``self`` is a standard tableau
+          ``self`` is a standard tableau
 
         EXAMPLES::
 

@@ -3969,3 +3969,46 @@ class EllipticCurve_number_field(EllipticCurve_field):
         gens = self.saturation(gens1 + gens2, max_prime=2)[0]
         self.__gens = gens
         return gens
+
+    def rational_points(self, **kwds):
+        r"""
+        Find rational points on the elliptic curve, all arguments are passed
+        on to :meth:`sage.schemes.generic.algebraic_scheme.rational_points`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: E.rational_points(bound=8)
+            [(-1 : -1 : 1),
+             (-1 : 0 : 1),
+             (0 : -1 : 1),
+             (0 : 0 : 1),
+             (0 : 1 : 0),
+             (1/4 : -5/8 : 1),
+             (1/4 : -3/8 : 1),
+             (1 : -1 : 1),
+             (1 : 0 : 1),
+             (2 : -3 : 1),
+             (2 : 2 : 1)]
+
+        Check that :trac:`26677` is fixed::
+
+            sage: E = EllipticCurve("11a1")
+            sage: E.rational_points(bound=5)
+            [(0 : 1 : 0), (5 : 5 : 1)]
+            sage: E.rational_points(bound=6)
+            [(0 : 1 : 0), (5 : -6 : 1), (5 : 5 : 1)]
+
+        An example over a number field::
+
+            sage: E = EllipticCurve([1,0])
+            sage: E = E.change_ring(QuadraticField(-1))
+            sage: E.rational_points(bound=2)
+            [(-a : 0 : 1), (0 : 0 : 1), (0 : 1 : 0), (a : 0 : 1)]
+
+        """
+        from sage.schemes.curves.constructor import Curve
+        # we change E to be a plain curve to allow the generic rational
+        # points code to reduce mod any prime, whereas an EllipticCurve
+        # can only be base changed to good primes.
+        return Curve(self).rational_points(**kwds)

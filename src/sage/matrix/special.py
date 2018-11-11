@@ -48,8 +48,8 @@ The following constructions are available:
 The Combinatorics module provides further matrix constructors, such as Hadamard
 matrices and Latin squares. See:
 
-    - :ref:`sage.combinat.matrices.hadamard_matrix`
-    - :ref:`sage.combinat.matrices.latin`
+    - :mod:`sage.combinat.matrices.hadamard_matrix`
+    - :mod:`sage.combinat.matrices.latin`
 """
 
 #*****************************************************************************
@@ -76,6 +76,7 @@ from copy import copy
 from .constructor import matrix
 
 import sage.categories.pushout
+
 
 def matrix_method(func=None, name=None):
     """
@@ -705,7 +706,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
 
         sage: import numpy
         sage: entries = numpy.array([1.2, 5.6]); entries
-        array([ 1.2,  5.6])
+        array([1.2, 5.6])
         sage: A = diagonal_matrix(3, entries); A
         [1.2 0.0 0.0]
         [0.0 5.6 0.0]
@@ -715,7 +716,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
 
         sage: j = numpy.complex(0,1)
         sage: entries = numpy.array([2.0+j, 8.1, 3.4+2.6*j]); entries
-        array([ 2.0+1.j ,  8.1+0.j ,  3.4+2.6j])
+        array([2. +1.j , 8.1+0.j , 3.4+2.6j])
         sage: A = diagonal_matrix(entries); A
         [2.0 + 1.0*I         0.0         0.0]
         [        0.0         8.1         0.0]

@@ -115,7 +115,7 @@ end;
     return Concatenation(opnames, GLOBAL_FUNCTION_NAMES);
 end;
 
-# The log below is for debuging only.
+# The log below is for debugging only.
 # CAREFUL -- do *not* activate this unless you know
 # what you are doing.  E.g., if active and the user doesn't
 # have write permission to /tmp (e.g., on OS X),

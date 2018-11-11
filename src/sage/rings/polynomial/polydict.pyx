@@ -40,6 +40,7 @@ from __future__ import print_function, absolute_import
 
 from libc.string cimport memcpy
 from cpython.dict cimport *
+cimport cython
 from cpython.object cimport (PyObject_RichCompare, Py_EQ, Py_NE,
                              Py_LT, Py_LE, Py_GT, Py_GE)
 from cysignals.memory cimport sig_malloc, sig_free
@@ -237,8 +238,8 @@ cdef class PolyDict:
 
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
-            sage: f.coefficients()
-            [3, 2, 4]
+            sage: sorted(f.coefficients())
+            [2, 3, 4]
         """
         return list(self.__repn.values())
 
@@ -1003,7 +1004,7 @@ cdef class ETuple:
                 self._data[2*ind] = index
                 self._data[2*ind+1] = exp
                 ind += 1
-        elif isinstance(data, list) or isinstance(data, tuple):
+        elif isinstance(data, (list, tuple)):
             self._length = len(data)
             self._nonzero = 0
             for v in data:
@@ -1117,14 +1118,26 @@ cdef class ETuple:
             d = [self[ind] for ind from start <= ind < stop]
             return ETuple(d)
         else:
-            ind = 0
-            for ind from 0 <= ind < self._nonzero:
-                if self._data[2*ind] == i:
-                    return self._data[2*ind+1]
-                elif self._data[2*ind] > i:
+            for ind in range(0, 2*self._nonzero, 2):
+                if self._data[ind] == i:
+                    return self._data[ind+1]
+                elif self._data[ind] > i:
                     # the indices are sorted in _data, we are beyond, so quit
                     return 0
             return 0
+
+    cdef size_t get_exp(ETuple self, int i):
+        """
+        Return the exponent for the ``i``-th variable.
+        """
+        cdef size_t ind = 0
+        for ind in range(0, 2*self._nonzero, 2):
+            if self._data[ind] == i:
+                return self._data[ind+1]
+            elif self._data[ind] > i:
+                # the indices are sorted in _data, we are beyond, so quit
+                return 0
+        return 0
 
     def __hash__(ETuple self):
         """
@@ -1289,6 +1302,127 @@ cdef class ETuple:
         return make_ETuple, (d, int(self._length))
 
     # additional methods
+
+    cpdef size_t unweighted_degree(self):
+        r"""
+        Return the sum of entries.
+
+        ASSUMPTION:
+
+        All entries are non-negative.
+
+        EXAMPLES::
+
+             sage: from sage.rings.polynomial.polydict import ETuple
+             sage: e = ETuple([1,1,0,2,0])
+             sage: e.unweighted_degree()
+             4
+        """
+        cdef size_t degree = 0
+        cdef size_t i
+        for i in range(1, 2*self._nonzero, 2):
+            degree += self._data[i]
+        return degree
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef size_t weighted_degree(self, tuple w):
+        r"""
+        Return the weighted sum of entries.
+
+        INPUT:
+
+        - ``w`` -- tuple of non-negative integers
+
+        ASSUMPTIONS:
+
+        ``w`` has the same length as ``self``, and the entries of ``self``
+        and ``w`` are non-negative.
+        """
+        cdef size_t i
+        cdef size_t deg = 0
+        assert len(w) == self._length
+        for i in range(0, 2*self._nonzero, 2):
+            deg += <size_t> self._data[i+1] * <size_t> w[self._data[i]]
+        return deg
+
+    cdef size_t unweighted_quotient_degree(self, ETuple other):
+        """
+        Degree of ``self`` divided by its gcd with ``other``.
+
+        It amounts to counting the non-negative entries of
+        ``self.esub(other)``.
+        """
+        cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in double steps.
+        cdef size_t ind2 = 0
+        cdef int exponent
+        cdef int position
+        cdef size_t selfnz = 2 * self._nonzero
+        cdef size_t othernz = 2 * other._nonzero
+
+        cdef size_t deg = 0
+        while ind1 < selfnz:
+            position = self._data[ind1]
+            exponent = self._data[ind1+1]
+            while ind2 < othernz and other._data[ind2] < position:
+                ind2 += 2
+            if ind2 == othernz:
+                while ind1 < selfnz:
+                    deg += self._data[ind1+1]
+                    ind1 += 2
+                return deg
+            if other._data[ind2] > position:
+                # other[position] = 0
+                deg += exponent
+            elif other._data[ind2+1] < exponent:
+                # There is a positive difference that we have to insert
+                deg += (exponent - other._data[ind2+1])
+            ind1 += 2
+        return deg
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef size_t weighted_quotient_degree(self, ETuple other, tuple w):
+        r"""
+        Weighted degree of ``self`` divided by its gcd with ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`~sage.rings.polynomial.polydict.ETuple`
+        - ``w`` -- tuple of non-negative integers.
+
+        ASSUMPTIONS:
+
+        ``w`` and ``other`` have the same length as ``self``, and the
+        entries of ``self``, ``other`` and ``w`` are non-negative.
+        """
+        cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in double steps.
+        cdef size_t ind2 = 0
+        cdef size_t exponent
+        cdef int position
+        cdef size_t selfnz = 2 * self._nonzero
+        cdef size_t othernz = 2 * other._nonzero
+
+        cdef size_t deg = 0
+        assert len(w) == self._length
+        while ind1 < selfnz:
+            position = self._data[ind1]
+            exponent = self._data[ind1+1]
+            while ind2 < othernz and other._data[ind2] < position:
+                ind2 += 2
+            if ind2 == othernz:
+                while ind1 < selfnz:
+                    deg += <size_t>self._data[ind1+1] * <size_t> w[self._data[ind1]]
+                    ind1 += 2
+                return deg
+            if other._data[ind2] > position:
+                # other[position] = 0
+                deg += exponent * <size_t>w[position]
+            elif other._data[ind2+1] < exponent:
+                # There is a positive difference that we have to insert
+                deg += <size_t> (exponent - other._data[ind2+1]) * <size_t>w[position]
+            ind1 += 2
+        return deg
 
     cpdef ETuple eadd(ETuple self, ETuple other):
         """
@@ -1554,6 +1688,149 @@ cdef class ETuple:
                 result._nonzero += 1
         return result
 
+    cpdef ETuple escalar_div(ETuple self, int n):
+        r"""
+        Divide each exponent by ``n``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: ETuple([1,0,2]).escalar_div(2)
+            (0, 0, 1)
+            sage: ETuple([0,3,12]).escalar_div(3)
+            (0, 1, 4)
+
+            sage: ETuple([1,5,2]).escalar_div(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+
+        TESTS:
+
+        Checking that memory allocation works fine::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: t = ETuple(list(range(2048)))
+            sage: for n in range(1,9):
+            ....:     t = t.escalar_div(n)
+            sage: assert t.is_constant()
+        """
+        if not n:
+            raise ZeroDivisionError
+        cdef size_t i, j
+        cdef ETuple result = self._new()
+        result._data = <int*> sig_malloc(sizeof(int) * 2 * self._nonzero)
+        result._nonzero = 0
+        for i in range(self._nonzero):
+            result._data[2 * result._nonzero + 1] = self._data[2 * i + 1] / n
+            if result._data[2 * result._nonzero + 1]:
+                result._data[2 * result._nonzero] = self._data[2 * i]
+                result._nonzero += 1
+        return result
+
+    cdef ETuple divide_by_gcd(self, ETuple other):
+        """
+        Return ``self / gcd(self, other)``.
+
+        The entries of the result are the maximum of 0 and the
+        difference of the corresponding entries of ``self`` and ``other``.
+        """
+        cdef size_t ind1 = 0    # both ind1 and ind2 will be increased in 2-steps.
+        cdef size_t ind2 = 0
+        cdef int exponent
+        cdef int position
+        cdef size_t selfnz = 2 * self._nonzero
+        cdef size_t othernz = 2 * other._nonzero
+        cdef ETuple result = <ETuple> self._new()
+        result._nonzero = 0
+        result._data = <int*> sig_malloc(sizeof(int)*self._nonzero*2)
+        while ind1 < selfnz:
+            position = self._data[ind1]
+            exponent = self._data[ind1+1]
+            while ind2 < othernz and other._data[ind2] < position:
+                ind2 += 2
+            if ind2 == othernz:
+                while ind1 < selfnz:
+                    result._data[2*result._nonzero] = self._data[ind1]
+                    result._data[2*result._nonzero+1] = self._data[ind1+1]
+                    result._nonzero += 1
+                    ind1 += 2
+                return result
+            if other._data[ind2] > position:
+                # other[position] == 0
+                result._data[2*result._nonzero] = position
+                result._data[2*result._nonzero+1] = exponent
+                result._nonzero += 1
+            elif other._data[ind2+1] < exponent:
+                # There is a positive difference that we have to insert
+                result._data[2*result._nonzero] = position
+                result._data[2*result._nonzero+1] = exponent - other._data[ind2+1]
+                result._nonzero += 1
+            ind1 += 2
+        return result
+
+    cdef ETuple divide_by_var(self, size_t index):
+        """
+        Return division of ``self`` by ``var(index)`` or ``None``.
+
+        If ``self[Index] == 0`` then None is returned. Otherwise, an
+        :class:`~sage.rings.polynomial.polydict.ETuple` is returned
+        that is zero in positition ``index`` and coincides with ``self``
+        in the other positions.
+        """
+        cdef size_t i, j
+        cdef int exp1
+        cdef ETuple result
+        for i in range(0, 2*self._nonzero,2):
+            if self._data[i] == index:
+                result = <ETuple>self._new()
+                result._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
+                exp1 = self._data[i+1]
+                if exp1>1:
+                    # division doesn't change the number of nonzero positions
+                    result._nonzero = self._nonzero
+                    for j in range(0, 2*self._nonzero, 2):
+                        result._data[j] = self._data[j]
+                        result._data[j+1] = self._data[j+1]
+                    result._data[i+1] = exp1-1
+                else:
+                    # var(index) disappears from self
+                    result._nonzero = self._nonzero-1
+                    for j in range(0, i, 2):
+                        result._data[j] = self._data[j]
+                        result._data[j+1] = self._data[j+1]
+                    for j in range(i+2, 2*self._nonzero, 2):
+                        result._data[j-2] = self._data[j]
+                        result._data[j-1] = self._data[j+1]
+                return result
+        return None
+
+    cdef bint divides(self, ETuple other):
+        """
+        Whether ``self`` divides ``other``, i.e., no entry of ``self``
+        exceeds that of ``other``.
+        """
+        cdef size_t ind1     # will be increased in 2-steps
+        cdef size_t ind2 = 0 # will be increased in 2-steps
+        cdef int pos1, exp1
+        if self._nonzero > other._nonzero:
+            # Trivially self cannot divide other
+            return False
+        cdef size_t othernz2 = 2 * other._nonzero
+        for ind1 in range(0, 2*self._nonzero, 2):
+            pos1 = self._data[ind1]
+            exp1 = self._data[ind1+1]
+            # Because of the above trivial test, other._nonzero>0.
+            # So, other._data[ind2] initially makes sense.
+            while other._data[ind2] < pos1:
+                ind2 += 2
+                if ind2 >= othernz2:
+                    return False
+            if other._data[ind2] > pos1 or other._data[ind2+1] < exp1:
+                # Either other has no exponent at position pos1 or the exponent is less than in self
+                return False
+        return True
+
     cpdef bint is_constant(ETuple self):
         """
         Return if all exponents are zero in the tuple.
@@ -1569,6 +1846,29 @@ cdef class ETuple:
             True
         """
         return self._nonzero == 0
+
+    cpdef bint is_multiple_of(ETuple self, int n):
+        r"""
+        Test whether each entry is a multiple of ``n``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+
+            sage: ETuple([0,0]).is_multiple_of(3)
+            True
+            sage: ETuple([0,3,12,0,6]).is_multiple_of(3)
+            True
+            sage: ETuple([0,0,2]).is_multiple_of(3)
+            False
+        """
+        if not n:
+            raise ValueError('n should not be zero')
+        cdef int i
+        for i in range(self._nonzero):
+            if self._data[2 * i + 1] % n:
+                return False
+        return True
 
     cpdef list nonzero_positions(ETuple self, bint sort=False):
         """

@@ -219,7 +219,7 @@ def _urls(html_string):
 
     """
     urls = []
-    from HTMLParser import HTMLParser
+    from html.parser import HTMLParser
 
     class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
@@ -289,7 +289,7 @@ class OEIS:
         sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
         0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
         1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-        2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+        2: ...
 
         sage: fibo = search[0]                         # optional -- internet
 
@@ -344,7 +344,7 @@ class OEIS:
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
             1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+            2: ...
 
             sage: fibo = oeis('A000045')                # optional -- internet
 
@@ -355,7 +355,7 @@ class OEIS:
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
             1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
-            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+            2: ...
 
             sage: fibo = _[0]                           # optional -- internet
     """
@@ -369,7 +369,7 @@ class OEIS:
             sage: oeis()
             Traceback (most recent call last):
             ...
-            TypeError: __call__() takes at least 2 arguments (1 given)
+            TypeError: __call__() ...
         """
         if isinstance(query, str):
             if re.match('^A[0-9]{6}$', query):
@@ -662,7 +662,7 @@ class OEISSequence(SageObject):
         self._fields = defaultdict(list)
         for line in entry.splitlines():
             self._fields[line[1]].append(line[11:])
-        if 'dead' in self.keywords(): 
+        if 'dead' in self.keywords():
             from warnings import warn
             warn('This sequence is dead: "{}: {}"'.format(self.id(), self.name()), RuntimeWarning)
 
@@ -1422,13 +1422,13 @@ class OEISSequence(SageObject):
 
             sage: f.links(format='url')                             # optional -- internet
             0: http://oeis.org/A000045/b000045.txt
-            1: http://library.thinkquest.org/27890/theSeries.html
-            ...
+            1: ...
+            2: ...
 
             sage: f.links(format='raw')                 # optional -- internet
             0: N. J. A. Sloane, <a href="/A000045/b000045.txt">The first 2000 Fibonacci numbers: Table of n, F(n) for n = 0..2000</a>
-            1: Matt Anderson, Jeffrey Frazier and Kris Popendorf, <a href="http://library.thinkquest.org/27890/theSeries.html">The Fibonacci series: the section index</a> [broken link]
-            ...
+            1: ...
+            2: ...
 
         TESTS::
 
@@ -1521,7 +1521,7 @@ class OEISSequence(SageObject):
 
             sage: nbalanced.cross_references(fetch=True)    # optional -- internet
             0: A049703: a(0) = 0; for n>0, a(n) = A005598(n)/2.
-            1: A049695: Array T read by diagonals; T(i,j)=number of nonnegative slopes of lines determined by 2 lattice points in [ 0,i ] X [ 0,j ] if i>0; T(0,j)=1 if j>0; T(0,0)=0.
+            1: A049695: Array T read by diagonals; ...
             2: A103116: a(n) = A005598(n) - 1.
             3: A000010: Euler totient function phi(n): count numbers <= n and prime to n.
 
@@ -1795,8 +1795,8 @@ class FancyTuple(tuple):
     """
     def __repr__(self):
         r"""
-        Prints the tuple with one value per line, each line begins with the
-        index of the value in ``self``.
+        Print the tuple with one value per line, where each line
+        begins with the index of the value in ``self``.
 
         EXAMPLES::
 
@@ -1814,7 +1814,7 @@ class FancyTuple(tuple):
     def __getslice__(self, i, j):
         r"""
         The slice of a FancyTuple remains a FancyTuple.
-        
+
         EXAMPLES::
 
             sage: from sage.databases.oeis import FancyTuple
@@ -1822,7 +1822,7 @@ class FancyTuple(tuple):
             sage: t[-2:]
             0: three
             1: 4
-        
+
         TESTS::
 
             sage: t = ('é', 'è', 'à', 'ç')
@@ -1833,5 +1833,6 @@ class FancyTuple(tuple):
             1: ç
         """
         return FancyTuple(tuple(self).__getslice__(i, j))
+
 
 oeis = OEIS()

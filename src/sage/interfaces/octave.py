@@ -173,6 +173,15 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
         sage: octave.eval("c")                                 # optional - octave; random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
+
+    TESTS:
+
+    We check that the interface can handle large inputs (see :trac:`940`)::
+
+        sage: t = '"{}"'.format(10^10000)
+        sage: a = octave(t)                     # optional - octave
+        sage: str(a) == ' {}'.format(10^10000)  # optional - octave
+        True
     """
 
     def __init__(self, maxread=None, script_subdirectory=None, logfile=None,
@@ -192,7 +201,7 @@ class Octave(Expect):
         Expect.__init__(self,
                         name = 'octave',
                         # We want the prompt sequence to be unique to avoid confusion with syntax error messages containing >>>
-                        prompt = 'octave\:\d+> ',
+                        prompt = r'octave\:\d+> ',
                         # We don't want any pagination of output
                         command = command + " --no-line-editing --silent --eval 'PS2(PS1());more off' --persist",
                         maxread = maxread,
@@ -461,7 +470,7 @@ class Octave(Expect):
         octave_console()
 
     def version(self):
-        """
+        r"""
         Return the version of Octave.
 
         OUTPUT: string
@@ -473,7 +482,7 @@ class Octave(Expect):
             '2.13.7'
 
             sage: import re
-            sage: assert re.match("\d+\.\d+\.\d+", v)  is not None # optional - octave
+            sage: assert re.match(r"\d+\.\d+\.\d+", v)  is not None # optional - octave
         """
         return str(self("version")).strip()
 

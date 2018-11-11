@@ -79,9 +79,11 @@ Individual Categories
    sage/categories/finite_dimensional_algebras_with_basis
    sage/categories/finite_dimensional_bialgebras_with_basis
    sage/categories/finite_dimensional_coalgebras_with_basis
+   sage/categories/finite_dimensional_graded_lie_algebras_with_basis
    sage/categories/finite_dimensional_hopf_algebras_with_basis
    sage/categories/finite_dimensional_lie_algebras_with_basis
    sage/categories/finite_dimensional_modules_with_basis
+   sage/categories/finite_dimensional_nilpotent_lie_algebras_with_basis
    sage/categories/finite_dimensional_semisimple_algebras_with_basis
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
@@ -107,6 +109,8 @@ Individual Categories
    sage/categories/graded_coalgebras_with_basis
    sage/categories/graded_hopf_algebras
    sage/categories/graded_hopf_algebras_with_basis
+   sage/categories/graded_lie_algebras
+   sage/categories/graded_lie_algebras_with_basis
    sage/categories/graded_modules
    sage/categories/graded_modules_with_basis
    sage/categories/graphs

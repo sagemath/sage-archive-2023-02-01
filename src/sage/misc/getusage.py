@@ -89,6 +89,7 @@ def top():
     """
     Return the 'top' or 'prstat' line that contains this running Sage
     process.
+
     For FreeBSD, return the line containing this running Sage process from
     'ps -axwww -o pid,user,vsz,rss,state,pri,nice,time,cpu,comm'.
 
@@ -101,19 +102,19 @@ def top():
         sage: top()              # random output
         '72373 python       0.0%  0:01.36   1    14+  1197   39M+   34M+   55M+  130M+'
 
-    NOTES:
+    .. NOTE::
 
-    The external command 'top' (http://www.unixtop.org/) is called on
-    Linux, and most other operating systems. The output format of
-    'top' is not consistent across all platforms and all versions of
-    'top'. If the :func:`top` function does not work in Sage, you may
-    need to install 'top'.
+        The external command 'top' (http://www.unixtop.org/) is called on
+        Linux, and most other operating systems. The output format of
+        'top' is not consistent across all platforms and all versions of
+        'top'. If the :func:`top` function does not work in Sage, you may
+        need to install 'top'.
 
-    The external command 'prstat' is called on the Solaris and
-    OpenSolaris systems. That is part of Solaris, and will not need to
-    be installed. The columns used in the 'prstat' output are::
+        The external command 'prstat' is called on the Solaris and
+        OpenSolaris systems. That is part of Solaris, and will not need to
+        be installed. The columns used in the 'prstat' output are::
 
-        PID USERNAME  SIZE   RSS STATE  PRI NICE      TIME  CPU PROCESS/NLWP
+            PID USERNAME  SIZE   RSS STATE  PRI NICE      TIME  CPU PROCESS/NLWP
     """
     from sage.misc.superseded import deprecation
     deprecation(21805, "the function top() is deprecated.")

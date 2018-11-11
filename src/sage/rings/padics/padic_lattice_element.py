@@ -693,6 +693,34 @@ class pAdicLatticeElement(pAdicGenericElement):
         dx = [  [self, self._parent._approx_minusone/(x_self*x_self)] ]
         return self.__class__(self._parent.fraction_field(), x, dx=dx, check=False)
 
+    def _quo_rem(self, other):
+        """
+        Quotient with remainder.
+
+        EXAMPLES::
+
+            sage: R = ZpLC(2)
+            sage: a = R(373286)
+            sage: b = R(12685856)
+            sage: q,r = a.quo_rem(b); q, r
+            (1 + 2^8 + 2^12 + 2^15 + O(2^16), 2 + 2^2 + O(2^21))
+            sage: q*b+r == a
+            True
+            sage: q,r = b.quo_rem(a); q, r
+            (2^4 + 2^5 + 2^7 + 2^10 + 2^14 + 2^15 + 2^16 + 2^17 + O(2^24), O(2^40))
+            sage: q*a == b
+            True
+        """
+        if other.is_zero():
+            # We use ZeroDivisionError since _test_quo_rem expects it.
+            raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
+        if other.valuation() > self.precision_absolute():
+            raise PrecisionError
+        q, r = self._value._quo_rem(other._value)
+        rem = self.__class__(self._parent, r, check=False)
+        quo = self.parent()((self - rem) / other)
+        return quo, rem
+
     def add_bigoh(self, prec):
         r"""
         Return a new element with absolute precision decreased to

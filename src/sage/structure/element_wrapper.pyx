@@ -509,7 +509,8 @@ class ElementWrapperTester(ElementWrapper):
             sage: x.value = [2,32]; x # indirect doctest
             [n=0, value=[2, 32]]
         """
-        return "[n=%s, value=%s]"%(self.n, self.value)
+        return "[n=%s, value=%s]" % (self.n, self.value)
+
 
 cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
     """
@@ -517,6 +518,23 @@ cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
     operations are done against subclasses of ``wrapped_class``.
     """
     wrapped_class = object
+
+    def __hash__(self):
+        """
+        Return the same hash as for the wrapped element.
+
+        EXAMPLES::
+
+            sage: A = cartesian_product([ZZ, ZZ])
+            sage: e1 = A((6,9))
+            sage: e2 = A((3,8))
+            sage: e3 = A((6,9))
+            sage: hash(e1) == hash(e2)
+            False
+            sage: hash(e1) == hash(e3)
+            True
+        """
+        return hash(self.value)
 
     def __richcmp__(left, right, int op):
         """

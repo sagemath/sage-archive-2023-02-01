@@ -335,6 +335,12 @@ class Variable(CachedRepresentation, SageObject):
             Traceback (most recent call last):
             ...
             ValueError: ':-' is not a valid name for a variable.
+
+        Check :trac:`26452`::
+
+            sage: Variable(('w',),
+            ....:          repr='w^(Number Field in i with defining polynomial x^2 + 1) * log(w)^ZZ')
+            w^(Number Field in i with defining polynomial x^2 + 1) * log(w)^ZZ
         """
         from sage.symbolic.ring import isidentifier
         from .misc import split_str_by_op
@@ -366,7 +372,7 @@ class Variable(CachedRepresentation, SageObject):
             if latex_name is None:
                 try:
                     latex_name = latex(SR(var_repr))
-                except TypeError:
+                except (TypeError, ValueError):
                     latex_name = latex(var_repr)
 
         if len(var_bases) != len(set(var_bases)):
@@ -1033,7 +1039,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
-            sage: G = GenericGrowthGroup(ZZ);
+            sage: G = GenericGrowthGroup(ZZ)
             sage: hash(G(raw_element=42))  # random
             5656565656565656
         """

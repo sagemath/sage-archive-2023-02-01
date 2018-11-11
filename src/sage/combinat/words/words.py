@@ -242,7 +242,8 @@ class AbstractLanguage(Parent):
             ...
             ValueError: z not in alphabet!
         """
-        for a in itertools.islice(w, length):
+        stop = None if length is None else int(length)
+        for a in itertools.islice(w, stop):
             if a not in self.alphabet():
                 raise ValueError("%s not in alphabet!" % a)
 

@@ -16,7 +16,7 @@ You can create random elements::
 There is an iterator over the (infinitely many) elements::
 
     sage: import itertools
-    sage: list(itertools.islice(G, 10))
+    sage: list(itertools.islice(G, 10r))
     [0, 1/2, 1/3, 2/3, 1/4, 3/4, 1/5, 2/5, 3/5, 4/5]
 """
 
@@ -212,25 +212,23 @@ class QmodnZ(Parent, UniqueRepresentation):
 
     def __iter__(self):
         r"""
-        Creates an iterator that generates the elements of `\Q/n\Z` without
+        Create an iterator that generates the elements of `\Q/n\Z` without
         repetition, organized by increasing denominator; for a fixed denominator
         elements are listed by increasing numerator.
 
         EXAMPLES:
 
-            The first 19 elements of `\Q/5\Z`::
+        The first 19 elements of `\Q/5\Z`::
 
             sage: import itertools
-            sage: list(itertools.islice(QQ/(5*ZZ),19))
+            sage: list(itertools.islice(QQ/(5*ZZ), 19r))
             [0, 1, 2, 3, 4, 1/2, 3/2, 5/2, 7/2, 9/2, 1/3, 2/3, 4/3, 5/3, 7/3, 8/3, 10/3, 11/3, 13/3]
         """
-
         if self.n == 0:
             for x in QQ:
                 yield self(x)
         else:
-            yield self(0)
-            d = ZZ(1)
+            d = ZZ(0)
             while True:
                 for a in d.coprime_integers((d*self.n).floor()):
                     yield self(a/d)

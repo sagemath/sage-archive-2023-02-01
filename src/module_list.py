@@ -495,16 +495,14 @@ ext_modules = [
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
 
-    OptionalExtension('sage.libs.braiding',
+    Extension('sage.libs.braiding',
                       sources = ["sage/libs/braiding.pyx"],
                       libraries = ["braiding"],
-                      package="libbraiding",
                       language = 'c++'),
 
-    OptionalExtension('sage.libs.homfly',
+    Extension('sage.libs.homfly',
                       sources = ["sage/libs/homfly.pyx"],
-                      libraries = ["homfly", "gc"],
-                      package="libhomfly"),
+                      libraries = ["homfly", "gc"]),
 
     OptionalExtension('sage.libs.sirocco',
                       sources = ["sage/libs/sirocco.pyx"],
@@ -1247,8 +1245,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.rings.function_field.function_field_element',
-              sources = ['sage/rings/function_field/function_field_element.pyx']),
+    Extension('sage.rings.function_field.element',
+              sources = ['sage/rings/function_field/element.pyx']),
 
     ################################
     ##
@@ -1354,6 +1352,11 @@ ext_modules = [
               libraries = ["gmp", "ntl"],
               language='c++'),
 
+    Extension('sage.rings.padics.pow_computer_relative',
+              sources = ['sage/rings/padics/pow_computer_relative.pyx'],
+              libraries = ["ntl", "gmp", "m"],
+              language='c++'),
+
     Extension('sage.rings.padics.qadic_flint_CR',
               sources = ['sage/rings/padics/qadic_flint_CR.pyx']),
 
@@ -1366,6 +1369,15 @@ ext_modules = [
     Extension('sage.rings.padics.qadic_flint_FP',
               sources = ['sage/rings/padics/qadic_flint_FP.pyx'],
               libraries = ["flint"]),
+
+    Extension('sage.rings.padics.relative_ramified_FM',
+              sources = ['sage/rings/padics/relative_ramified_FM.pyx']),
+    Extension('sage.rings.padics.relative_ramified_CA',
+              sources = ['sage/rings/padics/relative_ramified_CA.pyx']),
+    Extension('sage.rings.padics.relative_ramified_CR',
+              sources = ['sage/rings/padics/relative_ramified_CR.pyx']),
+    Extension('sage.rings.padics.relative_ramified_FP',
+              sources = ['sage/rings/padics/relative_ramified_FP.pyx']),
 
     ################################
     ##
@@ -1383,6 +1395,9 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
+
+    Extension('sage.rings.polynomial.hilbert',
+              sources = ['sage/rings/polynomial/hilbert.pyx']),
 
     Extension('sage.rings.polynomial.multi_polynomial',
               sources = ['sage/rings/polynomial/multi_polynomial.pyx']),

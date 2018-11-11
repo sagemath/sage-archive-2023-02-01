@@ -1072,10 +1072,10 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                     s_coeffs[(-r, -s)] = {-a: -c}
 
         # Lastly, make sure a < b for all (a, b) in the coefficients and flip if necessary
-        for k in s_coeffs.keys():
-            a,b = k[0], k[1]
+        for k in list(s_coeffs):
+            a, b = k[0], k[1]
             if self._basis_key(a) > self._basis_key(b):
-                s_coeffs[(b,a)] = [(index, -v) for index,v in s_coeffs[k].items()]
+                s_coeffs[(b, a)] = [(index, -v) for index, v in s_coeffs[k].items()]
                 del s_coeffs[k]
             else:
                 s_coeffs[k] = s_coeffs[k].items()
@@ -1321,7 +1321,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: L.indices_to_positive_roots_map()
             {1: alpha[1], 2: alpha[2], 3: alpha[1] + alpha[2]}
         """
-        return {i+1: r for i,r in enumerate(self._Q.positive_roots())}
+        return {i+1: r for i, r in enumerate(self._Q.positive_roots())}
 
     @cached_method
     def lie_algebra_generators(self, str_keys=False):
@@ -1337,9 +1337,9 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
             sage: L = LieAlgebra(QQ, cartan_type=['A', 1])
             sage: L.lie_algebra_generators()
-            Finite family {-alpha[1]: E[-alpha[1]], alpha[1]: E[alpha[1]], alphacheck[1]: h1}
+            Finite family {alpha[1]: E[alpha[1]], -alpha[1]: E[-alpha[1]], alphacheck[1]: h1}
             sage: L.lie_algebra_generators(True)
-            Finite family {'f1': E[-alpha[1]], 'h1': h1, 'e1': E[alpha[1]]}
+            Finite family {'e1': E[alpha[1]], 'f1': E[-alpha[1]], 'h1': h1}
         """
         index_set = self._cartan_type.index_set()
         alpha = self._Q.simple_roots()
@@ -1353,14 +1353,20 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                 ret['e{}'.format(i)] = B[al]
                 ret['f{}'.format(i)] = B[-al]
                 ret['h{}'.format(i)] = B[alphacheck[i]]
+            keys = (['e{}'.format(i) for i in index_set]
+                    + ['f{}'.format(i) for i in index_set]
+                    + ['h{}'.format(i) for i in index_set])
         else:
             for i in index_set:
                 al = alpha[i]
                 ret[al] = B[al]
                 ret[-al] = B[-al]
                 ret[alphacheck[i]] = B[alphacheck[i]]
+            keys = ([alpha[i] for i in index_set]
+                    + [-alpha[i] for i in index_set]
+                    + [alphacheck[i] for i in index_set])
 
-        return Family(ret)
+        return Family(keys, ret.__getitem__)
 
     @cached_method
     def _part_generators(self, positive=False):

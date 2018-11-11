@@ -425,7 +425,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: macaulay2.version() # optional - macaulay2
-            (1, 11)
+            (1, 1...
         """
         s = self.eval("version")
         r = re.compile("VERSION => (.*?)\n")
@@ -519,8 +519,8 @@ class Macaulay2(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: macaulay2.help("load")  # optional - macaulay2
-            load
-            ****
+            load ...
+            ****...
             ...
               * "input" -- read Macaulay2 commands and echo
               * "notify" -- whether to notify the user when a file is loaded
@@ -1179,8 +1179,8 @@ class Macaulay2Function(ExpectFunction):
         EXAMPLES::
 
             sage: print(macaulay2.load.__doc__)  # optional - macaulay2
-            load
-            ****
+            load ...
+            ****...
             ...
               * "input" -- read Macaulay2 commands and echo
               * "notify" -- whether to notify the user when a file is loaded

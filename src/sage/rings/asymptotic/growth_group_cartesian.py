@@ -679,9 +679,15 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             sage: pushout(GrowthGroup('QQ^n * n^QQ'), GrowthGroup('SR^n'))
             Growth Group SR^n * n^QQ
+
+        ::
+
+            sage: cm.common_parent(GrowthGroup('n^ZZ * log(n)^ZZ * U^n'),
+            ....:                  GrowthGroup('n^QQ * U^n'))
+            Growth Group n^QQ * log(n)^ZZ * U^n
         """
         from .growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
-        from .misc import merge_overlapping
+        from .misc import merge_sorted
         from sage.structure.element import get_coercion_model
 
         Sfactors = self.cartesian_factors()
@@ -697,10 +703,10 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         def pushout_univariate_factors(self, other, var, Sfactors, Ofactors):
             try:
-                return merge_overlapping(
+                return merge_sorted(
                     Sfactors, Ofactors,
                     lambda f: (f._underlying_class(), f._var_.var_repr))
-            except ValueError:
+            except RuntimeError:
                 pass
 
             cm = get_coercion_model()
@@ -719,10 +725,10 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                         yield f
 
             try:
-                return merge_overlapping(
+                return merge_sorted(
                     tuple(subfactors(Sfactors)), tuple(subfactors(Ofactors)),
                     lambda f: (f._underlying_class(), f._var_.var_repr))
-            except ValueError:
+            except RuntimeError:
                 pass
 
             from sage.structure.coerce_exceptions import CoercionException

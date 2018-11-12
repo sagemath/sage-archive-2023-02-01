@@ -5420,9 +5420,11 @@ class GrowthGroupFactory(UniqueFactory):
                 extend_by_non_growth_group=factor.extend_by_non_growth_group,
                 return_factors=True,
                 **kwds)
-            groups.append(grps[0])
-            non_growth_groups.extend(grps[1:])
-
+            for grp in grps:
+                if isinstance(grp, GenericNonGrowthGroup):
+                    non_growth_groups.append(grp)
+                else:
+                    groups.append(grp)
         groups.extend(non_growth_groups)
 
         if len(groups) == 1:

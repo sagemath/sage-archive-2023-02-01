@@ -876,11 +876,23 @@ class AsymptoticExpansionGenerators(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: not implemented for delta!=0
+
+        ::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', S(-1), alpha=2, beta=1, precision=5,
+            ....:     normalized=False)
+            n*log(n)*(-1)^n + (euler_gamma - 1)*n*(-1)^n + log(n)*(-1)^n
+            + (euler_gamma + 1/2)*(-1)^n + O(n^(-1)*(-1)^n)
+            sage: _.parent()
+            Asymptotic Ring <n^ZZ * log(n)^ZZ * S^n> over Symbolic Constants Subring
         """
         from itertools import islice, count
         from .asymptotic_ring import AsymptoticRing
         from .growth_group import ExponentialGrowthGroup, \
-                MonomialGrowthGroup
+                MonomialGrowthGroup, GenericNonGrowthGroup
         from sage.arith.all import falling_factorial
         from sage.categories.cartesian_product import cartesian_product
         from sage.functions.other import binomial
@@ -942,8 +954,11 @@ class AsymptoticExpansionGenerators(SageObject):
         if zeta != 1:
             E = ExponentialGrowthGroup.factory((~zeta).parent(), var,
                                                return_factors=True)
-            groups.append(E[0])
-            non_growth_groups.extend(E[1:])
+            for factor in E:
+                if isinstance(factor, GenericNonGrowthGroup):
+                    non_growth_groups.append(factor)
+                else:
+                    groups.append(factor)
         groups.append(MonomialGrowthGroup(alpha.parent(), var))
         if beta != 0:
             groups.append(MonomialGrowthGroup(beta.parent(), 'log({})'.format(var)))

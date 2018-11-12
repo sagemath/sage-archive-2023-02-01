@@ -52,14 +52,14 @@ vectors of the vector collection ``VW`` ::
           2   (1, 2)    2   (-1, 1)   6   (-1, 1, -2, 2)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 
 from collections import defaultdict
@@ -93,7 +93,7 @@ def symmetrized_coordinate_sums(dim, n):
     from sage.structure.formal_sum import FormalSum
     from sage.categories.cartesian_product import cartesian_product
 
-    coordinates = [range(dim) for i in range(n)]
+    coordinates = [list(range(dim)) for i in range(n)]
     table = defaultdict(list)
 
     for i in cartesian_product(coordinates):
@@ -416,7 +416,7 @@ class TensorOperation(VectorCollection):
             sage: sorted(R_tensor_S._index_map.items())   # indirect doctest
             [((0, 0), 0), ((0, 1), 1), ((1, 0), 2), ((1, 1), 3), ((2, 0), 3), ((2, 1), 2)]
         """
-        V_list_indices = [range(V.n_vectors()) for V in self._V]
+        V_list_indices = [list(range(V.n_vectors())) for V in self._V]
         from sage.categories.cartesian_product import cartesian_product
         for i in cartesian_product(V_list_indices):
             self._index_map[tuple(i)] = self._init_product_vectors(i)
@@ -435,10 +435,10 @@ class TensorOperation(VectorCollection):
             sage: sorted(Sym2_R._index_map.items())
             [((0, 0), 0), ((0, 1), 1), ((0, 2), 2), ((1, 1), 3), ((1, 2), 4), ((2, 2), 3)]
         """
-        V_list_indices = [range(V.n_vectors()) for V in self._V]
-        Sym = symmetrized_coordinate_sums(self._V[0].dimension(),
-                                                 len(self._V))
         from sage.categories.cartesian_product import cartesian_product
+        V_list_indices = [list(range(V.n_vectors())) for V in self._V]
+        Sym = symmetrized_coordinate_sums(self._V[0].dimension(),
+                                          len(self._V))
         N = len(V_list_indices)
         for i in cartesian_product(V_list_indices):
             if any(i[j - 1] > i[j] for j in range(1, N)):

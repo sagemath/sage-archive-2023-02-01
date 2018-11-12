@@ -59,8 +59,6 @@ from sage.schemes.projective.projective_space import ProjectiveSpace, is_Project
 from . import point
 
 from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
-                                                      ProjectiveSpace)
 
 from .curve import Curve_generic
 
@@ -1925,14 +1923,12 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
         v = singular('POINTS').sage_flattened_str_list()
         coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)//3)]
         # build correct representation of D for singular
-        Dsupport = D.support()
         Dcoeffs = []
         for x in pnts:
             if x[0] == 1:
                 Dcoeffs.append(D.coefficient(coords[x[1]]))
             else:
                 Dcoeffs.append(0)
-        Dstr = str(tuple(Dcoeffs))
         G = singular(','.join([str(x) for x in Dcoeffs]), type='intvec')
         # call singular's brill noether routine and return
         T = X2[1][2]

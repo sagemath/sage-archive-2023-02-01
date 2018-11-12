@@ -457,7 +457,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         L.set_default_prec(prec)
         K = PowerSeriesRing(L, 'x')
         pol = K(pol)
-        x = K.gen()
         b = P[0]
         f = pol(t+b)
         for i in range((RR(log(prec)/log(2))).ceil()):

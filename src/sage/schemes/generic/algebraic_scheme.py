@@ -133,11 +133,7 @@ from __future__ import absolute_import
 #    class AlgebraicScheme_quasi
 
 
-from sage.combinat.tuple import UnorderedTuples
-
 from sage.categories.number_fields import NumberFields
-from sage.categories.morphism import Morphism
-
 from sage.rings.all import ZZ, QQbar
 from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField

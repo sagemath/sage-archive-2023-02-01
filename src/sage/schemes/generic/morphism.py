@@ -77,25 +77,12 @@ AUTHORS:
 from __future__ import absolute_import, print_function
 
 import operator
-from sage.structure.element import (AdditiveGroupElement, RingElement,
-        Element, parent, coercion_model)
+from sage.structure.element import Element, parent, coercion_model
 from sage.arith.power import generic_power
 from sage.structure.richcmp import richcmp
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
-from sage.categories.number_fields import NumberFields
-from sage.categories.fields import Fields
-from sage.rings.all import Integer, CIF
-from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
-from .point import is_SchemeTopologicalPoint
-from sage.rings.infinity import infinity
-from . import scheme
-
-from sage.categories.gcd_domains import GcdDomains
-from sage.rings.qqbar import QQbar
-from sage.rings.quotient_ring import QuotientRing_generic
-from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism

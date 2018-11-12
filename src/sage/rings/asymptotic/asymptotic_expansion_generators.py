@@ -940,7 +940,7 @@ class AsymptoticExpansionGenerators(SageObject):
         groups = []
         non_growth_groups = []
         if zeta != 1:
-            E = ExponentialGrowthGroup.factory((1/zeta).parent(), var,
+            E = ExponentialGrowthGroup.factory((~zeta).parent(), var,
                                                return_factors=True)
             groups.append(E[0])
             non_growth_groups.extend(E[1:])
@@ -956,7 +956,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if zeta == 1:
             exponential_factor = 1
         else:
-            exponential_factor = n.rpow(1/zeta)
+            exponential_factor = A(n.rpow(~zeta))
 
         if beta in ZZ and beta >= 0:
             it = ((k, r)

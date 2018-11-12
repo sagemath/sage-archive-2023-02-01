@@ -958,6 +958,17 @@ class AsymptoticExpansionGenerators(SageObject):
         else:
             exponential_factor = A(n.rpow(~zeta))
 
+        polynomial_factor = A(n**(alpha-1))
+
+        if beta != 0:
+            log_n = n.log()
+            logarithmic_factor = A(log_n**beta)
+        else:
+            # avoid construction of log(n)
+            # because it does not exist in growth group.
+            log_n = 1
+            logarithmic_factor = 1
+
         if beta in ZZ and beta >= 0:
             it = ((k, r)
                   for k in count()
@@ -967,13 +978,6 @@ class AsymptoticExpansionGenerators(SageObject):
             it = ((0, r)
                   for r in count())
             k_max = 0
-
-        if beta != 0:
-            log_n = n.log()
-        else:
-            # avoid construction of log(n)
-            # because it does not exist in growth group.
-            log_n = 1
 
         it = reversed(list(islice(it, precision+1)))
         if normalized:
@@ -999,7 +1003,7 @@ class AsymptoticExpansionGenerators(SageObject):
                     if (k, ell) in L) * \
                 n**(-k) * log_n**(-r)
 
-        result *= exponential_factor * n**(alpha-1) * log_n**beta
+        result *= exponential_factor * polynomial_factor * logarithmic_factor
 
         return result
 

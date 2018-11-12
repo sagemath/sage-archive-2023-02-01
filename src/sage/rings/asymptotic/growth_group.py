@@ -1048,6 +1048,18 @@ def _rpow_(self, base):
         5^x
         sage: _.parent()
         Growth Group (Symbolic Constants Subring)^x * x^ZZ * S^x
+
+    ::
+
+        sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
+        sage: U = RootsOfUnityGroup()
+        sage: asymptotic_expansions.SingularityAnalysis(
+        ....:     'n', U(-1), alpha=2, beta=1, precision=5,
+        ....:     normalized=False)
+        n*log(n)*(-1)^n + (euler_gamma - 1)*n*(-1)^n + log(n)*(-1)^n
+        + (euler_gamma + 1/2)*(-1)^n + O(n^(-1)*(-1)^n)
+        sage: _.parent()
+        Asymptotic Ring <n^ZZ * log(n)^ZZ * U^n> over Symbolic Constants Subring
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
@@ -1066,11 +1078,19 @@ def _rpow_(self, base):
             element = M(raw_element=ZZ(1))
         else:
             EU = ExponentialGrowthGroup.factory(base.parent(), var)
-            E = EU.cartesian_factors()[0]
             try:
+                factors = EU.cartesian_factors()
+            except AttributeError:
+                factors = (EU,)
+            if len(factors) == 1:
+                E, = factors
                 element = E(raw_element=base)
-            except PartialConversionValueError as e:
-                element = EU._convert_factors_([e.element])
+            else:
+                E, U = factors
+                try:
+                    element = E(raw_element=base)
+                except PartialConversionValueError as e:
+                    element = EU._convert_factors_([e.element])
 
     try:
         return self.parent().one() * element

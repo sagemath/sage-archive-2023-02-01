@@ -1490,6 +1490,44 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         """
         return self._term_monoid_factory_
 
+    def term_monoid(self, type):
+        r"""
+        Return the term monoid of specified ``type``.
+
+        INPUT:
+
+        - ``type`` -- 'O' or 'exact', or an instance of an existing
+          term monoid.
+          See :class:`~sage.rings.asymptotic.term_monoid.TermMonoidFactory`
+          for more details.
+
+        OUTPUT:
+
+        A term monoid object derived from
+        :class:`~sage.rings.asymptotic.term_monoid.GenericTermMonoid`.
+
+        # TODO
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: E = TermMonoid('exact', GrowthGroup('x^ZZ'), ZZ); E
+            Exact Term Monoid x^ZZ with coefficients in Integer Ring
+            sage: E.term_monoid('O')
+            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring
+
+        TESTS::
+
+            sage: E.term_monoid('exact') is E
+            True
+        """
+        TermMonoid = self.term_monoid_factory
+        return TermMonoid(type,
+                          growth_group=self.growth_group,
+                          coefficient_ring=self.coefficient_ring)
+
     @property
     def growth_group(self):
         r"""

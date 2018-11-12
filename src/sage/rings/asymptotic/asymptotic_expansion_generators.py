@@ -977,7 +977,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         if beta != 0:
             log_n = n.log()
-            logarithmic_factor = A(log_n**beta)
+            logarithmic_factor = log_n**beta
         else:
             # avoid construction of log(n)
             # because it does not exist in growth group.

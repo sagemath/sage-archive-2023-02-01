@@ -7093,7 +7093,7 @@ class Graph(GenericGraph):
 
           - ``'tedder'`` -- Use the linear algorithm of [TCHP2008]_.
 
-          - ``'habib'`` -- Use the $O(n^3)$ algorithm of [HM1979]_. This is
+          - ``'habib'`` -- Use the `O(n^3)` algorithm of [HM1979]_. This is
             probably slower, but is a much simpler algorithm and so possibly
             less error prone.
 

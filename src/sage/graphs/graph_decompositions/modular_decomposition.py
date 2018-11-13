@@ -49,8 +49,9 @@ class NodeType(Enum):
         String representation of this node type.
 
         EXAMPLES::
+
             sage: from sage.graphs.graph_decompositions.modular_decomposition import *
-            sage: NodeType.PARALLEL
+            sage: str(NodeType.PARALLEL)
             PARALLEL
         """
         return self.name
@@ -60,8 +61,9 @@ class NodeType(Enum):
         String representation of this node type.
 
         EXAMPLES::
+
             sage: from sage.graphs.graph_decompositions.modular_decomposition import *
-            sage: NodeType.PARALLEL
+            sage: repr(NodeType.PARALLEL)
             PARALLEL
         """
         return self.name
@@ -144,6 +146,7 @@ class Node:
         Create a node with the given node type.
 
         EXAMPLES::
+
             sage: from sage.graphs.graph_decompositions.modular_decomposition import *
             sage: n = Node(NodeType.SERIES); n.node_type
             SERIES
@@ -252,7 +255,7 @@ class Node:
             sage: n = Node(NodeType.PRIME)
             sage: n.children.append(create_normal_node(1))
             sage: n.children.append(create_normal_node(2))
-            sage: n
+            sage: str(n)
             PRIME [NORMAL [1], NORMAL [2]]
         """
         if self.node_type == NodeType.SERIES:
@@ -279,7 +282,7 @@ class Node:
             sage: n = Node(NodeType.PRIME)
             sage: n.children.append(create_normal_node(1))
             sage: n.children.append(create_normal_node(2))
-            sage: n
+            sage: repr(n)
             PRIME [NORMAL [1], NORMAL [2]]
         """
         return self.__str__()
@@ -289,6 +292,7 @@ class Node:
         Compare two nodes for equality.
 
         EXAMPLES::
+
             sage: from sage.graphs.graph_decompositions.modular_decomposition import *
             sage: n1 = Node(NodeType.PRIME)
             sage: n2 = Node(NodeType.PRIME)
@@ -316,7 +320,7 @@ def modular_decomposition(graph):
 
     INPUT:
 
-    - ``graph`` -- The graph for which modular decomposition
+    - ``graph`` -- the graph for which modular decomposition
       tree needs to be computed
 
     OUTPUT:
@@ -2545,7 +2549,7 @@ def gamma_classes(graph):
     """
     Partition the edges of the graph into Gamma classes.
 
-    Two distinct edges are Gamma related if they share gaa vertex but are not
+    Two distinct edges are Gamma related if they share a vertex but are not
     part of a triangle.  A Gamma class of edges is a collection of edges such
     that any edge in the class can be reached from any other by a chain of
     Gamma related edges (that are also in the class).
@@ -2556,7 +2560,7 @@ def gamma_classes(graph):
     * If the graph is not fragile (neither it or its complement is
     disconnected) then there is exactly one class that visits all the
     vertices of the graph, and this class consists of just the edges
-    that connect the modules.
+    that connect the maximal strong modules of that graph.
 
     EXAMPLES:
 
@@ -2596,13 +2600,23 @@ def habib_maurer_algorithm(graph, g_classes=None):
     """
     Compute the modular decomposition by the algorithm of Habib and Maurer
 
+    Compute the modular decomposition of the given graph by the algorithm of
+    Habib and Maurer [HM1979]_ . If the graph is disconnected or its complement
+    is disconnected return a tree with a PARALLEL or SERIES node at the root
+    and children being the modular decomposition of the subgraphs induced by
+    the components. Otherwise, the root is PRIME and the modules are identified
+    by having identical neighborhoods in the gamma class that spans the
+    vertices of the subgraph (exactly one is guaranteed to exist). The gamma
+    classes only need to be computed once, as the algorithm computes the the
+    classes for the current root and each of the submodules. See also [BM1983]_
+    for an equivalent algorithm described in greater detail.
 
     INPUT:
 
-    - ``graph`` -- The graph for which modular decomposition
+    - ``graph`` -- the graph for which modular decomposition
       tree needs to be computed
 
-    - ``g_classes`` -- A dictionary whose values are the gamma classes of the
+    - ``g_classes`` -- a dictionary whose values are the gamma classes of the
       graph, and whose keys are a frozenset of the vertices corresponding to
       the class. Used internally.
 
@@ -2668,22 +2682,6 @@ def habib_maurer_algorithm(graph, g_classes=None):
           4
          5
 
-    TESTS:
-
-    Bad Input::
-
-        sage: g = DiGraph()
-        sage: habib_maurer_algorithm(g)
-        Traceback (most recent call last):
-        ...
-        ValueError: Graph must be undirected
-
-    Empty Graph is Prime::
-
-        sage: g = Graph()
-        sage: habib_maurer_algorithm(g)
-        PRIME []
-
     Graph from Marc Tedder implementation of modular decomposition::
 
         sage: d = {1:[5,4,3,24,6,7,8,9,2,10,11,12,13,14,16,17], 2:[1], \
@@ -2729,6 +2727,21 @@ def habib_maurer_algorithm(graph, g_classes=None):
          5
 
     TESTS:
+
+    Bad Input::
+
+        sage: g = DiGraph()
+        sage: habib_maurer_algorithm(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph must be undirected
+
+    Empty Graph is Prime::
+
+        sage: g = Graph()
+        sage: habib_maurer_algorithm(g)
+        PRIME []
+
 
     Ensure that a random graph and an isomorphic graph have identical modular
     decompositions. ::

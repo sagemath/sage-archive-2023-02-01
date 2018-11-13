@@ -464,6 +464,9 @@ REFERENCES:
             generators for inseparable algebraic extensions. Bulletin of the
             American Mathematical Society 46, no. 2 (1940): 182-186.
 
+.. [BM1983] Buer, B., and Mohring, R. H.  A fast algorithm for decomposition of
+            graphs and posets, Math. Oper. Res., Vol 8 (1983): 170-184.
+
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
 

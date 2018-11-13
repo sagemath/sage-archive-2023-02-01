@@ -48,8 +48,6 @@ from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMuta
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
 
-from sage.misc.decorators import rename_keyword
-
 from sage.combinat.cluster_algebra_quiver.interact import cluster_interact
 
 
@@ -480,7 +478,7 @@ class ClusterQuiver(SageObject):
 
     def __eq__(self, other):
         """
-        Returns ``True`` if ``self`` and ``other`` represent the same quiver.
+        Return ``True`` if ``self`` and ``other`` represent the same quiver.
 
         EXAMPLES::
 
@@ -509,7 +507,7 @@ class ClusterQuiver(SageObject):
 
     def _repr_(self):
         """
-        Returns the description of ``self``.
+        Return the description of ``self``.
 
         EXAMPLES::
 
@@ -793,7 +791,7 @@ class ClusterQuiver(SageObject):
 
     def b_matrix(self):
         """
-        Returns the b-matrix of ``self``.
+        Return the b-matrix of ``self``.
 
         EXAMPLES::
 
@@ -825,7 +823,7 @@ class ClusterQuiver(SageObject):
 
     def digraph(self):
         """
-        Returns the underlying digraph of ``self``.
+        Return the underlying digraph of ``self``.
 
         EXAMPLES::
 
@@ -859,9 +857,9 @@ class ClusterQuiver(SageObject):
 
     def mutation_type(self):
         """
-        Returns the mutation type of ``self``.
+        Return the mutation type of ``self``.
 
-        Returns the mutation_type of each connected component of self if it can be determined,
+        Return the mutation_type of each connected component of self if it can be determined,
         otherwise, the mutation type of this component is set to be unknown.
 
         The mutation types of the components are ordered by vertex labels.
@@ -1035,7 +1033,7 @@ class ClusterQuiver(SageObject):
 
     def n(self):
         """
-        Returns the number of free vertices of ``self``.
+        Return the number of free vertices of ``self``.
 
         EXAMPLES::
 
@@ -1052,7 +1050,7 @@ class ClusterQuiver(SageObject):
 
     def m(self):
         """
-        Returns the number of frozen vertices of ``self``.
+        Return the number of frozen vertices of ``self``.
 
         EXAMPLES::
 
@@ -1094,10 +1092,9 @@ class ClusterQuiver(SageObject):
         """
         return self._mlist
 
-    @rename_keyword(deprecation=21111, certify='certificate')
-    def canonical_label( self, certificate=False ):
+    def canonical_label(self, certificate=False):
         """
-        Returns the canonical labelling of ``self``, see
+        Return the canonical labelling of ``self``, see
         :meth:`sage.graphs.generic_graph.GenericGraph.canonical_label`.
 
         INPUT:
@@ -1151,7 +1148,7 @@ class ClusterQuiver(SageObject):
 
     def is_acyclic(self):
         """
-        Returns true if ``self`` is acyclic.
+        Return true if ``self`` is acyclic.
 
         EXAMPLES::
 
@@ -1188,7 +1185,7 @@ class ClusterQuiver(SageObject):
 
     def exchangeable_part(self):
         """
-        Returns the restriction to the principal part (i.e. exchangeable part) of ``self``, the subquiver obtained by deleting the frozen vertices of ``self``.
+        Return the restriction to the principal part (i.e. exchangeable part) of ``self``, the subquiver obtained by deleting the frozen vertices of ``self``.
 
         EXAMPLES::
 
@@ -1213,7 +1210,7 @@ class ClusterQuiver(SageObject):
 
     def principal_extension(self, inplace=False):
         """
-        Returns the principal extension of ``self``, adding n frozen vertices to any previously frozen vertices. I.e., the quiver obtained by adding an outgoing edge to every mutable vertex of ``self``.
+        Return the principal extension of ``self``, adding n frozen vertices to any previously frozen vertices. I.e., the quiver obtained by adding an outgoing edge to every mutable vertex of ``self``.
 
         EXAMPLES::
 
@@ -1293,7 +1290,7 @@ class ClusterQuiver(SageObject):
 
     def sources(self):
         r"""
-        Returns all vertices of ``self`` that are sources
+        Return all vertices of ``self`` that are sources.
 
         EXAMPLES::
 
@@ -1453,7 +1450,7 @@ class ClusterQuiver(SageObject):
 
     def mutation_sequence(self, sequence, show_sequence=False, fig_size=1.2 ):
         """
-        Returns a list containing the sequence of quivers obtained from ``self`` by a sequence of mutations on vertices.
+        Return a list containing the sequence of quivers obtained from ``self`` by a sequence of mutations on vertices.
 
         INPUT:
 

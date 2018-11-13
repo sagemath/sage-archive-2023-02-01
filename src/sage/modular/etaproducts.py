@@ -457,7 +457,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def _richcmp_(self, other, op):
         r"""
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         Eta products are compared according to their rdicts.
 
@@ -474,12 +474,12 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
             False
         """
-        return richcmp((self.level(), self._rdict),
-                       (other.level(), other._rdict), op)
+        return richcmp((self.level(), sorted(self._rdict.items())),
+                       (other.level(), sorted(other._rdict.items())), op)
 
     def _short_repr(self):
         r"""
-        A short string representation of self, which doesn't specify the
+        A short string representation of ``self``, which does not specify the
         level.
 
         EXAMPLES::
@@ -490,11 +490,12 @@ class EtaGroupElement(MultiplicativeGroupElement):
         if self.degree() == 0:
             return "1"
         else:
-            return " ".join("(eta_%s)^%s" % (d,self.r(d)) for d in self._keys)
+            return " ".join("(eta_%s)^%s" % (d, exp)
+                            for d, exp in sorted(self._rdict.items()))
 
     def _repr_(self):
         r"""
-        Return the string representation of self.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -577,19 +578,15 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def order_at_cusp(self, cusp):
         r"""
-        Return the order of vanishing of self at the given cusp.
+        Return the order of vanishing of ``self`` at the given cusp.
 
         INPUT:
 
-
-        -  ``cusp`` -  a CuspFamily object
-
+        -  ``cusp`` --  a CuspFamily object
 
         OUTPUT:
 
-
         - an integer
-
 
         EXAMPLES::
 
@@ -607,7 +604,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def divisor(self):
         r"""
-        Return the divisor of self, as a formal sum of CuspFamily objects.
+        Return the divisor of ``self``, as a formal sum of CuspFamily objects.
 
         EXAMPLES::
 
@@ -618,7 +615,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: e.divisor() # random
             -(c_{2}) - (Inf) - (c_{8,2}) - (c_{8,3}) - (c_{8,4}) - (c_{4,2}) - (c_{8,1}) - (c_{4,1}) + (c_{32,4}) + (c_{32,3}) + (c_{64,1}) + (0) + (c_{32,2}) + (c_{64,2}) + (c_{128}) + (c_{32,1})
         """
-        return FormalSum([ (self.order_at_cusp(c), c) for c in AllCusps(self.level())])
+        return FormalSum([(self.order_at_cusp(c), c)
+                          for c in AllCusps(self.level())])
 
     def degree(self):
         r"""
@@ -633,10 +631,6 @@ class EtaGroupElement(MultiplicativeGroupElement):
             230
         """
         return sum( [self.order_at_cusp(c) for c in AllCusps(self.level()) if self.order_at_cusp(c) > 0])
-
-#     def plot(self):
-#         r""" Returns an error as it's not clear what plotting an eta product means. """
-#         raise NotImplementedError
 
     def r(self, d):
         r"""

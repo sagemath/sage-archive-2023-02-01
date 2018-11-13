@@ -237,17 +237,15 @@ cdef initialize():
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
-    # libgap_initialize(argc, argv)
-    try: 
+    try:
         GAP_Initialize(argc, argv, environ, &gasman_callback, &error_handler)
     except RuntimeError as msg:
         raise RuntimeError('libGAP initialization failed\n' + msg)
 
-    # gap_error_msg = char_to_str(libgap_get_output())
-    GAP_EvalString('libgap_errout := \"\"; ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
- 
-    # The error handler is called if a GAP evaluation fails, e.g. 1/0
-    # libgap_set_error_handler(&error_handler)
+    # Set the ERROR_OUTPUT global in GAP to an output stream in which to
+    # receive error output
+    GAP_EvalString('libgap_errout := ""; '
+                   'ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
 
     # Prepare global GAP variable to hold temporary GAP objects
     global reference_holder
@@ -365,12 +363,34 @@ cdef void error_handler():
     the ``RuntimeError`` we raise here will be seen.
     """
     cdef Obj r
-    r = GAP_ValueGlobalVariable("libgap_errout")
-    GAP_EvalString("CloseStream(ERROR_OUTPUT);");
-    GAP_EvalString('libgap_errout := \"\"; ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
+    cdef char *msg
 
-    msg_py = char_to_str(CSTR_STRING(r))
-    msg_py = msg_py.replace('For debugging hints type ?Recovery from NoMethodFound\n', '')
+    # TODO: Do we need/want this ClearError??
+    ClearError()
+
+    # Close the error stream: This flushes any remaining output and closes
+    # the stream for further writing; reset ERROR_OUTPUT to something sane
+    # just in case (trying to print to a closed stream segfaults GAP)
+    GAP_EvalString('CloseStream(ERROR_OUTPUT); '
+                   'ERROR_OUTPUT := "*errout*"; '
+                   'MakeImmutable(libgap_errout);');
+    r = GAP_ValueGlobalVariable("libgap_errout")
+
+    # Grab a pointer to the C string underlying the GAP string libgap_errout
+    # then copy it to a Python str (char_to_str contains an implicit strcpy)
+    msg = CSTR_STRING(r)
+    if msg != NULL:
+        msg_py = char_to_str(msg)
+        msg_py = msg_py.replace('For debugging hints type ?Recovery from '
+                                'NoMethodFound\n', '').strip()
+    else:
+        # Shouldn't happen but just in case...
+        msg_py = "An unknown error occurred in libGAP"
+
+    # Reset ERROR_OUTPUT with a new text string stream
+    GAP_EvalString('libgap_errout := ""; '
+                   'ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
+
     PyErr_SetObject(RuntimeError, msg_py)
     ClearError()
     sig_error()

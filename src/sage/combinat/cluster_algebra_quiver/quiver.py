@@ -1124,14 +1124,6 @@ class ClusterQuiver(SageObject):
 
             sage: Q.canonical_label(certificate=True)
             (Quiver on 3 vertices of type [ ['A', 1], ['B', 2] ], {0: 1, 1: 2, 2: 0})
-
-        TESTS::
-
-            sage: Q = ClusterQuiver(['A',4])
-            sage: _,iso = Q.canonical_label(certify=True); iso
-            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
-            See http://trac.sagemath.org/21111 for details.
-            {0: 0, 1: 3, 2: 1, 3: 2}
         """
         n = self._n
         m = self._m
@@ -1174,9 +1166,9 @@ class ClusterQuiver(SageObject):
         """
         return self._digraph.is_directed_acyclic()
 
-    def is_bipartite(self,return_bipartition=False):
+    def is_bipartite(self, return_bipartition=False):
         """
-        Returns true if ``self`` is bipartite.
+        Return ``True`` if ``self`` is bipartite.
 
         EXAMPLES::
 
@@ -1186,19 +1178,13 @@ class ClusterQuiver(SageObject):
             sage: ClusterQuiver(['A',[4,3],1]).is_bipartite()
             False
         """
-        dg = copy( self._digraph )
+        dg = copy(self._digraph)
         dg.delete_vertices(list(range(self._n, self._n + self._m)))
-        innie = dg.in_degree()
-        outie = dg.out_degree()
-        is_bip = sum( [ innie[i]*outie[i] for i in range(len(innie)) ] ) == 0
-        if not is_bip:
+        if any(dg.in_degree(i) and dg.out_degree(i) for i in dg):
             return False
-        else:
-            if not return_bipartition:
-                return True
-            else:
-                g = dg.to_undirected()
-                return g.bipartite_sets()
+        if not return_bipartition:
+            return True
+        return dg.to_undirected().bipartite_sets()
 
     def exchangeable_part(self):
         """
@@ -1401,7 +1387,8 @@ class ClusterQuiver(SageObject):
             [ 0  0 -1  0]
             [ 0 -1  1  0]
 
-            sage: Q = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c']]));Q
+            sage: dg = DiGraph([['a', 'b'], ['b', 'c']], format='list_of_edges')
+            sage: Q = ClusterQuiver(dg);Q
             Quiver on 3 vertices
             sage: Q.mutate(['a','b'],inplace = False).digraph().edges()
             [('a', 'b', (1, -1)), ('c', 'b', (1, -1))]
@@ -1450,17 +1437,17 @@ class ClusterQuiver(SageObject):
             raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
         if any(v not in V for v in seq):
             v = next(v for v in seq if v not in V)
-            raise ValueError('The quiver cannot be mutated at the vertex %s'%v)
+            raise ValueError('The quiver cannot be mutated at the vertex %s' % v)
 
         for v in seq:
-            dg = _digraph_mutate( dg, v, n, m )
+            dg = _digraph_mutate(dg, v, frozen=mlist)
         M = _edge_list_to_matrix(dg.edge_iterator(), nlist, mlist)
         if inplace:
             self._M = M
             self._M.set_immutable()
             self._digraph = dg
         else:
-            Q = ClusterQuiver(dg, frozen=self._mlist)
+            Q = ClusterQuiver(dg, frozen=mlist)
             Q._mutation_type = self._mutation_type
             return Q
 
@@ -1708,7 +1695,8 @@ class ClusterQuiver(SageObject):
             [-1 -1  0], []
             )
 
-            sage: S = ClusterQuiver(DiGraph([['a', 'b'], ['b', 'c']]), frozen=['b'])
+            sage: dg = DiGraph([['a', 'b'], ['b', 'c']], format='list_of_edges')
+            sage: S = ClusterQuiver(dg, frozen=['b'])
             sage: S.mutation_class()
             [Quiver on 3 vertices with 1 frozen vertex,
              Quiver on 3 vertices with 1 frozen vertex,
@@ -1906,10 +1894,8 @@ class ClusterQuiver(SageObject):
             False
         """
         mt = self.mutation_type()
-        if type( mt ) in [QuiverMutationType_Irreducible, QuiverMutationType_Reducible] and mt.is_finite():
-            return True
-        else:
-            return False
+        return (type(mt) in [QuiverMutationType_Irreducible,
+                             QuiverMutationType_Reducible] and mt.is_finite())
 
     def is_mutation_finite( self, nr_of_checks=None, return_path=False ):
         """

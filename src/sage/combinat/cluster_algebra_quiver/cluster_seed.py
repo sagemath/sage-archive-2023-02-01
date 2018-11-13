@@ -928,12 +928,13 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: Q = ClusterSeed(['A',5])
-            sage: hash(Q)  # indirect doctest
-            -5649412990944896369  # 64-bit
-            222337679  # 32-bit
+            sage: Q1 = ClusterSeed(['A',5])
+            sage: Q2 = ClusterSeed(ClusterQuiver(['A',5]))
+            sage: hash(Q1) == hash(Q2)
+            True
+            sage: hash(Q1) == hash('something')
+            False
         """
-        # mat_hash = self._M.__hash__()
         if self._use_fpolys:
             return hash(tuple(self.cluster()))
         elif self._use_g_vec:
@@ -953,8 +954,8 @@ class ClusterSeed(SageObject):
             sage: S._repr_()
             "A seed for a cluster algebra of rank 5 of type ['A', 5]"
 
-            sage: S=ClusterSeed(['B',2])
-            sage: T=S.principal_extension()
+            sage: S = ClusterSeed(['B',2])
+            sage: T = S.principal_extension()
             sage: T._repr_()
             "A seed for a cluster algebra of rank 2 of type ['B', 2] with principal coefficients"
         """

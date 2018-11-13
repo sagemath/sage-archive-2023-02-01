@@ -3249,7 +3249,15 @@ class GenericGraph(GenericGraph_pyx):
 
         A directed acyclic graph is antisymmetric::
 
-            sage: digraphs.RandomDirectedGNR(20, 0.5).antisymmetric()
+            sage: G = digraphs.RandomDirectedGNR(20, 0.5)
+            sage: G.antisymmetric()
+            True
+
+        Loops are allowed::
+
+            sage: G.allow_loops(True)
+            sage: G.add_edge(0, 0)
+            sage: G.antisymmetric()
             True
 
         An undirected graph is never antisymmetric unless it is just a union of
@@ -3269,7 +3277,9 @@ class GenericGraph(GenericGraph_pyx):
             # loops
             return self.size() == len(self.loop_edges())
         if self.has_loops():
-            return self.transitive_closure(loops=False).is_directed_acyclic()
+            g = self.transitive_closure()
+            g.allow_loops(False)
+            return g.is_directed_acyclic()
         else:
             return self.is_directed_acyclic()
 
@@ -17898,7 +17908,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def transitive_closure(self, loops=True):
         r"""
-        Return the transitive closure of a graph.
+        Return the transitive closure of the (di)graph.
 
         The transitive closure of a graph `G` has an edge `(x, y)` if and only
         if there is a path between `x` and `y` in `G`.
@@ -17908,10 +17918,11 @@ class GenericGraph(GenericGraph_pyx):
         acyclic graph is a directed acyclic graph representing the full partial
         order.
 
-        INPUT:
+        .. NOTE::
 
-        - ``loops`` -- boolean (default: ``True``); whether to add the loops of
-          ``self`` to the transitive closure
+            If the (di)graph allows loops, its transitive closure will by
+            default have one loop edge per vertex. This can be prevented by
+            disallowing loops in the (di)graph (``self.allow_loops(False)``).
 
         EXAMPLES::
 
@@ -17929,37 +17940,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: digraphs.Path(5).copy(immutable=True).transitive_closure()
             Transitive closure of Path: Digraph on 5 vertices
 
-        Effect of parameter ``loops``::
+        The transitive closure of a (di)graph allowing loops has by default a
+        loop edge per vertex. Parameter ``loops`` allows to prevent that::
 
-            sage: G = digraphs.Circuit(4)
+            sage: G = digraphs.Circuit(3)
+            sage: G.transitive_closure().loop_edges(labels=False)
+            []
             sage: G.allow_loops(True)
-            sage: G.add_edge(0, 0)
-            sage: G.transitive_closure(loops=False).loop_edges(labels=False)
-            []
-            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
-            [(0, 0)]
-            sage: G.allow_loops(False)
-            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
-            []
+            sage: G.transitive_closure().loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2)]
 
         ::
 
-            sage: G = graphs.CycleGraph(4)
+            sage: G = graphs.CycleGraph(3)
+            sage: G.transitive_closure().loop_edges(labels=False)
+            []
             sage: G.allow_loops(True)
-            sage: G.add_edge(0, 0)
-            sage: G.transitive_closure(loops=False).loop_edges(labels=False)
-            []
-            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
-            [(0, 0)]
-            sage: G.allow_loops(False)
-            sage: G.transitive_closure(loops=True).loop_edges(labels=False)
-            []
+            sage: G.transitive_closure().loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2)]
         """
         G = copy(self)
         G.name('Transitive closure of ' + self.name())
-        G.add_edges(((u, v) for u in G for v in G.breadth_first_search(u)), loops=False)
-        if G.allows_loops() and not loops:
-            G.allow_loops(False, check=True)
+        G.add_edges(((u, v) for u in G for v in G.breadth_first_search(u)), loops=None)
         return G
 
     def transitive_reduction(self):

@@ -31,7 +31,6 @@ EXAMPLES::
 .. TODO::
 
     - Use Cython to improve timings on the sieve
-    - Write as a method on Number Fields
 """
 
 
@@ -72,7 +71,7 @@ from itertools import combinations_with_replacement
 from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 import itertools
-from six.moves import range
+from six.moves import range, zip
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -1523,7 +1522,7 @@ def sieve_ordering(SUK, q):
         sage: from sage.rings.number_field.S_unit_solver import sieve_ordering
         sage: K.<xi> = NumberField(x^3 - 3*x + 1)
         sage: SUK = K.S_unit_group(S=3)
-        sage: sieve_data = sieve_ordering(SUK, 19)
+        sage: sieve_data = list(sieve_ordering(SUK, 19))
         sage: sieve_data[0]
         (Fractional ideal (-2*xi^2 + 3),
         Fractional ideal (xi - 3),
@@ -1597,7 +1596,7 @@ def clean_rfv_dict(rfv_dictionary):
         {(1, 3): [3, 2], (2, 1): [4, 6], (3, 0): [6, 6], (5, 4): [3, 6]}
     """
 
-    for a, val in rfv_dictionary.items():
+    for a, val in list(rfv_dictionary.items()):
         if 1 in val:
             rfv_dictionary.pop(a)
 
@@ -1877,23 +1876,26 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
         sage: K.<xi> = NumberField(f)
         sage: SUK = K.S_unit_group(S=K.primes_above(H))
         sage: split_primes_list = [3, 7]
-        sage: construct_complement_dictionaries(split_primes_list, SUK)
-        {3: {(0, 1, 0): [(1, 0, 0), (0, 1, 0)], (1, 0, 0): [(1, 0, 0), (0, 1, 0)]},
-        7: {(0, 1, 0): [(1, 0, 0), (1, 4, 4), (1, 2, 2)],
-        (0, 1, 2): [(0, 1, 2), (0, 3, 4), (0, 5, 0)],
-        (0, 3, 2): [(1, 0, 0), (1, 4, 4), (1, 2, 2)],
-        (0, 3, 4): [(0, 1, 2), (0, 3, 4), (0, 5, 0)],
-        (0, 5, 0): [(0, 1, 2), (0, 3, 4), (0, 5, 0)],
-        (0, 5, 4): [(1, 0, 0), (1, 4, 4), (1, 2, 2)],
-        (1, 0, 0): [(0, 5, 4), (0, 3, 2), (0, 1, 0)],
-        (1, 0, 2): [(1, 0, 4), (1, 4, 2), (1, 2, 0)],
-        (1, 0, 4): [(1, 2, 4), (1, 4, 0), (1, 0, 2)],
-        (1, 2, 0): [(1, 2, 4), (1, 4, 0), (1, 0, 2)],
-        (1, 2, 2): [(0, 5, 4), (0, 3, 2), (0, 1, 0)],
-        (1, 2, 4): [(1, 0, 4), (1, 4, 2), (1, 2, 0)],
-        (1, 4, 0): [(1, 0, 4), (1, 4, 2), (1, 2, 0)],
-        (1, 4, 2): [(1, 2, 4), (1, 4, 0), (1, 0, 2)],
-        (1, 4, 4): [(0, 5, 4), (0, 3, 2), (0, 1, 0)]}}
+        sage: actual = construct_complement_dictionaries(split_primes_list, SUK)
+        sage: expected = {3: {(0, 1, 0): [(1, 0, 0), (0, 1, 0)],
+        ....:                 (1, 0, 0): [(1, 0, 0), (0, 1, 0)]},
+        ....:             7: {(0, 1, 0): [(1, 0, 0), (1, 4, 4), (1, 2, 2)],
+        ....:                 (0, 1, 2): [(0, 1, 2), (0, 3, 4), (0, 5, 0)],
+        ....:                 (0, 3, 2): [(1, 0, 0), (1, 4, 4), (1, 2, 2)],
+        ....:                 (0, 3, 4): [(0, 1, 2), (0, 3, 4), (0, 5, 0)],
+        ....:                 (0, 5, 0): [(0, 1, 2), (0, 3, 4), (0, 5, 0)],
+        ....:                 (0, 5, 4): [(1, 0, 0), (1, 4, 4), (1, 2, 2)],
+        ....:                 (1, 0, 0): [(0, 5, 4), (0, 3, 2), (0, 1, 0)],
+        ....:                 (1, 0, 2): [(1, 0, 4), (1, 4, 2), (1, 2, 0)],
+        ....:                 (1, 0, 4): [(1, 2, 4), (1, 4, 0), (1, 0, 2)],
+        ....:                 (1, 2, 0): [(1, 2, 4), (1, 4, 0), (1, 0, 2)],
+        ....:                 (1, 2, 2): [(0, 5, 4), (0, 3, 2), (0, 1, 0)],
+        ....:                 (1, 2, 4): [(1, 0, 4), (1, 4, 2), (1, 2, 0)],
+        ....:                 (1, 4, 0): [(1, 0, 4), (1, 4, 2), (1, 2, 0)],
+        ....:                 (1, 4, 2): [(1, 2, 4), (1, 4, 0), (1, 0, 2)],
+        ....:                 (1, 4, 4): [(0, 5, 4), (0, 3, 2), (0, 1, 0)]}}
+        sage: all(set(actual[p][vec]) == set(expected[p][vec]) for p in [3,7] for vec in expected[p])
+        True
     """
 
     # we define a custom function to flatten tuples for use in a later step.
@@ -2033,7 +2035,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
                 print("Length of compatible_vectors: ", cv_size, ".")
                 print("Product: ", old_size_p*cv_size)
 
-            for exp_vec in comp_exp_vec[p].keys():
+            for exp_vec in list(comp_exp_vec[p]):
                 if drop_vector(exp_vec, p, q, comp_exp_vec):
                     comp_exp_vec[p].pop(exp_vec)
 
@@ -2050,7 +2052,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
                 print("Length of compatible_vectors: ", cv_size, ".")
                 print("Product: ", old_size_q * cv_size)
 
-            for exp_vec in comp_exp_vec[q].keys():
+            for exp_vec in list(comp_exp_vec[q]):
                 if drop_vector(exp_vec, q, p, comp_exp_vec):
                     comp_exp_vec[q].pop(exp_vec)
 
@@ -2095,13 +2097,13 @@ def compatible_vectors_check(a0, a1, g, l):
         sage: a0 = (3, 1, 8, 11)
         sage: a1 = (3, 5, 6, 13)
         sage: a2 = (5, 5, 6, 13)
-        sage: compatible_vectors_check(a0, a1, gcd(12, 22), 4)
+        sage: compatible_vectors_check(a0, a1, gcd(12, 22), 4r)
         True
-        sage: compatible_vectors_check(a0, a2, gcd(12, 22), 4)
+        sage: compatible_vectors_check(a0, a2, gcd(12, 22), 4r)
         False
     """
     # exponent vectors must agree exactly in the 0th coordinate.
-    return a0[0] == a1[0] and all((x0 - x1) % g == 0 for x0,x1 in itertools.izip(itertools.islice(a0, 1,l), itertools.islice(a1,1,l)))
+    return a0[0] == a1[0] and all((x0 - x1) % g == 0 for x0,x1 in zip(itertools.islice(a0, 1, l), itertools.islice(a1, 1, l)))
 
 def compatible_vectors(a, m0, m1, g):
     r"""
@@ -2206,7 +2208,7 @@ def compatible_systems(split_prime_list, complement_exp_vec_dict):
                 for old_system in old_systems:
                     if all((compatible_vectors_check(exp_vec, exp_vec_qj, g, l) and
                             compatible_vectors_check(comp_vec, comp_vec_qj, g, l))
-                           for g, (exp_vec_qj, comp_vec_qj) in itertools.izip(gcds, old_system)):
+                           for g, (exp_vec_qj, comp_vec_qj) in zip(gcds, old_system)):
                         # build the new system and append it to the list.
                         new_system = old_system + [[exp_vec, comp_vec]]
                         system_list.append(new_system)

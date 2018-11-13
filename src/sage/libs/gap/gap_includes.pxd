@@ -129,7 +129,7 @@ cdef extern from "<gap/libgap-api.h>":
     ctypedef void (*CallbackFunc)()
     void GAP_Initialize(int argc, char ** argv, char ** env, 
         CallbackFunc, CallbackFunc)
-    Obj GAP_EvalString(const char *)
+    Obj GAP_EvalString(const char *) except *
     Obj GAP_ValueGlobalVariable(const char *)
 #    void libgap_start_interaction(char* inputline)
 #    char* libgap_get_output()

@@ -305,23 +305,26 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     # so that Cython doesn't dereference it before libGAP is done with
     # its contents.
     cmd = str_to_bytes(gap_string + ';\n')
-#    print("gap_string: "+gap_string+"\n")
     try:
-            sig_on()
-            result = GAP_EvalString(cmd)
-            nresults = LEN_LIST(result)
-#            print("nresults="+str(nresults)+"\n")
-            if nresults > 1: # to mimick the old libGAP
-                raise ValueError('can only evaluate a single statement')
-            result = ELM_LIST(result, 1) # 1-indexed!
-#            print("result's length: "+str(LEN_LIST(result))+"\n")
-            if ELM_LIST(result, 1) != GAP_True:
-                # libgap_call_error_handler()
-                        print("An error occurred, but libGAP has no handler set")
-                        return GAP_False # needs work
-            sig_off()
+        sig_on()
+        result = GAP_EvalString(cmd)
+
+        # If an error occurred in GAP_EvalString we won't even get
+        # here if the error handler was set; but in case it wasn't
+        # let's still check the result...
+        nresults = LEN_LIST(result)
+        if nresults > 1:  # to mimick the old libGAP
+            # TODO: Get rid of this restriction eventually?
+            raise ValueError('can only evaluate a single statement')
+
+        result = ELM_LIST(result, 1) # 1-indexed!
+        if ELM_LIST(result, 1) != GAP_True:
+            raise RuntimeError("an error occurred, but libGAP has no "
+                               "error handler set")
     except RuntimeError as msg:
-            raise ValueError('libGAP: '+str(msg).strip())
+        raise ValueError(f'libGAP: {msg}')
+    finally:
+        sig_off()
 
     return ELM_LIST(result, 2)
 
@@ -355,12 +358,14 @@ cdef void hold_reference(Obj obj):
 
 cdef void error_handler():
     """
-    The libgap error handler
+    The libgap error handler.
 
-    We call ``sig_error()`` which causes us to jump back to the Sage
-    signal handler. Since we wrap libGAP C calls in ``sig_on`` /
-    ``sig_off`` blocks, this then jumps back to the ``sig_on`` where
-    the ``RuntimeError`` we raise here will be seen.
+    If an error occurred we set a RuntimeError; when the original
+    GAP_EvalString returns this exception will be raised.
+
+    TODO: We should probably prevent re-entering this function if we
+    are already handling an error; if there is an error in our stream
+    handling code below it could result in a stack overflow.
     """
     cdef Obj r
     cdef char *msg
@@ -392,8 +397,6 @@ cdef void error_handler():
                    'ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
 
     PyErr_SetObject(RuntimeError, msg_py)
-    ClearError()
-    sig_error()
 
 
 ############################################################################

@@ -305,8 +305,8 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     # so that Cython doesn't dereference it before libGAP is done with
     # its contents.
     cmd = str_to_bytes(gap_string + ';\n')
+    sig_on()
     try:
-        sig_on()
         result = GAP_EvalString(cmd)
 
         # If an error occurred in GAP_EvalString we won't even get

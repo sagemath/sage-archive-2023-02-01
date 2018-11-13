@@ -73,14 +73,17 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
     cdef TateAlgebraElement f, g, r, s
     cdef bint reduce = True
 
-    gb = [ ]; l = 0
+    gb = [ ]
+    l = 0
     for f in I.gens():
-        if f == 0: continue
+        if f == 0:
+            continue
         g = f.add_bigoh(f.valuation() + prec)
-        if g == 0: continue
+        if g == 0:
+            continue
         gb.append(g)
         l += 1
-    indices = range(l)
+    indices = list(range(l))
 
     # We minimize the family of generators
     rgb = gb[:]

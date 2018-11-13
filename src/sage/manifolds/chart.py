@@ -2973,21 +2973,24 @@ class CoordChange(SageObject):
 
         EXAMPLES:
 
-        Inverse of a coordinate transformation corresponding to a
-        `\pi/3`-rotation in the plane::
+        Inverse of a coordinate transformation corresponding to a rotation
+        in the Cartesian plane::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
-            sage: xy_to_uv = c_xy.transition_map(c_uv, ((x - sqrt(3)*y)/2, (sqrt(3)*x + y)/2))
+            sage: phi = var('phi', domain='real')
+            sage: xy_to_uv = c_xy.transition_map(c_uv,
+            ....:                                [cos(phi)*x + sin(phi)*y,
+            ....:                                 -sin(phi)*x + cos(phi)*y])
             sage: M.coord_changes()
             {(Chart (M, (x, y)),
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
             sage: uv_to_xy = xy_to_uv.inverse(); uv_to_xy
             Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y))
             sage: uv_to_xy.display()
-            x = 1/2*sqrt(3)*v + 1/2*u
-            y = -1/2*sqrt(3)*u + 1/2*v
+            x = u*cos(phi) - v*sin(phi)
+            y = v*cos(phi) + u*sin(phi)
             sage: M.coord_changes()  # random (dictionary output)
             {(Chart (M, (u, v)),
               Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
@@ -2996,6 +2999,7 @@ class CoordChange(SageObject):
 
         """
         from sage.symbolic.relation import solve
+        from sage.symbolic.assumptions import assumptions
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:
@@ -3032,11 +3036,14 @@ class CoordChange(SageObject):
         if len(solutions) == 1:
             x2_to_x1 = [solutions[0][x1[i]].subs(substitutions)
                                                             for i in range(n1)]
+            x2_to_x1_simpl = [] # to store simplified transformations
             for transf in x2_to_x1:
                 try:
                     transf = self._chart2.simplify(transf)
                 except AttributeError:
                     pass
+                x2_to_x1_simpl.append(transf)
+            x2_to_x1 = x2_to_x1_simpl
         else:
             list_x2_to_x1 = []
             for sol in solutions:
@@ -3044,12 +3051,18 @@ class CoordChange(SageObject):
                     raise ValueError("the system could not be solved; use " +
                                      "set_inverse() to set the inverse " +
                                      "manually")
-                x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
+                try:
+                    x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
+                except KeyError: # sol is not a valid solution
+                    continue
+                x2_to_x1_simpl = [] # to store simplified transformations
                 for transf in x2_to_x1:
                     try:
                         transf = self._chart2.simplify(transf)
                     except AttributeError:
                         pass
+                    x2_to_x1_simpl.append(transf)
+                x2_to_x1 = x2_to_x1_simpl
                 if self._chart1.valid_coordinates(*x2_to_x1):
                     list_x2_to_x1.append(x2_to_x1)
             if len(list_x2_to_x1) == 0:
@@ -3064,6 +3077,12 @@ class CoordChange(SageObject):
                    "manually")
             x2_to_x1 = list_x2_to_x1[0]
         self._inverse = type(self)(self._chart2, self._chart1, *x2_to_x1)
+        # Some cleaning: the local symbolic variables (xxxx0, xxxx1, ...) are
+        # removed from the list of assumptions
+        for asm in assumptions():
+            for xxxx in xp2:
+                if asm.has(xxxx):
+                    asm.forget()
         return self._inverse
 
     def set_inverse(self, *transformations, **kwds):
@@ -3124,9 +3143,11 @@ class CoordChange(SageObject):
             x2 = self._chart2._xx
             n1 = len(x1)
             for i in range(n1):
-                print("  {} == {}".format(x1[i], self._chart1.simplify(self._inverse(*(self(*x1)))[i])))
+                print("  {} == {}".format(x1[i],
+                      self._chart1.simplify(self._inverse(*(self(*x1)))[i])))
             for i in range(n1):
-                print("  {} == {}".format(x2[i], self._chart2.simplify(self(*(self._inverse(*x2)))[i])))
+                print("  {} == {}".format(x2[i],
+                      self._chart2.simplify(self(*(self._inverse(*x2)))[i])))
 
     def __mul__(self, other):
         r"""

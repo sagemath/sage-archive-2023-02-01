@@ -14,6 +14,9 @@ Utility functions for libGAP
 
 from __future__ import print_function, absolute_import
 
+import os
+import warnings
+
 from cpython.exc cimport PyErr_SetObject
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_off, sig_error
@@ -204,7 +207,7 @@ cdef initialize():
     # Define argv and environ variables, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool
     # size!
-    cdef char* argv[15]
+    cdef char* argv[16]
     argv[0] = "sage"
     argv[1] = "-l"
     s = str_to_bytes(gap_root(), FS_ENCODING, "surrogateescape")
@@ -223,17 +226,28 @@ cdef initialize():
     argv[9] = "-q"    # no prompt!
     argv[10] = "-E"    # don't use readline as this will interfere with Python
     argv[11] = "--nointeract"  # Implies -T
-    argv[12] = NULL
+
     cdef int argc = 12   # argv[argc] must be NULL
 
     from .saved_workspace import workspace
     workspace, workspace_is_up_to_date = workspace()
     ws = str_to_bytes(workspace, FS_ENCODING, "surrogateescape")
     if workspace_is_up_to_date:
-        argv[12] = "-L"
-        argv[13] = ws
-        argv[14] = NULL
-        argc = 14
+        argv[argc] = "-L"
+        argv[argc + 1] = ws
+        argc += 2
+
+    # Get the path to the sage.gaprc file and check that it exists
+    sage_gaprc = os.path.join(os.path.dirname(__file__), 'sage.gaprc')
+    if not os.path.exists(sage_gaprc):
+        warnings.warn(f"Sage's GAP initialization file {sage_gaprc} is "
+                       "is missing; some functionality may be limited")
+    else:
+        sage_gaprc = str_to_bytes(sage_gaprc, FS_ENCODING, "surrogateescape")
+        argv[argc] = sage_gaprc
+        argc += 1
+
+    argv[argc] = NULL
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler

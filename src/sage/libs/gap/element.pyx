@@ -80,12 +80,8 @@ cdef Obj make_gap_list(sage_list) except NULL:
 
 
 cdef char *crepr(Obj obj):
-    cdef Obj s, o
-    s = NEW_STRING(0);
-    o = CALL_2ARGS(   # setting a string buffer
-              GAP_ValueGlobalVariable("OutputTextString"), s, GAP_True)
-    CALL_2ARGS(GAP_ValueGlobalVariable("PrintTo"), o, obj)
-    CALL_1ARGS(GAP_ValueGlobalVariable("CloseStream"), o)
+    cdef Obj s
+    s = CALL_1ARGS(GAP_ValueGlobalVariable("ViewString"), obj)
     return CSTR_STRING(s)
 
 

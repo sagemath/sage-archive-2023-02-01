@@ -39,16 +39,3 @@ index 60002e4..ca2606c 100644
  #ifdef USE_MPFR
      #include "Lgmpfrxx.h"
      typedef mpfr_class Double;
-diff --git a/include/Ldokchitser.h b/include/Ldokchitser.h
-index e8d25bf..52d65c0 100644
---- a/include/Ldokchitser.h
-+++ b/include/Ldokchitser.h
-@@ -78,7 +78,7 @@ phi_series(int precision)
- 	
- 	int n,fact_n;
- 	Complex log_Gamma[N+1][a+1][MYDIGITS+1];
--        std:vector<std::vector<Complex> > sum_log_Gamma(N+1);
-+        std::vector<std::vector<Complex> > sum_log_Gamma(N+1);
-         for (j=1;j<=N;j++) sum_log_Gamma[j].resize(MYDIGITS+1);
- 	
- 	for (j=1;j<=N;j++)

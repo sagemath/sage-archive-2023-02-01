@@ -1811,7 +1811,7 @@ class FancyTuple(tuple):
         length = len(str(len(self) - 1))
         return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
 
-    def __getitem__(self, x):
+    def __getslice__(self, i, j):
         r"""
         The slice of a FancyTuple remains a FancyTuple.
 
@@ -1830,6 +1830,9 @@ class FancyTuple(tuple):
             0: à
             1: ç
         """
+        return self.__getitem__(slice(i, j))
+
+    def __getitem__(self, x):
         res = tuple.__getitem__(self, x)
         if isinstance(res, tuple):
             res = FancyTuple(res)

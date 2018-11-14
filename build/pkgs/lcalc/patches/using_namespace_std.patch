@@ -1,5 +1,5 @@
 diff --git a/include/Lcommon.h b/include/Lcommon.h
-index 1b3be43..081fcb8 100644
+index 1b3be43..bf40532 100644
 --- a/include/Lcommon.h
 +++ b/include/Lcommon.h
 @@ -48,7 +48,7 @@ const bool outputSeries=true;	  // Whether to output the coefficients or just th
@@ -7,22 +7,12 @@ index 1b3be43..081fcb8 100644
  // Loop i from m to n
  // Useful in tidying up most for loops
 -#define loop(i,m,n) for(typeof(m) i=(m); i!=(n); i++)
-+#define loop(i,m,n) for(decltype(m) i=(m); i!=(n); i++)
++#define loop(i,m,n) for(auto i=(m); i!=(n); i++)
  
  // A class for calculations involving polynomials of small degree
  // Not efficient enough for huge polynomials
-@@ -68,8 +68,7 @@ template<class T=Complex> struct smallPoly {
- 
- 	void resize(int N) {
- 		coeffs.resize(N);
--		loop(i,this->N,N)
--			coeffs[i]=zero;
-+		loop(i,this->N,N) coeffs[i]=zero;
- 		this->N=N;
- 	}
- 
 diff --git a/include/Lcommon_ld.h b/include/Lcommon_ld.h
-index 86ae4df..3b0cb0d 100644
+index 86ae4df..33c560c 100644
 --- a/include/Lcommon_ld.h
 +++ b/include/Lcommon_ld.h
 @@ -53,7 +53,7 @@ const bool outputSeries=true;	  // Whether to output the coefficients or just th
@@ -30,7 +20,7 @@ index 86ae4df..3b0cb0d 100644
  // Loop i from m to n
  // Useful in tidying up most for loops
 -#define loop(i,m,n) for(typeof(m) i=(m); i!=(n); i++)
-+#define loop(i,m,n) for(decltype(m) i=(m); i!=(n); i++)
++#define loop(i,m,n) for(auto i=(m); i!=(n); i++)
  
  // A class for calculations involving polynomials of small degree
  // Not efficient enough for huge polynomials
@@ -49,3 +39,16 @@ index 60002e4..ca2606c 100644
  #ifdef USE_MPFR
      #include "Lgmpfrxx.h"
      typedef mpfr_class Double;
+diff --git a/include/Ldokchitser.h b/include/Ldokchitser.h
+index e8d25bf..52d65c0 100644
+--- a/include/Ldokchitser.h
++++ b/include/Ldokchitser.h
+@@ -78,7 +78,7 @@ phi_series(int precision)
+ 	
+ 	int n,fact_n;
+ 	Complex log_Gamma[N+1][a+1][MYDIGITS+1];
+-        std:vector<std::vector<Complex> > sum_log_Gamma(N+1);
++        std::vector<std::vector<Complex> > sum_log_Gamma(N+1);
+         for (j=1;j<=N;j++) sum_log_Gamma[j].resize(MYDIGITS+1);
+ 	
+ 	for (j=1;j<=N;j++)

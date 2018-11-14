@@ -413,8 +413,8 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
         sage: boruvka(G, by_weight=True)
         [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
-        sage: boruvka(G, by_weight=False)
-        [(1, 2, 28), (2, 3, 16), (3, 4, 12), (4, 5, 22), (1, 6, 10), (2, 7, 14)]
+        sage: sorted(boruvka(G, by_weight=False))
+        [(1, 2, 28), (1, 6, 10), (2, 3, 16), (2, 7, 14), (3, 4, 12), (4, 5, 22)]
 
     An example with custom edge labels::
 

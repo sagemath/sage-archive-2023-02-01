@@ -278,6 +278,8 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     OUTPUT:
 
     The resulting GAP object or NULL+Python Exception in case of error.
+    The result object may also be NULL without a Python exception set for
+    statements that do not return a value.
 
     EXAMPLES::
 
@@ -308,17 +310,22 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     sig_on()
     try:
         result = GAP_EvalString(cmd)
+        # We can assume that the result object is a GAP PList (plain list)
+        # and we should use functions for PLists directly for now; see
+        # https://github.com/gap-system/gap/pull/2988/files#r233021437
 
         # If an error occurred in GAP_EvalString we won't even get
         # here if the error handler was set; but in case it wasn't
         # let's still check the result...
-        nresults = LEN_LIST(result)
+        nresults = LEN_PLIST(result)
         if nresults > 1:  # to mimick the old libGAP
             # TODO: Get rid of this restriction eventually?
             raise ValueError('can only evaluate a single statement')
 
-        result = ELM_LIST(result, 1) # 1-indexed!
-        if ELM_LIST(result, 1) != GAP_True:
+        # Get the result of the first statement
+        result = ELM_PLIST(result, 1) # 1-indexed!
+
+        if ELM_PLIST(result, 1) != GAP_True:
             raise RuntimeError("an error occurred, but libGAP has no "
                                "error handler set")
     except RuntimeError as msg:
@@ -326,7 +333,12 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     finally:
         sig_off()
 
-    return ELM_LIST(result, 2)
+    # The actual resultant object, if any, is in the second entry
+    # (which may be unassigned--see previous github comment; in this case
+    # 0 is returned without setting a a Python exception, so we should treat
+    # this like returning None)
+
+    return ELM_PLIST(result, 2)
 
 
 ###########################################################################

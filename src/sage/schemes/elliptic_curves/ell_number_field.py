@@ -4002,8 +4002,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         An example over a number field::
 
             sage: E = EllipticCurve([1,0])
-            sage: E = E.change_ring(QuadraticField(-1))
-            sage: pts = E.rational_points(bound=2)
+            sage: pts = E.rational_points(bound = 2, F = QuadraticField(-1))
             sage: pts
             [(-a : 0 : 1), (0 : 0 : 1), (0 : 1 : 0), (a : 0 : 1)]
             sage: pts[0] + pts[1]
@@ -4016,6 +4015,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # can only be base changed to good primes.
         E = self
         if 'F' in kwds:
-            E = E.change_ring(F)
+            E = E.change_ring(kwds['F'])
 
         return map(E, Curve(self).rational_points(**kwds))

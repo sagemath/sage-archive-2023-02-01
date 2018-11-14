@@ -1811,7 +1811,7 @@ class FancyTuple(tuple):
         length = len(str(len(self) - 1))
         return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
 
-    def __getslice__(self, i, j):
+    def __getitem__(self, x):
         r"""
         The slice of a FancyTuple remains a FancyTuple.
 
@@ -1826,13 +1826,14 @@ class FancyTuple(tuple):
         TESTS::
 
             sage: t = ('é', 'è', 'à', 'ç')
-            sage: t
-            ('\xc3\xa9', '\xc3\xa8', '\xc3\xa0', '\xc3\xa7')
             sage: FancyTuple(t)[2:4]
             0: à
             1: ç
         """
-        return FancyTuple(tuple(self).__getslice__(i, j))
+        res = tuple.__getitem__(self, x)
+        if isinstance(res, tuple):
+            res = FancyTuple(res)
+        return res
 
 
 oeis = OEIS()

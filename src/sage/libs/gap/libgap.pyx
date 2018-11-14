@@ -400,9 +400,18 @@ class Gap(Parent):
             sage: libgap.eval('"string"')
             "string"
         """
+        cdef GapElement elem
+
         if not isinstance(gap_command, basestring):
             gap_command = str(gap_command._gap_init_())
-        return make_any_gap_element(self, gap_eval(gap_command))
+
+        elem = make_any_gap_element(self, gap_eval(gap_command))
+
+        # If the element is NULL just return None instead
+        if elem.value == NULL:
+            return None
+
+        return elem
 
     @cached_method
     def function_factory(self, function_name):

@@ -2389,7 +2389,9 @@ class ParallelogramPolyomino(ClonableList):
 
     def area(self):
         r"""
-        Return the area of the parallelogram polyomino.
+        Return the area of the parallelogram polyomino. The area of a
+        parallelogram polyomino is the number of cells of the parallelogram
+        polyomino.
 
         EXAMPLES::
 
@@ -2847,6 +2849,10 @@ class ParallelogramPolyomino(ClonableList):
         - ``nb_crossed_nodes`` -- ``[0]`` (default) a list containg just one
           integer.
 
+        OUTPUT:
+
+        A [row,colum] position of the cell.
+
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
@@ -3053,6 +3059,12 @@ class ParallelogramPolyomino(ClonableList):
         This function returns the path of the bounding path inside the ordered
         tree.
 
+        The path in the ordered tree is encoded as a list of integers.
+        The first integer represents the son choice between the sons of the
+        root.
+        Recursively, an integer represent the son choice between the sons of
+        the current father.
+
         The bijection is described in the paper [BRS2015]_
         at page 7, the first (resp. second) ordered tree is obtained by
         gluing all roots of the ordered forest F_e (resp. F_s) to a virtual
@@ -3061,6 +3073,10 @@ class ParallelogramPolyomino(ClonableList):
         INPUT:
 
         - ``line`` -- the x coordinate of the line.
+
+        OUTPUT:
+
+        A list of integers
 
         EXAMPLES::
 
@@ -3104,6 +3120,12 @@ class ParallelogramPolyomino(ClonableList):
         This function returns the path of the bounding path inside the ordered
         tree.
 
+        The path in the ordered tree is encoded as a list of integers.
+        The first integer represents the son choice between the sons of the
+        root.
+        Recursively, an integer represent the son choice between the sons of
+        the current father.
+
         The bijection is described in the paper [BRS2015]_
         at page 7, the first (resp. second) ordered tree is obtained by
         gluing all roots of the ordered forest F_e (resp. F_s) to a virtual
@@ -3112,6 +3134,10 @@ class ParallelogramPolyomino(ClonableList):
         INPUT:
 
         - ``column`` -- the y coordinate of the column.
+
+        OUTPUT:
+
+        A list of integers
 
         EXAMPLES::
 
@@ -3227,6 +3253,10 @@ class ParallelogramPolyomino(ClonableList):
         Return the list of cells containing node of the left planar tree in
         the Boussicault-Socci bijection between parallelogram polyominoes
         and pair of ordered trees.
+
+        OUTPUT:
+
+        A list of [row,colum] position of cells.
 
         EXAMPLES::
 
@@ -3500,6 +3530,25 @@ class ParallelogramPolyomino(ClonableList):
 class ParallelogramPolyominoesFactory(SetFactory):
     r"""
     The parallelogram polyominoes factory.
+
+    EXAMPLES::
+
+        sage: PPS = ParallelogramPolyominoes(size=4)
+        sage: PPS
+        Parallelogram polyominoes of size 4
+
+        sage: sorted(list(PPS))
+        [[[0, 0, 0, 1], [1, 0, 0, 0]],
+         [[0, 0, 1, 1], [1, 0, 1, 0]],
+         [[0, 0, 1, 1], [1, 1, 0, 0]],
+         [[0, 1, 0, 1], [1, 1, 0, 0]],
+         [[0, 1, 1, 1], [1, 1, 1, 0]]]
+
+        sage: PPS = ParallelogramPolyominoes()
+        sage: PPS
+        Parallelogram polyominoes
+        sage: PPS.cardinality()
+        +Infinity
     """
     def __call__(self, size=None, policy=None):
         r"""
@@ -3756,8 +3805,9 @@ class ParallelogramPolyominoes_size(
     """
 
 
-class ParallelogramPolyominoes_all(ParentWithSetFactory,
-                                   DisjointUnionEnumeratedSets):
+class ParallelogramPolyominoes_all(
+    ParentWithSetFactory, DisjointUnionEnumeratedSets
+):
     r"""
     This class enumerates all the parallelogram polyominoes.
 

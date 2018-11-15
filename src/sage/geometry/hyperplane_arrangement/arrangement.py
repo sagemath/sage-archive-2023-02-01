@@ -2521,11 +2521,26 @@ class HyperplaneArrangementElement(Element):
             3
             sage: B.minimal_generated_number()
             4
+
+        TESTS:
+
+        Check that :trac:`26705` is fixed::
+
+            sage: w = WeylGroup(['A',4]).from_reduced_word([3,4,2,1])
+            sage: I = w.inversion_arrangement()
+            sage: I
+            Arrangement <a4 | a1 | a1 + a2 | a1 + a2 + a3 + a4>
+            sage: I.minimal_generated_number()
+            0
+            sage: I.is_formal()
+            True
         """
         V = VectorSpace(self.base_ring(), self.dimension())
         W = VectorSpace(self.base_ring(), self.n_hyperplanes())
         r = self.rank()
         M = self.matroid()
+        if len(M.groundset()) == r:  # there are no circuits
+            return ZZ.zero()
         norms = M.representation().columns()
         circuits = M.circuits()
         for i in range(2, self.n_hyperplanes()):

@@ -29,7 +29,7 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import richcmp
+from sage.structure.richcmp import richcmp, op_EQ, op_NE
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.all import divisors, prime_divisors, is_square, euler_phi, gcd
@@ -474,6 +474,10 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
             False
         """
+        if op in [op_EQ, op_NE]:
+            test = (self.level() == other.level() and
+                    self._rdict == other._rdict)
+            return test == (op == op_EQ)
         return richcmp((self.level(), sorted(self._rdict.items())),
                        (other.level(), sorted(other._rdict.items())), op)
 

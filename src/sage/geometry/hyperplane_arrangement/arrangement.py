@@ -341,8 +341,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
 
-from copy import copy
-
 
 class HyperplaneArrangementElement(Element):
     """
@@ -2422,7 +2420,6 @@ class HyperplaneArrangementElement(Element):
             sage: factor(det(v))
             (h2 - 1) * (h2 + 1) * (h1 - 1) * (h1 + 1)
         """
-        from sage.rings.all import PolynomialRing
         from sage.matrix.constructor import identity_matrix
         from sage.misc.all import prod
         k = len(self)

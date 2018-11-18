@@ -25,14 +25,14 @@ def CyclicCover(r, f, names=None, check_smooth=True):
 
     - ``r`` - the order of the cover
 
-    -  ``f`` - univariate polynomial
-    is not given, then it defaults to 0.
+    - ``f`` - univariate polynomial
+      is not given, then it defaults to 0.
 
-    -  ``names``  (default: ``["x","y"]``) - names for the
+    - ``names``  (default: ``["x","y"]``) - names for the
        coordinate functions
 
-    -  ``check_squarefree`` (default: ``True``) - test if
-       the input defines a unramified cover of the projective line.
+    - ``check_squarefree`` (default: ``True``) - test if
+      the input defines a unramified cover of the projective line.
 
     .. WARNING::
 
@@ -112,7 +112,7 @@ def CyclicCover(r, f, names=None, check_smooth=True):
                     "this model is not smooth.")
 
         try:
-            from .check_squarefree import check_squarefree
+            from .cycliccover_generic import check_squarefree
             smooth = check_squarefree(f)
         except NotImplementedError as err:
             raise NotImplementedError(str(err) +  "Use " \

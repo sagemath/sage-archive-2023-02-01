@@ -10,41 +10,6 @@ from sage.functions.log import log
 from sage.functions.other import ceil
 
 
-def power_sum(coefficients, length = None):
-    """
-    Returns the power sum coefficients of a polynomial.
-    If f = \prod (x - xi)
-    returns [pk] where pk = \sum x_i ^k
-
-    e_k = sum x_{i_1} ... x_{i_k}
-    where 1 <= i_1 < i_2 < ... < i_k <= n
-    """
-
-    if length == None:
-        length = len(coefficients)
-    if coefficients == []:
-        return [None] + [0]*(length - 1)
-    e = coefficients[:]
-    e.reverse()
-    assert e[0] == 1
-    for i in range(1, len(e), 2):
-        e[i] *= -1
-
-    e.extend([0]*(length - len(e)))
-
-    p = [0] * length
-    p[0] = None
-    p[1] = e[1]
-    for k in range(2, length):
-        p[k] = (-1)**(k-1) * k * e[k]
-        p[k] += sum([(-1)**(k - 1 + i) * e[k - i] * p[i] for i in range(1,k)])
-
-    assert len(p) == length
-
-    return p
-
-
-
 
 def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a = 1, known_factor = [1]):
     """

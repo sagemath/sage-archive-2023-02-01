@@ -53,8 +53,6 @@ def CyclicCover(r, f, names=None, check_smooth=True):
 
     EXAMPLES:
 
-    #FIXME
-
     Basic examples::
 
         sage: R.<x> = QQ[]
@@ -67,7 +65,7 @@ def CyclicCover(r, f, names=None, check_smooth=True):
         sage: CyclicCover(15, x^9 + x + 1)
         Cyclic Cover of P^1 over Rational Field defined by y^15 = x^9 + x + 1
 
-        sage: k.<a> = GF(9)i R.<x> = k[]
+        sage: k.<a> = GF(9); R.<x> = k[]
         sage: CyclicCover(5, x^9 + x + 1)
         Cyclic Cover of P^1 over Finite Field in a of size 3^2 defined by y^5 = x^9 + x + 1
         sage: CyclicCover(15, x^9 + x + 1)

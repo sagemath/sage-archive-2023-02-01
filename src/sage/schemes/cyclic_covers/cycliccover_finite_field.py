@@ -1,4 +1,4 @@
-"""
+r"""
 Cyclic covers over a finite field
 
 EXAMPLES::
@@ -276,31 +276,33 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
         where:
 
-        Sigma = \sum_{k = 0} ^{N0-1}
-                        \sum_{s = 0} ^k
+        .. MATH::
+            Sigma = \sum_{k = 0} ^{N0-1}
+                            \sum_{s = 0} ^k
+                                (-1) ** (k-s) * binomial(k, s)
+                                * binomial(-j/r, k)
+                                * self._frobpow[s]
+                                * self._y ** (-self._r * self._p * s)
+                    = \sum_{s = 0} ^{N0 - 1}
+                        \sum_{k = s} ^N0
                             (-1) ** (k-s) * binomial(k, s)
-                            * binomial(-j/r, k)
+                            * binomial(-j/self._r, k)
+                            * self._frobpow[s]
+                            * self._y ** (-self._r*self._p*s)
+                    = \sum_{s = 0} ^{N0-1}
+                            D_{j, s}
                             * self._frobpow[s]
                             * self._y ** (-self._r * self._p * s)
-                = \sum_{s = 0} ^{N0 - 1}
-                    \sum_{k = s} ^N0
-                        (-1) ** (k-s) * binomial(k, s)
-                        * binomial(-j/self._r, k)
-                        * self._frobpow[s]
-                        * self._y ** (-self._r*self._p*s)
-                = \sum_{s = 0} ^{N0-1}
-                        D_{j, s}
-                        * self._frobpow[s]
-                        * self._y ** (-self._r * self._p * s)
-                = \sum_{s = 0} ^N0
-                    \sum_{l = 0} ^(d*s)
-                        D_{j, s} * self._frobpow[s][l]
-                        * x ** (self._p ** l)
-                        * y ** (-self._r * self._p ** s)
+                    = \sum_{s = 0} ^N0
+                        \sum_{l = 0} ^(d*s)
+                            D_{j, s} * self._frobpow[s][l]
+                            * x ** (self._p ** l)
+                            * y ** (-self._r * self._p ** s)
 
         and:
 
-        D_{j, s} = \sum_{k = s} ^N0 (-1) ** (k-s) * binomial(k, s) * binomial(-j/self._r, k) )
+        .. MATH::
+            D_{j, s} = \sum_{k = s} ^N0 (-1) ** (k-s) * binomial(k, s) * binomial(-j/self._r, k) )
 
 
         """
@@ -369,8 +371,6 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             A tuple of tuples ``( (D0, D1), (M0, M1) )``
             where MV_t  = M0 + t * M1 and DV_t = D0 + t * D1
 
-        ALGORITHM:
-
         """
 
         d = self._d
@@ -404,9 +404,10 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _reduce_vector_horizontal_BSGS(self, G, e, s):
         r"""
-        Input:
+        INPUT:
             - a vector -- G \in W_{e, s}
-        Output:
+
+        OUTPUT:
             - a vector -- H \in W_{e - p, s} such that
                 G x^e y^{-s} dx \cong H x^{e - p} y^{-s} dx
         """
@@ -500,9 +501,10 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _reduce_vector_horizontal_plain(self, G, e, s, k = 1):
         r"""
-        Input:
+        INPUT:
             - a vector -- G \in W_{e, s}
-        Output:
+
+        OUTPUT:
             - a vector -- H \in W_{e - k, s} such that
                 G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx
         """
@@ -592,11 +594,12 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _reduce_vector_vertical_plain(self, G, s0, s, k = 1):
         r"""
-        Input:
+        INPUT:
             - a vector -- G \in W_{-1, r*s + s0}
-        Output:
+
+        OUTPUT:
             - a vector -- `H \in W_{-1, r*(s - k) + s0}` such that
-                `G y^{-(r*s + s0)} dx \cong H y^{-(r*(s -k) + s0)} dx`
+            `G y^{-(r*s + s0)} dx \cong H y^{-(r*(s -k) + s0)} dx`
         """
         if self._verbose > 2:
             print("_reduce_vector_vertical(self, G = %s, s0 = %s, s = %s, k = %s)" % (vector(self._Qq, G), s0,  s, k,))
@@ -680,7 +683,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def _frobenius_matrix_p(self, N0):
         r"""
-        computes the matrix that represents the p-power Frobenius
+        Computes the matrix that represents the p-power Frobenius
         """
         assert self._init_frobQ
         assert N0 <= self._N0
@@ -696,9 +699,9 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
     def frobenius_matrix(self, N = None):
         """
-            Compute p-adic frobenius matrix to precision p^N. If N not
-            supplied, a default value is selected, which is the minimum needed
-            to recover the charpoly unambiguously.
+        Compute p-adic frobenius matrix to precision p^N. If N not
+        supplied, a default value is selected, which is the minimum needed
+        to recover the charpoly unambiguously.
 
         EXAMPLES::
 

@@ -50,7 +50,7 @@ cdef extern from "hypellfrob.h":
 
 def interval_products(M0, M1, target):
     r"""
-    Given a matrix `M` with coefficients linear polynomials over `\ZZ/N\ZZ` and a list of integers `a_0 \lt b_0 \le a_1 \lt b_1 \le \cdots \le a_n \lt b_n` compute the matrices
+    Given a matrix `M` with coefficients linear polynomials over `\ZZ/N\ZZ` and a list of integers `a_0 < b_0 \le a_1 < b_1 \le \cdots \le a_n < b_n` compute the matrices
     ``\prod_{t = a_i + 1}^{b_i} M(t)``
     for `i = 0` to `n`.
 

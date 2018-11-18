@@ -43,5 +43,5 @@ from .projective.all import *
 
 from .product_projective.all import *
 
-from .cycliccovers.all import *
+from .cyclic_covers.all import *
 

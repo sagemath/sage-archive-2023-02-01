@@ -17,23 +17,23 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a = 1, known_facto
 
     INPUT:
 
-    - ``frob_matrix`` -- a matrix representing the p-power Frobenius lift to Z_q up to some precision
+    - ``frob_matrix`` -- a matrix representing the p-power Frobenius lift to `Z_q` up to some precision
 
     - ``charpoly_prec`` -- a vector ai, such that, frob_matrix.change_ring(ZZ).charpoly()[i] will be correct mod p^ai, this can be easily deduced from the hodge numbers and knowing the q-adic precision of frob_matrix
 
-    - ``p`` -- prime p
+    - ``p`` -- prime `p`
 
     - ``weight`` -- weight of the motive
 
-    - ``a`` -- q = q^a
+    - ``a`` -- `q = q^a`
 
     - ``known_factor`` -- If there is a known factor, this are its coefficients
 
     OUTPUT: a list of integers corresponding to the characteristic polynomial of the Frobenius action
 
-    Examples::
+    EXAMPLES::
 
-        sage: from sage.schemes.cycliccovers.charpoly_frobenius import charpoly_frobenius
+        sage: from sage.schemes.cyclic_covers.charpoly_frobenius import charpoly_frobenius
         sage: M = Matrix([[O(17), 8 + O(17)], [O(17), 15 + O(17)]])
         sage: charpoly_frobenius(M, [2, 1, 1], 17, 1, 1)
         [17, 2, 1]

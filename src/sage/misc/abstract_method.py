@@ -109,8 +109,11 @@ def abstract_method(f=None, optional=False):
 
     .. TODO:: what should be the recommended mantra for existence testing from the class?
 
-    .. TODO:: should extra information appear in the output? The name of
-    the class? That of the super class where the abstract method is defined?
+    .. TODO::
+
+        should extra information appear in the output? The name of the
+        class? That of the super class where the abstract method is
+        defined?
 
     .. TODO:: look for similar decorators on the web, and merge
 

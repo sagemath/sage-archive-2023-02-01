@@ -19,7 +19,7 @@ SAGE_SPKG_CONFIGURE([gfortran], [
         else
         # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
             AC_FC_FREEFORM([], [
-		AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
+                AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
                 AC_MSG_NOTICE([which means the compiler is either seriously broken, or])
                 AC_MSG_NOTICE([is too old to build Sage.])
                 AC_MSG_NOTICE([gfortran will be built])

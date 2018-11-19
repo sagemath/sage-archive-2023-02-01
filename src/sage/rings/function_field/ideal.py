@@ -78,18 +78,19 @@ AUTHORS:
 
 """
 from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import operator
 import itertools
+from functools import reduce
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
@@ -108,6 +109,7 @@ from sage.rings.infinity import infinity
 from sage.rings.ideal import Ideal_generic
 
 lazy_import('sage.matrix.constructor', 'matrix')
+
 
 class FunctionFieldIdeal(Element):
     """
@@ -172,7 +174,6 @@ class FunctionFieldIdeal(Element):
             sage: I = O.ideal(x,x^2,x^2+x)
             sage: I.gens_reduced()
             (x,)
-
         """
         return self.gens()
 
@@ -204,6 +205,7 @@ class FunctionFieldIdeal(Element):
             Order in Function field in y defined by y^2 - x^3 - 1
         """
         return self.ring()
+
 
 class FunctionFieldIdeal_rational(FunctionFieldIdeal):
     """
@@ -260,7 +262,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
             sage: I = O.ideal(x,1/(x+1)); I
             Ideal (1/(x + 1)) of Maximal order of Rational function field in x over Rational Field
         """
-        return "Ideal (%s) of %s"%(self._gen, self._ring)
+        return "Ideal (%s) of %s" % (self._gen, self._ring)
 
     def __contains__(self, element):
         """
@@ -514,6 +516,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
              factors.append( (self.ring().ideal(f), m) )
         return factors
 
+
 class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
     """
     A fractional ideal specified by a finitely generated module over
@@ -663,7 +666,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
             sage: O.ideal(x^2 + 1)
             Ideal (x^2 + 1, (x^2 + 1)*y) of Order in Function field in y defined by y^2 - x^3 - 1
         """
-        return "Ideal (%s) of %s"%(', '.join([repr(g) for g in self.gens()]), self.ring())
+        return "Ideal (%s) of %s" % (', '.join([repr(g) for g in self.gens()]), self.ring())
 
     def gens(self):
         """
@@ -817,6 +820,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
         for g in G[1:]:
             inv = inv.intersection(R.ideal(~g))
         return inv
+
 
 class FunctionFieldIdeal_global(FunctionFieldIdeal):
     """
@@ -1065,7 +1069,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             return "Zero ideal of %s" % (self._ring,)
 
         s = ', '.join([repr(g) for g in self.gens_two()])
-        return "Ideal (%s) of %s"%(s, self._ring)
+        return "Ideal (%s) of %s" % (s, self._ring)
 
     def _add_(self, other):
         """
@@ -1779,11 +1783,13 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         """
         return self._prime_below
 
+
 class FunctionFieldIdealInfinite(FunctionFieldIdeal):
     """
     Base class of ideals of maximal infinite orders
     """
     pass
+
 
 class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
     """
@@ -1860,7 +1866,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
             Ideal (1/x) of Maximal infinite order of Rational function field
             in x over Finite Field of size 2
         """
-        return "Ideal (%s) of %s"%(self._gen, self._ring)
+        return "Ideal (%s) of %s" % (self._gen, self._ring)
 
     def _add_(self, other):
         """
@@ -2042,6 +2048,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
         else:
             return f.denominator().degree() - f.numerator().degree()
 
+
 class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generic):
     """
     A fractional ideal specified by a finitely generated module over
@@ -2203,7 +2210,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generi
             sage: P*[a^2,a*b+c,c^3] # indirect doctest
             Ideal (a^2, a*b + c, c^3) of Multivariate Polynomial Ring in a, b, c over Rational Field
         """
-        return "Ideal %s of %s"%(self._repr_short(), self.ring())
+        return "Ideal %s of %s" % (self._repr_short(), self.ring())
 
     def module(self):
         """
@@ -2233,6 +2240,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generi
             True
         """
         return self._module
+
 
 class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
     """
@@ -2720,6 +2728,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
         return self._ideal.valuation(self.ring()._to_iF(ideal))
 
+
 class IdealMonoid(UniqueRepresentation, Parent):
     r"""
     The monoid of ideals in orders of function fields.
@@ -2764,7 +2773,7 @@ class IdealMonoid(UniqueRepresentation, Parent):
             sage: M = O.ideal_monoid(); M._repr_()
             'Monoid of ideals of Maximal order of Rational function field in x over Finite Field of size 2'
         """
-        return "Monoid of ideals of %s"%self.__R
+        return "Monoid of ideals of %s" % self.__R
 
     def ring(self):
         """

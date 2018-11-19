@@ -70,7 +70,7 @@ import sage.rings.all as rings
 from sage.rings.ring import is_Ring
 import sage.matrix.matrix_space as matrix_space
 from sage.modules.free_module_element import vector
-from sage.structure.element import is_Vector, is_Matrix
+from sage.structure.element import is_Matrix
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
 from copy import copy
@@ -1928,6 +1928,7 @@ def block_matrix(*args, **kwds):
     sub_matrices = args[0]
 
     if is_Matrix(sub_matrices):
+        M = sub_matrices
         # a single matrix (check nrows/ncols/ring)
         if (nrows is not None and nrows != 1) or \
            (ncols is not None and ncols != 1):
@@ -1945,7 +1946,6 @@ def block_matrix(*args, **kwds):
 
     # Will we try to place the matrices in a rectangular grid?
     try_grid = True
-
 
     if len(sub_matrices) == 0:
         if (nrows is not None and nrows != 0) or \

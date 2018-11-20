@@ -154,12 +154,12 @@ def LinearExtensions(dag):
          [0, 2, 4, 1, 3],
          [0, 1, 2, 4, 3]]
 
-        sage: D.topological_sort_generator()
+        sage: D.topological_sort_generator().list()
         [[0, 1, 2, 3, 4],
-         [0, 1, 2, 4, 3],
          [0, 2, 1, 3, 4],
          [0, 2, 1, 4, 3],
-         [0, 2, 4, 1, 3]]
+         [0, 2, 4, 1, 3],
+         [0, 1, 2, 4, 3]]
 
         sage: D = DiGraph({ "a":["b","c"], "b":["d"], "c":["d","e"] })
         sage: Poset(D).linear_extensions().list()
@@ -169,12 +169,12 @@ def LinearExtensions(dag):
          ['a', 'c', 'e', 'b', 'd'],
          ['a', 'b', 'c', 'e', 'd']]
 
-        sage: D.topological_sort_generator()
+        sage: D.topological_sort_generator().list()
         [['a', 'b', 'c', 'd', 'e'],
-         ['a', 'b', 'c', 'e', 'd'],
          ['a', 'c', 'b', 'd', 'e'],
          ['a', 'c', 'b', 'e', 'd'],
-         ['a', 'c', 'e', 'b', 'd']]
+         ['a', 'c', 'e', 'b', 'd'],
+         ['a', 'b', 'c', 'e', 'd']]
 
     TESTS::
 

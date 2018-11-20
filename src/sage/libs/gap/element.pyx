@@ -220,7 +220,7 @@ cdef GapElement make_any_gap_element(parent, Obj obj):
         return make_GapElement_Permutation(parent, obj)
     elif FIRST_RECORD_TNUM <= num <= LAST_RECORD_TNUM:
         return make_GapElement_Record(parent, obj)
-    elif FIRST_LIST_TNUM <= num <= LAST_LIST_TNUM and LEN_PLIST(obj) == 0:
+    elif FIRST_LIST_TNUM <= num <= LAST_LIST_TNUM and LEN_LIST(obj) == 0:
         # Empty lists are lists and not strings in Python
         return make_GapElement_List(parent, obj)
     elif IsStringConv(obj):

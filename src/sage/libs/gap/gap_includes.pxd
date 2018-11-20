@@ -294,17 +294,11 @@ cdef extern from "<gap/ariths.h>":
 cdef extern from "<gap/calls.h>":
     bint IS_FUNC "IS_FUNC"(Obj)
 
-cdef extern from "<gap/plist.h>":
-    Obj NEW_PLIST "NEW_PLIST"(int type, int len)
-    bint IS_PLIST "IS_PLIST"(Obj lst)
-    int LEN_PLIST "LEN_PLIST"(Obj lst)
-    Obj ELM_PLIST "ELM_PLIST"(Obj lst, int pos)
-
 cdef extern from "<gap/lists.h>":
-    void UNB_LIST "UNB_LIST"(Obj lst, int pos)
     bint IS_LIST "IS_LIST"(Obj lst)
     int LEN_LIST "LEN_LIST"(Obj lst)
     Obj ELM_LIST "ELM_LIST"(Obj lst, int pos)
+    Obj ELM0_LIST "ELM0_LIST"(Obj lst, int pos)
     void ASS_LIST "ASS_LIST"(Obj lst, int pos, Obj elt)
 
 cdef extern from "<gap/listfunc.h>":

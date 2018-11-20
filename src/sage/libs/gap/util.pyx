@@ -332,15 +332,19 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         # If an error occurred in GAP_EvalString we won't even get
         # here if the error handler was set; but in case it wasn't
         # let's still check the result...
-        nresults = LEN_PLIST(result)
+        nresults = LEN_LIST(result)
         if nresults > 1:  # to mimick the old libGAP
             # TODO: Get rid of this restriction eventually?
             raise ValueError('can only evaluate a single statement')
 
         # Get the result of the first statement
-        result = ELM_PLIST(result, 1) # 1-indexed!
+        result = ELM0_LIST(result, 1) # 1-indexed!
 
-        if ELM_PLIST(result, 1) != GAP_True:
+        if ELM0_LIST(result, 1) != GAP_True:
+            # TODO: There might still be some error output in this case
+            # Rathe than complaining that the error handler wasn't run,
+            # just wrap the error message in an exception
+            # See for example the case where GAP raises a syntax error
             raise RuntimeError("an error occurred, but libGAP has no "
                                "error handler set")
     except RuntimeError as msg:
@@ -353,7 +357,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     # 0 is returned without setting a a Python exception, so we should treat
     # this like returning None)
 
-    return ELM_PLIST(result, 2)
+    return ELM0_LIST(result, 2)
 
 
 ###########################################################################

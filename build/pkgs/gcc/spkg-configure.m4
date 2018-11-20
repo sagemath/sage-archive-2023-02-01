@@ -54,7 +54,6 @@ SAGE_SPKG_CONFIGURE([gcc], [
 	AC_REQUIRE([AC_PROG_CC])
 	AC_REQUIRE([AC_PROG_CPP])
 	AC_REQUIRE([AC_PROG_CXX])
-	AC_REQUIRE([AC_PROG_FC])
 	AC_REQUIRE([AC_PROG_OBJC])
 	AC_REQUIRE([AC_PROG_OBJCXX])
 
@@ -149,7 +148,6 @@ SAGE_SPKG_CONFIGURE([gcc], [
             SAGE_SHOULD_INSTALL_GCC([$CC ($GCC_VERSION) and $CXX ($GXX_VERSION) are not the same version])
         fi
 
-        # assuming gfortran does work
     fi
 
     # Check that the assembler and linker used by $CXX match $AS and $LD.

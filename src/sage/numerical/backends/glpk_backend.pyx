@@ -2615,7 +2615,7 @@ cdef class GLPKBackend(GenericBackend):
         - if `0 \leq k \leq m-1`, the basic variable is `k`-th auxiliary
           variable,
 
-        - if `m \leq k \leq m+n-1`, the basic variable is `(k-m)`-th structual
+        - if `m \leq k \leq m+n-1`, the basic variable is `(k-m)`-th structural
           variable,
 
         where `m` is the number of rows and `n` is the number of columns in the
@@ -2708,7 +2708,7 @@ cdef class GLPKBackend(GenericBackend):
           variable,
 
         - if `m \leq k \leq m+n-1`, the non-basic variable is `(k-m)`-th
-          structual variable,
+          structural variable,
 
         where `m` is the number of rows and `n` is the number of columns
         in the specified problem object.

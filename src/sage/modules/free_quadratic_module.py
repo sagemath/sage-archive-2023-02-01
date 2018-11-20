@@ -1184,9 +1184,10 @@ class FreeQuadraticModule_ambient_field(
 #
 ###############################################################################
 
+
 class FreeQuadraticModule_submodule_with_basis_pid(
     free_module.FreeModule_submodule_with_basis_pid, FreeQuadraticModule_generic_pid):
-    """
+    r"""
     An `R`-submodule of `K^n` with distinguished basis, where `K` is
     the fraction field of a principal ideal domain `R`.
 
@@ -1220,7 +1221,7 @@ class FreeQuadraticModule_submodule_with_basis_pid(
     We compare a `\ZZ`-module to the one-dimensional space above::
 
         sage: V = A.span([[5,6,7]])
-        sage: V = V.change_ring(ZZ).scale(1/11);
+        sage: V = V.change_ring(ZZ).scale(1/11)
         sage: V < M
         True
         sage: M < V

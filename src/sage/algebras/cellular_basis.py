@@ -108,9 +108,9 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
+
 
 class CellularBasis(CombinatorialFreeModule):
     r"""
@@ -262,7 +262,7 @@ class CellularBasis(CombinatorialFreeModule):
         return self._algebra.cell_poset()
 
     def cell_module_indices(self, la):
-        """
+        r"""
         Return the indices of the cell module of ``self``
         indexed by ``la`` .
 

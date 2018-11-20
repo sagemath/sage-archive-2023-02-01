@@ -79,14 +79,13 @@ class IndefiniteIntegral(BuiltinFunction):
         if not is_SymbolicVariable(x):
             if len(x.variables()) == 1:
                 nx = x.variables()[0]
-                f = f*x.diff(nx)
+                f = f * x.diff(nx)
                 x = nx
             else:
                 return None
 
         # we try all listed integration algorithms
         for integrator in self.integrators:
-            res = integrator(f, x)
             try:
                 return integrator(f, x)
             except NotImplementedError:
@@ -111,7 +110,7 @@ class IndefiniteIntegral(BuiltinFunction):
             return f.derivative(diff_param).integral(x)
 
     def _print_latex_(self, f, x):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.symbolic.integration.integral import indefinite_integral
@@ -522,7 +521,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: (x^y - z).integrate(y)
         -y*z + x^y/log(x)
         sage: (x^y - z).integrate(y, algorithm="sympy")
-        -y*z + cases(((log(x) == 0, y), (1, x^y/log(x))))
+        -y*z + cases(((log(x) != 0, x^y/log(x)), (1, y)))
 
     We integrate the above function in Maple now::
 

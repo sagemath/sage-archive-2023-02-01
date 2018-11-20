@@ -530,7 +530,7 @@ TESTS:
 
 Check the qepcad configuration file::
 
-    sage: with open(os.path.join(SAGE_LOCAL, 'default.qepcadrc')) as f:
+    sage: with open(os.path.join(SAGE_LOCAL, 'default.qepcadrc')) as f:  # optional - qepcad
     ....:     f.readlines()[-1]
     'SINGULAR .../bin\n'
 

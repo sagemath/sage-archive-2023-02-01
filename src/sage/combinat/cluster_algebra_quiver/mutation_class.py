@@ -22,12 +22,13 @@ from __future__ import print_function
 from six.moves import range
 
 import time
-from sage.groups.perm_gps.partn_ref.refinement_graphs import *
+from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree, get_orbits
 from sage.rings.all import ZZ, infinity
 from sage.graphs.all import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
 
-def _principal_part( mat ):
+
+def _principal_part(mat):
     """
     Returns the principal part of a matrix.
 
@@ -58,14 +59,19 @@ def _principal_part( mat ):
     else:
         return mat.submatrix(0,0,n,n)
 
-def _digraph_mutate( dg, k, n, m ):
+
+def _digraph_mutate(dg, k, frozen=None):
     """
-    Returns a digraph obtained from dg with n+m vertices by mutating at vertex k.
+    Return a digraph obtained from ``dg`` by mutating at vertex ``k``.
+
+    Vertices can be labelled by anything, and frozen vertices must
+    be explicitly given.
 
     INPUT:
 
     - ``dg`` -- a digraph with integral edge labels with ``n+m`` vertices
     - ``k`` -- the vertex at which ``dg`` is mutated
+    - ``frozen`` -- the list of frozen vertices (default is the empty list)
 
     EXAMPLES::
 
@@ -74,51 +80,77 @@ def _digraph_mutate( dg, k, n, m ):
         sage: dg = ClusterQuiver(['A',4]).digraph()
         sage: dg.edges()
         [(0, 1, (1, -1)), (2, 1, (1, -1)), (2, 3, (1, -1))]
-        sage: _digraph_mutate(dg,2,4,0).edges()
+        sage: _digraph_mutate(dg,2).edges()
         [(0, 1, (1, -1)), (1, 2, (1, -1)), (3, 2, (1, -1))]
+
+    TESTS::
+
+       sage: dg = DiGraph([('a','b',(1,-1)),('c','a',(1,-1))])
+       sage: _digraph_mutate(dg,'a').edges()
+       [('a', 'c', (1, -1)), ('b', 'a', (1, -1)), ('c', 'b', (1, -1))]
+       sage: _digraph_mutate(dg,'a',frozen=['b','c']).edges()
+       [('a', 'c', (1, -1)), ('b', 'a', (1, -1))]
+
+       sage: dg = DiGraph([('a','b',(2,-2)),('c','a',(2,-2)),('b','c',(2,-2))])
+       sage: _digraph_mutate(dg,'a').edges()
+       [('a', 'c', (2, -2)), ('b', 'a', (2, -2)), ('c', 'b', (2, -2))]
     """
-    edges = dict( ((v1,v2),label) for v1,v2,label in dg._backend.iterator_in_edges(dg,True) )
-    in_edges = [ (v1,v2,edges[(v1,v2)]) for (v1,v2) in edges if v2 == k ]
-    out_edges = [ (v1,v2,edges[(v1,v2)]) for (v1,v2) in edges if v1 == k ]
-    in_edges_new = [ (v2,v1,(-label[1],-label[0])) for (v1,v2,label) in in_edges ]
-    out_edges_new = [ (v2,v1,(-label[1],-label[0])) for (v1,v2,label) in out_edges ]
+    # assert sorted(list(dg)) == list(range(n + m))
+    # this is not assumed anymore
+    if frozen is None:
+        frozen = []
+
+    edge_it = dg.incoming_edge_iterator(dg, True)
+    edges = {(v1, v2): label for v1, v2, label in edge_it}
+    edge_it = dg.incoming_edge_iterator([k], True)
+    in_edges = [(v1, v2, label) for v1, v2, label in edge_it]
+    edge_it = dg.outgoing_edge_iterator([k], True)
+    out_edges = [(v1, v2, label) for v1, v2, label in edge_it]
+
+    in_edges_new = [(v2, v1, (-label[1], -label[0]))
+                    for (v1, v2, label) in in_edges]
+    out_edges_new = [(v2, v1, (-label[1], -label[0]))
+                     for (v1, v2, label) in out_edges]
     diag_edges_new = []
     diag_edges_del = []
 
-    for (v1,v2,label1) in in_edges:
-        for (w1,w2,label2) in out_edges:
-            l11,l12 = label1
-            l21,l22 = label2
-            if (v1,w2) in edges:
-                diag_edges_del.append( (v1,w2,edges[(v1,w2)]) )
-                a,b = edges[(v1,w2)]
-                a,b = a+l11*l21, b-l12*l22
-                diag_edges_new.append( (v1,w2,(a,b)) )
-            elif (w2,v1) in edges:
-                diag_edges_del.append( (w2,v1,edges[(w2,v1)]) )
-                a,b = edges[(w2,v1)]
-                a,b = b+l11*l21, a-l12*l22
-                if a<0:
-                    diag_edges_new.append( (w2,v1,(b,a)) )
-                elif a>0:
-                    diag_edges_new.append( (v1,w2,(a,b)) )
+    for (v1, v2, label1) in in_edges:
+        l11, l12 = label1
+        for (w1, w2, label2) in out_edges:
+            if v1 in frozen and w2 in frozen:
+                continue
+            l21, l22 = label2
+            if (v1, w2) in edges:
+                diag_edges_del.append((v1, w2))
+                a, b = edges[(v1, w2)]
+                a, b = a + l11 * l21, b - l12 * l22
+                diag_edges_new.append((v1, w2, (a, b)))
+            elif (w2, v1) in edges:
+                diag_edges_del.append((w2, v1))
+                a, b = edges[(w2, v1)]
+                a, b = b + l11 * l21, a - l12 * l22
+                if a < 0:
+                    diag_edges_new.append((w2, v1, (b, a)))
+                elif a > 0:
+                    diag_edges_new.append((v1, w2, (a, b)))
             else:
-                a,b = l11*l21,-l12*l22
-                diag_edges_new.append( (v1,w2,(a,b)) )
+                a, b = l11 * l21, -l12 * l22
+                diag_edges_new.append((v1, w2, (a, b)))
 
-    del_edges = in_edges + out_edges + diag_edges_del
-    new_edges = in_edges_new + out_edges_new + diag_edges_new
-    new_edges += [ (v1,v2,edges[(v1,v2)]) for (v1,v2) in edges if not (v1,v2,edges[(v1,v2)]) in del_edges ]
+    del_edges = [tuple(ed[:2]) for ed in in_edges + out_edges]
+    del_edges += diag_edges_del
+    new_edges = in_edges_new + out_edges_new
+    new_edges += diag_edges_new
+    new_edges += [(v1, v2, edges[(v1, v2)]) for (v1, v2) in edges
+                  if (v1, v2) not in del_edges]
 
     dg_new = DiGraph()
-    for v1,v2,label in new_edges:
-        dg_new._backend.add_edge(v1,v2,label,True)
-    if dg_new.order() < n+m:
-        dg_new_vertices = [ v for v in dg_new ]
-        for i in [ v for v in dg if v not in dg_new_vertices ]:
-            dg_new.add_vertex(i)
+    dg_new.add_vertices(list(dg))
+    for v1, v2, label in new_edges:
+        dg_new.add_edge(v1, v2, label)
 
     return dg_new
+
 
 def _matrix_to_digraph( M ):
     """
@@ -244,17 +276,19 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
         nr += ' ' * (10-len(nr))
         print("Depth: %s found: %s Time: %.2f s" % (dc, nr, timer2 - timer))
 
+    mlist = list(range(n, n + m))
+    # assuming that the frozen vertices are at the end
+
     while gets_bigger and depth_counter < depth:
         gets_bigger = False
-        keys = list(dig6s.keys())
-        for key in keys:
+        for key in list(dig6s):
             mutation_indices = [ i for i in dig6s[key][0] if i < n ]
             if mutation_indices:
                 dg = _dig6_to_digraph( key )
             while mutation_indices:
                 i = mutation_indices.pop()
                 if not sink_source or _dg_is_sink_source( dg, i ):
-                    dg_new = _digraph_mutate( dg, i, n, m )
+                    dg_new = _digraph_mutate(dg, i, frozen=mlist)
                     if up_to_equivalence:
                         iso, orbits = _dg_canonical_form( dg_new, n, m )
                         i_new = iso[i]

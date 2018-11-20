@@ -439,7 +439,7 @@ class Semigroups(CategoryWithAxiom):
                                       category=category)
 
         def trivial_representation(self, base_ring=None, side="twosided"):
-            """
+            r"""
             Return the trivial representation of ``self`` over ``base_ring``.
 
             INPUT:

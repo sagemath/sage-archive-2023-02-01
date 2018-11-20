@@ -985,18 +985,20 @@ cdef class ntl_ZZX(object):
             1345873
         """
         proof = proof_flag(proof)
-        # NOTES: Within a factor of 2 in speed compared to MAGMA.
+        # NOTE: Within a factor of 2 in speed compared to MAGMA.
         sig_on()
         return make_ZZ_sig_off(ZZX_resultant(&self.x, &other.x, proof))
 
     def norm_mod(self, ntl_ZZX modulus, proof=None):
         """
-        Return the norm of this polynomial modulo the modulus.  The
-        modulus must be monic, and of positive degree strictly greater
-        than the degree of self.  If proof=False (the default is
-        proof=None, see proof.polynomial or sage.structure.proof, but
-        the global default is proof=True) then it may use a randomized
-        strategy that errors with probability no more than $2^{-80}$.
+        Return the norm of this polynomial modulo the modulus.
+
+        The modulus must be monic, and of positive degree strictly
+        greater than the degree of self.  If proof=False (the default
+        is proof=None, see proof.polynomial or sage.structure.proof,
+        but the global default is proof=True) then it may use a
+        randomized strategy that errors with probability no more than
+        $2^{-80}$.
 
         EXAMPLES:
             sage: f = ntl.ZZX([1,2,0,3])

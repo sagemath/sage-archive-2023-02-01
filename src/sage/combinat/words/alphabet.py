@@ -45,7 +45,7 @@ from sage.rings.infinity import Infinity
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.positive_integers import PositiveIntegers
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 
 
 set_of_letters = {
@@ -265,7 +265,7 @@ def build_alphabet(data=None, names=None, name=None):
 
     # Alphabet(**nothing**)
     if data is None:  # name is also None
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         return Set_PythonType(object)
 
     raise ValueError("unable to construct an alphabet from the given parameters")

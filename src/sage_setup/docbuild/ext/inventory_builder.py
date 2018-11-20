@@ -25,6 +25,8 @@ class InventoryBuilder(StandaloneHTMLBuilder):
     inventory files and pickle files. The documentation files are not written.
     """
     name = "inventory"
+    format = "inventory"
+    epilog = "The inventory files are in %(outdir)s."
 
     def get_outdated_docs(self):
         def md5hash_obj(obj):
@@ -110,6 +112,6 @@ class InventoryBuilder(StandaloneHTMLBuilder):
     copy_static_files = removed_method_error
     handle_finish = removed_method_error
 
+
 def setup(app):
     app.add_builder(InventoryBuilder)
-

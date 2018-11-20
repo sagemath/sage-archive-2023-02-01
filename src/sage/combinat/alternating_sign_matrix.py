@@ -89,15 +89,7 @@ class AlternatingSignMatrix(Element):
     such that the sum of each row and column is `1` and the non-zero
     entries in each row and column alternate in sign.
 
-    These were introduced in [MiRoRu]_.
-
-    REFERENCES:
-
-    .. [MiRoRu] \W. H. Mills, David P Robbins, Howard Rumsey Jr.,
-       *Alternating sign matrices and descending plane partitions*,
-       Journal of Combinatorial Theory, Series A,
-       Volume 34, Issue 3, May 1983, Pages 340--359.
-       http://www.sciencedirect.com/science/article/pii/0097316583900687
+    These were introduced in [MRR1983]_.
     """
     @staticmethod
     def __classcall_private__(cls, asm, check=True):
@@ -312,7 +304,7 @@ class AlternatingSignMatrix(Element):
         When restricted to permutation matrices, this gives the usual inversion
         number of the permutation.
 
-        This definition is equivalent to the one given in [MiRoRu]_.
+        This definition is equivalent to the one given in [MRR1983]_.
 
         EXAMPLES::
 
@@ -643,8 +635,8 @@ class AlternatingSignMatrix(Element):
             [ 0  0  1  0], [0 0 0 1], [ 0  1  0  0], [1 0 0 0]
             ]
 
-            sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],\
-            [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
+            sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],
+            ....: [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
             12
         """
         hf = self.height_function()
@@ -665,18 +657,12 @@ class AlternatingSignMatrix(Element):
     def ASM_compatible(self, B):
         r"""
         Return ``True`` if ``self`` and ``B`` are compatible alternating sign
-        matrices in the sense of [EKLP92]_. (If ``self`` is of size `n`, ``B``
+        matrices in the sense of [EKLP1992]_. (If ``self`` is of size `n`, ``B``
         must  be of size `n+1`.)
 
-        In [EKLP92]_, there is a notion of a pair of ASM's with sizes differing
+        In [EKLP1992]_, there is a notion of a pair of ASM's with sizes differing
         by 1 being compatible, in the sense that they can be combined to encode
         a tiling of the Aztec Diamond.
-
-        REFERENCES:
-
-        .. [EKLP92] \N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
-           *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic
-           Combinatorics, volume 1 (1992), p. 111-132.
 
         EXAMPLES::
 
@@ -708,7 +694,7 @@ class AlternatingSignMatrix(Element):
 
         Given an `n \times n` alternating sign matrix `A`, there are as many
         ASM's of size `n+1` compatible with `A` as 2 raised to the power of
-        the number of 1's in `A` [EKLP92]_.
+        the number of 1's in `A` [EKLP1992]_.
 
         EXAMPLES::
 
@@ -774,7 +760,7 @@ class AlternatingSignMatrix(Element):
 
         Given an alternating sign matrix `A` of size `n`, there are as many
         ASM's of size `n-1` compatible with it as 2 raised to the power of
-        the number of `-1`'s in `A` [EKLP92]_.
+        the number of `-1`'s in `A` [EKLP1992]_.
 
         EXAMPLES::
 
@@ -866,7 +852,7 @@ class AlternatingSignMatrix(Element):
             sage: asm.to_dyck_word()
             Traceback (most recent call last):
             ...
-            TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
+            TypeError: to_dyck_word() ...argument...
             sage: asm.to_dyck_word(algorithm = 'notamethod')
             Traceback (most recent call last):
             ...
@@ -976,7 +962,7 @@ class AlternatingSignMatrix(Element):
         Return the left key of the alternating sign matrix ``self``.
 
         The left key of an alternating sign matrix was defined by Lascoux
-        in [LascouxPreprint]_ and is obtained by successively removing all the
+        in [Lasc]_ and is obtained by successively removing all the
         `-1`'s until what remains is a permutation matrix. This notion
         corresponds to the notion of left key for semistandard tableaux. So
         our algorithm proceeds as follows: we map ``self`` to its
@@ -984,13 +970,7 @@ class AlternatingSignMatrix(Element):
         semistandard tableaux, take its left key, and then map back through
         monotone triangles to the permutation matrix which is the left key.
 
-        REFERENCES:
-
-        .. [Aval07] \J.-C. Aval. *Keys and alternating sign matrices*.
-           Sem. Lothar. Combin. 59 (2007/10), Art. B59f, 13 pp.
-
-        .. [LascouxPreprint] \A. Lascoux. *Chern and Yang through ice*.
-           Preprint.
+        See also [Ava2007]_.
 
         EXAMPLES::
 
@@ -1629,13 +1609,14 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [4, 8, 2, 8, 8, 8, 2, 2]
 
             sage: A = AlternatingSignMatrices(5)
-            sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,\
-            4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,\
-            4,5,10,10,2,2]
+            sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,
+            ....: 4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,
+            ....: 4,5,10,10,2,2]
             sage: A.gyration_orbit_sizes() == li
             True
         """
         return [len(orbit) for orbit in self.gyration_orbits()]
+
 
 class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
     r"""
@@ -1813,7 +1794,7 @@ def _is_a_cover(mt0, mt1):
             return False
     return diffs == 1
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'AlternatingSignMatrices_n', AlternatingSignMatrices)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
 
@@ -1935,12 +1916,13 @@ class ContreTableaux_n(ContreTableaux):
 
 
 def _next_column_iterator(previous_column, height, i = None):
-    """
+    r"""
     Return a generator for all columns of height ``height``
     properly filled from row 1 to ``i``.
-    ("Properly filled" means strictly increasing and having
+
+    "Properly filled" means strictly increasing and having
     the property that the `k`-th entry is `\geq` to the `k`-th
-    entry of ``previous_column`` for each `k`.)
+    entry of ``previous_column`` for each `k`.
 
     EXAMPLES::
 

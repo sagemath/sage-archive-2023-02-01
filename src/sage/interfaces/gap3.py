@@ -349,8 +349,8 @@ class Gap3(Gap_generic):
         # funny-looking patterns in the interface. We compile the patterns
         # now, and use them later for interpreting interface messages.
         self._compiled_full_pattern = self._expect.compile_pattern_list([
-            '@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+', '@e','@c',
-            '@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
+            r'@p\d+\.','@@','@[A-Z]',r'@[123456!"#$%&][^+]*\+', '@e','@c',
+            '@f','@h','@i','@m','@n','@r',r'@s\d',r'@w.*\+','@x','@z'])
         self._compiled_small_pattern = self._expect.compile_pattern_list('@J')
         self._expect.expect("@i")
 

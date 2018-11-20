@@ -20,7 +20,7 @@ from sage.misc.superseded import deprecation
 deprecation(23855, 'the file "stdsage.pxi" is deprecated, cimport the functions that you need')
 
 
-include "cysignals/memory.pxi"
+include "memory.pxi"
 
 from cysignals.memory cimport sig_malloc as sage_malloc
 from cysignals.memory cimport sig_realloc as sage_realloc

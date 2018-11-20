@@ -16,7 +16,7 @@ Super partitions are the indexing set for symmetric functions in
 super space.
 
 Super partitions may be input in two different formats: one as a pair
-consisiting of fermionic (strict partition) and a bosonic (partition) part
+consisting of fermionic (strict partition) and a bosonic (partition) part
 and the other as a list of integer values where the negative entries come
 first and are listed in strict order followed by the positive values in
 weak order.
@@ -75,6 +75,8 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
 from six import add_metaclass
+
+from functools import reduce
 
 from sage.structure.list_clone import ClonableArray
 from sage.structure.unique_representation import UniqueRepresentation
@@ -574,7 +576,7 @@ class SuperPartition(ClonableArray):
         The *conjugate* of a super partition is defined by conjugating
         the circled diagram.
 
-        OUPUT:
+        OUTPUT:
 
         - a :class:`SuperPartition`
 
@@ -667,7 +669,7 @@ class SuperPartition(ClonableArray):
 
         - ``h`` -- number of cells in the horizontal strip
 
-        OUPUT:
+        OUTPUT:
 
         - a list of super partitions
 
@@ -715,7 +717,7 @@ class SuperPartition(ClonableArray):
 
         - ``h`` -- number of cells in the horizontal strip
 
-        OUPUT:
+        OUTPUT:
 
         - a list of super partitions
 

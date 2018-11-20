@@ -29,7 +29,7 @@ from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ
-from sage.arith.all import gcd, inverse_mod, kronecker_symbol
+from sage.arith.all import gcd, kronecker_symbol
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.structure.element import is_Vector, is_Matrix
@@ -38,10 +38,9 @@ from sage.quadratic_forms.ternary import _reduced_ternary_form_eisenstein_withou
 from sage.quadratic_forms.ternary import _find_all_ternary_qf_by_level_disc, _find_a_ternary_qf_by_level_disc
 from sage.misc.prandom import randint
 from sage.rings.finite_rings.integer_mod import mod
-from sage.modules.free_module_element import vector
 from sage.rings.ring import is_Ring
-from sage.rings.rational_field import QQ
-from sage.rings.polynomial.polynomial_ring import polygen, polygens
+from sage.rings.polynomial.polynomial_ring import polygens
+
 
 class TernaryQF(SageObject):
     """
@@ -78,7 +77,7 @@ class TernaryQF(SageObject):
     possible_automorphisms = None
 
     def __init__(self,v):
-        """
+        r"""
         Creates the ternary quadratic form `a*x^2 + b*y^2 + c*z^2 + r*y*z + s*x*z + t*x*y.` from the
         tuple v=[a,b,c,r,s,t] over `\ZZ`.
 
@@ -93,8 +92,6 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [1 2 3]
             [4 5 6]
-
-
         """
 
         if len(v) != 6:

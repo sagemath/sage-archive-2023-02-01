@@ -419,8 +419,8 @@ class Permutation(CombinatorialElement):
         sage: Permutation( [[], []] )
         []
 
-    .. automethod:: _left_to_right_multiply_on_right
-    .. automethod:: _left_to_right_multiply_on_left
+    .. automethod:: Permutation.left_action_product
+    .. automethod:: Permutation.right_action_product
     """
     @staticmethod
     def __classcall_private__(cls, l, check_input = True):
@@ -1316,7 +1316,7 @@ class Permutation(CombinatorialElement):
     _left_to_right_multiply_on_left = left_action_product
 
     def right_action_product(self, rp):
-        """
+        r"""
         Return the permutation obtained by composing ``self`` with
         ``rp`` in such an order that ``self`` is applied first and
         ``rp`` is applied afterwards.
@@ -1758,12 +1758,6 @@ class Permutation(CombinatorialElement):
         The number of `k`-noninversions in `p` has been denoted by
         `\mathrm{noninv}_k(p)` in [RSW2011]_, where conjectures
         and results regarding this number have been stated.
-
-        REFERENCES:
-
-        .. [RSW2011] Victor Reiner, Franco Saliola, Volkmar Welker.
-           *Spectra of Symmetrized Shuffling Operators*.
-           :arXiv:`1102.2460v2`.
 
         EXAMPLES::
 
@@ -2305,19 +2299,12 @@ class Permutation(CombinatorialElement):
 
         So `\phi([1,4,2,5,3]) = [4,5,1,2,3]`.
 
-        See section 2 of [FoSc78]_, and the proof of Proposition 1.4.6
+        See section 2 of [FS1978]_, and the proof of Proposition 1.4.6
         in [EnumComb1]_.
 
         .. SEEALSO::
 
             :meth:`foata_bijection_inverse` for the inverse map.
-
-        REFERENCES:
-
-        .. [FoSc78] Dominique Foata, Marcel-Paul Schuetzenberger.
-           *Major Index and Inversion Number of Permutations*.
-           Mathematische Nachrichten, volume 83, Issue 1, pages 143-159, 1978.
-           http://igm.univ-mlv.fr/~berstel/Mps/Travaux/A/1978-3MajorIndexMathNachr.pdf
 
         EXAMPLES::
 
@@ -2334,7 +2321,7 @@ class Permutation(CombinatorialElement):
             ....:      for P in Permutations(4) )
             True
 
-        The example from [FoSc78]_::
+        The example from [FS1978]_::
 
             sage: Permutation([7,4,9,2,6,1,5,8,3]).foata_bijection()
             [4, 7, 2, 6, 1, 9, 5, 8, 3]
@@ -2522,14 +2509,14 @@ class Permutation(CombinatorialElement):
 
         TESTS::
 
-            sage: all( P.fundamental_transformation_inverse() \
-            ....:       .fundamental_transformation() == P
-            ....:      for P in Permutations(4))
+            sage: all(P.fundamental_transformation_inverse().
+            ....:     fundamental_transformation() == P
+            ....:     for P in Permutations(4))
             True
 
-            sage: all( P.fundamental_transformation() \
-            ....:       .fundamental_transformation_inverse() == P
-            ....:      for P in Permutations(3))
+            sage: all(P.fundamental_transformation().
+            ....:     fundamental_transformation_inverse() == P
+            ....:     for P in Permutations(3))
             True
 
         Border cases::
@@ -2894,6 +2881,24 @@ class Permutation(CombinatorialElement):
         """
 
         return len(self.fixed_points())
+
+    def is_derangement(self):
+        r"""
+        Return if ``self`` is a derangement.
+
+        A permutation `\sigma` is a derangement if `\sigma` has no
+        fixed points.
+
+        EXAMPLES::
+
+            sage: P = Permutation([1,4,2,3])
+            sage: P.is_derangement()
+            False
+            sage: P = Permutation([2,3,1])
+            sage: P.is_derangement()
+            True
+        """
+        return not self.fixed_points()
 
 
     ############
@@ -4401,7 +4406,7 @@ class Permutation(CombinatorialElement):
         return d
 
     def action(self, a):
-        """
+        r"""
         Return the action of the permutation ``self`` on a list ``a``.
 
         The action of a permutation `p \in S_n` on an `n`-element list
@@ -4458,7 +4463,6 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: for x in Permutation([6,2,3,1,7,5,4])._rsk_iter(): x
-            ...
             (1, 6)
             (2, 2)
             (3, 3)
@@ -4619,7 +4623,7 @@ class Permutation(CombinatorialElement):
         return binary_search_tree_shape(list(self), left_to_right)
 
     def sylvester_class(self, left_to_right=False):
-        """
+        r"""
         Iterate over the equivalence class of the permutation ``self``
         under sylvester congruence.
 
@@ -4629,7 +4633,7 @@ class Permutation(CombinatorialElement):
         `uacvbw` with `u`, `v` and `w` being words and `a`, `b` and `c`
         being letters satisfying `a \leq b < c` is equivalent to the
         permutation `ucavbw`. (Here, permutations are regarded as words
-        by way of one-line notation.) This definition comes from [HNT05]_,
+        by way of one-line notation.) This definition comes from [HNT2005]_,
         Definition 8, where it is more generally applied to arbitrary
         words.
 
@@ -4995,12 +4999,12 @@ class Permutation(CombinatorialElement):
         If ``side`` is ``"right"``, the method returns the permutation
         obtained by concatenating ``self`` with the letters of ``other``
         incremented by the size of ``self``. This is what is called
-        ``side / other`` in [LodRon0102066]_, and denoted as the "over"
+        ``side / other`` in [LR0102066]_, and denoted as the "over"
         operation.
         Otherwise, i. e., when ``side`` is ``"left"``, the method
         returns the permutation obtained by concatenating the letters
         of ``other`` incremented by the size of ``self`` with ``self``.
-        This is what is called ``side \ other`` in [LodRon0102066]_
+        This is what is called ``side \ other`` in [LR0102066]_
         (which seems to use the `(\sigma \pi)(i) = \pi(\sigma(i))`
         convention for the product of permutations).
 
@@ -5014,13 +5018,6 @@ class Permutation(CombinatorialElement):
             [2, 4, 1, 3, 7, 5, 6]
             sage: Permutation([2, 4, 1, 3]).shifted_concatenation(Permutation([3, 1, 2]), "left")
             [7, 5, 6, 2, 4, 1, 3]
-
-        REFERENCES:
-
-        .. [LodRon0102066] Jean-Louis Loday and Maria O. Ronco.
-           Order structure on the algebra of permutations
-           and of planar binary trees.
-           :arXiv:`math/0102066v1`.
         """
         if side == "right" :
             return Permutations()(list(self) + [a + len(self) for a in other])
@@ -5437,9 +5434,10 @@ class Permutations(UniqueRepresentation, Parent):
                             checker=lambda char: isinstance(char,str))
         mult = dict(default="l2r",
                   description="The multiplication of permutations",
-                  values=dict(l2r="left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
-                              r2l="right to left: `(p_1 \cdot p_2)(x) = p_1(p_2(x))`"),
+                  values=dict(l2r=r"left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
+                              r2l=r"right to left: `(p_1 \cdot p_2)(x) = p_1(p_2(x))`"),
                   case_sensitive=False)
+
 
 class Permutations_nk(Permutations):
     r"""
@@ -6178,8 +6176,9 @@ class StandardPermutations_all(Permutations):
                 yield self.element_class(self, p)
             n += 1
 
+
 class StandardPermutations_n_abstract(Permutations):
-    """
+    r"""
     Abstract base class for subsets of permutations of the
     set `\{1, 2, \ldots, n\}`.
 
@@ -6515,7 +6514,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         return self.element_class(self, l)
 
     def conjugacy_classes_representatives(self):
-        """
+        r"""
         Return a complete list of representatives of conjugacy classes
         in ``self``.
 
@@ -6630,7 +6629,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
     @cached_method
     def index_set(self):
-        """
+        r"""
         Return the index set for the descents of the symmetric group ``self``.
 
         This is `\{ 1, 2, \ldots, n-1 \}`, where ``self`` is `S_n`.
@@ -7206,6 +7205,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
 
     while G.size() > 0:
         matching = G.matching(use_edge_labels=True)
+        matching = [(min(u,v), max(u, v), w) for u,v,w in matching]
 
         # This minimum is strictly larger than 0
         minimum = min([x[2] for x in matching])
@@ -7278,7 +7278,7 @@ def bounded_affine_permutation(A):
 
 
 class StandardPermutations_descents(StandardPermutations_n_abstract):
-    """
+    r"""
     Permutations of `\{1, \ldots, n\}` with a fixed set of descents.
     """
     @staticmethod
@@ -7296,7 +7296,7 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
         return super(StandardPermutations_descents, cls).__classcall__(cls, tuple(d), n)
 
     def __init__(self, d, n):
-        """
+        r"""
         The class of all permutations of `\{1, 2, ..., n\}`
         with set of descent positions `d` (where the descent positions
         are being counted from `0`, so that `i` lies in this set if
@@ -8737,7 +8737,7 @@ class PermutationsNK(Permutations_setk):
         self.__class__ = Permutations_setk
         self.__init__(tuple(range(state['_n'])), state['_k'])
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.permutation", "Permutation_class", Permutation)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutationsOfPartition_partition", CyclicPermutationsOfPartition)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutations_mset", CyclicPermutations)

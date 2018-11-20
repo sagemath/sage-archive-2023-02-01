@@ -872,7 +872,7 @@ class Algebras(AlgebrasCategory):
             return self.basis().keys().classical().algebra(self.base_ring())
 
         def q_project_on_basis(self, l, q):
-            """
+            r"""
             Return the monomial `c * cl(l)`  in the group algebra of the classical lattice.
 
             INPUT:
@@ -900,7 +900,7 @@ class Algebras(AlgebrasCategory):
             return KL0.term(L0(l), q**l["delta"])
 
         def q_project(self, x, q):
-            """
+            r"""
             Implement the `q`-projection morphism from ``self`` to the group algebra of the classical space.
 
             INPUT:

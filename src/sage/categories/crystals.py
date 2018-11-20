@@ -1742,6 +1742,32 @@ class Crystals(Category_singleton):
                                             max_depth=max_depth, direction=direction,
                                             category=category)
 
+        def tensor(self, *elts):
+            r"""
+            Return the tensor product of ``self`` with the crystal
+            elements ``elts``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Letters(['A', 3])
+                sage: B = crystals.infinity.Tableaux(['A', 3])
+                sage: c = C[0]
+                sage: b = B.highest_weight_vector()
+                sage: t = c.tensor(c, b)
+                sage: ascii_art(t)
+                          1  1  1
+                1 # 1 #   2  2
+                          3
+                sage: tensor([c, c, b]) == t
+                True
+                sage: ascii_art(tensor([b, b, c]))
+                  1  1  1     1  1  1
+                  2  2    #   2  2    # 1
+                  3           3
+            """
+            T = self.parent().tensor(*[b.parent() for b in elts])
+            return T(self, *elts)
+
     class SubcategoryMethods:
         """
         Methods for all subcategories.
@@ -1953,7 +1979,7 @@ class CrystalMorphism(Morphism):
         return super(CrystalMorphism, self).__call__(x, *args, **kwds)
 
     def virtualization(self):
-        """
+        r"""
         Return the virtualization sets `\sigma_i`.
 
         EXAMPLES::
@@ -1967,7 +1993,7 @@ class CrystalMorphism(Morphism):
         return self._virtualization
 
     def scaling_factors(self):
-        """
+        r"""
         Return the scaling factors `\gamma_i`.
 
         EXAMPLES::

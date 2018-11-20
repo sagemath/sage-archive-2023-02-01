@@ -18,7 +18,7 @@ class Plantri(Executable):
 
         sage: from sage.features.graph_generators import Plantri
         sage: Plantri().is_present()  # optional: plantri
-        FeatureTestResult('plantri', False)
+        FeatureTestResult('plantri', True)
     """
     def __init__(self):
         r"""
@@ -38,7 +38,7 @@ class Plantri(Executable):
 
             sage: from sage.features.graph_generators import Plantri
             sage: Plantri().is_functional()  # optional: plantri
-            FeatureTestResult('plantri', False)
+            FeatureTestResult('plantri', True)
         """
         command = ["plantri", "4"]
         try:

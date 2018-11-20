@@ -19,6 +19,7 @@ from .log import exp
 from .other import sqrt
 from sage.symbolic.constants import pi
 
+
 class Function_gamma(GinacFunction):
     def __init__(self):
         r"""
@@ -172,6 +173,7 @@ class Function_gamma(GinacFunction):
 
 gamma1 = Function_gamma()
 
+
 class Function_log_gamma(GinacFunction):
     def __init__(self):
         r"""
@@ -281,6 +283,7 @@ class Function_log_gamma(GinacFunction):
 
 log_gamma = Function_log_gamma()
 
+
 class Function_gamma_inc(BuiltinFunction):
     def __init__(self):
         r"""
@@ -325,13 +328,24 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma(-3/2,5)._sympy_()
             -6*sqrt(5)*exp(-5)/25 + 4*sqrt(pi)*erfc(sqrt(5))/3
 
+        Check that :trac:`25597` is fixed::
+
+            sage: gamma(-1,5)._fricas_()                                        # optional - fricas
+            Gamma(- 1,5)
+
+            sage: var('t')                                                      # optional - fricas
+            t
+            sage: integrate(-exp(-x)*x^(t-1), x, algorithm="fricas")            # optional - fricas
+            gamma(t, x)
+
     .. SEEALSO::
 
         :meth:`gamma`
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'uppergamma', 'giac':'ugamma'})
+                             'maple':'GAMMA', 'sympy':'uppergamma', 'fricas':'Gamma',
+                             'giac':'ugamma'})
 
     def _eval_(self, x, y):
         """
@@ -360,9 +374,9 @@ class Function_gamma_inc(BuiltinFunction):
             return exp(-y)
         if x == 0:
             return -Ei(-y)
-        if x == Rational(1)/2: #only for x>0
+        if x == Rational((1, 2)):  # only for x>0
             from sage.functions.error import erf
-            return sqrt(pi)*(1-erf(sqrt(y)))
+            return sqrt(pi) * (1 - erf(sqrt(y)))
         return None
 
     def _evalf_(self, x, y, parent=None, algorithm='pari'):
@@ -435,6 +449,7 @@ class Function_gamma_inc(BuiltinFunction):
 # synonym.
 gamma_inc = Function_gamma_inc()
 
+
 class Function_gamma_inc_lower(BuiltinFunction):
     def __init__(self):
         r"""
@@ -505,9 +520,9 @@ class Function_gamma_inc_lower(BuiltinFunction):
             sage: gamma_inc_lower(2,377/79)
             -456/79*e^(-377/79) + 1
             sage: gamma_inc_lower(3,x)
-            -x^2*e^(-x) - 2*x*e^(-x) - 2*e^(-x) + 2
+            -(x^2 + 2*x + 2)*e^(-x) + 2
             sage: gamma_inc_lower(9/2,37/7)
-            105/16*sqrt(pi)*erf(1/7*sqrt(259)) - 836473/19208*sqrt(259)*e^(-37/7)
+            -1/38416*sqrt(pi)*(1672946*sqrt(259)*e^(-37/7)/sqrt(pi) - 252105*erf(1/7*sqrt(259)))
         """
         if y == 0:
             return 0
@@ -587,6 +602,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
 # synonym.
 gamma_inc_lower = Function_gamma_inc_lower()
 
+
 def gamma(a, *args, **kwds):
     r"""
     Gamma and upper incomplete gamma functions in one symbol.
@@ -660,23 +676,9 @@ def gamma(a, *args, **kwds):
     if not args:
         return gamma1(a, **kwds)
     if len(args) > 1:
-        raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1))
-    return gamma_inc(a,args[0],**kwds)
+        raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)"% (len(args) + 1))
+    return gamma_inc(a, args[0], **kwds)
 
-def incomplete_gamma(*args, **kwds):
-    """
-        Deprecated name for :class:`Function_gamma_inc`.
-
-    TESTS::
-
-        sage: incomplete_gamma(1,1)
-        doctest:...: DeprecationWarning: Please use gamma_inc().
-        See http://trac.sagemath.org/16697 for details.
-        e^(-1)
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16697, 'Please use gamma_inc().')
-    return gamma_inc(*args, **kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
 # two functions with different number of arguments and the same name
@@ -726,7 +728,7 @@ class Function_psi1(GinacFunction):
             sage: psi(x)._sympy_()
             polygamma(0, x)
         """
-        GinacFunction.__init__(self, "psi", nargs=1, latex_name='\psi',
+        GinacFunction.__init__(self, "psi", nargs=1, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 maxima='psi[0]',
                                                 sympy='digamma'))
@@ -777,7 +779,7 @@ class Function_psi2(GinacFunction):
             sage: psi(2, x)._sympy_()
             polygamma(2, x)
         """
-        GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
+        GinacFunction.__init__(self, "psi", nargs=2, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 sympy='polygamma',
                                                 giac='Psi'))
@@ -852,15 +854,16 @@ def psi(x, *args, **kwds):
     if not args:
         return psi1(x, **kwds)
     if len(args) > 1:
-        raise TypeError("Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1))
-    return psi2(x,args[0],**kwds)
+        raise TypeError("Symbolic function psi takes at most 2 arguments (%s given)" % (len(args) + 1))
+    return psi2(x, args[0], **kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
 # two functions with different number of arguments and the same name
 symbol_table['functions']['psi'] = psi
 
 def _swap_psi(a, b): return psi(b, a)
-register_symbol(_swap_psi, {'giac':'Psi'})
+register_symbol(_swap_psi, {'giac': 'Psi'})
+
 
 class Function_beta(GinacFunction):
     def __init__(self):
@@ -970,4 +973,3 @@ class Function_beta(GinacFunction):
                                                 giac='Beta'))
 
 beta = Function_beta()
-

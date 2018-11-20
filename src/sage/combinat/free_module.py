@@ -2,14 +2,14 @@
 """
 Free modules
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,
 #                     2007-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #                     2010      Christian Stump <christian.stump@univie.ac.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from six.moves import range
 
@@ -77,7 +77,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         sage: e = F.basis()
         sage: e
-        Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
+        Finite family {'a': B['a'], 'b': B['b'], 'c': B['c']}
 
     ::
 
@@ -97,7 +97,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     Some uses of
     :meth:`sage.categories.commutative_additive_semigroups.CommutativeAdditiveSemigroups.ParentMethods.summation`
-    and :meth:`.sum`::
+    and :meth:`sum`::
 
         sage: F = CombinatorialFreeModule(QQ, [1,2,3,4])
         sage: F.summation(F.monomial(1), F.monomial(3))
@@ -181,7 +181,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
          ('latex_bracket', False), ('latex_prefix', None),
          ('latex_scalar_mult', None), ('prefix', 'x'),
          ('scalar_mult', '*'),
-         ('sorting_key', <function <lambda> at ...>),
+         ('sorting_key', <function ...<lambda> at ...>),
          ('sorting_reverse', False), ('string_quotes', True),
          ('tensor_symbol', None)]
 
@@ -380,7 +380,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category = FiniteDimensionalModulesWithBasis(QQ))
             sage: F.basis()
-            Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
+            Finite family {'a': B['a'], 'b': B['b'], 'c': B['c']}
             sage: F.category()
             Category of finite dimensional vector spaces with basis over Rational Field
 
@@ -995,7 +995,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         return self._from_dict(D, remove_zeros=False)
 
     def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
-        """
+        r"""
         Return the linear combination `\lambda_1 v_1 + \cdots +
         \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
         \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates
@@ -1342,7 +1342,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 
         def _repr_(self):
-            """
+            r"""
             This is customizable by setting
             ``self.print_options('tensor_symbol'=...)``.
 
@@ -1431,7 +1431,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         _unicode_art_term = _unicode_art_
 
         def _latex_(self):
-            """
+            r"""
             TESTS::
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3])
@@ -1469,7 +1469,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             return symb.join(module._repr_term(t) for (module, t) in zip(self._sets, term))
 
         def _latex_term(self, term):
-            """
+            r"""
             TESTS::
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3], prefix='x')

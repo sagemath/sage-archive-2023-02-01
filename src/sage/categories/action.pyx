@@ -36,7 +36,7 @@ A group action $G \times S \rightarrow S$ is a functor from $G$ to Sets.
         sage: gc.collect()
         0
         sage: A
-        Left action by <__main__.P instance at ...> on <__main__.P instance at ...>
+        Left action by <__main__.P ... at ...> on <__main__.P ... at ...>
 
 AUTHOR:
 
@@ -174,7 +174,7 @@ cdef class Action(Functor):
             sage: q = P()
             sage: A = Action(p,q)
             sage: A
-            Left action by <__main__.P instance at ...> on <__main__.P instance at ...>
+            Left action by <__main__.P ... at ...> on <__main__.P ... at ...>
             sage: del q
             sage: import gc
             sage: _ = gc.collect()

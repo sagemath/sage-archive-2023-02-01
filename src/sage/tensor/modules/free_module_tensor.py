@@ -197,6 +197,8 @@ from sage.structure.element import ModuleElement
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+from sage.parallel.decorate import parallel
+from sage.parallel.parallelism import Parallelism
 
 
 class FreeModuleTensor(ModuleElement):
@@ -626,6 +628,14 @@ class FreeModuleTensor(ModuleElement):
             sage: t.display(f)
             v*w = -6 f_1*f^1 - 20/3 f_1*f^2 + 27/8 f_2*f^1 + 15/4 f_2*f^2
 
+
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: t.display(f)
+            v*w = -6 f_1*f^1 - 20/3 f_1*f^2 + 27/8 f_2*f^1 + 15/4 f_2*f^2
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
         The output format can be set via the argument ``output_formatter``
         passed at the module construction::
 
@@ -841,6 +851,20 @@ class FreeModuleTensor(ModuleElement):
             T^21_2 = 3/4
             T^22_1 = 7/24
             T^22_2 = 23/24
+
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: t.display_comp(basis=f)
+            T^11_1 = 29/24
+            T^11_2 = 13/24
+            T^12_1 = 3/4
+            T^12_2 = 3/4
+            T^21_1 = 3/4
+            T^21_2 = 3/4
+            T^22_1 = 7/24
+            T^22_2 = 23/24
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if basis is None:
@@ -1076,18 +1100,53 @@ class FreeModuleTensor(ModuleElement):
             new_comp = self._new_comp(basis)
             rank = self._tensor_rank
             # loop on the new components:
-            for ind_new in new_comp.non_redundant_index_generator():
-                # Summation on the old components multiplied by the proper
-                # change-of-basis matrix elements (tensor formula):
-                res = 0
-                for ind_old in old_comp.index_generator():
-                    t = old_comp[[ind_old]]
-                    for i in range(n_con): # loop on contravariant indices
-                        t *= ppinv[[ind_new[i], ind_old[i]]]
-                    for i in range(n_con,rank):  # loop on covariant indices
-                        t *= pp[[ind_old[i], ind_new[i]]]
-                    res += t
-                new_comp[ind_new] = res
+            nproc = Parallelism().get('tensor')
+
+            if nproc != 1 :
+                # Parallel computation
+                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+                ind_list = [ind for ind in new_comp.non_redundant_index_generator()]
+                ind_step = max(1, int(len(ind_list)/nproc/2))
+                local_list = lol(ind_list, ind_step)
+                # list of input parameters
+                listParalInput = [(old_comp, ppinv, pp, n_con, rank, ii) for ii in local_list]
+                @parallel(p_iter='multiprocessing', ncpus=nproc)
+                def paral_newcomp(old_comp, ppinv, pp, n_con, rank, local_list_ind):
+                    partial = []
+                    for ind in local_list_ind:
+                        res = 0
+                        # Summation on the old components multiplied by the proper
+                        # change-of-basis matrix elements (tensor formula):
+                        for ind_old in old_comp.index_generator():
+                            t = old_comp[[ind_old]]
+                            for i in range(n_con): # loop on contravariant indices
+                                t *= ppinv[[ind_new[i], ind_old[i]]]
+                            for i in range(n_con,rank):  # loop on covariant indices
+                                t *= pp[[ind_old[i], ind_new[i]]]
+                            res += t
+                        partial.append([ind,res])
+                    return partial
+
+                for ii,val in paral_newcomp(listParalInput):
+                    for jj in val:
+                        new_comp[[jj[0]]] = jj[1]
+
+
+            else:
+                # Sequential computation
+                for ind_new in new_comp.non_redundant_index_generator():
+                    # Summation on the old components multiplied by the proper
+                    # change-of-basis matrix elements (tensor formula):
+                    res = 0
+                    for ind_old in old_comp.index_generator():
+                        t = old_comp[[ind_old]]
+                        for i in range(n_con): # loop on contravariant indices
+                            t *= ppinv[[ind_new[i], ind_old[i]]]
+                        for i in range(n_con,rank):  # loop on covariant indices
+                            t *= pp[[ind_old[i], ind_new[i]]]
+                        res += t
+                    new_comp[ind_new] = res
+
             self._components[basis] = new_comp
             # end of case where the computation was necessary
         return self._components[basis]

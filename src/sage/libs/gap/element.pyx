@@ -772,14 +772,14 @@ cdef class GapElement(RingElement):
             return id(self) == id(other)
         cdef GapElement c_other = <GapElement>other
         cdef bint result
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             result = EQ(self.value, c_other.value)
-            sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: cannot compare equality: '+str(msg))
         finally:
-            pass
+            sig_off()
         return result
 
     cdef bint _compare_less(self, Element other) except -2:
@@ -797,14 +797,14 @@ cdef class GapElement(RingElement):
             return id(self) < id(other)
         cdef bint result
         cdef GapElement c_other = <GapElement>other
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             result = LT(self.value, c_other.value)
-            sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: cannot compare less than: '+str(msg))
         finally:
-            pass
+            sig_off()
         return result
 
     cpdef _add_(self, right):
@@ -827,15 +827,14 @@ cdef class GapElement(RingElement):
             Error, no 1st choice method found for `+' on 2 arguments
         """
         cdef Obj result
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             result = SUM(self.value, (<GapElement>right).value)
-            sig_off()
         except RuntimeError as msg:
-            ClearError()
             raise ValueError('libGAP: '+str(msg))
         finally:
-            pass
+            sig_off()
         return make_any_gap_element(self.parent(), result)
 
 
@@ -859,15 +858,14 @@ cdef class GapElement(RingElement):
             Error, no 1st choice method found for `-' on 2 arguments
         """
         cdef Obj result
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             result = DIFF(self.value, (<GapElement>right).value)
-            sig_off()
         except RuntimeError as msg:
-            ClearError()
             raise ValueError('libGAP: {}'.format(msg))
         finally:
-            pass
+            sig_off()
         return make_any_gap_element(self.parent(), result)
 
 
@@ -891,15 +889,14 @@ cdef class GapElement(RingElement):
             Error, no 1st choice method found for `*' on 2 arguments
         """
         cdef Obj result
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             result = PROD(self.value, (<GapElement>right).value)
-            sig_off()
         except RuntimeError as msg:
-            ClearError()
             raise ValueError('libGAP: {}'.format(msg))
         finally:
-            pass
+            sig_off()
         return make_any_gap_element(self.parent(), result)
 
 
@@ -928,15 +925,14 @@ cdef class GapElement(RingElement):
             ValueError: libGAP: Error, Rational operations: <divisor> must not be zero
         """
         cdef Obj result
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             result = QUO(self.value, (<GapElement>right).value)
-            sig_off()
         except RuntimeError as msg:
-            ClearError()
             raise ValueError('libGAP: '+str(msg))
         finally:
-            pass
+            sig_off()
         return make_any_gap_element(self.parent(), result)
 
     cpdef _mod_(self, right):
@@ -957,15 +953,14 @@ cdef class GapElement(RingElement):
             Error, no 1st choice method found for `mod' on 2 arguments
         """
         cdef Obj result
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             result = MOD(self.value, (<GapElement>right).value)
-            sig_off()
         except RuntimeError as msg:
-            ClearError()
             raise ValueError('libGAP: '+str(msg))
         finally:
-            pass
+            sig_off()
         return make_any_gap_element(self.parent(), result)
 
 
@@ -996,15 +991,14 @@ cdef class GapElement(RingElement):
             libgap = self.parent()
             right = libgap(right)
         cdef Obj result
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             result = POW(self.value, (<GapElement>right).value)
-            sig_off()
         except RuntimeError as msg:
-            ClearError()
             raise ValueError('libGAP: ' + str(msg))
         finally:
-            pass
+            sig_off()
         return make_any_gap_element(self.parent(), result)
 
 
@@ -2259,10 +2253,11 @@ cdef class GapElement_Function(GapElement):
 
         if n > 0:
             libgap = self.parent()
-            a = [x if isinstance(x,GapElement) else libgap(x) for x in args]
+            a = [x if isinstance(x, GapElement) else libgap(x) for x in args]
 
+        sig_on()
         try:
-            sig_on()
+            GAP_Error_Setjmp()
             if n == 0:
                 result = CALL_0ARGS(self.value)
             elif n == 1:
@@ -2300,12 +2295,20 @@ cdef class GapElement_Function(GapElement):
                                            (<GapElement>a[5]).value)
             elif n >= 7:
                 arg_list = make_gap_list(args)
+                # TODO: Have to reset GAP_Error_Setjmp here since make_gap_list
+                # would have reset it creating bugs; we need to rethink
+                # GAP_Error_Setjmp in such a way that it can be nested properly
+                # I wonder if we could take advantage of cysignals for this
+                # after all; e.g. if there were a way to copy cysignals' longjmp
+                # buffer to GAP's STATE(ReadJmpError), or vice-versa (e.g. an
+                # alternative to sig_on() that allows providing an alternate buffer
+                # to cysigs.env)
+                GAP_Error_Setjmp()
                 result = CALL_XARGS(self.value, arg_list)
-            sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: ' + str(msg))
         finally:
-            pass
+            sig_off()
 
         if result == NULL:
             # We called a procedure that does not return anything

@@ -345,3 +345,7 @@ cdef extern from "<gap/gapstate.h>":
 
 cdef extern from "<gap/vars.h>":
     cdef int T_LVARS "T_LVARS"
+
+
+cdef extern from "libgap.h" nogil:
+    cdef int GAP_Error_Setjmp "_GAP_Error_Setjmp"() except 0

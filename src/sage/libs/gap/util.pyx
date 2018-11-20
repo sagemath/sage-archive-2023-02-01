@@ -323,6 +323,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     cmd = str_to_bytes(gap_string + ';\n')
     sig_on()
     try:
+        GAP_Error_Setjmp()
         result = GAP_EvalString(cmd)
         # We can assume that the result object is a GAP PList (plain list)
         # and we should use functions for PLists directly for now; see
@@ -397,7 +398,7 @@ cdef void error_handler():
     cdef char *msg
 
     # TODO: Do we need/want this ClearError??
-    ClearError()
+    # ClearError()
 
     # Close the error stream: This flushes any remaining output and closes
     # the stream for further writing; reset ERROR_OUTPUT to something sane
@@ -423,6 +424,10 @@ cdef void error_handler():
                    'ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
 
     PyErr_SetObject(RuntimeError, msg_py)
+
+    # TODO: Do we need/want this ClearError??
+    # ClearError()
+
 
 
 ############################################################################

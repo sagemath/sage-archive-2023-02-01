@@ -37,13 +37,12 @@ induced from the graph.
 We can also get at the linear extensions directly from the graph.  From
 the graph, the linear extensions are known as topological sorts ::
 
-    sage: sorted(D.topological_sort_generator())
+    sage: list(D.topological_sort_generator())
     [[0, 1, 2, 3, 4],
-     [0, 1, 2, 4, 3],
      [0, 2, 1, 3, 4],
      [0, 2, 1, 4, 3],
-     [0, 2, 4, 1, 3]]
-
+     [0, 2, 4, 1, 3],
+     [0, 1, 2, 4, 3]]
 
 """
 #*****************************************************************************
@@ -119,7 +118,7 @@ class LinearExtensionsOld(CombinatorialClass):
         TESTS::
 
             sage: D = DiGraph({ "a":["b","c"], "b":["d"], "c":["d","e"] })
-            sage: sorted(LinearExtensions(D))
+            sage: LinearExtensions(D).list()
             [['a', 'b', 'c', 'd', 'e'],
              ['a', 'b', 'c', 'e', 'd'],
              ['a', 'c', 'b', 'd', 'e'],
@@ -127,7 +126,7 @@ class LinearExtensionsOld(CombinatorialClass):
              ['a', 'c', 'e', 'b', 'd']]
 
             sage: D = DiGraph({ 4:[3,2], 3:[1], 2:[1,0] })
-            sage: sorted(LinearExtensions(D))
+            sage: LinearExtensions(D).list()
             [[4, 2, 0, 3, 1],
              [4, 2, 3, 0, 1],
              [4, 2, 3, 1, 0],

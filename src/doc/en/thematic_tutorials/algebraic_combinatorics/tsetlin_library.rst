@@ -81,8 +81,8 @@ This is the antichain poset. Its linear extensions are all permutations of `\{1,
     sage: L = P.linear_extensions()
     sage: L
     The set of all linear extensions of Finite poset containing 3 elements
-    sage: sorted(L)
-    [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+    sage: L.list()
+    [[3, 2, 1], [3, 1, 2], [1, 3, 2], [1, 2, 3], [2, 1, 3], [2, 3, 1]]
 
 The graph is produced via::
 

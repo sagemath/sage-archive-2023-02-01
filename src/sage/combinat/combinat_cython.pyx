@@ -659,12 +659,12 @@ def linear_extension_iterator(D):
 
         sage: from sage.combinat.combinat_cython import linear_extension_iterator
         sage: D = Poset({ 0:[1,2], 1:[3], 2:[3,4] })._hasse_diagram
-        sage: sorted(linear_extension_iterator(D))
+        sage: list(linear_extension_iterator(D))
         [[0, 1, 2, 3, 4],
-         [0, 1, 2, 4, 3],
          [0, 2, 1, 3, 4],
          [0, 2, 1, 4, 3],
-         [0, 2, 4, 1, 3]]
+         [0, 2, 4, 1, 3],
+         [0, 1, 2, 4, 3]]
 
         sage: D = posets.BooleanLattice(3)._hasse_diagram
         sage: len(list(linear_extension_iterator(D)))

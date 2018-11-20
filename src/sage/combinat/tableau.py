@@ -7075,7 +7075,7 @@ class RowStandardTableaux(Tableaux):
         [[3], [1], [2]]
         sage: ST.cardinality()
         10
-        sage: sorted(ST, key=lambda t: t.shape(), reverse=True)
+        sage: ST.list()
         [[[1, 2, 3]],
          [[2, 3], [1]],
          [[1, 2], [3]],
@@ -7108,13 +7108,13 @@ class RowStandardTableaux(Tableaux):
         [[2, 3], [1, 4]]
         sage: ST.cardinality()
         6
-        sage: sorted(ST)
-        [[[1, 2], [3, 4]],
-         [[1, 3], [2, 4]],
+        sage: ST.list()
+        [[[2, 4], [1, 3]],
+         [[3, 4], [1, 2]],
          [[1, 4], [2, 3]],
-         [[2, 3], [1, 4]],
-         [[2, 4], [1, 3]],
-         [[3, 4], [1, 2]]]
+         [[1, 3], [2, 4]],
+         [[1, 2], [3, 4]],
+         [[2, 3], [1, 4]]]
         sage: RowStandardTableau([[3,4,5],[1,2]]).residue_sequence(3).standard_tableaux()
         Standard tableaux with 3-residue sequence (2,0,0,1,2) and multicharge (0)
     """
@@ -7384,24 +7384,24 @@ class RowStandardTableaux_shape(RowStandardTableaux):
 
         EXAMPLES::
 
-            sage: sorted(RowStandardTableaux([2,2]))
-            [[[1, 2], [3, 4]],
-             [[1, 3], [2, 4]],
+            sage: [t for t in RowStandardTableaux([2,2])]
+            [[[2, 4], [1, 3]],
+             [[3, 4], [1, 2]],
              [[1, 4], [2, 3]],
-             [[2, 3], [1, 4]],
-             [[2, 4], [1, 3]],
-             [[3, 4], [1, 2]]]
-            sage: sorted(RowStandardTableaux([3,2]))
-            [[[1, 2, 3], [4, 5]],
-             [[1, 2, 4], [3, 5]],
-             [[1, 2, 5], [3, 4]],
-             [[1, 3, 4], [2, 5]],
-             [[1, 3, 5], [2, 4]],
+             [[1, 3], [2, 4]],
+             [[1, 2], [3, 4]],
+             [[2, 3], [1, 4]]]
+            sage: [t for t in RowStandardTableaux([3,2])]
+            [[[2, 4, 5], [1, 3]],
+             [[3, 4, 5], [1, 2]],
              [[1, 4, 5], [2, 3]],
+             [[1, 3, 5], [2, 4]],
+             [[1, 2, 5], [3, 4]],
+             [[1, 2, 3], [4, 5]],
+             [[1, 2, 4], [3, 5]],
+             [[1, 3, 4], [2, 5]],
              [[2, 3, 4], [1, 5]],
-             [[2, 3, 5], [1, 4]],
-             [[2, 4, 5], [1, 3]],
-             [[3, 4, 5], [1, 2]]]
+             [[2, 3, 5], [1, 4]]]
             sage: st = RowStandardTableaux([2,1])
             sage: st[0].parent() is st
             True

@@ -363,12 +363,12 @@ class StandardRibbonShapedTableaux_shape(StandardRibbonShapedTableaux):
         [[None, 1, 2], [3, 4]]
         sage: StandardRibbonShapedTableaux([2,2]).cardinality()
         5
-        sage: sorted(StandardRibbonShapedTableaux([2,2]))
-        [[[None, 1, 2], [3, 4]],
-         [[None, 1, 3], [2, 4]],
-         [[None, 1, 4], [2, 3]],
+        sage: StandardRibbonShapedTableaux([2,2]).list()
+        [[[None, 1, 3], [2, 4]],
+         [[None, 1, 2], [3, 4]],
          [[None, 2, 3], [1, 4]],
-         [[None, 2, 4], [1, 3]]]
+         [[None, 2, 4], [1, 3]],
+         [[None, 1, 4], [2, 3]]]
         sage: StandardRibbonShapedTableaux([3,2,2]).cardinality()
         155
     """
@@ -433,12 +433,12 @@ class StandardRibbonShapedTableaux_shape(StandardRibbonShapedTableaux):
 
         EXAMPLES::
 
-            sage: sorted(StandardRibbonShapedTableaux([2,2]))
-            [[[None, 1, 2], [3, 4]],
-             [[None, 1, 3], [2, 4]],
-             [[None, 1, 4], [2, 3]],
+            sage: [t for t in StandardRibbonShapedTableaux([2,2])]
+            [[[None, 1, 3], [2, 4]],
+             [[None, 1, 2], [3, 4]],
              [[None, 2, 3], [1, 4]],
-             [[None, 2, 4], [1, 3]]]
+             [[None, 2, 4], [1, 3]],
+             [[None, 1, 4], [2, 3]]]
 
         """
         for p in descents_composition_list(self.shape):

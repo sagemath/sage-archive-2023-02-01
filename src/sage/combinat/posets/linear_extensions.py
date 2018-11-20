@@ -272,24 +272,24 @@ class LinearExtensionOfPoset(ClonableArray):
             [1, 2, 3, 4]
             sage: l.tau(1)
             [2, 1, 3, 4]
-            sage: for p in sorted(L):
+            sage: for p in L:
             ....:     for i in range(1,4):
             ....:         print("{} {} {}".format(i, p, p.tau(i)))
             1 [1, 2, 3, 4] [2, 1, 3, 4]
             2 [1, 2, 3, 4] [1, 2, 3, 4]
             3 [1, 2, 3, 4] [1, 2, 4, 3]
-            1 [1, 2, 4, 3] [2, 1, 4, 3]
-            2 [1, 2, 4, 3] [1, 4, 2, 3]
-            3 [1, 2, 4, 3] [1, 2, 3, 4]
-            1 [1, 4, 2, 3] [1, 4, 2, 3]
-            2 [1, 4, 2, 3] [1, 2, 4, 3]
-            3 [1, 4, 2, 3] [1, 4, 2, 3]
             1 [2, 1, 3, 4] [1, 2, 3, 4]
             2 [2, 1, 3, 4] [2, 1, 3, 4]
             3 [2, 1, 3, 4] [2, 1, 4, 3]
             1 [2, 1, 4, 3] [1, 2, 4, 3]
             2 [2, 1, 4, 3] [2, 1, 4, 3]
             3 [2, 1, 4, 3] [2, 1, 3, 4]
+            1 [1, 4, 2, 3] [1, 4, 2, 3]
+            2 [1, 4, 2, 3] [1, 2, 4, 3]
+            3 [1, 4, 2, 3] [1, 4, 2, 3]
+            1 [1, 2, 4, 3] [2, 1, 4, 3]
+            2 [1, 2, 4, 3] [1, 4, 2, 3]
+            3 [1, 2, 4, 3] [1, 2, 3, 4]
 
         TESTS::
 
@@ -428,8 +428,8 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         The set of all linear extensions of Finite poset containing 4 elements with distinguished linear extension
         sage: L.cardinality()
         5
-        sage: sorted(L)
-        [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [2, 1, 3, 4], [2, 1, 4, 3]]
+        sage: L.list()
+        [[1, 2, 3, 4], [2, 1, 3, 4], [2, 1, 4, 3], [1, 4, 2, 3], [1, 2, 4, 3]]
         sage: L.an_element()
         [1, 2, 3, 4]
         sage: L.poset()
@@ -603,8 +603,8 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: rels = [[1,3],[1,4],[2,3]]
             sage: P = Poset((elms, rels), linear_extension=True)
             sage: L = P.linear_extensions()
-            sage: sorted(L)
-            [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [2, 1, 3, 4], [2, 1, 4, 3]]
+            sage: list(L)
+            [[1, 2, 3, 4], [2, 1, 3, 4], [2, 1, 4, 3], [1, 4, 2, 3], [1, 2, 4, 3]]
         """
         from sage.combinat.combinat_cython import linear_extension_iterator
         vertex_to_element = self._poset._vertex_to_element

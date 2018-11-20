@@ -1748,16 +1748,15 @@ class StandardSkewTableaux(SkewTableaux):
 
     ::
 
-        sage: sorted(StandardSkewTableaux([[3, 2, 1], [1, 1]]))
-        [[[None, 1, 2], [None, 3], [4]],
+        sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
+        [[[None, 2, 3], [None, 4], [1]],
+         [[None, 1, 2], [None, 3], [4]],
          [[None, 1, 2], [None, 4], [3]],
-         [[None, 1, 3], [None, 2], [4]],
          [[None, 1, 3], [None, 4], [2]],
-         [[None, 1, 4], [None, 2], [3]],
          [[None, 1, 4], [None, 3], [2]],
-         [[None, 2, 3], [None, 4], [1]],
+         [[None, 1, 4], [None, 2], [3]],
+         [[None, 1, 3], [None, 2], [4]],
          [[None, 2, 4], [None, 3], [1]]]
-
     """
     @staticmethod
     def __classcall_private__(cls, skp=None):
@@ -1989,14 +1988,14 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
         EXAMPLES::
 
-            sage: sorted(StandardSkewTableaux([[3, 2, 1], [1, 1]]))
-            [[[None, 1, 2], [None, 3], [4]],
+            sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
+            [[[None, 2, 3], [None, 4], [1]],
+             [[None, 1, 2], [None, 3], [4]],
              [[None, 1, 2], [None, 4], [3]],
-             [[None, 1, 3], [None, 2], [4]],
              [[None, 1, 3], [None, 4], [2]],
-             [[None, 1, 4], [None, 2], [3]],
              [[None, 1, 4], [None, 3], [2]],
-             [[None, 2, 3], [None, 4], [1]],
+             [[None, 1, 4], [None, 2], [3]],
+             [[None, 1, 3], [None, 2], [4]],
              [[None, 2, 4], [None, 3], [1]]]
         """
         dag = self.skp.to_dag(format="tuple")

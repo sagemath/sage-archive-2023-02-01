@@ -117,7 +117,7 @@ class HasseDiagram(DiGraph):
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
-            sage: sorted(H.linear_extensions())
+            sage: list(H.linear_extensions())
             [[0, 1, 2, 3], [0, 2, 1, 3]]
         """
         from sage.combinat.combinat_cython import linear_extension_iterator

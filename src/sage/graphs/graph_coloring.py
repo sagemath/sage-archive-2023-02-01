@@ -1314,7 +1314,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
         sage: from sage.graphs.graph_coloring import linear_arboricity
         sage: g = graphs.Grid2dGraph(4, 4)
         sage: d = linear_arboricity(g, hex_colors=True)
-        sage: sorted(d.keys())
+        sage: sorted(d)
         ['#00ffff', '#ff0000']
     """
     g._scream_if_not_simple()
@@ -1522,7 +1522,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
         sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
         sage: g = graphs.CompleteGraph(4)
         sage: d = acyclic_edge_coloring(g, hex_colors=True)
-        sage: sorted(d.keys())
+        sage: sorted(d)
         ['#0066ff', '#00ff66', '#cbff00', '#cc00ff', '#ff0000']
     """
     g._scream_if_not_simple(allow_multiple_edges=True)

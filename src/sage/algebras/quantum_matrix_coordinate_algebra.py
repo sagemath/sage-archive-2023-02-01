@@ -584,8 +584,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
 
             sage: O = algebras.QuantumMatrixCoordinate(2)
             sage: O.algebra_generators()
-            Finite family {(1, 2): x[1,2], (1, 1): x[1,1],
-                           (2, 1): x[2,1], (2, 2): x[2,2]}
+            Finite family {(1, 1): x[1,1], (1, 2): x[1,2], (2, 1): x[2,1], (2, 2): x[2,2]}
         """
         l = [(i, j) for i in range(1, self._m + 1)
              for j in range(1, self._n + 1)]
@@ -792,8 +791,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
 
             sage: O = algebras.QuantumGL(2)
             sage: O.algebra_generators()
-            Finite family {(1, 2): x[1,2], 'c': c, (1, 1): x[1,1],
-                           (2, 1): x[2,1], (2, 2): x[2,2]}
+            Finite family {(1, 1): x[1,1], (1, 2): x[1,2], (2, 1): x[2,1], (2, 2): x[2,2], 'c': c}
         """
         l = [(i, j) for i in range(1, self._n + 1)
              for j in range(1, self._n + 1)]

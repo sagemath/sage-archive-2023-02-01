@@ -272,12 +272,12 @@ We use the lexicographic ordering::
     sage: pl > ql
     True
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 import six
@@ -322,7 +322,7 @@ from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
-from sage.rings.all import QQ, NN, ZZ, IntegerModRing
+
 
 class Partition(CombinatorialElement):
     r"""
@@ -1745,25 +1745,8 @@ class Partition(CombinatorialElement):
         `t`-*completion of* `\lambda` is defined as the partition
         `(t - \left\lvert \lambda \right\rvert, \lambda_1, \lambda_2,
         \lambda_3, \ldots)` of `t`. This partition is denoted by `\lambda[t]`
-        in [BOR09]_, by `\lambda_{[t]}` in [BdVO12]_, and by `\lambda(t)`
-        in [CO10]_.
-
-        REFERENCES:
-
-        .. [BOR09] Emmanuel Briand, Rosa Orellana, Mercedes Rosas.
-           *The stability of the Kronecker products of Schur
-           functions*.
-           :arxiv:`0907.4652v2`.
-
-        .. [CO10] Jonathan Comes, Viktor Ostrik.
-           *On blocks of Deligne's category*
-           `\underline{\mathrm{Rep}}(S_t)`.
-           :arxiv:`0910.5695v2`,
-           http://pages.uoregon.edu/jcomes/blocks.pdf
-
-        .. [BdVO12] Christopher Bowman, Maud De Visscher, Rosa Orellana.
-           *The partition algebra and the Kronecker coefficients*.
-           :arXiv:`1210.5579v6`.
+        in [BOR2009]_, by `\lambda_{[t]}` in [BdVO2012]_, and by `\lambda(t)`
+        in [CO2010]_.
 
         EXAMPLES::
 
@@ -3216,39 +3199,20 @@ class Partition(CombinatorialElement):
             1
             sage: Partition([]).centralizer_size(q=2, t=4)
             1
+
+        TESTS::
+
+            sage: Partition([2,2,2]).aut()
+            48
         """
         size = prod(i ** mi * factorial(mi)
                     for i, mi in six.iteritems(self.to_exp_dict()))
         if t or q:
             size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
                          for j in self)
-
         return size
 
-    def aut(self):
-        r"""
-        Return a factor for the number of permutations with cycle type
-        ``self``.
-
-        This method returns `1^{j_1}j_1! \cdots n^{j_n}j_n!` where
-        `j_k` is the number of parts in ``self`` equal to `k`.
-
-        The number of permutations having ``self`` as a cycle type is
-        given by
-
-        .. MATH::
-
-            \frac{n!}{1^{j_1}j_1! \cdots n^{j_n}j_n!}
-
-        (where `n` is the size of ``self``).
-
-        EXAMPLES::
-
-            sage: Partition([2,1]).aut()
-            2
-        """
-        m = self.to_exp()
-        return prod([(i+1)**m[i]*factorial(m[i]) for i in range(len(m)) if m[i] > 0])
+    aut = centralizer_size
 
     def content(self, r, c, multicharge=(0,)):
         r"""
@@ -3841,14 +3805,7 @@ class Partition(CombinatorialElement):
         labelled `i`, and `C_i` be the set of columns ending in a cell
         labelled `i`. Then the `j`-th component of the quotient of
         `\lambda` is the partition defined by intersecting `R_j` with
-        `C_{j+1}`. (See Theorem 2.7.37 in [JamesKerber]_.)
-
-        REFERENCES:
-
-        .. [JamesKerber] Gordon James, Adalbert Kerber,
-           *The Representation Theory of the Symmetric Group*,
-           Encyclopedia of Mathematics and its Applications, vol. 16,
-           Addison-Wesley 1981.
+        `C_{j+1}`. (See Theorem 2.7.37 in [JK1981]_.)
 
         EXAMPLES::
 
@@ -7034,7 +6991,7 @@ class Partitions_constraints(IntegerListsLex):
         r"""
         TESTS::
 
-            sage: dmp = 'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\x8a\xe3\x93\x81DIQbf^I1W!\xa3fc!Sm!\xb3F(7\x92x!Km!k(GnbE<\xc8\x88B6\x88\xb9E\x99y\xe9\xc5z@\x05\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3QkP!Gq(c^\x06\x90c\x0c\xe4p\x96&\xe9\x01\x00\xc2\xe53\xfd'
+            sage: dmp = b'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\x8a\xe3\x93\x81DIQbf^I1W!\xa3fc!Sm!\xb3F(7\x92x!Km!k(GnbE<\xc8\x88B6\x88\xb9E\x99y\xe9\xc5z@\x05\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3QkP!Gq(c^\x06\x90c\x0c\xe4p\x96&\xe9\x01\x00\xc2\xe53\xfd'
             sage: sp = loads(dmp); sp
             Integer lists of sum 3 satisfying certain constraints
             sage: sp.list()

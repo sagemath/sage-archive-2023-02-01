@@ -422,7 +422,7 @@ class DiGraphGenerators():
             sage: digraphs.TransitiveTournament(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         g = DiGraph(n)
         g.name("Transitive Tournament")
@@ -431,9 +431,7 @@ class DiGraphGenerators():
             for j in range(i+1, n):
                 g.add_edge(i, j)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(g, list(range(n)))
+        g._circle_embedding(list(range(n)))
 
         return g
 
@@ -460,7 +458,7 @@ class DiGraphGenerators():
             sage: digraphs.RandomTournament(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
 
         .. SEEALSO::
 
@@ -481,9 +479,7 @@ class DiGraphGenerators():
                 else:
                     g.add_edge(j, i)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(g, list(range(n)))
+        g._circle_embedding(list(range(n)))
 
         return g
 
@@ -611,7 +607,7 @@ class DiGraphGenerators():
             sage: digraphs.Complete(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         G = DiGraph(n, name="Complete digraph"+(" with loops" if loops else ''), loops=loops)
 
@@ -620,9 +616,7 @@ class DiGraphGenerators():
 
         G.add_edges((u,v) for u in range(n) for v in range(n) if u!=v)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
 
         return G
 
@@ -681,7 +675,6 @@ class DiGraphGenerators():
             ...
             ValueError: The list must contain only relative integers.
         """
-        from sage.graphs.graph_plot import _circle_embedding
         from sage.rings.integer_ring import ZZ
 
         # Bad input and loops
@@ -692,9 +685,9 @@ class DiGraphGenerators():
             if (i%n) == 0:
                 loops = True
 
-        G=DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
+        G = DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
 
-        _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
         for v in range(n):
             G.add_edges([(v,(v+j)%n) for j in integers])
 
@@ -1417,7 +1410,7 @@ class DiGraphGenerators():
             sage: digraphs.RandomSemiComplete(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         G = DiGraph(n, name="Random Semi-Complete digraph")
 
@@ -1433,9 +1426,7 @@ class DiGraphGenerators():
             if coin>=2:
                 G.add_edge(v,u)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
 
         return G
 

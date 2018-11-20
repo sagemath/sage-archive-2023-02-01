@@ -4,53 +4,16 @@ Tamari Interval-posets
 
 This module implements Tamari interval-posets: combinatorial objects which
 represent intervals of the Tamari order. They have been introduced in
-[ChP2015]_ and allow for many combinatorial operations on Tamari intervals.
+[CP2015]_ and allow for many combinatorial operations on Tamari intervals.
 In particular, they are linked to :class:`DyckWords` and :class:`BinaryTrees`.
 An introduction into Tamari interval-posets is given in Chapter 7
 of [Pons2013]_.
 
 The Tamari lattice can be defined as a lattice structure on either of several
 classes of Catalan objects, especially binary trees and Dyck paths
-[TamBrack1962]_ [HuangTamari1972]_ [Sta-EC2]_. An interval can be seen as
+[Tam1962]_ [HT1972]_ [Sta-EC2]_. An interval can be seen as
 a pair of comparable elements. The number of intervals has been given in
-[ChapTamari08]_.
-
-REFERENCES:
-
-.. [ChP2015] Grégory Châtel and Viviane Pons.
-   *Counting smaller elements in the tamari and m-tamari lattices*.
-   Journal of Combinatorial Theory, Series A. (2015). :arxiv:`1311.3922`.
-
-.. [Pons2013] Viviane Pons,
-   *Combinatoire algébrique liée aux ordres sur les permutations*.
-   PhD Thesis. (2013). :arxiv:`1310.1805v1`.
-
-.. [TamBrack1962] Dov Tamari.
-   *The algebra of bracketings and their enumeration*.
-   Nieuw Arch. Wisk. (1962).
-
-.. [HuangTamari1972] Samuel Huang and Dov Tamari.
-   *Problems of associativity: A simple proof for the lattice property
-   of systems ordered by a semi-associative law*.
-   J. Combinatorial Theory Ser. A. (1972).
-   http://www.sciencedirect.com/science/article/pii/0097316572900039 .
-
-.. [ChapTamari08] Frédéric Chapoton.
-   *Sur le nombre d'intervalles dans les treillis de Tamari*.
-   Sém. Lothar. Combin. (2008).
-   :arxiv:`math/0602368v1`.
-
-.. [FPR15] Wenjie Fang and Louis-François Préville-Ratelle,
-   *From generalized Tamari intervals to non-separable planar maps*.
-   :arxiv:`1511.05937`
-
-.. [Pons2018] Viviane Pons,
-   *The Rise-Contact involution on Tamari intervals*.
-   :arxiv:`1802.08335`
-
-.. [Rog2018] Baptiste Rognerud,
-   *Exceptional and modern intervals of the Tamari lattice*.
-   :arxiv:`1801.04097`
+[Cha2008]_.
 
 AUTHORS:
 
@@ -2417,7 +2380,7 @@ class TamariIntervalPoset(Element):
         Return the number of terms in the decomposition in new interval-posets.
 
         Every interval-poset has a unique decomposition as a planar tree
-        of new interval-posets, as explained in [ChapTamari08]_. This function
+        of new interval-posets, as explained in [Cha2008]_. This function
         just computes the number of terms, not the planar tree nor
         the terms themselves.
 
@@ -2441,7 +2404,7 @@ class TamariIntervalPoset(Element):
 
         Every interval-poset has a unique decomposition as a planar
         tree of new interval-posets, as explained in
-        [ChapTamari08]_. This function computes the terms of this
+        [Cha2008]_. This function computes the terms of this
         decomposition, but not the planar tree.
 
         For the number of terms, you can use instead the method
@@ -2532,7 +2495,7 @@ class TamariIntervalPoset(Element):
 
         REFERENCES:
 
-        - [ChP2015]_
+        - [CP2015]_
         """
         n = self.size()
         if n == 0:
@@ -2577,7 +2540,7 @@ class TamariIntervalPoset(Element):
         facet of the associahedron.
         This condition is invariant under complementation.
 
-        They have been considered in section 9 of [ChapTamari08]_.
+        They have been considered in section 9 of [Cha2008]_.
 
         .. SEEALSO:: :meth:`is_modern`
 
@@ -2625,7 +2588,7 @@ class TamariIntervalPoset(Element):
         This means that the upper and lower binary trees have the same canopee.
         This condition is invariant under complementation.
 
-        This has been considered in [FPR15]_. The numbers of
+        This has been considered in [FPR2015]_. The numbers of
         synchronized intervals are given by the sequence :oeis:`A000139`.
 
         EXAMPLES::
@@ -2750,7 +2713,7 @@ class TamariIntervalPoset(Element):
         """
         Return whether ``self`` is an indecomposable Tamari interval.
 
-        This is the terminology of [ChapTamari08]_.
+        This is the terminology of [Cha2008]_.
 
         This means that the upper binary tree has an empty left subtree.
 
@@ -3319,7 +3282,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         Return a Tamari interval built from a minimal Schnyder wood.
 
         This is an implementation of Bernardi and Bonichon's bijection
-        [BerBon]_.
+        [BeBo2009]_.
 
         INPUT:
 
@@ -3348,7 +3311,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: TIP.from_minimal_schnyder_wood(G)
             The Tamari interval of size 1 induced by relations []
 
-        An example from page 14 of [BerBon]_::
+        An example from page 14 of [BeBo2009]_::
 
             sage: c0 = [(0,'a'),(1,0),(2,0),(4,3),(3,'a'),(5,3)]
             sage: c1 = [(5,'b'),(3,'b'),(4,5),(1,3),(2,3),(0,3)]
@@ -3366,7 +3329,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: TIP.from_minimal_schnyder_wood(G)
             The Tamari interval of size 6 induced by relations [(1, 4), (2, 4), (3, 4), (5, 6), (6, 4), (5, 4), (3, 1), (2, 1)]
 
-        An example from page 18 of [BerBon]_::
+        An example from page 18 of [BeBo2009]_::
 
             sage: c0 = [(0,'a'),(1,0),(2,'a'),(3,2),(4,2),(5,'a')]
             sage: c1 = [(5,'b'),(2,'b'),(4,'b'),(3,4),(1,2),(0,2)]
@@ -3400,11 +3363,6 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: G.set_embedding(embed)
             sage: TIP.from_minimal_schnyder_wood(G)
             The Tamari interval of size 3 induced by relations [(2, 3), (2, 1)]
-
-        REFERENCES:
-
-        .. [BerBon] Olivier Bernardi and Nicolas Bonichon, *Intervals in Catalan
-           lattices and realizers of triangulations*, JCTA 116 (2009)
         """
         from sage.graphs.digraph import DiGraph
         from sage.combinat.dyck_word import DyckWord
@@ -3663,7 +3621,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         The cardinality of ``self``. That is, the number of
         interval-posets of size `n`.
 
-        The formula was given in [ChapTamari08]_:
+        The formula was given in [Cha2008]_:
 
         .. MATH::
 
@@ -3755,7 +3713,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         This is obtained by first creating a random rooted
         planar triangulation, then computing its unique
         minimal Schnyder wood, then applying a bijection
-        of Bernardi and Bonichon [BerBon]_.
+        of Bernardi and Bonichon [BeBo2009]_.
 
         Because the random rooted planar triangulation is
         chosen uniformly at random, the Tamari interval is

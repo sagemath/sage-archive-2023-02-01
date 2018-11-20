@@ -172,7 +172,7 @@ class ClusterSeed(SageObject):
             * self._quiver - the ClusterQuiver corresponding to the exchange matrix self._M .
             * self._mutation_type - the mutation type of self._quiver .
 
-            * self._track_mut - a boolean tracking whether the a ClusterSeed's mutation path is being recorded.
+            * self._track_mut - a boolean tracking whether the ClusterSeed's mutation path is being recorded.
             * self._mut_path - the list of integers recording the mutation path of a seed - with consecutive repeats deleted since mutations is an involution.
 
         TESTS::
@@ -928,12 +928,13 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: Q = ClusterSeed(['A',5])
-            sage: hash(Q)  # indirect doctest
-            -5649412990944896369  # 64-bit
-            222337679  # 32-bit
+            sage: Q1 = ClusterSeed(['A',5])
+            sage: Q2 = ClusterSeed(ClusterQuiver(['A',5]))
+            sage: hash(Q1) == hash(Q2)
+            True
+            sage: hash(Q1) == hash('something')
+            False
         """
-        # mat_hash = self._M.__hash__()
         if self._use_fpolys:
             return hash(tuple(self.cluster()))
         elif self._use_g_vec:
@@ -953,8 +954,8 @@ class ClusterSeed(SageObject):
             sage: S._repr_()
             "A seed for a cluster algebra of rank 5 of type ['A', 5]"
 
-            sage: S=ClusterSeed(['B',2])
-            sage: T=S.principal_extension()
+            sage: S = ClusterSeed(['B',2])
+            sage: T = S.principal_extension()
             sage: T._repr_()
             "A seed for a cluster algebra of rank 2 of type ['B', 2] with principal coefficients"
         """
@@ -4426,14 +4427,14 @@ class ClusterSeed(SageObject):
 
     def get_upper_cluster_algebra_element(self,a):
         r"""
-        Computes an element in the upper cluster algebra of `B` corresponding to the vector `a \in \mathbb{Z}^n`.
+        Computes an element in the upper cluster algebra of `B` corresponding to the vector `a \in \ZZ^n`.
 
-        See [LeeLiM]_ for more details. 
+        See [LLM2014]_ for more details.
 
         INPUT:
 
         - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
-        - `a` -- a vector in `\mathbb{Z}^n` where `n` is the number of columns in `B`.
+        - `a` -- a vector in `\ZZ^n` where `n` is the number of columns in `B`.
 
         OUTPUT:
 
@@ -4464,12 +4465,6 @@ class ClusterSeed(SageObject):
             sage: C=ClusterSeed(B)
             sage: C.get_upper_cluster_algebra_element([1,1,1])
             x0^4*x1^2*x2^3 + x0^2*x1^3*x2^4
-
-
-        REFERENCES:
-
-        .. [LeeLiM] Lee-Li-Mills, A combinatorial formula for certain elements in the upper cluster algebra, :arxiv:`1409.8177`
-
         """
         B=self.b_matrix()
         #Checks if the length of the
@@ -4530,7 +4525,7 @@ class ClusterSeed(SageObject):
         INPUT:
 
         - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
-        - `vd` -- a collection of tuples `(v,z)` with `v \in \{0,1\}^n` and `z \in \mathbb{Z}`.
+        - `vd` -- a collection of tuples `(v,z)` with `v \in \{0,1\}^n` and `z \in \ZZ`.
                     `n` must be the number of columns in `B`. Taken from the output of vector_decomposition.
 
         OUTPUT:
@@ -4916,11 +4911,11 @@ def _vector_decomposition(a, length):
 
     INPUT:
 
-    - `a` -- a vector in `\mathbb{Z}^n.`
+    - `a` -- a vector in `\ZZ^n.`
 
     OUTPUT:
 
-    A decomposition of `a` into vectors `b_i \in \{0,1\}^n` such that `a= \sum c_i b_i` for `c_i \in \mathbb{Z}.`
+    A decomposition of `a` into vectors `b_i \in \{0,1\}^n` such that `a= \sum c_i b_i` for `c_i \in \ZZ.`
     Returns an array of tuples `\right[b_i,c_i\left].` 
 
     EXAMPLES::

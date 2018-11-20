@@ -822,6 +822,7 @@ def random_vector(ring, degree=None, *args, **kwds):
     entries = [ring.random_element(*args, **kwds) for _ in range(degree)]
     return vector(ring, degree, entries, sparse)
 
+
 cdef class FreeModuleElement(Vector):   # abstract base class
     """
     An element of a generic free module.
@@ -988,7 +989,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.numpy()
             array([1, 2, 5/6], dtype=object)
             sage: v.numpy(dtype=float)
-            array([ 1.        ,  2.        ,  0.83333333])
+            array([1.        , 2.        , 0.83333333])
             sage: v.numpy(dtype=int)
             array([1, 2, 0])
             sage: import numpy
@@ -999,7 +1000,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         be more efficient but may have unintended consequences::
 
             sage: v.numpy(dtype=None)
-            array([ 1.        ,  2.        ,  0.83333333])
+            array([1.        , 2.        , 0.83333333])
 
             sage: w = vector(ZZ, [0, 1, 2^63 -1]); w
             (0, 1, 9223372036854775807)
@@ -4562,7 +4563,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 e = entries_dict
                 entries_dict = {}
                 try:
-                    for k, x in e.iteritems():
+                    for k, x in (<dict> e).iteritems():
                         x = coefficient_ring(x)
                         if x:
                             entries_dict[k] = x
@@ -4752,8 +4753,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.items()
-            <dictionary-itemiterator object at ...>
+            sage: next(v.items())
+            (0, 1)
             sage: list(v.items())
             [(0, 1), (1, 2/3), (2, pi)]
 
@@ -4764,7 +4765,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
-        return self._entries.iteritems()
+        return iter(self._entries.iteritems())
 
     iteritems = items
 

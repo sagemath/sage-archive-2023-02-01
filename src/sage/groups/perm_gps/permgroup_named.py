@@ -233,8 +233,9 @@ class SymmetricGroup(PermutationGroup_symalt):
         sage: G.domain()
         {1, 2, 3, 4}
         sage: G.category()
-        Join of Category of finite enumerated permutation groups
-         and Category of finite weyl groups
+        Join of Category of finite enumerated permutation groups and
+        Category of finite weyl groups and
+        Category of well generated finite irreducible complex reflection groups
 
     TESTS::
 
@@ -258,7 +259,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         #Note that we skip the call to the superclass initializer in order to
         #avoid infinite recursion since SymmetricGroup is called by
         #PermutationGroupElement
-        cat = Category.join([FinitePermutationGroups(), FiniteWeylGroups()])
+        cat = Category.join([FinitePermutationGroups(), FiniteWeylGroups().Irreducible()])
         super(PermutationGroup_generic, self).__init__(category=cat)
 
         self._domain = domain

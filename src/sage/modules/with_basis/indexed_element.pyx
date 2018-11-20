@@ -107,15 +107,17 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
             sage: f = B['a'] + 3*B['c']
-            sage: hash(f)
-            6429418278783588506           # 64-bit
-            726440090                     # 32-bit
+            sage: hash(f) == hash(B['a'] + 3*B['c'])
+            True
+            sage: hash(f) == hash(B['a'] + 4*B['c'])
+            False
 
             sage: F = RootSystem(['A',2]).ambient_space()
             sage: f = F.simple_root(0)
-            sage: hash(f)
-            6920829894162680369           # 64-bit
-            -528971215                    # 32-bit
+            sage: hash(f) == hash(F.simple_root(0))
+            True
+            sage: hash(f) == hash(F.simple_root(1))
+            False
 
         This uses the recipe that was proposed for frozendicts in
         :pep:`416` (and adds the hash of the parent). This recipe

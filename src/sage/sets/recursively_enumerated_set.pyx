@@ -67,8 +67,9 @@ In this case, depth first search is the default enumeration for iteration::
 Breadth first search::
 
     sage: it_breadth = C.breadth_first_search_iterator()
-    sage: [next(it_breadth) for _ in range(10)]
-    [(0, 0), (0, 1), (0, -1), (1, 0), (-1, 0), (-1, 1), (-2, 0), (0, 2), (2, 0), (-1, -1)]
+    sage: sorted([next(it_breadth) for _ in range(13)])
+    [(-2, 0), (-1, -1), (-1, 0), (-1, 1), (0, -2), (0, -1),
+     (0, 0), (0, 1), (0, 2), (1, -1), (1, 0), (1, 1), (2, 0)]
 
 Levels (elements of given depth)::
 
@@ -113,8 +114,8 @@ Breadth first search iterator::
 
 Elements of given depth iterator::
 
-    sage: list(R.elements_of_depth_iterator(9))
-    [[5, 3, 4, 2, 1], [4, 5, 3, 2, 1], [5, 4, 2, 3, 1], [5, 4, 3, 1, 2]]
+    sage: sorted(R.elements_of_depth_iterator(9))
+    [[4, 5, 3, 2, 1], [5, 3, 4, 2, 1], [5, 4, 2, 3, 1], [5, 4, 3, 1, 2]]
     sage: list(R.elements_of_depth_iterator(10))
     [[5, 4, 3, 2, 1]]
 
@@ -464,8 +465,8 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: it_naive = iter(RecursivelyEnumeratedSet([0], f, enumeration='naive'))
             sage: it_depth = iter(RecursivelyEnumeratedSet([0], f, enumeration='depth'))
             sage: it_breadth = iter(RecursivelyEnumeratedSet([0], f, enumeration='breadth'))
-            sage: [next(it_naive) for _ in range(10)]
-            [0, 3, 8, 11, 5, 6, 9, 10, 12, 13]
+            sage: sorted([next(it_naive) for _ in range(10)])
+            [0, 3, 5, 6, 8, 9, 10, 11, 12, 13]
             sage: [next(it_depth) for _ in range(10)]
             [0, 5, 10, 15, 20, 25, 30, 35, 40, 45]
             sage: [next(it_breadth) for _ in range(10)]
@@ -726,8 +727,8 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: f = lambda a: [(a[0]+1,a[1]), (a[0],a[1]+1)]
             sage: C = RecursivelyEnumeratedSet([(0,0)], f, structure='graded')
             sage: it = C._breadth_first_search_iterator_from_graded_component_iterator(max_depth=3)
-            sage: list(it)
-            [(0, 0), (0, 1), (1, 0), (2, 0), (1, 1), (0, 2)]
+            sage: sorted(it)
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (2, 0)]
 
         This iterator is used by default for symmetric structure::
 
@@ -789,8 +790,8 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: seeds = [Permutation([1,2,3])]
             sage: succ = attrcall("permutohedron_succ")
             sage: R = RecursivelyEnumeratedSet(seeds, succ)
-            sage: list(R.naive_search_iterator())
-            [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+            sage: sorted(R.naive_search_iterator())
+            [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
         cdef set known, todo
         known = set(self._seeds)
@@ -982,7 +983,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         instance) breaks the iterator::
 
             sage: def f(a):
-            ....:     sleep(0.05)
+            ....:     sleep(0.05r)
             ....:     return [a-1,a+1]
             sage: C = RecursivelyEnumeratedSet([0], f, structure='symmetric')
             sage: it = C.graded_component_iterator()
@@ -1042,7 +1043,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         We make sure that :trac:`21312` is fixed::
 
             sage: def f(a):
-            ....:    sleep(0.1)
+            ....:    sleep(0.1r)
             ....:    return [a-1,a+1]
             sage: C = RecursivelyEnumeratedSet([0], f, structure='symmetric')
             sage: from cysignals.alarm import alarm
@@ -1149,9 +1150,9 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
             sage: f = lambda a: [(a[0]+1,a[1]), (a[0],a[1]+1)]
             sage: C = RecursivelyEnumeratedSet([(0,0)], f, structure='graded')
             sage: it = C.breadth_first_search_iterator(max_depth=3)
-            sage: list(it)
-            [(0, 0), (0, 1), (1, 0), (2, 0), (1, 1),
-             (0, 2), (3, 0), (1, 2), (0, 3), (2, 1)]
+            sage: sorted(it)
+            [(0, 0), (0, 1), (0, 2), (0, 3), (1, 0),
+             (1, 1), (1, 2), (2, 0), (2, 1), (3, 0)]
         """
         cdef set next_level
         cdef int depth
@@ -1252,7 +1253,7 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
         We make sure that :trac:`21312` is fixed::
 
             sage: def f(a):
-            ....:    sleep(0.1)
+            ....:    sleep(0.1r)
             ....:    return [a+1, a+I]
             sage: C = RecursivelyEnumeratedSet([0], f, structure='graded')
             sage: from cysignals.alarm import alarm

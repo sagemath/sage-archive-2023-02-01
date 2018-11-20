@@ -61,7 +61,7 @@ def __check_padic_hypotheses(self, p):
     """
     p = rings.Integer(p)
     if not p.is_prime():
-        raise ValueError("p = (%s) must be prime"%p)
+        raise ValueError("p = (%s) must be prime" % p)
     if p == 2:
         raise ValueError("p must be odd")
     if self.conductor() % p == 0 or self.ap(p) % p == 0:
@@ -69,27 +69,18 @@ def __check_padic_hypotheses(self, p):
     return p
 
 
-def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, precision):
+def _normalize_padic_lseries(self, p, normalize, implementation, precision):
     r"""
     Normalize parameters for :meth:`padic_lseries`.
 
     TESTS::
 
         sage: from sage.schemes.elliptic_curves.padics import _normalize_padic_lseries
-        sage: u = _normalize_padic_lseries(None, 5, None, None, 'sage', 10)
-        sage: v = _normalize_padic_lseries(None, 5, "L_ratio", None, 'sage', 10)
+        sage: u = _normalize_padic_lseries(None, 5, None, 'sage', 10)
+        sage: v = _normalize_padic_lseries(None, 5, "L_ratio", 'sage', 10)
         sage: u == v
         True
      """
-    if use_eclib is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(812,"Use the option 'implementation' instead of 'use_eclib'")
-        if implementation == 'pollackstevens':
-            raise ValueError
-        if use_eclib:
-            implementation = 'eclib'
-        else:
-            implementation = 'sage'
     if implementation == 'eclib':
         if normalize is None:
             normalize = "L_ratio"
@@ -108,7 +99,7 @@ def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, prec
     return (p, normalize, implementation, precision)
 
 @cached_method(key=_normalize_padic_lseries)
-def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 'eclib', precision = None):
+def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision = None):
     r"""
     Return the `p`-adic `L`-series of self at
     `p`, which is an object whose approx method computes
@@ -117,17 +108,14 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
     INPUT:
 
+    -  ``p`` -- prime
 
-    -  ``p`` - prime
-
-    -  ``normalize`` -  'L_ratio' (default), 'period' or 'none';
+    -  ``normalize`` -- 'L_ratio' (default), 'period' or 'none';
        this is describes the way the modular symbols
        are normalized. See modular_symbol for
        more details.
 
-    -  ``use_eclib`` - deprecated, use ``implementation`` instead
-
-    -  ``implementation`` - 'eclib' (default), 'sage', 'pollackstevens';
+    -  ``implementation`` -- 'eclib' (default), 'sage', 'pollackstevens';
        Whether to use John Cremona's eclib, the Sage implementation,
        or Pollack-Stevens' implementation of overconvergent
        modular symbols.
@@ -207,7 +195,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
         O(11^0)
     """
     p, normalize, implementation, precision = self._normalize_padic_lseries(p,\
-                             normalize, use_eclib, implementation, precision)
+                             normalize, implementation, precision)
 
     if implementation in ['sage', 'eclib']:
         if self.ap(p) % p != 0:

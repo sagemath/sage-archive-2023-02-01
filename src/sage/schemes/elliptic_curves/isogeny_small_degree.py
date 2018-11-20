@@ -757,7 +757,7 @@ def isogenies_3(E, minimal_models=True):
 
 def isogenies_5_0(E, minimal_models=True):
     r"""
-    Return a list of all the 5-isogenies  with domain ``E`` when the
+    Return a list of all the 5-isogenies with domain ``E`` when the
     j-invariant is 0.
 
     INPUT:
@@ -1736,7 +1736,7 @@ def isogenies_prime_degree_genus_plus_0(E, l=None, minimal_models=True):
 
 def isogenies_prime_degree_genus_plus_0_j0(E, l, minimal_models=True):
     """
-    Returns a list of hyperelliptic ``l`` -isogenies  with domain ``E`` when `j(E)=0`.
+    Returns a list of hyperelliptic ``l`` -isogenies with domain ``E`` when `j(E)=0`.
 
     INPUT:
 
@@ -1822,7 +1822,7 @@ def isogenies_prime_degree_genus_plus_0_j0(E, l, minimal_models=True):
 
 def isogenies_prime_degree_genus_plus_0_j1728(E, l, minimal_models=True):
     """
-    Returns a list of ``l`` -isogenies  with domain ``E`` when `j(E)=1728`.
+    Returns a list of ``l`` -isogenies with domain ``E`` when `j(E)=1728`.
 
     INPUT:
 
@@ -1959,9 +1959,10 @@ def _least_semi_primitive(p):
         a += 1
     return a
 
+
 def isogenies_prime_degree_general(E, l, minimal_models=True):
     """
-    Returns a list of ``l`` -isogenies  with domain ``E``.
+    Return all separable ``l``-isogenies with domain ``E``.
 
     INPUT:
 
@@ -1976,7 +1977,7 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
 
     OUTPUT:
 
-    (list) a list of all isogenies of degree l.
+    A list of all separable isogenies of degree `l` with domain ``E``.
 
     ALGORITHM:
 
@@ -2144,7 +2145,8 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
 
 
 def isogenies_prime_degree(E, l, minimal_models=True):
-    """Returns a list of ``l`` -isogenies  with domain ``E``.
+    """
+    Return all separable ``l``-isogenies with domain ``E``.
 
     INPUT:
 
@@ -2160,9 +2162,7 @@ def isogenies_prime_degree(E, l, minimal_models=True):
 
     OUTPUT:
 
-    (list) a list of all isogenies of degree `l`.  If the
-    characteristic is `l` then only separable isogenies are
-    constructed.
+    A list of all separable isogenies of degree `l` with domain ``E``.
 
     EXAMPLES::
 

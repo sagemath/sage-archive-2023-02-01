@@ -2020,7 +2020,7 @@ class CategoryWithAxiom(Category):
             sage: Sets().Infinite()
             Category of infinite sets
             sage: Sets().Infinite
-            Cached version of <function Infinite at ...>
+            Cached version of <function ...Infinite at ...>
             sage: Sets().Infinite.f == Sets.SubcategoryMethods.Infinite.f
             True
 
@@ -2028,7 +2028,7 @@ class CategoryWithAxiom(Category):
         a separate file, and lazy imported::
 
             sage: Sets().Finite
-            Cached version of <function Finite at ...>
+            Cached version of <function ...Finite at ...>
 
         There is no binding behavior when accessing ``Finite`` or
         ``Infinite`` from the class of the category instead of the
@@ -2568,7 +2568,7 @@ def axiom(axiom):
         ....:     def _with_axiom(self, axiom): return self, axiom
         ....:     Finite = axiom("Finite")
         sage: As().Finite()
-        (<__main__.As instance at ...>, 'Finite')
+        (<__main__.As ... at ...>, 'Finite')
     """
     def with_axiom(self):
         return self._with_axiom(axiom)

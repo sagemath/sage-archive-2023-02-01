@@ -35,6 +35,7 @@ Check :trac:`12482` (shall be run in a fresh session)::
 #*****************************************************************************
 import types
 from copy import copy
+from pprint import pformat, saferepr
 
 from six import itervalues
 from six.moves import range
@@ -659,8 +660,20 @@ class FiniteFamily(AbstractFamily):
             sage: from sage.sets.family import FiniteFamily
             sage: FiniteFamily({3: 'a'}) # indirect doctest
             Finite family {3: 'a'}
+
+            sage: FiniteFamily({3: 'a', 4: 'b'}) # indirect doctest
+            Finite family {3: 'a', 4: 'b'}
+
+            sage: FiniteFamily({3: 'a', 4: 'b'}, keys=[4,3]) # indirect doctest
+            Finite family {4: 'b', 3: 'a'}
         """
-        return "Finite family %s"%self._dictionary
+        if self._keys is None:
+            d = ' '.join(pformat(self._dictionary)[1:-1].splitlines())
+        else:
+            d = ', '.join('{}: {}'.format(saferepr(key),
+                                          saferepr(self._dictionary[key]))
+                          for key in self._keys)
+        return 'Finite family {{{}}}'.format(d)
 
     def __contains__(self, x):
         """

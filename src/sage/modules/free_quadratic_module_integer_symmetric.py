@@ -1219,6 +1219,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Genus of
             [0 1]
             [1 0]
+            Signature:  (1, 1)
             Genus symbol at 2:    1^2
         """
         from sage.quadratic_forms.genera.genus import Genus

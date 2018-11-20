@@ -33,6 +33,8 @@ and C. Pernet. The functions available are:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import
+
 from sage.libs.gmp.types cimport mpz_t, mpz_srcptr, mpz_ptr
 from sage.libs.gmp.mpz cimport mpz_set
 from sage.libs.flint.types cimport fmpz, fmpz_t
@@ -40,10 +42,10 @@ from sage.libs.flint.fmpz cimport fmpz_get_mpz, fmpz_set_mpz
 from sage.libs.flint.fmpz_mat cimport fmpz_mat_entry, fmpz_mat_nrows, fmpz_mat_ncols
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_set_coeff_mpz, fmpz_poly_fit_length, _fmpz_poly_set_length, fmpz_poly_one
 
-cimport givaro
-cimport linbox
+cimport sage.libs.linbox.givaro as givaro
+cimport sage.libs.linbox.linbox as linbox
+from .linbox cimport PolynomialRing_integer
 
-from linbox cimport PolynomialRing_integer
 
 cdef void fmpz_mat_get_linbox(linbox.DenseMatrix_integer& A, fmpz_mat_t m):
     r"""

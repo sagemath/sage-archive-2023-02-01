@@ -106,9 +106,8 @@ cdef class Parent(parent.Parent):
         """
         TESTS::
 
-            sage: k.<a> = NumberField(x^2 + 5)
-            sage: Ck = NFCusps(k)
-            sage: Ck.coerce_map_from_c(k)
+            sage: A = J0(33)
+            sage: A.coerce_map_from_c(QuadraticField(3))
             doctest:...: DeprecationWarning: coerce_map_from_c is deprecated
             See https://trac.sagemath.org/25236 for details.
 
@@ -306,14 +305,14 @@ cdef class Parent(parent.Parent):
 
     def has_coerce_map_from_c(self, S):
         """
-        Return True if there is a natural map from S to self.
-        Otherwise, return False.
+        Return ``True`` if there is a natural map from ``S`` to ``self``.
+
+        Otherwise, return ``False``.
 
         TESTS::
 
-            sage: k.<a> = NumberField(x^2 + 5)
-            sage: Ck = NFCusps(k)
-            sage: Ck.has_coerce_map_from_c(k)
+            sage: A = J0(33)
+            sage: A.has_coerce_map_from_c(QuadraticField(3))
             doctest:...: DeprecationWarning: has_coerce_map_from_c is deprecated
             See https://trac.sagemath.org/25236 for details.
             False

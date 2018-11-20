@@ -30,9 +30,9 @@ sdh_install gen/config.h "$SAGE_LOCAL/include/gap"
 
 # Now install the gap executable as "gap-bin"; it will be called normally
 # through our wrapper script that sets the appropriate GAP_ROOT
-SAGE_BIN="$SAGE_DESTDIR/$SAGE_LOCAL/bin"
-mkdir -p "$SAGE_BIN" || sdh_die "Failed to create the directory $SAGE_BIN"
-./libtool --mode=install install gap "$SAGE_BIN/gap-bin" || \
+SAGE_BIN="$SAGE_LOCAL/bin"
+mkdir -p "$SAGE_DESTDIR$SAGE_BIN" || sdh_die "Failed to create the directory $SAGE_BIN"
+./libtool --mode=install install gap "$SAGE_DESTDIR$SAGE_BIN/gap-bin" || \
     sdh_die "Failed to install gap-bin to $SAGE_BIN"
 
 # Now copy additional files GAP needs to run (and a few optional bits) into

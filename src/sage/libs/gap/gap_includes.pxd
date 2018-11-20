@@ -49,8 +49,6 @@ cdef extern from "<gap/objects.h>":
     Int INT_INTOBJ(Obj)
     UInt TNUM_OBJ(Obj obj)
     char* TNAM_OBJ(Obj obj)
-    cdef int FIRST_REAL_TNUM
-    cdef int FIRST_CONSTANT_TNUM
     cdef int T_INTPOS
     cdef int T_INTNEG
     cdef int T_RAT
@@ -64,14 +62,8 @@ cdef extern from "<gap/objects.h>":
     cdef int T_FLAGS
     cdef int T_MACFLOAT
     cdef int T_RESERVED_BY_GAP
-    cdef int LAST_CONSTANT_TNUM
     cdef int IMMUTABLE
-    cdef int FIRST_IMM_MUT_TNUM
-    cdef int FIRST_RECORD_TNUM
     cdef int T_PREC
-    cdef int LAST_RECORD_TNUM
-    cdef int FIRST_LIST_TNUM
-    cdef int FIRST_PLIST_TNUM
     cdef int T_PLIST
     cdef int T_PLIST_NDENSE
     cdef int T_PLIST_DENSE
@@ -92,7 +84,6 @@ cdef extern from "<gap/objects.h>":
     cdef int T_PLIST_CYC_NSORT "T_PLIST_CYC_NSORT"
     cdef int T_PLIST_CYC_SSORT "T_PLIST_CYC_SSORT"
     cdef int T_PLIST_FFE "T_PLIST_FFE"
-    cdef int LAST_PLIST_TNUM "LAST_PLIST_TNUM"
     cdef int T_RANGE_NSORT "T_RANGE_NSORT"
     cdef int T_RANGE_SSORT "T_RANGE_SSORT"
     cdef int T_BLIST "T_BLIST"
@@ -101,22 +92,12 @@ cdef extern from "<gap/objects.h>":
     cdef int T_STRING "T_STRING"
     cdef int T_STRING_NSORT "T_STRING_NSORT"
     cdef int T_STRING_SSORT "T_STRING_SSORT"
-    cdef int LAST_LIST_TNUM "LAST_LIST_TNUM"
-    cdef int LAST_IMM_MUT_TNUM "LAST_IMM_MUT_TNUM"
-    cdef int FIRST_EXTERNAL_TNUM "FIRST_EXTERNAL_TNUM"
     cdef int T_COMOBJ "T_COMOBJ"
     cdef int T_POSOBJ "T_POSOBJ"
     cdef int T_DATOBJ "T_DATOBJ"
     cdef int T_WPOBJ "T_WPOBJ"
-    cdef int LAST_EXTERNAL_TNUM "LAST_EXTERNAL_TNUM"
-    cdef int LAST_REAL_TNUM "LAST_REAL_TNUM"
-    cdef int LAST_VIRTUAL_TNUM "LAST_VIRTUAL_TNUM"
-    cdef int FIRST_COPYING_TNUM "FIRST_COPYING_TNUM"
     cdef int COPYING "COPYING"
-    cdef int LAST_COPYING_TNUM "LAST_COPYING_TNUM"
-    cdef int FIRST_TESTING_TNUM "FIRST_TESTING_TNUM"
     cdef int TESTING "TESTING"
-    cdef int LAST_TESTING_TNUM "LAST_TESTING_TNUM"
 
 
 cdef extern from "<gap/libgap-api.h>":

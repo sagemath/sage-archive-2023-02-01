@@ -540,6 +540,9 @@ class SetPartition(AbstractSetPartition):
         """
         Initialize ``self``.
 
+        Internally, a set partition is stored as iterable of blocks,
+        sorted by minimal element.
+
         EXAMPLES::
 
             sage: S = SetPartitions(4)
@@ -547,6 +550,7 @@ class SetPartition(AbstractSetPartition):
             sage: TestSuite(s).run()
             sage: SetPartition([])
             {}
+
         """
         self._latex_options = {}
         ClonableArray.__init__(self, parent, sorted(map(frozenset, s), key=min), check=check)

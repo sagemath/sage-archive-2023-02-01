@@ -4591,7 +4591,7 @@ class FreeModule_ambient(FreeModule_generic):
         TESTS:
 
         We check that the creation of a submodule does not trigger
-        the construction of a basis of the ambient space. See trac`15953`::
+        the construction of a basis of the ambient space. See :trac:`15953`::
 
             sage: F.<a> = GF(4)
             sage: V = VectorSpace(F, 1)

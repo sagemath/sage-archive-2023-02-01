@@ -1247,7 +1247,7 @@ class SetPartition(AbstractSetPartition):
 
         EXAMPLES:
 
-        Example 4.5 in [Yip2017]_::
+        Example 36 (arXiv version: Example 4.5) in [Yip2018]_::
 
             sage: P = SetPartition([[1, 5], [2], [3, 8, 9], [4], [6, 7]])
             sage: P.to_rook_placement_psi()
@@ -2457,8 +2457,8 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-        Example 4.5 in [Yip2017]_ concerns the following rook
-        placement::
+        Example 36 (arXiv version: Example 4.5) in [Yip2018]_
+        concerns the following rook placement::
 
             sage: r = [(4,5), (1,7), (3, 8), (7,9)]
             sage: SetPartitions().from_rook_placement_psi(r, 9)

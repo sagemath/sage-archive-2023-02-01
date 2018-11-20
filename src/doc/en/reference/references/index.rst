@@ -3488,9 +3488,9 @@ REFERENCES:
 .. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              collège de France
 
-.. [Yip2017] Yip, Martha. "Rook placements and Jordan forms of
+.. [Yip2018] Yip, Martha. "Rook placements and Jordan forms of
              upper-triangular nilpotent matrices."
-             :arxiv:`1703.00057`.
+             Electronic J. Comb. 25(1) (2018) #P1.68. :arxiv:`1703.00057`.
 
 .. [Yun1976] Yun, David YY. On square-free decomposition
              algorithms. In Proceedings of the third ACM symposium on

@@ -3455,6 +3455,10 @@ REFERENCES:
             submitted to NIST, (2008), available at
             http://www3.ntu.edu.sg/home/wuhj/research/jh/jh_round3.pdf
 
+.. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
+            and set partition statistics*, Journal of Combinatorial
+            Theory, Series A 56.1 (1991): 27-46.
+
 .. [WW2005] Ralf-Philipp Weinmann and Kai Wirt,
             *Analysis of the DVB Common Scrambling Algorithm*; in
             IFIP TC-6 TC-11, (2005).
@@ -3481,8 +3485,12 @@ REFERENCES:
                 associated with crystal base of* `U_q(D_4^{(3)})`.
                 \J. Math. Phys., **48** (4):043509, 28, (2007).
 
-.. [Yoc2005] Jean-Christophe Yoccoz, *Échange d'Intervalles*, Cours au
+.. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              collège de France
+
+.. [Yip2018] Yip, Martha. "Rook placements and Jordan forms of
+             upper-triangular nilpotent matrices."
+             Electronic J. Comb. 25(1) (2018) #P1.68. :arxiv:`1703.00057`.
 
 .. [Yun1976] Yun, David YY. On square-free decomposition
              algorithms. In Proceedings of the third ACM symposium on

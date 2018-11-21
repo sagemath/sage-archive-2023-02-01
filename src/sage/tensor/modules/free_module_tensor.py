@@ -632,8 +632,11 @@ class FreeModuleTensor(ModuleElement):
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: t.display(f)
+            sage: t2 = v*w
+            sage: t2.display(f)
             v*w = -6 f_1*f^1 - 20/3 f_1*f^2 + 27/8 f_2*f^1 + 15/4 f_2*f^2
+            sage: t2[f,:] == t[f,:]  # check of the parallel computation
+            True
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         The output format can be set via the argument ``output_formatter``
@@ -1120,9 +1123,9 @@ class FreeModuleTensor(ModuleElement):
                         for ind_old in old_comp.index_generator():
                             t = old_comp[[ind_old]]
                             for i in range(n_con): # loop on contravariant indices
-                                t *= ppinv[[ind_new[i], ind_old[i]]]
+                                t *= ppinv[[ind[i], ind_old[i]]]
                             for i in range(n_con,rank):  # loop on covariant indices
-                                t *= pp[[ind_old[i], ind_new[i]]]
+                                t *= pp[[ind_old[i], ind[i]]]
                             res += t
                         partial.append([ind,res])
                     return partial

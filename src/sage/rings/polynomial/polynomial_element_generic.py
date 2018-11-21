@@ -880,7 +880,6 @@ class Polynomial_generic_sparse(Polynomial):
         """
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.arith.all import lcm
 
         if algorithm is None:
             if self.base_ring() == ZZ:
@@ -1180,7 +1179,6 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
 
         - Xavier Caruso (2013-03-23)
         """
-        base = self.base_ring()
         selfa = self(a)
         der = self.derivative()
         dera = der(a)
@@ -1397,10 +1395,10 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
 
     def _roots(self, secure, minval, hint):
         """
-        Return the roots of this polynomial whose valuation is 
+        Return the roots of this polynomial whose valuation is
         at least ``minval``.
 
-        This is an helper method for :meth:`roots`.
+        This is a helper method for :meth:`roots`.
         It is not meant to be called directly.
 
         INPUT:
@@ -1444,7 +1442,8 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
 
         # We consider the case where zero is a (possibly multiple) root
         i = 0
-        while self[i] == 0: i += 1
+        while self[i] == 0:
+            i += 1
         if secure and i > 1:
             raise PrecisionError("not enough precision to determine the number of roots")
         if i == 0:
@@ -1462,8 +1461,8 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         vertices = P.newton_polygon().vertices(copy=False)
         deg = 0
         for i in range(1, len(vertices)):
-            (deg_left, val_left) = vertices[i-1]
-            (deg_right, val_right) = vertices[i]
+            deg_left, val_left = vertices[i-1]
+            deg_right, val_right = vertices[i]
             slope = (val_right - val_left) / (deg_left - deg_right)
             if slope not in ZZ or slope < minval:
                 continue

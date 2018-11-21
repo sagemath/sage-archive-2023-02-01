@@ -7532,7 +7532,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol.roots(Qp(3,5))
             [(1 + O(3^5), 2)]
 
-        We loose precision if we first change coefficients to `\QQ_p`::
+        We lose precision if we first change coefficients to `\QQ_p`::
 
             sage: pol.change_ring(Qp(3,5)).roots()
             [(1 + O(3^3), 2)]

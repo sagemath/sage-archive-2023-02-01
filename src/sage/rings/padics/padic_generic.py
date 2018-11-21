@@ -26,7 +26,6 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
 from copy import copy
 
@@ -1563,8 +1562,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             except (NotImplementedError, PrecisionError):
                 return self._roots_univariate_polynomial(P, ring, multiplicities, "sage", secure)                
         elif algorithm == "pari":
-            p = ring.prime()
-            n = ring.precision_cap()
             P = P.change_ring(ring)
             try:
                 # note that P.factor() calls pari
@@ -1812,7 +1809,6 @@ class ResidueLiftingMap(Morphism):
             1 + 2 + 2^2 + O(2^5)
         """
         R = self.codomain()
-        e = R.absolute_e()
         kwds = dict(kwds) # we're changing it
         if args:
             args = (min(args[0], self._n),) + args[1:]

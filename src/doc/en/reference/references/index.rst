@@ -2994,6 +2994,10 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
+.. [SHET2018] \O. Seker, P. Heggernes, T. Ekim, and Z. Caner Taskin.
+              *Generation of random chordal graphs using subtrees of a tree*,
+              :arxiv:`1810.13326v1`.
+
 .. [Shi2002] \M. Shimozono
              *Affine type A crystal structure on tensor products of rectangles,
              Demazure characters, and nilpotent varieties*,

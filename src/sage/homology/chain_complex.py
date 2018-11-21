@@ -203,8 +203,9 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
     differential is zero::
 
         sage: IZ = ChainComplex({0: identity_matrix(ZZ, 1)})
-        sage: IZ.differential()  # the differentials in the chain complex
-        {-1: [], 0: [1], 1: []}
+        sage: diff = IZ.differential()  # the differentials in the chain complex
+        sage: diff[-1], diff[0], diff[1]
+        ([], [1], [])
         sage: IZ.differential(1).parent()
         Full MatrixSpace of 0 by 1 dense matrices over Integer Ring
         sage: mat = ChainComplex({0: matrix(ZZ, 3, 4)}).differential(1)
@@ -938,17 +939,19 @@ class ChainComplex_class(Parent):
         EXAMPLES::
 
             sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
-            sage: D.differential()
-            {-1: [], 0: [1 0]
-             [0 2], 1: []}
             sage: D.differential(0)
             [1 0]
             [0 2]
+            sage: D.differential(-1)
+            []
             sage: C = ChainComplex({0: identity_matrix(ZZ, 40)})
-            sage: C.differential()
-            {-1: 40 x 0 dense matrix over Integer Ring,
-             0: 40 x 40 dense matrix over Integer Ring,
-             1: []}
+            sage: diff = C.differential()
+            sage: diff[-1]
+            40 x 0 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+            sage: diff[0]
+            40 x 40 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+            sage: diff[1]
+            []
         """
         if dim is None:
             return copy(self._diff)

@@ -101,9 +101,9 @@ So the solutions over `\GF{2}` are `\{e=0, d=1, c=1, b=1, a=0\}` and
 `\{e=0, d=0, c=1, b=1, a=1\}`.
 
 We can express the restriction to `\GF{2}` by considering the quotient
-ring. If `I` is an ideal in `\mathbb{F}[x_1, ..., x_n]` then the
-ideals in the quotient ring `\mathbb{F}[x_1, ..., x_n]/I` are in
-one-to-one correspondence with the ideals of `\mathbb{F}[x_0, ...,
+ring. If `I` is an ideal in `\Bold{F}[x_1, ..., x_n]` then the
+ideals in the quotient ring `\Bold{F}[x_1, ..., x_n]/I` are in
+one-to-one correspondence with the ideals of `\Bold{F}[x_0, ...,
 x_n]` containing `I` (that is, the ideals `J` satisfying `I \subset J
 \subset P`).
 
@@ -6336,7 +6336,7 @@ cdef class ReductionStrategy:
 
         INPUT:
 
-        - ``p`` - a polynomial
+        - ``p`` -- a polynomial
 
         EXAMPLES::
 
@@ -6350,7 +6350,7 @@ cdef class ReductionStrategy:
             sage: red.head_normal_form(x + y*z)
             y + z + 1
 
-            sage; red.nf(x + y*z)
+            sage: red.nf(x + y*z)
             y + z + 1
         """
         return new_BP_from_PBPoly(self._parent, deref(self._strat).headNormalForm(p._pbpoly))
@@ -7404,7 +7404,7 @@ def ll_red_nf_redsb(p, BooleSet reductors):
         sage: from brial import ll_red_nf_redsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_redsb(p, reductors)
         b*c + b*d + c + d + 1
@@ -7446,7 +7446,7 @@ def ll_red_nf_noredsb(BooleanPolynomial p, BooleSet reductors):
         sage: from brial import ll_red_nf_noredsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_noredsb(p, reductors)
         b*c + b*d + c + d + 1
@@ -7479,7 +7479,7 @@ def ll_red_nf_noredsb_single_recursive_call(BooleanPolynomial p, BooleSet reduct
         sage: from brial import ll_red_nf_noredsb_single_recursive_call
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_noredsb_single_recursive_call(p, reductors)
         b*c + b*d + c + d + 1

@@ -37,8 +37,9 @@ supply :class:`findstat<FindStat>` with a list of `(object, value)`
 pairs.  For example::
 
     sage: PM = PerfectMatchings
-    sage: r = findstat([(m, m.number_of_nestings()) for n in range(6) for m in PM(2*n)]); r    # optional -- internet, random
-    0: (St000041: The number of nestings of a perfect matching. , [], 1000)
+    sage: r = findstat([(m, m.number_of_nestings()) for n in range(6) for m in PM(2*n)]); r    # optional -- internet
+    0: (St000041: The number of nestings of a perfect matching., [], 1000)
+    1: (St000042: The number of crossings of a perfect matching., [Mp00116: Kasraoui-Zeng], 1000)
     ...
 
 The result of this query is a list (presented as a
@@ -66,11 +67,11 @@ FindStat.  This means, that the set of `(object, value)` pairs of the
 statistic `s` as stored in the FindStat database is a superset of the
 data sent.  We can now retrieve the description from the database::
 
-    sage: print(s.description())                                                # optional -- internet, random
+    sage: print(s.description())                                                # optional -- internet
     The number of nestings of a perfect matching.
     <BLANKLINE>
     <BLANKLINE>
-    This is the number of pairs of edges $((a,b), (c,d))$ such that $a\le c\le d\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.
+    This is the number of pairs of edges $((a,b), (c,d))$ such that $a\le c\le d\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$...
 
 and check the references::
 
@@ -86,9 +87,9 @@ Another interesting possibility is to look for equidistributed
 statistics.  Instead of submitting a list of `(object, value)` pairs,
 we pass a list of pairs `(objects, values)`::
 
-    sage: r = findstat([(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]); r # optional -- internet, random
-    0: (St000041: The number of nestings of a perfect matching. , [], 124)
-    1: (St000042: The number of crossings of a perfect matching. , [], 124)
+    sage: r = findstat([(PM(2*n), [m.number_of_nestings() for m in PM(2*n)]) for n in range(5)]); r # optional -- internet
+    0: (St000041: The number of nestings of a perfect matching., [], 124)
+    1: (St000042: The number of crossings of a perfect matching., [], 124)
     ...
 
 This results tells us that the database contains another entry that
@@ -103,9 +104,8 @@ submitted statistic is the composition of a sequence of combinatorial
 maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
-    sage: r = findstat(Permutations, lambda pi: pi.saliances()[0]); r           # optional -- internet, random
-    ...
-    ... (St000051: The size of the left subtree. , [Mp00069: complement, Mp00061: to increasing tree], 24)
+    sage: r = findstat(Permutations, lambda pi: pi.saliances()[0]); r           # optional -- internet
+    0: ... (St000051: The size of the left subtree of a binary tree., [Mp00069: complement, Mp00061: to increasing tree], 1000)
     ...
     sage: (s, list_f, quality) = next((a,b,c) for a,b,c in r if a.id() == 51)   # optional -- internet
 
@@ -120,10 +120,10 @@ following permutation::
 
 We first have to find out, what the maps and the statistic actually do::
 
-    sage: print(s.description())                                                # optional -- internet, random
-    The size of the left subtree.
+    sage: print(s.description())                                                # optional -- internet
+    The size of the left subtree of a binary tree.
 
-    sage: print(s.code())                                                       # optional -- internet, random
+    sage: print(s.code())                                                       # optional -- internet
     def statistic(T):
         return T[0].node_number()
 
@@ -194,7 +194,6 @@ from collections import OrderedDict
 import re
 import webbrowser
 import tempfile
-import time
 import inspect
 import json
 import cgi
@@ -313,7 +312,7 @@ FINDSTAT_SEPARATOR_REFERENCES = "\n"
 # the format string for using POST
 # WARNING: we use cgi.escape to avoid injection problems, thus we expect double quotes as field delimiters.
 FINDSTAT_POST_HEADER = """
-<script src="http://www.google.com/jsapi"></script>
+<script src="https://www.google.com/jsapi"></script>
 <script>
     google.load("jquery", "1.3.2");
 </script>
@@ -1015,6 +1014,7 @@ class FindStatStatistic(SageObject):
 
             sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values() # optional -- internet
             0: (St000012: The area of a Dyck path., [], 14)
+            ...
         """
         self._query = "data"
 
@@ -1055,7 +1055,7 @@ class FindStatStatistic(SageObject):
 
         try:
             result = json.load(response)
-        except StandardError as e:
+        except Exception as e:
             raise IOError("FindStat did not answer with a json response: %s" %e)
 
         self._result = FancyTuple((findstat(match[FINDSTAT_STATISTIC_IDENTIFIER]),
@@ -1830,7 +1830,7 @@ class FindStatStatistic(SageObject):
         assert set(args.keys()) == FINDSTAT_EDIT_FIELDS, "It appears that the list of required post variables for editing a statistic has changed.  Please update FindStatStatistic.submit()."
 
         # write the file
-        f = tempfile.NamedTemporaryFile(delete=False)
+        f = tempfile.NamedTemporaryFile(suffix='.html', delete=False)
         verbose("Created temporary file %s" % f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
         if self.id() == 0:
@@ -2195,8 +2195,8 @@ class FindStatCollection(Element):
 
     def to_string(self):
         r"""
-        Return a function that returns the FindStat normal
-        representation given an object.
+        Return a function that returns a FindStat representation given an
+        object.
 
         OUTPUT:
 
@@ -2209,19 +2209,20 @@ class FindStatCollection(Element):
             sage: p = Poset((range(3), [[0, 1], [1, 2]]))                       # optional -- internet
             sage: c = FindStatCollection("Posets")                              # optional -- internet
             sage: c.to_string()(p)                                              # optional -- internet
-            '([(0, 2), (2, 1)], 3)'
+            '([(0, 1), (1, 2)], 3)'
+
         """
         return self._to_str
 
     def from_string(self):
         r"""
-        Return a function that returns the object given the FindStat
-        normal representation.
+        Return a function that returns the object given a FindStat
+        representation.
 
         OUTPUT:
 
         The function that produces the sage object given its FindStat
-        normal representation as a string.
+        representation as a string.
 
         EXAMPLES::
 
@@ -2385,7 +2386,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
              None,
              lambda x: x.num_verts(),
              lambda x, l: x.num_verts() in l,
-             lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
+             lambda X: str((sorted(X.edges(False)), X.num_verts())),
              lambda x: (lambda E, V: Graph([list(range(V)), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
         6:  [None, None, None, Composition,           Compositions,            None,
              lambda x: x.size(),
@@ -2420,7 +2421,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
         14: [None, None, None, FinitePoset,           posets,                  None,
              lambda x: x.cardinality(),
              lambda x, l: x.cardinality() in l,
-             lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
+             lambda X: str((sorted(X._hasse_diagram.cover_relations()), len(X._hasse_diagram.vertices()))),
              lambda x: (lambda R, E: Poset((list(range(E)), R)))(*literal_eval(x))],
         19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x),
              None,

@@ -777,7 +777,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         from itertools import islice
         from sage.misc.misc import verbose
-        verbose("Augmenting %s towards %s"%(self, G), level=10)
+        verbose("Augmenting %s towards %s" % (self, G), level=10)
 
         if not G.is_monic():
             raise ValueError("G must be monic")
@@ -785,12 +785,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if coefficients is None:
             coefficients = self.coefficients(G)
             if principal_part_bound:
-                coefficients = islice(coefficients, 0, principal_part_bound + 1, 1)
+                coefficients = islice(coefficients, 0,
+                                      int(principal_part_bound) + 1, 1)
             coefficients = list(coefficients)
         if valuations is None:
             valuations = self.valuations(G, coefficients=coefficients)
             if principal_part_bound:
-                valuations = islice(valuations, 0, principal_part_bound + 1, 1)
+                valuations = islice(valuations, 0,
+                                    int(principal_part_bound) + 1, 1)
             valuations = list(valuations)
 
         if check and min(valuations) < 0:
@@ -836,7 +838,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     if self.is_equivalent(self.phi(), phi):
                         continue
 
-                verbose("Determining the augmentation of %s for %s"%(self, phi), level=11)
+                verbose("Determining the augmentation of %s for %s" % (self, phi), level=11)
 
                 base = self
                 if phi.degree() == base.phi().degree():
@@ -861,12 +863,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
                 w_coefficients = w.coefficients(G)
                 if principal_part_bound:
-                    w_coefficients = islice(w_coefficients, 0, principal_part_bound + 1, 1)
+                    w_coefficients = islice(w_coefficients, 0,
+                                            int(principal_part_bound) + 1, 1)
                 w_coefficients = list(w_coefficients)
 
                 w_valuations = w.valuations(G, coefficients=w_coefficients)
                 if principal_part_bound:
-                    w_valuations = islice(w_valuations, 0, principal_part_bound + 1, 1)
+                    w_valuations = islice(w_valuations, 0,
+                                          int(principal_part_bound) + 1, 1)
                 w_valuations = list(w_valuations)
 
                 from sage.geometry.newton_polygon import NewtonPolygon
@@ -887,6 +891,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                                       for j,val in enumerate(w_valuations)]
                     if phi.degree() == self.phi().degree():
                         assert new_mu > self(phi), "the valuation of the key polynomial must increase when the degree stagnates"
+                    # phi has already been simplified internally by the
+                    # equivalence_decomposition method but we can now possibly
+                    # simplify it further as we know exactly up to which
+                    # precision it needs to be defined.
+                    phi = base.simplify(phi, new_mu, force=True)
                     w = base.augmentation(phi, new_mu, check=False)
                     verbose("Augmented %s to %s"%(self, w), level=13)
                     assert slope is -infinity or 0 in w.newton_polygon(G).slopes(repetition=False)
@@ -1251,7 +1260,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: V = v1.mac_lane_step(G)
             sage: v2 = V[0]
             sage: F = v2.equivalence_decomposition(G); F
-            (-19683) * (x^4 + 2*x^2 + 2*alpha + 3)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha + 3)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + 3*alpha + 3)^3
+            (x^4 + 2*alpha + 1)^3 * (x^4 + 1/2*alpha^4 + alpha + 1)^3 * (x^4 + 1/2*alpha^4 + 3*alpha + 1)^3
             sage: v2.is_equivalent(F.prod(), G)
             True
 
@@ -1300,7 +1309,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             for g,e in F:
                 v_g = self(g)
                 unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g*e, effective_degree=0)
-            unit = self.simplify(unit, effective_degree=0)
+            unit = self.simplify(unit, effective_degree=0, force=True)
 
         if phi_divides:
             for i,(g,e) in enumerate(F):

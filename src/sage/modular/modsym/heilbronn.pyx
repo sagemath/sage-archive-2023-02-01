@@ -185,12 +185,10 @@ cdef class Heilbronn:
         EXAMPLES::
 
             sage: M = ModularSymbols(33,2,1)       # indirect test
-            sage: sage.modular.modsym.heilbronn.hecke_images_gamma0_weight2(1,0,33,[2,3],M.manin_gens_to_basis())
-            [ 3  0  1  0 -1  1]
-            [ 3  2  2  0 -2  2]
+            sage: a, b = sage.modular.modsym.heilbronn.hecke_images_gamma0_weight2(1,0,33,[2,3],M.manin_gens_to_basis())
             sage: z = M((1,0))
-            sage: [M.T(n)(z).element() for n in [2,2]]
-            [(3, 0, 1, 0, -1, 1), (3, 0, 1, 0, -1, 1)]
+            sage: [M.T(n)(z).element() for n in [2,2]] == [a, a]
+            True
         """
         cdef Py_ssize_t i
         sig_on()
@@ -516,16 +514,10 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
 
         sage: M = ModularSymbols(23,2,1)
         sage: A = sage.modular.modsym.heilbronn.hecke_images_gamma0_weight2(1,0,23,[1..6],M.manin_gens_to_basis())
-        sage: A
-        [ 1  0  0]
-        [ 3  0 -1]
-        [ 4 -2 -1]
-        [ 7 -2 -2]
-        [ 6  0 -2]
-        [12 -2 -4]
+        sage: rowsA = A.rows()
         sage: z = M((1,0))
-        sage: [M.T(n)(z).element() for n in [1..6]]
-        [(1, 0, 0), (3, 0, -1), (4, -2, -1), (7, -2, -2), (6, 0, -2), (12, -2, -4)]
+        sage: all(M.T(n)(z).element() == rowsA[n-1] for n in [1..6])
+        True
 
     TESTS::
 
@@ -828,7 +820,7 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
     INPUT:
 
     -  ``u, v, N`` - integers so that gcd(u,v,N) = 1
-    -  ``i`` - integer with 0 = i = k-2
+    -  ``i`` - integer with 0 <= i <= k-2
     -  ``k`` - weight
     -  ``indices`` - a list of positive integers
     -  ``R`` - matrix over QQ that writes each elements of
@@ -842,16 +834,13 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
 
         sage: M = ModularSymbols(15,6,sign=-1)
         sage: R = M.manin_gens_to_basis()
-        sage: sage.modular.modsym.heilbronn.hecke_images_gamma0_weight_k(4,1,3,15,6,[1,11,12], R)
-        [       0        0      1/8     -1/8        0        0        0        0]
-        [-4435/22 -1483/22     -112 -4459/22  2151/22 -5140/11  4955/22  2340/11]
-        [ 1253/22  1981/22       -2  3177/22 -1867/22  6560/11 -7549/22  -612/11]
-        sage: x = M((3,4,1)) ; x.element()
-        (0, 0, 1/8, -1/8, 0, 0, 0, 0)
-        sage: M.T(11)(x).element()
-        (-4435/22, -1483/22, -112, -4459/22, 2151/22, -5140/11, 4955/22, 2340/11)
-        sage: M.T(12)(x).element()
-        (1253/22, 1981/22, -2, 3177/22, -1867/22, 6560/11, -7549/22, -612/11)
+        sage: a,b,c = sage.modular.modsym.heilbronn.hecke_images_gamma0_weight_k(4,1,3,15,6,[1,11,12], R)
+        sage: x = M((3,4,1)) ; x.element() == a
+        True
+        sage: M.T(11)(x).element() == b
+        True
+        sage: M.T(12)(x).element() == c
+        True
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
 

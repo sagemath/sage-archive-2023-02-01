@@ -331,9 +331,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
             sage: PBW.algebra_generators()
-            Finite family {-alpha[1]: PBW[-alpha[1]],
-                           alpha[1]: PBW[alpha[1]],
-                           alphacheck[1]: PBW[alphacheck[1]]}
+            Finite family {alpha[1]: PBW[alpha[1]], alphacheck[1]: PBW[alphacheck[1]], -alpha[1]: PBW[-alpha[1]]}
         """
         G = self._indices.gens()
         return Family(self._indices._indices, lambda x: self.monomial(G[x]),

@@ -1029,7 +1029,7 @@ class CartanType_abstract(object):
             <class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass_with_superclass'>
             sage: C.__class__.__bases__
             (<class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass'>,
-             <class __main__.MyCartanType at ...>)
+             <class ...__main__.MyCartanType...>)
             sage: C.my_method()
             'I am here!'
 

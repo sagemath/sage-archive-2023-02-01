@@ -426,7 +426,7 @@ class TensorField(ModuleElement):
         self._extensions_graph = {self._domain: self}
                     # dict. of known extensions of self on bigger domains,
                     # including self, with domains as keys. Its elements can be
-                    # seen as incomming edges on a graph.
+                    # seen as incoming edges on a graph.
         self._restrictions_graph = {self._domain: self}
                     # dict. of known restrictions of self on smaller domains,
                     # including self, with domains as keys. Its elements can be

@@ -2,7 +2,7 @@
 `p`-Adic ``ZZ_pX`` CR Element
 
 This file implements elements of Eisenstein and unramified extensions
-of `\mathbb{Z}_p` and `\mathbb{Q}_p` with capped relative precision.
+of `\ZZ_p` and `\QQ_p` with capped relative precision.
 
 For the parent class see padic_extension_leaves.pyx.
 
@@ -34,7 +34,7 @@ element contains the following data:
   ntl modulus determined by the absolute value of ``relprec``.  If
   ``relprec`` is 0, ``unit`` **is not initialized**, or destructed if
   normalized and found to be zero.  Otherwise, let `r` be relprec and
-  `e` be the ramification index over `\mathbb{Q}_p` or `\mathbb{Z}_p`.
+  `e` be the ramification index over `\QQ_p` or `\ZZ_p`.
   Then the modulus of unit is given by `p^{ceil(r/e)}`.  Note that all
   kinds of problems arise if you try to mix moduli.
   ``ZZ_pX_conv_modulus`` gives a semi-safe way to convert between
@@ -228,7 +228,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec = infinity, relprec = infinity, empty = False):
         """
         Creates an element of a capped relative precision, unramified
-        or Eisenstein extension of `\mathbb{Z}_p` or `\mathbb{Q}_p`.
+        or Eisenstein extension of `\ZZ_p` or `\QQ_p`.
 
         INPUT:
 
@@ -352,7 +352,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 L = []
                 x = x.lift().lift()
                 for i from 0 <= i <= x.poldegree():
-                    L.append(Integer(x.polcoeff(i)))
+                    L.append(Integer(x.polcoef(i)))
                 x = L
             else:
                 raise TypeError("unsupported coercion from pari: only p-adics, integers, rationals, polynomials and pol_mods allowed")
@@ -1841,7 +1841,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         In computing `(a + O(\pi^k))^{b + O(p^m)}`, one needs that the
         reduction of `a` mod `\pi` is in the prime field
-        `\mathbb{F}_p` (so that the `p^m` power of the Teichmuller
+        `\GF{p}` (so that the `p^m` power of the Teichmuller
         part is constant as `m` increases).  Given this restriction,
         we can factor out the Teichmuller part and use the above lemma
         to find the first spot where

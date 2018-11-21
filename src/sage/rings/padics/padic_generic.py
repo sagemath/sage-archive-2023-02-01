@@ -38,6 +38,7 @@ from sage.rings.infinity import infinity
 from .local_generic import LocalGeneric
 from sage.rings.ring import PrincipalIdealDomain
 from sage.rings.integer import Integer
+from sage.rings.infinity import Infinity
 from sage.rings.padics.padic_printing import pAdicPrinter
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
@@ -69,6 +70,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         category = category.Metric().Complete()
         LocalGeneric.__init__(self, base, prec, names, element_class, category)
         self._printer = pAdicPrinter(self, print_mode)
+        self._qth_roots_of_unity = [ (1, Infinity) ]
 
     def some_elements(self):
         r"""
@@ -1178,6 +1180,224 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         from sage.rings.padics.padic_valuation import pAdicValuation
         return pAdicValuation(self)
+
+    def _primitive_qth_root_of_unity(self, exponent):
+        """
+        Compute the ``p^exponent``-th roots of unity in this ring.
+
+        INPUT:
+
+        - ``exponent`` -- an integer or ``Infinity``
+
+        OUTPUT:
+
+        A triple ``(zeta,n,nextzeta)`` where
+
+        - ``zeta`` is a generator of the group of ``p^exponent``-th
+          roots of unity in this ring, and
+
+        - ``p^n`` is the order of ``zeta``.
+
+        - ``nextzeta`` is the result of ``zeta._inverse_pth_root()``
+          if ``n`` is positive and ``None`` otherwise
+
+        TESTS::
+
+            sage: K.<a> = Qq(2^3, 5)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^2 + 2*x + 2)
+            sage: zeta = L.primitive_root_of_unity(); zeta # indirect doctest
+            a + a*pi + pi^2 + a*pi^4 + a*pi^5 + a^2*pi^8 + a^2*pi^9 + O(pi^10)
+            sage: zeta.parent() is L
+            True
+        """
+        n = len(self._qth_roots_of_unity)
+
+        # We check if the result is cached
+        if exponent < n-1:
+            return self._qth_roots_of_unity[exponent][0], exponent, self._qth_roots_of_unity[exponent+1]
+        zeta, accuracy = self._qth_roots_of_unity[-1]
+        if accuracy is not Infinity:
+            return self._qth_roots_of_unity[-2][0], n-2, (zeta, accuracy)
+
+        # It is not, so we compute it
+        while accuracy is Infinity and n <= exponent + 1:
+            self._qth_roots_of_unity[-1] = (self(zeta), Infinity)  # to avoid multiple conversions
+            if n == 1:  # case of pth root of unity
+                p = self.prime()
+                e = self.absolute_e()
+                k = self.residue_field()
+                if e % (p-1) != 0:
+                    # No pth root of unity in this ring
+                    zeta = accuracy = None
+                else:
+                    rho = -k(self(p).expansion(e))
+                    try:
+                        r = rho.nth_root(p-1)
+                    except ValueError:
+                        # No pth root of unity in this ring
+                        zeta = accuracy = None
+                    else:
+                        # We compute a primitive pth root of unity
+                        m = e // (p-1)
+                        prec = self.precision_cap() + e * (1 + m.valuation(p))
+                        ring = self.change(prec=prec)
+                        zeta = 1 + (ring(r).lift_to_precision() << m)
+                        curprec = m*p + 1
+                        while curprec < prec:
+                            curprec -= e
+                            curprec = min(2*curprec + e, p*curprec)
+                            zeta = zeta.lift_to_precision(min(prec,curprec))
+                            zeta += zeta * (1 - zeta**p) // p
+            else:
+                zeta, accuracy = zeta._inverse_pth_root()
+                assert accuracy is not None
+            self._qth_roots_of_unity.append((zeta, accuracy))
+            n += 1
+        return self._qth_roots_of_unity[-2][0], n-2, self._qth_roots_of_unity[-1]
+
+    def primitive_root_of_unity(self, n=None, order=False):
+        """
+        Return a generator of the group of ``n``-th roots of unity
+        in this ring.
+
+        INPUT:
+
+        - ``n`` -- an integer or ``None`` (default: ``None``):
+
+        - ``order`` -- a boolean (default: ``False``)
+
+        OUTPUT:
+
+        A generator of the group of ``n``-th roots of unity.
+        If ``n`` is ``None``, a generator of the full group of roots
+        of unity is returned.
+
+        If ``order`` is ``True``, the order of the above group is
+        returned as well.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, 10)
+            sage: zeta = R.primitive_root_of_unity(); zeta
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            sage: zeta == R.teichmuller(2)
+            True
+
+        Now we consider an example with non trivial ``p``-th roots of unity::
+
+            sage: W = Zp(3, 2)
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension((x+1)^6 + (x+1)^3 + 1)
+
+            sage: zeta, order = R.primitive_root_of_unity(order=True)
+            sage: zeta
+            2 + 2*pi + 2*pi^3 + 2*pi^7 + 2*pi^8 + 2*pi^9 + pi^11 + O(pi^12)
+            sage: order
+            18
+            sage: zeta.multiplicative_order()
+            18
+
+            sage: zeta, order = R.primitive_root_of_unity(24, order=True)
+            sage: zeta
+            2 + pi^3 + 2*pi^7 + 2*pi^8 + 2*pi^10 + 2*pi^11 + O(pi^12)
+            sage: order   # equal to gcd(18,24)
+            6
+            sage: zeta.multiplicative_order()
+            6
+
+        """
+        p = self.prime()
+        k = self.residue_field()
+        prec = self.precision_cap()
+        c = k.cardinality()
+
+        # We compute a primitive qth root of unity
+        # where q is the highest power of p dividing exponent
+        if n is None:
+            qthzeta, s, _ = self._primitive_qth_root_of_unity(Infinity)
+            m = c - 1
+        else:
+            qthzeta, s, _ = self._primitive_qth_root_of_unity(n.valuation(p))
+            m = n.gcd(c - 1)
+        qthzeta = self(qthzeta)
+
+        # We now compute a primitive mth root of qthzeta
+        if m == 1:
+            zeta = qthzeta
+        else:
+            zeta = self(k.multiplicative_generator() ** ((c-1) // m))
+            invm = self(1/m)
+            curprec = 1
+            while curprec < prec:
+                curprec *= 2
+                zeta = zeta.lift_to_precision(min(prec,curprec))
+                zeta += invm * zeta * (1 - qthzeta*zeta**m)
+
+        if order:
+            return zeta, m * p**s
+        else:
+            return zeta
+
+    def roots_of_unity(self, n=None):
+        """
+        Return all the ``n``-th roots of unity in this ring.
+
+        INPUT:
+
+        - ``n`` -- an integer or ``None`` (default: ``None``); if
+          ``None``, the full group of roots of unity is returned.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, 10)
+            sage: roots = R.roots_of_unity(); roots
+            [1 + O(5^10),
+             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10),
+             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10),
+             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + 2*5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10)]
+
+            sage: R.roots_of_unity(10)
+            [1 + O(5^10),
+             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)]
+
+        In this case, the roots of unity are the Teichmuller representatives::
+
+            sage: R.teichmuller_system()
+            [1 + O(5^10),
+             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10),
+             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + 2*5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10),
+             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)]
+
+        In general, there might be more roots of unity (it happens when the ring has non 
+        trivial ``p``-th roots of unity)::
+
+            sage: W.<a> = Zq(3^2, 2)
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension((x+1)^2 + (x+1) + 1)
+
+            sage: roots = R.roots_of_unity(); roots
+            [1 + O(pi^4),
+             a + 2*a*pi + 2*a*pi^2 + a*pi^3 + O(pi^4),
+             ... 
+             1 + pi + O(pi^4),
+             a + a*pi^2 + 2*a*pi^3 + O(pi^4),
+             ...
+             1 + 2*pi + pi^2 + O(pi^4),
+             a + a*pi + a*pi^2 + O(pi^4),
+             ...]
+            sage: len(roots)
+            24
+
+        We check that the logarithm of each root of unity vanishes::
+
+            sage: for root in roots:
+            ....:     if root.log() != 0: raise ValueError
+
+        """
+        zeta, order = self.primitive_root_of_unity(n, order=True)
+        return [ zeta**i for i in range(order) ]
+
 
 class ResidueReductionMap(Morphism):
     """

@@ -682,7 +682,6 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         TESTS::
 
             sage: B.dual_variable(7)
-            ...
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
@@ -736,7 +735,6 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         TESTS::
 
             sage: B.slack(7)
-            ...
             Traceback (most recent call last):
             ...
             IndexError: list index out of range

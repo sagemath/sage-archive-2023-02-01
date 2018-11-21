@@ -412,7 +412,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         A polynomial `f` in the domain of this valuation which is a key
         polynomial for this valuation and which, for a suitable equivalence
-        unit `R`, satifies that the reduction of `Rf` is ``F``
+        unit `R`, satisfies that the reduction of `Rf` is ``F``
 
         EXAMPLES::
 

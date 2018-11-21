@@ -1300,7 +1300,7 @@ def _mutation_type_from_data( n, dig6, compute_if_necessary=True ):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _digraph_to_dig6, _dg_canonical_form
+        sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _digraph_to_dig6
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _mutation_type_from_data
         sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         sage: dg = ClusterQuiver(['F',4]).canonical_label().digraph()

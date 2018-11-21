@@ -1756,7 +1756,6 @@ def block_matrix(*args, **kwds):
         [ 3  9| 3  9]
         [ 6 10| 6 10]
 
-
     One can use constant entries::
 
         sage: block_matrix([ [1, A], [0, 1] ])
@@ -1872,9 +1871,16 @@ def block_matrix(*args, **kwds):
         Traceback (most recent call last):
         ...
         ValueError: must specify nrows or ncols for non-square block matrix.
+
+    TESTS::
+
+        sage: A = matrix(ZZ, 2, 2, [3,5,8,13])
+        sage: block_matrix(A)
+        [ 3  5]
+        [ 8 13]
     """
     args = list(args)
-    sparse = kwds.get('sparse',None)
+    sparse = kwds.get('sparse', None)
 
     if len(args) == 0:
         if sparse is not None:
@@ -2487,7 +2493,7 @@ def random_rref_matrix(parent, num_pivots):
         while pivot_row < num_pivots:
             return_matrix[pivot_row, pivots[pivot_row]] = one
             pivot_row += 1
-        if ring == QQ or ring == ZZ:
+        if ring is QQ or ring is ZZ:
             # Keep track of the non-pivot columns by using the pivot_index, start at the first column to
             # the right of the initial pivot column, go until the first column to the left of the next
             # pivot column.
@@ -2661,7 +2667,6 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
 
     Billy Wonderly (2010-07)
     """
-
     from sage.misc.prandom import randint
 
     ring = parent.base_ring()
@@ -2674,7 +2679,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
 
     # Entries of matrices over the ZZ or QQ can get large, entry size is regulated by finding the largest
     # entry of the resultant matrix after addition of scalar multiple of a row.
-    if ring == QQ or ring == ZZ:
+    if ring is QQ or ring is ZZ:
         # If upper_bound is not set, don't control entry size.
         if upper_bound is None:
         # If size control is not desired, the routine will run slightly faster, particularly with large matrices.
@@ -3477,9 +3482,7 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
     norm = sqrt(a * a + b * b)
     aa = a / norm
     bb = b / norm
-    entries = {}
-    for k in range(dim):
-        entries[(k, k)] = 1
+    entries = {(k, k): 1 for k in range(dim)}
     entries.update({(j, j): aa, (j, i): bb, (i, j): -bb, (i, i): aa})
     return matrix(entries, nrows=dim, ring=ring)
 
@@ -3513,7 +3516,8 @@ def hilbert(dim, ring=QQ):
         [1/4 1/5 1/6 1/7 1/8]
         [1/5 1/6 1/7 1/8 1/9]
     """
-    entries = lambda i, j: 1 / (i + j + 1)
+    def entries(i, j):
+        return 1 / (i + j + 1)
     return matrix(entries, nrows=dim, ncols=dim, ring=ring)
 
 
@@ -3546,7 +3550,8 @@ def vandermonde(v, ring=None):
         [   1   x1 x1^2]
         [   1   x2 x2^2]
     """
-    entries = lambda i, j: v[i]**j
+    def entries(i, j):
+        return v[i]**j
     return matrix(entries, nrows=len(v), ncols=len(v), ring=ring)
 
 
@@ -3591,7 +3596,8 @@ def toeplitz(c, r, ring=None):
         [ 0  1 -2  1]
         [ 0  0  1 -2]
     """
-    entries = lambda i,j: c[i-j] if i>=j else r[j-i-1]
+    def entries(i, j):
+        return c[i - j] if i >= j else r[j - i - 1]
     return matrix(entries, nrows=len(c), ncols=len(r)+1, ring=ring)
 
 
@@ -3659,5 +3665,6 @@ def hankel(c, r=None, ring=None):
     m = len(c)
     r = [0] * (m - 1) if r is None else list(r)
     n = len(r)
-    entries = lambda i: c[i] if i < m else r[i - m]
+    def entries(i):
+        return c[i] if i < m else r[i - m]
     return matrix(lambda i, j: entries(i + j), nrows=m, ncols=n + 1, ring=ring)

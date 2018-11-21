@@ -895,6 +895,7 @@ class DiffMap(ContinuousMap):
             Phi_*(g) = dth*dth + sin(th)^2 dph*dph
 
         Parallel computation::
+
            sage: Parallelism().set('tensor', nproc=2)
            sage: pg = Phi.pullback(g) ; pg
            Field of symmetric bilinear forms Phi_*(g) on the Open subset U of

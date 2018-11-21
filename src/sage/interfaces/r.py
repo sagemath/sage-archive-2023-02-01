@@ -274,9 +274,12 @@ import re
 from sage.structure.element import parent
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
-from rpy2 import robjects
-from rpy2.robjects import packages
-from rpy2.robjects.conversion import localconverter
+
+# see the _lazy_init for some reasoning behind the lazy imports
+from sage.misc.lazy_import import lazy_import
+lazy_import("rpy2", "robjects")
+lazy_import("rpy2.robjects", "packages", "rpy2_packages")
+lazy_import("rpy2.robjects.conversion", "localconverter")
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 
@@ -468,10 +471,64 @@ class R(ExtraTabCompletion, Interface):
                 self,
                 name = 'r', # The capitalized version of this is used for printing.
         )
-
-        self._r_to_sage_converter = _setup_r_to_sage_converter()
         self._seed = seed
-        self._start()
+        self._initialized = False # done lazily
+
+
+    def _lazy_init(self):
+        """
+        Initialize the R interpreter. This will set the initial options and
+        implicitly (through lazy_import) import rpy2 if it is not alreay
+        imported.
+
+        Importing rpy2 takes something in the order of hundreds of milliseconds.
+        It also takes tens of megabytes of RAM. Since an instance of R is
+        assigned to the global variable `r` at sage startup, it is important to
+        be as lazy as possible here.
+        For some discussion, see https://bitbucket.org/rpy2/rpy2/issues/490.
+
+        Also, importing rpy2 too early (e.g. before numpy) can cause issues with
+        the blas implementation that is used.
+        For details, see https://bitbucket.org/rpy2/rpy2/issues/491.
+
+        TESTS::
+
+        Initialization happens on eval:
+
+             sage: my_r = R()
+             sage: my_r._initialized
+             False
+             sage: my_r(42) # indirect doctest
+             [1] 42
+             sage: my_r._initialized
+             True
+
+        And on package import:
+
+             sage: my_r = R()
+             sage: my_r._initialized
+             False
+             sage: my_r.library('grid')
+             sage: my_r._initialized
+             True
+
+        And when fetching help pages:
+
+             sage: my_r = R()
+             sage: my_r._initialized
+             False
+             sage: _ = my_r.help('c')
+             sage: my_r._initialized
+             True
+        """
+        if not self._initialized:
+            # Set this to True *before* the call to start, since that will call eval() which will in turn call this function.
+            # Setting this to True early prevents infinite recursion.
+            self._initialized = True
+            self._r_to_sage_converter = _setup_r_to_sage_converter()
+            self._start()
+
+
 
     def set_seed(self, seed=None):
         """
@@ -551,7 +608,7 @@ class R(ExtraTabCompletion, Interface):
         """
         #Check to see if R has PNG support
         s = self.eval('capabilities("png")')
-        t = r.eval('capabilities("aqua")')
+        t = self.eval('capabilities("aqua")')
         if "TRUE" not in s+t:
             raise RuntimeError("R was not compiled with PNG support")
 
@@ -770,8 +827,9 @@ class R(ExtraTabCompletion, Interface):
             ...
             ImportError: ...
         """
-        if robjects.packages.isinstalled(library_name):
-            robjects.packages.importr(library_name)
+        self._lazy_init()
+        if rpy2_packages.isinstalled(library_name):
+            rpy2_packages.importr(library_name)
         else:
             raise ImportError("R library {} not installed".format(library_name))
 
@@ -889,6 +947,7 @@ class R(ExtraTabCompletion, Interface):
             c
             ...
         """
+        self._lazy_init()
         # This is looking for the topic in all existing namespaces.
         # Theoretically, there may be multiple options. We ignore that.
         pages_for_topic = robjects.help.pages(command)
@@ -1066,13 +1125,8 @@ class R(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: dummy = r._tab_completion(use_disk_cache=False)    #clean doctest
-            sage: r.completions('tes')
-            ['testInheritedMethods',
-             'testInstalledBasic',
-             'testInstalledPackage',
-             'testInstalledPackages',
-             'testPlatformEquivalence',
-             'testVirtual']
+            sage: 'testInheritedMethods' in r.completions('tes')
+            True
         """
         return [name for name in self._tab_completion() if name[:len(s)] == s]
 
@@ -1236,6 +1290,7 @@ class R(ExtraTabCompletion, Interface):
             sage: r.eval('1+1')
             '[1] 2'
         """
+        self._lazy_init()
         return str(robjects.r(code)).rstrip()
 
 

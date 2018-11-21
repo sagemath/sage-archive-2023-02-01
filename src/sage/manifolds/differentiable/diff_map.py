@@ -34,7 +34,6 @@ REFERENCES:
 from sage.manifolds.continuous_map import ContinuousMap
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
-from operator import itemgetter
 
 class DiffMap(ContinuousMap):
     r"""

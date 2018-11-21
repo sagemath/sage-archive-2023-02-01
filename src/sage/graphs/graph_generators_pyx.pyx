@@ -67,7 +67,7 @@ def RandomGNP(n, p, bint directed=False, bint loops=False):
     # according the sage.misc.randstate.pyx documentation, random
     # integers are on 31 bits. We thus set the pivot value to p*2^31
     cdef float RAND_MAX_f = (1<<31)*1.0
-    cdef int pp = int(round(p*(1<<31)))
+    cdef int pp = int(round(float(p*(1<<31))))
 
     if directed:
         G = DiGraph(loops = loops)
@@ -75,15 +75,15 @@ def RandomGNP(n, p, bint directed=False, bint loops=False):
         G = Graph()
         if loops:
             raise ValueError("The 'loops' argument can be set to True only when 'directed' is True.")
-    G.name('Random'+('Directed' if directed else '')+'GNP(%s,%s)'%(n,p))
+    G.name('Random' + ('Directed' if directed else '') + 'GNP(%s,%s)' % (n, p))
 
     G.add_vertices(range(n))
 
     # Standard random GNP generator for Graph and DiGraph
     for 0 <= i < n:
-        for (0 if directed else i+1) <= j < n:
+        for (0 if directed else i + 1) <= j < n:
             if random() < pp:
                 if i != j or loops:
-                    G.add_edge(i,j)
+                    G.add_edge(i, j)
 
     return G

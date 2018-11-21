@@ -1025,7 +1025,7 @@ class FockSpace(Parent, UniqueRepresentation):
         and upper unitriangular (using dominance order on partitions)
         when expressed in the natural basis. This basis is then
         converted to the lower global crystal basis by using
-        Gaussian elemination.
+        Gaussian elimination.
 
         EXAMPLES:
 

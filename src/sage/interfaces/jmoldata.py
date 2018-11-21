@@ -22,7 +22,7 @@ from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 
-from sage.env import SAGE_LOCAL
+from sage.env import JMOL_DIR
 from sage.misc.temporary_file import tmp_filename
 from sage.cpython.string import bytes_to_str
 
@@ -67,7 +67,7 @@ class JmolData(SageObject):
         except (subprocess.CalledProcessError, OSError):
             return False
 
-        java_version = re.search('version.*([1][.][789]|"\d+")', version)
+        java_version = re.search(r'version.*([1][.][789]|"[\d.]+")', version)
         return java_version is not None
 
     def export_image(self,
@@ -149,7 +149,7 @@ class JmolData(SageObject):
             True
         """
         # Set up paths, file names and scripts
-        jmolpath = os.path.join(SAGE_LOCAL, "share", "jmol", "JmolData.jar")
+        jmolpath = os.path.join(JMOL_DIR, "JmolData.jar")
         target_native = targetfile
 
         if sys.platform == 'cygwin':

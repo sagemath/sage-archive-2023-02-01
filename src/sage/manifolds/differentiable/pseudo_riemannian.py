@@ -269,11 +269,9 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.rings.infinity import infinity
-from sage.rings.integer import Integer
 from sage.manifolds.structure import (PseudoRiemannianStructure,
                                       RiemannianStructure, LorentzianStructure)
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
-from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
 
 ###############################################################################
 
@@ -414,7 +412,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         -2
 
     """
-    def __init__(self, n, name, metric_name='g', signature=None, ambient=None,
+    def __init__(self, n, name, metric_name='g', signature=None, base_manifold=None,
                  diff_degree=infinity, latex_name=None,
                  metric_latex_name=None, start_index=0, category=None,
                  unique_tag=None):
@@ -435,8 +433,8 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             sage: TestSuite(M).run()
 
         """
-        if ambient and not isinstance(ambient, PseudoRiemannianManifold):
-            raise TypeError("the argument 'ambient' must be a " +
+        if base_manifold and not isinstance(base_manifold, PseudoRiemannianManifold):
+            raise TypeError("the argument 'base_manifold' must be a " +
                             "pseudo-Riemannian manifold")
         if signature is None or signature == n:
             structure = RiemannianStructure()
@@ -445,7 +443,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         else:
             structure = PseudoRiemannianStructure()
         DifferentiableManifold.__init__(self, n, name, 'real', structure,
-                                        ambient=ambient,
+                                        base_manifold=base_manifold,
                                         diff_degree=diff_degree,
                                         latex_name=latex_name,
                                         start_index=start_index,
@@ -738,7 +736,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         resu = PseudoRiemannianManifold(self._dim, name,
                                         metric_name=self._metric_name,
                                         signature=self._metric_signature,
-                                        ambient=self._manifold,
+                                        base_manifold=self._manifold,
                                         diff_degree=self._diff_degree,
                                         latex_name=latex_name,
                                         metric_latex_name=self._metric_latex_name,

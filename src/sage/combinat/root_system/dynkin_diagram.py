@@ -12,7 +12,7 @@ AUTHORS:
 - Christian Stump, Travis Scrimshaw (2013-04-11): Added Cartan matrix as
   possible input for Dynkin diagrams.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
@@ -25,8 +25,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import is_Matrix
 from sage.graphs.digraph import DiGraph
@@ -367,10 +367,10 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
             sage: from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
             sage: d = DynkinDiagram_class(CartanType(['A',3]))
-            sage: list(sorted(d.edges()))
+            sage: sorted(d.edges())
             []
             sage: d.add_edge(2, 3)
-            sage: list(sorted(d.edges()))
+            sage: sorted(d.edges())
             [(2, 3, 1), (3, 2, 1)]
         """
         DiGraph.add_edge(self, i, j, label)
@@ -545,7 +545,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: Dp = D.relabel({-1:4, 0:-3, 1:3, 2:2}); Dp
             O---X---O---O
             4   -3  3   2
-            A1|2 relabelled by {0: -3, 1: 3, 2: 2, -1: 4}
+            A1|2 relabelled by {-1: 4, 0: -3, 1: 3, 2: 2}
             sage: Dp.odd_isotropic_roots()
             (-3,)
         """

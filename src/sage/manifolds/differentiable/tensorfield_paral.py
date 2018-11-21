@@ -284,8 +284,6 @@ as follows::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.rings.integer import Integer
-from sage.structure.element import ModuleElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.parallel.decorate import parallel
@@ -618,6 +616,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         #     being self._components, which is initialized by
         #     FreeModuleTensor.__init__ ); accordingly self._restrictions is
         #     initialized by _init_derived() and cleared by _del_derived().
+
         # Initialization of derived quantities:
         self._init_derived()
 
@@ -677,6 +676,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         TensorField._init_derived(self)
         self._restrictions = {} # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
 
     def _del_derived(self, del_restrictions=True):
         r"""
@@ -699,6 +700,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         TensorField._del_derived(self)
         if del_restrictions:
             self._restrictions.clear()
+            self._extensions_graph = {self._domain: self}
+            self._restrictions_graph = {self._domain: self}
 
     def set_comp(self, basis=None):
         r"""
@@ -1009,7 +1012,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             if frame1 in other._components and isinstance(frame1, CoordFrame):
                 return frame1
         # 1b/ Search involving subframes
-        dom2 = other._domain
         for frame1 in self._components:
             if not isinstance(frame1, CoordFrame):
                 continue
@@ -1354,30 +1356,71 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                                  "the {}".format(self))
             # First one tries to derive the restriction from a tighter domain:
             for dom, rst in self._restrictions.items():
-                if subdomain.is_subset(dom):
+                if subdomain.is_subset(dom) and subdomain in rst._restrictions:
+                    res = rst._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
+                    return self._restrictions[subdomain]
+
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom) and dom is not self._domain:
                     self._restrictions[subdomain] = rst.restrict(subdomain)
-                    break
+                    self._restrictions_graph[subdomain] = rst.restrict(subdomain)
+                    return self._restrictions[subdomain]
+
+            # Secondly one tries to get the restriction from one previously
+            # defined on a larger domain:
+            for dom, ext in self._extensions_graph.items():
+                if subdomain in ext._restrictions_graph:
+                    res = ext._restrictions_graph[subdomain]
+                    self._restrictions[subdomain] = res
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
+                    return self._restrictions[subdomain]
+
             # If this fails, the restriction is created from scratch:
-            else:
-                smodule = subdomain.vector_field_module(dest_map=dest_map)
-                resu = smodule.tensor(self._tensor_type, name=self._name,
-                                      latex_name=self._latex_name, sym=self._sym,
-                                      antisym=self._antisym,
-                                      specific_type=type(self))
-                for frame in self._components:
-                    for sframe in subdomain._frames:
-                        if (sframe.domain() is subdomain and
-                                sframe.destination_map() is dest_map and
-                                sframe in frame._subframes):
-                            comp_store = self._components[frame]._comp
-                            scomp = resu._new_comp(sframe)
-                            scomp_store = scomp._comp
-                            # the components of the restriction are evaluated
-                            # index by index:
-                            for ind, value in comp_store.items():
-                                scomp_store[ind] = value.restrict(subdomain)
-                            resu._components[sframe] = scomp
-                self._restrictions[subdomain] = resu
+            smodule = subdomain.vector_field_module(dest_map=dest_map)
+            res = smodule.tensor(self._tensor_type, name=self._name,
+                                  latex_name=self._latex_name, sym=self._sym,
+                                  antisym=self._antisym,
+                                  specific_type=type(self))
+
+            for frame in self._components:
+                for sframe in subdomain._frames:
+                    if (sframe.domain() is subdomain and
+                            sframe.destination_map() is dest_map and
+                            sframe in frame._subframes):
+                        comp_store = self._components[frame]._comp
+                        scomp = res._new_comp(sframe)
+                        scomp_store = scomp._comp
+                        # the components of the restriction are evaluated
+                        # index by index:
+                        for ind, value in comp_store.items():
+                            scomp_store[ind] = value.restrict(subdomain)
+                        res._components[sframe] = scomp
+
+            res._extensions_graph.update(self._extensions_graph)
+            for dom, ext in self._extensions_graph.items():
+                ext._restrictions[subdomain] = res
+                ext._restrictions_graph[subdomain] = res
+
+            for dom, rst in self._restrictions.items():
+                if dom.is_subset(subdomain):
+                    if rst is not res:
+                        res._restrictions.update(rst._restrictions)
+                    res._restrictions_graph.update(rst._restrictions_graph)
+                    rst._extensions_graph.update(res._extensions_graph)
+
+            self._restrictions[subdomain] = res
+            self._restrictions_graph[subdomain] = res
+
         return self._restrictions[subdomain]
 
     def __call__(self, *args):
@@ -1732,8 +1775,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         index_latex_labels = None
         if isinstance(frame, CoordFrame) and coordinate_labels:
             ch = frame.chart()
-            index_labels = map(str, ch[:])
-            index_latex_labels = map(latex, ch[:])
+            index_labels = list(map(str, ch[:]))
+            index_latex_labels = list(map(latex, ch[:]))
         return FreeModuleTensor.display_comp(self, basis=frame,
                                   format_spec=chart, index_labels=index_labels,
                                   index_latex_labels=index_latex_labels,

@@ -472,12 +472,10 @@ import pexpect
 
 from random import randrange
 
-from sage.cpython.string import bytes_to_str
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.misc.misc import ECL_TMP
 
-from .expect import (Expect, ExpectElement, FunctionElement,
-                    ExpectFunction, gc_disabled)
+from .expect import (Expect, ExpectElement, gc_disabled)
 
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,
@@ -527,15 +525,6 @@ class Maxima(MaximaAbstract, Expect):
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         STARTUP = os.path.join(SAGE_LOCAL,'bin','sage-maxima.lisp')
 
-        # We set maxima's configuration directory to $DOT_SAGE/maxima
-        # This avoids that sage's maxima inadvertently loads
-        # ~/.maxima/maxima-init.mac
-        # If you absolutely want maxima instances that are started by
-        # this interface to preload commands, put them in
-        # $DOT_SAGE/maxima/maxima-init.mac
-        # (we use the "--userdir" option in maxima for this)
-        SAGE_MAXIMA_DIR = os.path.join(DOT_SAGE,"maxima")
-
         if not os.path.exists(STARTUP):
             raise RuntimeError('You must get the file local/bin/sage-maxima.lisp')
 
@@ -556,8 +545,8 @@ class Maxima(MaximaAbstract, Expect):
         MaximaAbstract.__init__(self,"maxima")
         Expect.__init__(self,
                         name = 'maxima',
-                        prompt = '\(\%i[0-9]+\) ',
-                        command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
+                        prompt = r'\(\%i[0-9]+\) ',
+                        command = 'maxima -p "{0}"'.format(STARTUP),
                         env = {'TMPDIR': str(ECL_TMP)},
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
@@ -568,11 +557,11 @@ class Maxima(MaximaAbstract, Expect):
         # Must match what is in the file local/bin/sage-maxima.lisp
         self._display_prompt = '<sage-display>'
         # See #15440 for the importance of the trailing space
-        self._output_prompt_re = re.compile('\(\%o[0-9]+\) ')
+        self._output_prompt_re = re.compile(r'\(\%o[0-9]+\) ')
         self._ask = [b'zero or nonzero\\?', b'an integer\\?',
                      b'positive, negative or zero\\?', b'positive or negative\\?',
                      b'positive or zero\\?', b'equal to .*\\?']
-        self._prompt_wait = ([self._prompt.encode('ascii')] +
+        self._prompt_wait = ([self._prompt] +
                              [re.compile(x) for x in self._ask] +
                              [b'Break [0-9]+'])  # note that you might need to change _expect_expr if you
                                                  # change this
@@ -724,7 +713,9 @@ class Maxima(MaximaAbstract, Expect):
                 #Note that this depends on the order of self._prompt_wait
                 if expr is self._prompt_wait and i > len(self._ask):
                     self.quit()
-                    raise ValueError("%s\nComputation failed due to a bug in Maxima -- NOTE: Maxima had to be restarted."%v)
+                    raise ValueError(
+                            "{}\nComputation failed due to a bug in Maxima "
+                            "-- NOTE: Maxima had to be restarted.".format(v))
 
                 j = v.find('Is ')
                 v = v[j:]
@@ -792,7 +783,7 @@ class Maxima(MaximaAbstract, Expect):
         else:
             self._sendline(line)
 
-        line_echo = bytes_to_str(self._expect.readline())
+        line_echo = self._readline()
         if not wait_for_prompt:
             return
         # line_echo sometimes has randomly inserted terminal echo in front #15811
@@ -806,12 +797,13 @@ class Maxima(MaximaAbstract, Expect):
             return out
 
         self._expect_expr()
-        assert len(self._before())==0, 'Maxima expect interface is confused!'
+        assert len(self._before()) == 0, \
+                'Maxima expect interface is confused!'
         r = self._output_prompt_re
         m = r.search(out)
         if m is not None:
             out = out[m.end():]
-        return re.sub('\s+', '', out)
+        return re.sub(r'\s+', '', out)
 
     def _synchronize(self):
         """
@@ -848,7 +840,7 @@ class Maxima(MaximaAbstract, Expect):
         try:
             try:
                 self._expect_expr(timeout=0.5)
-                if not s in bytes_to_str(self._before()):
+                if not s in self._before():
                     self._expect_expr(s,timeout=0.5)
                     self._expect_expr(timeout=0.5)
             except pexpect.TIMEOUT:
@@ -896,7 +888,7 @@ class Maxima(MaximaAbstract, Expect):
 
         self._sendline(cmd)
         self._expect_expr(s)
-        out = bytes_to_str(self._before())
+        out = self._before()
         self._error_check(cmd, out)
         os.unlink(filename)
         return out
@@ -981,7 +973,7 @@ class Maxima(MaximaAbstract, Expect):
         self._eval_line(':lisp %s\n""'%cmd, allow_use_file=False,
                wait_for_prompt=False, reformat=False, error_check=False)
         self._expect_expr('(%i)')
-        return bytes_to_str(self._before())
+        return self._before()
 
     #####
     #

@@ -210,7 +210,7 @@ class QuotientRingElement(RingElement):
         # That holds, in particular, if there are infinitely many
         # generators, as for Steenrod algebras.
         try:
-            names = P.variable_names()
+            P.variable_names()
         except ValueError:
             return str(self.__rep)
         with localvars(R, P.variable_names(), normalize=False):

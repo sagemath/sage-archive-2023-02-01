@@ -30,6 +30,9 @@ from __future__ import print_function
 from functools import (partial, update_wrapper, WRAPPER_ASSIGNMENTS,
                        WRAPPER_UPDATES)
 from copy import copy
+
+import six
+
 from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
                                    sage_getargspec)
 from inspect import ArgSpec
@@ -448,7 +451,7 @@ class suboptions(object):
         EXAMPLES::
 
             sage: from sage.misc.decorators import suboptions
-            sage: def f(*args, **kwds): print(list(sorted(kwds.items())))
+            sage: def f(*args, **kwds): print(sorted(kwds.items()))
             sage: f = suboptions('arrow', size=2)(f)
             sage: f(size=2)
             [('arrow_options', {'size': 2}), ('size', 2)]
@@ -473,7 +476,7 @@ class suboptions(object):
 
             #Collect all the relevant keywords in kwds
             #and put them in suboptions
-            for key, value in kwds.items():
+            for key, value in list(six.iteritems(kwds)):
                 if key.startswith(self.name):
                     suboptions[key[len(self.name):]] = value
                     del kwds[key]
@@ -527,7 +530,7 @@ class options(object):
             sage: from sage.misc.decorators import options
             sage: o = options(rgbcolor=(0,0,1))
             sage: def f(*args, **kwds):
-            ....:     print("{} {}".format(args, list(sorted(kwds.items()))))
+            ....:     print("{} {}".format(args, sorted(kwds.items())))
             sage: f1 = o(f)
             sage: from sage.misc.sageinspect import sage_getargspec
             sage: sage_getargspec(f1)
@@ -543,7 +546,7 @@ class options(object):
             sage: from sage.misc.decorators import options
             sage: o = options(rgbcolor=(0,0,1))
             sage: def f(*args, **kwds):
-            ....:     print("{} {}".format(args, list(sorted(kwds.items()))))
+            ....:     print("{} {}".format(args, sorted(kwds.items())))
             sage: f1 = o(f)
             sage: f1()
             () [('rgbcolor', (0, 0, 1))]
@@ -583,7 +586,7 @@ class options(object):
                 sage: from sage.misc.decorators import options
                 sage: o = options(rgbcolor=(0,0,1))
                 sage: def f(*args, **kwds):
-                ....:     print("{} {}".format(args, list(sorted(kwds.items()))))
+                ....:     print("{} {}".format(args, sorted(kwds.items())))
                 sage: f = o(f)
                 sage: f.options['rgbcolor']=(1,1,1)
                 sage: f.defaults()
@@ -600,7 +603,7 @@ class options(object):
                 sage: from sage.misc.decorators import options
                 sage: o = options(rgbcolor=(0,0,1))
                 sage: def f(*args, **kwds):
-                ....:     print("{} {}".format(args, list(sorted(kwds.items()))))
+                ....:     print("{} {}".format(args, sorted(kwds.items())))
                 sage: f = o(f)
                 sage: f.options
                 {'rgbcolor': (0, 0, 1)}

@@ -355,8 +355,8 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: L = LieAlgebra(associative=S)
             sage: x = L.gen(2); x
             (1,2,3)
-            sage: y = L.gen(1); y
-            (1,2)
+            sage: y = L.gen(3); y
+            (2,3)
             sage: u = x*3; u
             3*(1,2,3)
             sage: parent(u) == L
@@ -369,10 +369,10 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             b4 - b5
             sage: xp, yp = x.lift_associative(), y.lift_associative()
             sage: eltp = xp*yp - yp*xp; eltp
-            (2,3) - (1,3)
+            -(1,2) + (1,3)
             sage: G = list(S.basis())
             sage: G[4] - G[5]
-            (2,3) - (1,3)
+            -(1,2) + (1,3)
 
         TESTS::
 
@@ -519,6 +519,217 @@ cdef class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
         """
         value.set_immutable() # Make the matrix immutable for hashing
         LieAlgebraElementWrapper.__init__(self, parent, value)
+
+
+cdef class LieSubalgebraElementWrapper(LieAlgebraElementWrapper):
+    r"""
+    Wrap an element of the ambient Lie algebra as an element.
+    """
+    def __init__(self, parent, value):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z': 1}})
+            sage: S = L.subalgebra([X, Y])
+            sage: TestSuite(S(X)).run()
+        """
+        LieAlgebraElementWrapper.__init__(self, parent, value)
+        self._monomial_coefficients = None
+
+    def __getitem__(self, i):
+        r"""
+        Return the coefficient of ``self`` indexed by ``i``.
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z': 1}})
+            sage: S = L.subalgebra([X, Y])
+            sage: el = S(2*Y + 9*Z)
+            sage: el[1]
+            2
+            sage: el[2]
+            9
+        """
+        if self._monomial_coefficients is None:
+            # This sets _monomial_coefficients
+            self.monomial_coefficients(copy=False)
+        try:
+            return self._monomial_coefficients[i]
+        except KeyError:
+            return self.parent().base_ring().zero()
+
+    def _bracket_(self, x):
+        """
+        Return the Lie bracket ``[self, x]``.
+
+        Assumes ``x`` and ``self`` have the same parent.
+
+        INPUT:
+
+        - ``x`` -- an element of the same Lie subalgebra as ``self``
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z': 1}})
+            sage: S = L.subalgebra([X, Y])
+            sage: S(X)._bracket_(S(Y))
+            Z
+        """
+        x_lift = (<LieSubalgebraElementWrapper> x).value
+        return type(self)(self._parent, self.value._bracket_(x_lift))
+
+    def to_vector(self):
+        r"""
+        Return the vector in ``g.module()`` corresponding to the
+        element ``self`` of ``g`` (where ``g`` is the parent of ``self``).
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z': 3}})
+            sage: S = L.subalgebra([X, Y])
+            sage: S.basis()
+            Family (X, Y, 3*Z)
+            sage: S(2*Y + 9*Z).to_vector()
+            (0, 2, 9)
+            sage: S2 = L.subalgebra([Y, Z])
+            sage: S2.basis()
+            Family (Y, Z)
+            sage: S2(2*Y + 9*Z).to_vector()
+            (0, 2, 9)
+
+        TESTS::
+
+            sage: L.<X,Y> = LieAlgebra(ZZ, abelian=True)
+            sage: S = L.subalgebra(X)
+            sage: S(X).to_vector() in S.module()
+            True
+            sage: S(X).to_vector().parent() is S.module()
+            True
+        """
+        return self._parent.module()(self.value.to_vector())
+
+    cpdef dict monomial_coefficients(self, bint copy=True):
+        r"""
+        Return a dictionary whose keys are indices of basis elements
+        in the support of ``self`` and whose values are the
+        corresponding coefficients.
+
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z': 3}})
+            sage: S = L.subalgebra([X, Y])
+            sage: S(2*Y + 9*Z).monomial_coefficients()
+            {1: 2, 2: 3}
+            sage: S2 = L.subalgebra([Y, Z])
+            sage: S2(2*Y + 9*Z).monomial_coefficients()
+            {0: 2, 1: 9}
+        """
+        cdef Py_ssize_t k
+        if self._monomial_coefficients is None:
+            sm = self.parent().module()
+            v = sm.coordinate_vector(self.to_vector())
+            self._monomial_coefficients = {k: v[k] for k in range(len(v)) if v[k]}
+        if copy:
+            return dict(self._monomial_coefficients)
+        return self._monomial_coefficients
+
+    cpdef _add_(self, right):
+        """
+        Add ``self`` and ``rhs``.
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z': 3}})
+            sage: S = L.subalgebra([X, Y])
+            sage: a = S(2*Y + 12*Z)
+            sage: b = S(X + 2*Y)
+            sage: (a + b).monomial_coefficients()
+            {0: 1, 1: 4, 2: 4}
+            sage: a.monomial_coefficients()        # We set a._monomial_coefficients
+            {1: 2, 2: 4}
+            sage: b.monomial_coefficients()        # We set b._monomial_coefficients
+            {0: 1, 1: 2}
+            sage: (a + b).monomial_coefficients()  # This is now computed from a and b
+            {0: 1, 1: 4, 2: 4}
+        """
+        cdef LieSubalgebraElementWrapper ret, other = <LieSubalgebraElementWrapper> right
+        ret = type(self)(self._parent, self.value + other.value)
+        if self._monomial_coefficients is not None and other._monomial_coefficients is not None:
+            mc = add(self._monomial_coefficients, other._monomial_coefficients)
+            ret._monomial_coefficients = mc
+        return ret
+
+    cpdef _sub_(self, right):
+        """
+        Subtract ``self`` and ``rhs``.
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z': 3}})
+            sage: S = L.subalgebra([X, Y])
+            sage: a = S(2*Y + 12*Z)
+            sage: b = S(X + 2*Y)
+            sage: (a - b).monomial_coefficients()
+            {0: -1, 2: 4}
+            sage: a.monomial_coefficients()        # We set a._monomial_coefficients
+            {1: 2, 2: 4}
+            sage: b.monomial_coefficients()        # We set b._monomial_coefficients
+            {0: 1, 1: 2}
+            sage: (a - b).monomial_coefficients()  # This is now computed from a and b
+            {0: -1, 2: 4}
+        """
+        cdef LieSubalgebraElementWrapper ret, other = <LieSubalgebraElementWrapper> right
+        ret = type(self)(self._parent, self.value - other.value)
+        if self._monomial_coefficients is not None and other._monomial_coefficients is not None:
+            mc = axpy(-1, other._monomial_coefficients, self._monomial_coefficients)
+            ret._monomial_coefficients = mc
+        return ret
+
+    cpdef _acted_upon_(self, scalar, bint self_on_left):
+        """
+        Return the action of a scalar on ``self``.
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z': 3}})
+            sage: S = L.subalgebra([X, Y])
+            sage: a = S(2*Y + 12*Z)
+            sage: (2*a).monomial_coefficients()
+            {1: 4, 2: 8}
+            sage: a.monomial_coefficients()      # We set a._monomial_coefficients
+            {1: 2, 2: 4}
+            sage: (2*a).monomial_coefficients()  # This is now computed from a
+            {1: 4, 2: 8}
+        """
+        # This was copied and IDK if it still applies (TCS):
+        # With the current design, the coercion model does not have
+        # enough information to detect apriori that this method only
+        # accepts scalars; so it tries on some elements(), and we need
+        # to make sure to report an error.
+        scalar_parent = parent(scalar)
+        if scalar_parent != self._parent.base_ring():
+            # Temporary needed by coercion (see Polynomial/FractionField tests).
+            if self._parent.base_ring().has_coerce_map_from(scalar_parent):
+                scalar = self._parent.base_ring()( scalar )
+            else:
+                return None
+        cdef LieSubalgebraElementWrapper ret
+        if self_on_left:
+            ret = type(self)(self._parent, self.value * scalar)
+        else:
+            ret = type(self)(self._parent, scalar * self.value)
+        if self._monomial_coefficients is not None:
+            ret._monomial_coefficients = scal(scalar, self._monomial_coefficients, self_on_left)
+        return ret
 
 cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
     """
@@ -1208,7 +1419,7 @@ class FreeLieAlgebraElement(LieAlgebraElement):
             [([x, y], -1), (x, 1)]
         """
         k = lambda x: (-x[0]._grade, x[0]) if isinstance(x[0], GradedLieBracket) else (-1, x[0])
-        return sorted(self._monomial_coefficients.iteritems(), key=k)
+        return sorted((<dict>self._monomial_coefficients).iteritems(), key=k)
 
     def _bracket_(self, y):
         """

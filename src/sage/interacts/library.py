@@ -138,9 +138,11 @@ def taylor_polynomial(
     dot = point((x0,f(x=x0)),pointsize=80,rgbcolor=(1,0,0))
     ft = f.taylor(x,x0,order)
     pt = plot(ft,(-1, 5), color='green', thickness=2)
-    html('$f(x)\;=\;%s$'%latex(f))
-    html('$\hat{f}(x;%s)\;=\;%s+\mathcal{O}(x^{%s})$'%(x0,latex(ft),order+1))
+    html(r'$f(x)\;=\;%s$' % latex(f))
+    html(r'$\hat{f}(x;%s)\;=\;%s+\mathcal{O}(x^{%s})$' % (x0, latex(ft),
+                                                          order + 1))
     show(dot + p + pt, ymin = -.5, ymax = 1)
+
 
 @library_interact
 def definite_integral(
@@ -256,9 +258,10 @@ def function_derivative(
     else:
         show(plots, xmin=x_range[0], xmax=x_range[1], ymin=y_range[0], ymax=y_range[1])
 
-    html("<center>$\color{Blue}{f(x) = %s}$</center>"%latex(f(x)))
-    html("<center>$\color{Green}{f'(x) = %s}$</center>"%latex(df(x)))
-    html("<center>$\color{Red}{f''(x) = %s}$</center>"%latex(ddf(x)))
+    html(r"<center>$\color{Blue}{f(x) = %s}$</center>" % latex(f(x)))
+    html(r"<center>$\color{Green}{f'(x) = %s}$</center>" % latex(df(x)))
+    html(r"<center>$\color{Red}{f''(x) = %s}$</center>" % latex(ddf(x)))
+
 
 @library_interact
 def difference_quotient(
@@ -922,7 +925,7 @@ def newton_method(
     html(r"${f(c) = }%s"%latex(f(c)))
     html(r"$%s \text{ iterations}"%len(midpoints))
     if list_steps:
-        s = [["$n$","$x_n$","$f(x_n)$", "$f(x_n-h)\,f(x_n+h)$"]]
+        s = [["$n$", "$x_n$", "$f(x_n)$", r"$f(x_n-h)\,f(x_n+h)$"]]
         for i, c in enumerate(midpoints):
             s.append([i+1, c, f(c), (c-h)*f(c+h)])
         pretty_print(table(s, header_row=True))
@@ -1012,7 +1015,7 @@ def trapezoid_integration(
         sum_values_html = r"\frac{%.2f}{2} \cdot \left[%.2f + %s + %.2f\right]" % (
             h,
             N(ys[0], digits=5),
-            ' + '.join([ "2\cdot %.2f" % N(i, digits=5) for i in ys[1:-1]]),
+            ' + '.join([ r"2\cdot %.2f" % N(i, digits=5) for i in ys[1:-1]]),
             N(ys[n], digits=5)
             )
 
@@ -1032,7 +1035,7 @@ def trapezoid_integration(
                 N(approx, digits=7)
         ))
     elif output_form == 'table':
-        s = [['$i$','$x_i$','$f(x_i)$','$m$','$m\cdot f(x_i)$']]
+        s = [['$i$', '$x_i$', '$f(x_i)$', '$m$', r'$m\cdot f(x_i)$']]
         for i in range(0,n+1):
             if i==0 or i==n:
                 j = 1
@@ -1151,14 +1154,14 @@ def simpson_integration(
                 N(approx,digits=7)
                 ))
     elif output_form == 'table':
-        s = [['$i$','$x_i$','$f(x_i)$','$m$','$m\cdot f(x_i)$']]
+        s = [['$i$', '$x_i$', '$f(x_i)$', '$m$', r'$m\cdot f(x_i)$']]
         for i in range(0,n+1):
             if i==0 or i==n:
                 j = 1
             else:
                 j = (i+1)%2*(-2)+4
             s.append([i, xs[i], ys[i],j,N(j*ys[i])])
-        s.append(['','','','$\sum$','$%s$'%latex(3/dx*approx)])
+        s.append(['', '', '', r'$\sum$', '$%s$' % latex(3/dx*approx)])
         pretty_print(table(s, header_row=True))
         html(r'$\int_{%.2f}^{%.2f} {f(x) \, \mathrm{d}x}\approx\frac {%.2f}{3}\cdot %s=%s$'%
              (interval[0], interval[1],dx,latex(3/dx*approx),latex(approx)))
@@ -1230,14 +1233,14 @@ def riemann_sum(
     delka_intervalu=[division[i+1]-division[i] for i in range(n)]
     if list_table:
         pretty_print(table([
-            ["$i$", "$[x_{i-1},x_i]$", "$\eta_i$", "$f(\eta_i)$", "$x_{i}-x_{i-1}$"]
+            ["$i$", "$[x_{i-1},x_i]$", r"$\eta_i$", r"$f(\eta_i)$", "$x_{i}-x_{i-1}$"]
         ] + [
             [i+1,[division[i],division[i+1]],xs[i],ys[i],delka_intervalu[i]] for i in range(n)
         ],  header_row=True))
 
-    html('Riemann sum: $\displaystyle\sum_{i=1}^{%s} f(\eta_i)(x_i-x_{i-1})=%s$ '%
+    html(r'Riemann sum: $\displaystyle\sum_{i=1}^{%s} f(\eta_i)(x_i-x_{i-1})=%s$ '%
          (latex(n),latex(sum([ys[i]*delka_intervalu[i] for i in range(n)]))))
-    html('Exact value of the integral $\displaystyle\int_{%s}^{%s}%s\,\mathrm{d}x=%s$'%
+    html(r'Exact value of the integral $\displaystyle\int_{%s}^{%s}%s\,\mathrm{d}x=%s$'%
          (latex(a),latex(b),latex(func(x)),latex(integral_numerical(func(x),a,b)[0])))
 
 

@@ -106,7 +106,6 @@ from sage.misc.misc_c import prod
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.libs.singular.function import lib, singular_function
 from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
 from sage.categories.algebras import Algebras
 from sage.rings.noncommutative_ideals import IdealMonoid_nc
 
@@ -261,11 +260,12 @@ cdef class FreeAlgebra_letterplace(Algebra):
         if degrees is None:
             self._degrees = tuple([int(1)]*self.__ngens)
         else:
-            if (not isinstance(degrees,(tuple,list))) or len(degrees)!=self.__ngens-1 or any([i<=0 for i in degrees]):
+            if (not isinstance(degrees,(tuple,list))) or len(degrees)!=self.__ngens-1 or any(i <= 0 for i in degrees):
                 raise TypeError("The generator degrees must be given by a list or tuple of %d positive integers" % (self.__ngens-1))
             self._degrees = tuple([int(i) for i in degrees])
             self.set_degbound(max(self._degrees))
         self._populate_coercion_lists_(coerce_list=[base_ring])
+
     def __reduce__(self):
         """
         TESTS::

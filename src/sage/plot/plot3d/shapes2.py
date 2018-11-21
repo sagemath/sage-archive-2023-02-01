@@ -41,7 +41,6 @@ TACHYON_PIXEL = 1/200.0
 
 from .shapes import Text, Sphere
 
-from sage.structure.element import is_Vector
 
 @rename_keyword(alpha='opacity')
 def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
@@ -775,7 +774,12 @@ class Point(PrimitiveObject):
             cen = self.loc
         else:
             cen = transform.transform_point(self.loc)
-        return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], self.size * TACHYON_PIXEL, self.texture.id)
+
+        radius = self.size * TACHYON_PIXEL
+        texture = self.texture.id
+        return ("Sphere center {center[0]!r} {center[1]!r} {center[2]!r} "
+                "Rad {radius!r} {texture}").format(center=cen, radius=radius,
+                                                   texture=texture)
 
     def obj_repr(self, render_params):
         """
@@ -914,7 +918,7 @@ class Line(PrimitiveObject):
 
             sage: L = line3d([(cos(i),sin(i),i^2) for i in srange(0,10,.01)],color='red')
             sage: L.tachyon_repr(L.default_render_params())[0]
-            'FCylinder base 1.0 0.0 0.0 apex 0.999950000417 0.00999983333417 0.0001 rad 0.005 texture...'
+            'FCylinder base 1.0 0.0 0.0 apex 0.9999500004166653 0.009999833334166664 0.0001 rad 0.005 texture...'
         """
         T = render_params.transform
         cmds = []
@@ -928,10 +932,12 @@ class Line(PrimitiveObject):
                 cmds.append(A.tachyon_repr(render_params))
                 render_params.pop_transform()
             else:
-                cmds.append("FCylinder base %s %s %s apex %s %s %s rad %s %s" % (px, py, pz,
-                                                                                 x, y, z,
-                                                                                 radius,
-                                                                                 self.texture.id))
+                cmd = ('FCylinder base {pos[0]!r} {pos[1]!r} {pos[2]!r} '
+                       'apex {apex[0]!r} {apex[1]!r} {apex[2]!r} '
+                       'rad {radius!r} {texture}').format(
+                               pos=(px, py, pz), apex=(x, y, z), radius=radius,
+                               texture=self.texture.id)
+                cmds.append(cmd)
             px, py, pz = x, y, z
         return cmds
 
@@ -975,23 +981,24 @@ class Line(PrimitiveObject):
         corners = set(corners)
         cmds = []
         cmd = None
+        name = ''
         for P in self.points:
             TP = P if T is None else T(P)
             if P in corners:
                 if cmd:
                     cmds.append(cmd + " {%s %s %s} " % TP)
-                    cmds.append(self.texture.jmol_str('$'+name))
+                    cmds.append(self.texture.jmol_str('$' + name))
                 type = 'arrow' if self.arrow_head and P is last_corner else 'curve'
                 name = render_params.unique_name('line')
                 cmd = "draw %s diameter %s %s {%s %s %s} " % (name, int(self.thickness), type, TP[0], TP[1], TP[2])
             else:
                 cmd += " {%s %s %s} " % TP
         cmds.append(cmd)
-        cmds.append(self.texture.jmol_str('$'+name))
+        cmds.append(self.texture.jmol_str('$' + name))
         return cmds
 
     def corners(self, corner_cutoff=None, max_len=None):
-        """
+        r"""
         Figure out where the curve turns too sharply to pretend it is
         smooth.
 
@@ -1160,7 +1167,7 @@ def point3d(v, size=5, **kwds):
     if l == 3:
         try:
             # check if the first element can be changed to a float
-            tmp = RDF(v[0])
+            RDF(v[0])
             return Point(v, size, **kwds)
         except TypeError:
             pass

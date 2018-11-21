@@ -218,10 +218,10 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
-            sage: phi.dict().keys()
+            sage: sorted(phi.dict())
             [
-            [-1 -1]  [1 0]  [ 0 -1]
-            [ 3  2], [0 1], [ 1  3]
+            [-1 -1]  [ 0 -1]  [1 0]
+            [ 3  2], [ 1  3], [0 1]
             ]
             sage: sorted(phi.values()) == sorted(phi.dict().values())
             True
@@ -295,7 +295,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.pollack_stevens_modular_symbol();
+            sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
             sage: 2*phi

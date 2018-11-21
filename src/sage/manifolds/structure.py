@@ -60,8 +60,9 @@ class TopologicalStructure(Singleton):
         """
         return cat
 
+
 class RealTopologicalStructure(Singleton):
-    """
+    r"""
     The structure of a topological manifold over `\RR`.
     """
     chart = RealChart
@@ -109,8 +110,9 @@ class DifferentialStructure(Singleton):
         """
         return cat
 
+
 class RealDifferentialStructure(Singleton):
-    """
+    r"""
     The structure of a differentiable manifold over `\RR`.
     """
     chart = RealDiffChart

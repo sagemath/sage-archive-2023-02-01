@@ -54,7 +54,7 @@ from __future__ import absolute_import
 from libc.math cimport sqrt, sin, cos, tan, asin, acos, atan, M_PI
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
-from sage.plot.misc import rename_keyword
+from sage.misc.decorators import rename_keyword
 from .base import Graphics3dGroup, Graphics3d
 from .index_face_set cimport IndexFaceSet, PrimitiveObject
 from .transform cimport point_c

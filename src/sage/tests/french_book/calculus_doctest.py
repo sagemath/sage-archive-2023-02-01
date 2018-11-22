@@ -614,7 +614,6 @@ Sage example in ./sol/calculus.tex, line 143::
     sage: x = pi*n
     sage: for i in range(4):
     ....:    x = taylor(phi(x), n, oo, 2*i); x
-    ...
     1/2*pi + pi*n
     1/2*pi + pi*n - 1/(pi*n) + 1/2/(pi*n^2)
     1/2*pi + pi*n - 1/(pi*n) + 1/2/(pi*n^2)

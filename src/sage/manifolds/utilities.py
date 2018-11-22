@@ -1066,22 +1066,22 @@ class ExpressionNice(Expression):
             # checking if the variable is composite
             for i, val in enumerate(strv):
                 if bool(re.search(r'[+|-|/|*|^|(|)]', val)):
-                    latv[i] = "\left(" + latv[i] + "\\right)"
+                    latv[i] = r"\left(" + latv[i] + r"\right)"
 
             # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.
             occ = {i: (latv[i] + "^" + latex(diffargs.count(i))
                        if diffargs.count(i) > 1 else latv[i])
                    for i in diffargs}
 
-            res = "\\frac{\partial" + numargs + "\," + funcname + \
-                  "}{\partial " + "\partial ".join(i for i in occ.values()) + "}"
+            res = r"\frac{\partial" + numargs + r"\," + funcname + \
+                  r"}{\partial " + r"\partial ".join(i for i in occ.values()) + "}"
 
             # representation of the operator
             s = self._parent._latex_element_(m[0])
 
             # if diff operator is raised to some power (m[5]), put brackets around
             if m[5]:
-                res = "\left(" + res + "\\right)^{" + str(m[5]) + "}"
+                res = r"\left(" + res + r"\right)^{" + str(m[5]) + "}"
                 o = s + "^{" + str(m[5]) + "}"
             else:
                 o = s
@@ -1205,7 +1205,7 @@ def _list_functions(ex, list_f):
     if op:
         # FIXME: This hack is needed because the NewSymbolicFunction is
         #   a class defined inside of the *function* function_factory().
-        if str(type(op)) == "<class 'sage.symbolic.function_factory.NewSymbolicFunction'>":
+        if "NewSymbolicFunction" in str(type(op)):
             repr_function = repr(op)
             latex_function = latex(op)
 

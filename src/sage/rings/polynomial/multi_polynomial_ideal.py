@@ -389,7 +389,7 @@ class MPolynomialIdeal_magma_repr:
             sage: I = sage.rings.ideal.Cyclic(R,6)
             sage: gb = I.groebner_basis('magma:GroebnerBasis', deg_bound=4) # indirect doctest; optional - magma
             sage: len(gb)                                      # optional - magma
-            7
+            5
         """
         R   = self.ring()
         if not deg_bound:
@@ -2382,16 +2382,21 @@ class MPolynomialIdeal_singular_repr(
         return V
 
     @require_field
-    def hilbert_polynomial(self):
+    def hilbert_polynomial(self, algorithm='sage'):
         r"""
         Return the Hilbert polynomial of this ideal.
 
-        Let `I` = ``self`` be a homogeneous ideal and
-        `R` = ``self.ring()`` be a graded commutative
-        algebra (`R = \oplus R_d`) over a field `K`. The
-        Hilbert polynomial is the unique polynomial `HP(t)` with
-        rational coefficients such that `HP(d) = dim_K R_d` for
-        all but finitely many positive integers `d`.
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'sage'``) must be either ``'sage'``
+          or ``'singular'``
+
+        Let `I` (which is ``self``) be a homogeneous ideal and
+        `R = \bigoplus_d R_d` (which is ``self.ring()``) be a graded
+        commutative algebra over a field `K`. The *Hilbert polynomial*
+        is the unique polynomial `HP(t)` with rational coefficients
+        such that `HP(d) = dim_K R_d` for all but finitely many
+        positive integers `d`.
 
         EXAMPLES::
 
@@ -2399,35 +2404,107 @@ class MPolynomialIdeal_singular_repr(
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I.hilbert_polynomial()
             5*t - 5
+
+        Of course, the Hilbert polynomial of a zero-dimensional ideal
+        is zero::
+
+            sage: J0 = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5, y^3-2*x*z^2+x*y,x^4+x*y-y*z^2])
+            sage: J = P*[m.lm() for m in J0.groebner_basis()]
+            sage: J.dimension()
+            0
+            sage: J.hilbert_polynomial()
+            0
+
+        It is possible to request a computation using the Singular library::
+
+            sage: I.hilbert_polynomial(algorithm = 'singular') == I.hilbert_polynomial()
+            True
+            sage: J.hilbert_polynomial(algorithm = 'singular') == J.hilbert_polynomial()
+            True
+
+        Here is a bigger examples::
+
+            sage: n = 4; m = 11; P = PolynomialRing(QQ, n * m, "x"); x = P.gens(); M = Matrix(n, x)
+            sage: Minors = P.ideal(M.minors(2))
+            sage: hp = Minors.hilbert_polynomial(); hp
+            1/21772800*t^13 + 61/21772800*t^12 + 1661/21772800*t^11
+             + 26681/21772800*t^10 + 93841/7257600*t^9 + 685421/7257600*t^8
+             + 1524809/3110400*t^7 + 39780323/21772800*t^6 + 6638071/1360800*t^5
+             + 12509761/1360800*t^4 + 2689031/226800*t^3 + 1494509/151200*t^2
+             + 12001/2520*t + 1
+
+        Because Singular uses 32-bit integers, the above example would fail
+        with Singular. We don't test it here, as it has a side-effect on
+        other tests that is not understood yet (see :trac:`26300`)::
+
+            sage: Minors.hilbert_polynomial(algorithm = 'singular')    # not tested
+            Traceback (most recent call last):
+            ...
+            RuntimeError: error in Singular function call 'hilbPoly':
+            int overflow in hilb 1
+            error occurred in or before poly.lib::hilbPoly line 58: `   intvec v=hilb(I,2);`
+            expected intvec-expression. type 'help intvec;'
+
+        Note that in this example, the Hilbert polynomial gives the
+        coefficients of the Hilbert-Poincaré series in all degrees::
+
+            sage: P = PowerSeriesRing(QQ, 't', default_prec = 50)
+            sage: hs = Minors.hilbert_series()
+            sage: list(P(hs.numerator()) / P(hs.denominator())) == [hp(t = k) for k in range(50)]
+            True
         """
         if not self.is_homogeneous():
-            raise TypeError("Ideal must be homogeneous.")
+            raise TypeError("ideal must be homogeneous")
 
-        import sage.libs.singular.function_factory
-        hilbPoly = sage.libs.singular.function_factory.ff.poly__lib.hilbPoly
+        if algorithm == 'sage':
+            from sage.misc.misc_c import prod
+            hilbert_poincare = self.hilbert_series()
+            denom = hilbert_poincare.denominator().factor()
+            second_hilbert = hilbert_poincare.numerator()
+            t = second_hilbert.parent().gen()
+            if denom:
+                s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
+            else:
+                return t.parent().zero()
+            denom = ZZ(s-1).factorial()
+            out = sum(c / denom * prod(s - 1 - n - nu + t for nu in range(s-1))
+                      for n,c in enumerate(second_hilbert))
+            assert out.leading_coefficient() >= 0
+            return out
+        elif algorithm == 'singular':
+            import sage.libs.singular.function_factory
+            hilbPoly = sage.libs.singular.function_factory.ff.poly__lib.hilbPoly
 
-        hp = hilbPoly(self)
-        t = ZZ['t'].gen()
-        fp = ZZ(len(hp)-1).factorial()
-        return sum(ZZ(hp[i]) * t ** i for i in range(len(hp))) / fp
+            hp = hilbPoly(self)
+            t = ZZ['t'].gen()
+            fp = ZZ(len(hp)-1).factorial()
+            return sum(ZZ(coeff) * t**i for i,coeff in enumerate(hp)) / fp
+        else:
+            raise ValueError("'algorithm' must be 'sage' or 'singular'")
 
     @require_field
-    def hilbert_series(self, singular=singular_default, grading=None):
+    def hilbert_series(self, grading=None, algorithm='sage'):
         r"""
         Return the Hilbert series of this ideal.
 
-        Let `I` = ``self`` be a homogeneous ideal and
-        `R` = ``self.ring()`` be a graded commutative
-        algebra (`R = \oplus R_d`) over a field
-        `K`. Then the Hilbert function is defined as
-        `H(d) = dim_K R_d` and the Hilbert series of `I`
-        is defined as the formal power series
-        `HS(t) = \sum_0^{\infty} H(d) t^d`.
+        INPUT:
+
+        - ``grading`` -- (optional) a list or tuple of integers
+        - ``algorithm`` -- (default: ``'sage'``) must be either ``'sage'``
+          or ``'singular'``
+
+        Let `I` (which is ``self``) be a homogeneous ideal and
+        `R = \bigoplus_d R_d` (which is ``self.ring()``) be a
+        graded commutative algebra over a field `K`. Then the
+        *Hilbert function* is defined as `H(d) = dim_K R_d` and
+        the *Hilbert series* of `I` is defined as the formal power
+        series `HS(t) = \sum_{d=0}^{\infty} H(d) t^d`.
 
         This power series can be expressed as
-        `HS(t) = Q(t)/(1-t)^n` where `Q(t)` is a polynomial
-        over `Z` and `n` the number of variables in
-        `R`. This method returns `Q(t)/(1-t)^n`.
+        `HS(t) = Q(t) / (1-t)^n` where `Q(t)` is a polynomial
+        over `Z` and `n` the number of variables in `R`.
+        This method returns `Q(t) / (1-t)^n`, normalised so
+        that the leading monomial of the numerator is positive.
 
         An optional ``grading`` can be given, in which case
         the graded (or weighted) Hilbert series is given.
@@ -2437,7 +2514,7 @@ class MPolynomialIdeal_singular_repr(
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I.hilbert_series()
-            (-t^4 - t^3 - t^2 - t - 1)/(-t^2 + 2*t - 1)
+            (t^4 + t^3 + t^2 + t + 1)/(t^2 - 2*t + 1)
             sage: R.<a,b> = PolynomialRing(QQ)
             sage: J = R.ideal([a^2*b,a*b^2])
             sage: J.hilbert_series()
@@ -2447,57 +2524,81 @@ class MPolynomialIdeal_singular_repr(
              - t^10 - t^9 - t^8 - t^7 - t^6 - t^5 - t^4 - t^3 - t^2
              - t - 1)/(t^12 + t^11 + t^10 - t^2 - t - 1)
 
-            sage: J = R.ideal([a^2*b^3, a*b^4 + a^3*b^2])
-            sage: J.hilbert_series(grading=[1,2])
+            sage: K = R.ideal([a^2*b^3, a*b^4 + a^3*b^2])
+            sage: K.hilbert_series(grading=[1,2])
             (t^11 + t^8 - t^6 - t^5 - t^4 - t^3 - t^2 - t - 1)/(t^2 - 1)
-            sage: J.hilbert_series(grading=[2,1])
+            sage: K.hilbert_series(grading=[2,1])
             (2*t^7 - t^6 - t^4 - t^2 - 1)/(t - 1)
 
         TESTS::
+
+            sage: I.hilbert_series() == I.hilbert_series(algorithm = 'singular')
+            True
+            sage: J.hilbert_series() == J.hilbert_series(algorithm = 'singular')
+            True
+            sage: J.hilbert_series(grading = (10,3)) == J.hilbert_series(grading = (10,3), algorithm = 'singular')
+            True
+            sage: K.hilbert_series(grading = (1,2)) == K.hilbert_series(grading = (1,2), algorithm = 'singular')
+            True
+            sage: K.hilbert_series(grading = (2,1)) == K.hilbert_series(grading = (2,1), algorithm = 'singular')
+            True
 
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I.hilbert_series(grading=5)
             Traceback (most recent call last):
             ...
-            TypeError: Grading must be a list or a tuple of integers.
+            TypeError: grading must be a list or a tuple of integers
         """
         if not self.is_homogeneous():
-            raise TypeError("Ideal must be homogeneous.")
+            raise TypeError("ideal must be homogeneous")
 
-        t = ZZ['t'].gen()
-        n = self.ring().ngens()
+        if algorithm == 'sage':
+            from sage.rings.polynomial.hilbert import hilbert_poincare_series
 
-        if grading is None:
-            return self.hilbert_numerator(singular) / (1-t)**n
+            if grading is not None:
+                if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
+                    raise TypeError("grading must be a list or a tuple of integers")
+            gb = MPolynomialIdeal(self.ring(), [mon.lm() for mon in self.groebner_basis()])
 
-        # The check that ``grading`` is valid input is done by ``hilbert_numerator()``
-        return (self.hilbert_numerator(singular, grading)
-                / prod((1 - t**a) for a in grading))
+            return hilbert_poincare_series(gb, grading)
+        elif algorithm == 'singular':
+            t = ZZ['t'].gen()
+            n = self.ring().ngens()
+
+            if grading is None:
+                return self.hilbert_numerator(algorithm='singular') / (1 - t)**n
+
+            # The check that ``grading`` is valid input is done by ``hilbert_numerator()``
+            return (self.hilbert_numerator(algorithm='singular', grading=grading)
+                    / prod((1 - t**a) for a in grading))
+        else:
+            raise ValueError("'algorithm' must be one of 'sage' or 'singular'")
 
     @require_field
-    def hilbert_numerator(self, singular=singular_default, grading=None):
+    def hilbert_numerator(self, grading = None, algorithm = 'sage'):
         r"""
         Return the Hilbert numerator of this ideal.
 
-        Let `I` = ``self`` be a homogeneous ideal and
-        `R` = ``self.ring()`` be a graded commutative
-        algebra (`R = \oplus R_d`) over a field
-        `K`. Then the Hilbert function is defined as
-        `H(d) = dim_K R_d` and the Hilbert series of `I`
-        is defined as the formal power series
-        `H(d) = dim_K R_d` and the Hilbert series of `I`
-        is defined as the formal power series
-        `HS(t) = \sum_0^{\infty} H(d) t^d`.
+        INPUT:
+
+        - ``grading`` -- (optional) a list or tuple of integers
+        - ``algorithm`` -- (default: ``'sage'``) must be either ``'sage'``
+          or ``'singular'``
+
+        Let `I` (which is ``self``) be a homogeneous ideal and
+        `R = \bigoplus_d R_d` (which is ``self.ring()``) be a
+        graded commutative algebra over a field `K`. Then the
+        *Hilbert function* is defined as `H(d) = dim_K R_d` and
+        the *Hilbert series* of `I` is defined as the formal power
+        series `HS(t) = \sum_{d=0}^{\infty} H(d) t^d`.
 
         This power series can be expressed as
-        `HS(t) = Q(t)/(1-t)^n` where `Q(t)` is a polynomial
-        over `Z` and `n` the number of variables in
-        `R`. This method returns `Q(t)`, the numerator;
-        hence the name, `hilbert_numerator`.
-
-        An optional ``grading`` can be given, in which case
-        the graded (or weighted) Hilbert numerator is given.
+        `HS(t) = Q(t) / (1-t)^n` where `Q(t)` is a polynomial
+        over `Z` and `n` the number of variables in `R`. This
+        method returns `Q(t)`, the numerator; hence the name,
+        ``hilbert_numerator``. An optional ``grading`` can be given, in
+        which case the graded (or weighted) Hilbert numerator is given.
 
         EXAMPLES::
 
@@ -2511,26 +2612,47 @@ class MPolynomialIdeal_singular_repr(
             t^4 - 2*t^3 + 1
             sage: J.hilbert_numerator(grading=(10,3))
             t^26 - t^23 - t^16 + 1
+
+        TESTS::
+
+            sage: I.hilbert_numerator() == I.hilbert_numerator(algorithm = 'singular')
+            True
+            sage: J.hilbert_numerator() == J.hilbert_numerator(algorithm = 'singular')
+            True
+            sage: J.hilbert_numerator(grading=(10,3)) == J.hilbert_numerator(grading=(10,3), algorithm = 'singular')
+            True
+
         """
         if not self.is_homogeneous():
             raise TypeError("Ideal must be homogeneous.")
 
-        import sage.libs.singular.function_factory
-        hilb = sage.libs.singular.function_factory.ff.hilb
+        if algorithm == 'sage':
+            from sage.rings.polynomial.hilbert import first_hilbert_series
 
-        gb = self.groebner_basis()
-        t = ZZ['t'].gen()
-        n = self.ring().ngens()
-        gb = MPolynomialIdeal(self.ring(), gb)
-        if grading is not None:
-            if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
-                raise TypeError("Grading must be a list or a tuple of integers.")
+            if grading is not None:
+                if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
+                    raise TypeError("grading must be a list or a tuple of integers")
+            gb = MPolynomialIdeal(self.ring(), [mon.lm() for mon in self.groebner_basis()])
 
-            hs = hilb(gb, 1, tuple(grading), attributes={gb: {'isSB': 1}})
+            return first_hilbert_series(gb, grading)
+        elif algorithm == 'singular':
+            import sage.libs.singular.function_factory
+            hilb = sage.libs.singular.function_factory.ff.hilb
+
+            gb = self.groebner_basis()
+            t = ZZ['t'].gen()
+            n = self.ring().ngens()
+            gb = MPolynomialIdeal(self.ring(), gb)
+            if grading is not None:
+                if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
+                    raise TypeError("grading must be a list or a tuple of integers")
+
+                hs = hilb(gb, 1, tuple(grading), attributes={gb: {'isSB': 1}})
+            else:
+                hs = hilb(gb, 1, attributes={gb: {'isSB': 1}})
+            return sum(ZZ(hs[i]) * t**i for i in range(len(hs)-1))
         else:
-            hs = hilb(gb, 1, attributes={gb: {'isSB': 1}})
-        return sum(ZZ(hs[i]) * t ** i for i in range(len(hs)-1))
-
+            raise ValueError("'algorithm' must be one of 'sage' or 'singular'")
 
     @require_field
     def _normal_basis_libsingular(self):
@@ -3240,8 +3362,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         else:
             other_new = other
 
-        if set(self.gens()) == set(other_new.gens()):
-            return rich_to_bool(op, 0)
+        s_gens = self.gens()
+        o_gens = other_new.gens()
+        try:
+            if (s_gens == o_gens) or (set(s_gens) == set(o_gens)):
+                # the first clause works in the non-hashable case
+                return rich_to_bool(op, 0)
+        except TypeError:
+            pass
 
         # comparison for <=
         # needs just the Groebner basis for other
@@ -3646,9 +3774,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: R.<X,Y,Z> = F[]
             sage: I = Ideal([f + P.random_element() for f in sage.rings.ideal.Katsura(R).gens()])
             sage: I.groebner_basis()
-            [Z^3 + (79/105*t^2 - 79/105*t + 79/630)*Z^2 + (-11/105*t^4 + 22/105*t^3 - 17/45*t^2 + 197/630*t + 557/1890)*Y + ...,
-            Y^2 + (-3/5)*Z^2 + (2/5*t^2 - 2/5*t + 1/15)*Y + (-2/5*t^2 + 2/5*t - 1/15)*Z - 1/10*t^4 + 1/5*t^3 - 7/30*t^2 + 2/5*t + 11/90,
-            Y*Z + 6/5*Z^2 + (1/5*t^2 - 1/5*t + 1/30)*Y + (4/5*t^2 - 4/5*t + 2/15)*Z + 1/5*t^4 - 2/5*t^3 + 7/15*t^2 - 3/10*t - 11/45, X + 2*Y + 2*Z + t^2 - t - 1/3]
+            [Z^3 + (-79/105*t - 79/70)*Z^2 + (2/15*t^2 - 74/315*t + 94/105)*Y + (2/35*t^2 + 194/315*t + 1/105)*Z - 4/105*t^2 - 17/210*t - 1/28, Y^2 + (-3/5)*Z^2 + (-2/5*t - 3/5)*Y + (2/5*t + 3/5)*Z - 4/15*t + 1/2, Y*Z + 6/5*Z^2 + (-1/5*t - 3/10)*Y + (-4/5*t - 6/5)*Z + 8/15*t - 1/2, X + 2*Y + 2*Z - t - 2]
 
         In cases where a characteristic cannot be determined, we use a toy implementation of Buchberger's algorithm
         (see :trac:`6581`)::
@@ -4115,7 +4241,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         dreg = 0
         s = prod([1-z**d for d in degs]) / (1-z)**n
         for dreg in range(sum(degs)):
-            if s[dreg] < 0:
+            if s[dreg] <= 0:
                 return ZZ(dreg)
         else:
             raise ValueError("BUG: Could not compute the degree of semi-regularity")

@@ -879,7 +879,7 @@ class FractionField_1poly_field(FractionField_generic):
 
             sage: R.<t> = QQ[]; K = R.fraction_field()
             sage: K._element_class
-            <class 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
+            <type 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
         """
         FractionField_generic.__init__(self, R, element_class)
 
@@ -984,6 +984,7 @@ class FractionField_1poly_field(FractionField_generic):
         return super(FractionField_1poly_field, self)._coerce_map_from_(R)
 
 
+
 class FractionFieldEmbedding(DefaultConvertMap_unique):
     r"""
     The embedding of an integral domain into its field of fractions.
@@ -1033,7 +1034,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
         EXAMPLES:
 
         The map from an integral domain to its fraction field is always
-        injective:
+        injective::
 
             sage: R.<x> = QQ[]
             sage: R.fraction_field().coerce_map_from(R).is_injective()

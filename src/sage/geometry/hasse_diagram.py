@@ -44,7 +44,7 @@ def lattice_from_incidences(atom_to_coatoms, coatom_to_atoms,
       implementation will just return these two tuples as a tuple;
 
     - ``required_atoms`` -- list of atoms (default:None). Each
-      non-empty "face" requires at least on of the specified atoms
+      non-empty "face" requires at least one of the specified atoms
       present. Used to ensure that each face has a vertex.
 
     - ``key`` -- any hashable value (default: None). It is passed down

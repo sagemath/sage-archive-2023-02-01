@@ -58,7 +58,7 @@ cdef class Iterator(object):
                 else:
                     noncom_i.append(j)
             noncom.append(noncom_i)
-        noncom.append(range(n))
+        noncom.append(list(range(n)))
         return noncom
 
     def __init__(self, W, int N, str algorithm="depth", bint tracking_words=True,
@@ -79,7 +79,7 @@ cdef class Iterator(object):
         self.tracking_words = tracking_words
 
         if order is None:
-            self.order = range(self.n)
+            self.order = list(range(self.n))
 
         # "breadth" is 1.5x slower than "depth" since it uses
         # a deque with popleft instead of a list with pop
@@ -340,20 +340,22 @@ cdef class Iterator(object):
         20% faster. It yields indeed all elements in the group rather than
         applying a given function.
 
+        The output order is not deterministic.
+
         EXAMPLES::
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
             sage: W = CoxeterGroup(['B',2], implementation="permutation")
             sage: I = Iterator(W, W.number_of_reflections())
-            sage: list(I.iter_parabolic())
+            sage: sorted(I.iter_parabolic())
             [(),
-             (1,3)(2,6)(5,7),
              (2,8)(3,7)(4,6),
+             (1,3)(2,6)(5,7),
              (1,3,5,7)(2,8,6,4),
              (1,5)(2,4)(6,8),
-             (1,7,5,3)(2,4,6,8),
              (1,5)(2,6)(3,7)(4,8),
-             (1,7)(3,5)(4,8)]
+             (1,7)(3,5)(4,8),
+             (1,7,5,3)(2,4,6,8)]
         """
         cdef int i,j
         cdef list coset_reps
@@ -362,14 +364,14 @@ cdef class Iterator(object):
         cdef list elts = [W.one()]
 
         for i in range(1, self.n):
-            coset_reps = reduced_coset_repesentatives(W, self.order[:i],
-                                                      self.order[:i-1], True)
+            coset_reps = reduced_coset_representatives(W, self.order[:i],
+                                                       self.order[:i-1], True)
             elts = [_new_mul_(<PermutationGroupElement>w, <PermutationGroupElement>v)
                     for w in elts for v in coset_reps]
         # the list ``elts`` now contains all prods of red coset reps
 
-        coset_reps = reduced_coset_repesentatives(W, self.order,
-                                                  self.order[:len(self.order)-1], True)
+        coset_reps = reduced_coset_representatives(W, self.order,
+                                                   self.order[:len(self.order)-1], True)
 
         for w in elts:
             for v in coset_reps:
@@ -414,7 +416,7 @@ def iterator_tracking_words(W):
         ((1,24,12,2)(3,20,19,6)(4,5,22,17)(7,13,23,11)(8,10,9,21)(14,15,18,16), [0, 0, 1, 1, 0, 0])
     """
     cdef tuple S = tuple(W.simple_reflections())
-    cdef list index_list = range(len(S))
+    cdef list index_list = list(range(len(S)))
 
     cdef list level_set_cur = [(W.one(), [])]
     cdef set level_set_old = set([ W.one() ])
@@ -499,7 +501,7 @@ cpdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S
             si = <PermutationGroupElement>(S[i])
             w = _new_mul_(w, si)
 
-cdef list reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small,
+cdef list reduced_coset_representatives(W, list parabolic_big, list parabolic_small,
                                        bint right):
     cdef tuple S = tuple(W.simple_reflections())
     cdef int N = W.number_of_reflections()
@@ -550,7 +552,8 @@ def parabolic_iteration_application(W, f):
         True
     """
     cdef int i
-    cdef list coset_reps = [reduced_coset_repesentatives(W, range(i+1), range(i), True)
+    cdef list coset_reps = [reduced_coset_representatives(W, list(range(i+1)),
+                                                          list(range(i)), True)
                             for i in range(W.rank())]
 
     parabolic_recursive(W.one(), coset_reps, f)
@@ -602,7 +605,7 @@ cdef PermutationGroupElement _new_mul_(PermutationGroupElement left, Permutation
         prod.perm = <int *> sig_malloc(n_sizeofint)
 
     cdef int i
-    for i in range(n):#from 0 <= i < n:
+    for i in range(n):
         prod.perm[i] = right.perm[left.perm[i]]
 
     return prod

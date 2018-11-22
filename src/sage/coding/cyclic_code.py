@@ -224,7 +224,8 @@ def bch_bound(n, D, arithmetic=False):
     else:
         n = Integer(n)
         longest_streak_list = [(longest_streak(step), step)
-                               for step in n.coprime_integers(n // 2 + 1)]
+                               for step in n.coprime_integers(n // 2 + 1)
+                               if step >= 1]
         (max_len, offset), step = max(longest_streak_list)
         return (max_len + 1, (step, offset))
 

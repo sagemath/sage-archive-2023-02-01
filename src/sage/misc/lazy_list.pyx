@@ -353,7 +353,7 @@ def lazy_list_formatter(L, name='lazy list',
     if s:
         s += ' '
     s += opening_delimiter
-    cdef list P = list(islice(L, preview+1))
+    cdef list P = list(islice(L, int(preview + 1)))
     cdef list E = list(repr(e) for e in P[:preview])
     if len(P) > preview:
         E.append(more)

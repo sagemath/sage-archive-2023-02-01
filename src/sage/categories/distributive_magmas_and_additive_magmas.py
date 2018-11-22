@@ -90,7 +90,7 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = (Magmas() & AdditiveMagmas()).Distributive().CartesianProducts()
-                sage: C.extra_super_categories();
+                sage: C.extra_super_categories()
                 [Category of distributive magmas and additive magmas]
                 sage: C.axioms()
                 frozenset({'Distributive'})

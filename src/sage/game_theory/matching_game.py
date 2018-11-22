@@ -269,10 +269,10 @@ class MatchingGame(SageObject):
         ....:                 'C': ('K', 'M', 'L', 'J'),
         ....:                 'D': ('M', 'K', 'J', 'L')}
         sage: m = MatchingGame([suitr_pref, reviewr_pref])
-        sage: m._suitors
-        ['J', 'K', 'L', 'M']
-        sage: m._reviewers
-        ['A', 'B', 'C', 'D']
+        sage: m.suitors()
+        ('J', 'K', 'L', 'M')
+        sage: m.reviewers()
+        ('A', 'B', 'C', 'D')
 
     Also works for numbers::
 

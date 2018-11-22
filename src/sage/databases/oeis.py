@@ -1833,6 +1833,19 @@ class FancyTuple(tuple):
         return self.__getitem__(slice(i, j))
 
     def __getitem__(self, x):
+        r"""
+        If ``x`` is a slice return the corresponding sub FancyTuple,
+        else return the `̀`x``-th item of ``self``.
+
+        TESTS::
+            sage: from sage.databases.oeis import FancyTuple
+            sage: t = ('é', 'è', 'à', 'ç')
+            sage: ft = FancyTuple(t)
+            sage: ft[0]
+            'é'
+            sage: ft[-1]
+            'ç'
+        """
         res = tuple.__getitem__(self, x)
         if isinstance(res, tuple):
             res = FancyTuple(res)

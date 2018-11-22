@@ -372,8 +372,13 @@ def _setup_r_to_sage_converter():
     cv.ri2py.register(object, lambda obj: obj)
 
     def float_to_int_if_possible(f):
-        # preserve the behaviour of the old r parser, e.g. return 1 instead of 1.0
-        return int(f) if isinstance(f, int) or f.is_integer() else f
+        # First, round the float to at most 15 significant places.
+        # This is what R does by default when using `dput`. It prevents
+        # platform-specific fluctuations.
+        f = float('%.15g' % f)
+        # Preserve the behaviour of the old r parser, e.g. return 1 instead of 1.0
+        float_or_int = int(f) if isinstance(f, int) or f.is_integer() else f
+        return float_or_int
     cv.ri2py.register(float, float_to_int_if_possible)
 
     def list_to_singleton_if_possible(l):

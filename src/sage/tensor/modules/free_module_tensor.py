@@ -855,20 +855,6 @@ class FreeModuleTensor(ModuleElement):
             T^22_1 = 7/24
             T^22_2 = 23/24
 
-        Parallel computation::
-
-            sage: Parallelism().set('tensor', nproc=2)
-            sage: t.display_comp(basis=f)
-            T^11_1 = 29/24
-            T^11_2 = 13/24
-            T^12_1 = 3/4
-            T^12_2 = 3/4
-            T^21_1 = 3/4
-            T^21_2 = 3/4
-            T^22_1 = 7/24
-            T^22_2 = 23/24
-            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
-
         """
         if basis is None:
             basis = self._fmodule._def_basis

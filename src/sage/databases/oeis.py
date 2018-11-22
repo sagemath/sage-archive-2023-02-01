@@ -1842,10 +1842,10 @@ class FancyTuple(tuple):
             sage: from sage.databases.oeis import FancyTuple
             sage: t = ('é', 'è', 'à', 'ç')
             sage: ft = FancyTuple(t)
-            sage: ft[0]
-            'é'
-            sage: ft[-1]
-            'ç'
+            sage: ft[0] == 'é'
+            True
+            sage: ft[-1] == 'ç'
+            True
         """
         res = tuple.__getitem__(self, x)
         if isinstance(res, tuple):

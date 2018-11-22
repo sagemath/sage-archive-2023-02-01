@@ -600,7 +600,8 @@ class Function_Fresnel_sin(BuiltinFunction):
                                  conversions=dict(maxima='fresnel_s',
                                                   sympy='fresnels',
                                                   mathematica='FresnelS',
-                                                  maple='FresnelS'))
+                                                  maple='FresnelS',
+                                                  fricas='fresnelS'))
 
     def _eval_(self, x):
         r"""
@@ -697,7 +698,8 @@ class Function_Fresnel_cos(BuiltinFunction):
                                  conversions=dict(maxima='fresnel_c',
                                                   sympy='fresnelc',
                                                   mathematica='FresnelC',
-                                                  maple='FresnelC'))
+                                                  maple='FresnelC',
+                                                  fricas='fresnelC'))
 
     def _eval_(self, x):
         r"""

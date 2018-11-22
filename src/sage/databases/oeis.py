@@ -1838,6 +1838,7 @@ class FancyTuple(tuple):
         else return the `̀`x``-th item of ``self``.
 
         TESTS::
+
             sage: from sage.databases.oeis import FancyTuple
             sage: t = ('é', 'è', 'à', 'ç')
             sage: ft = FancyTuple(t)

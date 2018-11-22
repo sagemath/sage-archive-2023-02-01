@@ -1896,7 +1896,7 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
 
-        - ``field`` -- a field (default: `\mathbb{Q}`), to be used as the
+        - ``field`` -- a field (default: `\QQ`), to be used as the
           base ring for the algebra (can also be a commutative ring, but
           then certain representation-theoretical methods might misbehave)
 
@@ -2634,7 +2634,7 @@ class HyperplaneArrangementElement(Element):
 
     @cached_method(key=lambda self,a: None)
     def is_free(self, algorithm="singular"):
-        """
+        r"""
         Return if ``self`` is free.
 
         A hyperplane arrangement `A` is free if the module

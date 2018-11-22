@@ -49,13 +49,23 @@ equivalent::
     sage: libgap.eval('5/3 + 7*E(3)').sage()
     7*zeta3 + 5/3
 
-    sage: generators = libgap.AlternatingGroup(4).GeneratorsOfGroup().sage()
+    sage: gens_of_group = libgap.AlternatingGroup(4).GeneratorsOfGroup()
+    sage: generators = gens_of_group.sage()
     sage: generators   # a Sage list of Sage permutations!
-    [(1,2,3), (2,3,4)]
+    [[2, 3, 1], [1, 3, 4, 2]]
     sage: PermutationGroup(generators).cardinality()   # computed in Sage
     12
     sage: libgap.AlternatingGroup(4).Size()            # computed in GAP
     12
+
+We can also specify which group in Sage the permutations should
+consider themselves as elements of when converted to Sage::
+
+    sage: A4 = groups.permutation.Alternating(4)
+    sage: generators = gens_of_group.sage(parent=A4); generators
+    [(1,2,3), (2,3,4)]
+    sage: all(gen.parent() is A4 for gen in generators)
+    True
 
 So far, the following GAP data types can be directly converted to the
 corresponding Sage datatype:

@@ -402,14 +402,16 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W.cartan_type()                                       # optional - gap3
             ['A', 3]
 
-            sage: W = ReflectionGroup(['A',3], ['B',2])                 # optional - gap3
+            sage: W = ReflectionGroup(['A',3], ['B',3])                 # optional - gap3
             sage: W.cartan_type()                                       # optional - gap3
-            A3xB2
+            A3xB3 relabelled by {1: 3, 2: 2, 3: 1}                      
         """
         if len(self._type) == 1:
             ct = self._type[0]
             C = CartanType([ct['series'], ct['rank']])
-            return C.relabel({ i+1 : ii for i,ii in enumerate(self.index_set()) })
+            CG = C.coxeter_diagram()
+            G = self.coxeter_diagram()
+            return C.relabel(CG.is_isomorphic(G, edge_labels=True, certificate=True)[1])
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 
@@ -580,6 +582,29 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [(3/4, 1/2, 1/4), (1/2, 1, 1/2), (1/4, 1/2, 3/4)]
         """
         return self.fundamental_weights()[i]
+
+    @cached_method
+    def coxeter_diagram(self):
+        """
+        Return the Coxeter diagram associated to ``self``.
+
+        EXAMPLES::
+
+            sage: G = ReflectionGroup(['B',3])                          # optional - gap3
+            sage: sorted(G.coxeter_diagram().edges(labels=True))        # optional - gap3
+            [(1, 2, 4), (2, 3, 3)]
+        """
+        from sage.graphs.graph import Graph
+        from itertools import combinations
+
+        V = self.index_set()
+        S = self.simple_reflections()
+        E = []
+        for i,j in combinations(V, 2):
+            o = (S[i]*S[j]).order()
+            if o >= 3:
+                E.append((i,j,o))
+        return Graph([V,E], format='vertices_and_edges', immutable=True)
 
     @cached_method
     def coxeter_matrix(self):

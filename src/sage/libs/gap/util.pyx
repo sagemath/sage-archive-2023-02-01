@@ -165,13 +165,21 @@ def gap_root():
         sage: from sage.libs.gap.util import gap_root
         sage: gap_root()   # random output
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
+
+    If GAP_ROOT_DIR is undefined or pointing to the wrong location,
+    fall back code should be used to determine gapdir::
+
+        sage: import os
+        sage: os.system("GAP_ROOT_DIR=/not_a_path sage -c \"sage.libs.gap.util.gap_root()\"")
+        The gap-4.5.5.spkg (or later) seems to be not installed!
+        ...
     """
     import os.path
     if os.path.exists(GAP_ROOT_DIR):
         return GAP_ROOT_DIR
     print('The gap-4.5.5.spkg (or later) seems to be not installed!')
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
-    gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]
+    gapdir = next(dir for dir in gap_sh if dir.strip().startswith('GAP_DIR'))
     gapdir = gapdir.split('"')[1]
     gapdir = gapdir.replace('$SAGE_LOCAL', SAGE_LOCAL)
     return gapdir

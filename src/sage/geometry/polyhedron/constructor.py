@@ -286,10 +286,9 @@ AUTHORS:
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.rings.all import ZZ, RDF, RR
 
@@ -301,7 +300,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
                ambient_dim=None, base_ring=None, minimize=True, verbose=False,
                backend=None):
-    """
+    r"""
     Construct a polyhedron object.
 
     You may either define it with vertex/ray/line or
@@ -433,6 +432,20 @@ def Polyhedron(vertices=None, rays=None, lines=None,
          A vertex at (0, 31/2, 31/2, 0, 0, 0), A vertex at (0, 31/2, 0, 0, 31/2, 0),
          A vertex at (0, 0, 0, 31/2, 31/2, 0))
 
+    Regular icosahedron, centered at `0` with edge length `2`, with vertices given
+    by the cyclic shifts of `(0, \pm 1, \pm (1+\sqrt(5))/2)`, cf.
+    :wikipedia:`Regular_icosahedron`. It needs a number field::
+
+        sage: R0.<r0> = QQ[]
+        sage: R1.<r1> = NumberField(r0^2-5, embedding=AA(5)**(1/2))
+        sage: grat = (1+r1)/2
+        sage: v = [[0, 1, grat], [0, 1, -grat], [0, -1, grat], [0, -1, -grat]]
+        sage: pp = Permutation((1, 2, 3))
+        sage: icosah = Polyhedron([(pp^2).action(w) for w in v]
+        ....:             + [pp.action(w) for w in v] + v, base_ring=R1)
+        sage: len(icosah.faces(2))
+        20
+
     When the input contains elements of a Number Field, they require an
     embedding::
 
@@ -493,16 +506,20 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         Traceback (most recent call last):
         ...
         ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+
+    .. SEEALSO::
+
+        :mod:`Library of polytopes <sage.geometry.polyhedron.library>`
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)
-    rays     = _make_listlist(rays)
-    lines    = _make_listlist(lines)
-    ieqs     = _make_listlist(ieqs)
-    eqns     = _make_listlist(eqns)
+    rays = _make_listlist(rays)
+    lines = _make_listlist(lines)
+    ieqs = _make_listlist(ieqs)
+    eqns = _make_listlist(eqns)
 
-    got_Vrep = (len(vertices+rays+lines) > 0)
-    got_Hrep = (len(ieqs+eqns) > 0)
+    got_Vrep = (len(vertices + rays + lines) > 0)
+    got_Hrep = (len(ieqs + eqns) > 0)
 
     if got_Vrep and got_Hrep:
         raise ValueError('cannot specify both H- and V-representation.')
@@ -567,7 +584,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
     # Add the origin if necessary
     if got_Vrep and len(vertices) == 0:
-        vertices = [ [0]*ambient_dim ]
+        vertices = [[0] * ambient_dim]
 
     # Specific backends can override the base_ring
     from sage.geometry.polyhedron.parent import Polyhedra

@@ -18,8 +18,8 @@ from six import integer_types
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
-    ('gamma', 'log_gamma', 'gamma_inc', 'incomplete_gamma',
-      'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
+            ('gamma', 'log_gamma', 'gamma_inc',
+             'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -389,7 +389,7 @@ class Function_ceil(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: ceil(a)
-            array([ 0.,  1.,  1.,  2.,  2.,  2.])
+            array([0., 1., 1., 2., 2., 2.])
 
         Test pickling::
 
@@ -438,7 +438,22 @@ class Function_ceil(BuiltinFunction):
             8
             sage: ceil(x)
             ceil(x)
+
+            sage: var('x',domain='integer')
+            x
+            sage: ceil(x)
+            x
+            sage: ceil(factorial(x) + binomial(x^2, x))
+            binomial(x^2, x) + factorial(x)
+            sage: ceil(gamma(abs(2*x)+1) * real(x))
+            x*gamma(2*abs(x) + 1)
+            sage: forget()
         """
+        try:
+            if SR(x).variables() and x.is_integer():
+                return x
+        except TypeError:
+            pass
         try:
             return x.ceil()
         except AttributeError:
@@ -538,7 +553,7 @@ class Function_floor(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: floor(a)
-            array([ 0.,  0.,  0.,  1.,  1.,  2.])
+            array([0., 0., 0., 1., 1., 2.])
             sage: floor(x)._sympy_()
             floor(x)
 
@@ -587,7 +602,22 @@ class Function_floor(BuiltinFunction):
             7
             sage: floor(x)
             floor(x)
+
+            sage: var('x',domain='integer')
+            x
+            sage: floor(x)
+            x
+            sage: floor(factorial(x) + binomial(x^2, x))
+            binomial(x^2, x) + factorial(x)
+            sage: floor(gamma(abs(2*x)+1) * real(x))
+            x*gamma(2*abs(x) + 1)
+            sage: forget()
         """
+        try:
+            if SR(x).variables() and x.is_integer():
+                return x
+        except TypeError:
+            pass
         try:
             return x.floor()
         except AttributeError:
@@ -839,7 +869,7 @@ def sqrt(x, *args, **kwds):
             sage: import numpy
             sage: a = numpy.arange(2,5)
             sage: sqrt(a)
-            array([ 1.41421356,  1.73205081,  2.        ])
+            array([1.41421356, 1.73205081, 2.        ])
         """
         if isinstance(x, float):
             return math.sqrt(x)
@@ -1670,6 +1700,26 @@ class Function_sum(BuiltinFunction):
         return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
                                                       latex(b), latex(x))
 
+    def _sympy_(self, term, k, a, n):
+        """
+        Convert to sympy Sum.
+
+        EXAMPLES::
+
+            sage: var('k, n')
+            (k, n)
+            sage: s = sum(k, k, 1, n, hold=True)
+            sage: s
+            sum(k, k, 1, n)
+            sage: s._sympy_() # indirect test
+            Sum(k, (k, 1, n))
+            sage: s._sympy_().doit()
+            n**2/2 + n/2
+
+        """
+        import sympy
+        return sympy.Sum(term, (k, a, n))
+
 symbolic_sum = Function_sum()
 
 
@@ -1717,6 +1767,21 @@ class Function_prod(BuiltinFunction):
         """
         return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
                                                        latex(b), latex(x))
+
+    def _sympy_(self, term, k, a, n):
+        """
+        Convert to sympy Product.
+
+        EXAMPLES::
+
+            sage: var('k, n')
+            (k, n)
+            sage: p = product(k^2+k+1,k,1,n, hold=True)
+            sage: p._sympy_() # indirect test
+            Product(k**2 + k + 1, (k, 1, n))
+        """
+        import sympy
+        return sympy.Product(term, (k, a, n))
 
 symbolic_product = Function_prod()
 
@@ -1876,10 +1941,14 @@ class Function_cases(GinacFunction):
 
         TESTS::
 
-            sage: cases()
+            sage: cases()  # py2
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
+            sage: cases()  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() missing 1 required positional argument: 'l'
 
             sage: cases(x)
             Traceback (most recent call last):

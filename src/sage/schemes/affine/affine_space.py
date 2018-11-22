@@ -7,7 +7,7 @@ Affine `n` space over a ring
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 from six import integer_types
@@ -21,7 +21,6 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.map import Map
 from sage.categories.fields import Fields
 _Fields = Fields()
-from sage.categories.homset import End
 from sage.categories.number_fields import NumberFields
 from sage.misc.all import latex
 from sage.structure.category_object import normalize_names
@@ -283,6 +282,19 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(AffineSpace(QQ,3,'a')) == hash(AffineSpace(ZZ,3,'a'))
+            False
+            sage: hash(AffineSpace(ZZ,1,'a')) == hash(AffineSpace(ZZ,0,'a'))
+            False
+        """
+        return hash((self.dimension_relative(), self.coordinate_ring()))
+
     def _latex_(self):
         r"""
         Return a LaTeX representation of this affine space.
@@ -295,7 +307,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         TESTS::
 
             sage: AffineSpace(3, Zp(5), 'y')._latex_()
-            '\\mathbf{A}_{\\ZZ_{5}}^3'
+            '\\mathbf{A}_{\\Bold{Z}_{5}}^3'
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
@@ -687,6 +699,16 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: A.<x,y> = AffineSpace(ZZ, 2)
             sage: A.projective_embedding(2).codomain().affine_patch(2) == A
             True
+
+        TESTS:
+
+        Check that :trac:`25897` is fixed::
+
+            sage: A.<x,y> = AffineSpace(ZZ, 2)
+            sage: A.projective_embedding(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument i (=4) must be between 0 and 2, inclusive
         """
         n = self.dimension_relative()
         if i is None:
@@ -717,7 +739,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         R = self.coordinate_ring()
         v = list(R.gens())
-        if n < 0 or n >self.dimension_relative():
+        if i < 0 or i > n:
             raise ValueError("argument i (=%s) must be between 0 and %s, inclusive"%(i,n))
         v.insert(i, R(1))
         phi = self.hom(v, PP)

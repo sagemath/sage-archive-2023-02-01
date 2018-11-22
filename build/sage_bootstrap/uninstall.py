@@ -56,7 +56,7 @@ PKGS = pth.join(SAGE_ROOT, 'build', 'pkgs')
 """Directory where all spkg sources are found."""
 
 
-def uninstall(spkg_name, sage_local, verbose=False):
+def uninstall(spkg_name, sage_local, keep_files=False, verbose=False):
     """
     Given a package name and path to SAGE_LOCAL, uninstall that package from
     SAGE_LOCAL if it is currently installed.
@@ -81,6 +81,12 @@ def uninstall(spkg_name, sage_local, verbose=False):
 
     stamp_file = stamp_files[-1]
 
+    if keep_files:
+        print("Removing stamp file '{0}' but keeping package files".format(
+            stamp_file))
+        remove_stamp_files(stamp_files)
+        return
+
     try:
         with open(stamp_file) as f:
             spkg_meta = json.load(f)
@@ -100,11 +106,7 @@ def uninstall(spkg_name, sage_local, verbose=False):
 
         modern_uninstall(spkg_name, sage_local, files, verbose=verbose)
 
-    # Finally, if all went well, delete all the stamp files.
-    for stamp_file in stamp_files:
-        if verbose:
-            print('rm "{}"'.format(stamp_file))
-        os.remove(stamp_file)
+    remove_stamp_files(stamp_files, verbose=verbose)
 
 
 def legacy_uninstall(spkg_name, verbose=False):
@@ -182,12 +184,14 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
                 os.rmdir(dirname)
         else:
             print("Warning: Directory '{0}' not found".format(
-                cur_dir), file=sys.stderr)
+                dirname), file=sys.stderr)
 
     # Remove the files; if a directory is empty after removing a file
     # from it, remove the directory too.
     for filename in files:
-        filename = pth.join(sage_local, filename)
+        # Just in case: use lstrip to remove leading "/" from
+        # filename. See https://trac.sagemath.org/ticket/26013.
+        filename = pth.join(sage_local, filename.lstrip(os.sep))
         dirname = pth.dirname(filename)
         if os.path.exists(filename):
             if verbose:
@@ -218,6 +222,14 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
         shutil.rmtree(spkg_scripts)
     except Exception:
         pass
+
+
+def remove_stamp_files(stamp_files, verbose=False):
+    # Finally, if all went well, delete all the stamp files.
+    for stamp_file in stamp_files:
+        if verbose:
+            print('rm "{}"'.format(stamp_file))
+        os.remove(stamp_file)
 
 
 def run_spkg_script(spkg_name, path, script_name, script_descr):
@@ -276,6 +288,10 @@ def make_parser():
                              'environment variable if set)')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='verbose output showing all files removed')
+    parser.add_argument('-k', '--keep-files', action='store_true',
+                        help="only delete the package's installation record, "
+                             "but do not remove files installed by the "
+                             "package")
     parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
 
     return parser
@@ -293,7 +309,8 @@ def run(argv=None):
         sys.exit(1)
 
     try:
-        uninstall(args.spkg, args.sage_local, verbose=args.verbose)
+        uninstall(args.spkg, args.sage_local, keep_files=args.keep_files,
+                  verbose=args.verbose)
     except Exception as exc:
         print("Error during uninstallation of '{0}': {1}".format(
             args.spkg, exc), file=sys.stderr)

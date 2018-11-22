@@ -890,24 +890,32 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: MatrixSpace(GF(9,'x'),3)(sorted(list(GF(9,'x')))).list()  # indirect doctest
             [0, 1, 2, x, x + 1, x + 2, 2*x, 2*x + 1, 2*x + 2]
 
+        TESTS:
+
+        This works correctly on matrices with zero rows or columns::
+
+            sage: M = Matrix(GF(9), 0, 3); M._list()
+            []
+            sage: M = Matrix(GF(9), 3, 0); M._list()
+            []
+            sage: M = Matrix(GF(9), 0, 0); M._list()
+            []
         """
-        cdef list x = self.fetch('list')
-        if not x is None:
-            return x
-        x = []
-        cdef int i
-        if self.Data:
-            FfSetField(self.Data.Field)
-            FfSetNoc(self.Data.Noc)
-        else:
-            raise IndexError("Matrix is empty")
-        cdef PTR p
+        L = self.fetch('list')
+        if L is not None:
+            return L
+        if self.Data is NULL:
+            raise IndexError("matrix is empty")
+        FfSetField(self.Data.Field)
+        FfSetNoc(self.Data.Noc)
+        cdef list x = []
+        cdef int i, j
         p = self.Data.Data
-        for i in range(1, self.Data.Nor):
-            x.extend([self._converter.int_to_field(FfToInt(FfExtract(p,j))) for j in range(self.Data.Noc)])
-            FfStepPtr(&(p))
+        for i in range(self.Data.Nor):
             sig_check()
-        x.extend([self._converter.int_to_field(FfToInt(FfExtract(p,j))) for j in range(self.Data.Noc)])
+            for j in range(self.Data.Noc):
+                x.append(self._converter.int_to_field(FfToInt(FfExtract(p,j))))
+            FfStepPtr(&p)
         self.cache('list', x)
         return x
 

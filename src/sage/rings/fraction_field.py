@@ -688,6 +688,23 @@ class FractionField_generic(ring.Field):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h0 = hash(Frac(ZZ['x']))
+            sage: h1 = hash(Frac(ZZ['x']))
+            sage: h2 = hash(Frac(QQ['x']))
+            sage: h3 = hash(ZZ['x'])
+            sage: h0 == h1 and h1 != h2 and h1 != h3
+            True
+        """
+        # to avoid having exactly the same hash as the base ring,
+        # we change this hash using a random number
+        return hash(self._R) ^ 147068341996611
+
     def ngens(self):
         """
         This is the same as for the parent object.
@@ -862,7 +879,7 @@ class FractionField_1poly_field(FractionField_generic):
 
             sage: R.<t> = QQ[]; K = R.fraction_field()
             sage: K._element_class
-            <class 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
+            <type 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
         """
         FractionField_generic.__init__(self, R, element_class)
 
@@ -967,6 +984,7 @@ class FractionField_1poly_field(FractionField_generic):
         return super(FractionField_1poly_field, self)._coerce_map_from_(R)
 
 
+
 class FractionFieldEmbedding(DefaultConvertMap_unique):
     r"""
     The embedding of an integral domain into its field of fractions.
@@ -1016,7 +1034,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
         EXAMPLES:
 
         The map from an integral domain to its fraction field is always
-        injective:
+        injective::
 
             sage: R.<x> = QQ[]
             sage: R.fraction_field().coerce_map_from(R).is_injective()

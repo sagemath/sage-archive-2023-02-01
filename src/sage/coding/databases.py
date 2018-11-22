@@ -4,7 +4,7 @@ Databases and accessors of online databases for coding theory
 """
 from six.moves import range
 from sage.interfaces.all import gap
-from sage.misc.package import is_package_installed, PackageNotFoundError
+from sage.features.gap import GapPackage
 
 #Don't put any global imports here since this module is accessible as sage.codes.databases.<tab>
 
@@ -42,8 +42,7 @@ def best_linear_code_in_guava(n, k, F):
     between 2 and 4. Use ``bounds_on_minimum_distance_in_guava(10,5,GF(2))``
     for further details.
     """
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
+    GapPackage("guava", spkg="gap_packages").require()
     gap.load_package("guava")
     q = F.order()
     C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
@@ -110,8 +109,7 @@ def bounds_on_minimum_distance_in_guava(n, k, F):
           upperBound := 4,
           upperBoundExplanation := ... )
     """
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
+    GapPackage("guava", spkg="gap_packages").require()
     gap.load_package("guava")
     q = F.order()
     gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))

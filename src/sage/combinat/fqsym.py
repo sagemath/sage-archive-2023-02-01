@@ -342,7 +342,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     REFERENCES:
 
     - [MR]_
-    - [LodayRonco]_
+    - [LR1998]_
     - [GriRei18]_
     """
 
@@ -1077,7 +1077,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
               the number of blocks in our subdivision.
 
             This formula is equivalent to the formula (1.13) in
-            [AguSot05]_, since Corollary 3.2.8 in [BB05]_ expresses
+            [AguSot05]_, since Corollary 3.2.8 in [BB2005]_ expresses
             the Mobius function of the weak order.
 
             TESTS::

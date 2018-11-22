@@ -2701,40 +2701,31 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
 
         OUTPUT:
 
-
         -  ``matrix`` - whose rows are the Hecke images
-
 
         EXAMPLES::
 
             sage: M = ModularSymbols(11,4,1)
-            sage: M._hecke_images(0,[1,2,3,4])
-            [ 1  0  0  0]
-            [ 9  0  1 -1]
-            [28  2 -1 -1]
-            [73  2  5 -7]
-            sage: M.T(1)(M.0).element()
-            (1, 0, 0, 0)
-            sage: M.T(2)(M.0).element()
-            (9, 0, 1, -1)
-            sage: M.T(3)(M.0).element()
-            (28, 2, -1, -1)
-            sage: M.T(4)(M.0).element()
-            (73, 2, 5, -7)
+            sage: mat = M._hecke_images(0,[1,2,3,4])
+            sage: M.T(1)(M.0).element() == mat[0]
+            True
+            sage: M.T(2)(M.0).element() == mat[1]
+            True
+            sage: M.T(3)(M.0).element() == mat[2]
+            True
+            sage: M.T(4)(M.0).element() == mat[3]
+            True
+
             sage: M = ModularSymbols(12,4)
-            sage: M._hecke_images(0,[1,2,3,4])
-            [  1   0   0   0   0   0   0   0   0   0   0   0]
-            [  8   1  -1  -2   2   2  -3   1  -2   3  -1   0]
-            [ 27   4  -4  -8   8  10 -14   4  -9  14  -5   0]
-            [ 64  10 -10 -20  20  26 -36  10 -24  38 -14   0]
-            sage: M.T(1)(M.0).element()
-            (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-            sage: M.T(2)(M.0).element()
-            (8, 1, -1, -2, 2, 2, -3, 1, -2, 3, -1, 0)
-            sage: M.T(3)(M.0).element()
-            (27, 4, -4, -8, 8, 10, -14, 4, -9, 14, -5, 0)
-            sage: M.T(4)(M.0).element()
-            (64, 10, -10, -20, 20, 26, -36, 10, -24, 38, -14, 0)
+            sage: mat = M._hecke_images(0,[1,2,3,4])
+            sage: M.T(1)(M.0).element() == mat[0]
+            True
+            sage: M.T(2)(M.0).element() == mat[1]
+            True
+            sage: M.T(3)(M.0).element() == mat[2]
+            True
+            sage: M.T(4)(M.0).element() == mat[3]
+            True
         """
         # Find basis vector for ambient space such that it is not in
         # the kernel of the dual space corresponding to self.
@@ -2990,20 +2981,16 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         EXAMPLES::
 
             sage: M = ModularSymbols(46,2,-1)
-            sage: M._hecke_images(1,[3,4,5,6])
-            [ 0  1 -2  2  0]
-            [ 2 -3  0  0  1]
-            [ 0 -2  2 -2  0]
-            [-5  3 -1  1  0]
+            sage: mat = M._hecke_images(1,[3,4,5,6])
             sage: v = M.basis()[1]
-            sage: M.T(3)(v).element()
-            (0, 1, -2, 2, 0)
-            sage: M.T(4)(v).element()
-            (2, -3, 0, 0, 1)
-            sage: M.T(5)(v).element()
-            (0, -2, 2, -2, 0)
-            sage: M.T(6)(v).element()
-            (-5, 3, -1, 1, 0)
+            sage: M.T(3)(v).element() == mat[0]
+            True
+            sage: M.T(4)(v).element() == mat[1]
+            True
+            sage: M.T(5)(v).element() == mat[2]
+            True
+            sage: M.T(6)(v).element() == mat[3]
+            True
         """
         # Find basis vector for ambient space such that it is not in
         # the kernel of the dual space corresponding to self.

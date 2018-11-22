@@ -1559,15 +1559,15 @@ class Sets(Category_singleton):
                 sage: A.category()
                 Category of finite group algebras over Rational Field
                 sage: a = A.an_element(); a
-                () + 3*(1,2,3,4) + (1,3) + 2*(1,4)(2,3)
+                () + (1,3) + 2*(1,3)(2,4) + 3*(1,4,3,2)
 
             This space is endowed with an algebra structure, obtained
             by extending by bilinearity the multiplication of `G` to a
             multiplication on `RG`::
 
                 sage: a * a
-                6*() + 6*(2,4) + 3*(1,2)(3,4) + 8*(1,2,3,4) + 8*(1,3)
-                 + 9*(1,3)(2,4) + 2*(1,4,3,2) + 7*(1,4)(2,3)
+                6*() + 4*(2,4) + 3*(1,2)(3,4) + 12*(1,2,3,4) + 2*(1,3)
+                 + 13*(1,3)(2,4) + 6*(1,4,3,2) + 3*(1,4)(2,3)
 
             If `S` is a :class:`monoid <Monoids>`, the result is its
             monoid algebra `KS`::
@@ -2165,7 +2165,10 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 # visualize an odometer, with "wheels" displaying "digits"...:
                 factors = list(self.cartesian_factors())
                 wheels = [iter(f) for f in factors]
-                digits = [next(it) for it in wheels]
+                try:
+                    digits = [next(it) for it in wheels]
+                except StopIteration:
+                    return
                 while True:
                     yield self._cartesian_product_of_elements(digits)
                     for i in range(len(digits)-1, -1, -1):
@@ -2174,7 +2177,10 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                             break
                         except StopIteration:
                             wheels[i] = iter(factors[i])
-                            digits[i] = next(wheels[i])
+                            try:
+                                digits[i] = next(wheels[i])
+                            except StopIteration:
+                                return
                     else:
                         break
 

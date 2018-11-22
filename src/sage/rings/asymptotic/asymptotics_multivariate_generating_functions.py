@@ -1380,17 +1380,14 @@ class FractionWithFactoredDenominator(RingElement):
         decomp = FractionWithFactoredDenominatorSum()
         p = self.numerator()
         qs = [q for (q, e) in df]
+        # sort according to the term order of R
         X = sorted(R.gens())
-        var_sets_n = Set(X).subsets(n)
+        var_sets_n = sorted(sorted(s) for s in Set(X).subsets(n))
         Par = self.parent()
 
         # Compute Jacobian determinants for qs.
-        dets = []
-        for v in var_sets_n:
-            # Sort v according to the term order of R.
-            x = sorted(v)
-            jac = jacobian(qs, x)
-            dets.append(R(jac.determinant()))
+        dets = [R(jacobian(qs, x).determinant())
+                for x in var_sets_n]
 
         # Get a Nullstellensatz certificate for qs and dets.
         if self.dimension() == 1:
@@ -1427,11 +1424,9 @@ class FractionWithFactoredDenominator(RingElement):
                 break
         new_df = [list(t) for t in df]
         new_df[J][1] -= 1
-        for k in range(var_sets_n.cardinality()):
+        for k, x in enumerate(var_sets_n):
             if L[n + k] == 0:
                 continue
-            # Sort variables according to the term order of R.
-            x = sorted(var_sets_n[k])
             # Compute Jacobian in the Symbolic Ring.
             jac = jacobian([SR(p * L[n + k])] +
                            [SR(qs[j]) for j in range(n) if j != J],
@@ -3148,8 +3143,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         """
         return self.base().base_ring()
 
-    from sage.misc.decorators import rename_keyword
-    @rename_keyword(deprecation=10519, reduce_='reduce')
     def _element_constructor_(self, *args, **kwargs):
         r"""
         Returns an element of this ring.
@@ -3168,43 +3161,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         """
         R = self.base()
         Q = R.fraction_field()
-
-        # process deprecated keyword arguments
-        hasn = 'numerator' in kwargs
-        hasdf = 'denominator_factored' in kwargs
-        if hasn:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'numerator' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(n, df).")
-        if hasdf:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'denominator_factored' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(n, df).")
-        if hasn or hasdf:
-            args = [kwargs.pop('numerator') if hasn else R(0),
-                    kwargs.pop('denominator_factored') if hasdf else []]
-
-        hasq = 'quotient' in kwargs
-        if hasq:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'quotient' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(q).")
-            args = [kwargs.pop('quotient')]
-
-        if (hasn or hasdf) and hasq:
-            raise ValueError('parameters ambiguous')
 
         # process keyword arguments
         reduce = kwargs.pop('reduce', None)

@@ -508,7 +508,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             True
         """
         return not (self == other)
-    
+
     def direct_sum(self, other):
         """
         Return the direct sum.

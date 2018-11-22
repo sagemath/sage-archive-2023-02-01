@@ -778,12 +778,11 @@ class OverconvergentModularFormsSpace(Module):
         """
         return self(0)
 
-    zero_element = deprecated_function_alias(17694, zero)
-
     def _coerce_from_ocmf(self, f):
         r"""
-        Try to convert the overconvergent modular form `f` into an element of self. An error will be raised if this is
-        obviously nonsense.
+        Try to convert the overconvergent modular form `f` into an element of self.
+
+        An error will be raised if this is obviously nonsense.
 
         EXAMPLES::
 
@@ -1261,14 +1260,15 @@ class OverconvergentModularFormsSpace(Module):
             sage: OverconvergentModularForms(3, 16, 1/2, base_ring=Qp(3), prec=30).cps_u(10)
             1 + O(3^20) + (2 + 2*3 + 2*3^2 + 2*3^4 + 3^5 + 3^6 + 3^7 + 2*3^15 + O(3^16))*T + (2*3^3 + 3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 + 3^14 + 3^15 + O(3^16))*T^2 + (3^14 + 2*3^15 + 2*3^16 + 3^17 + 3^18 + O(3^19))*T^3 + (3^17 + 2*3^18 + 3^19 + 3^20 + 3^21 + O(3^24))*T^4 + (3^29 + 2*3^32 + O(3^33))*T^5 + (2*3^44 + O(3^45))*T^6 + (2*3^59 + O(3^60))*T^7 + (2*3^78 + O(3^79))*T^8
 
-        NOTES:
+        .. NOTE::
 
-        Uses the Hessenberg form of the Hecke matrix to compute the
-        characteristic polynomial.  Because of the use of relative precision
-        here this tends to give better precision in the p-adic coefficients.
+            Uses the Hessenberg form of the Hecke matrix to compute
+            the characteristic polynomial.  Because of the use of
+            relative precision here this tends to give better
+            precision in the p-adic coefficients.
         """
         m = self.hecke_matrix(self.prime(), n, use_recurrence)
-        A = PowerSeriesRing(self.base_ring(),'T')
+        A = PowerSeriesRing(self.base_ring(), 'T')
 
         # From a conversation with David Loeffler, apparently self.base_ring()
         # is either the field of rational numbers or some p-adic field.  In the

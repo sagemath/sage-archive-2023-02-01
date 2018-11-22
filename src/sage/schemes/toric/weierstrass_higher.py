@@ -30,7 +30,7 @@ X^3 - \frac{1}{4} X Z^4$.
 #*****************************************************************************
 
 from sage.rings.all import PolynomialRing
-from sage.rings.invariant_theory import invariant_theory
+from sage.rings.invariants.invariant_theory import invariant_theory
 from sage.schemes.toric.weierstrass import _check_homogeneity
 
 

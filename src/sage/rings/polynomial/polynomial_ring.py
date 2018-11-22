@@ -2372,7 +2372,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         - If ``precision = k`` for some integer ``k``, then all `f \in \F[x]` such
           that `Q(f) \equiv 0 \mod x^k` are computed. This set is infinite, thus it
-          represented as a list of pairs in `F[x] \times \mathbb{Z}_+`, where
+          represented as a list of pairs in `F[x] \times \ZZ_+`, where
           `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^k` for any `h \in
           F[[x]]`.
 
@@ -2466,7 +2466,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         - If ``precision = k`` for some integer ``k``, then all `f \in \F[x]` such
           that `Q(f) \equiv 0 \mod x^k` are computed. This set is infinite, thus it
-          represented as a list of pairs in `F[x] \times \mathbb{Z}_+`, where
+          represented as a list of pairs in `F[x] \times \ZZ_+`, where
           `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^k` for any `h \in
           F[[x]]`.
 

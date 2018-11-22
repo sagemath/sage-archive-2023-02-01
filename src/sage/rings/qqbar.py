@@ -2204,14 +2204,22 @@ def cmp_elements_with_same_minpoly(a, b, p):
 
     real = ar.union(br)
     imag = ai.union(bi)
-    roots = [r for r in roots if r._value.real().overlaps(real)
-             and r._value.imag().abs().overlaps(imag)]
-    if len(roots) == 1:
-        # There is only a single (real) root matching both descriptors
+    oroots = [r for r in roots if r._value.real().overlaps(real)
+             and r._value.imag().overlaps(imag)]
+    if len(oroots) == 0:
+        raise RuntimeError('a = {}\nb = {}\np = {}'.format(a, b, p))
+    if len(oroots) == 1:
+        # There is a single root matching both descriptors
         # so they both must be that root and therefore equal.
         return 0
-    if (len(roots) == 2 and
-        not roots[0]._value.imag().contains_zero()):
+
+    # test whether we have a conjugated pair (in which situation
+    # real part are equal)
+    imag = ai.abs().union(bi.abs())
+    oroots = [r for r in roots if r._value.real().overlaps(real)
+             and r._value.imag().abs().overlaps(imag)]
+    if (len(oroots) == 2 and
+        not oroots[0]._value.imag().contains_zero()):
         # There is a complex conjugate pair of roots matching both
         # descriptors, so compare by imaginary value.
         while ai.contains_zero():
@@ -2224,6 +2232,7 @@ def cmp_elements_with_same_minpoly(a, b, p):
             return 0
         return -1 if (ai < bi) else 1
 
+    # not able to determine equality
     return None
 
 
@@ -4073,6 +4082,18 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
             sage: QQbar.zeta(3).real() == -1/2
             True
+
+        Check that :trac:`26593` is fixed (the test here has to be repeated
+        twice)::
+
+            sage: pi = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
+            sage: b = pi.roots(ring=QQbar)[3][0]
+            sage: pi = b.minpoly()
+            sage: K = NumberField(pi, 'b', embedding=b)
+            sage: pi = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
+            sage: b = pi.roots(ring=QQbar)[3][0]
+            sage: pi = b.minpoly()
+            sage: K = NumberField(pi, 'b', embedding=b)
         """
         # note: we can assume that self is not other here
         sd = self._descr
@@ -4619,6 +4640,13 @@ class AlgebraicReal(AlgebraicNumber_base):
         od = other._descr
         if type(sd) is ANRational and type(od) is ANRational:
             return richcmp(sd._value, od._value, op)
+
+        # case 2: possibly equal values
+        # (this case happen a lot when sorting the roots of a real polynomial)
+        if self.minpoly() == other.minpoly():
+            c = cmp_elements_with_same_minpoly(self, other, self.minpoly())
+            if c is not None:
+                return rich_to_bool(op, c)
 
         if self._value.prec() < 128:
             self._more_precision()

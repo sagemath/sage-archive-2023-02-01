@@ -768,7 +768,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl.algebra_generators()
-            Finite family {'y': y, 'x': x, 'z': z}
+            Finite family {'x': x, 'y': y, 'z': z}
         """
         d = {x: self.gen(i) for i,x in enumerate(self.variable_names())}
         return Family(self.variable_names(), lambda x: d[x])

@@ -58,7 +58,7 @@ from .jones import JonesDatabase
 
 from .stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData
 
-from .sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
+from .sloane import SloaneEncyclopedia
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.databases.oeis', 'oeis')

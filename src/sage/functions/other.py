@@ -18,8 +18,8 @@ from six import integer_types
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
-    ('gamma', 'log_gamma', 'gamma_inc', 'incomplete_gamma',
-      'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
+            ('gamma', 'log_gamma', 'gamma_inc',
+             'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -389,7 +389,7 @@ class Function_ceil(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: ceil(a)
-            array([ 0.,  1.,  1.,  2.,  2.,  2.])
+            array([0., 1., 1., 2., 2., 2.])
 
         Test pickling::
 
@@ -553,7 +553,7 @@ class Function_floor(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: floor(a)
-            array([ 0.,  0.,  0.,  1.,  1.,  2.])
+            array([0., 0., 0., 1., 1., 2.])
             sage: floor(x)._sympy_()
             floor(x)
 
@@ -869,7 +869,7 @@ def sqrt(x, *args, **kwds):
             sage: import numpy
             sage: a = numpy.arange(2,5)
             sage: sqrt(a)
-            array([ 1.41421356,  1.73205081,  2.        ])
+            array([1.41421356, 1.73205081, 2.        ])
         """
         if isinstance(x, float):
             return math.sqrt(x)
@@ -1941,10 +1941,14 @@ class Function_cases(GinacFunction):
 
         TESTS::
 
-            sage: cases()
+            sage: cases()  # py2
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
+            sage: cases()  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() missing 1 required positional argument: 'l'
 
             sage: cases(x)
             Traceback (most recent call last):

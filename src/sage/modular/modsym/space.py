@@ -2260,7 +2260,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         is rational. In fact, for each elliptic curve quotient, the
         `\QQ`-rational subgroup of the image of the cuspidal subgroup
         in the quotient is a nontrivial subgroup of `E(\QQ)_{tor}`.
-        Thus not all torsion in the quotient is cuspidal!
+        Thus not all torsion in the quotient is cuspidal!::
 
             sage: M = ModularSymbols(66).cuspidal_subspace().new_subspace()
             sage: D = M.decomposition()

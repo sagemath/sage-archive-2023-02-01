@@ -804,14 +804,22 @@ class Color(object):
             True
             sage: yellow.__div__(1/4)
             RGB color (0.0, 0.0, 0.0)
+
+        TESTS::
+
             sage: Color('black') / 0.0
             Traceback (most recent call last):
             ...
             ZeroDivisionError: float division by zero
-            sage: papayawhip / yellow
+
+            sage: papayawhip / yellow  # py2
             Traceback (most recent call last):
             ...
             TypeError: float() argument must be a string or a number
+            sage: papayawhip / yellow  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: float() argument must be a string or a number, not 'Color'
         """
         return self * (1 / float(right))
 
@@ -1242,10 +1250,18 @@ def float_to_html(r, g, b):
         '#070f05'
         sage: float_to_html(*Color('brown').rgb())
         '#a52a2a'
-        sage: float_to_html((0.2, 0.6, 0.8))
+
+    TESTS::
+
+        sage: float_to_html((0.2, 0.6, 0.8))  # py2
         Traceback (most recent call last):
         ...
         TypeError: float_to_html() takes exactly 3 arguments (1 given)
+
+        sage: float_to_html((0.2, 0.6, 0.8))  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: float_to_html() missing 2 required positional arguments: 'g' and 'b'
     """
     return "#%06x" % float_to_integer(r, g, b)
 
@@ -1278,10 +1294,18 @@ def float_to_integer(r, g, b):
         462597
         sage: float_to_integer(*Color('brown').rgb())
         10824234
-        sage: float_to_integer((0.2, 0.6, 0.8))
+
+    TESTS::
+
+        sage: float_to_integer((0.2, 0.6, 0.8))  # py2
         Traceback (most recent call last):
         ...
         TypeError: float_to_integer() takes exactly 3 arguments (1 given)
+
+        sage: float_to_integer((0.2, 0.6, 0.8))  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: float_to_integer() missing 2 required positional arguments: 'g' and 'b'
     """
     r, g, b = map(mod_one, (r, g, b))
     return int(r * 255) << 16 | int(g * 255) << 8 | int(b * 255)
@@ -1399,6 +1423,39 @@ def get_cmap(cmap):
     elif isinstance(cmap, (list, tuple)):
         cmap = [rgbcolor(_) for _ in cmap]
         return ListedColormap(cmap)
+
+
+def check_color_data(cfcm):
+    """
+    Make sure that the arguments are in order (coloring function, colormap).
+
+    This will allow users to use both possible orders.
+
+    EXAMPLES::
+
+        sage: from sage.plot.colors import check_color_data
+        sage: cf = lambda x,y : (x+y) % 1
+        sage: cm = colormaps.autumn
+        sage: check_color_data((cf, cm)) == (cf, cm)
+        True
+        sage: check_color_data((cm, cf)) == (cf, cm)
+        True
+
+    TESTS::
+
+        sage: check_color_data(('a', 33))
+        Traceback (most recent call last):
+        ...
+        ValueError: color data must be (color function, colormap)
+    """
+    cf, cm = cfcm
+    from matplotlib.colors import Colormap
+    if isinstance(cm, Colormap):
+        return cf, cm
+    elif isinstance(cf, Colormap):
+        return cm, cf
+    else:
+        raise ValueError('color data must be (color function, colormap)')
 
 
 class Colormaps(collections.MutableMapping):
@@ -1653,12 +1710,13 @@ class Colormaps(collections.MutableMapping):
             sage: from sage.plot.colors import Colormaps
             sage: maps = Colormaps()
             sage: count = len(maps)
-            sage: maps.popitem()
+            sage: maps.popitem()  # random
             (u'Spectral', <matplotlib.colors.LinearSegmentedColormap object at ...>)
             sage: count - 1 == len(maps)
             True
         """
         self.load_maps()
         del self.maps[name]
+
 
 colormaps = Colormaps()

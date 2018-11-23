@@ -65,7 +65,7 @@ from sage.rings.integer import Integer
 from sage.rings.all import ZZ
 
 from sage.structure.factory import UniqueFactory
-from sage.misc.decorators import rename_keyword
+
 
 class FreeAbelianMonoidFactory(UniqueFactory):
     """
@@ -111,7 +111,6 @@ class FreeAbelianMonoidFactory(UniqueFactory):
 FreeAbelianMonoid_factory = FreeAbelianMonoidFactory("sage.monoids.free_abelian_monoid.FreeAbelianMonoid_factory")
 
 
-@rename_keyword(deprecation=15289, n="index_set")
 def FreeAbelianMonoid(index_set=None, names=None, **kwds):
     r"""
     Return a free abelian monoid on `n` generators or with the generators

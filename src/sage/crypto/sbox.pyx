@@ -149,6 +149,20 @@ cdef class SBox(SageObject):
             sage: S(0)
             7
 
+        Construct S-box from univariate polynomial.::
+
+            sage: R = PolynomialRing(GF(2**3), 'x')
+            sage: inv = R.gen()**(2**3-2)
+            sage: inv = SBox(inv); inv
+            (0, 1, 5, 6, 7, 2, 3, 4)
+            sage: inv.differential_uniformity()
+            2
+
+            sage: SBox(PolynomialRing(GF(3**3), 'x').gen())
+            Traceback (most recent call last):
+            ...
+            TypeError: Only polynomials over rings with characteristic 2 allowed
+
         TESTS::
 
             sage: from sage.crypto.sbox import SBox
@@ -159,14 +173,25 @@ cdef class SBox(SageObject):
             sage: S = SBox(1, 2, 3)
             Traceback (most recent call last):
             ...
-            TypeError: Lookup table length is not a power of 2.
+            TypeError: Lookup table length is not a power of 2
             sage: S = SBox(5, 6, 0, 3, 4, 2, 1, 2)
             sage: S.output_size()
             3
         """
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
+
         if "S" in kwargs:
-            S = kwargs["S"]
-        elif len(args) == 1:
+            args = kwargs["S"]
+
+        if len(args) == 1 and is_Polynomial(args[0]):
+            # SBox defined via Univariate Polynomial, compute lookup table
+            # by evaluating the polynomial on every base_ring element
+            poly = args[0]
+            R = poly.parent().base_ring()
+            if R.characteristic() != 2:
+                raise TypeError("Only polynomials over rings with characteristic 2 allowed")
+            S = [poly(v) for v in sorted(R)]
+        elif len(args) == 1 and isinstance(args[0], (list, tuple)):
             S = args[0]
         elif len(args) > 1:
             S = args
@@ -181,7 +206,7 @@ cdef class SBox(SageObject):
         S = _S
 
         if not ZZ(len(S)).is_power_of(2):
-            raise TypeError("Lookup table length is not a power of 2.")
+            raise TypeError("Lookup table length is not a power of 2")
         self._S = S
 
         self.m = ZZ(len(S)).exact_log(2)
@@ -760,7 +785,6 @@ cdef class SBox(SageObject):
             gens = X + Y
 
         m = self.input_size()
-        n = self.output_size()
 
         cdef long i
         solutions = []
@@ -1359,15 +1383,15 @@ cdef class SBox(SageObject):
 
         Boomerang connectivity matrix of an invertible `m \times m`
         S-Box `S` is an `2^m \times 2^m` matrix with entry at row
-        `\Delta_i \in \mathbb{F}_2^m` and column `\Delta_o \in \mathbb{F}_2^m`
+        `\Delta_i \in \GF{2}^m` and column `\Delta_o \in \GF{2}^m`
         equal to
 
         .. MATH::
 
-            |\{ x \in \mathbb{F}_2^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
+            |\{ x \in \GF{2}^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
                S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
 
-        For more results concering boomerang connectivity matrix, see [CHPSS18]_ .
+        For more results concerning boomerang connectivity matrix, see [CHPSS18]_ .
         The algorithm used here, is the one from Dunkelman, published in a
         preprint, see [Du2018]_ .
 
@@ -1663,7 +1687,7 @@ cdef class SBox(SageObject):
     def is_plateaued(self):
         r"""
         Return ``True`` if this S-Box is plateaued, i.e. for all nonzero
-        `b \in \mathbb{F}_2^n` the Boolean function `b \cdot S(x)`
+        `b \in \GF{2}^n` the Boolean function `b \cdot S(x)`
         is plateaued.
 
         EXAMPLES::

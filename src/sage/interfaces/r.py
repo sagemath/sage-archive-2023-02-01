@@ -92,7 +92,7 @@ R will recognize it as the correct thing::
     sage: r.seq(length=10, from_=-1, by=.2)
     [1] -1.0 -0.8 -0.6 -0.4 -0.2  0.0  0.2  0.4  0.6  0.8
 
-    sage: x = r([10.4,5.6,3.1,6.4,21.7]);
+    sage: x = r([10.4,5.6,3.1,6.4,21.7])
     sage: x.rep(2)
     [1] 10.4  5.6  3.1  6.4 21.7 10.4  5.6  3.1  6.4 21.7
     sage: x.rep(times=2)
@@ -156,7 +156,7 @@ Index vectors; selecting and modifying subsets of a data set::
 
 Distributions::
 
-    sage: r.options(width="60");
+    sage: r.options(width="60")
     $width
     [1] 100
 
@@ -273,7 +273,6 @@ from sage.env import DOT_SAGE
 import re
 import sage.rings.integer
 from sage.structure.element import parent
-from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 
@@ -637,9 +636,9 @@ class R(ExtraTabCompletion, Expect):
             sage: rstr.startswith('R version')
             True
         """
-        major_re = re.compile('^major\s*(\d.*?)$', re.M)
-        minor_re = re.compile('^minor\s*(\d.*?)$', re.M)
-        version_string_re = re.compile('^version.string\s*(R.*?)$', re.M)
+        major_re = re.compile(r'^major\s*(\d.*?)$', re.M)
+        minor_re = re.compile(r'^minor\s*(\d.*?)$', re.M)
+        version_string_re = re.compile(r'^version.string\s*(R.*?)$', re.M)
 
         s = self.eval('version')
 
@@ -671,10 +670,11 @@ class R(ExtraTabCompletion, Expect):
             ImportError: ...
         """
         ret = self.eval('require("%s")' % library_name)
-        try:
-            ret = ret.decode('utf-8')
-        except UnicodeDecodeError:
-            ret = ret.decode('latin-1')
+        if six.PY2:
+            try:
+                ret = ret.decode('utf-8')
+            except UnicodeDecodeError:
+                ret = ret.decode('latin-1')
         # try hard to parse the message string in a locale-independent way
         if ' library(' in ret:       # locale-independent key-word
             raise ImportError("%s"%ret)
@@ -1072,7 +1072,7 @@ class R(ExtraTabCompletion, Expect):
         a filename like ``Rplot001.png`` - from the command line, in
         the current directory, and in the cell directory in the notebook::
 
-            sage: d=r.setwd('"%s"'%SAGE_TMP)    # for doctesting only; ignore if you are trying this;
+            sage: d=r.setwd('"%s"'%SAGE_TMP)    # for doctesting only; ignore if you are trying this
             sage: r.plot("1:10")                # optional -- rgraphics
             null device
                       1
@@ -1256,11 +1256,11 @@ class R(ExtraTabCompletion, Expect):
 
 
 # patterns for _sage_()
-rel_re_param = re.compile('\s([\w\.]+)\s=')
-rel_re_range = re.compile('([\d]+):([\d]+)')
-rel_re_integer = re.compile('([^\d])([\d]+)L')
-rel_re_terms = re.compile('terms\s*=\s*(.*?),')
-rel_re_call = re.compile('call\s*=\s*(.*?)\),')
+rel_re_param = re.compile(r'\s([\w\.]+)\s=')
+rel_re_range = re.compile(r'([\d]+):([\d]+)')
+rel_re_integer = re.compile(r'([^\d])([\d]+)L')
+rel_re_terms = re.compile(r'terms\s*=\s*(.*?),')
+rel_re_call = re.compile(r'call\s*=\s*(.*?)\),')
 
 
 @instancedoc
@@ -1677,7 +1677,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         """
         from re import compile as re_compile
         from re import split   as re_split
-        splt = re_compile('(c\(|\(|\))') # c( or ( or )
+        splt = re_compile(r'(c\(|\(|\))') # c( or ( or )
         lvl = 0
         ret = []
         for token in re_split(splt, exp):
@@ -1822,12 +1822,12 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
         # Change 'structure' to '_r_structure'
         # TODO: check that we are outside of quotes ""
-        exp = re.sub(' structure\(', ' _r_structure(', exp)
-        exp = re.sub('^structure\(', '_r_structure(', exp) #special case
+        exp = re.sub(r' structure\(', ' _r_structure(', exp)
+        exp = re.sub(r'^structure\(', '_r_structure(', exp)  # special case
 
         # Change 'list' to '_r_list'
-        exp = re.sub(' list\(', ' _r_list(', exp)
-        exp = re.sub('\(list\(', '(_r_list(', exp)
+        exp = re.sub(r' list\(', ' _r_list(', exp)
+        exp = re.sub(r'\(list\(', '(_r_list(', exp)
 
         # Change 'a:b' to 'range(a,b+1)'
         exp = rel_re_range.sub(self._subs_range, exp)
@@ -1889,7 +1889,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
             P.library('Hmisc')
         except ImportError:
             raise RuntimeError("The R package 'Hmisc' is required for R to LaTeX conversion, but it is not available.")
-        return LatexExpr(P.eval('latex(%s, file="");'%self.name()))
+        return LatexExpr(P.eval('latex(%s, file="");' % self.name()))
 
 
 @instancedoc

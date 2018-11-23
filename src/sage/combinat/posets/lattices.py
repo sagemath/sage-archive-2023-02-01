@@ -64,6 +64,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_interval_dismantlable` | Return ``True`` if the lattice is interval dismantlable.
     :meth:`~FiniteLatticePoset.is_sublattice_dismantlable` | Return ``True`` if the lattice is sublattice dismantlable.
     :meth:`~FiniteLatticePoset.is_stone` | Return ``True`` if the lattice is a Stone lattice.
+    :meth:`~FiniteLatticePoset.is_trim` | Return ``True`` if the lattice is a trim lattice.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
     :meth:`~FiniteLatticePoset.is_isoform` | Return ``True`` if all congruences of the lattice consists of isoform blocks.
@@ -1170,7 +1171,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             - Weaker properties: :meth:`is_modular`,
               :meth:`is_semidistributive`, :meth:`is_join_distributive`,
               :meth:`is_meet_distributive`, :meth:`is_subdirectly_reducible`,
-              :meth:`is_constructible_by_doublings` (by interval doubling)
+              :meth:`is_trim`,
+              :meth:`is_constructible_by_doublings` (by interval doubling),
+              :meth:`is_extremal`
+
             - Stronger properties: :meth:`is_stone`
 
         TESTS::
@@ -1455,7 +1459,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Stronger properties: :meth:`is_distributive`
+            - Stronger properties: :meth:`is_distributive`, :meth:`is_trim`
 
         REFERENCES:
 
@@ -1464,6 +1468,55 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ji = len(self.join_irreducibles())
         mi = len(self.meet_irreducibles())
         return ji == mi == self.height() - 1
+
+    def is_trim(self, certificate=False):
+        """
+        Return whether a lattice is trim.
+
+        A lattice is trim if it is extremal and left modular.
+
+        This notion is defined in [Thom2006]_.
+
+        INPUT:
+
+        - certificate -- boolean (default ``False``) whether to return
+          instead a maximum chain of left modular elements
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.is_trim()
+            True
+
+            sage: Q = LatticePoset(posets.SymmetricGroupWeakOrderPoset(3))
+            sage: Q.is_trim()
+            False
+
+        TESTS::
+
+            sage: LatticePoset({1:[]}).is_trim(True)
+            (True, [1])
+
+        .. SEEALSO::
+
+            - Weaker properties: :meth:`is_extremal`
+            - Stronger properties: :meth:`is_distributive`
+
+        REFERENCES:
+
+        .. [Thom2006] Hugh Thomas, *An analogue of distributivity for
+           ungraded lattices*. Order 23 (2006), no. 2-3, 249-269.
+        """
+        ji = len(self.join_irreducibles())
+        mi = len(self.meet_irreducibles())
+        h, chain = self.height(certificate=True)
+        if not (ji == mi == h - 1):
+            return (False, None) if certificate else False
+
+        if all(self.is_left_modular_element(e) for e in chain):
+            return (True, chain) if certificate else True
+        else:
+            return (False, None) if certificate else False
 
     def is_complemented(self, certificate=False):
         r"""
@@ -1573,28 +1626,23 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: [posets.ChainPoset(i).is_cosectionally_complemented() for i in range(5)]
             [True, True, True, False, False]
         """
-        # Quick check: every sectionally complemented lattice is atomic.
+        # Quick check: every cosectionally complemented lattice is coatomic.
         if not certificate and not self.is_coatomic():
             return False
 
-        n = self.cardinality()
         H = self._hasse_diagram
-        mt = H._meet
         jn = H._join
-        top = n - 1
-
-        for bottom in range(n - 3, -1, -1):
-            interval = H.principal_order_filter(bottom)
-            for e in interval:
-                for f in interval:
-                    if mt[e, f] == bottom and jn[e, f] == top:
-                        break
-                else:
-                    if certificate:
-                        return (False, (self._vertex_to_element(bottom),
-                                        self._vertex_to_element(e)))
-                    return False
-
+        n = H.order()
+        for e in range(n-2, -1, -1):
+            t = 0
+            for uc in H.neighbors_out(e):
+                t = jn[t, uc]
+                if t == n-1:
+                    break
+            else:
+                if certificate:
+                    return (False, (self[e], self[t]))
+                return False
         return (True, None) if certificate else True
 
     def is_relatively_complemented(self, certificate=False):
@@ -2253,9 +2301,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: LatticePoset({}).is_atomic()
             True
 
-        NOTES:
+        .. NOTE::
 
-        See [EnumComb1]_, Section 3.3 for a discussion of atomic lattices.
+            See [EnumComb1]_, Section 3.3 for a discussion of atomic lattices.
 
         .. SEEALSO::
 
@@ -2345,8 +2393,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Canonical example is the lattice of partitions of finite set
         ordered by refinement::
 
-            sage: S = SetPartitions(3)
-            sage: L = LatticePoset( (S, lambda a, b: S.is_less_than(a, b)) )
+            sage: L = posets.SetPartitions(4)
             sage: L.is_geometric()
             True
 
@@ -3025,7 +3072,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_subdirectly_reducible`
-            - Mutually exclusive properties: :meth:`is_atomic`, :meth:`is_coatomic`
+            - Mutually exclusive properties: :meth:`is_atomic`, :meth:`is_coatomic`,
+              :meth:`is_regular`
             - Other: :meth:`vertical_decomposition`
 
         TESTS::
@@ -4186,16 +4234,32 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if self.cardinality() < 5:
             return True
 
-        if type == 'interval':
-            return (len(self.join_irreducibles()) ==
-                    len(self.meet_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
+        if (type == 'interval' and len(self.join_irreducibles()) !=
+            len(self.meet_irreducibles())):
+            return False
+
+        if type == 'upper' or type == 'interval':
+            H = self._hasse_diagram
+            found = set()
+            for v in H:
+                if H.out_degree(v) == 1:
+                    S = frozenset(map(frozenset, H.congruence([[v, next(H.neighbor_out_iterator(v))]])))
+                    if S in found:
+                        return False
+                    found.add(S)
+            return True
+
         if type == 'lower':
-            return (len(self.join_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
-        if type == 'upper':
-            return (len(self.meet_irreducibles()) ==
-                    self._hasse_diagram.principal_congruences_poset()[0].cardinality())
+            H = self._hasse_diagram
+            found = set()
+            for v in H:
+                if H.in_degree(v) == 1:
+                    S = frozenset(map(frozenset, H.congruence([[v, next(H.neighbor_in_iterator(v))]])))
+                    if S in found:
+                        return False
+                    found.add(S)
+            return True
+
         if type == 'convex':
             return self._hasse_diagram.is_congruence_normal()
         # type == 'any'
@@ -4279,6 +4343,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return ok
         for c in H.congruences_iterator():
             cong = list(c)
+            if len(cong) in [1, H.order()]:
+                continue
+            if not certificate:
+                if any(len(x) != len(cong[0]) for x in cong):
+                    return False
             d = H.subgraph(cong[0])
             for part in cong:
                 if not H.subgraph(part).is_isomorphic(d):
@@ -4300,7 +4369,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) whether to return
-          a certificate if the lattice is not regular
+          a certificate if the lattice is not uniform
 
         OUTPUT:
 
@@ -4407,6 +4476,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             - Stronger properties: :meth:`is_uniform`,
               :meth:`is_sectionally_complemented`,
               :meth:`is_cosectionally_complemented`
+            - Mutually exclusive properties: :meth:`is_vertically_decomposable`
             - Other: :meth:`congruence`
 
         TESTS::
@@ -4414,8 +4484,16 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: [posets.ChainPoset(i).is_regular() for i in range(5)]
             [True, True, True, False, False]
         """
+        ok = (True, None) if certificate else True
+
         H = self._hasse_diagram
+        if H.order() < 3:
+            return ok
         for cong in H.congruences_iterator():
+            x = iter(cong.root_to_elements_dict().values())
+            ell = len(next(x))
+            if all(len(p) == ell for p in x):
+                continue
             for part in cong:
                 if H.congruence([part]) != cong:
                     if certificate:
@@ -4424,9 +4502,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                                 (SetPartition([[self._vertex_to_element(v) for v in p] for p in cong]),
                                  [self._vertex_to_element(v) for v in part]))
                     return False
-        if certificate:
-            return (True, None)
-        return True
+        return ok
 
     def is_simple(self, certificate=False):
         """

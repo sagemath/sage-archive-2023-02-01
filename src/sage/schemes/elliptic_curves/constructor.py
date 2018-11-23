@@ -1367,43 +1367,20 @@ def are_projectively_equivalent(P, Q, base_ring):
     return matrix(base_ring, [P, Q]).rank() < 2
 
 
-def EllipticCurve_from_plane_curve(C, P):
-    """
-    Deprecated way to construct an elliptic curve.
-
-    Use :meth:`~sage.schemes.elliptic_curves.jacobian.Jacobian` instead.
-
-    EXAMPLES::
-
-        sage: R.<x,y,z> = QQ[]
-        sage: C = Curve(x^3+y^3+z^3)
-        sage: P = C(1,-1,0)
-        sage: E = EllipticCurve_from_plane_curve(C,P); E  # long time (3s on sage.math, 2013)
-        doctest:...: DeprecationWarning: use Jacobian(C) instead
-        See http://trac.sagemath.org/3416 for details.
-        Elliptic Curve defined by y^2 = x^3 - 27/4 over Rational Field
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(3416, 'use Jacobian(C) instead')
-    # Note: this function never used the rational point
-    from sage.schemes.elliptic_curves.jacobian import Jacobian
-    return Jacobian(C)
-
-
 def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False):
     r"""
-    Returns a sorted list of all elliptic curves defined over `Q`
+    Return a sorted list of all elliptic curves defined over `Q`
     with good reduction outside the set `S` of primes.
 
     INPUT:
 
-    -  ``S`` - list of primes (default: empty list).
+    -  ``S`` -- list of primes (default: empty list)
 
-    - ``proof`` - True/False (default True): the MW basis for
-      auxiliary curves will be computed with this proof flag.
+    - ``proof`` -- boolean (default ``True``): the MW basis for
+      auxiliary curves will be computed with this proof flag
 
-    - ``verbose`` - True/False (default False): if True, some details
-      of the computation will be output.
+    - ``verbose`` -- boolean (default ``False``): if ``True``, some details
+      of the computation will be output
 
     .. NOTE::
 
@@ -1414,8 +1391,8 @@ def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False
 
         The value of this flag is passed to the function which
         computes generators of various auxiliary elliptic curves, in
-        order to find their S-integral points.  Set to False if the
-        default (True) causes warning messages, but note that you can
+        order to find their S-integral points.  Set to ``False`` if the
+        default (``True``) causes warning messages, but note that you can
         then not rely on the set of curves returned being
         complete.
 
@@ -1431,7 +1408,7 @@ def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False
         Elliptic Curve defined by y^2 = x^3 - x^2 - 13*x + 21 over Rational Field]
         sage: len(elist)
         24
-        sage: ', '.join([e.label() for e in elist])
+        sage: ', '.join(e.label() for e in elist)
         '32a1, 32a2, 32a3, 32a4, 64a1, 64a2, 64a3, 64a4, 128a1, 128a2, 128b1, 128b2, 128c1, 128c2, 128d1, 128d2, 256a1, 256a2, 256b1, 256b2, 256c1, 256c2, 256d1, 256d2'
 
     Without ``Proof=False``, this example gives two warnings::
@@ -1439,58 +1416,59 @@ def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False
         sage: elist = EllipticCurves_with_good_reduction_outside_S([11],proof=False)  # long time (14s on sage.math, 2011)
         sage: len(elist)  # long time
         12
-        sage: ', '.join([e.label() for e in elist])  # long time
+        sage: ', '.join(e.label() for e in elist)  # long time
         '11a1, 11a2, 11a3, 121a1, 121a2, 121b1, 121b2, 121c1, 121c2, 121d1, 121d2, 121d3'
 
         sage: elist = EllipticCurves_with_good_reduction_outside_S([2,3]) # long time (26s on sage.math, 2011)
         sage: len(elist) # long time
         752
-        sage: max([e.conductor() for e in elist]) # long time
+        sage: conds = sorted(set([e.conductor() for e in elist]))  # long time
+        sage: max(conds) # long time
         62208
-        sage: [N.factor() for N in Set([e.conductor() for e in elist])] # long time
-        [2^7,
-        2^8,
-        2^3 * 3^4,
-        2^2 * 3^3,
-        2^8 * 3^4,
-        2^4 * 3^4,
-        2^3 * 3,
-        2^7 * 3,
-        2^3 * 3^5,
-        3^3,
-        2^8 * 3,
-        2^5 * 3^4,
-        2^4 * 3,
-        2 * 3^4,
-        2^2 * 3^2,
-        2^6 * 3^4,
-        2^6,
-        2^7 * 3^2,
-        2^4 * 3^5,
-        2^4 * 3^3,
-        2 * 3^3,
-        2^6 * 3^3,
-        2^6 * 3,
-        2^5,
-        2^2 * 3^4,
-        2^3 * 3^2,
-        2^5 * 3,
-        2^7 * 3^4,
-        2^2 * 3^5,
-        2^8 * 3^2,
-        2^5 * 3^2,
-        2^7 * 3^5,
-        2^8 * 3^5,
-        2^3 * 3^3,
-        2^8 * 3^3,
-        2^5 * 3^5,
-        2^4 * 3^2,
-        2 * 3^5,
-        2^5 * 3^3,
-        2^6 * 3^5,
-        2^7 * 3^3,
-        3^5,
-        2^6 * 3^2]
+        sage: [N.factor() for N in conds] # long time
+        [2^3 * 3,
+         3^3,
+         2^5,
+         2^2 * 3^2,
+         2^4 * 3,
+         2 * 3^3,
+         2^6,
+         2^3 * 3^2,
+         2^5 * 3,
+         2^2 * 3^3,
+         2^7,
+         2^4 * 3^2,
+         2 * 3^4,
+         2^6 * 3,
+         2^3 * 3^3,
+         3^5,
+         2^8,
+         2^5 * 3^2,
+         2^2 * 3^4,
+         2^7 * 3,
+         2^4 * 3^3,
+         2 * 3^5,
+         2^6 * 3^2,
+         2^3 * 3^4,
+         2^8 * 3,
+         2^5 * 3^3,
+         2^2 * 3^5,
+         2^7 * 3^2,
+         2^4 * 3^4,
+         2^6 * 3^3,
+         2^3 * 3^5,
+         2^8 * 3^2,
+         2^5 * 3^4,
+         2^7 * 3^3,
+         2^4 * 3^5,
+         2^6 * 3^4,
+         2^8 * 3^3,
+         2^5 * 3^5,
+         2^7 * 3^4,
+         2^6 * 3^5,
+         2^8 * 3^4,
+         2^7 * 3^5,
+         2^8 * 3^5]
     """
-    from .ell_egros import (egros_from_jlist, egros_get_j)
+    from .ell_egros import egros_from_jlist, egros_get_j
     return egros_from_jlist(egros_get_j(S, proof=proof, verbose=verbose), S)

@@ -284,8 +284,6 @@ as follows::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.rings.integer import Integer
-from sage.structure.element import ModuleElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.parallel.decorate import parallel
@@ -1014,7 +1012,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             if frame1 in other._components and isinstance(frame1, CoordFrame):
                 return frame1
         # 1b/ Search involving subframes
-        dom2 = other._domain
         for frame1 in self._components:
             if not isinstance(frame1, CoordFrame):
                 continue
@@ -1778,8 +1775,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         index_latex_labels = None
         if isinstance(frame, CoordFrame) and coordinate_labels:
             ch = frame.chart()
-            index_labels = map(str, ch[:])
-            index_latex_labels = map(latex, ch[:])
+            index_labels = list(map(str, ch[:]))
+            index_latex_labels = list(map(latex, ch[:]))
         return FreeModuleTensor.display_comp(self, basis=frame,
                                   format_spec=chart, index_labels=index_labels,
                                   index_latex_labels=index_latex_labels,

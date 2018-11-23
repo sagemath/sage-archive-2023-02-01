@@ -1014,9 +1014,8 @@ def _pruned_tree(T, f, s):
 
     - ``T`` -- a tree
 
-    - ``f`` -- a rational number; the edge deletion fraction.  This value must
-      be choosen in order to delete at least 1 edge and at most `n - 2`. Hence,
-      we have `\frac{1}{n-1} \leq f \leq \frac{n-2}{n-1}`.
+    - ``f`` -- a rational number; the edge deletion fraction. This value must be
+      choosen in `[0..1]`.
 
     - ``s`` -- a real number between 0 and 1; selection barrier for the size of
       trees
@@ -1029,17 +1028,23 @@ def _pruned_tree(T, f, s):
         sage: len(S)
         11
     """
-    from sage.rings.rational import Rational
     n = T.order()
-    if f < 1 / Rational(n - 1) or f >  Rational(n - 2) /  Rational(n - 1):
-        raise ValueError("parameter f must be 1 / (n - 1) <= f <= (n - 2) / (n - 1)")
+    if f < 0 or f > 1:
+        raise ValueError("parameter f must be 0 <= f <= 1")
     if s <= 0 or s >= 1:
         raise ValueError("parameter s must be 0 < s < 1")
 
-    S = set()
     ke = int((n - 1) * f)
+    if not ke:
+        # No removed edge. Only one possible subtree
+        return [tuple(T)]
+    elif ke == n - 1:
+        # All edges are removed. Only n possible subtrees
+        return [(u,) for u in T]
+
     random_edge_iterator = T.random_edge_iterator(labels=False)
     TT = T.copy()
+    S = set()
 
     i = n
     while i:
@@ -1127,10 +1132,9 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
       This parameter is used only when ``algorithm="connecting"``.
 
     - ``f`` -- a rational number (default: ``None``); the edge deletion
-      fraction. This value must be choosen in order to delete at least 1 edge
-      and at most `n - 2`. Hence, we have `\frac{1}{n-1} \leq f \leq
-      \frac{n-2}{n-1}`. If not specified, this parameter is set to
-      `\frac{1}{n-1}`. This parameter is used only when ``algorithm="pruned"``.
+      fraction. This value must be choosen in `[0..1]`. If not specified, this
+      parameter is set to `\frac{1}{n-1}`.
+      This parameter is used only when ``algorithm="pruned"``.
 
     - ``s`` -- a real number between 0 and 1 (default: ``None``); selection
       barrier for the size of trees. If not specified, this parameter is set to
@@ -1166,10 +1170,10 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
         Traceback (most recent call last):
         ...
         ValueError: parameter l must be > 0
-        sage: RandomChordalGraph(3, algorithm="pruned", f=0)
+        sage: RandomChordalGraph(3, algorithm="pruned", f=2)
         Traceback (most recent call last):
         ...
-        ValueError: parameter f must be 1 / (n - 1) <= f <= (n - 2) / (n - 1)
+        ValueError: parameter f must be 0 <= f <= 1
         sage: RandomChordalGraph(3, algorithm="pruned", s=1)
         Traceback (most recent call last):
         ...

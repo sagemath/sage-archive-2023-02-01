@@ -906,11 +906,6 @@ def _connecting_nodes(T, l):
 
     - ``l`` -- a strictly positive real number; mean of a Poisson distribution
 
-    .. WARNING::
-
-        The running time of this method increases dramatically with `l`. Setting
-        `l` to a large value might lead to infinite loop.
-
     EXAMPLES::
 
         sage: from sage.graphs.generators.random import _connecting_nodes
@@ -949,9 +944,8 @@ def _connecting_nodes(T, l):
                 bfs.append(v)
         i += 1
 
-    S = set()
-    i = n
-    while i:
+    S = []
+    for _ in range(n):
         ki = poisson(l)
         if not ki:
             ki = 1
@@ -985,10 +979,8 @@ def _connecting_nodes(T, l):
                 d -= 1
             Ti = frozenset(Vi)
 
-        # We ensure that a subtree is chosen only once
-        if Ti not in S:
-            S. add(Ti)
-            i -= 1
+        S.append(Ti)
+
     return S
 
 def _pruned_tree(T, f, s):
@@ -1037,17 +1029,16 @@ def _pruned_tree(T, f, s):
     ke = int((n - 1) * f)
     if not ke:
         # No removed edge. Only one possible subtree
-        return [tuple(T)]
+        return [tuple(T)] * n
     elif ke == n - 1:
         # All edges are removed. Only n possible subtrees
         return [(u,) for u in T]
 
     random_edge_iterator = T.random_edge_iterator(labels=False)
     TT = T.copy()
-    S = set()
+    S = []
 
-    i = n
-    while i:
+    for _ in range(n):
         # Choose ke = (n - 1) * f edges and remove them from TT
         E = set()
         while len(E) < ke:
@@ -1070,10 +1061,8 @@ def _pruned_tree(T, f, s):
 
         # Randomly select a subtree of size ki
         Ti = frozenset(CC[ki][randint(0, len(CC[ki]) - 1)])
-        # We ensure that a subtree is chosen only once
-        if Ti not in S:
-            S.add(Ti)
-            i -= 1
+
+        S.append(Ti)
 
         TT.add_edges(E)
 
@@ -1217,11 +1206,15 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
         raise NotImplementedError("unknown algorithm '{}'".format(algorithm))
 
     # 3. Build the intersection graph of {V(T1),...,V(Tn)}
-    from sage.graphs.generators.intersection import IntersectionGraph
-    G = IntersectionGraph(S)
-    G.name("Random Chordal Graph")
+    vertex_to_subtree = [[] for _ in range(n)]
+    for i,s in enumerate(S):
+        for x in s:
+            vertex_to_subtree[x].append(i)
+    G = Graph(n, name="Random Chordal Graph")
+    for X in vertex_to_subtree:
+        G.add_clique(X)
 
-    return G.relabel(inplace=False)
+    return G
 
 
 def RandomLobster(n, p, q, seed=None):

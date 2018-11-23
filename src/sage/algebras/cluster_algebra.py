@@ -1382,10 +1382,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A2.has_coerce_map_from(A1)
             False
             sage: f = A1.coerce_map_from(A2)
-            sage: A2.find_g_vector((-1, 1, -1))  # random
+            sage: seq = A2.find_g_vector((-1, 1, -1)); seq  # random
             [0, 2, 1]
-            sage: S = A1.initial_seed(); S.mutate([0, 2, 1])
-            sage: S.cluster_variable(1) == f(A2.cluster_variable((-1, 1, -1)))
+            sage: S = A1.initial_seed(); S.mutate(seq)
+            sage: S.cluster_variable(seq[-1]) == f(A2.cluster_variable((-1, 1, -1)))
             True
             sage: B3 = B1.matrix_from_columns([1, 2, 3]); B3
             [ 1  0  0]

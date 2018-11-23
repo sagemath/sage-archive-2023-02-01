@@ -184,9 +184,9 @@ Note that the S-Box object for SR can be constructed with a call to ``sr.sbox()`
    sage: sr = mq.SR(1,1,1,4, gf2=True, polybori=True)
    sage: S = sr.sbox()
 
-For example, we can now study the difference distribution matrix of ``S``::
+For example, we can now study the difference distribution table of ``S``::
 
-   sage: S.difference_distribution_matrix()
+   sage: S.difference_distribution_table()
    [16  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
    [ 0  2  2  2  2  0  0  0  2  0  0  0  2  4  0  0]
    [ 0  2  0  4  2  2  2  0  0  2  0  0  0  0  0  2]

@@ -1406,11 +1406,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A1.has_coerce_map_from(A3)
             True
             sage: g = A1.coerce_map_from(A3)
-            sage: A3.find_g_vector((1, -2, 2))  # random
-            [1, 2, 1, 0]
-            sage: [G.gen(0)(x + 1) - 1 for x in [1, 2, 1, 0]]
-            [2, 3, 2, 1]
-            sage: S = A1.initial_seed(); S.mutate([2, 3, 2, 1])
+            sage: seq1 = A3.find_g_vector((1, -2, 2))
+            sage: seq2 = [G.gen(0)(x + 1) - 1 for x in seq1 ]
+            sage: S = A1.initial_seed(); S.mutate(seq2)
             sage: S.cluster_variable(1) == g(A3.cluster_variable((1, -2, 2)))
             True
 

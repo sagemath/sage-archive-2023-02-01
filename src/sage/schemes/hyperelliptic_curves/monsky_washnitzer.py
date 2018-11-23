@@ -1360,13 +1360,14 @@ def adjusted_prec(p, prec):
         3
     """
     # initial estimate:
+    defect = floor(Integer(2 * prec - 3).log(p))
     if prec <= 2:
         adjusted = 2
     else:
-        adjusted = prec + floor(Integer(2 * prec - 3).log(p)) - 1
+        adjusted = prec + defect - 1
 
     # increase it until we have enough
-    while adjusted - floor(Integer(2 * prec - 3).log(p)) - 1 < prec:
+    while adjusted - defect - 1 < prec:
         adjusted += 1
 
     return adjusted

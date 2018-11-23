@@ -860,9 +860,8 @@ def _growing_subtrees(T, k):
 
     from sage.misc.prandom import sample
     n = T.order()
-    S = set()
-    i = n
-    while i:
+    S = []
+    for _ in range(n):
         ki = randint(1, k)
         if ki == n:
             Vi = frozenset(T)
@@ -876,10 +875,8 @@ def _growing_subtrees(T, k):
                 Ti.add(z)
                 neighbors.update(y for y in T.neighbor_iterator(z) if y not in Ti)
             Vi = frozenset(Ti)
-        # We ensure that a subtree is chosen only once
-        if Vi not in S:
-            S.add(Vi)
-            i -= 1
+        S.append(Vi)
+
     return S
 
 def _connecting_nodes(T, l):

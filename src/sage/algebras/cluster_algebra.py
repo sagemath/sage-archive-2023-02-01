@@ -1409,7 +1409,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: seq1 = A3.find_g_vector((1, -2, 2))
             sage: seq2 = [G.gen(0)(x + 1) - 1 for x in seq1 ]
             sage: S = A1.initial_seed(); S.mutate(seq2)
-            sage: S.cluster_variable(1) == g(A3.cluster_variable((1, -2, 2)))
+            sage: S.cluster_variable(seq2[-1]) == g(A3.cluster_variable((1, -2, 2)))
             True
 
          Check that :trac:`23654` is fixed::

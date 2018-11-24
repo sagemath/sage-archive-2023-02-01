@@ -822,7 +822,7 @@ def RandomIntervalGraph(n):
 
 # Random Chordal Graphs
 
-def _growing_subtrees(T, k):
+def growing_subtrees(T, k):
     r"""
     Return a list of the vertex sets of ``n`` randomly chosen subtrees of ``T``.
 
@@ -876,7 +876,7 @@ def _growing_subtrees(T, k):
 
     return S
 
-def _connecting_nodes(T, l):
+def connecting_nodes(T, l):
     r"""
     Return a list of the vertex sets of ``n`` randomly chosen subtrees of ``T``.
 
@@ -974,7 +974,7 @@ def _connecting_nodes(T, l):
 
     return S
 
-def _pruned_tree(T, f, s):
+def pruned_tree(T, f, s):
     r"""
     Return a list of the vertex sets of ``n`` randomly chosen subtrees of ``T``.
 
@@ -1100,20 +1100,24 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
 
     - ``k`` -- integer (default: ``None``); maximum size of a subtree. If not
       specified (``None``), the maximum size is set to `\sqrt{n}`.
-      This parameter is used only when ``algorithm="growing"``.
+      This parameter is used only when ``algorithm="growing"``. See
+      :meth:`~sage.graphs.graph_generators.growing_subtrees` for more details.
 
     - ``l`` -- a strictly positive real number (default: ``None``); mean of a
       Poisson distribution. If not specified, the mean in set to `\log_2{n}`.
-      This parameter is used only when ``algorithm="connecting"``.
+      This parameter is used only when ``algorithm="connecting"``. See
+      :meth:`~sage.graphs.graph_generators.connecting_nodes` for more details.
 
     - ``f`` -- a rational number (default: ``None``); the edge deletion
       fraction. This value must be choosen in `[0..1]`. If not specified, this
       parameter is set to `\frac{1}{n-1}`.
       This parameter is used only when ``algorithm="pruned"``.
+      See :meth:`~sage.graphs.graph_generators.pruned_tree` for more details.
 
     - ``s`` -- a real number between 0 and 1 (default: ``None``); selection
       barrier for the size of trees. If not specified, this parameter is set to
       `0.5`. This parameter is used only when ``algorithm="pruned"``.
+      See :meth:`~sage.graphs.graph_generators.pruned_tree` for more details.
 
     EXAMPLES::
 
@@ -1156,6 +1160,9 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
 
     .. SEEALSO::
 
+        - :meth:`~sage.graphs.graph_generators.growing_subtrees`
+        - :meth:`~sage.graphs.graph_generators.connecting_nodes`
+        - :meth:`~sage.graphs.graph_generators.pruned_tree`
         - :wikipedia:`Chordal_graph`
         - :meth:`~sage.graphs.generic_graph.GenericGraph.is_chordal`
         - :meth:`~sage.graphs.graph_generators.GraphGenerators.IntersectionGraph`
@@ -1175,7 +1182,7 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
         elif k < 1:
             raise ValueError("parameter k must be >= 1")
 
-        S = _growing_subtrees(T, k)
+        S = growing_subtrees(T, k)
 
     elif algorithm == "connecting":
         if l is None:
@@ -1184,7 +1191,7 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
         elif l <= 0:
             raise ValueError("parameter l must be > 0")
 
-        S = _connecting_nodes(T, l)
+        S = connecting_nodes(T, l)
 
     elif algorithm == "pruned":
         if f is None:
@@ -1197,7 +1204,7 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
         elif s <= 0 or s >= 1:
             raise ValueError("parameter s must be 0 < s < 1")
 
-        S = _pruned_tree(T, f, s)
+        S = pruned_tree(T, f, s)
 
     else:
         raise NotImplementedError("unknown algorithm '{}'".format(algorithm))

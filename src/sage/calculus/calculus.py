@@ -394,6 +394,7 @@ see :trac:`9538`::
     sage: sage.calculus.calculus.maxima('f1')
     f1
 """
+from six import iteritems
 
 import re
 from sage.arith.all import algdep
@@ -1562,7 +1563,7 @@ def laplace(ex, t, s, algorithm='maxima'):
         try:
             result = giac.laplace(ex, t, s)
         except TypeError:
-            raise ValueError("Giac cannot make sense of: %s" % ex_gi)
+            raise ValueError("Giac cannot make sense of: %s" % ex)
         if 'integrate' in format(result) or 'integration' in format(result):
             return dummy_laplace(ex, t, s)
         else:
@@ -1570,6 +1571,7 @@ def laplace(ex, t, s, algorithm='maxima'):
 
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
+
 
 def inverse_laplace(ex, s, t, algorithm='maxima'):
     r"""
@@ -1952,9 +1954,6 @@ symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
             '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2',
             'e':'_e', 'i':'_i', 'I':'_I'}
 
-import re
-
-from six import iteritems
 
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")

@@ -832,14 +832,14 @@ def _growing_subtrees(T, k):
     This method is part of
     :meth:`~sage.graphs.generators.random.RandomChordalGraph`.
 
-    .. ALGORITHM::
+    ALGORITHM:
 
-        For each subtree `T_i`, the algorithm picks a size `k_i` randomly from
-        `[1,k]`. Then a random node of `T` is chosen as the first node of
-        `T_i`. In each of the subsequent `k_i − 1` iterations, it picks a random
-        node in the neighborhood of `T_i` and adds it to `T_i`.
+    For each subtree `T_i`, the algorithm picks a size `k_i` randomly from
+    `[1,k]`. Then a random node of `T` is chosen as the first node of `T_i`. In
+    each of the subsequent `k_i − 1` iterations, it picks a random node in the
+    neighborhood of `T_i` and adds it to `T_i`.
 
-        See [SHET2018]_ for more details.
+    See [SHET2018]_ for more details.
 
     INPUT:
 
@@ -855,9 +855,6 @@ def _growing_subtrees(T, k):
         sage: len(S)
         10
     """
-    if k < 1:
-        raise ValueError("parameter k must be >= 1")
-
     from sage.misc.prandom import sample
     n = T.order()
     S = []
@@ -886,16 +883,16 @@ def _connecting_nodes(T, l):
     This method is part of
     :meth:`~sage.graphs.generators.random.RandomChordalGraph`.
 
-    .. ALGORITHM::
+    ALGORITHM:
 
-        For each subtree `T_i`, we first select `k_i` nodes of `T`, where `k_i`
-        is a random integer from a Poisson distribution with mean `l`. `T_i` is
-        then generated to be the minimal subtree that contains the selected
-        `k_i` nodes. This implies that a subtree will most likely have many more
-        nodes than those selected initially, and this must be taken into
-        consideration when choosing `l`.
+    For each subtree `T_i`, we first select `k_i` nodes of `T`, where `k_i` is a
+    random integer from a Poisson distribution with mean `l`. `T_i` is then
+    generated to be the minimal subtree that contains the selected `k_i`
+    nodes. This implies that a subtree will most likely have many more nodes
+    than those selected initially, and this must be taken into consideration
+    when choosing `l`.
 
-        See [SHET2018]_ for more details.
+    See [SHET2018]_ for more details.
 
     INPUT:
 
@@ -911,9 +908,6 @@ def _connecting_nodes(T, l):
         sage: len(S)
         10
     """
-    if l <= 0:
-        raise ValueError("parameter l must be > 0")
-
     from sage.combinat.permutation import Permutations
     from sage.data_structures.bitset import Bitset
     from numpy.random import poisson
@@ -987,17 +981,17 @@ def _pruned_tree(T, f, s):
     This method is part of
     :meth:`~sage.graphs.generators.random.RandomChordalGraph`.
 
-    .. ALGORITHM::
+    ALGORITHM:
 
-        For each subtree `T_i`, it randomly selects a fraction `f` of the edges
-        on the tree and removes them. The number of edges to delete, say `l`, is
-        calculated as `\lfloor((n − 1)f\rfloor`, which will leave `l + 1`
-        subtrees in total. Then, it determines the sizes of the `l + 1` subtrees
-        and stores the distinct values. Finally, it picks a random size `k_i`
-        from the set of largest `100(1−s)\%` of distinct values, and randomly
-        chooses a subtree with size `k_i`.
+    For each subtree `T_i`, it randomly selects a fraction `f` of the edges on
+    the tree and removes them. The number of edges to delete, say `l`, is
+    calculated as `\lfloor((n − 1)f\rfloor`, which will leave `l + 1` subtrees
+    in total. Then, it determines the sizes of the `l + 1` subtrees and stores
+    the distinct values. Finally, it picks a random size `k_i` from the set of
+    largest `100(1−s)\%` of distinct values, and randomly chooses a subtree with
+    size `k_i`.
 
-        See [SHET2018]_ for more details.
+    See [SHET2018]_ for more details.
 
     INPUT:
 
@@ -1018,11 +1012,6 @@ def _pruned_tree(T, f, s):
         11
     """
     n = T.order()
-    if f < 0 or f > 1:
-        raise ValueError("parameter f must be 0 <= f <= 1")
-    if s <= 0 or s >= 1:
-        raise ValueError("parameter s must be 0 < s < 1")
-
     ke = int((n - 1) * f)
     if not ke:
         # No removed edge. Only one possible subtree
@@ -1181,34 +1170,45 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
     # 2. Generate n non-empty subtrees of T: {T1,...,Tn}
     if algorithm == "growing":
         if k is None:
-            from math import sqrt
-            k = int(sqrt(n))
+            from sage.rings.integer import Integer
+            k = int(Integer(n).sqrt())
+        elif k < 1:
+            raise ValueError("parameter k must be >= 1")
+
         S = _growing_subtrees(T, k)
 
     elif algorithm == "connecting":
         if l is None:
-            from math import log
-            l = log(n, 2)
+            from sage.rings.integer import Integer
+            l = Integer(n).log(2)
+        elif l <= 0:
+            raise ValueError("parameter l must be > 0")
+
         S = _connecting_nodes(T, l)
 
     elif algorithm == "pruned":
         if f is None:
             from sage.rings.rational import Rational
             f = 1 / Rational(n - 1)
+        elif f < 0 or f > 1:
+            raise ValueError("parameter f must be 0 <= f <= 1")
         if s is None:
             s = .5
+        elif s <= 0 or s >= 1:
+            raise ValueError("parameter s must be 0 < s < 1")
+
         S = _pruned_tree(T, f, s)
 
     else:
         raise NotImplementedError("unknown algorithm '{}'".format(algorithm))
 
     # 3. Build the intersection graph of {V(T1),...,V(Tn)}
-    vertex_to_subtree = [[] for _ in range(n)]
+    vertex_to_subtrees = [[] for _ in range(n)]
     for i,s in enumerate(S):
         for x in s:
-            vertex_to_subtree[x].append(i)
+            vertex_to_subtrees[x].append(i)
     G = Graph(n, name="Random Chordal Graph")
-    for X in vertex_to_subtree:
+    for X in vertex_to_subtrees:
         G.add_clique(X)
 
     return G

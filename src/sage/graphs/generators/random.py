@@ -1101,23 +1101,23 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
     - ``k`` -- integer (default: ``None``); maximum size of a subtree. If not
       specified (``None``), the maximum size is set to `\sqrt{n}`.
       This parameter is used only when ``algorithm="growing"``. See
-      :meth:`~sage.graphs.graph_generators.growing_subtrees` for more details.
+      :meth:`~sage.graphs.generators.random.growing_subtrees` for more details.
 
     - ``l`` -- a strictly positive real number (default: ``None``); mean of a
       Poisson distribution. If not specified, the mean in set to `\log_2{n}`.
       This parameter is used only when ``algorithm="connecting"``. See
-      :meth:`~sage.graphs.graph_generators.connecting_nodes` for more details.
+      :meth:`~sage.graphs.generators.random.connecting_nodes` for more details.
 
     - ``f`` -- a rational number (default: ``None``); the edge deletion
       fraction. This value must be choosen in `[0..1]`. If not specified, this
       parameter is set to `\frac{1}{n-1}`.
       This parameter is used only when ``algorithm="pruned"``.
-      See :meth:`~sage.graphs.graph_generators.pruned_tree` for more details.
+      See :meth:`~sage.graphs.generators.random.pruned_tree` for more details.
 
     - ``s`` -- a real number between 0 and 1 (default: ``None``); selection
       barrier for the size of trees. If not specified, this parameter is set to
       `0.5`. This parameter is used only when ``algorithm="pruned"``.
-      See :meth:`~sage.graphs.graph_generators.pruned_tree` for more details.
+      See :meth:`~sage.graphs.generators.random.pruned_tree` for more details.
 
     EXAMPLES::
 

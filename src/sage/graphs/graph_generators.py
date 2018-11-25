@@ -2163,13 +2163,6 @@ class GraphGenerators():
     DegreeSequenceTree       = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequenceTree)
     DegreeSequenceExpected   = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequenceExpected)
 
-
-# Helper methods of sage.graphs.generators.random.RandomChordalGraph
-# We add the here to expose them in documentation but not in graphs.<TAB>
-growing_subtrees = staticmethod(sage.graphs.generators.random.growing_subtrees)
-connecting_nodes = staticmethod(sage.graphs.generators.random.connecting_nodes)
-pruned_tree      = staticmethod(sage.graphs.generators.random.pruned_tree)
-
 def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=False, implementation='c_graph', sparse=True):
     """
     Main function for exhaustive generation. Recursive traversal of a

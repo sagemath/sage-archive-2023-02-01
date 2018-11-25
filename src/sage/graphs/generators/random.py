@@ -849,9 +849,9 @@ def growing_subtrees(T, k):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.random import _growing_subtrees
+        sage: from sage.graphs.generators.random import growing_subtrees
         sage: T = graphs.RandomTree(10)
-        sage: S = _growing_subtrees(T, 5)
+        sage: S = growing_subtrees(T, 5)
         sage: len(S)
         10
     """
@@ -902,9 +902,9 @@ def connecting_nodes(T, l):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.random import _connecting_nodes
+        sage: from sage.graphs.generators.random import connecting_nodes
         sage: T = graphs.RandomTree(10)
-        sage: S = _connecting_nodes(T, 5)
+        sage: S = connecting_nodes(T, 5)
         sage: len(S)
         10
     """
@@ -1005,9 +1005,9 @@ def pruned_tree(T, f, s):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.random import _pruned_tree
+        sage: from sage.graphs.generators.random import pruned_tree
         sage: T = graphs.RandomTree(11)
-        sage: S = _pruned_tree(T, 1/10, 0.5)
+        sage: S = pruned_tree(T, 1/10, 0.5)
         sage: len(S)
         11
     """

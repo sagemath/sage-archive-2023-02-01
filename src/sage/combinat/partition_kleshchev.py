@@ -1130,42 +1130,42 @@ class KleshchevPartitions(PartitionTuples):
 
     EXAMPLES::
 
-        sage: KleshchevPartitions(5,[3,2,1],1, convention='RS')[:]
+        sage: sorted(KleshchevPartitions(5,[3,2,1],1, convention='RS'))
         [([], [], [1]), ([], [1], []), ([1], [], [])]
-        sage: KleshchevPartitions(5, [3,2,1], 1, convention='LS')[:]
+        sage: sorted(KleshchevPartitions(5, [3,2,1], 1, convention='LS'))
         [([], [], [1]), ([], [1], []), ([1], [], [])]
-        sage: KleshchevPartitions(5, [3,2,1], 3)[:]
+        sage: sorted(KleshchevPartitions(5, [3,2,1], 3))
         [([], [], [1, 1, 1]),
          ([], [], [2, 1]),
-         ([], [1], [2]),
          ([], [], [3]),
          ([], [1], [1, 1]),
+         ([], [1], [2]),
          ([], [1, 1], [1]),
          ([], [2], [1]),
-         ([1], [2], []),
          ([], [3], []),
          ([1], [], [1, 1]),
          ([1], [], [2]),
          ([1], [1], [1]),
+         ([1], [2], []),
          ([1, 1], [1], []),
-         ([3], [], []),
          ([2], [], [1]),
-         ([2], [1], [])]
-        sage: KleshchevPartitions(5, [3,2,1], 3, convention="left regular")[:]
-        [([], [1], [1, 1]),
-         ([1], [], [1, 1]),
-         ([], [], [1, 1, 1]),
+         ([2], [1], []),
+         ([3], [], [])]
+        sage: sorted(KleshchevPartitions(5, [3,2,1], 3, convention="left regular"))
+        [([], [], [1, 1, 1]),
+         ([], [1], [1, 1]),
          ([], [1], [2]),
-         ([1], [1], [1]),
-         ([1, 1], [], [1]),
-         ([2], [], [1]),
-         ([], [1, 1, 1], []),
          ([], [1, 1], [1]),
+         ([], [1, 1, 1], []),
+         ([1], [], [1, 1]),
+         ([1], [1], [1]),
          ([1], [1, 1], []),
          ([1], [2], []),
-         ([2], [1], []),
-         ([1, 1, 1], [], []),
+         ([1, 1], [], [1]),
          ([1, 1], [1], []),
+         ([1, 1, 1], [], []),
+         ([2], [], [1]),
+         ([2], [1], []),
          ([2, 1], [], []),
          ([3], [], [])]
 
@@ -1185,9 +1185,9 @@ class KleshchevPartitions(PartitionTuples):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(5, [3,2,1], 1, convention='RS')[:]
+            sage: sorted(KleshchevPartitions(5, [3,2,1], 1, convention='RS'))
             [([], [], [1]), ([], [1], []), ([1], [], [])]
-            sage: KleshchevPartitions(5, [3,2,1], 1, convention='LS')[:]
+            sage: sorted(KleshchevPartitions(5, [3,2,1], 1, convention='LS'))
             [([], [], [1]), ([], [1], []), ([1], [], [])]
         """
         if size is None and multicharge in ZZ:

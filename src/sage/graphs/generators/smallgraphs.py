@@ -2131,31 +2131,34 @@ def HortonGraph():
     # Each group of the 6 groups of vertices is based on the same 3-regular
     # graph.
     from sage.graphs.generators.families import LCFGraph
-    lcf = LCFGraph(16,[5,-5],8)
-    lcf.delete_edge(15,0)
-    lcf.delete_edge(7,8)
+    lcf = LCFGraph(16, [5, -5], 8)
+    lcf.delete_edge(15, 0)
+    lcf.delete_edge(7, 8)
 
     for i in range(6):
-        for u,v in lcf.edges(labels=False):
-            g.add_edge((i,u),(i,v))
+        for u,v in lcf.edge_iterator(labels=False):
+            g.add_edge((i, u), (i, v))
 
     # Modifying the groups and linking them together
+    c0 = (-1, 0)
+    c1 = (-1, 1)
+    c2 = (-1, 2)
     for i in range(3):
-        g.add_edge((2*i,0),(2*i+1,7))
-        g.add_edge((2*i+1,8),(2*i,7))
-        g.add_edge((2*i,15),(2*i+1,0))
-        g.add_edge((2*i,8),1)
-        g.add_edge((2*i+1,14),2)
-        g.add_edge((2*i+1,10),0)
+        g.add_edge((2 * i, 0), (2 * i + 1, 7))
+        g.add_edge((2 * i + 1, 8), (2 * i, 7))
+        g.add_edge((2 * i, 15), (2 * i + 1, 0))
+        g.add_edge((2 * i, 8), c1)
+        g.add_edge((2 * i + 1, 14), c2)
+        g.add_edge((2 * i + 1, 10), c0)
 
     # Embedding
     for i in range(6):
-        g._circle_embedding([(i,j) for j in range(16)], center=(cos(2*i*pi/6), sin(2*i*pi/6)), radius=.3)
+        g._circle_embedding([(i, j) for j in range(16)], center=(cos(2 * i * pi / 6), sin(2 * i * pi / 6)), radius=.3)
 
     for i in range(3):
-        g.delete_vertex((2*i+1,15))
+        g.delete_vertex((2 * i + 1, 15))
 
-    g._circle_embedding([0, 1, 2], radius=.2, shift=-0.75)
+    g._circle_embedding([c0, c1, c2], radius=.2, shift=-0.75)
 
     g.relabel()
 

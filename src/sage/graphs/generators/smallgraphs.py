@@ -4252,23 +4252,24 @@ def SzekeresSnarkGraph():
     """
     g = Graph(name="Szekeres Snark Graph")
 
+    c = [(-1, i) for i in range(5)]
     for i in range(5):
-        g.add_cycle([(i,j) for j in range(9)])
-        g.delete_edge((i,0),(i,8))
-        g.add_edge((i,1),i)
-        g.add_edge((i,4),i)
-        g.add_edge((i,7),i)
-        g.add_edge((i,0),(i,5))
-        g.add_edge((i,8),(i,3))
+        g.add_cycle([(i, j) for j in range(9)])
+        g.delete_edge((i, 0), (i, 8))
+        g.add_edge((i, 1), c[i])
+        g.add_edge((i, 4), c[i])
+        g.add_edge((i, 7), c[i])
+        g.add_edge((i, 0), (i, 5))
+        g.add_edge((i, 8), (i, 3))
 
-        g.add_edge((i,0),((i+1)%5,8))
-        g.add_edge((i,6),((i+2)%5,2))
+        g.add_edge((i, 0), ((i + 1) % 5, 8))
+        g.add_edge((i, 6), ((i + 2) % 5, 2))
         g._circle_embedding([(i, j) for j in range(9)],
                           radius=.3,
-                          center=(cos(2*(i+.25)*pi/5), sin(2*(i+.25)*pi/5)),
-                          shift=5.45+1.8*i)
+                          center=(cos(2 * (i + .25) * pi / 5), sin( 2 * (i +.25) * pi / 5)),
+                          shift=5.45 + 1.8 * i)
 
-    g._circle_embedding(list(range(5)), radius=1, shift=.25)
+    g._circle_embedding(c, radius=1, shift=.25)
 
     g.relabel()
     return g

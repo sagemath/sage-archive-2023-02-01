@@ -111,7 +111,7 @@ then
         CPPFLAGS="$CPPFLAGS -I${LZMA_HOME}/include"
   fi
   AC_LANG_PUSH([C])
-  AC_CHECK_LIB([lzma], [inflateEnd], [lzma_cv_liblzma=yes], [lzma_cv_liblzma=no])
+  AC_CHECK_LIB([lzma], [lzma_raw_decoder], [lzma_cv_liblzma=yes], [lzma_cv_liblzma=no])
   AC_CHECK_HEADER([lzma.h], [lzma_cv_lzma_h=yes], [lzma_cv_lzma_h=no])
   AC_LANG_POP([C])
   if test "$lzma_cv_liblzma" = "yes" && test "$lzma_cv_lzma_h" = "yes"

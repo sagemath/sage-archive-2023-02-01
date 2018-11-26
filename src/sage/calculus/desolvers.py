@@ -69,9 +69,12 @@ AUTHORS:
 #
 #  Distributed under the terms of the GNU General Public License (GPL):
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##########################################################################
 from __future__ import division
+
+import shutil
+import os
 
 from sage.interfaces.maxima import Maxima
 from sage.plot.all import line
@@ -79,9 +82,6 @@ from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.calculus.functional import diff
 from sage.misc.functional import N
-from sage.misc.decorators import rename_keyword
-import shutil
-import os
 from sage.rings.real_mpfr import RealField
 
 
@@ -978,7 +978,7 @@ def desolve_system(des, vars, ics=None, ivar=None, algorithm="maxima"):
             dvar.atvalue(ivar==ivar_ic, dvar)
     return soln
 
-@rename_keyword(deprecation=6094, method="algorithm")
+
 def eulers_method(f,x0,y0,h,x1,algorithm="table"):
     r"""
     This implements Euler's method for finding numerically the
@@ -1065,7 +1065,7 @@ def eulers_method(f,x0,y0,h,x1,algorithm="table"):
     if algorithm!="table":
         return soln
 
-@rename_keyword(deprecation=6094, method="algorithm")
+
 def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
     r"""
     This implements Euler's method for finding numerically the

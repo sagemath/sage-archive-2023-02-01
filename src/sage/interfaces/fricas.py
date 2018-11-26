@@ -1110,7 +1110,7 @@ class FriCASElement(ExpectElement):
             sage: s = fricas.get_unparsed_InputForm(f._name); s                 # optional - fricas
             'fresnelS(x*(2/pi())^(1/2))/((2/pi())^(1/2))'
             sage: f._sage_expression(s)                                         # optional - fricas
-            1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
+            1/2*sqrt(2)*sqrt(pi)*fresnel_sin(sqrt(2)*x/sqrt(pi))
 
         Check that :trac:`22525` is fixed::
 
@@ -1198,6 +1198,24 @@ class FriCASElement(ExpectElement):
             a
             sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas tol 0.1
             193.020947266268 - 8.73114913702011e-11*I
+
+        Check that :trac:`26746` is fixed::
+
+            sage: _ = var('x, y, z')
+            sage: f = sin(x^2) + y^z
+            sage: f.integrate(x, algorithm='fricas')                            # optional - fricas
+            1/2*sqrt(2)*sqrt(pi)*(sqrt(2)*x*y^z/sqrt(pi) + fresnel_sin(sqrt(2)*x/sqrt(pi)))
+
+            sage: fricas(fresnel_sin(1))                                        # optional - fricas
+            fresnelS(1)
+            sage: fricas("fresnelS(1.0)")                                       # optional - fricas
+            0.4382591473_9035476607_676
+
+            sage: fricas(fresnel_cos(1))                                        # optional - fricas
+            fresnelC(1)
+            sage: fricas("fresnelC(1.0)")                                       # optional - fricas
+            0.7798934003_7682282947_42
+
         """
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.calculus.functional import diff

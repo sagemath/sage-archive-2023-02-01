@@ -10,14 +10,13 @@ AUTHORS:
 - Gregg Musiker
 - Christian Stump
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <musiker@math.mit.edu>
 #                          Christian Stump <christian.stump@univie.ac.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from six.moves import range
 
@@ -30,7 +29,7 @@ from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list
 
 def _principal_part(mat):
     """
-    Returns the principal part of a matrix.
+    Return the principal part of a matrix.
 
     INPUT:
 
@@ -154,7 +153,8 @@ def _digraph_mutate(dg, k, frozen=None):
 
 def _matrix_to_digraph( M ):
     """
-    Returns the digraph obtained from the matrix ``M``.
+    Return the digraph obtained from the matrix ``M``.
+
     In order to generate a quiver, we assume that ``M`` is skew-symmetrizable.
 
     EXAMPLES::
@@ -173,61 +173,111 @@ def _matrix_to_digraph( M ):
             dg._backend.add_edge(i,j,(a,b),True)
         elif i >= n:
             dg._backend.add_edge(j,i,(-a,-b),True)
-    if dg.order() < M.nrows():
-        for i in [ index for index in range(M.nrows()) if index not in dg ]:
+    for i in range(M.nrows()):
+        if i not in dg:
             dg.add_vertex(i)
     return dg
 
-def _dg_canonical_form( dg, n, m ):
+
+def _dg_canonical_form(dg, frozen=None):
     """
-    Turns the digraph ``dg`` into its canonical form, and returns the corresponding isomorphism, and the vertex orbits of the automorphism group.
+    Turn the digraph ``dg`` into its canonical form, and return the
+    corresponding isomorphism and the vertex orbits of the automorphism group.
+
+    The labels of ``dg`` are assumed to be integers between `0` and `n + m - 1`.
+
+    The canonical form has the following additional property: the frozen
+    vertices are the final labels.
+
+    .. WARNING:: The input ``dg`` is modified.
+
+    INPUT:
+
+    - ``dg`` -- a directed graph having edge labels (a, b) with a > 0
+
+    - ``frozen`` -- list (optional, default []) of frozen vertices
+
+    OUTPUT:
+
+    - dictionary {original label: canonical label}
+
+    - list of orbits of mutable vertices (using canonical labels)
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _dg_canonical_form
-        sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         sage: dg = ClusterQuiver(['B',4]).digraph(); dg.edges()
         [(0, 1, (1, -1)), (2, 1, (1, -1)), (2, 3, (1, -2))]
-        sage: _dg_canonical_form(dg,4,0); dg.edges()
+        sage: _dg_canonical_form(dg); dg.edges()
         ({0: 0, 1: 3, 2: 1, 3: 2}, [[0], [3], [1], [2]])
         [(0, 3, (1, -1)), (1, 2, (1, -2)), (1, 3, (1, -1))]
+
+    TESTS::
+
+        sage: dg2 = ClusterQuiver(DiGraph({0:[1,2]})).digraph()
+        sage: _dg_canonical_form(dg2); dg2.edges()
+        ({0: 0, 1: 1, 2: 2}, [[0], [1, 2]])
+        [(0, 1, (1, -1)), (0, 2, (1, -1))]
+
+        sage: dg2 = ClusterQuiver(DiGraph({0:[1,2]})).digraph()
+        sage: _dg_canonical_form(dg2, frozen=[0]); dg2.edges()
+        ({0: 2, 1: 0, 2: 1}, [[2], [0, 1]])
+        [(2, 0, (1, -1)), (2, 1, (1, -1))]
+
+        sage: dg3 = ClusterQuiver(DiGraph({0:[1,2],1:[3]})).digraph()
+        sage: _dg_canonical_form(dg3, frozen=[0,3]); dg3.edges()
+        ({0: 2, 1: 1, 2: 0, 3: 3}, [[2], [1], [0], [3]])
+        [(1, 3, (1, -1)), (2, 0, (1, -1)), (2, 1, (1, -1))]
+
+        sage: dg3 = ClusterQuiver(DiGraph({2:[1,3],1:[0],3:[4]})).digraph()
+        sage: _dg_canonical_form(dg3, frozen=[4,0]); dg3.edges()
+        ({0: 4, 1: 1, 2: 0, 3: 2, 4: 3}, [[4, 3], [1, 2], [0]])
+        [(0, 1, (1, -1)), (0, 2, (1, -1)), (1, 4, (1, -1)), (2, 3, (1, -1))]
     """
     vertices = list(dg)
-    if m > 0:
-        partition = [ vertices[:n], vertices[n:] ]
+    n_plus_m = dg.order()
+    if frozen is not None:
+        partition = [[v for v in vertices if v not in frozen], frozen]
     else:
+        frozen = []
         partition = [ vertices ]
-    partition_add, edges = _graph_without_edge_labels(dg,vertices)
+
+    # here dg is modified by inserting new vertices at middle of edges
+    partition_add, edges = _graph_without_edge_labels(dg, vertices)
+
     partition += partition_add
-    automorphism_group, obsolete, iso = search_tree(dg, partition=partition, lab=True, dig=True, certificate=True)
-    orbits = get_orbits( automorphism_group, n+m )
-    orbits = [ [ iso[i] for i in orbit] for orbit in orbits ]
+    automorphism_group, _, iso = search_tree(dg, partition=partition, lab=True,
+                                             dig=True, certificate=True)
+    orbits = get_orbits(automorphism_group, n_plus_m)
+    orbits = [[iso[i] for i in orbit] for orbit in orbits]
 
     removed = []
     for v in iso:
-        if v >= n + m:
+        if v not in vertices:
             removed.append(v)
-            v1,v2,label1 = next(dg._backend.iterator_in_edges([v],True))
-            w1,w2,label2 = next(dg._backend.iterator_out_edges([v],True))
-            dg._backend.del_edge(v1,v2,label1,True)
-            dg._backend.del_edge(w1,w2,label2,True)
+            v1, _, _ = next(dg._backend.iterator_in_edges([v], True))
+            _, w2, _ = next(dg._backend.iterator_out_edges([v], True))
             dg._backend.del_vertex(v)
             add_index = True
             index = 0
             while add_index:
                 l = partition_add[index]
                 if v in l:
-                    dg._backend.add_edge(v1,w2,edges[index],True)
+                    dg._backend.add_edge(v1, w2, edges[index], True)
                     add_index = False
                 index += 1
     for v in removed:
         del iso[v]
+
     dg._backend.relabel(iso, True)
     return iso, orbits
 
+
 def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_depth=False, up_to_equivalence=True, sink_source=False ):
     """
-    Returns an iterator for mutation class of dg with respect to several parameters.
+    Return an iterator for mutation class of dg with respect to several parameters.
+
+    .. NOTE:: assuming that the frozen vertices start at vertex n.
 
     INPUT:
 
@@ -249,10 +299,14 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
         sage: next(itt)[0].edges()
         [(0, 2, (1, -1)), (1, 0, (2, -2)), (2, 1, (1, -1))]
     """
+    # assuming that the frozen vertices are at the end (from n to n + m - 1)
+    # assert sorted(dg) == list(range(n + m))  # commented out for speed
+    mlist = list(range(n, n + m))
+
     timer = time.time()
     depth_counter = 0
     if up_to_equivalence:
-        iso, orbits = _dg_canonical_form( dg, n, m )
+        iso, orbits = _dg_canonical_form( dg, mlist )
         iso_inv = dict( (iso[a],a) for a in iso )
 
     dig6 = _digraph_to_dig6( dg, hashable=True )
@@ -276,9 +330,6 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
         nr += ' ' * (10-len(nr))
         print("Depth: %s found: %s Time: %.2f s" % (dc, nr, timer2 - timer))
 
-    mlist = list(range(n, n + m))
-    # assuming that the frozen vertices are at the end
-
     while gets_bigger and depth_counter < depth:
         gets_bigger = False
         for key in list(dig6s):
@@ -290,7 +341,7 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
                 if not sink_source or _dg_is_sink_source( dg, i ):
                     dg_new = _digraph_mutate(dg, i, frozen=mlist)
                     if up_to_equivalence:
-                        iso, orbits = _dg_canonical_form( dg_new, n, m )
+                        iso, orbits = _dg_canonical_form( dg_new, mlist )
                         i_new = iso[i]
                         iso_inv = dict( (iso[a],a) for a in iso )
                     else:
@@ -327,7 +378,7 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
 
 def _digraph_to_dig6( dg, hashable=False ):
     """
-    Returns the dig6 and edge data of the digraph dg.
+    Return the dig6 and edge data of the digraph dg.
 
     INPUT:
 
@@ -351,9 +402,10 @@ def _digraph_to_dig6( dg, hashable=False ):
         D = tuple( sorted( D.items() ) )
     return (dig6,D)
 
+
 def _dig6_to_digraph( dig6 ):
     """
-    Returns the digraph obtained from the dig6 and edge data.
+    Return the digraph obtained from the dig6 and edge data.
 
     INPUT:
 
@@ -382,6 +434,7 @@ def _dig6_to_digraph( dig6 ):
             dg.set_edge_label( edge[0],edge[1], (1,-1) )
     return dg
 
+
 def _dig6_to_matrix( dig6 ):
     """
     Return the matrix obtained from the dig6 and edge data.
@@ -406,9 +459,10 @@ def _dig6_to_matrix( dig6 ):
     dg = _dig6_to_digraph(dig6)
     return _edge_list_to_matrix(dg.edges(), list(range(dg.order())), [])
 
+
 def _dg_is_sink_source( dg, v ):
     """
-    Returns True iff the digraph dg has a sink or a source at vertex v.
+    Return True iff the digraph dg has a sink or a source at vertex v.
 
     INPUT:
 
@@ -431,9 +485,17 @@ def _dg_is_sink_source( dg, v ):
     out_edges = [ edge for edge in dg._backend.iterator_out_edges([v],True) ]
     return not ( in_edges and out_edges )
 
-def _graph_without_edge_labels(dg,vertices):
+
+def _graph_without_edge_labels(dg, vertices):
     """
-    Replaces edge labels in dg other than ``(1,-1)`` by this edge label, and returns the corresponding partition of the edges.
+    Expand the graph, by introducing new vertices in the middle of edges.
+    Return the corresponding partition of the new vertices.
+
+    There is one new vertex for each edge with label not equal to ``(1,-1)``.
+    These vertices are numbered starting from the smallest available integer.
+
+    Each edge having a non-trivial label is replaced by two consecutive edges,
+    passing through one new vertex.
 
     EXAMPLES::
 
@@ -441,36 +503,34 @@ def _graph_without_edge_labels(dg,vertices):
         sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         sage: dg = ClusterQuiver(['B',4]).digraph(); dg.edges()
         [(0, 1, (1, -1)), (2, 1, (1, -1)), (2, 3, (1, -2))]
-        sage: _graph_without_edge_labels(dg,range(3)); dg.edges()
-        ([[5]], [(1, -2)])
-        [(0, 1, (1, -1)), (2, 1, (1, -1)), (2, 5, (1, -1)), (5, 3, (1, -1))]
+        sage: _graph_without_edge_labels(dg, range(4)); dg.edges()
+        ([[4]], ((1, -2),))
+        [(0, 1, (1, -1)), (2, 1, (1, -1)), (2, 4, (1, -1)), (4, 3, (1, -1))]
     """
-    edges = [ edge for edge in dg._backend.iterator_in_edges(dg,True) ]
-    edge_labels = sorted([ label for v1,v2,label in edges if not label == (1,-1)])
-    i = 1
-    while i < len(edge_labels):
-        if edge_labels[i] == edge_labels[i-1]:
-            edge_labels.pop(i)
-        else:
-            i += 1
-    edge_partition = [[] for _ in range(len(edge_labels))]
+    vertices = list(vertices)
+    edges = dg.edge_iterator(labels=True)
+    edge_labels = tuple(set(label for _, _, label in edges
+                            if label != (1, -1)))
+    edge_partition = [[] for _ in edge_labels]
     i = 0
-    new_vertices = []
-    for u,v,l in edges:
-        while i in vertices or i in new_vertices:
-            i += 1
-        new_vertices.append(i)
-        if not l == (1,-1):
-            index = edge_labels.index(l)
+    while i in vertices:
+        i += 1
+    for u, v, label in dg.edge_iterator(labels=True):
+        if label != (1, -1):
+            index = edge_labels.index(label)
             edge_partition[index].append(i)
-            dg._backend.add_edge(u,i,(1,-1),True)
-            dg._backend.add_edge(i,v,(1,-1),True)
-            dg._backend.del_edge(u,v,l,True)
-    return [a for a in edge_partition if a != []], edge_labels
+            dg._backend.add_edge(u, i, (1, -1), True)
+            dg._backend.add_edge(i, v, (1, -1), True)
+            dg._backend.del_edge(u, v, label, True)
+            i += 1
+            while i in vertices:
+                i += 1
+    return edge_partition, edge_labels
+
 
 def _has_two_cycles( dg ):
     """
-    Returns True if the input digraph has a 2-cycle and False otherwise.
+    Return True if the input digraph has a 2-cycle and False otherwise.
 
     EXAMPLES::
 
@@ -487,9 +547,10 @@ def _has_two_cycles( dg ):
             return True
     return False
 
+
 def _is_valid_digraph_edge_set( edges, frozen=0 ):
     """
-    Returns True if the input data is the edge set of a digraph for a quiver (no loops, no 2-cycles, edge-labels of the specified format), and returns False otherwise.
+    Return True if the input data is the edge set of a digraph for a quiver (no loops, no 2-cycles, edge-labels of the specified format), and returns False otherwise.
 
     INPUT:
 

@@ -233,10 +233,7 @@ class ClusterQuiver(SageObject):
             self.__init__( mutation_type.standard_quiver() )
             if user_labels:
                 self.relabel(user_labels)
-                if isinstance(user_labels, dict):
-                    self._nlist = user_labels.keys()
-                else:
-                    self._nlist = user_labels
+                self._nlist = list(user_labels)
 
         # constructs a quiver from string representing a mutation type
         #   or a common quiver type (see Examples)
@@ -300,7 +297,7 @@ class ClusterQuiver(SageObject):
 
             if user_labels:
                 if isinstance(user_labels, dict):
-                    self._nlist = user_labels.keys()
+                    self._nlist = list(user_labels.keys())
                 else:
                     self._nlist = user_labels
 
@@ -357,7 +354,7 @@ class ClusterQuiver(SageObject):
             if n+m == 0:
                 self._description = 'Quiver without vertices'
             elif n+m == 1:
-                self._description = 'Quiver on %d vertex' %(n+m)
+                self._description = 'Quiver on 1 vertex'
             else:
                 self._description = 'Quiver on %d vertices' %(n+m)
 
@@ -704,9 +701,9 @@ class ClusterQuiver(SageObject):
         """
         return cluster_interact(self, fig_size, circular, kind="quiver")
 
-    def save_image(self,filename,circular=False):
+    def save_image(self, filename, circular=False):
         """
-        Saves the plot of the underlying digraph of ``self``.
+        Save the plot of the underlying digraph of ``self``.
 
         INPUT:
 
@@ -718,8 +715,8 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver(['F',4,[1,2]])
             sage: Q.save_image(os.path.join(SAGE_TMP, 'sage.png'))
         """
-        graph_plot = self.plot( circular=circular )
-        graph_plot.save( filename=filename )
+        graph_plot = self.plot(circular=circular)
+        graph_plot.save(filename=filename)
 
     def qmu_save(self,filename=None):
         """
@@ -853,7 +850,7 @@ class ClusterQuiver(SageObject):
             sage: ClusterQuiver(['C', 4], user_labels = ['x', 'y', 'z', 'w']).digraph().edges()
             [('x', 'y', (1, -1)), ('z', 'w', (2, -1)), ('z', 'y', (1, -1))]
         """
-        return copy( self._digraph )
+        return copy(self._digraph)
 
     def mutation_type(self):
         """
@@ -980,7 +977,6 @@ class ClusterQuiver(SageObject):
             # checking mutation type only for the principal part
             if self._m > 0:
                 dg = self._digraph.subgraph(self._nlist)
-
             else:
                 dg = self._digraph
 
@@ -992,9 +988,9 @@ class ClusterQuiver(SageObject):
                 dg_component = dg.subgraph( component )
                 dg_component.relabel()
                 # turning dg_component into a canonical form
-                iso, orbits = _dg_canonical_form( dg_component, dg_component.num_verts(), 0 )
+                _dg_canonical_form(dg_component)
                 # turning dg_component into a canonical form
-                dig6 = _digraph_to_dig6( dg_component, hashable=True )
+                dig6 = _digraph_to_dig6(dg_component, hashable=True)
                 # and getting the corresponding matrix
                 M = _dig6_to_matrix(dig6)
 
@@ -1094,12 +1090,15 @@ class ClusterQuiver(SageObject):
 
     def canonical_label(self, certificate=False):
         """
-        Return the canonical labelling of ``self``, see
-        :meth:`sage.graphs.generic_graph.GenericGraph.canonical_label`.
+        Return the canonical labelling of ``self``.
+
+        See :meth:`sage.graphs.generic_graph.GenericGraph.canonical_label`.
 
         INPUT:
 
-        - ``certificate`` -- (default: False) if True, the dictionary from ``self.vertices()`` to the vertices of the returned quiver is returned as well.
+        - ``certificate`` -- boolean (default: False) if True, the dictionary
+          from ``self.vertices()`` to the vertices of the returned quiver
+          is returned as well.
 
         EXAMPLES::
 
@@ -1109,7 +1108,8 @@ class ClusterQuiver(SageObject):
             sage: T = Q.canonical_label(); T.digraph().edges()
             [(0, 3, (1, -1)), (1, 2, (1, -1)), (1, 3, (1, -1))]
 
-            sage: T,iso = Q.canonical_label(certificate=True); T.digraph().edges(); iso
+            sage: T, iso = Q.canonical_label(certificate=True)
+            sage: T.digraph().edges(); iso
             [(0, 3, (1, -1)), (1, 2, (1, -1)), (1, 3, (1, -1))]
             {0: 0, 1: 3, 2: 1, 3: 2}
 
@@ -1122,21 +1122,20 @@ class ClusterQuiver(SageObject):
             sage: Q.canonical_label(certificate=True)
             (Quiver on 3 vertices of type [ ['A', 1], ['B', 2] ], {0: 1, 1: 2, 2: 0})
         """
-        n = self._n
-        m = self._m
-
         # computing the canonical form respecting the frozen variables
-        dg = copy( self._digraph )
-        iso, orbits = _dg_canonical_form( dg, n, m )
-        Q = ClusterQuiver( dg )
+        dg = copy(self._digraph)
+        iso, _ = _dg_canonical_form(dg, frozen=self._mlist)
+        frozen = [iso[i] for i in self._mlist]
+        Q = ClusterQuiver(dg, frozen=frozen)
         # getting the new ordering for the mutation type if necessary
         if self._mutation_type:
             if dg.is_connected():
                 Q._mutation_type = self._mutation_type
             else:
                 CC = sorted( self._digraph.connected_components() )
-                CC_new = sorted( zip( [ sorted( [ iso[i] for i in L ] ) for L in CC ], list(range(len(CC))) ) )
-                comp_iso = [ L[1] for L in CC_new ]
+                CC_new = sorted(zip([sorted(iso[i] for i in L) for L in CC],
+                                    range(len(CC))))
+                comp_iso = [L[1] for L in CC_new]
                 Q._mutation_type = []
                 for i in range( len( CC_new ) ):
                     Q._mutation_type.append( copy( self._mutation_type.irreducible_components()[ comp_iso[i] ] ) )
@@ -1402,9 +1401,6 @@ class ClusterQuiver(SageObject):
             ...
             ValueError: The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.
         """
-
-        n = self._n
-        m = self._m
         dg = self._digraph
         V = nlist = self._nlist
         mlist = self._mlist
@@ -1705,7 +1701,11 @@ class ClusterQuiver(SageObject):
             return_dig6 = True
         else:
             return_dig6 = False
-        dg = DiGraph(ClusterQuiver(self._M)._digraph)
+
+        # jump to the standard labelling convention
+        dg = ClusterQuiver(self._M).digraph()
+        frozen = list(range(self._n, self._n + self._m))
+
         MC_iter = _mutation_class_iter(dg, self._n, self._m, depth=depth,
                                        return_dig6=return_dig6,
                                        show_depth=show_depth,
@@ -1713,10 +1713,10 @@ class ClusterQuiver(SageObject):
                                        sink_source=sink_source)
         for data in MC_iter:
             if data_type == "quiver":
-                next_element = ClusterQuiver( data[0], frozen=list(range(self._m)) )
+                next_element = ClusterQuiver(data[0], frozen=frozen)
                 next_element._mutation_type = self._mutation_type
             elif data_type == "matrix":
-                next_element = ClusterQuiver(data[0], frozen=list(range(self._m)))._M
+                next_element = ClusterQuiver(data[0], frozen=frozen)._M
             elif data_type == "digraph":
                 next_element = data[0]
             elif data_type == "dig6":

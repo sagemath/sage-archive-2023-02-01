@@ -1,23 +1,24 @@
 """
 Abstract methods
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import types
 
-def abstract_method(f = None, optional = False):
+
+def abstract_method(f=None, optional=False):
     r"""
     Abstract methods
 
     INPUT:
 
      - ``f`` -- a function
-     - ``optional`` -- a boolean; defaults to False
+     - ``optional`` -- a boolean; defaults to ``False``
 
     The decorator :obj:`abstract_method` can be used to declare
     methods that should be implemented by all concrete derived
@@ -81,13 +82,11 @@ def abstract_method(f = None, optional = False):
     The official mantra for testing whether an optional abstract
     method is implemented is::
 
-    # Fixme: sage -t complains about indentation below
-    #    sage: if x.my_method is not NotImplemented:
-    #    ...       x.my_method()
-    #    ...   else:
-    #    ...       print "x.my_method not available. Let's use some other trick."
-    #    ...
-    #    x.my_method not available. Let's use some other trick.
+        sage: if x.my_method is not NotImplemented:
+        ....:     x.my_method()
+        ....: else:
+        ....:     print("x.my_method is not available.")
+        x.my_method is not available.
 
     .. rubric:: Discussion
 
@@ -108,12 +107,15 @@ def abstract_method(f = None, optional = False):
 
     This could probably be fixed in :mod:`sage.misc.sageinspect`.
 
-    TODO: what should be the recommended mantra for existence testing from the class?
+    .. TODO:: what should be the recommended mantra for existence testing from the class?
 
-    TODO: should extra information appear in the output? The name of
-    the class? That of the super class where the abstract method is defined?
+    .. TODO::
 
-    TODO: look for similar decorators on the web, and merge
+        should extra information appear in the output? The name of the
+        class? That of the super class where the abstract method is
+        defined?
+
+    .. TODO:: look for similar decorators on the web, and merge
 
     .. rubric:: Implementation details
 
@@ -123,21 +125,23 @@ def abstract_method(f = None, optional = False):
     The syntax ``@abstract_method`` w.r.t. @abstract_method(optional = True)
     is achieved by a little trick which we test here::
 
-        sage: abstract_method(optional = True)
+        sage: abstract_method(optional = True)  # py2
         <function <lambda> at ...>
+        sage: abstract_method(optional = True)  # py3
+        <function abstract_method.<locals>.<lambda> at ...>
         sage: abstract_method(optional = True)(banner)
         <optional abstract method banner at ...>
         sage: abstract_method(banner, optional = True)
         <optional abstract method banner at ...>
-
     """
     if f is None:
-        return lambda f: AbstractMethod(f, optional = optional)
+        return lambda f: AbstractMethod(f, optional=optional)
     else:
         return AbstractMethod(f, optional)
 
+
 class AbstractMethod(object):
-    def __init__(self, f, optional = False):
+    def __init__(self, f, optional=False):
         """
         Constructor for abstract methods
 

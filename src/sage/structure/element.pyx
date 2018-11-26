@@ -4303,7 +4303,7 @@ def generic_power(a, n, one=None):
         1
         sage: generic_power(Integer(0),Integer(23))
         0
-        sage: sum([generic_power(2,i) for i in range(17)]) #test all 4-bit combinations
+        sage: sum(generic_power(2,i) for i in range(17)) #test all 4-bit combinations
         131071
         sage: F = Zmod(5)
         sage: a = generic_power(F(2), 5); a

@@ -1935,8 +1935,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: y.str(digits=1)
             '-4.'
 
-        With one digit, the decimal point is displayed unless we are
-        using scientific notation::
+        The output always contains a decimal point, except when using
+        scientific notation with exactly one digit::
 
             sage: print((1e1).str(digits=1))
             10.

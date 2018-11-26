@@ -918,7 +918,7 @@ ACKNOWLEDGEMENT:
 Methods
 =======
 """
-#*****************************************************************************
+# ****************************************************************************
 # Copyright (C) 2012--2015 Clemens Heuberger <clemens.heuberger@aau.at>
 #               2012--2015 Daniel Krenn <dev@danielkrenn.at>
 #               2012--2015 Sara Kropf <sara.kropf@aau.at>
@@ -926,16 +926,13 @@ Methods
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
-#*****************************************************************************
+#                https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
-from builtins import zip
 import six
-from six.moves import range
-
+from six.moves import range, zip_longest, zip
 from six import itervalues
-from six.moves import zip_longest
 
 import collections
 import itertools
@@ -3824,7 +3821,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T = Transducer([(0, 1, 0, 1), (0, 2, 0, 2)],
             ....:                initial_states=[0], final_states=[1])
             sage: T.process([0])
-            [(True, 1, [1]), (False, 2, [2])]
+            [(False, 2, [2]), (True, 1, [1])]
             sage: T([0])
             [1]
 
@@ -3893,7 +3890,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ValueError: Got more than one output, but only allowed to show
             one. Change list_of_outputs option.
             sage: F([2, 2], format_output=f, list_of_outputs=True)
-            [(True, 13, 'bi'), (False, 14, 'bj')]
+            [(False, 14, 'bj'), (True, 13, 'bi')]
             sage: F([2, 3], format_output=f)
             Traceback (most recent call last):
             ...
@@ -3929,7 +3926,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: A([2, 2], format_output=f)
             True
             sage: A([2, 2], format_output=f, list_of_outputs=True)
-            [True, False]
+            [False, True]
             sage: A([2, 3], format_output=f)
             True
             sage: A([2, 3], format_output=f, list_of_outputs=True)
@@ -3963,12 +3960,12 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T([2, 2], format_output=f)
             'bi'
             sage: T([2, 2], format_output=f, list_of_outputs=True)
-            ['bi', None]
+            [None, 'bi']
             sage: T([2, 2], format_output=f,
             ....:   list_of_outputs=True, only_accepted=True)
             ['bi']
             sage: T.process([2, 2], format_output=f, list_of_outputs=True)
-            [(True, 13, 'bi'), (False, 14, 'bj')]
+            [(False, 14, 'bj'), (True, 13, 'bi')]
             sage: T([2, 3], format_output=f)
             Traceback (most recent call last):
             ...
@@ -6271,8 +6268,11 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             [(True, 0, 'cdcd'), (True, 0, 'ced'),
              (True, 1, 'cdc'), (True, 1, 'ce')]
             sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o))
-            [(True, 0, 'adcd'), (True, 0, 'aed'),
-             (True, 1, 'adc'), (True, 1, 'ae'), (False, 2, 'b')]
+            [(False, 2, 'b'),
+             (True, 0, 'adcd'),
+             (True, 0, 'aed'),
+             (True, 1, 'adc'),
+             (True, 1, 'ae')]
             sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o),
             ....:           only_accepted=True)
             [(True, 0, 'adcd'), (True, 0, 'aed'),
@@ -6401,7 +6401,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         if (len(it_output) > 1 and options['list_of_outputs'] is None or
                 options['list_of_outputs']):
             return [self._process_convert_output_(out, **options)
-                    for out in it_output]
+                    for out in sorted(it_output)]
 
         # process output: cannot return output to due input parameters
         if options['list_of_outputs'] is False:
@@ -6423,7 +6423,6 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             it_output = [(False, NoneState, None)]
 
         return self._process_convert_output_(it_output[0], **options)
-
 
     def _process_convert_output_(self, output_data, **kwargs):
         """
@@ -7493,7 +7492,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ...
             ValueError: Found more than one accepting path.
             sage: T.process([0])
-            [(True, (1, 0), [2]), (True, (0, 0), [1])]
+            [(True, (0, 0), [1]), (True, (1, 0), [2])]
 
         Handling of the input alphabet (see :trac:`18989`)::
 
@@ -15584,7 +15583,7 @@ def setup_latex_preamble():
 
         sage: from sage.combinat.finite_state_machine import setup_latex_preamble
         sage: setup_latex_preamble()
-        sage: ("\usepackage{tikz}" in latex.extra_preamble()) == latex.has_file("tikz.sty")
+        sage: (r"\usepackage{tikz}" in latex.extra_preamble()) == latex.has_file("tikz.sty")
         True
     """
     from sage.misc.latex import latex
@@ -15592,6 +15591,3 @@ def setup_latex_preamble():
     latex.add_to_mathjax_avoid_list("tikz")
     if latex.has_file("tikz.sty"):
         latex.add_to_preamble(r'\usetikzlibrary{automata}')
-
-
-#*****************************************************************************

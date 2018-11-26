@@ -1692,13 +1692,13 @@ class FunctionField_polymod(FunctionField):
 
         You can also specify a morphism on the base::
 
-            sage: R1.<r> = K[]
-            sage: L1.<r> = K.extension(r^2 - (x+1)^3 - 1)
-            sage: L.hom(r, base_morphism=phi)
+            sage: R1.<q> = K[]
+            sage: L1.<q> = K.extension(q^2 - (x+1)^3 - 1)
+            sage: L.hom(q, base_morphism=phi)
             Function Field morphism:
               From: Function field in y defined by y^2 - x^3 - 1
-              To:   Function field in r defined by r^2 - x^3 - 3*x^2 - 3*x - 2
-              Defn: y |--> r
+              To:   Function field in q defined by q^2 - x^3 - 3*x^2 - 3*x - 2
+              Defn: y |--> q
                     x |--> x + 1
 
         We make another extension of a rational function field::

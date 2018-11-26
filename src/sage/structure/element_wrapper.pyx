@@ -9,15 +9,15 @@ AUTHORS:
 - Travis Scrimshaw (2013-05-04): Cythonized version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE
 
@@ -94,20 +94,11 @@ cdef class ElementWrapper(Element):
 
             sage: TestSuite(a).run(skip = "_test_category")
 
-            sage: a = ElementWrapper(1, DummyParent("A parent"))
-            doctest:...: DeprecationWarning: the first argument must be a parent
-            See http://trac.sagemath.org/14519 for details.
-
         .. NOTE::
 
             :class:`ElementWrapper` is not intended to be used directly,
             hence the failing category test.
         """
-        #assert isinstance(value, self.wrapped_class)
-        if not isinstance(parent, Parent):
-            from sage.misc.superseded import deprecation
-            deprecation(14519, 'the first argument must be a parent')
-            value, parent = parent, value
         Element.__init__(self, parent=parent)
         self.value = value
 
@@ -173,12 +164,6 @@ cdef class ElementWrapper(Element):
             True
             sage: a = ElementWrapper(DummyParent("A parent"), 1)
             sage: a == loads(dumps(a))
-            True
-
-        Checking that we can still load pickle from before :trac:`14519`::
-
-            sage: f = loads(b'x\x9c\x85\x8d\xbb\n\xc2@\x14D\xf1\x11\x8d\xebO\xd8\xda,\xf8\t\x82\xf6\x12\x08\x96a\x8dC\x08f\xd7\xdc\xbb{\x15\x8b\x80\x16\xd1\xdf6\x10\xad,,\xcf0s\xe6>\xcc\xbd)\xa0}`\xc9\x8304*X\xb8\x90]\xd9\xd45Xm{\xde\x7f\x90\x06\xcb\x07\xfd\x8c\xc4\x95$\xc8\x185\xc3wm\x13\xca\xb3S\xe2\x18G\xc9\xa1h\xf4\xefe#\xd6\xdev\x86\xbbL\xd18\x8d\xd7\x8b\x1e(j\x9b\x17M\x12\x9a6\x14\xa7\xd1\xc5T\x02\x9a\xf56.]\xe1u\xe9\x02\x8a\xce`\xcd\t\xd9\x17H\xa5\x83U\x9b\xd0\xdc?\x0f\xfa\rl4S\xbc')
-            sage: f == ElementWrapper(DummyParent("A Parent"), 1)
             True
         """
         # Make sure the first part of the state is the parent

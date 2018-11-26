@@ -119,11 +119,8 @@ class MinorMatroid(Matroid):
         sage: N = MinorMatroid(matroid=M, contractions=set(['a']),
         ....:                  deletions=set())
         sage: N._minor(contractions=set(), deletions=set(['b', 'c']))
-        M / {'a'} \ {'b', 'c'}, where M is Vamos: Matroid of rank 4 on 8
-        elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'e', 'f', 'g', 'h'},
-             {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}},
-         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+        M / {'a'} \ {'b', 'c'}, where M is Vamos: Matroid of rank 4 on 8 elements with circuit-closures
+        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
     """
 
     def __init__(self, matroid, contractions=None, deletions=None):
@@ -332,12 +329,8 @@ class MinorMatroid(Matroid):
             sage: M = MinorMatroid(matroids.named_matroids.Vamos(), contractions=set('c'), deletions={'b', 'f'})
             sage: N = M._minor(contractions=set(['a']), deletions=set([]))
             sage: N._minor(contractions=set([]), deletions=set(['d']))
-            M / {'a', 'c'} \ {'b', 'd', 'f'}, where M is Vamos: Matroid of
-            rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
-                 {'e', 'f', 'g', 'h'}, {'a', 'b', 'g', 'h'},
-                 {'c', 'd', 'e', 'f'}},
-             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+            M / {'a', 'c'} \ {'b', 'd', 'f'}, where M is Vamos: Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
         return MinorMatroid(self._matroid, self._contractions.union(contractions), self._deletions.union(deletions))
 
@@ -351,12 +344,8 @@ class MinorMatroid(Matroid):
 
             sage: M = matroids.named_matroids.Vamos().dual()
             sage: print(M._repr_())
-            Dual of 'Vamos: Matroid of rank 4 on 8 elements with
-            circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
-                 {'e', 'f', 'g', 'h'}, {'a', 'b', 'g', 'h'},
-                 {'c', 'd', 'e', 'f'}},
-             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
+            Dual of 'Vamos: Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
         """
         s = "M"
         if self._contractions:
@@ -520,12 +509,8 @@ class MinorMatroid(Matroid):
             sage: M == loads(dumps(M))  # indirect doctest
             True
             sage: loads(dumps(M))
-            M / {'a', 'b', 'c'} \ {'g'}, where M is Vamos: Matroid of rank 4
-            on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
-                 {'e', 'f', 'g', 'h'}, {'a', 'b', 'g', 'h'},
-                 {'c', 'd', 'e', 'f'}},
-             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+            M / {'a', 'b', 'c'} \ {'g'}, where M is Vamos: Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
         import sage.matroids.unpickling
         data = (self._matroid, self._contractions, self._deletions, getattr(self, '__custom_name'))

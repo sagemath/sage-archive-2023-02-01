@@ -1242,31 +1242,34 @@ def BlanusaSecondSnarkGraph():
         sage: g.automorphism_group().cardinality()
         4
     """
-    g = Graph({0:[(0,0),(1,4),1],1:[(0,3),(1,1)],(0,2):[(0,5)],
-               (0,6):[(0,4)],(0,7):[(0,1)],(1,7):[(1,2)],
-               (1,0):[(1,6)],(1,3):[(1,5)]},
+    c0 = (-1, 0)
+    c1 = (-1, 1)
+    g = Graph({c0: [(0, 0), (1, 4), c1], c1: [(0, 3), (1, 1)],
+               (0, 2): [(0, 5)], (0, 6): [(0, 4)],
+               (0, 7): [(0, 1)], (1, 7): [(1, 2)],
+               (1, 0): [(1, 6)], (1, 3): [(1, 5)]},
               name="Blanusa Second Snark Graph")
 
-    g.add_cycle([(0,i) for i in range(5)])
-    g.add_cycle([(1,i) for i in range(5)])
-    g.add_cycle([(0,5),(0,6),(0,7),(1,5),(1,6),(1,7)])
+    g.add_cycle([(0, i) for i in range(5)])
+    g.add_cycle([(1, i) for i in range(5)])
+    g.add_cycle([(0, 5), (0, 6), (0, 7), (1, 5), (1, 6), (1, 7)])
 
-    g._circle_embedding([(0, (2*i)%5) for i in range(5)],
-                            center = (-1.5, 0),
-                            shift = .5)
-    g._circle_embedding([(1, (2*i)%5) for i in range(5)],
-                            center = (1.5, 0))
+    g._circle_embedding([(0, (2 * i) % 5) for i in range(5)],
+                            center=(-1.5, 0),
+                            shift=.5)
+    g._circle_embedding([(1, (2 * i) % 5) for i in range(5)],
+                            center=(1.5, 0))
 
-    g._circle_embedding([(0, i) for i in range(5, 8)] + [0]*4,
-                            center = (-1.2, 0),
-                            shift = 2.5,
-                            radius = 2.2)
-    g._circle_embedding([(1, i) for i in range(5,8)] + [0]*4,
-                            center = (1.2, 0),
-                            shift = -1,
-                            radius = 2.2)
+    g._circle_embedding([(0, i) for i in range(5, 8)] + [c0] * 4,
+                            center=(-1.2, 0),
+                            shift=2.5,
+                            radius=2.2)
+    g._circle_embedding([(1, i) for i in range(5, 8)] + [c0] * 4,
+                            center=(1.2, 0),
+                            shift=-1,
+                            radius=2.2)
 
-    g._circle_embedding([0, 1], shift=.5)
+    g._circle_embedding([c0, c1], shift=.5)
     g.relabel()
     return g
 

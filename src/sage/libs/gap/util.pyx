@@ -14,6 +14,8 @@ Utility functions for libGAP
 
 from __future__ import print_function, absolute_import
 
+import os.path
+
 from cpython.exc cimport PyErr_SetObject
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_off, sig_error
@@ -167,7 +169,6 @@ def _guess_gap_root():
         The gap-4.5.5.spkg (or later) seems to be not installed!
         ...
     """
-    import os.path
     print('The gap-4.5.5.spkg (or later) seems to be not installed!')
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = next(dir for dir in gap_sh if dir.strip().startswith('GAP_DIR'))
@@ -186,11 +187,13 @@ def gap_root():
         sage: gap_root()   # random output
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
     """
-    import os.path
-    if os.path.exists(GAP_ROOT_DIR):
-        return GAP_ROOT_DIR
-    else:
-        return _guess_gap_root()
+    try:
+        if os.path.exists(GAP_ROOT_DIR):
+            return GAP_ROOT_DIR
+    except TypeError:
+        raise RuntimeError('The GAP_ROOT_DIR environment variable is set to an invalid path: "{}"'.format(GAP_ROOT_DIR))
+
+    return _guess_gap_root()
 
 
 # To ensure that we call initialize_libgap only once.

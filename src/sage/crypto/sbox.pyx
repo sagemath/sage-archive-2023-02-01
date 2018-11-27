@@ -369,28 +369,56 @@ cdef class SBox(SageObject):
           `\GF{2^n}`. As a last resort this function tries to convert
           ``X`` to an integer.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We can call SBoxes with integers as inputs, this will return an integer::
 
             sage: from sage.crypto.sbox import SBox
+            sage: S = SBox(3, 0, 1, 3, 1, 0, 2, 2)
+            sage: S(0)
+            3
+
+            sage: S([0,0,0])
+            [1, 1]
+
             sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: S(7)
             3
 
-            sage: S((0,2,3))
-            [0, 1, 1]
-
             sage: S[0]
             7
 
-            sage: S[(0,0,1)]
-            [1, 1, 0]
-
-            sage: k.<a> = GF(2^3)
-            sage: S(a^2)
-            a
-
             sage: S(QQ(3))
             4
+
+        Alternatively, we can call in with a list-like object, which will return a list::
+
+            sage: S((0,2,3))
+            [0, 1, 1]
+
+            sage: S((0,0,1))
+            [1, 1, 0]
+
+        Calling it with a vector will return a vector::
+
+            sage: S(vector(GF(2), [0,0,1]))
+            (1, 1, 0)
+
+            sage: type(vector(GF(2), [0,0,1])) == type(S(vector(GF(2), [0,0,1])))
+            True
+
+        An input from a finite field will be interpreted as given the coefficient vector
+        as input::
+
+            sage: k.<a> = GF(2^3)
+            sage: S(a^2)  # interpreted as (0,0,1)
+            a
+
+            sage: id = SBox(range(8))
+            sage: all([x == id(x) for x in k])
+            True
+
+        Some examples for inputs that throw an TypeError::
 
             sage: S([1]*10^6)
             Traceback (most recent call last):
@@ -402,16 +430,27 @@ cdef class SBox(SageObject):
             ...
             TypeError: Cannot apply SBox to 1/2
 
-            sage: S = SBox(3, 0, 1, 3, 1, 0, 2, 2)
-            sage: S(0)
-            3
-            sage: S([0,0,0])
-            [1, 1]
         """
         if isinstance(X, integer_types + (Integer,)):
             return self._S[ZZ(X)]
 
         cdef int i
+        #try if input is vector
+        try:
+            K = X.parent()
+            if K.dimension() != self.input_size():
+                raise TypeError
+            if self._big_endian:
+                X = list(reversed(X))
+            X = ZZ(X, 2)
+            out = self.to_bits(self._S[X], self.output_size())
+            if not self._big_endian:
+                out = list(reversed(out))
+            return K(out)
+        except (AttributeError, TypeError):
+            pass
+
+        #try if input is element of finite field
         try:
             from sage.modules.free_module_element import vector
             K = X.parent()
@@ -423,19 +462,20 @@ cdef class SBox(SageObject):
                 X = list(reversed(X))
             else:
                 X = list(X)
-            X = ZZ([ZZ(i) for i in X], 2)
+            X = ZZ(X, 2)
             out = self.to_bits(self._S[X], self.output_size())
             if self._big_endian:
                 out = list(reversed(out))
-            return K(vector(GF(2), out))
+            return K(out)
         except (AttributeError, TypeError):
             pass
 
+        #try if input is list like object
         try:
             if len(X) == self.input_size():
                 if self._big_endian:
                     X = list(reversed(X))
-                X = ZZ([ZZ(i) for i in X], 2)
+                X = ZZ(X, 2)
                 out = self._S[X]
                 return self.to_bits(out, self.output_size())
         except TypeError:

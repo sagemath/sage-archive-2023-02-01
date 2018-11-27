@@ -301,13 +301,13 @@ cdef class SBox(SageObject):
         if n is None and self.input_size() == self.output_size():
             n = self.output_size()
 
+        cdef int i
+        x = [GF(2)(i) for i in ZZ(x).digits(base=2, padto=n)]
+
         if self._big_endian:
-            def swp(x):
-                return list(reversed(x))
-        else:
-            def swp(x):
-                return x
-        return swp(self._rpad([GF(2)(_) for _ in ZZ(x).digits(2)], n))
+            x = list(reversed(x))
+
+        return x
 
     def from_bits(self, x, n=None):
         """
@@ -335,14 +335,10 @@ cdef class SBox(SageObject):
             n = self.input_size()
 
         if self._big_endian:
-            def swp(x):
-                return list(reversed(x))
-        else:
-            def swp(x):
-                return x
+            x = list(reversed(x))
 
-        cdef bint i
-        return ZZ([i for i in self._rpad(swp(x), n)], 2)
+        cdef int i
+        return ZZ([i for i in self._rpad(x, n)], 2)
 
     def _rpad(self, x, n=None):
         """

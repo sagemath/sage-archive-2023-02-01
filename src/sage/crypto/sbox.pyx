@@ -27,7 +27,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-cdef int _nterms(int nvars, int deg):
+cdef Py_ssize_t _nterms(Py_ssize_t nvars, Py_ssize_t deg):
     """
     Return the number of monomials possible up to a given
     degree.
@@ -44,15 +44,15 @@ cdef int _nterms(int nvars, int deg):
         sage: S = SBox(7,6,0,4,2,5,1,3)
         sage: F = S.polynomials(degree=3) # indirect doctest
     """
-    total = 1
-    divisor = 1
-    var_choices = 1
+    cdef Py_ssize_t total = 1
+    cdef Py_ssize_t divisor = 1
+    cdef Py_ssize_t var_choices = 1
 
-    cdef long d
+    cdef Py_ssize_t d
     for d in range(1, deg+1):
         var_choices *= (nvars - d + 1)
         divisor *= d
-        total += var_choices/divisor
+        total += var_choices//divisor
 
     return total
 
@@ -120,8 +120,8 @@ cdef class SBox(SageObject):
 
     cdef list _S
     cdef object _ring
-    cdef int m
-    cdef int n
+    cdef Py_ssize_t m
+    cdef Py_ssize_t n
     cdef bint _big_endian
     cdef dict __dict__  # for cached_methods
 
@@ -214,7 +214,7 @@ cdef class SBox(SageObject):
         self.n = ZZ(max(S)).nbits()
         self._big_endian = kwargs.get("big_endian", True)
 
-        cdef long i
+        cdef Py_ssize_t i
         self._ring = PolynomialRing(
             GF(2),
             self.m + self.n,
@@ -512,7 +512,7 @@ cdef class SBox(SageObject):
         if self.input_size() != self.output_size():
             return False
         m = self.input_size()
-        cdef long i
+        cdef Py_ssize_t i
         return len(set([self(i) for i in range(1 << m)])) == 1 << m
 
     def __iter__(self):
@@ -524,7 +524,7 @@ cdef class SBox(SageObject):
             sage: [e for e in S]
             [7, 6, 0, 4, 2, 5, 1, 3]
         """
-        cdef long i
+        cdef Py_ssize_t i
         for i in range(1 << self.input_size()):
             yield self(i)
 
@@ -557,9 +557,9 @@ cdef class SBox(SageObject):
             [0 2 2 0 0 2 2 0]
             [0 0 0 0 2 2 2 2]
         """
-        cdef long nrows = 1 << self.input_size()
-        cdef long ncols = 1 << self.output_size()
-        cdef unsigned long i, di
+        cdef Py_ssize_t nrows = 1 << self.input_size()
+        cdef Py_ssize_t ncols = 1 << self.output_size()
+        cdef Py_ssize_t i, di
 
         A = [0]*(nrows*ncols)
 
@@ -689,16 +689,16 @@ cdef class SBox(SageObject):
             True
             True
         """
-        cdef long m = self.input_size()
-        cdef long n = self.output_size()
+        cdef Py_ssize_t m = self.input_size()
+        cdef Py_ssize_t n = self.output_size()
 
-        cdef long nrows = 1 << m
-        cdef long ncols = 1 << n
+        cdef Py_ssize_t nrows = 1 << m
+        cdef Py_ssize_t ncols = 1 << n
 
         # directly compute the walsh_hadamard transform here, without
         # creating the BooleanFunction object
         cdef long* temp = <long *>check_allocarray(nrows*ncols, sizeof(long))
-        cdef long i, j
+        cdef Py_ssize_t i, j
 
         for i in range(ncols):
             for j in range(nrows):
@@ -808,7 +808,7 @@ cdef class SBox(SageObject):
 
         m = self.input_size()
 
-        cdef long i
+        cdef Py_ssize_t i
         solutions = []
         for i in range(1 << m):
             solution = self.to_bits(i, m) + self(self.to_bits(i, m))
@@ -900,7 +900,7 @@ cdef class SBox(SageObject):
 
         gens = X + Y
 
-        cdef long i
+        cdef Py_ssize_t i
         bits = []
         for i in range(1 << m):
             bits.append(self.to_bits(i, m) + self(self.to_bits(i, m)))
@@ -909,7 +909,7 @@ cdef class SBox(SageObject):
 
         A = Matrix(P, _nterms(m + n, degree), ncols)
 
-        cdef long d
+        cdef Py_ssize_t d
         exponents = []
         for d in range(degree+1):
             exponents += IntegerVectors(d, max_length=m+n, min_length=m+n, min_part=0, max_part=1).list()
@@ -923,7 +923,7 @@ cdef class SBox(SageObject):
 
         rankSize = A.rank() - 1
 
-        cdef long c
+        cdef Py_ssize_t c
         for c in range(ncols):
             A[0, c] = 1
 
@@ -1144,7 +1144,7 @@ cdef class SBox(SageObject):
         """
         m, n = self.input_size(), self.output_size()
 
-        cdef long i
+        cdef Py_ssize_t i
         if xi is None:
             xi = [i+1 for i in range(m)]
 
@@ -1162,7 +1162,7 @@ cdef class SBox(SageObject):
             output_bits = list(reversed(output_bits))
 
         C = []  # the set of clauses
-        cdef long e, output_bit, v
+        cdef Py_ssize_t e, output_bit, v
         for e in range(1 << m):
             x = self.to_bits(e, m)
             y = self(x)  # evaluate at x
@@ -1230,7 +1230,7 @@ cdef class SBox(SageObject):
             except TypeError:
                 raise TypeError("Cannot handle input argument %s" % (b,))
 
-        cdef long x
+        cdef Py_ssize_t x
         ret = BooleanFunction([ZZ(b & self(x)).popcount() & 1 for x in range(1 << m)])
 
         return ret
@@ -1313,7 +1313,7 @@ cdef class SBox(SageObject):
         n = self.output_size()
         ret = (1 << m) + (1 << n)
 
-        cdef long a, b
+        cdef Py_ssize_t a, b
         for a in range(1 << m):
             for b in range(1 << n):
                 if (a != b):
@@ -1351,7 +1351,7 @@ cdef class SBox(SageObject):
         ret = (1 << m) + (1 << n)
         lat = self.linear_approximation_table()
 
-        cdef long a, b
+        cdef Py_ssize_t a, b
         for a in range(1, 1 << m):
             for b in range(1 << n):
                 if lat[a, b] != 0:
@@ -1520,7 +1520,7 @@ cdef class SBox(SageObject):
         act = self.autocorrelation_table()
         ret = []
 
-        cdef long j, i
+        cdef Py_ssize_t j, i
         for j in range(1, 1 << n):
             for i in range(1, 1 << m):
                 if (abs(act[i, j]) == (1 << m)):
@@ -1594,7 +1594,7 @@ cdef class SBox(SageObject):
         n = self.output_size()
         ret = 0
 
-        cdef long i
+        cdef Py_ssize_t i
         for i in range(n):
             deg_Si = self.component_function(1 << i).algebraic_degree()
             if deg_Si > ret:
@@ -1615,7 +1615,7 @@ cdef class SBox(SageObject):
         n = self.output_size()
         ret = self.input_size()
 
-        cdef long b
+        cdef Py_ssize_t b
         for b in range(1, 1 << n):
             deg_bS = self.component_function(b).algebraic_degree()
             if deg_bS < ret:
@@ -1637,7 +1637,7 @@ cdef class SBox(SageObject):
         """
         n = self.output_size()
 
-        cdef long b
+        cdef Py_ssize_t b
         for b in range(1, 1 << n):
             bS = self.component_function(b)
             if not bS.is_balanced():
@@ -1679,8 +1679,8 @@ cdef class SBox(SageObject):
             sage: S.fixed_points()
             [0, 1]
         """
-        cdef long i
         m = self.input_size()
+        cdef Py_ssize_t i
         return [i for i in range(1 << m) if i == self(i)]
 
     def inverse(self):
@@ -1701,9 +1701,11 @@ cdef class SBox(SageObject):
         if not self.is_permutation():
             raise TypeError("S-Box must be a permutation")
 
-        cdef long i
         m = self.input_size()
+
+        cdef Py_ssize_t i
         L = [self(i) for i in range(1 << m)]
+
         return SBox([L.index(i) for i in range(1 << m)], big_endian=self._big_endian)
 
     def is_monomial_function(self):
@@ -1742,7 +1744,7 @@ cdef class SBox(SageObject):
         """
         n = self.output_size()
 
-        cdef long b
+        cdef Py_ssize_t b
         for b in range(1, 1 << n):
             bS = self.component_function(b)
             if not bS.is_plateaued():
@@ -1864,7 +1866,7 @@ def feistel_construction(*args):
             xl, xr = sb(xl) ^ xr, xl
         return (xl << b) | xr
 
-    cdef long i
+    cdef Py_ssize_t i
     return SBox([substitute(i) for i in range(1 << m)])
 
 
@@ -1920,5 +1922,5 @@ def misty_construction(*args):
             xl, xr = sb(xr) ^ xl, xl
         return (xl << b) | xr
 
-    cdef long i
+    cdef Py_ssize_t i
     return SBox([substitute(i) for i in range(1 << m)])

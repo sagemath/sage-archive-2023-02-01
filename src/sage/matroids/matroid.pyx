@@ -1098,8 +1098,12 @@ cdef class Matroid(SageObject):
             sage: M = matroids.named_matroids.Vamos()
             sage: N = M._minor(contractions=set(['a']), deletions=set([]))
             sage: N._minor(contractions=set([]), deletions=set(['b', 'c']))
-            M / {'a'} \ {'b', 'c'}, where M is Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+            M / {'a'} \ {'b', 'c'}, where M is Vamos:
+            Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
         from . import minor_matroid
         return minor_matroid.MinorMatroid(self, contractions, deletions)
@@ -3623,12 +3627,20 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Vamos()
             sage: M.minor('abc', 'defg')
-            M / {'a', 'b', 'c'} \ {'d', 'e', 'f', 'g'}, where M is Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+            M / {'a', 'b', 'c'} \ {'d', 'e', 'f', 'g'}, where M is Vamos:
+            Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
 
             sage: M.minor('defgh', 'abc')
-            M / {'d', 'e', 'f', 'g'} \ {'a', 'b', 'c', 'h'}, where M is Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+            M / {'d', 'e', 'f', 'g'} \ {'a', 'b', 'c', 'h'}, where M is Vamos:
+            Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
 
             sage: M.minor([1, 2, 3], 'efg')
             Traceback (most recent call last):
@@ -3865,8 +3877,12 @@ cdef class Matroid(SageObject):
             sage: N.rank()
             6
             sage: N
-            Dual of 'Pappus: Matroid of rank 3 on 9 elements with circuit-closures
-            {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}'
+            Dual of 'Pappus: Matroid of rank 3 on 9 elements with
+            circuit-closures
+            {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'},
+                 {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'},
+                 {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}},
+             3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}'
         """
         from . import dual_matroid
         return dual_matroid.DualMatroid(self)

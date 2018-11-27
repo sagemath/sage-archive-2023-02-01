@@ -49,7 +49,9 @@ import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
 from sage.matroids.basis_matroid import BasisMatroid
 from sage.matroids.circuit_closures_matroid import CircuitClosuresMatroid
-from sage.matroids.linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
+from sage.matroids.linear_matroid import (LinearMatroid, RegularMatroid,
+                                          BinaryMatroid, TernaryMatroid,
+                                          QuaternaryMatroid)
 from sage.matroids.rank_matroid import RankMatroid
 from sage.matroids.constructor import Matroid
 
@@ -171,7 +173,8 @@ def Fano():
         sage: M = matroids.named_matroids.Fano(); M
         Fano: Binary matroid of rank 3 on 7 elements, type (3, 0)
         sage: setprint(sorted(M.nonspanning_circuits()))
-        [{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'}, {'b', 'c', 'd'}, {'b', 'e', 'g'}, {'c', 'f', 'g'}, {'d', 'e', 'f'}]
+        [{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'}, {'b', 'c', 'd'},
+         {'b', 'e', 'g'}, {'c', 'f', 'g'}, {'d', 'e', 'f'}]
         sage: M.delete(M.groundset_list()[randrange(0,
         ....:                  7)]).is_isomorphic(matroids.CompleteGraphic(4))
         True
@@ -201,7 +204,8 @@ def NonFano():
         sage: M = matroids.named_matroids.NonFano(); M
         NonFano: Ternary matroid of rank 3 on 7 elements, type 0-
         sage: setprint(M.nonbases())
-        [{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'}, {'b', 'c', 'd'}, {'b', 'e', 'g'}, {'c', 'f', 'g'}]
+        [{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'}, {'b', 'c', 'd'},
+         {'b', 'e', 'g'}, {'c', 'f', 'g'}]
         sage: M.delete('f').is_isomorphic(matroids.CompleteGraphic(4))
         True
         sage: M.delete('g').is_isomorphic(matroids.CompleteGraphic(4))
@@ -292,17 +296,27 @@ def AG32prime():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.AG32prime(); M
         AG(3, 2)': Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'}, {'a', 'c', 'd', 'f'}, {'a', 'c', 'e', 'g'}, {'a', 'd', 'g', 'h'}, {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'}, {'b', 'e', 'g', 'h'}, {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'}, {'d', 'e', 'f', 'g'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
+             {'a', 'c', 'd', 'f'}, {'a', 'c', 'e', 'g'}, {'a', 'd', 'g', 'h'},
+             {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'},
+             {'b', 'e', 'g', 'h'}, {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'},
+             {'d', 'e', 'f', 'g'}},
+         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: M.contract('c').is_isomorphic(matroids.named_matroids.Fano())
         True
         sage: setprint(M.noncospanning_cocircuits())
-        [{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'}, {'a', 'c', 'd', 'f'}, {'a', 'd', 'g', 'h'}, {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'}, {'b', 'd', 'f', 'h'}, {'b', 'e', 'g', 'h'}, {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'}, {'d', 'e', 'f', 'g'}]
+        [{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
+         {'a', 'c', 'd', 'f'}, {'a', 'd', 'g', 'h'}, {'a', 'e', 'f', 'h'},
+         {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'}, {'b', 'd', 'f', 'h'},
+         {'b', 'e', 'g', 'h'}, {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'},
+         {'d', 'e', 'f', 'g'}]
         sage: M.is_valid() # long time
         True
     """
     E = 'abcdefgh'
     CC = {
-        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed', 'cfgh', 'bcef', 'adgh', 'acdf', 'begh', 'aceg'],
+        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed',
+            'cfgh', 'bcef', 'adgh', 'acdf', 'begh', 'aceg'],
         4: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -354,7 +368,11 @@ def F8():
         sage: from sage.matroids.advanced import *
         sage: M = matroids.named_matroids.F8(); M
         F8: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'}, {'a', 'c', 'd', 'f'}, {'a', 'c', 'e', 'g'}, {'a', 'd', 'g', 'h'}, {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'}, {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'}, {'d', 'e', 'f', 'g'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
+             {'a', 'c', 'd', 'f'}, {'a', 'c', 'e', 'g'}, {'a', 'd', 'g', 'h'},
+             {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'},
+             {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'}, {'d', 'e', 'f', 'g'}},
+         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: D = get_nonisomorphic_matroids([M.contract(i)
         ....:                                         for i in M.groundset()])
         sage: len(D)
@@ -368,7 +386,8 @@ def F8():
     """
     E = 'abcdefgh'
     CC = {
-        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed', 'cfgh', 'bcef', 'adgh', 'acdf', 'aceg'],
+        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed',
+            'cfgh', 'bcef', 'adgh', 'acdf', 'aceg'],
         4: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -388,7 +407,11 @@ def Q8():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.Q8(); M
         Q8: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'}, {'a', 'c', 'd', 'f'}, {'a', 'd', 'g', 'h'}, {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'}, {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'}, {'d', 'e', 'f', 'g'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
+             {'a', 'c', 'd', 'f'}, {'a', 'd', 'g', 'h'}, {'a', 'e', 'f', 'h'},
+             {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'}, {'c', 'd', 'e', 'h'},
+             {'c', 'f', 'g', 'h'}, {'d', 'e', 'f', 'g'}},
+         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: setprint(M.flats(3))
         [{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
          {'a', 'c', 'd', 'f'}, {'a', 'c', 'e'}, {'a', 'c', 'g'},
@@ -403,7 +426,8 @@ def Q8():
     """
     E = 'abcdefgh'
     CC = {
-        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed', 'cfgh', 'bcef', 'adgh', 'acdf'],
+        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed',
+            'cfgh', 'bcef', 'adgh', 'acdf'],
         4: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -424,7 +448,10 @@ def L8():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.L8(); M
         L8: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'f', 'g'}, {'a', 'c', 'e', 'g'}, {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'd', 'f', 'h'}, {'c', 'd', 'e', 'h'}, {'d', 'e', 'f', 'g'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'f', 'g'}, {'a', 'c', 'e', 'g'},
+             {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'd', 'f', 'h'},
+             {'c', 'd', 'e', 'h'}, {'d', 'e', 'f', 'g'}},
+         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: M.equals(M.dual())
         True
         sage: M.is_valid() # long time
@@ -497,7 +524,9 @@ def Vamos():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.Vamos(); M
         Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
+             {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}},
+         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: setprint(M.nonbases())
         [{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
          {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}]
@@ -631,7 +660,10 @@ def P8pp():
         sage: from sage.matroids.advanced import *
         sage: M = matroids.named_matroids.P8pp(); M
         P8'': Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'f', 'h'}, {'a', 'c', 'e', 'f'}, {'a', 'c', 'g', 'h'}, {'a', 'd', 'e', 'g'}, {'b', 'c', 'e', 'g'}, {'b', 'd', 'e', 'h'}, {'b', 'd', 'f', 'g'}, {'c', 'd', 'f', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+        {3: {{'a', 'b', 'f', 'h'}, {'a', 'c', 'e', 'f'}, {'a', 'c', 'g', 'h'},
+             {'a', 'd', 'e', 'g'}, {'b', 'c', 'e', 'g'}, {'b', 'd', 'e', 'h'},
+             {'b', 'd', 'f', 'g'}, {'c', 'd', 'f', 'h'}},
+         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: M.is_isomorphic(M.dual())
         True
         sage: len(get_nonisomorphic_matroids([M.contract(i)
@@ -1087,7 +1119,9 @@ def NonVamos():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.NonVamos(); M
         NonVamos: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'c', 'd', 'g', 'h'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
+             {'c', 'd', 'e', 'f'}, {'c', 'd', 'g', 'h'}, {'e', 'f', 'g', 'h'}},
+         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: setprint(M.nonbases())
         [{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
          {'c', 'd', 'e', 'f'}, {'c', 'd', 'g', 'h'}, {'e', 'f', 'g', 'h'}]
@@ -1121,9 +1155,14 @@ def Pappus():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.Pappus(); M
         Pappus: Matroid of rank 3 on 9 elements with circuit-closures
-        {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
+        {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'},
+             {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'},
+             {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}},
+         3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
         sage: setprint(M.nonspanning_circuits())
-        [{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}]
+        [{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'},
+         {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'d', 'e', 'f'},
+         {'g', 'h', 'i'}]
         sage: M.is_dependent(['d', 'e', 'f'])
         True
         sage: M.is_valid() # long time
@@ -1152,9 +1191,13 @@ def NonPappus():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.NonPappus(); M
         NonPappus: Matroid of rank 3 on 9 elements with circuit-closures
-        {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'g', 'h', 'i'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
+        {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'},
+             {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'},
+             {'c', 'e', 'g'}, {'g', 'h', 'i'}},
+         3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
         sage: setprint(M.nonspanning_circuits())
-        [{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'g', 'h', 'i'}]
+        [{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'},
+         {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'g', 'h', 'i'}]
         sage: M.is_dependent(['d', 'e', 'f'])
         False
         sage: M.is_valid() # long time
@@ -1186,7 +1229,8 @@ def TicTacToe():
     """
     E = 'abcdefghi'
     CC = {
-        4: ['abcdg', 'adefg', 'abceh', 'abcfi', 'cdefi', 'adghi', 'beghi', 'cfghi'],
+        4: ['abcdg', 'adefg', 'abceh', 'abcfi', 'cdefi', 'adghi',
+            'beghi', 'cfghi'],
         5: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -1308,7 +1352,8 @@ def BetsyRoss():
     """
     E = 'abcdefghijk'
     CC = {
-        2: ['acfg', 'bdgh', 'cehi', 'befj', 'adij', 'dfk', 'egk', 'ahk', 'bik', 'cjk'],
+        2: ['acfg', 'bdgh', 'cehi', 'befj', 'adij', 'dfk',
+            'egk', 'ahk', 'bik', 'cjk'],
         3: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -1332,7 +1377,9 @@ def Block_9_4():
     """
     E = 'abcdefghi'
     CC = {
-        3: ['abcd', 'acef', 'bdef', 'cdeg', 'abfg', 'adeh', 'bcfh', 'acgh', 'begh', 'dfgh', 'abei', 'cdfi', 'bcgi', 'adgi', 'efgi', 'bdhi', 'cehi', 'afhi'],
+        3: ['abcd', 'acef', 'bdef', 'cdeg', 'abfg', 'adeh', 'bcfh', 'acgh',
+            'begh', 'dfgh', 'abei', 'cdfi', 'bcgi', 'adgi', 'efgi', 'bdhi',
+            'cehi', 'afhi'],
         4: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -1357,7 +1404,12 @@ def Block_10_5():
 
     E = 'abcdefghij'
     CC = {
-        4: ['abcde', 'acdfg', 'bdefg', 'bcdfh', 'abefh', 'abcgh', 'adegh', 'cefgh', 'bcefi', 'adefi', 'bcdgi', 'acegi', 'abfgi', 'abdhi', 'cdehi', 'acfhi', 'beghi', 'dfghi', 'abdfj', 'acefj', 'abegj', 'cdegj', 'bcfgj', 'acdhj', 'bcehj', 'defhj', 'bdghj', 'afghj', 'abcij', 'bdeij', 'cdfij', 'adgij', 'efgij', 'aehij', 'bfhij', 'cghij'],
+        4: ['abcde', 'acdfg', 'bdefg', 'bcdfh', 'abefh', 'abcgh', 'adegh',
+            'cefgh', 'bcefi', 'adefi', 'bcdgi', 'acegi', 'abfgi', 'abdhi',
+            'cdehi', 'acfhi', 'beghi', 'dfghi', 'abdfj', 'acefj', 'abegj',
+            'cdegj', 'bcfgj', 'acdhj', 'bcehj', 'defhj', 'bdghj', 'afghj',
+            'abcij', 'bdeij', 'cdfij', 'adgij', 'efgij', 'aehij', 'bfhij',
+            'cghij'],
         5: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -1561,7 +1613,8 @@ def R9A():
 
     """
     E = 'abcdefghi'
-    CC = {3: ['abde', 'bcdf', 'aceg', 'abch', 'aefh', 'adgh', 'acdi', 'abfi', 'defi', 'begi', 'bdhi', 'cehi', 'fghi'],
+    CC = {3: ['abde', 'bcdf', 'aceg', 'abch', 'aefh', 'adgh', 'acdi', 'abfi',
+              'defi', 'begi', 'bdhi', 'cehi', 'fghi'],
           4: [E]}
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
     M.rename('R9A: ' + repr(M))
@@ -1585,7 +1638,8 @@ def R9B():
 
     """
     E = 'abcdefghi'
-    CC = {3: ['abde', 'bcdf', 'aceg', 'abch', 'befh', 'cdgh', 'bcei', 'adfi', 'abgi', 'degi', 'bdhi', 'aehi', 'fghi'],
+    CC = {3: ['abde', 'bcdf', 'aceg', 'abch', 'befh', 'cdgh', 'bcei', 'adfi',
+              'abgi', 'degi', 'bdhi', 'aehi', 'fghi'],
           4: [E]}
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
     M.rename('R9B: ' + repr(M))

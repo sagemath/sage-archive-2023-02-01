@@ -121,7 +121,9 @@ cdef class CircuitClosuresMatroid(Matroid):
         sage: M = CircuitClosuresMatroid(matroids.named_matroids.Fano())
         sage: M
         Matroid of rank 3 on 7 elements with circuit-closures
-        {2: {{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'}, {'b', 'c', 'd'}, {'b', 'e', 'g'}, {'c', 'f', 'g'}, {'d', 'e', 'f'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g'}}}
+        {2: {{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'},
+             {'b', 'c', 'd'}, {'b', 'e', 'g'}, {'c', 'f', 'g'},
+             {'d', 'e', 'f'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g'}}}
         sage: M = CircuitClosuresMatroid(groundset='abcdefgh',
         ....:            circuit_closures={3: ['edfg', 'acdg', 'bcfg', 'cefh',
         ....:                 'afgh', 'abce', 'abdf', 'begh', 'bcdh', 'adeh'],
@@ -142,7 +144,10 @@ cdef class CircuitClosuresMatroid(Matroid):
             sage: M = CircuitClosuresMatroid(matroids.named_matroids.Fano())
             sage: M
             Matroid of rank 3 on 7 elements with circuit-closures
-            {2: {{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'}, {'b', 'c', 'd'}, {'b', 'e', 'g'}, {'c', 'f', 'g'}, {'d', 'e', 'f'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g'}}}
+            {2: {{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'},
+                 {'b', 'c', 'd'}, {'b', 'e', 'g'}, {'c', 'f', 'g'},
+                 {'d', 'e', 'f'}},
+             3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g'}}}
 
             sage: M = CircuitClosuresMatroid(groundset='abcdefgh',
             ....:        circuit_closures={3: ['edfg', 'acdg', 'bcfg', 'cefh',
@@ -419,7 +424,10 @@ cdef class CircuitClosuresMatroid(Matroid):
             sage: M = matroids.named_matroids.Vamos()
             sage: print(M._repr_())
             Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
         return Matroid._repr_(self) + " with circuit-closures\n" + setprint_s(self._circuit_closures)
 
@@ -552,8 +560,10 @@ cdef class CircuitClosuresMatroid(Matroid):
             sage: M.reset_name()
             sage: loads(dumps(M))
             Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
-
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
         import sage.matroids.unpickling
         data = (self._groundset, self._circuit_closures, getattr(self, '__custom_name'))

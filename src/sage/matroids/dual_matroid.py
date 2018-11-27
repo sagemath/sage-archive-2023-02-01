@@ -53,7 +53,7 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from .matroid import Matroid
@@ -81,7 +81,9 @@ class DualMatroid(Matroid):
         True
         sage: Md
         Dual of 'Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
+        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
+             {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}},
+         4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
     """
 
     def __init__(self, matroid):
@@ -96,8 +98,12 @@ class DualMatroid(Matroid):
             sage: Md.rank('abd') == M.corank('abd')
             True
             sage: Md
-            Dual of 'Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
+            Dual of 'Vamos:
+            Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
         """
         if not isinstance(matroid, Matroid):
             raise TypeError("no matroid provided to take dual of.")
@@ -151,7 +157,8 @@ class DualMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An object with Python's ``frozenset`` interface containing a subset of ``self.groundset()``.
+        - ``X`` -- An object with Python's ``frozenset`` interface
+          containing a subset of ``self.groundset()``.
 
         OUTPUT:
 
@@ -339,11 +346,17 @@ class DualMatroid(Matroid):
             sage: M = matroids.named_matroids.Vamos().dual()
             sage: N = M._minor(contractions=set(['a']), deletions=set([]))
             sage: N._minor(contractions=set([]), deletions=set(['b', 'c']))
-            Dual of 'M / {'b', 'c'} \ {'a'}, where M is Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
+            Dual of 'M / {'b', 'c'} \ {'a'}, where M is Vamos:
+            Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
         """
-        # Assumption: if self._matroid cannot make a dual, neither can its minor.
-        return DualMatroid(self._matroid._minor(contractions=deletions, deletions=contractions))
+        # Assumption: if self._matroid cannot make a dual, neither can
+        # its minor.
+        return DualMatroid(self._matroid._minor(contractions=deletions,
+                                                deletions=contractions))
 
     def dual(self):
         r"""
@@ -368,7 +381,10 @@ class DualMatroid(Matroid):
             3
             sage: N
             Pappus: Matroid of rank 3 on 9 elements with circuit-closures
-            {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
+            {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'},
+                 {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'},
+                 {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}},
+             3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
         """
         return self._matroid
 
@@ -381,8 +397,12 @@ class DualMatroid(Matroid):
 
             sage: M = matroids.named_matroids.Vamos().dual()
             sage: print(M._repr_())
-            Dual of 'Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
+            Dual of 'Vamos:
+            Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
         """
         return "Dual of '" + repr(self._matroid) + "'"
 
@@ -493,7 +513,8 @@ class DualMatroid(Matroid):
 
         """
         N = DualMatroid(self._matroid)
-        if getattr(self, '__custom_name') is not None:  # because of name wrangling, this is not caught by the default copy
+        if getattr(self, '__custom_name') is not None:
+            # because of name wrangling, this is not caught by the default copy
             N.rename(getattr(self, '__custom_name'))
         return N
 
@@ -516,7 +537,9 @@ class DualMatroid(Matroid):
         """
         from copy import deepcopy
         N = DualMatroid(deepcopy(self._matroid, memo))
-        if getattr(self, '__custom_name') is not None:  # because of name wrangling, this is not caught by the default deepcopy
+        if getattr(self, '__custom_name') is not None:
+            # because of name wrangling, this is not caught by the
+            # default deepcopy
             N.rename(deepcopy(getattr(self, '__custom_name'), memo))
         return N
 
@@ -538,9 +561,12 @@ class DualMatroid(Matroid):
             sage: M == loads(dumps(M))  # indirect doctest
             True
             sage: loads(dumps(M))
-            Dual of 'Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}}, 4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
-
+            Dual of 'Vamos:
+            Matroid of rank 4 on 8 elements with circuit-closures
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
         """
         import sage.matroids.unpickling
         data = (self._matroid, getattr(self, '__custom_name'))

@@ -27,13 +27,10 @@ from __future__ import print_function
 from six import iteritems
 
 from sage.matrix.constructor import Matrix
-from sage.rings.all import ZZ, QQ, FiniteField, GF
+from sage.rings.all import ZZ, QQ, GF
 from sage.graphs.all import BipartiteGraph, Graph
-from pprint import pformat
 from sage.structure.all import SageObject
 from sage.graphs.spanning_tree import kruskal
-from sage.graphs.graph import Graph
-from sage.matrix.constructor import matrix
 from operator import itemgetter
 from sage.rings.number_field.number_field import NumberField
 

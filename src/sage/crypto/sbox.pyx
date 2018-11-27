@@ -507,7 +507,7 @@ cdef class SBox(SageObject):
         """
         if self.input_size() != self.output_size():
             return False
-        m = self.input_size()
+        cdef Py_ssize_t m = self.input_size()
         cdef Py_ssize_t i
         return len(set([self(i) for i in range(1 << m)])) == 1 << m
 
@@ -802,10 +802,10 @@ cdef class SBox(SageObject):
             P = X[0].parent()
             gens = X + Y
 
-        m = self.input_size()
+        cdef Py_ssize_t m = self.input_size()
 
-        cdef Py_ssize_t i
         solutions = []
+        cdef Py_ssize_t i
         for i in range(1 << m):
             solution = self.to_bits(i, m) + self(self.to_bits(i, m))
             solutions.append(dict(zip(gens, solution)))
@@ -883,8 +883,9 @@ cdef class SBox(SageObject):
 
         """
 
-        m = self.input_size()
-        n = self.output_size()
+        cdef Py_ssize_t m = self.input_size()
+        cdef Py_ssize_t n = self.output_size()
+
         F = GF(2)
 
         if X is None and Y is None:
@@ -901,12 +902,12 @@ cdef class SBox(SageObject):
         for i in range(1 << m):
             bits.append(self.to_bits(i, m) + self(self.to_bits(i, m)))
 
-        ncols = (1 << m) + 1
+        cdef Py_ssize_t ncols = (1 << m) + 1
 
         A = Matrix(P, _nterms(m + n, degree), ncols)
 
-        cdef Py_ssize_t d
         exponents = []
+        cdef Py_ssize_t d
         for d in range(degree+1):
             exponents += IntegerVectors(d, max_length=m+n, min_length=m+n, min_part=0, max_part=1).list()
 
@@ -1138,7 +1139,8 @@ cdef class SBox(SageObject):
             ...
             TypeError: first arg required to have length 2, got 3 instead
         """
-        m, n = self.input_size(), self.output_size()
+        cdef Py_ssize_t m = self.input_size()
+        cdef Py_ssize_t n = self.output_size()
 
         cdef Py_ssize_t i
         if xi is None:
@@ -1212,8 +1214,8 @@ cdef class SBox(SageObject):
             sage: f5.algebraic_normal_form()
             x0*x2 + x0 + x1*x2
         """
-        m = self.input_size()
-        n = self.output_size()
+        cdef Py_ssize_t m = self.input_size()
+        cdef Py_ssize_t n = self.output_size()
 
         try:
             b = list(b)
@@ -1245,7 +1247,7 @@ cdef class SBox(SageObject):
             sage: S.nonlinearity()
             112
         """
-        m = self.input_size()
+        cdef Py_ssize_t m = self.input_size()
         return (1 << (m-1)) - self.maximal_linear_bias_absolute()
 
     def linearity(self):
@@ -1305,9 +1307,9 @@ cdef class SBox(SageObject):
             sage: S.differential_branch_number()
             3
         """
-        m = self.input_size()
-        n = self.output_size()
-        ret = (1 << m) + (1 << n)
+        cdef Py_ssize_t m = self.input_size()
+        cdef Py_ssize_t n = self.output_size()
+        cdef Py_ssize_t ret = (1 << m) + (1 << n)
 
         cdef Py_ssize_t a, b
         for a in range(1 << m):
@@ -1342,10 +1344,10 @@ cdef class SBox(SageObject):
             sage: S.linear_branch_number()
             2
         """
-        m = self.input_size()
-        n = self.output_size()
-        ret = (1 << m) + (1 << n)
+        cdef Py_ssize_t m = self.input_size()
+        cdef Py_ssize_t n = self.output_size()
         lat = self.linear_approximation_table()
+        cdef Py_ssize_t ret = (1 << m) + (1 << n)
 
         cdef Py_ssize_t a, b
         for a in range(1, 1 << m):
@@ -1388,7 +1390,7 @@ cdef class SBox(SageObject):
         """
         from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
 
-        n = self.output_size()
+        cdef Py_ssize_t n = self.output_size()
         A = self.difference_distribution_table() * hadamard_matrix(1 << n)
         A.set_immutable()
 
@@ -1511,10 +1513,10 @@ cdef class SBox(SageObject):
             sage: S.linear_structures()
             [(1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (5, 5, 1), (6, 6, 1), (7, 7, 1)]
         """
-        n = self.output_size()
-        m = self.input_size()
+        cdef Py_ssize_t n = self.output_size()
+        cdef Py_ssize_t m = self.input_size()
         act = self.autocorrelation_table()
-        ret = []
+        cdef list ret = []
 
         cdef Py_ssize_t j, i
         for j in range(1, 1 << n):
@@ -1541,6 +1543,7 @@ cdef class SBox(SageObject):
             sage: S.has_linear_structure()
             True
         """
+        cdef Py_ssize_t i
         return any(self.component_function(i).has_linear_structure()
                    for i in range(1, 1 << self.output_size()))
 
@@ -1697,7 +1700,7 @@ cdef class SBox(SageObject):
         if not self.is_permutation():
             raise TypeError("S-Box must be a permutation")
 
-        m = self.input_size()
+        cdef Py_ssize_t m = self.input_size()
 
         cdef Py_ssize_t i
         L = [self(i) for i in range(1 << m)]

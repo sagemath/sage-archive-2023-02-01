@@ -374,14 +374,6 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
 
         sage: st(Graph(':Dkw'), [range(5)], lab=False, dig=True)
         [[4, 1, 2, 3, 0], [0, 2, 1, 3, 4]]
-
-    TESTS::
-
-        sage: G = Graph()
-        sage: st(G, [], certify=True)
-        doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
-        See http://trac.sagemath.org/21111 for details.
-        ([], Graph on 0 vertices, {})
     """
     cdef CGraph G
     cdef int i, j, n

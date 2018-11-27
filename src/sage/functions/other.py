@@ -178,13 +178,6 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         Traceback (most recent call last):
         ...
         ValueError: Calling ceil() on infinity or NaN
-
-    TESTS::
-
-        sage: floor(pi, maximum_bits=0)
-        doctest:...: DeprecationWarning: use the option 'bits' instead of 'maximum_bits'
-        See http://trac.sagemath.org/22079 for details.
-        3
     """
     # First, some obvious things...
     try:

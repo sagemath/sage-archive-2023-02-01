@@ -1021,15 +1021,13 @@ cdef class SBox(SageObject):
 
         if k is None:
             k = GF(2**self.input_size(), 'a')
-        l = []
-        m = self.input_size()
+
+        cdef Py_ssize_t m = self.input_size()
+        cdef list l = []
+        cdef int i
         for i in range(2**m):
-            i = self.to_bits(i, self.input_size())
-            o = self(i)
-            if self._big_endian:
-                i = reversed(i)
-                o = reversed(o)
-            l.append((k(vector(i)), k(vector(o))))
+            x = k(vector(self.to_bits(i, self.input_size())))
+            l.append((x, self(x)))
 
         P = PolynomialRing(k, 'x')
         return P.lagrange_polynomial(l)

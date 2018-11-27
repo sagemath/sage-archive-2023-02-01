@@ -1809,13 +1809,105 @@ cdef class SBox(SageObject):
         return self == self.inverse()
 
 
+cdef Py_ssize_t feistel_substitute(Py_ssize_t x, Py_ssize_t input_size, list sboxes):
+    """
+    Compute a Feistel output using the given sboxes
+
+    INPUT:
+
+    - ``x`` - integer, the input to the Feistel construction
+    - ``input_size`` - integer, the bitsize of the Feistel construction
+    - ``sboxes`` - list of SBox, the sboxes applied in the Feistel construction
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sbox import feistel_construction
+        sage: from sage.crypto.sboxes import PRESENT as s
+        sage: S = feistel_construction(s, s, s) # indirect doctest
+    """
+    cdef Py_ssize_t mask = (1 << input_size) - 1
+    cdef Py_ssize_t xl = (x >> input_size) & mask
+    cdef Py_ssize_t xr = x & mask
+
+    cdef SBox sb
+    for sb in sboxes:
+        xl, xr = sb(xl) ^ xr, xl
+
+    return (xl << input_size) | xr
+
+
+cdef Py_ssize_t misty_substitute(Py_ssize_t x, Py_ssize_t input_size, list sboxes):
+    """
+    Compute a Misty output using the given sboxes
+
+    INPUT:
+
+    - ``x`` - integer, the input to the Misty construction
+    - ``input_size`` - integer, the bitsize of the Misty construction
+    - ``sboxes`` - list of SBox, the sboxes applied in the Misty construction
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sbox import misty_construction
+        sage: from sage.crypto.sboxes import PRESENT as s
+        sage: S = misty_construction(s, s, s) # indirect doctest
+    """
+    cdef Py_ssize_t mask = (1 << input_size) - 1
+    cdef Py_ssize_t xl = (x >> input_size) & mask
+    cdef Py_ssize_t xr = x & mask
+
+    cdef SBox sb
+    for sb in sboxes:
+        xl, xr = sb(xr) ^ xl, xl
+
+    return (xl << input_size) | xr
+
+
+ctypedef Py_ssize_t (*_SBOX_CONSTR) (Py_ssize_t, Py_ssize_t, list)
+
+
+cdef sbox_construction(_SBOX_CONSTR construction, list args):
+    """
+    Construct an Sbox from the given input sboxes that has a twice as big input size
+
+    INPUT:
+
+    - ``args`` - a finite iterable SBox objects
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sbox import feistel_construction
+        sage: from sage.crypto.sboxes import PRESENT as s
+        sage: S = feistel_construction(s, s, s) # indirect doctest
+    """
+    if len(args) == 1:
+        if isinstance(args[0], SBox):
+            sboxes = [args[0]]
+        else:
+            sboxes = args[0]
+    elif len(args) > 1:
+        sboxes = args
+    else:
+        raise TypeError("No input provided")
+
+    for sb in sboxes:
+        if not isinstance(sb, SBox):
+            raise TypeError("All inputs must be an instance of SBox object")
+
+    cdef Py_ssize_t input_size = sboxes[0].input_size()
+    cdef Py_ssize_t m = 2 * input_size
+
+    cdef Py_ssize_t i
+    return SBox([construction(i, input_size, sboxes) for i in range(1 << m)])
+
+
 def feistel_construction(*args):
     r"""
     Return an S-Box constructed by Feistel structure using smaller S-Boxes in
     ``args``. The number of round in the construction is equal to the number of
     S-Boxes provided as input. For more results concerning the differential
     uniformity and the nonlinearity of S-Boxes constructed by Feistel structures
-    see [CDL2015]_ .
+    see [CDL2015]_.
 
     INPUT:
 
@@ -1840,33 +1932,7 @@ def feistel_construction(*args):
         sage: S.linear_branch_number()
         2
     """
-    if len(args) == 1:
-        if isinstance(args[0], SBox):
-            sboxes = [args[0]]
-        else:
-            sboxes = args[0]
-    elif len(args) > 1:
-        sboxes = args
-    else:
-        raise TypeError("No input provided")
-
-    for sb in sboxes:
-        if not isinstance(sb, SBox):
-            raise TypeError("All input must be an instance of SBox object")
-
-    b = sboxes[0].input_size()
-    m = 2*b
-
-    def substitute(x):
-        mask = (1 << b) - 1
-        xl = (x >> b) & mask
-        xr = x & mask
-        for sb in sboxes:
-            xl, xr = sb(xl) ^ xr, xl
-        return (xl << b) | xr
-
-    cdef Py_ssize_t i
-    return SBox([substitute(i) for i in range(1 << m)])
+    return sbox_construction(feistel_substitute, list(args))
 
 
 def misty_construction(*args):
@@ -1891,35 +1957,12 @@ def misty_construction(*args):
         sage: S3 = SBox([0x0,0x7,0xB,0xD,0x4,0x1,0xB,0xF,0x1,0x2,0xC,0xE,0xD,0xC,0x5,0x5])
         sage: from sage.crypto.sbox import misty_construction
         sage: S = misty_construction(S1, S2, S3)
+
+    The properties of the constructed S-Box can be easily examined::
+
         sage: S.differential_uniformity()
         8
         sage: S.linearity()
         64
     """
-    if len(args) == 1:
-        if isinstance(args[0], SBox):
-            sboxes = [args[0]]
-        else:
-            sboxes = args[0]
-    elif len(args) > 1:
-        sboxes = args
-    else:
-        raise TypeError("No input provided")
-
-    for sb in sboxes:
-        if not isinstance(sb, SBox):
-            raise TypeError("All input must be an instance of SBox object")
-
-    b = sboxes[0].input_size()
-    m = 2*b
-
-    def substitute(x):
-        mask = (1 << b) - 1
-        xl = (x >> b) & mask
-        xr = x & mask
-        for sb in sboxes:
-            xl, xr = sb(xr) ^ xl, xl
-        return (xl << b) | xr
-
-    cdef Py_ssize_t i
-    return SBox([substitute(i) for i in range(1 << m)])
+    return sbox_construction(misty_substitute, list(args))

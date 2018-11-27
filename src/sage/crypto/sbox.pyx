@@ -557,14 +557,14 @@ cdef class SBox(SageObject):
         cdef Py_ssize_t ncols = 1 << self.output_size()
         cdef Py_ssize_t i, di
 
-        A = [0]*(nrows*ncols)
+        cdef list L = [0]*(nrows*ncols)
 
         for i in range(nrows):
             si = self(i)
             for di in range(nrows):
-                A[di*nrows + si ^ self(i ^ di)] += 1
+                L[di*nrows + si ^ self(i ^ di)] += 1
 
-        A = Matrix(ZZ, nrows, ncols, A)
+        A = Matrix(ZZ, nrows, ncols, L)
         A.set_immutable()
 
         return A
@@ -575,7 +575,7 @@ cdef class SBox(SageObject):
         """
         from sage.misc.superseded import deprecation
         deprecation(25708,
-            "difference_distribution_matrix is deprecated." \
+            "difference_distribution_matrix is deprecated."
             "Please use difference_distribution_table instead.")
         return self.difference_distribution_table()
 
@@ -701,7 +701,7 @@ cdef class SBox(SageObject):
                 temp[i*nrows + j] = 1 - (<int>(hamming_weight(i & self(j)) & 1) << 1)
             walsh_hadamard(&temp[i*nrows], m)
 
-        L = [temp[i*nrows + j] for j in range(nrows) for i in range(ncols)]
+        cdef list L = [temp[i*nrows + j] for j in range(nrows) for i in range(ncols)]
         sig_free(temp)
 
         A = Matrix(ZZ, nrows, ncols, L)
@@ -727,7 +727,7 @@ cdef class SBox(SageObject):
         """
         from sage.misc.superseded import deprecation
         deprecation(25708,
-            "linear_approximation_matrix is deprecated." \
+            "linear_approximation_matrix is deprecated."
             "Please use linear_approximation_table instead.")
         return self.linear_approximation_table()
 
@@ -1402,7 +1402,7 @@ cdef class SBox(SageObject):
         """
         from sage.misc.superseded import deprecation
         deprecation(25708,
-            "autocorrelation_matrix is deprecated." \
+            "autocorrelation_matrix is deprecated."
             "Please use autocorrelation_table instead.")
         return self.autocorrelation_table()
 
@@ -1450,12 +1450,12 @@ cdef class SBox(SageObject):
 
         cdef SBox Si = self.inverse()
 
-        cdef unsigned long nrows = 1 << self.input_size()
-        cdef unsigned long ncols = 1 << self.output_size()
+        cdef Py_ssize_t nrows = 1 << self.input_size()
+        cdef Py_ssize_t ncols = 1 << self.output_size()
 
-        cdef A = []
+        cdef list L = []
 
-        cdef unsigned long delta_in, x, i, j
+        cdef Py_ssize_t delta_in, x, i, j
         cdef list l
         for delta_in in range(ncols):
             table = [list() for _ in range(ncols)]
@@ -1466,9 +1466,9 @@ cdef class SBox(SageObject):
             for l in table:
                 for i, j in product(l, l):
                     row[i ^ j] += 1
-            A += row
+            L += row
 
-        A = Matrix(ZZ, nrows, ncols, A)
+        A = Matrix(ZZ, nrows, ncols, L)
         A.set_immutable()
 
         return A
@@ -1479,7 +1479,7 @@ cdef class SBox(SageObject):
         """
         from sage.misc.superseded import deprecation
         deprecation(25708,
-            "boomerang_connectivity_matrix is deprecated." \
+            "boomerang_connectivity_matrix is deprecated."
             "Please use boomerang_connectivity_table instead.")
         return self.boomerang_connectivity_table()
 
@@ -1703,7 +1703,7 @@ cdef class SBox(SageObject):
         cdef Py_ssize_t m = self.input_size()
 
         cdef Py_ssize_t i
-        L = [self(i) for i in range(1 << m)]
+        cdef list L = [self(i) for i in range(1 << m)]
 
         return SBox([L.index(i) for i in range(1 << m)], big_endian=self._big_endian)
 

@@ -353,7 +353,7 @@ cdef class SBox(SageObject):
         """
         if n is None and self.input_size() == self.output_size():
             n = self.output_size()
-        return x + [GF(2)(0)]*(n-len(x))
+        return x + [GF(2).zero()]*(n-len(x))
 
     def __call__(self, X):
         r"""

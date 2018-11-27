@@ -573,7 +573,15 @@ cdef class SBox(SageObject):
 
         return A
 
-    difference_distribution_matrix = deprecated_function_alias(25708, difference_distribution_table)
+    def difference_distribution_matrix(self):
+        """
+        Deprecated in :trac:`25708` for :meth:`difference_distribution_table`.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25708,
+            "difference_distribution_matrix is deprecated." \
+            "Please use difference_distribution_table instead.")
+        return self.difference_distribution_table()
 
     def maximal_difference_probability_absolute(self):
         """
@@ -717,7 +725,15 @@ cdef class SBox(SageObject):
 
         return A
 
-    linear_approximation_matrix = deprecated_function_alias(25708, linear_approximation_table)
+    def linear_approximation_matrix(self):
+        """
+        Deprecated in :trac:`25708` for :meth:`linear_approximation_table`.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25708,
+            "linear_approximation_matrix is deprecated." \
+            "Please use linear_approximation_table instead.")
+        return self.linear_approximation_table()
 
     def maximal_linear_bias_absolute(self):
         """
@@ -1382,7 +1398,15 @@ cdef class SBox(SageObject):
 
         return A
 
-    autocorrelation_matrix = deprecated_function_alias(25708, autocorrelation_table)
+    def autocorrelation_matrix(self):
+        """
+        Deprecated in :trac:`25708` for :meth:`autocorrelation_table`.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25708,
+            "autocorrelation_matrix is deprecated." \
+            "Please use autocorrelation_table instead.")
+        return self.autocorrelation_table()
 
     @cached_method
     def boomerang_connectivity_table(self):
@@ -1451,7 +1475,16 @@ cdef class SBox(SageObject):
 
         return A
 
-    boomerang_connectivity_matrix = deprecated_function_alias(25708, boomerang_connectivity_table)
+    def boomerang_connectivity_matrix(self):
+        """
+        Deprecated in :trac:`25708` for :meth:`boomerang_connectivity_table`.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25708,
+            "boomerang_connectivity_matrix is deprecated." \
+            "Please use boomerang_connectivity_table instead.")
+        return self.boomerang_connectivity_table()
+
 
     def linear_structures(self):
         r"""

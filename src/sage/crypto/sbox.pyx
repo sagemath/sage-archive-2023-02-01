@@ -27,6 +27,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+
 cdef Py_ssize_t _nterms(Py_ssize_t nvars, Py_ssize_t deg):
     """
     Return the number of monomials possible up to a given
@@ -301,13 +302,13 @@ cdef class SBox(SageObject):
         if n is None and self.input_size() == self.output_size():
             n = self.output_size()
 
-        cdef int i
-        x = [GF(2)(i) for i in ZZ(x).digits(base=2, padto=n)]
+        F = GF(2)
+        cdef list xs = [F(i) for i in ZZ(x).digits(base=2, padto=n)]
 
         if self._big_endian:
-            x = list(reversed(x))
+            xs = list(reversed(xs))
 
-        return x
+        return xs
 
     def from_bits(self, x, n=None):
         """
@@ -337,8 +338,7 @@ cdef class SBox(SageObject):
         if self._big_endian:
             x = list(reversed(x))
 
-        cdef int i
-        return ZZ([i for i in self._rpad(x, n)], 2)
+        return ZZ(self._rpad(x, n), 2)
 
     def _rpad(self, x, n=None):
         """

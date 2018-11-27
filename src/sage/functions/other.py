@@ -28,7 +28,6 @@ from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
-from sage.misc.decorators import rename_keyword
 import math
 
 from sage.structure.element import coercion_model
@@ -130,7 +129,6 @@ class Function_abs(GinacFunction):
 abs = abs_symbolic = Function_abs()
 
 
-@rename_keyword(deprecation=22079, maximum_bits="bits")
 def _eval_floor_ceil(self, x, method, bits=0, **kwds):
     """
     Helper function to compute ``floor(x)`` or ``ceil(x)``.
@@ -170,7 +168,7 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         sage: ceil(f, bits=10000)
         0
 
-    These don't work but fail gracefully::
+    These do not work but fail gracefully::
 
         sage: ceil(Infinity)
         Traceback (most recent call last):

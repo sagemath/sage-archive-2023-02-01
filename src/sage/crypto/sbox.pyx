@@ -715,7 +715,7 @@ cdef class SBox(SageObject):
         elif scale == "fourier_coefficient":
             pass
         else:
-            raise ValueError("no such scaling for the LAM: %s" % scale)
+            raise ValueError("no such scaling for the LAT: %s" % scale)
 
         A.set_immutable()
 

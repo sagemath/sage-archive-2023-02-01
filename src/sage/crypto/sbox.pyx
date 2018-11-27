@@ -53,7 +53,7 @@ cdef Py_ssize_t _nterms(Py_ssize_t nvars, Py_ssize_t deg):
     for d in range(1, deg+1):
         var_choices *= (nvars - d + 1)
         divisor *= d
-        total += var_choices//divisor
+        total += var_choices // divisor
 
     return total
 
@@ -113,12 +113,9 @@ cdef class SBox(SageObject):
     REFERENCES:
 
     - [He2002]_
-
     - [BKLPPRSV2007]_
-
     - [CDL2015]_
     """
-
     cdef list _S
     cdef object _ring
     cdef Py_ssize_t m
@@ -127,17 +124,16 @@ cdef class SBox(SageObject):
     cdef dict __dict__  # for cached_methods
 
     def __init__(self, *args, **kwargs):
-        """
-        Construct a substitution box (S-box) for a given lookup table
-        `S`.
+        r"""
+        Construct a substitution box (S-box) for a given lookup table `S`.
 
         INPUT:
 
-        - ``S`` - a finite iterable defining the S-box with integer or
+        - ``S`` -- a finite iterable defining the S-box with integer or
           finite field elements
 
-        - ``big_endian`` - controls whether bits shall be ordered in
-          big endian order (default: ``True``)
+        - ``big_endian`` -- (default: ``True``) controls whether bits
+          shall be ordered in big endian order
 
         EXAMPLES:
 
@@ -163,7 +159,7 @@ cdef class SBox(SageObject):
             sage: SBox(PolynomialRing(GF(3**3), 'x').gen())
             Traceback (most recent call last):
             ...
-            TypeError: Only polynomials over rings with characteristic 2 allowed
+            TypeError: only polynomials over rings with characteristic 2 allowed
 
         TESTS::
 
@@ -191,14 +187,14 @@ cdef class SBox(SageObject):
             poly = args[0]
             R = poly.parent().base_ring()
             if R.characteristic() != 2:
-                raise TypeError("Only polynomials over rings with characteristic 2 allowed")
+                raise TypeError("only polynomials over rings with characteristic 2 allowed")
             S = [poly(v) for v in sorted(R)]
         elif len(args) == 1 and isinstance(args[0], (list, tuple)):
             S = args[0]
         elif len(args) > 1:
             S = args
         else:
-            raise TypeError("No lookup table provided.")
+            raise TypeError("no lookup table provided")
 
         _S = []
         for e in S:
@@ -208,7 +204,7 @@ cdef class SBox(SageObject):
         S = _S
 
         if not ZZ(len(S)).is_power_of(2):
-            raise TypeError("Lookup table length is not a power of 2")
+            raise TypeError("lookup table length is not a power of 2")
         self._S = S
 
         self.m = ZZ(len(S)).exact_log(2)
@@ -226,10 +222,10 @@ cdef class SBox(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.sbox import SBox
-            sage: SBox(7,6,0,4,2,5,1,3) #indirect doctest
+            sage: SBox(7,6,0,4,2,5,1,3)  # indirect doctest
             (7, 6, 0, 4, 2, 5, 1, 3)
         """
-        return "(" + ", ".join(map(str, list(self))) + ")"
+        return "(" + ", ".join(map(str, self)) + ")"
 
     def __len__(self):
         """
@@ -275,16 +271,16 @@ cdef class SBox(SageObject):
         """
         return not self.__eq__(other)
 
-    def to_bits(self, x, n=None):
+    cpdef list to_bits(self, x, n=None):
         """
         Return bitstring of length ``n`` for integer ``x``. The
         returned bitstring is guaranteed to have length ``n``.
 
         INPUT:
 
-        - ``x`` - an integer
+        - ``x`` -- an integer
 
-        - ``n`` - bit length (optional)
+        - ``n`` -- bit length (optional)
 
         EXAMPLES::
 
@@ -306,7 +302,7 @@ cdef class SBox(SageObject):
         cdef list xs = [F(i) for i in ZZ(x).digits(base=2, padto=n)]
 
         if self._big_endian:
-            xs = list(reversed(xs))
+            xs.reverse()
 
         return xs
 
@@ -316,9 +312,9 @@ cdef class SBox(SageObject):
 
         INPUT:
 
-        - ``x`` - a bitstring
+        - ``x`` -- a bitstring
 
-        - ``n`` - bit length (optional)
+        - ``n`` -- bit length (optional)
 
         EXAMPLES::
 
@@ -364,14 +360,15 @@ cdef class SBox(SageObject):
 
         INPUT:
 
-        - ``X`` - either an integer, a tuple of `\GF{2}` elements of
+        - ``X`` -- either an integer, a tuple of `\GF{2}` elements of
           length ``len(self)`` or a finite field element in
           `\GF{2^n}`. As a last resort this function tries to convert
           ``X`` to an integer.
 
         EXAMPLES:
 
-        We can call SBoxes with integers as inputs, this will return an integer::
+        We can call SBoxes with integers as inputs, this will
+        return an integer::
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(3, 0, 1, 3, 1, 0, 2, 2)
@@ -391,7 +388,8 @@ cdef class SBox(SageObject):
             sage: S(QQ(3))
             4
 
-        Alternatively, we can call in with a list-like object, which will return a list::
+        Alternatively, we can call in with a list-like object, which
+        will return a list::
 
             sage: S((0,2,3))
             [0, 1, 1]
@@ -407,8 +405,8 @@ cdef class SBox(SageObject):
             sage: type(vector(GF(2), [0,0,1])) == type(S(vector(GF(2), [0,0,1])))
             True
 
-        An input from a finite field will be interpreted as given the coefficient vector
-        as input::
+        An input from a finite field will be interpreted as given the
+        coefficient vector as input::
 
             sage: k.<a> = GF(2^3)
             sage: S(a^2)  # interpreted as (0,0,1)
@@ -418,17 +416,17 @@ cdef class SBox(SageObject):
             sage: all([x == id(x) for x in k])
             True
 
-        Some examples for inputs that throw an TypeError::
+        Some examples for inputs that throw an ``TypeError``::
 
             sage: S([1]*10^6)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply SBox to provided element
+            TypeError: cannot apply SBox to provided element
 
             sage: S(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply SBox to 1/2
+            TypeError: cannot apply SBox to 1/2
 
         """
         if isinstance(X, integer_types + (Integer,)):
@@ -487,9 +485,9 @@ cdef class SBox(SageObject):
             pass
 
         if len(str(X)) > 50:
-            raise TypeError("Cannot apply SBox to provided element")
+            raise TypeError("cannot apply SBox to provided element")
         else:
-            raise TypeError("Cannot apply SBox to %s" % (X,))
+            raise TypeError("cannot apply SBox to %s" % (X,))
 
     def __getitem__(self, X):
         """
@@ -635,7 +633,7 @@ cdef class SBox(SageObject):
             sage: S.maximal_difference_probability_absolute()
             2
 
-        .. note::
+        .. NOTE::
 
           This code is mainly called internally.
         """
@@ -658,7 +656,7 @@ cdef class SBox(SageObject):
             sage: S.maximal_difference_probability()
             0.25
         """
-        return self.maximal_difference_probability_absolute()/(2.0**self.output_size())
+        return self.maximal_difference_probability_absolute() / (2.0**self.output_size())
 
     @cached_method
     def linear_approximation_table(self, scale="absolute_bias"):
@@ -674,19 +672,22 @@ cdef class SBox(SageObject):
         - `Pr[\alpha\cdot x = \beta\cdot S(x)] = 1/2 + e(\alpha, \beta)`,
           where `e(\alpha, \beta)` is called the bias,
         - `2\cdot Pr[\alpha\cdot x = \beta\cdot S(x)] = 1 + c(\alpha, \beta)`,
-          where `c(\alpha, \beta) = 2\cdot e(\alpha, \beta)` is the correlation, and
-        - `2^{(m+1)}\cdot Pr[\alpha\cdot x = \beta\cdot S(x)] = 2^m + \hat{S}(\alpha,
-          \beta)`, where `\hat{S}(\alpha, \beta)` is the Fourier coefficient of S.
+          where `c(\alpha, \beta) = 2\cdot e(\alpha, \beta)` is the
+          correlation, and
+        - `2^{(m+1)}\cdot Pr[\alpha\cdot x = \beta\cdot S(x)] = 2^m +
+          \hat{S}(\alpha, \beta)`, where `\hat{S}(\alpha, \beta)` is
+          the Fourier coefficient of S.
 
         See [He2002]_ for an introduction to linear cryptanalysis.
 
         INPUT:
 
         - ``scale`` - string to choose the scaling for the LAT, one of
-            - "bias": elements are `e(\alpha, \beta)`
-            - "correlation": elements are `c(\alpha, \beta)`
-            - "absolute_bias": elements are `2^m\cdot e(\alpha, \beta)` (default)
-            - "fourier_coefficient": elements are `\hat{S}(\alpha, \beta)`
+
+          * "bias": elements are `e(\alpha, \beta)`
+          * "correlation": elements are `c(\alpha, \beta)`
+          * "absolute_bias": elements are `2^m\cdot e(\alpha, \beta)` (default)
+          * "fourier_coefficient": elements are `\hat{S}(\alpha, \beta)`
 
         EXAMPLES::
 
@@ -772,7 +773,7 @@ cdef class SBox(SageObject):
         return self.linear_approximation_table()
 
     def maximal_linear_bias_absolute(self):
-        """
+        r"""
         Return maximal linear bias, i.e. how often the linear
         approximation with the highest bias is true or false minus
         `2^{n-1}`.
@@ -800,12 +801,11 @@ cdef class SBox(SageObject):
             sage: S.maximal_linear_bias_relative()
             0.25
         """
-        return self.maximal_linear_bias_absolute()/(2.0**self.input_size())
+        return self.maximal_linear_bias_absolute() / (2.0**self.input_size())
 
     def ring(self):
         """
-        Create, return and cache a polynomial ring for S-box
-        polynomials.
+        Create, return, and cache a polynomial ring for S-box polynomials.
 
         EXAMPLES::
 
@@ -822,9 +822,9 @@ cdef class SBox(SageObject):
 
         INPUT:
 
-        - ``X`` - input variables (default: ``None``)
+        - ``X`` -- (optional) input variables
 
-        - ``Y`` - output variables (default: ``None``)
+        - ``Y`` -- (optional) output variables
 
         EXAMPLES::
 
@@ -863,15 +863,14 @@ cdef class SBox(SageObject):
 
         INPUT:
 
-        - ``X`` - input variables
+        - ``X`` -- (optional) input variables
 
-        - ``Y`` - output variables
+        - ``Y`` -- (optional) output variables
 
-        - ``degree`` - integer > 0 (default: ``2``)
+        - ``degree`` -- (default: ``2``) integer > 0
 
-        - ``groebner`` - calculate a reduced Groebner basis of the
-          spanning polynomials to obtain more polynomials (default:
-          ``False``)
+        - ``groebner`` -- (default: ``False``) calculate a reduced Groebner
+          basis of the spanning polynomials to obtain more polynomials
 
         EXAMPLES::
 
@@ -920,9 +919,7 @@ cdef class SBox(SageObject):
             ....:                         " + x2 + x3 + y2 + y3 + y4 + 1")
             sage: p in aes_polys
             True
-
         """
-
         cdef Py_ssize_t m = self.input_size()
         cdef Py_ssize_t n = self.output_size()
 
@@ -949,7 +946,8 @@ cdef class SBox(SageObject):
         exponents = []
         cdef Py_ssize_t d
         for d in range(degree+1):
-            exponents += IntegerVectors(d, max_length=m+n, min_length=m+n, min_part=0, max_part=1).list()
+            exponents += IntegerVectors(d, max_length=m+n, min_length=m+n,
+                                        min_part=0, max_part=1).list()
 
         row = 0
         for exponent in exponents:
@@ -996,7 +994,7 @@ cdef class SBox(SageObject):
 
         INPUT:
 
-        - ``k`` - an instance of `\GF{2^m}` (default: ``None``)
+        - ``k`` -- (optional) an instance of `\GF{2^m}`
 
         EXAMPLES::
 
@@ -1033,37 +1031,37 @@ cdef class SBox(SageObject):
         return P.lagrange_polynomial(l)
 
     def cnf(self, xi=None, yi=None, format=None):
-        """
+        r"""
         Return a representation of this S-Box in conjunctive normal
         form.
 
         This function examines the truth tables for each output bit of
-        the S-Box and thus has complexity `n * 2^m` for an ``m x n``
+        the S-Box and thus has complexity `n * 2^m` for an `m \times n`
         S-Box.
 
         INPUT:
 
-        - ``xi`` - indices for the input variables (default: ``1...m``)
+        - ``xi`` -- (default: ``1...m``) indices for the input variables
 
-        - ``yi`` - indices for the output variables (default: ``m+1 ... m+n``)
+        - ``yi`` -- (default: ``m+1 ... m+n``) indices for the output variables
 
-        - ``format`` - output format, see below (default: ``None``)
+        - ``format`` -- (default: ``None``) output format, see below
 
         FORMATS:
 
-        - ``None`` - return a list of tuples of integers where each
+        - ``None`` -- return a list of tuples of integers where each
           tuple represents a clause, the absolute value of an integer
           represents a variable and the sign of an integer indicates
-          inversion.
+          inversion
 
-        - ``symbolic`` - a string that can be parsed by the
-          ``SymbolicLogic`` package.
+        - ``symbolic`` -- a string that can be parsed by the
+          ``SymbolicLogic`` package
 
-        - ``dimacs`` - a string in DIMACS format which is the gold
-          standard for SAT-solver input (cf. http://www.satlib.org/).
+        - ``dimacs`` -- a string in DIMACS format which is the gold
+          standard for SAT-solver input (cf. http://www.satlib.org/)
 
-        - ``dimacs_headless`` - a string in DIMACS format, but without
-          the header. This is useful for concatenation of outputs.
+        - ``dimacs_headless`` -- a string in DIMACS format, but without
+          the header; this is useful for concatenation of outputs
 
         EXAMPLES:
 
@@ -1081,8 +1079,7 @@ cdef class SBox(SageObject):
         This output completely describes the S-Box. For instance, we
         can check that ``S([0,1]) -> [1,0]`` satisfies every clause if
         the first input bit corresponds to the index ``1`` and the
-        last output bit corresponds to the index ``3`` in the
-        output.
+        last output bit corresponds to the index ``3`` in the output.
 
         We can convert this representation to the DIMACS format::
 
@@ -1145,7 +1142,6 @@ cdef class SBox(SageObject):
              ['True', 'True', 'True', 'False', 'True'],
              ['True', 'True', 'True', 'True', 'True']]
 
-
         This function respects endianness of the S-Box::
 
             sage: S = SBox(1,2,0,3, big_endian=False); S
@@ -1166,7 +1162,6 @@ cdef class SBox(SageObject):
 
             sage: len(S.cnf()) == 3*2^4
             True
-
 
         TESTS:
 
@@ -1258,13 +1253,13 @@ cdef class SBox(SageObject):
         try:
             b = list(b)
             if len(b) > n:
-                raise ValueError("Input (%s) is too long and would be truncated" % (b,))
+                raise ValueError("input (%s) is too long and would be truncated" % (b,))
             b = self.from_bits(b)
         except TypeError:
             try:
                 b = ZZ(b)
             except TypeError:
-                raise TypeError("Cannot handle input argument %s" % (b,))
+                raise TypeError("cannot handle input argument %s" % (b,))
 
         cdef Py_ssize_t x
         ret = BooleanFunction([ZZ(b & self(x)).popcount() & 1 for x in range(1 << m)])
@@ -1334,7 +1329,8 @@ cdef class SBox(SageObject):
 
         .. MATH::
 
-            \min_{v, w \neq v} \{ \mathrm{wt}(v \oplus w) + \mathrm{wt}(S(v) \oplus S(w)) \}
+            \min_{v, w \neq v} \{ \mathrm{wt}(v \oplus w)
+            + \mathrm{wt}(S(v) \oplus S(w)) \},
 
         where `\mathrm{wt}(x)` denotes the Hamming weight of vector `x`.
 
@@ -1369,7 +1365,7 @@ cdef class SBox(SageObject):
         .. MATH::
 
             \min_{\substack{\alpha \neq 0, \beta \\ \mathrm{LAM}(\alpha, \beta) \neq 0}}
-                \{ \mathrm{wt}(\alpha) + \mathrm{wt}(\beta) \}
+                \{ \mathrm{wt}(\alpha) + \mathrm{wt}(\beta) \},
 
         where `\mathrm{LAM}(\alpha, \beta)` is the entry at row `\alpha` and
         column `\beta` of linear approximation matrix correspond to this
@@ -1407,7 +1403,8 @@ cdef class SBox(SageObject):
 
         .. MATH::
 
-            \sum_{x \in \GF{2}^m} (-1)^{b \cdot S(x) \oplus b \cdot S(x \oplus a)}
+            \sum_{x \in \GF{2}^m} (-1)^{b \cdot S(x) \oplus
+            b \cdot S(x \oplus a)}.
 
         Equivalently, the columns `b` of autocorrelation table correspond to
         the autocorrelation spectrum of component function `b \cdot S(x)`.
@@ -1459,9 +1456,9 @@ cdef class SBox(SageObject):
             |\{ x \in \GF{2}^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
                S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
 
-        For more results concerning boomerang connectivity matrix, see [CHPSS18]_ .
-        The algorithm used here, is the one from Dunkelman, published in a
-        preprint, see [Du2018]_ .
+        For more results concerning boomerang connectivity matrix,
+        see [CHPSS18]_. The algorithm used here is the one from
+        Dunkelman [Du2018]_.
 
         EXAMPLES::
 
@@ -1542,14 +1539,15 @@ cdef class SBox(SageObject):
         .. SEEALSO::
 
             :meth:`is_linear_structure`,
-            :meth:`has_linear_structure`.
+            :meth:`has_linear_structure`
 
         EXAMPLES::
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.linear_structures()
-            [(1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (5, 5, 1), (6, 6, 1), (7, 7, 1)]
+            [(1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1),
+             (5, 5, 1), (6, 6, 1), (7, 7, 1)]
         """
         cdef Py_ssize_t n = self.output_size()
         cdef Py_ssize_t m = self.input_size()
@@ -1600,7 +1598,7 @@ cdef class SBox(SageObject):
         .. SEEALSO::
 
             :meth:`linear_structures`,
-            :meth:`has_linear_structure`.
+            :meth:`has_linear_structure`
 
         EXAMPLES::
 
@@ -1696,7 +1694,8 @@ cdef class SBox(SageObject):
             True
         """
         if self.input_size() != self.output_size():
-            raise TypeError("almost bent function only exists for self.input_size() == self.output_size()")
+            raise TypeError("almost bent function only exists for"
+                            " self.input_size() == self.output_size()")
 
         m = self.input_size()
 
@@ -1849,13 +1848,13 @@ cdef class SBox(SageObject):
 
 cdef Py_ssize_t feistel_substitute(Py_ssize_t x, Py_ssize_t input_size, list sboxes):
     """
-    Compute a Feistel output using the given sboxes
+    Compute a Feistel output using the given sboxes.
 
     INPUT:
 
-    - ``x`` - integer, the input to the Feistel construction
-    - ``input_size`` - integer, the bitsize of the Feistel construction
-    - ``sboxes`` - list of SBox, the sboxes applied in the Feistel construction
+    - ``x`` -- integer; the input to the Feistel construction
+    - ``input_size`` -- integer; the bitsize of the Feistel construction
+    - ``sboxes`` -- list of SBox; the sboxes applied in the Feistel construction
 
     EXAMPLES::
 
@@ -1876,13 +1875,13 @@ cdef Py_ssize_t feistel_substitute(Py_ssize_t x, Py_ssize_t input_size, list sbo
 
 cdef Py_ssize_t misty_substitute(Py_ssize_t x, Py_ssize_t input_size, list sboxes):
     """
-    Compute a Misty output using the given sboxes
+    Compute a Misty output using the given sboxes.
 
     INPUT:
 
-    - ``x`` - integer, the input to the Misty construction
-    - ``input_size`` - integer, the bitsize of the Misty construction
-    - ``sboxes`` - list of SBox, the sboxes applied in the Misty construction
+    - ``x`` -- integer; the input to the Misty construction
+    - ``input_size`` -- integer; the bitsize of the Misty construction
+    - ``sboxes`` -- list of SBox; the sboxes applied in the Misty construction
 
     EXAMPLES::
 
@@ -1906,11 +1905,12 @@ ctypedef Py_ssize_t (*_SBOX_CONSTR) (Py_ssize_t, Py_ssize_t, list)
 
 cdef sbox_construction(_SBOX_CONSTR construction, list args):
     """
-    Construct an Sbox from the given input sboxes that has a twice as big input size
+    Construct an Sbox from the given input sboxes that has a twice
+    as big input size.
 
     INPUT:
 
-    - ``args`` - a finite iterable SBox objects
+    - ``args`` -- a finite iterable SBox objects
 
     EXAMPLES::
 
@@ -1926,11 +1926,11 @@ cdef sbox_construction(_SBOX_CONSTR construction, list args):
     elif len(args) > 1:
         sboxes = args
     else:
-        raise TypeError("No input provided")
+        raise TypeError("no input provided")
 
     for sb in sboxes:
         if not isinstance(sb, SBox):
-            raise TypeError("All inputs must be an instance of SBox object")
+            raise TypeError("all inputs must be an instance of SBox object")
 
     cdef Py_ssize_t input_size = sboxes[0].input_size()
     cdef Py_ssize_t m = 2 * input_size
@@ -1949,12 +1949,12 @@ def feistel_construction(*args):
 
     INPUT:
 
-    - ``args`` - a finite iterable SBox objects
+    - ``args`` -- a finite iterable SBox objects
 
     EXAMPLES:
 
-    Suppose we construct an `8 \times 8` S-Box with 3-round Feistel construction
-    from the S-Box of PRESENT::
+    Suppose we construct an `8 \times 8` S-Box with 3-round Feistel
+    construction from the S-Box of PRESENT::
 
         sage: from sage.crypto.sbox import SBox
         sage: s = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
@@ -1975,19 +1975,22 @@ def feistel_construction(*args):
 
 def misty_construction(*args):
     r"""
-    Return an S-Box constructed by MISTY structure using smaller S-Boxes in
-    ``args``. The number of round in the construction is equal to the number of
-    S-Boxes provided as input. For further result related to the nonlinearity
-    and differential uniformity of the constructed S-Box one may consult [CDL2015]_.
+    Return an S-Box constructed by MISTY structure using smaller
+    S-Boxes in ``args``.
+
+    The number of round in the construction is equal to the number
+    of S-Boxes provided as input. For further result related to the
+    nonlinearity and differential uniformity of the constructed S-Box
+    one may consult [CDL2015]_.
 
     INPUT:
 
-    - ``args`` - a finite iterable SBox objects
+    - ``args`` -- a finite iterable SBox objects
 
     EXAMPLES:
 
-    We construct an `8 \times 8` S-Box using 3-round MISTY structure with the following
-    `4 \times 4` S-Boxes `S1, S2, S3` (see Example 2 in [CDL2015]_)::
+    We construct an `8 \times 8` S-Box using 3-round MISTY structure with the
+    following `4 \times 4` S-Boxes `S1, S2, S3` (see Example 2 in [CDL2015]_)::
 
         sage: from sage.crypto.sbox import SBox
         sage: S1 = SBox([0x4,0x0,0x1,0xF,0x2,0xB,0x6,0x7,0x3,0x9,0xA,0x5,0xC,0xD,0xE,0x8])
@@ -2004,3 +2007,4 @@ def misty_construction(*args):
         64
     """
     return sbox_construction(misty_substitute, list(args))
+

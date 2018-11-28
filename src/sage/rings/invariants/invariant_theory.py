@@ -2306,10 +2306,23 @@ class BinaryQuintic(AlgebraicForm):
         return invariants
 
     @cached_method
-    def canonical_form(self):
+    def canonical_form(self, reduce_gcd=False):
         r"""
-        Return a canonical representant of the `GL(2,\bar{K})`-orbit of the
-        quintic.
+        Return a canonical representant of the quintic.
+
+        Given a binary quintic `f` with coefficients in a field `K`, returns a
+        canonical representant of the `GL(2,\bar{K})`-orbit of the quintic,
+        where `\bar{K}` is an algebraic closure of `K`. This means that two
+        binary quintics `f` and `g` are `GL(2,\bar{K})`-equivalent if and only
+        if their canonical forms are the same.
+
+        INPUT:
+
+        - ``reduce_gcd`` -- A boolean that determines how the canonical form
+          is computed. By default, the coefficients of the form are normalized,
+          else the invariants are scaled such that their weighted gcd is equal
+          to 1 and the coefficients of the resulting form are scaled as well.
+          See also :meth:`~sage.rings.invariants.reconstruction.binary_quintic_from_invariants`'.
 
         OUTPUT:
 
@@ -2324,23 +2337,27 @@ class BinaryQuintic(AlgebraicForm):
             sage: gf = f.transformed(g)
             sage: f.canonical_form() == gf.canonical_form()
             True
+            sage: h = f.canonical_form(reduce_gcd=True)
+            sage: h
+            -213283188977836948916637112*x^5
+            + 321985270425555686062507878508*x^4*z
+            - 200784910088189544791250665877691*x^3*z^2
+            + 99010920119365544008752617152096288*x^2*z^3
+            - 7397995330446821406603692136406937696*x*z^4
+            - 523963051960072769018084726765089970426*z^5
+            sage: gcd(invariant_theory.binary_quintic(h).coeffs())
+            1
         """
-        from sage.rings.all import QQ
-        from sage.rings.invariants.reconstruction import binary_quintic_from_invariants
+        from sage.rings.invariants.reconstruction import binary_form_from_invariants
         clebsch = self.clebsch_invariants(as_tuple=True)
-        K = self._ring.base_ring()
-        if K == QQ:
-            # Note this method works for any number field with class number 1, but
-            # the scaled method is a lot faster as computing the class number
-            # takes a lot of time.
-            coeffs = binary_quintic_from_invariants(clebsch, reduced=True)
+        if reduce_gcd:
+            return binary_form_from_invariants(5, clebsch, scaling='coprime')
         else:
-            coeffs = binary_quintic_from_invariants(clebsch, scaled=True)
-        x, y = self._variables
-        form = sum([coeffs[i]*x**i*y**(5-i) for i in range(6)])
-        return invariant_theory.binary_quintic(form, x, y)
+            return binary_form_from_invariants(5, clebsch, scaling='normalized')
+
 
 ######################################################################
+
 def _covariant_conic(A_scaled_coeffs, B_scaled_coeffs, monomials):
     """
     Helper function for :meth:`TernaryQuadratic.covariant_conic`

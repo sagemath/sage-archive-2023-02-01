@@ -410,7 +410,7 @@ def slp(M1, pos_dict=None, B=None):
         sage: M.is_simple()
         True
         sage: setprint([L,P])
-        [{7}, {8, 9, 10}]
+        [{10, 8, 9}, {7}]
         sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],
         ....: [0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
         sage: posdict= {8: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),
@@ -419,7 +419,7 @@ def slp(M1, pos_dict=None, B=None):
         sage: M.is_simple()
         True
         sage: setprint([L,P])
-        [{7}, {0, 9, 10}]
+        [{0, 10, 9}, {7}]
 
     .. NOTE::
 

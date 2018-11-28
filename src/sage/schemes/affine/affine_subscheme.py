@@ -198,6 +198,23 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               Defn: Defined on coordinates by sending (x, y, z) to
                     (x : y : z : 1)
 
+        When taking a closed subscheme of an affine space with a
+        projective embedding, the subscheme inherits the embedding::
+
+            sage: A.<u,v> = AffineSpace(2, QQ, default_embedding_index=1)
+            sage: X = A.subscheme(u - v)
+            sage: X.projective_embedding()
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+              u - v
+              To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x0 - x2
+              Defn: Defined on coordinates by sending (u, v) to
+                    (u : 1 : v)
+            sage: phi = X.projective_embedding()
+            sage: psi = A.projective_embedding()
+            sage: phi(X(2, 2)) == psi(A(X(2, 2)))
+            True
         """
         AA = self.ambient_space()
         n = AA.dimension_relative()

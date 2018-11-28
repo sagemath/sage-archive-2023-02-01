@@ -104,6 +104,9 @@ def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
         else:
             raise TypeError("you must specify the variables names of the coordinate ring")
     names = normalize_names(n, names)
+    if default_embedding_index is not None and ambient_projective_space is None:
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        ambient_projective_space = ProjectiveSpace(n, R)
     if R in _Fields:
         if is_FiniteField(R):
             return AffineSpace_finite_field(n, R, names,

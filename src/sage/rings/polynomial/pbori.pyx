@@ -7063,8 +7063,8 @@ cdef class GroebnerStrategy:
             raise AttributeError(name)
 
 
-class BooleanMulAction(Action):
-    def _call_(self, left, right):
+cdef class BooleanMulAction(Action):
+    cpdef _act_(self, g, x):
         """
         EXAMPLES:
             sage: from brial import BooleanMonomialMonoid
@@ -7084,10 +7084,8 @@ class BooleanMulAction(Action):
             sage: x*2
             0
         """
-        if self.is_left():
-            return right if left % 2 else GF(2)(0)
-        else:
-            return left if right % 2 else GF(2)(0)
+        return x if (g % 2) else GF(2)(0)
+
 
 cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice,
                                                    Py_ssize_t* pbind):

@@ -1630,9 +1630,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             ....:     def __init__(self, G, M, is_left=True):
             ....:         sage.categories.action.Action.__init__(self, G, M, is_left, operator.mul)
             ....:
-            ....:     def _call_(self, g, a):
-            ....:         if not self.is_left():
-            ....:             g, a = a, g
+            ....:     def _act_(self, g, a):
             ....:         D = {}
             ....:         for k, v in a.dict().items():
             ....:             nk = [0]*len(k)

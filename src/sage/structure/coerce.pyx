@@ -1172,7 +1172,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return op(x,y)
             action = self.get_action(xp, yp, op, x, y)
             if action is not None:
-                return (<Action>action)._call_(x, y)
+                if (<Action>action)._is_left:
+                    return (<Action>action)._act_(x, y)
+                else:
+                    return (<Action>action)._act_(y, x)
 
         try:
             xy = self.canonical_coercion(x, y)
@@ -1664,12 +1667,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         return None
 
-
     cpdef get_action(self, R, S, op, r=None, s=None):
         """
         Get the action of R on S or S on R associated to the operation op.
-
-
 
         EXAMPLES::
 

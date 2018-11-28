@@ -762,7 +762,7 @@ cdef class SBox(SageObject):
 
         return A
 
-    def linear_approximation_matrix(self):
+    def linear_approximation_matrix(self, scale="absolute_bias"):
         """
         Deprecated in :trac:`25708` for :meth:`linear_approximation_table`.
         """
@@ -770,7 +770,7 @@ cdef class SBox(SageObject):
         deprecation(25708,
             "linear_approximation_matrix is deprecated."
             "Please use linear_approximation_table instead.")
-        return self.linear_approximation_table()
+        return self.linear_approximation_table(scale=scale)
 
     def maximal_linear_bias_absolute(self):
         r"""

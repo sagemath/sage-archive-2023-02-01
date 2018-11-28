@@ -89,8 +89,7 @@ This came up in some subtle bug once::
     sage: gp(2) + gap(3)
     5
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
 #       Copyright (C) 2008 Mike Hansen     <mhansen@gmail.com>
@@ -101,9 +100,8 @@ This came up in some subtle bug once::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
 from cpython.object cimport PyObject, Py_NE, Py_EQ, Py_LE, Py_GE
@@ -2710,7 +2708,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: S.category()
             Category of facade finite enumerated sets
             sage: super(Parent, S)._an_element_
-            Cached version of <function _an_element_from_iterator at ...>
+            Cached version of <function ..._an_element_from_iterator at ...>
             sage: S._an_element_()
             1
             sage: S = FiniteEnumeratedSet([])
@@ -2718,7 +2716,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Traceback (most recent call last):
             ...
             EmptySetError
-
         """
         try:
             return super(Parent, self)._an_element_()

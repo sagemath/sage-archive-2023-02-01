@@ -753,12 +753,12 @@ class _drawing_tool:
         - ``v2`` -- point, The second point of the line.
 
         - ``color`` -- string (default:``None``), The color of the line.
-                       If set to ``None``, the color is choosen according the
-                       drawing option given by ``_drawing_tool``.
+          If set to ``None``, the color is choosen according the
+          drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-                      If set to ``None``, the size is choosen according the
-                      drawing option given by ``_drawing_tool``.
+          If set to ``None``, the size is choosen according the
+          drawing option given by ``_drawing_tool``.
 
         OUTPUT:
 
@@ -795,12 +795,12 @@ class _drawing_tool:
         - ``list_of_vertices`` -- A list of points
 
         - ``color`` -- string (default:``None``), The color of the line.
-                       If set to ``None``, the color is choosen according the
-                       drawing option given by ``_drawing_tool``.
+          If set to ``None``, the color is choosen according the
+          drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-                      If set to ``None``, the size is choosen according the
-                      drawing option given by ``_drawing_tool``.
+          If set to ``None``, the size is choosen according the
+          drawing option given by ``_drawing_tool``.
 
         OUTPUT:
 
@@ -835,12 +835,12 @@ class _drawing_tool:
         - ``p1`` -- A point
 
         - ``color`` -- string (default:``None``), The color of the line.
-                       If set to ``None``, the color is choosen according the
-                       drawing option given by ``_drawing_tool``.
+          If set to ``None``, the color is choosen according the
+          drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-                      If set to ``None``, the size is choosen according the
-                      drawing option given by ``_drawing_tool``.
+          If set to ``None``, the size is choosen according the
+          drawing option given by ``_drawing_tool``.
 
         OUTPUT:
 
@@ -2339,12 +2339,10 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return the bounce of the parallelogram polyomino.
 
-        Les p be the bounce path of the parallelogram
-        polyomino (:meth:`bounce_path`).
+        Let ``p`` be the bounce path of the parallelogram
+        polyomino (:meth:`bounce_path`). The bounce is defined by:
 
-        The bounce is defined by:
-
-        sum([(1+ floor(i/2))*p[i] for i in range(len(p))])
+            ``sum([(1+ floor(i/2))*p[i] for i in range(len(p))])``
 
         INPUT:
 
@@ -2817,9 +2815,7 @@ class ParallelogramPolyomino(ClonableList):
                 return [h, w]
         return None
 
-    def get_node_position_from_box(
-        self, box_position, direction, nb_crossed_nodes=[0]
-    ):
+    def get_node_position_from_box(self, box_position, direction, nb_crossed_nodes=[0]):
         r"""
         This function starts from a cell inside a parallelogram polyomino and
         a direction.

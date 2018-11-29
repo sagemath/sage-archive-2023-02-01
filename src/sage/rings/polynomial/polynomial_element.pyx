@@ -772,13 +772,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # Coerce a once and for all to a parent containing the coefficients.
         # This can save lots of coercions when the common parent is the
         # polynomial's base ring (e.g., for evaluations at integers).
-
-        if not type(a) is type(cst):
+        if not have_same_parent(a, cst):
             cst, aa = coercion_model.canonical_coercion(cst, a)
-            tgt = parent(cst)
-            # Use fast right multiplication actions like matrix × scalar
-            if (isinstance(tgt, type)
-                or (<Parent> tgt).get_action(parent(a), operator.mul) is None):
+            # Use fast multiplication actions like matrix × scalar.
+            # If there is no action, replace a by an element of the
+            # target parent.
+            if coercion_model.get_action(parent(aa), parent(a)) is None:
                 a = aa
 
         d = pol.degree()

@@ -733,7 +733,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             self._registered_domains = []
             self._coerce_from_hash = MonoDict()
             self._action_list = []
-            self._action_hash = TripleDict()
             self._convert_from_list = []
             self._convert_from_hash = MonoDict()
             self._embedding = None
@@ -745,8 +744,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         EXAMPLES::
 
             sage: sorted(QQ._introspect_coerce().items())
-            [('_action_hash', <sage.structure.coerce_dict.TripleDict object at ...>),
-             ('_action_list', []),
+            [('_action_list', []),
              ('_coerce_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_coerce_from_list', []),
              ('_convert_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
@@ -761,7 +759,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             '_coerce_from_list': self._coerce_from_list,
             '_coerce_from_hash': self._coerce_from_hash,
             '_action_list': self._action_list,
-            '_action_hash': self._action_hash,
             '_convert_from_list': self._convert_from_list,
             '_convert_from_hash': self._convert_from_hash,
             '_embedding': self._embedding,
@@ -1669,10 +1666,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if isinstance(action, Action):
             if action.actor() is self:
                 self._action_list.append(action)
-                self._action_hash.set(action.domain(), action.operation(), action.is_left(), action)
             elif action.domain() is self:
                 self._action_list.append(action)
-                self._action_hash.set(action.actor(), action.operation(), not action.is_left(), action)
             else:
                 raise ValueError("Action must involve self")
         else:
@@ -2485,20 +2480,20 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         To provide additional actions, override :meth:`_get_action_`.
 
+        .. WARNING::
+
+            This is not the method that you typically want to call.
+            Instead, call ``coercion_model.get_action(...)`` which
+            caches results (this ``Parent.get_action`` method does not).
+
         TESTS::
 
             sage: M = QQ['y']^3
             sage: M.get_action(ZZ['x']['y'])
             Right scalar multiplication by Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring on Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field
-            sage: M.get_action(ZZ['x']) # should be None
+            sage: print(M.get_action(ZZ['x']))
+            None
         """
-        try:
-            if self._action_hash is None: # this is because parent.__init__() does not always get called
-                self.init_coerce()
-            return self._action_hash.get(S, op, self_on_left)
-        except KeyError:
-            pass
-
         action = self._get_action_(S, op, self_on_left)
         if action is None:
             action = self.discover_action(S, op, self_on_left, self_el, S_el)
@@ -2507,10 +2502,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             from sage.categories.action import Action
             if not isinstance(action, Action):
                 raise TypeError("_get_action_ must return None or an Action")
-            # We do NOT add to the list, as this would lead to errors as in
-            # the example above.
 
-        self._action_hash.set(S, op, self_on_left, action)
         return action
 
     cdef discover_action(self, S, op, bint self_on_left, self_el=None, S_el=None):

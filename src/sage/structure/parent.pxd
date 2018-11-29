@@ -85,8 +85,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     # do the correct thing.
     # Initialized at ring creation.
     cdef list _action_list
-    # Hashtable of everything we've (possibly recursively) discovered so far.
-    cdef TripleDict _action_hash
 
     # List consisting of Morphisms (from anything to self)
     # and Parents for which the __call__ method of self

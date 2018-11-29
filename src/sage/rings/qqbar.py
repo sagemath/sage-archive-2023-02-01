@@ -638,13 +638,13 @@ class AlgebraicField_common(sage.rings.ring.Field):
         """
         EXAMPLES::
 
-            sage: QQbar.get_action(QQ, operator.pow)
+            sage: coercion_model.get_action(QQbar, QQ, operator.pow)
             Right Rational Powering by Rational Field on Algebraic Field
-            sage: print(QQbar.get_action(QQ, operator.pow, self_on_left=False))
+            sage: print(coercion_model.get_action(QQ, QQbar, operator.pow))
             None
-            sage: print(QQbar.get_action(QQ, operator.mul))
+            sage: print(coercion_model.get_action(QQbar, QQ, operator.mul))
             None
-            sage: QQbar.get_action(ZZ, operator.pow)
+            sage: coercion_model.get_action(QQbar, ZZ, operator.pow)
             Right Integer Powering by Integer Ring on Algebraic Field
         """
         if self_on_left and G is QQ and op is operator.pow:

@@ -1274,7 +1274,7 @@ class SetPartition(AbstractSetPartition):
         # we refer to the cell in row i and column j with (i, j)
         n = self.size()
         degrees = []
-        P = list(map(sorted, self))
+        P = [sorted(e) for e in self]
         for j in range(n, 0, -1):
             # find the block number into which c was placed by first
             # removing j and then sorting the blocks

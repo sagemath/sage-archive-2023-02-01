@@ -80,7 +80,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.misc_c import prod, running_total
 from sage.misc.latex import latex
-from sage.sets.set import Set, Set_object
+from sage.sets.set import Set_object
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import binomial

@@ -43,7 +43,6 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.ext.fast_callable import fast_callable
 import sys
-from sage.symbolic.ring import var
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField

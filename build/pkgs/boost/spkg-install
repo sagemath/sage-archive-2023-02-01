@@ -20,7 +20,7 @@ BOOST_TOOLSET=""
 if [ "$UNAME" = "Darwin" ]; then
     # On darwin provided the compiler is clang, default is fine.
     # Remember that /usr/bin/gcc is clang.
-    if [ ("$(which $C_COMPILER_NAME)" != "/usr/bin/gcc") -a ("$C_COMPILER_NAME" != "clang") ]; then
+    if [ "$(which $C_COMPILER_NAME)" != "/usr/bin/gcc" -a "$C_COMPILER_NAME" != "clang" ]; then
         BOOST_TOOLSET="--with-toolset=$C_COMPILER_NAME"
     fi
 else

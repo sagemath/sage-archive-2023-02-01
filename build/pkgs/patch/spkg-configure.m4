@@ -8,7 +8,8 @@ SAGE_SPKG_CONFIGURE(
                 AX_COMPARE_VERSION([$patch_version], [ge], [2.7.0], [
                     ac_cv_path_PATCH="$ac_path_PATCH"
                 ])
-            ])], [sage_spkg_install_patch=yes; ac_cv_path_PATCH=no
+            ])
         ])
     ])
+    AS_IF([test -z "$ac_cv_path_PATCH"], [sage_spkg_install_patch=yes])
 ])

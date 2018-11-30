@@ -863,11 +863,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             DeprecationWarning: comparison should use keys
             See http://trac.sagemath.org/24548 for details.
 
-            sage: sorted(A.basis().keys(), Acmp)
+            sage: sorted(A.basis().keys(), Acmp) # py2
             ['x', 'y', 'a', 'b']
             sage: A.set_order(list(reversed(A.basis().keys())))
             sage: Acmp = A.get_order_cmp()
-            sage: sorted(A.basis().keys(), Acmp)
+            sage: sorted(A.basis().keys(), Acmp) # py2
             ['b', 'a', 'y', 'x']
         """
         deprecation(24548, 'comparison should use keys')

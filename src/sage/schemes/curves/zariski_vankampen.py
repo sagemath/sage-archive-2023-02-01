@@ -32,24 +32,22 @@ EXAMPLES::
     sage: fundamental_group(f) # optional - sirocco
     Finitely presented group < x0 |  >
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Miguel Marco <mmarco@unizar.es>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import division, absolute_import
 
 from sage.groups.braid import BraidGroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.rings.rational_field import QQ
 from sage.rings.qqbar import QQbar
-from sage.rings.all import CC, CIF
+from sage.rings.all import CC
 from sage.parallel.decorate import parallel
 from sage.misc.flatten import flatten
 from sage.groups.free_group import FreeGroup
@@ -130,7 +128,7 @@ def braid_from_piecewise(strands):
             P = G(Permutation([]))
             while cruces:
                 # we select the crosses in the same t
-                crucesl = [c for c in cruces if c[0]==cruces[0][0]]
+                crucesl = [c for c in cruces if c[0] == cruces[0][0]]
                 crossesl = [(P(c[2]+1) - P(c[1]+1),c[1],c[2],c[3]) for c in crucesl]
                 cruces = cruces[len(crucesl):]
                 while crossesl:
@@ -142,6 +140,7 @@ def braid_from_piecewise(strands):
 
     B = BraidGroup(len(L))
     return B(braid)
+
 
 def discrim(f):
     r"""
@@ -173,6 +172,7 @@ def discrim(f):
     F = f.base_ring()
     disc = F[x](f.discriminant(y).resultant(f, y)).radical().roots(QQbar, multiplicities=False)
     return disc
+
 
 def segments(points):
     """
@@ -226,6 +226,7 @@ def segments(points):
             p2 = CC(list(V.vertices[rv[1]]))
             res.append((p1, p2))
     return res
+
 
 def followstrand(f, x0, x1, y0a, prec=53):
     r"""
@@ -333,7 +334,6 @@ def braid_in_segment(f, x0, x1):
         (0.577350269189626*I, 0.500000000000000 + 0.288675134594813*I)
         sage: zvk.braid_in_segment(g, *segs[16])  # optional - sirocco
         s0*s1*s3*s5*s1^-1*s0^-1*s3^-1
-
     """
     CC = ComplexField(64)
     (x, y) = f.variables()
@@ -370,6 +370,7 @@ def braid_in_segment(f, x0, x1):
         finalstrands.append([(0, y1ap), (1, y1)])
     finallbraid = braid_from_piecewise(finalstrands)
     return initialbraid * centralbraid * finallbraid
+
 
 def fundamental_group(f, simplified=True, projective=False):
     r"""
@@ -464,4 +465,3 @@ def fundamental_group(f, simplified=True, projective=False):
         return G.simplified()
     else:
         return G
-

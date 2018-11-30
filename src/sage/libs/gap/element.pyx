@@ -2179,30 +2179,31 @@ cdef class GapElement_Function(GapElement):
             <Gap function "NormalSubgroups">
             sage: b
             Sym( [ 1 .. 4 ] )
-            sage: a(b)
-            [ Group(()),
-              Group([ (1,4)(2,3), (1,3)(2,4) ]),
-              Group([ (2,4,3), (1,4)(2,3), (1,3)(2,4) ]),
-              Sym( [ 1 .. 4 ] ) ]
+            sage: sorted(a(b))
+            [Group(()),
+             Sym( [ 1 .. 4 ] ),
+             Alt( [ 1 .. 4 ] ),
+             Group([ (1,4)(2,3), (1,2)(3,4) ])]
 
             sage: libgap.eval("a := NormalSubgroups")
             <Gap function "NormalSubgroups">
             sage: libgap.eval("b := SymmetricGroup(4)")
             Sym( [ 1 .. 4 ] )
             sage: libgap.collect()
-            sage: libgap.eval('a') (libgap.eval('b'))
-            [ Group(()),
-              Group([ (1,4)(2,3), (1,3)(2,4) ]),
-              Group([ (2,4,3), (1,4)(2,3), (1,3)(2,4) ]),
-              Sym( [ 1 .. 4 ] ) ]
+            sage: sorted(libgap.eval('a') (libgap.eval('b')))
+            [Group(()),
+             Sym( [ 1 .. 4 ] ),
+             Alt( [ 1 .. 4 ] ),
+             Group([ (1,4)(2,3), (1,2)(3,4) ])]
+
             sage: a = libgap.eval('a')
             sage: b = libgap.eval('b')
             sage: libgap.collect()
-            sage: a(b)
-            [ Group(()),
-              Group([ (1,4)(2,3), (1,3)(2,4) ]),
-              Group([ (2,4,3), (1,4)(2,3), (1,3)(2,4) ]),
-              Sym( [ 1 .. 4 ] ) ]
+            sage: sorted(a(b))
+            [Group(()),
+             Sym( [ 1 .. 4 ] ),
+             Alt( [ 1 .. 4 ] ),
+             Group([ (1,4)(2,3), (1,2)(3,4) ])]
 
         Not every ``GapElement`` is callable::
 

@@ -836,7 +836,7 @@ def growing_subtrees(T, k):
 
     For each subtree `T_i`, the algorithm picks a size `k_i` randomly from
     `[1,k]`. Then a random node of `T` is chosen as the first node of `T_i`. In
-    each of the subsequent `k_i − 1` iterations, it picks a random node in the
+    each of the subsequent `k_i - 1` iterations, it picks a random node in the
     neighborhood of `T_i` and adds it to `T_i`.
 
     See [SHET2018]_ for more details.
@@ -985,10 +985,10 @@ def pruned_tree(T, f, s):
 
     For each subtree `T_i`, it randomly selects a fraction `f` of the edges on
     the tree and removes them. The number of edges to delete, say `l`, is
-    calculated as `\lfloor((n − 1)f\rfloor`, which will leave `l + 1` subtrees
+    calculated as `\lfloor((n - 1)f\rfloor`, which will leave `l + 1` subtrees
     in total. Then, it determines the sizes of the `l + 1` subtrees and stores
     the distinct values. Finally, it picks a random size `k_i` from the set of
-    largest `100(1−s)\%` of distinct values, and randomly chooses a subtree with
+    largest `100(1-s)\%` of distinct values, and randomly chooses a subtree with
     size `k_i`.
 
     See [SHET2018]_ for more details.
@@ -1080,7 +1080,7 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
 
       - ``"growing"`` -- for each subtree `T_i`, the algorithm picks a size
         `k_i` randomly from `[1,k]`. Then a random node of `T` is chosen as the
-        first node of `T_i`. In each of the subsequent `k_i − 1` iterations, it
+        first node of `T_i`. In each of the subsequent `k_i - 1` iterations, it
         picks a random node in the neighborhood of `T_i` and adds it to `T_i`.
 
       - ``"connecting"`` -- for each subtree `T_i`, it first selects `k_i` nodes
@@ -1095,7 +1095,7 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
         delete, say `l`, is calculated as `\lfloor (n - 1) f \rfloor`, which will
         leave `l + 1` subtrees in total. Then, it determines the sizes of the `l
         + 1` subtrees and stores the distinct values. Finally, it picks a random
-        size `k_i` from the set of largest `100(1−s)\%` of distinct values, and
+        size `k_i` from the set of largest `100(1-s)\%` of distinct values, and
         randomly chooses a subtree with size `k_i`.
 
     - ``k`` -- integer (default: ``None``); maximum size of a subtree. If not

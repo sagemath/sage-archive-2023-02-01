@@ -158,18 +158,11 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         Looped multi-graph on 7 vertices
         sage: def sanitize(G):
         ....:     G.allow_loops(False)
-        ....:     E = {}
-        ....:     for u, v, _ in G.multiple_edges():
-        ....:         E.setdefault(u, v)
-        ....:     for u in E:
-        ....:         W = sorted(G.edge_label(u, E[u]))
-        ....:         for w in W[1:]:
-        ....:             G.delete_edge(u, E[u], w)
-        ....:     G.allow_multiple_edges(False)
+        ....:     G.allow_multiple_edges(False, keep_label='min')
         sage: sanitize(H)
         sage: H
         Graph on 7 vertices
-        sage: kruskal(G, check=True) == kruskal(H, check=True)
+        sage: sum(e[2] for e in kruskal(G, check=True)) == sum(e[2] for e in kruskal(H, check=True))
         True
 
     An example from pages 599--601 in [GoodrichTamassia2001]_. ::

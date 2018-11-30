@@ -290,18 +290,14 @@ from cpython.ref cimport PyObject
 from sage.ext.stdsage cimport *
 
 import types
-cdef add, sub, mul, div, truediv, floordiv, mod, pow
-cdef iadd, isub, imul, idiv, itruediv, ifloordiv, imod, ipow
+cdef add, sub, mul, truediv, floordiv, mod, pow
+cdef iadd, isub, imul, itruediv, ifloordiv, imod, ipow
 from operator import (add, sub, mul, truediv, floordiv, mod, pow,
                       iadd, isub, imul, itruediv, ifloordiv, imod, ipow)
-try:
-    from operator import div, idiv
-except ImportError:
-    div = idiv = None
 
 cdef dict _coerce_op_symbols = dict(
-        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//', mod='%', pow='^',
-        iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//', imod='%', ipow='^')
+        add='+', sub='-', mul='*', truediv='/', floordiv='//', mod='%', pow='^',
+        iadd='+', isub='-', imul='*', itruediv='/', ifloordiv='//', imod='%', ipow='^')
 
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
@@ -1589,7 +1585,7 @@ cdef class Element(SageObject):
     def __div__(left, right):
         """
         Top-level division operator for :class:`Element` invoking
-        the coercion model.
+        the coercion model. This is always true division.
 
         See :ref:`element_arithmetic`.
 
@@ -1650,10 +1646,10 @@ cdef class Element(SageObject):
         if HAVE_SAME_PARENT(cl):
             return (<Element>left)._div_(right)
         if BOTH_ARE_ELEMENT(cl):
-            return coercion_model.bin_op(left, right, div)
+            return coercion_model.bin_op(left, right, truediv)
 
         try:
-            return coercion_model.bin_op(left, right, div)
+            return coercion_model.bin_op(left, right, truediv)
         except TypeError:
             return NotImplemented
 
@@ -3774,7 +3770,7 @@ cdef class Matrix(ModuleElement):
         """
         if have_same_parent(left, right):
             return left * ~right
-        return coercion_model.bin_op(left, right, div)
+        return coercion_model.bin_op(left, right, truediv)
 
     cdef _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError

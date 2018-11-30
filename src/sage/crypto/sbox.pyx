@@ -7,6 +7,7 @@ cimport cython
 from cysignals.memory cimport check_allocarray, sig_free
 
 from sage.structure.sage_object cimport SageObject
+from sage.structure.element cimport Element, Vector
 
 from six.moves import range
 from six import integer_types
@@ -167,11 +168,11 @@ cdef class SBox(SageObject):
             sage: S = SBox()
             Traceback (most recent call last):
             ...
-            TypeError: No lookup table provided.
+            TypeError: no lookup table provided
             sage: S = SBox(1, 2, 3)
             Traceback (most recent call last):
             ...
-            TypeError: Lookup table length is not a power of 2
+            TypeError: lookup table length is not a power of 2
             sage: S = SBox(5, 6, 0, 3, 4, 2, 1, 2)
             sage: S.output_size()
             3
@@ -295,8 +296,8 @@ cdef class SBox(SageObject):
             sage: S( S.to_bits( 6 ) )
             [0, 0, 1]
         """
-        if n is None and self.input_size() == self.output_size():
-            n = self.output_size()
+        if n is None and self.m == self.n:
+            n = self.n
 
         F = GF(2)
         cdef list xs = [F(i) for i in ZZ(x).digits(base=2, padto=n)]
@@ -328,15 +329,15 @@ cdef class SBox(SageObject):
             sage: S.from_bits( S( [1,1,0] ) )
             1
         """
-        if n is None and self.input_size() == self.output_size():
-            n = self.input_size()
+        if n is None and self.m == self.n:
+            n = self.n
 
         if self._big_endian:
             x = list(reversed(x))
 
         return ZZ(self._rpad(x, n), 2)
 
-    def _rpad(self, x, n=None):
+    cdef list _rpad(self, list x, Py_ssize_t n=-1):
         """
         Right pads ``x`` such that ``len(x) == n``.
 
@@ -347,9 +348,9 @@ cdef class SBox(SageObject):
             sage: S._rpad([1,1])
             [1, 1, 0]
         """
-        if n is None and self.input_size() == self.output_size():
-            n = self.output_size()
-        return x + [GF(2).zero()]*(n-len(x))
+        if n == -1 and self.m == self.n:
+            n = self.n
+        return x + [GF(2).zero()] * (n-len(x))
 
     def __call__(self, X):
         r"""
@@ -410,7 +411,9 @@ cdef class SBox(SageObject):
 
             sage: k.<a> = GF(2^3)
             sage: S(a^2)  # interpreted as (0,0,1)
-            a
+            a + 1
+            sage: S([1, 0, 0])
+            [0, 1, 0]
 
             sage: id = SBox(range(8))
             sage: all([x == id(x) for x in k])
@@ -433,56 +436,35 @@ cdef class SBox(SageObject):
             return self._S[ZZ(X)]
 
         cdef int i
-        #try if input is vector
-        try:
+        if isinstance(X, Element):
             K = X.parent()
-            if K.dimension() != self.input_size():
-                raise TypeError
+            V = None
+            try:
+                V = K.vector_space()
+            except AttributeError:
+                try:
+                    return self._S[ZZ(X)]
+                except TypeError:
+                    pass
+            if V is not None:
+                X = V(X)
+                if V.base_ring().characteristic() != 2:
+                    raise TypeError("the characteristic of the base field must be 2")
+        else:
+            K = None
+
+        # At this point, we only handle X being a vector or list-like
+        cdef list out
+        if len(X) == self.m:
             if self._big_endian:
                 X = list(reversed(X))
             X = ZZ(X, 2)
-            out = self.to_bits(self._S[X], self.output_size())
+            out = self.to_bits(self._S[X], self.n)
             if not self._big_endian:
-                out = list(reversed(out))
-            return K(out)
-        except (AttributeError, TypeError):
-            pass
-
-        #try if input is element of finite field
-        try:
-            from sage.modules.free_module_element import vector
-            K = X.parent()
-            if K.order() == 2**self.output_size():
-                X = vector(X)
-            else:
-                raise TypeError
-            if not self._big_endian:
-                X = list(reversed(X))
-            else:
-                X = list(X)
-            X = ZZ(X, 2)
-            out = self.to_bits(self._S[X], self.output_size())
-            if self._big_endian:
-                out = list(reversed(out))
-            return K(out)
-        except (AttributeError, TypeError):
-            pass
-
-        #try if input is list like object
-        try:
-            if len(X) == self.input_size():
-                if self._big_endian:
-                    X = list(reversed(X))
-                X = ZZ(X, 2)
-                out = self._S[X]
-                return self.to_bits(out, self.output_size())
-        except TypeError:
-            pass
-
-        try:
-            return self._S[ZZ(X)]
-        except TypeError:
-            pass
+                out.reverse()
+            if K is not None:
+                return K(out)
+            return out
 
         if len(str(X)) > 50:
             raise TypeError("cannot apply SBox to provided element")

@@ -37,11 +37,11 @@ mkdir -p "$SAGE_DESTDIR$SAGE_BIN" || sdh_die "Failed to create the directory $SA
 
 # Now copy additional files GAP needs to run (and a few optional bits) into
 # GAP_ROOT; we don't need everything from the source tree
-sdh_install doc gen grp lib pkg src tst "$GAP_ROOT"
+sdh_install doc gen grp lib pkg src tst sysinfo.gap "$GAP_ROOT"
 
 # Install the GAP startup script; ensure it is executable
 sdh_install -T ../gap "$SAGE_BIN/gap"
-chmod +x "$SAGE_BIN/gap"
+chmod +x "$SAGE_DESTDIR$SAGE_BIN/gap"
 
 # TODO: This seems unnecessary--we are already installing all of doc/ to
 # GAP_ROOT, which is necessary for some functionality in GAP to work.  Do

@@ -45,15 +45,14 @@ AUTHORS:
 
 - Florent Hivert
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
-import sage
 from sage.structure.list_clone cimport ClonableIntArray
 from sage.structure.parent cimport Parent
 from sage.arith.power cimport generic_power

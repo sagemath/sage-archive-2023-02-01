@@ -315,8 +315,8 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
             sage: FiniteSetMaps(4, 3)([1, 0, 2, 1]).fibers()
             {0: {1}, 1: {0, 3}, 2: {2}}
             sage: F = FiniteSetMaps(["a", "b", "c"])
-            sage: F.from_dict({"a": "b", "b": "a", "c": "b"}).fibers()
-            {'a': {'b'}, 'b': {'a', 'c'}}
+            sage: F.from_dict({"a": "b", "b": "a", "c": "b"}).fibers() == {'a': {'b'}, 'b': {'a', 'c'}}
+            True
         """
         return fibers(self, self.domain())
 
@@ -499,8 +499,8 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
         EXAMPLES::
 
             sage: F = FiniteSetMaps(["a", "b", "c"])
-            sage: F.from_dict({"a": "b", "b": "a", "c": "b"}).image_set()
-            {'a', 'b'}
+            sage: sorted(F.from_dict({"a": "b", "b": "a", "c": "b"}).image_set())
+            ['a', 'b']
             sage: F = FiniteSetMaps(["a", "b", "c"])
             sage: F(lambda x: "c").image_set()
             {'c'}

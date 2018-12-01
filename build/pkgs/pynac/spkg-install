@@ -4,14 +4,6 @@
 
 export CXXFLAGS="-O2 -g $CXXFLAGS"
 
-if [ "$SAGE64" = "yes" ]; then
-    echo "Building a 64-bit version of pynac"
-    CXXFLAGS="-m64 $CXXFLAGS"; export CXXFLAGS
-    LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
-    CC="$CC -m64" ; export CC
-    CXX="$CXX -m64" ; export CXX
-fi
-
 WORKDIR=${PWD}/src
 PYNACDIR=${WORKDIR}
 

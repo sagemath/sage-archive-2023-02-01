@@ -48,7 +48,7 @@ class SageTimeit:
     """
     def eval(self, code, globs=None, locals=None, **kwds):
         r"""
-        This eval function is called when doing \%timit in the notebook.
+        This eval function is called when doing \%timeit in the notebook.
 
         INPUT:
 

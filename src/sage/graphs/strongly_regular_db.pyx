@@ -7,7 +7,7 @@ This module manages a database associating to a set of four integers
 exists.
 
 Using Andries Brouwer's `database of strongly regular graphs
-<http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__, it can also return
+<https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__, it can also return
 non-existence results. Note that some constructions are missing, and that some
 strongly regular graphs that exist in the database cannot be automatically built
 by Sage. Help us if you know any.
@@ -16,7 +16,7 @@ An outline of the implementation can be found in [CP16]_.
 .. NOTE::
 
     Any missing/incorrect information in the database must be reported to
-    `Andries E. Brouwer <http://www.win.tue.nl/~aeb/>`__ directly, in order to
+    `Andries E. Brouwer <https://www.win.tue.nl/~aeb/>`__ directly, in order to
     have a unique and updated source of information.
 
 REFERENCES:
@@ -128,14 +128,17 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
         from sage.rings.integer_ring import ZZ
         K = ZZ['x']
         x = K.gen()
-        rpoly = filter(lambda w: w[0]>0, (x*(4*x*(4*x-1)-1)-mu).roots())
-        if rpoly != []:
-            t = rpoly[0][0]
+        rpoly = (w for w in (x*(4*x*(4*x-1)-1) - mu).roots() if w[0] > 0)
+        try:
+            t = next(rpoly)[0]
             if (is_prime_power(4*t-1) and
                 is_prime_power(4*t+1)): # extra assumption in TODO!
                 from sage.graphs.generators.families import \
                                     MathonPseudocyclicStronglyRegularGraph
                 return (MathonPseudocyclicStronglyRegularGraph,t)
+        except StopIteration:
+            pass
+
 
 @cached_function
 def is_muzychuk_S6(int v, int k, int l, int mu):
@@ -232,7 +235,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
       Acta Applicandaie Math. 29(1992), 129-138
     """
     # notations from
-    # http://www.win.tue.nl/~aeb/graphs/OA.html
+    # https://www.win.tue.nl/~aeb/graphs/OA.html
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
     try:
         m, n = latin_squares_graph_parameters(v,k,l,mu)
@@ -277,7 +280,7 @@ def is_johnson(int v,int k,int l,int mu):
 
         sage: t = is_johnson(5,5,5,5); t
     """
-    # Using notations of http://www.win.tue.nl/~aeb/graphs/Johnson.html
+    # Using notations of https://www.win.tue.nl/~aeb/graphs/Johnson.html
     #
     # J(n,m) has parameters v = m(m – 1)/2, k = 2(m – 2), λ = m – 2, μ = 4.
     m = l + 2
@@ -293,7 +296,7 @@ def is_steiner(int v,int k,int l,int mu):
     Test whether some Steiner graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     A Steiner graph is the intersection graph of a Steiner set system. For more
-    information, see http://www.win.tue.nl/~aeb/graphs/S.html.
+    information, see https://www.win.tue.nl/~aeb/graphs/S.html.
 
     INPUT:
 
@@ -316,7 +319,7 @@ def is_steiner(int v,int k,int l,int mu):
 
         sage: t = is_steiner(5,5,5,5); t
     """
-    # Using notations from http://www.win.tue.nl/~aeb/graphs/S.html
+    # Using notations from https://www.win.tue.nl/~aeb/graphs/S.html
     #
     # The block graph of a Steiner 2-design S(2,m,n) has parameters:
     # v = n(n-1)/m(m-1), k = m(n-m)/(m-1), λ = (m-1)^2 + (n-1)/(m–1)–2, μ = m^2.
@@ -336,7 +339,7 @@ def is_affine_polar(int v,int k,int l,int mu):
     r"""
     Test whether some Affine Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-    For more information, see http://www.win.tue.nl/~aeb/graphs/VO.html.
+    For more information, see https://www.win.tue.nl/~aeb/graphs/VO.html.
 
     INPUT:
 
@@ -359,7 +362,7 @@ def is_affine_polar(int v,int k,int l,int mu):
 
         sage: t = is_affine_polar(5,5,5,5); t
     """
-    # Using notations from http://www.win.tue.nl/~aeb/graphs/VO.html
+    # Using notations from https://www.win.tue.nl/~aeb/graphs/VO.html
     #
     # VO+(2e,q) has parameters: v = q^(2e), k = (q^(e−1) + 1)(q^e − 1), λ =
     # q(q^(e−2) + 1)(q^(e−1) − 1) + q − 2, μ = q^(e−1)(q^(e−1) + 1)
@@ -391,7 +394,7 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
     r"""
     Test whether some Orthogonal Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+    For more information, see https://www.win.tue.nl/~aeb/graphs/srghub.html.
 
     INPUT:
 
@@ -951,7 +954,7 @@ def is_complete_multipartite(int v,int k,int l,int mu):
 
         sage: t = is_complete_multipartite(5,5,5,5); t
         sage: t = is_complete_multipartite(11,8,4,8); t
-        sage: t = is_complete_multipartite(20,16,12,16);
+        sage: t = is_complete_multipartite(20,16,12,16)
         sage: g = t[0](*t[1:]); g
         Multipartite Graph with set sizes [4, 4, 4, 4, 4]: Graph on 20 vertices
         sage: g.is_strongly_regular(parameters=True)
@@ -1241,7 +1244,7 @@ def is_unitary_polar(int v,int k,int l,int mu):
     r"""
     Test whether some Unitary Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+    For more information, see https://www.win.tue.nl/~aeb/graphs/srghub.html.
 
     INPUT:
 
@@ -1316,7 +1319,7 @@ def is_unitary_dual_polar(int v,int k,int l,int mu):
     Test whether some Unitary Dual Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     This must be the U_5(q) on totally isotropic lines.
-    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+    For more information, see https://www.win.tue.nl/~aeb/graphs/srghub.html.
 
     INPUT:
 
@@ -1455,7 +1458,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
 
     If we can construct such `G` then we return a function to build a
     `(v,k_0,\lambda,\mu)`-s.r.g.  For more information,
-    see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
+    see 10.3 in https://www.win.tue.nl/~aeb/2WF02/spectra.pdf
 
     INPUT:
 
@@ -1554,7 +1557,7 @@ def is_switch_skewhad(int v, int k, int l, int mu):
     Test whether some ``switch skewhad^2+*`` is `(v,k,\lambda,\mu)`-strongly regular.
 
     The ``switch skewhad^2+*`` graphs appear on `Andries Brouwer's database
-    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
+    <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
     adding an isolated vertex to the complement of
     :func:`~sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph`,
     and a :meth:`Seidel switching <Graph.seidel_switching>` a set of disjoint
@@ -1600,7 +1603,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
     Test whether some *switch* `OA(k,n)+*` is `(v,k,\lambda,\mu)`-strongly regular.
 
     The "switch* `OA(k,n)+*` graphs appear on `Andries Brouwer's database
-    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
+    <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
     adding an isolated vertex to a
     :meth:`~sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph`,
     and a :meth:`Seidel switching <Graph.seidel_switching>` a set of disjoint
@@ -1624,10 +1627,10 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
 
         sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
         sage: t = is_switch_OA_srg(5,5,5,5); t
-        sage: t = is_switch_OA_srg(170, 78, 35, 36);
+        sage: t = is_switch_OA_srg(170, 78, 35, 36)
         sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
         (170, 78, 35, 36)
-        sage: t = is_switch_OA_srg(290, 136,  63,  64);
+        sage: t = is_switch_OA_srg(290, 136,  63,  64)
         sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
         (290, 136, 63, 64)
         sage: is_switch_OA_srg(626, 300, 143, 144)
@@ -1650,14 +1653,14 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return None
 
     def switch_OA_srg(c, n):
-        OA = map(tuple, orthogonal_array(c+1, n, resolvable=True))
+        OA = list(map(tuple, orthogonal_array(c+1, n, resolvable=True)))
         g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
                   loops=False)
         g.add_vertex(0)
         g.seidel_switching(OA[:c*n])
         return g
 
-    return (switch_OA_srg,c,n)
+    return (switch_OA_srg, c, n)
 
 
 def is_nowhere0_twoweight(int v, int k, int l, int mu):
@@ -1956,16 +1959,17 @@ def SRG_105_32_4_12():
        http://projecteuclid.org/euclid.bbms/1136902608
     """
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign
-    P = ProjectiveGeometryDesign(2,1,GF(4,'a'))
+    P = ProjectiveGeometryDesign(2, 1, GF(4, 'a'))
     IG = P.incidence_graph().line_graph()
     a = IG.automorphism_group()
     h = a.stabilizer(a.domain()[0])
-    o = filter(lambda x: len(x)==32, h.orbits())[0][0]
-    e = a.orbit((a.domain()[0],o),action="OnSets")
+    o = next(x for x in h.orbits() if len(x) == 32)[0]
+    e = a.orbit((a.domain()[0], o), action="OnSets")
     G = Graph()
     G.add_edges(e)
     G.name('Aut L(3,4) on flags')
     return G
+
 
 def SRG_120_77_52_44():
     r"""
@@ -2127,20 +2131,21 @@ def SRG_210_99_48_45():
         return libgap.Set([(x, g(x)) for x in range(1,8)] +
                           [(x, g(g(g(g(x))))) for x in range(1,8)])
 
-    kd=map(ekg,
-        [(7, 1, 2, 3, 4, 5), (7, 1, 3, 4, 5, 6),
-        (7, 3, 4, 5, 6, 2), (7, 1, 4, 3, 5, 6),
-        (7, 3, 1, 4, 5, 6), (7, 2, 4, 3, 5, 6),
-        (7, 3, 2, 4, 5, 1), (7, 2, 4, 3, 5, 1)])
-    s=libgap.SymmetricGroup(7)
-    O=s.Orbit(kd[0],libgap.OnSetsTuples)
-    sa=s.Action(O,libgap.OnSetsTuples)
-    G=Graph()
+    kd = list(map(ekg,
+                  [(7, 1, 2, 3, 4, 5), (7, 1, 3, 4, 5, 6),
+                   (7, 3, 4, 5, 6, 2), (7, 1, 4, 3, 5, 6),
+                   (7, 3, 1, 4, 5, 6), (7, 2, 4, 3, 5, 6),
+                   (7, 3, 2, 4, 5, 1), (7, 2, 4, 3, 5, 1)]))
+    s = libgap.SymmetricGroup(7)
+    O = s.Orbit(kd[0],libgap.OnSetsTuples)
+    sa = s.Action(O,libgap.OnSetsTuples)
+    G = Graph()
     for g in kd[1:]:
         G.add_edges(libgap.Orbit(sa,[libgap.Position(O,kd[0]),\
                                      libgap.Position(O,g)],libgap.OnSets))
     G.name('merging of S_7 on Circulant(6,[1,4])s')
     return G
+
 
 def SRG_243_110_37_60():
     r"""
@@ -2227,10 +2232,10 @@ def SRG_196_91_42_42():
     A = map(G,{0, 10, 27, 28, 31, 43, 50})
     B = map(G,{0, 11, 20, 25, 49, 55, 57})
     H = map(G,[13*i for i in range(k)])
-    U = map(frozenset,[[x+z for x in A] for z in G])
-    V = map(frozenset,[[x+z for x in B] for z in G])
-    W = map(frozenset,[[x+z for x in H] for z in G])
-    G = IntersectionGraph(U+V+W)
+    U = list(map(frozenset, [[x + z for x in A] for z in G]))
+    V = list(map(frozenset, [[x + z for x in B] for z in G]))
+    W = list(map(frozenset, [[x + z for x in H] for z in G]))
+    G = IntersectionGraph(U + V + W)
 
     G.seidel_switching(U)
 
@@ -2238,6 +2243,7 @@ def SRG_196_91_42_42():
     G.relabel()
     G.name('RSHCD+')
     return G
+
 
 def SRG_220_84_38_28():
     r"""
@@ -2362,7 +2368,7 @@ def SRG_280_117_44_52():
     H = hypergraphs.CompleteUniform(9,3)
     g = H.intersection_graph()
     V = g.complement().cliques_maximal()
-    V = map(frozenset,V)
+    V = map(frozenset, V)
 
     # G is the graph defined on V in which two vertices are adjacent when they
     # corresponding partitions cross-intersect on 7 nonempty sets
@@ -2584,7 +2590,7 @@ def SRG_175_72_20_36():
     :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`. Setting
     two vertices to be adjacent if their distance in the line graph is exactly
     2 yields the graph. For more information, see 10.B.(iv) in [BvL84]_ and
-    http://www.win.tue.nl/~aeb/graphs/McL.html.
+    https://www.win.tue.nl/~aeb/graphs/McL.html.
 
     EXAMPLES::
 
@@ -2811,7 +2817,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
     Return a `(v,k,\lambda,\mu)`-strongly regular graph.
 
     This function relies partly on Andries Brouwer's `database of strongly
-    regular graphs <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__. See
+    regular graphs <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__. See
     the documentation of :mod:`sage.graphs.strongly_regular_db` for more
     information.
 
@@ -3243,8 +3249,8 @@ cdef load_brouwer_database():
         return
     import json
 
-    from sage.env import SAGE_SHARE
-    with open(SAGE_SHARE+"/graphs/brouwer_srg_database.json",'r') as datafile:
+    from sage.env import GRAPHS_DATA_DIR
+    with open(GRAPHS_DATA_DIR+"/brouwer_srg_database.json",'r') as datafile:
         _brouwer_database = {(v,k,l,mu):{'status':status,'comments':comments}
                              for (v,k,l,mu,status,comments) in json.load(datafile)}
 

@@ -202,7 +202,7 @@ from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF, CommutativeRing
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions
 
-from sage.arith.all import gcd, factor, prime_divisors, kronecker, next_prime, lcm
+from sage.arith.all import gcd, factor, prime_divisors, kronecker, next_prime
 from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeModuleElement)
 from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
@@ -1152,11 +1152,11 @@ class BrandtModule_class(AmbientHeckeModule):
         # I think the runtime of this algorithm is now dominated by
         # computing theta series of ideals.  The computation of
         # cyclic submodules is a lower order term.
-        q = self._smallest_good_prime()
-        d = lcm([a.denominator() for a in self.order_of_level_N().basis()])
 
         # TODO: temporary!! -- it's not sufficiently *optimized* to be
         # sure this is best in these cases.
+        #d = lcm([a.denominator() for a in self.order_of_level_N().basis()])
+        #q = self._smallest_good_prime()
         #if gcd(2*d*q,n) == 1:
         #    use_fast_alg = True
         #else:
@@ -1445,7 +1445,6 @@ class BrandtModule_class(AmbientHeckeModule):
             raise ValueError("prec must be at least 2")
         L = self.right_ideals()
         n = len(L)
-        K = QQ
         if n == 0:
             return [[]]
         try:
@@ -1684,7 +1683,7 @@ def benchmark_sage(levels, silent=False):
     ans = []
     for p, M in levels:
         t = cputime()
-        B = BrandtModule(p,M,use_cache=False).hecke_matrix(2)
+        BrandtModule(p,M,use_cache=False).hecke_matrix(2)
         tm = cputime(t)
         v = ('sage', p, M, tm)
         if not silent:

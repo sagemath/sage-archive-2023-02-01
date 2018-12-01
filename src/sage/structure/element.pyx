@@ -270,7 +270,7 @@ In case that Python code calls ``x._add_(y)`` directly,
 continue down the MRO and find the ``_add_`` method in the category.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006-2016 ...
 #       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
@@ -278,15 +278,16 @@ continue down the MRO and find the ``_add_`` method in the category.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, division, print_function
 
+cimport cython
 from cpython cimport *
-from sage.ext.stdsage cimport *
-
 from cpython.ref cimport PyObject
+
+from sage.ext.stdsage cimport *
 
 import types
 cdef add, sub, mul, div, truediv, floordiv, mod, pow
@@ -310,7 +311,6 @@ from sage.cpython.getattr cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
 from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
@@ -379,11 +379,11 @@ cdef class Element(SageObject):
     .. automethod:: __sub__
     .. automethod:: __neg__
     .. automethod:: __mul__
-    .. automethod:: __div__
     .. automethod:: __truediv__
     .. automethod:: __floordiv__
     .. automethod:: __mod__
     """
+    @cython.binding(False)
     def __getmetaclass__(_):
         from sage.misc.inherit_comparison import InheritComparisonMetaclass
         return InheritComparisonMetaclass
@@ -514,14 +514,14 @@ cdef class Element(SageObject):
         EXAMPLES::
 
             sage: dir(1/2)
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
 
         Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
 
             sage: 1.__dir__()
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
             sage: dir(1)         # todo: not implemented
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+            [..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
         from sage.cpython.getattr import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
@@ -847,13 +847,6 @@ cdef class Element(SageObject):
 
             sage: (0).n(algorithm='foo')
             0.000000000000000
-
-        The ``.N`` method is a deprecated alias::
-
-            sage: 0.N()
-            doctest:...: DeprecationWarning: N is deprecated. Please use n instead.
-            See http://trac.sagemath.org/13055 for details.
-            0.000000000000000
         """
         from sage.arith.numerical_approx import numerical_approx_generic
         if prec is None:
@@ -870,8 +863,6 @@ cdef class Element(SageObject):
             0.666666666666667
         """
         return self.numerical_approx(prec, digits, algorithm)
-
-    N = deprecated_function_alias(13055, n)
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -1027,8 +1018,6 @@ cdef class Element(SageObject):
             sage: (v+w).is_zero()
             True
             sage: bool(v+w)
-            False
-            sage: (v+w).__nonzero__()
             False
 
         """
@@ -2170,34 +2159,35 @@ cdef class ElementWithCachedMethod(Element):
     ::
 
         sage: cython_code = ["from sage.structure.element cimport Element, ElementWithCachedMethod",
+        ....:     "from sage.structure.richcmp cimport richcmp",
         ....:     "cdef class MyBrokenElement(Element):",
         ....:     "    cdef public object x",
-        ....:     "    def __init__(self,P,x):",
-        ....:     "        self.x=x",
-        ....:     "        Element.__init__(self,P)",
+        ....:     "    def __init__(self, P, x):",
+        ....:     "        self.x = x",
+        ....:     "        Element.__init__(self, P)",
         ....:     "    def __neg__(self):",
-        ....:     "        return MyBrokenElement(self.parent(),-self.x)",
+        ....:     "        return MyBrokenElement(self.parent(), -self.x)",
         ....:     "    def _repr_(self):",
-        ....:     "        return '<%s>'%self.x",
+        ....:     "        return '<%s>' % self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef int _cmp_(left, right) except -2:",
-        ....:     "        return cmp(left.x,right.x)",
+        ....:     "    cpdef _richcmp_(left, right, int op):",
+        ....:     "        return richcmp(left.x, right.x, op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "cdef class MyElement(ElementWithCachedMethod):",
         ....:     "    cdef public object x",
-        ....:     "    def __init__(self,P,x):",
-        ....:     "        self.x=x",
-        ....:     "        Element.__init__(self,P)",
+        ....:     "    def __init__(self, P, x):",
+        ....:     "        self.x = x",
+        ....:     "        Element.__init__(self, P)",
         ....:     "    def __neg__(self):",
-        ....:     "        return MyElement(self.parent(),-self.x)",
+        ....:     "        return MyElement(self.parent(), -self.x)",
         ....:     "    def _repr_(self):",
-        ....:     "        return '<%s>'%self.x",
+        ....:     "        return '<%s>' % self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef int _cmp_(left, right) except -2:",
-        ....:     "        return cmp(left.x,right.x)",
+        ....:     "    cpdef _richcmp_(left, right, int op):",
+        ....:     "        return richcmp(left.x, right.x, op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "class MyPythonElement(MyBrokenElement): pass",
@@ -2595,9 +2585,9 @@ cdef class RingElement(ModuleElement):
             sage: p(2, 1/2)
             sqrt(2)
 
-        TESTS::
+        TESTS:
 
-        These aren't testing this code, but they are probably good to have around::
+        These are not testing this code, but they are probably good to have around::
 
             sage: 2r**(SR(2)-1-1r)
             1
@@ -2843,9 +2833,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R(121).divides(R(120))
             True
             sage: R(120).divides(R(121))
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: reduction modulo 120 not defined
+            False
 
         If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
@@ -2891,7 +2879,12 @@ cdef class CommutativeRingElement(RingElement):
             except (AttributeError, NotImplementedError):
                 pass
 
-            return (x % self) == 0
+            try:
+                return (x % self).is_zero()
+            except (TypeError, NotImplementedError):
+                pass
+
+            raise NotImplementedError
 
         else:
             #Different parents, use coercion
@@ -3088,7 +3081,7 @@ cdef class CommutativeRingElement(RingElement):
 
             sage: R.<x> = QQ[]
             sage: a = 2*(x+1)^2 / (2*(x-1)^2); a.sqrt()
-            (2*x + 2)/(2*x - 2)
+            (x + 1)/(x - 1)
             sage: sqrtx=(1/x).sqrt(name="y"); sqrtx
             y
             sage: sqrtx^2
@@ -3668,9 +3661,25 @@ cdef class Matrix(ModuleElement):
             [33 36] [39 42]
             [45 48]]
         """
-        if have_same_parent(left, right):
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        return coercion_model.bin_op(left, right, mul)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, mul)
+
+        cdef long value
+        cdef int err = -1
+        try:
+            # Special case multiplication with C long
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._mul_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._mul_long(value)
+            return coercion_model.bin_op(left, right, mul)
+        except TypeError:
+            return NotImplemented
 
     def __truediv__(left, right):
         """
@@ -4076,6 +4085,8 @@ cpdef bin_op(x, y, op):
 
 
 def coerce(Parent p, x):
+    from sage.misc.superseded import deprecation
+    deprecation(25236, "sage.structure.element.coerce is deprecated")
     try:
         return p._coerce_c(x)
     except AttributeError:

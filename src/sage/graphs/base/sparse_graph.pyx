@@ -55,7 +55,7 @@ You can begin working with unlabeled arcs right away as follows::
     sage: S.all_arcs(7,3)
     Traceback (most recent call last):
     ...
-    LookupError: Vertex (7) is not a vertex of the graph.
+    LookupError: vertex (7) is not a vertex of the graph
 
 Sparse graphs support multiple edges and labeled edges, but requires that the
 labels be positive integers (the case label = 0 is treated as no label).
@@ -354,7 +354,7 @@ cdef class SparseGraph(CGraph):
             sage: S.add_vertex(40)
             Traceback (most recent call last):
             ...
-            RuntimeError: Requested vertex is past twice the allocated range: use realloc.
+            RuntimeError: requested vertex is past twice the allocated range: use realloc
             sage: S.realloc(50)
             sage: S.add_vertex(40)
             40
@@ -456,7 +456,7 @@ cdef class SparseGraph(CGraph):
             sage: G.add_arc(4,7)
             Traceback (most recent call last):
             ...
-            LookupError: Vertex (7) is not a vertex of the graph.
+            LookupError: vertex (7) is not a vertex of the graph
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)
@@ -989,7 +989,7 @@ cdef class SparseGraph(CGraph):
             sage: G.add_arc_label(4,7)
             Traceback (most recent call last):
             ...
-            LookupError: Vertex (7) is not a vertex of the graph.
+            LookupError: vertex (7) is not a vertex of the graph
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)
@@ -1052,8 +1052,6 @@ cdef class SparseGraph(CGraph):
             sage: G.arc_label(3,4)
             7
 
-        NOTES:
-
         To this function, an unlabeled arc is indistinguishable from a non-arc::
 
             sage: G.add_arc_label(1,0)
@@ -1072,7 +1070,7 @@ cdef class SparseGraph(CGraph):
         """
         self.check_vertex(u)
         self.check_vertex(v)
-        return self.arc_label_unsafe(u,v)
+        return self.arc_label_unsafe(u, v)
 
     cdef int all_arcs_unsafe(self, int u, int v, int *arc_labels, int size):
         """
@@ -1386,7 +1384,8 @@ cdef class SparseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0,1,2))
-        sage: G.vertices()
+        sage: sorted(G.vertices(),
+        ....:        key=lambda x: (isinstance(x, tuple), x))
         [0,
         ...
          29,

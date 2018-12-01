@@ -50,8 +50,9 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
+cimport cython
 from cpython cimport *
 from cpython.object cimport Py_EQ, Py_NE
 
@@ -258,7 +259,8 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
         mpz_pow_ui(z.value, z.value, mpz_get_ui(mpq_numref(b.value)))
     return z
 
-cpdef rational_power_parts(a, b, factor_limit=10**5):
+
+cpdef rational_power_parts(a, Rational b, factor_limit=10**5):
     """
     Compute rationals or integers `c` and `d` such that `a^b = c*d^b`
     with `d` small. This is used for simplifying radicals.
@@ -314,36 +316,56 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
         True
         sage: all((-1)^(p/q) == cos(p*pi/q) + I * sin(p*pi/q) for p in srange(1,6) for q in srange(1,6))
         True
+
+    A few more tests added in :trac:`26414`::
+
+        sage: rational_power_parts(-1, 2/1)
+        (1, 1)
+        sage: rational_power_parts(-8, 2/3)
+        (4, -1)
+        sage: all(isinstance(z, Integer) for z in rational_power_parts(-1, 1/1))
+        True
+        sage: all(isinstance(z, Integer) for z in rational_power_parts(-1, 2/3))
+        True
     """
-    b_negative=False
-    if b < 0:
-        b_negative = True
+    cdef bint b_negative = (b < 0)
+    if b_negative:
         b = -b
         a = ~a
-    if isinstance(a, Rational):
+
+    if isinstance(a, Integer):
+        pass
+    elif isinstance(a, Rational):
         c1, d1 = rational_power_parts(a.numerator(), b)
         c2, d2 = rational_power_parts(a.denominator(), b)
         return (c1/c2, d1/d2) if not b_negative else (c1/c2, d2/d1)
-    elif not isinstance(a, Integer):
+    else:
         a = Integer(a)
+
     c = integer_rational_power(a, b)
     if c is not None:
-        return c, 1
+        return c, integer.smallInteger(1)
+
     numer, denom = b.numerator(), b.denominator()
-    if a == -1 and denom > 1:
-        return 1, -1
     if a < factor_limit*factor_limit:
         f = a.factor()
     else:
         from sage.rings.factorint import factor_trial_division
-        f = factor_trial_division(a,factor_limit)
-    c = 1
-    d = 1
+        f = factor_trial_division(a, factor_limit)
+    c = integer.smallInteger(1)
+    # The sign is not handled by the loop below. We don't want to
+    # simplify (-1)^(2/3) to 1 (see Trac #15605), so we always move
+    # the sign over to d. Note that the case (-1)^2 is already
+    # handled by integer_rational_power() above.
+    if a >= 0:
+        # d = 1
+        d = c
+    else:
+        # d = -1
+        d = integer.smallInteger(-1)
     for p, e in f:
         c *= p**((e // denom)*numer)
         d *= p**(e % denom)
-    if a < 0 and numer & 1:
-        d = -d
     return (c, d) if not b_negative else (c, ~d)
 
 
@@ -507,7 +529,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             sage: a = 3/5
             sage: a.__reduce__()
-            (<built-in function make_rational>, ('3/5',))
+            (<cyfunction make_rational at ...>, ('3/5',))
         """
         return sage.rings.rational.make_rational, (self.str(32),)
 
@@ -528,35 +550,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         if self.denominator() == 1:
             return int(self)
         raise TypeError("rational is not an integer")
-
-    def _reduce_set(self, s):
-        """
-        Used in setting a rational number when unpickling. Do not call this
-        from external code since it violates immutability.
-
-        INPUT:
-
-        -  ``s`` - string representation of rational in base 32
-
-        EXAMPLES::
-
-            sage: a = -17/3730; _, (s,) = a.__reduce__(); s
-            '-h/3ki'
-            sage: b = 2/3; b._reduce_set('-h/3ki'); b
-            -17/3730
-
-            sage: Rational(pari(-345/7687))
-            -345/7687
-            sage: Rational(pari(-345))
-            -345
-            sage: Rational(pari('Mod(2,3)'))
-            2
-            sage: Rational(pari('x'))
-            Traceback (most recent call last):
-            ...
-            TypeError: Unable to coerce PARI x to an Integer
-        """
-        mpq_set_str(self.value, str_to_bytes(s), 32)
 
     cdef __set_value(self, x, unsigned int base):
         cdef int n
@@ -957,6 +950,19 @@ cdef class Rational(sage.structure.element.FieldElement):
             else:
                return "\\frac{%s}{%s}"%(self.numer(), self.denom())
 
+    def _symbolic_(self, sring):
+        """
+        Return this rational as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(QQ(7)/3); ex
+            7/3
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
+
     def _sympy_(self):
         """
         Convert Sage ``Rational`` to SymPy ``Rational``.
@@ -1056,7 +1062,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             dtype('O')
 
             sage: numpy.array([1, 1/2, 3/4])
-            array([ 1.  ,  0.5 ,  0.75])
+            array([1.  , 0.5 , 0.75])
         """
         if mpz_cmp_ui(mpq_denref(self.value), 1) == 0:
             if mpz_fits_slong_p(mpq_numref(self.value)):
@@ -1706,7 +1712,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
-    def is_padic_square(self, p):
+    def is_padic_square(self, p, check=True):
         """
         Determines whether this rational number is a square in `\QQ_p` (or in
         `R` when ``p = infinity``).
@@ -1714,6 +1720,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         -  ``p`` - a prime number, or ``infinity``
+
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         EXAMPLES::
 
@@ -1741,7 +1749,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         ## Check that p is prime
         from .integer_ring import ZZ
         p = ZZ(p)
-        if not p.is_prime():
+        if check and not p.is_prime():
             raise ValueError('p must be "infinity" or a positive prime number.')
 
         ## Deal with finite primes
@@ -3414,6 +3422,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             else:
                 return q+1
 
+    __round__ = round
+
     def real(self):
         """
         Returns the real part of ``self``, which is ``self``.
@@ -3589,7 +3599,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return True
 
-    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500
     is_integer = is_integral
 
 
@@ -4047,6 +4057,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     return ldexp(d, shift)
 
 
+@cython.binding(True)
 def make_rational(s):
     """
     Make a rational number from ``s`` (a string in base 32)
@@ -4065,8 +4076,9 @@ def make_rational(s):
         -7/15
     """
     r = Rational()
-    r._reduce_set(s)
+    mpq_set_str(r.value, str_to_bytes(s), 32)
     return r
+
 
 cdef class Z_to_Q(Morphism):
     r"""
@@ -4206,7 +4218,7 @@ cdef class int_to_Q(Morphism):
         """
         from . import rational_field
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
 
     cpdef Element _call_(self, a):
@@ -4266,7 +4278,7 @@ cdef class long_to_Q(Morphism):
         """
         from . import rational_field
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(
             Set_PythonType(long), rational_field.QQ))
 

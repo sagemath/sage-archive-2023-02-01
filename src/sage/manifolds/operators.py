@@ -3,7 +3,8 @@ Operators for vector calculus
 
 This module defines the following operators for scalar, vector and tensor
 fields on any pseudo-Riemannian manifold (see
-:mod:`~sage.manifolds.differentiable.pseudo_riemannian`):
+:mod:`~sage.manifolds.differentiable.pseudo_riemannian`), and in particular
+on Euclidean spaces (see :mod:`~sage.manifolds.differentiable.euclidean`) :
 
 - :func:`grad`: gradient of a scalar field
 - :func:`div`: divergence of a vector field, and more generally of a tensor
@@ -20,6 +21,12 @@ mathematical notations, e.g. to write ``curl(v)`` instead of ``v.curl()``.
 
 Note that the :func:`~sage.misc.functional.norm` operator is defined in the
 module :mod:`~sage.misc.functional`.
+
+.. SEEALSO::
+
+    Examples 1 and 2 in :mod:`~sage.manifolds.differentiable.euclidean` for
+    examples involving these operators in the Euclidean plane and in the
+    Euclidean 3-space.
 
 AUTHORS:
 
@@ -71,16 +78,15 @@ def grad(scalar):
 
     Gradient of a scalar field in the Euclidean plane::
 
-        sage: M = Manifold(2, 'M', structure='Riemannian')
-        sage: X.<x,y> = M.chart()
-        sage: g = M.metric()
-        sage: g[0,0], g[1,1] = 1, 1
-        sage: f = M.scalar_field(sin(x*y), name='f')
+        sage: E.<x,y> = EuclideanSpace()
+        sage: f = E.scalar_field(sin(x*y), name='f')
         sage: from sage.manifolds.operators import grad
         sage: grad(f)
-        Vector field grad(f) on the 2-dimensional Riemannian manifold M
+        Vector field grad(f) on the Euclidean plane E^2
         sage: grad(f).display()
-        grad(f) = y*cos(x*y) d/dx + x*cos(x*y) d/dy
+        grad(f) = y*cos(x*y) e_x + x*cos(x*y) e_y
+        sage: grad(f)[:]
+        [y*cos(x*y), x*cos(x*y)]
 
     See the method
     :meth:`~sage.manifolds.differentiable.scalarfield.DiffScalarField.gradient`
@@ -143,20 +149,18 @@ def div(tensor):
 
     Divergence of a vector field in the Euclidean plane::
 
-        sage: M = Manifold(2, 'M', structure='Riemannian')
-        sage: X.<x,y> = M.chart()
-        sage: g = M.metric()
-        sage: g[0,0], g[1,1] = 1, 1
-        sage: v = M.vector_field('v')
-        sage: v[:] = cos(x*y), sin(x*y)
+        sage: E.<x,y> = EuclideanSpace()
+        sage: v = E.vector_field(cos(x*y), sin(x*y), name='v')
         sage: v.display()
-        v = cos(x*y) d/dx + sin(x*y) d/dy
+        v = cos(x*y) e_x + sin(x*y) e_y
         sage: from sage.manifolds.operators import div
         sage: s = div(v); s
-        Scalar field div(v) on the 2-dimensional Riemannian manifold M
+        Scalar field div(v) on the Euclidean plane E^2
         sage: s.display()
-        div(v): M --> R
+        div(v): E^2 --> R
            (x, y) |--> x*cos(x*y) - y*sin(x*y)
+        sage: s.expr()
+        x*cos(x*y) - y*sin(x*y)
 
     See the method
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.divergence`
@@ -214,19 +218,17 @@ def curl(vector):
 
     Curl of a vector field in the Euclidean 3-space::
 
-        sage: M = Manifold(3, 'M', structure='Riemannian')
-        sage: X.<x,y,z> = M.chart()
-        sage: g = M.metric()
-        sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
-        sage: v = M.vector_field(name='v')
-        sage: v[0], v[1] = sin(y), sin(x)
+        sage: E.<x,y,z> = EuclideanSpace()
+        sage: v = E.vector_field(sin(y), sin(x), 0, name='v')
         sage: v.display()
-        v = sin(y) d/dx + sin(x) d/dy
+        v = sin(y) e_x + sin(x) e_y
         sage: from sage.manifolds.operators import curl
         sage: s = curl(v); s
-        Vector field curl(v) on the 3-dimensional Riemannian manifold M
+        Vector field curl(v) on the Euclidean space E^3
         sage: s.display()
-        curl(v) = (cos(x) - cos(y)) d/dz
+        curl(v) = (cos(x) - cos(y)) e_z
+        sage: s[:]
+        [0, 0, cos(x) - cos(y)]
 
     See the method
     :meth:`~sage.manifolds.differentiable.vectorfield.VectorField.curl`
@@ -269,17 +271,16 @@ def laplacian(field):
 
     Laplacian of a scalar field on the Euclidean plane::
 
-        sage: M = Manifold(2, 'M', structure='Riemannian')
-        sage: X.<x,y> = M.chart()
-        sage: g = M.metric()
-        sage: g[0,0], g[1,1] = 1, 1
-        sage: f = M.scalar_field(sin(x*y), name='f')
+        sage: E.<x,y> = EuclideanSpace()
+        sage: f = E.scalar_field(sin(x*y), name='f')
         sage: from sage.manifolds.operators import laplacian
         sage: Df = laplacian(f); Df
-        Scalar field Delta(f) on the 2-dimensional Riemannian manifold M
+        Scalar field Delta(f) on the Euclidean plane E^2
         sage: Df.display()
-        Delta(f): M --> R
+        Delta(f): E^2 --> R
            (x, y) |--> -(x^2 + y^2)*sin(x*y)
+        sage: Df.expr()
+        -(x^2 + y^2)*sin(x*y)
 
     The Laplacian of a scalar field is the divergence of its gradient::
 

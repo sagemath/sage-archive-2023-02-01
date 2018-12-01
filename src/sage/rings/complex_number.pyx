@@ -860,7 +860,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         r"""
         Raise ``self`` to the ``right`` exponent.
 
-        This takes `a^b` and compues `\exp(b \log(a))`.
+        This takes `a^b` and computes `\exp(b \log(a))`.
 
         EXAMPLES::
 
@@ -1744,7 +1744,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         this is a multi-valued function, and the algorithm used
         affects the value returned, as follows:
 
-        - "pari": Call the sgm function from the pari library.
+        - "pari": Call the :pari:`agm` function from the pari library.
 
         - "optimal": Use the AGM sequence such that at each stage
               `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`

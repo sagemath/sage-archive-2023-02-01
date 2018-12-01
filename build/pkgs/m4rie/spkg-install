@@ -25,11 +25,6 @@ else
    ENABLE_DEBUG=""
 fi
 
-if [ "x$SAGE64" = "xyes" ]; then
-    CFLAGS="$CFLAGS -m64"
-    CPPFLAGS="$CPPFLAGS -m64"
-fi
-
 export CFLAGS
 export CPPFLAGS
 export LDFLAGS

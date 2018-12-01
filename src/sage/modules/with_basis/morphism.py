@@ -111,16 +111,16 @@ from sage.categories.modules import Modules
 from sage.misc.misc import attrcall
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
-from sage.misc.superseded import deprecated_function_alias, deprecation
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
 from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-from sage.structure.element import parent
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.structure.element import is_Matrix
+
 
 class ModuleMorphism(Morphism):
     """
@@ -879,7 +879,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         return self.preimage( self.codomain().monomial(i) )
 
     def preimage(self, f):
-        """
+        r"""
         Return the preimage of `f` under ``self``.
 
         EXAMPLES::
@@ -978,7 +978,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         return out
 
     def coreduced(self, y):
-        """
+        r"""
         Return `y` reduced w.r.t. the image of ``self``.
 
         INPUT:
@@ -1069,7 +1069,7 @@ class TriangularModuleMorphism(ModuleMorphism):
     co_reduced = deprecated_function_alias(8678, coreduced)
 
     def cokernel_basis_indices(self):
-        """
+        r"""
         Return the indices of the natural monomial basis of the cokernel of ``self``.
 
         INPUT:
@@ -1496,7 +1496,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         return self.codomain().term(i, self._diagonal(i))
 
     def __invert__(self):
-        """
+        r"""
         Return the inverse diagonal morphism.
 
         EXAMPLES::

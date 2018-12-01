@@ -1092,14 +1092,47 @@ class VectorFrame(FreeModuleBasis):
             if not subdomain.is_subset(self._domain):
                 raise ValueError("the provided domain is not a subdomain of " +
                                  "the current frame's domain")
+            # First one tries to get the restriction from a tighter domain:
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom) and subdomain in rst._restrictions:
+                    res = rst._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    res._superframes.update(self._superframes)
+                    for sframe2 in self._superframes:
+                        sframe2._subframes.add(res)
+                    return self._restrictions[subdomain]
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom):
+                    self._restrictions[subdomain] = rst.restrict(subdomain)
+                    return self._restrictions[subdomain]
+            # Secondly one tries to get the restriction from one previously
+            # defined on a larger domain:
+            for sframe in self._superframes:
+                if subdomain in sframe._restrictions:
+                    res = sframe._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    res._superframes.update(self._superframes)
+                    for sframe2 in self._superframes:
+                        sframe2._subframes.add(res)
+                    return self._restrictions[subdomain]
+            # If this point is reached, the restriction has to be created
+            # from scratch
             sdest_map = self._dest_map.restrict(subdomain)
-            res = VectorFrame(subdomain.vector_field_module(sdest_map,
-                                                            force_free=True),
+            resmodule = subdomain.vector_field_module(sdest_map,
+                                                      force_free=True)
+            if subdomain in self._restrictions:
+                # the restriction has been generated during the creation of
+                # resmodule (which may happen if sdest_map is not trivial)
+                return self._restrictions[subdomain]
+            res = VectorFrame(resmodule,
                               self._symbol, latex_symbol=self._latex_symbol,
                               indices=self._indices,
                               latex_indices=self._latex_indices,
                               symbol_dual=self._symbol_dual,
                               latex_symbol_dual=self._latex_symbol_dual)
+
+            res._from_frame = self._from_frame
+
             for dom in subdomain._supersets:
                 if dom is not subdomain:
                     dom._top_frames.remove(res)  # since it was added by
@@ -1117,6 +1150,12 @@ class VectorFrame(FreeModuleBasis):
             for sframe in self._superframes:
                 sframe._subframes.add(res)
                 sframe._restrictions[subdomain] = res # includes sframe = self
+            for dom, rst in self._restrictions.items():
+                if dom.is_subset(subdomain):
+                    res._restrictions.update(rst._restrictions)
+                    res._subframes.update(rst._subframes)
+                    rst._superframes.update(res._superframes)
+
         return self._restrictions[subdomain]
 
     @cached_method
@@ -1143,7 +1182,7 @@ class VectorFrame(FreeModuleBasis):
         Structure coefficients of the orthonormal frame associated to
         spherical coordinates in the Euclidean space `\RR^3`::
 
-            sage: M = Manifold(3, 'R^3', '\RR^3', start_index=1)  # Part of R^3 covered by spherical coordinates
+            sage: M = Manifold(3, 'R^3', r'\RR^3', start_index=1)  # Part of R^3 covered by spherical coordinates
             sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: ch_frame = M.automorphism_field()
             sage: ch_frame[1,1], ch_frame[2,2], ch_frame[3,3] = 1, 1/r, 1/(r*sin(th))

@@ -18,10 +18,6 @@ else
    ENABLE_DEBUG=""
 fi
 
-if [ "x$SAGE64" = "xyes" ]; then
-    CFLAGS="$CFLAGS -m64"
-fi
-
 export CFLAGS
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then

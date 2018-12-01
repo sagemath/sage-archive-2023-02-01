@@ -1656,7 +1656,6 @@ class EllipticCurveIsogeny(Morphism):
             x
             sage: phi._EllipticCurveIsogeny__init_kernel_polynomial()
             [0, 1]
-
         """
 
         if (self.__kernel_polynomial_list is not None):
@@ -1668,7 +1667,6 @@ class EllipticCurveIsogeny(Morphism):
             raise ValueError("The kernel polynomial should already be defined!")
 
         return ker_poly_list
-
 
     def __set_pre_isomorphism(self, domain, isomorphism):
         r"""
@@ -2591,20 +2589,20 @@ class EllipticCurveIsogeny(Morphism):
 
 
         """
-        a1,a2,a3,a4,a6 = E.ainvs()
+        a1, a2, a3, a4, a6 = E.ainvs()
         b2, b4, _, _ = E.b_invariants()
 
         n = psi.degree()
-        d = 2*n+1
+        d = 2 * n + 1
 
         x, y = self.__mpoly_ring.gens()
 
-        psi_2 = 2*y + a1*x + a3
+        psi_2 = 2 * y + a1 * x + a3
 
         psi_coeffs = psi.list()
 
         if (0 < n):
-            s1 = -psi_coeffs[n-1]
+            s1 = -psi_coeffs[n - 1]
         else:
             s1 = 0
 
@@ -2619,19 +2617,16 @@ class EllipticCurveIsogeny(Morphism):
 
         from sage.arith.all import binomial
 
-        for j  in range(n - 1):
-            psi_prpr = psi_prpr + \
-                binomial(j+2,2)*psi_coeffs[(j+2)]*cur_x_pow
-            cur_x_pow = x*cur_x_pow
+        for j in range(n - 1):
+            psi_prpr += binomial(j+2, 2) * psi_coeffs[(j+2)] * cur_x_pow
+            cur_x_pow = x * cur_x_pow
 
         psi_prprpr = 0
         cur_x_pow = 1
 
         for j in range(n - 2):
-            psi_prprpr = psi_prprpr + \
-                (3*binomial(j+3,3))*psi_coeffs[(j+3)]*cur_x_pow
-            cur_x_pow = x*cur_x_pow
-
+            psi_prprpr += (3 * binomial(j+3,3)) * psi_coeffs[(j+3)] * cur_x_pow
+            cur_x_pow = x * cur_x_pow
 
         omega = phi_pr*psi*y - phi*psi_pr*psi_2 + \
                 ((a1*x + a3)*(psi_2**2)*(psi_prpr*psi_pr-psi_prprpr*psi) + \
@@ -2641,7 +2636,6 @@ class EllipticCurveIsogeny(Morphism):
                 (a1*x + a3)*(d*x - 2*s1) )*psi_pr*psi + (a1*s1 + a3*n)*psi**2)*psi
 
         return omega
-
 
     def __compute_via_kohel_numeric(self, xP, yP):
         r"""
@@ -4136,9 +4130,9 @@ def unfill_isogeny_matrix(M):
     M1 = copy(M)
     zero = Integer(0)
     for i in range(n):
-        M1[i,i] = zero
+        M1[i, i] = zero
         for j in range(i):
-            if not M1[i,j].is_prime():
-                M1[i,j] = zero
-                M1[j,i] = zero
+            if not M1[i, j].is_prime():
+                M1[i, j] = zero
+                M1[j, i] = zero
     return M1

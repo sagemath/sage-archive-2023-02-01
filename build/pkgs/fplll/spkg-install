@@ -9,21 +9,6 @@ CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
 CPPFLAGS="$INCLUDES"
 CONFIGUREFLAGS="--prefix=$SAGE_LOCAL --libdir=$SAGE_LOCAL/lib"
 
-# Allow the user to specify a compiler flag for 64-bit builds.
-# This will be -m64 with both Sun Studio and gcc, but other compilers
-# such as those from IBM on AIX and HP on HP-UX use different flags.
-
-if [ -z "$CXXFLAG64" ] ; then
-    CXXFLAG64=-m64
-fi
-
-if [ "x$SAGE64" = xyes ]; then
-    echo "Building a 64-bit version of libfplll"
-    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
-    CPPFLAGS="$CPPFLAGS $CXXFLAG64"
-    CXX="$CXX $CXXFLAG64"
-fi
-
 if [ "$UNAME" = "CYGWIN" ]; then
     echo "Disable parallel building on Cygwin"
     MAKE="$MAKE -j1"

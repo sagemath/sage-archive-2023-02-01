@@ -317,6 +317,7 @@ __append_to_doc(
      "RandomGNM",
      "RandomGNP",
      "RandomHolmeKim",
+     "RandomChordalGraph",
      "RandomIntervalGraph",
      "RandomLobster",
      "RandomNewmanWattsStrogatz",
@@ -2129,6 +2130,7 @@ class GraphGenerators():
     RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBlockGraph         = staticmethod(sage.graphs.generators.random.RandomBlockGraph)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
+    RandomChordalGraph       = staticmethod(sage.graphs.generators.random.RandomChordalGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)

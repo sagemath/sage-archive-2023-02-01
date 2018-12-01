@@ -40,117 +40,35 @@ from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.structure.list_clone import ClonableList
+from sage.structure.list_clone import ClonableArray
 from sage.categories.sets_cat import Sets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_graded
+#from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_graded
 from sage.rings.integer import Integer
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+#from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+#from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class PathTableau(ClonableList):
-
-    _conversions = []
+class PathTableau(ClonableArray):
 
     @abstract_method(optional=False)
     def _local_rule(self,i):
         """
         This is the abstract local rule defined in any coboundary category.
+
+        This has input a list of objects. This method first takes
+        the list of objects of length three consisting of the `(i-1)`-st,
+        `i`-th and `(i+1)`-term and applies the rule. It then replaces
+        the `i`-th object  by the object returned by the rule.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._local_rule(3)
+            [0, 1, 2, 1, 2, 1, 0]
         """
-
-    def __getattr__(self,name):
-        """
-        A magic method. If the method meth:`name' is not defined then
-        this converts ``self`` and tries to apply the method on the result.
-
-        TESTS::
-
-            sage: c = CatalanTableau([0,1,2,1,0])
-            sage: c.plot()
-            Graphics object consisting of 1 graphics primitive
-            sage: c._latex_()
-            '\\vcenter{\\hbox{$\\begin{tikzpicture}[scale=1]\n  \\draw[dotted] (0, 0) grid (4, 2);\n  \\draw[rounded corners=1, color=black, line width=2] (0, 0) -- (1, 1) -- (2, 2) -- (3, 1) -- (4, 0);\n\\end{tikzpicture}$}}'
-            sage: c.major_index()
-            0
-            sage: c.associated_parenthesis(2)
-            1
-            sage: c.nonsense()
-            Traceback (most recent call last):
-            ...
-            AttributeError: unable to find method nonsense
-
-        """
-        for x in self._conversions:
-            try:
-                return getattr(getattr(self,x)(),name)
-            except:
-                pass
-
-        raise AttributeError("unable to find method "+name)
-
-    def _check_conversions(self):
-        """
-        Test that the conversions work.
-
-        TESTS:
-
-            sage: c = CatalanTableau([0,1,2,1,0])
-            sage: c._check_conversions()
-            to_DyckWord
-            (())
-            <BLANKLINE>
-            to_perfect_matching 
-            [(0, 3), (1, 2)] 
-            <BLANKLINE>
-            to_standard_tableau
-            [[1, 2], [3, 4]]
-            <BLANKLINE>
-            to_tableau
-            [[1, 2], [3, 4]]
-            <BLANKLINE>
-            to_noncrossing_partition
-            [[1, 2]]
-            <BLANKLINE>
-            to_binary_tree
-            [[., .], .]
-            <BLANKLINE>
-            to_ordered_tree
-            [[[]]]
-            <BLANKLINE>
-            to_non_decreasing_parking_function
-            [1, 1]
-            <BLANKLINE>
-            to_alternating_sign_matrix
-            [0 1]
-            [1 0]
-            <BLANKLINE>
-        """
-        for x in self._conversions:
-            print x, "\n", getattr(self,x)(), "\n"
-
-    def _check_getattr(self):
-        """
-        sage: c = CatalanTableau([0,1,0])
-        sage: c._check_getattr()
-        to_DyckWord
-        ...
-            transpose
-
-        """
-
-        for x in self._conversions:
-            print x
-            c = getattr(self,x)()
-            v = [ a for a in dir(c) if not a in dir(self) ]
-            for a in v:
-                try:
-                    getattr(self,a)()
-                    print("    "+a)
-                except:
-                    pass
-
+        
 ################################# Book Keeping ################################
 
     def size(self):
@@ -230,11 +148,11 @@ class PathTableau(ClonableList):
         result.reverse()
         return self.parent()(result)
 
-    def commutor(self,other,display=False):
+    def commutor(self,other,verbose=False):
         """
         Return the commutor of ``self`` with ``other``
 
-        If ``display=True`` then the function will print
+        If ``verbose=True`` then the function will print
         the rectangle.
 
         EXAMPLES::
@@ -243,7 +161,7 @@ class PathTableau(ClonableList):
             sage: t2 = CatalanTableau([0,1,2,1,0])
             sage: t1.commutor(t2)
             ([0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0])
-            sage: t1.commutor(t2,display=True)
+            sage: t1.commutor(t2,verbose=True)
             [0, 1, 2, 1, 0]
             [1, 2, 3, 2, 1]
             [2, 3, 4, 3, 2]
@@ -268,11 +186,11 @@ class PathTableau(ClonableList):
         path = self.parent()(col + row[1:])
 
         for i in range(1,n):
-            if display:
+            if verbose:
                 print(path[n-i:n+m-i])
             for j in range(m-1):
                 path = path._local_rule(n+j-i)
-        if display:
+        if verbose:
             print(path[:m])
 
 

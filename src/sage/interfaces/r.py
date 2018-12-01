@@ -281,6 +281,10 @@ lazy_import("rpy2", "robjects")
 lazy_import("rpy2.robjects", "packages", "rpy2_packages")
 lazy_import("rpy2.robjects.conversion", "localconverter")
 
+# for help page fetching
+lazy_import("rpy2.robjects.help", "Package")
+lazy_import("rpy2", "rinterface")
+
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 
 #there is a mirror network, but lets take #1 for now
@@ -929,6 +933,25 @@ class R(ExtraTabCompletion, Interface):
         # return the symbol for checking equality, e.g., == or eq.
         return "=="
 
+    # A replacement for rpy2's help.pages that only considers loaded packages
+    # (as R's help function does by default). Hopefully upstream will support
+    # this in the future: https://bitbucket.org/rpy2/rpy2/issues/498
+    def _loaded_package_pages(self, topic):
+        # for some reason `except` doesn't work with lazy import, so import this here
+        from rpy2.robjects.help import HelpNotFoundError
+        self._lazy_init()
+        res = list()
+
+        for name in rinterface.baseenv['loadedNamespaces']():
+            pack = Package(name)
+            try:
+                page = pack.fetch(topic)
+                res.append(page)
+            except HelpNotFoundError:
+                pass
+
+        return tuple(res)
+
     def help(self, command):
         """
         Returns help string for a given command.
@@ -952,10 +975,9 @@ class R(ExtraTabCompletion, Interface):
             c
             ...
         """
-        self._lazy_init()
         # This is looking for the topic in all existing namespaces.
         # Theoretically, there may be multiple options. We ignore that.
-        pages_for_topic = robjects.help.pages(command)
+        pages_for_topic = self._loaded_package_pages(command)
         if len(pages_for_topic) == 0:
             raise ValueError("There is no help page for the given topic")
 

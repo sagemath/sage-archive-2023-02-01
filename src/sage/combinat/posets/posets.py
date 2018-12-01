@@ -6266,7 +6266,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
             sage: P.maximal_antichains()
-            [['a'], ['b', 'c'], ['c', 'd', 'e']]
+            [['a'], ['c', 'b'], ['c', 'e', 'd']]
 
             sage: posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]
@@ -7702,7 +7702,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.AntichainPoset(3)
             sage: Pc = P.cuts()
             sage: [list(c) for c in Pc]
-            [[0], [0, 1, 2], [], [1], [2]]
+            [[0], [], [0, 1, 2], [2], [1]]
             sage: Pc[0]
             frozenset({0})
 

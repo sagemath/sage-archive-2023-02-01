@@ -43,8 +43,10 @@ def from_graph6(G, g6_string):
     """
     from .generic_graph_pyx import length_and_string_from_graph6, binary_string_from_graph6
 
-    if not isinstance(g6_string, str):
-        raise ValueError('If input format is graph6, then g6_string must be a string.')
+    if isinstance(g6_string, bytes):
+        g6_string = g6_string.decode('utf8')
+    elif not isinstance(g6_string, str):
+        raise ValueError('if input format is graph6, then g6_string must be a string')
     n = g6_string.find('\n')
     if n == -1:
         n = len(g6_string)
@@ -83,6 +85,12 @@ def from_sparse6(G, g6_string):
         True
     """
     from .generic_graph_pyx import length_and_string_from_graph6, int_to_binary_string
+
+    if isinstance(g6_string, bytes):
+        g6_string = g6_string.decode('utf8')
+    elif not isinstance(g6_string, str):
+        raise ValueError('if input format is graph6, then g6_string must be a string')
+
     n = g6_string.find('\n')
     if n == -1:
         n = len(g6_string)
@@ -138,7 +146,9 @@ def from_dig6(G, dig6_string):
         True
     """
     from .generic_graph_pyx import length_and_string_from_graph6, binary_string_from_dig6
-    if not isinstance(dig6_string, str):
+    if isinstance(dig6_string, bytes):
+        dig6_string = dig6_string.decode('utf8')
+    elif not isinstance(dig6_string, str):
         raise ValueError('if input format is dig6, then dig6_string must be a string')
     n = dig6_string.find('\n')
     if n == -1:

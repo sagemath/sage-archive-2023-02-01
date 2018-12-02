@@ -76,8 +76,8 @@ cdef class CoinBackend(GenericBackend):
         r"""
         Destructor function
         """
-        del self.si
         del self.model
+        del self.si
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         r"""
@@ -531,7 +531,7 @@ cdef class CoinBackend(GenericBackend):
         cdef int i
         cdef double c
         cdef CoinPackedVector* row
-        row = new_CoinPackedVector();
+        row = new CoinPackedVector();
 
 
         for i,c in coefficients:
@@ -544,6 +544,7 @@ cdef class CoinBackend(GenericBackend):
             self.row_names.append(name)
         else:
             self.row_names.append("")
+        del *row
 
     cpdef row(self, int index):
         r"""
@@ -710,6 +711,8 @@ cdef class CoinBackend(GenericBackend):
         self.si.addCol (n, c_indices, c_values, 0, self.si.getInfinity(), 0)
 
         self.col_names.append("")
+        sig_free(c_indices)
+        sig_free(c_values)
 
 
     cpdef int solve(self) except -1:

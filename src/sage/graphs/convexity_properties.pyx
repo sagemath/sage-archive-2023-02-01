@@ -204,7 +204,7 @@ cdef class ConvexityProperties:
 
         sig_free(c_distances)
 
-    def __destruct__(self):
+    def __dealloc__(self):
         r"""
         Destructor
 

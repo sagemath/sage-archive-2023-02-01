@@ -2479,7 +2479,7 @@ class Permutation(CombinatorialElement):
         transformation.
 
         The inverse of the fundamental transformation is a
-        bijection from the set of all permutations of 
+        bijection from the set of all permutations of
         `\{1, 2, \ldots, n\}` to itself, which transforms any
         such permutation `w` as follows:
         Let `I = \{ i_1 < i_2 < \cdots < i_k \}` be the set of
@@ -5292,6 +5292,10 @@ class Permutations(UniqueRepresentation, Parent):
                 if k is None:
                     if 'avoiding' in kwargs:
                         a = kwargs['avoiding']
+                        if len(a) == 0:
+                            return StandardPermutations_n(n)
+                        if len(a) == 1 and a[0] != 1:
+                            a = a[0]
                         if a in StandardPermutations_all():
                             if a == [1,2]:
                                 return StandardPermutations_avoiding_12(n)
@@ -8299,6 +8303,24 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
         StandardPermutations_n_abstract.__init__(self, n)
         self.a = a
 
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: [1,3,2] in Permutations(3, avoiding=[1,3,2])
+            False
+            sage: [1,3,2] in Permutations(3, avoiding=[[1,3,2]])
+            False
+            sage: [2,1,3] in Permutations(3, avoiding=[[1,3,2],[1,2,3]])
+            True
+            sage: [2,1,3] in Permutations(3, avoiding=[])
+            True
+        """
+        if not StandardPermutations_n_abstract.__contains__(self, x):
+            return False
+        x = self.element_class(self, x)
+        return all(x.avoids(p) for p in self.a)
+
     def _repr_(self):
         """
         EXAMPLES::
@@ -8342,7 +8364,7 @@ class StandardPermutations_avoiding_12(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[1, 2])
             sage: TestSuite(P).run()
         """
-        StandardPermutations_avoiding_generic.__init__(self, n, Permutations()([1, 2]))
+        StandardPermutations_avoiding_generic.__init__(self, n, (Permutations()([1, 2]),))
 
     def __iter__(self):
         """
@@ -8373,7 +8395,7 @@ class StandardPermutations_avoiding_21(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1])
             sage: TestSuite(P).run()
         """
-        StandardPermutations_avoiding_generic.__init__(self, n, Permutations()([2, 1]))
+        StandardPermutations_avoiding_generic.__init__(self, n, (Permutations()([2, 1]),))
 
     def __iter__(self):
         """
@@ -8404,7 +8426,7 @@ class StandardPermutations_avoiding_132(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[1, 3, 2])
             sage: TestSuite(P).run()
         """
-        StandardPermutations_avoiding_generic.__init__(self, n, Permutations()([1, 3, 2]))
+        StandardPermutations_avoiding_generic.__init__(self, n, (Permutations()([1, 3, 2]),))
 
     def cardinality(self):
         """
@@ -8476,7 +8498,7 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1, 3])
             sage: TestSuite(P).run()
         """
-        StandardPermutations_avoiding_generic.__init__(self, n, Permutations()([1, 2, 3]))
+        StandardPermutations_avoiding_generic.__init__(self, n, (Permutations()([1, 2, 3]),))
 
     def cardinality(self):
         """
@@ -8547,7 +8569,7 @@ class StandardPermutations_avoiding_321(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[3, 2, 1])
             sage: TestSuite(P).run()
         """
-        StandardPermutations_avoiding_generic.__init__(self, n, Permutations()([3, 2, 1]))
+        StandardPermutations_avoiding_generic.__init__(self, n, (Permutations()([3, 2, 1]),))
 
     def cardinality(self):
         """
@@ -8578,7 +8600,7 @@ class StandardPermutations_avoiding_231(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 3, 1])
             sage: TestSuite(P).run()
         """
-        StandardPermutations_avoiding_generic.__init__(self, n, Permutations()([2, 3, 1]))
+        StandardPermutations_avoiding_generic.__init__(self, n, (Permutations()([2, 3, 1]),))
 
     def cardinality(self):
         """
@@ -8610,7 +8632,7 @@ class StandardPermutations_avoiding_312(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[3, 1, 2])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_312, self).__init__(n, Permutations()([3, 1, 2]))
+        super(StandardPermutations_avoiding_312, self).__init__(n, (Permutations()([3, 1, 2]),))
 
     def cardinality(self):
         """
@@ -8642,7 +8664,7 @@ class StandardPermutations_avoiding_213(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1, 3])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_213, self).__init__(n, Permutations()([2, 1, 3]))
+        super(StandardPermutations_avoiding_213, self).__init__(n, (Permutations()([2, 1, 3]),))
 
     def cardinality(self):
         """

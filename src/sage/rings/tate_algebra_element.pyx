@@ -21,7 +21,6 @@ AUTHOR:
 # ***************************************************************************
 
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
-from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.richcmp cimport rich_to_bool_sgn
 from sage.structure.element import coerce_binop
 

@@ -19667,7 +19667,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = graphs.PetersenGraph().to_directed()
             sage: from sage.plot.colors import rainbow
             sage: R = rainbow(P.size(), 'rgbtuple')
-            sage: edge_colors = {R[i]:e for i, e in enumerate(P.edge_iterator())}
+            sage: edge_colors = {R[i]: [e] for i, e in enumerate(P.edge_iterator())}
             sage: P.plot3d(engine='tachyon', edge_colors=edge_colors).show() # long time
 
 

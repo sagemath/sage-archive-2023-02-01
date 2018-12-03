@@ -889,7 +889,7 @@ cdef class LazyImport(object):
             sage: oct(foo)  # py3
             '0o12'
         """
-        return oct(self.get_object())
+        return self.get_object().oct()
 
     def __hex__(self):
         """
@@ -904,7 +904,7 @@ cdef class LazyImport(object):
             sage: hex(foo)  # py3
             '0xa'
         """
-        return hex(self.get_object())
+        return self.get_object().hex()
 
     def __index__(self):
         """

@@ -9,6 +9,9 @@ AUTHORS:
 
 - Robert Bradshaw (2007-11): convert to Cython
 
+- Sebastian Oehms (2018-11): Added :meth:`gap` as synonym to
+  :meth:`_gap_` (compatibility to libgap framework, see :trac:`26750`)
+
 There are several ways to define a permutation group element:
 
 -  Define a permutation group `G`, then use ``G.gens()``
@@ -117,6 +120,7 @@ from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 from sage.libs.gap.element cimport GapElement_List
 from sage.libs.gap.gap_includes cimport libGAP_Obj, libGAP_INT_INTOBJ, libGAP_ELM_LIST
+
 
 import operator
 
@@ -588,6 +592,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             self._gap_element = gap(self._gap_init_())
         return self._gap_element
 
+    gap = _gap_  # for compatibility with :class:`ElementLibGAP`, see :meth:`gap` of :class:`PermutationGroup_generic`
+
     def _gap_init_(self):
         """
         Returns a GAP string representation for this
@@ -600,6 +606,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             'PermList([2, 3, 1, 5, 4])'
         """
         return 'PermList(%s)'%self._gap_list()
+
 
     def _repr_(self):
         """

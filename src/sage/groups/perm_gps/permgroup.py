@@ -106,6 +106,9 @@ AUTHORS:
 - Sebastian Oehms (2018): added _coerce_map_from_ in order to use isomorphism coming up with as_permutation_group method (Trac #25706)
 - Christian Stump (2018): Added alternative implementation of strong_generating_system directly using GAP.
 
+- Sebastian Oehms (2018): Added :meth:`_Hom_` to use :class:`GroupHomset_libgap` and :meth:`gap` and
+  :meth:`_subgroup_constructor` (for compatibility to libgap framework, see :trac:`26750`
+
 REFERENCES:
 
 - Cameron, P., Permutation Groups. New York: Cambridge University
@@ -415,6 +418,14 @@ class PermutationGroup_generic(FiniteGroup):
         #Handle the case where only the GAP group is specified.
         if gens is None:
             if isinstance(gap_group, str):
+                from sage.libs.gap.libgap import libgap
+                try:
+                    # defining the GAP group from the original construction information
+                    # helps to avoid buffer size overflow since it avoids transferring
+                    # lists of long generators (example PSp(8,3), see :trac:`26750`
+                    self._libgap = libgap.eval(gap_group)
+                except ValueError:
+                    pass
                 gap_group = gap(gap_group)
             gens = [gen for gen in gap_group.GeneratorsOfGroup()]
 
@@ -446,6 +457,9 @@ class PermutationGroup_generic(FiniteGroup):
         if canonicalize:
             gens = sorted(set(gens))
         self._gens = gens
+
+    _libgap = None
+
 
     def construction(self):
         """
@@ -526,6 +540,88 @@ class PermutationGroup_generic(FiniteGroup):
             'Group([PermList([1, 3, 4, 2]), PermList([2, 3, 1, 4])])'
         """
         return 'Group([%s])'%(', '.join([g._gap_init_() for g in self.gens()]))
+
+    @cached_method
+    def gap(self):
+        r"""
+        this method from :class:`ParentLibGAP` is added in order to achieve
+        compatibility and have :class:`GroupHomset_libgap` work for permutation
+        groups, as well
+
+        OUTPUT:
+
+        an instance of :class:`sage.libs.gap.element.GapElement` representing this group
+
+        EXAMPLES::
+
+            sage: P8=PSp(8,3)
+            sage: P8.gap()
+            <permutation group of size 65784756654489600 with 2 generators>
+            sage: gap(P8) == P8.gap()
+            False
+            sage: S3 = SymmetricGroup(3)
+            sage: S3.gap()
+            Sym( [ 1 .. 3 ] )
+            sage: gap(S3) == S3.gap()
+            False
+
+        TESTS:
+
+        see that this method doesn't harm pickling:
+
+            sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]])
+            sage: A4.gap()
+            Group([ (2,3,4), (1,2,3) ])
+            sage: TestSuite(A4).run()
+
+        the follwing test shows, that support for the ``self._libgap`` attribute
+        is needed in the constructor of :class:`PermutationGroup_subgroup`:
+
+            sage: PG= PGU(6,2)
+            sage: g, h = PG.gens()
+            sage: p1 = h^-3*(h^-1*g^-1)^2*h*g*h^2*g^-1*h^2*g*h^-5*g^-1
+            sage: p2 = g*(g*h)^2*g*h^-4*(g*h)^2*(h^2*g*h^-2*g)^2*h^-2*g*h^-2*g^-1*h^-1*g*h*g*h^-1*g
+            sage: p3 = h^-3*g^-1*h*g*h^4*g^-1*h^-1*g*h*(h^2*g^-1)^2*h^-4*g*h^2*g^-1*h^-7*g^-2*h^-2*g*h^-2*g^-1*h^-1*(g*h)^2*h^3
+            sage: p4 = h*(h^3*g)^2*h*g*h^-1*g*h^2*g^-1*h^-2*g*h^4*g^-1*h^3*g*h^-2*g*h^-1*g^-1*h^2*g*h*g^-1*h^-2*g*h*g^-1*h^2*g*h^2*g^-1
+            sage: p5 = h^2*g*h^2*g^-1*h*g*h^-1*g*h*g^-1*h^2*g*h^-2*g*h^2*g*h^-2*(h^-1*g)^2*h^4*(g*h^-1)^2*g^-1
+            sage: UPG = PG.subgroup([p1, p2, p3, p4, p5], canonicalize=False)
+            sage: UPG.gap()
+            <permutation group with 5 generators>
+        """
+        if self._libgap is not None:
+            return self._libgap
+        from sage.libs.gap.libgap import libgap
+        return libgap(self)
+
+    def _Hom_(self, G, category=None, check=True):
+        r"""
+        Return the set of group homomorphisms from ``self`` to ``G``.
+
+        INPUT:
+
+        - ``G`` -- group; the codomain
+        - ``cat`` -- category
+
+        OUTPUT:
+
+        The set of homomorphisms from ``self`` to ``G``.
+
+        EXAMPLES::
+
+            sage: G = GL(2,3)
+            sage: P = G.as_permutation_group()
+            sage: f = P.hom(G.gens()); f
+            Group morphism:
+              From: Permutation Group with generators [(1,2)(3,5)(4,7), (1,3,6)(2,4,8)]
+              To:   General Linear Group of degree 2 over Finite Field of size 3
+            sage: p1, p2 = P.gens()
+            sage: f(p1*p2)
+            [1 2]
+            [2 0]
+        """
+        from sage.groups.libgap_morphism import GroupHomset_libgap
+        return GroupHomset_libgap(self, G, category=category, check=check)
+
 
     def _magma_init_(self, magma):
         r"""
@@ -2622,6 +2718,36 @@ class PermutationGroup_generic(FiniteGroup):
         return PermutationGroup_subgroup(self, gens=gens, gap_group=gap_group, domain=None,
                                          category=category, canonicalize=canonicalize, check=check)
 
+    def _subgroup_constructor(self, libgap_group):
+        """
+        this method is added for compatibility reason with the :meth:`_subgroup_constructor`
+        of :class:`ParentLibGAP` and for usage in :class:`GroupMorphism_libgap`
+
+        INPUT:
+
+        - ``libgap_group`` -- an instance of sage.libs.gap.element.GapElement representing
+          a GAP group whose generators belong to self.gap()
+
+        OUTPUT:
+
+        the corresponding subgroup of self as an instance of this class
+
+        EXAMPLES::
+
+            sage: G = PGU(3,2); G
+            The projective general unitary group of degree 3 over Finite Field of size 2
+            sage: g1, g2 = G.gens()
+            sage: g = g1*g2
+            sage: Hgap = G.gap().Subgroup([g.gap()])
+            sage: type(Hgap)
+            <type 'sage.libs.gap.element.GapElement'>
+            sage: H = G._subgroup_constructor(Hgap); H
+            Subgroup of (The projective general unitary group of degree 3 over Finite Field of size 2) generated by [(1,6,21,12,20,17)(2,10,15,9,11,5)(3,14,8)(4,18)(7,16)]
+        """
+        gens=[gen.sage() for gen in libgap_group.GeneratorsOfGroup()]
+        return self.subgroup(gens=gens, gap_group=libgap_group)
+
+
     def as_finitely_presented_group(self, reduced=False):
         """
         Return a finitely presented group isomorphic to ``self``.
@@ -4532,6 +4658,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
                 for g in self.gens():
                     if g._gap_() not in ambient_gap_group:
                         raise TypeError("each generator must be in the ambient group")
+            self._libgap = ambient.gap().Subgroup([g.gap() for g in self.gens()])
 
     def __richcmp__(self, other, op):
         r"""

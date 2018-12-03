@@ -997,7 +997,7 @@ class Homset(Set_generic):
             sage: H.category()
             Category of homsets of unital magmas
             sage: cls = H._abstract_element_class; cls
-            <class 'sage.categories.homsets.Homset_with_category._abstract_element_class'>
+            <class 'sage.categories.homsets.GroupHomset_libgap_with_category._abstract_element_class'>
             sage: cls.__bases__ == (H.category().element_class, H.homset_category().morphism_class)
             True
 

@@ -13,6 +13,8 @@ cdef class TateAlgebraTerm(MonoidElement):
     cdef pAdicGenericElement _coeff
     cdef ETuple _exponent
 
+    cpdef _mul_(self, other)
+
     cdef TateAlgebraTerm _new_c(self)
     cdef long _valuation_c(self)
     cdef int _cmp_c(self, TateAlgebraTerm other)

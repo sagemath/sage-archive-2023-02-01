@@ -299,7 +299,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         return self._exponent
 
-    cdef _mul_(self, other):
+    cpdef _mul_(self, other):
         r"""
         Return the product of this Tate algebra term with ``other``.
 

@@ -885,11 +885,14 @@ cdef class LazyImport(object):
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
             sage: oct(foo)  # py2
+            doctest:warning...:
+            DeprecationWarning: use the method .oct instead
+            See https://trac.sagemath.org/26756 for details.
             '12'
             sage: oct(foo)  # py3
             '0o12'
         """
-        return self.get_object().oct()
+        return self.get_object().__oct__()
 
     def __hex__(self):
         """
@@ -900,11 +903,14 @@ cdef class LazyImport(object):
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
             sage: hex(foo)  # py2
+            doctest:warning...:
+            DeprecationWarning: use the method .hex instead
+            See https://trac.sagemath.org/26756 for details.
             'a'
             sage: hex(foo)  # py3
             '0xa'
         """
-        return self.get_object().hex()
+        return self.get_object().__hex__()
 
     def __index__(self):
         """

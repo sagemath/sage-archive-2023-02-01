@@ -18589,7 +18589,7 @@ class GenericGraph(GenericGraph_pyx):
 
 
     def layout_circular(self, dim=2, center=(0, 0), radius=1, shift=0, angle=0, **options):
-        """
+        r"""
         Return a circular layout for this graph
 
         INPUT:

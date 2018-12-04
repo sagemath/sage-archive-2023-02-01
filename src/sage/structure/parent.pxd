@@ -96,6 +96,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     # An optional single Morphism that describes a canonical coercion out of self
     cdef _embedding
 
+    # Write-only hashtable of all actions discovered using this parent.
+    # This is only needed to keep a strong reference to actions, to
+    # prevent them being garbage collected prematurely.
+    cdef TripleDict _action_hash
+
 
 cdef class Set_generic(Parent):
     pass

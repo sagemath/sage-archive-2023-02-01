@@ -200,6 +200,9 @@ cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
 cdef class Parent(sage.structure.category_object.CategoryObject):
+    def __cinit__(self):
+        self._action_hash = TripleDict()
+
     def __init__(self, base=None, *, category=None,
                  names=None, normalize=True, facade=None, **kwds):
         """
@@ -1661,17 +1664,14 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: G((1, 2)) * t
             2*x + y + 3*z
         """
-        assert not self._coercions_used, "coercions must all be registered up before use"
+        if self._coercions_used:
+            raise RuntimeError("actions and coercions must be registered before use")
         from sage.categories.action import Action
-        if isinstance(action, Action):
-            if action.actor() is self:
-                self._action_list.append(action)
-            elif action.domain() is self:
-                self._action_list.append(action)
-            else:
-                raise ValueError("Action must involve self")
-        else:
+        if not isinstance(action, Action):
             raise TypeError("actions must be actions")
+        if action.actor() is not self and action.domain() is not self:
+            raise ValueError("action must involve self")
+        self._action_list.append(action)
 
     cpdef register_conversion(self, mor):
         r"""
@@ -2503,6 +2503,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             if not isinstance(action, Action):
                 raise TypeError("_get_action_ must return None or an Action")
 
+        self._action_hash.set(S, op, self_on_left, action)
         return action
 
     cdef discover_action(self, S, op, bint self_on_left, self_el=None, S_el=None):

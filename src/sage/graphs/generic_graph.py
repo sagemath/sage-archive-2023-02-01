@@ -14792,39 +14792,41 @@ class GenericGraph(GenericGraph_pyx):
                                endpoints=False, seed=None, exact=False,
                                algorithm=None):
         r"""
-        Returns the betweenness centrality (fraction of number of
-        shortest paths that go through each vertex) as a dictionary
-        keyed by vertices. The betweenness is normalized by default to
-        be in range (0,1).
+        Return the betweenness centrality.
 
-        Measures of the centrality of a vertex within a graph determine
-        the relative importance of that vertex to its graph. Vertices
-        that occur on more shortest paths between other vertices have
-        higher betweenness than vertices that occur on less.
+        The betweenness centrality of a vertex is the fraction of number of
+        shortest paths that go through each vertex. The betweenness is
+        normalized by default to be in range (0,1).
+
+        Measures of the centrality of a vertex within a graph determine the
+        relative importance of that vertex to its graph. Vertices that occur on
+        more shortest paths between other vertices have higher betweenness than
+        vertices that occur on less.
 
         INPUT:
 
-        -  ``normalized`` - boolean (default True) - if set to False,
-           result is not normalized.
+        - ``normalized`` -- boolean (default: ``True``); if set to ``False``,
+          result is not normalized.
 
-        - ``k`` - integer or None (default None) - if set to an integer, use
-          ``k`` node samples to estimate betweenness. Higher values give better
+        - ``k`` -- integer (default: ``None``); if set to an integer, use ``k``
+          node samples to estimate betweenness. Higher values give better
           approximations. Not available when ``algorithm="Sage"``.
 
-        - ``weight`` - None or string. If set to a string, use that attribute of
-          the nodes as weight. ``weight = True`` is equivalent to ``weight =
-          "weight"``. Not available when ``algorithm="Sage"``.
+        - ``weight`` -- string (default: ``None``); if set to a string, use that
+          attribute of the nodes as weight. ``weight = True`` is equivalent to
+          ``weight = "weight"``. Not available when ``algorithm="Sage"``.
 
-        - ``endpoints`` - Boolean. If set to True it includes the endpoints in
-          the shortest paths count. Not available when ``algorithm="Sage"``.
+        - ``endpoints`` -- boolean (default: ``False``); if set to ``True`` it
+          includes the endpoints in the shortest paths count. Not available when
+          ``algorithm="Sage"``.
 
-        - ``exact`` (boolean, default: ``False``) -- whether to compute over
+        - ``exact`` -- boolean (default: ``False``); whether to compute over
           rationals or on ``double`` C variables. Not available when
           ``algorithm="NetworkX"``.
 
-        - ``algorithm`` (default: ``None``) -- can be either ``"Sage"`` (see
-          :mod:`~sage.graphs.centrality`), ``"NetworkX"`` or ``"None"``. In the
-          latter case, Sage's algorithm will be used whenever possible.
+        - ``algorithm`` -- string (default: ``None``); can be either ``"Sage"``
+          (see :mod:`~sage.graphs.centrality`), ``"NetworkX"`` or ``"None"``. In
+          the latter case, Sage's algorithm will be used whenever possible.
 
         .. SEEALSO::
 
@@ -14879,7 +14881,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm == "Sage":
             from .centrality import centrality_betweenness
-            return centrality_betweenness(self, normalize = normalized,exact=exact)
+            return centrality_betweenness(self, normalize=normalized, exact=exact)
         elif algorithm == "NetworkX":
             import networkx
             return networkx.betweenness_centrality(self.networkx_graph(copy=False),
@@ -14895,41 +14897,40 @@ class GenericGraph(GenericGraph_pyx):
     def centrality_closeness(self, vert=None, by_weight=False, algorithm=None,
                              weight_function=None, check_weight=True):
         r"""
-        Returns the closeness centrality of all vertices in variable ``vert``.
+        Return the closeness centrality of all vertices in ``vert``.
 
         In a (strongly) connected graph, the closeness centrality of a vertex
-        `v` is equal
-        to the inverse of the average distance between `v` and other vertices.
-        If the graph is disconnected, the closeness centrality of `v` is
-        multiplied by the fraction of reachable vertices in the graph:
-        this way, central vertices should also reach several other vertices
-        in the graph [OLJ14]_. In formulas,
+        `v` is equal to the inverse of the average distance between `v` and
+        other vertices.  If the graph is disconnected, the closeness centrality
+        of `v` is multiplied by the fraction of reachable vertices in the graph:
+        this way, central vertices should also reach several other vertices in
+        the graph [OLJ14]_. In formulas,
 
         .. MATH::
 
             c(v)=\frac{r(v)-1}{\sum_{w \in R(v)} d(v,w)}\frac{r(v)-1}{n-1}
 
-        where `R(v)` is the set of vertices reachable from `v`, and
-        `r(v)` is the cardinality of `R(v)`.
+        where `R(v)` is the set of vertices reachable from `v`, and `r(v)` is
+        the cardinality of `R(v)`.
 
-        'Closeness
-        centrality may be defined as the total graph-theoretic distance of
-        a given vertex from all other vertices... Closeness is an inverse
-        measure of centrality in that a larger value indicates a less
-        central actor while a smaller value indicates a more central
-        actor,' [Borgatti95]_.
+        'Closeness centrality may be defined as the total graph-theoretic
+        distance of a given vertex from all other vertices... Closeness is an
+        inverse measure of centrality in that a larger value indicates a less
+        central actor while a smaller value indicates a more central actor,'
+        [Borgatti95]_.
 
         For more information, see the :wikipedia:`Centrality`.
 
         INPUT:
 
-        - ``vert`` - the vertex or the list of vertices we want to analyze. If
+        - ``vert`` -- the vertex or the list of vertices we want to analyze. If
           ``None`` (default), all vertices are considered.
 
-        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
-          weighted; if ``False``, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, and otherwise all edges have weight 1
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
 
           - ``'BFS'``: performs a BFS from each vertex that has to be analyzed.
             Does not work with edge weights.
@@ -14940,30 +14941,30 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
             (works only with positive weights).
 
-          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
-            all centralities are needed.
+          - ``'Floyd-Warshall-Cython'``: the Cython implementation of the
+            Floyd-Warshall algorithm. Works only if ``by_weight==False`` and all
+            centralities are needed.
 
-          - ``'Floyd-Warshall-Python'`` - the Python implementation of
-            the Floyd-Warshall algorithm. Works only if all centralities are
-            needed, but it can deal with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
+          - ``'Floyd-Warshall-Python'``: the Python implementation of the
+            Floyd-Warshall algorithm. Works only if all centralities are needed,
+            but it can deal with weighted graphs, even with negative weights
+            (but no negative cycle is allowed).
 
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in Boost
+            (works also with negative weights, if there is no negative cycle).
 
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'`` otherwise.
 
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge.
 
         OUTPUT:
 
@@ -15055,8 +15056,8 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
             ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
             ....:     c = [c1,c2,c3,c4,c5,c6]
-            ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
+            ....:     for ci, cj in itertools.combinations(c, 2):
+            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12)
 
         Directed graphs::
 
@@ -15074,8 +15075,8 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
             ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
             ....:     c = [c1,c2,c3,c4,c5,c6]
-            ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.out_degree(v) != 0]) < 1e-12)
+            ....:     for ci, cj in itertools.combinations(c, 2):
+            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12)
 
         Weighted graphs::
 
@@ -15093,16 +15094,16 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c4 = g.centrality_closeness(by_weight=True, algorithm='Johnson_Boost')
             ....:     assert(len(c1)==len(c2)==len(c3)==len(c4))
             ....:     c = [c1,c2,c3,c4]
-            ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
+            ....:     for ci, cj in itertools.combinations(c, 2):
+            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12)
         """
         if weight_function is not None:
             by_weight=True
         elif by_weight:
-            weight_function = lambda e:e[2]
+            weight_function = lambda e: e[2]
 
         onlyone = False
-        if vert in self.vertices():
+        if vert in self:
             v_iter = iter([vert])
             onlyone = True
         elif vert is None:
@@ -15112,18 +15113,18 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm is None:
             if not by_weight:
-                algorithm='BFS'
+                algorithm = 'BFS'
             else:
                 for e in self.edge_iterator():
                     try:
                         if float(weight_function(e)) < 0:
-                            algorithm='Johnson_Boost'
+                            algorithm = 'Johnson_Boost'
                             break
                     except (ValueError, TypeError):
-                        raise ValueError("The weight function cannot find the" +
-                                         " weight of " + str(e) + ".")
+                        raise ValueError("the weight function cannot find the" +
+                                         " weight of " + str(e))
             if algorithm is None:
-                algorithm='Dijkstra_Boost'
+                algorithm = 'Dijkstra_Boost'
 
         if algorithm == 'NetworkX':
             if by_weight and check_weight:
@@ -15131,26 +15132,26 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             if by_weight:
                 if self.is_directed():
-                    G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
                 else:
-                    G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             else:
                 G = self.networkx_graph(copy=False)
-            G.add_nodes_from(self.vertices())
+            G.add_nodes_from(self)
 
             degree = self.out_degree if self.is_directed() else self.degree
             if vert is None:
-                closeness = networkx.closeness_centrality(G, vert, reverse=True, distance = 'weight' if by_weight else None)
-                return {v:c for v,c in iteritems(closeness) if degree(v) != 0}
+                closeness = networkx.closeness_centrality(G, vert, reverse=True, distance='weight' if by_weight else None)
+                return {v: c for v, c in iteritems(closeness) if degree(v)}
             closeness = {}
             for x in v_iter:
-                if degree(x) != 0:
+                if degree(x):
                     closeness[x] = networkx.closeness_centrality(G, x, reverse=True, distance='weight' if by_weight else None)
             if onlyone:
                 return closeness.get(vert, None)
             else:
                 return closeness
-        elif algorithm=="Johnson_Boost":
+        elif algorithm == "Johnson_Boost":
             from sage.graphs.base.boost_graph import johnson_closeness_centrality
             self.weighted(by_weight)
             closeness = johnson_closeness_centrality(self, weight_function)

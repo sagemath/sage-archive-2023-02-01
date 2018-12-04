@@ -16761,6 +16761,8 @@ class GenericGraph(GenericGraph_pyx):
         The Szeged index of a connected graph is then defined as [1]:
         `\sum_{uv \in E(G)}n_u(uv)\times n_v(uv)`
 
+        See the :wikipedia:`Szeged_index` for more details.
+
         EXAMPLES:
 
         True for any connected graph [1]::

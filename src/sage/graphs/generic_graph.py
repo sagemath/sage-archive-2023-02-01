@@ -13796,20 +13796,20 @@ class GenericGraph(GenericGraph_pyx):
 
     def distance(self, u, v, by_weight=False):
         """
-        Returns the (directed) distance from u to v in the (di)graph, i.e.
-        the length of the shortest path from u to v.
+        Return the (directed) distance from ``u`` to ``v`` in the (di)graph.
 
-        This method simply calls
-        :meth:`~GenericGraph.shortest_path_length`,
+        The distance is the length of the shortest path from ``u`` to ``v``.
+
+        This method simply calls :meth:`~GenericGraph.shortest_path_length`,
         with default arguments. For more information, and for more option, we
         refer to that method.
 
         INPUT:
 
-        - ``by_weight`` - if ``False``, the graph is considered unweighted, and
-          the distance is the number of edges in a shortest path. If ``True``,
-          the distance is the sum of edge labels (which are assumed to be
-          numbers).
+        - ``by_weight`` -- boolean (default: ``False``); if ``False``, the graph
+          is considered unweighted, and the distance is the number of edges in a
+          shortest path. If ``True``, the distance is the sum of edge labels
+          (which are assumed to be numbers).
 
         EXAMPLES::
 
@@ -13830,27 +13830,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.distance(0, 3, by_weight=True)
             3
         """
-        return self.shortest_path_length(u, v, by_weight = by_weight)
+        return self.shortest_path_length(u, v, by_weight=by_weight)
 
     def distance_all_pairs(self, by_weight=False, algorithm=None,
                            weight_function=None, check_weight=True):
         r"""
-        Returns the distances between all pairs of vertices.
+        Return the distances between all pairs of vertices.
 
         INPUT:
 
-        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
-          weighted; if ``False``, all edges have weight 1.
+        - ``by_weight`` boolean (default: `False``); if ``True``, the edges in
+          the graph are weighted; if ``False``, all edges have weight 1.
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
+          - ``'BFS'``: the computation is done through a BFS centered on each
             vertex successively. Works only if ``by_weight==False``.
 
-          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
+          - ``'Floyd-Warshall-Cython'``: the Cython implementation of
             the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
 
-          - ``'Floyd-Warshall-Python'`` - the Python implementation of
+          - ``'Floyd-Warshall-Python'``: the Python implementation of
             the Floyd-Warshall algorithm. Works also with weighted graphs, even
             with negative weights (but no negative cycle is allowed).
 
@@ -13869,13 +13870,14 @@ class GenericGraph(GenericGraph_pyx):
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Floyd-Warshall-Cython'`` otherwise.
 
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); whether to check that
+          the ``weight_function`` outputs a number for each edge.
 
         OUTPUT:
 
@@ -13883,17 +13885,16 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-           There is a Cython version of this method that is usually
-           much faster for large graphs, as most of the time is
-           actually spent building the final double
-           dictionary. Everything on the subject is to be found in the
-           :mod:`~sage.graphs.distances_all_pairs` module.
+            There is a Cython version of this method that is usually much faster
+            for large graphs, as most of the time is actually spent building the
+            final double dictionary. Everything on the subject is to be found in
+            the :mod:`~sage.graphs.distances_all_pairs` module.
 
         .. NOTE::
 
-           This algorithm simply calls
-           :meth:`GenericGraph.shortest_path_all_pairs`, and we suggest to look
-           at that method for more information and examples.
+            This algorithm simply calls
+            :meth:`GenericGraph.shortest_path_all_pairs`, and we suggest to look
+            at that method for more information and examples.
 
         EXAMPLES:
 

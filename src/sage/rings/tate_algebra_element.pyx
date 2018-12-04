@@ -348,7 +348,7 @@ cdef class TateAlgebraTerm(MonoidElement):
     #    """
     #    raise NotImplementedError("fraction fields of Tate algebras are not implemented; try inverse_of_unit()")
 
-    cdef int _cmp_c(self, TateAlgebraTerm other):
+    cdef long _cmp_c(self, TateAlgebraTerm other):
         r"""
         Compare the Tate algebra term with ``other``.
 
@@ -367,7 +367,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
 
         """
-        cdef int c = other._valuation_c() - self._valuation_c()
+        cdef long c = other._valuation_c() - self._valuation_c()
         if not c:
             skey = self._parent._sortkey
             ks = skey(self._exponent)

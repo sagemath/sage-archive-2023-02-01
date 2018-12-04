@@ -152,7 +152,7 @@ cdef class FieldConverter_class:
 
         Test invalid input::
 
-            sage: C.field_to_fel('foo')
+            sage: C.field_to_fel('foo')                 # optional: meataxe
             Traceback (most recent call last):
             ...
             AttributeError: 'str' object has no attribute 'integer_representation'
@@ -240,7 +240,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
 
         Test invalid input::
 
-            sage: C.field_to_fel('foo')
+            sage: C.field_to_fel('foo')                 # optional: meataxe
             Traceback (most recent call last):
             ...
             TypeError: an integer is required

@@ -16544,22 +16544,22 @@ class GenericGraph(GenericGraph_pyx):
 
         The graph is expected to have no cycles of negative weight.
 
-        The Wiener index of a graph `G` is
-        `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)`
-        where `d(u,v)` denotes the distance between vertices `u` and `v` (see
-        [KRG96b]_).
+        The Wiener index of a graph `G` is `W(G) = \frac{1}{2} \sum_{u,v\in G}
+        d(u,v)` where `d(u,v)` denotes the distance between vertices `u` and `v`
+        (see [KRG96b]_).
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.shortest_paths` and
-        :meth:`~GenericGraph.shortest_path_all_pairs`,
-        which have very similar input variables.
+        :meth:`~GenericGraph.shortest_path_all_pairs`, which have very similar
+        input variables.
 
         INPUT:
 
-        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
-          weighted; if ``False``, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
 
-        - ``algorithm`` (string) - the algorithm to use:
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
 
           - For ``by_weight==False`` only:
 
@@ -16590,13 +16590,14 @@ class GenericGraph(GenericGraph_pyx):
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'``, otherwise.
 
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the weight_function outputs a number for each edge
 
         EXAMPLES::
 
@@ -16625,7 +16626,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.wiener_index(algorithm='BFS', weight_function=lambda e:(e[2] if e[2] is not None else 200))
             Traceback (most recent call last):
             ...
-            ValueError: BFS algorithm does not work on weighted graphs.
+            ValueError: BFS algorithm does not work on weighted graphs
 
             sage: graphs.EmptyGraph().wiener_index()
             Traceback (most recent call last):
@@ -16637,9 +16638,9 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() < 2:
             raise ValueError("Wiener index is not defined for empty or one-element graph")
 
-        if algorithm=='BFS' or (algorithm is None and not by_weight):
+        if algorithm == 'BFS' or (algorithm is None and not by_weight):
             if by_weight:
-                raise ValueError("BFS algorithm does not work on weighted graphs.")
+                raise ValueError("BFS algorithm does not work on weighted graphs")
             from .distances_all_pairs import wiener_index
             return wiener_index(self)
 
@@ -16659,12 +16660,11 @@ class GenericGraph(GenericGraph_pyx):
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):
         r"""
-        Returns the average distance between vertices of the graph.
+        Return the average distance between vertices of the graph.
 
-        Formally, for a graph `G` this value is equal to
-        `\frac 1 {n(n-1)} \sum_{u,v\in G} d(u,v)` where `d(u,v)`
-        denotes the distance between vertices `u` and `v` and `n`
-        is the number of vertices in `G`.
+        Formally, for a graph `G` this value is equal to `\frac 1 {n(n-1)}
+        \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the distance between
+        vertices `u` and `v` and `n` is the number of vertices in `G`.
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.wiener_index` and
@@ -16673,43 +16673,20 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
-          weighted; if ``False``, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); one of the
+          algorithms available for method :meth:`~GenericGraph.wiener_index`
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
-
-          - ``'Floyd-Warshall-Python'`` - the Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
-
-          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
-            NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
-
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
-
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
-
-          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
-            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
-            positive, ``'Johnson_Boost'``, otherwise.
-
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
-
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the weight_function outputs a number for each edge
 
         EXAMPLES:
 
@@ -16739,7 +16716,7 @@ class GenericGraph(GenericGraph_pyx):
         :trac:`22885`::
 
             sage: G = graphs.PetersenGraph()
-            sage: G2 = Graph([(u,v,2) for u,v,_ in G.edges()])
+            sage: G2 = Graph([(u, v, 2) for u,v in G.edge_iterator(labels=False)])
             sage: G2.average_distance()
             5/3
             sage: G2.average_distance(by_weight=True)
@@ -16749,7 +16726,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("average distance is not defined for empty or one-element graph")
         WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
                                     weight_function=weight_function)
-        return 2 * WI / (self.order()*(self.order()-1))
+        return 2 * WI / (self.order() * (self.order() - 1))
 
     def szeged_index(self):
         r"""

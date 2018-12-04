@@ -138,13 +138,15 @@ def FreeAbelianMonoid(index_set=None, names=None, **kwds):
         Free abelian monoid on 5 generators (a, b, c, d, e)
         sage: FreeAbelianMonoid(index_set=ZZ)
         Free abelian monoid indexed by Integer Ring
+        sage: FreeAbelianMonoid(names='x,y')
+        Free abelian monoid on 2 generators (x, y)
     """
     if isinstance(index_set, str): # Swap args (this works if names is None as well)
         names, index_set = index_set, names
 
     if index_set is None and names is not None:
         if isinstance(names, str):
-            index_set = names.count(',')
+            index_set = names.count(',') + 1
         else:
             index_set = len(names)
 

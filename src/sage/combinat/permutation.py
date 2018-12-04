@@ -5286,7 +5286,7 @@ class Permutations(UniqueRepresentation, Parent):
                 a = kwargs['avoiding']
                 if len(a) == 0:
                     return StandardPermutations_all()
-                if len(a) == 1 and a in StandardPermutations_all():
+                if a in StandardPermutations_all():
                     a = (a,)
                 return StandardPermutations_all_avoiding(a)
             return StandardPermutations_all()
@@ -8303,16 +8303,28 @@ class StandardPermutations_all_avoiding(StandardPermutations_all):
         TESTS::
 
             sage: P = Permutations(avoiding=[[2,1,3],[1,2,3]])
-            sage: TestSuite(P).run()
+            sage: TestSuite(P).run(max_runs=25)
         """
         Permutations.__init__(self, category=InfiniteEnumeratedSets())
         self._a = a
+
+    def patterns(self):
+        """
+        Return the patterns avoided by this class of permutations.
+
+        EXAMPLES::
+
+            sage: P = Permutations(avoiding=[[2,1,3],[1,2,3]])
+            sage: P.patterns()
+            ([2, 1, 3], [1, 2, 3])
+        """
+        return self._a
 
     def _repr_(self):
         """
         EXAMPLES::
 
-            sage: Permutations(avoiding=[[2, 1, 3],[1,2,3]])
+            sage: Permutations(avoiding=[[2,1,3],[1,2,3]])
             Standard permutations avoiding [[2, 1, 3], [1, 2, 3]]
         """
         return "Standard permutations avoiding %s"%(list(self._a))
@@ -8390,6 +8402,18 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
         StandardPermutations_n_abstract.__init__(self, n)
         self._a = a
 
+    def patterns(self):
+        """
+        Return the patterns avoided by this class of permutations.
+
+        EXAMPLES::
+
+            sage: P = Permutations(3, avoiding=[[2,1,3],[1,2,3]])
+            sage: P.patterns()
+            ([2, 1, 3], [1, 2, 3])
+        """
+        return self._a
+
     def __contains__(self, x):
         """
         TESTS::
@@ -8407,24 +8431,6 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
             return False
         x = self.element_class(self, x)
         return all(x.avoids(p) for p in self._a)
-
-    def __contains__(self, x):
-        """
-        TESTS::
-
-            sage: [1,3,2] in Permutations(3, avoiding=[1,3,2])
-            False
-            sage: [1,3,2] in Permutations(3, avoiding=[[1,3,2]])
-            False
-            sage: [2,1,3] in Permutations(3, avoiding=[[1,3,2],[1,2,3]])
-            True
-            sage: [2,1,3] in Permutations(3, avoiding=[])
-            True
-        """
-        if not StandardPermutations_n_abstract.__contains__(self, x):
-            return False
-        x = self.element_class(self, x)
-        return all(x.avoids(p) for p in self.a)
 
     def _repr_(self):
         """

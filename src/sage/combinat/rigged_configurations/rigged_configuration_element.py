@@ -597,7 +597,7 @@ class RiggedConfigurationElement(ClonableArray):
             else:
                 # Update the vacancy numbers and the rigging
                 for i in range(len(new_vac_nums)):
-                    if new_list[i] < k:
+                    if k is not None and new_list[i] < k:
                         break
 
                     new_vac_nums[i] += M[a,b]
@@ -651,7 +651,7 @@ class RiggedConfigurationElement(ClonableArray):
         # Update the vacancy numbers and the rigging
         value = self.parent()._cartan_matrix[b,a]
         for i in range(len(new_vac_nums)):
-            if new_list[i] < k:
+            if k is not None and new_list[i] < k:
                 break
 
             new_vac_nums[i] += value

@@ -16778,6 +16778,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.wiener_index() == g.szeged_index()
             True
 
+        TESTS:
+
         Not defined when the graph is not connected (:trac:`26803`)::
 
             sage: Graph({0: [1], 2: []}).szeged_index()

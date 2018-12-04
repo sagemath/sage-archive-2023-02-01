@@ -15983,24 +15983,27 @@ class GenericGraph(GenericGraph_pyx):
 
     def _path_length(self, path, by_weight=False, weight_function=None):
         r"""
-        Computes the (weighted) length of the path provided.
+        Return the (weighted) length of the path provided.
 
         If the path is empty, returns Infinity.
 
         .. WARNING::
 
-            if the graph is unweighted, the algorithm does not check that
-            the path exists.
+            if the graph is unweighted, the algorithm does not check that the
+            path exists.
 
         INPUT:
 
-        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
-          weighted; if ``False``, all edges have weight 1.
+        - ``path`` -- an ordered list of vertices forming a path
 
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
         EXAMPLES:
 
@@ -16032,18 +16035,17 @@ class GenericGraph(GenericGraph_pyx):
             ...
             LookupError: (0, 3) is not an edge of the graph.
         """
-        if len(path) == 0:
+        if not path:
             from sage.rings.infinity import Infinity
             return Infinity
 
         if by_weight or weight_function is not None:
             if weight_function is None:
-                weight_function = lambda e:e[2]
+                weight_function = lambda e: e[2]
             wt = 0
 
-            for j in range(len(path) - 1):
-                wt += weight_function((path[j], path[j+1],
-                                       self.edge_label(path[j], path[j+1])))
+            for u, v in zip(path[:-1], path[1:]):
+                wt += weight_function((u, v, self.edge_label(u, v)))
             return wt
         else:
             return len(path) - 1

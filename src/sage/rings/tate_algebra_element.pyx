@@ -970,7 +970,7 @@ cdef class TateAlgebraTerm(MonoidElement):
                 return False
         return True
 
-    cdef _floordiv_(self, other):
+    cpdef _floordiv_(self, other):
         r"""
         Return the result of the exact division of this term by ``other``.
 

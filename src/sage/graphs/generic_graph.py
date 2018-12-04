@@ -13924,7 +13924,7 @@ class GenericGraph(GenericGraph_pyx):
                      weight_function=None, check_weight=True, dist_dict=None,
                      with_labels=False):
         """
-        Return the eccentricity of vertex (or vertices) v.
+        Return the eccentricity of vertex (or vertices) ``v``.
 
         The eccentricity of a vertex is the maximum distance to any other
         vertex.
@@ -13937,35 +13937,36 @@ class GenericGraph(GenericGraph_pyx):
         - ``v`` - either a single vertex or a list of vertices. If it is not
           specified, then it is taken to be all vertices.
 
-        - ``by_weight`` - if ``True``, edge weights are taken into account; if
-          False, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
 
           - ``'BFS'`` - the computation is done through a BFS centered on each
             vertex successively. Works only if ``by_weight==False``.
 
-          - ``'Floyd-Warshall-Cython'`` - a Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``
-            and ``v is None``.
+          - ``'Floyd-Warshall-Cython'`` - a Cython implementation of the
+            Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
+            ``v is None``.
 
-          - ``'Floyd-Warshall-Python'`` - a Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed). However,
-            ``v`` must be ``None``.
+          - ``'Floyd-Warshall-Python'`` - a Python implementation of the
+            Floyd-Warshall algorithm. Works also with weighted graphs, even with
+            negative weights (but no negative cycle is allowed). However, ``v``
+            must be ``None``.
 
-          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+          - ``'Dijkstra_NetworkX'`` - the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+          - ``'Dijkstra_Boost'`` - the Dijkstra algorithm, implemented in Boost
             (works only with positive weights).
 
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+          - ``'Johnson_Boost'`` - the Johnson algorithm, implemented in
             Boost (works also with negative weights, if there is no negative
             cycle).
 
-          - ``'From_Dictionary'``: uses the (already computed) distances, that
+          - ``'From_Dictionary'`` - uses the (already computed) distances, that
             are provided by input variable ``dist_dict``.
 
           - ``None`` (default): Sage chooses the best algorithm:
@@ -13973,18 +13974,20 @@ class GenericGraph(GenericGraph_pyx):
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'`` otherwise.
 
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
 
-        - ``dist_dict`` - used only if ``algorithm=='From_Dictionary'`` - a dict
-          of dicts of distances.
+        - ``dist_dict`` -- a dictionary (default: ``None``); a dict of dicts of
+          distances (used only if ``algorithm=='From_Dictionary'``)
 
-        - ``with_labels`` - Whether to return a list or a dict.
+        - ``with_labels`` -- boolean (default: ``False``); whether to return a
+          list or a dictionary keyed by vertices.
 
         EXAMPLES::
 
@@ -14038,7 +14041,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.eccentricity(by_weight = True, algorithm = 'BFS')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'BFS' does not work with weights.
+            ValueError: algorithm 'BFS' does not work with weights
             sage: G.eccentricity(by_weight = True, algorithm = 'Floyd-Warshall-Cython')
             Traceback (most recent call last):
             ...
@@ -14050,43 +14053,43 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.eccentricity(0, algorithm = 'Floyd-Warshall-Cython')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'Floyd-Warshall-Cython' works only if all eccentricities are needed.
+            ValueError: algorithm 'Floyd-Warshall-Cython' works only if all eccentricities are needed
             sage: G.eccentricity(0, algorithm = 'Floyd-Warshall-Python')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'Floyd-Warshall-Python' works only if all eccentricities are needed.
+            ValueError: algorithm 'Floyd-Warshall-Python' works only if all eccentricities are needed
             sage: G.eccentricity(0, algorithm = 'Johnson_Boost')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'Johnson_Boost' works only if all eccentricities are needed.
+            ValueError: algorithm 'Johnson_Boost' works only if all eccentricities are needed
         """
         if weight_function is not None:
             by_weight = True
         elif by_weight:
-            weight_function = lambda e:e[2]
+            weight_function = lambda e: e[2]
 
         if algorithm is None:
             if dist_dict is not None:
-                algorithm='From_Dictionary'
+                algorithm = 'From_Dictionary'
             elif not by_weight:
-                algorithm='BFS'
+                algorithm = 'BFS'
             else:
                 for e in self.edge_iterator():
                     try:
                         if float(weight_function(e)) < 0:
-                            algorithm='Johnson_Boost'
+                            algorithm = 'Johnson_Boost'
                             break
                     except (ValueError, TypeError):
-                        raise ValueError("The weight function cannot find the" +
-                                         " weight of " + str(e) + ".")
+                        raise ValueError("the weight function cannot find the"
+                                         " weight of " + str(e))
             if algorithm is None:
-                algorithm='Dijkstra_Boost'
+                algorithm = 'Dijkstra_Boost'
 
         if v is None:
             # If we want to use BFS, we use the Cython routine
-            if algorithm=='BFS':
+            if algorithm == 'BFS':
                 if by_weight:
-                    raise ValueError("Algorithm 'BFS' does not work with weights.")
+                    raise ValueError("algorithm 'BFS' does not work with weights")
                 from sage.graphs.distances_all_pairs import eccentricity
 
                 if with_labels:
@@ -14097,11 +14100,11 @@ class GenericGraph(GenericGraph_pyx):
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
                                                          weight_function,
                                                          check_weight)[0]
-                algorithm='From_Dictionary'
+                algorithm = 'From_Dictionary'
             v = self.vertices()
         elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
-            raise ValueError("Algorithm '" + algorithm + "' works only if all" +
-                             " eccentricities are needed.")
+            raise ValueError("algorithm '" + algorithm + "' works only if all" +
+                             " eccentricities are needed")
 
         if not isinstance(v, list):
             v = [v]
@@ -14110,7 +14113,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.rings.infinity import Infinity
 
         for u in v:
-            if algorithm=='From_Dictionary':
+            if algorithm == 'From_Dictionary':
                 length = dist_dict[u]
             else:
                 # If algorithm is wrong, the error is raised by the
@@ -14135,7 +14138,7 @@ class GenericGraph(GenericGraph_pyx):
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
         r"""
-        Returns the radius of the (di)graph.
+        Return the radius of the (di)graph.
 
         The radius is defined to be the minimum eccentricity of any vertex,
         where the eccentricity is the maximum distance to any other
@@ -14145,48 +14148,24 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``by_weight`` - if ``True``, edge weights are taken into account; if
-          False, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); see method
+          :meth:`eccentricity` for the list of available algorithms
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-          - ``'Floyd-Warshall-Cython'`` - a Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
 
-          - ``'Floyd-Warshall-Python'`` - a Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
+        EXAMPLES:
 
-          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
-            NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
-
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
-
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
-
-          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
-            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
-            positive, ``'Johnson_Boost'``, otherwise.
-
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
-
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
-
-        EXAMPLES: The more symmetric a graph is, the smaller (diameter -
-        radius) is.
-
-        ::
+        The more symmetric a graph is, the smaller (diameter - radius) is::
 
             sage: G = graphs.BarbellGraph(9, 3)
             sage: G.radius()
@@ -14210,42 +14189,45 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: radius is not defined for the empty graph
         """
-        if self.order() == 0:
+        if not self.order():
             raise ValueError("radius is not defined for the empty graph")
 
-        return min(self.eccentricity(by_weight=by_weight,
+        return min(self.eccentricity(v=list(self), by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))
 
-    def diameter(self, by_weight=False, algorithm = None, weight_function=None,
+    def diameter(self, by_weight=False, algorithm=None, weight_function=None,
                  check_weight=True):
         r"""
-        Returns the diameter of the (di)graph.
+        Return the diameter of the (di)graph.
 
         The diameter is defined to be the maximum distance between two vertices.
         It is infinite if the (di)graph is not (strongly) connected.
 
-        For more information and examples on how to use input variables,
-        see :meth:`~GenericGraph.shortest_paths` and
+        For more information and examples on how to use input variables, see
+        :meth:`~GenericGraph.shortest_paths` and
         :meth:`~GenericGraph.eccentricity`
 
         INPUT:
 
-        - ``by_weight`` - if ``True``, edge weights are taken into account; if
-          False, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
+          - ``'BFS'``: the computation is done through a BFS centered on each
             vertex successively. Works only if ``by_weight==False``.
 
-          - ``'Floyd-Warshall-Cython'`` - a Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
+          - ``'Floyd-Warshall-Cython'``: a Cython implementation of the
+            Floyd-Warshall algorithm. Works only if ``by_weight==False`` and ``v
+            is None``.
 
-          - ``'Floyd-Warshall-Python'`` - a Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
+          - ``'Floyd-Warshall-Python'``: a Python implementation of the
+            Floyd-Warshall algorithm. Works also with weighted graphs, even with
+            negative weights (but no negative cycle is allowed). However, ``v``
+            must be ``None``.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
@@ -14264,22 +14246,22 @@ class GenericGraph(GenericGraph_pyx):
             Boost (works also with negative weights, if there is no negative
             cycle).
 
-          - ``None`` (default): Sage chooses the best algorithm: ``'iFUB'`` if
-            ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
-            positive, ``'Johnson_Boost'``, otherwise.
+          - ``None`` (default): Sage chooses the best algorithm: ``'iFUB'`` for
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are positive,
+            ``'Johnson_Boost'`` otherwise.
 
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
 
-        EXAMPLES: The more symmetric a graph is, the smaller (diameter -
-        radius) is.
+        EXAMPLES:
 
-        ::
+        The more symmetric a graph is, the smaller (diameter - radius) is::
 
             sage: G = graphs.BarbellGraph(9, 3)
             sage: G.radius()
@@ -14302,13 +14284,13 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: diameter is not defined for the empty graph
-            sage: g = Graph([(1,2,{'weight':1})])
-            sage: g.diameter(algorithm='iFUB', weight_function=lambda e:e[2]['weight'])
+            sage: g = Graph([(1, 2, {'weight': 1})])
+            sage: g.diameter(algorithm='iFUB', weight_function=lambda e: e[2]['weight'])
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'iFUB' does not work on weighted graphs.
+            ValueError: algorithm 'iFUB' does not work on weighted graphs
         """
-        if self.order() == 0:
+        if not self.order():
             raise ValueError("diameter is not defined for the empty graph")
 
         if weight_function is not None:
@@ -14316,17 +14298,17 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm is None and not by_weight:
             algorithm = 'iFUB'
-        elif algorithm=='BFS':
+        elif algorithm == 'BFS':
             algorithm = 'standard'
 
         if algorithm in ['standard', '2sweep', 'multi-sweep', 'iFUB']:
             if by_weight:
-                raise ValueError("Algorithm '" + algorithm + "' does not work" +
-                                 " on weighted graphs.")
-            from .distances_all_pairs import diameter
+                raise ValueError("algorithm '" + algorithm + "' does not work" +
+                                 " on weighted graphs")
+            from sage.graphs.distances_all_pairs import diameter
             return diameter(self, algorithm=algorithm)
 
-        return max(self.eccentricity(by_weight=by_weight,
+        return max(self.eccentricity(v=list(self), by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))
@@ -14334,11 +14316,10 @@ class GenericGraph(GenericGraph_pyx):
     def center(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
         r"""
-        Returns the set of vertices in the center, i.e. whose eccentricity
-        is equal to the radius of the (di)graph.
+        Return the set of vertices in the center of the (di)graph.
 
-        In other words, the center is the set of vertices achieving the
-        minimum eccentricity.
+        The center is the set of vertices whose eccentricity is equal to the
+        radius of the (di)graph, i.e., achieving the minimum eccentricity.
 
         For more information and examples on how to use input variables,
         see :meth:`~GenericGraph.shortest_paths` and
@@ -14346,43 +14327,20 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``by_weight`` - if ``True``, edge weights are taken into account; if
-          False, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); see method
+          :meth:`eccentricity` for the list of available algorithms
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-          - ``'Floyd-Warshall-Cython'`` - a Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
-
-          - ``'Floyd-Warshall-Python'`` - a Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
-
-          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
-            NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
-
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
-
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
-
-          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
-            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
-            positive, ``'Johnson_Boost'``, otherwise.
-
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
-
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
 
         EXAMPLES:
 
@@ -14415,16 +14373,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.center()
             [0]
         """
-        e = self.eccentricity(by_weight=by_weight,
-                              weight_function=weight_function,
-                              algorithm=algorithm,
-                              check_weight=check_weight,
-                              with_labels=True)
+        ecc = self.eccentricity(v=list(self), by_weight=by_weight,
+                                weight_function=weight_function,
+                                algorithm=algorithm,
+                                check_weight=check_weight,
+                                with_labels=True)
         try:
-            r = min(e.values())
+            r = min(ecc.values())
         except Exception:
             return []
-        return [v for v in e if e[v]==r]
+        return [v for v in self if ecc[v] == r]
 
 
     def distance_graph(self, dist):
@@ -14706,11 +14664,10 @@ class GenericGraph(GenericGraph_pyx):
     def periphery(self, by_weight=False, algorithm=None, weight_function=None,
                   check_weight=True):
         r"""
-        Returns the set of vertices in the periphery, i.e. whose
-        eccentricity is equal to the diameter of the (di)graph.
+        Return the set of vertices in the periphery of the (di)graph.
 
-        In other words, the periphery is the set of vertices achieving the
-        maximum eccentricity.
+        The periphery is the set of vertices whose eccentricity is equal to the
+        diameter of the (di)graph, i.e., achieving the maximum eccentricity.
 
         For more information and examples on how to use input variables,
         see :meth:`~GenericGraph.shortest_paths` and
@@ -14718,43 +14675,20 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``by_weight`` - if ``True``, edge weights are taken into account; if
-          False, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); see method
+          :meth:`eccentricity` for the list of available algorithms
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-          - ``'Floyd-Warshall-Cython'`` - a Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
-
-          - ``'Floyd-Warshall-Python'`` - a Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
-
-          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
-            NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
-
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
-
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
-
-          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
-            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
-            positive, ``'Johnson_Boost'``, otherwise.
-
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
-
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
 
         EXAMPLES::
 
@@ -14775,16 +14709,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.periphery()
             [0]
         """
-        e = self.eccentricity(by_weight=by_weight,
-                              weight_function=weight_function,
-                              algorithm=algorithm,
-                              check_weight=check_weight,
-                              with_labels=True)
+        ecc = self.eccentricity(v=list(self), by_weight=by_weight,
+                                weight_function=weight_function,
+                                algorithm=algorithm,
+                                check_weight=check_weight,
+                                with_labels=True)
         try:
-            r = max(e.values())
+            d = max(ecc.values())
         except Exception:
             return []
-        return [v for v in e if e[v]==r]
+        return [v for v in self if ecc[v] == d]
 
     ### Centrality
 

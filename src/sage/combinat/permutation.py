@@ -5223,7 +5223,7 @@ class Permutations(UniqueRepresentation, Parent):
     ::
 
         sage: p = Permutations(4, avoiding=[1,3,2]); p
-        Standard permutations of 4 avoiding [1, 3, 2]
+        Standard permutations of 4 avoiding [[1, 3, 2]]
         sage: p.list()
         [[4, 1, 2, 3],
          [4, 2, 1, 3],

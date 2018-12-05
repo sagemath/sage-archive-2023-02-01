@@ -1592,9 +1592,10 @@ def vertex_separation_BAB(G,
     # We use a binary matrix to store the (di)graph. This way the neighborhoud
     # of a vertex is stored in one bitset.
     cdef binary_matrix_t H
-    cdef dict vertex_to_int = dense_graph_init(H, G, translation = True)
     cdef int i
-    cdef dict int_to_vertex = dict((i, v) for v,i in vertex_to_int.iteritems())
+    cdef list int_to_vertex = list(G)
+    cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
+    dense_graph_init(H, G, translation=vertex_to_int)
 
     # We need 2 bitsets here + 3 per call to vertex_separation_BAB_C, so overall
     # 3*n + 2. We use another binary matrix as a pool of bitsets.

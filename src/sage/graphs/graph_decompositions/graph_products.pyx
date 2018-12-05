@@ -35,8 +35,9 @@ Two remarks follow :
 
 #. The Cartesian product is commutative
 
-#. Any edge `uv` of a graph `G_1 \square \cdots \square G_k` can be given a color
-   `i` corresponding to the unique index `i` such that `u_i` and `v_i` differ.
+#. Any edge `uv` of a graph `G_1 \square \cdots \square G_k` can be given a
+   color `i` corresponding to the unique index `i` such that `u_i` and `v_i`
+   differ.
 
 The problem that is of interest to us in the present module is the following:
 
@@ -135,23 +136,22 @@ Methods
 from copy import copy
 
 
-def is_cartesian_product(g, certificate = False, relabeling = False):
+def is_cartesian_product(g, certificate=False, relabeling=False):
     r"""
-    Tests whether the graph is a Cartesian product.
+    Test whether the graph is a Cartesian product.
 
     INPUT:
 
-    - ``certificate`` (boolean) -- if ``certificate = False`` (default) the
-      method only returns ``True`` or ``False`` answers. If ``certificate =
-      True``, the ``True`` answers are replaced by the list of the factors of
-      the graph.
+    - ``certificate`` -- boolean (default: ``False``); if ``certificate =
+      False`` (default) the method only returns ``True`` or ``False``
+      answers. If ``certificate = True``, the ``True`` answers are replaced by
+      the list of the factors of the graph.
 
-    - ``relabeling`` (boolean) -- if ``relabeling = True`` (implies
-      ``certificate = True``), the method also returns a dictionary associating
-      to each vertex its natural coordinates as a vertex of a product graph. If
-      `g` is not a Cartesian product, ``None`` is returned instead.
-
-      This is set to ``False`` by default.
+    - ``relabeling`` -- boolean (default: ``False``); if ``relabeling = True``
+      (implies ``certificate = True``), the method also returns a dictionary
+      associating to each vertex its natural coordinates as a vertex of a
+      product graph. If `g` is not a Cartesian product, ``None`` is returned
+      instead.
 
     .. SEEALSO::
 
@@ -285,13 +285,13 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
             # Only one common neighbor
             elif len(intersect) == 1:
                 x = intersect.pop()
-                h.add_edge(r(u,x),r(v,x))
+                h.add_edge(r(u, x), r(v, x))
 
             # Exactly 2 neighbors
             elif len(intersect) == 2:
-                x,y = intersect
-                h.add_edge(r(u,x),r(v,y))
-                h.add_edge(r(v,x),r(u,y))
+                x, y = intersect
+                h.add_edge(r(u, x), r(v, y))
+                h.add_edge(r(v, x), r(u, y))
             # More
             else:
                 h.add_path([r(u,x) for x in intersect] + [r(v,x) for x in intersect])
@@ -299,8 +299,9 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     # Edges uv and u'v' such that d(u,u')+d(v,v') != d(u,v')+d(v,u') are also
     # equivalent
 
-    cdef list edges = g_int.edges(labels=False)
+    cdef list edges = g_int.edges(labels=False, sort=False)
     cdef dict d = g_int.distance_all_pairs()
+    cdef int uu, vv
     for i, (u, v) in enumerate(edges):
         du = d[u]
         dv = d[v]
@@ -323,7 +324,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
         return (False, None) if relabeling else False
 
     # Building the list of factors
-    factors = []
+    cdef list factors = []
     for cc in edges:
         tmp = Graph()
         tmp.add_edges(cc)
@@ -337,9 +338,9 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     # Checking that the resulting graph is indeed isomorphic to what we have.
     isiso, dictt = g.is_isomorphic(answer, certificate=True)
     if not isiso:
-        raise ValueError("Something weird happened during the algorithm... "+
-                         "Please report the bug and give us the graph instance"+
-                         " that made it fail !!!")
+        raise ValueError("something weird happened during the algorithm... "
+                         "Please report the bug and give us the graph instance"
+                         " that made it fail !")
     if relabeling:
         return isiso, dictt
     if certificate:

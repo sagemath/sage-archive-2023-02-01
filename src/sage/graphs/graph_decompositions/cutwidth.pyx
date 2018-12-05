@@ -505,8 +505,8 @@ def cutwidth_dyn(G, lower_bound=0):
     order = find_order(g, neighborhoods, k)
     return k, [g.int_to_vertices[i] for i in order]
 
-cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int cost_S, int v, int k):
-    """
+cdef inline int exists(FastDigraph g, uint8_t* neighborhoods, int S, int cost_S, int v, int k):
+    r"""
     Check whether an ordering with the given cost `k` exists, and updates data
     in the neighborhoods array at the same time. See the module's documentation.
 
@@ -514,34 +514,34 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int cost_S
 
     - ``g`` -- a FastDiGraph
 
-    - ``neighborhoods`` -- an array of size `2^(g.n)` storing for each subset
+    - ``neighborhoods`` -- an array of size `2^(g.n)`; stores for each subset
       `X\subseteq V` of vertices of the graph the number of edges from `X` to
-      `V\setminus X`.
+      `V\setminus X`
 
-    - ``S`` -- an integer encoding the predecessor subset of vertices (from
-      which is issued the current call).
+    - ``S`` -- integer; encodes the predecessor subset of vertices (from which
+      is issued the current call)
 
-    - ``cost_S`` -- the number of edges from `S` to `V\setminus S`.
+    - ``cost_S`` -- integer; the number of edges from `S` to `V\setminus S`
 
-    - ``v`` -- a vertex such that the current subset of vertices is
-      `current==S\cup\{v\}`.
+    - ``v`` -- integer; a vertex such that the current subset of vertices is
+      `current==S\cup\{v\}`
 
-    - ``k`` -- the maximum admissible cost for a solution.
+    - ``k`` -- integer; the maximum admissible cost for a solution
     """
     cdef int current = S | 1<<v
     # If this is true, it means the set has not been evaluated yet
-    if neighborhoods[current] == <uint8_t>-1:
+    if neighborhoods[current] == <uint8_t> -1:
         # The number of edges from `current` to `V\setminus current` is the
         # number of edges from `S` to `V\setminus S`, minus the number of edges
         # from `S` to vertex `v`, plus the number of edges from `v` to
         # `V\setminus (S\cup \{v\})`. This can be computed adding the degree of
         # `c` to `cost_S`, and then removing twice the number of edges from `S`
         # to `v`.
-        neighborhoods[current] = cost_S + g.degree[v] - 2*popcount32(S&g.graph[v])
+        neighborhoods[current] = cost_S + g.degree[v] - 2 * popcount32(S & g.graph[v])
 
     # If the cost of this set is too high, there is no point in going further.
     # Same thing if the current set is the whole vertex set.
-    if neighborhoods[current] > k or (current == (1<<g.n)-1):
+    if neighborhoods[current] > k or (current == (1 << g.n) - 1):
         return neighborhoods[current]
 
     # Minimum of the costs of the outneighbors, initialized with large constant.
@@ -553,7 +553,7 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int cost_S
     # For each possible extension of the current set witha vertex, check whether
     # there exists a cheap path toward {1..n}, and update the cost.
     for i in range(g.n):
-        if (current >> i)&1: # if i in S
+        if (current >> i) & 1: # if i in S
             continue
 
         mini = min(mini, exists(g, neighborhoods, current, neighborhoods[current], i, k))

@@ -585,20 +585,20 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
 
     - ``G`` -- a Graph
 
-    - ``lower_bound`` -- (default: 0) the algorithm searches for a solution with
-      cost larger or equal to ``lower_bound``. If the given bound is larger than
-      the optimal solution the returned solution might not be optimal. If the
-      given bound is too high, the algorithm might not be able to find a
-      feasible solution.
+    - ``lower_bound`` -- integer (default: 0); the algorithm searches for a
+      solution with cost larger or equal to ``lower_bound``. If the given bound
+      is larger than the optimal solution the returned solution might not be
+      optimal. If the given bound is too high, the algorithm might not be able
+      to find a feasible solution.
 
-    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
-      be used. If set to ``None``, the default one is used. For more information
-      on LP solvers and which default solver is used, see the method
+    - ``solver`` -- string (default: ``None``); specify a Linear Program (LP)
+      solver to be used. If set to ``None``, the default one is used. For more
+      information on LP solvers and which default solver is used, see the method
       :meth:`solve<sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
       class
       :class:`MixedIntegerLinearProgram<sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
+    - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
       to 0 by default, which means quiet.
 
     OUTPUT:
@@ -664,11 +664,11 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
         sage: cutwidth_MILP([])
         Traceback (most recent call last):
         ...
-        ValueError: The first input parameter must be a Graph.
+        ValueError: the first input parameter must be a Graph
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
-        raise ValueError("The first input parameter must be a Graph.")
+        raise ValueError("the first input parameter must be a Graph")
 
     from sage.numerical.mip import MixedIntegerLinearProgram
     p = MixedIntegerLinearProgram(maximization=False, solver=solver)
@@ -683,39 +683,39 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
 
     # All vertices at different positions
     for v in V:
-        for k in range(N-1):
-            p.add_constraint( p.sum( x[v,i] for i in range(k) ) <= k*x[v,k] )
-        p.add_constraint( x[v,N-1] == 1 )
+        for k in range(N - 1):
+            p.add_constraint(p.sum(x[v,i] for i in range(k)) <= k * x[v,k])
+        p.add_constraint(x[v,N-1] == 1)
     for k in range(N):
-        p.add_constraint( p.sum( x[v,k] for v in V ) == k+1 )
+        p.add_constraint(p.sum(x[v,k] for v in V) == k + 1)
 
     # Edge uv counts at position i if one of u or v is placed at a position in
     # [0,i] and the other is placed at a position in [i+1,n].
     for u,v in G.edge_iterator(labels=None):
         for i in range(N):
-            p.add_constraint( x[u,i] - x[v,i] <= y[u,v,i] )
-            p.add_constraint( x[v,i] - x[u,i] <= y[u,v,i] )
+            p.add_constraint(x[u,i] - x[v,i] <= y[u,v,i])
+            p.add_constraint(x[v,i] - x[u,i] <= y[u,v,i])
 
     # Lower bound on the solution
-    p.add_constraint( lower_bound <= z['z'] )
+    p.add_constraint(lower_bound <= z['z'])
 
     # Objective
-    p.add_constraint( z['z'] <= G.size() )
+    p.add_constraint(z['z'] <= G.size())
     for i in range(N):
-        p.add_constraint( p.sum( y[u,v,i] for u,v in G.edge_iterator(labels=None) ) <= z['z'] )
+        p.add_constraint(p.sum(y[u,v,i] for u,v in G.edge_iterator(labels=None)) <= z['z'])
 
-    p.set_objective( z['z'] )
+    p.set_objective(z['z'])
 
-    obj = p.solve( log=verbose )
+    obj = p.solve(log=verbose)
 
     # We now extract the ordering and the cost of the solution
-    cw = int( p.get_values(z)['z'] )
-    val_x = p.get_values( x )
-    seq = []
-    to_see = set(V)
+    val_x = p.get_values(x)
+    cdef int cw = int(p.get_values(z)['z'])
+    cdef list seq = []
+    cdef set to_see = set(V)
     for k in range(N):
         for u in to_see:
-            if val_x[u,k] > 0:
+            if val_x[u,k]:
                 seq.append(u)
                 to_see.discard(u)
                 break

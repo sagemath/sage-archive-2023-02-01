@@ -271,8 +271,8 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
 
     - ``G`` -- a Graph or a DiGraph
 
-    - ``algorithm`` -- (default: ``"exponential"``) Specify the algorithm to use
-      among
+    - ``algorithm`` -- string (default: ``"exponential"``); algorithm to use
+      among:
 
       - ``exponential`` -- Use an exponential time and space algorithm based on
         dynamic programming. This algorithm only works on graphs with strictly
@@ -281,20 +281,20 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
       - ``MILP`` -- Use a mixed integer linear programming formulation. This
         algorithm has no size restriction but could take a very long time.
 
-    - ``cut_off`` -- (default: 0) This parameter is used to stop the search as
-      soon as a solution with width at most ``cut_off`` is found, if any. If
-      this bound cannot be reached, the best solution found is returned.
+    - ``cut_off`` -- integer (default: 0); used to stop the search as soon as a
+      solution with width at most ``cut_off`` is found, if any. If this bound
+      cannot be reached, the best solution found is returned.
 
-    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
-      be used. If set to ``None``, the default one is used. This parameter is
-      used only when ``algorithm='MILP'``. For more information on LP solvers
-      and which default solver is used, see the method
+    - ``solver`` -- string (default: ``None``); specify a Linear Program (LP)
+      solver to be used. If set to ``None``, the default one is used. This
+      parameter is used only when ``algorithm='MILP'``. For more information on
+      LP solvers and which default solver is used, see the method
       :meth:`solve<sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
       class
       :class:`MixedIntegerLinearProgram<sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-    - ``verbose`` (boolean) -- whether to display information on the
-      computations.
+    - ``verbose`` -- booleant (default: ``False``); whether to display
+      information on the computations.
 
     OUTPUT:
 
@@ -335,7 +335,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
         ....:     ve, le = cutwidth(G, algorithm="exponential")
         ....:     vm, lm = cutwidth(G, algorithm="MILP", solver='GLPK')
         ....:     if ve != vm:
-        ....:        print("Something goes wrong!")
+        ....:        raise ValueError("Something goes wrong!")
 
     Given a wrong algorithm::
 
@@ -351,7 +351,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
         sage: cutwidth(range(4))
         Traceback (most recent call last):
         ...
-        ValueError: The parameter must be a Graph.
+        ValueError: the first parameter must be a Graph
 
     Giving a wrong type cut off::
 
@@ -359,15 +359,15 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
         sage: cutwidth(Graph(), cut_off='toto')
         Traceback (most recent call last):
         ...
-        ValueError: The specified cut off parameter must be an integer.
+        ValueError: the specified cut off parameter must be an integer
     """
     from sage.graphs.graph import Graph
 
     if not isinstance(G, Graph):
-        raise ValueError('The parameter must be a Graph.')
+        raise ValueError('the first parameter must be a Graph')
 
     if not cut_off in ZZ:
-        raise ValueError("The specified cut off parameter must be an integer.")
+        raise ValueError("the specified cut off parameter must be an integer")
     elif G.size() <= cut_off:
         # We have a trivial solution
         return width_of_cut_decomposition(G, list(G)), list(G)

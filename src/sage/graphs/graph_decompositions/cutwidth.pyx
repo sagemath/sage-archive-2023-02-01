@@ -342,7 +342,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
         sage: cutwidth(graphs.PathGraph(2), algorithm="SuperFast")
         Traceback (most recent call last):
         ...
-        ValueError: Algorithm "SuperFast" has not been implemented yet. Please contribute.
+        ValueError: algorithm "SuperFast" has not been implemented yet, please contribute
 
     Given anything else than a Graph::
 
@@ -371,40 +371,44 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
         # We have a trivial solution
         return width_of_cut_decomposition(G, G.vertices()), G.vertices()
 
+    cdef list CC
     if not G.is_connected():
-        # The graph has several connected components. We solve the problem on
-        # each of them and concatenate the partial orderings. The cutwidth is
-        # the maximum over all these subgraphs.
-        cw, L = 0, []
-        for V in G.connected_components():
+        CC = G.connected_components_subgraphs()
+    else:
+        CC = [G]
 
-            # We build the connected subgraph
-            H = G.subgraph(V)
-            if H.size() <= max(cw, cut_off):
-                # We can directly add these vertices to the solution
-                L.extend(V)
+    # If the graph has several connected components. We solve the problem on
+    # each of them and concatenate the partial orderings. The cutwidth is the
+    # maximum over all these subgraphs.
+    cdef int cw = 0
+    cdef list L = []
+    cdef int cwH
+    cdef list LH
+    cdef int this_cut_off = cut_off
+
+    for H in CC:
+
+        if H.size() <= this_cut_off:
+            # We can directly add the vertices to the solution
+            L.extend(H)
+
+        else:
+            # We have a connected graph and we call the desired algorithm
+            if algorithm == "exponential":
+                cwH, LH = cutwidth_dyn(G, lower_bound=this_cut_off)
+
+            elif algorithm == "MILP":
+                cwH, LH = cutwidth_MILP(G, lower_bound=this_cut_off, solver=solver, verbose=verbose)
 
             else:
-                # We do a recursive call on H
-                cwH,LH = cutwidth(H, algorithm = algorithm,
-                                  cut_off      = max(cut_off,cw),
-                                  solver = solver, verbose = verbose)
+                raise ValueError('algorithm "{}" has not been implemented yet, please contribute'.format(algorithm))
 
-                # We update the cutwidth and ordering
-                cw = max(cw, cwH)
-                L.extend(LH)
+            # We update the cutwidth and ordering
+            cw = max(cw, cwH)
+            L.extend(LH)
+            this_cut_off = max(cw, this_cut_off)
 
-        return cw, L
-
-    # We have a connected graph and we call the desired algorithm
-    if algorithm == "exponential":
-        return cutwidth_dyn(G, lower_bound=cut_off)
-
-    elif algorithm == "MILP":
-        return cutwidth_MILP(G, lower_bound=cut_off, solver=solver, verbose=verbose)
-
-    else:
-        raise ValueError('Algorithm "{}" has not been implemented yet. Please contribute.'.format(algorithm))
+    return cw, L
 
 
 ################################################################################

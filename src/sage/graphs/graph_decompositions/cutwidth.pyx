@@ -369,7 +369,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
         raise ValueError("The specified cut off parameter must be an integer.")
     elif G.size() <= cut_off:
         # We have a trivial solution
-        return width_of_cut_decomposition(G, G.vertices()), G.vertices()
+        return width_of_cut_decomposition(G, list(G)), list(G)
 
     cdef list CC
     if not G.is_connected():
@@ -677,7 +677,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     z = p.new_variable(integer=True, nonnegative=True)
 
     N = G.order()
-    V = G.vertices()
+    V = list(G)
 
     # All vertices at different positions
     for v in V:

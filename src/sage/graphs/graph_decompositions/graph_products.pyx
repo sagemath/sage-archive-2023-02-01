@@ -228,7 +228,6 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
         certificate = True
 
     from sage.rings.integer import Integer
-    H = g
 
     if not g.is_connected():
         raise NotImplementedError("recognition of Cartesian product is not implemented for disconnected graphs")
@@ -241,29 +240,32 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
 
     # As we need the vertices of g to be linearly ordered, we copy the graph and
     # relabel it
-    g = copy(g)
-    trev = g.relabel(return_map = True)
-    t = dict([(x,y) for y,x in trev.iteritems()])
+    cdef list int_to_vertex = list(g)
+    cdef dict vertex_to_int = {vert: i for i, vert in enumerate(int_to_vertex)}
+    g_int = g.relabel(perm=vertex_to_int, inplace=False)
 
     # Reorder the vertices of an edge
-    r = lambda x,y : (x,y) if x<y else (y,x)
+    r = lambda x,y: (x, y) if x < y else (y, x)
+
+    cdef int x, y, u, v
+    cdef set un, intersect
 
     # The equivalence graph on the edges of g
     h = Graph()
-    h.add_vertices([r(x,y) for x, y in g.edges(labels = False)])
+    h.add_vertices(r(x,y) for x, y in g_int.edge_iterator(labels=False))
 
     # For all pairs of vertices u,v of G, according to their number of common
     # neighbors... See the module's documentation !
-    for u in g:
-        un = set(g.neighbors(u))
-        for v in g.breadth_first_search(u):
+    for u in g_int:
+        un = set(g_int.neighbor_iterator(u))
+        for v in g_int.breadth_first_search(u):
 
             # u and v are different
             if u == v:
                 continue
 
             # List of common neighbors
-            intersect = un & set(g.neighbors(v))
+            intersect = un & set(g_int.neighbor_iterator(v))
 
             # If u and v have no neighbors and uv is not an edge then their
             # distance is at least 3. As we enumerate the vertices in a
@@ -271,14 +273,14 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
             # vertices at distance less than two from u, and we are done with
             # this loop !
             if not intersect:
-                if g.has_edge(u,v):
+                if g_int.has_edge(u, v):
                     continue
                 else:
                     break
 
             # If uv is an edge
-            if g.has_edge(u,v):
-                h.add_path([r(u,x) for x in intersect] + [r(v,x) for x in intersect])
+            if g_int.has_edge(u, v):
+                h.add_path([r(u, x) for x in intersect] + [r(v, x) for x in intersect])
 
             # Only one common neighbor
             elif len(intersect) == 1:
@@ -297,19 +299,19 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     # Edges uv and u'v' such that d(u,u')+d(v,v') != d(u,v')+d(v,u') are also
     # equivalent
 
-    edges = g.edges(labels = False)
-    d = g.distance_all_pairs()
-    for i,(u,v) in enumerate(edges):
+    cdef list edges = g_int.edges(labels=False)
+    cdef dict d = g_int.distance_all_pairs()
+    for i, (u, v) in enumerate(edges):
         du = d[u]
         dv = d[v]
-        for j in range(i+1,len(edges)):
-            uu,vv = edges[j]
-            if du[uu]+dv[vv] != du[vv] + dv[uu]:
-                h.add_edge(r(u,v),r(uu,vv))
+        for j in range(i + 1, g_int.size()):
+            uu, vv = edges[j]
+            if du[uu] + dv[vv] != du[vv] + dv[uu]:
+                h.add_edge(r(u, v), r(uu, vv))
 
     # Gathering the connected components, relabeling the vertices on-the-fly
-    edges = [[(t[y[0]], t[y[1]]) for y in x]
-             for x in h.connected_components()]
+    edges = [[(int_to_vertex[u], int_to_vertex[v]) for u, v in cc]
+             for cc in h.connected_components()]
 
     #Print the graph, distinguishing the edges according to their color classes
     #

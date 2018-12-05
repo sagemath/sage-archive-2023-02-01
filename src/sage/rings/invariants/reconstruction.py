@@ -68,7 +68,7 @@ def binary_form_from_invariants(degree, invariants, invariant_choice='default', 
         sage: binary_form_from_invariants(5, invariants)
         x^5 + z^5
 
-    An optional `scaling` argument may be provided in order to scale the
+    An optional ``scaling`` argument may be provided in order to scale the
     resulting quintic. For more details, see :meth:`binary_quintic_from_invariants`::
 
         sage: invariants = [3, 4, 7]
@@ -85,7 +85,7 @@ def binary_form_from_invariants(degree, invariants, invariant_choice='default', 
 
     The invariants can also be computed using the invariants of a given binary
     quintic. The resulting form has the same invariants up to scaling, is
-    ``GL_2(\QQ)``-equivalent to the provided form and hence has the same
+    `GL(2,\QQ)`-equivalent to the provided form and hence has the same
     canonical form::
 
         sage: R.<x0, x1> = QQ[]
@@ -293,8 +293,8 @@ def binary_quintic_from_invariants(invariants, K=None, scaling='none'):
         True
 
     The form obtained is equal to the one obtained when setting the
-    coordinates equal to the covariants alpha and beta up to a power of their
-    determinant::
+    coordinates equal to the covariants `\alpha` and `\beta` up to a power of
+    their determinant::
 
         sage: alpha = quintic.alpha_covariant()
         sage: beta = quintic.beta_covariant()
@@ -303,7 +303,7 @@ def binary_quintic_from_invariants(invariants, K=None, scaling='none'):
         sage: transformed == newquintic.coeffs()
         True
 
-    This can also be seen by computing the alpha covariant of the obtained
+    This can also be seen by computing the `\alpha` covariant of the obtained
     form::
 
         sage: newquintic.alpha_covariant().coefficient(x1)
@@ -478,7 +478,7 @@ def reduce_invariants(invariants, weights):
     """
     Reduce a list of invariants of given weights.
 
-    Reduces the given invariants over a field whose rings of integers is a GCD
+    Reduces the given invariants over a field whose rings of integers is a gcd
     domain, in such a way that their greatest common weighted divisor is a unit
     in this ring.
 

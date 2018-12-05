@@ -500,7 +500,8 @@ Test ``atexit`` support in the doctesting framework::
     ....:     pass
 
 Test the ``--memlimit`` option and ``# optional - memlimit``
-(but only on Linux)::
+(but only on Linux). If this test fails, the memory needed to
+run it may have increased. Try increasing the limit. ::
 
     sage: from platform import system
     sage: ok = True

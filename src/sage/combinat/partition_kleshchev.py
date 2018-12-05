@@ -85,8 +85,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.all import NN, ZZ, IntegerModRing
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.cpython.getattr import raw_getattr
 
 from collections import defaultdict
@@ -876,7 +874,6 @@ class KleshchevCrystalMixin(object):
             sage: [x.epsilon(i) for i in C.index_set()]
             [0, 3, 0]
         """
-        P = self.parent()
         return len(self.normal_cells(i))
 
     def phi(self, i):
@@ -894,7 +891,6 @@ class KleshchevCrystalMixin(object):
             sage: [x.phi(i) for i in C.index_set()]
             [3, 2, 0]
         """
-        P = self.parent()
         return len(self.conormal_cells(i))
 
     def Epsilon(self):
@@ -1130,42 +1126,42 @@ class KleshchevPartitions(PartitionTuples):
 
     EXAMPLES::
 
-        sage: KleshchevPartitions(5,[3,2,1],1, convention='RS')[:]
+        sage: sorted(KleshchevPartitions(5,[3,2,1],1, convention='RS'))
         [([], [], [1]), ([], [1], []), ([1], [], [])]
-        sage: KleshchevPartitions(5, [3,2,1], 1, convention='LS')[:]
+        sage: sorted(KleshchevPartitions(5, [3,2,1], 1, convention='LS'))
         [([], [], [1]), ([], [1], []), ([1], [], [])]
-        sage: KleshchevPartitions(5, [3,2,1], 3)[:]
+        sage: sorted(KleshchevPartitions(5, [3,2,1], 3))
         [([], [], [1, 1, 1]),
          ([], [], [2, 1]),
-         ([], [1], [2]),
          ([], [], [3]),
          ([], [1], [1, 1]),
+         ([], [1], [2]),
          ([], [1, 1], [1]),
          ([], [2], [1]),
-         ([1], [2], []),
          ([], [3], []),
          ([1], [], [1, 1]),
          ([1], [], [2]),
          ([1], [1], [1]),
+         ([1], [2], []),
          ([1, 1], [1], []),
-         ([3], [], []),
          ([2], [], [1]),
-         ([2], [1], [])]
-        sage: KleshchevPartitions(5, [3,2,1], 3, convention="left regular")[:]
-        [([], [1], [1, 1]),
-         ([1], [], [1, 1]),
-         ([], [], [1, 1, 1]),
+         ([2], [1], []),
+         ([3], [], [])]
+        sage: sorted(KleshchevPartitions(5, [3,2,1], 3, convention="left regular"))
+        [([], [], [1, 1, 1]),
+         ([], [1], [1, 1]),
          ([], [1], [2]),
-         ([1], [1], [1]),
-         ([1, 1], [], [1]),
-         ([2], [], [1]),
-         ([], [1, 1, 1], []),
          ([], [1, 1], [1]),
+         ([], [1, 1, 1], []),
+         ([1], [], [1, 1]),
+         ([1], [1], [1]),
          ([1], [1, 1], []),
          ([1], [2], []),
-         ([2], [1], []),
-         ([1, 1, 1], [], []),
+         ([1, 1], [], [1]),
          ([1, 1], [1], []),
+         ([1, 1, 1], [], []),
+         ([2], [], [1]),
+         ([2], [1], []),
          ([2, 1], [], []),
          ([3], [], [])]
 
@@ -1185,9 +1181,9 @@ class KleshchevPartitions(PartitionTuples):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(5, [3,2,1], 1, convention='RS')[:]
+            sage: sorted(KleshchevPartitions(5, [3,2,1], 1, convention='RS'))
             [([], [], [1]), ([], [1], []), ([1], [], [])]
-            sage: KleshchevPartitions(5, [3,2,1], 1, convention='LS')[:]
+            sage: sorted(KleshchevPartitions(5, [3,2,1], 1, convention='LS'))
             [([], [], [1]), ([], [1], []), ([1], [], [])]
         """
         if size is None and multicharge in ZZ:

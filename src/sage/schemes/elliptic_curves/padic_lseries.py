@@ -93,7 +93,6 @@ import sage.matrix.all as matrix
 import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 from sage.functions.log import log
 from sage.functions.other import floor
-from sage.misc.decorators import rename_keyword
 
 
 @richcmp_method
@@ -1371,9 +1370,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         resu = lpv*eps.transpose()
         return resu
 
-
-    @rename_keyword(deprecation=6094, method="algorithm")
-    def frobenius(self, prec=20, algorithm = "mw"):
+    def frobenius(self, prec=20, algorithm="mw"):
         r"""
         Return a geometric Frobenius `\varphi` on the Dieudonné module `D_p(E)`
         with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.

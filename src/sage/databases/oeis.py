@@ -1826,13 +1826,31 @@ class FancyTuple(tuple):
         TESTS::
 
             sage: t = ('é', 'è', 'à', 'ç')
-            sage: t
-            ('\xc3\xa9', '\xc3\xa8', '\xc3\xa0', '\xc3\xa7')
             sage: FancyTuple(t)[2:4]
             0: à
             1: ç
         """
-        return FancyTuple(tuple(self).__getslice__(i, j))
+        return self.__getitem__(slice(i, j))
+
+    def __getitem__(self, x):
+        r"""
+        If ``x`` is a slice return the corresponding sub FancyTuple,
+        else return the `̀`x``-th item of ``self``.
+
+        TESTS::
+
+            sage: from sage.databases.oeis import FancyTuple
+            sage: t = ('é', 'è', 'à', 'ç')
+            sage: ft = FancyTuple(t)
+            sage: ft[0] == 'é'
+            True
+            sage: ft[-1] == 'ç'
+            True
+        """
+        res = tuple.__getitem__(self, x)
+        if isinstance(res, tuple):
+            res = FancyTuple(res)
+        return res
 
 
 oeis = OEIS()

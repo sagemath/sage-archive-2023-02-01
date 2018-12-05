@@ -17,8 +17,6 @@ if [ "$SAGE_DEBUG" = "yes" ]; then
     FLINT_CONFIGURE="--enable-assert $FLINT_CONFIGURE"
 fi
 
-CXXFLAGS="$CXXFLAGS -std=c++11"; export CXXFLAGS
-
 cd src
 
 echo "Configuring FLINT."

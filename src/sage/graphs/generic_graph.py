@@ -15076,7 +15076,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
             ....:     c = [c1,c2,c3,c4,c5,c6]
             ....:     for ci, cj in itertools.combinations(c, 2):
-            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12)
+            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.out_degree(v)) < 1e-12)
 
         Weighted graphs::
 

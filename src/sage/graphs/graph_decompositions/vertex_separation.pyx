@@ -934,7 +934,7 @@ def vertex_separation_exp(G, verbose = False):
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
         sage: D=digraphs.DeBruijn(2,3)
         sage: vertex_separation_exp(D)
-        (2, ['000', '001', '100', '010', '101', '011', '110', '111'])
+        (2, ['010', '110', '111', '011', '001', '000', '100', '101'])
 
     Given a too large graph::
 
@@ -1132,7 +1132,7 @@ def is_valid_ordering(G, L):
     if not isinstance(L, list):
         raise ValueError("The second parameter must be of type 'list'.")
 
-    return set(L) == set(G.vertices())
+    return set(L) == set(G)
 
 
 ####################################################################
@@ -1345,7 +1345,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     z = p.new_variable(integer=True, nonnegative=True)
 
     N = G.order()
-    V = G.vertices()
+    V = list(G)
     neighbors_out = G.neighbors_out if G.is_directed() else G.neighbors
 
     # (2) x[v,t] <= x[v,t+1]   for all v in V, and for t:=0..N-2

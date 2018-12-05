@@ -20,7 +20,7 @@ if [ "$UNAME" = "Darwin" ]; then
     export LDFLAGS="$LDFLAGS -Wl,-headerpad_max_install_names"
 fi
 
-export CXXFLAGS="$CXXFLAGS -std=c++11"
+export CXXFLAGS
 sdh_make install INSTALL_DIR="$SAGE_LOCAL"
 
 if [ "$UNAME" = "Darwin" ]; then

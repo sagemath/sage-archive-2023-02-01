@@ -4,8 +4,7 @@ if [[ -z "$SAGE_LOCAL" ]]; then
     exit 1
 fi
 
-# C++11 workaround https://trac.sagemath.org/ticket/20926
-CXXFLAGS="$CXXFLAGS -std=c++11 -DNOCDDPREFIX"
+CXXFLAGS="$CXXFLAGS -DNOCDDPREFIX"
 
 export CC CXX CFLAGS CXXFLAGS LDFLAGS
 

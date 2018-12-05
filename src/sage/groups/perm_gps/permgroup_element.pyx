@@ -1599,6 +1599,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print(l5)
         return l1, l2
 
+
 cdef class SymmetricGroupElement(PermutationGroupElement):
     """
     An element of the symmetric group.
@@ -1623,6 +1624,20 @@ cdef class SymmetricGroupElement(PermutationGroupElement):
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self).absolute_length()
+
+    def has_left_descent(self, i):
+        """
+        Return whether `i` is a left descent of ``self``.
+
+        EXAMPLES::
+
+            sage: W = SymmetricGroup(4)
+            sage: w = W.from_reduced_word([1,3,2,1])
+            sage: [i for i in W.index_set() if w.has_left_descent(i)]
+            [1, 3]
+        """
+        return self.has_descent(i, side='left')
+
 
 cdef bint is_valid_permutation(int* perm, int n):
     """

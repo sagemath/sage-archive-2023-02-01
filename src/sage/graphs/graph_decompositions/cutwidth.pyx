@@ -430,9 +430,9 @@ def cutwidth_dyn(G, lower_bound=0):
 
     - ``G`` -- a Graph
 
-    - ``lower_bound`` -- (default: 0) the algorithm returns immediately if it
-      finds a solution lower or equal to ``lower_bound`` (in which case it may
-      not be optimal).
+    - ``lower_bound`` -- integer (default: 0); the algorithm returns immediately
+      if it finds a solution lower or equal to ``lower_bound`` (in which case it
+      may not be optimal).
 
     OUTPUT:
 
@@ -453,7 +453,7 @@ def cutwidth_dyn(G, lower_bound=0):
         sage: cutwidth.cutwidth_dyn([])
         Traceback (most recent call last):
         ...
-        ValueError: The parameter must be a Graph.
+        ValueError: the parameter must be a Graph
 
     Giving a too large Graph::
 
@@ -461,7 +461,7 @@ def cutwidth_dyn(G, lower_bound=0):
         sage: cutwidth.cutwidth_dyn(graphs.PathGraph(40))
         Traceback (most recent call last):
         ...
-        ValueError: The graph should have at most 31 vertices !
+        ValueError: the graph should have at most 31 vertices
 
     Giving a wrong type lower bound::
 
@@ -469,27 +469,28 @@ def cutwidth_dyn(G, lower_bound=0):
         sage: cutwidth.cutwidth_dyn(Graph(), lower_bound='toto')
         Traceback (most recent call last):
         ...
-        ValueError: The specified lower bound must be an integer.
+        ValueError: the specified lower bound must be an integer
 
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
-        raise ValueError("The parameter must be a Graph.")
+        raise ValueError("the parameter must be a Graph")
 
     if G.order() >= 32:
-        raise ValueError("The graph should have at most 31 vertices !")
+        raise ValueError("the graph should have at most 31 vertices")
 
     if not lower_bound in ZZ:
-        raise ValueError("The specified lower bound must be an integer.")
+        raise ValueError("the specified lower bound must be an integer")
 
     cdef FastDigraph g = FastDigraph(G)
 
     cdef unsigned int mem = 1 << g.n
-    cdef uint8_t * neighborhoods = <uint8_t *> check_allocarray(mem, sizeof(uint8_t))
+    cdef uint8_t* neighborhoods = <uint8_t*> check_allocarray(mem, sizeof(uint8_t))
 
     memset(neighborhoods, <uint8_t> -1, mem)
 
     cdef int i, k
+    cdef list order
 
     try:
         for k in range(lower_bound, G.size()):

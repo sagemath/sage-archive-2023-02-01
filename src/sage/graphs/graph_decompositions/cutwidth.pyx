@@ -185,7 +185,7 @@ from sage.rings.integer_ring import ZZ
 
 def width_of_cut_decomposition(G, L):
     r"""
-    Returns the width of the cut decomposition induced by the linear ordering
+    Return the width of the cut decomposition induced by the linear ordering
     `L` of the vertices of `G`.
 
     If `G` is an instance of :mod:`Graph <sage.graphs.graph>`, this function
@@ -231,27 +231,28 @@ def width_of_cut_decomposition(G, L):
         sage: cutwidth.width_of_cut_decomposition(Graph(), ['a','b'])
         Traceback (most recent call last):
         ...
-        ValueError: The input linear vertex ordering L is not valid for G.
+        ValueError: the input linear vertex ordering L is not valid for G
     """
     if not is_valid_ordering(G, L):
-        raise ValueError("The input linear vertex ordering L is not valid for G.")
-    elif G.order()<=1:
+        raise ValueError("the input linear vertex ordering L is not valid for G")
+    elif G.order() <= 1:
         return 0
 
-    position = {u:i for i,u in enumerate(L)}
+    cdef int i, x, y
+    cdef dict position = {u: i for i,u in enumerate(L)}
 
     # We count for each position `i` the number of edges going from vertices at
     # positions in `0..i` to vertices at positions in `i+1..n-1`, for each
     # `x\leq i<n-1`.
-    cpt = [0]*len(L)
-    for u,v in G.edge_iterator(labels=None):
-        x,y = position[u],position[v]
-        if x>y:
-            x,y = y,x
+    cdef list cpt = [0] * G.order()
+    for u, v in G.edge_iterator(labels=None):
+        x, y = position[u], position[v]
+        if x > y:
+            x, y = y, x
         # Edge (u,v) contributes 1 to the number of edges going from vertices at
         # positions `0..i` to vertices at positions `i+1..n-1` for each `x\leq
-        # i<n-1`.
-        for i in range(x,y):
+        # i < n-1`.
+        for i in range(x, y):
             cpt[i] += 1
 
     # The width of L is the maximum computed value.

@@ -13719,7 +13719,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:     if max(coeffs_v) - min(coeffs_v) > 1E-12:
             ....:         raise ValueEror("error for v={}, min={}, max={}".format(v, min(coeffs_v), max(coeffs_v)))
 
-        Empty graph::
+        TESTS::
 
             sage: graphs.EmptyGraph().clustering_coeff()
             {}

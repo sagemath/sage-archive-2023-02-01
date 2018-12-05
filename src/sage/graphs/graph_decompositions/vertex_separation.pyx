@@ -333,7 +333,7 @@ def lower_bound(G):
         sage: lower_bound(range(2))
         Traceback (most recent call last):
         ...
-        ValueError: The parameter must be a Graph or a DiGraph.
+        ValueError: the parameter must be a Graph or a DiGraph
 
     Given a too large graph::
 
@@ -341,7 +341,7 @@ def lower_bound(G):
         sage: lower_bound(graphs.PathGraph(50))
         Traceback (most recent call last):
         ...
-        ValueError: The (di)graph can have at most 31 vertices.
+        ValueError: the (di)graph can have at most 31 vertices
 
     """
     from sage.graphs.graph import Graph
@@ -829,7 +829,7 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
             CC = scc_digraph.topological_sort()[::-1]
 
     else:
-        raise ValueError('The parameter must be a Graph or a DiGraph.')
+        raise ValueError('the parameter must be a Graph or a DiGraph')
 
 
     if CC:
@@ -883,7 +883,7 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
                                      max_prefix_length=max_prefix_length, max_prefix_number = max_prefix_number)
 
     else:
-        raise ValueError('Algorithm "{}" has not been implemented yet. Please contribute.'.format(algorithm))
+        raise ValueError('algorithm "{}" has not been implemented yet, please contribute'.format(algorithm))
 
 
 ################################
@@ -1314,7 +1314,7 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0):
         ....:     ve, le = vertex_separation.vertex_separation(G)
         ....:     vm, lm = vertex_separation.vertex_separation_MILP(G)
         ....:     if ve != vm:
-        ....:        print("The solution is not optimal!")
+        ....:        raise ValueError("the solution is not optimal")
 
     Comparison with different values of the integrality parameter::
 
@@ -1324,7 +1324,7 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0):
         ....:     va, la = vertex_separation.vertex_separation_MILP(G, integrality=False)
         ....:     vb, lb = vertex_separation.vertex_separation_MILP(G, integrality=True)
         ....:     if va != vb:
-        ....:        print("The integrality parameter changes the result!")
+        ....:        raise ValueError("the integrality parameter changes the result")
 
     Giving anything else than a Graph or a DiGraph::
 
@@ -1332,7 +1332,7 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0):
         sage: vertex_separation.vertex_separation_MILP([])
         Traceback (most recent call last):
         ...
-        ValueError: The first input parameter must be a Graph or a DiGraph.
+        ValueError: the first input parameter must be a Graph or a DiGraph
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
@@ -1559,7 +1559,7 @@ def vertex_separation_BAB(G,
         sage: VS.vertex_separation_BAB(range(5))
         Traceback (most recent call last):
         ...
-        ValueError: The input parameter must be a Graph or a DiGraph.
+        ValueError: the input parameter must be a Graph or a DiGraph
 
     Giving an empty Graph or DiGraph::
 

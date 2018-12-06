@@ -1129,7 +1129,7 @@ class Gap(Gap_generic):
         """
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache, server is None)
-        cmd += " -b -p -T"
+        cmd += " -b -p -T -E"
         if max_workspace_size is None:
             max_workspace_size = _get_gap_memory_pool_size_MB()
         cmd += ' -o ' + str(max_workspace_size)

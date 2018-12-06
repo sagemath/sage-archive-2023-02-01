@@ -1,7 +1,22 @@
-
 #
 # SAGE support utilities to read into the GAP session.
 #
+
+# Prevent loading the xgap package; we use the -p flag to GAP in order to
+# communicate with it via the pexpect interface; this is normally used by
+# for an xgap window to communicate with GAP, so unfortunatelly setting this
+# flag also allows the xgap package to be loaded and for some packages to
+# attempt to communicate with a "window handler" that doesn't exist.
+# Therefore we must explicitly disable loading of the xgap package.
+#
+# Don't use SetUserPreference since that leads to reloading the workspace,
+# which is confusing to the pexpect interface
+if IsBound(GAPInfo.ExcludeFromAutoload) then
+    Append(GAPInfo.ExcludeFromAutoload, "xgap");
+else
+    GAPInfo.ExcludeFromAutoload := [ "xgap" ];
+fi;
+
 \$SAGE := rec();
 
 \$SAGE.OldPager := Pager;

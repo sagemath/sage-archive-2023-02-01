@@ -1343,11 +1343,11 @@ class Gap(Gap_generic):
 
             sage: print(gap.help('SymmetricGroup', pager=False))
             <BLANKLINE>
-            50 Group Libraries
+              50.1-... SymmetricGroup
             <BLANKLINE>
-            When you start GAP, it already knows several groups. Currently GAP initially
-            knows the following groups:
+              ‣ SymmetricGroup( [filt, ]deg ) ─────────────────────────────────── function
             ...
+            <BLANKLINE>
         """
         tmp_to_use = self._local_tmpfile()
         if self.is_remote():
@@ -1364,6 +1364,7 @@ class Gap(Gap_generic):
             print(line)
         else:
             (sline,) = match.groups()
+            sline = int(sline) - 1
             if self.is_remote():
                 self._get_tmpfile()
             with io.open(self._local_tmpfile(), "r",
@@ -1371,9 +1372,20 @@ class Gap(Gap_generic):
                 help = fobj.read()
                 if pager:
                     from IPython.core.page import page
-                    page(help, start=int(sline) - 1)
+                    page(help, start=sline)
                 else:
-                    return help
+                    # Find the n-th line and return from there
+                    idx = -1
+                    while sline:
+                        try:
+                            idx = help.find('\n', idx + 1)
+                            sline -= 1
+                        except ValueError:
+                            # We ran out of lines early somehow; this shouldn't
+                            # happen though
+                            break
+
+                    return help[idx:]
 
     def set(self, var, value):
         """
@@ -1647,10 +1659,9 @@ class GapFunctionElement(FunctionElement):
 
             sage: print(gap(4).SymmetricGroup.__doc__)
             <BLANKLINE>
-            50 Group Libraries
+              50.1-... SymmetricGroup
             <BLANKLINE>
-            When you start GAP, it already knows several groups. Currently GAP initially
-            knows the following groups:
+              ‣ SymmetricGroup( [filt, ]deg ) ─────────────────────────────────── function
             ...
         """
         M = self._obj.parent()
@@ -1660,13 +1671,13 @@ class GapFunctionElement(FunctionElement):
 
 @instancedoc
 class GapFunction(ExpectFunction):
-    def _instancedoc(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
             sage: print(gap.SymmetricGroup.__doc__)
             <BLANKLINE>
-              50.1-12 SymmetricGroup
+              50.1-... SymmetricGroup
             <BLANKLINE>
               ‣ SymmetricGroup( [filt, ]deg ) ─────────────────────────────────── function
             ...

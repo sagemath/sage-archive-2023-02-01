@@ -44,6 +44,7 @@ from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.functions.trig import cos, sin
 from sage.functions.other import sqrt
+import pprint
 
 
 class LocalOptions:
@@ -179,8 +180,8 @@ class LocalOptions:
             ....: )
             sage: o
             Current options for Name Example
-              - display:      list
-              - tikz_options: toto
+              - display:      'list'
+              - tikz_options: 'toto'
         """
         options = list(self._options)
         if options == []:
@@ -188,7 +189,7 @@ class LocalOptions:
 
         options.sort()
         width = 1 + max(len(key) for key in options)
-        txt = '\n'.join('  - {:{}} {}'.format(key + ':', width, self[key])
+        txt = '\n'.join('  - {:{}} {}'.format(key + ':', width, pprint.pformat(self[key]))
                         for key in options)
         return 'Current options for {}\n{}'.format(self._name, txt)
 
@@ -253,7 +254,7 @@ class LocalOptions:
             res = "Current value : " + str(self._options[key])
             option_key = self._available_options[key]
             if "values" in option_key:
-                res += "\n" + str(self._available_options[key])
+                res += "\n" + pprint.pformat(self._available_options[key])
             print(res)
         else:
             available_options = self._available_options
@@ -1537,14 +1538,13 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.get_options()
             Current options for ParallelogramPolyominoes_size
-              - display:            list
-              - drawing_components: {'diagram': True, 'bounce_1': False,
-            'tree': False, 'bounce_0': False}
-              - latex:              drawing
-              - tikz_options:       {'color_bounce_1': u'blue',
-            'color_bounce_0': u'red', 'point_size': 3.5, 'line_size': 1,
-            'color_line': u'black', 'color_point': u'black', 'scale': 1,
-            'mirror': None, 'rotation': 0, 'translation': [0, 0]}
+              - display:            u'list'
+              - drawing_components: {'bounce_0': False, 'bounce_1': False, 'diagram': True, 'tree': False}
+              - latex:              u'drawing'
+              - tikz_options:       {'color_bounce_0': u'red',
+                'color_bounce_1': u'blue', 'color_line': u'black', 'color_point': u'black',
+                'line_size': 1, 'mirror': None, 'point_size': 3.5,
+                'rotation': 0, 'scale': 1, 'translation': [0, 0]}
         """
         if self._options is None:
             return self.parent().get_options()
@@ -3755,7 +3755,7 @@ class ParallelogramPolyominoes_size(
             sage: pps = ParallelogramPolyominoes(5)
             sage: pps.get_options()
             Current options for ParallelogramPolyominoes_size
-              - display:            list
+              - display:            u'list'
             ...
         """
         return self.options
@@ -3881,7 +3881,7 @@ class ParallelogramPolyominoes_all(
             sage: options = PPS.get_options()
             sage: options
             Current options for ParallelogramPolyominoes_size
-              - display:            list
+              - display:            u'list'
             ...
         """
         return self.options

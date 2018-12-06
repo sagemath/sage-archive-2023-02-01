@@ -2308,10 +2308,10 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def canonical_form(self, reduce_gcd=False):
         r"""
-        Return a canonical representant of the quintic.
+        Return a canonical representative of the quintic.
 
         Given a binary quintic `f` with coefficients in a field `K`, returns a
-        canonical representant of the `GL(2,\bar{K})`-orbit of the quintic,
+        canonical representative of the `GL(2,\bar{K})`-orbit of the quintic,
         where `\bar{K}` is an algebraic closure of `K`. This means that two
         binary quintics `f` and `g` are `GL(2,\bar{K})`-equivalent if and only
         if their canonical forms are the same.

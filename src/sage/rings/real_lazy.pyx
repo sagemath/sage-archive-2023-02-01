@@ -21,7 +21,7 @@ specified in the forward direction).
 #*****************************************************************************
 from __future__ import absolute_import, division, print_function
 
-import math
+import math, cmath
 
 cdef add, sub, mul, truediv, pow, neg, inv
 from operator import add, sub, mul, pow, neg, inv, truediv
@@ -1479,21 +1479,61 @@ cdef class LazyConstant(LazyFieldElement):
             sage: a = LazyConstant(CLF, 'I')
             sage: CC(a)
             1.00000000000000*I
+
+        TESTS:
+
+        Check that :trac:`26839` is fixed::
+
+            sage: RLF.pi().eval(float)
+            3.141592653589793
+            sage: type(RLF.pi().eval(float)) is float
+            True
+
+            sage: RLF.pi().eval(complex)
+            (3.141592653589793+0j)
+            sage: type(RLF.pi().eval(complex)) is complex
+            True
+
+            sage: RLF.pi().eval(RealBallField(128))
+            [3.1415926535897932384626433832795028842 +/- 1.06e-38]
+
+            sage: float(sin(RLF.pi()))
+            1.2246467991473532e-16
         """
         if self._is_special:
-            if self._name == 'e':
-                return R(1).exp()
-            elif self._name == 'I':
-                I = R.gen()
-                if I*I < 0:
-                    return I
+            # special handling of e and I
+            if self._name == 'I':
+                if R is float:
+                    raise ValueError('I is not a real number')
+                elif R is complex:
+                    return 1j
                 else:
-                    raise TypeError("The complex constant I is not in this real field.")
-        f = getattr(R, self._name)
-        if self._extra_args is None:
-            return f()
+                    I = R.gen()
+                    if I*I != -R.one():
+                        raise TypeError("The complex constant I is not in this complex field.")
+                    return I
+
+            elif self._name == 'e':
+                if R is float:
+                    return math.e
+                elif R is complex:
+                    return complex(math.e)
+                else:
+                    return R(1).exp()
+
+        if R is float:
+            # generic float
+            return getattr(math, self._name)
+        elif R is complex:
+            # generic complex
+            return complex(getattr(cmath, self._name))
         else:
-            return f(*self._extra_args)
+            # generic Sage parent
+            f = getattr(R, self._name)
+            if self._extra_args is None:
+                return f()
+            else:
+                return f(*self._extra_args)
 
     def __call__(self, *args):
         """

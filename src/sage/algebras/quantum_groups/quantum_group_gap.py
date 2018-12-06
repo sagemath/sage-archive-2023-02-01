@@ -17,7 +17,7 @@ https://www.gap-system.org/Packages/quagroup.html.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.misc.lazy_attribute import lazy_attribute
@@ -31,6 +31,7 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.libs.gap.libgap import libgap
+from sage.features.gap import GapPackage
 from sage.graphs.digraph import DiGraph
 from sage.rings.rational_field import QQ
 from sage.categories.algebras import Algebras
@@ -364,6 +365,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
             sage: TestSuite(Q).run()  # long time  # optional - gap_packages
         """
         self._cartan_type = cartan_type
+        GapPackage("QuaGroup", spkg="gap_packages").require()
         libgap.LoadPackage('QuaGroup')
         R = libgap.eval('RootSystem("%s",%s)'%(cartan_type.type(), cartan_type.rank()))
         Q = self._cartan_type.root_system().root_lattice()
@@ -826,7 +828,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
         for i in range(len(ext_rep)//2):
             if ext_rep[2*i].Length() == 0:
                 ext_rep.pop(2*i) # Pop the key
-                constant = R(str(ext_rep.pop(2*i))) # Pop the coefficent
+                constant = R(str(ext_rep.pop(2*i))) # Pop the coefficient
                 break
         # To reconstruct, we need the following
         F = libgap.eval('ElementsFamily')(libgap.eval('FamilyObj')(self._libgap))
@@ -854,7 +856,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
             return self.__class__(self.parent(), self._libgap * other._libgap)
 
         def bar(self):
-            """
+            r"""
             Return the bar involution on ``self``.
 
             The bar involution is defined by
@@ -1547,11 +1549,9 @@ class QuantumGroupModule(Parent, UniqueRepresentation):
             sage: V = Q.highest_weight_module([1,0])  # optional - gap_packages
             sage: T = tensor([V,V])  # optional - gap_packages
             sage: S = T.highest_weight_decomposition()[0]  # optional - gap_packages
-            sage: latex(S)  # optional - gap_packages
-            \begin{tikzpicture}...
-            %%
+            sage: latex(S)  # optional - gap_packages  # random (depends on dot2tex)
+            \begin{tikzpicture}
             ...
-            %
             \end{tikzpicture}
         """
         from sage.misc.latex import latex

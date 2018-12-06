@@ -57,8 +57,6 @@ from sage.rings.all import Infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-from sage.misc.decorators import rename_keyword
-
 
 def Words(alphabet=None, length=None, finite=True, infinite=True):
     """
@@ -242,7 +240,8 @@ class AbstractLanguage(Parent):
             ...
             ValueError: z not in alphabet!
         """
-        for a in itertools.islice(w, length):
+        stop = None if length is None else int(length)
+        for a in itertools.islice(w, stop):
             if a not in self.alphabet():
                 raise ValueError("%s not in alphabet!" % a)
 
@@ -1020,7 +1019,6 @@ class FiniteWords(AbstractLanguage):
         return self([self.alphabet().random_element(*args, **kwds)
                      for x in range(length)])
 
-    @rename_keyword(deprecation=10134, l='arg')
     def iter_morphisms(self, arg=None, codomain=None, min_length=1):
         r"""
         Iterate over all morphisms with domain ``self`` and the given

@@ -162,13 +162,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         Large matrices fail gracefully::
 
-            sage: import resource
-            sage: if resource.RLIMIT_AS == getattr(resource, 'RLIMIT_RSS', None):
-            ....:     # Skip this test if RLIMIT_AS is not properly
-            ....:     # supported like on OS X, see Trac #24190
-            ....:     raise RuntimeError("matrix allocation failed")
-            ....: else:  # Real test
-            ....:     MatrixSpace(GF(2), 2^30)(1)
+            sage: MatrixSpace(GF(2), 2^30)(1)  # optional - memlimit
             Traceback (most recent call last):
             ...
             RuntimeError: matrix allocation failed
@@ -1684,12 +1678,23 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: f,s = A.__reduce__()
             sage: f(*s) == A
             True
+
+        TESTS:
+
+        Check that :trac:`24589` is fixed::
+
+            sage: A = random_matrix(GF(2),10,10)
+            sage: loads(dumps(A)).is_immutable()
+            False
+            sage: A.set_immutable()
+            sage: loads(dumps(A)).is_immutable()
+            True
         """
         cdef int i,j, r,c, size
 
         r, c = self.nrows(), self.ncols()
         if r == 0 or c == 0:
-            return unpickle_matrix_mod2_dense_v1, (r, c, None, 0)
+            return unpickle_matrix_mod2_dense_v2, (r, c, None, 0, self._is_immutable)
 
         sig_on()
         cdef gdImagePtr im = gdImageCreate(c, r)
@@ -1707,7 +1712,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         data = [buf[i] for i in range(size)]
         gdFree(buf)
         gdImageDestroy(im)
-        return unpickle_matrix_mod2_dense_v1, (r,c, data, size)
+        return unpickle_matrix_mod2_dense_v2, (r,c, data, size, self._is_immutable)
 
     cpdef _export_as_string(self):
         """
@@ -1943,26 +1948,47 @@ cdef inline unsigned long parity_mask(m4ri_word a):
     return -parity(a)
 
 
-def unpickle_matrix_mod2_dense_v1(r, c, data, size):
-    """
+def unpickle_matrix_mod2_dense_v2(r, c, data, size, immutable=False):
+    r"""
     Deserialize a matrix encoded in the string ``s``.
 
     INPUT:
 
-    - r -- number of rows of matrix
-    - c -- number of columns of matrix
-    - s -- a string
-    - size -- length of the string s
+    - ``r`` -- number of rows of matrix
+    - ``c`` -- number of columns of matrix
+    - ``s`` -- a string
+    - ``size`` -- length of the string ``s``
+    - ``immutable`` -- (default: ``False``) whether the
+      matrix is immutable or not
 
     EXAMPLES::
 
         sage: A = random_matrix(GF(2),100,101)
-        sage: _,(r,c,s,s2) = A.__reduce__()
-        sage: from sage.matrix.matrix_mod2_dense import unpickle_matrix_mod2_dense_v1
-        sage: unpickle_matrix_mod2_dense_v1(r,c,s,s2) == A
+        sage: _, (r,c,s,s2,i) = A.__reduce__()
+        sage: from sage.matrix.matrix_mod2_dense import unpickle_matrix_mod2_dense_v2
+        sage: unpickle_matrix_mod2_dense_v2(r,c,s,s2,i) == A
         True
         sage: loads(dumps(A)) == A
         True
+
+    TESTS:
+
+    Check that old pickles before :trac:`24589` still work::
+
+        sage: s = ("x\x9ck`J.NLO\xd5\xcbM,)\xca\xac\x80R\xf1\xb9\xf9)F\xf1)\xa9y"
+        ....:      "\xc5\xa9\\\xa5y\x05\x99\xc9\xd99\xa9\xf1\x18R\xf1e\x86\\\x85"
+        ....:      "\x8c\x1a\xdeL\xdeL\xb1\x85L\x1a^\x9d\xff\xff\xff\xf7\x0e\xf0"
+        ....:      "\xf6\xf3v\xf7\xe6\xf5\xe6\xf2\x96\x02b\x060\xe4\xf5\xf6\xf4"
+        ....:      "\xf6\xf0v\xf1\x0e\x82\xf2\x99\xe04\xa373\x94\xed\xe1]\xe15"
+        ....:      "\x1fd@:T\x80\rh\x94\x8fw\x88\xb7+\x84\xef\x05\x94\xfb\x8fD,"
+        ....:      "\x05\x117A\x04H\x97\xd7]\x90V\x88FN\xef\x02\xa0i\x91\xde\xc5"
+        ....:      "`\x1e\x9f\xd7\x11\x98\x14\x94\xc9\xe85\x15Di{\xf3yKC\xb5\xf0"
+        ....:      "\x00\x1d\xe8\xe2\xed\x08\xb4\x8d\xc3k&H2\x19hF\x82w\x06X\x92"
+        ....:      "\x11(\xc5\xe0u\x10$\x9c\x0ft\x9d\xa1\xd7\x03\x84]\x0c@\x8d\xae@"
+        ....:      "\x1f\xbbx\xad\x03\t:y'x5\x01\x19\xa9\xde9%A\x85\xccz\x000I\x88D")
+        sage: loads(s)
+        [1 0]
+        [0 1]
     """
     from sage.matrix.constructor import Matrix
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
@@ -1992,7 +2018,16 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
         for j from 0 <= j < c:
             mzd_write_bit(A._entries, i, j, 1-gdImageGetPixel(im, j, i))
     gdImageDestroy(im)
+
+    if immutable:
+        A.set_immutable()
+
     return A
+
+from sage.misc.persist import register_unpickle_override
+register_unpickle_override('sage.matrix.matrix_mod2_dense',
+                           'unpickle_matrix_mod2_dense_v1',
+                           unpickle_matrix_mod2_dense_v2)
 
 def from_png(filename):
     """

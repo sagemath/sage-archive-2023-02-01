@@ -335,7 +335,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             sage: Sets.Subquotients
             <class 'sage.categories.sets_cat.Sets.Subquotients'>
             sage: Sets().Subquotients
-            Cached version of <function Subquotients at ...>
+            Cached version of <function ...Subquotients at ...>
 
         This method also initializes the attribute
         ``_base_category_class`` if not already set::

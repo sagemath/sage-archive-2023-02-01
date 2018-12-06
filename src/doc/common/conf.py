@@ -404,7 +404,7 @@ latex_elements['preamble'] = r"""
 \fi
 
 \let\textLaTeX\LaTeX
-\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
+\AtBeginDocument{\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}}
 """
 
 # Documents to append as an appendix to all manuals.
@@ -607,9 +607,9 @@ def call_intersphinx(app, env, node, contnode):
     Check that the link from the thematic tutorials to the reference
     manual is relative, see :trac:`20118`::
 
-        sage: from sage.env import SAGE_DOC
-        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")
-        sage: for line in open(thematic_index).readlines():
+        sage: from sage.env import SAGE_DOC  # optional - dochtml
+        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")  # optional - dochtml
+        sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
         ....:         sys.stdout.write(line)
         <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics v...)"><span>Introduction to the -adics</span></a></li>

@@ -48,6 +48,7 @@ import errno
 import doctest
 import traceback
 import tempfile
+from dis import findlinestarts
 import gc
 import six
 
@@ -181,6 +182,15 @@ def init_sage():
     dm = get_display_manager()
     from sage.repl.rich_output.backend_doctest import BackendDoctest
     dm.switch_backend(BackendDoctest())
+
+    # IPython's pretty printer sorts the repr of dicts by their keys by default
+    # (or their keys' str() if they are not otherwise orderable).  However, it
+    # disables this for CPython 3.6+ opting to instead display dicts' "natural"
+    # insertion order, which is preserved in those versions).  This makes for
+    # inconsistent results with Python 2 tests that return dicts, so here we
+    # force the Python 2 style dict printing
+    import IPython.lib.pretty
+    IPython.lib.pretty.DICT_IS_ORDERED = False
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -453,6 +463,8 @@ class SageSpoofInOut(SageObject):
             result += b"\n"
         return bytes_to_str(result)
 
+from collections import namedtuple
+TestResults = namedtuple('TestResults', 'failed attempted')
 
 class SageDocTestRunner(doctest.DocTestRunner, object):
     def __init__(self, *args, **kwds):
@@ -494,6 +506,9 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         self.references = []
         self.setters = {}
         self.running_global_digest = hashlib.md5()
+        self.total_walltime_skips = 0
+        self.total_performed_tests = 0
+        self.total_walltime = 0
 
     def _run(self, test, compileflags, out):
         """
@@ -525,12 +540,27 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: DTR.run(doctests[0], clear_globs=False) # indirect doctest
             TestResults(failed=0, attempted=4)
+
+        TESTS:
+
+        Check that :trac:`26038` is fixed::
+
+            sage: a = 1
+            ....: b = 2
+            Traceback (most recent call last):
+            ...
+            SyntaxError: doctest is not a single statement
+            sage: a = 1
+            ....: @syntax error
+            Traceback (most recent call last):
+            ...
+            SyntaxError: invalid syntax
         """
         # Ensure that injecting globals works as expected in doctests
         set_globals(test.globs)
 
         # Keep track of the number of failures and tries.
-        failures = tries = 0
+        failures = tries = walltime_skips = 0
         quiet = False
 
         # Save the option flags (since option directives can be used
@@ -563,12 +593,19 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     else:
                         self.optionflags &= ~optionflag
 
+            # Skip this test if we exceeded our --short budget of walltime for
+            # this doctest
+            if self.options.target_walltime is not None and self.total_walltime >= self.options.target_walltime:
+                walltime_skips += 1
+                self.optionflags |= doctest.SKIP
+
             # If 'SKIP' is set, then skip this example.
             if self.optionflags & doctest.SKIP:
                 continue
-
+            
             # Record that we started this example.
             tries += 1
+
             # We print the example we're running for easier debugging
             # if this file times out or crashes.
             with OriginalSource(example):
@@ -598,8 +635,28 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                 # Compile mode "single" is meant for running a single
                 # statement like on the Python command line. It implies
                 # in particular that the resulting value will be printed.
-                return compile(example.source, filename, "single",
+                code = compile(example.source, filename, "single",
                                compileflags, 1)
+
+                # Python 2 ignores everything after the first complete
+                # statement in the source code. To verify that we really
+                # have just a single statement and nothing more, we also
+                # compile in "exec" mode and verify that the line
+                # numbers are the same.
+                execcode = compile(example.source, filename, "exec",
+                                   compileflags, 1)
+
+                # findlinestarts() returns pairs (index, lineno) where
+                # "index" is the index in the bytecode where the line
+                # number changes to "lineno".
+                linenumbers1 = set(lineno for (index, lineno)
+                                   in findlinestarts(code))
+                linenumbers2 = set(lineno for (index, lineno)
+                                   in findlinestarts(execcode))
+                if linenumbers1 != linenumbers2:
+                    raise SyntaxError("doctest is not a single statement")
+
+                return code
 
             if not self.options.gc:
                 pass
@@ -698,6 +755,8 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                                            self.optionflags):
                         outcome = SUCCESS
 
+            self.total_walltime += example.walltime
+
             # Report the outcome.
             if outcome is SUCCESS:
                 if self.options.warn_long and example.walltime > self.options.warn_long:
@@ -721,7 +780,9 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         # Record and return the number of failures and tries.
         self._DocTestRunner__record_outcome(test, failures, tries)
-        return doctest.TestResults(failures, tries)
+        self.total_walltime_skips += walltime_skips
+        self.total_performed_tests += tries
+        return TestResults(failures, tries)
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
         """
@@ -1496,13 +1557,15 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: DTR.update_results(D)
             0
             sage: sorted(list(D.items()))
-            [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
+            [('cputime', [...]), ('err', None), ('failures', 0), ('tests', 4), ('walltime', [...]), ('walltime_skips', 0)]
         """
         for key in ["cputime","walltime"]:
             if key not in D:
                 D[key] = []
             if hasattr(self, key):
                 D[key].append(self.__dict__[key])
+        D['tests'] = self.total_performed_tests
+        D['walltime_skips'] = self.total_walltime_skips
         if hasattr(self, 'failures'):
             D['failures'] = self.failures
             return self.failures
@@ -1658,6 +1721,7 @@ class DocTestDispatcher(SageObject):
             Killing test .../test1.py
         """
         opt = self.controller.options
+
         source_iter = iter(self.controller.sources)
 
         # If timeout was 0, simply set a very long time
@@ -1672,6 +1736,15 @@ class DocTestDispatcher(SageObject):
             die_timeout = 600
         elif die_timeout < 60:
             die_timeout = 60
+
+        # If we think that we can not finish running all tests until
+        # target_endtime, we skip individual tests. (Only enabled with
+        # --short.)
+        if opt.target_walltime is None:
+            target_endtime = None
+        else:
+            target_endtime = time.time() + opt.target_walltime
+        pending_tests = len(self.controller.sources)
 
         # List of alive DocTestWorkers (child processes). Workers which
         # are done but whose messages have not been read are also
@@ -1783,6 +1856,8 @@ class DocTestDispatcher(SageObject):
                             w.output,
                             pid=w.pid)
 
+                        pending_tests -= 1
+
                         restart = True
                         follow = None
 
@@ -1799,7 +1874,11 @@ class DocTestDispatcher(SageObject):
                             source_iter = None
                         else:
                             # Start a new worker.
-                            w = DocTestWorker(source, options=opt, funclist=[sel_exit])
+                            import copy
+                            worker_options = copy.copy(opt)
+                            if target_endtime is not None:
+                                worker_options.target_walltime = (target_endtime - now)/(max(1, pending_tests/opt.nthreads))
+                            w = DocTestWorker(source, options=worker_options, funclist=[sel_exit])
                             heading = self.controller.reporter.report_head(w.source)
                             if not self.controller.options.only_errors:
                                 w.messages = heading + "\n"
@@ -2163,7 +2242,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: W.join()
             sage: W.save_result_output()
             sage: sorted(W.result[1].keys())
-            ['cputime', 'err', 'failures', 'optionals', 'walltime']
+            ['cputime', 'err', 'failures', 'optionals', 'tests', 'walltime', 'walltime_skips']
             sage: len(W.output) > 0
             True
 
@@ -2287,7 +2366,7 @@ class DocTestTask(object):
         sage: ntests >= 300 or ntests
         True
         sage: sorted(results.keys())
-        ['cputime', 'err', 'failures', 'optionals', 'walltime']
+        ['cputime', 'err', 'failures', 'optionals', 'tests', 'walltime', 'walltime_skips']
     """
 
     if six.PY2:
@@ -2379,7 +2458,7 @@ class DocTestTask(object):
             runner.basename = self.source.basename
             runner.filename = self.source.path
             N = options.file_iterations
-            results = DictAsObject(dict(walltime=[],cputime=[],err=None))
+            results = DictAsObject(dict(walltime=[],cputime=[],err=None,walltime_skips=0))
 
             # multiprocessing.Process instances don't run exit
             # functions, so we run the functions added by doctests

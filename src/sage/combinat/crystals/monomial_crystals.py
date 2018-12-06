@@ -49,7 +49,7 @@ where `(a_{ij})` is a Cartan matrix.  Then
     f_iM &= A_{i,k_f}^{-1} M.
     \end{aligned}
 
-It is shown in [KKS07]_ that the connected component of `\widehat{\mathcal{M}}`
+It is shown in [KKS2007]_ that the connected component of `\widehat{\mathcal{M}}`
 containing the element `\boldsymbol{1}`, which we denote by
 `\mathcal{M}(\infty)`, is crystal isomorphic to the crystal `B(\infty)`.
 
@@ -62,7 +62,7 @@ that
     f_iM = \begin{cases} 0 & \text{if } \varphi_i(M) = 0, \\
     A_{i,k_f}^{-1}M & \text{if } \varphi_i(M) > 0. \end{cases}
 
-Then Kashiwara [Kash03]_ showed that the connected component in
+Then Kashiwara [Ka2003]_ showed that the connected component in
 `\widetilde{\mathcal{M}}` containing a monomial `M` such that `e_iM = 0`, for
 all `i \in I`, is crystal isomorphic to the irreducible highest weight
 crystal `B(\mathrm{wt}(M))`.
@@ -73,17 +73,6 @@ WARNING:
     `C = (c_{ij})_{i\neq j}` satisfying the condition `c_{ij}+c_{ji}=1`.
     We have chosen such integers uniformly such that `c_{ij} = 1` if
     `i < j` and `c_{ij} = 0` if `i>j`.
-
-REFERENCES:
-
-.. [KKS07] \S.-J. Kang, J.-A. Kim, and D.-U. Shin.
-   Modified Nakajima Monomials and the Crystal `B(\infty)`.
-   J. Algebra **308**, pp. 524--535, 2007.
-
-.. [Kash03] \M. Kashiwara.
-   Realizations of Crystals.
-   Combinatorial and geometric representation theory (Seoul, 2001),
-   Contemp. Math. **325**, Amer. Math. Soc., pp. 133--139, 2003.
 """
 
 #******************************************************************************
@@ -728,7 +717,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         f_iM &= A_{i,k_f}^{-1} M.
         \end{aligned}
 
-    It is shown in [KKS07]_ that the connected component of
+    It is shown in [KKS2007]_ that the connected component of
     `\widehat{\mathcal{M}}` containing the element `\boldsymbol{1}`,
     which we denote by `\mathcal{M}(\infty)`, is crystal isomorphic
     to the crystal `B(\infty)`.
@@ -830,7 +819,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         return c
 
     @staticmethod
-    def __classcall_private__(cls, ct, c=None, use_Y=None):
+    def __classcall_private__(cls, ct, c=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -846,20 +835,11 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             sage: M is M1 is M2
             True
         """
-        if use_Y is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(18895, 'use_Y is deprecated; use the set_variables() method instead.')
-        else:
-            use_Y = True
-
         cartan_type = CartanType(ct)
         n = len(cartan_type.index_set())
         c = InfinityCrystalOfNakajimaMonomials._normalize_c(c, n)
         M = super(InfinityCrystalOfNakajimaMonomials, cls).__classcall__(cls, cartan_type, c)
-        if not use_Y:
-            M.set_variables('A')
-        else:
-            M.set_variables('Y')
+        M.set_variables('Y')
         return M
 
     def __init__(self, ct, c, category=None):
@@ -1123,7 +1103,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         f_iM = \begin{cases} 0 & \text{if } \varphi_i(M) = 0, \\
         A_{i,k_f}^{-1}M & \text{if } \varphi_i(M) > 0. \end{cases}
 
-    Then Kashiwara [Kash03]_ showed that the connected component in
+    Then Kashiwara [Ka2003]_ showed that the connected component in
     `\widetilde{\mathcal{M}}` containing a monomial `M` such that `e_iM = 0`,
     for all `i \in I`, is crystal isomorphic to the irreducible highest weight
     crystal `B(\mathrm{wt}(M))`.

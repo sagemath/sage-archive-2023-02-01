@@ -13,9 +13,9 @@ EXAMPLES::
     sage: E = EllipticCurve('433a')
     sage: P = E.heegner_point(-8,3)
     sage: z = P.point_exact(201); z
-    (-4/3 : 1/9*a - 4/9 : 1)
+    (-4/3 : 1/9*a : 1)
     sage: parent(z)
-    Abelian group of points on Elliptic Curve defined by y^2 + x*y = x^3 + 1 over Number Field in a with defining polynomial x^2 - 20*x + 175
+    Abelian group of points on Elliptic Curve defined by y^2 + x*y = x^3 + 1 over Number Field in a with defining polynomial x^2 - 12*x + 111
     sage: parent(z[0]).discriminant()
     -3
     sage: E.quadratic_twist(-3).rank()
@@ -872,7 +872,7 @@ class GaloisGroup(SageObject):
         r"""
         Enumerate the elements of ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Example with order 1 (a special case)::
 
@@ -2784,16 +2784,16 @@ class HeegnerPointOnX0N(HeegnerPoint):
         """
         N = self.level()
         if Q is None:
-             Q = N
+            Q = N
         if Q == 1:
             return self  # trivial special case
-        g, u, v = xgcd(Q*Q, -N)
+        g, u, v = xgcd(Q * Q, -N)
         if g != Q:
             raise ValueError("Q must divide N and be coprime to N/Q")
         tau = self.tau()
-        WQ_tau = ((u*Q*tau + v) / (N*tau + Q))
-        return HeegnerPointOnX0N(N, self.discriminant(), self.conductor(), f=WQ_tau, check=True)
-
+        WQ_tau = ((u * Q * tau + v) / (N * tau + Q))
+        return HeegnerPointOnX0N(N, self.discriminant(), self.conductor(),
+                                 f=WQ_tau, check=True)
 
     @cached_method
     def quadratic_form(self):
@@ -3284,7 +3284,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E.heegner_point(-7, 13).numerical_approx()
             (1.034302915374... - 3.302744319777...*I : 1.323937875767... + 6.908264226850...*I : 1.00000000000000)
 
-        We find (probably) the definining polynomial of the
+        We find (probably) the defining polynomial of the
         `x`-coordinate of `P`, which defines a class field.  The shape of
         the discriminant below is strong confirmation -- but not proof
         -- that this polynomial is correct::
@@ -5716,18 +5716,17 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         d = lcm([a.denominator() for a in w])
         return E.change_ring(GF(ell))([d*a for a in w])
 
-
     def best_heegner_D(ell_1, ell_2):
         # return the first Heegner D satisfy all hypothesis such that
         # both ell_1 and ell_2 are inert
         D = -5
         while True:
             if is_fundamental_discriminant(D) and \
-               D%ell_1 and D%ell_2 and \
+               D % ell_1 and D % ell_2 and \
                E.satisfies_heegner_hypothesis(D) and \
                is_inert(D, ell_1) and is_inert(D, ell_2) and \
                twist_is_minimal(D):
-                  return D
+                return D
             D -= 1
 
     if first_only:

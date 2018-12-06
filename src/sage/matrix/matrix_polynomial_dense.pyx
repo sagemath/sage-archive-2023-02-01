@@ -28,6 +28,7 @@ from sage.matrix.matrix2 cimport Matrix
 from sage.rings.integer_ring import ZZ
 from sage.misc.superseded import deprecated_function_alias
 
+
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     r"""
     Dense matrix over a univariate polynomial ring over a field.
@@ -553,8 +554,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_reduced(shifts=[2,0], row_wise=False)
             True
 
-            sage: M.is_reduced(shifts=[2,0], row_wise=False, \
-                                            include_zero_vectors=False)
+            sage: M.is_reduced(shifts=[2,0], row_wise=False,
+            ....:                           include_zero_vectors=False)
             False
 
             sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0], [0, 1, 0] ])
@@ -636,8 +637,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.leading_positions(row_wise=False, return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
-            sage: M.leading_positions(shifts=[1,2], row_wise=False, \
-                    return_degree=True)
+            sage: M.leading_positions(shifts=[1,2], row_wise=False,
+            ....:   return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
         In case several entries in the row (resp. column) reach the shifted row
@@ -757,9 +758,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
-            sage: M = Matrix([ [x^3+3*x^2+6*x+6, 3*x^2+3*x+6, 4*x^2+x+3], \
-                               [5,               1,           0        ], \
-                               [2*x^2+2,         2*x+5,       x^2+4*x+6] ])
+            sage: M = Matrix([ [x^3+3*x^2+6*x+6, 3*x^2+3*x+6, 4*x^2+x+3],
+            ....:              [5,               1,           0        ],
+            ....:              [2*x^2+2,         2*x+5,       x^2+4*x+6] ])
             sage: M.is_weak_popov()
             True
 
@@ -785,11 +786,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         Rectangular matrices are supported::
 
-            sage: M = Matrix([ \
-                    [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0], \
-                    [      6*x^2+3*x+1,       1,           2,         0], \
-                    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]  \
-                    ])
+            sage: M = Matrix([
+            ....:    [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0],
+            ....:    [      6*x^2+3*x+1,       1,           2,         0],
+            ....:    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]
+            ....:     ])
             sage: M.is_weak_popov(shifts=[0,2,1,3])
             True
 
@@ -798,16 +799,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         Zero rows (resp. columns) can be forbidden::
 
-            sage: M = Matrix([ \
-                    [      6*x+4,       0,             5*x+1, 0], \
-                    [          2, 5*x + 1,       6*x^2+3*x+1, 0], \
-                    [2*x^2+5*x+5,       1, 2*x^3+4*x^2+6*x+4, 0]  \
-                    ])
+            sage: M = Matrix([
+            ....:   [      6*x+4,       0,             5*x+1, 0],
+            ....:   [          2, 5*x + 1,       6*x^2+3*x+1, 0],
+            ....:   [2*x^2+5*x+5,       1, 2*x^3+4*x^2+6*x+4, 0] 
+            ....:   ])
             sage: M.is_weak_popov(shifts=[2,1,0], row_wise=False, ordered=True)
             True
 
-            sage: M.is_weak_popov(shifts=[2,1,0], row_wise=False, \
-                    include_zero_vectors=False)
+            sage: M.is_weak_popov(shifts=[2,1,0], row_wise=False,
+            ....:    include_zero_vectors=False)
             False
 
         .. SEEALSO::
@@ -886,9 +887,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
-            sage: M = Matrix(pR, [ [x^4+6*x^3+4*x+4, 3*x+6,     3  ], \
-                                   [x^2+6*x+6,       x^2+5*x+5, 2  ], \
-                                   [3*x,             6*x+5,     x+5] ])
+            sage: M = Matrix(pR, [ [x^4+6*x^3+4*x+4, 3*x+6,     3  ],
+            ....:                  [x^2+6*x+6,       x^2+5*x+5, 2  ],
+            ....:                  [3*x,             6*x+5,     x+5] ])
             sage: M.is_popov()
             True
 
@@ -901,9 +902,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M[:2,:].is_popov(shifts=[0,1,2])
             True
 
-            sage: M = Matrix(pR, [ [x^4+3*x^3+x^2+2*x+6, x^3+5*x^2+5*x+1], \
-                                   [6*x+1,               x^2+4*x+1      ], \
-                                   [6,                   6              ] ])
+            sage: M = Matrix(pR, [ [x^4+3*x^3+x^2+2*x+6, x^3+5*x^2+5*x+1],
+            ....:                  [6*x+1,               x^2+4*x+1      ],
+            ....:                  [6,                   6              ] ])
             sage: M.is_popov(row_wise=False)
             False
 
@@ -912,9 +913,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         One can forbid zero rows (or columns if not working row-wise)::
 
-            sage: N = Matrix(pR, [ [x^4+3*x^3+x^2+2*x+6, 6*x+1     ], \
-                                   [5*x^2+5*x+1,         x^2+4*x+1 ], \
-                                   [0,                   0         ] ])
+            sage: N = Matrix(pR, [ [x^4+3*x^3+x^2+2*x+6, 6*x+1     ],
+            ....:                  [5*x^2+5*x+1,         x^2+4*x+1 ],
+            ....:                  [0,                   0         ] ])
 
             sage: N.is_popov()
             True
@@ -929,8 +930,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_popov(shifts=[0,2,3], row_wise=False)
             False
 
-            sage: M.is_popov(shifts=[0,2,3], row_wise=False, \
-                    up_to_permutation=True)
+            sage: M.is_popov(shifts=[0,2,3], row_wise=False,
+            ....:   up_to_permutation=True)
             True
 
             sage: N.swap_rows(0,2)
@@ -945,10 +946,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # up_to_permutation==True)
         if self.ncols() == 0 or self.nrows() == 0:
             return self._is_empty_popov(row_wise)
-        if not self.is_weak_popov(shifts, \
-                row_wise, \
-                not up_to_permutation, \
-                include_zero_vectors):
+        if not self.is_weak_popov(shifts,
+                                  row_wise,
+                                  not up_to_permutation,
+                                  include_zero_vectors):
             return False
 
         # pivot entries should be monic, and pivot degrees must be the greatest
@@ -1024,9 +1025,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
-            sage: M = Matrix(pR, [ [x^4+6*x^3+4*x+4, 3*x+6,     3  ], \
-                                   [0,               x^2+5*x+5, 2  ], \
-                                   [0,               0,         x+5] ])
+            sage: M = Matrix(pR, [ [x^4+6*x^3+4*x+4, 3*x+6,     3  ],
+            ....:                  [0,               x^2+5*x+5, 2  ],
+            ....:                  [0,               0,         x+5] ])
 
             sage: M.is_hermite()
             True
@@ -1035,9 +1036,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_hermite(row_wise=False, lower_echelon=True)
             False
 
-            sage: N = Matrix(pR, [ [x+5, 0,               0        ], \
-                                   [2,   x^4+6*x^3+4*x+4, 0        ], \
-                                   [3,   3*x^3+6,         x^2+5*x+5] ])
+            sage: N = Matrix(pR, [ [x+5, 0,               0        ],
+            ....:                  [2,   x^4+6*x^3+4*x+4, 0        ],
+            ....:                  [3,   3*x^3+6,         x^2+5*x+5] ])
             sage: N.is_hermite()
             False
             sage: N.is_hermite(lower_echelon=True)
@@ -1057,9 +1058,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
             sage: N[:2,:].is_hermite(row_wise=False, lower_echelon=True)
             True
-            sage: N[:2,:].is_hermite(row_wise=False,    \
-                                    lower_echelon=True, \
-                                    include_zero_vectors=False)
+            sage: N[:2,:].is_hermite(row_wise=False,
+            ....:                    lower_echelon=True,
+            ....:                    include_zero_vectors=False)
             False
 
         .. SEEALSO::
@@ -1114,8 +1115,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
 
             sage: PF.<x> = GF(11)[]
-            sage: A = matrix(PF,[[1,  3*x^9 + x^2 + 1 ],\
-                                 [0,         x^11 + x ]])
+            sage: A = matrix(PF,[[1,  3*x^9 + x^2 + 1 ],
+            ....:                [0,         x^11 + x ]])
             sage: W, U = A.weak_popov_form(transformation=True); W
             [              8*x^7 + 3*x^5 + 1    9*x^6 + 3*x^5 + 2*x^4 + x^2 + 1]
             [                          7*x^2                  7*x^4 + 7*x^2 + x]
@@ -1163,8 +1164,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: F.<a> = GF(2^4,'a')
             sage: PF.<x> = F[]
-            sage: A = matrix(PF,[[1,  a*x^17 + 1 ],\
-                                 [0,  a*x^11 + a^2*x^7 + 1 ]])
+            sage: A = matrix(PF,[[1,  a*x^17 + 1 ],
+            ....:                [0,  a*x^11 + a^2*x^7 + 1 ]])
             sage: M = A.__copy__()
             sage: U = M._weak_popov_form(transformation=True)
             sage: U * A == M
@@ -1175,9 +1176,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
             sage: PF.<x> = QQ[]
-            sage: A = matrix(PF,3,[x,   x^2, x^3,\
-                                   x^2, x^1, 0,\
-                                   x^3, x^3, x^3])
+            sage: A = matrix(PF,3,[x,   x^2, x^3,
+            ....:                  x^2, x^1, 0,
+            ....:                  x^3, x^3, x^3])
             sage: A.weak_popov_form()
             [        x       x^2       x^3]
             [      x^2         x         0]
@@ -1309,9 +1310,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
 
             sage: pR.<x> = GF(3)[]
-            sage: A = matrix(pR,3,[x,   x^2, x^3,\
-                                   x^2, x^1, 0,\
-                                   x^3, x^3, x^3])
+            sage: A = matrix(pR,3,[x,   x^2, x^3,
+            ....:                  x^2, x^1, 0,
+            ....:                  x^3, x^3, x^3])
             sage: R = A.reduced_form(); R
             [        x           x^2       x^3]
             [      x^2             x         0]
@@ -1365,9 +1366,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: Fq.<a> = GF(2^3)
             sage: pR.<x> = Fq[]
-            sage: A = matrix(pR, [[x^2+a,  x^4+a], \
-                                  [  x^3,  a*x^4]])
-            sage: W,U = A.reduced_form(transformation=True);
+            sage: A = matrix(pR, [[x^2+a,  x^4+a],
+            ....:                  [  x^3,  a*x^4]])
+            sage: W,U = A.reduced_form(transformation=True)
             sage: W,U
             (
             [          x^2 + a           x^4 + a]  [1 0]

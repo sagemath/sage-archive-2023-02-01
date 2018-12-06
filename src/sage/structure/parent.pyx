@@ -89,8 +89,7 @@ This came up in some subtle bug once::
     sage: gp(2) + gap(3)
     5
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
 #       Copyright (C) 2008 Mike Hansen     <mhansen@gmail.com>
@@ -101,9 +100,8 @@ This came up in some subtle bug once::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
 from cpython.object cimport PyObject, Py_NE, Py_EQ, Py_LE, Py_GE
@@ -1630,9 +1628,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             ....:     def __init__(self, G, M, is_left=True):
             ....:         sage.categories.action.Action.__init__(self, G, M, is_left, operator.mul)
             ....:
-            ....:     def _call_(self, g, a):
-            ....:         if not self.is_left():
-            ....:             g, a = a, g
+            ....:     def _act_(self, g, a):
             ....:         D = {}
             ....:         for k, v in a.dict().items():
             ....:             nk = [0]*len(k)
@@ -1734,21 +1730,21 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: S3 = AlternatingGroup(3)
             sage: G = SL(3, QQ)
             sage: p = S3[2]; p.matrix()
+            [0 1 0]
             [0 0 1]
             [1 0 0]
-            [0 1 0]
 
         In general one can't mix matrices and permutations::
 
             sage: G(p)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert (1,3,2) to a rational
+            TypeError: unable to convert (1,2,3) to a rational
             sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
             sage: phi(p)
+            [0 1 0]
             [0 0 1]
             [1 0 0]
-            [0 1 0]
             sage: S3._unset_coercions_used()
             sage: S3.register_embedding(phi)
 
@@ -1760,9 +1756,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
               From: Alternating group of order 3!/2 as a permutation group
               To:   Special Linear Group of degree 3 over Rational Field
             sage: phi(p)
+            [0 1 0]
             [0 0 1]
             [1 0 0]
-            [0 1 0]
 
         This does not work since matrix groups are still old-style
         parents (see :trac:`14014`)::
@@ -1772,9 +1768,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         Though one can have a permutation act on the rows of a matrix::
 
             sage: G(1) * p
+            [0 1 0]
             [0 0 1]
             [1 0 0]
-            [0 1 0]
 
         Some more advanced examples::
 
@@ -2301,7 +2297,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                       From: Number Field in a with defining polynomial x^2 + 1/2
                       To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
             sage: MatrixSpace(L, 2, 2).coerce_map_from(L)
-            Call morphism:
+            Coercion map:
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
             sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
@@ -2712,7 +2708,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: S.category()
             Category of facade finite enumerated sets
             sage: super(Parent, S)._an_element_
-            Cached version of <function _an_element_from_iterator at ...>
+            Cached version of <function ..._an_element_from_iterator at ...>
             sage: S._an_element_()
             1
             sage: S = FiniteEnumeratedSet([])
@@ -2720,7 +2716,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Traceback (most recent call last):
             ...
             EmptySetError
-
         """
         try:
             return super(Parent, self)._an_element_()
@@ -2859,7 +2854,7 @@ cdef class EltPair:
             sage: K.<a> = Qq(9)
             sage: E = EllipticCurve_from_j(0).base_extend(K)
             sage: E.get_action(ZZ)
-            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over 3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
         """
         return hash((id(self.x), id(self.y), id(self.tag)))
 

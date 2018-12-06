@@ -83,6 +83,14 @@ Matrix and Affine Groups
    sage/groups/affine_gps/euclidean_group
    sage/groups/affine_gps/group_element
 
+Lie Groups
+------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/groups/lie_gps/nilpotent_lie_group
+
 Partition Refinement
 --------------------
 

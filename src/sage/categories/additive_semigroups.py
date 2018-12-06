@@ -172,7 +172,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
                     sage: A = S.algebra(QQ)
                     sage: a,b,c,d = A.algebra_generators()
                     sage: a * b + b * d * c
-                    B[c + b + d] + B[a + b]
+                    B[b + c + d] + B[a + b]
                 """
                 return self.monomial(g1 + g2)
 

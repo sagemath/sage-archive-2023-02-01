@@ -21,6 +21,7 @@ Functions
 from __future__ import absolute_import, division
 from six import iteritems 
 from six.moves import range
+from sage.cpython.string import bytes_to_str
 
 
 def from_graph6(G, g6_string):
@@ -44,7 +45,6 @@ def from_graph6(G, g6_string):
     from .generic_graph_pyx import length_and_string_from_graph6, binary_string_from_graph6
 
     if isinstance(g6_string, bytes):
-        from sage.cpython.string import bytes_to_str
         g6_string = bytes_to_str(g6_string)
     elif not isinstance(g6_string, str):
         raise ValueError('if input format is graph6, then g6_string must be a string')
@@ -88,7 +88,6 @@ def from_sparse6(G, g6_string):
     from .generic_graph_pyx import length_and_string_from_graph6, int_to_binary_string
 
     if isinstance(g6_string, bytes):
-        from sage.cpython.string import bytes_to_str
         g6_string = bytes_to_str(g6_string)
     elif not isinstance(g6_string, str):
         raise ValueError('if input format is graph6, then g6_string must be a string')
@@ -149,7 +148,6 @@ def from_dig6(G, dig6_string):
     """
     from .generic_graph_pyx import length_and_string_from_graph6, binary_string_from_dig6
     if isinstance(dig6_string, bytes):
-        from sage.cpython.string import bytes_to_str
         dig6_string = bytes_to_str(dig6_string)
     elif not isinstance(dig6_string, str):
         raise ValueError('if input format is dig6, then dig6_string must be a string')

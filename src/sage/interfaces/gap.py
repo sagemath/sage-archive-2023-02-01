@@ -188,6 +188,7 @@ from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.element import ModuleElement
+
 import re
 import os
 import io
@@ -195,6 +196,7 @@ import pexpect
 import time
 import platform
 import string
+import warnings
 
 WORKSPACE = gap_workspace_file()
 
@@ -512,7 +514,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages and/or database_gap SPKGs.
         """
         if verbose:
-            print("Loading GAP package %s" % pkg)
+            print("Loading GAP package {}" % pkg)
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
@@ -608,8 +610,9 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 current_outputs.append(E.before)
                 if x == 0:   # @p
                     if E.after != b'@p1.':
-                        print("Warning: possibly wrong version of GAP package interface\n")
-                        print("Crossing fingers and continuing\n")
+                        warnings.warn(
+                            "possibly wrong version of GAP package "
+                            "interface. Crossing fingers and continuing.")
                 elif x == 1: #@@
                     current_outputs.append(b'@')
                 elif x == 2: #special char
@@ -624,11 +627,11 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 elif x == 4: # @e -- break loop
                     E.sendline("quit;")
                 elif x == 5: # @c completion, doesn't seem to happen when -p is in use
-                    print("I didn't think GAP could do this\n")
+                    warnings.warn("I didn't think GAP could do this")
                 elif x == 6: # @f GAP error message
                     current_outputs = error_outputs;
                 elif x == 7: # @h help text, but this stopped happening with new help
-                    print("I didn't think GAP could do this")
+                    warnings.warn("I didn't think GAP could do this")
                 elif x == 8: # @i awaiting normal input
                     break;
                 elif x == 9: # @m finished running a child
@@ -638,9 +641,9 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 elif x==11: #@r echoing input
                     current_outputs = terminal_echo
                 elif x==12: #@sN shouldn't happen
-                    print("Warning: this should never happen")
+                    warnings.warn("this should never happen")
                 elif x==13: #@w GAP is trying to send a Window command
-                    print("Warning: this should never happen")
+                    warnings.warn("this should never happen")
                 elif x ==14: #@x seems to be safely ignorable
                     pass
                 elif x == 15:#@z GAP starting a subprocess
@@ -1132,7 +1135,7 @@ class Gap(Gap_generic):
         cmd += ' -o ' + str(max_workspace_size)
         cmd += ' -s ' + str(max_workspace_size)
         cmd += ' -m 64m '   # attempt at a workaround for http://tracker.gap-system.org/issues/224
-        cmd += ' ' + os.path.join(SAGE_EXTCODE,'gap','sage.g')
+        cmd += ' ' + os.path.join(SAGE_EXTCODE, 'gap', 'sage.g')
         Expect.__init__(self,
                         name='gap',
                         prompt='gap> ',
@@ -1549,8 +1552,8 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
-    for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
-                'gapdoc', 'grape', 'design', \
+    for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint',
+                'gapdoc', 'grape', 'design',
                 'toric', 'laguna', 'braid', 'polycyclic', 'nq']:
         # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:

@@ -3964,6 +3964,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: hex.is_subdirectly_reducible()
             True
 
+            sage: hex.is_subdirectly_reducible(certificate=True)
+            (True,
+             (Finite lattice containing 5 elements, Finite lattice containing 5 elements))
+
             sage: N5.is_subdirectly_reducible(certificate=True)
             (False, (2, 3))
             sage: res, cert = hex.is_subdirectly_reducible(certificate=True)
@@ -4004,7 +4008,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         a1 = [min(v) for v in A[1]]
         K0 = LatticePoset(H_closure.subgraph(a0).transitive_reduction())
         K1 = LatticePoset(H_closure.subgraph(a1).transitive_reduction())
-        return (False, (K0, K1))
+        return (True, (K0, K1))
 
     def canonical_meetands(self, e):
         r"""

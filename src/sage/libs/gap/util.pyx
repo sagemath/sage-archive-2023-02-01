@@ -15,10 +15,12 @@ Utility functions for libGAP
 from __future__ import print_function, absolute_import
 
 import os
+import signal
 import warnings
 
 from cpython.exc cimport PyErr_SetObject
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cysignals.pysignals import changesignal
 from cysignals.signals cimport sig_on, sig_off, sig_error
 
 from .gap_includes cimport *
@@ -269,7 +271,13 @@ cdef initialize():
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
     try:
-        GAP_Initialize(argc, argv, environ, &gasman_callback, &error_handler)
+        with changesignal(signal.SIGCHLD, signal.SIG_DFL), \
+                changesignal(signal.SIGINT, signal.SIG_DFL):
+            # Need to save/restore current SIGINT handling since GAP_Initialize
+            # currently clobbers it; it doesn't matter what we set SIGINT to
+            # temporarily.
+            GAP_Initialize(argc, argv, environ, &gasman_callback,
+                           &error_handler)
     except RuntimeError as msg:
         raise RuntimeError('libGAP initialization failed\n' + msg)
 

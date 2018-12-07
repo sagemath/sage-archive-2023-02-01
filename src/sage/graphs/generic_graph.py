@@ -142,7 +142,7 @@ can be applied on both. Here is what it can do:
     :widths: 30, 70
     :delim: |
 
-    :meth:`~GenericGraph.cluster_triangles` | Return the number of triangles for nbunch of vertices as a dictionary keyed by vertex.
+    :meth:`~GenericGraph.cluster_triangles` | Return the number of triangles for the set nbunch of vertices as a dictionary keyed by vertex.
     :meth:`~GenericGraph.clustering_average` | Return the average clustering coefficient.
     :meth:`~GenericGraph.clustering_coeff` | Return the clustering coefficient for each vertex in nbunch
     :meth:`~GenericGraph.cluster_transitivity` | Return the transitivity (fraction of transitive triangles) of the graph.
@@ -13497,17 +13497,23 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Cluster
 
-    def cluster_triangles(self, nbunch=None, with_labels=False):
+    def cluster_triangles(self, nbunch=None, implementation=None):
         r"""
-        Returns the number of triangles for the set `nbunch` of vertices
-        as a dictionary keyed by vertex.
+        Return the number of triangles for the set `nbunch` of vertices as a
+        dictionary keyed by vertex.
 
         See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
         INPUT:
 
-        -  ``nbunch`` - The vertices to inspect. If ``nbunch=None``,
-           returns data for all vertices in the graph.
+        - ``nbunch`` -- a list of vertices (default: ``None); the vertices to
+          inspect. If ``nbunch=None``, returns data for all vertices in the
+          graph.
+
+        - ``implementation`` -- string (default: ``None``); one of
+          ``'sparse_copy'``, ``'dense_copy'``, ``'networkx'`` or ``None``
+          (default). In the latter case, the best algorithm available is
+          used. Note that ``'networkx'`` does not support directed graphs.
 
         REFERENCE:
 
@@ -13517,15 +13523,60 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: list((graphs.FruchtGraph()).cluster_triangles().values())
+            sage: F = graphs.FruchtGraph()
+            sage: list(F.cluster_triangles().values())
             [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0]
-            sage: (graphs.FruchtGraph()).cluster_triangles()
+            sage: F.cluster_triangles()
             {0: 1, 1: 1, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 1, 10: 1, 11: 0}
-            sage: (graphs.FruchtGraph()).cluster_triangles(nbunch=[0,1,2])
+            sage: F.cluster_triangles(nbunch=[0, 1, 2])
             {0: 1, 1: 1, 2: 0}
+
+        ::
+
+            sage: G = graphs.RandomGNP(20, .3)
+            sage: d1 = G.cluster_triangles(implementation="networkx")
+            sage: d2 = G.cluster_triangles(implementation="dense_copy")
+            sage: d3 = G.cluster_triangles(implementation="sparse_copy")
+            sage: d1 == d2 and d1 == d3
+            True
+
+        TESTS::
+
+            sage: DiGraph().cluster_triangles(implementation="networkx")
+            Traceback (most recent call last):
+            ...
+            ValueError: the 'networkx' implementation does not support directed graphs
+            sage: Graph().cluster_triangles(implementation="welcome")
+            Traceback (most recent call last):
+            ...
+            ValueError: the implementation can only be 'networkx', 'sparse_copy', 'dense_copy' or None
         """
-        import networkx
-        return networkx.triangles(self.networkx_graph(copy=False), nbunch)
+        if implementation is None:
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            if isinstance(self._backend, DenseGraphBackend):
+                implementation = 'dense_copy'
+            else:
+                implementation = 'sparse_copy'
+
+        if implementation == 'networkx':
+            if self.is_directed():
+                raise ValueError("the 'networkx' implementation does not support directed graphs")
+            import networkx
+            return networkx.triangles(self.networkx_graph(copy=False), nbunch)
+
+        elif implementation == 'sparse_copy':
+            from sage.graphs.base.static_sparse_graph import triangles_count
+
+        elif implementation =="dense_copy":
+            from sage.graphs.base.static_dense_graph import triangles_count
+
+        else:
+            raise ValueError("the implementation can only be 'networkx', "
+                             "'sparse_copy', 'dense_copy' or None")
+
+        if nbunch is None:
+            return triangles_count(self)
+        return {v: c for v, c in iteritems(triangles_count(self)) if v in nbunch}
 
     def clustering_average(self, implementation=None):
         r"""

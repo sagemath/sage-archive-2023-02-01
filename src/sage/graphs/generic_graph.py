@@ -14066,7 +14066,8 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight = True
         elif by_weight:
-            weight_function = lambda e: e[2]
+            def weight_function(e):
+                return e[2]
 
         if algorithm is None:
             if dist_dict is not None:
@@ -14119,8 +14120,9 @@ class GenericGraph(GenericGraph_pyx):
                 # If algorithm is wrong, the error is raised by the
                 # shortest_path_lengths function
                 length = self.shortest_path_lengths(u, by_weight=by_weight,
-                         algorithm=algorithm, weight_function=weight_function,
-                         check_weight=check_weight)
+                                                    algorithm=algorithm,
+                                                    weight_function=weight_function,
+                                                    check_weight=check_weight)
 
             if len(length) != self.num_verts():
                 e[u] = Infinity
@@ -14131,8 +14133,9 @@ class GenericGraph(GenericGraph_pyx):
             return e
         else:
             if len(e) == 1:
+                # return single value
                 v, = e.values()
-                return v # return single value
+                return v
             return list(itervalues(e))
 
     def radius(self, by_weight=False, algorithm=None, weight_function=None,

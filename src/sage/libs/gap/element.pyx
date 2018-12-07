@@ -3087,7 +3087,7 @@ cdef class GapElement_RecordIterator(object):
             raise StopIteration
         # note the abs: negative values mean the rec keys are not sorted
         key_index = abs(GET_RNAM_PREC(self.rec.value, i))
-        key = char_to_str(NAME_RNAM(key_index))
+        key = char_to_str(CSTR_STRING(NAME_RNAM(key_index)))
         cdef Obj result = GET_ELM_PREC(self.rec.value,i)
         val = make_any_gap_element(self.rec.parent(), result)
         self.i += 1

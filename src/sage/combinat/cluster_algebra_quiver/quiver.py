@@ -624,10 +624,9 @@ class ClusterQuiver(SageObject):
                     mlist.remove(i)
             partition = (nlist, mlist, greens)
 
-        vertex_color_dict = {}
-        vertex_color_dict[ colors[0] ] = partition[0]
-        vertex_color_dict[ colors[6] ] = partition[1]
-        vertex_color_dict[ colors[4] ] = partition[2]
+        vertex_color_dict = {'tomato': partition[0],
+                             'lightblue': partition[1],
+                             'lightgreen': partition[2]}
 
         options = {
             'graph_border' : True,

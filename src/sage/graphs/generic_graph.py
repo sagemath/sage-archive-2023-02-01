@@ -16484,7 +16484,8 @@ class GenericGraph(GenericGraph_pyx):
 
         elif algorithm == "Johnson_Boost":
             if not by_weight:
-                weight_function = lambda e: 1
+                def weight_function(e):
+                    return 1
             from sage.graphs.base.boost_graph import johnson_shortest_paths
             return [johnson_shortest_paths(self, weight_function), None]
 

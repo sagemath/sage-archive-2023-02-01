@@ -14042,7 +14042,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.eccentricity(by_weight = True, algorithm = 'Floyd-Warshall-Cython')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'Floyd-Warshall-Cython' does not work with weights.
+            ValueError: algorithm 'Floyd-Warshall-Cython' does not work with weights
 
         An algorithm that computes the all-pair-shortest-paths when not all
         vertices are needed::
@@ -15275,7 +15275,7 @@ class GenericGraph(GenericGraph_pyx):
         act_path = []       # the current path
         act_path_iter = []  # the neighbor/successor-iterators of the current path
         done = False
-        s=start
+        s = start
         while not done:
             if s == end:    # if path completes, add to list
                 all_paths.append(act_path + [s])
@@ -15286,12 +15286,12 @@ class GenericGraph(GenericGraph_pyx):
             s = None
             while (s is None) and not done:
                 try:
-                    s = next(act_path_iter[-1]) # try to get the next neighbor/successor, ...
-                except (StopIteration):         # ... if there is none ...
-                    act_path.pop()              # ... go one step back
+                    s = next(act_path_iter[-1])  # try to get the next neighbor/successor, ...
+                except (StopIteration):          # ... if there is none ...
+                    act_path.pop()               # ... go one step back
                     act_path_iter.pop()
-                if not act_path:                # there is no other vertex ...
-                    done = True                 # ... so we are done
+                if not act_path:                 # there is no other vertex ...
+                    done = True                  # ... so we are done
         return all_paths
 
 
@@ -15548,11 +15548,11 @@ class GenericGraph(GenericGraph_pyx):
             return self.shortest_paths(u, by_weight, algorithm, weight_function, check_weight)[v]
 
         if weight_function is None and by_weight:
-            weight_function = lambda e: e[2]
+            def weight_function(e):
+                return e[2]
 
-        if u == v: # to avoid a NetworkX bug
+        if u == v:  # to avoid a NetworkX bug
             return [u]
-
 
         if by_weight:
             if algorithm == 'BFS_Bid':
@@ -15561,7 +15561,8 @@ class GenericGraph(GenericGraph_pyx):
             if check_weight:
                 self._check_weight_function(weight_function)
         else:
-            weight_function = lambda e: 1
+            def weight_function(e):
+                return 1
 
         if algorithm == "Dijkstra_Bid":
             return self._backend.bidirectional_dijkstra(u, v, weight_function)
@@ -15706,12 +15707,10 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not self.has_vertex(u):
             raise ValueError("vertex '{}' is not in the (di)graph".format(u))
-        if not self.has_vertex(u):
-            raise ValueError("vertex '{}' is not in the (di)graph".format(u))
         if not self.has_vertex(v):
             raise ValueError("vertex '{}' is not in the (di)graph".format(v))
 
-        if u == v: # to avoid a NetworkX bug
+        if u == v:  # to avoid a NetworkX bug
             return 0
 
         if weight_function is not None:
@@ -15721,7 +15720,8 @@ class GenericGraph(GenericGraph_pyx):
             algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
 
         if weight_function is None and by_weight:
-            weight_function = lambda e: e[2]
+            def weight_function(e):
+                return e[2]
 
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
             return self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)[v]
@@ -15733,7 +15733,8 @@ class GenericGraph(GenericGraph_pyx):
             if check_weight:
                 self._check_weight_function(weight_function)
         else:
-            weight_function = lambda e: 1
+            def weight_function(e):
+                return 1
 
         if algorithm == "Dijkstra_Bid":
             return self._backend.bidirectional_dijkstra(u, v, weight_function, distance_flag=True)
@@ -15944,9 +15945,11 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight = True
         elif by_weight:
-            weight_function = lambda e: e[2]
+            def weight_function(e):
+                return e[2]
         else:
-            weight_function = lambda e: 1
+            def weight_function(e):
+                return 1
 
         if algorithm is None and not by_weight:
             algorithm = 'BFS'
@@ -15981,7 +15984,7 @@ class GenericGraph(GenericGraph_pyx):
 
         elif algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost', None]:
             from sage.graphs.base.boost_graph import shortest_paths
-            _,pred = shortest_paths(self, u, weight_function, algorithm)
+            _, pred = shortest_paths(self, u, weight_function, algorithm)
             paths = {}
             for v in pred.keys():
                 w = v
@@ -16164,9 +16167,11 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight = True
         elif by_weight:
-            weight_function = lambda e: e[2]
+            def weight_function(e):
+                return e[2]
         else:
-            weight_function = lambda e: 1
+            def weight_function(e):
+                return 1
 
         if algorithm is None and not by_weight:
             algorithm = 'BFS'
@@ -16378,7 +16383,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.shortest_path_all_pairs(by_weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: The graph contains a negative cycle.
+            ValueError: the graph contains a negative cycle
 
         Unreachable vertices are not present in the dictionaries::
 
@@ -16447,7 +16452,8 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight = True
         elif by_weight:
-            weight_function = lambda e: e[2]
+            def weight_function(e):
+                return e[2]
 
         if algorithm is None:
             if by_weight:
@@ -16487,9 +16493,10 @@ class GenericGraph(GenericGraph_pyx):
             dist = dict()
             pred = dict()
             if by_weight and weight_function is None:
-                weight_function = lambda e:e[2]
+                def weight_function(e):
+                    return e[2]
             for u in self:
-                dist[u],pred[u] = shortest_paths(self, u, weight_function, algorithm)
+                dist[u], pred[u] = shortest_paths(self, u, weight_function, algorithm)
             return dist, pred
 
         elif algorithm == "Dijkstra_NetworkX":
@@ -16513,7 +16520,8 @@ class GenericGraph(GenericGraph_pyx):
 
         if by_weight:
             if weight_function is None:
-                weight_function = lambda e: e[2]
+                def weight_function(e):
+                    return e[2]
             if check_weight:
                 self._check_weight_function(weight_function)
 

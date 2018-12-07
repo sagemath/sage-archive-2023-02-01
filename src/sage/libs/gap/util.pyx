@@ -463,18 +463,6 @@ cdef void error_handler():
 ### Debug functions ########################################################
 ############################################################################
 
-cdef inline void DEBUG_CHECK(Obj obj):
-    """
-    Check that ``obj`` is valid.
-
-    This function is only useful for debugging.
-    """
-    CheckMasterPointers()
-    if obj == NULL:
-        print('DEBUG_CHECK: Null pointer!')
-
-
-
 
 cpdef memory_usage():
     """

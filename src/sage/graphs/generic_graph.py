@@ -84,7 +84,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.degree_histogram` | Return a list, whose ith entry is the frequency of degree i.
     :meth:`~GenericGraph.degree_iterator` | Return an iterator over the degrees of the (di)graph.
     :meth:`~GenericGraph.degree_sequence` | Return the degree sequence of this (di)graph.
-    :meth:`~GenericGraph.random_subgraph` | Return a random subgraph that contains each vertex with prob. p.
+    :meth:`~GenericGraph.random_subgraph` | Return a random subgraph containing each vertex with probability ``p``.
     :meth:`~GenericGraph.add_clique` | Add a clique to the graph with the given vertices.
     :meth:`~GenericGraph.add_cycle` | Add a cycle to the graph with the given vertices.
     :meth:`~GenericGraph.add_path` | Add a cycle to the graph with the given vertices.
@@ -96,7 +96,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.relabel` | Relabel the vertices of ``self``
     :meth:`~GenericGraph.degree_to_cell` | Return the number of edges from vertex to an edge in cell.
     :meth:`~GenericGraph.subgraph` | Return the subgraph containing the given vertices and edges.
-    :meth:`~GenericGraph.is_subgraph` | Test whether self is a subgraph of other.
+    :meth:`~GenericGraph.is_subgraph` | Check whether ``self`` is a subgraph of ``other``.
 
 **Graph products:**
 
@@ -174,14 +174,14 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_planar` | Check whether the graph is planar.
     :meth:`~GenericGraph.is_circular_planar` | Check whether the graph is circular planar (outerplanar)
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
-    :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
+    :meth:`~GenericGraph.is_chordal` | Check whether the given graph is chordal.
     :meth:`~GenericGraph.is_bipartite` | Test whether the given graph is bipartite.
-    :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.
+    :meth:`~GenericGraph.is_circulant` | Check whether the graph is a circulant graph.
     :meth:`~GenericGraph.is_interval` | Check whether the graph is an interval graph.
     :meth:`~GenericGraph.is_gallai_tree` | Return whether the current graph is a Gallai tree.
-    :meth:`~GenericGraph.is_clique` | Test whether a set of vertices is a clique
-    :meth:`~GenericGraph.is_cycle` | Test whether self is a (directed) cycle graph.
-    :meth:`~GenericGraph.is_independent_set` | Test whether a set of vertices is an independent set
+    :meth:`~GenericGraph.is_clique` | Check whether a set of vertices is a clique
+    :meth:`~GenericGraph.is_cycle` | Check whether ``self`` is a (directed) cycle graph.
+    :meth:`~GenericGraph.is_independent_set` | Check whether ``vertices`` is an independent set of ``self``
     :meth:`~GenericGraph.is_transitively_reduced` | Test whether the digraph is transitively reduced.
     :meth:`~GenericGraph.is_equitable` | Check whether the given partition is equitable with respect to self.
     :meth:`~GenericGraph.is_self_complementary` | Check whether the graph is self-complementary.
@@ -7530,10 +7530,10 @@ class GenericGraph(GenericGraph_pyx):
         #####################
 
         if self.order() == 2:
-            uu,vv = self.vertices()
+            uu,vv = list(self)
             if self.is_directed():
                 if self.has_edge(uu, vv) and self.has_edge(vv, uu):
-                    if self.has_multiple_edges():
+                    if self.allows_multiple_edges():
                         if maximize:
                             edges = [(uu, vv, max(self.edge_label(uu, vv), key=weight)),
                                      (vv, uu, max(self.edge_label(vv, uu), key=weight))]
@@ -7548,10 +7548,12 @@ class GenericGraph(GenericGraph_pyx):
                     answer.name("TSP from "+self.name())
                     return answer
             else:
-                if self.has_multiple_edges() and len(self.edge_label(uu, vv)) > 1:
-                    edges = self.edges()
-                    edges.sort(key=weight)
-                    answer = self.subgraph(edges=edges[:2], immutable=self.is_immutable())
+                if self.allows_multiple_edges() and len(self.edge_label(uu, vv)) > 1:
+                    if maximize:
+                        edges = self.edges(key=weight)[-2:]
+                    else:
+                        edges = self.edges(key=weight)[:2]
+                    answer = self.subgraph(edges=edges, immutable=self.is_immutable())
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())
                     return answer
@@ -11724,8 +11726,8 @@ class GenericGraph(GenericGraph_pyx):
     def subgraph(self, vertices=None, edges=None, inplace=False,
                        vertex_property=None, edge_property=None, algorithm=None,
                        immutable=None):
-        """
-        Returns the subgraph containing the given vertices and edges.
+        r"""
+        Return the subgraph containing the given vertices and edges.
 
         If either vertices or edges are not specified, they are assumed to be
         all vertices or edges. If edges are not specified, returns the subgraph
@@ -11733,99 +11735,100 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        - ``inplace`` -- boolean (default: ``False``); using ``inplace=True``
+          will simply delete the extra vertices and edges from the current
+          graph. This will modify the graph.
 
-        -  ``inplace`` - Using inplace is True will simply
-           delete the extra vertices and edges from the current graph. This
-           will modify the graph.
+        - ``vertices`` -- a single vertex or an iterable container of vertices,
+          e.g. a list, set, graph, file or numeric array. If not passed (i.e.,
+          ``None``), defaults to the entire graph.
 
-        -  ``vertices`` - Vertices can be a single vertex or an
-           iterable container of vertices, e.g. a list, set, graph, file or
-           numeric array. If not passed, defaults to the entire graph.
+        - ``edges`` -- as with ``vertices``, edges can be a single edge or an
+          iterable container of edges (e.g., a list, set, file, numeric array,
+          etc.). By default (``edges=None``), all edges are assumed and the
+          returned graph is an induced subgraph. In the case of multiple edges,
+          specifying an edge as `(u,v)` means to keep all edges `(u,v)`,
+          regardless of the label.
 
-        -  ``edges`` - As with vertices, edges can be a single
-           edge or an iterable container of edges (e.g., a list, set, file,
-           numeric array, etc.). If not edges are not specified, then all
-           edges are assumed and the returned graph is an induced subgraph. In
-           the case of multiple edges, specifying an edge as (u,v) means to
-           keep all edges (u,v), regardless of the label.
+        - ``vertex_property`` -- function (default: ``None``); a function that
+          inputs a vertex and outputs a boolean value, i.e., a vertex ``v`` in
+          ``vertices`` is kept if ``vertex_property(v) == True``
 
-        -  ``vertex_property`` - If specified, this is
-           expected to be a function on vertices, which is intersected with
-           the vertices specified, if any are.
+        - ``edge_property`` -- function (default: ``None``); a function that
+          inputs an edge and outputs a boolean value, i.e., a edge ``e`` in
+          ``edges`` is kept if ``edge_property(e) == True``
 
-        -  ``edge_property`` - If specified, this is expected
-           to be a function on edges, which is intersected with the edges
-           specified, if any are.
+        - ``algorithm`` -- string (default: ``None``); one of the following:
 
-        - ``algorithm`` - If ``algorithm=delete`` or ``inplace=True``,
-          then the graph is constructed by deleting edges and
-          vertices.  If ``add``, then the graph is constructed by
-          building a new graph from the appropriate vertices and
-          edges.  If not specified, then the algorithm is chosen based
-          on the number of vertices in the subgraph.
+          - If ``algorithm="delete"`` or ``inplace=True``, then the graph is
+            constructed by deleting edges and vertices
 
-        - ``immutable`` (boolean) -- whether to create a mutable/immutable
-          subgraph. ``immutable=None`` (default) means that the graph and its
-          subgraph will behave the same way.
+          - If ``algorithm="add"``, then the graph is constructed by building a
+            new graph from the appropriate vertices and edges. Implies
+            ``inplace=False``.
 
+          - If ``algorithm=None``, then the algorithm is chosen based on the
+            number of vertices in the subgraph.
+
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable subgraph. ``immutable=None`` (default) means that
+          the graph and its subgraph will behave the same way.
 
         EXAMPLES::
 
             sage: G = graphs.CompleteGraph(9)
-            sage: H = G.subgraph([0,1,2]); H
+            sage: H = G.subgraph([0, 1, 2]); H
             Subgraph of (Complete graph): Graph on 3 vertices
             sage: G
             Complete graph: Graph on 9 vertices
-            sage: J = G.subgraph(edges=[(0,1)])
+            sage: J = G.subgraph(edges=[(0, 1)])
             sage: J.edges(labels=False)
             [(0, 1)]
-            sage: J.vertices()==G.vertices()
+            sage: J.vertices() == G.vertices()
             True
-            sage: G.subgraph([0,1,2], inplace=True); G
+            sage: G.subgraph([0, 1, 2], inplace=True); G
             Subgraph of (Complete graph): Graph on 3 vertices
-            sage: G.subgraph()==G
+            sage: G.subgraph() == G
             True
 
         ::
 
-            sage: D = graphs.CompleteGraph(9).to_directed()
-            sage: H = D.subgraph([0,1,2]); H
-            Subgraph of (Complete graph): Digraph on 3 vertices
-            sage: H = D.subgraph(edges=[(0,1), (0,2)])
+            sage: D = digraphs.Complete(9)
+            sage: H = D.subgraph([0, 1, 2]); H
+            Subgraph of (Complete digraph): Digraph on 3 vertices
+            sage: H = D.subgraph(edges=[(0, 1), (0, 2)])
             sage: H.edges(labels=False)
             [(0, 1), (0, 2)]
-            sage: H.vertices()==D.vertices()
+            sage: H.vertices() == D.vertices()
             True
             sage: D
-            Complete graph: Digraph on 9 vertices
-            sage: D.subgraph([0,1,2], inplace=True); D
-            Subgraph of (Complete graph): Digraph on 3 vertices
-            sage: D.subgraph()==D
+            Complete digraph: Digraph on 9 vertices
+            sage: D.subgraph([0, 1, 2], inplace=True); D
+            Subgraph of (Complete digraph): Digraph on 3 vertices
+            sage: D.subgraph() == D
             True
 
-        A more complicated example involving multiple edges and labels.
-
-        ::
+        A more complicated example involving multiple edges and labels::
 
             sage: G = Graph(multiedges=True, sparse=True)
-            sage: G.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
-            sage: G.subgraph(edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            sage: G.add_edges([(0, 1, 'a'), (0, 1, 'b'), (1, 0, 'c'), (0, 2, 'd'), (0, 2, 'e'), (2, 0, 'f'), (1, 2, 'g')])
+            sage: G.subgraph(edges=[(0, 1), (0, 2,'d'), (0, 2, 'not in graph')]).edges()
             [(0, 1, 'a'), (0, 1, 'b'), (0, 1, 'c'), (0, 2, 'd')]
-            sage: J = G.subgraph(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: J = G.subgraph(vertices=[0, 1], edges=[(0, 1, 'a'), (0, 2, 'c')])
             sage: J.edges()
             [(0, 1, 'a')]
             sage: J.vertices()
             [0, 1]
-            sage: G.subgraph(vertices=G.vertices())==G
+            sage: G.subgraph(vertices=G) == G
             True
 
         ::
 
             sage: D = DiGraph(multiedges=True, sparse=True)
-            sage: D.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
-            sage: D.subgraph(edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            sage: D.add_edges([(0, 1, 'a'), (0, 1, 'b'), (1, 0, 'c'), (0, 2, 'd'), (0, 2, 'e'), (2, 0, 'f'), (1, 2, 'g')])
+            sage: D.subgraph(edges=[(0, 1), (0, 2, 'd'), (0, 2, 'not in graph')]).edges()
             [(0, 1, 'a'), (0, 1, 'b'), (0, 2, 'd')]
-            sage: H = D.subgraph(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: H = D.subgraph(vertices=[0, 1], edges=[(0, 1, 'a'), (0, 2, 'c')])
             sage: H.edges()
             [(0, 1, 'a')]
             sage: H.vertices()
@@ -11834,7 +11837,7 @@ class GenericGraph(GenericGraph_pyx):
         Using the property arguments::
 
             sage: P = graphs.PetersenGraph()
-            sage: S = P.subgraph(vertex_property = lambda v : v%2 == 0)
+            sage: S = P.subgraph(vertex_property=lambda v: not (v % 2))
             sage: S.vertices()
             [0, 2, 4, 6, 8]
 
@@ -11848,26 +11851,21 @@ class GenericGraph(GenericGraph_pyx):
             [('00', '01', None), ('10', '11', None)]
 
 
-        The algorithm is not specified, then a reasonable choice is made for speed.
+        The algorithm is not specified, then a reasonable choice is made for
+        speed::
 
-        ::
-
-            sage: g=graphs.PathGraph(1000)
+            sage: g = graphs.PathGraph(1000)
             sage: g.subgraph(list(range(10))) # uses the 'add' algorithm
             Subgraph of (Path graph): Graph on 10 vertices
 
-
-
         TESTS:
 
-        The appropriate properties are preserved.
-
-        ::
+        The appropriate properties are preserved::
 
             sage: g = graphs.PathGraph(10)
             sage: g.is_planar(set_embedding=True)
             True
-            sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
+            sage: g.set_vertices({v: 'v%d'%v for v in g})
             sage: h = g.subgraph([3..5])
             sage: sorted(h.get_pos().keys())
             [3, 4, 5]
@@ -11875,11 +11873,11 @@ class GenericGraph(GenericGraph_pyx):
             {3: 'v3', 4: 'v4', 5: 'v5'}
         """
         if vertices is None:
-            vertices=self.vertices()
+            vertices = list(self)
         elif vertices in self:
-            vertices=[vertices]
+            vertices = [vertices]
         else:
-            vertices=list(vertices)
+            vertices = list(vertices)
 
         if vertex_property is not None:
             vertices = [v for v in vertices if vertex_property(v)]
@@ -11887,7 +11885,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm is not None and algorithm not in ("delete", "add"):
             raise ValueError('algorithm should be None, "delete", or "add"')
 
-        if inplace or len(vertices)>0.05*self.order() or algorithm=="delete":
+        if inplace or len(vertices) > 0.05 * self.order() or algorithm == "delete":
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
                                               inplace=inplace,
                                               edge_property=edge_property,
@@ -11898,85 +11896,82 @@ class GenericGraph(GenericGraph_pyx):
                                             immutable=immutable)
 
     def _subgraph_by_adding(self, vertices=None, edges=None, edge_property=None, immutable=None):
-        """
-        Returns the subgraph containing the given vertices and edges.
-        The edges also satisfy the edge_property, if it is not None.
-        The subgraph is created by creating a new empty graph and
-        adding the necessary vertices, edges, and other properties.
+        r"""
+        Return the subgraph containing the given vertices and edges.
+
+        The edges also satisfy the ``edge_property``, if it is not ``None``.
+        The subgraph is created by creating a new empty graph and adding the
+        necessary vertices, edges, and other properties.
 
         INPUT:
 
-        -  ``vertices`` - Vertices is a list of vertices
+        - ``vertices`` -- a list of vertices
 
-        - ``edges`` - Edges can be a single edge or an iterable
-          container of edges (e.g., a list, set, file, numeric array,
-          etc.). If not edges are not specified, then all edges are
-          assumed and the returned graph is an induced subgraph. In
-          the case of multiple edges, specifying an edge as (u,v)
-          means to keep all edges (u,v), regardless of the label.
+        - ``edges`` -- a single edge or an iterable container of edges (e.g., a
+          list, set, file, numeric array, etc.). By default (``edges=None``),
+          all edges are assumed and the returned graph is an induced
+          subgraph. In the case of multiple edges, specifying an edge as `(u,v)`
+          means to keep all edges `(u,v)`, regardless of the label.
 
-        -  ``edge_property`` - If specified, this is expected
-           to be a function on edges, which is intersected with the edges
-           specified, if any are.
+        - ``edge_property`` -- function (default: ``None``); a function that
+          inputs an edge and outputs a boolean value, i.e., a edge ``e`` in
+          ``edges`` is kept if ``edge_property(e) == True``
 
-        -  ``immutable`` (boolean) -- whether to create a mutable/immutable
-           subgraph. ``immutable=None`` (default) means that the graph and its
-           subgraph will behave the same way.
-
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable subgraph. ``immutable=None`` (default) means that
+          the graph and its subgraph will behave the same way.
 
         EXAMPLES::
 
             sage: G = graphs.CompleteGraph(9)
-            sage: H = G._subgraph_by_adding([0,1,2]); H
+            sage: H = G._subgraph_by_adding([0, 1, 2]); H
             Subgraph of (Complete graph): Graph on 3 vertices
             sage: G
             Complete graph: Graph on 9 vertices
-            sage: J = G._subgraph_by_adding(vertices=G.vertices(), edges=[(0,1)])
+            sage: J = G._subgraph_by_adding(vertices=G, edges=[(0, 1)])
             sage: J.edges(labels=False)
             [(0, 1)]
-            sage: J.vertices()==G.vertices()
+            sage: J.vertices() == G.vertices()
             True
-            sage: G._subgraph_by_adding(vertices=G.vertices())==G
+            sage: G._subgraph_by_adding(vertices=G) == G
             True
 
         ::
 
-            sage: D = graphs.CompleteGraph(9).to_directed()
-            sage: H = D._subgraph_by_adding([0,1,2]); H
-            Subgraph of (Complete graph): Digraph on 3 vertices
-            sage: H = D._subgraph_by_adding(vertices=D.vertices(), edges=[(0,1), (0,2)])
+            sage: D = digraphs.Complete(9)
+            sage: H = D._subgraph_by_adding([0, 1, 2]); H
+            Subgraph of (Complete digraph): Digraph on 3 vertices
+            sage: H = D._subgraph_by_adding(vertices=D, edges=[(0, 1), (0, 2)])
             sage: H.edges(labels=False)
             [(0, 1), (0, 2)]
-            sage: H.vertices()==D.vertices()
+            sage: H.vertices() == D.vertices()
             True
             sage: D
-            Complete graph: Digraph on 9 vertices
-            sage: D._subgraph_by_adding(D.vertices())==D
+            Complete digraph: Digraph on 9 vertices
+            sage: D._subgraph_by_adding(vertices=D) == D
             True
 
-        A more complicated example involving multiple edges and labels.
-
-        ::
+        A more complicated example involving multiple edges and labels::
 
             sage: G = Graph(multiedges=True, sparse=True)
-            sage: G.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
-            sage: G._subgraph_by_adding(G.vertices(), edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            sage: G.add_edges([(0, 1, 'a'), (0, 1, 'b'), (1, 0, 'c'), (0, 2, 'd'), (0, 2, 'e'), (2, 0, 'f'), (1, 2, 'g')])
+            sage: G._subgraph_by_adding(vertices=G, edges=[(0, 1), (0, 2, 'd'), (0, 2, 'not in graph')]).edges()
             [(0, 1, 'a'), (0, 1, 'b'), (0, 1, 'c'), (0, 2, 'd')]
-            sage: J = G._subgraph_by_adding(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: J = G._subgraph_by_adding(vertices=[0, 1], edges=[(0, 1, 'a'), (0, 2, 'c')])
             sage: J.edges()
             [(0, 1, 'a')]
             sage: J.vertices()
             [0, 1]
-            sage: G._subgraph_by_adding(vertices=G.vertices())==G
+            sage: G._subgraph_by_adding(vertices=G) == G
             True
 
         ::
 
             sage: D = DiGraph(multiedges=True, sparse=True)
-            sage: D.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
-            sage: D._subgraph_by_adding(vertices=D.vertices(), edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            sage: D.add_edges([(0, 1, 'a'), (0, 1, 'b'), (1, 0, 'c'), (0, 2, 'd'), (0, 2, 'e'), (2, 0, 'f'), (1, 2, 'g')])
+            sage: D._subgraph_by_adding(vertices=D, edges=[(0, 1), (0, 2, 'd'), (0, 2, 'not in graph')]).edges()
             [(0, 1, 'a'), (0, 1, 'b'), (0, 2, 'd')]
-            sage: H = D._subgraph_by_adding(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: H = D._subgraph_by_adding(vertices=[0, 1], edges=[(0, 1, 'a'), (0, 2, 'c')])
             sage: H.edges()
             [(0, 1, 'a')]
             sage: H.vertices()
@@ -11985,7 +11980,7 @@ class GenericGraph(GenericGraph_pyx):
         Using the property arguments::
 
             sage: C = graphs.CubeGraph(2)
-            sage: S = C._subgraph_by_adding(vertices=C.vertices(), edge_property=(lambda e: e[0][0] == e[1][0]))
+            sage: S = C._subgraph_by_adding(vertices=C, edge_property=(lambda e: e[0][0] == e[1][0]))
             sage: C.edges()
             [('00', '01', None), ('00', '10', None), ('01', '11', None), ('10', '11', None)]
             sage: S.edges()
@@ -11993,14 +11988,12 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Properties of the graph are preserved.
-
-        ::
+        Properties of the graph are preserved::
 
             sage: g = graphs.PathGraph(10)
             sage: g.is_planar(set_embedding=True)
             True
-            sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
+            sage: g.set_vertices({v: 'v%d'%v for v in g})
             sage: h = g._subgraph_by_adding([3..5])
             sage: sorted(h.get_pos().keys())
             [3, 4, 5]
@@ -12008,22 +12001,30 @@ class GenericGraph(GenericGraph_pyx):
             {3: 'v3', 4: 'v4', 5: 'v5'}
         """
         G = self.__class__(weighted=self._weighted, loops=self.allows_loops(),
-                           multiedges= self.allows_multiple_edges())
+                           multiedges=self.allows_multiple_edges())
         G.name("Subgraph of (%s)"%self.name())
         G.add_vertices(vertices)
+
+        vertices = set(vertices)
         if edges is not None:
-            if G._directed:
-                edges_graph = (e for e in self.edge_iterator(vertices) if e[1] in vertices)
-                edges_to_keep_labeled = [e for e in edges if len(e)==3]
-                edges_to_keep_unlabeled = [e for e in edges if len(e)==2]
+            edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
+            edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
+            edges_to_keep = []
+            if self._directed:
+                for u, v, l in self.edge_iterator(vertices):
+                    if (v in vertices and ((u, v, l) in edges_to_keep_labeled
+                                           or (u, v) in edges_to_keep_unlabeled)):
+                        edges_to_keep.append((u, v, l))
             else:
-                edges_graph = (sorted(e[0:2])+[e[2]] for e in self.edge_iterator(vertices) if e[0] in vertices and e[1] in vertices)
-                edges_to_keep_labeled = [sorted(e[0:2])+[e[2]] for e in edges if len(e)==3]
-                edges_to_keep_unlabeled = [sorted(e) for e in edges if len(e)==2]
-            edges_to_keep = [tuple(e) for e in edges_graph if e in edges_to_keep_labeled
-                             or e[0:2] in edges_to_keep_unlabeled]
+                for u, v, l in self.edge_iterator(vertices):
+                    if (u in vertices and v in vertices
+                        and ((u, v, l) in edges_to_keep_labeled
+                             or (v, u, l) in edges_to_keep_labeled
+                             or (u, v) in edges_to_keep_unlabeled
+                             or (v, u) in edges_to_keep_unlabeled)):
+                        edges_to_keep.append((u, v, l))
         else:
-            edges_to_keep=[e for e in self.edge_iterator(vertices) if e[0] in vertices and e[1] in vertices]
+            edges_to_keep = [e for e in self.edge_iterator(vertices) if e[0] in vertices and e[1] in vertices]
 
         if edge_property is not None:
             edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
@@ -12032,8 +12033,8 @@ class GenericGraph(GenericGraph_pyx):
         attributes_to_update = ('_pos', '_assoc')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
-                value = dict([(v, getattr(self, attr).get(v, None)) for v in G])
-                setattr(G, attr,value)
+                value = {v: getattr(self, attr).get(v, None) for v in G}
+                setattr(G, attr, value)
 
         if immutable is None:
             immutable = self.is_immutable()
@@ -12044,93 +12045,89 @@ class GenericGraph(GenericGraph_pyx):
 
     def _subgraph_by_deleting(self, vertices=None, edges=None, inplace=False,
                               edge_property=None, immutable=None):
-        """
-        Returns the subgraph containing the given vertices and edges.
-        The edges also satisfy the edge_property, if it is not None.
-        The subgraph is created by creating deleting things that are
-        not needed.
+        r"""
+        Return the subgraph containing the given vertices and edges.
+
+        The edges also satisfy the ``edge_property``, if it is not ``None``.
+        The subgraph is created by creating deleting things that are not needed.
 
         INPUT:
 
-        -  ``vertices`` - Vertices is a list of vertices
+        - ``vertices`` -- a list of vertices
 
-        - ``edges`` - Edges can be a single edge or an iterable
-          container of edges (e.g., a list, set, file, numeric array,
-          etc.). If not edges are not specified, then all edges are
-          assumed and the returned graph is an induced subgraph. In
-          the case of multiple edges, specifying an edge as (u,v)
-          means to keep all edges (u,v), regardless of the label.
+        - ``edges`` -- a single edge or an iterable container of edges (e.g., a
+          list, set, file, numeric array, etc.). By default (``edges=None``),
+          all edges are assumed and the returned graph is an induced
+          subgraph. In the case of multiple edges, specifying an edge as `(u,v)`
+          means to keep all edges `(u,v)`, regardless of the label.
 
-        -  ``edge_property`` - If specified, this is expected
-           to be a function on edges, which is intersected with the edges
-           specified, if any are.
+        - ``edge_property`` -- function (default: ``None``); a function that
+          inputs an edge and outputs a boolean value, i.e., a edge ``e`` in
+          ``edges`` is kept if ``edge_property(e) == True``
 
-        -  ``inplace`` - Using inplace is True will simply
-           delete the extra vertices and edges from the current graph. This
-           will modify the graph.
+        - ``inplace`` -- boolean (default: ``False``); using ``inplace=True``
+          will simply delete the extra vertices and edges from the current
+          graph. This will modify the graph.
 
-        -  ``immutable`` (boolean) -- whether to create a mutable/immutable
-           subgraph. ``immutable=None`` (default) means that the graph and its
-           subgraph will behave the same way.
-
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable subgraph. ``immutable=None`` (default) means that
+          the graph and its subgraph will behave the same way.
 
         EXAMPLES::
 
             sage: G = graphs.CompleteGraph(9)
-            sage: H = G._subgraph_by_deleting([0,1,2]); H
+            sage: H = G._subgraph_by_deleting([0, 1, 2]); H
             Subgraph of (Complete graph): Graph on 3 vertices
             sage: G
             Complete graph: Graph on 9 vertices
-            sage: J = G._subgraph_by_deleting(vertices=G.vertices(), edges=[(0,1)])
+            sage: J = G._subgraph_by_deleting(vertices=G, edges=[(0, 1)])
             sage: J.edges(labels=False)
             [(0, 1)]
-            sage: J.vertices()==G.vertices()
+            sage: J.vertices() == G.vertices()
             True
-            sage: G._subgraph_by_deleting([0,1,2], inplace=True); G
+            sage: G._subgraph_by_deleting([0, 1, 2], inplace=True); G
             Subgraph of (Complete graph): Graph on 3 vertices
-            sage: G._subgraph_by_deleting(vertices=G.vertices())==G
+            sage: G._subgraph_by_deleting(vertices=G) == G
             True
 
         ::
 
-            sage: D = graphs.CompleteGraph(9).to_directed()
-            sage: H = D._subgraph_by_deleting([0,1,2]); H
-            Subgraph of (Complete graph): Digraph on 3 vertices
-            sage: H = D._subgraph_by_deleting(vertices=D.vertices(), edges=[(0,1), (0,2)])
+            sage: D = digraphs.Complete(9)
+            sage: H = D._subgraph_by_deleting([0, 1, 2]); H
+            Subgraph of (Complete digraph): Digraph on 3 vertices
+            sage: H = D._subgraph_by_deleting(vertices=D, edges=[(0, 1), (0, 2)])
             sage: H.edges(labels=False)
             [(0, 1), (0, 2)]
-            sage: H.vertices()==D.vertices()
+            sage: H.vertices() == D.vertices()
             True
             sage: D
-            Complete graph: Digraph on 9 vertices
-            sage: D._subgraph_by_deleting([0,1,2], inplace=True); D
-            Subgraph of (Complete graph): Digraph on 3 vertices
-            sage: D._subgraph_by_deleting(D.vertices())==D
+            Complete digraph: Digraph on 9 vertices
+            sage: D._subgraph_by_deleting([0, 1, 2], inplace=True); D
+            Subgraph of (Complete digraph): Digraph on 3 vertices
+            sage: D._subgraph_by_deleting(D) == D
             True
 
-        A more complicated example involving multiple edges and labels.
-
-        ::
+        A more complicated example involving multiple edges and labels::
 
             sage: G = Graph(multiedges=True, sparse=True)
-            sage: G.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
-            sage: G._subgraph_by_deleting(G.vertices(), edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            sage: G.add_edges([(0, 1, 'a'), (0, 1, 'b'), (1, 0, 'c'), (0, 2, 'd'), (0, 2, 'e'), (2, 0, 'f'), (1, 2, 'g')])
+            sage: G._subgraph_by_deleting(vertices=G, edges=[(0, 1), (0, 2, 'd'), (0, 2, 'not in graph')]).edges()
             [(0, 1, 'a'), (0, 1, 'b'), (0, 1, 'c'), (0, 2, 'd')]
-            sage: J = G._subgraph_by_deleting(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: J = G._subgraph_by_deleting(vertices=[0, 1], edges=[(0, 1, 'a'), (0, 2, 'c')])
             sage: J.edges()
             [(0, 1, 'a')]
             sage: J.vertices()
             [0, 1]
-            sage: G._subgraph_by_deleting(vertices=G.vertices())==G
+            sage: G._subgraph_by_deleting(vertices=G) == G
             True
 
         ::
 
             sage: D = DiGraph(multiedges=True, sparse=True)
-            sage: D.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
-            sage: D._subgraph_by_deleting(vertices=D.vertices(), edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            sage: D.add_edges([(0, 1, 'a'), (0, 1, 'b'), (1, 0, 'c'), (0, 2, 'd'), (0, 2, 'e'), (2, 0, 'f'), (1, 2, 'g')])
+            sage: D._subgraph_by_deleting(vertices=D, edges=[(0, 1), (0, 2, 'd'), (0, 2, 'not in graph')]).edges()
             [(0, 1, 'a'), (0, 1, 'b'), (0, 2, 'd')]
-            sage: H = D._subgraph_by_deleting(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: H = D._subgraph_by_deleting(vertices=[0, 1], edges=[(0, 1, 'a'), (0, 2, 'c')])
             sage: H.edges()
             [(0, 1, 'a')]
             sage: H.vertices()
@@ -12139,7 +12136,7 @@ class GenericGraph(GenericGraph_pyx):
         Using the property arguments::
 
             sage: C = graphs.CubeGraph(2)
-            sage: S = C._subgraph_by_deleting(vertices=C.vertices(), edge_property=(lambda e: e[0][0] == e[1][0]))
+            sage: S = C._subgraph_by_deleting(vertices=C, edge_property=(lambda e: e[0][0] == e[1][0]))
             sage: C.edges()
             [('00', '01', None), ('00', '10', None), ('01', '11', None), ('10', '11', None)]
             sage: S.edges()
@@ -12147,14 +12144,12 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Properties of the graph are preserved.
-
-        ::
+        Properties of the graph are preserved::
 
             sage: g = graphs.PathGraph(10)
             sage: g.is_planar(set_embedding=True)
             True
-            sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
+            sage: g.set_vertices({v: 'v%d'%v for v in g})
             sage: h = g._subgraph_by_deleting([3..5])
             sage: sorted(h.get_pos().keys())
             [3, 4, 5]
@@ -12163,7 +12158,7 @@ class GenericGraph(GenericGraph_pyx):
 
         :trac:`17683`::
 
-            sage: graphs.PetersenGraph().copy(immutable=True).subgraph([1,2])
+            sage: graphs.PetersenGraph().copy(immutable=True).subgraph([1, 2])
             Subgraph of (Petersen graph): Graph on 2 vertices
         """
         if inplace:
@@ -12174,25 +12169,27 @@ class GenericGraph(GenericGraph_pyx):
 
         G.delete_vertices([v for v in G if v not in vertices])
 
-        edges_to_delete=[]
+        edges_to_delete = []
         if edges is not None:
+            edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
+            edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
+            edges_to_delete = []
             if G._directed:
-                edges_graph = G.edge_iterator()
-                edges_to_keep_labeled = [e for e in edges if len(e)==3]
-                edges_to_keep_unlabeled = [e for e in edges if len(e)==2]
+                for e in G.edge_iterator():
+                    if (e not in edges_to_keep_labeled
+                            and e[:2] not in edges_to_keep_unlabeled):
+                        edges_to_delete.append(e)
             else:
-                edges_graph = [sorted(e[0:2])+[e[2]] for e in G.edge_iterator()]
-                edges_to_keep_labeled = [sorted(e[0:2])+[e[2]] for e in edges if len(e)==3]
-                edges_to_keep_unlabeled = [sorted(e) for e in edges if len(e)==2]
-            for e in edges_graph:
-                if e not in edges_to_keep_labeled and e[0:2] not in edges_to_keep_unlabeled:
-                    edges_to_delete.append(tuple(e))
+                for u, v, l in G.edge_iterator():
+                    if ((u, v, l) not in edges_to_keep_labeled
+                            and (v, u, l) not in edges_to_keep_labeled
+                            and (u, v) not in edges_to_keep_unlabeled
+                            and (v, u) not in edges_to_keep_unlabeled):
+                        edges_to_delete.append((u, v, l))
         if edge_property is not None:
-            for e in G.edge_iterator():
-                if not edge_property(e):
-                    # We might get duplicate edges, but this does
-                    # handle the case of multiple edges.
-                    edges_to_delete.append(e)
+            # We might get duplicate edges, but this does handle the case of
+            # multiple edges.
+            edges_to_delete.extend(e for e in G.edge_iterator() if not edge_property(e))
 
         G.delete_edges(edges_to_delete)
         if not inplace:
@@ -12204,23 +12201,22 @@ class GenericGraph(GenericGraph_pyx):
 
     def subgraph_search(self, G, induced=False):
         r"""
-        Returns a copy of ``G`` in ``self``.
+        Return a copy of ``G`` in ``self``.
 
         INPUT:
 
-        - ``G`` -- the (di)graph whose copy we are looking for in ``self``.
+        - ``G`` -- the (di)graph whose copy we are looking for in ``self``
 
-        - ``induced`` -- boolean (default: ``False``). Whether or not to
-          search for an induced copy of ``G`` in ``self``.
+        - ``induced`` -- boolean (default: ``False``); whether or not to search
+          for an induced copy of ``G`` in ``self``
 
         OUTPUT:
 
-        - If ``induced=False``, return a copy of ``G`` in this graph.
-          Otherwise, return an induced copy of ``G`` in ``self``. If ``G``
-          is the empty graph, return the empty graph since it is a subgraph
-          of every graph. Now suppose ``G`` is not the empty graph. If there
-          is no copy (induced or otherwise) of ``G`` in ``self``, we return
-          ``None``.
+        If ``induced=False``, return a copy of ``G`` in this graph.  Otherwise,
+        return an induced copy of ``G`` in ``self``. If ``G`` is the empty
+        graph, return the empty graph since it is a subgraph of every graph. Now
+        suppose ``G`` is not the empty graph. If there is no copy (induced or
+        otherwise) of ``G`` in ``self``, we return ``None``.
 
         .. NOTE::
 
@@ -12228,11 +12224,11 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+            - :meth:`~GenericGraph.subgraph_search_count` -- counts the number
               of copies of `H` inside of `G`
 
-            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate on the
-              copies of `H` inside of `G`
+            - :meth:`~GenericGraph.subgraph_search_iterator` -- iterator over
+              the copies of `H` inside of `G`
 
         ALGORITHM:
 
@@ -12296,15 +12292,15 @@ class GenericGraph(GenericGraph_pyx):
 
         The subgraph may just have edges missing::
 
-            sage: k3=graphs.CompleteGraph(3); p3=graphs.PathGraph(3)
+            sage: k3 = graphs.CompleteGraph(3); p3 = graphs.PathGraph(3)
             sage: k3.relabel(list('abc'))
-            sage: s=k3.subgraph_search(p3)
+            sage: s = k3.subgraph_search(p3)
             sage: s.edges(labels=False)
             [('a', 'b'), ('b', 'c')]
 
         Of course, `P_3` is not an induced subgraph of `K_3`, though::
 
-            sage: k3=graphs.CompleteGraph(3); p3=graphs.PathGraph(3)
+            sage: k3 = graphs.CompleteGraph(3); p3 = graphs.PathGraph(3)
             sage: k3.relabel(list('abc'))
             sage: k3.subgraph_search(p3, induced=True) is None
             True
@@ -12319,18 +12315,18 @@ class GenericGraph(GenericGraph_pyx):
         from sage.graphs.generic_graph_pyx import SubgraphSearch
         from sage.graphs.graph_generators import GraphGenerators
 
-        if G.order() == 0:
+        if not G.order():
             return GraphGenerators().EmptyGraph()
 
         # SubgraphSearch assumes the graph we are searching for has order at least 2.
         if G.order() == 1:
             if self.order() >= 1:
-                from . import graph
-                return graph.Graph({ self.vertices()[0]:[]})
+                from sage.graphs.graph import Graph
+                return Graph({next(self.vertex_iterator()): []})
             else:
                 return None
 
-        S = SubgraphSearch(self, G, induced = induced)
+        S = SubgraphSearch(self, G, induced=induced)
 
         for g in S:
             if induced:
@@ -12338,7 +12334,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 Gcopy = copy(G)
                 Gcopy.relabel(g)
-                return self.subgraph(vertices=Gcopy.vertices(), edges=Gcopy.edges())
+                return self.subgraph(vertices=Gcopy, edges=Gcopy.edges(sort=False))
 
         return None
 
@@ -12348,11 +12344,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``G`` -- the (di)graph whose copies we are looking for in
-          ``self``.
+        - ``G`` -- the (di)graph whose copies we are looking for in ``self``
 
-        - ``induced`` -- boolean (default: ``False``). Whether or not
-          to count induced copies of ``G`` in ``self``.
+        - ``induced`` -- boolean (default: ``False``); whether or not to count
+          induced copies of ``G`` in ``self``
 
         .. NOTE::
 
@@ -12368,8 +12363,8 @@ class GenericGraph(GenericGraph_pyx):
             - :meth:`~GenericGraph.subgraph_search` -- finds an subgraph
               isomorphic to `H` inside of a graph `G`
 
-            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate on the
-              copies of a graph `H` inside of a graph `G`
+            - :meth:`~GenericGraph.subgraph_search_iterator` -- iterator over
+              the copies of a graph `H` inside of a graph `G`
 
         EXAMPLES:
 
@@ -12381,27 +12376,28 @@ class GenericGraph(GenericGraph_pyx):
 
         Requiring these subgraphs be induced::
 
-            sage: g.subgraph_search_count(graphs.PathGraph(5), induced = True)
+            sage: g.subgraph_search_count(graphs.PathGraph(5), induced=True)
             120
 
-        If we define the graph `T_k` (the transitive tournament on `k`
-        vertices) as the graph on `\{0, ..., k-1\}` such that `ij \in
-        T_k` iif `i<j`, how many directed triangles can be found in
-        `T_5` ? The answer is of course `0` ::
+        If we define the graph `T_k` (the transitive tournament on `k` vertices)
+        as the graph on `\{0, ..., k-1\}` such that `ij \in T_k` iif `i<j`, how
+        many directed triangles can be found in `T_5` ? The answer is of course
+        `0`::
 
-             sage: T5 = DiGraph()
-             sage: T5.add_edges([(i,j) for i in range(5) for j in range(i+1, 5)])
+             sage: T5 = digraphs.TransitiveTournament(5)
              sage: T5.subgraph_search_count(digraphs.Circuit(3))
              0
 
         If we count instead the number of `T_3` in `T_5`, we expect
         the answer to be `\binom{5}{3}`::
 
-             sage: T3 = T5.subgraph([0,1,2])
+             sage: T3 = digraphs.TransitiveTournament(3)
              sage: T5.subgraph_search_count(T3)
              10
              sage: binomial(5,3)
              10
+             sage: T3.is_isomorphic(T5.subgraph(vertices=[0, 1, 2]))
+             True
 
         The empty graph is a subgraph of every graph::
 
@@ -12417,30 +12413,29 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.graphs.generic_graph_pyx import SubgraphSearch
 
-        if G.order() == 0:
+        if not G.order():
             return 1
 
-        if self.order() == 0:
+        if not self.order():
             return 0
 
         if G.order() == 1:
             return self.order()
 
-        S = SubgraphSearch(self, G, induced = induced)
+        S = SubgraphSearch(self, G, induced=induced)
 
         return S.cardinality()
 
     def subgraph_search_iterator(self, G, induced=False):
         r"""
-        Returns an iterator over the labelled copies of ``G`` in ``self``.
+        Return an iterator over the labelled copies of ``G`` in ``self``.
 
         INPUT:
 
-        - ``G`` -- the graph whose copies we are looking for in
-          ``self``.
+        - ``G`` -- the graph whose copies we are looking for in ``self``
 
-        - ``induced`` -- boolean (default: ``False``). Whether or not
-          to iterate over the induced copies of ``G`` in ``self``.
+        - ``induced`` -- boolean (default: ``False``); whether or not to iterate
+          over the induced copies of ``G`` in ``self``
 
         .. NOTE::
 
@@ -12453,10 +12448,9 @@ class GenericGraph(GenericGraph_pyx):
 
         OUTPUT:
 
-            Iterator over the labelled copies of ``G`` in ``self``, as
-            *lists*. For each value `(v_1, v_2, ..., v_k)` returned,
-            the first vertex of `G` is associated with `v_1`, the
-            second with `v_2`, etc ...
+        Iterator over the labelled copies of ``G`` in ``self``, as *lists*. For
+        each value `(v_1, v_2, ..., v_k)` returned, the first vertex of `G` is
+        associated with `v_1`, the second with `v_2`, etc.
 
         .. NOTE::
 
@@ -12467,7 +12461,7 @@ class GenericGraph(GenericGraph_pyx):
             - :meth:`~GenericGraph.subgraph_search` -- finds an subgraph
               isomorphic to `H` inside of `G`
 
-            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+            - :meth:`~GenericGraph.subgraph_search_count` -- counts the number
               of copies of `H` inside of `G`
 
         EXAMPLES:
@@ -12492,23 +12486,31 @@ class GenericGraph(GenericGraph_pyx):
             [Graph on 1 vertex, Graph on 1 vertex, Graph on 1 vertex, Graph on 1 vertex, Graph on 1 vertex]
         """
 
-        if G.order() == 0:
+        if not G.order():
             from sage.graphs.graph_generators import GraphGenerators
             return [GraphGenerators().EmptyGraph()]
 
-        elif self.order() == 0:
+        elif not self.order():
             return []
 
         elif G.order() == 1:
-            from . import graph
-            return iter([graph.Graph({v:[]}) for v in self.vertices()])
+            from sage.graphs.graph import Graph
+            return iter([Graph({v: []}) for v in self])
         else:
             from sage.graphs.generic_graph_pyx import SubgraphSearch
-            return SubgraphSearch(self, G, induced = induced)
+            return SubgraphSearch(self, G, induced=induced)
 
     def random_subgraph(self, p, inplace=False):
         """
-        Return a random subgraph that contains each vertex with prob. p.
+        Return a random subgraph containing each vertex with probability ``p``.
+
+        INPUT:
+
+        - ``p`` -- the probability of choosing a vertex
+
+        - ``inplace`` -- boolean (default: ``False``); using ``inplace=True``
+          will simply delete the extra vertices and edges from the current
+          graph. This will modify the graph.
 
         EXAMPLES::
 
@@ -12516,16 +12518,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.random_subgraph(.25)
             Subgraph of (Petersen graph): Graph on 4 vertices
         """
-        vertices = []
         p = float(p)
-        for v in self:
-            if random() < p:
-                vertices.append(v)
+        if p < 0 or p > 1:
+            raise ValueError("a probability must be in range [0..1]")
+        vertices = [v for v in self if random() < p]
         return self.subgraph(vertices=vertices, inplace=inplace)
 
     def is_chordal(self, certificate=False, algorithm="B"):
         r"""
-        Tests whether the given graph is chordal.
+        Check whether the given graph is chordal.
 
         A Graph `G` is said to be chordal if it contains no induced hole (a
         cycle of length at least 4).
@@ -12550,25 +12551,25 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``certificate`` (boolean) -- Whether to return a certificate.
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate.
 
-            * If ``certificate = False`` (default), returns ``True`` or
-              ``False`` accordingly.
+          * If ``certificate = False`` (default), returns ``True`` or ``False``
+            accordingly.
 
-            * If ``certificate = True``, returns :
+          * If ``certificate = True``, returns :
 
-                * ``(True, peo)`` when the graph is chordal, where ``peo`` is a
-                  perfect elimination order of its vertices.
+            * ``(True, peo)`` when the graph is chordal, where ``peo`` is a
+              perfect elimination order of its vertices.
 
-                * ``(False, Hole)`` when the graph is not chordal, where
-                  ``Hole`` (a ``Graph`` object) is an induced subgraph of
-                  ``self`` isomorphic to a hole.
+            * ``(False, Hole)`` when the graph is not chordal, where ``Hole`` (a
+              ``Graph`` object) is an induced subgraph of ``self`` isomorphic to
+              a hole.
 
-        - ``algorithm`` -- Two algorithms are available for this method (see
-          next section), which can be selected by setting ``algorithm = "A"`` or
-          ``algorithm = "B"`` (default). While they will agree on whether the
-          given graph is chordal, they can not be expected to return the same
-          certificates.
+        - ``algorithm`` -- string (default: ``"B"``); the algorithm to choose
+          among ``"A"`` or ``"B"`` (see next section). While they will agree on
+          whether the given graph is chordal, they can not be expected to return
+          the same certificates.
 
         ALGORITHM:
 
@@ -12590,27 +12591,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_chordal()
             True
 
-        The same goes with the product of a random lobster
-        ( which is a tree ) and a Complete Graph ::
+        The same goes with the product of a random lobster (which is a tree)
+        and a Complete Graph ::
 
-            sage: g = graphs.RandomLobster(10,.5,.5).lexicographic_product(graphs.CompleteGraph(3))
+            sage: g = graphs.RandomLobster(10, .5, .5).lexicographic_product(graphs.CompleteGraph(3))
             sage: g.is_chordal()
             True
 
         The disjoint union of chordal graphs is still chordal::
 
-            sage: (2*g).is_chordal()
+            sage: (2 * g).is_chordal()
             True
 
-        Let us check the certificate given by Sage is indeed a perfect elimination order::
+        Let us check the certificate given by Sage is indeed a perfect
+        elimination order::
 
-            sage: (_, peo) = g.is_chordal(certificate = True)
+            sage: _, peo = g.is_chordal(certificate=True)
             sage: for v in peo:
             ....:     if not g.subgraph(g.neighbors(v)).is_clique():
-            ....:          print("This should never happen !")
+            ....:          raise ValueError("this should never happen")
             ....:     g.delete_vertex(v)
 
-        Of course, the Petersen Graph is not chordal as it has girth 5 ::
+        Of course, the Petersen Graph is not chordal as it has girth 5::
 
             sage: g = graphs.PetersenGraph()
             sage: g.girth()
@@ -12618,9 +12620,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_chordal()
             False
 
-        We can even obtain such a cycle as a certificate ::
+        We can even obtain such a cycle as a certificate::
 
-            sage: (_, hole) = g.is_chordal(certificate = True)
+            sage: _, hole = g.is_chordal(certificate=True)
             sage: hole
             Subgraph of (Petersen graph): Graph on 5 vertices
             sage: hole.is_isomorphic(graphs.CycleGraph(5))
@@ -12628,7 +12630,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        This shouldn't raise exceptions (:trac:`10899`)::
+        This should not raise exceptions (:trac:`10899`)::
 
             sage: Graph(1).is_chordal()
             True
@@ -12637,7 +12639,7 @@ class GenericGraph(GenericGraph_pyx):
 
         :trac:`11735`::
 
-           sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
+           sage: g = Graph({3: [2, 1, 4], 2: [1], 4: [1], 5: [2, 1, 4]})
            sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
            False
            sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
@@ -12660,17 +12662,18 @@ class GenericGraph(GenericGraph_pyx):
 
         self._scream_if_not_simple()
 
-        # If the graph is not connected, we are computing the result on each component
+        # If the graph is not connected, we are computing the result on each
+        # component
         if not self.is_connected():
 
-            # If the user wants a certificate, we had no choice but to
-            # collect the perfect elimination orders... But we return
-            # a hole immediately if we find any !
+            # If the user wants a certificate, we had no choice but to collect
+            # the perfect elimination orders... But we return a hole immediately
+            # if we find any !
             if certificate:
                 peo = []
                 for gg in self.connected_components_subgraphs():
 
-                    b, certif = gg.is_chordal(certificate = True)
+                    b, certif = gg.is_chordal(certificate=True)
                     if not b:
                         return False, certif
                     else:
@@ -12680,7 +12683,7 @@ class GenericGraph(GenericGraph_pyx):
 
             # One line if no certificate is requested
             else:
-                return all( gg.is_chordal() for gg in self.connected_components_subgraphs() )
+                return all(gg.is_chordal() for gg in self.connected_components_subgraphs())
 
         hole = None
         g = copy(self)
@@ -12697,19 +12700,18 @@ class GenericGraph(GenericGraph_pyx):
             # Iteratively removing vertices and checking everything is fine.
             for v in peo:
 
-                if t_peo.out_degree(v) == 0:
+                if not t_peo.out_degree(v):
                     g.delete_vertex(v)
                     continue
 
                 x = next(t_peo.neighbor_out_iterator(v))
-                S = self.neighbors(x)+[x]
+                S = self.neighbors(x) + [x]
 
-                if not frozenset(g.neighbors(v)).issubset(S):
+                if not frozenset(g.neighbor_iterator(v)).issubset(S):
 
                     # Do we need to return a hole ?
                     if certificate:
 
-                        # In this case, let us take two nonadjacent neighbors of v
                         # In this case, let us take two nonadjacent neighbors of
                         # v. In order to do so, we pick a vertex y which is a
                         # neighbor of v but is not adjacent to x, which we know
@@ -12719,13 +12721,13 @@ class GenericGraph(GenericGraph_pyx):
                             if y not in S:
                                 break
 
-                        g.delete_vertices([vv for vv in g.neighbors(v) if vv != y and vv != x])
+                        g.delete_vertices([vv for vv in g.neighbor_iterator(v) if vv != y and vv != x])
                         g.delete_vertex(v)
 
                         # Our hole is v + (a shortest path between x and y not
                         # containing v or any of its neighbors).
 
-                        hole = self.subgraph([v] + g.shortest_path(x,y))
+                        hole = self.subgraph(vertices=[v] + g.shortest_path(x, y))
 
                         # End of the algorithm
                         break
@@ -12739,14 +12741,14 @@ class GenericGraph(GenericGraph_pyx):
             peo,t_peo = self.lex_BFS(reverse=True, tree=True)
 
             # Remembering the (closed) neighborhoods of each vertex
-            neighbors_subsets = dict([(v,self.neighbors(v)+[v]) for v in g])
+            neighbors_subsets = {v: frozenset(self.neighbors(v) + [v]) for v in g}
             pos_in_peo = dict(zip(peo, range(self.order())))
 
             # Iteratively removing vertices and checking everything is fine.
             for v in reversed(peo):
 
-                if (t_peo.out_degree(v)>0 and
-                    not frozenset([v1 for v1 in g.neighbors(v) if pos_in_peo[v1] > pos_in_peo[v]]).issubset(
+                if (t_peo.out_degree(v) and
+                    not frozenset(v1 for v1 in g.neighbor_iterator(v) if pos_in_peo[v1] > pos_in_peo[v]).issubset(
                         neighbors_subsets[next(t_peo.neighbor_out_iterator(v))])):
 
                     # Do we need to return a hole ?
@@ -12757,7 +12759,7 @@ class GenericGraph(GenericGraph_pyx):
                         # neighbor of v but is not adjacent to x, which we know
                         # exists by the test written two lines above.
                         max_tup = (-1, 0)
-                        nb1 = [u for u in g.neighbors(v) if pos_in_peo[u] > pos_in_peo[v]]
+                        nb1 = [u for u in g.neighbor_iterator(v) if pos_in_peo[u] > pos_in_peo[v]]
                         for xi in nb1:
                             for yi in nb1:
                                 if not yi in neighbors_subsets[xi]:
@@ -12769,12 +12771,12 @@ class GenericGraph(GenericGraph_pyx):
                         # Our hole is v + (a shortest path between x and y not
                         # containing v or any of its neighbors).
 
-                        #g.delete_vertices([vv for vv in g.vertices() if pos_in_peo[vv] < pos_in_peo[v]])
+                        # g.delete_vertices([vv for vv in g.vertices() if pos_in_peo[vv] < pos_in_peo[v]])
 
-                        g.delete_vertices([vv for vv in g.neighbors(v) if vv != y and vv != x])
+                        g.delete_vertices([vv for vv in g.neighbor_iterator(v) if vv != y and vv != x])
                         g.delete_vertex(v)
 
-                        hole = self.subgraph([v] + g.shortest_path(x,y))
+                        hole = self.subgraph(vertices=[v] + g.shortest_path(x, y))
 
                         # End of the algorithm
                         break
@@ -12786,13 +12788,14 @@ class GenericGraph(GenericGraph_pyx):
         # ----------------
 
         # 1- The graph is not chordal
-
         if not hole is None:
             # There was a bug there once, so it's better to check the
             # answer is valid, especially when it is so cheap ;-)
 
             if hole.order() <= 3 or not hole.is_regular(k=2):
-                raise RuntimeError("the graph is not chordal, and something went wrong in the computation of the certificate. Please report this bug, providing the graph if possible!")
+                raise RuntimeError("the graph is not chordal, and something went wrong "
+                                   "in the computation of the certificate. Please report "
+                                   "this bug, providing the graph if possible")
 
             return (False, hole)
 
@@ -12804,16 +12807,16 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return True
 
-    def is_circulant(self, certificate = False):
+    def is_circulant(self, certificate=False):
         r"""
-        Tests whether the graph is circulant.
+        Check whether the graph is circulant.
 
         For more information, see :wikipedia:`Circulant_graph`.
 
         INPUT:
 
-        - ``certificate`` (boolean) -- whether to return a certificate for
-          yes-answers. See OUTPUT section. Set to ``False`` by default.
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate for yes-answers (see OUTPUT section)
 
         OUTPUT:
 
@@ -12845,20 +12848,20 @@ class GenericGraph(GenericGraph_pyx):
         can be used to define it::
 
             sage: g = graphs.CycleGraph(5)
-            sage: g.is_circulant(certificate = True)
+            sage: g.is_circulant(certificate=True)
             (True, [(5, [1, 4]), (5, [2, 3])])
 
         The same goes for directed graphs::
 
             sage: g = digraphs.Circuit(5)
-            sage: g.is_circulant(certificate = True)
+            sage: g.is_circulant(certificate=True)
             (True, [(5, [1]), (5, [3]), (5, [2]), (5, [4])])
 
         With this information, it is very easy to create (and plot) all possible
         drawings of a circulant graph::
 
             sage: g = graphs.CirculantGraph(13, [2, 3, 10, 11])
-            sage: for param in g.is_circulant(certificate = True)[1]:
+            sage: for param in g.is_circulant(certificate=True)[1]:
             ....:    graphs.CirculantGraph(*param)
             Circulant graph ([2, 3, 10, 11]): Graph on 13 vertices
             Circulant graph ([1, 5, 8, 12]): Graph on 13 vertices
@@ -12866,20 +12869,20 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: digraphs.DeBruijn(3,1).is_circulant(certificate = True)
+            sage: digraphs.DeBruijn(3,1).is_circulant(certificate=True)
             (True, [(3, [0, 1, 2])])
-            sage: Graph(1).is_circulant(certificate = True)
+            sage: Graph(1).is_circulant(certificate=True)
             (True, (1, []))
-            sage: Graph(0).is_circulant(certificate = True)
+            sage: Graph(0).is_circulant(certificate=True)
             (True, (0, []))
-            sage: Graph({0:[0]}).is_circulant(certificate = True)
+            sage: Graph({0: [0]}).is_circulant(certificate=True)
             (True, (1, [0]))
         """
         self._scream_if_not_simple(allow_loops=True)
         # Stupid cases
         if self.order() <= 1:
             if certificate:
-                return (True,(self.order(),[0] if self.size() else []))
+                return (True, (self.order(), [0] if self.size() else []))
             else:
                 return True
 
@@ -12887,7 +12890,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # The automorphism group, the translation between the vertices of self
         # and 1..n, and the orbits.
-        ag, orbits = self.automorphism_group([self.vertices()],
+        ag, orbits = self.automorphism_group([list(self)],
                           order=False,
                           return_group=True,
                           orbits=True)
@@ -12939,14 +12942,16 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``certificate`` (boolean) -- The function returns ``True``
-          or ``False`` according to the graph when ``certificate=False``
-          (default). When ``certificate=True`` it returns either
-          ``(False, None)`` or ``(True, d)`` where ``d`` is a dictionary
-          whose keys are the vertices and values are pairs of integers.
-          They correspond to an embedding of the interval graph, each
-          vertex being represented by an interval going from the first
-          of the two values to the second.
+        - ``certificate`` -- boolean (default: ``False``);
+
+          - When ``certificate=False``, returns ``True`` is the graph is an
+            interval graph and ``False`` otherwise
+
+          - When ``certificate=True``, returns either ``(False, None)`` or
+            ``(True, d)`` where ``d`` is a dictionary whose keys are the
+            vertices and values are pairs of integers.  They correspond to an
+            embedding of the interval graph, each vertex being represented by an
+            interval going from the first of the two values to the second.
 
         ALGORITHM:
 
@@ -12964,8 +12969,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_interval(certificate=True)
             (True, {1: (0, 5), 2: (4, 6), 3: (1, 3), 4: (2, 7)})
 
-        The Petersen Graph is not chordal, so it can't be an interval
-        graph::
+        The Petersen Graph is not chordal, so it cannot be an interval graph::
 
             sage: g = graphs.PetersenGraph()
             sage: g.is_interval()
@@ -12981,8 +12985,7 @@ class GenericGraph(GenericGraph_pyx):
 
             - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
 
-            - :meth:`PQ <sage.graphs.pq_trees.PQ>`
-              -- Implementation of PQ-Trees.
+            - :meth:`PQ <sage.graphs.pq_trees.PQ>` -- implementation of PQ-Trees
             - :meth:`is_chordal`
             - :meth:`~sage.graphs.graph_generators.GraphGenerators.IntervalGraph`
             - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomIntervalGraph`
@@ -13013,16 +13016,13 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple()
 
-        # An interval graph first is a chordal graph. Without this,
-        # there is no telling how we should find its maximal cliques,
-        # by the way :-)
-
+        # An interval graph is a chordal graph. Without this, there is no
+        # telling how we should find its maximal cliques, by the way :-)
         if not self.is_chordal():
             return (False, None) if certificate else False
 
-        # First, we need to gather the list of maximal cliques, which
-        # is easy as the graph is chordal
-
+        # First, we need to gather the list of maximal cliques, which is easy as
+        # the graph is chordal
         cliques = []
 
         # As we will be deleting vertices ...
@@ -13031,11 +13031,10 @@ class GenericGraph(GenericGraph_pyx):
         for cc in g.connected_components_subgraphs():
 
             # We pick a perfect elimination order for every connected
-            # component. We will then iteratively take the last vertex
-            # in the order (a simplicial vertex) and consider the
-            # clique it forms with its neighbors. If we do not have an
-            # inclusion-wise larger clique in our list, we add it !
-
+            # component. We will then iteratively take the last vertex in the
+            # order (a simplicial vertex) and consider the clique it forms with
+            # its neighbors. If we do not have an inclusion-wise larger clique
+            # in our list, we add it !
             peo = cc.lex_BFS()
 
             while peo:
@@ -13066,14 +13065,14 @@ class GenericGraph(GenericGraph_pyx):
         i = 0
 
         ordered_sets.append([])
-        for S in map(set,ordered_sets):
-            for v in current-S:
+        for S in map(set, ordered_sets):
+            for v in current - S:
                 end[v] = i
-                i = i + 1
+                i += 1
 
-            for v in S-current:
+            for v in S - current:
                 beg[v] = i
-                i = i + 1
+                i += 1
 
             current = S
 
@@ -13083,12 +13082,12 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return whether the current graph is a Gallai tree.
 
-        A graph is a Gallai tree if and only if it is
-        connected and its `2`-connected components are all
-        isomorphic to complete graphs or odd cycles.
+        A graph is a Gallai tree if and only if it is connected and its
+        `2`-connected components are all isomorphic to complete graphs or odd
+        cycles.
 
-        A connected graph is not degree-choosable if and
-        only if it is a Gallai tree [erdos1978choos]_.
+        A connected graph is not degree-choosable if and only if it is a Gallai
+        tree [erdos1978choos]_.
 
         REFERENCES:
 
@@ -13111,12 +13110,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_gallai_tree()
             False
 
-        A Graph built from vertex-disjoint complete graphs
-        linked by one edge to a special vertex `-1` is a
-        ''star-shaped'' Gallai tree ::
+        A Graph built from vertex-disjoint complete graphs linked by one edge to
+        a special vertex `-1` is a ''star-shaped'' Gallai tree::
 
             sage: g = 8 * graphs.CompleteGraph(6)
-            sage: g.add_edges([(-1,c[0]) for c in g.connected_components()])
+            sage: g.add_edges([(-1, c[0]) for c in g.connected_components()])
             sage: g.is_gallai_tree()
             True
 
@@ -13125,7 +13123,7 @@ class GenericGraph(GenericGraph_pyx):
         Check that :trac:`25613` is fixed::
 
             sage: g = graphs.CycleGraph(5)
-            sage: g.add_edge(0,5)
+            sage: g.add_edge(0, 5)
             sage: g.is_gallai_tree()
             True
         """
@@ -13143,48 +13141,49 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_clique(self, vertices=None, directed_clique=False, induced=True, loops=False):
         """
-        Tests whether a set of vertices is a clique
+        Check whether a set of vertices is a clique
 
         A clique is a set of vertices such that there is exactly one edge
         between any two vertices.
 
         INPUT:
 
-        - ``vertices`` -- Vertices can be a single vertex or an iterable
-          container of vertices, e.g. a list, set, graph, file or numeric
-          array. If not passed, defaults to the entire graph.
+        - ``vertices`` -- a single vertex or an iterable container of vertices
+          (default: ``None); when set, check whether the set of vertices is a
+          clique, otherwise check whether ``self`` is a clique
 
-        - ``directed_clique`` -- (default: ``False``) If set to ``False``, only
-          consider the underlying undirected graph. If set to ``True`` and the
-          graph is directed, only return True if all possible edges in _both_
-          directions exist.
+        - ``directed_clique`` -- boolean (default: ``False``); if set to
+          ``False``, only consider the underlying undirected graph. If set to
+          ``True`` and the graph is directed, only return ``True`` if all
+          possible edges in _both_ directions exist.
 
-        - ``induced`` -- (default: ``True``) If set to ``True``, check that the
-          graph has exactly one edge between any two vertices. If set to
-          ``False``, check that the graph has at least one edge between any two
-          vertices.
+        - ``induced`` -- boolean (default: ``True``); if set to ``True``, check
+          that the graph has exactly one edge between any two vertices. If set
+          to ``False``, check that the graph has at least one edge between any
+          two vertices.
 
-        - ``loops`` -- (default: ``False``) If set to ``True``, check that each
-          vertex of the graph has a loop, and exactly one if furthermore
-          ``induced == True``. If set to ``False``, check that the graph has no
-          loop when ``induced == True``, and ignore loops otherwise.
+        - ``loops`` -- boolean (default: ``False``); if set to ``True``, check
+          that each vertex of the graph has a loop, and exactly one if
+          furthermore ``induced == True``. If set to ``False``, check that the
+          graph has no loop when ``induced == True``, and ignore loops
+          otherwise.
 
         EXAMPLES::
 
             sage: g = graphs.CompleteGraph(4)
-            sage: g.is_clique([1,2,3])
+            sage: g.is_clique([1, 2, 3])
             True
             sage: g.is_clique()
             True
             sage: h = graphs.CycleGraph(4)
-            sage: h.is_clique([1,2])
+            sage: h.is_clique([1, 2])
             True
-            sage: h.is_clique([1,2,3])
+            sage: h.is_clique([1, 2, 3])
             False
             sage: h.is_clique()
             False
-            sage: i = graphs.CompleteGraph(4).to_directed()
-            sage: i.delete_edge([0,1])
+            sage: i = digraphs.Complete(4)
+            sage: i.delete_edge([0, 1])
             sage: i.is_clique(directed_clique=False, induced=True)
             False
             sage: i.is_clique(directed_clique=False, induced=False)
@@ -13247,13 +13246,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_clique([1, 2, 3])
             False
         """
-        if vertices is not None:
+        if vertices is None:
+            G = self
+        elif vertices in self:
+            G = self.subgraph(vertices, immutable=False)
+        else:
+            vertices = list(vertices)
             for u in vertices:
                 if not self.has_vertex(u):
                     return False
             G = self.subgraph(vertices, immutable=False)
-        else:
-            G = self
 
         N = G.order()
         if G.is_directed() and directed_clique:
@@ -13274,14 +13276,15 @@ class GenericGraph(GenericGraph_pyx):
 
         if G.allows_multiple_edges() or (G.is_directed() and not directed_clique):
             # We check that we have edges between all pairs of vertices
+            v_to_int = {v: i for i, v in enumerate(self)}
             if G.is_directed() and not directed_clique:
-                R = lambda u,v:(u, v) if u <= v else (v, u)
+                R = lambda u,v: (u, v) if u <= v else (v, u)
             else:
                 R = lambda u,v:(u,v)
             if loops:
-                edges = set(R(u, v) for u,v in G.edge_iterator(labels=False))
+                edges = set(R(v_to_int[u], v_to_int[v]) for u,v in G.edge_iterator(labels=False))
             else:
-                edges = set(R(u, v) for u,v in G.edge_iterator(labels=False) if u != v)
+                edges = set(R(v_to_int[u], v_to_int[v]) for u,v in G.edge_iterator(labels=False) if u != v)
 
             # If induced == True, we already know that G.size() == M, so
             # we only need to check that we have the right set of edges.
@@ -13296,7 +13299,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_cycle(self, directed_cycle=True):
         r"""
-        Test whether ``self`` is a (directed) cycle graph.
+        Check whether ``self`` is a (directed) cycle graph.
 
         We follow the definition provided in [BM2008]_ for undirected graphs. A
         cycle on three or more vertices is a simple graph whose vertices can be
@@ -13314,10 +13317,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``directed_cycle`` -- (default ``True``) If set to ``True`` and the
-          graph is directed, only return ``True`` if ``self`` is a directed
-          cycle graph (i.e., a circuit). If set to ``False``, we ignore the
-          direction of edges and so opposite arcs become multiple (parallel)
+        - ``directed_cycle`` -- boolean (default ``True``); if set to ``True``
+          and the graph is directed, only return ``True`` if ``self`` is a
+          directed cycle graph (i.e., a circuit). If set to ``False``, we ignore
+          the direction of edges and so opposite arcs become multiple (parallel)
           edges. This parameter is ignored for undirected graphs.
 
         EXAMPLES::
@@ -13327,29 +13330,29 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: graphs.CycleGraph(5).is_cycle()
             True
-            sage: Graph([(0,1)]).is_cycle()
+            sage: Graph([(0,1 )]).is_cycle()
             False
-            sage: Graph([(0,1), (0,1)], multiedges=True).is_cycle()
+            sage: Graph([(0, 1), (0, 1)], multiedges=True).is_cycle()
             True
-            sage: Graph([(0,1), (0,1), (0,1)], multiedges=True).is_cycle()
+            sage: Graph([(0, 1), (0, 1), (0, 1)], multiedges=True).is_cycle()
             False
             sage: Graph().is_cycle()
             False
-            sage: G = Graph(); G.allow_loops(True); G.add_edge(0,0)
+            sage: G = Graph([(0, 0)], loops=True)
             sage: G.is_cycle()
             True
             sage: digraphs.Circuit(3).is_cycle()
             True
             sage: digraphs.Circuit(2).is_cycle()
             True
-            sage: digraphs.Circuit(2).is_cycle(directed_cycle = False)
+            sage: digraphs.Circuit(2).is_cycle(directed_cycle=False)
             True
-            sage: D = DiGraph( graphs.CycleGraph(3) )
+            sage: D = DiGraph(graphs.CycleGraph(3))
             sage: D.is_cycle()
             False
-            sage: D.is_cycle(directed_cycle = False)
+            sage: D.is_cycle(directed_cycle=False)
             False
-            sage: D.edges(labels = False)
+            sage: D.edges(labels=False)
             [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
         """
         if not self.order():
@@ -13366,23 +13369,24 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 # We make a copy of self ignoring the direction of edges
                 from sage.graphs.graph import Graph
-                g = Graph(multiedges = True)
-                g.allow_loops(True)
-                g.add_edges(self.edges(labels=False))
+                g = Graph(multiedges=True, loops=True)
+                g.add_edges(self.edge_iterator(labels=False))
 
         return g.is_regular(k=2) and g.is_connected()
 
     def is_independent_set(self, vertices=None):
         """
-        Returns True if the set ``vertices`` is an independent
-        set, False if not. An independent set is a set of vertices such
-        that there is no edge between any two vertices.
+        Check whether ``vertices`` is an independent set of ``self``.
+
+        An independent set is a set of vertices such that there is no edge
+        between any two vertices.
 
         INPUT:
 
-        -  ``vertices`` - Vertices can be a single vertex or an
-           iterable container of vertices, e.g. a list, set, graph, file or
-           numeric array. If not passed, defaults to the entire graph.
+        - ``vertices`` -- a single vertex or an iterable container of vertices
+          (default: ``None); when set, check whether the given set of vertices
+          is an independent set, otherwise, check whether the set of vertices of
+          ``self`` is an independent set
 
         EXAMPLES::
 
@@ -13391,11 +13395,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.CycleGraph(4).is_independent_set([1,2,3])
             False
         """
-        return self.subgraph(vertices).size()==0
+        if vertices is None:
+            return not self.size()
+        return not self.subgraph(vertices).size()
 
     def is_subgraph(self, other, induced=True):
         """
-        Return ``True`` if the graph is a subgraph of ``other``, and ``False`` otherwise.
+        Check whether ``self`` is a subgraph of ``other``.
 
         .. WARNING::
 
@@ -13407,40 +13413,42 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``induced`` - boolean (default: ``True``) If set to ``True`` tests
-          whether the graph is an *induced* subgraph of ``other`` that is if
-          the vertices of the graph are also vertices of ``other``, and the
-          edges of the graph are equal to the edges of ``other`` between the
-          vertices contained in the graph.
+        - ``other`` -- a Sage (Di)Graph
 
-          If set to ``False`` tests whether the graph is a subgraph of
-          ``other`` that is if all vertices of the graph are also in
-          ``other`` and all edges of the graph are also in ``other``.
+        - ``induced`` - boolean (default: ``True``); if set to ``True`` check
+          whether the graph is an *induced* subgraph of ``other`` that is if the
+          vertices of the graph are also vertices of ``other``, and the edges of
+          the graph are equal to the edges of ``other`` between the vertices
+          contained in the graph.
+
+          If set to ``False`` tests whether the graph is a subgraph of ``other``
+          that is if all vertices of the graph are also in ``other`` and all
+          edges of the graph are also in ``other``.
 
         OUTPUT:
 
-        boolean -- ``True`` iff the graph is a (possibly induced)
-        subgraph of ``other``.
+        boolean -- ``True`` iff the graph is a (possibly induced) subgraph of
+        ``other``.
 
         .. SEEALSO::
 
-            If you are interested in the (possibly induced) subgraphs
-            isomorphic to the graph in ``other``, you are looking for
-            the following methods:
+            If you are interested in the (possibly induced) subgraphs isomorphic
+            to the graph in ``other``, you are looking for the following
+            methods:
 
-            - :meth:`~GenericGraph.subgraph_search` -- Find a subgraph
-              isomorphic to ``other`` inside of the graph.
+            - :meth:`~GenericGraph.subgraph_search` -- find a subgraph
+              isomorphic to ``other`` inside of the graph
 
-            - :meth:`~GenericGraph.subgraph_search_count` -- Count the number
-              of such copies.
+            - :meth:`~GenericGraph.subgraph_search_count` -- count the number
+              of such copies
 
             - :meth:`~GenericGraph.subgraph_search_iterator` --
-              Iterate over all the copies of ``other`` contained in the graph.
+              iterator over all the copies of ``other`` contained in the graph
 
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
-            sage: G = P.subgraph(list(range(6)))
+            sage: G = P.subgraph(range(6))
             sage: G.is_subgraph(P)
             True
 
@@ -13455,34 +13463,34 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Raise an error when self and other are of different types::
+        Raise an error when ``self`` and ``other`` are of different types::
 
-            sage: Graph([(0,1)]).is_subgraph( DiGraph([(0,1)]) )
+            sage: Graph([(0, 1)]).is_subgraph(DiGraph([(0, 1)]))
             Traceback (most recent call last):
             ...
-            ValueError: The input parameter must be a Graph.
-            sage: DiGraph([(0,1)]).is_subgraph( Graph([(0,1)]) )
+            ValueError: the input parameter must be a Graph
+            sage: DiGraph([(0, 1)]).is_subgraph(Graph([(0, 1)]))
             Traceback (most recent call last):
             ...
-            ValueError: The input parameter must be a DiGraph.
+            ValueError: the input parameter must be a DiGraph
 
         """
         from sage.graphs.graph import Graph
         from sage.graphs.digraph import DiGraph
-        if isinstance(self,Graph) and not isinstance(other,Graph):
-            raise ValueError('The input parameter must be a Graph.')
+        if isinstance(self, Graph) and not isinstance(other, Graph):
+            raise ValueError('the input parameter must be a Graph')
 
-        if isinstance(self,DiGraph) and not isinstance(other,DiGraph):
-            raise ValueError('The input parameter must be a DiGraph.')
+        if isinstance(self, DiGraph) and not isinstance(other, DiGraph):
+            raise ValueError('the input parameter must be a DiGraph')
 
         if self.num_verts() > other.num_verts():
             return False
 
-        if any(v not in other for v in self.vertex_iterator()):
+        if any(not other.has_vertex(v) for v in self.vertex_iterator()):
             return False
 
         if induced:
-            return other.subgraph(self.vertices()) == self
+            return other.subgraph(self) == self
         else:
             self._scream_if_not_simple(allow_loops=True)
             return all(other.has_edge(e) for e in self.edge_iterator())

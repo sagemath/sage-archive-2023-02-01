@@ -71,11 +71,16 @@ cdef Obj make_gap_list(sage_list) except NULL:
 
     The list of the elements in ``a`` as a Gap ``Obj``.
     """
-    # FIXME slow -- to make fast directly use ADD_LIST in Gap's C code.
     from sage.libs.gap.libgap import libgap
     cdef GapElement l = libgap.eval('[]')
+    cdef GapElement elem
     for x in sage_list:
-        l.Add(x)
+        if not isinstance(x, GapElement):
+            elem = <GapElement>libgap(x)
+        else:
+            elem = <GapElement>x
+
+        AddList(l.value, elem.value)
     return l.value
 
 

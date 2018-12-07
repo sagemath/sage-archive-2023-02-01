@@ -954,7 +954,8 @@ class TermOrder(SageObject):
 
         """
         return (sum(f.nonzero_values(sort=False)),
-                tuple(-v for v in f.reversed()))
+                f.reversed().emul(-1))
+                # tuple(-v for v in f.reversed()))
 
     def sortkey_neglex(self, f):
         """

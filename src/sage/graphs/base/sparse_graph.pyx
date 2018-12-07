@@ -55,7 +55,7 @@ You can begin working with unlabeled arcs right away as follows::
     sage: S.all_arcs(7,3)
     Traceback (most recent call last):
     ...
-    LookupError: Vertex (7) is not a vertex of the graph.
+    LookupError: vertex (7) is not a vertex of the graph
 
 Sparse graphs support multiple edges and labeled edges, but requires that the
 labels be positive integers (the case label = 0 is treated as no label).
@@ -354,7 +354,7 @@ cdef class SparseGraph(CGraph):
             sage: S.add_vertex(40)
             Traceback (most recent call last):
             ...
-            RuntimeError: Requested vertex is past twice the allocated range: use realloc.
+            RuntimeError: requested vertex is past twice the allocated range: use realloc
             sage: S.realloc(50)
             sage: S.add_vertex(40)
             40
@@ -456,7 +456,7 @@ cdef class SparseGraph(CGraph):
             sage: G.add_arc(4,7)
             Traceback (most recent call last):
             ...
-            LookupError: Vertex (7) is not a vertex of the graph.
+            LookupError: vertex (7) is not a vertex of the graph
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)
@@ -989,7 +989,7 @@ cdef class SparseGraph(CGraph):
             sage: G.add_arc_label(4,7)
             Traceback (most recent call last):
             ...
-            LookupError: Vertex (7) is not a vertex of the graph.
+            LookupError: vertex (7) is not a vertex of the graph
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)

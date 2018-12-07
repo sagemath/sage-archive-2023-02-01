@@ -101,9 +101,9 @@ So the solutions over `\GF{2}` are `\{e=0, d=1, c=1, b=1, a=0\}` and
 `\{e=0, d=0, c=1, b=1, a=1\}`.
 
 We can express the restriction to `\GF{2}` by considering the quotient
-ring. If `I` is an ideal in `\mathbb{F}[x_1, ..., x_n]` then the
-ideals in the quotient ring `\mathbb{F}[x_1, ..., x_n]/I` are in
-one-to-one correspondence with the ideals of `\mathbb{F}[x_0, ...,
+ring. If `I` is an ideal in `\Bold{F}[x_1, ..., x_n]` then the
+ideals in the quotient ring `\Bold{F}[x_1, ..., x_n]/I` are in
+one-to-one correspondence with the ideals of `\Bold{F}[x_0, ...,
 x_n]` containing `I` (that is, the ideals `J` satisfying `I \subset J
 \subset P`).
 
@@ -7063,8 +7063,8 @@ cdef class GroebnerStrategy:
             raise AttributeError(name)
 
 
-class BooleanMulAction(Action):
-    def _call_(self, left, right):
+cdef class BooleanMulAction(Action):
+    cpdef _act_(self, g, x):
         """
         EXAMPLES:
             sage: from brial import BooleanMonomialMonoid
@@ -7084,10 +7084,8 @@ class BooleanMulAction(Action):
             sage: x*2
             0
         """
-        if self.is_left():
-            return right if left % 2 else GF(2)(0)
-        else:
-            return left if right % 2 else GF(2)(0)
+        return x if (g % 2) else GF(2)(0)
+
 
 cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice,
                                                    Py_ssize_t* pbind):

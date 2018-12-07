@@ -422,7 +422,7 @@ class DiGraphGenerators():
             sage: digraphs.TransitiveTournament(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         g = DiGraph(n)
         g.name("Transitive Tournament")
@@ -458,7 +458,7 @@ class DiGraphGenerators():
             sage: digraphs.RandomTournament(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
 
         .. SEEALSO::
 
@@ -607,7 +607,7 @@ class DiGraphGenerators():
             sage: digraphs.Complete(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         G = DiGraph(n, name="Complete digraph"+(" with loops" if loops else ''), loops=loops)
 
@@ -1410,7 +1410,7 @@ class DiGraphGenerators():
             sage: digraphs.RandomSemiComplete(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         G = DiGraph(n, name="Random Semi-Complete digraph")
 

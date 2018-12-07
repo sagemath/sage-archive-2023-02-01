@@ -118,6 +118,9 @@ from .power_series_ring_element import PowerSeries
 from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
 
+# Tate algebras
+from .tate_algebra import TateAlgebra
+
 # Pseudo-ring of PARI objects.
 from .pari_ring import PariRing, Pari
 

@@ -3042,10 +3042,9 @@ fires in the stabilization.::
     sage: m = S.max_stable()
     sage: a = []
     sage: for i in range(1000):
-    ...       m = m.add_random()
-    ...       m, f = m.stabilize(True)
-    ...       a.append(sum(f.values()))
-    ...
+    ....:     m = m.add_random()
+    ....:     m, f = m.stabilize(True)
+    ....:     a.append(sum(f.values()))
     sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
     sage: p.axes_labels(['log(N)','log(D(N))'])
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))

@@ -116,6 +116,7 @@ if hasattr(os, 'chmod'):
             print("Setting permissions of DOT_SAGE directory so only you "
                   "can read and write it.")
 
+
 def try_read(obj, splitlines=False):
     r"""
     Determine if a given object is a readable file-like object and if so
@@ -215,10 +216,10 @@ def try_read(obj, splitlines=False):
     return data
 
 
-
 #################################################
 # Next we create the Sage temporary directory.
 #################################################
+
 
 @lazy_string
 def SAGE_TMP():
@@ -598,7 +599,7 @@ def set_verbose(level, files='all'):
 
     INPUT:
 
-    - ``level`` - an integer between 0 and 2, inclusive.
+    - ``level`` -- an integer between 0 and 2, inclusive.
 
     - ``files`` (default: 'all'): list of files to make verbose, or
        'all' to make ALL files verbose (the default).
@@ -617,6 +618,8 @@ def set_verbose(level, files='all'):
         [no output]
         sage: set_verbose(0)
     """
+    if level is None:
+        level = -1
     if isinstance(level, str):
         set_verbose_files([level])
     global LEVEL
@@ -1327,7 +1330,7 @@ def powerset(X):
     pairs = []
     for x in X:
         pairs.append((2**len(pairs), x))
-        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
+        for w in range(2**(len(pairs) - 1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
 
@@ -1548,7 +1551,7 @@ class AttrCallObject(object):
             sage: series(sin(x), 4)
             1*x + (-1/6)*x^3 + Order(x^4)
         """
-        return getattr(x, self.name)(*(self.args+args), **self.kwds)
+        return getattr(x, self.name)(*(self.args + args), **self.kwds)
 
     def __repr__(self):
         """
@@ -1709,8 +1712,8 @@ def is_in_string(line, pos):
         # which is the case if the previous character isn't
         # a backslash, or it is but both previous characters
         # are backslashes.
-        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
-            if line[i:i+3] in ['"""', "'''"]:
+        if line[i - 1: i] != '\\' or line[i - 2: i] == '\\\\':
+            if line[i: i + 3] in ['"""', "'''"]:
                 if not in_quote():
                     in_triple_quote = True
                 elif in_triple_quote:

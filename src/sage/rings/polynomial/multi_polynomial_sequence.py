@@ -1110,7 +1110,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
     r"""
-    Polynomial Sequences over `\mathbb{F}_2`.
+    Polynomial Sequences over `\GF{2}`.
     """
     def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False, use_polybori=False):
         """
@@ -1534,17 +1534,17 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
 class PolynomialSequence_gf2e(PolynomialSequence_generic):
     r"""
-    PolynomialSequence over `\mathbb{F}_{2^e}`, i.e extensions over
-    GF(2).
+    PolynomialSequence over `\GF{2^e}`, i.e extensions over
+    `\GF(2)`.
     """
 
     def weil_restriction(self):
         r"""
-        Project this polynomial system to `\mathbb{F}_2`.
+        Project this polynomial system to `\GF{2}`.
 
         That is, compute the Weil restriction of scalars for the
         variety corresponding to this polynomial system and express it
-        as a polynomial system over `\mathbb{F}_2`.
+        as a polynomial system over `\GF{2}`.
 
         EXAMPLES::
 

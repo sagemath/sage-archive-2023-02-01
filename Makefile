@@ -35,7 +35,7 @@ sageruntime: base-toolchain
 
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure build/make/deps build/pkgs/*/*
+build/make/Makefile: configure build/make/deps build/make/Makefile.in build/pkgs/*/*
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log
@@ -190,7 +190,7 @@ ptestoptional: all
 ptestoptionallong: all
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-configure: configure.ac src/bin/sage-version.sh m4/*.m4
+configure: configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4
 	./bootstrap -d
 
 install: all

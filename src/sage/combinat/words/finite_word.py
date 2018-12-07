@@ -700,7 +700,7 @@ class FiniteWord_class(Word_class):
         Return word ``self`` under the Foata bijection.
 
         The Foata bijection `\phi` is a bijection on the set of words
-        of given content (by a slight generalization of Section 2 in [FoSc78]_).
+        of given content (by a slight generalization of Section 2 in [FS1978]_).
         It can be defined by induction on the size of the word: Given a word
         `w_1 w_2 \cdots w_n`, start with `\phi(w_1) = w_1`. At the `i`-th step, if
         `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define
@@ -1260,9 +1260,9 @@ class FiniteWord_class(Word_class):
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
         if algorithm == 'suffix tree':
-            return self.suffix_tree().number_of_factors(n)
+            return ZZ(self.suffix_tree().number_of_factors(n))
         elif algorithm == 'naive':
-            return len(self.factor_set(n, algorithm='naive'))
+            return ZZ(len(self.factor_set(n, algorithm='naive')))
         else:
             raise ValueError('Unknown algorithm (={})'.format(algorithm))
 
@@ -6290,7 +6290,6 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: for x in Word([1,1,3,1,2,3,1])._rsk_iter(): x
-            ...
             (1, 1)
             (2, 1)
             (3, 3)
@@ -6449,9 +6448,11 @@ class FiniteWord_class(Word_class):
 
     def delta(self):
         r"""
-        Return the image of ``self`` under the delta morphism. This is the
-        word composed of the length of consecutive runs of the same letter
-        in a given word.
+        Return the image of ``self`` under the delta morphism.
+
+        The delta morphism, also known as the run-length encoding,
+        is the word composed of the length of consecutive runs of
+        the same letter in a given word.
 
         EXAMPLES::
 

@@ -104,7 +104,6 @@ AUTHORS:
 - Javier Lopez Pena (2013): Added conjugacy classes.
 
 - Sebastian Oehms (2018): added _coerce_map_from_ in order to use isomorphism coming up with as_permutation_group method (Trac #25706)
-
 - Christian Stump (2018): Added alternative implementation of strong_generating_system directly using GAP.
 
 REFERENCES:

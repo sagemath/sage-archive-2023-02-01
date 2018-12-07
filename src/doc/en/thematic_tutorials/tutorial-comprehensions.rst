@@ -226,8 +226,11 @@ Here is the analogue of list slicing::
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
     sage: import itertools
-    sage: list(itertools.islice(Permutations(3), 1, 4))
+    sage: list(itertools.islice(Permutations(3), 1r, 4r))
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
+
+Note that all calls to ``islice`` must have arguments of type ``int`` and
+not Sage integers.
 
 The behaviour of the functions :func:`map` and :func:`filter` has
 changed between Python 2 and Python 3. In Python 3, they return an

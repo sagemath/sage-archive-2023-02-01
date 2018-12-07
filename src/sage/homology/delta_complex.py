@@ -63,7 +63,7 @@ from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.arith.all import binomial
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import rename_keyword
+
 
 class DeltaComplex(GenericCellComplex):
     r"""
@@ -571,7 +571,6 @@ class DeltaComplex(GenericCellComplex):
             cells[-1] = (None,)
         return cells
 
-    @rename_keyword(deprecation=20723, check_diffs='check')
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=False, dimensions=None,
                       base_ring=ZZ, cochain=False):

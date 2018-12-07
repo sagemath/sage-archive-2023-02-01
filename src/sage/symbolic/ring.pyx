@@ -305,7 +305,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert R Interpreter to a symbolic expression
+            TypeError: unsupported operand type(s) for ** or pow(): 'R' and 'sage.rings.rational.Rational'
 
         Check that :trac:`22068` is fixed::
 

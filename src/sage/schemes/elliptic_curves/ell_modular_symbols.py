@@ -569,12 +569,12 @@ class ModularSymbolSage(ModularSymbol):
                     verbose('scale modular symbols by %s'%(l1/at0))
                     self._scaling = l1/at0
 
-
-    def __lalg__(self,D):
+    def __lalg__(self, D):
         r"""
         For positive `D`, this function evaluates the quotient
         `L(E_D,1)\cdot \sqrt(D)/\Omega_E` where `E_D` is the twist of
         `E` by `D`, `\Omega_E` is the least positive period of `E`.
+
         For negative `E`, it is the quotient
         `L(E_D,1)\cdot \sqrt(-D)/\Omega^{-}_E`
         where `\Omega^{-}_E` is the least positive imaginary part of a
@@ -588,7 +588,6 @@ class ModularSymbolSage(ModularSymbol):
             1/5
             sage: m.__lalg__(3)
             5/2
-
         """
         from sage.functions.all import sqrt
         # the computation of the L-value could take a lot of time,
@@ -597,23 +596,22 @@ class ModularSymbolSage(ModularSymbol):
 
         E = self._E
         ED = E.quadratic_twist(D)
-        lv = ED.lseries().L_ratio() # this is L(ED,1) divided by the Néron period omD of ED
-        lv *= ED.real_components() # now it is by the least positive period
+        lv = ED.lseries().L_ratio()  # this is L(ED,1) divided by the Néron period omD of ED
+        lv *= ED.real_components()  # now it is by the least positive period
         omD = ED.period_lattice().basis()[0]
         if D > 0 :
             om = E.period_lattice().basis()[0]
-            q = sqrt(D)*omD/om * 8
+            q = sqrt(D) * omD / om * 8
         else :
             om = E.period_lattice().basis()[1].imag()
             if E.real_components() == 1:
                 om *= 2
-            q = sqrt(-D)*omD/om*8
+            q = sqrt(-D) * omD / om * 8
 
         # see padic_lseries.pAdicLeries._quotient_of_periods_to_twist
         # for the explanation of the second factor
-        verbose('real approximation is %s'%q)
-        return lv/8 * QQ(int(round(q)))
-
+        verbose('real approximation is %s' % q)
+        return lv / 8 * QQ(q.round())
 
     def _find_scaling_period(self):
         r"""
@@ -673,16 +671,15 @@ class ModularSymbolSage(ModularSymbol):
                     q *= 2
                 if E.real_components() == 1:
                     q /= 2
-            q = QQ(int(round(q*200)))/200
-            verbose('scale modular symbols by %s'%q)
+            q = QQ((q * 200).round()) / 200
+            verbose('scale modular symbols by %s' % q)
             self._scaling = q
-        c = self(0) #  required, to change base point from oo to 0
-        if c<0:
+        c = self(0)  #  required, to change base point from oo to 0
+        if c < 0:
             c *= -1
             self._scaling *= -1
         self._at_zero = c
         self._e *= self._scaling
-
 
     def _call_with_caching(self, r):
         r"""

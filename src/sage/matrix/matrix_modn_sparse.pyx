@@ -82,22 +82,24 @@ from __future__ import absolute_import
 
 from collections import Iterator, Sequence
 
-from libc.stdint cimport int64_t
+from libc.stdint cimport uint64_t
+from libc.limits cimport UINT_MAX
 
 from cysignals.memory cimport check_calloc, sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.ext.stdsage cimport PY_NEW
+
+from sage.libs.flint.fmpz cimport fmpz_get_mpz, fmpz_set_mpz
+from sage.libs.flint.fmpz_mat cimport fmpz_mat_entry
+
 from sage.structure.element import is_Vector
 from sage.modules.vector_modn_sparse cimport *
 
-from sage.libs.linbox.givaro cimport Modular_int64
-from sage.libs.linbox.linbox cimport (SparseMatrix_Modular_int64,
-        GaussDomain_Modular_int64)
-from sage.libs.linbox.conversion cimport (
-    set_linbox_matrix_modn_sparse,
-    new_linbox_matrix_modn_sparse)
-from sage.libs.linbox.linbox_solve cimport Linbox_modn_sparse
+cimport sage.libs.linbox.givaro as givaro
+cimport sage.libs.linbox.linbox as linbox
 
+from sage.libs.linbox.conversion cimport *
 
 from .matrix2 cimport Matrix
 from sage.libs.gmp.mpz cimport mpz_init_set_si
@@ -105,6 +107,8 @@ cimport sage.matrix.matrix as matrix
 cimport sage.matrix.matrix_sparse as matrix_sparse
 cimport sage.matrix.matrix_dense as matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
+from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 from sage.misc.misc import verbose, get_verbose
 
@@ -122,6 +126,9 @@ from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 
 from .matrix_integer_sparse cimport Matrix_integer_sparse
+from .matrix_integer_dense cimport Matrix_integer_dense
+from sage.modules.vector_integer_dense cimport Vector_integer_dense
+
 from sage.misc.decorators import rename_keyword
 
 ################
@@ -668,19 +675,28 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # TODO: bug in linbox (gives segfault)
             return 0, self.base_ring().one()
 
+        # NOTE: the rank would more naturally be size_t but it is unsigned long
+        # in LinBox
+        # see https://github.com/linbox-team/linbox/issues/144
         cdef unsigned long A_rank = 0
-        cdef int64_t A_det = 0
+        cdef uint64_t A_det = 0
 
         if not is_prime(self.p):
             raise TypeError("only GF(p) supported via LinBox")
 
-        cdef Modular_int64 * F = new Modular_int64(self.p)
-        cdef SparseMatrix_Modular_int64 * A
+        cdef givaro.Modular_uint64 * F = new givaro.Modular_uint64(<uint64_t> self.p)
+        cdef linbox.SparseMatrix_Modular_uint64 * A
         A = new_linbox_matrix_modn_sparse(F[0], self)
 
-        cdef GaussDomain_Modular_int64 * dom = new GaussDomain_Modular_int64(F[0])
+        cdef linbox.GaussDomain_Modular_uint64 * dom = new linbox.GaussDomain_Modular_uint64(F[0])
 
-        dom.InPlaceLinearPivoting(A_rank, A_det, A[0], A.rowdim(), A.coldim())
+        # NOTE: see above for the reason of casting...
+        if A.rowdim() >= <size_t> UINT_MAX or A.coldim() >= <size_t> UINT_MAX:
+            raise ValueError("row/column size unsupported in LinBox")
+
+        dom.InPlaceLinearPivoting(A_rank, A_det, A[0],
+                <unsigned long> A.rowdim(),
+                <unsigned long> A.coldim())
 
         del A
         del F
@@ -841,7 +857,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
-    def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank = True):
+    def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank=False):
         """
         If self is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If
@@ -861,140 +877,281 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         -  ``algorithm`` - one of the following:
 
-        -  ``'LinBox:BlasElimination'`` - dense elimination
+            - ``'linbox'`` or ``'linbox_default'`` - (default) use LinBox
+              and let it chooses the appropriate algorithm
 
-        -  ``'LinBox:Blackbox'`` - LinBox chooses a Blackbox
-           algorithm
+            -  ``linbox_blas_elimination'`` - use LinBox dense elimination
 
-        -  ``'LinBox:Wiedemann'`` - Wiedemann's algorithm
+            - ``'linbox_sparse_elimination'`` - use LinBox sparse elimination
 
-        -  ``'generic'`` - use generic implementation
-           (inversion)
+            -  ``'linbox_ blackbox'`` - LinBox via a Blackbox algorithm
 
-        -  ``None`` - LinBox chooses an algorithm (default)
+            -  ``'linbox_wiedemann'`` - use LinBox implementation of
+               Wiedemann's algorithm
 
-        -  ``check_rank`` - check rank before attempting to
-           solve (default: True)
+            -  ``'generic'`` - use the Sage generic implementation
+               (via inversion)
 
+        - ``check_rank`` - whether to check that the rank is maximal
 
         OUTPUT: a matrix or vector
 
         EXAMPLES::
 
-            sage: A = matrix(GF(127), 3, [1,2,3,-1,2,5,2,3,1], sparse=True)
-            sage: b = vector(GF(127),[1,2,3])
-            sage: x = A \ b; x
-            (73, 76, 10)
+            sage: A = matrix(ZZ, 3, [1,2,3,-1,2,5,2,3,1], sparse=True)
+            sage: b = vector(ZZ, [1,2,3])
+            sage: x = A \ b
+            sage: x
+            (-13/12, 23/12, -7/12)
             sage: A * x
             (1, 2, 3)
+
+            sage: u = matrix(ZZ, 3, 2, [0,1,1,1,0,2])
+            sage: x = A \ u
+            sage: x
+            [-7/12  -1/6]
+            [ 5/12   5/6]
+            [-1/12  -1/6]
+            sage: A * x
+            [0 1]
+            [1 1]
+            [0 2]
         """
-        cdef Matrix_modn_sparse A = self
-        cdef Matrix_modn_sparse b
-        cdef Matrix_modn_sparse X
-        cdef c_vector_modint *x
+        if check_rank and self.rank() < self.nrows():
+            raise ValueError("not of full rank")
 
         if self.base_ring() != B.base_ring():
             B = B.change_ring(self.base_ring())
-
-        if algorithm == "generic" or not is_prime(self.p):
-            return Matrix2.solve_right(self, B)
-
-        if check_rank and self.rank() < self.nrows():
-            raise ValueError("self must be of full rank.")
-
         if self.nrows() != B.nrows():
             raise ValueError("input matrices must have the same number of rows.")
 
-        if not self.is_square():
-            raise NotImplementedError("input matrix must be square")
-
-        cdef Linbox_modn_sparse linbox_mat = Linbox_modn_sparse()
-        linbox_mat.set(self.p, self._nrows, self._ncols, self.rows)
-
-        matrix = True
-        if is_Vector(B):
-            matrix = False
-            b = self.matrix_space(1, self.ncols(),sparse=True)(B.list())
+        if algorithm == "generic":
+            return Matrix_sparse.solve_right(self, B)
         else:
-            if not B.is_sparse():
-                B = B.sparse_matrix()
-            if isinstance(B, Matrix_modn_sparse):
-                b = B
+            if isinstance(B, sage.structure.element.Matrix):
+                from sage.rings.rational_field import QQ
+                from sage.matrix.special import diagonal_matrix
+                m, d = self._solve_matrix_linbox(B, algorithm)
+                return m  * diagonal_matrix([QQ((1,x)) for x in d])
             else:
-                raise TypeError("B must be a matrix or vector over the same base as self")
+                v, d = self._solve_vector_linbox(B, algorithm)
+                return v / d
 
-        X = self.new_matrix(b.ncols(), A.ncols())
+    def _solve_vector_linbox(self, v, algorithm=None):
+        r"""
+        Return a pair ``(a, d)`` so that ``d * b = m * a``
 
-        if algorithm is None:
-            algorithm = 0
-        elif algorithm == "LinBox:BlasElimination":
-            algorithm = 1
-        elif algorithm == "LinBox:Blackbox":
-            algorithm = 2
-        elif algorithm == "LinBox:Wiedemann":
-            algorithm = 3
-        else:
-            raise TypeError("parameter 'algorithm' not understood")
+        If there is no solution a ``ValueError`` is raised.
 
-        b = b.transpose() # to make walking the rows easier
-        for i in range(X.nrows()):
-            sig_on()
-            x = &X.rows[i]
-            linbox_mat.solve(&x, &b.rows[i], algorithm)
-            sig_off()
+        INPUT:
 
-        if not matrix:
-            # Convert back to a vector
-            return (X.base_ring() ** X.ncols())(X.list())
-        else:
-            return X.transpose()
+        - ``b`` -- a dense integer vector
 
-    def lift(self):
+        - ``algorithm`` -- (optional) either ``None``, ``'blas_elimination'``,
+          ``'sparse_elimination'``, ``'wiedemann'`` or ``'blackbox'``.
+
+        OUTPUT: a pair ``(a, d)`` consisting of
+
+        - ``a`` -- a dense integer vector
+
+        - ``d`` -- an integer
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 4, sparse=True)
+            sage: m[0,0] = m[1,2] = m[2,0] = m[3,3] = 2
+            sage: m[0,2] = m[1,1] = -1
+            sage: m[2,3] = m[3,0] = -3
+
+            sage: b0 = vector((1,1,1,1))
+            sage: m._solve_vector_linbox(b0)
+            ((-1, -7, -3, -1), 1)
+            sage: m._solve_vector_linbox(b0, 'blas_elimination')
+            ((-1, -7, -3, -1), 1)
+            sage: m._solve_vector_linbox(b0, 'sparse_elimination')
+            ((-1, -7, -3, -1), 1)
+            sage: m._solve_vector_linbox(b0, 'wiedemann')
+            ((-1, -7, -3, -1), 1)
+            sage: m._solve_vector_linbox(b0, 'blackbox')
+            ((-1, -7, -3, -1), 1)
+
+            sage: b1 = vector((1,1,-1,1))
+            sage: a1, d1 = m._solve_vector_linbox(b1)
+            sage: d1 * b1 == m * a1
+            True
+
+        TESTS::
+
+            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            ....:          "blackbox", "wiedemann"]
+            sage: for i in range(20):
+            ....:     dim = randint(1, 30)
+            ....:     M = MatrixSpace(ZZ, dim, sparse=True)
+            ....:     density = min(1, 4/dim)
+            ....:     m = M.random_element(density=density)
+            ....:     while m.rank() != dim:
+            ....:         m = M.random_element(density=density)
+            ....:     U = m.column_space().dense_module()
+            ....:     for algo in algos:
+            ....:         u, d = m._solve_vector_linbox(U.zero(), algorithm=algo)
+            ....:         assert u.is_zero()
+            ....:         b = U.random_element()
+            ....:         x, d = m._solve_vector_linbox(b, algorithm=algo)
+            ....:         assert m * x == d * b
         """
-        Return lift of this matrix to a sparse matrix over the integers.
+        Vin = self._column_ambient_module().dense_module()
+        v = Vin(v)
 
-        EXAMPLES:
-            sage: a = matrix(GF(7),2,3,[1..6], sparse=True)
-            sage: a.lift()
-            [1 2 3]
-            [4 5 6]
-            sage: a.lift().parent()
-            Full MatrixSpace of 2 by 3 sparse matrices over Integer Ring
+        if self._nrows == 0 or self._ncols == 0:
+            raise ValueError("not implemented for nrows=0 or ncols=0")
 
-        Subdivisions are preserved when lifting::
+        # LinBox "solve" is mostly broken for nonsquare or singular matrices.
+        # The conditions below could be removed once all LinBox issues has
+        # been solved.
+        if self._nrows != self._ncols or self.rank() != self._nrows:
+            raise ValueError("only available for full rank square matrices")
 
-            sage: a.subdivide([], [1,1]); a
-            [1||2 3]
-            [4||5 6]
-            sage: a.lift()
-            [1||2 3]
-            [4||5 6]
+        cdef givaro.ZRing givZZ
+        cdef linbox.SparseMatrix_integer * A = new_linbox_matrix_integer_sparse(givZZ, self)
+        cdef linbox.DenseVector_integer * b = new_linbox_vector_integer_dense(givZZ, v)
+        cdef linbox.DenseVector_integer * res = new linbox.DenseVector_integer(givZZ, <size_t> self._ncols)
+        cdef givaro.Integer D
+
+        method = get_method(algorithm)
+
+        if method == METHOD_DEFAULT:
+            linbox.solve(res[0], D, A[0], b[0])
+        elif method == METHOD_WIEDEMANN:
+            linbox.solve(res[0], D, A[0], b[0], linbox.Method.Wiedemann())
+        elif method == METHOD_BLAS_ELIMINATION:
+            linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+        elif method == METHOD_SPARSE_ELIMINATION:
+            linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
+        elif method == METHOD_BLACKBOX:
+            linbox.solve(res[0], D, A[0], b[0], linbox.Method.Blackbox())
+
+        Vout = self._row_ambient_module().dense_module()
+        res_sage = new_sage_vector_integer_dense(Vout, res[0])
+        cdef Integer d = PY_NEW(Integer)
+        mpz_set(d.value, D.get_mpz_const())
+
+        del A
+        del b
+        del res
+
+        return (res_sage, d)
+
+    def _solve_matrix_linbox(self, mat, algorithm=None):
+        r"""
+        Solve the equation ``A x = mat`` where ``A`` is this matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, [[1,2],[1,0]], sparse=True)
+            sage: b = matrix(ZZ, 2, 4, [1,0,2,0,1,1,2,0], sparse=False)
+            sage: u, d = m._solve_matrix_linbox(b)
+            sage: u
+            [ 1  2  2  0]
+            [ 0 -1  0  0]
+            sage: m * u == b * diagonal_matrix(d)
+            True
+
+            sage: u, d = m._solve_matrix_linbox([[1,3,4],[0,1,0]])
+            sage: u
+            [0 1 0]
+            [1 1 2]
+            sage: d
+            (2, 1, 1)
+
+        Test input::
+
+            sage: m = matrix(ZZ, [[1,2],[1,0]], sparse=True)
+            sage: b = matrix(ZZ, 3, 3, range(9))
+            sage: m._solve_matrix_linbox(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong matrix dimension
+
+            sage: m._solve_matrix_linbox([[1,1],[2,3]], algorithm='hop')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm
+
+        TESTS::
+
+            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            ....:          "blackbox", "wiedemann"]
+
+            sage: for _ in range(10):
+            ....:     dim = randint(2, 10)
+            ....:     M = MatrixSpace(ZZ, dim, sparse=True)
+            ....:     m = M.random_element(density=min(1,10/dim))
+            ....:     while m.rank() != dim:
+            ....:         m = M.random_element(density=min(1,10/dim))
+            ....:     b = random_matrix(ZZ, dim, 7)
+            ....:     Mb = b.parent()
+            ....:     for algo in algos:
+            ....:         u, d = m._solve_matrix_linbox(b, algo)
+            ....:         assert m * u == b * diagonal_matrix(d)
         """
-        cdef Py_ssize_t i, j
-        cdef Matrix_integer_sparse L
-        L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
-                                         self.parent().change_ring(rings.ZZ),
-                                         0, 0, 0)
+        if self._nrows == 0 or self._ncols == 0:
+            raise ValueError("not implemented for nrows=0 or ncols=0")
 
-        cdef mpz_vector* L_row
-        cdef c_vector_modint* A_row
-        for i from 0 <= i < self._nrows:
-            L_row = &(L._matrix[i])
-            A_row = &(self.rows[i])
-            sig_free(L_row.entries)
-            L_row.entries = <mpz_t*> sig_malloc(sizeof(mpz_t)*A_row.num_nonzero)
-            L_row.num_nonzero = A_row.num_nonzero
-            if L_row.entries == NULL:
-                raise MemoryError("error allocating space for sparse vector during sparse lift")
-            sig_free(L_row.positions)
-            L_row.positions = <Py_ssize_t*> sig_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
-            if L_row.positions == NULL:
-                sig_free(L_row.entries)
-                L_row.entries = NULL
-                raise MemoryError("error allocating space for sparse vector during sparse lift")
-            for j from 0 <= j < A_row.num_nonzero:
-                L_row.positions[j] = A_row.positions[j]
-                mpz_init_set_si(L_row.entries[j], A_row.entries[j])
-        L.subdivide(self.subdivisions())
-        return L
+        from .constructor import matrix
+        from sage.modules.free_module_element import vector
 
+        cdef Matrix_integer_dense B
+        if not isinstance(mat, Matrix):
+            B = <Matrix_integer_dense?> matrix(ZZ, mat, sparse=False)
+        else:
+            B = <Matrix_integer_dense?> mat.change_ring(ZZ).dense_matrix()
+        if B._nrows != self._nrows:
+            raise ValueError("wrong matrix dimension")
+
+        # LinBox "solve" is mostly broken for singular matrices. The
+        # conditions below could be removed once all LinBox issues
+        # have been solved.
+        if self._nrows != self._ncols or self.rank() != self._nrows:
+            raise ValueError("only available for full rank square matrices")
+
+        cdef givaro.ZRing givZZ
+        cdef linbox.SparseMatrix_integer * A = new_linbox_matrix_integer_sparse(givZZ, self)
+        cdef linbox.DenseVector_integer * b = new linbox.DenseVector_integer(givZZ, <size_t> self._nrows)
+        cdef linbox.DenseVector_integer * res = new linbox.DenseVector_integer(givZZ, <size_t> self._ncols)
+        cdef givaro.Integer D
+
+        cdef int algo = get_method(algorithm)
+
+        cdef Matrix_integer_dense X = matrix(ZZ, A.coldim(), B.ncols(), sparse=False)  # solution
+        cdef Vector_integer_dense d = vector(ZZ, X.ncols(), sparse=False)  # multipliers
+
+        cdef size_t i, j
+        for i in range(X.ncols()):
+            # set b to the i-th column of B
+            for j in range(A.coldim()):
+                fmpz_get_mpz(<mpz_t> b.getEntry(j).get_mpz(), fmpz_mat_entry(B._matrix, j, i))
+
+            # solve the current row
+            if algo == METHOD_DEFAULT:
+                linbox.solve(res[0], D, A[0], b[0])
+            elif algo == METHOD_BLAS_ELIMINATION:
+                linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+            elif algo == METHOD_SPARSE_ELIMINATION:
+                linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
+            elif algo == METHOD_BLACKBOX:
+                linbox.solve(res[0], D, A[0], b[0], linbox.Method.Blackbox())
+            elif algo == METHOD_WIEDEMANN:
+                linbox.solve(res[0], D, A[0], b[0], linbox.Method.Wiedemann())
+
+            # set i-th column of X to be res
+            for j in range(A.coldim()):
+                fmpz_set_mpz(fmpz_mat_entry(X._matrix, j, i), res[0].getEntry(j).get_mpz())
+
+            # compute common gcd
+            mpz_set(d._entries[i], D.get_mpz_const())
+
+        del A
+        del b
+        del res
+
+        return X, d

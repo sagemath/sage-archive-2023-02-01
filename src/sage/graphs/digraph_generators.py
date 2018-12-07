@@ -902,10 +902,13 @@ class DiGraphGenerators():
             (True, {0: '010', 1: '011', 2: '000', 3: '001', 4: '110', 5: '111', 6: '100', 7: '101'})
 
             sage: II = digraphs.ImaseItoh(12, 2)
-            sage: II.is_isomorphic(digraphs.Kautz(2, 3), certificate = True)
-            (True, {0: '202', 1: '201', 2: '210', 3: '212', 4: '121',
-                    5: '120', 6: '102', 7: '101', 8: '010', 9: '012',
-                    10: '021', 11: '020'})
+            sage: b,D = II.is_isomorphic(digraphs.Kautz(2, 3), certificate=True)
+            sage: b
+            True
+            sage: D   # random isomorphism
+            {0: '202', 1: '201', 2: '210', 3: '212', 4: '121',
+             5: '120', 6: '102', 7: '101', 8: '010', 9: '012',
+             10: '021', 11: '020'}
 
         TESTS:
 
@@ -981,10 +984,12 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: K = digraphs.Kautz(2, 3)
-            sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certificate = True)
-            (True,
-             {'010': 8, '012': 9, '020': 11, '021': 10, '101': 7,  '102': 6,
-              '120': 5, '121': 4, '201': 1, '202': 0, '210': 2, '212': 3})
+            sage: b,D = K.is_isomorphic(digraphs.ImaseItoh(12, 2), certificate=True)
+            sage: b
+            True
+            sage: D  # random isomorphism
+            {'010': 8, '012': 9, '020': 11, '021': 10, '101': 7,  '102': 6,
+             '120': 5, '121': 4, '201': 1, '202': 0, '210': 2, '212': 3}
 
             sage: K = digraphs.Kautz([1,'a','B'], 2)
             sage: K.edges()

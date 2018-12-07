@@ -1442,7 +1442,6 @@ cdef class LazyConstant(LazyFieldElement):
 
     cdef readonly _name
     cdef readonly _extra_args
-    cdef readonly bint _is_special
 
     def __init__(self, LazyField parent, name, extra_args=None):
         """
@@ -1464,7 +1463,6 @@ cdef class LazyConstant(LazyFieldElement):
         LazyFieldElement.__init__(self, parent)
         self._name = name
         self._extra_args = extra_args
-        self._is_special = name in ['e', 'I']
 
     cpdef eval(self, R):
         """
@@ -1500,28 +1498,27 @@ cdef class LazyConstant(LazyFieldElement):
             sage: float(sin(RLF.pi()))
             1.2246467991473532e-16
         """
-        if self._is_special:
-            # special handling of e and I
-            if self._name == 'I':
-                if R is float:
-                    raise ValueError('I is not a real number')
-                elif R is complex:
-                    return 1j
-                else:
-                    I = R.gen()
-                    if I*I != -R.one():
-                        raise TypeError("The complex constant I is not in this complex field.")
-                    return I
+        # special handling of e and I
+        if self._name == 'I':
+            if R is float:
+                raise ValueError('I is not a real number')
+            elif R is complex:
+                return 1j
+            else:
+                I = R.gen()
+                if I*I != -R.one():
+                    raise TypeError("The complex constant I is not in this complex field.")
+                return I
 
-            elif self._name == 'e':
-                if R is float:
-                    return math.e
-                elif R is complex:
-                    return complex(math.e)
-                else:
-                    return R(1).exp()
+        elif self._name == 'e':
+            if R is float:
+                return math.e
+            elif R is complex:
+                return complex(math.e)
+            else:
+                return R(1).exp()
 
-        if R is float:
+        elif R is float:
             # generic float
             return getattr(math, self._name)
         elif R is complex:

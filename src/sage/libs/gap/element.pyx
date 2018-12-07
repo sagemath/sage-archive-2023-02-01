@@ -85,9 +85,33 @@ cdef Obj make_gap_list(sage_list) except NULL:
 
 
 cdef char *crepr(Obj obj):
-    cdef Obj s
-    s = CALL_1ARGS(GAP_ValueGlobalVariable("ViewString"), obj)
-    return CSTR_STRING(s)
+    cdef Obj s, stream, output_text_string, view_obj
+    cdef UInt res
+    # The only way to get a string representation of an object that is truly
+    # consistent with how it would be represented at the GAP REPL is to call
+    # ViewObj on it.  Unfortunately, ViewObj *prints* to the output stream,
+    # and there is no equivalent that simply returns the string that would be
+    # printed.  The closest approximation would be DisplayString, but this
+    # bypasses any type-specific overrides for ViewObj so for many objects
+    # that does not give consistent results.
+    # TODO: This is probably needlessly slow, but we might need better
+    # support from GAP to improve this...
+    try:
+        GAP_Enter()
+        s = NEW_STRING(0)
+        output_text_string = GAP_ValueGlobalVariable("OutputTextString")
+        stream = CALL_2ARGS(output_text_string, s, GAP_True)
+
+        if not OpenOutputStream(stream):
+            raise RuntimeError("failed to open output capture stream for "
+                               "representing GAP object")
+
+        viewobj = GAP_ValueGlobalVariable("ViewObj")
+        CALL_1ARGS(viewobj, obj)
+        CloseOutput()
+        return CSTR_STRING(s)
+    finally:
+        GAP_Leave()
 
 
 cdef Obj make_gap_record(sage_dict) except NULL:

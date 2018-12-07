@@ -318,8 +318,6 @@ cdef GapElement make_GapElement(parent, Obj obj):
         <type 'sage.libs.gap.element.GapElement_Integer'>
 
         sage: libgap.eval('')
-        NULL
-
         sage: libgap(None)
         Traceback (most recent call last):
         ...
@@ -640,7 +638,6 @@ cdef class GapElement(RingElement):
             sage: libgap(0)
             0
             sage: libgap.eval('')
-            NULL
             sage: libgap(0)
             0
             sage: libgap(0)._repr_()

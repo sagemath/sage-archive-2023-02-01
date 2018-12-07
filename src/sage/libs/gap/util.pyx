@@ -314,7 +314,6 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     EXAMPLES::
 
         sage: libgap.eval('if 4>3 then\nPrint("hi");\nfi')
-        NULL
         sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
 

@@ -1691,8 +1691,9 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``vertices`` - a list of vertex labels
-        - ``labels`` - boolean, whether to return labels as well
+        - ``vertices`` -- a list of vertex labels
+
+        - ``labels`` -- boolean, whether to return labels as well
 
         EXAMPLES::
 
@@ -1742,8 +1743,9 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``vertices`` - a list of vertex labels
-        - ``labels`` - boolean, whether to return labels as well
+        - ``vertices`` -- a list of vertex labels
+
+        - ``labels`` -- boolean, whether to return labels as well
 
         EXAMPLES::
 

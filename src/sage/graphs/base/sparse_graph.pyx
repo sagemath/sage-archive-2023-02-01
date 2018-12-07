@@ -1718,7 +1718,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         if labels:
             for (u, v, l) in self.iterator_unsorted_edges(vertices, labels):
                 try:
-                    if u > v:
+                    if v <= u:
                         v, u = u, v
                 except TypeError:
                     pass
@@ -1726,7 +1726,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         else:
             for u, v in self.iterator_unsorted_edges(vertices, labels):
                 try:
-                    if u > v:
+                    if v <= u:
                         v, u = u, v
                 except TypeError:
                     pass
@@ -1743,23 +1743,23 @@ cdef class SparseGraphBackend(CGraphBackend):
         INPUT:
 
         - ``vertices`` - a list of vertex labels
-        - ``sort`` - boolean, whether to sort the ends of each edge
+        - ``labels`` - boolean, whether to return labels as well
 
         EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,False)
             sage: list(G.iterator_unsorted_edges(range(9), False))
-            [(1, 2)]
+            [(2, 1)]
             sage: list(G.iterator_unsorted_edges(range(9), True))
-            [(1, 2, 3)]
+            [(2, 1, 3)]
 
         TESTS::
 
-            sage: G = Graph()
+            sage: G = Graph(sparse=True)
             sage: G.add_edge((1,'a'))
-            sage: list(G.iterator_unsorted_edges([1, 'a'])
-            ?
+            sage: list(G._backend.iterator_unsorted_edges([1, 'a'],False))
+            [(1, 'a')]
         """
         cdef object u, v, l
         cdef int u_int, v_int, l_int

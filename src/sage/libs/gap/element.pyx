@@ -2137,7 +2137,7 @@ cdef class GapElement_String(GapElement):
             sage: s.sage()
             'string'
             sage: type(_)
-            <... 'str'>
+            <type 'str'>
         """
         s = char_to_str(CSTR_STRING(self.value))
         return s
@@ -2903,7 +2903,8 @@ cdef class GapElement_Record(GapElement):
         sage: rec['no_such_element']
         Traceback (most recent call last):
         ...
-        IndexError: libGAP: Error, Record: '<rec>.no_such_element' must have an assigned value
+        IndexError: libGAP: Error, Record Element: '<rec>.no_such_element' must
+        have an assigned value
     """
 
     def __len__(self):
@@ -2937,7 +2938,7 @@ cdef class GapElement_Record(GapElement):
             sage: iter = rec.__iter__()
             sage: type(iter)
             <type 'sage.libs.gap.element.GapElement_RecordIterator'>
-            sage: list(rec)
+            sage: sorted(rec)
             [('a', 123), ('b', 456)]
         """
         return GapElement_RecordIterator(self)
@@ -3041,7 +3042,7 @@ cdef class GapElement_RecordIterator(object):
     EXAMPLES::
 
         sage: rec = libgap.eval('rec(a:=123, b:=456)')
-        sage: list(rec)
+        sage: sorted(rec)
         [('a', 123), ('b', 456)]
         sage: dict(rec)
         {'a': 123, 'b': 456}
@@ -3077,10 +3078,10 @@ cdef class GapElement_RecordIterator(object):
 
             sage: rec = libgap.eval('rec(a:=123, b:=456)')
             sage: iter = rec.__iter__()
-            sage: iter.__next__()
-            ('a', 123)
-            sage: next(iter)
-            ('b', 456)
+            sage: a = iter.__next__()
+            sage: b = next(iter)
+            sage: sorted([a, b])
+            [('a', 123), ('b', 456)]
         """
         cdef UInt i = self.i
         if i>len(self.rec):

@@ -28,11 +28,11 @@ from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 
-# these do nothing now
 
 ############################################################################
 ### Hooking into the GAP memory management #################################
 ############################################################################
+
 
 cdef class ObjWrapper(object):
     """

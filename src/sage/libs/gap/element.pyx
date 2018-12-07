@@ -134,14 +134,20 @@ cdef Obj make_gap_record(sage_dict) except NULL:
     from sage.libs.gap.libgap import libgap
     data = [ (str(key), libgap(value)) for key, value in sage_dict.iteritems() ]
 
-    cdef Obj rec = NEW_PREC(len(data))
+    cdef Obj rec
     cdef GapElement val
     cdef UInt rnam
-    for d in data:
-        key, val = d
-        rnam = RNamName(str_to_bytes(key))
-        AssPRec(rec, rnam, val.value)
-    return rec
+
+    try:
+        GAP_Enter()
+        rec = NEW_PREC(len(data))
+        for d in data:
+            key, val = d
+            rnam = RNamName(str_to_bytes(key))
+            AssPRec(rec, rnam, val.value)
+        return rec
+    finally:
+        GAP_Leave()
 
 
 cdef Obj make_gap_integer(sage_int) except NULL:
@@ -161,8 +167,13 @@ cdef Obj make_gap_integer(sage_int) except NULL:
         sage: libgap(1)   # indirect doctest
         1
     """
-    cdef Obj result = INTOBJ_INT(<int>sage_int)
-    return result
+    cdef Obj result
+    try:
+        GAP_Enter()
+        result = INTOBJ_INT(<int>sage_int)
+        return result
+    finally:
+        GAP_Leave()
 
 
 cdef Obj make_gap_string(sage_string) except NULL:
@@ -183,9 +194,13 @@ cdef Obj make_gap_string(sage_string) except NULL:
         "string"
     """
     cdef Obj result
-    b = str_to_bytes(sage_string)
-    C_NEW_STRING(result, len(b), b)
-    return result
+    try:
+        GAP_Enter()
+        b = str_to_bytes(sage_string)
+        C_NEW_STRING(result, len(b), b)
+        return result
+    finally:
+        GAP_Leave()
 
 
 ############################################################################
@@ -228,48 +243,52 @@ cdef GapElement make_any_gap_element(parent, Obj obj):
         sage: irr[1]
         0
     """
-    if obj is NULL:
-        return make_GapElement(parent, obj)
-    cdef int num = TNUM_OBJ(obj)
-    if IS_INT(obj):
-        return make_GapElement_Integer(parent, obj)
-    elif num == T_MACFLOAT:
-        return make_GapElement_Float(parent, obj)
-    elif num == T_CYC:
-        return make_GapElement_Cyclotomic(parent, obj)
-    elif num == T_FFE:
-        return make_GapElement_FiniteField(parent, obj)
-    elif num == T_RAT:
-        return make_GapElement_Rational(parent, obj)
-    elif num == T_BOOL:
-        return make_GapElement_Boolean(parent, obj)
-    elif num == T_FUNCTION:
-        return make_GapElement_Function(parent, obj)
-    elif num == T_PERM2 or num == T_PERM4:
-        return make_GapElement_Permutation(parent, obj)
-    elif IS_REC(obj):
-        return make_GapElement_Record(parent, obj)
-    elif IS_LIST(obj) and LEN_LIST(obj) == 0:
-        # Empty lists are lists and not strings in Python
-        return make_GapElement_List(parent, obj)
-    elif IsStringConv(obj):
-        # GAP strings are lists, too. Make sure this comes before non-empty make_GapElement_List
-        return make_GapElement_String(parent, obj)
-    elif IS_LIST(obj):
-        return make_GapElement_List(parent, obj)
-    elif num == T_CHAR:
-        ch = make_GapElement(parent, obj).IntChar().sage()
-        return make_GapElement_String(parent, make_gap_string(chr(ch)))
-    result = make_GapElement(parent, obj)
-    if num == T_POSOBJ:
-        if result.IsZmodnZObj():
-            return make_GapElement_IntegerMod(parent, obj)
-    if num == T_COMOBJ:
-        if result.IsRing():
-            return make_GapElement_Ring(parent, obj)
-    return result
+    cdef int num
 
-
+    try:
+        GAP_Enter()
+        if obj is NULL:
+            return make_GapElement(parent, obj)
+        num = TNUM_OBJ(obj)
+        if IS_INT(obj):
+            return make_GapElement_Integer(parent, obj)
+        elif num == T_MACFLOAT:
+            return make_GapElement_Float(parent, obj)
+        elif num == T_CYC:
+            return make_GapElement_Cyclotomic(parent, obj)
+        elif num == T_FFE:
+            return make_GapElement_FiniteField(parent, obj)
+        elif num == T_RAT:
+            return make_GapElement_Rational(parent, obj)
+        elif num == T_BOOL:
+            return make_GapElement_Boolean(parent, obj)
+        elif num == T_FUNCTION:
+            return make_GapElement_Function(parent, obj)
+        elif num == T_PERM2 or num == T_PERM4:
+            return make_GapElement_Permutation(parent, obj)
+        elif IS_REC(obj):
+            return make_GapElement_Record(parent, obj)
+        elif IS_LIST(obj) and LEN_LIST(obj) == 0:
+            # Empty lists are lists and not strings in Python
+            return make_GapElement_List(parent, obj)
+        elif IsStringConv(obj):
+            # GAP strings are lists, too. Make sure this comes before non-empty make_GapElement_List
+            return make_GapElement_String(parent, obj)
+        elif IS_LIST(obj):
+            return make_GapElement_List(parent, obj)
+        elif num == T_CHAR:
+            ch = make_GapElement(parent, obj).IntChar().sage()
+            return make_GapElement_String(parent, make_gap_string(chr(ch)))
+        result = make_GapElement(parent, obj)
+        if num == T_POSOBJ:
+            if result.IsZmodnZObj():
+                return make_GapElement_IntegerMod(parent, obj)
+        if num == T_COMOBJ:
+            if result.IsRing():
+                return make_GapElement_Ring(parent, obj)
+        return result
+    finally:
+        GAP_Leave()
 
 
 ############################################################################
@@ -800,16 +819,15 @@ cdef class GapElement(RingElement):
         if self._compare_by_id:
             return id(self) == id(other)
         cdef GapElement c_other = <GapElement>other
-        cdef bint result
         sig_on()
         try:
-            GAP_Error_Setjmp()
-            result = EQ(self.value, c_other.value)
+            GAP_Enter()
+            return EQ(self.value, c_other.value)
         except RuntimeError as msg:
             raise ValueError('libGAP: cannot compare equality: '+str(msg))
         finally:
+            GAP_Leave()
             sig_off()
-        return result
 
     cdef bint _compare_less(self, Element other) except -2:
         """
@@ -824,17 +842,16 @@ cdef class GapElement(RingElement):
         """
         if self._compare_by_id:
             return id(self) < id(other)
-        cdef bint result
         cdef GapElement c_other = <GapElement>other
         sig_on()
         try:
-            GAP_Error_Setjmp()
-            result = LT(self.value, c_other.value)
+            GAP_Enter()
+            return LT(self.value, c_other.value)
         except RuntimeError as msg:
             raise ValueError('libGAP: cannot compare less than: '+str(msg))
         finally:
+            GAP_Leave()
             sig_off()
-        return result
 
     cpdef _add_(self, right):
         r"""
@@ -858,13 +875,14 @@ cdef class GapElement(RingElement):
         cdef Obj result
         sig_on()
         try:
-            GAP_Error_Setjmp()
+            GAP_Enter()
             result = SUM(self.value, (<GapElement>right).value)
+            return make_any_gap_element(self.parent(), result)
         except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg))
         finally:
+            GAP_Leave()
             sig_off()
-        return make_any_gap_element(self.parent(), result)
 
 
     cpdef _sub_(self, right):
@@ -889,13 +907,14 @@ cdef class GapElement(RingElement):
         cdef Obj result
         sig_on()
         try:
-            GAP_Error_Setjmp()
+            GAP_Enter()
             result = DIFF(self.value, (<GapElement>right).value)
+            return make_any_gap_element(self.parent(), result)
         except RuntimeError as msg:
             raise ValueError('libGAP: {}'.format(msg))
         finally:
+            GAP_Leave()
             sig_off()
-        return make_any_gap_element(self.parent(), result)
 
 
     cpdef _mul_(self, right):
@@ -920,13 +939,14 @@ cdef class GapElement(RingElement):
         cdef Obj result
         sig_on()
         try:
-            GAP_Error_Setjmp()
+            GAP_Enter()
             result = PROD(self.value, (<GapElement>right).value)
+            return make_any_gap_element(self.parent(), result)
         except RuntimeError as msg:
             raise ValueError('libGAP: {}'.format(msg))
         finally:
+            GAP_Leave()
             sig_off()
-        return make_any_gap_element(self.parent(), result)
 
 
     cpdef _div_(self, right):
@@ -956,13 +976,14 @@ cdef class GapElement(RingElement):
         cdef Obj result
         sig_on()
         try:
-            GAP_Error_Setjmp()
+            GAP_Enter()
             result = QUO(self.value, (<GapElement>right).value)
+            return make_any_gap_element(self.parent(), result)
         except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg))
         finally:
+            GAP_Leave()
             sig_off()
-        return make_any_gap_element(self.parent(), result)
 
     cpdef _mod_(self, right):
         r"""
@@ -984,13 +1005,14 @@ cdef class GapElement(RingElement):
         cdef Obj result
         sig_on()
         try:
-            GAP_Error_Setjmp()
+            GAP_Enter()
             result = MOD(self.value, (<GapElement>right).value)
+            return make_any_gap_element(self.parent(), result)
         except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg))
         finally:
+            GAP_Leave()
             sig_off()
-        return make_any_gap_element(self.parent(), result)
 
 
     def __pow__(GapElement self, right, dummy):
@@ -1022,13 +1044,14 @@ cdef class GapElement(RingElement):
         cdef Obj result
         sig_on()
         try:
-            GAP_Error_Setjmp()
+            GAP_Enter()
             result = POW(self.value, (<GapElement>right).value)
+            return make_any_gap_element(self.parent(), result)
         except RuntimeError as msg:
             raise ValueError('libGAP: ' + str(msg))
         finally:
+            GAP_Leave()
             sig_off()
-        return make_any_gap_element(self.parent(), result)
 
 
     def is_function(self):
@@ -2287,7 +2310,7 @@ cdef class GapElement_Function(GapElement):
 
         sig_on()
         try:
-            GAP_Error_Setjmp()
+            GAP_Enter()
             if n == 0:
                 result = CALL_0ARGS(self.value)
             elif n == 1:
@@ -2325,26 +2348,19 @@ cdef class GapElement_Function(GapElement):
                                            (<GapElement>a[5]).value)
             elif n >= 7:
                 arg_list = make_gap_list(args)
-                # TODO: Have to reset GAP_Error_Setjmp here since make_gap_list
-                # would have reset it creating bugs; we need to rethink
-                # GAP_Error_Setjmp in such a way that it can be nested properly
-                # I wonder if we could take advantage of cysignals for this
-                # after all; e.g. if there were a way to copy cysignals' longjmp
-                # buffer to GAP's STATE(ReadJmpError), or vice-versa (e.g. an
-                # alternative to sig_on() that allows providing an alternate buffer
-                # to cysigs.env)
-                GAP_Error_Setjmp()
                 result = CALL_XARGS(self.value, arg_list)
+
+            if result == NULL:
+                # We called a procedure that does not return anything
+                return None
+
+            return make_any_gap_element(self.parent(), result)
         except RuntimeError as msg:
             raise ValueError('libGAP: ' + str(msg))
         finally:
+            GAP_Leave()
             sig_off()
 
-        if result == NULL:
-            # We called a procedure that does not return anything
-            return None
-
-        return make_any_gap_element(self.parent(), result)
 
 
     def _instancedoc_(self):
@@ -2975,13 +2991,16 @@ cdef class GapElement_Record(GapElement):
         """
         cdef UInt i = self.record_name_to_index(name)
         cdef Obj result
+        sig_on()
         try:
-            sig_on()
+            GAP_Enter()
             result = ELM_REC(self.value, i)
-            sig_off()
+            return make_any_gap_element(self.parent(), result)
         except RuntimeError as msg:
             raise IndexError('libGAP: ' + str(msg))
-        return make_any_gap_element(self.parent(), result)
+        finally:
+            GAP_Leave()
+            sig_off()
 
 
     def sage(self):

@@ -17568,7 +17568,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def union(self, other, immutable=None):
         """
-        Return the union of ``self`` and ``other``.
+        Returns the union of self and other.
 
         If the graphs have common vertices, the common vertices will be
         identified.
@@ -17583,9 +17583,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``immutable`` -- boolean (default: ``None``); whether to create a
-          mutable/immutable union. ``immutable=None`` (default) means that the
-          graphs and their union will behave the same way.
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+          union. ``immutable=None`` (default) means that the graphs and their
+          union will behave the same way.
 
         .. SEEALSO::
 
@@ -17609,20 +17609,20 @@ class GenericGraph(GenericGraph_pyx):
         Multiple edges and loops (:trac:`15627`)::
 
             sage: g = Graph(multiedges=True, loops=True)
-            sage: g.add_edges(graphs.PetersenGraph().edges(sort=False))
-            sage: g.add_edges(graphs.PetersenGraph().edges(sort=False))
-            sage: g.add_edge(0, 0)
-            sage: g.add_edge(0, 0, "Hey")
-            sage: g.add_edge(0, 9)
-            sage: g.add_edge(0, 9)
-            sage: g.add_edge(0, 9)
-            sage: (2 * g.size()) == (2 * g).size()
+            sage: g.add_edges(graphs.PetersenGraph().edges())
+            sage: g.add_edges(graphs.PetersenGraph().edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(0,0,"Hey")
+            sage: g.add_edge(0,9)
+            sage: g.add_edge(0,9)
+            sage: g.add_edge(0,9)
+            sage: (2*g.size()) == (2*g).size()
             True
 
         Immutable input ? Immutable output (:trac:`15627`)::
 
             sage: g = g.copy(immutable=True)
-            sage: (2 * g)._backend
+            sage: (2*g)._backend
             <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
 
         Check that weighted is appropriately inherited (:trac:`23843`)::
@@ -17654,10 +17654,10 @@ class GenericGraph(GenericGraph_pyx):
         else:
             from sage.graphs.all import Graph
             G = Graph(multiedges=multiedges, loops=loops, weighted=weighted)
-        G.add_vertices(self)
-        G.add_vertices(other)
-        G.add_edges(self.edge_iterator())
-        G.add_edges(other.edge_iterator())
+        G.add_vertices(self.vertices())
+        G.add_vertices(other.vertices())
+        G.add_edges(self.edges())
+        G.add_edges(other.edges())
 
         if immutable is None:
             immutable = self.is_immutable() and other.is_immutable()

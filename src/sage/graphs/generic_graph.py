@@ -22013,10 +22013,10 @@ class GenericGraph(GenericGraph_pyx):
                 relabeling2_inv = {}
                 for x in relabeling2:
                     relabeling2_inv[relabeling2[x]] = x
-                for v in self.vertices():
+                for v in self:
                     isom_trans[v] = relabeling2_inv[other_vertices[isom[G_to[relabeling[v]]]]]
             else:
-                for v in self.vertices():
+                for v in self:
                     isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 

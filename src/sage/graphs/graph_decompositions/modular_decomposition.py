@@ -52,7 +52,7 @@ class NodeType(Enum):
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition import *
             sage: str(NodeType.PARALLEL)
-            PARALLEL
+            'PARALLEL'
         """
         return self.name
 
@@ -64,7 +64,7 @@ class NodeType(Enum):
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition import *
             sage: repr(NodeType.PARALLEL)
-            PARALLEL
+            'PARALLEL'
         """
         return self.name
 
@@ -256,7 +256,7 @@ class Node:
             sage: n.children.append(create_normal_node(1))
             sage: n.children.append(create_normal_node(2))
             sage: str(n)
-            PRIME [NORMAL [1], NORMAL [2]]
+            'PRIME [NORMAL [1], NORMAL [2]]'
         """
         if self.node_type == NodeType.SERIES:
             s = "SERIES "
@@ -283,7 +283,7 @@ class Node:
             sage: n.children.append(create_normal_node(1))
             sage: n.children.append(create_normal_node(2))
             sage: repr(n)
-            PRIME [NORMAL [1], NORMAL [2]]
+            'PRIME [NORMAL [1], NORMAL [2]]'
         """
         return self.__str__()
 

@@ -191,6 +191,23 @@ def gap_root():
 cdef bint _gap_is_initialized = False
 cdef extern char **environ
 
+
+cdef char* _reset_error_output_cmd = """\
+libgap_errout := "";
+MakeReadWriteGlobal("ERROR_OUTPUT");
+ERROR_OUTPUT := OutputTextString(libgap_errout, false);
+MakeReadOnlyGlobal("ERROR_OUTPUT");
+"""
+
+cdef char* _close_error_output_cmd = """\
+CloseStream(ERROR_OUTPUT);
+MakeReadWriteGlobal("ERROR_OUTPUT");
+ERROR_OUTPUT := "*errout*";
+MakeReadOnlyGlobal("ERROR_OUTPUT");
+MakeImmutable(libgap_errout);
+"""
+
+
 cdef initialize():
     """
     Initialize the GAP library, if it hasn't already been
@@ -258,8 +275,7 @@ cdef initialize():
 
     # Set the ERROR_OUTPUT global in GAP to an output stream in which to
     # receive error output
-    GAP_EvalString('libgap_errout := ""; '
-                   'ERROR_OUTPUT := OutputTextString(libgap_errout, false);')
+    GAP_EvalString(_reset_error_output_cmd)
 
     # Prepare global GAP variable to hold temporary GAP objects
     global reference_holder

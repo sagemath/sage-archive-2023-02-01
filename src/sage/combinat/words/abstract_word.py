@@ -124,8 +124,8 @@ class Word_class(SageObject):
         """
         global word_options
         l = word_options['truncate_length']
-        letters = list(islice(self, l+1))
-        if len(letters) == l+1:
+        letters = list(islice(self, int(l + 1)))
+        if len(letters) == l + 1:
             letters.pop()
             suffix = "..."
         else:
@@ -310,8 +310,6 @@ class Word_class(SageObject):
 
             sage: Words([0,1,2])([0,1,0,1]) ==  Words([0,1])([0,1,0,1])
             True
-            sage: Words('abc')('abab') == Words([0,9])([0,0,9])
-            False
             sage: Word('ababa') == Words('abcd')('ababa')
             True
 
@@ -1373,17 +1371,25 @@ class Word_class(SageObject):
         if mod in (None, 0):
             i = iter(self)
             j = iter(self)
-            next(j)
-            while True:
-                yield next(j) - next(i)
+
+            try:
+                next(j)
+                while True:
+                    yield next(j) - next(i)
+            except StopIteration:
+                return
 
         elif mod in ZZ:
             Zn = Integers(mod)
             i = iter(self)
             j = iter(self)
-            next(j)
-            while True:
-                yield Zn(next(j) - next(i))
+
+            try:
+                next(j)
+                while True:
+                    yield Zn(next(j) - next(i))
+            except StopIteration:
+                return
 
         else:
             raise TypeError('mod(=%s) must be None or an integer'%mod)
@@ -1620,11 +1626,14 @@ class Word_class(SageObject):
             word: 011010010110
         """
         it = self.factor_occurrences_iterator(fact)
-        i = next(it)
-        while True:
-            j = next(it)
-            yield self[i:j]
-            i = j
+        try:
+            i = next(it)
+            while True:
+                j = next(it)
+                yield self[i:j]
+                i = j
+        except StopIteration:
+            return
 
     def complete_return_words_iterator(self, fact):
         r"""
@@ -1668,9 +1677,12 @@ class Word_class(SageObject):
         """
         it = self.factor_occurrences_iterator(fact)
         L = fact.length()
-        i = next(it)
-        while True:
-            j = next(it)
-            yield self[i:j+L]
-            i = j
+        try:
+            i = next(it)
+            while True:
+                j = next(it)
+                yield self[i:j+L]
+                i = j
+        except StopIteration:
+            return
 

@@ -171,7 +171,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: c = -3*t2^4-4*t1*t2^3+8*t1^2*t2^2+16*t1^3-t2-48*t1^4
             sage: C = Conic([a,b,c])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             NotImplementedError: is_square() not implemented for elements of
@@ -191,7 +190,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: K = R.fraction_field()
             sage: C = Conic(K, [u, v, 1])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             NotImplementedError: has_rational_point not implemented for conics
@@ -205,7 +203,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: K.<t> = PolynomialRing(GF(7))
             sage: C = Conic([5*t^2+4, t^2+3*t+3, 6*t^2+3*t+2, 5*t^2+5, 4*t+3, 4*t^2+t+5])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             TypeError: self (=Scheme morphism:

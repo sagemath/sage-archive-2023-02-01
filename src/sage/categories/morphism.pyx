@@ -398,7 +398,10 @@ cdef class Morphism(Map):
         try:
             return self._is_nonzero()
         except Exception:
-            return super(Morphism, self).__nonzero__()
+            if PY_MAJOR_VERSION < 3:
+                return super(Morphism, self).__nonzero__()
+            else:
+                return super().__bool__()
 
 
 cdef class FormalCoercionMorphism(Morphism):

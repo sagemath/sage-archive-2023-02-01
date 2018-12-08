@@ -1,6 +1,12 @@
 r"""
 Interface to polymake
 
+polymake (https://polymake.org) is a mature open source package for
+research in polyhedral geometry and related fields, developed since 1997
+by Ewgenij Gawrilow and Michael Joswig and various contributors.
+
+polymake has been described in [GJ1997]_, [GJ2006]_, [JMP2009]_, [GJRW2010]_,
+[GHJ2016]_, and [AGHJLPR2017]_.
 """
 
 
@@ -105,12 +111,12 @@ class Polymake(ExtraTabCompletion, Expect):
 
     In order to use this interface, you need to either install the
     optional polymake package for Sage, or install polymake system-wide
-    on your computer.
+    on your computer; it is available from https://polymake.org.
 
     Type ``polymake.[tab]`` for a list of most functions
     available from your polymake install. Type
-    ``polymake.Function?`` for polymake's help about a given ``Function``
-    Type ``polymake(...)`` to create a new Magma
+    ``polymake.Function?`` for polymake's help about a given ``Function``.
+    Type ``polymake(...)`` to create a new polymake
     object, and ``polymake.eval(...)`` to run a string using
     polymake and get the result back as a string.
 

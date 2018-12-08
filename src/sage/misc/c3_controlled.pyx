@@ -70,12 +70,17 @@ algorithm easily fails if the order of the bases is not chosen
 consistently (here for ``A2`` w.r.t. ``A1``)::
 
     sage: class B6(A1,A2): pass
-    sage: class B7(B6,A5): pass
+    sage: class B7(B6,A5): pass  # py2
     Traceback (most recent call last):
     ...
     TypeError: Error when calling the metaclass bases
         Cannot create a consistent method resolution
     order (MRO) for bases ...
+    sage: class B7(B6,A5): pass  # py3
+    Traceback (most recent call last):
+    ...
+    TypeError: Cannot create a consistent method resolution
+    order (MRO) for bases A1, A2
 
 There actually exist hierarchies of classes for which ``C3`` fails
 whatever order of the bases is chosen; the smallest such example,
@@ -292,7 +297,7 @@ Depending on the linear extension `l` it was necessary to add between
 one and five bases for control; for example, `216` linear extensions
 required the addition of four bases::
 
-    sage: Word(stats).evaluation_sparse()
+    sage: sorted(Word(stats).evaluation_sparse())
     [(1, 36), (2, 108), (3, 180), (4, 216), (5, 180)]
 
 We now consider a hierarchy of categories::

@@ -259,7 +259,7 @@ Classes and functions
 ---------------------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
@@ -267,8 +267,8 @@ Classes and functions
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
 
@@ -1186,18 +1186,18 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def __contains__(self, x):
         r"""
-        Returns True if x is an element of the poset.
+        Return ``True`` if ``x`` is an element of the poset.
 
         TESTS::
 
             sage: from sage.combinat.posets.posets import FinitePoset
-            sage: P5 = FinitePoset(DiGraph({(5,):[(4,1),(3,2)], \
-                    (4,1):[(3,1,1),(2,2,1)], \
-                    (3,2):[(3,1,1),(2,2,1)], \
-                    (3,1,1):[(2,1,1,1)], \
-                    (2,2,1):[(2,1,1,1)], \
-                    (2,1,1,1):[(1,1,1,1,1)], \
-                    (1,1,1,1,1):[]}))
+            sage: P5 = FinitePoset(DiGraph({(5,):[(4,1),(3,2)],
+            ....:   (4,1):[(3,1,1),(2,2,1)],
+            ....:   (3,2):[(3,1,1),(2,2,1)],
+            ....:   (3,1,1):[(2,1,1,1)],
+            ....:   (2,2,1):[(2,1,1,1)],
+            ....:   (2,1,1,1):[(1,1,1,1,1)],
+            ....:   (1,1,1,1,1):[]}))
             sage: x = P5.list()[3]
             sage: x in P5
             True
@@ -1340,17 +1340,17 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
-        Returns a string representation of the poset.
+        Return a string representation of the poset.
 
         TESTS::
 
-            sage: partitions_of_five = {(5,):[(4,1),(3,2)], \
-                    (4,1):[(3,1,1),(2,2,1)], \
-                    (3,2):[(3,1,1),(2,2,1)], \
-                    (3,1,1):[(2,1,1,1)], \
-                    (2,2,1):[(2,1,1,1)], \
-                    (2,1,1,1):[(1,1,1,1,1)], \
-                    (1,1,1,1,1):[]}
+            sage: partitions_of_five = {(5,):[(4,1),(3,2)],
+            ....:   (4,1):[(3,1,1),(2,2,1)],
+            ....:   (3,2):[(3,1,1),(2,2,1)],
+            ....:   (3,1,1):[(2,1,1,1)],
+            ....:   (2,2,1):[(2,1,1,1)],
+            ....:   (2,1,1,1):[(1,1,1,1,1)],
+            ....:   (1,1,1,1,1):[]}
             sage: P5 = Poset(partitions_of_five)
             sage: P5._repr_()
             'Finite poset containing 7 elements'
@@ -3590,7 +3590,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def moebius_function(self,x,y):
         r"""
-        Returns the value of the Möbius function of the poset on the
+        Return the value of the Möbius function of the poset on the
         elements x and y.
 
         EXAMPLES::
@@ -3598,10 +3598,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
             sage: P.moebius_function(P(0),P(4))
             2
-            sage: sum([P.moebius_function(P(0),v) for v in P])
+            sage: sum(P.moebius_function(P(0),v) for v in P)
             0
-            sage: sum([abs(P.moebius_function(P(0),v)) \
-            ....:      for v in P])
+            sage: sum(abs(P.moebius_function(P(0),v))
+            ....:     for v in P)
             6
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
@@ -4157,7 +4157,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: it = posets.PentagonPoset().antichains_iterator(); it
-            <generator object antichains_iterator at ...>
+            <generator object ...antichains_iterator at ...>
             sage: next(it), next(it)
             ([], [4])
 
@@ -4699,7 +4699,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite poset containing 4 elements
             sage: sorted(P.cover_relations())
             [[(0, 'a'), (0, 'b')], [(1, 'c'), (1, 'd')]]
-            sage: P = P1.disjoint_union(P2, labels='integers');
+            sage: P = P1.disjoint_union(P2, labels='integers')
             sage: P.cover_relations()
             [[2, 3], [0, 1]]
 
@@ -6266,7 +6266,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
             sage: P.maximal_antichains()
-            [['a'], ['b', 'c'], ['c', 'd', 'e']]
+            [['a'], ['c', 'b'], ['c', 'e', 'd']]
 
             sage: posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]
@@ -6511,7 +6511,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         R = PolynomialRing(QQ, 'q')
         q = R.gen()
-        g = R.sum(q**len(ch) for ch in self._hasse_diagram.chains())
+
+        g = self.chain_polynomial()
         n = g.degree()
         f = R(g[max(n, 1)])
         while n > 1:
@@ -6559,14 +6560,25 @@ class FinitePoset(UniqueRepresentation, Parent):
             1
         """
         q = polygen(ZZ, 'q')
+        one = q.parent().one()
         hasse = self._hasse_diagram
         if len(hasse) == 1:
-            return q.parent().one()
+            return one
         maxi = hasse.top()
         mini = hasse.bottom()
-        if (mini is None) or (maxi is None):
+        if mini is None or maxi is None:
             raise ValueError("the poset is not bounded")
-        return sum(q**(len(ch)+1) for ch in hasse.chains(exclude=[mini, maxi]))
+
+        hasse_size = hasse.cardinality()
+        chain_polys = [0] * hasse_size
+        # chain_polys[i] will be the generating function for the
+        # chains with topmost vertex i (in the labelling of the
+        # Hasse diagram).
+        for i in range(1, hasse_size - 1):
+            chain_polys[i] = q + sum(q * chain_polys[j]
+                                     for j in hasse.principal_order_ideal(i)
+                                     if j)
+        return q + q * sum(chain_polys)
 
     def h_polynomial(self):
         r"""
@@ -6834,6 +6846,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             in [St1986]_. The latter is identical with the order
             polynomial in SageMath (:meth:`order_polynomial`).
 
+        .. SEEALSO:: :meth:`f_polynomial`, :meth:`order_polynomial`
+
         EXAMPLES::
 
             sage: P = posets.ChainPoset(3)
@@ -6866,12 +6880,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         q = polygen(ZZ, 'q')
         one = q.parent().one()
         hasse_size = hasse.cardinality()
-        chain_polys = [0]*hasse_size
+        chain_polys = [0] * hasse_size
         # chain_polys[i] will be the generating function for the
         # chains with topmost vertex i (in the labelling of the
         # Hasse diagram).
         for i in range(hasse_size):
-            chain_polys[i] = q + sum(q*chain_polys[j]
+            chain_polys[i] = q + sum(q * chain_polys[j]
                                      for j in hasse.principal_order_ideal(i))
         return one + sum(chain_polys)
 
@@ -7433,7 +7447,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: ps = [[16,12,14,-13],[[12,14],[14,-13],[12,16],[16,-13]]]
             sage: G, e = Poset(ps).frank_network()
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [((-1, 0), (0, -13), None), ((-1, 0), (0, 12), None), ((-1, 0), (0, 14), None), ((-1, 0), (0, 16), None), ((0, -13), (1, -13), None), ((0, -13), (1, 12), None), ((0, -13), (1, 14), None), ((0, -13), (1, 16), None), ((0, 12), (1, 12), None), ((0, 14), (1, 12), None), ((0, 14), (1, 14), None), ((0, 16), (1, 12), None), ((0, 16), (1, 16), None), ((1, -13), (2, 0), None), ((1, 12), (2, 0), None), ((1, 14), (2, 0), None), ((1, 16), (2, 0), None)]
             sage: e
             {((-1, 0), (0, -13)): 0,
@@ -7688,7 +7702,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.AntichainPoset(3)
             sage: Pc = P.cuts()
             sage: [list(c) for c in Pc]
-            [[0], [0, 1, 2], [], [1], [2]]
+            [[0], [], [0, 1, 2], [2], [1]]
             sage: Pc[0]
             frozenset({0})
 

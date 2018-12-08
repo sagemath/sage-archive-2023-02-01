@@ -18,8 +18,8 @@ from six import integer_types
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
-    ('gamma', 'log_gamma', 'gamma_inc', 'incomplete_gamma',
-      'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
+            ('gamma', 'log_gamma', 'gamma_inc',
+             'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -28,7 +28,6 @@ from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
-from sage.misc.decorators import rename_keyword
 import math
 
 from sage.structure.element import coercion_model
@@ -130,7 +129,6 @@ class Function_abs(GinacFunction):
 abs = abs_symbolic = Function_abs()
 
 
-@rename_keyword(deprecation=22079, maximum_bits="bits")
 def _eval_floor_ceil(self, x, method, bits=0, **kwds):
     """
     Helper function to compute ``floor(x)`` or ``ceil(x)``.
@@ -170,7 +168,7 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         sage: ceil(f, bits=10000)
         0
 
-    These don't work but fail gracefully::
+    These do not work but fail gracefully::
 
         sage: ceil(Infinity)
         Traceback (most recent call last):
@@ -180,13 +178,6 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         Traceback (most recent call last):
         ...
         ValueError: Calling ceil() on infinity or NaN
-
-    TESTS::
-
-        sage: floor(pi, maximum_bits=0)
-        doctest:...: DeprecationWarning: use the option 'bits' instead of 'maximum_bits'
-        See http://trac.sagemath.org/22079 for details.
-        3
     """
     # First, some obvious things...
     try:
@@ -389,7 +380,7 @@ class Function_ceil(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: ceil(a)
-            array([ 0.,  1.,  1.,  2.,  2.,  2.])
+            array([0., 1., 1., 2., 2., 2.])
 
         Test pickling::
 
@@ -553,7 +544,7 @@ class Function_floor(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: floor(a)
-            array([ 0.,  0.,  0.,  1.,  1.,  2.])
+            array([0., 0., 0., 1., 1., 2.])
             sage: floor(x)._sympy_()
             floor(x)
 
@@ -869,7 +860,7 @@ def sqrt(x, *args, **kwds):
             sage: import numpy
             sage: a = numpy.arange(2,5)
             sage: sqrt(a)
-            array([ 1.41421356,  1.73205081,  2.        ])
+            array([1.41421356, 1.73205081, 2.        ])
         """
         if isinstance(x, float):
             return math.sqrt(x)
@@ -1941,10 +1932,14 @@ class Function_cases(GinacFunction):
 
         TESTS::
 
-            sage: cases()
+            sage: cases()  # py2
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
+            sage: cases()  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() missing 1 required positional argument: 'l'
 
             sage: cases(x)
             Traceback (most recent call last):

@@ -246,16 +246,14 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
     def __hash__(self):
         """
-        Computes the hash value of this point.
+        Compute the hash value of this point.
 
         OUTPUT: Integer.
 
         EXAMPLES::
 
             sage: PP = ProductProjectiveSpaces(Zmod(6), [1, 1])
-            sage: hash(PP([5, 1, 2, 4]))
-            1266382469                            # 32-bit
-            -855399699883264379                   # 64-bit
+            sage: H = hash(PP([5, 1, 2, 4]))
 
         ::
 

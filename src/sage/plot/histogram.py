@@ -53,10 +53,17 @@ class Histogram(GraphicPrimitive):
         """
         import numpy as np
         self.datalist=np.asarray(datalist,dtype=float)
+        if 'normed' in options:
+            from sage.misc.superseded import deprecation
+            deprecation(25260, "the 'normed' option is deprecated. Use 'density' instead.")
         if 'linestyle' in options:
             from sage.plot.misc import get_matplotlib_linestyle
             options['linestyle'] = get_matplotlib_linestyle(
                     options['linestyle'], return_type='long')
+        if options.get('range', None):
+            # numpy.histogram performs type checks on "range" so this must be
+            # actual floats
+            options['range'] = [float(x) for x in options['range']]
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
@@ -80,10 +87,14 @@ class Histogram(GraphicPrimitive):
             {'xmax': 4.0, 'xmin': 0, 'ymax': 2, 'ymin': 0}
 
         TESTS::
-
             sage: h = histogram([10,3,5], normed=True)[0]
-            sage: h.get_minmax_data()  # rel tol 1e-15
-            {'xmax': 10.0, 'xmin': 3.0, 'ymax': 0.4761904761904765, 'ymin': 0}
+            doctest:warning...:
+            DeprecationWarning: the 'normed' option is deprecated. Use 'density' instead.
+            See https://trac.sagemath.org/25260 for details.
+            sage: h.get_minmax_data()
+            doctest:warning ...:
+            VisibleDeprecationWarning: Passing `normed=True` on non-uniform bins has always been broken, and computes neither the probability density function nor the probability mass function. The result is only correct if the bins are uniform, when density=True will produce the same result anyway. The argument will be removed in a future version of numpy.
+            {'xmax': 10.0, 'xmin': 3.0, 'ymax': 0.476190476190..., 'ymin': 0}
         """
         import numpy
 
@@ -152,7 +163,7 @@ class Histogram(GraphicPrimitive):
                 'rwidth': 'The relative width of the bars as a fraction of the bin width',
                 'cumulative': '(True or False) If True, then a histogram is computed in which each bin gives the counts in that bin plus all bins for smaller values.  Negative values give a reversed direction of accumulation.',
                 'range': 'A list [min, max] which define the range of the histogram. Values outside of this range are treated as outliers and omitted from counts.',
-                'normed': 'Deprecated alias for density',
+                'normed': 'Deprecated. Use density instead.',
                 'density': '(True or False) If True, the counts are normalized to form a probability density. (n/(len(x)*dbin)',
                 'weights': 'A sequence of weights the same length as the data list. If supplied, then each value contributes its associated weight to the bin count.',
                 'stacked': '(True or False) If True, multiple data are stacked on top of each other.',
@@ -199,7 +210,7 @@ class Histogram(GraphicPrimitive):
             subplot.hist(self.datalist.transpose(), **options)
 
 
-@options(aspect_ratio='automatic',align='mid', weights=None, range=None, bins=10, edgecolor='black')
+@options(aspect_ratio='automatic', align='mid', weights=None, range=None, bins=10, edgecolor='black')
 def histogram(datalist, **options):
     """
     Computes and draws the histogram for list(s) of numerical data.
@@ -231,8 +242,9 @@ def histogram(datalist, **options):
     - ``linewidth`` -- (float) width of the lines defining the bars
     - ``linestyle`` -- (default: 'solid') Style of the line. One of 'solid'
       or '-', 'dashed' or '--', 'dotted' or ':', 'dashdot' or '-.'
-    - ``density`` -- (boolean - default: False) If True, the counts are
-      normalized to form a probability density.
+    - ``density`` -- (boolean - default: False) If True, the result is the
+      value of the probability density function at the bin, normalized such
+      that the integral over the range is 1.
     - ``range`` -- A list [min, max] which define the range of the
       histogram. Values outside of this range are treated as outliers and
       omitted from counts

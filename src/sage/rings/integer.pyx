@@ -1800,8 +1800,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             [0, 0, 0, 0, 0, 0, 0, 0]
             sage: 'hi' * 8
             'hihihihihihihihi'
+            sage: b'hi' * 8 == b'hihihihihihihihi'
+            True
         """
-        if isinstance(s, (list, tuple, basestring)):
+        if isinstance(s, (list, tuple, basestring, bytes)):
             if mpz_fits_slong_p(self.value):
                 return s * mpz_get_si(self.value)
             else:
@@ -1926,7 +1928,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                        mpq_denref((<Rational>right).value))
             return y
 
-        return coercion_model.bin_op(left, right, operator.div)
+        return coercion_model.bin_op(left, right, operator.truediv)
 
     cpdef _div_(self, right):
         r"""
@@ -6025,9 +6027,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-        -  ``prec`` - integer (default: None): if None, returns
-           an exact square root; otherwise returns a numerical square root if
-           necessary, to the given bits of precision.
+        -  ``prec`` - integer (default: None): if None, return an exact
+           square root; otherwise return a numerical square root, to the
+           given bits of precision.
 
         -  ``extend`` - bool (default: True); if True, return a
            square root in an extension ring, if necessary. Otherwise, raise a
@@ -6035,7 +6037,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            is not None.
 
         -  ``all`` - bool (default: False); if True, return all
-           square roots of self, instead of just one.
+           square roots of self (a list of length 0, 1 or 2).
 
         EXAMPLES::
 
@@ -6060,56 +6062,62 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.sqrt(extend=False)
             Traceback (most recent call last):
             ...
-            ValueError: square root of 2 not an integer
+            ArithmeticError: square root of 2 is not an integer
+            sage: (-1).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: square root of -1 is not an integer
             sage: Integer(144).sqrt(all=True)
             [12, -12]
             sage: Integer(0).sqrt(all=True)
             [0]
-            sage: type(Integer(5).sqrt())
+
+        TESTS::
+
+            sage: type(5.sqrt())
             <type 'sage.symbolic.expression.Expression'>
-            sage: type(Integer(5).sqrt(prec=53))
+            sage: type(5.sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
-            sage: type(Integer(-5).sqrt(prec=53))
+            sage: type((-5).sqrt(prec=53))
             <type 'sage.rings.complex_number.ComplexNumber'>
+            sage: type(0.sqrt(prec=53))
+            <type 'sage.rings.real_mpfr.RealNumber'>
 
-        TESTS:
-
-        Check that :trac:`9466` is fixed::
+        Check that :trac:`9466` and :trac:`26509` are fixed::
 
             sage: 3.sqrt(extend=False, all=True)
             []
+            sage: (-1).sqrt(extend=False, all=True)
+            []
         """
+        if prec is not None:
+            from sage.functions.other import _do_sqrt
+            return _do_sqrt(self, prec=prec, all=all)
+
         if mpz_sgn(self.value) == 0:
             return [self] if all else self
 
-        if mpz_sgn(self.value) < 0:
-            if not extend:
-                raise ValueError("square root of negative number not an integer")
-            from sage.functions.other import _do_sqrt
-            return _do_sqrt(self, prec=prec, all=all)
-
-        cdef int non_square
-        cdef Integer z = PY_NEW(Integer)
+        cdef bint is_square
+        cdef Integer z
         cdef mpz_t tmp
-        sig_on()
-        mpz_init(tmp)
-        mpz_sqrtrem(z.value, tmp, self.value)
-        non_square = mpz_sgn(tmp) != 0
-        mpz_clear(tmp)
-        sig_off()
+        if mpz_sgn(self.value) < 0:
+            is_square = False
+        else:
+            sig_on()
+            mpz_init(tmp)
+            z = PY_NEW(Integer)
+            mpz_sqrtrem(z.value, tmp, self.value)
+            is_square = (mpz_sgn(tmp) == 0)
+            mpz_clear(tmp)
+            sig_off()
 
-        if non_square:
-            if not extend:
-                if not all:
-                   raise ValueError("square root of %s not an integer" % self)
-                else:
-                    return []
-            from sage.functions.other import _do_sqrt
-            return _do_sqrt(self, prec=prec, all=all)
-
-        if prec:
-            from sage.functions.other import _do_sqrt
-            return _do_sqrt(self, prec=prec, all=all)
+        if not is_square:
+            if extend:
+                from sage.functions.other import _do_sqrt
+                return _do_sqrt(self, all=all)
+            if all:
+                return []
+            raise ArithmeticError(f"square root of {self} is not an integer")
 
         if all:
            return [z, -z]
@@ -6950,8 +6958,6 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         from sage.misc.superseded import deprecation
         deprecation(17413, "use 0o as octal prefix instead of 0\nIf you do not want this number to be interpreted as octal, remove the leading zeros.")
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.functions', 'LCM_list', deprecation=22630)
 
 def GCD_list(v):
     r"""

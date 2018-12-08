@@ -9,16 +9,6 @@ More information can be found in [LLMS2006]_ .
 
 .. SEEALSO:: :meth:`sage.combinat.k_tableau.StrongTableau`, :meth:`sage.combinat.k_tableau.WeakTableau`
 
-REFERENCES:
-
-.. [LLMS2006] \T. Lam, L. Lapointe, J. Morse, M. Shimozono,
-   Affine insertion and Pieri rules for the affine Grassmannian,
-   Memoirs of the AMS, 208 (2010), no. 977, :arxiv:`math.CO/0609110`
-
-.. [LLMSSZ2013] \T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
-   `k`-Schur functions and affine Schubert calculus,
-   preprint :arXiv:`1301.3569`
-
 Authors:
 
 - Anne Schilling and Mike Zabrocki (2013): initial version
@@ -4161,7 +4151,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
                         yield TT
 
     @classmethod
-    def marked_given_unmarked_and_weight_iterator( cls, unmarkedT, k, weight ):
+    def marked_given_unmarked_and_weight_iterator(cls, unmarkedT, k, weight):
         r"""
         An iterator generating strong marked tableaux from an unmarked strong tableau.
 
@@ -4207,15 +4197,15 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: list(StrongTableaux.marked_given_unmarked_and_weight_iterator([], 4, weight=[]))
             [[]]
         """
-        td = StrongTableaux.cells_head_dictionary( unmarkedT )
-        if td == {}: # the tableau is empty
-            yield StrongTableau( unmarkedT, k, [] )
+        td = StrongTableaux.cells_head_dictionary(unmarkedT)
+        if td == {}:  # the tableau is empty
+            yield StrongTableau(unmarkedT, k, [])
         else:
             import itertools
             dsc = Composition(weight).descents()
-            for m in itertools.product(*td.values()):
+            for m in itertools.product(*[td[key] for key in sorted(td)]):
                 if all(((m[i][1]-m[i][0]<m[i+1][1]-m[i+1][0]) or (i in dsc)) for i in range(len(m)-1)):
-                   yield StrongTableaux.add_marking( unmarkedT, m, k, weight )
+                   yield StrongTableaux.add_marking(unmarkedT, m, k, weight)
 
     @classmethod
     def add_marking( cls, unmarkedT, marking, k, weight ):

@@ -631,9 +631,9 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             a*b*a^-1*b^2*a^-1*b^-3
             sage: y/x # indirect doctest
             b^3*a*b^-2*a*b^-1*a^-1
-            sage: x/y == x.__div__(y)
+            sage: x/y == x.__truediv__(y)
             True
-            sage: x/y == y.__div__(x)
+            sage: x/y == y.__truediv__(x)
             False
         """
         P = left.parent()

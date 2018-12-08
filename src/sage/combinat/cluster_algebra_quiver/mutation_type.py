@@ -827,7 +827,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
         sage: _connected_mutation_type_AAtildeD(Q2.digraph() )
         ['A', [2, 5], 1]
 
-        sage: Q3 = ClusterQuiver(['E',6]); Q3.mutate([5,2,1]);
+        sage: Q3 = ClusterQuiver(['E',6]); Q3.mutate([5,2,1])
         sage: _connected_mutation_type_AAtildeD(Q3.digraph(),ret_conn_vert=True)
         'unknown'
     """
@@ -1284,9 +1284,8 @@ def load_data(n):
     data_dict = dict()
     for filename in [getfilename(DOT_SAGE),getfilename(SAGE_SHARE)]:
         if os.path.isfile(filename):
-            f = open(filename,'r')
-            data_new = cPickle.load(f)
-            f.close()
+            with open(filename, 'rb') as fobj:
+                data_new = cPickle.load(fobj)
             data_dict.update(data_new)
     return data_dict
 
@@ -1301,7 +1300,7 @@ def _mutation_type_from_data( n, dig6, compute_if_necessary=True ):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _digraph_to_dig6, _dg_canonical_form
+        sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _digraph_to_dig6
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _mutation_type_from_data
         sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         sage: dg = ClusterQuiver(['F',4]).canonical_label().digraph()
@@ -1474,8 +1473,8 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
                 # while making sure that we do not mutate back
                 mut_tmp = mut
                 while mut == mut_tmp:
-                    mut = random.randint(0,dg.order()-1)
-                dg_new = _digraph_mutate( dg, mut, dg.order(), 0 )
+                    mut = random.randint(0, dg.order() - 1)
+                dg_new = _digraph_mutate(dg, mut)
                 M = _edge_list_to_matrix(dg.edges(), list(range(dg.order())), [])
                 mt_new = _connected_mutation_type( dg_new )
                 if not mt == mt_new:

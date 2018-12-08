@@ -115,6 +115,13 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
             sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
             sage: hash(G) == hash(G3)  # todo: Should be True!
             False
+
+    TESTS::
+
+        sage: G = SymmetricGroup(6)
+        sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
+        sage: G == G3
+        True
     """
     @weak_cached_function
     def __classcall__(cls, *args, **kwds):
@@ -133,21 +140,6 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
                 domain = FiniteEnumeratedSet(domain)
             kwds['domain'] = domain
         return super(PermutationGroup_unique, cls).__classcall__(cls, *args, **kwds)
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(6)
-            sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
-            sage: G == G3
-            True
-
-        .. WARNING::
-
-            The hash currently is broken for this comparison.
-        """
-        return super(CachedRepresentation, self).__eq__(other)
 
 
 class PermutationGroup_symalt(PermutationGroup_unique):
@@ -241,8 +233,9 @@ class SymmetricGroup(PermutationGroup_symalt):
         sage: G.domain()
         {1, 2, 3, 4}
         sage: G.category()
-        Join of Category of finite enumerated permutation groups
-         and Category of finite weyl groups
+        Join of Category of finite enumerated permutation groups and
+        Category of finite weyl groups and
+        Category of well generated finite irreducible complex reflection groups
 
     TESTS::
 
@@ -266,7 +259,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         #Note that we skip the call to the superclass initializer in order to
         #avoid infinite recursion since SymmetricGroup is called by
         #PermutationGroupElement
-        cat = Category.join([FinitePermutationGroups(), FiniteWeylGroups()])
+        cat = Category.join([FinitePermutationGroups(), FiniteWeylGroups().Irreducible()])
         super(PermutationGroup_generic, self).__init__(category=cat)
 
         self._domain = domain
@@ -665,7 +658,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             sage: groups.permutation.Alternating(6)
             Alternating group of order 6!/2 as a permutation group
         """
-        PermutationGroup_symalt.__init__(self, gap_group='AlternatingGroup(%s)'%len(domain), domain=domain)
+        PermutationGroup_symalt.__init__(self, gap_group='AlternatingGroup(%s)' % len(domain), domain=domain)
 
     def _repr_(self):
         """
@@ -689,7 +682,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             sage: A._gap_init_()
             'AlternatingGroup(3)'
         """
-        return 'AlternatingGroup(%s)'%(self.degree())
+        return 'AlternatingGroup(%s)' % self.degree()
 
 class CyclicPermutationGroup(PermutationGroup_unique):
     def __init__(self, n):
@@ -1044,7 +1037,7 @@ class JankoGroup(PermutationGroup_unique):
             raise ValueError("n must belong to {1,2,3}.")
         self._n = n
         gap.load_package("atlasrep")
-        id = 'AtlasGroup("J%s")'%n
+        id = 'AtlasGroup("J%s")' % n
         PermutationGroup_generic.__init__(self, gap_group=id)
 
     def _repr_(self):
@@ -1343,13 +1336,13 @@ class GeneralDihedralGroup(PermutationGroup_generic):
             # abelian group
             for i in range(1, (a//2)+1):
                 if i != a-i:
-                   genx.append(tuple((jumppoint+i, jumppoint+a-i)))
+                    genx.append(tuple((jumppoint+i, jumppoint+a-i)))
             jumppoint = jumppoint + a
         # If all of the direct factors are C2, then the action turning
         # each element into its inverse is trivial, and the
         # semi-direct product becomes a direct product, so we simply
         # tack on another disjoint transposition
-        if all(x==2 for x in simplified):
+        if all(x == 2 for x in simplified):
             genx.append(tuple((jumppoint, jumppoint+1)))
         gens.append(genx)
         PermutationGroup_generic.__init__(self, gens=gens)
@@ -1571,7 +1564,7 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
         if p == 2 and m <= 3:
             raise ValueError('if prime is 2, the exponent must be greater than 3, not %s' % m)
 
-        if p%2 == 1 and m <= 2:
+        if p % 2 == 1 and m <= 2:
             raise ValueError('if prime is odd, the exponent must be greater than 2, not %s' % m)
 
         self.p = p
@@ -1601,7 +1594,7 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
             sage: G = SplitMetacyclicGroup(7,4);G
             The split metacyclic group of order 7 ^ 4
         """
-        return 'The split metacyclic group of order %s ^ %s'%(self.p,self.m)
+        return 'The split metacyclic group of order %s ^ %s' % (self.p, self.m)
 
 class SemidihedralGroup(PermutationGroup_unique):
     def __init__(self,m):
@@ -1752,7 +1745,7 @@ class MathieuGroup(PermutationGroup_unique):
         self._n = n
         if not(n in [9, 10, 11, 12, 21, 22, 23, 24]):
             raise ValueError("argument must belong to {9, 10, 11, 12, 21, 22, 23, 24}.")
-        id = 'MathieuGroup(%s)'%n
+        id = 'MathieuGroup(%s)' % n
         PermutationGroup_generic.__init__(self, gap_group=id)
 
     def _repr_(self):
@@ -1835,7 +1828,7 @@ class TransitiveGroup(PermutationGroup_unique):
         max_n = TransitiveGroups(d).cardinality()
         if n > max_n or n <= 0:
             raise ValueError("Index n must be in {1,..,%s}" % max_n)
-        gap_group = 'Group([()])' if d in [0,1] else 'TransitiveGroup(%s,%s)'%(d,n)
+        gap_group = 'Group([()])' if d in [0, 1] else 'TransitiveGroup(%s,%s)' % (d, n)
         try:
             PermutationGroup_generic.__init__(self, gap_group=gap_group)
         except RuntimeError:
@@ -2589,7 +2582,7 @@ class PGL(PermutationGroup_plg):
             sage: groups.permutation.PGL(2, 3)
             Permutation Group with generators [(3,4), (1,2,4)]
         """
-        id = 'Group([()])' if n == 1 else 'PGL(%s,%s)'%(n,q)
+        id = 'Group([()])' if n == 1 else 'PGL(%s,%s)' % (n, q)
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)
@@ -2827,10 +2820,10 @@ class PSp(PermutationGroup_plg):
             sage: groups.permutation.PSp(2, 3)
             Permutation Group with generators [(2,3,4), (1,2)(3,4)]
         """
-        if n%2 == 1:
+        if n % 2 == 1:
             raise TypeError("The degree n must be even")
         else:
-            id = 'PSp(%s,%s)'%(n,q)
+            id = 'PSp(%s,%s)' % (n, q)
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)
@@ -2892,7 +2885,7 @@ class PSU(PermutationGroup_pug):
             sage: groups.permutation.PSU(2, 3)
             The projective special unitary group of degree 2 over Finite Field of size 3
         """
-        id = 'PSU(%s,%s)'%(n,q)
+        id = 'PSU(%s,%s)' % (n, q)
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)
@@ -2943,7 +2936,7 @@ class PGU(PermutationGroup_pug):
             sage: groups.permutation.PGU(2, 3)
             The projective general unitary group of degree 2 over Finite Field of size 3
         """
-        id = 'PGU(%s,%s)'%(n,q)
+        id = 'PGU(%s,%s)' % (n, q)
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)
@@ -3015,7 +3008,7 @@ class SuzukiGroup(PermutationGroup_unique):
         t = valuation(q, 2)
         if 2**t != q or is_even(t):
             raise ValueError("The ground field size %s must be an odd power of 2." % q)
-        id = 'SuzukiGroup(IsPermGroup,%s)'%q
+        id = 'SuzukiGroup(IsPermGroup,%s)' % q
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)

@@ -37,10 +37,13 @@ Let's request the category of some objects::
     sage: V.category()
     Category of finite dimensional vector spaces with basis
      over (number fields and quotient fields and metric spaces)
+
     sage: G = SymmetricGroup(9)
     sage: G.category()
-    Join of Category of finite enumerated permutation groups
-     and Category of finite weyl groups
+    Join of Category of finite enumerated permutation groups and
+    Category of finite weyl groups and
+    Category of well generated finite irreducible complex reflection groups
+
     sage: P = PerfectMatchings(3)
     sage: P.category()
     Category of finite enumerated sets
@@ -373,7 +376,7 @@ class Category(UniqueRepresentation, SageObject):
         <class '__main__.myparent_with_category.element_class'>
         sage: D.element_class.mro()
         [<class '__main__.myparent_with_category.element_class'>,
-        <class __main__.Element at ...>,
+        <class ...__main__....Element...>,
         <class '__main__.Ds.element_class'>,
         <class '__main__.Cs.element_class'>,
         <class '__main__.Bs.element_class'>,
@@ -907,15 +910,15 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Groups()._set_of_super_categories
-            frozenset({Category of inverse unital magmas,
-                       Category of unital magmas,
-                       Category of magmas,
-                       Category of monoids,
-                       Category of objects,
-                       Category of semigroups,
-                       Category of sets with partial maps,
-                       Category of sets})
+            sage: sorted(Groups()._set_of_super_categories, key=str)
+            [Category of inverse unital magmas,
+             Category of magmas,
+             Category of monoids,
+             Category of objects,
+             Category of semigroups,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of unital magmas]
             sage: sorted(Groups()._set_of_super_categories, key=str)
             [Category of inverse unital magmas, Category of magmas, Category of monoids,
              Category of objects, Category of semigroups, Category of sets,
@@ -1761,8 +1764,11 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Algebras(QQ).required_methods()
+            sage: Algebras(QQ).required_methods() # py2
             {'element': {'optional': ['_add_', '_mul_'], 'required': ['__nonzero__']},
+             'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
+            sage: Algebras(QQ).required_methods() # py3
+            {'element': {'optional': ['_add_', '_mul_'], 'required': ['__bool__']},
              'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
         """
         return { "parent"  : abstract_methods_of_class(self.parent_class),

@@ -14,7 +14,8 @@ from six import integer_types
 from sage.combinat.integer_vector import IntegerVectors
 from sage.crypto.boolean_function import BooleanFunction
 from sage.crypto.boolean_function cimport hamming_weight, walsh_hadamard
-from sage.matrix.constructor import Matrix
+from sage.matrix.constructor import matrix
+from sage.matrix.matrix0 cimport Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.functional import is_even
 from sage.misc.misc_c import prod as mul
@@ -595,7 +596,7 @@ cdef class SBox(SageObject):
             for di in range(nrows):
                 L[di*nrows + si ^ self._S[i ^ di]] += 1
 
-        A = Matrix(ZZ, nrows, ncols, L)
+        A = matrix(ZZ, nrows, ncols, L)
         A.set_immutable()
 
         return A
@@ -738,7 +739,7 @@ cdef class SBox(SageObject):
         cdef list L = [temp[i*nrows + j] for j in range(nrows) for i in range(ncols)]
         sig_free(temp)
 
-        A = Matrix(ZZ, nrows, ncols, L)
+        A = matrix(ZZ, nrows, ncols, L)
 
         if (scale is None) or (scale == "absolute_bias"):
             A /= 2
@@ -933,7 +934,7 @@ cdef class SBox(SageObject):
 
         cdef Py_ssize_t ncols = (1 << m) + 1
 
-        A = Matrix(P, _nterms(m + n, degree), ncols)
+        A = matrix(P, _nterms(m + n, degree), ncols)
 
         cdef list exponents = []
         cdef Py_ssize_t d
@@ -1373,13 +1374,13 @@ cdef class SBox(SageObject):
         """
         cdef Py_ssize_t m = self.m
         cdef Py_ssize_t n = self.n
-        lat = self.linear_approximation_table()
+        cdef Matrix lat = <Matrix> self.linear_approximation_table()
         cdef Py_ssize_t ret = (1 << m) + (1 << n)
 
         cdef Py_ssize_t a, b, w
         for a in range(1, 1 << m):
             for b in range(1 << n):
-                if lat[a, b] != 0:
+                if lat.get_unsafe(a, b) != 0:
                     w = hamming_weight(a) + hamming_weight(b)
                     if w < ret:
                         ret = w
@@ -1494,7 +1495,7 @@ cdef class SBox(SageObject):
                     row[i ^ j] += 1
             L.extend(row)
 
-        A = Matrix(ZZ, nrows, ncols, L)
+        A = matrix(ZZ, nrows, ncols, L)
         A.set_immutable()
 
         return A
@@ -1542,14 +1543,14 @@ cdef class SBox(SageObject):
         """
         cdef Py_ssize_t n = self.n
         cdef Py_ssize_t m = self.m
-        act = self.autocorrelation_table()
+        cdef Matrix act = <Matrix> self.autocorrelation_table()
         cdef list ret = []
 
         cdef Py_ssize_t j, i, c
         for j in range(1, 1 << n):
             for i in range(1, 1 << m):
-                if abs(act[i, j]) == (1 << m):
-                    c = ((1 - (act[i, j] >> m)) >> 1)
+                if abs(act.get_unsafe(i, j)) == (1 << m):
+                    c = ((1 - (act.get_unsafe(i, j) >> m)) >> 1)
                     ret.append((j, i, c))
         return ret
 

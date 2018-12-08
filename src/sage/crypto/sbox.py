@@ -1403,10 +1403,25 @@ class SBox(SageObject):
 
         A = Matrix(ZZ, nrows, ncols, A)
         A.set_immutable()
-
         return A
 
     boomerang_connectivity_matrix = deprecated_function_alias(25708, boomerang_connectivity_table)
+
+    def boomerang_uniformity(self):
+        """
+        Return the boomerang uniformity
+
+        The boomerang uniformity is defined as the highest entry in the
+        boomerang connectivity table, ignoring the first row and column.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.sboxes import AES
+            sage: AES.boomerang_uniformity()
+            6
+        """
+        bct = self.boomerang_connectivity_table()
+        return max(bct.delete_rows([0]).delete_columns([0]).list())
 
     def linear_structures(self):
         r"""

@@ -2249,8 +2249,8 @@ def BraidGroup(n=None, names='s'):
 
 class MappingClassGroupAction(Action):
     r"""
-    The action of the braid group the free group as the mapping class
-    group of the punctured disk.
+    The right action of the braid group the free group as the mapping
+    class group of the punctured disk.
 
     That is, this action is the action of the braid over the punctured
     disk, whose fundamental group is the free group on as many
@@ -2295,7 +2295,7 @@ class MappingClassGroupAction(Action):
         sage: A(x1^-1, s1)
         x1*x2^-1*x1^-1
     """
-    def __init__(self, G, M, is_left=0):
+    def __init__(self, G, M):
         """
         TESTS::
 
@@ -2305,17 +2305,17 @@ class MappingClassGroupAction(Action):
             Right action by Braid group on 3 strands on Free Group on generators {a, b, c}
         """
         import operator
-        Action.__init__(self, G, M, is_left, operator.mul)
+        Action.__init__(self, G, M, False, operator.mul)
 
-    def _call_(self, x, b):
+    def _act_(self, b, x):
         """
         Return the action of ``b`` on ``x``.
 
         INPUT:
 
-        - ``x`` -- a free group element.
-
         - ``b`` -- a braid.
+
+        - ``x`` -- a free group element.
 
         OUTPUT:
 

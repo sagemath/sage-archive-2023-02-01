@@ -1897,7 +1897,7 @@ class GraphLatex(SageObject):
             # colors, shapes, sizes, labels/placement for 'Custom' style
             if customized:
                 s += ['style={']  # begin style list
-                s += ['minimum size=', str(round(scale * v_size[u], 4)),
+                s += ['minimum size=', str(round(float(scale * v_size[u]), 4)),
                       units, ',']
                 s += ['draw=', vertex_color_names[u], ',']
                 s += ['fill=', vertex_fill_color_names[u], ',']
@@ -1913,8 +1913,8 @@ class GraphLatex(SageObject):
                         s += ['LabelOut=false,']
                     else:
                         s += ['LabelOut=true,']
-                        s += ['Ldist=', str(round(scale * vl_placement[u][0], 4)), units, ',']
-                        s += ['Lpos=',str(round(vl_placement[u][1], 4)), ',']  # degrees, no units
+                        s += ['Ldist=', str(round(float(scale * vl_placement[u][0]), 4)), units, ',']
+                        s += ['Lpos=',str(round(float(vl_placement[u][1]), 4)), ',']  # degrees, no units
                 else:
                     s += ['NoLabel,']
             # vertex label information is available to all pre-built styles
@@ -1926,8 +1926,8 @@ class GraphLatex(SageObject):
                     lab = r'\hbox{%s}' % u
                 s += ['L=', lab, ',']
             scaled_pos = translate(pos[u])
-            s += ['x=', str(round(scale * scaled_pos[0], 4)), units, ',']
-            s += ['y=', str(round(scale * scaled_pos[1], 4)), units]
+            s += ['x=', str(round(float(scale * scaled_pos[0]), 4)), units, ',']
+            s += ['y=', str(round(float(scale * scaled_pos[1]), 4)), units]
             s += [']']
             s += ['{', prefix, str(index_of_vertex[u]), '}\n']
         s += ['%\n']
@@ -1940,14 +1940,14 @@ class GraphLatex(SageObject):
                 u = e[0]
                 s += ['\\Loop[']
                 if customized:
-                    s += ['dist=', str(round(scale * lp_placement[u][0], 4)), units, ',']
+                    s += ['dist=', str(round(float(scale * lp_placement[u][0]), 4)), units, ',']
                     s += ['dir=', lp_placement[u][1], ',']
             else:
                 s += ['\\Edge[']
             # colors, shapes, sizes, labels/placement for 'Custom' style
             if customized:
                 if not loop:  # lw not available for loops!
-                    s += ['lw=', str(round(scale * e_thick[edge], 4)), units, ',']
+                    s += ['lw=', str(round(float(scale * e_thick[edge]), 4)), units, ',']
                 s += ['style={']  # begin style list
                 if is_directed and not loop:
                     s += ['post, bend right', ',']
@@ -1962,7 +1962,7 @@ class GraphLatex(SageObject):
                     if isinstance(el_placement[edge], str):
                         s += [el_placement[edge], ',']
                     else:
-                        s += ['pos=', str(round(el_placement[edge], 4)), ',']  # no units needed
+                        s += ['pos=', str(round(float(el_placement[edge]), 4)), ',']  # no units needed
                     s += ['text=', edge_label_color_names[edge], ',']
                     s += ['},']
                     el = self._graph.edge_label(edge[0],edge[1])

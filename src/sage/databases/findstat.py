@@ -1230,7 +1230,6 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: findstat("Permutations", lambda pi: pi.length()).function()   # optional -- internet
-            ...
             <function <lambda> at ...>
         """
         return self._function

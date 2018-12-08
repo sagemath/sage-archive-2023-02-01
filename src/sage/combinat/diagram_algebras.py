@@ -2110,8 +2110,8 @@ class DiagramAlgebra(CombinatorialFreeModule):
                 sage: R.<x> = ZZ[]
                 sage: P = PartitionAlgebra(2, x, R)
                 sage: elt = 3*P([[1,2],[-2,-1]]) + P([[1,2],[-2], [-1]])
-                sage: elt.diagrams()
-                [{{-2}, {-1}, {1, 2}}, {{-2, -1}, {1, 2}}]
+                sage: sorted(elt.diagrams(), key=str)
+                [{{-2, -1}, {1, 2}}, {{-2}, {-1}, {1, 2}}]
             """
             return self.support()
 

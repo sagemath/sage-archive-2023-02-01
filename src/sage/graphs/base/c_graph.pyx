@@ -2083,7 +2083,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             return Infinity
         return []
 
-    def bidirectional_dijkstra(self, x, y, weight_function=None, 
+    def bidirectional_dijkstra(self, x, y, weight_function=None,
                                distance_flag=False):
         r"""
         Return the shortest path or distance from ``x`` to ``y`` using a
@@ -2253,7 +2253,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             return shortest_path
 
-    def shortest_path_all_vertices(self, v, cutoff=None, 
+    def shortest_path_all_vertices(self, v, cutoff=None,
                                    distance_flag=False):
         r"""
         Return for each vertex ``u`` a shortest ``v-u`` path or distance from
@@ -2333,7 +2333,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         current_layer = [(u_int, v_int)
                          for u_int in self._cg.out_neighbors(v_int)]
         next_layer = []
-        
+
         distances[v] = 0 if distance_flag else [v]
 
         while current_layer:
@@ -2959,6 +2959,12 @@ cdef class Search_iterator:
             else:
                 self.in_neighbors = self.graph._cg_rev.out_neighbors
 
+    def __dealloc__(self):
+        r"""
+        Freeing the memory
+        """
+        bitset_free(self.seen)
+
     def __iter__(self):
         r"""
         Return an iterator object over a traversal of a graph.
@@ -3000,7 +3006,6 @@ cdef class Search_iterator:
 
                 break
         else:
-            bitset_free(self.seen)
             raise StopIteration
 
         return value

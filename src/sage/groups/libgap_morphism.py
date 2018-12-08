@@ -27,26 +27,25 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.homset import HomsetWithBase
-from sage.categories.groups import Groups
 from sage.categories.morphism import Morphism
 from sage.rings.integer_ring import ZZ
 from sage.groups.libgap_wrapper import ParentLibGAP
+from sage.libs.gap.element import GapElement
 from sage.misc.latex import latex
 
 class GroupMorphism_libgap(Morphism):
     r"""
-    Group morphism specified by the images of generators.
+    This wraps libGAP group homomorphisms.
 
-    This wraps GAP's ``GroupHomomorphismByImages`` function.
     Checking if the input defines a group homomorphism can be expensive
     if the group is large.
 
     INPUT:
 
     - ``homset`` -- the parent
-    - ``imgs`` -- a tuple of generators
-    - ``check`` -- (default: ``True``) check if the images define
-      a group homomorphism
+    - ``gap_hom`` -- a :class:`sage.libs.gap.element.GapElement` consisting of a group homomorphism
+    - ``check`` -- (default: ``True``) check if the ``gap_hom`` is a group
+      homomorphism; this can be expensive
 
     EXAMPLES::
 
@@ -235,39 +234,33 @@ class GroupMorphism_libgap(Morphism):
          over Finite Field of size 2
          to General Linear Group of degree 3 over Integer Ring in Category of groups
     """
-    def __init__(self, homset, imgs, check=True):
+    def __init__(self, homset, gap_hom, check=True):
         r"""
         Constructor method.
 
-        TESTS:
+        TESTS::
 
-        The following input does not define a valid group homomorphism::
-
-            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-            sage: A = AbelianGroupGap([2])
-            sage: G = MatrixGroup([Matrix(ZZ, 2, [0,1,-1,0])])
-            sage: A.hom([G.gen(0)])
-            Traceback (most recent call last):
-            ...
-            ValueError: images do not define a group homomorphism
+            sage: G = GL(2, ZZ)
+            sage: H = GL(2, GF(2))
+            sage: P = Hom(G, H)
+            sage: gen1 = [g.gap() for g in G.gens()]
+            sage: gen2 = [H(g).gap() for g in G.gens()]
+            sage: phi = G.gap().GroupHomomorphismByImagesNC(H,gen1, gen2)
+            sage: phi = P.element_class(P,phi)
+            sage: phi(G.gen(0))
+            [0 1]
+            [1 0]
         """
-        from sage.libs.gap.libgap import libgap
-        Morphism.__init__(self, homset)
-        dom = homset.domain()
-        codom = homset.codomain()
-        gens = [x.gap() for x in dom.gens()]
-        imgs = [codom(x).gap() for x in imgs]
         if check:
-            if not len(gens) == len(imgs):
-                raise ValueError("provide an image for each generator")
-            self._phi = libgap.GroupHomomorphismByImages(dom.gap(), codom.gap(), gens, imgs)
-            # if it is not a group homomorphism, then
-            # self._phi is the gap boolean fail
-            if self._phi.is_bool():     # check we did not fail
-                raise ValueError("images do not define a group homomorphism")
-        else:
-            ByImagesNC = libgap.function_factory("GroupHomomorphismByImagesNC")
-            self._phi = ByImagesNC(dom.gap(), codom.gap(), gens, imgs)
+            if not gap_hom.IsGroupHomomorphism():
+                raise ValueError("not a group homomorphism")
+            if homset.domain().gap() != gap_hom.Source():
+                raise ValueError("domains do not agree")
+            if homset.codomain().gap() != gap_hom.Range():
+                raise ValueError("ranges do not agree")
+        Morphism.__init__(self, homset)
+        self._phi = gap_hom
+
 
     def __reduce__(self):
         r"""
@@ -570,11 +563,43 @@ class GroupHomset_libgap(HomsetWithBase):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert 2 to an element of ...
+
+        TESTS:
+
+        The following input does not define a valid group homomorphism::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: A = AbelianGroupGap([2])
+            sage: G = MatrixGroup([Matrix(ZZ, 2, [0,1,-1,0])])
+            sage: A.hom([G.gen(0)])
+            Traceback (most recent call last):
+            ...
+            ValueError: images do not define a group homomorphism
         """
         if isinstance(x, (tuple, list)):
-            codomain = self.codomain()
-            im_gens = tuple([codomain(g) for g in x])
-            return self.element_class(self, im_gens, check=check, **options)
+            # there should be a better way
+            from sage.libs.gap.libgap import libgap
+            dom = self.domain()
+            codom = self.codomain()
+            gens = [g.gap() for g in dom.gens()]
+            imgs = [codom(g).gap() for g in x]
+            if check:
+                if not len(gens) == len(imgs):
+                    raise ValueError("provide an image for each generator")
+                phi = libgap.GroupHomomorphismByImages(dom.gap(), codom.gap(), gens, imgs)
+                # if it is not a group homomorphism, then
+                # self._phi is the gap boolean fail
+                if phi.is_bool():     # check we did not fail
+                    raise ValueError("images do not define a group homomorphism")
+            else:
+                ByImagesNC = libgap.function_factory("GroupHomomorphismByImagesNC")
+                phi = ByImagesNC(dom.gap(), codom.gap(), gens, imgs)
+            return self.element_class(self, phi, check=check, **options)
+        if isinstance(x, GapElement):
+            try:
+                return self.element_class(self, x, check=True, **options)
+            except ValueError:
+                pass
         return super(GroupHomset_libgap, self)._element_constructor_(x, check=check, **options)
 
     def _an_element_(self):
@@ -596,5 +621,5 @@ class GroupHomset_libgap(HomsetWithBase):
         """
         n = len(self.domain().gens())
         one = self.codomain().one()
-        return self.element_class(self, (one,) * n, check=False)
+        return self._element_constructor_((one,) * n, check=False)
 

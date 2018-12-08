@@ -7532,12 +7532,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol.roots(Qp(3,5))
             [(1 + O(3^5), 2)]
 
-        This doesn't work if we first change coefficients to `\QQ_p`::
+        We lose precision if we first change coefficients to `\QQ_p`::
 
             sage: pol.change_ring(Qp(3,5)).roots()
-            Traceback (most recent call last):
-            ...
-            PrecisionError: p-adic factorization not well-defined since the discriminant is zero up to the requestion p-adic precision
+            [(1 + O(3^3), 2)]
 
             sage: (pol - 3^6).roots(Qp(3,5))
             [(1 + 2*3^3 + 2*3^4 + O(3^5), 1), (1 + 3^3 + O(3^5), 1)]
@@ -9494,6 +9492,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol.cyclotomic_part()
             x^8 + 2*x^4 + 1
 
+            sage: pol = (x - 1) * x * (x + 2)
+            sage: pol.cyclotomic_part()
+            x - 1
+
+        TESTS::
+
             sage: P.<x> = PolynomialRing(RR)
             sage: pol = (x^4 + 1)^2 * (x^4 + 2)
             sage: pol.cyclotomic_part()
@@ -9508,7 +9512,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             NotImplementedError: not implemented in non-zero characteristic
         """
         S = self.base_ring()
-        if S.characteristic() != 0:
+        if S.characteristic():
             raise NotImplementedError("not implemented in non-zero characteristic")
         if not S.is_exact():
             raise NotImplementedError("not implemented for inexact base rings")
@@ -9518,24 +9522,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
         t1 = self
         while True:
             t2 = t1.gcd(t1(x**2))
-            if t1.degree() == t2.degree(): break
+            if t1.degree() == t2.degree():
+                break
             t1 = t2
         ans = t1
+        ans //= x**ans.valuation()
         # Extract Phi_n when v_2(n) = 1, 2, ...
         t0 = self // t1
         i = 0
-        while t0.degree() > 0:
+        while t0.degree():
             t1 = t0
             while True:
                 t2 = t1.gcd(t1(-x**2))
-                if t1.degree() == t2.degree(): break
+                if t1.degree() == t2.degree():
+                    break
                 t1 = t2
             ans *= t1(x**(2**i))
             t0 = t0 // t1
             t1 = t0.gcd(t0(-x))
             t0 = R(list(t1)[::2])
             i += 1
-        return(ans // ans.leading_coefficient())
+        return ans // ans.leading_coefficient()
 
     def has_cyclotomic_factor(self):
         r"""

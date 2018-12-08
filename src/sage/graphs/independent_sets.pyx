@@ -145,7 +145,7 @@ cdef class IndependentSets:
             sage: def check_matching(G):
             ....:     number_of_matchings = sum(map(abs, matching_polynomial(G).coefficients(sparse=False)))
             ....:     if number_of_matchings != IndependentSets(G.line_graph()).cardinality():
-            ....:         print("Ooooch !")
+            ....:         raise ValueError("something goes wrong")
             sage: for i in range(30):
             ....:     check_matching(graphs.RandomGNP(11, .3))
 
@@ -161,8 +161,7 @@ cdef class IndependentSets:
             ....:     for n in range(2, alpha + 1):
             ....:         IS2.extend(map(Set, list(G.subgraph_search_iterator(Graph(n), induced=True))))
             ....:     if len(IS) != len(set(IS2)):
-            ....:        print("Oops")
-            ....:        print(len(IS), len(set(IS2)))
+            ....:        raise ValueError("something goes wrong")
             sage: for i in range(5):
             ....:     check_with_subgraph_search(graphs.RandomGNP(11, .3))
 
@@ -177,10 +176,11 @@ cdef class IndependentSets:
         cdef int i
 
         # Map from Vertex to Integer, and from Integer to Vertex
-        self.vertices = G.vertices()
+        self.vertices = list(G)
+        self.vertex_to_int = {v: i for i, v in enumerate(self.vertices)}
         self.n = G.order()
         self.maximal = maximal
-        self.vertex_to_int = dense_graph_init(self.g, G, translation=True)
+        dense_graph_init(self.g, G, translation=self.vertex_to_int)
 
         # If we must consider the graph's complement instead
         if complement:
@@ -192,7 +192,7 @@ cdef class IndependentSets:
 
     def __iter__(self):
         r"""
-        Returns an iterator over the independent sets of self.
+        Return an iterator over the independent sets of ``self``.
 
         TESTS::
 
@@ -270,13 +270,13 @@ cdef class IndependentSets:
 
             # Not already included in the set
             else:
-                if i == 0:
+                if not i:
                     break
 
                 # Going backward, we explored all we could there !
-                if bitset_in(current_set,i-1):
-                    bitset_discard(current_set, i-1)
-                    bitset_add(current_set,i)
+                if bitset_in(current_set, i - 1):
+                    bitset_discard(current_set, i - 1)
+                    bitset_add(current_set, i)
                 else:
                     i -= 1
 
@@ -295,13 +295,13 @@ cdef class IndependentSets:
         r"""
         Frees everything we ever allocated
         """
-        if self.g.rows != NULL:
+        if self.g.rows:
             binary_matrix_free(self.g)
 
     @cached_method
     def cardinality(self):
         r"""
-        Computes and returns the number of independent sets
+        Compute and return the number of independent sets.
 
         TESTS::
 
@@ -330,7 +330,7 @@ cdef class IndependentSets:
 
     def __contains__(self, S):
         r"""
-        Checks whether the set is an independent set (possibly maximal)
+        Check whether the set is an independent set (possibly maximal)
 
         INPUT:
 
@@ -348,17 +348,17 @@ cdef class IndependentSets:
 
         And only them are::
 
-            sage: IS2 = [x for x in subsets(G.vertices()) if x in IS]
+            sage: IS2 = [x for x in subsets(G) if x in IS]
             sage: sorted(IS) == sorted(IS2)
             True
 
         Same with maximal independent sets::
 
             sage: IS = IndependentSets(graphs.PetersenGraph(), maximal=True)
-            sage: S = Subsets(G.vertices())
+            sage: S = Subsets(G)
             sage: all(s in IS for s in IS)
             True
-            sage: IS2 = [x for x in subsets(G.vertices()) if x in IS]
+            sage: IS2 = [x for x in subsets(G) if x in IS]
             sage: sorted(IS) == sorted(IS2)
             True
         """

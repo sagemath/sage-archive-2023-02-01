@@ -486,8 +486,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         OUTPUT:
 
-        :class:`DynamicalSystem_affine` given by dehomogenizing the
-        source and target of `self` with respect to the given indices.
+        If the dehomogenizing indices are the same for the domain and
+        codomain, then a :class:`DynamicalSystem_affine` given by
+        dehomogenizing the source and target of `self` with respect to
+        the given indices. is returned. If the dehomogenizing indicies
+        for the domain and codomain are different then the resulting
+        affine patches are different and a scheme morphism is returned.
 
         EXAMPLES::
 
@@ -495,11 +499,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2+y^2, y^2])
             sage: f.dehomogenize(0)
             Dynamical System of Affine Space of dimension 1 over Integer Ring
-              Defn: Defined on coordinates by sending (x) to
-                    (x^2/(x^2 + 1))
+              Defn: Defined on coordinates by sending (y) to
+                    (y^2/(y^2 + 1))
+            sage: f.dehomogenize((0, 1))
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Integer Ring
+              To:   Affine Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (y) to
+                    ((y^2 + 1)/y^2)
         """
         F = self.as_scheme_morphism().dehomogenize(n)
-        return F.as_dynamical_system()
+        if F.domain() == F.codomain():
+            return F.as_dynamical_system()
+        else:
+            return F
 
     def dynatomic_polynomial(self, period):
         r"""

@@ -67,8 +67,8 @@ cdef walsh_hadamard(long *f, int ldn):
     cdef long n, ldm, m, mh, t1, t2, r, j
     n = 1 << ldn
     for ldm in range(1, ldn+1):
-        m  = (1<<ldm)
-        mh = m//2
+        m  = (1 << ldm)
+        mh = m // 2
         for r in range(0, n, m):
             t1 = r
             t2 = r+mh
@@ -95,7 +95,7 @@ cdef long yellow_code(unsigned long a):
         sage: B.truth_table() # indirect doctest
         (False, False, False, True, False, False, False, True)
     """
-    cdef unsigned long s = (8*sizeof(unsigned long))>>1
+    cdef unsigned long s = (8*sizeof(unsigned long)) >> 1
     cdef unsigned long m = (~0UL) >> s
     cdef unsigned long r = a
     while(s):
@@ -135,11 +135,11 @@ cdef reed_muller(mp_limb_t* f, int ldn):
         f[r] = yellow_code(f[r])
     # inter word transform
     for ldm in range(1, ldn+1):
-        m  = (1<<ldm)
-        mh = m//2
+        m  = 1 << ldm
+        mh = m // 2
         for r in range(0, n, m):
             t1 = r
-            t2 = r+mh
+            t2 = r + mh
             for j in range(mh):
                 sig_check()
                 f[t2] ^= f[t1]
@@ -377,7 +377,8 @@ cdef class BooleanFunction(SageObject):
 
     def __add__(self, BooleanFunction other):
         """
-        Return the element wise sum of `self`and `other` which must have the same number of variables.
+        Return the element wise sum of ``self`` and ``other``,
+        which must have the same number of variables.
 
         EXAMPLES::
 
@@ -408,7 +409,8 @@ cdef class BooleanFunction(SageObject):
 
     def __mul__(self, BooleanFunction other):
         """
-        Return the elementwise multiplication of `self`and `other` which must have the same number of variables.
+        Return the elementwise multiplication of ``self`` and ``other``,
+        which must have the same number of variables.
 
         EXAMPLES::
 
@@ -439,7 +441,8 @@ cdef class BooleanFunction(SageObject):
 
     def __or__(BooleanFunction self, BooleanFunction other):
         """
-        Return the concatenation of `self` and `other` which must have the same number of variables.
+        Return the concatenation of ``self`` and ``other``,
+        which must have the same number of variables.
 
         EXAMPLES::
 
@@ -475,7 +478,7 @@ cdef class BooleanFunction(SageObject):
             return res
 
         memcpy(res._truth_table.bits             , self._truth_table.bits, nb_limbs * sizeof(unsigned long))
-        memcpy(&(res._truth_table.bits[nb_limbs]),other._truth_table.bits, nb_limbs * sizeof(unsigned long))
+        memcpy(&(res._truth_table.bits[nb_limbs]), other._truth_table.bits, nb_limbs * sizeof(unsigned long))
 
         return res
 
@@ -531,7 +534,7 @@ cdef class BooleanFunction(SageObject):
         """
         return self._nvariables
 
-    def truth_table(self,format='bin'):
+    def truth_table(self, format='bin'):
         """
         The truth table of the Boolean function.
 
@@ -620,7 +623,7 @@ cdef class BooleanFunction(SageObject):
         """
         if not isinstance(other, BooleanFunction):
             return NotImplemented
-        o = <BooleanFunction>other
+        o = <BooleanFunction> other
         return rich_to_bool(op, bitset_cmp(self._truth_table, o._truth_table))
 
     def __call__(self, x):
@@ -629,8 +632,8 @@ cdef class BooleanFunction(SageObject):
 
         INPUT: either
 
-        - a list - then all elements are evaluated as Booleans
-        - an integer - then we consider its binary representation
+        - a list -- then all elements are evaluated as Booleans
+        - an integer -- then we consider its binary representation
 
         EXAMPLES::
 
@@ -644,7 +647,6 @@ cdef class BooleanFunction(SageObject):
             Traceback (most recent call last):
             ...
             IndexError: index out of bound
-
         """
         if isinstance(x, (int,long,Integer)):
             if x >= self._truth_table.size:
@@ -667,7 +669,6 @@ cdef class BooleanFunction(SageObject):
             sage: B = BooleanFunction([0,1,1,0,1,0,1,0])
             sage: [int(b) for b in B]
             [0, 1, 1, 0, 1, 0, 1, 0]
-
         """
         return BooleanFunctionIterator(self)
 
@@ -775,7 +776,7 @@ cdef class BooleanFunction(SageObject):
         """
         cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         cdef long i
-        for i in range(1<<self._nvariables):
+        for i in range(1 << self._nvariables):
             sig_check()
             if T[ hamming_weight(i) ] != bitset_in(self._truth_table, i):
                 return False
@@ -893,7 +894,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
-            self._autocorrelation = tuple(temp[i]>>self._nvariables for i in xrange(n))
+            self._autocorrelation = tuple([temp[i] >> self._nvariables for i in xrange(n)])
             sig_free(temp)
 
         return self._autocorrelation
@@ -933,7 +934,7 @@ cdef class BooleanFunction(SageObject):
         cdef long a
         if self._absolut_indicator is None:
             D = self.autocorrelation()
-            self._absolut_indicator = max([ abs(a) for a in D[1:] ])
+            self._absolut_indicator = max(abs(a) for a in D[1:])
         return self._absolut_indicator
 
     def sum_of_square_indicator(self):
@@ -950,7 +951,7 @@ cdef class BooleanFunction(SageObject):
         cdef long a
         if self._sum_of_square_indicator is None:
             D = self.autocorrelation()
-            self._sum_of_square_indicator = sum([ a**2 for a in D ])
+            self._sum_of_square_indicator = sum(a**2 for a in D)
         return self._sum_of_square_indicator
 
     def annihilator(self,d, dim = False):
@@ -1024,12 +1025,15 @@ cdef class BooleanFunction(SageObject):
 
     def algebraic_immunity(self, annihilator = False):
         """
-        Returns the algebraic immunity of the Boolean function. This is the smallest
-        integer `i` such that there exists a non trivial annihilator for `self` or `~self`.
+        Return the algebraic immunity of the Boolean function.
+
+        The algebraic immunity is the smallest integer `i` such that
+        there exists a non trivial annihilator for ``self`` or ``~self``.
 
         INPUT:
 
-        - annihilator -- a Boolean (default: False), if True, returns also an annihilator of minimal degree.
+        - ``annihilator`` -- boolean (default: ``False``); if ``True``,
+          returns also an annihilator of minimal degree
 
         EXAMPLES::
 
@@ -1058,7 +1062,7 @@ cdef class BooleanFunction(SageObject):
                         return i, A
                     else:
                         return i
-        raise ValueError("you just found a bug!")
+        assert False, "you just found a bug!"
 
     def algebraic_degree(self):
         r"""
@@ -1157,14 +1161,15 @@ cdef class BooleanFunction(SageObject):
             if val.base_ring() != GF(2):
                 raise TypeError("base ring of input vector must be GF(2)")
             elif val.parent().dimension() != nvars:
-                raise TypeError("input vector must be an element of a vector space with dimension %d" % (nvars,))
+                raise TypeError("input vector must be an element of a vector"
+                                " space with dimension %d" % (nvars,))
             i = ZZ(val.list(), base=2)
         else:
             i = val
 
         a = self.autocorrelation()
         try:
-            return abs(a[i]) == 1<<nvars
+            return abs(a[i]) == 1 << nvars
         except IndexError:
             raise IndexError("index out of range")
         except TypeError:
@@ -1200,12 +1205,12 @@ cdef class BooleanFunction(SageObject):
         a = self.autocorrelation()
         nvars = self._nvariables
         cdef long i
-        return any(abs(a[i]) == 1<<nvars for i in range(1, 1<<nvars))
+        return any(abs(a[i]) == 1 << nvars for i in range(1, 1 << nvars))
 
     def linear_structures(self):
         """
-        Return all linear structures of this Boolean function as a vector subspace
-        of `\GF{2}^n`.
+        Return all linear structures of this Boolean function as a
+        vector subspace of `\GF{2}^n`.
 
         .. SEEALSO::
 
@@ -1372,7 +1377,7 @@ cdef class BooleanFunctionIterator:
 
 def random_boolean_function(n):
     """
-    Returns a random Boolean function with `n` variables.
+    Return a random Boolean function with `n` variables.
 
     EXAMPLES::
 
@@ -1394,3 +1399,4 @@ def random_boolean_function(n):
         sig_check()
         T.bits[i] = r.randrange(0,Integer(1)<<(sizeof(unsigned long)*8))
     return B
+

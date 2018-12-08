@@ -421,7 +421,7 @@ class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
         ret = ["%s |--> %s"%(k.variable_name(), self(k.gen())) for k in self.domain()._intermediate_fields(self.domain().rational_function_field())]
         return "\n".join(ret)
 
-class FunctionFieldIsomorphism(Morphism):
+class FunctionFieldVectorSpaceIsomorphism(Morphism):
     r"""
     A base class for isomorphisms between function fields and vector spaces.
 

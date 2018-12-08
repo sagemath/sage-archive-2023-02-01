@@ -9,7 +9,6 @@ from cysignals.memory cimport check_allocarray, sig_free
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element
 
-from six.moves import range
 from six import integer_types
 
 from sage.combinat.integer_vector import IntegerVectors
@@ -255,7 +254,7 @@ cdef class SBox(SageObject):
         if not isinstance(rhs, SBox):
             raise NotImplemented
 
-        cdef SBox other = <SBox>rhs
+        cdef SBox other = <SBox> rhs
         return (self._S == other._S) and (self._big_endian == self._big_endian)
 
     def __ne__(self, other):
@@ -629,7 +628,7 @@ cdef class SBox(SageObject):
 
         .. NOTE::
 
-          This code is mainly called internally.
+            This code is mainly called internally.
         """
         A = self.difference_distribution_table().__copy__()
         A[0, 0] = 0
@@ -1241,8 +1240,8 @@ cdef class SBox(SageObject):
             sage: f5.algebraic_normal_form()
             x0*x2 + x0 + x1*x2
         """
-        cdef Py_ssize_t m = self.input_size()
-        cdef Py_ssize_t n = self.output_size()
+        cdef Py_ssize_t m = self.m
+        cdef Py_ssize_t n = self.n
 
         try:
             b = list(b)
@@ -1274,8 +1273,7 @@ cdef class SBox(SageObject):
             sage: S.nonlinearity()
             112
         """
-        cdef Py_ssize_t m = self.input_size()
-        return (1 << (m-1)) - self.maximal_linear_bias_absolute()
+        return (1 << (self.m-1)) - self.maximal_linear_bias_absolute()
 
     def linearity(self):
         """
@@ -1335,8 +1333,8 @@ cdef class SBox(SageObject):
             sage: S.differential_branch_number()
             3
         """
-        cdef Py_ssize_t m = self.input_size()
-        cdef Py_ssize_t n = self.output_size()
+        cdef Py_ssize_t m = self.m
+        cdef Py_ssize_t n = self.n
         cdef Py_ssize_t ret = (1 << m) + (1 << n)
 
         cdef Py_ssize_t a, b
@@ -1488,7 +1486,7 @@ cdef class SBox(SageObject):
         for delta_in in range(ncols):
             table = [[] for _ in range(ncols)]
             for x in range(nrows):
-                table[x ^ self._S[Si(x) ^ delta_in]].append(x)
+                table[x ^ self._S[Si._S[x] ^ delta_in]].append(x)
 
             row = [0]*ncols
             for l in table:
@@ -1682,11 +1680,11 @@ cdef class SBox(SageObject):
             sage: S.is_almost_bent()
             True
         """
-        if self.input_size() != self.output_size():
+        if self.m != self.n:
             raise TypeError("almost bent function only exists for"
                             " self.input_size() == self.output_size()")
 
-        m = self.input_size()
+        cdef Py_ssize_t m = self.m
 
         if is_even(m):
             return False

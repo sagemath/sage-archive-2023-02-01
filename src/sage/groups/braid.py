@@ -2157,7 +2157,8 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
             sage: B = BraidGroup(5)
             sage: B._element_from_libbraiding([[-2], [2, 1], [1, 2], [2, 1]])
-            (s0^-1*s1^-1*s2^-1*s3^-1*s0^-1*s1^-1*s2^-1*s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^2*s0
+            (s0^-1*s1^-1*s2^-1*s3^-1*s0^-1*s1^-1*s2^-1*s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^2*s\
+            0
             sage: B._element_from_libbraiding([[0]])
             1
         """

@@ -1866,6 +1866,7 @@ def _H_3_cayley_graph(L):
 
         sage: from sage.graphs.strongly_regular_db import _H_3_cayley_graph
         sage: _H_3_cayley_graph(["100","110","130","140","200","230","240","300"])
+        #I  MakeReadWriteGlobal: CosetTableDefaultMaxLimit already read-write
         Graph on 100 vertices
     """
     from sage.groups.free_group import FreeGroup

@@ -551,6 +551,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         ....:     print(repr(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)))
         36 x 36 dense matrix over Integer Ring
         36 x 36 dense matrix over Integer Ring
+        #I  MakeReadWriteGlobal: CosetTableDefaultMaxLimit already read-write
         100 x 100 dense matrix over Integer Ring
         100 x 100 dense matrix over Integer Ring
         196 x 196 dense matrix over Integer Ring

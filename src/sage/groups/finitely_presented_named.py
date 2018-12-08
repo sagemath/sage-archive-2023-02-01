@@ -86,6 +86,7 @@ def CyclicPresentation(n):
         Finitely presented group < a | a^10 >
         sage: n = 8; C = groups.presentation.Cyclic(n)
         sage: C.as_permutation_group().is_isomorphic(CyclicPermutationGroup(n))
+        #I  MakeReadWriteGlobal: CosetTableDefaultMaxLimit already read-write
         True
 
     TESTS::
@@ -447,6 +448,7 @@ def QuaternionPresentation():
         sage: Q.order(), Q.is_abelian()
         (8, False)
         sage: Q.is_isomorphic(groups.presentation.DiCyclic(2))
+        #I  Forcing finiteness test
         True
     """
     F = FreeGroup(['a','b'])
@@ -546,6 +548,12 @@ def BinaryDihedralPresentation(n):
         ....:     P = groups.presentation.BinaryDihedral(n)
         ....:     M = groups.matrix.BinaryDihedral(n)
         ....:     assert P.is_isomorphic(M)
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
     """
     F = FreeGroup('x,y,z')
     x,y,z = F.gens()

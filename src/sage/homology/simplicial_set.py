@@ -175,6 +175,7 @@ any simplicial set::
     sage: pi = BSigma3.fundamental_group(); pi
     Finitely presented group < e0, e1 | e0^2, e1^3, (e0*e1^-1)^2 >
     sage: pi.order()
+    #I  MakeReadWriteGlobal: CosetTableDefaultMaxLimit already read-write
     6
     sage: pi.is_abelian()
     False

@@ -64,6 +64,7 @@ class FunctionFieldDerivation(Map):
         Derivation map:
           From: Rational function field in x over Rational Field
           To:   Rational function field in x over Rational Field
+          Defn: x |--> 1
     """
     def __init__(self, K):
         r"""
@@ -131,6 +132,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
         Derivation map:
           From: Rational function field in x over Rational Field
           To:   Rational function field in x over Rational Field
+          Defn: x |--> 1
     """
     def __init__(self, K, u):
         """
@@ -214,6 +216,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
           From: Function field in y defined by y^2 - x
           To:   Function field in y defined by y^2 - x
           Defn: y |--> 1/2/x*y
+                x |--> 1
     """
     def __init__(self, L, d):
         """

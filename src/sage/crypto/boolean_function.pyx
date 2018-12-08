@@ -64,14 +64,15 @@ cdef walsh_hadamard(long *f, int ldn):
         sage: B.walsh_hadamard_transform() # indirect doctest
         (0, 0, 0, -4)
     """
-    cdef long n, ldm, m, mh, t1, t2, r, j
+    cdef long n, ldm, m, mh, t1, t2, r, j, u, v
     n = 1 << ldn
     for ldm in range(1, ldn+1):
         m  = (1 << ldm)
         mh = m // 2
-        for r in range(0, n, m):
+        # If this is ``for r in range(0, n, m):``, then Cython generates horrible C code
+        for 0 <= r < n by m:
             t1 = r
-            t2 = r+mh
+            t2 = r + mh
             for j in range(mh):
                 sig_check()
                 u = f[t1]
@@ -137,7 +138,8 @@ cdef reed_muller(mp_limb_t* f, int ldn):
     for ldm in range(1, ldn+1):
         m  = 1 << ldm
         mh = m // 2
-        for r in range(0, n, m):
+        # If this is ``for r in range(0, n, m):``, then Cython generates horrible C code
+        for 0 <= r < n by m:
             t1 = r
             t2 = r + mh
             for j in range(mh):
@@ -774,8 +776,8 @@ cdef class BooleanFunction(SageObject):
             sage: B.is_symmetric()
             True
         """
-        cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         cdef long i
+        cdef list T = [ self(2**i-1) for i in range(self._nvariables+1) ]
         for i in range(1 << self._nvariables):
             sig_check()
             if T[ hamming_weight(i) ] != bitset_in(self._truth_table, i):

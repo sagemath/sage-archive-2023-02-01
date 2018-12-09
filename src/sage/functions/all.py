@@ -4,7 +4,8 @@ from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.functions.piecewise_old', 'Piecewise')   # deprecated
 lazy_import('sage.functions.piecewise', 'piecewise')
-lazy_import('sage.functions.error', ['erf', 'erfc', 'erfi', 'erfinv'])
+lazy_import('sage.functions.error', ['erf', 'erfc', 'erfi', 'erfinv',
+    'fresnel_sin', 'fresnel_cos'])
 
 from .trig import ( sin, cos, sec, csc, cot, tan,
                    asin, acos, atan,

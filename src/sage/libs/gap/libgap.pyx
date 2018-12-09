@@ -241,9 +241,12 @@ AUTHORS:
 # stuff. Talk to me (Volker) if you want to work on that.
 #
 ##############################################################################
+
 from __future__ import print_function, absolute_import
 
 from .gap_includes cimport *
+from .util cimport *
+from .element cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
@@ -251,7 +254,6 @@ from sage.structure.element cimport ModuleElement, RingElement, Vector
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
-from sage.libs.gap.element cimport *
 
 
 ############################################################################

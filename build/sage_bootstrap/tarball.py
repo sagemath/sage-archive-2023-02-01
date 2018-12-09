@@ -136,23 +136,24 @@ class Tarball(object):
         """
         Download the tarball to the upstream directory.
         """
-        destination = os.path.join(SAGE_DISTFILES, self.filename)
+        destination = self.upstream_fqn
         if os.path.isfile(destination):
             if self.checksum_verifies():
                 log.info('Using cached file {destination}'.format(destination=destination))
                 return
             else:
-                # Garbage in the upstream directory? Delete and re-download
-                log.info('Invalid checksum for cached file {destination}, deleting'
+                # Garbage in the upstream directory? Ignore it.
+                # Don't delete it because maybe somebody just forgot to
+                # update the checksum (Trac #23972).
+                log.warn('Invalid checksum; ignoring cached file {destination}'
                          .format(destination=destination))
-                os.remove(destination)
         successful_download = False
         log.info('Attempting to download package {0} from mirrors'.format(self.filename))
         for mirror in MirrorList():
             url = mirror + '/'.join(['spkg', 'upstream', self.package.name, self.filename])
             log.info(url)
             try:
-                Download(url, self.upstream_fqn).run()
+                Download(url, destination).run()
                 successful_download = True
                 break
             except IOError:

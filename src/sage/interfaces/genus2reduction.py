@@ -1,5 +1,5 @@
 r"""
-Conductor and Reduction Types for Genus 2 Curves
+Conductor and reduction types for genus 2 curves
 
 AUTHORS:
 
@@ -11,16 +11,14 @@ AUTHORS:
 - Jeroen Demeyer (2014-09-17): replace genus2reduction program by PARI
   library call (:trac:`15808`)
 
-ACKNOWLEDGMENT: (From Liu's website:) Many thanks to Henri Cohen
-who started writing this program. After this program is available,
-many people pointed out to me (mathematical as well as programming)
-bugs : B. Poonen, E. Schaefer, C. Stahlke, M. Stoll, F. Villegas.
-So thanks to all of them. Thanks also go to Ph. Depouilly who help
-me to compile the program.
+ACKNOWLEDGMENT: (From Liu's website:) Many thanks to Henri Cohen who started
+writing this program. After this program is available, many people pointed out
+to me (mathematical as well as programming) bugs : B. Poonen, E. Schaefer, C.
+Stahlke, M. Stoll, F. Villegas.  So thanks to all of them. Thanks also go to
+Ph. Depouilly who help me to compile the program.
 
-Also Liu has given me explicit permission to include
-genus2reduction with Sage and for people to modify the C source
-code however they want.
+Also Liu has given me explicit permission to include genus2reduction with Sage
+and for people to modify the C source code however they want.
 """
 
 #*****************************************************************************

@@ -888,13 +888,24 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagram(BinaryWord, [4, 1, 2, 3])
             sage: G.P_chain()
             [word: , word: 1, word: 11, word: 111, word: 1011]
+
+        Check that :trac:`25631` is fixed::
+
+            sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinaryWord(filling = {}).P_chain()
+            [word: ]
+
         """
         if not self.is_rectangular():
             raise ValueError("the P symbol is only defined for rectangular shapes")
-        if self.rule.has_multiple_edges:
-            return self._out_labels[(2*self._lambda[0]):][::-1]
+        if self._lambda:
+            if self.rule.has_multiple_edges:
+                r = 2*self._lambda[0]
+            else:
+                r = self._lambda[0]
         else:
-            return self._out_labels[self._lambda[0]:][::-1]
+            r = 0
+        return self._out_labels[r:][::-1]
 
     def Q_chain(self):
         r"""
@@ -907,13 +918,24 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagram(BinaryWord, [[0,1,0,0], [0,0,1,0], [0,0,0,1], [1,0,0,0]])
             sage: G.Q_chain()
             [word: , word: 1, word: 10, word: 101, word: 1011]
+
+        Check that :trac:`25631` is fixed::
+
+            sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinaryWord(filling = {}).Q_chain()
+            [word: ]
+
         """
         if not self.is_rectangular():
             raise ValueError("the Q symbol is only defined for rectangular shapes")
-        if self.rule.has_multiple_edges:
-            return self._out_labels[:(2*self._lambda[0]+1)]
+        if self._lambda:
+            if self.rule.has_multiple_edges:
+                r = 2*self._lambda[0]+1
+            else:
+                r = self._lambda[0]+1
         else:
-            return self._out_labels[:self._lambda[0]+1]
+            r = 1
+        return self._out_labels[:r]
 
     def is_rectangular(self):
         r"""
@@ -2494,7 +2516,7 @@ class RuleLLMS(Rule):
             sage: LLMS3.forward_rule(Z, None, Z, None, Z, 1)
             (None, [1], 0)
 
-            sage: Y = Core([3,1,1], 3);
+            sage: Y = Core([3,1,1], 3)
             sage: LLMS3.forward_rule(Y, None, Y, None, Y, 1)
             (None, [4, 2, 1, 1], 3)
 
@@ -3542,7 +3564,7 @@ class RuleYoungFibonacci(Rule):
         TESTS::
 
             sage: YF = GrowthDiagram.rules.YoungFibonacci()
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = YF(w);
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = YF(w)
             sage: GrowthDiagram(YF, labels=G.out_labels()).to_word() == w  # indirect doctest
             True
         """
@@ -4000,7 +4022,7 @@ class RuleDomino(Rule):
 
         sage: pi = [3,-1,2,4,-5]
         sage: G = Domino(pi)
-        sage: G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         True
 
     Negating all signs transposes all the partitions::
@@ -4026,12 +4048,13 @@ class RuleDomino(Rule):
         [   2  3,   3  3 ]
 
         sage: l = {pi: Domino(pi) for pi in SignedPermutations(4)}
-        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
+        sage: S = Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()])
+        sage: S.cardinality()
         384
 
     Check the color-to-spin property for all permutations of size 4::
 
-        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: all(list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         ....:     for G in l.values())
         True
 

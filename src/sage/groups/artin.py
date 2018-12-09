@@ -69,7 +69,7 @@ class ArtinGroupElement(FinitelyPresentedGroupElement):
             sage: b._latex_()
             '\\sigma_{1}\\sigma_{2}\\sigma_{3}\\sigma_{1}^{-1}\\sigma_{2}\\sigma_{3}^{-1}'
         """
-        return ''.join("\sigma_{%s}^{-1}" % (-i) if i < 0 else "\sigma_{%s}" % i
+        return ''.join(r"\sigma_{%s}^{-1}" % (-i) if i < 0 else r"\sigma_{%s}" % i
                        for i in self.Tietze())
 
     def exponent_sum(self):
@@ -179,7 +179,7 @@ class FiniteTypeArtinGroupElement(ArtinGroupElement):
 
     @cached_method
     def left_normal_form(self):
-        """
+        r"""
         Return the left normal form of ``self``.
 
         OUTPUT:
@@ -220,7 +220,7 @@ class FiniteTypeArtinGroupElement(ArtinGroupElement):
                      [P._standard_lift(w) for w in lnfp[1:]])
 
     def _left_normal_form_coxeter(self):
-        """
+        r"""
         Return the left normal form of the element, in the `\Delta`
         exponent and Coxeter group element form.
 
@@ -656,8 +656,9 @@ class ArtinGroup(FinitelyPresentedGroup):
 
     Element = ArtinGroupElement
 
+
 class FiniteTypeArtinGroup(ArtinGroup):
-    """
+    r"""
     A finite-type Artin group.
 
     An Artin group is *finite-type* or *spherical* if the corresponding

@@ -18,11 +18,10 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import AlgebraElement
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.misc.cachefunc import cached_method
-#from sage.misc.lazy_attribute import lazy_attribute
-from sage.rings.all import QQ
 from sage.structure.element import is_Matrix
 from sage.modules.free_module import FreeModule
 from sage.sets.family import Family
+
 
 class JordanAlgebra(Parent, UniqueRepresentation):
     r"""

@@ -282,7 +282,7 @@ class Fields(CategoryWithAxiom):
             return a
 
         def _xgcd_univariate_polynomial(self, a, b):
-            """
+            r"""
             Return an extended gcd of ``a`` and ``b``.
 
             INPUT:
@@ -684,7 +684,7 @@ class Fields(CategoryWithAxiom):
 
         @coerce_binop
         def xgcd(self, other):
-            """
+            r"""
             Compute the extended gcd of ``self`` and ``other``.
 
             INPUT:

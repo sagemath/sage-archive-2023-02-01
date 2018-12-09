@@ -394,6 +394,9 @@ ext_modules = [
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
+    Extension('sage.graphs.connectivity',
+          sources = ['sage/graphs/connectivity.pyx']),
+
     Extension('sage.graphs.trees',
               sources = ['sage/graphs/trees.pyx']),
 
@@ -436,6 +439,10 @@ ext_modules = [
     ## sage.interfaces
     ##
     ################################
+
+    OptionalExtension("sage.interfaces.primecount",
+              ["sage/interfaces/primecount.pyx"],
+              package = "primecount"),
 
     Extension('*', ['sage/interfaces/*.pyx']),
 
@@ -488,16 +495,14 @@ ext_modules = [
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
 
-    OptionalExtension('sage.libs.braiding',
+    Extension('sage.libs.braiding',
                       sources = ["sage/libs/braiding.pyx"],
                       libraries = ["braiding"],
-                      package="libbraiding",
                       language = 'c++'),
 
-    OptionalExtension('sage.libs.homfly',
+    Extension('sage.libs.homfly',
                       sources = ["sage/libs/homfly.pyx"],
-                      libraries = ["homfly", "gc"],
-                      package="libhomfly"),
+                      libraries = ["homfly", "gc"]),
 
     OptionalExtension('sage.libs.sirocco',
                       sources = ["sage/libs/sirocco.pyx"],
@@ -576,24 +581,13 @@ ext_modules = [
 
     Extension('*', ["sage/libs/eclib/*.pyx"]),
 
-
     ################################
     ##
     ## sage.libs.gap
     ##
     ################################
 
-    Extension('sage.libs.gap.util',
-              sources = ["sage/libs/gap/util.pyx"],
-              libraries = ['gmp', 'gap', 'm']),
-
-    Extension('sage.libs.gap.element',
-              sources = ["sage/libs/gap/element.pyx"],
-              libraries = ['gmp', 'gap', 'm']),
-
-    Extension('sage.libs.gap.libgap',
-              sources = ["sage/libs/gap/libgap.pyx"],
-              libraries = ['gmp', 'gap', 'm']),
+    Extension('*', ["sage/libs/gap/*.pyx"]),
 
     ###################################
     ##
@@ -722,6 +716,9 @@ ext_modules = [
 
     Extension('sage.matrix.action',
               sources = ['sage/matrix/action.pyx']),
+
+    Extension('sage.matrix.args',
+              sources = ['sage/matrix/args.pyx']),
 
     Extension('sage.matrix.echelon_matrix',
               sources = ['sage/matrix/echelon_matrix.pyx']),
@@ -1248,8 +1245,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.rings.function_field.function_field_element',
-              sources = ['sage/rings/function_field/function_field_element.pyx']),
+    Extension('sage.rings.function_field.element',
+              sources = ['sage/rings/function_field/element.pyx']),
 
     ################################
     ##
@@ -1355,6 +1352,11 @@ ext_modules = [
               libraries = ["gmp", "ntl"],
               language='c++'),
 
+    Extension('sage.rings.padics.pow_computer_relative',
+              sources = ['sage/rings/padics/pow_computer_relative.pyx'],
+              libraries = ["ntl", "gmp", "m"],
+              language='c++'),
+
     Extension('sage.rings.padics.qadic_flint_CR',
               sources = ['sage/rings/padics/qadic_flint_CR.pyx']),
 
@@ -1367,6 +1369,15 @@ ext_modules = [
     Extension('sage.rings.padics.qadic_flint_FP',
               sources = ['sage/rings/padics/qadic_flint_FP.pyx'],
               libraries = ["flint"]),
+
+    Extension('sage.rings.padics.relative_ramified_FM',
+              sources = ['sage/rings/padics/relative_ramified_FM.pyx']),
+    Extension('sage.rings.padics.relative_ramified_CA',
+              sources = ['sage/rings/padics/relative_ramified_CA.pyx']),
+    Extension('sage.rings.padics.relative_ramified_CR',
+              sources = ['sage/rings/padics/relative_ramified_CR.pyx']),
+    Extension('sage.rings.padics.relative_ramified_FP',
+              sources = ['sage/rings/padics/relative_ramified_FP.pyx']),
 
     ################################
     ##
@@ -1385,6 +1396,9 @@ ext_modules = [
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
 
+    Extension('sage.rings.polynomial.hilbert',
+              sources = ['sage/rings/polynomial/hilbert.pyx']),
+
     Extension('sage.rings.polynomial.multi_polynomial',
               sources = ['sage/rings/polynomial/multi_polynomial.pyx']),
 
@@ -1397,8 +1411,8 @@ ext_modules = [
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx']),
 
-    Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
-              sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']),
+    Extension('sage.rings.polynomial.multi_polynomial_ring_base',
+              sources = ['sage/rings/polynomial/multi_polynomial_ring_base.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_number_field',
               sources = ['sage/rings/polynomial/polynomial_number_field.pyx']),

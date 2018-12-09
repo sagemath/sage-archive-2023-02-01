@@ -11,9 +11,8 @@ Indexed Generators
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from sage.rings.all import Integer
 from sage.structure.category_object import normalize_names
+
 
 class IndexedGenerators(object):
     r"""nodetex

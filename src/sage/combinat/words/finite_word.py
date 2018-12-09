@@ -218,16 +218,19 @@ from __future__ import print_function, absolute_import
 
 from builtins import zip
 
+from six import iteritems
 from six.moves import range
+from six import iteritems
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
-from sage.rings.all import Integer, Infinity, ZZ
+from sage.rings.all import Integer, Infinity, ZZ, QQ
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
+
 
 class FiniteWord_class(Word_class):
     def __str__(self):
@@ -629,7 +632,7 @@ class FiniteWord_class(Word_class):
         return True
 
     def schuetzenberger_involution(self, n = None):
-        """
+        r"""
         Return the Schützenberger involution of the word ``self``, which is obtained
         by reverting the word and then complementing all letters within the
         underlying ordered alphabet. If ``n`` is specified, the underlying
@@ -801,7 +804,8 @@ class FiniteWord_class(Word_class):
 
     def is_empty(self):
         r"""
-        Return ``True`` if the length of ``self`` is zero, and ``False`` otherwise.
+        Return ``True`` if the length of ``self`` is zero,
+        and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -810,7 +814,7 @@ class FiniteWord_class(Word_class):
             sage: Word('a').is_empty()
             False
         """
-        return self.length()==0
+        return self.length() == 0
 
     def is_finite(self):
         r"""
@@ -827,8 +831,9 @@ class FiniteWord_class(Word_class):
 
     def to_integer_word(self):
         r"""
-        Return a word defined over the integers ``[0,1,...,self.length()-1]``
-        whose letters are in the same relative order in the parent.
+        Return a word over the alphabet ``[0,1,...,self.length()-1]``
+        whose letters are in the same relative order as the letters
+        of ``self`` in the parent.
 
         EXAMPLES::
 
@@ -869,6 +874,31 @@ class FiniteWord_class(Word_class):
         ordered_alphabet = sorted(self.letters(), key=cmp_key)
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
+
+    def to_ordered_set_partition(self):
+        r"""
+        Return the ordered set partition correspond to ``self``.
+
+        If `w` is a finite word of length `n`, then the corresponding
+        ordered set partition is an ordered set partition
+        `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
+        each block `P_i` is the set of positions at which the `i`-th
+        smallest letter occurring in `w` occurs in `w`.
+
+        EXAMPLES::
+
+            sage: w = Word('abbabaab')
+            sage: w.to_ordered_set_partition()
+            [{1, 4, 6, 7}, {2, 3, 5, 8}]
+            sage: Word([-10, 3, -10, 2]).to_ordered_set_partition()
+            [{1, 3}, {4}, {2}]
+            sage: Word([]).to_ordered_set_partition()
+            []
+            sage: Word('aaaaa').to_ordered_set_partition()
+            [{1, 2, 3, 4, 5}]
+        """
+        from sage.combinat.set_partition_ordered import OrderedSetPartition
+        return OrderedSetPartition(word_to_ordered_set_partition(self))
 
     # To fix : do not slice here ! (quite expensive in copy)
     def is_suffix(self, other):
@@ -1306,6 +1336,28 @@ class FiniteWord_class(Word_class):
             <... 'generator'>
         """
         return self.suffix_tree().factor_iterator(n)
+
+    def factor_complexity(self, n):
+        r"""
+        Return the number of distinct factors of length ``n`` of ``self``.
+
+        INPUT:
+
+        - ``n`` -- the length of the factors.
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: [w.factor_complexity(i) for i in range(20)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:1000]
+            sage: [w.factor_complexity(i) for i in range(20)]
+            [1, 2, 4, 6, 10, 12, 16, 20, 22, 24, 28, 32, 36, 40, 42, 44, 46, 48, 52, 56]
+        """
+        return len(list(self.factor_iterator(n)))
 
     def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
@@ -2195,7 +2247,7 @@ class FiniteWord_class(Word_class):
             return True
         try:
             it = iter(self)
-            s = next(islice(it, seq[0], None))
+            s = next(islice(it, int(seq[0]), None))
             for i in range(1, len(seq)):
                 steps = seq[i] - seq[i-1]
                 for n in range(steps-1): next(it)
@@ -3067,6 +3119,28 @@ class FiniteWord_class(Word_class):
         LPS = self.lps_lengths(f)
         return set(self[i-LPS[i] : i] for i in range(len(self)+1))
 
+    def palindromic_complexity(self, n):
+        r"""
+        Return the number of distinct palindromic factors of length ``n`` of ``self``.
+
+        INPUT:
+
+        - ``n`` -- the length of the factors.
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: [w.palindromic_complexity(i) for i in range(20)]
+            [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:1000]
+            sage: [w.palindromic_complexity(i) for i in range(20)]
+            [1, 2, 2, 2, 2, 0, 4, 0, 4, 0, 4, 0, 4, 0, 2, 0, 2, 0, 4, 0]
+        """
+        return len([x for x in self.palindromes() if len(x)==n])    
+
     def palindrome_prefixes(self):
         r"""
         Return a list of all palindrome prefixes of ``self``.
@@ -3353,7 +3427,7 @@ class FiniteWord_class(Word_class):
             sage: w.palindromic_closure(f=f, side='left')
             Traceback (most recent call last):
             ...
-            KeyError: 'b'
+            ValueError: b not in alphabet!
 
         REFERENCES:
 
@@ -3545,10 +3619,11 @@ class FiniteWord_class(Word_class):
         The *critical exponent* of a word is the supremum of the order of
         all its (finite) factors. See [1].
 
-        .. note::
+        .. NOTE::
 
             The implementation here uses the suffix tree to enumerate all the
-            factors. It should be improved.
+            factors. It should be improved (especially when the critical
+            exponent is larger than 2).
 
         EXAMPLES::
 
@@ -3565,12 +3640,52 @@ class FiniteWord_class(Word_class):
             sage: words.ThueMorseWord()[:20].critical_exponent()
             2
 
+        For the Fibonacci word, the critical exponent is known to be
+        `(5+\sqrt(5))/2`. With a prefix of length 500, we obtain a lower bound::
+
+            sage: words.FibonacciWord()[:500].critical_exponent()
+            320/89
+
+        It is an error to compute the critical exponent of the empty word::
+
+            sage: Word('').critical_exponent()
+            Traceback (most recent call last):
+            ...
+            ValueError: no critical exponent for empty word
+
         REFERENCES:
 
         .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
            Ser. A 13:90--99, 1972.
         """
-        return max(map(FiniteWord_class.order, self.factor_iterator()))
+        if not self:
+            raise ValueError("no critical exponent for empty word")
+        else:
+            st = self.suffix_tree()
+            pft = [0] * self.length()  # the prefix function table
+            queue = [(0, 0, -1, 0)]    # suffix tree vertices to visit for Depth First Search
+            best_exp = 1               # best exponent so far
+            while queue:
+                (v,i,j,l) = queue.pop()
+                for k in range(i,j+1):
+                    if l-j+k-1 != 0:
+                        m = pft[l-j+k-2]
+                        while m > 0 and self[j-l+m] != self[k-1]:
+                            m = pft[m-1]
+                        if self[j-l+m] == self[k-1]:
+                            m += 1
+                    else:
+                        m = 0
+                    current_pos = k-j+l-1
+                    pft[current_pos] = m
+                    current_exp = QQ((current_pos+1, current_pos+1-m))
+                    if current_exp > best_exp:
+                        best_exp = current_exp
+                for ((i,j),u) in iteritems(st._transition_function[v]):
+                    if j is None:
+                        j = self.length()
+                    queue.append((u, i, j, l+j-i+1))
+            return best_exp
 
     def is_overlap(self):
         r"""
@@ -3817,9 +3932,26 @@ class FiniteWord_class(Word_class):
 
     def is_subword_of(self, other):
         r"""
-        Return ``True`` is ``self`` is a subword of ``other``, and ``False`` otherwise.
+        Return ``True`` if ``self`` is a subword of ``other``, and ``False`` otherwise.
+
+        A finite word `u` is a *subword* of a finite word `v` if `u` is a
+        subsequence of `v`. See Chapter 6 on Subwords in [1].
+
+        Some references define subword as a consecutive subsequence. Use
+        :meth:`is_factor` if this is what you need.
+
+        INPUT:
+
+        ``other`` -- a finite word
 
         EXAMPLES::
+
+            sage: Word('bb').is_subword_of(Word('ababa'))
+            True
+            sage: Word('bbb').is_subword_of(Word('ababa'))
+            False
+
+        ::
 
             sage: Word().is_subword_of(Word('123'))
             True
@@ -3831,6 +3963,13 @@ class FiniteWord_class(Word_class):
         .. SEEALSO::
 
             :meth:`longest_common_subword`
+            :meth:`nb_subword_occurrences_in`
+            :meth:`is_factor`
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
 
         """
         its = iter(self)
@@ -4425,6 +4564,9 @@ class FiniteWord_class(Word_class):
         r"""
         Return ``True`` if ``self`` is a factor of ``other``, and ``False`` otherwise.
 
+        A finite word `u\in A^*` is a *factor* of a finite word `v\in A^*`
+        if there exists `p,s\in A^*` such that `v=pus`.
+
         EXAMPLES::
 
             sage: u = Word('2113')
@@ -4673,7 +4815,6 @@ class FiniteWord_class(Word_class):
         -   [1] F. Durand, A characterization of substitutive sequences using
             return words, Discrete Math. 179 (1998) 89--101.
         """
-        idx = 0
         tab = {}
         ret = [tab.setdefault(w, len(tab)) + 1 for w in self._return_words_list(fact)]
         from sage.combinat.words.word import Word
@@ -4842,12 +4983,12 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: Word([4,4,2,5,2,1,4,1]).evaluation_sparse()
+            sage: sorted(Word([4,4,2,5,2,1,4,1]).evaluation_sparse())
             [(1, 2), (2, 2), (4, 3), (5, 1)]
-            sage: Word("abcaccab").evaluation_sparse()
-            [('a', 3), ('c', 3), ('b', 2)]
+            sage: sorted(Word("abcaccab").evaluation_sparse())
+            [('a', 3), ('b', 2), ('c', 3)]
         """
-        return self.evaluation_dict().items()
+        return list(iteritems(self.evaluation_dict()))
 
     def evaluation_partition(self):
         r"""
@@ -5047,7 +5188,7 @@ class FiniteWord_class(Word_class):
 
         #Join the classes of each pair of letters that are one above the other
         from sage.combinat.words.morphism import WordMorphism
-        S = zip(islice(self, delay, None), other)
+        S = zip(islice(self, int(delay), None), other)
         if involution is None:
             for (a,b) in S:
                 p.union(a, b)
@@ -5069,8 +5210,8 @@ class FiniteWord_class(Word_class):
         r"""
         Return the standard permutation of the word
         ``self`` on the ordered alphabet. It is defined as
-        the permutation with exactly the same number of
-        inversions as w. Equivalently, it is the permutation
+        the permutation with exactly the same inversions as
+        ``self``. Equivalently, it is the permutation
         of minimal length whose inverse sorts ``self``.
 
         EXAMPLES::
@@ -5081,9 +5222,9 @@ class FiniteWord_class(Word_class):
             [1, 3, 6, 4, 5, 2]
             sage: v = Word(p.inverse().action(w)); v
             word: 112223
-            sage: filter(lambda q: q.length() <= p.length() and \
-            ....:       q.inverse().action(w) == list(v), \
-            ....:       Permutations(w.length()) )
+            sage: [q for q in Permutations(w.length())
+            ....:      if q.length() <= p.length() and
+            ....:      q.inverse().action(w) == list(v)]
             [[1, 3, 6, 4, 5, 2]]
 
         ::
@@ -6072,7 +6213,7 @@ class FiniteWord_class(Word_class):
         else:
             return self
 
-    def abelian_vector(self, alphabet=None):
+    def abelian_vector(self):
         r"""
         Return the abelian vector of ``self`` counting the occurrences of each letter.
 
@@ -6082,7 +6223,6 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``self`` -- word having a parent on a finite alphabet
-        - ``alphabet`` -- *DEPRECATED*
 
         OUTPUT:
 
@@ -6098,17 +6238,7 @@ class FiniteWord_class(Word_class):
             sage: W().abelian_vector()
             [0, 0]
 
-        The argument ``alphabet`` is deprecated::
-
-            sage: Word('aabaa').abelian_vector('abc')
-            doctest:...: DeprecationWarning: The argument alphabet of
-            methods abelian_vector and parikh_vector is deprecated and will
-            be removed in a future version of Sage. In order to fix this,
-            you must define your word on a parent with a finite alphabet.
-            See http://trac.sagemath.org/17058 for details.
-            [4, 1, 0]
-
-        You may fix the above deprecated use of the ``alphabet`` argument this way::
+        The result depends on the alphabet of the parent::
 
             sage: W = Words('abc')
             sage: W('aabaa').abelian_vector()
@@ -6124,24 +6254,14 @@ class FiniteWord_class(Word_class):
             word with a parent on a finite alphabet or use
             evaluation_dict() instead
         """
-        if alphabet is None:
-            if self.parent().alphabet().cardinality() is Infinity:
-                raise TypeError("The alphabet of the parent is infinite; define "
-                        "the word with a parent on a finite alphabet or use "
-                        "evaluation_dict() instead")
-            alphabet = self.parent().alphabet()
-        else:
-            from sage.misc.superseded import deprecation
-            deprecation(17058, "The argument alphabet of methods abelian_vector "
-                        "and parikh_vector is deprecated and will be "
-                        "removed in a future version of Sage. In order to "
-                        "fix this, you must define your word on a parent "
-                        "with a finite alphabet.")
-
+        alphabet = self.parent().alphabet()
+        if alphabet.cardinality() is Infinity:
+            raise TypeError("The alphabet of the parent is infinite; define "
+                    "the word with a parent on a finite alphabet or use "
+                    "evaluation_dict() instead")
         ev_dict = self.evaluation_dict()
-        return [ev_dict.get(a,0) for a in alphabet]
+        return [ev_dict.get(a, 0) for a in alphabet]
 
-    parikh_vector = deprecated_function_alias(17058, abelian_vector)
     evaluation = abelian_vector
 
     def robinson_schensted(self):
@@ -6220,8 +6340,10 @@ class FiniteWord_class(Word_class):
             Shuffle product of word: 23 and word: 23
             sage: w.shuffle(u)
             Shuffle product of word: 01 and word: 23
-            sage: w.shuffle(u,2)
+            sage: sp2 = w.shuffle(u,2); sp2
             Overlapping shuffle product of word: 01 and word: 23 with 2 overlaps
+            sage: list(sp2)
+            [word: 24]
         """
         if overlap == 0:
             from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
@@ -6230,11 +6352,11 @@ class FiniteWord_class(Word_class):
             if any(a not in ZZ for a in self) or any(a not in ZZ for a in other):
                 raise ValueError("for a nonzero overlap, words must contain integers as letters")
             if overlap is True:
-                from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
-                return ShuffleProduct_overlapping(self, other)
+                from sage.combinat.shuffle import ShuffleProduct_overlapping
+                return ShuffleProduct_overlapping(self, other, self.parent())
             elif isinstance(overlap, (int,Integer)):
-                from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping_r
-                return ShuffleProduct_overlapping_r(self, other, overlap)
+                from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+                return ShuffleProduct_overlapping_r(self, other, overlap, self.parent())
             raise ValueError('overlapping must be True or an integer')
 
     def shifted_shuffle(self, other, shift=None):
@@ -6842,7 +6964,9 @@ class FiniteWord_class(Word_class):
             raise RuntimeError("Color map %s not known"%cmap)
 
         #Drawing the colored vector...
-        from sage.plot.plot import polygon,line,text
+        from sage.plot.line import line
+        from sage.plot.polygon import polygon
+        from sage.plot.text import text
 
         #The default width of the vector
         if width == 'default':
@@ -7198,3 +7322,44 @@ def evaluation_dict(w):
         d[a] += 1
     return dict(d)
 
+def word_to_ordered_set_partition(w):
+    r"""
+    Return the ordered set partition corresponding to a finite
+    word `w`.
+
+    If `w` is a finite word of length `n`, then the corresponding
+    ordered set partition is an ordered set partition
+    `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
+    each block `P_i` is the set of positions at which the `i`-th
+    smallest letter occurring in `w` occurs in `w`.
+    (Positions are `1`-based.)
+
+    This is the same functionality that
+    :meth:`~sage.combinat.words.finite_word.FiniteWord_class.to_ordered_set_partition`
+    provides, but without the wrapping: The input `w` can be given as
+    a list or tuple, not necessarily as a word; and the output is
+    returned as a list of lists (which are the blocks of the ordered
+    set partition in increasing order), not as an ordered set partition.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.finite_word import word_to_ordered_set_partition
+        sage: word_to_ordered_set_partition([3, 6, 3, 1])
+        [[4], [1, 3], [2]]
+        sage: word_to_ordered_set_partition((1, 3, 3, 7))
+        [[1], [2, 3], [4]]
+        sage: word_to_ordered_set_partition("noob")
+        [[4], [1], [2, 3]]
+        sage: word_to_ordered_set_partition(Word("hell"))
+        [[2], [1], [3, 4]]
+        sage: word_to_ordered_set_partition([1])
+        [[1]]
+        sage: word_to_ordered_set_partition([])
+        []
+    """
+    vals = sorted(set(w))
+    dc = {val: i for (i, val) in enumerate(vals)}
+    P = [[] for _ in vals]
+    for i, val in enumerate(w):
+        P[dc[val]].append(i + 1)
+    return P

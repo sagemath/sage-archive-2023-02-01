@@ -1,12 +1,7 @@
 # libpng needs to have no default options set for grep
 unset GREP_OPTIONS
 
-if [ "$SAGE64" = yes ]; then
-    CFLAGS="$CFLAGS -m64 -fPIC -g"
-    LDFLAGS="$LDFLAGS -m64"
-else
-    CFLAGS="$CFLAGS -fPIC -g"
-fi
+export CFLAGS="$CFLAGS -fPIC -g"
 
 # Pick up Sage's zlib:
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
@@ -23,4 +18,4 @@ sdh_make
 sdh_make_install
 
 # Delete libpng.* symlinks, see SPKG.txt for details
-rm -f "$SAGE_LOCAL"/lib/libpng.*
+rm -f "$SAGE_DESTDIR_LOCAL"/lib/libpng.*

@@ -137,7 +137,7 @@ class InformationSetAlgorithm(SageObject):
         Return the name of this ISD algorithm.
 
         EXAMPLES::
-        
+
             sage: C = codes.GolayCode(GF(2))
             sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
             sage: A = LeeBrickellISDAlgorithm(C, (0,2))
@@ -315,7 +315,7 @@ class InformationSetAlgorithm(SageObject):
             True
         """
         return hash(str(self))
-        
+
     def _repr_(self):
         r"""
         Returns a string representation of this ISD algorithm.
@@ -849,7 +849,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         else:
             raise ValueError("Unknown ISD algorithm '{}'."
                             " The known algorithms are {}."\
-                            .format(algorithm, algorithm_names.keys()))
+                            .format(algorithm, sorted(algorithm_names)))
 
     _known_algorithms = {
         "Lee-Brickell": LeeBrickellISDAlgorithm

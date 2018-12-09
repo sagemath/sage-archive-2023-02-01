@@ -442,7 +442,7 @@ connection to a server running Maple; for hints, type
         return self._expect
 
     def console(self):
-        """
+        r"""
         Spawn a new Maple command-line session.
 
         EXAMPLES::
@@ -951,7 +951,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return int(maple.eval('StringTools:-Hash(convert(%s, string))'%self.name())[1:-1],16)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare equality between self and other, using maple.
 
@@ -1146,7 +1146,7 @@ def reduce_load_Maple():
 
 
 def maple_console():
-    """
+    r"""
     Spawn a new Maple command-line session.
 
     EXAMPLES::

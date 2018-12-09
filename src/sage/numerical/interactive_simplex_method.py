@@ -3964,11 +3964,11 @@ class LPDictionary(LPAbstractDictionary):
         if self._entering is not None:
             # Highlight the entering variable column
             e = 2 * tuple(N).index(self._entering) + 4
-            for i, line in enumerate(lines):
-                line = line.split("&")
-                if len(line) > 1:
-                    line[e] = r"\color{green}" + line[e]
-                    lines[i] = "&".join(line)
+            for i, lin in enumerate(lines):
+                lin = lin.split("&")
+                if len(lin) > 1:
+                    lin[e] = r"\color{green}" + lin[e]
+                    lines[i] = "&".join(lin)
         if self._leaving is not None:
             # Highlight the leaving variable row
             l = tuple(B).index(self._leaving)
@@ -3976,12 +3976,12 @@ class LPDictionary(LPAbstractDictionary):
                l += 3
             if style() == "Vanderbei":
                 l += 4
-            line = lines[l].split("&")
-            for i, term in enumerate(line):
-                line[i] = r"\color{red}" + term
-            line = "&".join(line)
-            line = line.replace(r"\color{red}\color{green}", r"\color{blue}")
-            lines[l] = line
+            lin = lines[l].split("&")
+            for i, term in enumerate(lin):
+                lin[i] = r"\color{red}" + term
+            lin = "&".join(lin)
+            lin = lin.replace(r"\color{red}\color{green}", r"\color{blue}")
+            lines[l] = lin
         return  "\n".join(lines)
 
     def ELLUL(self, entering, leaving):

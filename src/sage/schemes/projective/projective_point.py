@@ -56,7 +56,7 @@ from sage.schemes.generic.morphism import (SchemeMorphism,
                                            SchemeMorphism_point)
 from sage.structure.element import AdditiveGroupElement
 from sage.structure.sequence import Sequence
-from sage.structure.richcmp import rich_to_bool, richcmp, op_EQ, op_NE
+from sage.structure.richcmp import richcmp, op_EQ, op_NE
 
 #*******************************************************************
 # Projective varieties
@@ -67,7 +67,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     INPUT:
 
-    -  ``X`` -- a homset of a subscheme of an ambient projective space over a field `K`.
+    -  ``X`` -- a homset of a subscheme of an ambient projective space over a ring `K`.
 
     - ``v`` -- a list or tuple of coordinates in `K`.
 
@@ -364,7 +364,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def __hash__(self):
         """
-        Computes the hash value of this point.
+        Compute the hash value of this point.
 
         If the base ring has a fraction field, normalize the point in
         the fraction field and then hash so that equal points have
@@ -399,9 +399,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         ::
 
             sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
-            sage: hash(P([2, 5]))
-            -479010389                     # 32-bit
-            4677413289753502123            # 64-bit
+            sage: hash(P([2, 5])) == hash(P([2,5]))
+            True
+            sage: hash(P([3, 7])) == hash(P([2,5]))
+            True
         """
         R = self.codomain().base_ring()
         #if there is a fraction field normalize the point so that
@@ -414,7 +415,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         #a constant value
         return hash(self.codomain())
 
-    def scale_by(self,t):
+    def scale_by(self, t):
         """
         Scale the coordinates of the point by ``t``.
 

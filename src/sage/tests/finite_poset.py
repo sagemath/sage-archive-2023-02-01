@@ -159,6 +159,8 @@ def test_finite_lattice(L):
     from sage.misc.flatten import flatten
     from sage.misc.misc import attrcall
 
+    from sage.misc.sageinspect import sage_getargspec
+
     if L.cardinality() < 4:
         # Special cases should be tested in specific TESTS-sections.
         return None
@@ -199,6 +201,18 @@ def test_finite_lattice(L):
             raise ValueError("dual elements error %s" % e1)
 
     ### Certificates ###
+
+    # Return value must be a pair with correct result as first element.
+    for p_ in all_props:
+        # Dirty fix first
+        if p_[:9] == 'doubling_' or p_[:5] == 'uniq_': continue
+        p = "is_"+p_
+        if 'certificate' in sage_getargspec(getattr(L, p)).args:
+            res = attrcall(p, certificate=True)(L)
+            if type(res) != type((1,2)) or len(res) != 2:
+                raise ValueError("certificate-option does not return a pair in %s" % p)
+            if P['p_'] != res[0]:
+                raise ValueError("certificate-option changes result in %s" % p)
 
     # Test for "yes"-certificates
     if P['supersolvable']:

@@ -41,7 +41,7 @@ from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
 from .polynomial_ring_constructor import PolynomialRing
 from .polynomial_ring import is_PolynomialRing
-from .multi_polynomial_ring_generic import is_MPolynomialRing
+from .multi_polynomial_ring_base import is_MPolynomialRing
 
 class FlatteningMorphism(Morphism):
     r"""

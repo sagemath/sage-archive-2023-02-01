@@ -193,12 +193,9 @@ def __common_minimal_basering(chi, psi):
     psi = psi.change_ring(K)
     return chi, psi
 
-#def prim(eps):
-#    print "making eps with modulus %s primitive"%eps.modulus()
-#    return eps.primitive_character()
 
 def __find_eisen_chars(character, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of the given weight and character.
 
     EXAMPLES::
@@ -287,8 +284,9 @@ def __find_eisen_chars(character, k):
                                 params.append( (chi0,psi0,t) )
     return params
 
+
 def __find_eisen_chars_gammaH(N, H, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of weight `k` on
     `\Gamma_H(N)`.
 
@@ -304,8 +302,9 @@ def __find_eisen_chars_gammaH(N, H, k):
             params += __find_eisen_chars(chi, k)
     return params
 
+
 def __find_eisen_chars_gamma1(N, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of weight `k` on
     `\Gamma_1(N)`.
 

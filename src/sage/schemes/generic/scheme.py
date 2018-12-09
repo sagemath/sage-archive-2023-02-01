@@ -57,7 +57,7 @@ def is_Scheme(x):
 
 
 class Scheme(Parent):
-    """
+    r"""
     The base class for all schemes.
 
     INPUT:

@@ -147,7 +147,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
             while j:
                 linked_list.append(to[theGraph.E[j].neighbor])
                 j = theGraph.E[j].link[1]
-            if len(linked_list) > 0:
+            if linked_list:
                 g_dict[to[i]] = linked_list
         G = Graph(g_dict)
         gp_Free(&theGraph)

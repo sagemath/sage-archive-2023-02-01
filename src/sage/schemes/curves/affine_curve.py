@@ -291,9 +291,9 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             if AS.dimension_relative() != len(indices):
                 raise TypeError("(=%s) must have dimension (=%s)"%(AS, len(indices)))
             if AS.base_ring() != AA.base_ring():
-                raise TypeError("(=%s) must be defined over the same base field as this curve"%AS)
+                raise TypeError("(=%s) must be defined over the same base field as this curve" % AS)
         indices = list(indices)
-        if all([f in AA.gens() for f in indices]):
+        if all(f in AA.gens() for f in indices):
             indices = [AA.gens().index(f) for f in indices]
             indices.sort()
         else:
@@ -1100,7 +1100,7 @@ class AffinePlaneCurve(AffineCurve):
         return v
 
     def plot(self, *args, **kwds):
-        """
+        r"""
         Plot the real points on this affine plane curve.
 
         INPUT:
@@ -1583,8 +1583,8 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
     # CHECK WHAT ASSUMPTIONS ARE MADE REGARDING AFFINE VS. PROJECTIVE MODELS!!!
     # THIS IS VERY DIRTY STILL -- NO DATASTRUCTURES FOR DIVISORS.
 
-    def riemann_roch_basis(self,D):
-        """
+    def riemann_roch_basis(self, D):
+        r"""
         Interfaces with Singular's BrillNoether command.
 
         INPUT:

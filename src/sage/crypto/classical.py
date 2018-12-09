@@ -58,7 +58,7 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.arith.all import xgcd, gcd, inverse_mod
+from sage.arith.all import xgcd, inverse_mod
 from random import randint
 from sage.matrix.matrix_space import MatrixSpace
 
@@ -70,6 +70,7 @@ from .classical_cipher import (
     SubstitutionCipher,
     TranspositionCipher,
     VigenereCipher)
+
 
 class AffineCryptosystem(SymmetricKeyCryptosystem):
     r"""
@@ -277,8 +278,8 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError("A (= %s) is not supported as a cipher domain of this affine cryptosystem." % A)
         # List L of invertible linear coefficients modulo n, where n is the
         # alphabet size. Each e in L satisfies gcd(e, n) = 1.
-        n = A.ngens()
-        self._invertible_A = [i for i in range(n) if gcd(i, n) == 1]
+        n = Integer(A.ngens())
+        self._invertible_A = n.coprime_integers(n)
         # Initialize the affine cryptosystem with the plaintext, ciphertext,
         # and key spaces.
         SymmetricKeyCryptosystem.__init__(
@@ -1284,8 +1285,9 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         b = Integer(randint(0, n - 1))
         return (a, b)
 
+
 class HillCryptosystem(SymmetricKeyCryptosystem):
-    """
+    r"""
     Create a Hill cryptosystem defined by the `m` x `m` matrix space
     over `\ZZ / N \ZZ`, where `N` is the alphabet size of
     the string monoid ``S``.
@@ -1329,7 +1331,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
     """
 
     def __init__(self, S, m):
-        """
+        r"""
         See ``HillCryptosystem`` for full documentation.
 
         Create a Hill cryptosystem defined by the `m` x `m` matrix space

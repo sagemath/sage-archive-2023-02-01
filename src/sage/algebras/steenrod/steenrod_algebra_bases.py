@@ -342,10 +342,7 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
 
     basis_name = get_basis_name(basis, p, generic=generic)
     if basis_name.find('long') >= 0:
-        long = True
         basis_name = basis_name.rsplit('_', 1)[0]
-    else:
-        long = False
 
     profile = kwds.get("profile", None)
     if (profile is not None and profile != () and profile != ((), ())
@@ -894,7 +891,6 @@ def atomic_basis(n, basis, **kwds):
         elif basis.find('revz') >= 0:
             return (s+t,s)
 
-    from sage.misc.all import prod
     from sage.rings.infinity import Infinity
     profile = kwds.get("profile", None)
     trunc = kwds.get("truncation_type", None)
@@ -1033,7 +1029,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
             return ((),)
         else:
             return (((), ()),)
-    from sage.misc.all import prod
+
     from sage.rings.all import Integer
     from sage.rings.infinity import Infinity
     from sage.combinat.integer_vector_weighted import WeightedIntegerVectors

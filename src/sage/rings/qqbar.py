@@ -1,4 +1,4 @@
-"""
+r"""
 Field of Algebraic Numbers
 
 AUTHOR:
@@ -361,19 +361,8 @@ algorithms in :trac:`10255`::
     x1 = R1.gen()
     R2 = AA['x']
     x2 = R2.gen()
-    cp1 = AA.common_polynomial(x2^2 - 2)
-    v1 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
-    v2 = QQbar.polynomial_root(AA.common_polynomial(x1^2 - 3), CIF(RIF(RR(1.7320508075688772), RR(1.7320508075688774)), RIF(RR(0))))
-    v3 = -v1 - v2
-    v4 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
-    cp2 = AA.common_polynomial(x1^2 + (-v4 + v2)*x1 - v4*v2)
-    v5 = QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v6 = v3 - v5
-    v7 = -1 - v2 - QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v8 = v1*v2
-    v9 = v8 - v3*v5
-    si = v8*v5
-    AA.polynomial_root(AA.common_polynomial(x1^4 + (v6 + v7)*x1^3 + (v9 + v6*v7)*x1^2 + (-si + v9*v7)*x1 - si*v7), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    v = AA.polynomial_root(AA.common_polynomial(x2^4 - 4*x2^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    AA.polynomial_root(AA.common_polynomial(x1^4 + QQbar(v^3 - 3*v - 1)*x1^3 + QQbar(-v^3 + 3*v - 3)*x1^2 + QQbar(-3*v^3 + 9*v + 3)*x1 + QQbar(3*v^3 - 9*v)), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 
@@ -1146,7 +1135,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             raise NotImplementedError
 
     def algebraic_closure(self):
-        """
+        r"""
         Return the algebraic closure of this field, which is the field
         `\overline{\QQ}` of algebraic numbers.
 
@@ -1752,7 +1741,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             ....:   x = QQbar.random_element(poly_degree=3)
             ....:   if x in AA:
             ....:     r.append(x)
-            sage: (len(r) == 3) and all([z in AA for z in r])
+            sage: (len(r) == 3) and all(z in AA for z in r)
             True
 
         TESTS:
@@ -1976,8 +1965,9 @@ def rational_exact_root(r, d):
     if not den_exact: return None
     return (num_rt / den_rt)
 
+
 def clear_denominators(poly):
-    """
+    r"""
     Takes a monic polynomial and rescales the variable to get a monic
     polynomial with "integral" coefficients. Works on any univariate
     polynomial whose base ring has a ``denominator()`` method that returns
@@ -2000,14 +1990,13 @@ def clear_denominators(poly):
         (2, x + 3)
         sage: clear_denominators(x^2 + x/2 + 1/4)
         (2, x^2 + x + 1)
-
     """
 
     # This algorithm factors the polynomial denominators.
     # We should check the size of the denominators and switch to
     # an alternate, less precise algorithm if we decide factoring
     # would be too slow.
-
+    
     d = poly.denominator()
     if d == 1:
         return d, poly
@@ -2417,7 +2406,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         numbers = [numbers]
         single_number = True
 
-    if any([isinstance(_, AlgebraicNumber) for _ in numbers]):
+    if any(isinstance(nb, AlgebraicNumber) for nb in numbers):
         algebraic_field = QQbar
     else:
         algebraic_field = AA
@@ -3357,15 +3346,15 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         And a nice big example::
 
             sage: K.<x> = QQ[]
-            sage: p = K.random_element(4); p
-            1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
+            sage: p = K.random_element(3); p
+            -12*x^3 + 1/2*x^2 - 1/95*x - 1/2
             sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
-            [-1.830225346898784?, 1.842584249981426?, 0.004346864248152390? - 1.540200655088741?*I, 0.004346864248152390? + 1.540200655088741?*I]
+            [-0.3325236940280402?, 0.1870951803473535? - 0.3004991638609601?*I, 0.1870951803473535? + 0.3004991638609601?*I]
             sage: sage_input(rts, verify=True)  # long time (2s on sage.math, 2013)
             # Verified
             R.<x> = AA[]
-            cp = AA.common_polynomial(1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4)
-            [QQbar.polynomial_root(cp, CIF(RIF(-RR(1.8302253468987832), -RR(1.830225346898783)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(1.8425842499814258), RR(1.842584249981426)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.0043468642481523899), RR(0.0043468642481523908)), RIF(-RR(1.5402006550887404), -RR(1.5402006550887402)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.0043468642481523899), RR(0.0043468642481523908)), RIF(RR(1.5402006550887402), RR(1.5402006550887404))))]
+            cp = AA.common_polynomial(-12*x^3 + 1/2*x^2 - 1/95*x - 1/2)
+            [QQbar.polynomial_root(cp, CIF(RIF(-RR(0.33252369402804022), -RR(0.33252369402804016)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.18709518034735342), RR(0.18709518034735345)), RIF(-RR(0.30049916386096009), -RR(0.30049916386096004)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.18709518034735342), RR(0.18709518034735345)), RIF(RR(0.30049916386096004), RR(0.30049916386096009))))]
 
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()

@@ -94,7 +94,7 @@ except ImportError:
 
 from .richcmp cimport rich_to_bool, revop
 from .sage_object cimport SageObject
-from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
+from .parent cimport Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction
 from .coerce_exceptions import CoercionException
@@ -102,6 +102,7 @@ from sage.rings.integer_fake cimport is_Integer
 from sage.categories.map cimport Map
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.action cimport Action, InverseAction, PrecomposedAction
+from sage.sets.pythonclass cimport Set_PythonType
 
 import traceback
 

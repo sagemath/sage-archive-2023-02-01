@@ -72,7 +72,7 @@ from sage.rings.all import NumberField, RationalField, PolynomialRing
 from sage.misc.misc import powerset
 from sage.env import SAGE_SHARE
 
-from sage.structure.sage_object import load, save
+from sage.misc.persist import load, save
 
 from sage.misc.package import PackageNotFoundError
 

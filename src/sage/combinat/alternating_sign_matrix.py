@@ -643,8 +643,8 @@ class AlternatingSignMatrix(Element):
             [ 0  0  1  0], [0 0 0 1], [ 0  1  0  0], [1 0 0 0]
             ]
 
-            sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],\
-            [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
+            sage: len(AlternatingSignMatrix([[0,1,0,0,0,0],[0,0,1,0,0,0],[1,-1,0,0,0,1],
+            ....: [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
             12
         """
         hf = self.height_function()
@@ -866,7 +866,7 @@ class AlternatingSignMatrix(Element):
             sage: asm.to_dyck_word()
             Traceback (most recent call last):
             ...
-            TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
+            TypeError: to_dyck_word() ...argument...
             sage: asm.to_dyck_word(algorithm = 'notamethod')
             Traceback (most recent call last):
             ...
@@ -1629,13 +1629,14 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [4, 8, 2, 8, 8, 8, 2, 2]
 
             sage: A = AlternatingSignMatrices(5)
-            sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,\
-            4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,\
-            4,5,10,10,2,2]
+            sage: li = [5,10,10,10,10,10,2,5,10,10,10,10,10,10,10,10,10,10,10,10,
+            ....: 4,10,10,10,10,10,10,4,5,10,10,10,10,10,10,10,2,4,5,10,10,10,10,10,10,
+            ....: 4,5,10,10,2,2]
             sage: A.gyration_orbit_sizes() == li
             True
         """
         return [len(orbit) for orbit in self.gyration_orbits()]
+
 
 class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
     r"""
@@ -1813,7 +1814,7 @@ def _is_a_cover(mt0, mt1):
             return False
     return diffs == 1
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'AlternatingSignMatrices_n', AlternatingSignMatrices)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
 
@@ -1935,12 +1936,13 @@ class ContreTableaux_n(ContreTableaux):
 
 
 def _next_column_iterator(previous_column, height, i = None):
-    """
+    r"""
     Return a generator for all columns of height ``height``
     properly filled from row 1 to ``i``.
-    ("Properly filled" means strictly increasing and having
+
+    "Properly filled" means strictly increasing and having
     the property that the `k`-th entry is `\geq` to the `k`-th
-    entry of ``previous_column`` for each `k`.)
+    entry of ``previous_column`` for each `k`.
 
     EXAMPLES::
 

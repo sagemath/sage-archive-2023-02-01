@@ -445,7 +445,6 @@ from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
-from sage.misc.latex import latex
 from sage.manifolds.manifold import TopologicalManifold
 
 ###############################################################################

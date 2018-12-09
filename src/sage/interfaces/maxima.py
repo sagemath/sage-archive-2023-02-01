@@ -525,15 +525,6 @@ class Maxima(MaximaAbstract, Expect):
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         STARTUP = os.path.join(SAGE_LOCAL,'bin','sage-maxima.lisp')
 
-        # We set maxima's configuration directory to $DOT_SAGE/maxima
-        # This avoids that sage's maxima inadvertently loads
-        # ~/.maxima/maxima-init.mac
-        # If you absolutely want maxima instances that are started by
-        # this interface to preload commands, put them in
-        # $DOT_SAGE/maxima/maxima-init.mac
-        # (we use the "--userdir" option in maxima for this)
-        SAGE_MAXIMA_DIR = os.path.join(DOT_SAGE,"maxima")
-
         if not os.path.exists(STARTUP):
             raise RuntimeError('You must get the file local/bin/sage-maxima.lisp')
 
@@ -554,8 +545,8 @@ class Maxima(MaximaAbstract, Expect):
         MaximaAbstract.__init__(self,"maxima")
         Expect.__init__(self,
                         name = 'maxima',
-                        prompt = '\(\%i[0-9]+\) ',
-                        command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
+                        prompt = r'\(\%i[0-9]+\) ',
+                        command = 'maxima -p "{0}"'.format(STARTUP),
                         env = {'TMPDIR': str(ECL_TMP)},
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
@@ -566,7 +557,7 @@ class Maxima(MaximaAbstract, Expect):
         # Must match what is in the file local/bin/sage-maxima.lisp
         self._display_prompt = '<sage-display>'
         # See #15440 for the importance of the trailing space
-        self._output_prompt_re = re.compile('\(\%o[0-9]+\) ')
+        self._output_prompt_re = re.compile(r'\(\%o[0-9]+\) ')
         self._ask = [b'zero or nonzero\\?', b'an integer\\?',
                      b'positive, negative or zero\\?', b'positive or negative\\?',
                      b'positive or zero\\?', b'equal to .*\\?']
@@ -812,7 +803,7 @@ class Maxima(MaximaAbstract, Expect):
         m = r.search(out)
         if m is not None:
             out = out[m.end():]
-        return re.sub('\s+', '', out)
+        return re.sub(r'\s+', '', out)
 
     def _synchronize(self):
         """

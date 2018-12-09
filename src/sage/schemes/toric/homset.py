@@ -431,7 +431,7 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
 
 
 class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
-    """
+    r"""
     Set of rational points of a toric variety.
 
     You should not use this class directly. Instead, use the

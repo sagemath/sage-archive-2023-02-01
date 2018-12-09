@@ -29,8 +29,9 @@ from sage.rings.all import ZZ, QQ
 from .subset import Subsets
 from sage.functions.all import ceil
 
+
 def _int_or_half_int(k):
-    """
+    r"""
     Check if ``k`` is an integer or half integer.
 
     OUTPUT:
@@ -81,11 +82,11 @@ class SetPartitionsXkElement(SetPartition):
         EXAMPLES::
 
             sage: A2p5 = SetPartitionsAk(2.5)
-            sage: x = A2p5.first(); x # random
-            {{1, 2, 3, -1, -3, -2}}
+            sage: x = A2p5.first(); x
+            {{-3, -2, -1, 1, 2, 3}}
             sage: x.check()
             sage: y = A2p5.next(x); y
-            {{-3, -2, -1, 2, 3}, {1}}
+            {{-3, 3}, {-2, -1, 1, 2}}
             sage: y.check()
         """
         #Check to make sure each element of x is a set
@@ -221,12 +222,12 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
             sage: all(ak.cardinality() == len(ak.list()) for ak in aks)
             True
         """
-        kp = Set([-self.k-1])
+        kp = frozenset([-self.k-1])
         for sp in SetPartitions_set.__iter__(self):
             res = []
             for part in sp:
                 if self.k+1 in part:
-                    res.append( part + kp )
+                    res.append( part.union(kp) )
                 else:
                     res.append(part)
             yield self.element_class(self, res)
@@ -661,8 +662,9 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
         return True
 
     def cardinality(self):
-        """
-        Returns the number of set partitions in B_k where k is an integer.
+        r"""
+        Return the number of set partitions in `B_k` where `k` is an integer.
+
         This is given by (2k)!! = (2k-1)\*(2k-3)\*...\*5\*3\*1.
 
         EXAMPLES::
@@ -679,7 +681,7 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
             945
         """
         c = 1
-        for i in range(1, 2*self.k,2):
+        for i in range(1, 2*self.k, 2):
             c *= i
         return c
 

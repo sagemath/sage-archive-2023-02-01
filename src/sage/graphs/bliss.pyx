@@ -108,7 +108,7 @@ cdef void empty_hook(void *user_param , unsigned int n, const unsigned int *aut)
     return
 
 #####################################################
-# constucting bliss graphs from edge lists
+# constructing bliss graphs from edge lists
 #####################################################
 
 cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels, partition):
@@ -659,7 +659,6 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
         sage: automorphism_group(gg).cardinality()                              # optional - bliss
         12
         sage: automorphism_group(gg,[[0],[1,2,3,4]]).cardinality()              # optional - bliss
-
         6
 
     Making sure that #25426 is fixed:

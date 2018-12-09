@@ -121,7 +121,7 @@ from .power_series_pari import PowerSeries_pari
 from . import power_series_ring_element
 
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from .polynomial.polynomial_ring_constructor import PolynomialRing
 from . import laurent_series_ring
 from . import laurent_series_ring_element
@@ -138,6 +138,7 @@ from sage.misc.superseded import deprecation
     
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import normalize_names
+from sage.structure.element import parent
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
@@ -1152,13 +1153,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             sage: s in R
             False
         """
-        if x.parent() == self:
-            return True
-        try:
-            self._coerce_(x)
-        except TypeError:
-            return False
-        return True
+        return self.has_coerce_map_from(parent(x))
 
     def is_field(self, proof = True):
         """

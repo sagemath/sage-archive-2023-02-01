@@ -45,9 +45,8 @@ from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.categories.morphism import SetMorphism
-from sage.categories.homset import Hom
 from sage.combinat.sf.sf import SymmetricFunctions
+
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -2417,7 +2416,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return T.sum_of_monomials( (C(j), C(i-j)) for j in range(0,i+1) )
 
     class MultiplicativeBasesOnPrimitiveElements(Category_realization_of_parent):
-        """
+        r"""
         Category of multiplicative bases of the non-commutative symmetric
         functions whose generators are primitive elements.
 

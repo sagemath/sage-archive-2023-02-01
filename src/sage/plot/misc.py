@@ -207,7 +207,7 @@ def unify_arguments(funcs):
 
 
 def _multiple_of_constant(n, pos, const):
-    """
+    r"""
     Function for internal use in formatting ticks on axes with
     nice-looking multiples of various symbolic constants, such
     as `\pi` or `e`.  Should only be used via keyword argument

@@ -63,7 +63,6 @@ def lovasz_theta(graph):
 
     from networkx import write_edgelist
     from sage.misc.temporary_file import tmp_filename
-    import os
     import subprocess
 
     from sage.features.csdp import CSDP

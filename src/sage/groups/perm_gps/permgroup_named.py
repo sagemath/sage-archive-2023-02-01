@@ -115,6 +115,13 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
             sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
             sage: hash(G) == hash(G3)  # todo: Should be True!
             False
+
+    TESTS::
+
+        sage: G = SymmetricGroup(6)
+        sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
+        sage: G == G3
+        True
     """
     @weak_cached_function
     def __classcall__(cls, *args, **kwds):
@@ -133,21 +140,6 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
                 domain = FiniteEnumeratedSet(domain)
             kwds['domain'] = domain
         return super(PermutationGroup_unique, cls).__classcall__(cls, *args, **kwds)
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(6)
-            sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
-            sage: G == G3
-            True
-
-        .. WARNING::
-
-            The hash currently is broken for this comparison.
-        """
-        return super(CachedRepresentation, self).__eq__(other)
 
 
 class PermutationGroup_symalt(PermutationGroup_unique):
@@ -278,7 +270,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         gens = [tuple(self._domain)]
         if len(self._domain) > 2:
             gens.append(tuple(self._domain[:2]))
-        self._gens = [self._element_class()(g, self, check=False)
+        self._gens = [self.element_class(g, self, check=False)
                       for g in gens]
 
     def _gap_init_(self, gap=None):
@@ -463,7 +455,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         return q_factorial(self.degree(), parameter)
 
     def conjugacy_classes_representatives(self):
-        """
+        r"""
         Return a complete list of representatives of conjugacy classes in
         a permutation group `G`.
 
@@ -568,7 +560,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         return SymmetricGroupConjugacyClass(self, g)
 
     def algebra(self, base_ring, category=None):
-        """
+        r"""
         Return the symmetric group algebra associated to ``self``.
 
         INPUT:
@@ -591,9 +583,9 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A = S3.algebra(QQ); A
             Symmetric group algebra of order 3 over Rational Field
             sage: a = S3.an_element(); a
-            (1,2,3)
+            (2,3)
             sage: A(a)
-            (1,2,3)
+            (2,3)
 
         We illustrate the choice of the category::
 
@@ -613,9 +605,9 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S.algebra(QQ)
             Algebra of Symmetric group of order 3! as a permutation group over Rational Field
             sage: a = S.an_element(); a
-            (2,3,5)
+            (3,5)
             sage: S.algebra(QQ)(a)
-            (2,3,5)
+            (3,5)
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         domain = self.domain()
@@ -624,16 +616,8 @@ class SymmetricGroup(PermutationGroup_symalt):
         else:
             return super(SymmetricGroup, self).algebra(base_ring)
 
-    def _element_class(self):
-        r"""
-        Return the class to be used for creating elements of this group.
+    Element = SymmetricGroupElement
 
-        EXAMPLES::
-
-            sage: SymmetricGroup(17)._element_class()
-            <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
-        """
-        return SymmetricGroupElement
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -673,7 +657,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             sage: groups.permutation.Alternating(6)
             Alternating group of order 6!/2 as a permutation group
         """
-        PermutationGroup_symalt.__init__(self, gap_group='AlternatingGroup(%s)'%len(domain), domain=domain)
+        PermutationGroup_symalt.__init__(self, gap_group='AlternatingGroup(%s)' % len(domain), domain=domain)
 
     def _repr_(self):
         """
@@ -697,7 +681,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             sage: A._gap_init_()
             'AlternatingGroup(3)'
         """
-        return 'AlternatingGroup(%s)'%(self.degree())
+        return 'AlternatingGroup(%s)' % self.degree()
 
 class CyclicPermutationGroup(PermutationGroup_unique):
     def __init__(self, n):
@@ -1052,7 +1036,7 @@ class JankoGroup(PermutationGroup_unique):
             raise ValueError("n must belong to {1,2,3}.")
         self._n = n
         gap.load_package("atlasrep")
-        id = 'AtlasGroup("J%s")'%n
+        id = 'AtlasGroup("J%s")' % n
         PermutationGroup_generic.__init__(self, gap_group=id)
 
     def _repr_(self):
@@ -1351,13 +1335,13 @@ class GeneralDihedralGroup(PermutationGroup_generic):
             # abelian group
             for i in range(1, (a//2)+1):
                 if i != a-i:
-                   genx.append(tuple((jumppoint+i, jumppoint+a-i)))
+                    genx.append(tuple((jumppoint+i, jumppoint+a-i)))
             jumppoint = jumppoint + a
         # If all of the direct factors are C2, then the action turning
         # each element into its inverse is trivial, and the
         # semi-direct product becomes a direct product, so we simply
         # tack on another disjoint transposition
-        if all(x==2 for x in simplified):
+        if all(x == 2 for x in simplified):
             genx.append(tuple((jumppoint, jumppoint+1)))
         gens.append(genx)
         PermutationGroup_generic.__init__(self, gens=gens)
@@ -1377,7 +1361,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 
 class DihedralGroup(PermutationGroup_unique):
     def __init__(self, n):
-        """
+        r"""
         The Dihedral group of order `2n` for any integer `n\geq 1`.
 
         INPUT:
@@ -1579,7 +1563,7 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
         if p == 2 and m <= 3:
             raise ValueError('if prime is 2, the exponent must be greater than 3, not %s' % m)
 
-        if p%2 == 1 and m <= 2:
+        if p % 2 == 1 and m <= 2:
             raise ValueError('if prime is odd, the exponent must be greater than 2, not %s' % m)
 
         self.p = p
@@ -1609,7 +1593,7 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
             sage: G = SplitMetacyclicGroup(7,4);G
             The split metacyclic group of order 7 ^ 4
         """
-        return 'The split metacyclic group of order %s ^ %s'%(self.p,self.m)
+        return 'The split metacyclic group of order %s ^ %s' % (self.p, self.m)
 
 class SemidihedralGroup(PermutationGroup_unique):
     def __init__(self,m):
@@ -1716,9 +1700,9 @@ class SemidihedralGroup(PermutationGroup_unique):
         EXAMPLES::
 
             sage: G = SemidihedralGroup(6); G
-            The semidiheral group of order 64
+            The semidihedral group of order 64
         """
-        return 'The semidiheral group of order %s'%(2**self.m)
+        return 'The semidihedral group of order %s' % (2**self.m)
 
 class MathieuGroup(PermutationGroup_unique):
     def __init__(self, n):
@@ -1760,7 +1744,7 @@ class MathieuGroup(PermutationGroup_unique):
         self._n = n
         if not(n in [9, 10, 11, 12, 21, 22, 23, 24]):
             raise ValueError("argument must belong to {9, 10, 11, 12, 21, 22, 23, 24}.")
-        id = 'MathieuGroup(%s)'%n
+        id = 'MathieuGroup(%s)' % n
         PermutationGroup_generic.__init__(self, gap_group=id)
 
     def _repr_(self):
@@ -1843,7 +1827,7 @@ class TransitiveGroup(PermutationGroup_unique):
         max_n = TransitiveGroups(d).cardinality()
         if n > max_n or n <= 0:
             raise ValueError("Index n must be in {1,..,%s}" % max_n)
-        gap_group = 'Group([()])' if d in [0,1] else 'TransitiveGroup(%s,%s)'%(d,n)
+        gap_group = 'Group([()])' if d in [0, 1] else 'TransitiveGroup(%s,%s)' % (d, n)
         try:
             PermutationGroup_generic.__init__(self, gap_group=gap_group)
         except RuntimeError:
@@ -2597,7 +2581,7 @@ class PGL(PermutationGroup_plg):
             sage: groups.permutation.PGL(2, 3)
             Permutation Group with generators [(3,4), (1,2,4)]
         """
-        id = 'Group([()])' if n == 1 else 'PGL(%s,%s)'%(n,q)
+        id = 'Group([()])' if n == 1 else 'PGL(%s,%s)' % (n, q)
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)
@@ -2701,10 +2685,10 @@ class PSL(PermutationGroup_plg):
         return "The projective special linear group of degree %s over %s"%(self._n, self.base_ring())
 
     def ramification_module_decomposition_hurwitz_curve(self):
-        """
+        r"""
         Helps compute the decomposition of the ramification module
         for the Hurwitz curves X (over CC say) with automorphism group
-        G = PSL(2,q), q a "Hurwitz prime" (ie, p is $\pm 1 \pmod 7$).
+        G = PSL(2,q), q a "Hurwitz prime" (ie, p is `\pm 1 \pmod 7`).
         Using this computation and Borne's formula helps determine the
         G-module structure of the RR spaces of equivariant
         divisors can be determined explicitly.
@@ -2835,10 +2819,10 @@ class PSp(PermutationGroup_plg):
             sage: groups.permutation.PSp(2, 3)
             Permutation Group with generators [(2,3,4), (1,2)(3,4)]
         """
-        if n%2 == 1:
+        if n % 2 == 1:
             raise TypeError("The degree n must be even")
         else:
-            id = 'PSp(%s,%s)'%(n,q)
+            id = 'PSp(%s,%s)' % (n, q)
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)
@@ -2900,7 +2884,7 @@ class PSU(PermutationGroup_pug):
             sage: groups.permutation.PSU(2, 3)
             The projective special unitary group of degree 2 over Finite Field of size 3
         """
-        id = 'PSU(%s,%s)'%(n,q)
+        id = 'PSU(%s,%s)' % (n, q)
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)
@@ -2951,7 +2935,7 @@ class PGU(PermutationGroup_pug):
             sage: groups.permutation.PGU(2, 3)
             The projective general unitary group of degree 2 over Finite Field of size 3
         """
-        id = 'PGU(%s,%s)'%(n,q)
+        id = 'PGU(%s,%s)' % (n, q)
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)
@@ -3023,7 +3007,7 @@ class SuzukiGroup(PermutationGroup_unique):
         t = valuation(q, 2)
         if 2**t != q or is_even(t):
             raise ValueError("The ground field size %s must be an odd power of 2." % q)
-        id = 'SuzukiGroup(IsPermGroup,%s)'%q
+        id = 'SuzukiGroup(IsPermGroup,%s)' % q
         PermutationGroup_generic.__init__(self, gap_group=id)
         self._q = q
         self._base_ring = GF(q, name=name)

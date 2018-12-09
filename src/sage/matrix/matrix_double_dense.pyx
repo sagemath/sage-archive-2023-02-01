@@ -113,13 +113,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         6694819972852100501  # 64-bit
         1829383573           # 32-bit
     """
-    def __cinit__(self, parent, entries, copy, coerce):
-        """
-        Set up a new matrix
-        """
-        Matrix_dense.__init__(self,parent)
-        return
-
     def __create_matrix__(self):
         """
         Create a new uninitialized numpy matrix to hold the data for the class.
@@ -1004,12 +997,12 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         TESTS:
 
-        Bogus values of the ``eps`` keyword will be caught.  ::
+        Bogus values of the ``eps`` keyword will be caught::
 
             sage: A.singular_values(eps='junk')
             Traceback (most recent call last):
             ...
-            ValueError: could not convert string to float: junk
+            ValueError: could not convert string to float: ...
 
         AUTHOR:
 

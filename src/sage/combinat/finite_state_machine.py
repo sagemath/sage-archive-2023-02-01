@@ -498,7 +498,7 @@ A simple transducer (binary inverter)
 -------------------------------------
 
 Let's build a simple transducer, which rewrites a binary word by
-iverting each bit::
+inverting each bit::
 
     sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
     ....:     initial_states=['A'], final_states=['A'])
@@ -4930,7 +4930,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 if hasattr(vertex, "accepting_where"):
                     angle = tikz_automata_where.get(vertex.accepting_where,
                                                     vertex.accepting_where)
-                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s \mid %s$} ++(%.2f:%s);\n" % (
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s \\mid %s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
                     EndOfWordLaTeX,
@@ -7445,7 +7445,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
 
     def concatenation(self, other):
-        """
+        r"""
         Concatenate this finite state machine with another finite
         state machine.
 
@@ -8176,7 +8176,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:                final_states=['A'])
             sage: F.transitions()[0].word_out is F.transitions()[1].word_out
             False
-            sage: G = Transducer([('C','C',0,1)],)
+            sage: G = Transducer([('C','C',0,1)],
             ....:                initial_states=['C'],
             ....:                final_states=['C'])
             sage: H = G.composition(F)
@@ -11691,8 +11691,7 @@ class Automaton(FiniteStateMachine):
         EXAMPLES::
 
             sage: A = automata.Word([0, 1])
-            sage: [w for w in
-            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            sage: [w for w in ([], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1])
             ....:  if A(w)]
             [[0, 1]]
             sage: Ac = A.complement()
@@ -11705,8 +11704,7 @@ class Automaton(FiniteStateMachine):
              Transition from 1 to 3: 0|-,
              Transition from 3 to 3: 0|-,
              Transition from 3 to 3: 1|-]
-            sage: [w for w in
-            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            sage: [w for w in ([], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1])
             ....:  if Ac(w)]
             [[], [0], [1], [0, 0], [1, 0], [1, 1]]
 
@@ -11718,8 +11716,7 @@ class Automaton(FiniteStateMachine):
             ...
             ValueError: The finite state machine must be deterministic.
             sage: Ac = A.determinisation().complement()
-            sage: [w for w in
-            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            sage: [w for w in ([], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1])
             ....:  if Ac(w)]
             [[], [0], [1], [0, 0], [1, 0], [1, 1]]
         """
@@ -12604,9 +12601,8 @@ class Transducer(FiniteStateMachine):
 
         return new
 
-
     def cartesian_product(self, other, only_accessible_components=True):
-        """
+        r"""
         Return a new transducer which can simultaneously process an
         input with the machines ``self`` and ``other`` where the
         output labels are `d`-tuples of the original output labels.

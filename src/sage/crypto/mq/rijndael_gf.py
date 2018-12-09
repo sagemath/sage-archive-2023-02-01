@@ -1137,8 +1137,8 @@ class RijndaelGF(SageObject):
             ...
             TypeError: keyword 'state' must be a 4 x 4 matrix with entries from a multivariate PolynomialRing over Finite Field in x of size 2^8
         """
-        from sage.rings.polynomial.multi_polynomial_ring_generic import \
-            MPolynomialRing_generic
+        from sage.rings.polynomial.multi_polynomial_ring_base import \
+            MPolynomialRing_base
         msg = ("keyword '{0}' must be a {1} x {2} matrix with entries from a "
                "multivariate PolynomialRing over {3}")
         msg = msg.format(keyword, 4, self._Nb, self._F)
@@ -1148,7 +1148,7 @@ class RijndaelGF(SageObject):
                 PRm.base_ring().order() == 256 and \
                 PRm.dimensions() == (4, self._Nb))) and \
            (not isinstance(PRm, Matrix) or \
-            not isinstance(PRm.base_ring(), MPolynomialRing_generic) or \
+            not isinstance(PRm.base_ring(), MPolynomialRing_base) or \
             not (PRm.base_ring().base_ring().is_field() and \
                  PRm.base_ring().base_ring().is_finite() and \
                  PRm.base_ring().base_ring().order() == 256) or \

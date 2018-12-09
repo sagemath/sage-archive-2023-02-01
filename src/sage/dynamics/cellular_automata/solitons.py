@@ -385,7 +385,7 @@ class SolitonCellularAutomata(SageObject):
     # -------------------
 
     def evolve(self, carrier_capacity=None, carrier_index=None, number=None):
-        """
+        r"""
         Evolve ``self``.
 
         Time evolution `T_s` of a SCA state `p` is determined by

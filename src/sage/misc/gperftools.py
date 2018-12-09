@@ -34,6 +34,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sys
 import ctypes
 import time
 from sage.structure.sage_object import SageObject
@@ -244,7 +245,6 @@ class Profiler(SageObject):
             sage: prof._executable()
             '.../python...'
         """
-        import sys
         return sys.executable
 
     def _call_pprof(self, *args, **kwds):

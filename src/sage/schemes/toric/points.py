@@ -38,11 +38,11 @@ from __future__ import print_function
 import itertools
 from copy import copy
 
-from sage.misc.all import powerset, prod
+from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.parallel.decorate import parallel
+from sage.parallel.decorate import Parallel
 
 
 class InfinitePointEnumerator(object):
@@ -259,7 +259,7 @@ class NaiveFinitePointEnumerator(object):
 
     @cached_method
     def rescalings(self):
-        """
+        r"""
         Return the rescalings of homogeneous coordinates.
 
         OUTPUT:
@@ -879,7 +879,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: point_set = X.point_set()
             sage: ffe = point_set._enumerator()
             sage: ffe.solutions_serial([s^2-1, s^6-s^2], [range(6)])
-            <generator object solutions_serial at 0x...>
+            <generator object ...solutions_serial at 0x...>
             sage: list(_)
             [(0,), (3,)]
         """
@@ -907,7 +907,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: point_set = X.point_set()
             sage: ffe = point_set._enumerator()
             sage: ffe.solutions([s^2-1, s^6-s^2], [range(6)])
-            <generator object solutions at 0x...>
+            <generator object ...solutions at 0x...>
             sage: sorted(_)
             [(0,), (3,)]
         """
@@ -918,7 +918,6 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             return
         # Parallelize the outermost loop of the Cartesian product
         work = [([[r]] + log_range[1:],) for r in log_range[0]]
-        from sage.parallel.decorate import Parallel
         parallel = Parallel()
         def partial_solution(work_range):
             return list(self.solutions_serial(inhomogeneous_equations, work_range))
@@ -993,8 +992,10 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         for cone, nonzero_coordinates, cokernel in self.ambient.cone_points_iter():
             R = PolynomialRing(self.ambient.ring, cokernel.ngens(), 't')
             inhomogeneous = self.inhomogeneous_equations(R, nonzero_coordinates, cokernel)
-            for log_t in self.solutions(inhomogeneous, map(range, cokernel.invariants())):
-                yield self.homogeneous_coordinates(log_t, nonzero_coordinates, cokernel)
+            log_range = [range(I) for I in cokernel.invariants()]
+            for log_t in self.solutions(inhomogeneous, log_range):
+                yield self.homogeneous_coordinates(log_t, nonzero_coordinates,
+                                                   cokernel)
 
     def cardinality(self):
         """
@@ -1026,7 +1027,8 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         for cone, nonzero_coordinates, cokernel in self.ambient.cone_points_iter():
             R = PolynomialRing(self.ambient.ring, cokernel.ngens(), 't')
             inhomogeneous = self.inhomogeneous_equations(R, nonzero_coordinates, cokernel)
-            for log_t in self.solutions(inhomogeneous, map(range, cokernel.invariants())):
+            log_range = [range(I) for I in cokernel.invariants()]
+            for log_t in self.solutions(inhomogeneous, log_range):
                 n += 1
         return n
 

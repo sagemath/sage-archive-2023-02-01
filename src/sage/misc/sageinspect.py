@@ -2151,7 +2151,7 @@ def sage_getsourcelines(obj):
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]
         sage: sage_getsourcelines(P)
-        (['cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):\n',
+        (['cdef class MPolynomialRing_libsingular(MPolynomialRing_base):\n',
           '\n',
           '    def __cinit__(self):\n',
         ...)

@@ -25,10 +25,10 @@ Authors
 Methods
 -------
 """
-
-
+from copy import copy
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.digraph import DiGraph
+
 
 def strong_orientations_iterator(G):
     r"""
@@ -238,6 +238,7 @@ def _strong_orientations_of_a_mixed_graph(Dg, V, E):
         E.append((u,v))
     Dg.add_edges(boundEdges)
     E.extend(boundEdges)
+
 
 def random_orientation(G):
     r"""

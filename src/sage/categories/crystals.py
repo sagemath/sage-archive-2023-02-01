@@ -1979,7 +1979,7 @@ class CrystalMorphism(Morphism):
         return super(CrystalMorphism, self).__call__(x, *args, **kwds)
 
     def virtualization(self):
-        """
+        r"""
         Return the virtualization sets `\sigma_i`.
 
         EXAMPLES::
@@ -1993,7 +1993,7 @@ class CrystalMorphism(Morphism):
         return self._virtualization
 
     def scaling_factors(self):
-        """
+        r"""
         Return the scaling factors `\gamma_i`.
 
         EXAMPLES::

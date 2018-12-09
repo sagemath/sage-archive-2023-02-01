@@ -474,7 +474,7 @@ class NCSymBases(Category_realization_of_parent):
 
         @lazy_attribute
         def internal_coproduct(self):
-            """
+            r"""
             Compute the internal coproduct of ``self``.
 
             If :meth:`internal_coproduct_on_basis()` is available, construct
@@ -660,7 +660,7 @@ class NCSymBases(Category_realization_of_parent):
                                         for A, coeff in m(self))
 
         def internal_coproduct(self):
-            """
+            r"""
             Return the internal coproduct of ``self``.
 
             The internal coproduct is defined on the power sum basis as
@@ -685,7 +685,7 @@ class NCSymBases(Category_realization_of_parent):
             return self.parent().internal_coproduct(self)
 
         def omega(self):
-            """
+            r"""
             Return the involution `\omega` applied to ``self``.
 
             The involution `\omega` is defined by

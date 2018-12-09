@@ -29,7 +29,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 
 class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
-    """
+    r"""
     A Kazhdan-Lusztig polynomial.
 
     INPUT:

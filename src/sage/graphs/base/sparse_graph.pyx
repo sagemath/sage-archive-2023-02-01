@@ -1052,8 +1052,6 @@ cdef class SparseGraph(CGraph):
             sage: G.arc_label(3,4)
             7
 
-        NOTES:
-
         To this function, an unlabeled arc is indistinguishable from a non-arc::
 
             sage: G.add_arc_label(1,0)
@@ -1072,7 +1070,7 @@ cdef class SparseGraph(CGraph):
         """
         self.check_vertex(u)
         self.check_vertex(v)
-        return self.arc_label_unsafe(u,v)
+        return self.arc_label_unsafe(u, v)
 
     cdef int all_arcs_unsafe(self, int u, int v, int *arc_labels, int size):
         """
@@ -1386,7 +1384,8 @@ cdef class SparseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0,1,2))
-        sage: G.vertices()
+        sage: sorted(G.vertices(),
+        ....:        key=lambda x: (isinstance(x, tuple), x))
         [0,
         ...
          29,

@@ -135,7 +135,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         # Backward compatibility temporary cruft to help migrating form CombinatorialAlgebra
         def _product_from_combinatorial_algebra_multiply(self,left,right):
-            """
+            r"""
             Returns left\*right where left and right are elements of self.
             product() uses either _multiply or _multiply basis to carry out
             the actual multiplication.

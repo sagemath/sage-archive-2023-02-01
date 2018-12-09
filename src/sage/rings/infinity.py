@@ -222,7 +222,6 @@ from sys import maxsize
 from sage.rings.ring import Ring
 from sage.structure.element import RingElement, InfinityElement
 from sage.structure.richcmp import rich_to_bool, richcmp
-from sage.structure.parent import Parent
 from sage.misc.fast_methods import Singleton
 import sage.rings.integer
 import sage.rings.rational

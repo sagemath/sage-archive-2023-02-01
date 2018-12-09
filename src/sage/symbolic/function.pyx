@@ -987,7 +987,10 @@ cdef class BuiltinFunction(Function):
                 method = getattr(arg, self._alt_name, None)
 
             if callable(method):
-                res = method()
+                try:
+                    res = method()
+                except (ValueError, ArithmeticError):
+                    pass
 
         if res is None:
             res = self._evalf_try_(*args)

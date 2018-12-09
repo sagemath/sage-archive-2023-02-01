@@ -94,12 +94,12 @@ initial exchange matrix::
 
 and get all its g-vectors, F-polynomials, and cluster variables::
 
-    sage: A.g_vectors_so_far()
-    [(0, 1), (0, -1), (1, 0), (-1, 1), (-1, 0)]
-    sage: A.F_polynomials_so_far()
-    [1, u1 + 1, 1, u0 + 1, u0*u1 + u0 + 1]
-    sage: A.cluster_variables_so_far()
-    [x1, (x0 + 1)/x1, x0, (x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1)]
+    sage: sorted(A.g_vectors_so_far())
+    [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, 0)]
+    sage: sorted(A.F_polynomials_so_far(), key=str)
+    [1, 1, u0 + 1, u0*u1 + u0 + 1, u1 + 1]
+    sage: sorted(A.cluster_variables_so_far(), key=str)
+    [(x0 + 1)/x1, (x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0, x0, x1]
 
 Simple operations among cluster variables behave as expected::
 
@@ -345,8 +345,8 @@ mutating at the initial seed::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-from future_builtins import map
+
+from six.moves import range, map
 
 from copy import copy
 
@@ -453,7 +453,7 @@ class ClusterAlgebraElement(ElementWrapper):
             sage: x.d_vector()
             (1, 1, 2, -2)
         """
-        monomials = self.lift()._dict().keys()
+        monomials = self.lift().dict().keys()
         minimal = map(min, zip(*monomials))
         return tuple(-vector(minimal))[:self.parent().rank()]
 
@@ -1516,13 +1516,13 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
-            sage: A.g_vectors_so_far()
+            sage: sorted(A.g_vectors_so_far())
             [(0, 1), (1, 0)]
             sage: A.current_seed().mutate([1, 0])
-            sage: A.g_vectors_so_far()
-            [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            sage: sorted(A.g_vectors_so_far())
+            [(-1, 0), (0, -1), (0, 1), (1, 0)]
             sage: A.clear_computed_data()
-            sage: A.g_vectors_so_far()
+            sage: sorted(A.g_vectors_so_far())
             [(0, 1), (1, 0)]
         """
         I = identity_matrix(self._n)
@@ -1660,10 +1660,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
-            sage: A.g_vectors_so_far()
-            [(0, 1), (1, 0), (-1, 1)]
+            sage: sorted(A.g_vectors_so_far())
+            [(-1, 1), (0, 1), (1, 0)]
         """
-        return self._path_dict.keys()
+        return list(self._path_dict)
 
     def cluster_variables_so_far(self):
         r"""
@@ -1674,10 +1674,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
-            sage: A.cluster_variables_so_far()
-            [x1, x0, (x1 + 1)/x0]
+            sage: sorted(A.cluster_variables_so_far(), key=str)
+            [(x1 + 1)/x0, x0, x1]
         """
-        return list(map(self.cluster_variable, self.g_vectors_so_far()))
+        return [self.cluster_variable(v) for v in self.g_vectors_so_far()]
 
     def F_polynomials_so_far(self):
         r"""
@@ -1688,10 +1688,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
-            sage: A.F_polynomials_so_far()
+            sage: sorted(A.F_polynomials_so_far(), key=str)
             [1, 1, u0 + 1]
         """
-        return self._F_poly_dict.values()
+        return list(self._F_poly_dict.values())
 
     @cached_method(key=lambda a, b: tuple(b))
     def cluster_variable(self, g_vector):
@@ -2013,15 +2013,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.clear_computed_data()
             sage: seeds = A.seeds(allowed_directions=[3, 0, 1])
             sage: _ = list(seeds)
-            sage: A.g_vectors_so_far()
+            sage: sorted(A.g_vectors_so_far())
             [(-1, 0, 0, 0),
-             (1, 0, 0, 0),
-             (0, 0, 0, 1),
+             (-1, 1, 0, 0),
              (0, -1, 0, 0),
+             (0, 0, 0, -1),
+             (0, 0, 0, 1),
              (0, 0, 1, 0),
              (0, 1, 0, 0),
-             (-1, 1, 0, 0),
-             (0, 0, 0, -1)]
+             (1, 0, 0, 0)]
         """
         # should we begin from the current seed?
         if kwargs.get('from_current_seed', False):
@@ -2039,7 +2039,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         mutating_F = kwargs.get('mutating_F', True)
 
         # which directions are we allowed to mutate into
-        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(self.rank()))))
+        allowed_dirs = sorted(kwargs.get('allowed_directions',
+                                         range(self.rank())))
 
         # setup seeds storage
         cl = frozenset(seed.g_vectors())
@@ -2052,7 +2053,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             # remember if we got a new seed
             gets_bigger = False
 
-            for cl in clusters.keys():
+            for cl in list(clusters):
                 sd, directions = clusters[cl]
                 while directions:
                     try:

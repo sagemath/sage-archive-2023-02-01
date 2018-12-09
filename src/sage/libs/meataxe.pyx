@@ -31,6 +31,33 @@ cdef dict ErrMsg = {
     "Not a permutation": TypeError
 }
 
+
+cdef Matrix_t *rawMatrix(int Field, list entries) except NULL:
+    """
+    Return a meataxe matrix.
+
+    INPUT:
+
+    - ``Field`` -- Integer, the field size
+    - ``entries`` -- list of lists, the entries of the matrix, also
+      defining the matrix dimensions. It is *not* tested that all rows
+      in ``entries`` have the same length, and it is assumed that both
+      the number of rows and the number of columns is positive. All
+      elements are given by ints, they are automatically interpreted as
+      field elements.
+    """
+    cdef Matrix_t *M = MatAlloc(Field, len(entries), len(entries[0]))
+    cdef PTR x = M.Data
+    cdef int idx, i, j
+    cdef list dt_i
+    for i in range(M.Nor):
+        idx = 0
+        dt_i = entries[i]
+        for j in range(M.Noc):
+            FfInsert(x, j, FfFromInt(dt_i[j]))
+        FfStepPtr(&(x))
+    return M
+
 ###############################################################
 ## It is needed to do some initialisation. Since the meataxe
 ## version used in Sage (SharedMeatAxe) is a dynamic (shared)

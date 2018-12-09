@@ -83,7 +83,6 @@ def from_sparse6(G, g6_string):
         True
     """
     from .generic_graph_pyx import length_and_string_from_graph6, int_to_binary_string
-    from math import floor
     n = g6_string.find('\n')
     if n == -1:
         n = len(g6_string)
@@ -119,6 +118,7 @@ def from_sparse6(G, g6_string):
                     edges.append((x[i],v))
     G.add_vertices(range(n))
     G.add_edges(edges)
+
 
 def from_dig6(G, dig6_string):
     r"""

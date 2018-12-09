@@ -311,6 +311,18 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: B41 = CartanType(['B', 4, 1])
+            sage: B41dual = CartanType(['B', 4, 1]).dual()
+            sage: h = hash(B41dual)
+        """
+        return hash(self._type)
+
     def dual(self):
         """
         EXAMPLES::
@@ -642,7 +654,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
                 return "E_6^{(2)}"
         result = self._type._latex_()
         import re
-        if re.match(".*\^{\(\d\)}$", result):
+        if re.match(r".*\^{\(\d\)}$", result):
             return "%s%s}"%(result[:-1], self.options('dual_latex'))
         else:
             return "{%s}^%s"%(result, self.options('dual_latex'))

@@ -80,11 +80,11 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
-from sage.combinat.root_system.ambient_space import AmbientSpace
+from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+
 
 class AbstractSingleCrystalElement(Element):
     r"""

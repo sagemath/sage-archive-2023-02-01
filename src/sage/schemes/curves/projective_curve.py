@@ -1,5 +1,5 @@
 """
-Projective curves.
+Projective curves
 
 EXAMPLES:
 
@@ -26,6 +26,7 @@ AUTHORS:
 - Moritz Minzlaff (2010-11)
 
 - Grayson Jorgenson (2016-8)
+
 """
 
 #*****************************************************************************
@@ -240,7 +241,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             ...
             TypeError: (=Projective Space of dimension 2 over Finite Field of size
             7) must have dimension (=3)
-            
+
 
         ::
 
@@ -1189,8 +1190,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             coords = [sum([M.row(j)[k]*PP.gens()[k] for k in range(3)]) for j in range(3)]
             C = PP.curve(baseC.defining_polynomial()(coords))
             # check tangents at (0 : 0 : 1)
-            T = C.tangents(PP([0,0,1]), factor=False)[0]
-            if all([e[0] > 0 for e in T.exponents()]) or all([e[1] > 0 for e in T.exponents()]):
+            T = C.tangents(PP([0, 0, 1]), factor=False)[0]
+            if all(e[0] > 0 for e in T.exponents()) or all(e[1] > 0 for e in T.exponents()):
                 continue
             # check that the other intersections of C with the exceptional lines are correct
             need_continue = False
@@ -2035,6 +2036,6 @@ def Hasse_bounds(q, genus=1):
     return (q+1-rq,q+1+rq)
 
 # Fix pickles from changing class names and plane_curves folder name
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.plane_curves.projective_curve',
                            'ProjectiveCurve_generic', ProjectivePlaneCurve)

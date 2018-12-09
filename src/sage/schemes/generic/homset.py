@@ -582,7 +582,8 @@ class SchemeHomset_points(SchemeHomset_generic):
                 if not isinstance(source, AlgebraicScheme_subscheme):
                     return False
                 if target.ambient_space() == source.ambient_space():
-                    if all([g in source.defining_ideal() for g in target.defining_polynomials()]):
+                    if all(g in source.defining_ideal()
+                           for g in target.defining_polynomials()):
                         return self.domain().coordinate_ring().has_coerce_map_from(other.domain().coordinate_ring())
             else:
                 #if the target is an ambient space, we can coerce if the base rings coerce

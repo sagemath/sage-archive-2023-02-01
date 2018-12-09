@@ -224,7 +224,7 @@ author, which contains more than 190000 sequences of integers::
     sage: oeis([1,1,2,5,14])                            # optional -- internet
     0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
     1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, with a(0) = 1.
-    2: A080937: Number of Catalan paths (nonnegative, starting and ending at 0, step +/-1) of 2*n steps with all values <= 5.
+    2: ...
 
 The result suggests that the trees are counted by one of the most famous
 sequences, the Catalan numbers. Looking through the references supplied
@@ -275,7 +275,7 @@ Now we can solve this equation with ``Sage``. In order to do so, we
 introduce two variables, `C` and `z`, and we define the
 equation::
 
-    sage: C, z = var('C,z');
+    sage: C, z = var('C,z')
     sage: sys = [ C == z + C*C ]
 
 There are two solutions, which happen to have closed forms::
@@ -322,7 +322,7 @@ define by a recursive equation::
 
     sage: C = L()
     sage: C._name = 'C'
-    sage: C.define( z + C * C );
+    sage: C.define( z + C * C )
 
 ::
 
@@ -339,7 +339,7 @@ At any point, one can ask for any coefficient without having to redefine
 
 We now return to the closed form of `C(z)`::
 
-    sage: z = var('z');
+    sage: z = var('z')
     sage: C = s0; C
     -1/2*sqrt(-4*z + 1) + 1/2
 
@@ -374,7 +374,7 @@ satisfies the recurrence relation
 
 We check this::
 
-    sage: n = var('n');
+    sage: n = var('n')
     sage: c = 1/n*binomial(2*(n-1),n-1)
     sage: [c.subs(n=k) for k in range(1, 11)]
     [1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862]
@@ -831,14 +831,17 @@ Permutations::
 
 Set partitions::
 
-    sage: C = SetPartitions([1,2,3])
+    sage: C = SetPartitions(["a", "b", "c"])
     sage: C
-    Set partitions of {1, 2, 3}
+    Set partitions of {'a', 'c', 'b'}
     sage: C.cardinality()
     5
     sage: C.list()
-    [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}},
-     {{1}, {2}, {3}}]
+    [{{'a', 'b', 'c'}},
+     {{'a', 'b'}, {'c'}},
+     {{'a', 'c'}, {'b'}},
+     {{'a'}, {'b', 'c'}},
+     {{'a'}, {'b'}, {'c'}}]
 
 Partial orders on a set of `8` elements, up to isomorphism::
 
@@ -887,7 +890,7 @@ structures like the dihedral groups::
     sage: G.cardinality()
     8
     sage: G.list()
-    [(), (1,4)(2,3), (1,2,3,4), (1,3)(2,4), (1,3), (2,4), (1,4,3,2), (1,2)(3,4)]
+    [(), (1,3)(2,4), (1,4,3,2), (1,2,3,4), (2,4), (1,3), (1,4)(2,3), (1,2)(3,4)]
 
 or the algebra of `2\times 2` matrices over the finite field
 `\ZZ/2\ZZ`::
@@ -1109,8 +1112,7 @@ use the ``Sage`` function ``exists``::
 
 Alternatively, we could construct an iterator on the counter-examples::
 
-    sage: counter_examples = \
-    ....:   (p for p in range(1000)
+    sage: counter_examples = (p for p in range(1000)
     ....:      if is_prime(p) and not is_prime(mersenne(p)))
     sage: next(counter_examples)
     11
@@ -1268,7 +1270,7 @@ or select only the elements in positions 2, 3, and 4 (analogue of
 The itertools methods ``imap`` and ``ifilter`` have been renamed to
 ``map`` and ``filter`` in Python 3. You can get them also in Python 2 using::
 
-    sage: from builtins import map, filter
+    sage: from six.moves import map, filter
 
 but they should rather be avoided, using list comprehension instead.
 
@@ -1421,7 +1423,9 @@ usual combinatorial operations and also its structure as a product group::
     sage: H = cartesian_product([G,G])
     sage: H in Groups()
     True
-    sage: t = H.an_element()
+    sage: H.an_element()
+    ((1,3), (1,3))
+    sage: t = H([G.gen(0), G.gen(0)])
     sage: t
     ((1,2,3,4), (1,2,3,4))
     sage: t*t
@@ -1730,7 +1734,7 @@ The Fibonacci sequence is easily recognized here, hence the name::
     sage: oeis(L)                                       # optional -- internet
     0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
     1: A212804: Expansion of (1-x)/(1-x-x^2).
-    2: A132636: Fib(n) mod n^3.
+    2: A132636: a(n) = Fibonacci(n) mod n^3.
 
 This is an immediate consequence of the recurrence relation. One can
 also generate immediately all the Fibonacci words of a given length,

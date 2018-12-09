@@ -57,8 +57,6 @@ from sage.plot.plot import generate_plot_points
 
 from sage.arith.all import lcm
 import sage.rings.all as rings
-from sage.rings.number_field.number_field_base import is_NumberField
-from sage.misc.all import prod as mul
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.fast_methods import WithEqualityById
 
@@ -149,7 +147,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         self.__ainvs = tuple(K(a) for a in ainvs)
         if self.discriminant() == 0:
             raise ArithmeticError("invariants " + str(ainvs) + " define a singular curve")
-        PP = projective_space.ProjectiveSpace(2, K, names='xyz');
+        PP = projective_space.ProjectiveSpace(2, K, names='xyz')
         x, y, z = PP.coordinate_ring().gens()
         a1, a2, a3, a4, a6 = ainvs
         f = y**2*z + (a1*x + a3*z)*y*z \
@@ -815,7 +813,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: -P
             (x : -y : 1)
             sage: 2*P
-            ((1/4*x^4 - 4*x)/(x^3 + 2) : ((-1/8*x^6 - 5*x^3 + 4)/(-x^6 - 4*x^3 - 4))*y : 1)
+            ((1/4*x^4 - 4*x)/(x^3 + 2) : ((1/8*x^6 + 5*x^3 - 4)/(x^6 + 4*x^3 + 4))*y : 1)
 
 
         AUTHOR:
@@ -1469,60 +1467,6 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             u = self.base_ring()(u)     # because otherwise 1/u would round!
         return self.change_weierstrass_model(1/u,0,0,0)
 
-    def discriminant(self):
-        r"""
-        Returns the discriminant of this elliptic curve.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([0,0,1,-1,0])
-            sage: E.discriminant()
-            37
-            sage: E = EllipticCurve([0, -1, 1, -10, -20])
-            sage: E.discriminant()
-            -161051
-
-        ::
-
-            sage: E = EllipticCurve([GF(7)(2),1])
-            sage: E.discriminant()
-            1
-        """
-        try:
-            return self.__discriminant
-        except AttributeError:
-            b2, b4, b6, b8 = self.b_invariants()
-            self.__discriminant = -b2**2*b8 - 8*b4**3 - 27*b6**2 + 9*b2*b4*b6
-            return self.__discriminant
-
-    def j_invariant(self):
-        r"""
-        Returns the j-invariant of this elliptic curve.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([0,0,1,-1,0])
-            sage: E.j_invariant()
-            110592/37
-            sage: E = EllipticCurve([0, -1, 1, -10, -20])
-            sage: E.j_invariant()
-            -122023936/161051
-            sage: E = EllipticCurve([-4,0])
-            sage: E.j_invariant()
-            1728
-
-        ::
-
-            sage: E = EllipticCurve([GF(7)(2),1])
-            sage: E.j_invariant()
-            1
-        """
-        try:
-            return self.__j_invariant
-        except AttributeError:
-            c4, _ = self.c_invariants()
-            self.__j_invariant = c4**3 / self.discriminant()
-            return self.__j_invariant
 
 #############################################################
 #
@@ -2128,7 +2072,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         Grab only the x-coordinate (less work)::
 
             sage: mx = E.multiplication_by_m(2, x_only=True); mx
-            (x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12)
+            (1/4*x^4 + 1/2*x^2 - 6*x + 1/4)/(x^3 - x + 3)
             sage: mx.parent()
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
@@ -2646,14 +2590,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.plot()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Plotting of curves over Complex Field with 53 bits of precision not implemented yet
+            NotImplementedError: plotting of curves over Complex Field with 53 bits of precision is not implemented yet
         """
         RR = rings.RealField()
         K = self.base_ring()
-        try:
-            RR._coerce_(K(1))
-        except TypeError:
-            raise NotImplementedError("Plotting of curves over %s not implemented yet"%K)
+        if not RR.has_coerce_map_from(K):
+            raise NotImplementedError("plotting of curves over %s is not implemented yet" % K)
         if components not in ['both', 'bounded', 'unbounded']:
             raise ValueError("component must be one of 'both', 'bounded' or 'unbounded'")
 
@@ -2978,10 +2920,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         """
         K = self.base_ring()
         R = PolynomialRing(K, 'x')
-        x = R.gen(0)
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
 
+    @cached_method
     def pari_curve(self):
         """
         Return the PARI curve corresponding to this elliptic curve.
@@ -3013,6 +2955,21 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.j_invariant()
             3*5^-1 + O(5)
 
+        Over a number field::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: E = EllipticCurve([1,a])
+            sage: E.pari_curve()
+            [Mod(0, y^2 - 2), Mod(0, y^2 - 2), Mod(0, y^2 - 2), Mod(1, y^2 - 2),
+            Mod(y, y^2 - 2), Mod(0, y^2 - 2), Mod(2, y^2 - 2), Mod(4*y, y^2 - 2),
+            Mod(-1, y^2 - 2), Mod(-48, y^2 - 2), Mod(-864*y, y^2 - 2),
+            Mod(-928, y^2 - 2), Mod(3456/29, y^2 - 2), Vecsmall([5]),
+            [[y^2 - 2, [2, 0], 8, 1, [[1, -1.41421356237310;
+            1, 1.41421356237310], [1, -1.41421356237310; 1, 1.41421356237310],
+            [1, -1; 1, 1], [2, 0; 0, 4], [4, 0; 0, 2], [2, 0; 0, 1],
+            [2, [0, 2; 1, 0]], []], [-1.41421356237310, 1.41421356237310],
+            [1, y], [1, 0; 0, 1], [1, 0, 0, 2; 0, 1, 1, 0]]], [0, 0, 0, 0, 0]]
+
         PARI no longer requires that the `j`-invariant has negative `p`-adic valuation::
 
             sage: E = EllipticCurve(Qp,[1, 1])
@@ -3021,14 +2978,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.pari_curve()
             [0, 0, 0, 1, 1, 0, 2, 4, -1, -48, -864, -496, 6912/31, Vecsmall([2]), [O(5^3)], [0, 0]]
         """
-        try:
-            return self._pari_curve
-        except AttributeError:
-            pass
-
-        from sage.libs.pari.all import pari
-        self._pari_curve = pari(list(self.a_invariants())).ellinit()
-        return self._pari_curve
+        from sage.categories.number_fields import NumberFields
+        from sage.libs.pari import pari
+        if self.base_ring() in NumberFields():
+            return pari.ellinit(self.a_invariants(), self.base_ring())
+        else:
+            return pari.ellinit(self.a_invariants())
 
     # This method is defined so that pari(E) returns exactly the same
     # as E.pari_curve().  This works even for classes that inherit from

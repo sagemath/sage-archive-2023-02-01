@@ -769,9 +769,10 @@ class ComplexField_class(ring.Field):
         # factor it over the reals. To make sure it has complex coefficients we
         # multiply with I.
         I = R.base_ring().gen()
-        g = f*I if f.leading_coefficient()!=I else f
+        g = f * I if f.leading_coefficient() != I else f
 
         F = list(g._pari_with_name().factor())
 
         from sage.structure.factorization import Factorization
-        return Factorization([(R(g).monic(),e) for g,e in zip(*F)], f.leading_coefficient())
+        return Factorization([(R(gg).monic(), e) for gg, e in zip(*F)],
+                             f.leading_coefficient())

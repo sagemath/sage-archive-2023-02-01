@@ -181,22 +181,23 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
     -2
 
 """
-from __future__ import absolute_import
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+
 
 class FreeModuleTensor(ModuleElement):
     r"""
@@ -596,7 +597,7 @@ class FreeModuleTensor(ModuleElement):
             sage: w = - 3/4 * de[1] + de[2] ; w
             Linear form on the 2-dimensional vector space M over the Rational
              Field
-            sage: w.set_name('w', latex_name='\omega')
+            sage: w.set_name('w', latex_name='\\omega')
             sage: w.display()
             w = -3/4 e^1 + e^2
             sage: latex(w.display())  # display in the notebook
@@ -861,29 +862,6 @@ class FreeModuleTensor(ModuleElement):
                                         format_spec=format_spec,
                                         only_nonzero=only_nonzero,
                                         only_nonredundant=only_nonredundant)
-
-    def view(self, basis=None, format_spec=None):
-        r"""
-        Deprecated method.
-
-        Use method :meth:`display` instead.
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 2, 'M')
-            sage: e = M.basis('e')
-            sage: v = M([2,-3], basis=e, name='v')
-            sage: v.view(e)
-            doctest:...: DeprecationWarning: Use function display() instead.
-            See http://trac.sagemath.org/15916 for details.
-            v = 2 e_0 - 3 e_1
-            sage: v.display(e)
-            v = 2 e_0 - 3 e_1
-
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15916, 'Use function display() instead.')
-        return self.display(basis=basis, format_spec=format_spec)
 
     def set_name(self, name=None, latex_name=None):
         r"""
@@ -1171,7 +1149,7 @@ class FreeModuleTensor(ModuleElement):
             sage: M.set_change_of_basis(e, f, a)
             sage: t.display(e)
             t = -4 e_1*e^2
-            sage: sorted(t._components)  # random output (dictionary keys)
+            sage: sorted(t._components, key=repr)
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
@@ -1237,7 +1215,7 @@ class FreeModuleTensor(ModuleElement):
 
         The components w.r.t. basis e have been kept::
 
-            sage: sorted(t._components) # # random output (dictionary keys)
+            sage: sorted(t._components, key=repr)
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
             sage: t.display(f)
@@ -1274,7 +1252,7 @@ class FreeModuleTensor(ModuleElement):
             sage: u = M([2,1,-5])
             sage: f = M.basis('f')
             sage: u.add_comp(f)[:] = [0,4,2]
-            sage: sorted(u._components) # random output (dictionary keys)
+            sage: sorted(u._components, key=repr)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
              Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
             sage: u.del_other_comp(f)
@@ -1284,7 +1262,7 @@ class FreeModuleTensor(ModuleElement):
         Let us restore the components w.r.t. e and delete those w.r.t. f::
 
             sage: u.add_comp(e)[:] = [2,1,-5]
-            sage: sorted(u._components)  # random output (dictionary keys)
+            sage: sorted(u._components, key=repr)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
              Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
             sage: u.del_other_comp()  # default argument: basis = e
@@ -1507,9 +1485,9 @@ class FreeModuleTensor(ModuleElement):
 
         Indeed, v is now known in basis e::
 
-            sage: sorted(v._components) # random output (dictionary keys)
-            [Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring,
-             Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
+            sage: sorted(v._components, key=repr)
+            [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
+             Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
 
         """
         # Compatibility checks:
@@ -2566,7 +2544,7 @@ class FreeModuleTensor(ModuleElement):
             if pos not in pos2:
                 nb_con_o += 1
         if nb_cov_s != 0 and nb_con_o != 0:
-            # some reodering is necessary:
+            # some reordering is necessary:
             p2 = k1 + l1 - ncontr
             p1 = p2 - nb_cov_s
             p3 = p2 + nb_con_o

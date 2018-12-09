@@ -1,1 +1,1 @@
-SageMath version 8.2.rc3, Release Date: 2018-04-16
+SageMath version 8.4, Release Date: 2018-10-17

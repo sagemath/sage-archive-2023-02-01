@@ -63,12 +63,10 @@ def lovasz_theta(graph):
 
     from networkx import write_edgelist
     from sage.misc.temporary_file import tmp_filename
-    import os, subprocess
-    from sage.env import SAGE_LOCAL
-    from sage.misc.package import is_package_installed, PackageNotFoundError
+    import subprocess
 
-    if not is_package_installed('csdp'):
-        raise PackageNotFoundError("csdp")
+    from sage.features.csdp import CSDP
+    CSDP().require()
 
     g = graph.relabel(inplace=False, perm=range(1,n+1)).networkx_graph()
     tf_name = tmp_filename()
@@ -76,5 +74,5 @@ def lovasz_theta(graph):
     tf.write(str(n)+'\n'+str(g.number_of_edges())+'\n')
     write_edgelist(g, tf, data=False)
     tf.close()
-    lines = subprocess.check_output([os.path.join(SAGE_LOCAL, 'bin', 'theta'), tf_name])
+    lines = subprocess.check_output(['theta', tf_name])
     return float(lines.split()[-1])

@@ -498,7 +498,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         weak_lattice = weak_poset
 
         def inversion_sequence(self, word):
-            """
+            r"""
             Return the inversion sequence corresponding to the ``word``
             in indices of simple generators of ``self``.
 
@@ -716,6 +716,9 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
                 sage: W = CoxeterGroup(['H',3], base_ring=RDF)
                 sage: W.permutahedron()
+                doctest:warning
+                ...
+                UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
                 A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 120 vertices
 
                 sage: W = CoxeterGroup(['I',7])

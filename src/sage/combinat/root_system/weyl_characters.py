@@ -549,11 +549,10 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from pprint import pprint
             sage: A2=WeylCharacterRing("A2")
             sage: v = A2.fundamental_weights()[1]; v
             (1, 0, 0)
-            sage: pprint(A2._irr_weights(v))
+            sage: A2._irr_weights(v)
             {(1, 0, 0): 1, (0, 1, 0): 1, (0, 0, 1): 1}
         """
         if self._style == "coroots":
@@ -579,9 +578,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from pprint import pprint
             sage: B2=WeylCharacterRing("B2", style="coroots")
-            sage: pprint([B2._demazure_weights(v, word=[1,2]) for v in B2.fundamental_weights()])
+            sage: [B2._demazure_weights(v, word=[1,2]) for v in B2.fundamental_weights()]
             [{(1, 0): 1, (0, 1): 1}, {(-1/2, 1/2): 1, (1/2, -1/2): 1, (1/2, 1/2): 1}]
         """
         alphacheck = self._space.simple_coroots()
@@ -605,10 +603,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from pprint import pprint
             sage: A2=WeylCharacterRing("A2",style="coroots")
             sage: dd = {}; dd[(1,1)]=int(1)
-            sage: pprint(A2._demazure_helper(dd,word=[1,2]))
+            sage: A2._demazure_helper(dd,word=[1,2])
             {(0, 0, 0): 1, (-1, 1, 0): 1, (1, -1, 0): 1, (1, 0, -1): 1, (0, 1, -1): 1}
         """
         if self._style != "coroots":
@@ -664,10 +661,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from pprint import pprint
             sage: B2=WeylCharacterRing("B2",style="coroots")
             sage: chi=2*B2(1,0)
-            sage: pprint(B2._weight_multiplicities(chi))
+            sage: B2._weight_multiplicities(chi)
             {(0, 0): 2, (-1, 0): 2, (1, 0): 2, (0, -1): 2, (0, 1): 2}
         """
         d = {}
@@ -680,7 +676,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                     d[l] += c*d1[l]
                 else:
                     d[l] = c*d1[l]
-        for k in d.keys():
+        for k in list(d):
             if d[k] == 0:
                 del d[k]
             else:
@@ -890,11 +886,10 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from pprint import pprint
             sage: A2 = WeylCharacterRing("A2")
             sage: v = A2._space([3,1,0]); v
             (3, 1, 0)
-            sage: d = dict([(x,1) for x in v.orbit()]); pprint(d)
+            sage: d = dict([(x,1) for x in v.orbit()]); d
             {(1, 3, 0): 1,
              (1, 0, 3): 1,
              (3, 1, 0): 1,
@@ -1263,9 +1258,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: from pprint import pprint
                 sage: A2=WeylCharacterRing("A2")
-                sage: pprint(A2(1,1,0)._adams_operation_helper(3))
+                sage: A2(1,1,0)._adams_operation_helper(3)
                 {(3, 3, 0): 1, (3, 0, 3): 1, (0, 3, 3): 1}
             """
             d = self.weight_multiplicities()
@@ -1291,7 +1285,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             # a generic product) in the weight ring to optimize by
             # running only through pairs of weights instead of couples.
             c = self.weight_multiplicities()
-            ckeys = c.keys()
+            ckeys = list(c)
             d = {}
             for j in range(len(ckeys)):
                 for i in range(j+1):
@@ -1306,7 +1300,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                         d[t] += coef
                     else:
                         d[t] = coef
-            for k in d.keys():
+            for k in list(d):
                 if d[k] == 0:
                     del d[k]
             return self.parent().char_from_weights(d)
@@ -1322,7 +1316,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 A2(0,1)
             """
             c = self.weight_multiplicities()
-            ckeys = c.keys()
+            ckeys = list(c)
             d = {}
             for j in range(len(ckeys)):
                 for i in range(j+1):
@@ -1337,7 +1331,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                         d[t] += coef
                     else:
                         d[t] = coef
-            for k in d.keys():
+            for k in list(d):
                 if d[k] == 0:
                     del d[k]
             return self.parent().char_from_weights(d)
@@ -1389,9 +1383,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: from pprint import pprint
                 sage: B2=WeylCharacterRing("B2",style="coroots")
-                sage: pprint(B2(0,1).weight_multiplicities())
+                sage: B2(0,1).weight_multiplicities()
                 {(-1/2, -1/2): 1, (-1/2, 1/2): 1, (1/2, -1/2): 1, (1/2, 1/2): 1}
             """
             return self.parent()._weight_multiplicities(self)
@@ -1481,8 +1474,7 @@ def irreducible_character_freudenthal(hwv, debug=False):
 
     EXAMPLES::
 
-        sage: from pprint import pprint
-        sage: pprint(WeylCharacterRing("A2")(2,1,0).weight_multiplicities()) # indirect doctest
+        sage: WeylCharacterRing("A2")(2,1,0).weight_multiplicities() # indirect doctest
         {(1, 1, 1): 2, (1, 2, 0): 1, (1, 0, 2): 1, (2, 1, 0): 1,
          (2, 0, 1): 1, (0, 1, 2): 1, (0, 2, 1): 1}
     """

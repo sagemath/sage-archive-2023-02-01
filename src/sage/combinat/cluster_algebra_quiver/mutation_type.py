@@ -827,7 +827,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
         sage: _connected_mutation_type_AAtildeD(Q2.digraph() )
         ['A', [2, 5], 1]
 
-        sage: Q3 = ClusterQuiver(['E',6]); Q3.mutate([5,2,1]);
+        sage: Q3 = ClusterQuiver(['E',6]); Q3.mutate([5,2,1])
         sage: _connected_mutation_type_AAtildeD(Q3.digraph(),ret_conn_vert=True)
         'unknown'
     """
@@ -1284,9 +1284,8 @@ def load_data(n):
     data_dict = dict()
     for filename in [getfilename(DOT_SAGE),getfilename(SAGE_SHARE)]:
         if os.path.isfile(filename):
-            f = open(filename,'r')
-            data_new = cPickle.load(f)
-            f.close()
+            with open(filename, 'rb') as fobj:
+                data_new = cPickle.load(fobj)
             data_dict.update(data_new)
     return data_dict
 

@@ -295,7 +295,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.pollack_stevens_modular_symbol();
+            sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
             sage: 2*phi

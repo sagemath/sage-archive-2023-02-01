@@ -397,11 +397,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
         sumR = sumDR = sumNoverDr = 0
         prod = 1
 
-        for d in rdict.keys():
+        for d in rdict:
             if N % d:
                 raise ValueError("%s does not divide %s" % (d, N))
 
-        for d in rdict.keys():
+        for d in list(rdict):
             if rdict[d] == 0:
                 rdict.pop(d)
                 continue
@@ -419,9 +419,9 @@ class EtaGroupElement(MultiplicativeGroupElement):
         if not is_square(prod):
             raise ValueError("product (N/d)^(r_d) (=%s) is not a square" % prod)
 
-        self._sumDR = sumDR # this is useful to have around
+        self._sumDR = sumDR  # this is useful to have around
         self._rdict = rdict
-        self._keys = rdict.keys() # avoid factoring N every time
+        self._keys = list(rdict)  # avoid factoring N every time
 
     def _mul_(self, other):
         r"""
@@ -680,6 +680,7 @@ def num_cusps_of_width(N, d):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import num_cusps_of_width
         sage: [num_cusps_of_width(18,d) for d in divisors(18)]
         [1, 1, 2, 2, 1, 1]
         sage: num_cusps_of_width(4,8)
@@ -813,6 +814,7 @@ class CuspFamily(SageObject):
         else:
             return "(c_{%s%s})" % (self.width(), ((self.label and (","+self.label)) or ""))
 
+
 def qexp_eta(ps_ring, prec):
     r"""
     Return the q-expansion of `\eta(q) / q^{1/24}`, where
@@ -822,15 +824,13 @@ def qexp_eta(ps_ring, prec):
 
         \eta(q) = q^{1/24}\prod_{n=1}^\infty (1-q^n),
 
-
     as an element of ps_ring, to precision prec.
 
     INPUT:
 
-    -  ``ps_ring`` - (PowerSeriesRing): a power series ring
+    -  ``ps_ring`` -- (PowerSeriesRing): a power series ring
 
-    -  ``prec`` - (integer): the number of terms to compute.
-
+    -  ``prec`` -- (integer): the number of terms to compute
 
     OUTPUT: An element of ps_ring which is the q-expansion of
     `\eta(q)/q^{1/24}` truncated to prec terms.
@@ -845,11 +845,13 @@ def qexp_eta(ps_ring, prec):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import qexp_eta
         sage: qexp_eta(ZZ[['q']], 100)
         1 - q - q^2 + q^5 + q^7 - q^12 - q^15 + q^22 + q^26 - q^35 - q^40 + q^51 + q^57 - q^70 - q^77 + q^92 + O(q^100)
     """
     prec = Integer(prec)
-    assert prec>0, "prec must be a positive integer"
+    if not prec > 0:
+        raise ValueError("prec must be a positive integer")
     v = [Integer(0)] * prec
     pm = Integer(1)
     v[0] = pm
@@ -863,6 +865,7 @@ def qexp_eta(ps_ring, prec):
     except IndexError:
         pass
     return ps_ring(v, prec=prec)
+
 
 def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     r"""
@@ -904,6 +907,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
 
     EXAMPLES::
 
+        sage: from sage.modular.etaproducts import eta_poly_relations
         sage: t = EtaProduct(26, {2:2,13:2,26:-2,1:-2})
         sage: u = EtaProduct(26, {2:4,13:2,26:-4,1:-2})
         sage: eta_poly_relations([t, u], 3)

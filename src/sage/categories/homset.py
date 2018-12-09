@@ -317,7 +317,7 @@ def Hom(X, Y, category=None, check=True):
 
         sage: cls = type(Set())
         sage: S = unpickle_newobj(cls, ())  # A non parent
-        sage: H = Hom(S, S, SimplicialComplexes(), check=False);
+        sage: H = Hom(S, S, SimplicialComplexes(), check=False)
         sage: H = Hom(S, S, Sets(),                check=False)
         sage: H = Hom(S, S, ChainComplexes(QQ),    check=False)
 
@@ -569,7 +569,7 @@ class Homset(Set_generic):
         sage: loads(dumps(H)) is H
         True
 
-    Conversely, homsets of non-unique parents are non-unique:
+    Conversely, homsets of non-unique parents are non-unique::
 
         sage: H = End(ProjectiveSpace(2, names='x,y,z'))
         sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')

@@ -988,7 +988,12 @@ class Documenter(object):
             self.analyzer.find_attr_docs()
         except PycodeError as err:
             self.env.app.debug('[autodoc] module analyzer failed: %s', err)
-            # no source file -- e.g. for builtin and C modules
+            # A few things could have happened here:
+            # * there is no source file -- e.g. for builtin and C modules
+            # * the source file contains syntax that Sphinx can not parse,
+            #   e.g., "print(1, end=' ')"; see
+            #   https://github.com/sphinx-doc/sphinx/issues/1641,
+            #   fixed in Sphinx 1.7.
             self.analyzer = None
             # at least add the module.__file__ as a dependency
             if hasattr(self.module, '__file__') and self.module.__file__:

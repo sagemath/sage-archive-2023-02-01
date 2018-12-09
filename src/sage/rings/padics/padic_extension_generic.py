@@ -25,6 +25,7 @@ from .padic_base_generic import pAdicBaseGeneric
 from sage.rings.number_field.number_field_base import NumberField
 from sage.rings.number_field.order import Order
 from sage.rings.rational_field import QQ
+from sage.rings.infinity import Infinity
 from sage.structure.richcmp import op_EQ
 from functools import reduce
 from sage.categories.morphism import Morphism
@@ -102,7 +103,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
                     from sage.rings.padics.relative_ramified_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
 
-
     def _extension_type(self):
         """
         Return the type (``Unramified``, ``Eisenstein``) of this 
@@ -122,9 +122,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         return ""
 
-    def _repr_(self, do_latex = False):
+    def _repr_(self, do_latex=False):
         """
-        Returns a print representation of this extension.
+        Return a print representation of this extension.
 
         EXAMPLES::
 
@@ -274,6 +274,24 @@ class pAdicExtensionGeneric(pAdicGeneric):
             True
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<a> = Qq(27)
+            sage: S.<a> = Qq(5,print_mode='val-unit')
+            sage: hash(R) == hash(S)
+            False
+            sage: S.<a> = Qq(27,type='capped-rel')
+            sage: hash(R) == hash(S)
+            True
+        """
+        # _printer is not hashable, hence not taken into account
+        return hash((self.ground_ring(), self.defining_polynomial(exact=True),
+                     self.precision_cap()))
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError
@@ -510,9 +528,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         from sage.categories.pushout import AlgebraicExtensionFunctor as AEF, FractionField as FF
         if not forbid_frac_field and self.is_field():
             return (FF(), self.integer_ring())
-        print_mode = self._printer.dict()
-        return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
-                    precs=[self.precision_cap()], print_mode=self._printer.dict(),
+        return (AEF([self.defining_polynomial(exact=True)],
+                    [self.variable_name()],
+                    precs=[self.precision_cap()],
+                    print_mode=self._printer.dict(),
                     implementations=[self._implementation]),
                 self.base_ring())
 
@@ -521,7 +540,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def random_element(self):
         """
-        Returns a random element of self.
+        Return a random element of ``self``.
 
         This is done by picking a random element of the ground ring
         self.degree() times, then treating those elements as
@@ -592,17 +611,37 @@ class DefPolyConversion(Morphism):
             sage: z = W.random_element()
             sage: repr(W.change(print_mode='digits')(z))
             '...20112102111011011200001212210222202220100111100200011222122121202100210120010120'
+
+        TESTS:
+
+        We check that :trac:`25990` has been resolved::
+
+            sage: R.<a> = Zp(2).extension(x^3 - 2)
+            sage: K = R.fraction_field()
+            sage: u = K(1,10); u
+            1 + O(a^10)
+            sage: R(u)
+            1 + O(a^10)
+
+            sage: u += a^4 + a^5 + a^7 + a^8; u
+            1 + a^4 + a^5 + a^7 + a^8 + O(a^10)
+            sage: R(u)
+            1 + a^4 + a^5 + a^7 + a^8 + O(a^10)
+
+            sage: R(K(0))
+            0
+
         """
         S = self.codomain()
         Sbase = S.base_ring()
         L = x.polynomial().list()
-        if L and not (len(L) == 1 and L[0].is_zero()):
-            return S([Sbase(c) for c in L])
-        # Inexact zeros need to be handled separately
-        elif isinstance(x.parent(), pAdicExtensionGeneric):
-            return S(0, x.precision_absolute())
-        else:
-            return S(0)
+        while L and L[-1].is_zero():
+            del L[-1]
+        if isinstance(x.parent(), pAdicExtensionGeneric):
+            absprec = x.precision_absolute()
+            if absprec is not Infinity:
+                return S([Sbase(c).lift_to_precision() for c in L], absprec)
+        return S([Sbase(c) for c in L])
 
     def _call_with_args(self, x, args=(), kwds={}):
         """
@@ -616,22 +655,37 @@ class DefPolyConversion(Morphism):
             sage: z = W.random_element()
             sage: repr(W.change(print_mode='digits')(z, absprec=8)) # indirect doctest
             '...20010120'
+
+        TESTS::
+
+            sage: R.<a> = Zp(2).extension(x^3 - 2)
+            sage: K = R.fraction_field()
+            sage: R(K(0), 10)
+            O(a^10)
+
+            sage: R(K(0,10), Infinity)
+            O(a^10)
+
+            sage: R(K(0,10), Infinity, absprec=30)
+            Traceback (most recent call last):
+            ...
+            TypeError: _call_with_args() got multiple values for keyword argument 'absprec'
+
         """
         S = self.codomain()
         Sbase = S.base_ring()
         L = x.polynomial().list()
-        if L and not (len(L) == 1 and L[0].is_zero()):
-            return S([Sbase(c) for c in L], *args, **kwds)
-        # Inexact zeros need to be handled separately
-        elif isinstance(x.parent(), pAdicExtensionGeneric):
+        while L and L[-1].is_zero():
+            del L[-1]
+        if isinstance(x.parent(), pAdicExtensionGeneric):
             if args:
                 if 'absprec' in kwds:
                     raise TypeError("_call_with_args() got multiple values for keyword argument 'absprec'")
                 absprec = args[0]
                 args = args[1:]
             else:
-                absprec = kwds.pop('absprec',x.precision_absolute())
+                absprec = kwds.pop('absprec', Infinity)
             absprec = min(absprec, x.precision_absolute())
-            return S(0, absprec, *args, **kwds)
-        else:
-            return S(0, *args, **kwds)
+            if absprec is not Infinity:
+                return S([Sbase(c).lift_to_precision() for c in L], absprec, *args, **kwds)
+        return S([Sbase(c) for c in L], *args, **kwds)

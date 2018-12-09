@@ -358,7 +358,7 @@ class Polytopes():
             sage: ico.base_ring()
             Real Double Field
             sage: ico.volume()
-            2.1816949907715726
+            2.181694990...
 
         A version using `AA <sage.rings.qqbar.AlgebraicRealField>`::
 
@@ -1848,7 +1848,7 @@ class Polytopes():
             sage: c.plot()
             Graphics3d Object
         """
-        return self.hypercube(3)
+        return self.hypercube(3, backend=backend)
 
     def cross_polytope(self, dim, backend=None):
         r"""

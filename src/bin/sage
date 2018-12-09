@@ -235,6 +235,8 @@ usage_advanced() {
     echo "File conversion:"
     echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
     echo "                         reStructuredText source."
+    command -v rst2ipynb &>/dev/null || \
+    echo "                         (not installed currently, run sage -i rst2ipynb)"
     echo "  -ipynb2rst [...]    -- Generates a reStructuredText source file from"
     echo "                         a Jupyter notebook (.ipynb)."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
@@ -587,7 +589,7 @@ fi
 
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
     shift
-    exec pip "$@"
+    exec sage-python23 -m pip "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
@@ -777,7 +779,10 @@ fi
 
 if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     shift
-    exec rst2ipynb --kernel=sagemath "$@"
+    rst2ipynb --kernel=sagemath "$@"
+    status="${?}"
+    if [ "${status}" -eq "127" ] ; then echo 'rst2ipynb is not installed, please run "sage -i rst2ipynb"' ; fi
+    exit ${status}
 fi
 
 if [ "$1" = '-ipynb2rst' -o "$1" = '--ipynb2rst' ]; then

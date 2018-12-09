@@ -498,7 +498,7 @@ A simple transducer (binary inverter)
 -------------------------------------
 
 Let's build a simple transducer, which rewrites a binary word by
-iverting each bit::
+inverting each bit::
 
     sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
     ....:     initial_states=['A'], final_states=['A'])
@@ -11691,8 +11691,7 @@ class Automaton(FiniteStateMachine):
         EXAMPLES::
 
             sage: A = automata.Word([0, 1])
-            sage: [w for w in
-            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            sage: [w for w in ([], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1])
             ....:  if A(w)]
             [[0, 1]]
             sage: Ac = A.complement()
@@ -11705,8 +11704,7 @@ class Automaton(FiniteStateMachine):
              Transition from 1 to 3: 0|-,
              Transition from 3 to 3: 0|-,
              Transition from 3 to 3: 1|-]
-            sage: [w for w in
-            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            sage: [w for w in ([], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1])
             ....:  if Ac(w)]
             [[], [0], [1], [0, 0], [1, 0], [1, 1]]
 
@@ -11718,8 +11716,7 @@ class Automaton(FiniteStateMachine):
             ...
             ValueError: The finite state machine must be deterministic.
             sage: Ac = A.determinisation().complement()
-            sage: [w for w in
-            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            sage: [w for w in ([], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1])
             ....:  if Ac(w)]
             [[], [0], [1], [0, 0], [1, 0], [1, 1]]
         """

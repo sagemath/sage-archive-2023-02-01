@@ -425,9 +425,26 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
+            sage: G = SmoothCharacterGroupQp(3, QQ)
+            sage: hash(G) == hash(SmoothCharacterGroupQp(3, QQ[I]))
+            False
+            sage: hash(G) == hash(SmoothCharacterGroupQp(7, QQ))
+            False
+            sage: hash(G) == hash(SmoothCharacterGroupQp(3, QQ))
+            True
+        """
+        return hash((self.prime(), self.number_field(), self.base_ring()))
+
     def _coerce_map_from_(self, other):
         r"""
-        Return True if self has a canonical coerce map from other.
+        Return ``True`` if ``self`` has a canonical coerce map from ``other``.
 
         EXAMPLES::
 

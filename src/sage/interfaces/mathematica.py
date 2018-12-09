@@ -792,7 +792,7 @@ class MathematicaElement(ExpectElement):
 
         # Find the MMA funcs/vars/constants - they start with a letter.
         # Exclude exponents (e.g. 'e8' from 4.e8)
-        p = re.compile('(?<!\.)[a-zA-Z]\w*')
+        p = re.compile(r'(?<!\.)[a-zA-Z]\w*')
         for m in p.finditer(res):
             # If the function, variable or constant is already in the
             # translation dictionary, then just move on.

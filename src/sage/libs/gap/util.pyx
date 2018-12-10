@@ -328,10 +328,9 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         sage: libgap.eval('if 4>3 thenPrint("hi");\nfi')
         Traceback (most recent call last):
         ...
-        ValueError: libGAP: Syntax error: then expected
+        ValueError: libGAP: Syntax error: then expected in stream:1
         if 4>3 thenPrint("hi");
-        fi;
-                       ^
+               ^^^^^^^^^
         sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
 
@@ -364,12 +363,11 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         result = ELM0_LIST(result, 1) # 1-indexed!
 
         if ELM0_LIST(result, 1) != GAP_True:
-            # TODO: There might still be some error output in this case
-            # Rathe than complaining that the error handler wasn't run,
-            # just wrap the error message in an exception
-            # See for example the case where GAP raises a syntax error
-            raise RuntimeError("an error occurred, but libGAP has no "
-                               "error handler set")
+            # An otherwise unhandled error occurred in GAP (such as a
+            # syntax error).  Try running the error handler manually
+            # to capture the error output, if any.
+            # This should result in a RuntimeError being set.
+            error_handler_check_exception()
 
         # The actual resultant object, if any, is in the second entry
         # (which may be unassigned--see previous github comment; in this case
@@ -425,9 +423,6 @@ cdef void error_handler():
     cdef Obj r
     cdef char *msg
 
-    # TODO: Do we need/want this ClearError??
-    # ClearError()
-
     # Close the error stream: This flushes any remaining output and closes
     # the stream for further writing; reset ERROR_OUTPUT to something sane
     # just in case (trying to print to a closed stream segfaults GAP)
@@ -454,8 +449,9 @@ cdef void error_handler():
 
     PyErr_SetObject(RuntimeError, msg_py)
 
-    # TODO: Do we need/want this ClearError??
-    # ClearError()
+
+cdef void error_handler_check_exception() except *:
+    error_handler()
 
 
 

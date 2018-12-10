@@ -152,10 +152,6 @@ cdef extern from "<gap/records.h>":
     UInt RNamName(Char* name)
 
 
-cdef extern from "<gap/stats.h>":
-    void ClearError()
-
-
 cdef extern from "<gap/stringobj.h>":
     char* CSTR_STRING(Obj list)
     bint IS_STRING(Obj obj)

@@ -211,7 +211,7 @@ def test_finite_lattice(L):
             res = attrcall(p, certificate=True)(L)
             if type(res) != type((1,2)) or len(res) != 2:
                 raise ValueError("certificate-option does not return a pair in %s" % p)
-            if P['p_'] != res[0]:
+            if P[p_] != res[0]:
                 raise ValueError("certificate-option changes result in %s" % p)
 
     # Test for "yes"-certificates
@@ -461,6 +461,8 @@ def test_finite_poset(P):
     from sage.combinat.subset import Subsets
     from sage.misc.prandom import shuffle
 
+    from sage.misc.misc import attrcall
+
     e = P.random_element()
     P_one_less = P.subposet([x for x in P if x != e])
 
@@ -598,3 +600,17 @@ def test_finite_poset(P):
     level = lev[randint(0, len(lev)-1)]
     if not P.is_antichain_of_poset(level):
         raise ValueError("error in level sets")
+
+    # certificate=True must return a pair
+    bool_with_cert = ['eulerian', 'greedy', 'join_semilattice',
+                      'jump_critical', 'meet_semilattice', 'slender']
+    for p in bool_with_cert:
+        try:  # some properties are not always defined for all posets
+            res1 = attrcall('is_'+p)(P)
+        except ValueError:
+            continue
+        res2 = attrcall('is_'+p, certificate=True)(P)
+        if type(res2) != type((1,2)) or len(res2) != 2:
+            raise ValueError("certificate-option does not return a pair in %s" % p)
+        if res1 != res2[0]:
+            raise ValueError("certificate-option changes result in %s" % p)

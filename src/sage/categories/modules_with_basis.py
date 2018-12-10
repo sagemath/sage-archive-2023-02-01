@@ -1201,8 +1201,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: DihedralGroup(6).algebra(QQ).random_element()
                 -1/95*() - 1/2*(1,4)(2,5)(3,6)
                 sage: SU(2, 13).algebra(QQ).random_element(1)
-                1/2*[       3        0]
-                [11*a + 1        9]
+                1/2*[       5 2*a + 12]
+                [   a + 6        6]
                 sage: CombinatorialFreeModule(ZZ, Partitions(4)).random_element() # random
                 2*B[[2, 1, 1]] + B[[2, 2]]
             """

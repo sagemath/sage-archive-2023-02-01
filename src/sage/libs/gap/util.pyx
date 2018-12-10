@@ -514,7 +514,6 @@ cdef void error_handler_check_exception() except *:
     error_handler()
 
 
-
 ############################################################################
 ### Debug functions ########################################################
 ############################################################################
@@ -525,75 +524,5 @@ cpdef memory_usage():
     Return information about the memory usage.
 
     See :meth:`~sage.libs.gap.libgap.Gap.mem` for details.
-    """
-    pass
-
-cpdef error_enter_libgap_block_twice():
-    """
-    Demonstrate that we catch errors from entering a block twice.
-
-    EXAMPLES::
-
-        sage: from sage.libs.gap.util import error_enter_libgap_block_twice
-        sage: error_enter_libgap_block_twice()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Entered a critical block twice
-    """
-    from sage.libs.gap.libgap import libgap
-    try:
-        # The exception will be seen by this sig_on() after being
-        sig_on()
-        sig_off()
-    finally:
-        pass
-
-
-cpdef error_exit_libgap_block_without_enter():
-    """
-
-    EXAMPLES::
-
-        sage: from sage.libs.gap.util import error_exit_libgap_block_without_enter
-        sage: error_exit_libgap_block_without_enter()
-        Traceback (most recent call last):
-        ...
-    """
-    from sage.libs.gap.libgap import libgap
-    sig_on()
-    sig_off()
-
-############################################################################
-### Auxilliary functions ###################################################
-############################################################################
-
-
-def command(command_string):
-    """
-    Playground for accessing Gap via libGap.
-
-    You should not use this function in your own programs. This is
-    just here for convenience if you want to play with the libgap
-    libray code.
-
-    EXAMPLES::
-
-        sage: from sage.libs.gap.util import command
-        sage: command('1')
-        Output follows...
-        1
-
-        sage: command('1/0')
-        Traceback (most recent call last):
-        ...
-        ValueError: libGAP: Error, Rational operations: <divisor> must not be zero
-
-        sage: command('NormalSubgroups')
-        Output follows...
-        <Attribute "NormalSubgroups">
-
-        sage: command('rec(a:=1, b:=2)')
-        Output follows...
-        rec( a := 1, b := 2 )
     """
     pass

@@ -18,8 +18,9 @@ import os
 import signal
 import warnings
 
-from cpython.exc cimport PyErr_SetObject
+from cpython.exc cimport PyErr_SetObject, PyErr_Occurred, PyErr_Fetch
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.ref cimport PyObject
 from cysignals.pysignals import changesignal
 from cysignals.signals cimport sig_on, sig_off, sig_error
 
@@ -334,6 +335,42 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
 
+    TESTS:
+
+    A bad eval string that results in multiple statement evaluations by GAP
+    and hence multiple errors should still result in a single exception
+    with a message capturing all errors that occurrer::
+
+        sage: libgap.eval('Complex Field with 53 bits of precision;')
+        Traceback (most recent call last):
+        ...
+        ValueError: libGAP: Error, Variable: 'Complex' must have a value
+        Syntax error: ; expected in stream:1
+        Complex Field with 53 bits of precision;;
+         ^^^^^^^^^^^^
+        Error, Variable: 'with' must have a value
+        Syntax error: ; expected in stream:1
+        Complex Field with 53 bits of precision;;
+         ^^^^^^^^^^^^^^^^^^^^
+        Error, Variable: 'bits' must have a value
+        Syntax error: ; expected in stream:1
+        Complex Field with 53 bits of precision;;
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        Error, Variable: 'precision' must have a value
+
+
+    Test that on a subsequent attemt we get the same message (no garbage was
+    left in the error stream)::
+
+        sage: libgap.eval('Complex Field with 53 bits of precision;')
+        Traceback (most recent call last):
+        ...
+        ValueError: libGAP: Error, Variable: 'Complex' must have a value
+        ...
+        Error, Variable: 'precision' must have a value
+
+        sage: libgap.eval('1+1')  # test that we successfully recover
+        2
     """
     initialize()
     cdef Obj result
@@ -409,6 +446,31 @@ cdef void hold_reference(Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
+
+cdef object extract_libgap_errout():
+    """
+    Reads the global variable libgap_errout and returns a Python string
+    containing the error message (with some boilerplate removed).
+    """
+    cdef Obj r
+    cdef char *msg
+
+    r = GAP_ValueGlobalVariable("libgap_errout")
+
+    # Grab a pointer to the C string underlying the GAP string libgap_errout
+    # then copy it to a Python str (char_to_str contains an implicit strcpy)
+    msg = CSTR_STRING(r)
+    if msg != NULL:
+        msg_py = char_to_str(msg)
+        msg_py = msg_py.replace('For debugging hints type ?Recovery from '
+                                'NoMethodFound\n', '').strip()
+    else:
+        # Shouldn't happen but just in case...
+        msg_py = ""
+
+    return msg_py
+
+
 cdef void error_handler():
     """
     The libgap error handler.
@@ -420,34 +482,32 @@ cdef void error_handler():
     are already handling an error; if there is an error in our stream
     handling code below it could result in a stack overflow.
     """
-    cdef Obj r
-    cdef char *msg
+    cdef PyObject *exc_type, *exc_val, *exc_tb
 
     # Close the error stream: This flushes any remaining output and closes
     # the stream for further writing; reset ERROR_OUTPUT to something sane
     # just in case (trying to print to a closed stream segfaults GAP)
     try:
         GAP_EnterStack()
-        GAP_EvalString(_close_error_output_cmd)
-        r = GAP_ValueGlobalVariable("libgap_errout")
+        GAP_EvalStringNoExcept(_close_error_output_cmd)
+        msg = extract_libgap_errout()
 
-        # Grab a pointer to the C string underlying the GAP string libgap_errout
-        # then copy it to a Python str (char_to_str contains an implicit strcpy)
-        msg = CSTR_STRING(r)
-        if msg != NULL:
-            msg_py = char_to_str(msg)
-            msg_py = msg_py.replace('For debugging hints type ?Recovery from '
-                                    'NoMethodFound\n', '').strip()
-        else:
-            # Shouldn't happen but just in case...
-            msg_py = "An unknown error occurred in libGAP"
+        if PyErr_Occurred() != NULL and msg:
+            # Sometimes error_handler() can be called multiple times from a
+            # single GAP_EvalString call before it returns; in this case we
+            # just update the exception by appending to the existing exception
+            # message
+            PyErr_Fetch(&exc_type, &exc_val, &exc_tb)
+            if exc_val != NULL:
+                msg = str(<object>exc_val) + '\n' + msg
+        elif not msg:
+            msg = "An unknown error occurred in libGAP"
 
-        # Reset ERROR_OUTPUT with a new text string stream
-        GAP_EvalString(_reset_error_output_cmd)
+        PyErr_SetObject(RuntimeError, msg)
     finally:
+        # Reset ERROR_OUTPUT with a new text string stream
+        GAP_EvalStringNoExcept(_reset_error_output_cmd)
         GAP_LeaveStack()
-
-    PyErr_SetObject(RuntimeError, msg_py)
 
 
 cdef void error_handler_check_exception() except *:

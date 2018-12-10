@@ -485,9 +485,11 @@ class Gap(Parent):
             ...
             ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
         """
+        is_readonlyglobal = self.function_factory('IsReadOnlyGlobal')
         make_readwrite = self.function_factory('MakeReadWriteGlobal')
         unbind_global = self.function_factory('UnbindGlobal')
-        make_readwrite(variable)
+        if is_readonlyglobal(variable):
+            make_readwrite(variable)
         unbind_global(variable)
 
     def get_global(self, variable):

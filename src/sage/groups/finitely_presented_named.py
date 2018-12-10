@@ -86,7 +86,6 @@ def CyclicPresentation(n):
         Finitely presented group < a | a^10 >
         sage: n = 8; C = groups.presentation.Cyclic(n)
         sage: C.as_permutation_group().is_isomorphic(CyclicPermutationGroup(n))
-        #I  MakeReadWriteGlobal: CosetTableDefaultMaxLimit already read-write
         True
 
     TESTS::

@@ -616,7 +616,6 @@ def PoincareHomologyThreeSphere():
         sage: S3.homology() == Sigma3.homology()
         True
         sage: Sigma3.fundamental_group().cardinality() # long time
-        #I  MakeReadWriteGlobal: CosetTableDefaultMaxLimit already read-write
         120
     """
     return UniqueSimplicialComplex(

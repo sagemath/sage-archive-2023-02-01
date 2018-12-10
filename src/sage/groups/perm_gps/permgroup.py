@@ -2662,7 +2662,6 @@ class PermutationGroup_generic(FiniteGroup):
             sage: K = G.as_finitely_presented_group(); K
             Finitely presented group < a, b | b^2, (b*a)^2, b*a^-3*b*a^2 >
             sage: K.as_permutation_group().is_isomorphic(DihedralGroup(5))
-            #I  MakeReadWriteGlobal: CosetTableDefaultMaxLimit already read-write
             True
 
         We can attempt to reduce the output presentation::

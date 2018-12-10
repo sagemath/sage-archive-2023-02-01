@@ -231,7 +231,6 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
 
             sage: TestSuite(G).run()
             sage: TestSuite(H).run()
-            #I  MakeReadWriteGlobal: CosetTableDefaultMaxLimit already read-write
             sage: G.<a,b> = FreeGroup()
             sage: H = G / (G([1]), G([2, 2, 2]))
             sage: x = H([1, 2, -1, -2])

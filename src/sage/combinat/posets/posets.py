@@ -3082,7 +3082,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if self.cardinality() == 0:
             return (0, []) if certificate else 0
         if self.is_chain():
-            return (1, self.list()) if certificate else 1
+            return (1, [self.list()]) if certificate else 1
 
         # current bound on the chromatic number of the hypergraph
         k = 2

@@ -864,10 +864,17 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: S = macaulay2('QQ[a..d]')                     # optional - macaulay2
             sage: R = S/macaulay2('a^3+b^3+c^3+d^3')            # optional - macaulay2
             sage: X = R.Proj()                                  # optional - macaulay2
-            sage: print(X.structure_sheaf())                    # optional - macaulay2
+            sage: X.structure_sheaf()                           # optional - macaulay2
+            doctest:...: DeprecationWarning: The function `structure_sheaf` is deprecated. Use `self.sheaf()` instead.
+            See https://trac.sagemath.org/27848 for details.
+            OO
+              sage...
+            sage: X.sheaf()                                     # optional - macaulay2
             OO
               sage...
         """
+        from sage.misc.superseded import deprecation
+        deprecation(27848, 'The function `structure_sheaf` is deprecated. Use `self.sheaf()` instead.')
         return self.parent()('OO_%s'%self.name())
 
     def substitute(self, *args, **kwds):

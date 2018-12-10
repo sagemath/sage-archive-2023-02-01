@@ -120,7 +120,7 @@ AUTHORS:
 
 - Vincent Klein (2017-05-22): Integer constructor support gmpy2.mpz parameter
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 Gonzalo Tornaria <tornaria@math.utexas.edu>
 #       Copyright (C) 2006 Didier Deshommes <dfdeshom@gmail.com>
@@ -133,9 +133,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
 # Do not create any Integer, especially non cdef'ed ones, before the hooked
@@ -189,6 +188,7 @@ import sage.rings.infinity
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
+from sage.misc.superseded import deprecation
 
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
@@ -1201,16 +1201,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             th = 'rd'
         else:
             th = 'th'
-        return n.str()+th
+        return n.str() + th
 
-    def __hex__(self):
+    def hex(self):
         r"""
-        Return the hexadecimal digits of self in lower case.
+        Return the hexadecimal digits of ``self`` in lower case.
 
         .. NOTE::
 
            '0x' is *not* prepended to the result like is done by the
-           corresponding Python function on int or long. This is for
+           corresponding Python function on ``int`` or ``long``. This is for
            efficiency sake--adding and stripping the string wastes
            time; since this function is used for conversions from
            integers to other C-library structures, it is important
@@ -1218,25 +1218,37 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: print(hex(Integer(15)))
+            sage: print(Integer(15).hex())
             f
-            sage: print(hex(Integer(16)))
+            sage: print(Integer(16).hex())
             10
-            sage: print(hex(Integer(16938402384092843092843098243)))
+            sage: print(Integer(16938402384092843092843098243).hex())
             36bb1e3929d1a8fe2802f083
             sage: print(hex(long(16938402384092843092843098243)))
             0x36bb1e3929d1a8fe2802f083L
+
+        TESTS::
+
+            sage: hex(Integer(16))  # py2
+            doctest:warning...:
+            DeprecationWarning: use the method .hex instead
+            See https://trac.sagemath.org/26756 for details.
+            '10'
         """
         return self.str(16)
 
-    def __oct__(self):
+    def __hex__(self):
+        deprecation(26756, 'use the method .hex instead')
+        return self.hex()
+
+    def oct(self):
         r"""
-        Return the digits of self in base 8.
+        Return the digits of ``self`` in base 8.
 
         .. NOTE::
 
-           '0' is *not* prepended to the result like is done by the
-           corresponding Python function on int or long. This is for
+           '0' (or '0o') is *not* prepended to the result like is done by the
+           corresponding Python function on ``int`` or ``long``. This is for
            efficiency sake--adding and stripping the string wastes
            time; since this function is used for conversions from
            integers to other C-library structures, it is important
@@ -1244,33 +1256,47 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: print(oct(Integer(800)))
+            sage: print(Integer(800).oct())
             1440
-            sage: print(oct(Integer(8)))
+            sage: print(Integer(8).oct())
             10
-            sage: print(oct(Integer(-50)))
+            sage: print(Integer(-50).oct())
             -62
-            sage: print(oct(Integer(-899)))
+            sage: print(Integer(-899).oct())
             -1603
-            sage: print(oct(Integer(16938402384092843092843098243)))
+            sage: print(Integer(16938402384092843092843098243).oct())
             15535436162247215217705000570203
 
-        Behavior of Sage integers vs. Python integers::
+        Behavior of Sage integers vs. Python integers (Python 2 and Python 3)::
 
-            sage: oct(Integer(10))
+            sage: Integer(10).oct()
             '12'
-            sage: oct(int(10))
+            sage: oct(Integer(10)) # py2
+            doctest:warning...:
+            DeprecationWarning: use the method .oct instead
+            See https://trac.sagemath.org/26756 for details.
+            '12'
+            sage: oct(int(10))  # py2
             '012'
-            sage: oct(Integer(-23))
+            sage: oct(int(10))  # py3
+            '0o12'
+
+            sage: Integer(-23).oct()
             '-27'
-            sage: oct(int(-23))
+            sage: oct(int(-23)) # py2
             '-027'
+            sage: oct(int(-23)) # py3
+            '-0o27'
         """
         return self.str(8)
 
+    def __oct__(self):
+        deprecation(26756, 'use the method .oct instead')
+        return self.oct()
+
     def binary(self):
         """
-        Return the binary digits of self as a string.
+        Return the binary digits of ``self`` as a string.
 
         EXAMPLES::
 
@@ -1317,7 +1343,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def nbits(self):
         """
-        Return the number of bits in self.
+        Return the number of bits in ``self``.
 
         EXAMPLES::
 
@@ -1703,8 +1729,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Make sure it works when -<long>n would overflow::
 
             sage: most_neg_long = int(-sys.maxsize - 1)
-            sage: type(most_neg_long), type(-most_neg_long)
-            (<... 'int'>, <type 'long'>)
+            sage: type(most_neg_long), type(-most_neg_long)  # py2
+            (<type 'int'>, <type 'long'>)
+            sage: type(most_neg_long), type(-most_neg_long)  # py3
+            (<class 'int'>, <class 'int'>)
             sage: 0 + most_neg_long == most_neg_long
             True
             sage: 0 - most_neg_long == -most_neg_long
@@ -3471,8 +3499,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             99028390823409823904823098490238409823490820938L
             sage: int(-n)
             -99028390823409823904823098490238409823490820938L
-            sage: type(n.__int__())
+            sage: type(n.__int__())  # py2
             <type 'long'>
+            sage: type(n.__int__())  # py3
+            <class 'int'>
             sage: int(-1), int(0), int(1)
             (-1, 0, 1)
         """
@@ -3492,7 +3522,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = 920938
             sage: long(n)
             920938L
-            sage: n.__long__()
+            sage: n.__long__()  # py2
             920938L
             sage: long(-1), long(0), long(1)
             (-1L, 0L, 1L)

@@ -940,7 +940,7 @@ def connecting_nodes(T, l):
         ki = poisson(l)
         if not ki:
             ki = 1
-        elif ki > n:
+        elif ki >= n:
             Ti = frozenset(V)
 
         if ki < n:

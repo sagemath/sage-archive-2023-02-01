@@ -831,6 +831,8 @@ cdef class GLPKBackend(GenericBackend):
 
         glp_set_mat_col(self.lp, n, len(indices), col_i, col_values)
         glp_set_col_bnds(self.lp, n, GLP_LO, 0,0)
+        sig_free(col_i)
+        sig_free(col_values)
 
 
     cpdef int solve(self) except -1:

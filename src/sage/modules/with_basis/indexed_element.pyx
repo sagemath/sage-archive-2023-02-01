@@ -368,6 +368,11 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                ├┤      ├┤       ├┼┘      ┌┼┤    └┴┘
                ├┤      └┘       └┘       └┴┘
                └┘
+
+        The following test failed before :trac:`26850` ::
+
+            sage: unicode_art([M.zero()])  # indirect doctest
+            [ 0 ]
         """
         from sage.misc.misc import coeff_repr
         terms = self._sorted_items_for_printing()
@@ -410,7 +415,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                 s += UnicodeArt([coeff], break_points) + b
                 first = False
         if first:
-            return "0"
+            return UnicodeArt(["0"])
         elif s == empty_unicode_art:
             return UnicodeArt(["1"])
         else:

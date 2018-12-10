@@ -3078,6 +3078,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().dimension(certificate=True)
             (0, [])
 
+        Chain and certificate, :trac:`17059`::
+
+            sage: Poset({'a': ['b']}).dimension(certificate=True)[1]
+            [['a', 'b']]
         """
         if self.cardinality() == 0:
             return (0, []) if certificate else 0

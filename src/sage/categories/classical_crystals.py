@@ -1,12 +1,12 @@
 r"""
 Classical Crystals
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010    Anne Schilling <anne at math.ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
@@ -15,6 +15,7 @@ from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.tensor import TensorProductsCategory
+
 
 class ClassicalCrystals(Category_singleton):
     """
@@ -76,7 +77,7 @@ class ClassicalCrystals(Category_singleton):
         """
         return [RegularCrystals(), FiniteCrystals(), HighestWeightCrystals()]
 
-    def example(self, n = 3):
+    def example(self, n=3):
         """
         Returns an example of highest weight crystals, as per
         :meth:`Category.example`.
@@ -108,28 +109,9 @@ class ClassicalCrystals(Category_singleton):
 
     class ParentMethods:
 
-        def opposition_automorphism(self):
-            r"""
-            Deprecated in :trac:`15560`. Use the corresponding method in
-            Cartan type.
-
-            EXAMPLES::
-
-                sage: T = crystals.Tableaux(['A',5],shape=[1])
-                sage: T.opposition_automorphism()
-                doctest:...: DeprecationWarning: opposition_automorphism is deprecated.
-                Use opposition_automorphism from the Cartan type instead.
-                See http://trac.sagemath.org/15560 for details.
-                Finite family {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
-            """
-            from sage.misc.superseded import deprecation
-            deprecation(15560, 'opposition_automorphism is deprecated. Use'
-                               ' opposition_automorphism from the Cartan type instead.')
-            return self.cartan_type().opposition_automorphism()
-
         def demazure_character(self, w, f = None):
             r"""
-            Returns the Demazure character associated to ``w``.
+            Return the Demazure character associated to ``w``.
 
             INPUT:
 

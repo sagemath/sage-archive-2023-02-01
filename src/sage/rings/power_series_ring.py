@@ -134,7 +134,6 @@ from sage.structure.nonexact import Nonexact
 from sage.interfaces.magma import MagmaElement
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.misc.sage_eval import sage_eval
-from sage.misc.superseded import deprecation
     
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import normalize_names
@@ -458,8 +457,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
     """
 
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False,
-                 use_lazy_mpoly_ring=None, implementation=None,
-                 category=None):
+                 implementation=None, category=None):
         """
         Initializes a power series ring.
 
@@ -522,9 +520,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             ValueError: default_prec (= -5) must be non-negative
 
         """
-        if use_lazy_mpoly_ring is not None:
-            deprecation(15601, 'The option use_lazy_mpoly_ring is deprecated; use implementation="mpoly" instead')
-
         from sage.rings.finite_rings.finite_field_pari_ffelt import FiniteField_pari_ffelt
 
         if implementation is None:
@@ -1275,4 +1270,3 @@ def unpickle_power_series_ring_v0(base_ring, name, default_prec, sparse):
         True
     """
     return PowerSeriesRing(base_ring, name=name, default_prec = default_prec, sparse=sparse)
-

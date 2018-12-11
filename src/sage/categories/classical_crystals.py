@@ -172,7 +172,6 @@ class ClassicalCrystals(Category_singleton):
             """
             from sage.misc.misc_c import prod
             from sage.rings.integer_ring import ZZ
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             if hasattr(w, 'reduced_word'):
                 word = w.reduced_word()
             else:
@@ -186,7 +185,7 @@ class ClassicalCrystals(Category_singleton):
                 # TODO: use P.linear_combination when PolynomialRing will be a ModulesWithBasis
                 return sum((coeff*prod((x[i]**(c.weight()[i]) for i in range(n)), P.one()) for c, coeff in u), P.zero())
             else:
-                return sum((coeff*f(c)) for c, coeff in u)
+                return sum(coeff * f(c) for c, coeff in u)
 
         def character(self, R=None):
             """

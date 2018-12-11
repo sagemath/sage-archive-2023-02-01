@@ -124,7 +124,7 @@ export SAGE_ROOT
 # If this is a freshly-unpacked binary tarball then run the installer
 # Note: relocate-once.py deletes itself upon successful completion
 if [ -x "$SAGE_ROOT/relocate-once.py" ]; then
-    "$SAGE_ROOT/local/bin/python2" "$SAGE_ROOT/relocate-once.py"
+    "$SAGE_ROOT/relocate-once.py"
     if [ $? -ne 0 ]; then
         echo >&2 "Error running the script 'relocate-once.py'."
         exit 1

@@ -333,7 +333,7 @@ def is_steiner(int v,int k,int l,int mu):
         l == (m-1)**2 + (n-1)//(m-1)-2 and
         balanced_incomplete_block_design(n,m,existence=True)):
         from sage.graphs.generators.intersection import IntersectionGraph
-        return (lambda n, m: IntersectionGraph(list(map(frozenset, balanced_incomplete_block_design(n, m)))), n, m)
+        return (lambda n, m: IntersectionGraph([frozenset(b) for b in balanced_incomplete_block_design(n, m)]), n, m)
 
 @cached_function
 def is_affine_polar(int v,int k,int l,int mu):
@@ -1654,7 +1654,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return None
 
     def switch_OA_srg(c, n):
-        OA = list(map(tuple, orthogonal_array(c+1, n, resolvable=True)))
+        OA = [tuple(x) for x in orthogonal_array(c+1, n, resolvable=True)]
         g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
                   loops=False)
         g.add_vertex(0)
@@ -2369,7 +2369,7 @@ def SRG_280_117_44_52():
     H = hypergraphs.CompleteUniform(9,3)
     g = H.intersection_graph()
     V = g.complement().cliques_maximal()
-    V = list(map(frozenset, V))
+    V = [frozenset(u) for u in V]
 
     # G is the graph defined on V in which two vertices are adjacent when they
     # corresponding partitions cross-intersect on 7 nonempty sets
@@ -2423,7 +2423,7 @@ def strongly_regular_from_two_weight_code(L):
     from sage.structure.element import is_Matrix
     if is_Matrix(L):
         L = LinearCode(L)
-    V = list(map(tuple, L))
+    V = [tuple(l) for l in L]
     w1, w2 = sorted(set(sum(map(bool,x)) for x in V).difference([0]))
     G = Graph([V,lambda u,v: sum(uu!=vv for uu,vv in zip(u,v)) == w1])
     G.relabel()
@@ -2724,7 +2724,7 @@ def SRG_1288_792_476_504():
     C = [[i for i,v in enumerate(c) if v]
          for c in C]
     C = [s for s in C if len(s) == 12]
-    G = Graph([list(map(frozenset, C)),
+    G = Graph([[frozenset(c) for c in C],
                lambda x,y: len(x.symmetric_difference(y)) == 12])
     G.relabel()
     G.name('binary Golay code')

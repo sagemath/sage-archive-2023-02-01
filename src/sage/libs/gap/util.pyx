@@ -512,17 +512,3 @@ cdef void error_handler():
 
 cdef void error_handler_check_exception() except *:
     error_handler()
-
-
-############################################################################
-### Debug functions ########################################################
-############################################################################
-
-
-cpdef memory_usage():
-    """
-    Return information about the memory usage.
-
-    See :meth:`~sage.libs.gap.libgap.Gap.mem` for details.
-    """
-    pass

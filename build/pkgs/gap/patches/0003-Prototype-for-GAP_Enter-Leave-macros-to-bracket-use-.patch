@@ -1,4 +1,4 @@
-From f57359ff479ef67ff46f65296e6973bf78eb0af2 Mon Sep 17 00:00:00 2001
+From 798756448180195a6ce020565a5c1d160e491e98 Mon Sep 17 00:00:00 2001
 From: "Erik M. Bray" <erik.bray@lri.fr>
 Date: Thu, 6 Dec 2018 16:11:35 +0000
 Subject: [PATCH 3/3] Prototype for GAP_Enter/Leave macros to bracket use of
@@ -61,9 +61,9 @@ Conflicts:
  src/gapstate.h   |  3 ++
  src/gasman.c     |  6 ++++
  src/gasman.h     | 15 ++++++++++
- src/libgap-api.c | 21 ++++++++++++++
- src/libgap-api.h | 87 ++++++++++++++++++++++++++++++++++++++++++++++++++++++--
- 5 files changed, 130 insertions(+), 2 deletions(-)
+ src/libgap-api.c | 27 +++++++++++++++++
+ src/libgap-api.h | 88 ++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 5 files changed, 137 insertions(+), 2 deletions(-)
 
 diff --git a/src/gapstate.h b/src/gapstate.h
 index 72ec4c3..7a2a663 100644
@@ -123,21 +123,27 @@ index 236eb8b..55e057a 100644
  **
  *F  InitBags(...) . . . . . . . . . . . . . . . . . . . . . initialize Gasman
 diff --git a/src/libgap-api.c b/src/libgap-api.c
-index 82cc441..3dbcde1 100644
+index 82cc441..e75b0e2 100644
 --- a/src/libgap-api.c
 +++ b/src/libgap-api.c
-@@ -11,6 +11,7 @@
+@@ -10,6 +10,8 @@
+ #include "lists.h"
  #include "streams.h"
  #include "stringobj.h"
- 
++#include "system.h"
 +
+ 
  //
  // Setup and initialisation
- //
-@@ -60,3 +61,23 @@ Obj GAP_EvalString(const char * cmd)
+@@ -60,3 +62,28 @@ Obj GAP_EvalString(const char * cmd)
      res = READ_ALL_COMMANDS(instream, False, True, viewObjFunc);
      return res;
  }
++
++inline syJmp_buf * _GAP_GetReadJmpError(void)
++{
++    return &(STATE(ReadJmpError));
++}
 +
 +inline Int _GAP_GetEnterStackCount(void)
 +{
@@ -159,10 +165,10 @@ index 82cc441..3dbcde1 100644
 +    STATE(EnterStackCount) = count;
 +}
 diff --git a/src/libgap-api.h b/src/libgap-api.h
-index e45d6fc..a4f0a72 100644
+index e45d6fc..55fcd05 100644
 --- a/src/libgap-api.h
 +++ b/src/libgap-api.h
-@@ -5,9 +5,92 @@
+@@ -5,9 +5,93 @@
  
  #include "gap.h"
  
@@ -179,6 +185,7 @@ index e45d6fc..a4f0a72 100644
 +#endif
 +
 +
++extern syJmp_buf * _GAP_GetReadJmpError(void);
 +extern Int  _GAP_GetEnterStackCount(void);
 +extern void _GAP_IncEnterStackCount(void);
 +extern void _GAP_DecEnterStackCount(void);
@@ -243,7 +250,7 @@ index e45d6fc..a4f0a72 100644
 +}
 +
 +#define GAP_Error_Setjmp() (_GAP_Error_Prejmp(__FILE__, __LINE__) || \
-+        _GAP_Error_Postjmp(sySetjmp(STATE(ReadJmpError))))
++        _GAP_Error_Postjmp(sySetjmp(*_GAP_GetReadJmpError())))
 +
 +
 +#define GAP_Enter() GAP_Error_Setjmp(); GAP_EnterStack()

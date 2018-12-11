@@ -45,6 +45,7 @@ from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
 from sage.rings.sum_of_squares cimport two_squares_c
 from libc.stdint cimport uint_fast32_t
+from sage.cpython.string import bytes_to_str
 
 cdef dict _brouwer_database = None
 _small_srg_database = None
@@ -332,7 +333,7 @@ def is_steiner(int v,int k,int l,int mu):
         l == (m-1)**2 + (n-1)//(m-1)-2 and
         balanced_incomplete_block_design(n,m,existence=True)):
         from sage.graphs.generators.intersection import IntersectionGraph
-        return (lambda n,m: IntersectionGraph(map(frozenset,balanced_incomplete_block_design(n,m))),n,m)
+        return (lambda n, m: IntersectionGraph(list(map(frozenset, balanced_incomplete_block_design(n, m)))), n, m)
 
 @cached_function
 def is_affine_polar(int v,int k,int l,int mu):
@@ -2368,7 +2369,7 @@ def SRG_280_117_44_52():
     H = hypergraphs.CompleteUniform(9,3)
     g = H.intersection_graph()
     V = g.complement().cliques_maximal()
-    V = map(frozenset, V)
+    V = list(map(frozenset, V))
 
     # G is the graph defined on V in which two vertices are adjacent when they
     # corresponding partitions cross-intersect on 7 nonempty sets
@@ -2422,7 +2423,7 @@ def strongly_regular_from_two_weight_code(L):
     from sage.structure.element import is_Matrix
     if is_Matrix(L):
         L = LinearCode(L)
-    V = map(tuple,list(L))
+    V = list(map(tuple, L))
     w1, w2 = sorted(set(sum(map(bool,x)) for x in V).difference([0]))
     G = Graph([V,lambda u,v: sum(uu!=vv for uu,vv in zip(u,v)) == w1])
     G.relabel()
@@ -2723,8 +2724,8 @@ def SRG_1288_792_476_504():
     C = [[i for i,v in enumerate(c) if v]
          for c in C]
     C = [s for s in C if len(s) == 12]
-    G = Graph([map(frozenset,C),
-               lambda x,y:len(x.symmetric_difference(y))==12])
+    G = Graph([list(map(frozenset, C)),
+               lambda x,y: len(x.symmetric_difference(y)) == 12])
     G.relabel()
     G.name('binary Golay code')
     return G
@@ -2999,27 +3000,28 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         if brouwer_data['status'] == 'impossible':
             if existence:
                 return False
-            raise EmptySetError("Andries Brouwer's database reports that no "+
-                                str((v,k,l,mu))+"-strongly regular graph exists. "+
-                                "Comments: "+brouwer_data['comments'].encode('ascii','ignore'))
+            raise EmptySetError("Andries Brouwer's database reports that no " +
+                                str((v,k,l,mu))+"-strongly regular graph exists. " +
+                                "Comments: " +
+                                bytes_to_str(brouwer_data['comments'].encode('ascii', 'ignore')))
 
         if brouwer_data['status'] == 'open':
             if existence:
                 return Unknown
-            raise RuntimeError(("Andries Brouwer's database reports that no "+
-                                "({},{},{},{})-strongly regular graph is known "+
-                                "to exist.\nComments: ").format(v,k,l,mu)
-                               +brouwer_data['comments'].encode('ascii','ignore'))
+            raise RuntimeError(("Andries Brouwer's database reports that no " +
+                                "({},{},{},{})-strongly regular graph is known " +
+                                "to exist.\nComments: ").format(v, k, l, mu) +
+                                bytes_to_str(brouwer_data['comments'].encode('ascii', 'ignore')))
 
         if brouwer_data['status'] == 'exists':
             if existence:
                 return True
-            raise RuntimeError(("Andries Brouwer's database claims that such a "+
-                                "({},{},{},{})-strongly regular graph exists, but "+
-                                "Sage does not know how to build it. If *you* do, "+
-                                "please get in touch with us on sage-devel!\n"+
-                                "Comments: ").format(v,k,l,mu)
-                               +brouwer_data['comments'].encode('ascii','ignore'))
+            raise RuntimeError(("Andries Brouwer's database claims that such a " +
+                                "({},{},{},{})-strongly regular graph exists, but " +
+                                "Sage does not know how to build it. If *you* do, " +
+                                "please get in touch with us on sage-devel!\n" +
+                                "Comments: ").format(v, k, l, mu) +
+                                bytes_to_str(brouwer_data['comments'].encode('ascii', 'ignore')))
     if existence:
         return Unknown
     raise RuntimeError(("Sage cannot figure out if a ({},{},{},{})-strongly "+
@@ -3302,9 +3304,9 @@ def _check_database():
             assert sage_answer is not False
         elif dic['status'] == 'exists':
             if sage_answer is not True:
-                print(("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. "+
+                print(("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. " +
                        "Comment from Brouwer's database: ").format(*params)
-                       +dic['comments'].encode('ascii','ignore'))
+                       + bytes_to_str(dic['comments'].encode('ascii', 'ignore')))
                 missed += 1
             assert sage_answer is not False
         elif dic['status'] == 'impossible':

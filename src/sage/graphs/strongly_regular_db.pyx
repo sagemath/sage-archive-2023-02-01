@@ -2888,7 +2888,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         Traceback (most recent call last):
         ...
         RuntimeError: Andries Brouwer's database reports that no
-        (324,95,22,30)-strongly regular graph is known to exist.
+        (324, 95, 22, 30)-strongly regular graph is known to exist.
         Comments:
 
     A large unknown set of parameters (not in Andries Brouwer's database)::
@@ -2898,7 +2898,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         sage: graphs.strongly_regular_graph(1394,175,0,25)
         Traceback (most recent call last):
         ...
-        RuntimeError: Sage cannot figure out if a (1394,175,0,25)-strongly regular graph exists.
+        RuntimeError: Sage cannot figure out if a (1394, 175, 0, 25)-strongly
+        regular graph exists.
 
     Test the Claw bound (see 3.D of [BvL84]_)::
 
@@ -2940,11 +2941,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
     if not seems_feasible(v,k,l,mu):
         if existence:
             return False
-        raise ValueError("There exists no "+str(params)+"-strongly regular graph")
+        raise ValueError(f"There exists no {params}-strongly regular graph")
 
     def check_srg(G):
         if check and (v,k,l,mu) != G.is_strongly_regular(parameters=True):
-            raise RuntimeError("Sage built an incorrect {}-SRG.".format((v,k,l,mu)))
+            raise RuntimeError(f"Sage built an incorrect {params}-SRG.")
         return G
 
     if _small_srg_database is None:
@@ -2999,34 +3000,36 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
     brouwer_data = _brouwer_database.get(params,None)
 
     if brouwer_data is not None:
+        comments = brouwer_data['comments']
         if brouwer_data['status'] == 'impossible':
             if existence:
                 return False
-            raise EmptySetError("Andries Brouwer's database reports that no " +
-                                str((v,k,l,mu))+"-strongly regular graph exists. " +
-                                "Comments: " + brouwer_data['comments'])
+            raise EmptySetError(
+                f"Andries Brouwer's database reports that no "
+                f"{params}-strongly regular graph exists. Comments: {comments}")
 
         if brouwer_data['status'] == 'open':
             if existence:
                 return Unknown
-            raise RuntimeError(("Andries Brouwer's database reports that no " +
-                                "({},{},{},{})-strongly regular graph is known " +
-                                "to exist.\nComments: ").format(v, k, l, mu) +
-                                brouwer_data['comments'])
+            raise RuntimeError(
+                f"Andries Brouwer's database reports that no "
+                f"{params}-strongly regular graph is known to exist.\n"
+                f"Comments: {comments}")
 
         if brouwer_data['status'] == 'exists':
             if existence:
                 return True
-            raise RuntimeError(("Andries Brouwer's database claims that such a " +
-                                "({},{},{},{})-strongly regular graph exists, but " +
-                                "Sage does not know how to build it. If *you* do, " +
-                                "please get in touch with us on sage-devel!\n" +
-                                "Comments: ").format(v, k, l, mu) +
-                                brouwer_data['comments'])
+            raise RuntimeError(
+                f"Andries Brouwer's database claims that such a "
+                f"{params}-strongly regular graph exists, but Sage does not "
+                f"know how to build it. If *you* do, please get in touch "
+                f"with us on sage-devel!\n"
+                f"Comments: {comments}")
     if existence:
         return Unknown
-    raise RuntimeError(("Sage cannot figure out if a ({},{},{},{})-strongly "+
-                        "regular graph exists.").format(v,k,l,mu))
+    raise RuntimeError(
+        f"Sage cannot figure out if a {params}-strongly "
+        f"regular graph exists.")
 
 def apparently_feasible_parameters(int n):
     r"""

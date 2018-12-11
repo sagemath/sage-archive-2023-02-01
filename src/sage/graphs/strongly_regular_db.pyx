@@ -32,6 +32,9 @@ Functions
 """
 from __future__ import print_function, absolute_import, division
 
+import json
+import os
+
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.arith.all import is_square, is_prime_power, divisors
@@ -3240,6 +3243,7 @@ def _build_small_srg_database():
             m = K+r*s
             _small_srg_database[N,K,l,m] = [strongly_regular_from_two_weight_code, code['M']]
 
+
 cdef load_brouwer_database():
     r"""
     Loads Andries Brouwer's database into _brouwer_database.
@@ -3247,12 +3251,17 @@ cdef load_brouwer_database():
     global _brouwer_database
     if _brouwer_database is not None:
         return
-    import json
 
     from sage.env import GRAPHS_DATA_DIR
-    with open(GRAPHS_DATA_DIR+"/brouwer_srg_database.json",'r') as datafile:
-        _brouwer_database = {(v,k,l,mu):{'status':status,'comments':comments}
-                             for (v,k,l,mu,status,comments) in json.load(datafile)}
+    filename = os.path.join(GRAPHS_DATA_DIR, 'brouwer_srg_database.json')
+    with open(filename) as fobj:
+        database = json.load(fobj)
+
+    _brouwer_database = {
+        (v, k, l, mu): {'status': status, 'comments': comments}
+        for (v, k, l, mu, status, comments) in database
+    }
+
 
 def _check_database():
     r"""

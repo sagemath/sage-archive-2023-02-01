@@ -45,7 +45,6 @@ from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
 from sage.rings.sum_of_squares cimport two_squares_c
 from libc.stdint cimport uint_fast32_t
-from sage.cpython.string import bytes_to_str
 
 cdef dict _brouwer_database = None
 _small_srg_database = None
@@ -2876,7 +2875,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         EmptySetError: Andries Brouwer's database reports that no (324, 57, 0,
         12)-strongly regular graph exists. Comments: <a
         href="srgtabrefs.html#GavrilyukMakhnev05">Gavrilyuk & Makhnev</a> and <a
-        href="srgtabrefs.html#KaskiOstergard07">Kaski & stergrd</a>
+        href="srgtabrefs.html#KaskiOstergard07">Kaski & Östergård</a>
 
     A set of parameters unknown to be realizable in Andries Brouwer's database::
 
@@ -3002,8 +3001,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                 return False
             raise EmptySetError("Andries Brouwer's database reports that no " +
                                 str((v,k,l,mu))+"-strongly regular graph exists. " +
-                                "Comments: " +
-                                bytes_to_str(brouwer_data['comments'].encode('ascii', 'ignore')))
+                                "Comments: " + brouwer_data['comments'])
 
         if brouwer_data['status'] == 'open':
             if existence:
@@ -3011,7 +3009,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
             raise RuntimeError(("Andries Brouwer's database reports that no " +
                                 "({},{},{},{})-strongly regular graph is known " +
                                 "to exist.\nComments: ").format(v, k, l, mu) +
-                                bytes_to_str(brouwer_data['comments'].encode('ascii', 'ignore')))
+                                brouwer_data['comments'])
 
         if brouwer_data['status'] == 'exists':
             if existence:
@@ -3021,7 +3019,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                                 "Sage does not know how to build it. If *you* do, " +
                                 "please get in touch with us on sage-devel!\n" +
                                 "Comments: ").format(v, k, l, mu) +
-                                bytes_to_str(brouwer_data['comments'].encode('ascii', 'ignore')))
+                                brouwer_data['comments'])
     if existence:
         return Unknown
     raise RuntimeError(("Sage cannot figure out if a ({},{},{},{})-strongly "+
@@ -3306,7 +3304,7 @@ def _check_database():
             if sage_answer is not True:
                 print(("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. " +
                        "Comment from Brouwer's database: ").format(*params)
-                       + bytes_to_str(dic['comments'].encode('ascii', 'ignore')))
+                       + dic['comments'])
                 missed += 1
             assert sage_answer is not False
         elif dic['status'] == 'impossible':

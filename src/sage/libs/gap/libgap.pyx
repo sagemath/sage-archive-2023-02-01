@@ -631,12 +631,13 @@ class Gap(Parent):
            sage: 'OctaveAlgebra' in dir(libgap)
            True
         """
-        from sage.libs.gap.gap_functions import common_gap_functions
-        return dir(self.__class__) + list(common_gap_functions)
+        from sage.libs.gap.gap_globals import common_gap_globals
+        return dir(self.__class__) + sorted(common_gap_globals)
 
     def __getattr__(self, name):
         r"""
-        The attributes of the Gap object are the Gap functions.
+        The attributes of the Gap object are the Gap functions, and in some
+        cases other global variables from GAP.
 
         INPUT:
 
@@ -645,24 +646,31 @@ class Gap(Parent):
 
         OUTPUT:
 
-        A :class:`GapElement_Function`. A ``AttributeError`` is raised
-        if there is no such function.
+        A :class:`GapElement`. A ``AttributeError`` is raised
+        if there is no such function or global variable.
 
         EXAMPLES::
 
             sage: libgap.List
             <Gap function "List">
+            sage: libgap.GlobalRandomSource
+            <RandomSource in IsGlobalRandomSource>
         """
         if name in dir(self.__class__):
             return getattr(self.__class__, name)
+
         from sage.libs.gap.gap_functions import common_gap_functions
+        from sage.libs.gap.gap_globals import common_gap_globals
         if name in common_gap_functions:
-            f = make_GapElement_Function(self, gap_eval(str(name)))
-            assert f.is_function()
-            self.__dict__[name] = f
-            return f
+            g = make_GapElement_Function(self, gap_eval(name))
+            assert g.is_function()
+        elif name in common_gap_globals:
+            g = make_any_gap_element(self, gap_eval(name))
         else:
-            raise AttributeError('No such attribute: '+name+'.')
+            raise AttributeError(f'No such attribute: {name}.')
+
+        self.__dict__[name] = g
+        return g
 
     def show(self):
         """

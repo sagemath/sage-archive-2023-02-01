@@ -477,9 +477,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
           ``'pari'``.  The default is ``'pari'`` if the base field is
           a PARI finite field, and ``'poly'`` otherwise.
 
-        - ``use_lazy_mpoly_ring`` -- This option is deprecated; use
-          ``implementation='mpoly'`` instead.
-
         If the base ring is a polynomial ring, then the option
         ``implementation='mpoly'`` causes computations to be done with
         multivariate polynomials instead of a univariate polynomial
@@ -525,9 +522,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         if implementation is None:
             if isinstance(base_ring, FiniteField_pari_ffelt):
                 implementation = 'pari'
-            elif use_lazy_mpoly_ring and (is_MPolynomialRing(base_ring) or
-                                          is_PolynomialRing(base_ring)):
-                implementation = 'mpoly'
             else:
                 implementation = 'poly'
 
@@ -933,13 +927,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             Univariate Polynomial Ring in t over Integer Ring
         """
         return self.__poly_ring
-
-    def _mpoly_ring(self):
-        """
-        Return the polynomial ring that we use if ``use_lazy_mpoly_ring``
-        was set.
-        """
-        return self.__mpoly_ring
 
     def base_extend(self, R):
         """

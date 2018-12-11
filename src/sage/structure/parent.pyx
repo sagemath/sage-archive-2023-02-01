@@ -159,6 +159,7 @@ def is_Parent(x):
     return isinstance(x, Parent)
 
 cdef bint guess_pass_parent(parent, element_constructor):
+    # Returning True here is deprecated, see #26879
     if isinstance(element_constructor, MethodType):
         return False
     elif isinstance(element_constructor, BuiltinMethodType):
@@ -1882,6 +1883,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             if f is not None:
                 return f
         if self._element_init_pass_parent:
+            # deprecation(26879)
             return DefaultConvertMap(S, self, category=category)
         else:
             return DefaultConvertMap_unique(S, self, category=category)

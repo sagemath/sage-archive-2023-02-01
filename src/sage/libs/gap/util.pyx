@@ -271,6 +271,7 @@ cdef initialize():
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
+    sig_on()
     try:
         with changesignal(signal.SIGCHLD, signal.SIG_DFL), \
                 changesignal(signal.SIGINT, signal.SIG_DFL):
@@ -281,6 +282,8 @@ cdef initialize():
                            &error_handler)
     except RuntimeError as msg:
         raise RuntimeError('libGAP initialization failed\n' + msg)
+    finally:
+        sig_off()
 
     # Set the ERROR_OUTPUT global in GAP to an output stream in which to
     # receive error output

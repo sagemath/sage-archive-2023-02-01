@@ -482,7 +482,9 @@ cdef void error_handler():
     are already handling an error; if there is an error in our stream
     handling code below it could result in a stack overflow.
     """
-    cdef PyObject *exc_type, *exc_val, *exc_tb
+    cdef PyObject* exc_type
+    cdef PyObject* exc_val
+    cdef PyObject* exc_tb
 
     # Close the error stream: This flushes any remaining output and closes
     # the stream for further writing; reset ERROR_OUTPUT to something sane

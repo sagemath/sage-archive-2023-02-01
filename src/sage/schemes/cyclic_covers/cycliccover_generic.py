@@ -49,6 +49,20 @@ def check_squarefree(f):
     r"""
     Checks if a polynomial `f` is squarefree
 
+
+    EXAMPLES::
+
+        sage: from sage.schemes.cyclic_covers.cycliccover_generic import check_squarefree
+        sage: x = polygen(QQ)
+        sage: check_squarefree((x-1)^2)
+        False
+        sage: x = polygen(Qp(5))
+        sage: check_squarefree(x^2 + 5)
+        True
+        sage: x = polygen(GF(2))
+        sage: check_squarefree(x^2 + x +1)
+        True
+
     """
     should_be_coprime = [f, f.derivative()]
     try:
@@ -58,25 +72,70 @@ def check_squarefree(f):
             squarefree = should_be_coprime[0].resultant(should_be_coprime[1])!=0
         except (AttributeError, NotImplementedError, TypeError):
             raise NotImplementedError("Cannot determine whether " \
-                      "polynomial %s is square free." % (f,));
+                      "polynomial %s is square free." % (f,))
     return squarefree
 
 class CyclicCover_generic(plane_curve.AffinePlaneCurve):
     def __init__(self, AA, r, f, names=None):
-        x, y = AA.gens()
-        self._r = r;
-        self._d = f.degree();
-        self._delta = GCD(self._r, self._d);
-        self._genus = ((self._d - 1) * (self._r - 1) - (self._delta - 1)) // 2;
-        self._f = f;
+        """
+        Cyclic covers over a general ring
 
-        F = y**r - f(x);
-        plane_curve.AffinePlaneCurve.__init__(self, AA, F);
+        INPUT:
+
+        - ``A`` - ambient affine space
+
+        - ``r`` - degree of the cover
+
+        -  ``f`` - univariate polynomial
+
+        -  ``names``  (default: ``["x","y"]``) - names for the
+           coordinate functions
+
+        TESTS::
+
+            sage: ZZx.<x> = ZZ[]
+            sage: C = CyclicCover(5, x^5 + x + 1); C
+            Cyclic Cover of P^1 over Integer Ring defined by y^5 = x^5 + x + 1
+            sage: C.genus()
+            6
+            sage: D = C.projective_closure(); D
+            Projective Plane Curve over Integer Ring defined by x0^5 + x0^4*x1 + x1^5 - x2^5
+            sage: D.change_ring(QQ).genus()
+            6
+            sage: C.change_ring(GF(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: As the characteristic divides the order of the cover, this model is not smooth.
+
+
+            sage: GF7x.<x> = GF(7)[]
+            sage: C = CyclicCover(3, x^9 + x + 1)
+            sage: C
+            Cyclic Cover of P^1 over Finite Field of size 7 defined by y^3 = x^9 + x + 1
+            sage: C.genus()
+            7
+            sage: C.projective_closure()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Weighted Projective Space is not implemented
+
+
+
+        """
+        x, y = AA.gens()
+        self._r = r
+        self._d = f.degree()
+        self._delta = GCD(self._r, self._d)
+        self._genus = ((self._d - 1) * (self._r - 1) - (self._delta - 1)) // 2
+        self._f = f
+
+        F = y**r - f(x)
+        plane_curve.AffinePlaneCurve.__init__(self, AA, F)
         if names is None:
-            names = ("x", "y");
+            names = ("x", "y")
         else:
-            names = normalize_names(2, names);
-        self._names = names;
+            names = normalize_names(2, names)
+        self._names = names
 
     def change_ring(self, R):
         """
@@ -85,7 +144,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         EXAMPLES::
 
             sage: ZZx.<x> = ZZ[]
-            sage: C = CyclicCover(5, x^5 + x + 1);
+            sage: C = CyclicCover(5, x^5 + x + 1)
             sage: C.change_ring(GF(5))
             Traceback (most recent call last):
             ...
@@ -118,11 +177,11 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
             sage: CyclicCover(15, x^9 + x + 1)
             Cyclic Cover of P^1 over Rational Field defined by y^15 = x^9 + x + 1
         """
-        R = self.base_ring();
-        x, y = self.ambient_space().gens();
-        r = self._r;
-        f = self._f;
-        return "Cyclic Cover of P^1 over %s defined by %s = %s" % (R, y**r, f(x));
+        R = self.base_ring()
+        x, y = self.ambient_space().gens()
+        r = self._r
+        f = self._f
+        return "Cyclic Cover of P^1 over %s defined by %s = %s" % (R, y**r, f(x))
 
     def __eq__(self, other):
         """
@@ -131,14 +190,14 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         EXAMPLES::
 
             sage: ZZx.<x> = ZZ[]
-            sage: C0 = CyclicCover(5, x^5 + x + 1);
-            sage: C1 = C0.change_ring(QQ);
+            sage: C0 = CyclicCover(5, x^5 + x + 1)
+            sage: C1 = C0.change_ring(QQ)
             sage: C1 == C0
             False
-            sage: C2 = CyclicCover(3, x^5 + x + 1);
+            sage: C2 = CyclicCover(3, x^5 + x + 1)
             sage: C2 == C0
             False
-            sage: C3 = CyclicCover(5, x^6 + x + 1);
+            sage: C3 = CyclicCover(5, x^6 + x + 1)
             sage: C3 == C0
             False
             sage: C0 == CyclicCover(5, x^5 + x + 1)
@@ -148,7 +207,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
             return False
 
         return (self.base_ring() == other.base_ring()) and (self._r == other._r)\
-                and (self._f == other._f);
+                and (self._f == other._f)
 
     def __ne__(self, other):
         """
@@ -157,14 +216,14 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         EXAMPLES::
 
             sage: ZZx.<x> = ZZ[]
-            sage: C0 = CyclicCover(5, x^5 + x + 1);
-            sage: C1 = C0.change_ring(QQ);
+            sage: C0 = CyclicCover(5, x^5 + x + 1)
+            sage: C1 = C0.change_ring(QQ)
             sage: C1 != C0
             True
-            sage: C2 = CyclicCover(3, x^5 + x + 1);
+            sage: C2 = CyclicCover(3, x^5 + x + 1)
             sage: C2 != C0
             True
-            sage: C3 = CyclicCover(5, x^6 + x + 1);
+            sage: C3 = CyclicCover(5, x^6 + x + 1)
             sage: C3 != C0
             True
             sage: C0 != CyclicCover(5, x^5 + x + 1)
@@ -184,7 +243,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
             sage: CyclicCover(3, x^5 + x + 1).order()
             3
         """
-        return self._r;
+        return self._r
 
     def genus(self):
         """
@@ -192,14 +251,13 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
 
         EXAMPLES::
 
-
             sage: ZZx.<x> = ZZ[]
             sage: CyclicCover(5, x^5 + x + 1).genus()
             6
             sage: CyclicCover(3, x^5 + x + 1).genus()
             4
         """
-        return self._genus;
+        return self._genus
 
     def projective_closure(self, **kwds):
         """
@@ -220,10 +278,10 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         """
         # test d = 3 and 4
         if self._d == self._r:
-            return plane_curve.AffinePlaneCurve.projective_closure(self, **kwds);
+            return plane_curve.AffinePlaneCurve.projective_closure(self, **kwds)
         else:
             raise NotImplementedError("Weighted Projective Space "\
-                    "is not implemented");
+                    "is not implemented")
 
 
     def cover_polynomial(self, K=None, var='x'):
@@ -238,10 +296,10 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
         """
 
         if K is None:
-            return self._f;
+            return self._f
         else:
-            P = PolynomialRing(K, var);
-            return P(self._f);
+            P = PolynomialRing(K, var)
+            return P(self._f)
 
     def is_singular(self):
         r"""
@@ -260,12 +318,12 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
             sage: CyclicCover(3, (x^5 + x + 1)^2, check_smooth=False).is_singular()
             True
         """
-        P = self._f.parent();
-        r = self._r;
+        P = self._f.parent()
+        r = self._r
         if P(r) == 0:
-            return True;
+            return True
         else:
-            return not check_squarefree(self._f);
+            return not check_squarefree(self._f)
 
     def is_smooth(self):
         r"""
@@ -283,7 +341,7 @@ class CyclicCover_generic(plane_curve.AffinePlaneCurve):
             sage: CyclicCover(3, (x^5 + x + 1)^2, check_smooth=False).is_smooth()
             False
         """
-        return not self.is_singular();
+        return not self.is_singular()
 
 
 

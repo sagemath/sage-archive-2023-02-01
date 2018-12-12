@@ -2,6 +2,7 @@ r"""
 Cyclic covers over a finite field
 
 EXAMPLES::
+
     sage: p = 5
     sage: x = PolynomialRing(GF(p),"x").gen()
     sage: C = CyclicCover(6, x^6 + 1)
@@ -74,8 +75,41 @@ from sage.misc.cachefunc import cached_method
 from .charpoly_frobenius import charpoly_frobenius
 from . import cycliccover_generic
 
+
+def _N0_nodenominators(p, g, n):
+    """
+    Assuming that the frobenius matrix has no denominators return the necessary p-adic precision for the frobenius matrix to deduce the characteristic polynomial of frobenius using the Newton identities, using  :meth:`charpoly_frobenius`.
+
+    INPUT:
+
+    - `p` - prime
+    - `g` - genus
+    - `n` - degree of residue field
+
+    TESTS::
+
+        sage: sage.schemes.cyclic_covers.cycliccover_finite_field._N0_nodenominators(4, 4999, 5)
+        12499
+    """
+    return max([ ceil(log( 2 * (2 * g)/i, p) + (n * i) / ZZ(2)) for i in range(1, g + 1)])
+
 class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
     def __init__(self, AA, r, f, names=None, verbose = 0):
+        """
+        EXAMPLES::
+
+            sage: p = 5
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(6, x^6 + 1)
+            sage: C.frobenius_polynomial()
+            x^20 + 50*x^18 + 1125*x^16 + 15000*x^14 + 131250*x^12 + 787500*x^10 + 3281250*x^8 + 9375000*x^6 + 17578125*x^4 + 19531250*x^2 + 9765625
+            sage: R.<t> = PowerSeriesRing(Integers())
+            sage: C.projective_closure().zeta_series(4,t)
+            1 + 6*t + 81*t^2 + 456*t^3 + 3456*t^4 + O(t^5)
+            sage: C.frobenius_polynomial().reverse()(t)/((1-t)*(1-p*t)) + O(t^5)
+            1 + 6*t + 81*t^2 + 456*t^3 + 3456*t^4 + O(t^5)
+
+        """
         cycliccover_generic.CyclicCover_generic.__init__(self, AA, r, f, names=names)
         self._verbose = verbose
         self._init_frobQ = False
@@ -83,7 +117,52 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
 
     def _init_frob(self, desired_prec = None):
-       if not self._init_frobQ or self._N0 != desired_prec:
+        """
+        Initialise everything for frobenius polynomial computation.
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._init_frobQ
+            True
+            sage: C._plarge
+            True
+            sage: C._sqrtp
+            True
+        """
+
+        def _N0_RH():
+            return ceil( log( 2 * binomial(2*self._genus, self._genus), self._p) + self._genus * self._n/ZZ(2))
+
+        def _find_N0():
+            if self._nodenominators:
+                return _N0_nodenominators(self._p, self._genus, self._n)
+            else:
+                return _N0_RH() + self._extraprec
+
+        def _find_N_43():
+            """
+            Find the precision used for thm 4.3 in Goncalves
+            for p >> 0, N = N0 + 2
+            """
+            p = self._p
+            r = self._r
+            d = self._d
+            delta = self._delta
+            N0 = self._N0
+            n = N0
+            left_side = N0 +  floor(log((d * p * (r - 1) + r)/delta)/log(p))
+            def right_side_log(n):
+                return floor(log(p*(r*n - 1) -r)/log(p))
+            n = left_side
+            while n <= left_side + right_side_log(n):
+                n += 1
+            return n
+
+        if not self._init_frobQ or self._N0 != desired_prec:
             if self._r < 2 or self._d < 2:
                 raise NotImplementedError("Only implemented for r, f.degree() >= 2")
 
@@ -105,7 +184,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             self._nodenominators = self._extraprec == 0
 
             if desired_prec is None:
-                self._N0 = self._find_N0()
+                self._N0 = _find_N0()
             else:
                 self._N0 = desired_prec
 
@@ -115,7 +194,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             if self._plarge:
                 self._N = self._N0 + 1
             else:
-                self._N = self._find_N_43()
+                self._N = _find_N_43()
 
             # we will use the sqrt(p) version?
             self._sqrtp = self._plarge and self._p == self._q
@@ -184,7 +263,19 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
 
 
-    def _divide_vector(self, D, vect, R ):
+    def _divide_vector(self, D, vect, R):
+        """
+        Divides the vector `vect` by `D` as a vector over `R`.
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._divide_vector(p, vector(C._Qq, [p, p^2, p^3]), C._Qq)
+            (1 + O(4999^3), 4999 + O(4999^4), 4999^2 + O(4999^5))
+        """
         DQq = self._Qq(D).lift_to_precision( self._Qq.precision_cap() )
         m = 1/DQq
         if not R.is_field():
@@ -193,61 +284,9 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         else:
             return vector(R, [(m * elt).lift_to_precision() for elt in vect])
 
-    def _extend_frobpow(self, power):
-        if power < len(self._frobpow_list):
-            pass
-        else:
-            frobpow = self._Zqx( self._frobpow_list[-1] )
-            for k in range(len(self._frobpow_list), power + 1):
-                frobpow *= self._frobf
-                self._frobpow_list.extend([ frobpow.list() ])
-
-        assert power < len(self._frobpow_list)
 
 
 
-    def _N0_nodenominators(self):
-        return max([ ceil( log( 2 * (2 * self._genus)/i, self._p) + (self._n * i) / ZZ(2)) for i in range(1, self._genus +1 )])
-    def _N0_RH(self):
-        return ceil( log( 2 * binomial(2*self._genus, self._genus), self._p) + self._genus * self._n/ZZ(2))
-
-    def _find_N0(self):
-        if self._nodenominators:
-            return self._N0_nodenominators()
-        else:
-            return self._N0_RH() + self._extraprec
-
-    def _find_N(self):
-        # for p >> 0
-        # N = N0 + 1
-        # Theorem 7.3
-        p = self._p
-        r = self._r
-        N0 = self._N0
-        def left_side_log(n):
-            return floor(log(p*r*(n+1) - 3*r)/log(p))
-        n = N0 + 1
-        while n  < N0 + left_side_log(n):
-            n += 1
-        return n
-
-
-    def _find_N_43(self):
-        # Goncalves - Theorem 4.3
-        # for p >> 0, N = N0 + 2
-        p = self._p
-        r = self._r
-        d = self._d
-        delta = self._delta
-        N0 = self._N0
-        n = N0
-        left_side = N0 +  floor(log((d * p * (r - 1) + r)/delta)/log(p))
-        def right_side_log(n):
-            return floor(log(p*(r*n - 1) -r)/log(p))
-        n = left_side
-        while n <= left_side + right_side_log(n):
-            n += 1
-        return n
 
     def _frob_sparse(self, i, j, N0):
         r"""
@@ -277,6 +316,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         where:
 
         .. MATH::
+
             Sigma = \sum_{k = 0} ^{N0-1}
                             \sum_{s = 0} ^k
                                 (-1) ** (k-s) * binomial(k, s)
@@ -302,31 +342,67 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         and:
 
         .. MATH::
+
             D_{j, s} = \sum_{k = s} ^N0 (-1) ** (k-s) * binomial(k, s) * binomial(-j/self._r, k) )
 
+        TESTS::
 
+            sage: p = 499
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._frob_sparse(2, 0, 1)
+            [499]
+            sage: C._frob_sparse(2, 0, 2)
+            [499   0]
+            [  0   0]
+            [  0   0]
+            [  0   0]
+            [  0   0]
+            sage: C._frob_sparse(2, 1, 1)
+            [499]
+            sage: C._frob_sparse(2, 1, 2)
+            [ 82834998  41417000]
+            [        0 124251000]
+            [        0 124250002]
+            [        0  41416501]
+            [        0  41417000]
+            sage: C._frob_sparse(2, 2, 1)
+            [499]
         """
+
+        def _extend_frobpow(power):
+            if power < len(self._frobpow_list):
+                pass
+            else:
+                frobpow = self._Zqx( self._frobpow_list[-1] )
+                for k in range(len(self._frobpow_list), power + 1):
+                    frobpow *= self._frobf
+                self._frobpow_list.extend([ frobpow.list() ])
+            assert power < len(self._frobpow_list)
+
+        _extend_frobpow(N0)
         r = self._r
         Dj = [ self._Zq(sum( [(-1) ** (k-l) * binomial(k, l) * binomial(-ZZ(j)/r, k)  for k in range(l, N0)] )) for l in range(N0)]
-        self._extend_frobpow(N0)
         frobij = matrix(self._Zq,  self._d * (N0 - 1) + 1, N0)
         for s in range(N0):
             for l in range(self._d * s + 1):
-                frobij[ l,  s  ] = self._p * Dj[s] * self._frobpow_list[s][l]
+                frobij[l, s] = self._p * Dj[s] * self._frobpow_list[s][l]
         return frobij
 
-    def _horizonal_matrix_reduction(self, s):
+    def _horizontal_matrix_reduction(self, s):
         r"""
 
-        Return the tuple of tuples that represents the horizonal matrix reduction at poler order ``s``.
+        Return the tuple of tuples that represents the horizontal matrix reduction at pole order ``s``.
 
         INPUT:
-            - ``s`` -- the integer s
+
+        - ``s`` -- the integer s
 
         OUTPUT:
 
-            A tuple of tuples ``( (D0, D1), (M0, M1) )``
-            where MH_{e, s}  = M0 + e * M1 and DH_{e,s} = D0 + e * D1
+        A tuple of tuples ``( (D0, D1), (M0, M1) )``
+        where `MH_{e, s}  = M0 + e * M1` and `DH_{e,s} = D0 + e * D1`
 
         ALGORITHM:
 
@@ -337,19 +413,53 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         Let v = [G_0, ..., G_{d-1}] represent G
 
         There is a map
-            MH_{e, s} : W_{e, s} --> W_{e-1, s}
+            `MH_{e, s} : W_{e, s} \to W_{e-1, s}`
         and a function to
-            DH: \NN x \NN -->  Qq
+            `DH: \NN \times \NN \to  Qq`
         such that
 
-        G x^e y^{-s} dx \cong H x^{e - 1} y^{-s} dx
+        `G x^e y^{-s} dx \cong H x^{e - 1} y^{-s} dx`
 
-        where H = DH(e, s)^{-1} * MH_{e,s} ( G )
+        where `H = DH(e, s)^{-1} * MH_{e,s} ( G )`
 
-        The matrix MH_{e, s} can be written as
-             MH_{e, s}  = M0_{s} + e * M1_{s}
+        The matrix `MH_{e, s}` can be written as
+             `MH_{e, s}  = M0_{s} + e * M1_{s}`
         similarly
-            DH_{e,s} = D0_{s} + e * D1_{s}
+            `DH_{e,s} = D0_{s} + e * D1_{s}`
+
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._horizontal_matrix_reduction(24995)
+            ((99968, 124925014996),
+            (
+            [           0            0            0            0]
+            [       99968            0            0 124924940023]
+            [           0        99968            0 124924565143]
+            [           0            0        99968 124924715095],
+            <BLANKLINE>
+            [           0            0            0            3]
+            [124925014996            0            0            9]
+            [           0 124925014996            0           27]
+            [           0            0 124925014996           12]
+            ))
+            sage: C._horizontal_matrix_reduction(4999)
+            ((19984, 124925014996),
+            (
+            [           0            0            0            0]
+            [       19984            0            0 124925000011]
+            [           0        19984            0 124924925071]
+            [           0            0        19984 124924955047],
+            <BLANKLINE>
+            [           0            0            0            3]
+            [124925014996            0            0            9]
+            [           0 124925014996            0           27]
+            [           0            0 124925014996           12]
+            ))
         """
 
         f_co = self._flift.list()
@@ -362,7 +472,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
         return ((m0, m1), (M0, M1))
 
-    def _vertical_matrix_reduction(self, s_0):
+    def _vertical_matrix_reduction(self, s0):
         r"""
         Return the tuple of tuples that represents the vertical matrix reduction.
 
@@ -370,6 +480,35 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
             A tuple of tuples ``( (D0, D1), (M0, M1) )``
             where MV_t  = M0 + t * M1 and DV_t = D0 + t * D1
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._vertical_matrix_reduction(1)
+            ((-2, 3),
+            (
+            [117410728377  65750007895  58235721278]
+            [ 67628579544  59175007105  15028573234]
+            [ 86414296088            0  27239288985],
+            <BLANKLINE>
+            [ 51660720493  75142866164            0]
+            [ 74203580341   2817857481  75142866164]
+            [108017870113            0   2817857481]
+            ))
+            sage: C._vertical_matrix_reduction(2)
+            ((-1, 3),
+            (
+            [92989296875  7514286617 58235721278]
+            [50721434658 60114292932 81717866955]
+            [80778581126           0 28178574812],
+            <BLANKLINE>
+            [ 51660720493  75142866164            0]
+            [ 74203580341   2817857481  75142866164]
+            [108017870113            0   2817857481]
+            ))
 
         """
 
@@ -389,34 +528,68 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         bp_foo = foo * b_foo
         A_vert = a_foo.submatrix(0,0,d-1,d-1)
         Bd_vert = bp_foo.submatrix(0,0,d-1,d-1)
-        M1 = (s_0-self._r) * A_vert + self._r * Bd_vert
+        M1 = (s0-self._r) * A_vert + self._r * Bd_vert
         M2 = self._r * A_vert
-        m1 = (s_0-self._r)
+        m1 = (s0-self._r)
         m2 = self._r
         return ( (m1, m2), (M1, M2) )
 
-    def _reduce_vector_horizontal(self, G, e, s, k = 1, method = 0):
+    def _reduce_vector_horizontal(self, G, e, s, k = 1):
+        """
+        INPUT:
+        - a vector -- G \in W_{e, s}
+
+        OUTPUT:
+        - a vector -- H \in W_{e - k, s} such that
+            G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._initialize_fat_horizontal(p, 3)
+            sage: C._reduce_vector_horizontal((83283349998, 0, 0, 0), 2*p  - 1, p, p)
+            (23734897071, 84632332850, 44254975407, 23684517017)
+            sage: C._reduce_vector_horizontal((98582524551, 3200841460, 6361495378, 98571346457), 2*p - 1, p, p)
+            (96813533420, 61680190736, 123292559950, 96786566978)
+        """
         if self._sqrtp and k == self._p:
-            vect =  self._reduce_vector_horizontal_BSGS(G, e, s)
+            vect = self._reduce_vector_horizontal_BSGS(G, e, s)
         else:
-            vect =  self._reduce_vector_horizontal_plain(G, e, s, k)
+            vect = self._reduce_vector_horizontal_plain(G, e, s, k)
         return vect
 
     def _reduce_vector_horizontal_BSGS(self, G, e, s):
         r"""
         INPUT:
-            - a vector -- G \in W_{e, s}
+        - a vector -- G \in W_{e, s}
 
         OUTPUT:
-            - a vector -- H \in W_{e - p, s} such that
-                G x^e y^{-s} dx \cong H x^{e - p} y^{-s} dx
+        - a vector -- H \in W_{e - p, s} such that
+            G x^e y^{-s} dx \cong H x^{e - p} y^{-s} dx
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._initialize_fat_horizontal(p, 3)
+            sage: C._reduce_vector_horizontal_BSGS((0, 0, 0, 0), 2*p  - 1, p)
+            (0, 0, 0, 0)
+            sage: C._reduce_vector_horizontal_BSGS((83283349998, 0, 0, 0), 2*p  - 1, p)
+            (23734897071, 84632332850, 44254975407, 23684517017)
+            sage: C._reduce_vector_horizontal_BSGS((98582524551, 3200841460, 6361495378, 98571346457), 2*p - 1, p)
+            (96813533420, 61680190736, 123292559950, 96786566978)
         """
         if G == 0:
             return G
         if self._verbose > 2:
             print("_reduce_vector_horizontal_BSGS(self, %s, %s, %s)" % (vector(self._Qq,G), e, s,))
         assert (e + 1) % self._p == 0
-        (m0, m1), (M0, M1) = self._horizonal_matrix_reduction(s)
+        (m0, m1), (M0, M1) = self._horizontal_matrix_reduction(s)
         vect = vector(self._Zq, G)
         # we do the first d reductions carefully
         D = 1
@@ -430,7 +603,8 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         iD = 1/self._Zq0(D.lift()/self._p)
         vect = vector(self._Zq0, [iD * ZZ(elt.lift()/self._p) for elt in vect])
         #use BSGS
-        iDH, MH = self._get_fat_horizontal_matrix(e, s)
+
+        iDH, MH = self._horizontal_fat_s[s][(e + 1)/self._p - 1]
         vect = iDH* (MH * vect.change_ring(self._Zq0))
 
         # last reduction
@@ -446,6 +620,19 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         return vect
 
     def _initialize_fat_horizontal(self, s, L):
+        """
+        Initialises reduction matrices for horizontal reductions for blocks from `s` to `L`.
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._initialize_fat_horizontal(p, 3)
+            sage: len(C._horizontal_fat_s[p])
+            3
+        """
         assert self._sqrtp
         if s not in self._horizontal_fat_s:
             N = self._N - 1 # padic precision of self._Zq0
@@ -455,12 +642,12 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             for l in range(L0):
                 targets[2*l] = self._p*l
                 targets[2*l + 1] = self._p*(l+1) - d - 1
-            (m0, m1), (M0, M1) = self._horizonal_matrix_reduction(s)
+            (m0, m1), (M0, M1) = self._horizontal_matrix_reduction(s)
             M0, M1 = [ elt.change_ring(self._Zq0) for elt in [M0, M1] ]
             D0, D1 = [ matrix(self._Zq0, [elt]) for elt in [m0, m1]]
             MH = interval_products(M0, M1, targets)
             DH = [elt[0,0] for elt in interval_products(D0, D1, targets)]
-            if L > N:
+            if L > N: # Vandermonde interpolation
                 #  f^{(r)}(0) p^r / r! for r = 0, ..., N-1,
                 MT = [None] * N
                 DT = [0] * N
@@ -487,32 +674,38 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
             iDH = [ 1/elt for elt in DH ]
             self._horizontal_fat_s[s] = [ (iDH[i], MH[i]) for i in range(0, L) ]
-        else:
-            assert len(self._horizontal_fat_s[s]) <= L
-
-
-
-
-
-    def _get_fat_horizontal_matrix(self, e, s):
-        return self._horizontal_fat_s[s][ (e + 1)/self._p - 1]
+        assert len(self._horizontal_fat_s[s]) >= L
 
 
 
     def _reduce_vector_horizontal_plain(self, G, e, s, k = 1):
         r"""
         INPUT:
-            - a vector -- G \in W_{e, s}
+        - a vector -- G \in W_{e, s}
 
         OUTPUT:
-            - a vector -- H \in W_{e - k, s} such that
-                G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx
+        - a vector -- H \in W_{e - k, s} such that
+            G x^e y^{-s} dx \cong H x^{e - k} y^{-s} dx
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._initialize_fat_horizontal(p, 3)
+            sage: C._reduce_vector_horizontal_plain((83283349998, 0, 0, 0), 2*p  - 1, p, p)
+            (23734897071, 110671913892, 91161207284, 49524178051)
+            sage: C._reduce_vector_horizontal_plain((98582524551, 3200841460, 6361495378, 98571346457), 2*p - 1, p, p)
+            (96813533420, 65678590896, 12037075498, 66773575777)
+            sage: (C._reduce_vector_horizontal_plain((98582524551, 3200841460, 6361495378, 98571346457), 2*p - 1, p, p) - C._reduce_vector_horizontal_plain((98582524551, 3200841460, 6361495378, 98571346457), 2*p - 1, p, p)) % p^C._N0 == 0
+            True
         """
         if self._verbose > 2:
             print("_reduce_vector_horizontal_plain(self, G = %s, e = %s, s = %s, k = %s)" % (vector(self._Qq,G), e, s, k,))
         if G == 0:
             return G
-        (m0, m1), (M0, M1) = self._horizonal_matrix_reduction(s)
+        (m0, m1), (M0, M1) = self._horizontal_matrix_reduction(s)
         vect = vector(self._Zq, G)
         D = self._Zq(1)
         assert k <= self._p, "more than p reductions at a time should be avoided!"
@@ -525,10 +718,10 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             D *= Di
             if self._plarge and Di % self._p == 0:
                 assert (i  + self._d) % self._p == 0
-                vect = self._divide_vector( D, vect, self._Zq)
+                vect = self._divide_vector(D, vect, self._Zq)
                 D = self._Zq(1)
 
-        vect = self._divide_vector( D, vect, self._Zq)
+        vect = self._divide_vector(D, vect, self._Zq)
 
         if self._verbose > 2:
             print("done _reduce_vector_horizontal_plain(self, %s, %s, %s, %s)" % (vector(self._Qq,G), e, s, k,))
@@ -536,17 +729,90 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         return vect
 
 
-    def _reduce_vector_vertical(self, G, s0, s, k = 1,method = 0):
+    def _reduce_vector_vertical(self, G, s0, s, k = 1):
+        """
+        Reduce the vector `G` representing an element of `W_{-1,rs + s0}` by `r k` steps
+
+        INPUT:
+        - a vector -- G \in W_{-1, r*s + s0}
+
+        OUTPUT:
+        - a vector -- `H \in W_{-1, r*(s - k) + s0}` such that
+            `G y^{-(r*s + s0)} dx \cong H y^{-(r*(s -k) + s0)} dx`
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._reduce_vector_vertical((96683034459, 33074345103, 43132216686), 1, p // 3, p // 3)
+            (4364634303, 124117911400, 26239932330)
+        """
+
+        def _reduce_vector_vertical_plain(G, s0, s, k = 1):
+            r"""
+            INPUT:
+            - a vector -- G \in W_{-1, r*s + s0}
+
+            OUTPUT:
+            - a vector -- `H \in W_{-1, r*(s - k) + s0}` such that
+            `G y^{-(r*s + s0)} dx \cong H y^{-(r*(s -k) + s0)} dx`
+            """
+            if self._verbose > 2:
+                print("_reduce_vector_vertical(self, G = %s, s0 = %s, s = %s, k = %s)" % (vector(self._Qq, G), s0,  s, k,))
+
+            (m0, m1), (M0, M1) = self._vertical_matrix_reduction(s0)
+            vect = vector(self._Zq, G)
+            D = 1
+            assert k <= self._p, "more than p reductions at a time should be avoided!"
+            assert s - k >= 0
+            for i in reversed(range(s - k + 1,s + 1)):
+                Mi = M0 + i*M1
+                Di = m0 + i*m1
+                vect = Mi*vect
+                if self._plarge and Di % self._p != 0:
+                    D *= Di
+                else:
+                    vect = self._divide_vector(Di, vect, self._Zq)
+
+            vect = self._divide_vector(D, vect, self._Zq)
+
+            if self._verbose > 2:
+                print("done _reduce_vector_vertical(self,  %s, %s, %s)" % (vector(self._Qq, G), s, k,))
+                print("return %s\n" % (vector(self._Qq, vect),))
+
+            return vect
+
+        G = vector(self._Zq, G)
+
         if self._sqrtp:
-            return self._reduce_vector_vertical_BSGS(G, s0, s, k)
+            self._initialize_fat_vertical(s0, s)
+            if k < self._p:
+                assert s - k == self._epsilon
+                MV = self._vertical_fat_s[s0][0]
+            elif k == self._p:
+                MV = self._vertical_fat_s[s0][s//self._p]
+
+            return MV * G
         else:
-            return self._reduce_vector_vertical_plain(G, s0, s, k)
+            return _reduce_vector_vertical_plain(G, s0, s, k)
 
-    def _reduce_vector_vertical_BSGS(self, G, s0, s, k):
-        MV = self._get_fat_vertical_matrix(s0, s, k)
-        return MV * G
+    def _initialize_fat_vertical(self, s0, max_upper_target):
+        """
+        Initialises reduction matrices for vertical reductions for blocks from `s0` to `s0 + max_upper_target`.
 
-    def _initialize_fat_vertical(self, s0, max_upper_target ):
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._initialize_fat_vertical(1, p + p // 3)
+            sage: len(C._vertical_fat_s[1])
+            2
+        """
         L = floor((max_upper_target - self._epsilon)/self._p) + 1
         if s0 not in self._vertical_fat_s:
             (m0, m1), (M0, M1) = self._vertical_matrix_reduction(s0)
@@ -567,69 +833,29 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
                 else:
                     MV[l] *= (1/D)
             self._vertical_fat_s[s0] = MV
-        else:
-            assert len(self._vertical_fat_s[s0]) <= L
 
-    def _get_fat_vertical_matrix(self, s0, s, k):
-        if s0 in self._vertical_fat_s:
-            if k < self._p:
-                assert s - k == self._epsilon
-                return self._vertical_fat_s[s0][0]
-            elif k == self._p:
-                return self._vertical_fat_s[s0][s//self._p]
-
-        (m0, m1), (M0, M1) = self._vertical_matrix_reduction(s0)
-        target =  [ s - k, s]
-        MV = interval_products(M0, M1, target)[0]
-        D0, D1 = map( lambda y: matrix(self._Zq, [y]), [m0, m1])
-        DV = interval_products(D0, D1, target)[0][0,0]
-        if DV % self._p == 0:
-            # we need to do the reduction here, as both terms might be divisible by p
-            iDV = 1/self._Zq(DV.lift()/self._p)
-            MV = matrix(self._Zq, [[ iDV * ZZ(elt.lift()/self._p) for elt in row] for row in MV.rows()])
-            return MV
-        else:
-            return MV/DV
-
-
-    def _reduce_vector_vertical_plain(self, G, s0, s, k = 1):
-        r"""
-        INPUT:
-            - a vector -- G \in W_{-1, r*s + s0}
-
-        OUTPUT:
-            - a vector -- `H \in W_{-1, r*(s - k) + s0}` such that
-            `G y^{-(r*s + s0)} dx \cong H y^{-(r*(s -k) + s0)} dx`
-        """
-        if self._verbose > 2:
-            print("_reduce_vector_vertical(self, G = %s, s0 = %s, s = %s, k = %s)" % (vector(self._Qq, G), s0,  s, k,))
-
-        (m0, m1), (M0, M1) = self._vertical_matrix_reduction(s0)
-        vect = vector(self._Zq, G)
-        D = 1
-        assert k <= self._p, "more than p reductions at a time should be avoided!"
-        assert s - k >= 0
-        for i in reversed(range(s - k + 1,s + 1)):
-            Mi = M0 + i*M1
-            Di = m0 + i*m1
-            vect = Mi*vect
-            if self._plarge and Di % self._p != 0:
-                D *= Di
-            else:
-                vect = self._divide_vector( Di, vect, self._Zq)
-
-        vect = self._divide_vector( D, vect, self._Zq)
-
-        if self._verbose > 2:
-            print("done _reduce_vector_vertical(self,  %s, %s, %s)" % (vector(self._Qq, G), s, k,))
-            print("return %s\n" % (vector(self._Qq, vect),))
-
-        return vect
+        assert len(self._vertical_fat_s[s0]) >= L
 
     def _frob(self, i, j, N0):
         r"""
-        Compute Frob(x^i dx/y^j) / dx in terms of the cohomology basis,
-        whose x and y exponents are constrained to be in a particular range.
+        Compute `Frob(x^i dx/y^j) / dx` in terms of the cohomology basis,
+        whose `x` and `y` exponents are constrained to be in a particular range.
+
+        INPUT:
+
+        - `i`,`j` -- exponents of the basis differential
+        - `N0` -- desired p-adic precision for the frobenius expansion
+
+        TESTS::
+
+            sage: p = 4999
+            sage: x = PolynomialRing(GF(p),"x").gen()
+            sage: C = CyclicCover(3, x^4 + 4*x^3 + 9*x^2 + 3*x + 1)
+            sage: C._init_frob()
+            sage: C._frob(2, 0, 1)
+            [3174 + O(4999)]
+            [1844 + O(4999)]
+            [4722 + O(4999)]
         """
         # a Matrix that represents the Frobenius expansion of
         # x^i dx/y^j modulo p^(N0 + 1)
@@ -651,9 +877,6 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         H = vector(self._Zq, d - 1)
         k = (p * j) // r
         s0 = (p * j) % r
-
-        if self._sqrtp:
-            self._initialize_fat_vertical(s0,  k  +  p*(N0 - 1))
 
         for s in reversed(range(0, N0)):
             if self._sqrtp:
@@ -680,22 +903,6 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
         assert k == self._epsilon
         H = [self._Qq(elt).add_bigoh(N0) for elt in H]
         return  matrix(H).transpose()
-
-    def _frobenius_matrix_p(self, N0):
-        r"""
-        Computes the matrix that represents the p-power Frobenius
-        """
-        assert self._init_frobQ
-        assert N0 <= self._N0
-
-        m = matrix(self._Qq, (self._d - 1)*(self._r - 1))
-
-        # Want to build m, "slice by slice" using the output of _frob
-        for j in range(1,self._r):
-            s0 = (j*self._p) % self._r
-            for i in range(0,self._d-1):
-                m[(s0 - 1)*(self._d - 1):s0*(self._d - 1),i+(j-1)*(self._d-1)] = self._frob(i, j + self._epsilon*self._r, N0 )
-        return m
 
     def frobenius_matrix(self, N = None):
         """
@@ -728,8 +935,24 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             [     O(107) 42 + O(107)           0           0]
             [30 + O(107)      O(107)           0           0]
         """
+
+        def _frobenius_matrix_p(N0):
+            r"""
+            Computes the matrix that represents the p-power Frobenius
+            """
+            assert self._init_frobQ
+
+            m = matrix(self._Qq, (self._d - 1)*(self._r - 1))
+
+            # Want to build m, "slice by slice" using the output of _frob
+            for j in range(1,self._r):
+                s0 = (j*self._p) % self._r
+                for i in range(0,self._d-1):
+                    m[(s0 - 1)*(self._d - 1):s0*(self._d - 1),i+(j-1)*(self._d-1)] = self._frob(i, j + self._epsilon*self._r, N0 )
+            return m
+
         self._init_frob(N)
-        FrobP = self._frobenius_matrix_p(self._N0)
+        FrobP = _frobenius_matrix_p(self._N0)
         if self._n == 1:
             return FrobP
         else:
@@ -739,31 +962,6 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
                 current = matrix([[entry.frobenius() for entry in row] for row in current])
                 total = total * current
             return total
-
-    def _denominator(self):
-        R = PolynomialRing(ZZ, "T")
-        T = R.gen()
-        denom = R(1)
-        lc = self._f.list()[-1]
-        if lc == 1: # MONIC
-            for i in range(2, self._delta + 1):
-                if self._delta % i == 0:
-                    phi = euler_phi(i)
-                    G = IntegerModRing(i)
-                    ki = G(self._q).multiplicative_order()
-                    denom = denom * (T**ki - 1)**(phi//ki)
-            return denom
-        else: # NON-MONIC
-            x = PolynomialRing(self._Fq, "x").gen()
-            f = x**self._delta - lc
-            L = f.splitting_field("a")
-            roots = [r for r,_ in f.change_ring(L).roots()]
-            roots_dict = dict([(r, i) for i,r in enumerate(roots)])
-            rootsfrob = [L.frobenius_endomorphism()(r) for r in roots]
-            m = zero_matrix(len(roots))
-            for i, r in enumerate(roots):
-                m[i, roots_dict[rootsfrob[i]]] = 1
-            return R(R(m.characteristic_polynomial())//(T - 1))
 
 
     @cached_method
@@ -863,12 +1061,37 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             sage: CyclicCover(5, 2*x^5 + x).frobenius_polynomial()
             x^12 + 299994*x^10 + 37498500015*x^8 + 2499850002999980*x^6 + 93742500224997000015*x^4 + 1874812507499850001499994*x^2 + 15623125093747500037499700001
 
-
         """
         self._init_frob()
         F = self.frobenius_matrix(self._N0)
 
-        denom = self._denominator()
+
+        def _denominator():
+            R = PolynomialRing(ZZ, "T")
+            T = R.gen()
+            denom = R(1)
+            lc = self._f.list()[-1]
+            if lc == 1: # MONIC
+                for i in range(2, self._delta + 1):
+                    if self._delta % i == 0:
+                        phi = euler_phi(i)
+                        G = IntegerModRing(i)
+                        ki = G(self._q).multiplicative_order()
+                        denom = denom * (T**ki - 1)**(phi//ki)
+                return denom
+            else: # Non-monic
+                x = PolynomialRing(self._Fq, "x").gen()
+                f = x**self._delta - lc
+                L = f.splitting_field("a")
+                roots = [r for r,_ in f.change_ring(L).roots()]
+                roots_dict = dict([(r, i) for i,r in enumerate(roots)])
+                rootsfrob = [L.frobenius_endomorphism()(r) for r in roots]
+                m = zero_matrix(len(roots))
+                for i, r in enumerate(roots):
+                    m[i, roots_dict[rootsfrob[i]]] = 1
+            return R(R(m.characteristic_polynomial())//(T - 1))
+
+        denom = _denominator()
         R = PolynomialRing(ZZ, "x")
 
         if self._nodenominators:
@@ -878,7 +1101,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             min_val = min( [ min( [self._Qq(elt).valuation() for elt in row] ) for row in F.rows()])
 
         if min_val >= 0:
-            prec = self._N0_nodenominators()
+            prec = _N0_nodenominators(self._p, self._genus, self._n)
             charpoly_prec = [prec + i  for i in reversed(range(1,self._genus + 1))] + [prec ]*(self._genus + 1)
             cp = charpoly_frobenius(F, charpoly_prec, self._p, 1, self._n,  denom.list())
             return R(cp)

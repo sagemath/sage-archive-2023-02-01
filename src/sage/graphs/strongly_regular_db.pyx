@@ -2877,8 +2877,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         ...
         EmptySetError: Andries Brouwer's database reports that no (324, 57, 0,
         12)-strongly regular graph exists. Comments: <a
-        href="srgtabrefs.html#GavrilyukMakhnev05">Gavrilyuk & Makhnev</a> and <a
-        href="srgtabrefs.html#KaskiOstergard07">Kaski & Östergård</a>
+        href="srgtabrefs.html#GavrilyukMakhnev05">Gavrilyuk & Makhnev</a> ...
 
     A set of parameters unknown to be realizable in Andries Brouwer's database::
 

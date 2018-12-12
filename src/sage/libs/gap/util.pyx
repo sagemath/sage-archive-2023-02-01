@@ -18,9 +18,12 @@ import os
 import signal
 import warnings
 
+from libc.string cimport strcpy, strlen
+
 from cpython.exc cimport PyErr_SetObject, PyErr_Occurred, PyErr_Fetch
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cpython.ref cimport PyObject
+from cysignals.memory cimport sig_malloc
 from cysignals.pysignals import changesignal
 from cysignals.signals cimport sig_on, sig_off, sig_error
 
@@ -211,6 +214,33 @@ MakeImmutable(libgap_errout);
 """
 
 
+cdef char** copy_environ(char** env):
+    """
+    Make a copy of the environment block given by ``env``.
+
+    Returns a pointer to the copy, which is the caller's responsibility to
+    free.
+    """
+
+    cdef char** env_copy
+    cdef int envc = 0;
+    cdef int idx
+    cdef size_t size
+
+    while env[envc]:
+        envc += 1
+
+    env_copy = <char**>sig_malloc((envc + 1) * sizeof(char*))
+
+    for idx in range(envc):
+        size = strlen(env[idx]) + 1
+        env_copy[idx] = <char*>sig_malloc(size)
+        strcpy(env_copy[idx], env[idx])
+
+    env_copy[envc] = NULL
+    return env_copy
+
+
 cdef initialize():
     """
     Initialize the GAP library, if it hasn't already been
@@ -227,6 +257,7 @@ cdef initialize():
     # Define argv and environ variables, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool
     # size!
+    cdef char** env
     cdef char* argv[16]
     argv[0] = "sage"
     argv[1] = "-l"
@@ -269,6 +300,8 @@ cdef initialize():
 
     argv[argc] = NULL
 
+    env = copy_environ(environ)
+
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
     sig_on()
@@ -278,7 +311,7 @@ cdef initialize():
             # Need to save/restore current SIGINT handling since GAP_Initialize
             # currently clobbers it; it doesn't matter what we set SIGINT to
             # temporarily.
-            GAP_Initialize(argc, argv, environ, &gasman_callback,
+            GAP_Initialize(argc, argv, env, &gasman_callback,
                            &error_handler)
     except RuntimeError as msg:
         raise RuntimeError('libGAP initialization failed\n' + msg)

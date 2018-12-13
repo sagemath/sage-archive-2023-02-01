@@ -13736,7 +13736,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: for v in G:
             ....:     coeffs_v = [c[v] for c in coeffs]
             ....:     if max(coeffs_v) - min(coeffs_v) > 1E-12:
-            ....:         raise ValueEror("error for v={}, min={}, max={}".format(v, min(coeffs_v), max(coeffs_v)))
+            ....:         raise ValueError("error for v={}, min={}, max={}".format(v, min(coeffs_v), max(coeffs_v)))
 
         TESTS::
 

@@ -549,14 +549,12 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G = MatrixGroup([A])
             sage: G.as_permutation_group()
             Permutation Group with generators [(1,2)]
-            sage: MS = MatrixSpace( GF(7), 12, 12)
-            sage: GG = gap("ImfMatrixGroup( 12, 3 )")
-            sage: GG.GeneratorsOfGroup().Length()
-            3
-            sage: g1 = MS(eval(str(GG.GeneratorsOfGroup()[1]).replace("\n","")))
-            sage: g2 = MS(eval(str(GG.GeneratorsOfGroup()[2]).replace("\n","")))
-            sage: g3 = MS(eval(str(GG.GeneratorsOfGroup()[3]).replace("\n","")))
-            sage: G = MatrixGroup([g1, g2, g3])
+
+        A finite subgroup of  GL(12,Z) as a permutation group::
+
+            sage: imf=libgap.function_factory('ImfMatrixGroup')
+            sage: GG = imf( 12, 3 )
+            sage: G = MatrixGroup(GG.GeneratorsOfGroup())
             sage: G.cardinality()
             21499084800
             sage: set_random_seed(0); current_randstate().set_seed_gap()
@@ -587,13 +585,24 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: a.order(), b.order()
             (2, 1)
 
+        The above example in GL(12,Z), reduced modulo 7::
+
+            sage: MS = MatrixSpace( GF(7), 12, 12)
+            sage: G = MatrixGroup(map(MS, GG.GeneratorsOfGroup()))
+            sage: G.cardinality()
+            21499084800
+            sage: P = G.as_permutation_group()
+            sage: P.cardinality()
+            21499084800
+
         Check that ``_permutation_group_morphism`` works (:trac:`25706`)::
 
             sage: MG = GU(3,2).as_matrix_group()
             sage: PG = MG.as_permutation_group()  # this constructs the morphism
             sage: mg = MG.an_element()
             sage: MG._permutation_group_morphism(mg)
-            (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
+            ( 1, 2, 6,19,35,33)( 3, 9,26,14,31,23)( 4,13, 5)( 7,22,17)( 8,24,12)
+            (10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of
@@ -601,25 +610,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         from sage.groups.perm_gps.permgroup import PermutationGroup
         if not self.is_finite():
             raise NotImplementedError("Group must be finite.")
-        n = self.degree()
-        MS = MatrixSpace(self.base_ring(), n, n)
-        mats = [] # initializing list of mats by which the gens act on self
-        for g in self.gens():
-            p = MS(g.matrix())
-            m = p.rows()
-            mats.append(m)
-        mats_str = str(gap([[list(r) for r in m] for m in mats]))
-        gap.eval("iso:=IsomorphismPermGroup(Group("+mats_str+"))")
-        gap_permutation_map = gap("iso;")
+        iso=self._libgap_().IsomorphismPermGroup()
         if algorithm == "smaller":
-            gap.eval("small:= SmallerDegreePermutationRepresentation( Image( iso ) );")
-            C = gap("Image( small )")
-        else:
-            C = gap("Image( iso )")
-        PG = PermutationGroup(gap_group=C, canonicalize=False)
+            iso=iso.Image().SmallerDegreePermutationRepresentation()
+        PG = PermutationGroup(map(gap, iso.Image().GeneratorsOfGroup()), \
+                       canonicalize=False) # applying gap() - as PermutationGroup is not libGAP
 
         def permutation_group_map(element):
-            return PG(gap_permutation_map.ImageElm(element.gap()))
+            return iso.ImageElm(element.gap())._gap_()
 
         from sage.categories.homset import Hom
         self._permutation_group_morphism = Hom(self, PG)(permutation_group_map)

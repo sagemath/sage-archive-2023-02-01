@@ -2396,18 +2396,28 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k.is_isomorphic(l, True)
             (True, [-x, x + 1])
 
+        TESTS:
+
+        See  (see :trac:`26239`)
+
+            sage: k.<a> = NumberField(x)
+            sage: k.is_isomorphic(k)
+            True
+
         """
         if not isinstance(other, NumberField_generic):
             raise ValueError("other must be a generic number field.")
         t = self.pari_polynomial().nfisisom(other.pari_polynomial())
-        if t == 0:
+        # NB t==0 returns True when t is [0]
+        if t.length() == 0:
             t = []
             res = False
         else:
             res = True
 
         if isomorphism_maps:
-            return res, t
+            R = self.polynomial().parent()
+            return res, [R(ti) for ti in t]
         else:
             return res
 

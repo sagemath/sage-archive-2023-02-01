@@ -40,11 +40,12 @@ def handle_AA_and_QQbar(func):
     def wrapper(*args, **kwds):
 
         from sage.misc.flatten import flatten
+        from sage.rings.polynomial.polynomial_element import Polynomial
         from sage.rings.polynomial.multi_polynomial import MPolynomial
         from sage.rings.ideal import Ideal, Ideal_generic
         from sage.rings.qqbar import AlgebraicField_common, number_field_elements_from_algebraics
 
-        if not any([isinstance(a, (MPolynomial, Ideal_generic))
+        if not any([isinstance(a, (Polynomial, MPolynomial, Ideal_generic))
                     and isinstance(a.base_ring(), AlgebraicField_common) for a in args]):
             return func(*args, **kwds)
 
@@ -53,6 +54,8 @@ def handle_AA_and_QQbar(func):
         for a in flatten(args, ltypes=(list, tuple, set)):
             if isinstance(a, Ideal_generic):
                 polynomials.extend(a.gens())
+            elif isinstance(a, Polynomial):
+                polynomials.append(a)
             elif isinstance(a, MPolynomial):
                 polynomials.append(a)
 
@@ -68,6 +71,8 @@ def handle_AA_and_QQbar(func):
         def forward_map(item):
             if isinstance(item, Ideal_generic):
                 return Ideal([forward_map(g) for g in item.gens()])
+            elif isinstance(item, Polynomial):
+                return item.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
             elif isinstance(item, MPolynomial):
                 return item.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
             elif isinstance(item, list):
@@ -82,6 +87,8 @@ def handle_AA_and_QQbar(func):
         def reverse_map(item):
             if isinstance(item, Ideal_generic):
                 return Ideal([reverse_map(g) for g in item.gens()])
+            elif isinstance(item, Polynomial):
+                return item.map_coefficients(morphism)
             elif isinstance(item, MPolynomial):
                 return item.map_coefficients(morphism)
             elif isinstance(item, list):

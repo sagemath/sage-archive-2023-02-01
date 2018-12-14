@@ -1806,10 +1806,10 @@ class TransitiveGroup(PermutationGroup_unique):
         .. warning:: only transitive groups of "small" degree are
           available in GAP's database::
 
-            sage: TransitiveGroup(31,1)                # optional - database_gap
+            sage: TransitiveGroup(32,1)                # optional - database_gap
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
+            NotImplementedError: Only the transitive groups of degree at most 31 are available in GAP's database
 
         TESTS::
 
@@ -1838,7 +1838,7 @@ class TransitiveGroup(PermutationGroup_unique):
             PermutationGroup_generic.__init__(self, gap_group=gap_group)
         except RuntimeError:
             from sage.misc.misc import verbose
-            verbose("Warning: Computing with TransitiveGroups requires the optional database_gap package. Please install it.", level=0)
+            verbose("Error: TransitiveGroups requires a standard GAP package. Not having it installed is a packaging error.", level=0)
 
         self._d = d
         self._n = n
@@ -1863,9 +1863,6 @@ def TransitiveGroups(d=None):
     ``d`` up to isomorphisms. If ``d`` is not specified, it returns the set of all
     transitive groups up to isomorphisms.
 
-    Warning: TransitiveGroups requires the optional GAP database
-    package. Please install it with ``sage -i database_gap``.
-
     EXAMPLES::
 
         sage: TransitiveGroups(3)
@@ -1879,12 +1876,12 @@ def TransitiveGroups(d=None):
         Transitive Groups
 
     .. warning:: in practice, the database currently only contains
-      transitive groups up to degree 30::
+      transitive groups up to degree 31::
 
-        sage: TransitiveGroups(31).cardinality() # optional - database_gap
+        sage: TransitiveGroups(32).cardinality() # optional - database_gap
         Traceback (most recent call last):
         ...
-        NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
+        NotImplementedError: Only the transitive groups of degree at most 31 are available in GAP's database
 
     """
     if d is None:
@@ -2073,12 +2070,12 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
         .. warning::
 
             The database_gap contains all transitive groups
-            up to degree 30::
+            up to degree 31::
 
-                sage: TransitiveGroups(31).cardinality()                     # optional - database_gap
+                sage: TransitiveGroups(32).cardinality()                     # optional - database_gap
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
+                NotImplementedError: Only the transitive groups of degree at most 31 are available in GAP's database
 
         TESTS::
 
@@ -2100,7 +2097,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
                 from sage.misc.misc import verbose
                 verbose("Warning: TransitiveGroups requires the GAP database package. Please install it with ``sage -i database_gap``.", level=0)
             except TypeError:
-                raise NotImplementedError("Only the transitive groups of order less than 30 are available in GAP's database")
+                raise NotImplementedError("Only the transitive groups of degree at most 31 are available in GAP's database")
 
 class PrimitiveGroup(PermutationGroup_unique):
     """

@@ -5492,17 +5492,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         ::
 
-            sage: NumberField(x-1, 'a').galois_group(type="gap")   
+            sage: NumberField(x-1, 'a').galois_group(type="gap")
             Galois group Transitive group number 1 of degree 1 of the Number Field in a with defining polynomial x - 1
-            sage: NumberField(x^2+2, 'a').galois_group(type="gap") 
+            sage: NumberField(x^2+2, 'a').galois_group(type="gap")
             Galois group Transitive group number 1 of degree 2 of the Number Field in a with defining polynomial x^2 + 2
-            sage: NumberField(x^3-2, 'a').galois_group(type="gap") 
+            sage: NumberField(x^3-2, 'a').galois_group(type="gap")
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
         ::
 
             sage: x = polygen(QQ)
-            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(type='gap')   
+            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(type='gap')
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
             sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(algorithm='magma')   # optional - magma
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1

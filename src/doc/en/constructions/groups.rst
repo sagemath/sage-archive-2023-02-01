@@ -140,12 +140,12 @@ Or, here's another (more "pythonic") way to do this type of computation::
     sage: gamma = CG[2]
     sage: g = gamma.Representative()
     sage: CG; gamma; g
-    [ ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), () ), 
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (4,7) ), 
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (3,4,7) ), 
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (2,3)(4,7) ), 
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (2,3,4,7) ), 
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2)(3,4,7) ), 
+    [ ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), () ),
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (4,7) ),
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (3,4,7) ),
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (2,3)(4,7) ),
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (2,3,4,7) ),
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2)(3,4,7) ),
       ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3,4,7) ) ]
     ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (4,7) )
     (4,7)
@@ -233,7 +233,7 @@ this by typing ``sage -i database_gap`` in the shell.
     sage: G = PermutationGroup(['(1,2,3)(4,5)', '(3,4)'])
     sage: G.order()
     120
-    sage: G.group_id()     
+    sage: G.group_id()
     [120, 34]
 
 Another example of using the small groups database: ``group_id``
@@ -259,7 +259,7 @@ AUTHORS:
 Every group of order less than 32 is implemented in Sage as a permutation
 group. They can all be created easily. We will first show how to build direct
 products and semidirect products, then give the commands necessary to build
-all of these small groups. 
+all of these small groups.
 
 Let ``G1``, ``G2``, ..., ``Gn`` be permutation groups already initialized in
 Sage. The following command can be used to take their direct product (where,
@@ -555,76 +555,76 @@ Similarly for the dihedral group of order `2n`:
 ::
 
     sage: D = groups.presentation.Dihedral(n)
- 
-This table was modeled after the preceding table created by Kevin Halasz. 
+
+This table was modeled after the preceding table created by Kevin Halasz.
 
 
-===== =============================================== =============================================================================================== =========================== 
-Order Group Description                                Command(s)                                                                                     GAP ID 
-===== =============================================== =============================================================================================== =========================== 
-1     The Trivial Group                               ::                                                                                              [1,1] 
+===== =============================================== =============================================================================================== ===========================
+Order Group Description                                Command(s)                                                                                     GAP ID
+===== =============================================== =============================================================================================== ===========================
+1     The Trivial Group                               ::                                                                                              [1,1]
 
-                                                        sage: G = groups.presentation.Symmetric(1) 
+                                                        sage: G = groups.presentation.Symmetric(1)
 
-2     `C_2`                                           ::                                                                                              [2,1] 
+2     `C_2`                                           ::                                                                                              [2,1]
 
                                                         sage: G = groups.presentation.Symmetric(2)
 
-3     `C_3`                                           ::                                                                                              [3,1] 
+3     `C_3`                                           ::                                                                                              [3,1]
 
-                                                        sage: G = groups.presentation.Cyclic(3) 
+                                                        sage: G = groups.presentation.Cyclic(3)
 
-4     `C_4`                                                                                                                                           [4,1] 
+4     `C_4`                                                                                                                                           [4,1]
 
-4     `C_2 \times C_2`                                ::                                                                                              [4,2] 
+4     `C_2 \times C_2`                                ::                                                                                              [4,2]
 
-                                                        sage: G = groups.presentation.Klein() 
+                                                        sage: G = groups.presentation.Klein()
 
-5     `C_5`                                                                                                                                           [5,1] 
-6     `C_6`                                                                                                                                           [6,2] 
+5     `C_5`                                                                                                                                           [5,1]
+6     `C_6`                                                                                                                                           [6,2]
 
-6     `S_3` (Symmetric Group on 3 letters)            ::                                                                                              [6,1] 
+6     `S_3` (Symmetric Group on 3 letters)            ::                                                                                              [6,1]
 
-                                                        sage: G = groups.presentation.Symmetric(3) 
+                                                        sage: G = groups.presentation.Symmetric(3)
 
-7     `C_7`                                                                                                                                           [7,1] 
-8     `C_8`                                                                                                                                           [8,1] 
+7     `C_7`                                                                                                                                           [7,1]
+8     `C_8`                                                                                                                                           [8,1]
 
 8     `C_4 \times C_2`                                ::                                                                                              [8,2]
 
                                                         sage: G = groups.presentation.FGAbelian([4,2])
 
-8     `C_2\times C_2\times C_2`                       ::                                                                                              [8,5] 
+8     `C_2\times C_2\times C_2`                       ::                                                                                              [8,5]
 
                                                         sage: G = groups.presentation.FGAbelian([2,2,2])
 
-8     `D_4`                                           ::                                                                                              [8,3] 
+8     `D_4`                                           ::                                                                                              [8,3]
 
                                                         sage: G = groups.presentation.Dihedral(4)
- 
-8     The Quaternion Group (Q)                        ::                                                                                              [8,4] 
 
-                                                        sage: G = groups.presentation.Quaternion() 
+8     The Quaternion Group (Q)                        ::                                                                                              [8,4]
 
-9     `C_9`                                                                                                                                           [9,1] 
-9     `C_3 \times C_3`                                                                                                                                [9,2] 
-10    `C_{10}`                                                                                                                                        [10,2] 
-10    `D_5`                                                                                                                                           [10,1] 
-11    `C_{11}`                                                                                                                                        [11,1] 
-12    `C_{12}`                                                                                                                                        [12,2] 
-12    `C_6 \times C_2`                                                                                                                                [12,5] 
-12    `D_6`                                                                                                                                           [12,4] 
-12    `A_4` (Alternating Group on 4 letters)          ::                                                                                              [12,3] 
+                                                        sage: G = groups.presentation.Quaternion()
 
-                                                        sage: G = groups.presentation.Alternating(4) 
+9     `C_9`                                                                                                                                           [9,1]
+9     `C_3 \times C_3`                                                                                                                                [9,2]
+10    `C_{10}`                                                                                                                                        [10,2]
+10    `D_5`                                                                                                                                           [10,1]
+11    `C_{11}`                                                                                                                                        [11,1]
+12    `C_{12}`                                                                                                                                        [12,2]
+12    `C_6 \times C_2`                                                                                                                                [12,5]
+12    `D_6`                                                                                                                                           [12,4]
+12    `A_4` (Alternating Group on 4 letters)          ::                                                                                              [12,3]
 
-12    `Q_6` (DiCyclic group of order 12)              ::                                                                                              [12,1] 
-       
+                                                        sage: G = groups.presentation.Alternating(4)
+
+12    `Q_6` (DiCyclic group of order 12)              ::                                                                                              [12,1]
+
                                                         sage: G = groups.presentation.DiCyclic(3)
- 
-13    `C_{13}`                                                                                                                                        [13,1] 
-14    `C_{14}`                                                                                                                                        [14,2] 
-14    `D_{7}`                                                                                                                                         [14,1] 
-15    `C_{15}`                                                                                                                                        [15,1]  
+
+13    `C_{13}`                                                                                                                                        [13,1]
+14    `C_{14}`                                                                                                                                        [14,2]
+14    `D_{7}`                                                                                                                                         [14,1]
+15    `C_{15}`                                                                                                                                        [15,1]
 ===== =============================================== =============================================================================================== ===========================
 

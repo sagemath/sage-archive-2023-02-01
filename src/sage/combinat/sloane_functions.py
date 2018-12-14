@@ -351,7 +351,7 @@ class A000001(SloaneSequence):
             2
             sage: a.list(16)
             [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
-            sage: a(60) 
+            sage: a(60)
             13
 
         AUTHORS:

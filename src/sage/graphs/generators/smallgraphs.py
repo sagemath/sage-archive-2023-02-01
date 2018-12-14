@@ -3276,7 +3276,7 @@ def KrackhardtKiteGraph():
     other nodes in the graph (i.e.: Closeness Centrality).  Please execute the
     example for visualization.
 
-    EXAMPLES: 
+    EXAMPLES:
 
     Construct and show a Krackhardt kite graph ::
 
@@ -4146,7 +4146,7 @@ def SimsGewirtzGraph():
 
     This graph is obtained from the Higman Sims graph by considering the graph
     induced by the vertices at distance two from the vertices of an (any)
-    edge. It is the only strongly regular graph with parameters `v = 56`, 
+    edge. It is the only strongly regular graph with parameters `v = 56`,
     `k = 10`, `\lambda = 0`, `\mu = 2`
 
     For more information on the Sylvester graph, see

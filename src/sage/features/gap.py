@@ -77,7 +77,7 @@ class SmallGroupsLibrary(Feature):
         EXAMPLES::
 
             sage: from sage.features.gap import SmallGroupsLibrary
-            sage: SmallGroupsLibrary().is_present()  
+            sage: SmallGroupsLibrary().is_present()
             FeatureTestResult('Small Groups Library', True)
         """
         from sage.libs.gap.libgap import libgap
@@ -120,7 +120,7 @@ class PrimitiveGroupsLibrary(Feature):
         EXAMPLES::
 
             sage: from sage.features.gap import PrimitiveGroupsLibrary
-            sage: PrimitiveGroupsLibrary().is_present()  
+            sage: PrimitiveGroupsLibrary().is_present()
             FeatureTestResult('Primitive Groups Library', True)
         """
         from sage.libs.gap.libgap import libgap

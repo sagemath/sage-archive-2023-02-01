@@ -224,9 +224,8 @@ A similar syntax for matrix groups also works::
 The group id database
 =====================
 
-The function ``group_id`` requires that the Small Groups Library of
-E. A. O'Brien, B. Eick, and H. U. Besche be installed.  You can do
-this by typing ``sage -i database_gap`` in the shell.
+The function ``group_id`` uses the Small Groups Library of
+E. A. O'Brien, B. Eick, and H. U. Besche, which is a part of GAP.
 
 ::
 
@@ -243,11 +242,17 @@ Another example of using the small groups database: ``group_id``
 ::
 
     sage: gap_console()
-    GAP4, Version: 4.4.6 of 02-Sep-2005, x86_64-unknown-linux-gnu-gcc
+    ┌───────┐   GAP 4.10.0 of 01-Nov-2018
+    │  GAP  │   https://www.gap-system.org
+    └───────┘   Architecture: x86_64-pc-linux-gnu-default64
+    Configuration:  gmp 6.0.0, readline
+    Loading the library and packages ...
+    Packages:   GAPDoc 1.6.2, PrimGrp 3.3.2, SmallGrp 1.3, TransGrp 2.0.4
+    Try '??help' for help. See also '?copyright', '?cite' and '?authors'
     gap> G:=Group((4,6,5)(7,8,9),(1,7,2,4,6,9,5,3));
     Group([ (4,6,5)(7,8,9), (1,7,2,4,6,9,5,3) ])
     gap> StructureDescription(G);
-    "(((C3 x C3) : Q8) : C3) : C2"
+    "(C3 x C3) : GL(2,3)" 
 
 Construction instructions for every group of order less than 32
 ===============================================================

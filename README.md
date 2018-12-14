@@ -188,11 +188,7 @@ More Detailed Instructions to Build from Source
    * Optional: If you want to build the PDF version (requires LaTeX)
    of the documentation, run `make doc-pdf`.
 
-1. Optional: It is recommended that you install the optional GAP
-   database by typing `./sage -i database_gap`.
-
-   This will download the package and install it. While you're at it,
-   you might install other optional packages of interest to you: type
+1. Optional: You might install optional packages of interest to you: type
    `./sage --optional` to get a list.
 
 1. Optional: It is recommended that you have both LaTeX and the

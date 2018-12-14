@@ -176,10 +176,10 @@ a interface do GAP da seguinte forma:
     sage: n = G.order(); n
     120
 
-Para algumas funcionalidades do GAP, deve-se instalar dois pacotes
-Sage opcionais. Isso pode ser feito com o comando::
+Para algumas funcionalidades do GAP, deve-se instalar um pacote
+Sage opcional. Isso pode ser feito com o comando::
 
-    sage -i gap_packages database_gap
+    sage -i gap_packages
 
 
 Singular

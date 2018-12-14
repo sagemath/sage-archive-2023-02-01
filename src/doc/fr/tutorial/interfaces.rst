@@ -178,10 +178,10 @@ l'interface GAP comme suit :
     120
 
 Pour utiliser certaines fonctionnalités de GAP,
-vous devez installer deux paquets Sage optionnels.
+vous devez installer un paquet Sage optionnel.
 Cela peut être fait avec la commande::
 
-    sage -i gap_packages database_gap
+    sage -i gap_packages
 
 
 Singular

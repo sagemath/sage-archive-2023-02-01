@@ -147,9 +147,7 @@ GAP
 Sage comes with GAP for computational discrete mathematics,
 especially group theory.
 
-Here's an example of GAP's ``IdGroup`` function, which uses the
-optional small groups database that has to be installed separately,
-as explained below.
+Here's an example of GAP's ``IdGroup`` function.
 
 ::
 
@@ -176,10 +174,10 @@ GAP interface as follows:
     sage: n = G.order(); n
     120
 
-For some GAP functionality, you should install two optional
+For some GAP functionality, you should install an optional
 Sage packages. This can be done with the command::
 
-    sage -i gap_packages database_gap
+    sage -i gap_packages
 
 
 Singular

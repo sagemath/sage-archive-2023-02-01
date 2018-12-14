@@ -2060,8 +2060,6 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.group_id()
             [12, 4]
         """
-        from sage.features.gap import SmallGroupsLibrary
-        SmallGroupsLibrary().require()
 
         return [Integer(n) for n in self._gap_().IdGroup()]
 
@@ -2107,9 +2105,6 @@ class PermutationGroup_generic(FiniteGroup):
         """
         if not self.is_primitive():
             raise ValueError('Group is not primitive')
-
-        from sage.features.gap import PrimitiveGroupsLibrary
-        PrimitiveGroupsLibrary().require()
 
         return Integer(self._gap_().PrimitiveIdentification())
 

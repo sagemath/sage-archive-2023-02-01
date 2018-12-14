@@ -1419,9 +1419,6 @@ def structure_description(G, latex=False):
         sage: groups.matrix.GL(4,2).structure_description()
         'A8'
     """
-    from sage.features.gap import SmallGroupsLibrary
-    SmallGroupsLibrary().require()
-
     import re
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2)) // 2)

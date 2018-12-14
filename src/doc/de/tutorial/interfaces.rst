@@ -178,10 +178,10 @@ die GAP-Schnittstelle aufzurufen:
     sage: n = G.order(); n
     120
 
-Nach Installation zweier optionaler Sage-Pakete mit folgendem Befehl
+Nach Installation eine optionale Sage-Pakete mit folgendem Befehl
 sind weitere GAP-Funktionen verfügbar::
 
-    sage -i gap_packages database_gap
+    sage -i gap_packages
 
 
 Singular

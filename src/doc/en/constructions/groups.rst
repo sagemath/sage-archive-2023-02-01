@@ -233,7 +233,7 @@ this by typing ``sage -i database_gap`` in the shell.
     sage: G = PermutationGroup(['(1,2,3)(4,5)', '(3,4)'])
     sage: G.order()
     120
-    sage: G.group_id()      # optional - database_gap
+    sage: G.group_id()     
     [120, 34]
 
 Another example of using the small groups database: ``group_id``

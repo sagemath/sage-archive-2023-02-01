@@ -9,9 +9,7 @@ TESTS::
       Status   Package   GAP Output
     +--------+---------+------------+
 
-These are packages in the ``database_gap`` package::
-
-    sage: test_packages(['atlasrep', 'tomlib'])    # optional - database_gap gap_packages
+    sage: test_packages(['atlasrep', 'tomlib'])
       Status   Package    GAP Output
     +--------+----------+------------+
                atlasrep   true

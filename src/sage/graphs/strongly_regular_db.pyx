@@ -2468,8 +2468,8 @@ def SRG_560_208_72_80():
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_560_208_72_80
-        sage: g = SRG_560_208_72_80()                # optional - database_gap # not tested (~2s)
-        sage: g.is_strongly_regular(parameters=True) # optional - database_gap # not tested (~2s)
+        sage: g = SRG_560_208_72_80()                # not tested (~2s)
+        sage: g.is_strongly_regular(parameters=True) # not tested (~2s)
         (560, 208, 72, 80)
     """
     from sage.libs.gap.libgap import libgap

@@ -614,9 +614,9 @@ def SuzukiGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.SuzukiGraph(); g            # optional database_gap internet # not tested
+        sage: g = graphs.SuzukiGraph(); g            # optional internet # not tested
         Suzuki graph: Graph on 1782 vertices
-        sage: g.is_strongly_regular(parameters=True) # optional database_gap internet # not tested
+        sage: g.is_strongly_regular(parameters=True) # optional internet # not tested
         (1782, 416, 100, 96)
     """
     from sage.groups.perm_gps.permgroup_named import SuzukiSporadicGroup

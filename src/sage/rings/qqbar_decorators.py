@@ -39,6 +39,26 @@ def handle_AA_and_QQbar(func):
     @sage_wraps(func)
     def wrapper(*args, **kwds):
 
+        """
+        TESTS::
+
+            sage: from sage.rings.qqbar_decorators import handle_AA_and_QQbar
+            sage: @handle_AA_and_QQbar
+            ....: def return_base_ring(x):
+            ....:     return x.base_ring()
+
+            sage: P.<x> = QQbar[]
+            sage: return_base_ring(x)
+            Rational Field
+
+            sage: P.<y,z> = QQbar[]
+            sage: return_base_ring(y)
+            Rational Field
+
+            sage: return_base_ring(ideal(y,z))
+            Rational Field
+        """
+
         from sage.misc.flatten import flatten
         from sage.rings.polynomial.polynomial_element import Polynomial
         from sage.rings.polynomial.multi_polynomial import MPolynomial

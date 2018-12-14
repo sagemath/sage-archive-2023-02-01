@@ -10283,9 +10283,9 @@ cdef class Expression(CommutativeRingElement):
 
           - 'full' (apply repeatedly, if necessary)
 
-          - 'noexpand' (convert to commmon denominator and add)
+          - 'noexpand' (convert to common denominator and add)
 
-        - ``map`` - (default: False) if True, the result is an
+        - ``map`` - (default: ``False``) if ``True``, the result is an
           expression whose leading operator is the same as that of the
           expression ``self`` but whose subparts are the results of
           applying simplification rules to the corresponding subparts

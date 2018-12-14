@@ -97,7 +97,7 @@ def _class_for_LatticePolytope(dim):
 
     INPUT:
 
-    - ``dim`` -- integer. The ambient space dimenson.
+    - ``dim`` -- integer. The ambient space dimension.
 
     OUTPUT:
 

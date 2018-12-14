@@ -196,7 +196,7 @@ ELIF PY_VERSION_HEX>=0x03060000:
         ctypedef struct PyDictKeysObject
     ####
     #definitions replicated from CPython's Objects/dict-common.h
-    #(this file is not exported fron CPython, so we need to be
+    #(this file is not exported from CPython, so we need to be
     #careful the definitions are in step with what happens there.
     ctypedef union IndexBlock:
         int8_t as_1[8]

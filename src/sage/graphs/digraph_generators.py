@@ -1414,7 +1414,7 @@ class DiGraphGenerators():
         """
         G = DiGraph(n, name="Random Semi-Complete digraph")
 
-        # For each pair u,v we choose a randon number ``coin`` in [1,3].
+        # For each pair u,v we choose a random number ``coin`` in [1,3].
         # We select edge `(u,v)` if `coin==1` or `coin==2`.
         # We select edge `(v,u)` if `coin==2` or `coin==3`.
         import itertools

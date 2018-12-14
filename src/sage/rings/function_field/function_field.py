@@ -645,11 +645,11 @@ class FunctionField(Field):
         d = self.derivation()
         from itertools import product
         # Non-zero
-        assert not d.is_zero()
+        tester.assertFalse(d.is_zero())
         # Well-defined
         if hasattr(self, "polynomial"):
             f = self.polynomial()
-            assert d(f) == 0
+            tester.assertEqual(0, d(f))
         # Leibniz's law
         for x,y in tester.some_elements(product(S, S)):
             tester.assertTrue(d(x*y) == x*d(y) + d(x)*y)

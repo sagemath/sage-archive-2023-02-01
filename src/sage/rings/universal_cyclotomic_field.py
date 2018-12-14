@@ -176,6 +176,7 @@ from sage.rings.rational import Rational
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
+from sage.rings.qqbar import AA, QQbar
 
 libgap = GapElement_Integer = GapElement_Rational = GapElement_Cyclotomic = None
 gap = gap3 = None
@@ -234,7 +235,6 @@ class UCFtoQQbar(Morphism):
               From: Universal Cyclotomic Field
               To:   Algebraic Field
         """
-        from sage.rings.qqbar import QQbar
         Morphism.__init__(self, UCF, QQbar)
 
     def _call_(self, x):
@@ -603,7 +603,6 @@ class UniversalCyclotomicFieldElement(FieldElement):
             ValueError: Cannot coerce algebraic number with non-zero imaginary
             part to algebraic real
         """
-        from sage.rings.qqbar import QQbar
         return R(QQbar(self))
 
     def __float__(self):
@@ -938,6 +937,20 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     inverse = __invert__
 
+    def sqrt(self):
+        """
+        Return a square root of ``self`` as an algebraic number.
+
+        EXAMPLES::
+
+            sage: f = E(33)
+            sage: f.sqrt()
+            0.9954719225730846? + 0.0950560433041827?*I
+            sage: f.sqrt()**2 == f
+            True
+        """
+        return QQbar(self).sqrt()
+
     def conjugate(self):
         r"""
         Return the complex conjugate.
@@ -999,6 +1012,26 @@ class UniversalCyclotomicFieldElement(FieldElement):
             raise ValueError("n = {} must be a multiple of the conductor ({})".format(n, k))
         return [P.element_class(P, obj.GaloisCyc(i))
                 for i in n.coprime_integers(n)]
+
+    def abs(self):
+        """
+        Return the absolute value of ``self`` as an algebraic real number.
+
+        EXAMPLES::
+
+            sage: f = 5/2*E(3)+E(5)/7
+            sage: f.abs()
+            2.597760303873084?
+
+        TESTS::
+
+            sage: [E(n).abs() for n in range(1, 11)]
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: UniversalCyclotomicField().zero().abs()
+            0
+        """
+        square = self * self.conjugate()
+        return AA(square).sqrt()
 
     def norm_of_galois_extension(self):
         r"""
@@ -1352,7 +1385,6 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UniversalCyclotomicField().algebraic_closure()
             Algebraic Field
         """
-        from sage.rings.qqbar import QQbar
         return QQbar
 
 

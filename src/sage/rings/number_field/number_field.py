@@ -2398,7 +2398,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         TESTS:
 
-        See  (see :trac:`26239`)::
+        See :trac:`26239`::
 
             sage: k.<a> = NumberField(x)
             sage: k.is_isomorphic(k)

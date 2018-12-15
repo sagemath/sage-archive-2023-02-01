@@ -3079,7 +3079,7 @@ class ComplexReflectionGroup(PermutationGroup_unique):
 
     .. NOTE::
 
-        The convenion for the index set is for `G(m, 1, n)` to
+        The convention for the index set is for `G(m, 1, n)` to
         have the complex reflection of order `m` correspond to
         `s_n`; i.e., `s_n^m = 1` and `s_i^2 = 1` for all `i < m`.
 
@@ -3335,8 +3335,8 @@ class ComplexReflectionGroup(PermutationGroup_unique):
         and `\ell` is the :meth:`rank`.
 
         If `m = 1`, then we are in the special case of the symmetric group
-        and the codegrees are `(n-2, n-3, \ldots 1, 0)`. Otherwise the degrees
-        are `((n-1)m, (n-2)m, \ldots, m, 0)`.
+        and the codegrees are `(n-2, n-3, \ldots 1, 0)`. Otherwise the
+        codegrees are `((n-1)m, (n-2)m, \ldots, m, 0)`.
 
         EXAMPLES::
 

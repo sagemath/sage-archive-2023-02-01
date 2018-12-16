@@ -54,7 +54,7 @@ AUTHORS:
 - Steven Sivek (2005-12-22): first version
 
 - Steven Sivek (2006-02-07): updated to correctly handle the new
-  search form on the Sloane website, and it's now also smarter about
+  search form on the Sloane website, and it is now also smarter about
   loading the local database in that it does not convert a sequence
   from string form to a list of integers until absolutely necessary.
   This seems to cut the loading time roughly in half.
@@ -295,7 +295,7 @@ class SloaneEncyclopediaClass:
         except KeyError:
             # Some sequence in the names file is not in the database
             raise KeyError("Sloane OEIS sequence and name files do not match.  Try reinstalling, e.g. SloaneEncyclopedia.install(overwrite=True).")
-        except IOError as msg:
+        except IOError:
             # The names database is not installed
             self.__loaded_names__ = False
 

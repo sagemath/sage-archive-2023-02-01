@@ -62,32 +62,25 @@ AUTHORS:
 ##############################################################################
 from __future__ import print_function
 
-from sage.groups.group import Group
 from sage.rings.all import ZZ
 from sage.rings.all import QQbar
-from sage.rings.integer import is_Integer
-from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
 from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
 from sage.matrix.all import matrix
-from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.power_series_ring import PowerSeriesRing
-from sage.arith.all import gcd
 from sage.rings.fraction_field import FractionField
 from sage.misc.functional import cyclotomic_polynomial
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.combinat.integer_vector import IntegerVectors
 
 from sage.groups.matrix_gps.matrix_group import (
-    is_MatrixGroup, MatrixGroup_generic, MatrixGroup_gap )
-from sage.groups.matrix_gps.group_element import (
-    is_MatrixGroupElement, MatrixGroupElement_generic, MatrixGroupElement_gap)
+    MatrixGroup_generic, MatrixGroup_gap )
+from sage.groups.matrix_gps.group_element import is_MatrixGroupElement
 
 
 def normalize_square_matrices(matrices):
@@ -664,7 +657,6 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         n = self.degree()
         MS = MatrixSpace(F,n,n)
         mats = [] # initializing list of mats by which the gens act on self
-        W = self.matrix_space().row_space()
         for g in gens:
             p = MS(g.matrix())
             m = p.rows()
@@ -772,7 +764,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         else:
             VarStr = 'x'
         VarNames='('+','.join((VarStr+str(i+1) for i in range(n)))+')'
-        R=singular.ring(FieldStr,VarNames,'dp')
+        R=singular.ring(FieldStr,VarNames,'dp') # this does have a side-effect
         if hasattr(F,'polynomial') and F.gen()!=1: # we have to define minpoly
             singular.eval('minpoly = '+str(F.polynomial()).replace('x',str(F.gen())))
         A = [singular.matrix(n,n,str((x.matrix()).list())) for x in gens]
@@ -780,7 +772,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         PR = PolynomialRing(F,n,[VarStr+str(i) for i in range(1,n+1)])
 
         if q == 0 or (q > 0 and self.cardinality()%q != 0):
-            from sage.all import Integer, Matrix
+            from sage.all import Matrix
             try:
                 elements = [ g.matrix() for g in self.list() ]
             except (TypeError,ValueError):
@@ -797,7 +789,6 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                         for t in D[row].items():
                             singular.eval('%s[%d,%d]=%s[%d,%d]+(%s)*var(%d)'
                                           %(ReyName,i,row+1,ReyName,i,row+1, repr(t[1]),t[0]+1))
-                foobar = singular(ReyName)
                 IRName = 't'+singular._next_var_name()
                 singular.eval('matrix %s = invariant_algebra_reynolds(%s)'%(IRName,ReyName))
             else:

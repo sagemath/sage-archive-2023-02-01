@@ -18,7 +18,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -30,9 +30,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six import iteritems
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.interfaces.all import magma
 from sage.rings.all import (Integer,
@@ -47,7 +46,7 @@ from sage.misc.all import cached_function
 @cached_function
 def hilbert_class_polynomial(D, algorithm=None):
     r"""
-    Returns the Hilbert class polynomial for discriminant `D`.
+    Return the Hilbert class polynomial for discriminant `D`.
 
     INPUT:
 

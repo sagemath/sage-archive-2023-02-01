@@ -27,12 +27,13 @@ from cysignals.memory cimport sig_malloc
 from cysignals.pysignals import changesignal
 from cysignals.signals cimport sig_on, sig_off, sig_error
 
+import sage.env
+
 from .gap_includes cimport *
 from .element cimport *
 from sage.cpython.string import FS_ENCODING
 from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.interfaces.gap_workspace import prepare_workspace_dir
-from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 
 
 ############################################################################
@@ -182,10 +183,14 @@ def gap_root():
         sage: gap_root()   # random output
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
     """
-    import os.path
-    if os.path.exists(GAP_ROOT_DIR):
-        return GAP_ROOT_DIR
-    print('The gap-4.5.5.spkg (or later) seems to be not installed!')
+    if os.path.exists(sage.env.GAP_ROOT_DIR):
+        return sage.env.GAP_ROOT_DIR
+
+    # Attempt to figure out the appropriate GAP_ROOT by reading the
+    # local/bin/gap shell script; this is an ugly hack that exists for
+    # historical reasons; the best approach to setting where Sage looks for
+    # the appropriate GAP_ROOT is to set the GAP_ROOT_DIR variable
+    SAGE_LOCAL = sage.env.SAGE_LOCAL
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_ROOT'), gap_sh)[0]
     gapdir = gapdir.split('"')[1]

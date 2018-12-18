@@ -3451,7 +3451,7 @@ class CrystalOfTableaux_E7(CrystalOfTableaux):
             Only implemented for single rows (i.e., highest weight
             `s\Lambda_7`).
 
-        EXAMPELS::
+        EXAMPLES::
 
             sage: from sage.combinat.crystals.kirillov_reshetikhin import CrystalOfTableaux_E7
             sage: T = CrystalOfTableaux_E7(CartanType(['E',7]), shapes=(Partition([5]),))

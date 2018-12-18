@@ -91,7 +91,7 @@ def test_packages(packages, only_failures=False):
     """
     rows = [['Status', 'Package', 'GAP Output']]
     for pkg in packages:
-        output = libgap.eval('LoadPackage("{0}")'.format(pkg))
+        output = libgap.LoadPackage(pkg)
         ok = bool(output)
         status = '' if ok else 'Failure'
         if ok and only_failures:

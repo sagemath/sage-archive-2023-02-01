@@ -2525,6 +2525,21 @@ cdef class GapElement_List(GapElement):
         IndexError: index out of range.
     """
 
+    def __bool__(self):
+        r"""
+        Return True if the list is non-empty, as with Python ``list``s.
+
+        EXAMPLES::
+
+            sage: lst = libgap.eval('[1,,,4]')
+            sage: bool(lst)
+            True
+            sage: lst = libgap.eval('[]')
+            sage: bool(lst)
+            False
+        """
+        return bool(len(self))
+
     def __len__(self):
         r"""
         Return the length of the list.

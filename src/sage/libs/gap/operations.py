@@ -11,6 +11,7 @@ lists all GAP operations for which ``Operation(x, ...)`` is defined.
 
 import re
 import string
+
 from sage.structure.sage_object import SageObject
 from sage.libs.gap.libgap import libgap
 
@@ -97,10 +98,10 @@ class OperationInspector(SageObject):
             True
         """
         def mfi(o):
-            f = GET_OPER_FLAGS(o)
-            return (len(f)>0)    and \
-                   (len(f[0])>0) and \
-                   IS_SUBSET_FLAGS(self.flags, f[0][0])
+            filts = GET_OPER_FLAGS(o)
+            return any(all(IS_SUBSET_FLAGS(self.flags, fl) for fl in fls)
+                       for fls in filts)
+
         return filter(mfi, OPERATIONS)
 
     def op_names(self):

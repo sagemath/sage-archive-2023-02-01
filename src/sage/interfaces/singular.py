@@ -338,7 +338,6 @@ from sage.structure.element import RingElement
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose
-from sage.misc.superseded import deprecation
 from sage.docs.instancedoc import instancedoc
 
 from six import reraise as raise_

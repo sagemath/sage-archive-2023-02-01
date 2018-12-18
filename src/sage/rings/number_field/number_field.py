@@ -6612,7 +6612,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             self._S_unit_group_no_proof_cache[S] = U
         return U
 
-    def S_unit_solutions(self, S=[], prec=106, include_exponents=False, include_bound=False, proof=None):
+    def S_unit_solutions(self, S=[], prec=106, include_exponents=False, include_bound=False, verbose=None):
         """
         Return all solutions to the S-unit equation ``x + y = 1`` over K.
 
@@ -6622,7 +6622,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         - ``prec`` -- precision used for computations in real, complex, and p-adic fields (default: 106)
         - ``include_exponents`` -- whether to include the exponent vectors in the returned value (default: True).
         - ``include_bound`` -- whether to return the final computed bound (default: False)
-        - ``proof`` -- whether to print information during the sieving step (default: False)
+        - ``verbose`` -- whether to print information during the sieving step (default: False)
 
         OUTPUT:
 

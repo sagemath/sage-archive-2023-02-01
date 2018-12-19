@@ -1129,7 +1129,16 @@ class Gap(Gap_generic):
         """
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache, server is None)
-        cmd += " -b -p -T -E"
+        # -b: suppress banner
+        # -p: enable "package output mode"; this confusingly named option
+        #     causes GAP to output special control characters that are normally
+        #     intended for communication with a window manager (i.e. for xgap)
+        #     but that we also use to control GAP with pexepect
+        # -T: disable interactive break loop when encountering errors
+        # -E: disable readline support
+        # -A: disable autoloading of default packages, so that we can start
+        #     a fairly minimal GAP
+        cmd += " -b -p -T -E -A"
         if max_workspace_size is None:
             max_workspace_size = _get_gap_memory_pool_size_MB()
         cmd += ' -o ' + str(max_workspace_size)

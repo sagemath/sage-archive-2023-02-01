@@ -41,6 +41,27 @@ sdh_install doc gen grp lib src tst sysinfo.gap "$GAP_ROOT"
 # Install only the minimal packages GAP needs to run
 sdh_install pkg/GAPDoc-* pkg/primgrp-* pkg/SmallGrp-* pkg/transgrp "$GAP_ROOT"/pkg
 
+# Install additional packages that are not strictly required, but that are
+# typically "expected" to be loaded: These are the default packages that are
+# autoloaded at GAP startup (via the PackagesToLoad UserPreference) with an
+# out-of-the-box GAP installation; see
+# https://trac.sagemath.org/ticket/22626#comment:393 for discussion on this
+sdh_install \
+    pkg/autpgrp-* \
+    pkg/alnuth-* \
+    pkg/crisp-* \
+    pkg/ctbllib \
+    pkg/FactInt-* \
+    pkg/fga \
+    pkg/irredsol-* \
+    pkg/laguna-* \
+    pkg/polenta-* \
+    pkg/polycyclic-* \
+    pkg/resclasses-* \
+    pkg/sophus-* \
+    pkg/tomlib-* \
+    "$GAP_ROOT"/pkg
+
 # Install the GAP startup script; ensure it is executable
 sdh_install -T ../gap "$SAGE_BIN/gap"
 chmod +x "$SAGE_DESTDIR$SAGE_BIN/gap"

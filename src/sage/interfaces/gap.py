@@ -1136,9 +1136,7 @@ class Gap(Gap_generic):
         #     but that we also use to control GAP with pexepect
         # -T: disable interactive break loop when encountering errors
         # -E: disable readline support
-        # -A: disable autoloading of default packages, so that we can start
-        #     a fairly minimal GAP
-        cmd += " -b -p -T -E -A"
+        cmd += " -b -p -T -E"
         if max_workspace_size is None:
             max_workspace_size = _get_gap_memory_pool_size_MB()
         cmd += ' -o ' + str(max_workspace_size)

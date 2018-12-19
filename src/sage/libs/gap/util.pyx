@@ -281,10 +281,9 @@ cdef initialize():
 
     argv[9] = "-q"    # no prompt!
     argv[10] = "-E"   # don't use readline as this will interfere with Python
-    argv[11] = "-A"   # disable autoloading of default packages
-    argv[12] = "--nointeract"  # Implies -T
+    argv[11] = "--nointeract"  # Implies -T
 
-    cdef int argc = 13   # argv[argc] must be NULL
+    cdef int argc = 12   # argv[argc] must be NULL
 
     from .saved_workspace import workspace
     workspace, workspace_is_up_to_date = workspace()

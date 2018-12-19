@@ -32,12 +32,17 @@ sdh_install gen/config.h "$SAGE_LOCAL/include/gap"
 # through our wrapper script that sets the appropriate GAP_ROOT
 SAGE_BIN="$SAGE_LOCAL/bin"
 mkdir -p "$SAGE_DESTDIR$SAGE_BIN" || sdh_die "Failed to create the directory $SAGE_BIN"
+
 ./libtool --mode=install install gap "$SAGE_DESTDIR$SAGE_BIN/gap-bin" || \
     sdh_die "Failed to install gap-bin to $SAGE_BIN"
 
+./libtool --mode=install install gac "$SAGE_DESTDIR$SAGE_BIN/gac" || \
+    sdh_die "Failed to install gac to $SAGE_BIN"
+
 # Now copy additional files GAP needs to run (and a few optional bits) into
 # GAP_ROOT; we don't need everything from the source tree
-sdh_install doc gen grp lib src tst sysinfo.gap "$GAP_ROOT"
+sdh_install bin doc gen grp lib src tst sysinfo.gap "$GAP_ROOT"
+
 # Install only the minimal packages GAP needs to run
 sdh_install pkg/GAPDoc-* pkg/primgrp-* pkg/SmallGrp-* pkg/transgrp "$GAP_ROOT"/pkg
 
@@ -65,6 +70,18 @@ sdh_install \
 # Install the GAP startup script; ensure it is executable
 sdh_install -T ../gap "$SAGE_BIN/gap"
 chmod +x "$SAGE_DESTDIR$SAGE_BIN/gap"
+
+# Create symlinks under $GAP_ROOT for these executables, as they are expected
+# (especially when building kernel packages) to exist
+ln -sf "$SAGE_BIN/gap-bin" "$SAGE_DESTDIR$GAP_ROOT/gap"
+ln -sf "$SAGE_BIN/gac" "$SAGE_DESTDIR$GAP_ROOT/gac"
+
+# Fix the $GAP_ROOT/bin/<arch>/src symlink to be relative (otherwise it links
+# to the actual path of the sources GAP was compiled from)
+for srclink in "$SAGE_DESTDIR$GAP_ROOT"/bin/*/src; do
+    rm -f "$srclink"
+    ln -s "../../src" "$srclink"
+done
 
 # TODO: This seems unnecessary--we are already installing all of doc/ to
 # GAP_ROOT, which is necessary for some functionality in GAP to work.  Do

@@ -815,6 +815,15 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: F
             (a + (-1.189207115002722?*I)*b) * (a + 1.189207115002722?*I*b)
 
+        A test that led to :trac:`26898`::
+
+            sage: R.<x> = QQ[]
+            sage: minpoly = 4*x^7 + 27
+            sage: NF.<b> = NumberField(minpoly)
+            sage: for hom in NF.embeddings(QQbar):
+            ....:    factor_f = (x - b).map_coefficients(hom)
+            ....:    assert(minpoly % factor_f == 0)
+
         """
         from sage.structure.factorization import Factorization
         from sage.interfaces.singular import singular

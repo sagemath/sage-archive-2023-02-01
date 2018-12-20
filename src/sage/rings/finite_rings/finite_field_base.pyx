@@ -1811,9 +1811,10 @@ register_unpickle_override(
     'sage.rings.ring', 'unpickle_FiniteField_prm', unpickle_FiniteField_prm)
 
 
-def is_FiniteField(x):
-    """
-    Return ``True`` if ``x`` is of type finite field, and ``False`` otherwise.
+def is_FiniteField(R):
+    r"""
+    Return whether the implementation of ``R`` has the interface provided by
+    the standard finite field implementation.
 
     EXAMPLES::
 
@@ -1823,10 +1824,9 @@ def is_FiniteField(x):
         sage: is_FiniteField(GF(next_prime(10^10)))
         True
 
-    Note that the integers modulo n are not of type finite field,
-    so this function returns ``False``::
+    Note that the integers modulo n are not backed by the finite field type::
 
         sage: is_FiniteField(Integers(7))
         False
     """
-    return isinstance(x, FiniteField)
+    return isinstance(R, FiniteField)

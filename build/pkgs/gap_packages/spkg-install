@@ -1,16 +1,6 @@
 GAP_DIR="$SAGE_LOCAL/share/gap"
 PKG_DIR="$GAP_DIR/pkg"
 
-# Some GAP packages have weird permissions which can prevent us from
-# overwriting them
-chmod -R u+rwX "$PKG_DIR" || mkdir -p "$PKG_DIR"
-
-cp SPKG.txt "$PKG_DIR"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying SPKG.txt"
-    exit 1
-fi
-
 cd src/pkg/
 
 # directly install pure GAP packages

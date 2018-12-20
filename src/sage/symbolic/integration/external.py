@@ -119,28 +119,28 @@ def request_wolfram_alpha(input, verbose=False):
 
         sage: from sage.symbolic.integration.external import request_wolfram_alpha
         sage: page_data = request_wolfram_alpha('integrate Sin[x]') # optional internet
-        sage: page_data.keys()                                      # optional internet
-        [u'queryresult']
-        sage: page_data['queryresult'].keys()                       # optional internet
-        [u'sponsorCategories',
-         u'parsetimedout',
-         u'success',
-         u'timedoutpods',
-         u'parsetiming',
-         u'id',
-         u'timedout',
-         u'related',
-         u'numpods',
-         u'host',
-         u'version',
-         u'encryptedParsedExpression',
-         u'encryptedEvaluatedExpression',
-         u'error',
-         u'timing',
-         u'datatypes',
-         u'server',
-         u'pods',
-         u'recalculate']
+        sage: sorted(page_data.keys())                              # optional internet
+        ['queryresult']
+        sage: sorted(page_data['queryresult'].keys())               # optional internet
+        ['datatypes',
+         'encryptedEvaluatedExpression',
+         'encryptedParsedExpression',
+         'error',
+         'host',
+         'id',
+         'numpods',
+         'parsetimedout',
+         'parsetiming',
+         'pods',
+         'recalculate',
+         'related',
+         'server',
+         'sponsorCategories',
+         'success',
+         'timedout',
+         'timedoutpods',
+         'timing',
+         'version']
 
     """
     # import compatible with py2 and py3
@@ -302,7 +302,7 @@ def symbolic_expression_from_mathematica_string(mexpr):
     expr = expr.replace('[', '(').replace(']', ')')
     expr = expr.replace('{', '[').replace('}', ']')
     lsymbols = symbol_table['mathematica'].copy()
-    autotrans = [unicode.lower,      # Try it in lower case
+    autotrans = [lambda x:x.lower(),      # Try it in lower case
                 un_camel,      # Convert `CamelCase` to `camel_case`
                 lambda x: x     # Try the original name
                 ]

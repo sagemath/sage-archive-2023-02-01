@@ -13,14 +13,36 @@ fi
 
 cd src/pkg/
 
+# directly install pure GAP packages
+#
 #    happrime - no longer distributed, partly merged in Hap,
 #    cf. https://www.gap-system.org/Packages/packages.html#deppkg
 #    (GAP 4.8.6 still had it, but this is gone in 4.10)
 
-sdh_install aclib-* corelg crime-* cryst crystcat design gbnp \
-    Hap1* HAPcryst hecke-* liealgdb-* liepring-* liering \
-    loops MapClass-* polymaking qpa-version-* quagroup repsn sla \
-    sonata-* Toric-* polycyclic-* "$PKG_DIR"
+sdh_install \
+    aclib-* \
+    corelg \
+    crime-* \
+    cryst \
+    crystcat \
+    design \
+    gbnp \
+    Hap* \
+    HAPcryst \
+    hecke-* \
+    liealgdb-* \
+    liepring-* \
+    liering \
+    loops \
+    MapClass-* \
+    polymaking \
+    qpa-version-* \
+    quagroup \
+    repsn \
+    sla \
+    sonata-* \
+    Toric-* \
+    "$PKG_DIR"
 
 for p in cohomolo-1.6.7 grape-4.8.1 guava-3.14 nq-2.5.3
 do

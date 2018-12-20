@@ -16,7 +16,7 @@ else
 fi
 
 sdh_configure --with-gmp="$SAGE_LOCAL"
-sdh_make
+sdh_make -j1
 
 # GAP's "make install" does not do everything correctly; in particular it
 # mistakenly installs libtool's wrapper scripts rather than the actual gap

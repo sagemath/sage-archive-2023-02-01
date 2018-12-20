@@ -118,10 +118,10 @@ def request_wolfram_alpha(input, verbose=False):
     EXAMPLES::
 
         sage: from sage.symbolic.integration.external import request_wolfram_alpha
-        sage: page_data = request_wolfram_alpha('integrate Sin[x]') # optional internet
-        sage: sorted(page_data.keys())                              # optional internet
+        sage: page_data = request_wolfram_alpha('integrate Sin[x]')      # optional internet
+        sage: [str(a) for a in sorted(page_data.keys())]                 # optional internet
         ['queryresult']
-        sage: sorted(page_data['queryresult'].keys())               # optional internet
+        sage: [str(a) for a in sorted(page_data['queryresult'].keys())]  # optional internet
         ['datatypes',
          'encryptedEvaluatedExpression',
          'encryptedParsedExpression',

@@ -100,5 +100,3 @@ if [ $? -ne 0 ]; then
 fi
 
 
-# Some GAP packages have weird permissions
-chmod -R u+rwX "$PKG_DIR"

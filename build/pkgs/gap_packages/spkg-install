@@ -11,6 +11,7 @@ cd src/pkg/
 
 sdh_install \
     aclib-* \
+    AutoDoc-* \
     corelg \
     crime-* \
     cryst \
@@ -28,10 +29,12 @@ sdh_install \
     polymaking \
     qpa-version-* \
     quagroup \
+    radiroot-* \
     repsn \
     sla \
     sonata-* \
     Toric-* \
+    utils-* \
     "$PKG_DIR"
 
 for p in cohomolo-1.6.7 grape-4.8.1 guava-3.14 nq-2.5.3

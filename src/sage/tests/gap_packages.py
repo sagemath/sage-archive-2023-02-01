@@ -90,7 +90,9 @@ def test_packages(packages, only_failures=False):
                    toric        true
     """
     rows = [['Status', 'Package', 'GAP Output']]
-    for pkg in packages:
+    for pkgdir in packages:
+        # to allow weird suffixes e.g. 'qpa-version'
+        pkg = pkgdir.split('-')[0]
         output = libgap.LoadPackage(pkg)
         ok = bool(output)
         status = '' if ok else 'Failure'

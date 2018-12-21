@@ -27,7 +27,7 @@ sdh_install \
     loops \
     MapClass-* \
     polymaking \
-    qpa-version-* \
+    qpa-* \
     quagroup \
     radiroot-* \
     repsn \

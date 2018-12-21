@@ -224,6 +224,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, RingElement, Vector
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
+from sage.misc.randstate cimport current_randstate
 from sage.misc.superseded import deprecated_function_alias, deprecation
 
 
@@ -547,6 +548,28 @@ class Gap(Parent):
         """
         from sage.libs.gap.context_managers import GlobalVariableContext
         return GlobalVariableContext(variable, value)
+
+    def set_seed(self, seed=None):
+        """
+        Reseed the standard GAP pseudo-random sources with the given seed.
+
+        Uses a random seed given by ``current_randstate().ZZ_seed()`` if
+        ``seed=None``.  Otherwise the seed should be an integer.
+
+        EXAMPLES::
+
+            sage: libgap.set_seed(0)
+            0
+            sage: [libgap.Random(1, 10) for i in range(5)]
+            [2, 3, 3, 4, 2]
+        """
+        if seed is None:
+            seed = current_randstate().ZZ_seed()
+
+        Reset = self.function_factory("Reset")
+        Reset(self.GlobalMersenneTwister, seed)
+        Reset(self.GlobalRandomSource, seed)
+        return seed
 
     def _an_element_(self):
         r"""

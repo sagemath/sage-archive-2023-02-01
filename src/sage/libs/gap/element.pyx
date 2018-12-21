@@ -898,8 +898,7 @@ cdef class GapElement(RingElement):
             sage: libgap(1) - libgap.CyclicGroup(2)
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, no method found!
-            Error, no 1st choice method found for `-' on 2 arguments
+            ValueError: libGAP: Error, no method found! ...
         """
         cdef Obj result
         sig_on()

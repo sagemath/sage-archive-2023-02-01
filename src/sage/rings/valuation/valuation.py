@@ -179,19 +179,6 @@ class DiscretePseudoValuation(Morphism):
             False
             sage: v != w
             True
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         if op == op_LT:
             return self <= other and not (self >= other)
@@ -245,19 +232,6 @@ class DiscretePseudoValuation(Morphism):
             sage: w = QQ.valuation(2)
             sage: v <= w
             True
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         return other >= self
 
@@ -275,19 +249,6 @@ class DiscretePseudoValuation(Morphism):
             sage: w = QQ.valuation(2)
             sage: v >= w
             False
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         if self == other: return True
         from .scaled_valuation import ScaledValuation_generic

@@ -1,7 +1,8 @@
-GAP_DIR="$SAGE_LOCAL/share/gap"
-PKG_DIR="$GAP_DIR/pkg"
+GAP_ROOT="$SAGE_LOCAL/share/gap"
+PKG_DIR="$GAP_ROOT/pkg"
 
-cd src/pkg/
+PKG_SRC_DIR="$(pwd)/src/pkg"
+cd "$PKG_SRC_DIR"
 
 # directly install pure GAP packages
 #
@@ -37,69 +38,48 @@ sdh_install \
     utils-* \
     "$PKG_DIR"
 
-for p in cohomolo-1.6.7 grape-4.8.1 guava-3.14 nq-2.5.3
+install_compiled_pkg()
+{
+    local pkg="$1"
+    # Install the bin/ dir (where compiled modules should end up)
+    # under <prefix>/lib/gap; we then symlink to it later
+    sdh_install bin/ "$SAGE_LOCAL/lib/gap/pkg/$pkg"
+
+    # Clean up any build artificts before installing the rest of the package
+    # Also remove configure/Makefiles
+    # Note: None, if any of the packages really have a proper install target
+    make clean  # Works for some packages but not all
+    rm -rf bin/
+    rm -rf configure configure.* config.* autogen.sh *.m4 Makefile* m4/
+
+    # Create the bin/ symlink
+    ln -s "$SAGE_LOCAL/lib/gap/pkg/$pkg/bin" bin
+
+    # Install the rest of the package files
+    sdh_install * "$PKG_DIR/$pkg"
+}
+
+# Build and install compiled packages:
+#
+# These packages have an old ./configure that take the GAP_ROOT as a positional
+# argument
+for pkg in cohomolo-* grape-* guava-*
 do
-    echo "Copying package $p"
-    cp -r $p "$PKG_DIR"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error copying package $p."
-        exit 1
-    fi
+    echo "Building GAP package $pkg"
+    cd "$PKG_SRC_DIR/$pkg"
+    ./configure "$GAP_ROOT"
+    sdh_make -j1
+    install_compiled_pkg "$pkg"
+    cd "$PKG_SRC_DIR"
 done
 
-# Build GRAPE package
-cd "$PKG_DIR"/grape*
-rm -rf bin   # added since rebuilding breaks otherwise
-./configure "$GAP_DIR"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring GRAPE package."
-    exit 1
-fi
-$MAKE -j1
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building GRAPE package."
-    exit 1
-fi
-
-
-# Build GUAVA package
-cd "$PKG_DIR"/guava-* && ./configure "$GAP_DIR"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring GUAVA packagae."
-    exit 1
-fi
-$MAKE -j1
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building GUAVA package."
-    exit 1
-fi
-
-
-# Build cohomolo package
-cd "$PKG_DIR"/cohomolo-*
-#rm -rf bin   # added since rebuilding breaks otherwise
-./configure "$GAP_DIR"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring cohomolo package."
-    exit 1
-fi
-$MAKE -j1
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building cohomolo package."
-    exit 1
-fi
-
-# Build nq package
-cd "$PKG_DIR"/nq-*
-./configure --with-gaproot="$GAP_DIR"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring nq package."
-    exit 1
-fi
-$MAKE 
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building nq package."
-    exit 1
-fi
-
-
+# These packages (currently just one) have a new-style autoconf ./configure
+# that takes --with-gaproot
+for pkg in nq-*
+do
+    cd "$PKG_SRC_DIR/$pkg"
+    sdh_configure --with-gaproot="$GAP_ROOT"
+    sdh_make -j1
+    install_compiled_pkg "$pkg"
+    cd "$PKG_SRC_DIR"
+done

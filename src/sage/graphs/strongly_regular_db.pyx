@@ -2450,8 +2450,10 @@ def SRG_416_100_36_20():
         (416, 100, 36, 20)
     """
     from sage.libs.gap.libgap import libgap
+    libgap.eval("SetInfoLevel(InfoWarning,0)") # silence #I warnings from GAP (without IO pkg)
     libgap.LoadPackage("AtlasRep")
     g=libgap.AtlasGroup("G2(4)",libgap.NrMovedPoints,416)
+    libgap.eval("SetInfoLevel(InfoWarning,1)") # restore #I warnings
     h = Graph()
     h.add_edges(g.Orbit([1,5],libgap.OnSets))
     h.relabel()

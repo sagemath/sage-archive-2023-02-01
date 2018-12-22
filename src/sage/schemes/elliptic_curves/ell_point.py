@@ -1500,7 +1500,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         one = self.curve().base_field().one()
         t = one
         V = self
-        S = 2*V
         nbin = n.bits()
         i = n.nbits() - 2
         while i > -1:

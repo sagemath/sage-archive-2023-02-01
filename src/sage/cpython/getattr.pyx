@@ -161,7 +161,7 @@ cpdef raw_getattr(obj, name):
         sage: raw_getattr(X, "prop")
         <property object at ...>
         sage: raw_getattr(X, "method")
-        <function method at ...>
+        <function ...method at ...>
         sage: raw_getattr(X, "attr")
         Traceback (most recent call last):
         ...
@@ -170,7 +170,7 @@ cpdef raw_getattr(obj, name):
         sage: raw_getattr(x, "prop")
         <property object at ...>
         sage: raw_getattr(x, "method")
-        <function method at ...>
+        <function ...method at ...>
         sage: raw_getattr(x, "attr")
         'magic attr'
         sage: x.__dict__["prop"] = 'no'
@@ -190,7 +190,7 @@ cpdef raw_getattr(obj, name):
         sage: raw_getattr(Y, "prop")
         <property object at ...>
         sage: raw_getattr(Y, "method")
-        <function method at ...>
+        <function ...method at ...>
         sage: raw_getattr(Y, "attr")
         Traceback (most recent call last):
         ...
@@ -199,7 +199,7 @@ cpdef raw_getattr(obj, name):
         sage: raw_getattr(y, "prop")
         <property object at ...>
         sage: raw_getattr(y, "method")
-        <function method at ...>
+        <function ...method at ...>
         sage: raw_getattr(y, "attr")
         'magic attr'
         sage: y.__dict__["prop"] = 'no'

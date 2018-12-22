@@ -3078,11 +3078,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().dimension(certificate=True)
             (0, [])
 
+        Chain and certificate, :trac:`26861`::
+
+            sage: Poset({'a': ['b']}).dimension(certificate=True)[1]
+            [['a', 'b']]
         """
         if self.cardinality() == 0:
             return (0, []) if certificate else 0
         if self.is_chain():
-            return (1, self.list()) if certificate else 1
+            return (1, [self.list()]) if certificate else 1
 
         # current bound on the chromatic number of the hypergraph
         k = 2

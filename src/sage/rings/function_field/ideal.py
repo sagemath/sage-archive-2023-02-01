@@ -161,11 +161,13 @@ class FunctionFieldIdeal(Element):
 
     def gens_reduced(self):
         r"""
-        Return reduced generators. This just returns the generators for now.
+        Return reduced generators.
 
-        This method is provided so that ideals in funtion fields have the method
-        :meth:`gens_reduced()`, just like ideals of number fields. Sage linear algebra
-        machinery sometimes requires this.
+        This just returns the generators for now.
+
+        This method is provided so that ideals in function fields have
+        the method :meth:`gens_reduced()`, just like ideals of number
+        fields. Sage linear algebra machinery sometimes requires this.
 
         EXAMPLES::
 
@@ -870,10 +872,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         self._prime_below = None
         self._beta = None
 
-        # beta in matrix form for fast multiplicaton
+        # beta in matrix form for fast multiplication
         self._beta_matrix = None
 
-        # (p, q) with irreducibl polynomial p and q an element of O in vector
+        # (p, q) with irreducible polynomial p and q an element of O in vector
         # form, together generating the prime ideal. This data is obtained by
         # Kummer's theorem when this prime ideal is constructed. This is used
         # for fast multiplication with other ideal.

@@ -343,7 +343,7 @@ SloaneEncyclopedia = SloaneEncyclopediaClass()
 
 def copy_gz_file(gz_source, bz_destination):
     """
-    Decompress a gzipped file and install the bzipped verson.
+    Decompress a gzipped file and install the bzipped version.
 
     This is used by SloaneEncyclopedia.install_from_gz to install
     several gzipped OEIS database files.

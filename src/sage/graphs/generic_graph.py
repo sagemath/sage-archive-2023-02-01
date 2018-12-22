@@ -22039,8 +22039,8 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
 
-        self_vertices = self.vertices()
-        other_vertices = other.vertices()
+        self_vertices = list(self)
+        other_vertices = list(other)
         if edge_labels or self.has_multiple_edges():
             if edge_labels and sorted(self.edge_labels()) != sorted(other.edge_labels()):
                 return (False, None) if certificate else False
@@ -22094,10 +22094,10 @@ class GenericGraph(GenericGraph_pyx):
                 relabeling2_inv = {}
                 for x in relabeling2:
                     relabeling2_inv[relabeling2[x]] = x
-                for v in self.vertices():
+                for v in self:
                     isom_trans[v] = relabeling2_inv[other_vertices[isom[G_to[relabeling[v]]]]]
             else:
-                for v in self.vertices():
+                for v in self:
                     isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 

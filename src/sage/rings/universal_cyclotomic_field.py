@@ -445,6 +445,23 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         return self._obj.RealPart() == self._obj
 
+    def is_integral(self):
+        """
+        Return whether ``self`` is an algebraic integer.
+
+        This just wraps ``IsIntegralCyclotomic`` from GAP.
+
+        .. SEEALSO:: :meth:`denominator`
+
+        EXAMPLES::
+
+            sage: E(6).is_integral()
+            True
+            sage: (E(4)/2).is_integral()
+            False
+        """
+        return self._obj.IsIntegralCyclotomic().sage()
+
     def conductor(self):
         r"""
         Return the conductor of ``self``.
@@ -456,7 +473,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: (E(5) + E(3)).conductor()
             15
         """
-        return self._obj.Conductor().sage()
+        return ZZ(self._obj.Conductor())
 
     def _symbolic_(self, R):
         r"""
@@ -474,7 +491,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         from sage.symbolic.constants import pi
         from sage.symbolic.all import i as I
-        k = self._obj.Conductor().sage()
+        k = ZZ(self._obj.Conductor())
         coeffs = self._obj.CoeffsCyc(k).sage()
         s = R.zero()
         for a in range(k):
@@ -537,7 +554,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             zeta4 + 1
         """
         from sage.rings.number_field.number_field import CyclotomicField
-        k = self._obj.Conductor().sage()
+        k = ZZ(self._obj.Conductor())
         Rcan = CyclotomicField(k)
         if R is None:
             R = Rcan
@@ -566,7 +583,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: hash(UCF.one())
             1
         """
-        k = self._obj.Conductor().sage()
+        k = ZZ(self._obj.Conductor())
         coeffs = self._obj.CoeffsCyc(k).sage()
         if k == 1:
             return hash(coeffs[0])
@@ -646,7 +663,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         if self._obj.IsRat():
             return R(self._obj.sage())
 
-        k = self._obj.Conductor().sage()
+        k = ZZ(self._obj.Conductor())
         coeffs = self._obj.CoeffsCyc(k).sage()
         zeta = R.zeta(k)
         s = sum(coeffs[i] * zeta ** i for i in range(k))
@@ -683,7 +700,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         if self._obj.IsRat():
             return R(self._obj.sage())
 
-        k = self._obj.Conductor().sage()
+        k = ZZ(self._obj.Conductor())
         coeffs = self._obj.CoeffsCyc(k).sage()
         t = (2 * R.pi()) / k
         return sum(coeffs[i] * (i * t).cos() for i in range(k))
@@ -740,6 +757,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
         r"""
         Return the denominator of this element.
 
+        .. SEEALSO:: :meth:`is_integral`
+
         EXAMPLES::
 
             sage: a = E(5) + 1/2*E(5,2) + 1/3*E(5,3)
@@ -750,7 +769,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: parent(_)
             Integer Ring
         """
-        return self._obj.DenominatorCyc().sage()
+        return ZZ(self._obj.DenominatorCyc())
 
     def multiplicative_order(self):
         r"""

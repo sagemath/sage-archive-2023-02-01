@@ -17532,7 +17532,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def union(self, other, immutable=None):
         """
-        Returns the union of self and other.
+        Return the union of ``self`` and ``other``.
 
         If the graphs have common vertices, the common vertices will be
         identified.
@@ -17547,9 +17547,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``immutable`` (boolean) -- whether to create a mutable/immutable
-          union. ``immutable=None`` (default) means that the graphs and their
-          union will behave the same way.
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable union. ``immutable=None`` (default) means that the
+          graphs and their union will behave the same way.
 
         .. SEEALSO::
 
@@ -17618,10 +17618,10 @@ class GenericGraph(GenericGraph_pyx):
         else:
             from sage.graphs.all import Graph
             G = Graph(multiedges=multiedges, loops=loops, weighted=weighted)
-        G.add_vertices(self.vertices())
-        G.add_vertices(other.vertices())
-        G.add_edges(self.edges())
-        G.add_edges(other.edges())
+        G.add_vertices(self)
+        G.add_vertices(other)
+        G.add_edges(self.edge_iterator())
+        G.add_edges(other.edge_iterator())
 
         if immutable is None:
             immutable = self.is_immutable() and other.is_immutable()

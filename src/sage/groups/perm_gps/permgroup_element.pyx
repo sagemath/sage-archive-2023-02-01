@@ -598,7 +598,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             self._gap_element = gap(self._gap_init_())
         return self._gap_element
 
-    gap = _gap_  # for compatibility with :class:`ElementLibGAP`, see :meth:`gap` of :class:`PermutationGroup_generic`
+    # for compatibility with sage.groups.libgap_wrapper.ElementLibGAP
+    # see sage.groups.perm_gps.permgroup.PermutationGroup_generic.gap
+    gap = _gap_
 
     def _gap_init_(self):
         """
@@ -1435,12 +1437,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         INPUT:
 
         - ``g`` -- an element of the permutation group ``self.parent()``
-        
+
         - ``singletons`` -- ``True`` or ``False`` depending on whether on or not
           trivial cycles should be counted (default: ``True``)
 
         - ``as_list`` -- ``True`` or ``False`` depending on whether the cycle
-          type should be returned as a ``list`` or as a :class:`Partition` 
+          type should be returned as a ``list`` or as a :class:`Partition`
           (default: ``False``)
 
         OUTPUT:

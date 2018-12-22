@@ -552,13 +552,13 @@ class GroupMorphism_libgap(Morphism):
 
     def section(self):
         r"""
-        This method returns a section map of self by use of :meth:`lift`
-        See :meth:`section` of :class:`Map`, as well.
+        This method returns a section map of self by use of :meth:`lift`.
+        See :meth:`section` of :class:`sage.categories.map.Map`, as well.
 
         OUTPUT:
 
-        an instance of :class:`SetMorphism` mapping an element of the codomain
-        of self to one of its preimages
+        an instance of :class:`sage.categories.morphism.SetMorphism`
+        mapping an element of the codomain of self to one of its preimages
 
         EXAMPLES::
 

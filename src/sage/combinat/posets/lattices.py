@@ -2833,10 +2833,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         from sage.misc.cachefunc import cached_function
 
+        not_ok = (False, None) if certificate else False
+
         if not self.is_ranked():
-            if certificate:
-                return (False, None)
-            return False
+            return not_ok
 
         if self.cardinality() == 0:
             if certificate:
@@ -2857,7 +2857,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                        for b in range(n))
 
         if not is_modular_elt(cur):
-            return False
+            return not_ok
         while len(next_) < height:
             try:
                 cur = next(next_[-1])
@@ -2865,7 +2865,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 next_.pop()
                 cert.pop()
                 if not next_:
-                    return False
+                    return not_ok
                 continue
             if is_modular_elt(cur):
                 next_.append(H.neighbor_in_iterator(cur))

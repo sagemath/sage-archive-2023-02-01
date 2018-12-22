@@ -124,7 +124,7 @@ def all_installed_packages(ignore_dot_gap=False):
         (...'GAPDoc'...)
     """
     packages = []
-    for path in libgap.eval('GAP_ROOT_PATHS').sage():
+    for path in libgap.eval('GAPInfo.RootPaths').sage():
         if ignore_dot_gap and path.endswith('/.gap/'):
             continue
         pkg_dir = os.path.join(path, 'pkg')

@@ -13580,13 +13580,12 @@ class GenericGraph(GenericGraph_pyx):
 
     def clustering_average(self, implementation=None):
         r"""
-        Returns the average clustering coefficient.
+        Return the average clustering coefficient.
 
-        The clustering coefficient of a node `i` is the fraction
-        of existing triangles containing node `i` and all
-        possible triangles containing `i`: `c_i = T(i) / \binom {k_i} 2`
-        where `T(i)` is the number of existing triangles through `i`, and
-        `k_i` is the degree of vertex `i`.
+        The clustering coefficient of a node `i` is the fraction of existing
+        triangles containing node `i` over all possible triangles containing
+        `i`: `c_i = T(i) / \binom {k_i} 2` where `T(i)` is the number of
+        existing triangles through `i`, and `k_i` is the degree of vertex `i`.
 
         A coefficient for the whole graph is the average of the `c_i`.
 
@@ -13594,10 +13593,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``implementation`` - one of ``'boost'``, ``'sparse_copy'``,
-          ``'dense_copy'``, ``'networkx'`` or ``None`` (default). In the latter
-          case, the best algorithm available is used. Note that only
-          ``'networkx'`` supports directed graphs.
+        - ``implementation`` -- string (default: ``None``); one of ``'boost'``,
+          ``'sparse_copy'``, ``'dense_copy'``, ``'networkx'`` or ``None``
+          (default). In the latter case, the best algorithm available is
+          used. Note that only ``'networkx'`` supports directed graphs.
 
         EXAMPLES::
 
@@ -13613,7 +13612,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: digraphs.Circuit(10).clustering_average(implementation='boost')
             Traceback (most recent call last):
             ...
-            ValueError: This value of 'implementation' is invalid for directed graphs
+            ValueError: this value of 'implementation' is invalid for directed graphs
 
         The result is the same with all implementations::
 
@@ -13633,12 +13632,12 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 implementation = 'sparse_copy'
 
-        if not implementation in ['networkx','boost', 'dense_copy', 'sparse_copy']:
-            raise ValueError("The implementation can only be 'networkx', " +
-                             "'boost', 'sparse_copy', 'dense_copy' or None.")
+        if not implementation in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
+            raise ValueError("the implementation can only be 'networkx', "
+                             "'boost', 'sparse_copy', 'dense_copy' or None")
 
         if self.is_directed() and implementation != 'networkx':
-            raise ValueError("This value of 'implementation' is invalid for directed graphs")
+            raise ValueError("this value of 'implementation' is invalid for directed graphs")
 
         if implementation == 'boost':
             from sage.graphs.base.boost_graph import clustering_coeff
@@ -13655,18 +13654,18 @@ class GenericGraph(GenericGraph_pyx):
                          weight=False,
                          implementation=None):
         r"""
-        Returns the clustering coefficient for each vertex in ``nodes`` as
-        a dictionary keyed by vertex.
+        Return the clustering coefficient for each vertex in ``nodes`` as a
+        dictionary keyed by vertex.
 
-        For an unweighted graph, the clustering coefficient of a node `i`
-        is the fraction of existing triangles containing node `i` and all
-        possible triangles containing `i`: `c_i = T(i) / \binom {k_i} 2`
-        where `T(i)` is the number of existing triangles through `i`, and
-        `k_i` is the degree of vertex `i`.
+        For an unweighted graph, the clustering coefficient of a node `i` is the
+        fraction of existing triangles containing node `i` over all possible
+        triangles containing `i`: `c_i = T(i) / \binom {k_i} 2` where `T(i)` is
+        the number of existing triangles through `i`, and `k_i` is the degree of
+        vertex `i`.
 
-        For weighted graphs the clustering is defined as the geometric
-        average of the subgraph edge weights, normalized by the
-        maximum weight in the network.
+        For weighted graphs the clustering is defined as the geometric average
+        of the subgraph edge weights, normalized by the maximum weight in the
+        network.
 
         The value of `c_i` is assigned `0` if `k_i < 2`.
 
@@ -13674,19 +13673,20 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``nodes`` - the vertices to inspect (default ``None``, returns data
-          on all vertices in graph)
+        - ``nodes`` -- an iterable container of vertices (default: ``None``);
+          the vertices to inspect. By default, returns data on all vertices in
+          graph
 
-        - ``weight`` - string or boolean (default is ``False``). If it is
-          a string it used the indicated edge property as weight.
-          ``weight = True`` is equivalent to ``weight = 'weight'``
+        - ``weight`` -- string or boolean (default: ``False``); if it is a
+          string it uses the indicated edge property as weight.  ``weight =
+          True`` is equivalent to ``weight = 'weight'``
 
-        - ``implementation`` - one of ``'boost'``, ``'sparse_copy'``,
-          ``'dense_copy'``, ``'networkx'`` or ``None`` (default). In the latter
-          case, the best algorithm available is used. Note that only
-          ``'networkx'`` supports directed or weighted graphs, and that
-          ``'sparse_copy'`` and ``'dense_copy'`` do not support ``node``
-          different from ``None``
+        - ``implementation`` -- string (default: ``None``); one of ``'boost'``,
+          ``'sparse_copy'``, ``'dense_copy'``, ``'networkx'`` or ``None``
+          (default). In the latter case, the best algorithm available is
+          used. Note that only ``'networkx'`` supports directed or weighted
+          graphs, and that ``'sparse_copy'`` and ``'dense_copy'`` do not support
+          ``node`` different from ``None``
 
         EXAMPLES::
 
@@ -13718,26 +13718,25 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: This value of 'implementation' is invalid for directed/weighted graphs
+            ValueError: this value of 'implementation' is invalid for directed/weighted graphs
 
         Boost does not work with DiGraph::
 
             sage: digraphs.Circuit(10).clustering_coeff(implementation='boost')
             Traceback (most recent call last):
             ...
-            ValueError: This value of 'implementation' is invalid for directed/weighted graphs
+            ValueError: this value of 'implementation' is invalid for directed/weighted graphs
 
         Check that the result is the same with all implementations::
 
-            sage: G = graphs.RandomGNM(10,20)
+            sage: G = graphs.RandomGNM(10, 20)
             sage: G.relabel(list("abcdefghik"))
             sage: coeffs = [G.clustering_coeff(implementation=impl)
-            ....:           for impl in ['boost','sparse_copy','dense_copy','networkx']]
+            ....:           for impl in ['boost', 'sparse_copy', 'dense_copy', 'networkx']]
             sage: for v in G:
             ....:     coeffs_v = [c[v] for c in coeffs]
             ....:     if max(coeffs_v) - min(coeffs_v) > 1E-12:
-            ....:         print("Error for v=",v)
-            ....:         print("min=",min(coeffs_v),"max=",max(coeffs_v))
+            ....:         raise ValueError("error for v={}, min={}, max={}".format(v, min(coeffs_v), max(coeffs_v)))
 
         TESTS::
 
@@ -13757,25 +13756,25 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 implementation = 'sparse_copy'
 
-        if not implementation in ['networkx','boost', 'dense_copy', 'sparse_copy']:
-            raise ValueError("The implementation can only be 'networkx', " +
-                             "'boost', 'sparse_copy', 'dense_copy' or None.")
+        if not implementation in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
+            raise ValueError("the implementation can only be 'networkx', "
+                             "'boost', 'sparse_copy', 'dense_copy' or None")
 
         if ((self.is_directed() or weight) and
             implementation != 'networkx'):
-            raise ValueError("This value of 'implementation' is invalid for directed/weighted graphs")
+            raise ValueError("this value of 'implementation' is invalid for directed/weighted graphs")
 
-        if (implementation in ['sparse_copy','dense_copy'] and nodes is not None):
+        if (implementation in ['sparse_copy', 'dense_copy'] and nodes is not None):
             raise ValueError("'sparse_copy','dense_copy' do not support 'nodes' different from 'None'")
 
-        if self.order() == 0:
+        if not self.order():
             return {}
 
-        def coeff_from_triangle_count(v,count):
+        def coeff_from_triangle_count(v, count):
             dv = self.degree(v)
             if dv < 2:
                 return 0
-            return 2*count/Integer(dv*(dv-1))
+            return 2 * count / Integer(dv * (dv - 1))
 
         if implementation == 'boost':
             from sage.graphs.base.boost_graph import clustering_coeff
@@ -13785,27 +13784,26 @@ class GenericGraph(GenericGraph_pyx):
             return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
         elif implementation == 'sparse_copy':
             from sage.graphs.base.static_sparse_graph import triangles_count
-            return {v:coeff_from_triangle_count(v,count)
-                    for v,count in iteritems(triangles_count(self))}
+            return {v: coeff_from_triangle_count(v, count)
+                    for v, count in iteritems(triangles_count(self))}
         elif implementation =="dense_copy":
             from sage.graphs.base.static_dense_graph import triangles_count
-            return {v:coeff_from_triangle_count(v,count)
-                    for v,count in iteritems(triangles_count(self))}
+            return {v: coeff_from_triangle_count(v, count)
+                    for v, count in iteritems(triangles_count(self))}
 
     def cluster_transitivity(self):
         r"""
-        Returns the transitivity (fraction of transitive triangles) of the
-        graph.
+        Return the transitivity (fraction of transitive triangles) of the graph.
 
-        Transitivity is the fraction of all existing triangles and all
-        connected triples (triads), `T = 3\times\text{triangles}
-        / \text{triads}`.
+        Transitivity is the fraction of all existing triangles over all
+        connected triples (triads),
+        `T = 3\times\frac{\text{triangles}}{\text{triads}}`.
 
         See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
         EXAMPLES::
 
-            sage: (graphs.FruchtGraph()).cluster_transitivity()
+            sage: graphs.FruchtGraph().cluster_transitivity()
             0.25
         """
         import networkx

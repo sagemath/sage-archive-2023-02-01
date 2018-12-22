@@ -1970,8 +1970,7 @@ class MPolynomialIdeal_singular_repr(
         else:
             raise TypeError("Cannot convert basis with given algorithm")
 
-    @libsingular_gb_standard_options
-    def elimination_ideal(self, variables):
+    def elimination_ideal(self, variables, algorithm=None, *args, **kwds):
         r"""
         Return the elimination ideal of this ideal with respect to the
         variables given in ``variables``.
@@ -1980,28 +1979,68 @@ class MPolynomialIdeal_singular_repr(
 
         - ``variables`` -- a list or tuple of variables in ``self.ring()``
 
+        - ``algorithm`` - determines the algorithm to use, see below
+           for available algorithms.
+
+        ALGORITHMS:
+
+        - ``'libsingular:eliminate'`` -- libSingular's ``eliminate`` command
+          (default)
+
+        - ``'giac:eliminate'`` -- Giac's ``eliminate`` command (if available)
+
+        If only a system is given - e.g. 'giac' - the default algorithm is
+        chosen for that system.
+
         EXAMPLES::
 
             sage: R.<x,y,t,s,z> = PolynomialRing(QQ,5)
             sage: I = R * [x-t,y-t^2,z-t^3,s-x+y^3]
-            sage: I.elimination_ideal([t,s])
+            sage: J = I.elimination_ideal([t,s]); J
             Ideal (y^2 - x*z, x*y - z, x^2 - y) of Multivariate
             Polynomial Ring in x, y, t, s, z over Rational Field
 
+        You can use Giac to compute the elimination ideal::
+
+            sage: I.elimination_ideal([t, s], algorithm="giac") == J  # optional - giacpy_sage
+            ...
+            Running a probabilistic check for the reconstructed Groebner basis...
+            True
+
+        The list of available Giac options is provided at
+        :func:`sage.libs.giac.groebner_basis`.
+
         ALGORITHM:
 
-        Uses Singular.
+        Uses Singular, or Giac (if available).
 
         .. NOTE::
 
             Requires computation of a Groebner basis, which can be a very
             expensive operation.
         """
+        if not isinstance(variables, (list, tuple)):
+            variables = (variables,)
+
+        if (algorithm is None or algorithm.lower() == 'libsingular'
+                or algorithm == 'libsingular:eliminate'):
+            return self._elimination_ideal_libsingular(variables)
+
+        elif algorithm.lower() == 'giac' or algorithm == 'giac:eliminate':
+            from sage.libs.giac import groebner_basis as groebner_basis_libgiac
+            return groebner_basis_libgiac(
+                    self, elim_variables=variables, *args, **kwds).ideal()
+
+        else:
+            raise NameError("Algorithm '%s' unknown." % algorithm)
+
+    @libsingular_gb_standard_options
+    def _elimination_ideal_libsingular(self, variables):
+        r"""
+        Compute the elimination ideal using libsingular.
+        """
         import sage.libs.singular.function_factory
         eliminate = sage.libs.singular.function_factory.ff.eliminate
-
-        if not isinstance(variables, (list,tuple)):
-            variables = (variables,)
 
         R = self.ring()
         Is = MPolynomialIdeal(R,self.groebner_basis())

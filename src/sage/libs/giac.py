@@ -129,7 +129,8 @@ def local_giacsettings(func):
 
 
 @local_giacsettings
-def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **kwds):
+def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
+                   elim_variables=None, *args, **kwds):
     """
     Computes a Groebner Basis of an ideal using giacpy_sage. The result is
     automatically converted to sage.
@@ -159,6 +160,17 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
 
     - ``prot`` - (default: False) if True print detailled informations
 
+    - ``elim_variables`` - (default: None) a list of variables to eliminate
+      from the ideal.
+
+        * if ``elim_variables`` is None, a Groebner basis with respect to the
+          term ordering of the parent polynomial ring of the polynomials
+          ``gens`` is computed.
+
+        * if ``elim_variables`` is a list of variables, a Groebner basis of the
+          elimination ideal with respect to a ``degrevlex`` term order is
+          computed, regardless of the term order of the polynomial ring.
+
     OUTPUT:
 
     Polynomial sequence of the reduced Groebner basis.
@@ -173,6 +185,18 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
         // Groebner basis computation time ...
         Polynomial Sequence with 45 Polynomials in 6 Variables
         sage: B.is_groebner() # optional - giacpy_sage
+        True
+
+    Elimination ideals can be computed by passing ``elim_variables``::
+
+        sage: P = PolynomialRing(GF(previous_prime(2**31)), 5, 'x')       # optional - giacpy_sage
+        sage: I = sage.rings.ideal.Cyclic(P)                              # optional - giacpy_sage
+        sage: B = gb_giac(I.gens(), elim_variables=[P.gen(0), P.gen(2)])  # optional - giacpy_sage
+        <BLANKLINE>
+        // Groebner basis computation time ...
+        sage: B.is_groebner()                                             # optional - giacpy_sage
+        True
+        sage: B.ideal() == I.elimination_ideal([P.gen(0), P.gen(2)])      # optional - giacpy_sage
         True
 
     Computations over QQ can benefit from
@@ -319,25 +343,30 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     if threads is not None:
         giacsettings.threads = threads
 
-    var_names = P.variable_names()
-    order_name = P.term_order().name()
-    if order_name == "degrevlex":
-        giac_order = "revlex"
-    elif order_name == "lex":
-        giac_order = "plex"
-    elif order_name == "deglex":
-        giac_order = "tdeg"
-    else:
-        blocks = P.term_order().blocks()
-        if (len(blocks) == 2 and
-                all(order.name() == "degrevlex" for order in blocks)):
+    if elim_variables is None:
+        var_names = P.variable_names()
+        order_name = P.term_order().name()
+        if order_name == "degrevlex":
             giac_order = "revlex"
-            var_names = var_names[:len(blocks[0])]
+        elif order_name == "lex":
+            giac_order = "plex"
+        elif order_name == "deglex":
+            giac_order = "tdeg"
         else:
-            raise NotImplementedError("%s is not a supported term order in "
-                                      "Giac Groebner bases." % P.term_order())
+            blocks = P.term_order().blocks()
+            if (len(blocks) == 2 and
+                    all(order.name() == "degrevlex" for order in blocks)):
+                giac_order = "revlex"
+                var_names = var_names[:len(blocks[0])]
+            else:
+                raise NotImplementedError(
+                        "%s is not a supported term order in "
+                        "Giac Groebner bases." % P.term_order())
 
-    # compute de groebner basis with giac
-    gb_giac = F.gbasis(list(var_names), giac_order)
+        # compute de groebner basis with giac
+        gb_giac = F.gbasis(list(var_names), giac_order)
+
+    else:
+        gb_giac = F.eliminate(list(elim_variables))
 
     return PolynomialSequence(gb_giac, P, immutable=True)

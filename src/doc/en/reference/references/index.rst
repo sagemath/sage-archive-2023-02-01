@@ -512,7 +512,7 @@ REFERENCES:
             (2012), pp 400-417.
 
 .. [BMPS2018] Blasiak, Morse, Pun, and Summers. Catalan functions and k-schur
-              positivity, (preprint April 2018, available :arxiv:`math/03701v1`).
+              positivity, (preprint April 2018, available :arxiv:`1804.03701v1`).
 
 .. [BMS2006] Bugeaud, Mignotte, and Siksek. "Classical and modular
              approaches to exponential Diophantine

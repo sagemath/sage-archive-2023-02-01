@@ -134,6 +134,9 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     Computes a Groebner Basis of an ideal using giacpy_sage. The result is
     automatically converted to sage.
 
+    Supported term orders of the underlying polynomial ring are ``lex``,
+    ``deglex``, ``degrevlex`` and block orders with 2 ``degrevlex`` blocks.
+
     INPUT:
 
     - ``gens`` - an ideal (or a list) of polynomials over a prime field
@@ -243,6 +246,25 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
         sage: I.groebner_basis() == gb_giac(I) # optional - giacpy_sage
         True
 
+    Test the supported term orderings::
+
+        sage: from sage.rings.ideal import Cyclic
+        sage: P = PolynomialRing(QQ, 'x', 4, order='lex')
+        sage: B = gb_giac(Cyclic(P))                   # optional - giacpy_sage
+        ...
+        sage: B.is_groebner(), B.ideal() == Cyclic(P)  # optional - giacpy_sage
+        (True, True)
+        sage: P = P.change_ring(order='deglex')
+        sage: B = gb_giac(Cyclic(P))                   # optional - giacpy_sage
+        ...
+        sage: B.is_groebner(), B.ideal() == Cyclic(P)  # optional - giacpy_sage
+        (True, True)
+        sage: P = P.change_ring(order='degrevlex(2),degrevlex(2)')
+        sage: B = gb_giac(Cyclic(P))                   # optional - giacpy_sage
+        ...
+        sage: B.is_groebner(), B.ideal() == Cyclic(P)  # optional - giacpy_sage
+        (True, True)
+
     """
     try:
         from giacpy_sage import libgiac, giacsettings
@@ -280,9 +302,6 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     else:
         raise NotImplementedError("Only prime fields of cardinal < 2^31 are implemented in Giac for Groebner bases.")
 
-    if P.term_order() != "degrevlex":
-        raise NotImplementedError("Only degrevlex term orderings are supported in Giac Groebner bases.")
-
     # proof or probabilistic reconstruction
     if proba_epsilon is None:
         if proof_polynomial():
@@ -300,7 +319,25 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     if threads is not None:
         giacsettings.threads = threads
 
+    var_names = P.variable_names()
+    order_name = P.term_order().name()
+    if order_name == "degrevlex":
+        giac_order = "revlex"
+    elif order_name == "lex":
+        giac_order = "plex"
+    elif order_name == "deglex":
+        giac_order = "tdeg"
+    else:
+        blocks = P.term_order().blocks()
+        if (len(blocks) == 2 and
+                all(order.name() == "degrevlex" for order in blocks)):
+            giac_order = "revlex"
+            var_names = var_names[:len(blocks[0])]
+        else:
+            raise NotImplementedError("%s is not a supported term order in "
+                                      "Giac Groebner bases." % P.term_order())
+
     # compute de groebner basis with giac
-    gb_giac = F.gbasis([P.gens()], "revlex")
+    gb_giac = F.gbasis(list(var_names), giac_order)
 
     return PolynomialSequence(gb_giac, P, immutable=True)

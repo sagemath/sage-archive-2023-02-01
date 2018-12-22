@@ -84,8 +84,7 @@ class GroupMorphism_libgap(Morphism):
         sage: E = copy(S.one().matrix())
         sage: E[3,0] = 2; e = S(E)
         sage: pr(e)
-        (1,16,15)(3,22,18)(4,19,21)(6,34,24)(7,25,33)(9,40,27)(10,28,39)
-         (12,37,30)(13,31,36)
+        (1,16,15)(3,22,18)(4,19,21)(6,34,24)(7,25,33)(9,40,27)(10,28,39)(12,37,30)(13,31,36)
 
     TESTS:
 
@@ -481,9 +480,6 @@ class GroupMorphism_libgap(Morphism):
         )
         """
         img_gap = self.gap().Image(g.gap())
-        from sage.libs.gap.element import GapElement_Permutation
-        if isinstance(img_gap, GapElement_Permutation):
-            return self.codomain()(img_gap.sage())
         return self.codomain()(img_gap)
 
     def lift(self, h):

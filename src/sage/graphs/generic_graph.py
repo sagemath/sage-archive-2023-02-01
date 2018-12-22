@@ -21124,8 +21124,11 @@ class GenericGraph(GenericGraph_pyx):
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 new_attr = {}
-                for v,value in iteritems(getattr(self, attr)):
-                    new_attr[perm[v]] = value
+                for v, value in iteritems(getattr(self, attr)):
+                    if attr != '_embedding':
+                        new_attr[perm[v]] = value
+                    else:
+                        new_attr[perm[v]] = [perm[w] for w in value]
 
                 setattr(self, attr, new_attr)
 

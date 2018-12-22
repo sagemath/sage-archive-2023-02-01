@@ -1794,14 +1794,16 @@ def RandomTriangulation(n, set_position=False):
     graph.add_edges(edges)
     # This is the end of partial closure.
 
-    # There remains to add two new vertices 'a' and 'b'.
-    graph.add_edge(('a', 'b'))
+    # There remains to add two new vertices a and b.
+    a = -1
+    b = -2
+    graph.add_edge((a, b))
 
-    # Every remaining 'lf' vertex is linked either to 'a' or to 'b'.
+    # Every remaining 'lf' vertex is linked either to a or to b.
     # Switching a/b happens when one meets the sequence 'lf','in','lf'.
-    a_or_b = 'a'
-    embedding['a'] = []
-    embedding['b'] = []
+    a_or_b = a
+    embedding[a] = []
+    embedding[b] = []
     last_lf_occurrence = -42
     change = {}
     for x in word:
@@ -1809,22 +1811,22 @@ def RandomTriangulation(n, set_position=False):
         if x[0] == 'lf':
             if last_lf_occurrence == -2:
                 change[a_or_b] = x[1]
-                a_or_b = 'b' if a_or_b == 'a' else 'a'
+                a_or_b = b if a_or_b == a else a
             graph.add_edge((a_or_b, x[1]))
             embedding[a_or_b].insert(0, x[1])
             last_lf_occurrence = 0
 
     # conjugates the embeddings of a and b
     # in a way that helps to complete the embedding
-    for a_or_b in ['a', 'b']:
+    for a_or_b in [a, b]:
         emba = embedding[a_or_b]
         idx = emba.index(change[a_or_b])
         embedding[a_or_b] = emba[idx:] + emba[:idx]
-    embedding['a'].append('b')
-    embedding['b'].append('a')
+    embedding[a].append(b)
+    embedding[b].append(a)
 
     # completes the embedding by inserting missing half-edges
-    for a_or_b in ['a', 'b']:
+    for a_or_b in [a, b]:
         emb = embedding[a_or_b]
         for i, v in enumerate(emb[:-1]):
             if i == 0:

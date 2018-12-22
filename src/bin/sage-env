@@ -333,6 +333,12 @@ if [ "$UNAME" = "Darwin" ]; then
         MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
     fi
     export MACOSX_DEPLOYMENT_TARGET MACOSX_VERSION
+
+    # Work around problems on recent OS X crashing with an error message
+    # "... may have been in progress in another thread when fork() was called"
+    # when objective-C functions are called after fork(). See Trac #25921.
+    # Most likely, these errors are false positives, so we disable them:
+    export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 fi
 
 # Compile-time path for libraries.  This is the equivalent of

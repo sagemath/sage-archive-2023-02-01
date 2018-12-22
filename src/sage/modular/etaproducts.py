@@ -727,6 +727,7 @@ def AllCusps(N):
                 c.append(CuspFamily(N, d, label=str(i + 1)))
     return c
 
+
 class CuspFamily(SageObject):
     r"""
     A family of elliptic curves parametrising a region of

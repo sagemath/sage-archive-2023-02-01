@@ -163,6 +163,16 @@ class ModularSymbol(SageObject):
                        (other.__space,-other.__i,other.__alpha,other.__beta),
                        op)
 
+    def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: s = ModularSymbols(11).2.modular_symbol_rep()[0][1]
+            sage: hash(s)  # random
+            -7344656798833624820
+        """
+        return hash((self.__space, self.__i, self.__alpha, self.__beta))
+
     def space(self):
         """
         The list of Manin symbols to which this symbol belongs.

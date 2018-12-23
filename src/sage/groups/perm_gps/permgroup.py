@@ -429,8 +429,8 @@ class PermutationGroup_generic(FiniteGroup):
                 gap_group = self._libgap
             except ValueError:
                 gap_group = gap(gap_group)
-        from sage.libs.gap.element import GapElement
-        if isinstance(gap_group, GapElement):
+        from sage.libs.gap.element import GapElement as LibGapElement
+        if isinstance(gap_group, LibGapElement):
             self._libgap = gap_group
         #Handle the case where only the GAP group is specified.
         if gens is None:
@@ -581,7 +581,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: TestSuite(A4).run()
 
         the follwing test shows, that support for the ``self._libgap`` attribute
-        is needed in the constructor of :class:`PermutationGroup_subgroup`:
+        is needed in the constructor of the class:
 
             sage: PG = PGU(6,2)
             sage: g, h = PG.gens()
@@ -616,10 +616,9 @@ class PermutationGroup_generic(FiniteGroup):
 
             sage: G = GL(2,3)
             sage: P = G.as_permutation_group()
-            sage: f = P.hom(G.gens()); f
-            Group morphism:
-              From: Permutation Group with generators [(1,2)(3,5)(4,7), (1,3,6)(2,4,8)]
-              To:   General Linear Group of degree 2 over Finite Field of size 3
+            sage: f = P.hom(G.gens())
+            sage: type(f)
+            <class 'sage.groups.libgap_morphism.GroupHomset_libgap_with_category.element_class'>
             sage: p1, p2 = P.gens()
             sage: f(p1*p2)
             [1 2]

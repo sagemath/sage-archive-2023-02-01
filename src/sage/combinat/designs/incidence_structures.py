@@ -201,15 +201,18 @@ class IncidenceStructure(object):
             self._blocks = sorted(M.nonzero_positions_in_column(i) for i in range(M.ncols()))
 
         else:
-            if isinstance(points, (int,Integer)):
+            if isinstance(points, (int, Integer)):
                 self._points = list(range(points))
                 self._point_to_index = None
             else:
-                self._points = sorted(points)
-                if self._points == list(range(len(points))) and all(isinstance(x,(int,Integer)) for x in self._points):
+                # if points are tuple, sort None before int types and str after int types
+                sortkey = lambda e: [(0 if x is None else 2 if isinstance(x, str) else 1, x) for x in e]\
+                    if isinstance(e, tuple) else e
+                self._points = sorted(points, key=sortkey)
+                if self._points == list(range(len(points))) and all(isinstance(x, (int, Integer)) for x in self._points):
                     self._point_to_index = None
                 else:
-                    self._point_to_index = {e:i for i,e in enumerate(self._points)}
+                    self._point_to_index = {e: i for i, e in enumerate(self._points)}
 
             if check:
                 for block in blocks:

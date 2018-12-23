@@ -7086,7 +7086,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``algorithm`` -- (default: ``'tedder'``) specifies the algorithm to
+        - ``algorithm`` -- string (default: ``'tedder'``); specifies the algorithm to
           use among:
 
           - ``'tedder'`` -- Use the linear algorithm of [TCHP2008]_.
@@ -7178,9 +7178,9 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-        When ``algorithm=tedder`` this function uses python implementation of
+        When ``algorithm='tedder'`` this function uses python implementation of
         algorithm published by Marc Tedder, Derek Corneil, Michel Habib and
-        Christophe Paul [TCHP2008]_. When ``algorithm=habib`` this function
+        Christophe Paul [TCHP2008]_. When ``algorithm='habib'`` this function
         uses the algorithm of M. Habib and M. Maurer [HM1979]_.
 
         .. SEEALSO::
@@ -7462,7 +7462,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``algorithm`` -- (default: ``'tedder'``) specifies the algorithm to
-          use to find the modular decomposition from among:
+          use among:
 
           - ``'tedder'`` -- Use the linear algorithm of [TCHP2008]_.
 

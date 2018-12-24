@@ -2292,6 +2292,13 @@ class CoxeterGroups(Category_singleton):
                 sage: c = W.from_reduced_word([1,2,3])
                 sage: len([w for w in W if w.is_coxeter_sortable(c)]) # number of c-sortable elements in A_3 (Catalan number)
                 14
+
+            TESTS::
+
+                sage: W = SymmetricGroup(3)
+                sage: c = Permutation((1,2,3))
+                sage: sorted(w for w in W if w.is_coxeter_sortable(c))
+                [(), (2,3), (1,2), (1,3,2), (1,3)]
             """
             if hasattr(c, "reduced_word"):
                 c = c.reduced_word()

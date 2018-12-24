@@ -25,7 +25,7 @@ AUTHORS:
 - Kwankyu Lee (2017-04-30): added elements for global function fields
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2011 Julian Rueth <julian.rueth@gmail.com>
@@ -34,8 +34,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
@@ -399,7 +399,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) == 25
+            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) >= 24
             True
         """
         return hash(self._x)
@@ -655,8 +655,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         15 distinct hashes::
 
             sage: K.<t> = FunctionField(QQ)
-            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})
-            10
+            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]}) >= 10
+            True
         """
         return hash(self._x)
 

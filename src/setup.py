@@ -284,6 +284,7 @@ class sage_build_cython(Command):
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
+            language_level="2",
             preliminary_late_includes_cy28=True,
             profile=self.profile,
         )

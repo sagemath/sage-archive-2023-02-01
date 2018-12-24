@@ -6194,11 +6194,10 @@ class StandardPermutations_n_abstract(Permutations):
         ordering for multiplication::
 
             sage: SP = Permutations(3)
-            sage: TestSuite(SP).run(skip=['_test_reduced_word',
-            ....:     '_test_descents'])
+            sage: TestSuite(SP).run(skip='_test_reduced_word')
 
             sage: SP.options.mult='r2l'
-            sage: TestSuite(SP).run(skip='_test_descents')
+            sage: TestSuite(SP).run()
             sage: SP.options._reset()
         """
         self.n = n

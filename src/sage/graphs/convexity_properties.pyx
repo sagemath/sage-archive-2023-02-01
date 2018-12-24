@@ -204,7 +204,7 @@ cdef class ConvexityProperties:
 
         sig_free(c_distances)
 
-    def __destruct__(self):
+    def __dealloc__(self):
         r"""
         Destructor
 
@@ -333,6 +333,7 @@ cdef class ConvexityProperties:
                 if bitset_len(tmp) < self._n:
                     bitset_add(bs, i)
 
+        bitset_free(tmp)
 
     cpdef hull_number(self, value_only=True, verbose=False):
         r"""

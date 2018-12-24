@@ -1587,7 +1587,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         else:
             K = G = GF(v,'a',modulus=poly)
 
-        B = map(K,B)
+        B = [K(b) for b in B]
         e = k*(k-1)//2
         xe = G.multiplicative_generator()**e
         df = [[xe**j*b for b in B] for j in range((v-1)//(2*e))]

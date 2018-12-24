@@ -60,6 +60,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.categories.action import Action
+
 
 class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
     r"""
@@ -1647,7 +1649,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         tester.assertGreaterEqual(self(x*y - 1), prec)
 
 
-from sage.categories.action import Action
 class ScaleAction(Action):
     r"""
     Action of integers, rationals and the infinity ring on valuations by
@@ -1659,20 +1660,15 @@ class ScaleAction(Action):
         sage: from operator import mul
         sage: v.parent().get_action(ZZ, mul, self_on_left=False)
         Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
-
     """
-    def _call_(self, s, v):
+    def _act_(self, s, v):
         r"""
         Let ``s`` act on ``v``.
 
         EXAMPLES::
 
             sage: v = QQ.valuation(5)
-            sage: 3*v # indirect doctest
+            sage: 3 * v  # indirect doctest
             3 * 5-adic valuation
-            
         """
-        if not self.is_left():
-            # for a right action, the parameters are swapped
-            s,v = v,s
         return v.scale(s)

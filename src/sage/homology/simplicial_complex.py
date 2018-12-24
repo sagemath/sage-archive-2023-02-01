@@ -182,7 +182,7 @@ from functools import reduce, total_ordering
 from itertools import combinations
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import rename_keyword
+
 
 def lattice_paths(t1, t2, length=None):
     r"""
@@ -1028,7 +1028,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             if name_check:
                 try:
                     if int(v) < 0:
-                        raise ValueError("the vertex %s does not have an appropriate name"%v)
+                        raise ValueError("the vertex %s does not have an appropriate name" % v)
                 except ValueError:  # v is not an integer
                     try:
                         normalize_names(1, v)
@@ -1036,7 +1036,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                         raise ValueError("the vertex %s does not have an appropriate name"%v)
             # build dictionary of generator names
             try:
-                gen_dict[v] = 'x%s'%int(v)
+                gen_dict[v] = 'x%s' % int(v)
             except Exception:
                 gen_dict[v] = v
         # build set of facets
@@ -1980,7 +1980,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             facets = self._facets + right._facets
         return SimplicialComplex(facets, is_mutable=is_mutable)
 
-    @rename_keyword(deprecation=20723, check_diffs='check')
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=False, dimensions=None,
                       base_ring=ZZ, cochain=False):
@@ -3975,7 +3974,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
         else:
             return FG.quotient(rels)
 
-    @rename_keyword(deprecation=21111, certify='certificate')
     def is_isomorphic(self, other, certificate=False):
         r"""
         Check whether two simplicial complexes are isomorphic.
@@ -4006,15 +4004,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: C2 = SimplicialComplex([['j','k','l'], ['j','l','m'], ['j','k','m']])
             sage: C1.is_isomorphic(C2, certificate=True)
             (True, {1: 'j', 2: 'k', 3: 'l', 4: 'm'})
-
-        TESTS::
-
-            sage: Z1 = SimplicialComplex([[0,1],[1,2],[2,3,4],[4,5]])
-            sage: Z2 = SimplicialComplex([['a','b'],['b','c'],['c','d','e'],['e','f']])
-            sage: Z1.is_isomorphic(Z2, certify=True)
-            doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
-            See http://trac.sagemath.org/21111 for details.
-            (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
         """
         # Check easy invariants agree
         if (sorted(x.dimension() for x in self._facets)

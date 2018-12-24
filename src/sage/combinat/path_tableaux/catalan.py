@@ -29,6 +29,7 @@ AUTHORS:
 
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.structure.list_clone import ClonableArray
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.dyck_word import DyckWord
@@ -76,7 +77,7 @@ EXAMPLES::
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class CatalanTableau(PathTableau):
+class CatalanTableau(ClonableArray,PathTableau):
     """
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word.

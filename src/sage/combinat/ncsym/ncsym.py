@@ -425,7 +425,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                                  remove_zeros=False)
 
         def from_symmetric_function(self, f):
-            """
+            r"""
             Return the image of the symmetric function ``f`` in ``self``.
 
             This is performed by converting to the monomial basis and
@@ -1270,7 +1270,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _p_to_m_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{p}_A` in terms of the monomial basis.
 
             INPUT:
@@ -1295,7 +1295,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _p_to_e_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{p}_A` in terms of the elementary basis.
 
             INPUT:
@@ -1323,7 +1323,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _p_to_h_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{p}_A` in terms of the homogeneous basis.
 
             INPUT:
@@ -1351,7 +1351,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _p_to_x_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{p}_A` in terms of the `\mathbf{x}` basis.
 
             INPUT:
@@ -1433,7 +1433,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             return self.tensor_square().sum_of_monomials(L1 + L2)
 
         def internal_coproduct_on_basis(self, A):
-            """
+            r"""
             Return the internal coproduct of a powersum basis element.
 
             The internal coproduct is defined by
@@ -1675,7 +1675,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _cp_to_m_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{cp}_A` in terms of the monomial basis.
 
             INPUT:
@@ -1702,7 +1702,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
     cp = coarse_powersum
 
     def q(self):
-        """
+        r"""
         Old name for the `\mathbf{cp}`-basis. Deprecated in :trac:`18371`.
 
         EXAMPLES::
@@ -1759,7 +1759,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _x_to_p_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{x}_A` in terms of the powersum basis.
 
             INPUT:

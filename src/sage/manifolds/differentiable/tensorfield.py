@@ -426,7 +426,7 @@ class TensorField(ModuleElement):
         self._extensions_graph = {self._domain: self}
                     # dict. of known extensions of self on bigger domains,
                     # including self, with domains as keys. Its elements can be
-                    # seen as incomming edges on a graph.
+                    # seen as incoming edges on a graph.
         self._restrictions_graph = {self._domain: self}
                     # dict. of known restrictions of self on smaller domains,
                     # including self, with domains as keys. Its elements can be
@@ -1212,7 +1212,7 @@ class TensorField(ModuleElement):
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
     def add_expr_from_subdomain(self, frame, subdomain):
-        """
+        r"""
         Add an expression to an existing component from a subdomain.
 
         INPUT:
@@ -1271,7 +1271,7 @@ class TensorField(ModuleElement):
         One can see that ``v`` is not yet fully defined: the components
         (scalar fields) do not have values on the whole manifold::
 
-            sage: v._components.values()[0]._comp[(0,)].display()
+            sage: sorted(v._components.values())[0]._comp[(0,)].display()
             S --> R
             on U: (x, y) |--> x
 
@@ -1288,11 +1288,10 @@ class TensorField(ModuleElement):
 
         The definition of ``v`` is now complete::
 
-            sage: v._components.values()[0]._comp[(2,)].display()
+            sage: sorted(v._components.values())[0]._comp[(2,)].display()
             S --> R
             on U: (x, y) |--> x^2 + y^2
             on V: (xp, yp) |--> 1/(xp^2 + yp^2)
-
         """
         dom = frame._domain
         if not dom.is_subset(self._domain):

@@ -224,15 +224,15 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: U = C.affine_patch(0)
             sage: U
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0^3*x1 + x1^3 + x0
+              Y^3*Z + Z^3 + Y
             sage: U.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0^3*x1 + x1^3 + x0
+              Y^3*Z + Z^3 + Y
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               X^3*Y + Y^3*Z + X*Z^3
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (1 : x0 : x1)
+              Defn: Defined on coordinates by sending (Y, Z) to
+                    (1 : Y : Z)
             sage: U.projective_embedding() is U.embedding_morphism()
             True
 
@@ -276,11 +276,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         phi = AA.projective_embedding(i, PP)
         polys = self.defining_polynomials()
         xi = phi.defining_polynomials()
-        U = AA.subscheme([ f(xi) for f in polys ])
-        U._default_embedding_index = i
+        U = AA.subscheme([f(xi) for f in polys])
         phi = U.projective_embedding(i, PP)
-        self.__affine_patches[i] = U
         U._embedding_morphism = phi
+        self.__affine_patches[i] = U
         return U
 
     def _best_affine_patch(self, point):
@@ -359,15 +358,15 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             (0 : -3/2 : 1)
             sage: patch = S.neighborhood(s); patch
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0 + 3*x1
+              x + 3*z
             sage: patch.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0 + 3*x1
+              x + 3*z
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x + 2*y + 3*z
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (x0 : -3/2 : x1 + 1)
+              Defn: Defined on coordinates by sending (x, z) to
+                    (x : -3/2 : z + 1)
             sage: patch.embedding_center()
             (0, 0)
             sage: patch.embedding_morphism()([0,0])
@@ -391,11 +390,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             phi[j+1] = phi[j+1] + R.gen(j)
 
         pullback_polys = [f(phi) for f in self.defining_polynomials()]
-        patch = patch_cover.subscheme(pullback_polys)
-        patch_hom = patch.hom(phi,self)
-        patch._embedding_center = patch.point([0]*n)
-        patch._embedding_morphism = patch_hom
-        return patch
+        return patch_cover.subscheme(pullback_polys, embedding_center=[0]*n,
+                                     embedding_codomain=self, embedding_images=phi)
 
     def is_smooth(self, point=None):
         r"""
@@ -781,9 +777,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         G = L.groebner_basis() #eliminate
         newL = []
         #get only the elimination ideal portion
-        for i in range (len(G)-1,0,-1):
+        for i in range (len(G) - 1, 0, -1):
             v = G[i].variables()
-            if all([Rvars[j] not in v for j in range(n)]):
+            if all(Rvars[j] not in v for j in range(n)):
                 newL.append(psi(G[i]))
         return(codom.subscheme(newL))
 
@@ -1160,14 +1156,14 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         mind = max(degs)
         # need the smallest degree form that did not reduce to 0
         for d in degs:
-            if d < mind and d >0:
+            if d < mind and d > 0:
                 mind = d
         ind = degs.index(mind)
         CF = reduced[ind] #this should be the Chow form of X
         # check that it is correct (i.e., it is a principal generator for CH + the relations)
         rel2 = rel + [CF]
-        assert all([f in rel2 for f in CH.gens()]), "did not find a principal generator"
-        return(alp(CF))
+        assert all(f in rel2 for f in CH.gens()), "did not find a principal generator"
+        return alp(CF)
 
     def degree(self):
         r"""
@@ -1250,8 +1246,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             ...
             TypeError: the intersection of this subscheme and (=Closed subscheme of Affine Space of dimension 3
             over Rational Field defined by:
-              x1^2 + x2^2 - 2*x0,
-              x0^2 - x2^2) must be proper and finite
+              z^2 + w^2 - 2*y,
+              y^2 - w^2) must be proper and finite
         """
         try:
             self.ambient_space()(P)

@@ -170,7 +170,7 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
     # now that we know that (S1,S2) is a partition, we look for an invertible
     # element b that maps S1 to S2 by multiplication
     for b in Integer(n).coprime_integers(n):
-        if b != 1 and all(b * x in S2 for x in S1):
+        if b >= 2 and all(b * x in S2 for x in S1):
             if return_automorphism:
                 return True, b
             else:
@@ -353,6 +353,9 @@ def DuadicCodeEvenPair(F,S1,S2):
         ([11, 5] Cyclic Code over GF(3),
          [11, 5] Cyclic Code over GF(3))
     """
+    from sage.misc.stopgap import stopgap
+    stopgap("The function DuadicCodeEvenPair has several issues which may cause wrong results", 25896)
+
     from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
@@ -400,6 +403,9 @@ def DuadicCodeOddPair(F,S1,S2):
 
     This is consistent with Theorem 6.1.3 in [HP2003]_.
     """
+    from sage.misc.stopgap import stopgap
+    stopgap("The function DuadicCodeOddPair has several issues which may cause wrong results", 25896)
+
     from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
@@ -553,13 +559,13 @@ def QuadraticResidueCodeEvenPair(n,F):
 
     EXAMPLES::
 
-        sage: codes.QuadraticResidueCodeEvenPair(17, GF(13))
+        sage: codes.QuadraticResidueCodeEvenPair(17, GF(13))  # known bug (#25896)
         ([17, 8] Cyclic Code over GF(13),
          [17, 8] Cyclic Code over GF(13))
         sage: codes.QuadraticResidueCodeEvenPair(17, GF(2))
         ([17, 8] Cyclic Code over GF(2),
          [17, 8] Cyclic Code over GF(2))
-        sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))
+        sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))  # known bug (#25896)
         ([13, 6] Cyclic Code over GF(9),
          [13, 6] Cyclic Code over GF(9))
         sage: C1,C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))
@@ -617,13 +623,13 @@ def QuadraticResidueCodeOddPair(n,F):
 
     EXAMPLES::
 
-        sage: codes.QuadraticResidueCodeOddPair(17, GF(13))
+        sage: codes.QuadraticResidueCodeOddPair(17, GF(13))  # known bug (#25896)
         ([17, 9] Cyclic Code over GF(13),
          [17, 9] Cyclic Code over GF(13))
         sage: codes.QuadraticResidueCodeOddPair(17, GF(2))
         ([17, 9] Cyclic Code over GF(2),
          [17, 9] Cyclic Code over GF(2))
-        sage: codes.QuadraticResidueCodeOddPair(13, GF(9,"z"))
+        sage: codes.QuadraticResidueCodeOddPair(13, GF(9,"z"))  # known bug (#25896)
         ([13, 7] Cyclic Code over GF(9),
          [13, 7] Cyclic Code over GF(9))
         sage: C1 = codes.QuadraticResidueCodeOddPair(17, GF(2))[1]

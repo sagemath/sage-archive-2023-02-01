@@ -46,7 +46,7 @@ EXAMPLES::
     sage: MPC("infinity + NaN *I")
     +infinity + NaN*I
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Philippe Theveny <thevenyp@loria.fr>
 #                     2008 Alex Ghitza
 #                     2010 Yann Laigle-Chapuy
@@ -55,18 +55,17 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
-
-import sage
 import re
 from . import real_mpfr
 import weakref
 from cpython.object cimport Py_NE
 
+import sage
+from sage.cpython.string cimport str_to_bytes
 from sage.libs.mpfr cimport *
 from sage.libs.mpc cimport *
 from sage.structure.parent cimport Parent
@@ -852,13 +851,15 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 if a is None:
                     mpfr_set_ui(self.value.re, 0, MPFR_RNDN)
                 else:
-                    mpfr_set_str(self.value.re, a, base, rnd_re(rnd))
+                    mpfr_set_str(self.value.re, str_to_bytes(a),
+                                 base, rnd_re(rnd))
                 # set imag part
                 if b is None:
                     if a is None:
                         raise TypeError("unable to convert {!r} to a MPComplexNumber".format(z))
                 else:
-                    mpfr_set_str(self.value.im, b, base, rnd_im(rnd))
+                    mpfr_set_str(self.value.im, str_to_bytes(b),
+                                 base, rnd_im(rnd))
                 return
             elif isinstance(z, ComplexNumber):
                 mpc_set_fr_fr(self.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
@@ -920,7 +921,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
             sage: C = MPComplexField(prec=200, rnd='RNDUU')
             sage: b = C(393.39203845902384098234098230948209384028340)
-            sage: loads(dumps(b)) == b;
+            sage: loads(dumps(b)) == b
             True
             sage: C(1)
             1.0000000000000000000000000000000000000000000000000000000000
@@ -1154,11 +1155,11 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
             sage: MPC = MPComplexField()
             sage: a = MPC(2,1)
-            sage: long(a)
+            sage: long(a)  # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()
+            sage: a.__long__()  # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
@@ -2623,4 +2624,3 @@ cdef class CCtoMPC(Map):
         y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_fr_fr(y.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
         return y
-

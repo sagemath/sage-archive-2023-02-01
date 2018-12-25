@@ -37,9 +37,9 @@ class TriangularKacMoodyAlgebras(Category_over_base_ring):
 
             sage: from sage.categories.triangular_kac_moody_algebras import TriangularKacMoodyAlgebras
             sage: TriangularKacMoodyAlgebras(QQ).super_categories()
-            [Join of Category of graded modules with basis over Rational Field
-                 and Category of lie algebras with basis over Rational Field
+            [Join of Category of graded lie algebras with basis over Rational Field
                  and Category of kac moody algebras over Rational Field]
+
         """
         # We do not also derive from (Magmatic) algebras since we don't want *
         #   to be our Lie bracket
@@ -170,8 +170,8 @@ class TriangularKacMoodyAlgebras(Category_over_base_ring):
 
                 sage: L = lie_algebras.so(QQ, 5)
                 sage: L._negative_half_index_set()
-                [-alpha[2], -alpha[1] - alpha[2],
-                 -alpha[1], -alpha[1] - 2*alpha[2]]
+                [-alpha[2], -alpha[1], -alpha[1] - alpha[2],
+                 -alpha[1] - 2*alpha[2]]
             """
 
         @abstract_method

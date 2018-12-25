@@ -288,13 +288,15 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         sub = singleton_upper_bound(n,q,d)
         return min([eub,hub,pub,sub])
 
-def dimension_upper_bound(n,d,q,algorithm=None):
-    r"""
-    Returns an upper bound for the dimension of a linear code.
 
-    Returns an upper bound `B(n,d) = B_q(n,d)` for the
+def dimension_upper_bound(n, d, q, algorithm=None):
+    r"""
+    Return an upper bound for the dimension of a linear code.
+
+    Return an upper bound `B(n,d) = B_q(n,d)` for the
     dimension of a linear code of length n, minimum distance d over a
     field of size q.
+
     Parameter "algorithm" has the same meaning as in :func:`codesize_upper_bound`
 
     EXAMPLES::
@@ -317,10 +319,10 @@ def dimension_upper_bound(n,d,q,algorithm=None):
     """
     _check_n_q_d(n, q, d)
     q = ZZ(q)
-    if algorithm=="LP":
-        return delsarte_bound_additive_hamming_space(n,d,q)
-    else:       # algorithm==None or algorithm=="gap":
-        return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
+    if algorithm == "LP":
+        return delsarte_bound_additive_hamming_space(n, d, q)
+    # algorithm == None or algorithm == "gap":
+    return int(ZZ(codesize_upper_bound(n, d, q, algorithm=algorithm)).log(q))
 
 
 def volume_hamming(n,q,r):
@@ -580,7 +582,7 @@ def entropy(x, q=2):
         sage: codes.bounds.entropy(0, 2)
         0
         sage: codes.bounds.entropy(1/5,4).factor()
-        1/10*(log(5) + log(3) - 4*log(4/5))/log(2)
+        1/10*(log(3) - 4*log(4/5) - log(1/5))/log(2)
         sage: codes.bounds.entropy(1, 3)
         log(2)/log(3)
 

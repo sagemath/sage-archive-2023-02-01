@@ -154,8 +154,8 @@ The chosen ring depends on the input format.
 .. WARNING::
 
     The base ring :code:`RDF` should be used with care. As it is not an exact
-    ring, certain computations may break, for example when dealing with
-    non-simplicial polyhedra.
+    ring, certain computations may break or silently produce wrong results, for
+    example when dealing with non-simplicial polyhedra.
 
 
 The following example demonstrates the limitations of :code:`RDF`.
@@ -166,8 +166,9 @@ The following example demonstrates the limitations of :code:`RDF`.
     sage: D
     A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
     sage: D_RDF = Polyhedron(vertices = [n(v.vector(),digits=6) for v in D.vertices()], base_ring=RDF)
-    sage: D_RDF
-    A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 19 vertices
+    Traceback (most recent call last):
+    ...
+    ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
 
 .. end of output
 
@@ -301,9 +302,9 @@ defined. The `H`-representation may contain equations:
 ::
 
     sage: P3.Hrepresentation()
-    (An equation (1.0, 1.0) x - 0.5 == 0,
-     An inequality (-2.0, 0.0) x + 1.0 >= 0,
-     An inequality (1.0, 0.0) x + 0.0 >= 0)
+    (An inequality (-2.0, 0.0) x + 1.0 >= 0,
+     An inequality (1.0, 0.0) x + 0.0 >= 0,
+     An equation (1.0, 1.0) x - 0.5 == 0)
 
 .. end of output
 
@@ -604,7 +605,7 @@ string containing a path to a file to be written.
 The :code:`ppl` backend
 -----------------------
 
-The default backend for polyhedron objects i :code:`ppl`.
+The default backend for polyhedron objects is :code:`ppl`.
 
 ::
 

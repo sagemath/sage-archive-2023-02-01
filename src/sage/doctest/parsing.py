@@ -38,10 +38,15 @@ from functools import reduce
 
 from .external import available_software
 
-float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
+float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
+find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)
+python_prompt = re.compile(r"^(\s*)>>>", re.M)
+# The following are used to allow ... at the beginning of output
+ellipsis_tag = "<TEMP_ELLIPSIS_TAG>"
+continuation_tag = "<TEMP_CONTINUATION_TAG>"
 random_marker = re.compile('.*random', re.I)
 tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(?:erance)?\b( +[0-9.e+-]+)?')
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
@@ -576,7 +581,6 @@ class OriginalSource(object):
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
             ....:     ex.source
-            ...
             u'doctest_var = 42; doctest_var^2\n'
         """
         if hasattr(self.example, 'sage_source'):
@@ -597,7 +601,6 @@ class OriginalSource(object):
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
             ....:     ex.source
-            ...
             u'doctest_var = 42; doctest_var^2\n'
             sage: ex.source # indirect doctest
             u'doctest_var = Integer(42); doctest_var**Integer(2)\n'
@@ -611,17 +614,18 @@ class SageDocTestParser(doctest.DocTestParser):
     A version of the standard doctest parser which handles Sage's
     custom options and tolerances in floating point arithmetic.
     """
-    def __init__(self, long=False, optional_tags=()):
+    def __init__(self, optional_tags=(), long=False):
         r"""
         INPUT:
 
-        - ``long`` -- boolean, whether to run doctests marked as taking a long time.
         - ``optional_tags`` -- a list or tuple of strings.
+        - ``long`` -- boolean, whether to run doctests marked as taking a
+          long time.
 
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'))
             sage: ex = DTP.parse("sage: 2 + 2\n")[1]
             sage: ex.sage_source
             '2 + 2\n'
@@ -653,8 +657,8 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
-            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'), True)
+            sage: DTP2 = SageDocTestParser(('sage','magma','guava'), False)
             sage: DTP == DTP2
             False
         """
@@ -669,8 +673,8 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
-            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'), True)
+            sage: DTP2 = SageDocTestParser(('sage','magma','guava'), False)
             sage: DTP != DTP2
             True
         """
@@ -696,7 +700,7 @@ class SageDocTestParser(doctest.DocTestParser):
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP = SageDocTestParser(('sage','magma','guava'))
             sage: example = 'Explanatory text::\n\n    sage: E = magma("EllipticCurve([1, 1, 1, -10, -10])") # optional: magma\n\nLater text'
             sage: parsed = DTP.parse(example)
             sage: parsed[0]
@@ -710,7 +714,7 @@ class SageDocTestParser(doctest.DocTestParser):
         optional argument, the corresponding examples will just be
         removed::
 
-            sage: DTP2 = SageDocTestParser(True, ('sage',))
+            sage: DTP2 = SageDocTestParser(('sage',))
             sage: parsed2 = DTP2.parse(example)
             sage: parsed2
             ['Explanatory text::\n\n', '\nLater text']
@@ -754,6 +758,16 @@ class SageDocTestParser(doctest.DocTestParser):
             4321
             sage: print(m)
             87654321
+
+        Test that :trac:`26575` is resolved::
+
+            sage: example3 = 'sage: Zp(5,4,print_mode="digits")(5)\n...00010'
+            sage: parsed3 = DTP.parse(example3)
+            sage: dte = parsed3[1]
+            sage: dte.sage_source
+            'Zp(5,4,print_mode="digits")(5)\n'
+            sage: dte.want
+            '...00010\n'
         """
         # Hack for non-standard backslash line escapes accepted by the current
         # doctest system.
@@ -768,6 +782,11 @@ class SageDocTestParser(doctest.DocTestParser):
             string = string[:m.start()] + g[0] + "sage:" + g[1] + future
             m = backslash_replacer.search(string,m.start())
 
+        replace_ellipsis = not python_prompt.search(string)
+        if replace_ellipsis:
+            # There are no >>> prompts, so we can allow ... to begin the output
+            # We do so by replacing ellipses with a special tag, then putting them back after parsing
+            string = find_python_continuation.sub(r"\1" + ellipsis_tag + r"\2", string)
         string = find_sage_prompt.sub(r"\1>>> sage: ", string)
         string = find_sage_continuation.sub(r"\1...", string)
         res = doctest.DocTestParser.parse(self, string, *args)
@@ -797,6 +816,10 @@ class SageDocTestParser(doctest.DocTestParser):
                 elif self.optional_only:
                     self.optionals['sage'] += 1
                     continue
+                if replace_ellipsis:
+                    item.want = item.want.replace(ellipsis_tag, "...")
+                    if item.exc_msg is not None:
+                        item.exc_msg = item.exc_msg.replace(ellipsis_tag, "...")
                 item.want = parse_tolerance(item.source, item.want)
                 if item.source.startswith("sage: "):
                     item.sage_source = item.source[6:]
@@ -816,7 +839,7 @@ class SageOutputChecker(doctest.OutputChecker):
         sage: from sage.doctest.parsing import SageOutputChecker, MarkedOutput, SageDocTestParser
         sage: import doctest
         sage: optflag = doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS
-        sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+        sage: DTP = SageDocTestParser(('sage','magma','guava'))
         sage: OC = SageOutputChecker()
         sage: example2 = 'sage: gamma(1.6) # tol 2.0e-11\n0.893515349287690'
         sage: ex = DTP.parse(example2)[1]

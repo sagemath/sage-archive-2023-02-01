@@ -1128,6 +1128,8 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
 
     _UnLabelled = OrderedTree
 
+    __hash__ = ClonableArray.__hash__
+
     @combinatorial_map(order=2, name="Left-right symmetry")
     def left_right_symmetry(self):
         r"""

@@ -118,6 +118,9 @@ from .power_series_ring_element import PowerSeries
 from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
 
+# Tate algebras
+from .tate_algebra import TateAlgebra
+
 # Pseudo-ring of PARI objects.
 from .pari_ring import PariRing, Pari
 
@@ -138,15 +141,14 @@ from .monomials import monomials
 CC = ComplexField()
 CIF = ComplexIntervalField()
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.invariant_theory', 'invariant_theory')
+# invariant theory
+from .invariants.all import *
 
 from .fast_arith import prime_range
 
 # continued fractions
-from sage.rings.continued_fraction import (farey, convergents,
-    continued_fraction, continued_fraction_list,
-    Hirzebruch_Jung_continued_fraction_list)
+from sage.rings.continued_fraction import (convergents,
+    continued_fraction, continued_fraction_list)
 
 # asymptotic ring
 from .asymptotic.all import *

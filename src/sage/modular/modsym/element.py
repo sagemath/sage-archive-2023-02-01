@@ -42,8 +42,9 @@ def is_ModularSymbolsElement(x):
     """
     return isinstance(x, ModularSymbolsElement)
 
+
 def set_modsym_print_mode(mode="manin"):
-    """
+    r"""
     Set the mode for printing of elements of modular symbols spaces.
 
     INPUT:
@@ -103,8 +104,8 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         EXAMPLES::
 
             sage: S = ModularSymbols(11, sign=1).cuspidal_submodule()
-            sage: S(vector([0,1]))
-            (1,9)
+            sage: S(vector([0,1])) == S.basis()[0]
+            True
             sage: S(vector([1,0]))
             Traceback (most recent call last):
             ...

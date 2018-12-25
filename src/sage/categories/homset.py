@@ -273,8 +273,9 @@ def Hom(X, Y, category=None, check=True):
 
     Facade parents over plain Python types are supported::
 
-        sage: R = sage.structure.parent.Set_PythonType(int)
-        sage: S = sage.structure.parent.Set_PythonType(float)
+        sage: from sage.sets.pythonclass import Set_PythonType
+        sage: R = Set_PythonType(int)
+        sage: S = Set_PythonType(float)
         sage: Hom(R, S)
         Set of Morphisms from Set of Python objects of class 'int' to Set of Python objects of class 'float' in Category of sets
 
@@ -316,7 +317,7 @@ def Hom(X, Y, category=None, check=True):
 
         sage: cls = type(Set())
         sage: S = unpickle_newobj(cls, ())  # A non parent
-        sage: H = Hom(S, S, SimplicialComplexes(), check=False);
+        sage: H = Hom(S, S, SimplicialComplexes(), check=False)
         sage: H = Hom(S, S, Sets(),                check=False)
         sage: H = Hom(S, S, ChainComplexes(QQ),    check=False)
 
@@ -568,18 +569,17 @@ class Homset(Set_generic):
         sage: loads(dumps(H)) is H
         True
 
-    Conversely, homsets of non-unique parents are non-unique:
+    Conversely, homsets of non-unique parents are non-unique::
 
-        sage: H = End(ProjectiveSpace(2, names='x,y,z'))
-        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')
+        sage: H = End(ProductProjectiveSpaces(QQ, [1, 1]))
+        sage: loads(dumps(ProductProjectiveSpaces(QQ, [1, 1]))) is ProductProjectiveSpaces(QQ, [1, 1])
         False
-        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) == ProjectiveSpace(2, names='x,y,z')
+        sage: loads(dumps(ProductProjectiveSpaces(QQ, [1, 1]))) == ProductProjectiveSpaces(QQ, [1, 1])
         True
         sage: loads(dumps(H)) is H
         False
         sage: loads(dumps(H)) == H
         True
-
     """
     def __init__(self, X, Y, category=None, base = None, check=True):
         r"""

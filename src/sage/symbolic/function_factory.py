@@ -67,6 +67,21 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
             """
             return "'%s"%self.name()
 
+        def _fricas_init_(self):
+            """
+            Return the FriCAS equivalent of a formal function.
+
+            Note that the arity is ignored.
+
+            EXAMPLES::
+
+                sage: from sage.symbolic.function_factory import function_factory
+                sage: f = function_factory('f', 2) # indirect doctest
+                sage: f._fricas_init_()
+                'operator("f")'
+            """
+            return 'operator("%s")'%self.name()
+
         def _sympy_(self):
             from sympy import Function
             return Function(self.name())

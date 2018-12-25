@@ -631,7 +631,7 @@ cdef class dancing_linksWrapper:
         big (less than 50ms in the example below)::
 
             sage: S = Subsets(range(11))
-            sage: rows = map(list, S)
+            sage: rows = list(map(list, S))
             sage: dlx = dlx_solver(rows)
             sage: dlx
             Dancing links solver for 11 columns and 2048 rows

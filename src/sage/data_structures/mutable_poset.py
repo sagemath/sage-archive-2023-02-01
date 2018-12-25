@@ -3412,9 +3412,11 @@ class MutablePoset(SageObject):
             if topological else self.shells()
         remove = []
         for shell in shells:
-            shell._element_ = function(shell._element_)
-            if shell._element_ is None:
+            image = function(shell._element_)
+            if image is None:
                 remove.append(shell.key)
+            else:
+                shell._element_ = image
         for key in remove:
             self.remove(key)
 

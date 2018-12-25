@@ -265,7 +265,7 @@ def build_alphabet(data=None, names=None, name=None):
 
     # Alphabet(**nothing**)
     if data is None:  # name is also None
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         return Set_PythonType(object)
 
     raise ValueError("unable to construct an alphabet from the given parameters")

@@ -284,6 +284,7 @@ class sage_build_cython(Command):
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
+            language_level="2",
             preliminary_late_includes_cy28=True,
             profile=self.profile,
         )
@@ -342,7 +343,7 @@ class sage_build_cython(Command):
             return self.cythonized_files
 
         self.cythonized_files = list(find_extra_files(
-            ".", ["sage"], self.build_dir, ["ntlwrap.cpp"]).items())
+            ".", ["sage"], self.build_dir, []).items())
 
         return self.cythonized_files
 

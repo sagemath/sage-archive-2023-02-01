@@ -165,6 +165,7 @@ def enum_projective_number_field(X, **kwds):
 
     This is an implementation of the revised algorithm (Algorithm 4) in
     [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
+    
     INPUT:
 
     kwds:
@@ -187,7 +188,7 @@ def enum_projective_number_field(X, **kwds):
         sage: K = NumberField(u^3 - 5,'v')
         sage: P.<x,y,z> = ProjectiveSpace(K, 2)
         sage: X = P.subscheme([x - y])
-        sage: enum_projective_number_field(X(K), bound=5^(1/3), prec=2^10)
+        sage: enum_projective_number_field(X(K), bound=RR(5^(1/3)), prec=2^10)
         [(0 : 0 : 1), (-1 : -1 : 1), (1 : 1 : 1), (-1/5*v^2 : -1/5*v^2 : 1), (-v : -v : 1),
         (1/5*v^2 : 1/5*v^2 : 1), (v : v : 1), (1 : 1 : 0)]
 
@@ -205,7 +206,7 @@ def enum_projective_number_field(X, **kwds):
     tol = kwds.pop('tolerance', 1e-2)
     prec = kwds.pop('precision', 53)
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
-    if(is_Scheme(X)):
+    if is_Scheme(X):
         if (not is_ProjectiveSpace(X.ambient_space())):
             raise TypeError("ambient space must be projective space over a number field")
         X = X(X.base_ring())

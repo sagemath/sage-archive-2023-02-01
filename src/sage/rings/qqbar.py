@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Field of Algebraic Numbers
 

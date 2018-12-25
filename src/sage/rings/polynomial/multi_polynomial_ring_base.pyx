@@ -63,6 +63,14 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             True
             sage: A1(a) in A2
             True
+
+        Check that :trac:`26958` is fixed::
+
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: class Foo(MPolynomialRing_libsingular):
+            ....:     pass
+            sage: Foo(QQ, 2, ['x','y'], 'degrevlex')
+            Multivariate Polynomial Ring in x, y over Rational Field
         """
         if base_ring not in _CommutativeRings:
             raise TypeError("The base ring %s is not a commutative ring" % base_ring)
@@ -84,6 +92,9 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             category = categories.rings.Rings().Finite()
         else:
             category = polynomial_default_category(base_ring.category(), n)
+
+        # Avoid calling __init_extra__ of Algebras(...).parent_class
+        self._no_generic_basering_coercion = True
 
         sage.rings.ring.Ring.__init__(self, base_ring, names, category=category)
 

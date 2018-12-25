@@ -11496,7 +11496,7 @@ cdef class PolynomialBaseringInjection(Morphism):
     By :trac:`9944`, there are now only very few exceptions::
 
         sage: PolynomialRing(QQ,names=[]).coerce_map_from(QQ)
-        Generic morphism:
+        Call morphism:
           From: Rational Field
           To:   Multivariate Polynomial Ring in no variables over Rational Field
     """

@@ -59,7 +59,7 @@ from sage.functions.other import factorial
 from sage.misc.prandom import random, randint
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.sets.disjoint_set import DisjointSet
-from sage.combinat.posets.posets import Poset
+from sage.combinat.posets.hasse_diagram import HasseDiagram
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class AbstractSetPartition(ClonableArray):
@@ -506,12 +506,12 @@ class SetPartition(AbstractSetPartition):
     `[2, 1, 1]`::
 
         sage: SetPartitions(4, [2,1,1]).list()
-        [{{1, 3}, {2}, {4}},
-         {{1, 2}, {3}, {4}},
-         {{1}, {2, 3}, {4}},
-         {{1}, {2, 4}, {3}},
+        [{{1}, {2, 4}, {3}},
          {{1}, {2}, {3, 4}},
-         {{1, 4}, {2}, {3}}]
+         {{1, 4}, {2}, {3}},
+         {{1, 3}, {2}, {4}},
+         {{1, 2}, {3}, {4}},
+         {{1}, {2, 3}, {4}}]
 
     Since :trac:`14140`, we can create a set partition directly by
     :class:`SetPartition`, which creates the base set by taking the
@@ -1959,10 +1959,10 @@ class SetPartitions(UniqueRepresentation, Parent):
     EXAMPLES::
 
         sage: S = [1,2,3,4]
-        sage: SetPartitions(S,2)
+        sage: SetPartitions(S, 2)
         Set partitions of {1, 2, 3, 4} with 2 parts
         sage: SetPartitions([1,2,3,4], [3,1]).list()
-        [{{1, 3, 4}, {2}}, {{1, 2, 4}, {3}}, {{1, 2, 3}, {4}}, {{1}, {2, 3, 4}}]
+        [{{1}, {2, 3, 4}}, {{1, 2, 3}, {4}}, {{1, 2, 4}, {3}}, {{1, 3, 4}, {2}}]
         sage: SetPartitions(7, [3,3,1]).cardinality()
         70
 
@@ -2739,7 +2739,7 @@ class SetPartitions_set(SetPartitions):
             else:
                 p[b] = [base_set[i]]
 
-        return SetPartition(p.values())
+        return self.element_class(self, p.values(), check=False)
 
     def cardinality(self):
         """
@@ -2920,17 +2920,17 @@ class SetPartitions_setparts(SetPartitions_set):
         return Integer(cardinal)
 
     def _set_partition_poset(self):
-        """
-        Return a poset whose linear extensions correspond to the set
-        partitions with specified block sizes.
+        r"""
+        Return the Hasse diagram of a poset whose linear extensions correspond
+        to the set partitions with specified block sizes.
 
         TESTS::
 
             sage: P = SetPartitions(["a", "b", "c", "d", "e"], [2,2,1])._set_partition_poset()
             sage: P.cover_relations()
-            [[2, 3], [2, 4], [4, 5]]
+            [(1, 2), (1, 3), (3, 4)]
 
-            sage: n = 8
+            sage: n = 9
             sage: all(SetPartitions(n, mu).cardinality() ==
             ....:     len(list(SetPartitions(n, mu)._set_partition_poset().linear_extensions()))
             ....:     for mu in Partitions(n))
@@ -2939,7 +2939,7 @@ class SetPartitions_setparts(SetPartitions_set):
         """
         c = self._parts.to_exp_dict()
         covers = dict()
-        i = 1
+        i = 0
         for s in sorted(c):
             # s is the block size
             # each block is one tree in the poset
@@ -2958,7 +2958,8 @@ class SetPartitions_setparts(SetPartitions_set):
                 i += 1
                 if m < c[s]-1:
                     covers[first].append(i)
-        return Poset(covers)
+        return HasseDiagram(covers)
+
 
     def __iter__(self):
         """
@@ -2968,25 +2969,34 @@ class SetPartitions_setparts(SetPartitions_set):
         EXAMPLES::
 
             sage: SetPartitions(3, [2,1]).list()
-            [{{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2, 3}}]
+            [{{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}]
 
             sage: SetPartitions(["a", "b", "c"], [2,1]).list()
-            [{{'a', 'b'}, {'c'}}, {{'a', 'c'}, {'b'}}, {{'a'}, {'b', 'c'}}]
+            [{{'a'}, {'b', 'c'}}, {{'a', 'c'}, {'b'}}, {{'a', 'b'}, {'c'}}]
+
+        TESTS::
+
+            sage: n = 8
+            sage: all(SetPartitions(n, mu).cardinality() == len(list(SetPartitions(n, mu))) for mu in Partitions(n))
+            True
 
         """
         # Ruskey, Combinatorial Generation, sec. 5.10.1 and Knuth TAOCP 4A 7.2.1.5, Exercise 6
         k = len(self._parts)
-        P = self._set_partition_poset()
+        n = len(self._set)
         s = list(self._set)
+        P = self._set_partition_poset()
 
         sums = [0]
         for b in sorted(self._parts):
             sums.append(sums[-1] + b)
 
         for ext in P.linear_extensions():
-            pi = Permutation(ext, check_input = False).inverse()
-            # yield SetPartition([pi[sums[i]:sums[i+1]] for i in range(k)])
-            yield SetPartition([[s[pi[j]-1] for j in range(sums[i],sums[i+1])] for i in range(k)])
+            pi = [None]*n
+            for i in range(n):
+                pi[ext[i]] = s[i]
+            sp = [[pi[j] for j in range(sums[i], sums[i+1])] for i in range(k)]
+            yield self.element_class(self, sp, check=False)
 
     def __contains__(self, x):
         """
@@ -3157,7 +3167,7 @@ class SetPartitions_setn(SetPartitions_set):
         N = len(base_set)
         k = self._k
         p = re(N, k)
-        return SetPartition([[base_set[e] for e in b] for b in p])
+        return self.element_class(self, [[base_set[e] for e in b] for b in p], check=False)
 
 
 def cyclic_permutations_of_set_partition(set_part):

@@ -9046,32 +9046,25 @@ class GenericGraph(GenericGraph_pyx):
             if l > 0 and not (integer and l < .5):
                 g.add_edge(u, v, l)
 
-        # stupid way to find Cycles. Will be fixed by #8932
-        # for any vertex, for any of its in-neighbors, tried to find a cycle
-        for v in g:
-            for u in g.neighbor_in_iterator(v):
+        while True:
+            # Check if the flow graph is acyclic
+            is_acyclic, cycle = g.is_directed_acyclic(certificate=True)
+            if is_acyclic:
+                break
 
-                # the edge from u to v could have been removed in a previous iteration
-                if not g.has_edge(u, v):
-                    break
-                sp = g.shortest_path(v, u)
-                if sp:
+            # Find the minimum flow value along the cycle
+            cycle.append(cycle[0])
+            m = min(g.edge_label(u, v) for u, v in zip(cycle[:-1], cycle[1:]))
 
-                    # find the minimm value along the cycle.
-                    m = g.edge_label(u, v)
-                    for i in range(len(sp) - 1):
-                        m = min(m, g.edge_label(sp[i], sp[i+1]))
+            # Remove it from all the edges of the cycle
+            for u, v in zip(cycle[:-1], cycle[1:]):
+                l = g.edge_label(u, v) - m
 
-                    # removes it from all the edges of the cycle
-                    sp.append(v)
-                    for i in range(len(sp) - 1):
-                        l = g.edge_label(sp[i], sp[i+1]) - m
-
-                        # an edge with flow 0 is removed
-                        if not l:
-                            g.delete_edge(sp[i], sp[i+1])
-                        else:
-                            g.set_edge_label(sp[i], sp[i+1], l)
+                # An edge with flow 0 is removed
+                if not l:
+                    g.delete_edge(u, v)
+                else:
+                    g.set_edge_label(u, v, l)
 
         # if integer is set, round values and deletes zeroes
         if integer:

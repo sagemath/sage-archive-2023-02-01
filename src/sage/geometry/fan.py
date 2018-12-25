@@ -3216,12 +3216,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan = toric_varieties.P(3).fan()
             sage: cone = fan(2)[0]
             sage: bdry = fan.oriented_boundary(cone);  bdry
-            1-d cone of Rational polyhedral fan in 3-d lattice N
-            - 1-d cone of Rational polyhedral fan in 3-d lattice N
+            -1-d cone of Rational polyhedral fan in 3-d lattice N + 1-d cone of Rational polyhedral fan in 3-d lattice N
             sage: bdry[0]
-            (1, 1-d cone of Rational polyhedral fan in 3-d lattice N)
-            sage: bdry[1]
             (-1, 1-d cone of Rational polyhedral fan in 3-d lattice N)
+            sage: bdry[1]
+            (1, 1-d cone of Rational polyhedral fan in 3-d lattice N)
             sage: fan.oriented_boundary(bdry[0][1])
             -0-d cone of Rational polyhedral fan in 3-d lattice N
             sage: fan.oriented_boundary(bdry[1][1])

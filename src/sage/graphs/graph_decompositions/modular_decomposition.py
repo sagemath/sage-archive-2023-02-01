@@ -247,7 +247,7 @@ class Node:
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import Node, NodeType
+                       import Node, NodeType, create_normal_node
             sage: n = Node(NodeType.PRIME)
             sage: n.children.append(create_normal_node(1))
             sage: n.children.append(create_normal_node(2))
@@ -275,7 +275,7 @@ class Node:
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import Node, NodeType
+                       import Node, NodeType, create_normal_node
             sage: n = Node(NodeType.PRIME)
             sage: n.children.append(create_normal_node(1))
             sage: n.children.append(create_normal_node(2))
@@ -2628,8 +2628,9 @@ def habib_maurer_algorithm(graph, g_classes=None):
 
     The Icosahedral graph is Prime::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-              habib_maurer_algorithm, test_modular_decomposition, print_md_tree
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+              import habib_maurer_algorithm, test_modular_decomposition, \
+                    print_md_tree
         sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))
         PRIME
          8
@@ -2772,7 +2773,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
         if g_classes is None:
             g_classes = gamma_classes(graph)
         vertex_set = frozenset(graph.vertex_iterator())
-        edges = g_classes[vertex_set]
+        edges = [tuple(e) for e in g_classes[vertex_set] ]
         sub = graph.subgraph(edges=edges)
         d = defaultdict(list)
         for v in sub:

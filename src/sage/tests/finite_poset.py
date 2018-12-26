@@ -13,8 +13,7 @@ from functools import reduce
 
 implications = {
  'doubling_convex': ['doubling_any'],
- 'doubling_interval': ['doubling_lower'],
- 'doubling_interval': ['doubling_upper'],
+ 'doubling_interval': ['doubling_lower', 'doubling_upper'],
  'doubling_lower': ['doubling_convex', 'meet_semidistributive'],
  'doubling_upper': ['doubling_convex', 'join_semidistributive'],
  'cosectionally_complemented': ['complemented', 'coatomic', 'regular'],

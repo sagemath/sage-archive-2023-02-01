@@ -46,13 +46,10 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
-from sage.combinat.misc import IterableFunctionCall
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.combinat_cython import (set_partition_iterator,
                                            set_partition_iterator_blocks)
-import sage.combinat.subset as subset
 from sage.combinat.partition import Partition, Partitions
-from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
 from sage.functions.other import factorial

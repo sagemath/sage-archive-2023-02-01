@@ -112,6 +112,15 @@ class AbstractSetPartition(ClonableArray):
             sage: D = P([[1], [2, 4], [3]])
             sage: A == D
             False
+
+        Note that equality is not well defined if the base set is not totally ordered::
+
+            sage: a,b = frozenset([0,1]), frozenset([2,3])
+            sage: p1 = SetPartition([[a], [b]])
+            sage: p2 = SetPartition([[b], [a]])
+            sage: p1 == p2
+            False
+
         """
         if not isinstance(y, AbstractSetPartition):
             return False

@@ -113,7 +113,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A == D
             False
 
-        Note that equality is not well defined if the base set is not totally ordered::
+        Note that this may give incorrect answers if the base set is not totally ordered::
 
             sage: a,b = frozenset([0,1]), frozenset([2,3])
             sage: p1 = SetPartition([[a], [b]])

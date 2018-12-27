@@ -543,7 +543,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         smallest one.
 
         EXAMPLES::
-        
+
             sage: MS = MatrixSpace(GF(2), 5, 5)
             sage: A = MS([[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,0,0,0,0]])
             sage: G = MatrixGroup([A])
@@ -711,8 +711,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
             sage: G = MatrixGroup(gens)
             sage: G.invariant_generators()
-            [x1^7*x2 - x1*x2^7, 
-             x1^12 - 2*x1^9*x2^3 - x1^6*x2^6 + 2*x1^3*x2^9 + x2^12, 
+            [x1^7*x2 - x1*x2^7,
+             x1^12 - 2*x1^9*x2^3 - x1^6*x2^6 + 2*x1^3*x2^9 + x2^12,
              x1^18 + 2*x1^15*x2^3 + 3*x1^12*x2^6 + 3*x1^6*x2^12 - 2*x1^3*x2^15 + x2^18]
 
             sage: q = 4; a = 2
@@ -1069,10 +1069,10 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
             sage: G.reynolds_operator(x*y^5, chi)
-            1/3*x*y^5 + (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*x^5*z + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*y*z^5
+            1/3*x*y^5 + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*x^5*z + (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*y*z^5
             sage: R.<x,y,z> = QQbar[]
             sage: G.reynolds_operator(x*y^5, chi)
-            1/3*x*y^5 + (-0.1666666666666667? + 0.2886751345948129?*I)*x^5*z + (-0.1666666666666667? - 0.2886751345948129?*I)*y*z^5
+             1/3*x*y^5 + (-0.1666666666666667? - 0.2886751345948129?*I)*x^5*z + (-0.1666666666666667? + 0.2886751345948129?*I)*y*z^5
 
         ::
 
@@ -1288,8 +1288,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
             sage: sorted(G.invariants_of_degree(2, R=R, chi=chi))
-            [x*y + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*x*z + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*y*z,
-             x^2 + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*y^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*z^2]
+            [x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y*z,
+             x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*z^2]
 
         ::
 

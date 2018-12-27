@@ -116,7 +116,7 @@ import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 from sage.libs.gap.element cimport GapElement_List
-from sage.libs.gap.gap_includes cimport libGAP_Obj, libGAP_INT_INTOBJ, libGAP_ELM_LIST
+from sage.libs.gap.gap_includes cimport Obj, INT_INTOBJ, ELM_LIST
 
 import operator
 
@@ -951,7 +951,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             (1,4)(2,3)
         """
         cdef GapElement_List lst = <GapElement_List?> lst_in
-        cdef libGAP_Obj obj = lst.value
+        cdef Obj obj = lst.value
 
         cdef PermutationGroupElement new = self._new_c()
         cdef Py_ssize_t i, j, vn = len(lst)
@@ -959,7 +959,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         assert vn <= self.n
 
         for i in range(vn):
-            j = libGAP_INT_INTOBJ(libGAP_ELM_LIST(obj, i+1))
+            j = INT_INTOBJ(ELM_LIST(obj, i+1))
             new.perm[i] = j - 1
         for i in range(vn, self.n):
             new.perm[i] = i

@@ -2038,6 +2038,14 @@ class MPolynomialIdeal_singular_repr(
     def _elimination_ideal_libsingular(self, variables):
         r"""
         Compute the elimination ideal using libsingular.
+
+        EXAMPLES::
+
+            sage: R.<x,y,t,s,z> = PolynomialRing(QQ,5)
+            sage: I = R * [x-t,y-t^2,z-t^3,s-x+y^3]
+            sage: I.elimination_ideal([t,s], "libsingular")  # indirect doctest
+            Ideal (y^2 - x*z, x*y - z, x^2 - y) of Multivariate
+            Polynomial Ring in x, y, t, s, z over Rational Field
         """
         import sage.libs.singular.function_factory
         eliminate = sage.libs.singular.function_factory.ff.eliminate

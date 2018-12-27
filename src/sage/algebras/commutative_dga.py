@@ -2162,12 +2162,8 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         ALGORITHM:
 
-        Use induction on degree, so assume we know what happens in
-        degrees less than `n`. Compute the cocycles `Z` in degree `n`.
-        Form a subspace `W` of this, spanned by the cocycles generated
-        by the lower degree generators, along with the coboundaries in
-        degree `n`. Find a basis for the complement of `W` in `Z`:
-        these represent cohomology generators.
+        Reduce a basis of the n'th cohomology modulo all the degree n
+        products of the lower degrees cohomologys.
 
         EXAMPLES::
 
@@ -2211,6 +2207,8 @@ class DifferentialGCAlgebra(GCAlgebra):
             sage: acyclic.cohomology_generators(3)
             {}
         """
+        if not (max_degree in ZZ and max_degree > 0):
+            raise ValueError("the given maximal degree must be a positive integer")
         def vector_to_element(v, deg):
             """
             If an element of this algebra in degree ``deg`` is represented
@@ -2218,43 +2216,24 @@ class DifferentialGCAlgebra(GCAlgebra):
             algebra again.
             """
             return sum(c*b for (c,b) in zip(v, self.basis(deg)))
-
-        field = self.base_ring()
-        # gens: dictionary indexed by degree. Value is a list of
-        # cohomology generators in that degree.
-        gens = {}
-        # cocycles: dictionary indexed by degree. Value is a spanning
-        # set for the cocycles in that degree.
-        cocycles = {0: self.one()}
-        for n in range(1, max_degree+1):
-            old_cocycles = []
-            for i in gens:
-                for g in gens[i]:
-                    lowdim_cocycles = cocycles[n-i]
-                    for x in lowdim_cocycles:
-                        a = g*x
-                        if a:
-                            old_cocycles.append(a)
-            # Eliminate duplicates.
-            old_cocycles = set(old_cocycles)
-            # Convert elements of old_cocycles to raw vectors:
-            old_cocycles_raw = [cocyc.basis_coefficients(total=True)
-                                for cocyc in old_cocycles]
-            old_cocycles_raw += self.coboundaries(n).basis()
-            cochains = VectorSpace(field, len(self.basis(n)))
-            W = cochains.submodule(old_cocycles_raw)
-            basis_of_complement = []
-            all_cocycles = self.cocycles(n).basis()
-            for z in all_cocycles:
-                if z not in W:
-                    basis_of_complement.append(z)
-            cocycle_basis = [vector_to_element(coeffs, n)
-                             for coeffs in basis_of_complement]
-            # Only keep nonempty lists of generators.
-            if cocycle_basis:
-                gens[n] = cocycle_basis
-            cocycles[n] = list(old_cocycles) + cocycle_basis
-        return gens
+        if max_degree ==1:
+            cohom1 = self.cohomology(1).basis().keys()
+            if len(cohom1)==0:
+                return {}
+            else:
+                return {1: [g.representative() for g in cohom1]}
+        smaller_degree = {i:[g.representative() for g in self.cohomology(i).basis().keys()] for i in range(1,max_degree)}
+        already_generated = []
+        for i in range(1, max_degree):
+            already_generated += [a*b for a in smaller_degree[i] for b in smaller_degree[max_degree-i]]
+        CR = self.cohomology_raw(max_degree)
+        V = CR.V()
+        S = CR.submodule([CR(V(g.basis_coefficients(total=True))) for g in already_generated if not g.is_zero()])
+        Q = CR.quotient(S)
+        res = self.cohomology_generators(max_degree-1)
+        if len(Q.basis())>0:
+            res[max_degree] = [vector_to_element(CR.lift(Q.lift(g)),max_degree) for g in Q.basis()]
+        return res
 
     class Element(GCAlgebra.Element):
         def differential(self):

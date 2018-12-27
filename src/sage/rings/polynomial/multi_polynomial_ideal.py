@@ -521,7 +521,6 @@ class MPolynomialIdeal_singular_base_repr:
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
         from sage.libs.singular.function import singular_function
         from sage.libs.singular.option import opt
-        from sage.misc.stopgap import stopgap
 
         import sage.libs.singular.function_factory
         groebner = sage.libs.singular.function_factory.ff.groebner
@@ -531,8 +530,6 @@ class MPolynomialIdeal_singular_base_repr:
         for name, value in iteritems(kwds):
             if value is not None:
                 opt[name] = value
-
-        T = self.ring().term_order()
 
         if algorithm == "std":
             S = std_libsingular(self)
@@ -2410,7 +2407,7 @@ class MPolynomialIdeal_singular_repr(
         try:
           TI = self.triangular_decomposition('singular:triangLfak')
           T = [list(each.gens()) for each in TI]
-        except TypeError as msg: # conversion to Singular not supported
+        except TypeError: # conversion to Singular not supported
           if self.ring().term_order().is_global():
             verbose("Warning: falling back to very slow toy implementation.", level=0)
             T = toy_variety.triangular_factorization(self.groebner_basis())
@@ -2688,7 +2685,6 @@ class MPolynomialIdeal_singular_repr(
 
             gb = self.groebner_basis()
             t = ZZ['t'].gen()
-            n = self.ring().ngens()
             gb = MPolynomialIdeal(self.ring(), gb)
             if grading is not None:
                 if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
@@ -3859,10 +3855,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if not algorithm:
             try:
                 gb = self._groebner_basis_libsingular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-            except (TypeError, NameError) as msg: # conversion to Singular not supported
+            except (TypeError, NameError): # conversion to Singular not supported
                 try:
                     gb = self._groebner_basis_singular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-                except (TypeError, NameError, NotImplementedError) as msg: # conversion to Singular not supported
+                except (TypeError, NameError, NotImplementedError): # conversion to Singular not supported
                     if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 
@@ -4356,7 +4352,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         - Martin Albrecht (2008-09)
         """
-        from sage.rings.rational_field import QQ
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
 
@@ -4705,6 +4700,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         result_ring = PolynomialRing(k, nvars*r, new_var_names)
 
         map_ideal = (0,) + result_ring.gens()
-        result = [f(*map_ideal) for f in result]
+        result = [h(*map_ideal) for h in result]
 
         return result_ring.ideal(result)

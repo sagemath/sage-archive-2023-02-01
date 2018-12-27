@@ -2201,35 +2201,24 @@ def EllinghamHorton54Graph():
 
         sage: g.show() # long time
     """
-    from sage.graphs.generators.basic import CycleGraph
-    up = CycleGraph(16)
-    low = 2*CycleGraph(6)
+    edge_dict = {
+        0: [1, 11, 15], 1: [2, 47], 2: [3, 13], 3: [4, 8], 4: [5, 15],
+        5: [6, 10], 6: [7, 30], 7: [8, 12], 8: [9], 9: [10, 29], 10: [11],
+        11: [12], 12: [13], 13: [14], 14: [48, 15], 16: [17, 21, 28],
+        17: [24, 29], 18: [19, 23, 30], 19: [20, 31], 20: [32, 21], 21: [33],
+        22: [23, 27, 28], 23: [29], 24: [25, 30], 25: [26, 31], 26: [32, 27],
+        27: [33], 28: [31], 32: [52], 33: [53], 34: [35, 39, 46], 35: [42, 47],
+        36: [48, 37, 41], 37: [49, 38], 38: [50, 39], 39: [51],
+        40: [41, 45, 46], 41: [47], 42: [48, 43], 43: [49, 44], 44: [50, 45],
+        45: [51], 46: [49], 50: [52], 51: [53], 52: [53]}
 
-    for v in range(6):
-        low.add_edge(v, v + 12)
-        low.add_edge(v + 6, v + 12)
-    low.add_edge(12, 15)
-    low.delete_edge(1, 2)
-    low.delete_edge(8, 7)
-    low.add_edge(1, 8)
-    low.add_edge(7, 2)
-
+    g = Graph(data=edge_dict, format="dict_of_lists",
+                  name="Ellingham-Horton 54-graph")
 
     # The set of vertices on top is 0..15
     # Bottom left is 16..33
-    # Bottom right is 34..52
-    # The two other vertices are 53, 54
-    g = up + 2*low
-    g.name("Ellingham-Horton 54-graph")
-    g.set_pos({})
-
-    g.add_edges([(15, 4), (3, 8), (7, 12), (11, 0), (2, 13), (5, 10)])
-    g.add_edges([(30, 6), (29, 9), (48, 14), (47, 1)])
-    g.add_edge(32, 52)
-    g.add_edge(50, 52)
-    g.add_edge(33, 53)
-    g.add_edge(51, 53)
-    g.add_edge(52, 53)
+    # Bottom right is 34..51
+    # The two other vertices are 52, 53
 
     # Top
     g._circle_embedding(list(range(16)), center=(0, .5), shift=.5, radius=.5)
@@ -2251,7 +2240,6 @@ def EllinghamHorton54Graph():
     d[28] = (-.8, -.9)
     d[46] = (2.2, -.9)
     d[49] = (.8, -.9)
-
 
     return g
 

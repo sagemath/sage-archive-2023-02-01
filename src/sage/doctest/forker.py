@@ -1377,7 +1377,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     shell(header='', stack_depth=2)
                 except KeyboardInterrupt:
                     # Assume this is a *real* interrupt. We need to
-                    # escalate this to the master docbuilding process.
+                    # escalate this to the master doctesting process.
                     if not self.options.serial:
                         os.kill(os.getppid(), signal.SIGINT)
                     raise
@@ -1510,7 +1510,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     self.debugger.interaction(None, exc_tb)
                 except KeyboardInterrupt:
                     # Assume this is a *real* interrupt. We need to
-                    # escalate this to the master docbuilding process.
+                    # escalate this to the master doctesting process.
                     if not self.options.serial:
                         os.kill(os.getppid(), signal.SIGINT)
                     raise

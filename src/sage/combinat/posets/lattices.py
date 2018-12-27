@@ -2833,10 +2833,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         from sage.misc.cachefunc import cached_function
 
+        not_ok = (False, None) if certificate else False
+
         if not self.is_ranked():
-            if certificate:
-                return (False, None)
-            return False
+            return not_ok
 
         if self.cardinality() == 0:
             if certificate:
@@ -2857,7 +2857,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                        for b in range(n))
 
         if not is_modular_elt(cur):
-            return False
+            return not_ok
         while len(next_) < height:
             try:
                 cur = next(next_[-1])
@@ -2865,7 +2865,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 next_.pop()
                 cert.pop()
                 if not next_:
-                    return False
+                    return not_ok
                 continue
             if is_modular_elt(cur):
                 next_.append(H.neighbor_in_iterator(cur))
@@ -3964,6 +3964,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: hex.is_subdirectly_reducible()
             True
 
+            sage: hex.is_subdirectly_reducible(certificate=True)
+            (True,
+             (Finite lattice containing 5 elements, Finite lattice containing 5 elements))
+
             sage: N5.is_subdirectly_reducible(certificate=True)
             (False, (2, 3))
             sage: res, cert = hex.is_subdirectly_reducible(certificate=True)
@@ -4004,7 +4008,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         a1 = [min(v) for v in A[1]]
         K0 = LatticePoset(H_closure.subgraph(a0).transitive_reduction())
         K1 = LatticePoset(H_closure.subgraph(a1).transitive_reduction())
-        return (False, (K0, K1))
+        return (True, (K0, K1))
 
     def canonical_meetands(self, e):
         r"""

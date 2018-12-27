@@ -638,13 +638,13 @@ class AlgebraicField_common(sage.rings.ring.Field):
         """
         EXAMPLES::
 
-            sage: QQbar.get_action(QQ, operator.pow)
+            sage: coercion_model.get_action(QQbar, QQ, operator.pow)
             Right Rational Powering by Rational Field on Algebraic Field
-            sage: print(QQbar.get_action(QQ, operator.pow, self_on_left=False))
+            sage: print(coercion_model.get_action(QQ, QQbar, operator.pow))
             None
-            sage: print(QQbar.get_action(QQ, operator.mul))
+            sage: print(coercion_model.get_action(QQbar, QQ, operator.mul))
             None
-            sage: QQbar.get_action(ZZ, operator.pow)
+            sage: coercion_model.get_action(QQbar, ZZ, operator.pow)
             Right Integer Powering by Integer Ring on Algebraic Field
         """
         if self_on_left and G is QQ and op is operator.pow:
@@ -4992,9 +4992,22 @@ class AlgebraicReal(AlgebraicNumber_base):
             1.000000000000001?
             sage: z.interval_exact(RIF)
             1.000000000000001?
+
+        TESTS::
+
+        Check that :trac:`26898` is fixed.  This calculation triggers the 40 bits
+        of extra precision below, and the point isn't that the length of the list
+        is seven, but that the code runs in a reasonable time::
+
+            sage: R.<x> = QQbar[]
+            sage: roots = (x^7 + 27/4).roots()
+            sage: from sage.rings.qqbar import QQbar_hash_offset
+            sage: len([(r[0] + QQbar_hash_offset).interval_exact(CIF) for r in roots])
+            7
+
         """
         for extra in (0, 40):
-            target = RR(1.0) >> field.prec()
+            target = RR(1.0) >> (field.prec() + extra)
             # p==precise; pr==precise rounded
             pval = self.interval_diameter(target)
             pbot = pval.lower()
@@ -5168,7 +5181,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             1.41421356237309
         """
         for extra in (0, 40):
-            target = RR(1.0) >> field.prec()
+            target = RR(1.0) >> (field.prec() + extra)
             val = self.interval_diameter(target)
             fbot = field(val.lower())
             ftop = field(val.upper())

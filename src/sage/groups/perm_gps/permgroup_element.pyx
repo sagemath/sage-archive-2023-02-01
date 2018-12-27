@@ -9,6 +9,9 @@ AUTHORS:
 
 - Robert Bradshaw (2007-11): convert to Cython
 
+- Sebastian Oehms (2018-11): Added :meth:`gap` as synonym to
+  :meth:`_gap_` (compatibility to libgap framework, see :trac:`26750`)
+
 There are several ways to define a permutation group element:
 
 -  Define a permutation group `G`, then use ``G.gens()``
@@ -117,6 +120,7 @@ from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 from sage.libs.gap.element cimport GapElement_List
 from sage.libs.gap.gap_includes cimport Obj, INT_INTOBJ, ELM_LIST
+
 
 import operator
 
@@ -269,6 +273,8 @@ def standardize_generator(g, convert_dict=None):
     from sage.interfaces.gap import GapElement
     from sage.combinat.permutation import Permutation
     from sage.libs.pari.all import pari_gen
+    from sage.libs.gap.element import GapElement_Permutation
+
 
     if isinstance(g, pari_gen):
         g = list(g)
@@ -277,6 +283,10 @@ def standardize_generator(g, convert_dict=None):
         g = list(g)
 
     needs_conversion = True
+
+    if isinstance(g, GapElement_Permutation):
+        g = g.sage()
+        needs_conversion = False
     if isinstance(g, GapElement):
         g = str(g)
         needs_conversion = False
@@ -588,6 +598,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             self._gap_element = gap(self._gap_init_())
         return self._gap_element
 
+    # for compatibility with sage.groups.libgap_wrapper.ElementLibGAP
+    # see sage.groups.perm_gps.permgroup.PermutationGroup_generic.gap
+    gap = _gap_
+
     def _gap_init_(self):
         """
         Returns a GAP string representation for this
@@ -600,6 +614,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             'PermList([2, 3, 1, 5, 4])'
         """
         return 'PermList(%s)'%self._gap_list()
+
 
     def _repr_(self):
         """
@@ -1422,12 +1437,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         INPUT:
 
         - ``g`` -- an element of the permutation group ``self.parent()``
-        
+
         - ``singletons`` -- ``True`` or ``False`` depending on whether on or not
           trivial cycles should be counted (default: ``True``)
 
         - ``as_list`` -- ``True`` or ``False`` depending on whether the cycle
-          type should be returned as a ``list`` or as a :class:`Partition` 
+          type should be returned as a ``list`` or as a :class:`Partition`
           (default: ``False``)
 
         OUTPUT:

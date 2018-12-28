@@ -3154,6 +3154,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             3
             sage: (125/8).log(5/2,prec=53)
             3.00000000000000
+            
+        TESTS::
+        
+            sage: (25/2).log(5/2)
+            log(25/2)/log(5/2)
         """
         if self.denom() == ZZ.one():
             return ZZ(self.numer()).log(m, prec)
@@ -3182,24 +3187,31 @@ cdef class Rational(sage.structure.element.FieldElement):
         bnp = bnum.perfect_power()
         adp = aden.perfect_power()
         bdp = bden.perfect_power()
-        if (anp[0] == bnp[0] and adp[0] == bdp[0]):
-            nu_ratio = Rational((anp[1], bnp[1]))
-            de_ratio = Rational((adp[1], bdp[1]))
-            if nu_ratio == de_ratio:
-                return nu_ratio
-            if nu_ratio == ZZ.one():
-                return de_ratio
-            if de_ratio == ZZ.one():
-                return nu_ratio
-        elif (anp[0] == bdp[0] and adp[0] == bnp[0]):
-            up_ratio = Rational((anp[1], bdp[1]))
-            lo_ratio = Rational((adp[1], bnp[1]))
-            if up_ratio == lo_ratio:
-                return -up_ratio
-            if up_ratio == ZZ.one():
-                return -lo_ratio
-            if lo_ratio == ZZ.one():
-                return -up_ratio
+
+        if anum.is_one():
+            a_exp=adp[1]
+            a_base=1/adp[0]
+        elif aden.is_one():
+            a_exp=anp[1]
+            a_base=anp[0]
+        else:
+            a_exp=anp[1].gcd(adp[1])
+            a_base=(anp[0]**(anp[1]//a_exp))/(adp[0]**(adp[1]//a_exp))
+
+        if bnum.is_one():
+            b_exp=bdp[1]
+            b_base=1/bdp[0]
+        elif bden.is_one():
+            b_exp=bnp[1]
+            b_base=bnp[0]
+        else:
+            b_exp=bnp[1].gcd(bdp[1])
+            b_base=(bnp[0]**(bnp[1]//b_exp))/(bdp[0]**(bdp[1]//b_exp))
+
+        if a_base == b_base:
+            return a_exp/b_exp
+        elif a_base*b_base == 1:
+            return -a_exp/b_exp
 
         return (function_log(self, dont_call_method_on_arg=True) /
                 function_log(m, dont_call_method_on_arg=True))

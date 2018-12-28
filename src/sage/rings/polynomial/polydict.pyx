@@ -1928,7 +1928,7 @@ cdef class ETuple:
 
         If ``self[Index] == 0`` then None is returned. Otherwise, an
         :class:`~sage.rings.polynomial.polydict.ETuple` is returned
-        that is zero in positition ``index`` and coincides with ``self``
+        that is zero in position ``index`` and coincides with ``self``
         in the other positions.
         """
         cdef size_t i, j

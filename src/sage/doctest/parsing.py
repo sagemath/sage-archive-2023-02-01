@@ -203,7 +203,7 @@ def normalize_bound_method_repr(s):
 
     This is slightly regressive since it means one can't use the repr of a
     bound method to test whether some element is getting a method from the
-    correct class (imporant sometimes in the cases of dynamic classes).
+    correct class (important sometimes in the cases of dynamic classes).
     However, such tests could be written could be written more explicitly to
     emphasize that they are testing such behavior.
 

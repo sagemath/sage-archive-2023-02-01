@@ -70,9 +70,7 @@ from sage.structure.parent import Parent, Set_generic
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.dynamic_class import dynamic_class
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.constant_function import ConstantFunction
 from sage.misc.lazy_attribute import lazy_attribute
-import types
 
 ###################################
 # Use the weak "triple" dictionary
@@ -996,7 +994,7 @@ class Homset(Set_generic):
             sage: H.category()
             Category of homsets of unital magmas
             sage: cls = H._abstract_element_class; cls
-            <class 'sage.categories.homsets.Homset_with_category._abstract_element_class'>
+            <class 'sage.categories.homsets.GroupHomset_libgap_with_category._abstract_element_class'>
             sage: cls.__bases__ == (H.category().element_class, H.homset_category().morphism_class)
             True
 

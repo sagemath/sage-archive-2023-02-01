@@ -227,12 +227,12 @@ class NaiveFinitePointEnumerator(object):
 
     def _Chow_group_torsion(self):
         r"""
-        Return the relations coming from the torison part of the Chow group
+        Return the relations coming from the torsion part of the Chow group.
 
         OUTPUT:
 
         A tuple containing the non-identity elements of
-        $Hom(A_{d-1,\text{tors}}, F^\times)$
+        `Hom(A_{d-1,\text{tors}}, F^\times)`
 
         EXAMPLES::
 

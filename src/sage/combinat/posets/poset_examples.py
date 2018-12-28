@@ -639,11 +639,11 @@ class Posets(object):
             sage: P = posets.ProductOfChains([2, 2]); P
             Finite lattice containing 4 elements
             sage: P.linear_extension()
-            [(0, 0), (1, 0), (0, 1), (1, 1)]
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
             sage: P.upper_covers((0,0))
-            [(1, 0), (0, 1)]
+            [(0, 1), (1, 0)]
             sage: P.lower_covers((1,1))
-            [(1, 0), (0, 1)]
+            [(0, 1), (1, 0)]
 
         TESTS::
 

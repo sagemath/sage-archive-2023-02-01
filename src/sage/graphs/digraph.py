@@ -3353,8 +3353,7 @@ class DiGraph(GenericGraph):
 
             :meth:`period`
         """
-        import networkx
-        return networkx.is_aperiodic(self.networkx_graph(copy=False))
+        return self.period() == 1
 
     def period(self):
         r"""

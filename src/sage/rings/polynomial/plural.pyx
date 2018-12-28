@@ -2215,6 +2215,37 @@ cdef class NCPolynomial_plural(RingElement):
             p = pNext(p)
         return pd
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of ``self`` in codomain under the map that sends
+        the images of the generators of the parent of ``self`` to the
+        tuple of elements of im_gens.
+
+        INPUT:
+
+        - ``codomain`` - The parent where the images live
+
+        - ``im_gens`` - A list or tuple with the images of the generators of this ring.
+
+        EXAMPLES::
+
+            sage: A.<x,z,y> = FreeAlgebra(GF(389), 3)
+            sage: R = A.g_algebra(relations={y*x:-x*y + z},  order='lex')
+            sage: R.inject_variables()
+            Defining x, z, y
+            sage: B.<a,b,c> = FreeAlgebra(GF(389), 3)
+            sage: S = B.g_algebra({b*a:2*a*b, c*a:-2*a*c})
+            sage: S.inject_variables()
+            Defining a, b, c
+            sage: (x*y - x^2*z)._im_gens_(S, [a*b, b, a*b*c])
+            -2*a^2*b^3 + 2*a^2*b^2*c
+            sage: -(a*b)*(a*b)*b+(a*b)*(a*b*c)
+            -2*a^2*b^3 + 2*a^2*b^2*c
+        """
+        from sage.misc.misc_c import prod
+        d = self.dict()
+        return sum(prod(im_gens[i]**t[i] for i in range(len(t)))*codomain(d[t]) for t in d)
+
 
     cdef long _hash_c(self):
         """

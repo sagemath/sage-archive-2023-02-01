@@ -38,6 +38,7 @@ common_gap_globals = set([
   'InfoNumtheor',
   'InfoOptions',
   'InfoPcSubgroup',
+  'InfoWarning',
   'Integers',
   'NiceBasisFiltersInfo',
   'Primes',

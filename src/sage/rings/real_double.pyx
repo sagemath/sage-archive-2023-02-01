@@ -387,6 +387,17 @@ cdef class RealDoubleField_class(Field):
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
+    def _fricas_init_(self):
+        r"""
+        Return the FriCAS representation of the real double field.
+
+        EXAMPLES::
+
+            sage: fricas(RDF)    # indirect doctest, optional - fricas
+            Float
+        """
+        return "DoubleFloat"
+
     def _polymake_init_(self):
         r"""
         Return the polymake representation of the real double field.

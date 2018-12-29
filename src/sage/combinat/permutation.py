@@ -3929,19 +3929,18 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3])) # indirect doctest
-            [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
+            [[2, 4, 5, 1, 3], [2, 4, 1, 5, 3], [2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
         """
         if len(self) != len(other) :
             raise ValueError("len({}) and len({}) must be equal".format(self, other))
         if not self.permutohedron_lequal(other) :
             raise ValueError("{} must be lower or equal than {} for the right permutohedron order".format(self, other))
-        from sage.graphs.linearextensions import LinearExtensions
         d = DiGraph()
         d.add_vertices(range(1, len(self) + 1))
         d.add_edges([(j, i) for (i, j) in self.inverse().inversions()])
         d.add_edges([(other[i], other[j]) for i in range(len(other) - 1)
                      for j in range(i, len(other)) if other[i] < other[j]])
-        return LinearExtensions(d)
+        return d.topological_sort_generator()
 
     def right_permutohedron_interval(self, other):
         r"""
@@ -3955,7 +3954,7 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3]))
-            [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
+            [[2, 4, 5, 1, 3], [2, 4, 1, 5, 3], [2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
 
         TESTS::
 
@@ -3964,9 +3963,9 @@ class Permutation(CombinatorialElement):
             sage: Permutation([3, 1, 2]).right_permutohedron_interval(Permutation([3, 1, 2]))
             [[3, 1, 2]]
             sage: Permutation([1, 3, 2, 4]).right_permutohedron_interval(Permutation([3, 4, 2, 1]))
-            [[1, 3, 2, 4], [1, 3, 4, 2], [3, 1, 2, 4], [3, 1, 4, 2], [3, 2, 1, 4], [3, 2, 4, 1], [3, 4, 1, 2], [3, 4, 2, 1]]
+            [[3, 1, 4, 2], [3, 4, 1, 2], [3, 4, 2, 1], [1, 3, 4, 2], [1, 3, 2, 4], [3, 2, 4, 1], [3, 2, 1, 4], [3, 1, 2, 4]]
             sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3]))
-            [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
+            [[2, 4, 5, 1, 3], [2, 4, 1, 5, 3], [2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
             sage: Permutation([2, 5, 4, 1, 3]).right_permutohedron_interval(Permutation([2, 1, 4, 5, 3]))
             Traceback (most recent call last):
             ...
@@ -5045,11 +5044,11 @@ class Permutation(CombinatorialElement):
             sage: Permutation([]).shifted_shuffle(Permutation([]))
             [[]]
             sage: Permutation([1, 2, 3]).shifted_shuffle(Permutation([1]))
-            [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [4, 1, 2, 3]]
+            [[4, 1, 2, 3], [1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3]]
             sage: Permutation([1, 2]).shifted_shuffle(Permutation([2, 1]))
-            [[1, 2, 4, 3], [1, 4, 2, 3], [1, 4, 3, 2], [4, 1, 2, 3], [4, 1, 3, 2], [4, 3, 1, 2]]
+            [[4, 1, 3, 2], [4, 3, 1, 2], [1, 4, 3, 2], [1, 4, 2, 3], [1, 2, 4, 3], [4, 1, 2, 3]]
             sage: Permutation([1]).shifted_shuffle([1])
-            [[1, 2], [2, 1]]
+            [[2, 1], [1, 2]]
             sage: len(Permutation([3, 1, 5, 4, 2]).shifted_shuffle(Permutation([2, 1, 4, 3])))
             126
 
@@ -5183,7 +5182,7 @@ class Permutations(UniqueRepresentation, Parent):
         sage: p = Permutations(descents=([1], 4)); p
         Standard permutations of 4 with descents [1]
         sage: p.list()
-        [[1, 3, 2, 4], [1, 4, 2, 3], [2, 3, 1, 4], [2, 4, 1, 3], [3, 4, 1, 2]]
+        [[2, 4, 1, 3], [3, 4, 1, 2], [1, 4, 2, 3], [1, 3, 2, 4], [2, 3, 1, 4]]
 
     ::
 
@@ -5204,21 +5203,21 @@ class Permutations(UniqueRepresentation, Parent):
         sage: p = Permutations(recoils_finer=[2,1]); p
         Standard permutations whose recoils composition is finer than [2, 1]
         sage: p.list()
-        [[1, 2, 3], [1, 3, 2], [3, 1, 2]]
+        [[3, 1, 2], [1, 2, 3], [1, 3, 2]]
 
     ::
 
         sage: p = Permutations(recoils_fatter=[2,1]); p
         Standard permutations whose recoils composition is fatter than [2, 1]
         sage: p.list()
-        [[1, 3, 2], [3, 1, 2], [3, 2, 1]]
+        [[3, 1, 2], [3, 2, 1], [1, 3, 2]]
 
     ::
 
         sage: p = Permutations(recoils=[2,1]); p
         Standard permutations whose recoils composition is [2, 1]
         sage: p.list()
-        [[1, 3, 2], [3, 1, 2]]
+        [[3, 1, 2], [1, 3, 2]]
 
     ::
 
@@ -7379,22 +7378,22 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
         EXAMPLES::
 
             sage: Permutations(descents=([2,0],5)).list()
-            [[2, 1, 4, 3, 5],
+            [[5, 2, 4, 1, 3],
+             [5, 3, 4, 1, 2],
+             [4, 3, 5, 1, 2],
+             [4, 2, 5, 1, 3],
+             [3, 2, 5, 1, 4],
              [2, 1, 5, 3, 4],
-             [3, 1, 4, 2, 5],
              [3, 1, 5, 2, 4],
-             [4, 1, 3, 2, 5],
-             [5, 1, 3, 2, 4],
              [4, 1, 5, 2, 3],
              [5, 1, 4, 2, 3],
+             [5, 1, 3, 2, 4],
+             [4, 1, 3, 2, 5],
+             [3, 1, 4, 2, 5],
+             [2, 1, 4, 3, 5],
              [3, 2, 4, 1, 5],
-             [3, 2, 5, 1, 4],
              [4, 2, 3, 1, 5],
-             [5, 2, 3, 1, 4],
-             [4, 2, 5, 1, 3],
-             [5, 2, 4, 1, 3],
-             [4, 3, 5, 1, 2],
-             [5, 3, 4, 1, 2]]
+             [5, 2, 3, 1, 4]]
         """
         return iter( descents_composition_list(Composition(descents=(self.d,self.n))) )
 
@@ -7407,22 +7406,22 @@ def descents_composition_list(dc):
 
         sage: import sage.combinat.permutation as permutation
         sage: permutation.descents_composition_list([1,2,2])
-        [[2, 1, 4, 3, 5],
+        [[5, 2, 4, 1, 3],
+         [5, 3, 4, 1, 2],
+         [4, 3, 5, 1, 2],
+         [4, 2, 5, 1, 3],
+         [3, 2, 5, 1, 4],
          [2, 1, 5, 3, 4],
-         [3, 1, 4, 2, 5],
          [3, 1, 5, 2, 4],
-         [4, 1, 3, 2, 5],
-         [5, 1, 3, 2, 4],
          [4, 1, 5, 2, 3],
          [5, 1, 4, 2, 3],
+         [5, 1, 3, 2, 4],
+         [4, 1, 3, 2, 5],
+         [3, 1, 4, 2, 5],
+         [2, 1, 4, 3, 5],
          [3, 2, 4, 1, 5],
-         [3, 2, 5, 1, 4],
          [4, 2, 3, 1, 5],
-         [5, 2, 3, 1, 4],
-         [4, 2, 5, 1, 3],
-         [5, 2, 4, 1, 3],
-         [4, 3, 5, 1, 2],
-         [5, 3, 4, 1, 2]]
+         [5, 2, 3, 1, 4]]
     """
     return [p.inverse() for p in StandardPermutations_recoils(dc)]
 
@@ -7518,12 +7517,12 @@ class StandardPermutations_recoilsfiner(Permutations):
         EXAMPLES::
 
             sage: Permutations(recoils_finer=[2,2]).list()
-            [[1, 2, 3, 4],
-             [1, 3, 2, 4],
+            [[3, 1, 4, 2],
+             [3, 4, 1, 2],
              [1, 3, 4, 2],
-             [3, 1, 2, 4],
-             [3, 1, 4, 2],
-             [3, 4, 1, 2]]
+             [1, 3, 2, 4],
+             [1, 2, 3, 4],
+             [3, 1, 2, 4]]
         """
         recoils = self.recoils
         dag = DiGraph()
@@ -7585,18 +7584,18 @@ class StandardPermutations_recoilsfatter(Permutations):
         EXAMPLES::
 
             sage: Permutations(recoils_fatter=[2,2]).list()
-            [[1, 3, 2, 4],
-             [1, 3, 4, 2],
-             [1, 4, 3, 2],
-             [3, 1, 2, 4],
-             [3, 1, 4, 2],
+            [[4, 3, 2, 1],
              [3, 2, 1, 4],
              [3, 2, 4, 1],
-             [3, 4, 1, 2],
              [3, 4, 2, 1],
+             [3, 4, 1, 2],
+             [3, 1, 4, 2],
+             [1, 3, 4, 2],
+             [1, 3, 2, 4],
+             [3, 1, 2, 4],
+             [1, 4, 3, 2],
              [4, 1, 3, 2],
-             [4, 3, 1, 2],
-             [4, 3, 2, 1]]
+             [4, 3, 1, 2]]
         """
         recoils = self.recoils
         dag = DiGraph()
@@ -7659,7 +7658,7 @@ class StandardPermutations_recoils(Permutations):
         EXAMPLES::
 
             sage: Permutations(recoils=[2,2]).list()
-            [[1, 3, 2, 4], [1, 3, 4, 2], [3, 1, 2, 4], [3, 1, 4, 2], [3, 4, 1, 2]]
+            [[3, 1, 4, 2], [3, 4, 1, 2], [1, 3, 4, 2], [1, 3, 2, 4], [3, 1, 2, 4]]
         """
         recoils = self.recoils
         dag = DiGraph()

@@ -718,10 +718,15 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: y*x
             -x*y
         """
-        varstr = ", ".join([char_to_str(rRingVar(i, self._ring))
-                            for i in range(self.__ngens)])
+        from sage.repl.rich_output.backend_base import BackendBase
+        from sage.repl.display.pretty_print import SagePrettyPrinter        
+        varstr = ", ".join(char_to_str(rRingVar(i, self._ring))
+                           for i in range(self.__ngens))
+        backend = BackendBase()
+        relations = backend._apply_pretty_printer(SagePrettyPrinter,
+                                                  self.relations())
         return (f"Noncommutative Multivariate Polynomial Ring in {varstr} "
-                f"over {self.base_ring()}, nc-relations: {self.relations()}")
+                f"over {self.base_ring()}, nc-relations: {relations}")
 
     def _ringlist(self):
         """
@@ -743,7 +748,8 @@ cdef class NCPolynomialRing_plural(Ring):
             ]
         """
         cdef ring* _ring = self._ring
-        if(_ring != currRing): rChangeCurrRing(_ring)
+        if _ring != currRing:
+            rChangeCurrRing(_ring)
         from sage.libs.singular.function import singular_function
         ringlist = singular_function('ringlist')
         result = ringlist(self, ring=self)

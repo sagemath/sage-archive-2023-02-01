@@ -718,7 +718,7 @@ cpdef min_spanning_tree(g,
         return []
     else:
         edges = [(int_to_vertex[<int> result[2*i]], int_to_vertex[<int> result[2*i+1]]) for i in range(n-1)]
-        return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])
+        return [(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges]
 
 
 cpdef blocks_and_cut_vertices(g):

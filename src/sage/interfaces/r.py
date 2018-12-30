@@ -395,7 +395,7 @@ def _setup_r_to_sage_converter():
         rclass = list(vec.do_slot('class')) if 'class' in attrs else vec.rclass
 
         if 'names' in attrs:
-            # seperate names and values, call ri2py recursively to convert elements
+            # separate names and values, call ri2py recursively to convert elements
             names = list_to_singleton_if_possible(list(vec.do_slot('names')))
             return {
                 'DATA': data,

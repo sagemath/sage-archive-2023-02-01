@@ -3900,7 +3900,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             Add a certificate-option.
         """
         # Todo: This can be made much faster, if we don't regenerate meet- and
-        # join-matrices every time, but instead remove some rows and colums
+        # join-matrices every time, but instead remove some rows and columns
         # from them.
 
         from sage.combinat.subset import Subsets

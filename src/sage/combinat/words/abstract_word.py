@@ -1318,7 +1318,7 @@ class Word_class(SageObject):
 
     def _finite_differences_iterator(self, mod=None):
         r"""
-        Iterator over the diffences of consecutive letters of self.
+        Iterator over the differences of consecutive letters of ``self``.
 
         INPUT:
 
@@ -1393,8 +1393,8 @@ class Word_class(SageObject):
 
     def finite_differences(self, mod=None):
         r"""
-        Returns the word obtained by the diffences of consecutive letters
-        of self.
+        Return the word obtained by the differences of consecutive letters
+        of ``self``.
 
         INPUT:
 

@@ -3987,7 +3987,7 @@ class Tableau(ClonableList):
         Return the Brundan-Kleshchev-Wang [BKW2011]_ codegree of the
         standard tableau ``self``.
 
-        The *coderee* of a tableau is an integer that is defined recursively by
+        The *codegree* of a tableau is an integer that is defined recursively by
         successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`
         and at stage adding the number of addable cell of the same residue
         minus the number of removable cells of the same residue as `k` and

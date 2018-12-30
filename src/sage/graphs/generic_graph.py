@@ -22348,9 +22348,9 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            For this routine to work on all graphs, the optional packages
-            ``gap_packages`` and ``database_gap`` need to be installed: to do
-            so, it is enough to run ``sage -i gap_packages database_gap``.
+            For this routine to work on all graphs, the optional package
+            ``gap_packages`` needs to be installed: to do
+            so, it is enough to run ``sage -i gap_packages``.
 
         INPUT:
 

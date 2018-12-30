@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 List of assigned names in GAP
 
 EXAMPLES::

@@ -614,9 +614,9 @@ def SuzukiGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.SuzukiGraph(); g            # optional database_gap internet # not tested
+        sage: g = graphs.SuzukiGraph(); g            # optional internet # not tested
         Suzuki graph: Graph on 1782 vertices
-        sage: g.is_strongly_regular(parameters=True) # optional database_gap internet # not tested
+        sage: g.is_strongly_regular(parameters=True) # optional internet # not tested
         (1782, 416, 100, 96)
     """
     from sage.groups.perm_gps.permgroup_named import SuzukiSporadicGroup
@@ -3276,7 +3276,7 @@ def KrackhardtKiteGraph():
     other nodes in the graph (i.e.: Closeness Centrality).  Please execute the
     example for visualization.
 
-    EXAMPLES: 
+    EXAMPLES:
 
     Construct and show a Krackhardt kite graph ::
 
@@ -4146,7 +4146,7 @@ def SimsGewirtzGraph():
 
     This graph is obtained from the Higman Sims graph by considering the graph
     induced by the vertices at distance two from the vertices of an (any)
-    edge. It is the only strongly regular graph with parameters `v = 56`, 
+    edge. It is the only strongly regular graph with parameters `v = 56`,
     `k = 10`, `\lambda = 0`, `\mu = 2`
 
     For more information on the Sylvester graph, see

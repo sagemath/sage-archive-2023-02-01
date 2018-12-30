@@ -511,14 +511,14 @@ class Gap_generic(ExtraTabCompletion, Expect):
             sage: gap.load_package("chevie")
             Traceback (most recent call last):
             ...
-            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages and/or database_gap SPKGs.
+            RuntimeError: Error loading Gap package chevie. You may want to install gap_packages SPKG.
         """
         if verbose:
             print("Loading GAP package {}" % pkg)
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
-                               "You may want to install the gap_packages and/or database_gap SPKGs.")
+                               "You may want to install gap_packages SPKG.")
 
     def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""
@@ -1571,10 +1571,8 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
-    for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint',
-                'gapdoc', 'grape', 'design',
-                'toric', 'laguna', 'braid', 'polycyclic', 'nq']:
-        # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
+    from sage.tests.gap_packages import all_installed_packages
+    for pkg in all_installed_packages():
         try:
             g.load_package(pkg, verbose=verbose)
         except RuntimeError as msg:

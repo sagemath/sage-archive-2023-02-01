@@ -5446,8 +5446,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
            ``GaloisGroup_v2`` object.  Otherwise, return a ``GaloisGroup_v1``
            wrapper object based on a PARI or Gap transitive group object, which
            is quicker to compute, but rather less useful (in particular, it
-           can't be made to act on self).  If type = 'gap', the database_gap
-           package should be installed.
+           can't be made to act on self).
 
         -  ``algorithm`` - 'pari', 'kash', 'magma'. (default: 'pari', except
            when the degree is >= 12 when 'kash' is tried.)
@@ -5493,19 +5492,19 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         ::
 
-            sage: NumberField(x-1, 'a').galois_group(type="gap")    # optional - database_gap
+            sage: NumberField(x-1, 'a').galois_group(type="gap")
             Galois group Transitive group number 1 of degree 1 of the Number Field in a with defining polynomial x - 1
-            sage: NumberField(x^2+2, 'a').galois_group(type="gap")  # optional - database_gap
+            sage: NumberField(x^2+2, 'a').galois_group(type="gap")
             Galois group Transitive group number 1 of degree 2 of the Number Field in a with defining polynomial x^2 + 2
-            sage: NumberField(x^3-2, 'a').galois_group(type="gap")  # optional - database_gap
+            sage: NumberField(x^3-2, 'a').galois_group(type="gap")
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
         ::
 
             sage: x = polygen(QQ)
-            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(type='gap')    # optional - database_gap
+            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(type='gap')
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
-            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(algorithm='magma')   # optional - magma database_gap
+            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(algorithm='magma')   # optional - magma
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
 
         EXPLICIT GALOIS GROUP: We compute the Galois group as an explicit

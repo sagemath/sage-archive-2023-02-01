@@ -38,6 +38,7 @@ common_gap_functions = set([
   'AppendTo',
   'Apply',
   'AsGroup',
+  'AtlasGroup',
   'AutomorphismGroup',
   'BaseOfGroup',
   'Basis',

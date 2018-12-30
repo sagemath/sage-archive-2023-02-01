@@ -7640,7 +7640,7 @@ class GenericGraph(GenericGraph_pyx):
                             h.add_edge(u,v,l)
 
                     # If there is only one circuit, we are done !
-                    cc = h.connected_components()
+                    cc = h.connected_components(sort=False)
                     if len(cc) == 1:
                         break
 
@@ -7685,7 +7685,7 @@ class GenericGraph(GenericGraph_pyx):
                     h.add_edges((u,v,l) for u,v,l in g.edge_iterator() if p.get_values(b[frozenset((u,v))]) == 1)
 
                     # If there is only one circuit, we are done !
-                    cc = h.connected_components()
+                    cc = h.connected_components(sort=False)
                     if len(cc) == 1:
                         break
 

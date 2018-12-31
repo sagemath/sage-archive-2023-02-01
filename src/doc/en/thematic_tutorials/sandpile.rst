@@ -97,7 +97,7 @@ Create the configuration::
 
     sage: c = SandpileConfig(S, {1:5, 2:0, 3:1})
     sage: S.out_degree()
-    {1: 4, 2: 2, 3: 2, 0: 0}
+    {0: 0, 1: 4, 2: 2, 3: 2}
 
 Fire vertex `1`::
 
@@ -162,12 +162,12 @@ Laplacian.
 **Example.** (Continued.) ::
 
     sage: S.vertices()  # the ordering of the vertices
-    [1, 2, 3, 0]
+    [0, 1, 2, 3]
     sage: S.laplacian()
-    [ 4 -1 -2 -1]
-    [-1  2 -1  0]
-    [-1 -1  2  0]
     [ 0  0  0  0]
+    [-1  4 -1 -2]
+    [ 0 -1  2 -1]
+    [ 0 -1 -1  2]
     sage: S.reduced_laplacian()
     [ 4 -1 -2]
     [-1  2 -1]
@@ -3600,9 +3600,9 @@ EXAMPLES::
     sage: c
     {'c': 2, 'b': 1}
     sage: c.values()
-    [2, 1]
+    [1, 2]
     sage: S.nonsink_vertices()
-    ['c', 'b']
+    ['b', 'c']
 
 ---
 
@@ -4680,9 +4680,9 @@ EXAMPLES::
     sage: D
     {'a': 0, 'c': 2, 'b': 1}
     sage: D.values()
-    [2, 0, 1]
+    [0, 1, 2]
     sage: S.vertices()
-    ['c', 'a', 'b']
+    ['a', 'b', 'c']
 
 
 ---

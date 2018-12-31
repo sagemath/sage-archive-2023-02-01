@@ -237,8 +237,8 @@ def parse_moutput_from_json(page_data, verbose=False):
 
     TESTS::
 
-        sage: page_data = request_wolfram_alpha('Integrate(Sin[z], y)')
-        sage: parse_moutput_from_json(page_data)
+        sage: page_data = request_wolfram_alpha('Integrate(Sin[z], y)')  # optional internet
+        sage: parse_moutput_from_json(page_data)                         # optional internet
         Traceback (most recent call last):
         ...
         ValueError: asking wolframalpha.com was not successful

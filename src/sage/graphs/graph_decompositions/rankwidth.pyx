@@ -53,7 +53,7 @@ i.e. singletons.
 
 The internal nodes are sets of the decomposition. This way, it is easy to deduce
 the bipartition associated to an edge from the tree. Indeed, two adjacent
-vertices of the tree are comarable sets : they yield the bipartition obtained
+vertices of the tree are comparable sets : they yield the bipartition obtained
 from the smaller of the two and its complement.
 
 ::

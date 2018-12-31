@@ -2726,7 +2726,7 @@ class PermutationGroup_generic(FiniteGroup):
         INPUT:
 
         - ``libgap_group`` -- an instance of :class:`sage.libs.gap.element.GapElement`
-          representinga GAP group whose generators belong to ``self.gap()``
+          representing a GAP group whose generators belong to ``self.gap()``
 
         OUTPUT:
 

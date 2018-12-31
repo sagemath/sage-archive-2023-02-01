@@ -2330,7 +2330,7 @@ cdef class MPolynomial(CommutativeRingElement):
             z, th = covariant_z0(F, prec=prec, emb=emb, z0_cov=True)
         z = CF(z)
         # this moves z_0 to our fundamental domain using the three steps laid
-        # out in the algorithim by [CS2003]
+        # out in the algorithm by [CS2003]
         # this is found in section 5 of their paper
         M = matrix(QQ, [[1,0], [0,1]]) # used to keep track of how our z is moved.
         zc = z.center()

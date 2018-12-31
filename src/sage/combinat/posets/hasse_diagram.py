@@ -2881,7 +2881,7 @@ class HasseDiagram(DiGraph):
 
         So, we only check join irreducibles or meet irreducibles,
         whichever is a smaller set. To optimize more we stop computation
-        whenever it founds a pair that we know to generate one-element
+        whenever it finds a pair that we know to generate one-element
         congruence.
         """
         join_irreducibles = [v for v in self if self.in_degree(v) == 1]

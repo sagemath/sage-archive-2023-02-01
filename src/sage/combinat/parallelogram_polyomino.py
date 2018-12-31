@@ -525,7 +525,7 @@ The options avalaible are :
   generate TIKZ code. For example, color, line size, etc ...
 
 - drawing_components : this option is used to explain to the system
-  which compoent of the drawing you want to draw. For example,
+  which component of the drawing you want to draw. For example,
   you can ask to draw some elements of the following list :
   - the diagram,
   - the tree inside the parallelogram polyomino,

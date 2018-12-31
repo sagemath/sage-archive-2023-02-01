@@ -1269,7 +1269,7 @@ done from the right side.""")
             return self._eq(other)
         if op == op_NE:
             return not self._eq(other)
-        deprecation(23878,"The default order on free modules has changed. "
+        deprecation(23978,"The default order on free modules has changed. "
                     "The old ordering is in sage.modules.free_module.EchelonMatrixKey")
         if op == op_LE:
             return self.is_submodule(other)

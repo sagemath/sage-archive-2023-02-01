@@ -3443,7 +3443,7 @@ class CrystalOfTableaux_E7(CrystalOfTableaux):
     <sage.combinat.crystals.kirillov_reshetikhin.KR_type_E7>` `B^{7,s}`.
     """
     def module_generator(self, shape):
-        """
+        r"""
         Return the module generator of ``self`` with shape ``shape``.
 
         .. NOTE::
@@ -3496,7 +3496,7 @@ class KR_type_E7(KirillovReshetikhinGenericCrystal):
 
     @cached_method
     def A7_decomposition(self):
-        """
+        r"""
         Return the decomposition of ``self`` into `A_7` highest
         weight crystals.
 

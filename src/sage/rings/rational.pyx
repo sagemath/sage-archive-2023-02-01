@@ -3159,19 +3159,25 @@ cdef class Rational(sage.structure.element.FieldElement):
         
             sage: (25/2).log(5/2)
             log(25/2)/log(5/2)
+            sage: (-1/2).log(3)
+            (I*pi + log(1/2))/log(3)
         """
-        if self.denom() == ZZ.one():
+        cdef int self_sgn
+        if self.denom().is_one():
             return ZZ(self.numer()).log(m, prec)
-        if mpz_sgn(mpq_numref(self.value)) < 0:
-            from sage.symbolic.all import SR
-            return SR(self).log()
         if m is not None and m <= 0:
             raise ValueError("log base must be positive")
+        self_sgn = mpz_sgn(mpq_numref(self.value))
+        if self_sgn < 0 and prec is None:
+            from sage.symbolic.all import SR
+            return SR(self).log(m)
         if prec:
-            from sage.rings.real_mpfr import RealField
-            if m is None:
-                return RealField(prec)(self).log()
-            return RealField(prec)(self).log(m)
+            if self_sgn >= 0:
+                from sage.rings.real_mpfr import RealField
+                return RealField(prec)(self).log(m)
+            else:
+                from sage.rings.complex_field import ComplexField
+                return ComplexField(prec)(self).log(m)
 
         from sage.functions.log import function_log
         if m is None:
@@ -3191,9 +3197,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if anum.is_one():
             a_exp=adp[1]
             a_base=1/adp[0]
-        elif aden.is_one():
-            a_exp=anp[1]
-            a_base=anp[0]
+        # we already know that aden!=0
         else:
             a_exp=anp[1].gcd(adp[1])
             a_base=(anp[0]**(anp[1]//a_exp))/(adp[0]**(adp[1]//a_exp))

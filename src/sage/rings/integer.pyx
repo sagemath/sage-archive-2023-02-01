@@ -2752,17 +2752,26 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: ZZ(8).log(int(2))
             3
+            
+        TESTS::
+        
+            sage: (-2).log(3)
+            (I*pi + log(2))/log(3)
         """
-        if mpz_sgn(self.value) <= 0:
-            from sage.symbolic.all import SR
-            return SR(self).log()
+        cdef int self_sgn
         if m is not None and m <= 0:
-            raise ValueError("m must be positive")
+            raise ValueError("log base must be positive")
+        self_sgn = mpz_sgn(self.value)
+        if self_sgn < 0 and prec is None:
+            from sage.symbolic.all import SR
+            return SR(self).log(m)
         if prec:
-            from sage.rings.real_mpfr import RealField
-            if m is None:
-                return RealField(prec)(self).log()
-            return RealField(prec)(self).log(m)
+            if self_sgn >= 0:
+                from sage.rings.real_mpfr import RealField
+                return RealField(prec)(self).log(m)
+            else:
+                from sage.rings.complex_field import ComplexField
+                return ComplexField(prec)(self).log(m)
 
         if m is None:
             from sage.functions.log import function_log

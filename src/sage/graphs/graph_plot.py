@@ -252,7 +252,7 @@ class GraphPlot(SageObject):
             if k not in options:
                 options[k] = value
         self._plot_components = {}
-        self._nodelist = graph.vertices()
+        self._nodelist = list(graph)
         self._graph = graph
         self._options = options # contains both plot and show options
         self.set_pos()

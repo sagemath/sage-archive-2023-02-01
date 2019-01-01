@@ -144,6 +144,7 @@ from __future__ import print_function, absolute_import
 
 import os
 from .expect import Expect, ExpectElement
+import pexpect
 from sage.misc.misc import verbose
 from sage.docs.instancedoc import instancedoc
 
@@ -239,7 +240,7 @@ class Octave(Expect):
             sage: octave._read_in_file_command(filename)
             'source("...");'
         """
-        return 'source("%s");'%filename
+        return 'source("%s");' % filename
 
     def _quit_string(self):
         """
@@ -723,7 +724,7 @@ class OctaveElement(ExpectElement):
             sage: vector(A)                     # optional - octave
             (1.0, 1.0*I)
         """
-        oc = self.parent()
+        from sage.modules.free_module import FreeModule
         if not self.isvector():
             raise TypeError('not an octave vector')
         if R is None:
@@ -736,7 +737,6 @@ class OctaveElement(ExpectElement):
         if self.iscomplex():
             w = [to_complex(x, R) for x in w]
 
-        from sage.modules.free_module import FreeModule
         return FreeModule(R, nrows)(w)
 
     def _scalar_(self):

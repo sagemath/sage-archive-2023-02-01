@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Field of Algebraic Numbers
 
@@ -495,6 +496,18 @@ Check that :trac:`22202` is fixed::
     sage: a = QQbar.polynomial_root((-4*v + 2)*s + (v - 1/2), CIF(RIF(0.24, 0.26), RIF(0)))
     sage: QQ(a)
     1/4
+
+This example from :trac:`17896` should run in reasonable time, see also
+:trac:`15600`::
+
+    sage: x,y = polygens(QQ,"x,y")
+    sage: p1 = x^5 + 6*x^4 - 42*x^3 - 142*x^2 + 467*x + 422
+    sage: p2 = p1(x=(x-1)^2)
+    sage: p3 = p2(x=x*y).resultant(p2,x).univariate_polynomial()
+    sage: p4, = [f[0] for f in p3.factor() if f[0].degree() == 80]
+    sage: ival = CIF((0.77, 0.78), (-0.08, -0.07))
+    sage: z, = [r for r in p4.roots(QQbar, False) if r in ival]
+    sage: z.exactify()
 """
 
 from __future__ import absolute_import, print_function, division
@@ -1726,7 +1739,7 @@ def clear_denominators(poly):
     poly = poly(poly.parent().gen() / change)
     return change, poly
 
-def do_polred(poly):
+def do_polred(poly, threshold=32):
     r"""
     Find a polynomial of reasonably small discriminant that generates
     the same number field as ``poly``, using the PARI ``polredbest``
@@ -1734,7 +1747,8 @@ def do_polred(poly):
 
     INPUT:
 
-    - ``poly`` - a monic irreducible polynomial with integer coefficients.
+    - ``poly`` - a monic irreducible polynomial with integer coefficients
+    - ``threshold`` - an integer used to decide whether to run ``polredbest``
 
     OUTPUT:
 
@@ -1770,9 +1784,13 @@ def do_polred(poly):
         sage: do_polred(x^4 - 4294967296*x^2 + 54265257667816538374400)
         (1/4*x, 4*x, x^4 - 268435456*x^2 + 211973662764908353025)
     """
-    new_poly, elt_back = poly.__pari__().polredbest(flag=1)
-
     parent = poly.parent()
+    bitsize = ZZ(poly[0].numerator().nbits() + poly[0].denominator().nbits())
+    # time(polredbest) ≈ b²d⁵
+    cost = 2*bitsize.nbits() + 5*poly.degree().nbits()
+    if cost > threshold:
+        return parent.gen(), parent.gen(), poly
+    new_poly, elt_back = poly.__pari__().polredbest(flag=1)
     elt_fwd = elt_back.modreverse()
     return parent(elt_fwd.lift()), parent(elt_back.lift()), parent(new_poly)
 

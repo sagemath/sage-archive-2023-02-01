@@ -1056,6 +1056,17 @@ class PolynomialSequence_generic(Sequence_generic):
         Uses Singular's interred command or
         :func:`sage.rings.polynomial.toy_buchberger.inter_reduction`
         if conversion to Singular fails.
+
+        TESTS:
+
+        Check that :trac:`26952` is fixed::
+
+            sage: Qp = pAdicField(2)
+            sage: R.<x,y,z> = PolynomialRing(Qp, implementation="generic")
+            sage: F = Sequence([z*x+y^3,z+y^3,3*z+x*y])
+            sage: F.reduced()
+            [y^3 + z, x*y + (1 + 2 + O(2^20))*z, x*z - z]
+
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
@@ -1075,7 +1086,8 @@ class PolynomialSequence_generic(Sequence_generic):
                     ret.append(f.lc()**(-1)*f) # lead coeffs are not reduced by interred
                 s.option("set",o)
             except TypeError:
-                ret = toy_buchberger.inter_reduction(self.gens())
+                from sage.rings.polynomial.toy_buchberger import inter_reduction
+                ret = inter_reduction(self)
 
         ret = sorted(ret, reverse=True)
         ret = PolynomialSequence(R, ret, immutable=True)

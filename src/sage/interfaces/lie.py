@@ -440,7 +440,7 @@ class LiE(ExtraTabCompletion, Expect):
                 help_text = ""
                 prev_command = line[1:i]
 
-                #Add the commad
+                #Add the command
                 if t in commands:
                     commands[t].append(line[1:i])
                 else:

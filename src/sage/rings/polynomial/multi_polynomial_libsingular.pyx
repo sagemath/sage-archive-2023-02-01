@@ -3337,7 +3337,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f.subs({x:1/y})
             (y^2 + y + 1)/y
 
-        The parameters are subsituted in order and without side effects::
+        The parameters are substituted in order and without side effects::
 
             sage: R.<x,y>=QQ[]
             sage: g=x+y

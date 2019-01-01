@@ -56,15 +56,15 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -446,6 +446,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             Complex Field with 53 bits of precision
         """
         return "ComplexField(%s : Bits := true)" % self.prec()
+
+    def _fricas_init_(self):
+        r"""
+        Return a string representation of ``self`` in the FriCAS language.
+
+        EXAMPLES::
+
+            sage: fricas(CDF)                     # indirect doctest, optional - fricas
+            Complex(DoubleFloat)
+        """
+        return "Complex DoubleFloat"
 
     def prec(self):
         """

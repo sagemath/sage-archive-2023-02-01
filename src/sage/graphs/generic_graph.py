@@ -4035,14 +4035,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: len(g.min_spanning_tree())
             4
             sage: weight = lambda e: 1 / ((e[0] + 1) * (e[1] + 1))
-            sage: g.min_spanning_tree(weight_function=weight)
+            sage: sorted(g.min_spanning_tree(weight_function=weight))
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
-            sage: g.min_spanning_tree(weight_function=weight, algorithm='Kruskal_Boost')
+            sage: sorted(g.min_spanning_tree(weight_function=weight, algorithm='Kruskal_Boost'))
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
             sage: g.add_edges(g.edge_iterator())
-            sage: g.min_spanning_tree()
+            sage: sorted(g.min_spanning_tree())
             [(0, 1, None), (0, 4, None), (0, 5, None), (1, 2, None), (1, 6, None), (3, 8, None), (5, 7, None), (5, 8, None), (6, 9, None)]
 
         Boruvka's algorithm::
@@ -4053,41 +4053,41 @@ class GenericGraph(GenericGraph_pyx):
         Prim's algorithm::
 
             sage: g = graphs.CompleteGraph(5)
-            sage: g.min_spanning_tree(algorithm='Prim_edge', starting_vertex=2, weight_function=weight)
+            sage: sorted(g.min_spanning_tree(algorithm='Prim_edge', starting_vertex=2, weight_function=weight))
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
-            sage: g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight)
+            sage: sorted(g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight))
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
-            sage: g.min_spanning_tree(weight_function=weight, algorithm='Prim_Boost')
+            sage: sorted(g.min_spanning_tree(weight_function=weight, algorithm='Prim_Boost'))
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
 
         NetworkX algorithm::
 
-            sage: g.min_spanning_tree(algorithm='NetworkX')
+            sage: sorted(g.min_spanning_tree(algorithm='NetworkX'))
             [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None)]
 
         More complicated weights::
 
             sage: G = Graph([(0,1,{'name':'a','weight':1}), (0,2,{'name':'b','weight':3}), (1,2,{'name':'b','weight':1})])
-            sage: G.min_spanning_tree(weight_function=lambda e: e[2]['weight'])
+            sage: sorted(G.min_spanning_tree(weight_function=lambda e: e[2]['weight']))
             [(0, 1, {'name': 'a', 'weight': 1}), (1, 2, {'name': 'b', 'weight': 1})]
 
         If the graph is not weighted, edge labels are not considered, even if
         they are numbers::
 
             sage: g = Graph([(1, 2, 1), (1, 3, 2), (2, 3, 1)])
-            sage: g.min_spanning_tree()
+            sage: sorted(g.min_spanning_tree())
             [(1, 2, 1), (1, 3, 2)]
 
         In order to use weights, we need either to set variable ``weighted`` to
         ``True``, or to specify a weight function::
 
             sage: g.weighted(True)
-            sage: g.min_spanning_tree()
+            sage: sorted(g.min_spanning_tree())
             [(1, 2, 1), (2, 3, 1)]
             sage: g.weighted(False)
-            sage: g.min_spanning_tree()
+            sage: sorted(g.min_spanning_tree())
             [(1, 2, 1), (1, 3, 2)]
-            sage: g.min_spanning_tree(weight_function=lambda e: e[2])
+            sage: sorted(g.min_spanning_tree(weight_function=lambda e: e[2]))
             [(1, 2, 1), (2, 3, 1)]
 
         TESTS:
@@ -4097,19 +4097,19 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = Graph(weighted=True)
             sage: g.add_edges([[0, 1, 1], [1, 2, 1], [2, 0, 10]])
-            sage: g.min_spanning_tree()
+            sage: sorted(g.min_spanning_tree())
             [(0, 1, 1), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Kruskal_Boost')
+            sage: sorted(g.min_spanning_tree(algorithm='Kruskal_Boost'))
             [(0, 1, 1), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Prim_fringe')
+            sage: sorted(g.min_spanning_tree(algorithm='Prim_fringe'))
             [(0, 1, 1), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Prim_edge')
+            sage: sorted(g.min_spanning_tree(algorithm='Prim_edge'))
             [(0, 1, 1), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Prim_Boost')
+            sage: sorted(g.min_spanning_tree(algorithm='Prim_Boost'))
             [(0, 1, 1), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='NetworkX')
+            sage: sorted(g.min_spanning_tree(algorithm='NetworkX'))
             [(0, 1, 1), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Boruvka')
+            sage: sorted(g.min_spanning_tree(algorithm='Boruvka'))
             [(0, 1, 1), (1, 2, 1)]
 
         Check that, if ``weight_function`` is provided, it overrides edge
@@ -4117,27 +4117,27 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = Graph([[0, 1, 1], [1, 2, 1], [2, 0, 10]], weighted=True)
             sage: weight = lambda e: 3 - e[0] - e[1]
-            sage: g.min_spanning_tree(weight_function=weight)
+            sage: sorted(g.min_spanning_tree(weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Kruskal_Boost', weight_function=weight)
+            sage: sorted(g.min_spanning_tree(algorithm='Kruskal_Boost', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Prim_fringe', weight_function=weight)
+            sage: sorted(g.min_spanning_tree(algorithm='Prim_fringe', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Prim_edge', weight_function=weight)
+            sage: sorted(g.min_spanning_tree(algorithm='Prim_edge', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Prim_Boost', weight_function=weight)
+            sage: sorted(g.min_spanning_tree(algorithm='Prim_Boost', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='NetworkX', weight_function=weight)
+            sage: sorted(g.min_spanning_tree(algorithm='NetworkX', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
-            sage: g.min_spanning_tree(algorithm='Boruvka', weight_function=weight)
+            sage: sorted(g.min_spanning_tree(algorithm='Boruvka', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
 
         If the graph is directed, it is transformed into an undirected graph::
 
             sage: g = digraphs.Circuit(3)
-            sage: g.min_spanning_tree(weight_function=weight)
+            sage: sorted(g.min_spanning_tree(weight_function=weight))
             [(0, 2, None), (1, 2, None)]
-            sage: g.to_undirected().min_spanning_tree(weight_function=weight)
+            sage: sorted(g.to_undirected().min_spanning_tree(weight_function=weight))
             [(0, 2, None), (1, 2, None)]
 
         If at least an edge weight is not convertible to a float, an error is
@@ -4262,7 +4262,7 @@ class GenericGraph(GenericGraph_pyx):
                     w = wfunction_float(e)
                     if neighbor not in fringe_list or fringe_list[neighbor][0] > w:
                         fringe_list[neighbor] = (w, u)
-            return sorted(edges)
+            return edges
 
         elif algorithm == "Prim_edge":
             if starting_vertex is None:
@@ -4294,14 +4294,14 @@ class GenericGraph(GenericGraph_pyx):
                         break
                     else:
                         i += 1
-            return sorted(edges)
+            return edges
 
         elif algorithm == "NetworkX":
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': wfunction_float(e)}) for e in self.edge_iterator()])
             E = networkx.minimum_spanning_tree(G).edges()
-            return sorted([(u, v, self.edge_label(u, v)) if hash(u) < hash(v) else (v, u, self.edge_label(u, v))
-                               for u, v in E])
+            return [(u, v, self.edge_label(u, v)) if hash(u) < hash(v) else (v, u, self.edge_label(u, v))
+                               for u, v in E]
 
         else:
             raise NotImplementedError("minimum Sspanning tree algorithm '%s' is not implemented" % algorithm)
@@ -7640,7 +7640,7 @@ class GenericGraph(GenericGraph_pyx):
                             h.add_edge(u,v,l)
 
                     # If there is only one circuit, we are done !
-                    cc = h.connected_components()
+                    cc = h.connected_components(sort=False)
                     if len(cc) == 1:
                         break
 
@@ -7685,7 +7685,7 @@ class GenericGraph(GenericGraph_pyx):
                     h.add_edges((u,v,l) for u,v,l in g.edge_iterator() if p.get_values(b[frozenset((u,v))]) == 1)
 
                     # If there is only one circuit, we are done !
-                    cc = h.connected_components()
+                    cc = h.connected_components(sort=False)
                     if len(cc) == 1:
                         break
 
@@ -15244,33 +15244,33 @@ class GenericGraph(GenericGraph_pyx):
 
     def triangles_count(self, algorithm=None):
         r"""
-        Returns the number of triangles in the (di)graph.
+        Return the number of triangles in the (di)graph.
 
         For digraphs, we count the number of directed circuit of length 3.
 
         INPUT:
 
-        - ``algorithm`` -- (default: ``None``) specifies the algorithm to use
-          (note that only ``'iter'`` is available for directed graphs):
+        - ``algorithm`` -- string (default: ``None``); specifies the algorithm
+          to use (note that only ``'iter'`` is available for directed graphs):
 
-            - ``'sparse_copy'`` -- counts the triangles in a sparse copy of the
-              graph (see :mod:`sage.graphs.base.static_sparse_graph`). Calls
-              :func:`static_sparse_graph.triangles_count
-              <sage.graphs.base.static_sparse_graph.triangles_count>`
+          - ``'sparse_copy'`` -- counts the triangles in a sparse copy of the
+            graph (see :mod:`sage.graphs.base.static_sparse_graph`). Calls
+            :func:`static_sparse_graph.triangles_count
+            <sage.graphs.base.static_sparse_graph.triangles_count>`
 
-            - ``'dense_copy'`` -- counts the triangles in a dense copy of the
-              graph (see :mod:`sage.graphs.base.static_dense_graph`). Calls
-              :func:`static_dense_graph.triangles_count
-              <sage.graphs.base.static_dense_graph.triangles_count>`
+          - ``'dense_copy'`` -- counts the triangles in a dense copy of the
+            graph (see :mod:`sage.graphs.base.static_dense_graph`). Calls
+            :func:`static_dense_graph.triangles_count
+            <sage.graphs.base.static_dense_graph.triangles_count>`
 
-            - ``'matrix'`` uses the trace of the cube of the adjacency matrix.
+          - ``'matrix'`` uses the trace of the cube of the adjacency matrix
 
-            - ``'iter'`` iterates over the pairs of neighbors of each vertex. No
-              copy of the graph is performed
+          - ``'iter'`` iterates over the pairs of neighbors of each vertex. No
+            copy of the graph is performed
 
-            - ``None`` -- for undirected graphs, uses ``"sparse_copy"`` or
-              ``"dense_copy"`` depending on whether the graph is stored as dense
-              or sparse. For directed graphs, uses ``'iter'``.
+          - ``None`` -- for undirected graphs, uses ``"sparse_copy"`` or
+            ``"dense_copy"`` depending on whether the graph is stored as dense
+            or sparse. For directed graphs, uses ``'iter'``.
 
         EXAMPLES:
 
@@ -15280,19 +15280,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.triangles_count()
             0
 
-        Any triple of vertices in the complete graph induces a triangle so we have::
+        Any triple of vertices in the complete graph induces a triangle so we
+        have::
 
-            sage: G = graphs.CompleteGraph(150)
-            sage: G.triangles_count() == binomial(150,3)
+            sage: G = graphs.CompleteGraph(15)
+            sage: G.triangles_count() == binomial(15, 3)
             True
 
-        The 2-dimensional DeBruijn graph of 2 symbols has 2 directed C3::
+        The 2-dimensional DeBruijn graph of 2 symbols has 2 directed `C_3`::
 
             sage: G = digraphs.DeBruijn(2,2)
             sage: G.triangles_count()
             2
 
-        The directed n-cycle is trivially triangle free for n > 3::
+        The directed `n`-cycle is trivially triangle free for `n > 3`::
 
             sage: G = digraphs.Circuit(10)
             sage: G.triangles_count()
@@ -15310,8 +15311,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:     results.append(G.triangles_count(algorithm='sparse_copy'))
             ....:     results.append(G.triangles_count(algorithm='dense_copy'))
             ....:     if any(x != results[0] for x in results):
-            ....:        print(results)
-            ....:        print("That's not good!")
+            ....:        raise ValueError("something goes wrong, {}".format(results))
 
         Asking for an unknown algorithm::
 
@@ -15323,16 +15323,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: digraphs.Path(5).triangles_count(algorithm="sparse_copy")
             Traceback (most recent call last):
             ...
-            ValueError: The value of algorithm(=sparse_copy) must be 'iter' or None for direcetd graphs
+            ValueError: the value of algorithm(=sparse_copy) must be 'iter' or None for directed graphs
         """
         if self.is_directed():
             if algorithm is not None and algorithm != "iter":
-                raise ValueError("The value of algorithm(={}) must be 'iter' "
-                                 "or None for direcetd graphs".format(algorithm))
+                raise ValueError("the value of algorithm(={}) must be 'iter' "
+                                 "or None for directed graphs".format(algorithm))
 
             self._scream_if_not_simple(allow_loops=True)
             from sage.graphs.digraph_generators import digraphs
             return self.subgraph_search_count(digraphs.Circuit(3)) // 3
+
         else:
             self._scream_if_not_simple()
             if algorithm is None:
@@ -15340,19 +15341,19 @@ class GenericGraph(GenericGraph_pyx):
                 algorithm = ('dense_copy' if isinstance(self._backend, DenseGraphBackend) else
                              'sparse_copy')
 
-            if algorithm=='iter':
+            if algorithm == 'iter':
                 tr = 0
                 for u in self:
                     Nu = set(self.neighbors(u))
                     for v in Nu:
                         tr += len(Nu.intersection(self.neighbors(v)))
-                return Integer(tr//6)
-            elif algorithm=="sparse_copy":
+                return Integer(tr // 6)
+            elif algorithm == "sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
-                return sum(itervalues(triangles_count(self)))/3
-            elif algorithm=="dense_copy":
+                return sum(itervalues(triangles_count(self))) // 3
+            elif algorithm == "dense_copy":
                 from sage.graphs.base.static_dense_graph import triangles_count
-                return sum(itervalues(triangles_count(self)))/3
+                return sum(itervalues(triangles_count(self))) // 3
             elif algorithm=='matrix':
                 return (self.adjacency_matrix(vertices=list(self))**3).trace() // 6
             else:
@@ -22348,9 +22349,9 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            For this routine to work on all graphs, the optional packages
-            ``gap_packages`` and ``database_gap`` need to be installed: to do
-            so, it is enough to run ``sage -i gap_packages database_gap``.
+            For this routine to work on all graphs, the optional package
+            ``gap_packages`` needs to be installed: to do
+            so, it is enough to run ``sage -i gap_packages``.
 
         INPUT:
 

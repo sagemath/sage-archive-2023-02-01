@@ -70,8 +70,6 @@ rather efficient completeness criterion.
 
 == Dependencies ==
 
-- The SmallGroups library needs to be installed in GAP, as a runtime dependency
-  This can be met by installing the database_gap spkg
 - The SharedMeatAxe needs to be installed, as a build time dependency.
   This can be met by installing the meataxe spkg
 

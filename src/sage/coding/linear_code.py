@@ -797,25 +797,31 @@ class AbstractLinearCode(Module):
         - generators of the automorphism group of ``self``
         - the order of the automorphism group of ``self``
 
-        EXAMPLES::
+        EXAMPLES:
 
+        Note, this result can depend on the PRNG state in libgap in a way that
+        depends on which packages are loaded, so we must re-seed GAP to ensure
+        a consistent result for this example::
+
+            sage: libgap.set_seed(0)
+            0
             sage: C = codes.HammingCode(GF(4, 'z'), 3)
             sage: C.automorphism_group_gens()
-            ([((z, 1, z + 1, z + 1, 1, 1, z + 1, z, z, 1, z + 1, z + 1, z + 1, 1, z, z + 1, 1, z, z + 1, z + 1, z); (1,5,4,2)(6,17,10,20,19,18,12,8)(7,14,15,21,16,9,11,13), Ring endomorphism of Finite Field in z of size 2^2
+            ([((1, z, z + 1, z, z, 1, 1, z, z + 1, z, z, 1, z, z + 1, z, z, 1, z, z + 1, z, z); (1,5,18,7,11,8)(2,12,21)(3,20,14,10,19,15)(4,9)(13,17,16), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z + 1),
-              ((z + 1, 1, z + 1, z + 1, z + 1, z, 1, z, 1, 1, 1, z + 1, z + 1, z, 1, z, z, 1, z, z, z); (1,5,20,19,16,6,4,12,2,18,21,10,11,15,8,14,13,7,3,9,17), Ring endomorphism of Finite Field in z of size 2^2
-                Defn: z |--> z),
+              ((1, 1, z, z + 1, z, z, z + 1, z + 1, z, 1, 1, z, z, z + 1, z + 1, 1, z, z, 1, z, z + 1); (2,11)(3,13)(4,14)(5,20)(6,17)(8,15)(16,19), Ring endomorphism of Finite Field in z of size 2^2
+                Defn: z |--> z + 1),
               ((z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z); (), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z)],
-            362880)
+             362880)
             sage: C.automorphism_group_gens(equivalence="linear")
-            ([((1, 1, 1, z, z + 1, z, z + 1, 1, 1, z, z + 1, z, 1, 1, z, z + 1, z, 1, 1, z, z + 1); (1,8,3,4,12,13,17,6,18,15,20,5,19,21,16)(2,11,10,9,7), Ring endomorphism of Finite Field in z of size 2^2
+            ([((z, 1, 1, z, z + 1, z, z, z + 1, z + 1, z + 1, 1, z + 1, z, z, 1, 1, 1, z, z, z + 1, z); (1,6)(2,20,9,16)(3,10,8,11)(4,15,21,5)(12,17)(13,14,19,18), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z),
-              ((1, z + 1, z, z + 1, z + 1, 1, 1, z + 1, z, z, z + 1, 1, z + 1, z, 1, z + 1, 1, z + 1, z, 1, z + 1); (1,21,12,14,11,5,9,3,15,13,16,20,6,18,19,17,7,4,8,10,2), Ring endomorphism of Finite Field in z of size 2^2
+              ((1, z, z + 1, z, z, z, z + 1, z + 1, 1, z, z, z, 1, z, 1, z + 1, z, z + 1, z, z + 1, 1); (1,15,20,5,8,6,12,14,13,7,16,11,19,3,21,4,9,10,18,17,2), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z),
               ((z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1); (), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z)],
-            181440)
+             181440)
             sage: C.automorphism_group_gens(equivalence="permutational")
             ([((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); (1,19)(3,17)(4,21)(5,20)(7,14)(9,12)(10,16)(11,15), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z),
@@ -1065,17 +1071,23 @@ class AbstractLinearCode(Module):
 
             * ``semilinear``
 
-        EXAMPLES::
+        EXAMPLES:
 
+        Note, this result can depend on the PRNG state in libgap in a way that
+        depends on which packages are loaded, so we must re-seed GAP to ensure
+        a consistent result for this example::
+
+            sage: libgap.set_seed(0)
+            0
             sage: C = codes.HammingCode(GF(4, 'z'), 3)
             sage: aut_group_can_label = C._canonize("semilinear")
             sage: C_iso = LinearCode(aut_group_can_label.get_transporter()*C.generator_matrix())
             sage: C_iso == aut_group_can_label.get_canonical_form()
             True
             sage: aut_group_can_label.get_autom_gens()
-            [((z + 1, z + 1, z, z, 1, z, z, z, z, z, z, z + 1, z + 1, z + 1, z + 1, z + 1, 1, 1, 1, 1, 1); (1,2,13,11,7,19,4,18)(3,6,20,9,15,12,21,16)(5,8,14,10), Ring endomorphism of Finite Field in z of size 2^2
+            [((1, z, z + 1, z, z, 1, 1, z, z + 1, z, z, 1, z, z + 1, z, z, 1, z, z + 1, z, z); (1,5,18,7,11,8)(2,12,21)(3,20,14,10,19,15)(4,9)(13,17,16), Ring endomorphism of Finite Field in z of size 2^2
                Defn: z |--> z + 1),
-             ((z, 1, z + 1, 1, 1, 1, z + 1, z + 1, z, 1, 1, 1, z + 1, 1, z, z + 1, 1, z, 1, z + 1, z); (1,17,5,21,12,8,6,10,11,13,4,2,20,9)(3,19,18,15,7,14,16), Ring endomorphism of Finite Field in z of size 2^2
+             ((1, 1, z, z + 1, z, z, z + 1, z + 1, z, 1, 1, z, z, z + 1, z + 1, 1, z, z, 1, z, z + 1); (2,11)(3,13)(4,14)(5,20)(6,17)(8,15)(16,19), Ring endomorphism of Finite Field in z of size 2^2
                Defn: z |--> z + 1),
              ((z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z); (), Ring endomorphism of Finite Field in z of size 2^2
                Defn: z |--> z)]

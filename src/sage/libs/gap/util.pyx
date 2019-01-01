@@ -263,7 +263,7 @@ cdef initialize():
     # initialize GAP. Note that we must pass define the memory pool
     # size!
     cdef char** env
-    cdef char* argv[16]
+    cdef char* argv[18]
     argv[0] = "sage"
     argv[1] = "-l"
     s = str_to_bytes(gap_root(), FS_ENCODING, "surrogateescape")
@@ -282,8 +282,12 @@ cdef initialize():
     argv[9] = "-q"    # no prompt!
     argv[10] = "-E"   # don't use readline as this will interfere with Python
     argv[11] = "--nointeract"  # Implies -T
+    argv[12] = "-x"    # set the "screen" width so that GAP is less likely to
+    argv[13] = "4096"  # insert newlines when printing objects
+                       # 4096 unfortunately is the hard-coded max, but should
+                       # be long enough for most cases
 
-    cdef int argc = 12   # argv[argc] must be NULL
+    cdef int argc = 14   # argv[argc] must be NULL
 
     from .saved_workspace import workspace
     workspace, workspace_is_up_to_date = workspace()

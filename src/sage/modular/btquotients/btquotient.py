@@ -3220,7 +3220,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             [0 0 0 1], [102 153 -34 102]
             )
         """
-        if(as_edges):
+        if as_edges:
             X = self._Xe
         else:
             X = self._Xv

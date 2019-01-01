@@ -340,7 +340,7 @@ def CaiFurerImmermanGraph(G, twisted=False):
             isConnected = False
         newG.add_edge(edge_va, edge_ua)
         newG.add_edge(edge_vb, edge_ub)
-    if(twisted and G.is_connected()):
+    if twisted and G.is_connected():
         s = " twisted"
     else:
         s = ""

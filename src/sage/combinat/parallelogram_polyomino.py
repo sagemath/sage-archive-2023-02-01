@@ -1020,10 +1020,10 @@ class ParallelogramPolyomino(ClonableList):
         for i in range(len(upper_path)-1):
             p_up[1-upper_path[i]] += 1
             p_down[1-lower_path[i]] += 1
-            if(p_up[0] <= p_down[0] or p_down[1] <= p_up[1]):
+            if (p_up[0] <= p_down[0] or p_down[1] <= p_up[1]):
                 raise ValueError("the lower and upper paths are crossing")
-        p_up[1-upper_path[-1]] += 1
-        p_down[1-lower_path[-1]] += 1
+        p_up[1 - upper_path[-1]] += 1
+        p_down[1 - lower_path[-1]] += 1
         if (p_up[0] != p_down[0] or p_up[1] != p_down[1]):
             raise ValueError("the two paths have distinct ends")
 

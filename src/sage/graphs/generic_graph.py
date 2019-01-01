@@ -5087,7 +5087,7 @@ class GenericGraph(GenericGraph_pyx):
                 q1, q2 = self._pos[edge2[0]], self._pos[edge2[1]]
                 db = Rational(q2[1] - q1[1])
                 da = Rational(q2[0] - q1[0])
-                if(da * dy == db * dx):
+                if da * dy == db * dx:
                     if dx:
                         t1 = Rational(q1[0] - p1[0]) / dx
                         t2 = Rational(q2[0] - p1[0]) / dx

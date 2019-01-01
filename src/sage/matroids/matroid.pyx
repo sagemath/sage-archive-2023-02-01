@@ -5482,12 +5482,10 @@ cdef class Matroid(SageObject):
         for (x1,y1) in T:
             # The whiting out
             B = M
-            for (x,y) in product(range(n),range(m)):
-                if (x1!=x and y1!=y):
-                    if(M[x1,y]==1 and
-                       M[x,y1]==1 and
-                       M[x,y]==1):
-                        B[x,y]=0
+            for (x, y) in product(range(n), range(m)):
+                if x1 != x and y1 != y:
+                    if M[x1, y] == 1 and M[x, y1] == 1 and M[x, y] == 1:
+                        B[x, y] = 0
 
             # remove row x1 and y1
             Xp = list(xrange(n))
@@ -5651,16 +5649,16 @@ cdef class Matroid(SageObject):
             #rowshifts
             rowshift = False
             for x in set(remainX):
-                if(self.rank(Y_1|(X-(X_2|set([x])))) - len(X-(X_2|set([x])))
-                   > self.rank(Y_1|(X-X_2)) - len(X-X_2)):
+                if (self.rank(Y_1|(X-(X_2|set([x])))) - len(X-(X_2|set([x])))
+                    > self.rank(Y_1|(X-X_2)) - len(X-X_2)):
                     X_1.add(x)
                     remainX.remove(x)
                     rowshift = True
             #colshifts
             colshift = False
             for y in set(remainY):
-                if(self.rank(Y_2|set([y])|(X-X_1)) - len(X-X_1)
-                   > self.rank(Y_2|(X-X_1)) - len(X-X_1)):
+                if (self.rank(Y_2|set([y])|(X-X_1)) - len(X-X_1)
+                    > self.rank(Y_2|(X-X_1)) - len(X-X_1)):
                     Y_1.add(y)
                     remainY.remove(y)
                     colshift = True

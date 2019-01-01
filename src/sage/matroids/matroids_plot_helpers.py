@@ -501,10 +501,10 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
     if G is None:
         G = Graphics()
     # deal with loops
-    if len(L) > 0:
+    if L:
         loops = L
-        looptext = ", ".join([str(l) for l in loops])
-        if(limits is None):
+        looptext = ", ".join(str(l) for l in loops)
+        if limits is None:
             rectx = -1
             recty = -1
         else:
@@ -523,7 +523,7 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
                   fontsize=13, color='black')
         limits = tracklims(limits, [rectx, rectx+rectw], [recty, recty+recth])
     # deal with parallel elements
-    if len(P) > 0:
+    if P:
         # create list of lists where inner lists are parallel classes
         pcls = []
         gnd = sorted(list(M1.groundset()))

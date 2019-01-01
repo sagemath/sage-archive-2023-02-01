@@ -1105,19 +1105,19 @@ class EllipticCurveIsogeny(Morphism):
             TypeError: (20 : 90 : 1) fails to convert into the map's domain Elliptic Curve defined by y^2 = x^3 + 7*x over Number Field in th with defining polynomial x^2 + 3, but a `pushforward` method is not properly implemented
 
         """
-        if(P.is_zero()):
+        if P.is_zero():
             return self.__E2(0)
 
         (xP, yP) = P.xy()
         # if there is a pre isomorphism, apply it
-        if (self.__pre_isomorphism is not None):
+        if self.__pre_isomorphism is not None:
             temp_xP = self.__prei_x_coord_ratl_map(xP)
             temp_yP = self.__prei_y_coord_ratl_map(xP, yP)
             (xP, yP) = (temp_xP, temp_yP)
 
-        if ("velu" == self.__algorithm):
+        if "velu" == self.__algorithm:
             outP = self.__compute_via_velu_numeric(xP, yP)
-        elif ("kohel" == self.__algorithm):
+        elif "kohel" == self.__algorithm:
             outP = self.__compute_via_kohel_numeric(xP,yP)
 
         # the intermediate functions return the point at infinity
@@ -2661,10 +2661,10 @@ class EllipticCurveIsogeny(Morphism):
         """
         # first check if this point is in the kernel:
 
-        if(0 == self.__inner_kernel_polynomial(x=xP)):
+        if 0 == self.__inner_kernel_polynomial(x=xP):
             return self.__intermediate_codomain(0)
 
-        (xP_out, yP_out) = self.__compute_via_kohel(xP,yP)
+        (xP_out, yP_out) = self.__compute_via_kohel(xP, yP)
 
         # xP_out and yP_out do not always get evaluated to field
         # elements but rather constant polynomials, so we do some

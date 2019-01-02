@@ -4056,11 +4056,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: C2 = Poset({0:[1]})
             sage: C3 = Poset({'a':['b'], 'b':['c']})
-            sage: for x in C3.isomorphic_subposets(C2):
-            ....:     print(x.cover_relations())
-            [['b', 'c']]
-            [['a', 'c']]
+            sage: L = sorted(x.cover_relations() for x in C3.isomorphic_subposets(C2))
+            sage: for x in L: print(x)
             [['a', 'b']]
+            [['a', 'c']]
+            [['b', 'c']]
+
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: N5 = posets.PentagonPoset()
             sage: len(N5.isomorphic_subposets(D))
@@ -6268,8 +6269,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
-            sage: P.maximal_antichains()
-            [['a'], ['c', 'b'], ['c', 'e', 'd']]
+            sage: [sorted(anti) for anti in P.maximal_antichains()]
+            [['a'], ['b', 'c'], ['c', 'd', 'e']]
 
             sage: posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]

@@ -528,8 +528,9 @@ cdef void error_handler():
     handling code below it could result in a stack overflow.
     """
     cdef PyObject* exc_type
-    cdef PyObject* exc_val
+    cdef PyObject* exc_val = NULL
     cdef PyObject* exc_tb
+    cdef PyObject* err_occurred
 
     # Close the error stream: This flushes any remaining output and closes
     # the stream for further writing; reset ERROR_OUTPUT to something sane
@@ -537,16 +538,21 @@ cdef void error_handler():
     try:
         GAP_EnterStack()
         GAP_EvalStringNoExcept(_close_error_output_cmd)
-        msg = extract_libgap_errout()
 
-        if PyErr_Occurred() != NULL and msg:
+        if PyErr_Occurred() != NULL:
             # Sometimes error_handler() can be called multiple times from a
             # single GAP_EvalString call before it returns; in this case we
             # just update the exception by appending to the existing exception
             # message
+            #
+            # Fetch any existing exception before calling
+            # extract_libgap_errout() so that the exception indicator is
+            # cleared
             PyErr_Fetch(&exc_type, &exc_val, &exc_tb)
-            if exc_val != NULL:
-                msg = str(<object>exc_val) + '\n' + msg
+
+        msg = extract_libgap_errout()
+        if exc_val != NULL:
+            msg = str(<object>exc_val) + '\n' + msg
         elif not msg:
             msg = "An unknown error occurred in libGAP"
 

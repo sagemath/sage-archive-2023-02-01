@@ -156,7 +156,7 @@ cdef void dereference_obj(Obj obj):
         owned_objects_refcount[wrapped] = refcount - 1
 
 
-cdef void gasman_callback():
+cdef void gasman_callback() with gil:
     """
     Callback before each GAP garbage collection
     """
@@ -516,7 +516,7 @@ cdef object extract_libgap_errout():
     return msg_py
 
 
-cdef void error_handler():
+cdef void error_handler() with gil:
     """
     The libgap error handler.
 

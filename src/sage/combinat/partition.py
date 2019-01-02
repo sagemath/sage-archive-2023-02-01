@@ -1292,43 +1292,29 @@ class Partition(CombinatorialElement):
 
         EXAMPLES:
 
-        The partition (1)
-
-        .. image:: _static/boundary-1.JPG
-            :height: 140px
-            :align: center
-            :alt: The shape of partition 1 on a cartesian plane with the points (1, 0), (1, 1), and (0, 1) labelled.
-
-        has boundary [(1, 0), (1, 1), (0, 1)]::
+        Consider the partition (1) depicted as a square on a cartesian plane with vertices (0, 0), (1, 0), (1, 1), and (0, 1).  Three of those vertices in the appropriate order form the boundary::
 
             sage: Partition([1]).boundary()
             [(1, 0), (1, 1), (0, 1)]
 
-        The partition (3, 1)
-
-        .. image:: _static/boundary-2.JPG
-            :height: 170px
-            :align: center
-            :alt: The shape of partition (3, 1) on a cartesian plane with the points (3, 0), (3, 1), (2, 1), (1, 1), (1, 2), and (0, 2) labelled.
-
-        has boundary [(3, 0), (3, 1), (2, 1), (1, 1), (1, 2), (0, 2)]::
+        The partition (3, 1) can be visualized as three squares on a cartisian plane.  The coordinates of the appropriate vertices form the boundary::
 
             sage: Partition([3, 1]).boundary()
             [(3, 0), (3, 1), (2, 1), (1, 1), (1, 2), (0, 2)]
 
         TESTS::
 
-        p = Partition([1])
-        a(boundary(p), [(1,0), (1,1), (0,1)])
+            p = Partition([1])
+            a(boundary(p), [(1,0), (1,1), (0,1)])
 
-        p = Partition([2, 1])
-        a(boundary(p), [(2,0), (2,1), (1,1), (1,2), (0,2)])
+            p = Partition([2, 1])
+            a(boundary(p), [(2,0), (2,1), (1,1), (1,2), (0,2)])
 
-        p = Partition([3, 1])
-        a(boundary(p), [(3,0), (3,1), (2,1), (1,1), (1,2), (0,2)])
+            p = Partition([3, 1])
+            a(boundary(p), [(3,0), (3,1), (2,1), (1,1), (1,2), (0,2)])
 
-        p = Partition([2, 1, 1])
-        a(boundary(p), [(2,0), (2,1), (1,1), (1,2), (1,3), (0,3)])
+            p = Partition([2, 1, 1])
+            a(boundary(p), [(2,0), (2,1), (1,1), (1,2), (1,3), (0,3)])
 
 
         ..  SEEALSO::
@@ -1368,7 +1354,7 @@ class Partition(CombinatorialElement):
 
         Consider the partition (3, 1) split up into its 1-interior and 1-boundary:
 
-        .. image:: _static/k-rim.JPG
+        .. image:: ../../../media/k-rim.JPG
             :height: 180px
             :align: center
 

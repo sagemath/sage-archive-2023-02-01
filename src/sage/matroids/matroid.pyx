@@ -1472,7 +1472,7 @@ cdef class Matroid(SageObject):
             sage: sorted(M.circuit(['a', 'c', 'd']))
             Traceback (most recent call last):
             ...
-            ValueError: no circuit in independent set.
+            ValueError: no circuit in independent set
             sage: M.circuit(['x'])
             Traceback (most recent call last):
             ...

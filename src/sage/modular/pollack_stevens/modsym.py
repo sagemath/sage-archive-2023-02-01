@@ -130,7 +130,7 @@ class PSModSymAction(Action):
 
         Action.__init__(self, actor, MSspace, False, operator.mul)
 
-    def _call_(self, sym, g):
+    def _act_(self, g, sym):
         r"""
         Return the result of sym * g
 
@@ -295,7 +295,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.pollack_stevens_modular_symbol();
+            sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
             sage: 2*phi

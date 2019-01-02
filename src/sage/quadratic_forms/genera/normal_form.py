@@ -1434,8 +1434,8 @@ def _two_adic_normal_forms(G, partial=False):
             if not partial:
                 Dk, B1k = _homogeneous_normal_form(Dk, wk)
                 B[h[i]:h[i+1],:] = B1k * B[h[i]:h[i+1], :]
-            UVlist.append(range(h[i], h[i+1] - wk))
-            Wlist.append(range(h[i+1]-wk, h[i+1]))
+            UVlist.append(list(range(h[i], h[i+1] - wk)))
+            Wlist.append(list(range(h[i+1]-wk, h[i+1])))
         else:
             UVlist.append([])
             Wlist.append([])
@@ -1444,7 +1444,7 @@ def _two_adic_normal_forms(G, partial=False):
         return D, B
     # use relations descending in k
     # we never leave partial normal form
-    # but the homogneneous normal form may be destroyed
+    # but the homogeneous normal form may be destroyed
     # it is restored at the end.
     for k in range(len(UVlist)-1,2,-1):
         # setup notation
@@ -1493,7 +1493,7 @@ def _two_adic_normal_forms(G, partial=False):
                     R = Wm + [w]
                     B[R,:] = _relations(D[R,R],9) * B[R,:]
         D = B * G * B.T
-        # condition a) - stay in homogneneous normal form
+        # condition a) - stay in homogeneous normal form
         R = UV + W
         Dk = D[R,R]
         Bk = _homogeneous_normal_form(Dk, len(W))[1]

@@ -82,7 +82,7 @@ cdef class SparseEntry:
         sage: SparseEntry(1/3, 2/3, x)
         Traceback (most recent call last):
         ...
-        TypeError: rational is not an integer
+        TypeError: unable to convert rational 1/3 to an integer
     """
 
     def __init__(self, i, j, entry):
@@ -964,7 +964,7 @@ cdef class MatrixArgs:
             sage: ma = MatrixArgs({(2,5):1/2, (4,-3):1/3})
             sage: ma = MatrixArgs(2, 2, {(-1,0):2, (0,-1):1}, sparse=True)
             sage: ma.finalized()
-            <MatrixArgs for Full MatrixSpace of 2 by 2 sparse matrices over Integer Ring; typ=SEQ_SPARSE; entries=[SparseEntry(0, 1, 1), SparseEntry(1, 0, 2)]>
+            <MatrixArgs for Full MatrixSpace of 2 by 2 sparse matrices over Integer Ring; typ=SEQ_SPARSE; entries=[SparseEntry(...), SparseEntry(...)]>
             sage: ma = MatrixArgs(2, 2, {(-1,0):2, (0,-1):1}, sparse=False)
             sage: ma.finalized()
             <MatrixArgs for Full MatrixSpace of 2 by 2 dense matrices over Integer Ring; typ=SEQ_FLAT; entries=[0, 1, 2, 0]>

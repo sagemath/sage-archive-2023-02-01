@@ -120,7 +120,7 @@ AUTHORS:
 
 - Vincent Klein (2017-05-22): Integer constructor support gmpy2.mpz parameter
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 Gonzalo Tornaria <tornaria@math.utexas.edu>
 #       Copyright (C) 2006 Didier Deshommes <dfdeshom@gmail.com>
@@ -133,9 +133,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
 # Do not create any Integer, especially non cdef'ed ones, before the hooked
@@ -149,7 +148,7 @@ cdef extern from "<limits.h>":
     const long LONG_MAX  # Work around https://github.com/cython/cython/pull/2016
 
 from cysignals.memory cimport check_allocarray, check_malloc, sig_free
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
 import operator
 import sys
@@ -189,6 +188,7 @@ import sage.rings.infinity
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
+from sage.misc.superseded import deprecation
 
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
@@ -754,7 +754,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: n = 5
             sage: t = n.__reduce__(); t
-            (<built-in function make_integer>, ('5',))
+            (<cyfunction make_integer at ...>, ('5',))
             sage: t[0](*t[1])
             5
             sage: loads(dumps(n)) == n
@@ -768,17 +768,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # tuple as input. All kinds of problems happen
         # if we don't do this.
         return sage.rings.integer.make_integer, (self.str(32),)
-
-    cdef _reduce_set(self, s):
-        """
-        Set this integer from a string in base 32.
-
-        .. NOTE::
-
-           Integers are supposed to be immutable, so you should not
-           use this function.
-        """
-        mpz_set_str(self.value, str_to_bytes(s), 32)
 
     def __index__(self):
         """
@@ -1212,16 +1201,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             th = 'rd'
         else:
             th = 'th'
-        return n.str()+th
+        return n.str() + th
 
-    def __hex__(self):
+    def hex(self):
         r"""
-        Return the hexadecimal digits of self in lower case.
+        Return the hexadecimal digits of ``self`` in lower case.
 
         .. NOTE::
 
            '0x' is *not* prepended to the result like is done by the
-           corresponding Python function on int or long. This is for
+           corresponding Python function on ``int`` or ``long``. This is for
            efficiency sake--adding and stripping the string wastes
            time; since this function is used for conversions from
            integers to other C-library structures, it is important
@@ -1229,25 +1218,37 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: print(hex(Integer(15)))
+            sage: print(Integer(15).hex())
             f
-            sage: print(hex(Integer(16)))
+            sage: print(Integer(16).hex())
             10
-            sage: print(hex(Integer(16938402384092843092843098243)))
+            sage: print(Integer(16938402384092843092843098243).hex())
             36bb1e3929d1a8fe2802f083
             sage: print(hex(long(16938402384092843092843098243)))
             0x36bb1e3929d1a8fe2802f083L
+
+        TESTS::
+
+            sage: hex(Integer(16))  # py2
+            doctest:warning...:
+            DeprecationWarning: use the method .hex instead
+            See https://trac.sagemath.org/26756 for details.
+            '10'
         """
         return self.str(16)
 
-    def __oct__(self):
+    def __hex__(self):
+        deprecation(26756, 'use the method .hex instead')
+        return self.hex()
+
+    def oct(self):
         r"""
-        Return the digits of self in base 8.
+        Return the digits of ``self`` in base 8.
 
         .. NOTE::
 
-           '0' is *not* prepended to the result like is done by the
-           corresponding Python function on int or long. This is for
+           '0' (or '0o') is *not* prepended to the result like is done by the
+           corresponding Python function on ``int`` or ``long``. This is for
            efficiency sake--adding and stripping the string wastes
            time; since this function is used for conversions from
            integers to other C-library structures, it is important
@@ -1255,33 +1256,47 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: print(oct(Integer(800)))
+            sage: print(Integer(800).oct())
             1440
-            sage: print(oct(Integer(8)))
+            sage: print(Integer(8).oct())
             10
-            sage: print(oct(Integer(-50)))
+            sage: print(Integer(-50).oct())
             -62
-            sage: print(oct(Integer(-899)))
+            sage: print(Integer(-899).oct())
             -1603
-            sage: print(oct(Integer(16938402384092843092843098243)))
+            sage: print(Integer(16938402384092843092843098243).oct())
             15535436162247215217705000570203
 
-        Behavior of Sage integers vs. Python integers::
+        Behavior of Sage integers vs. Python integers (Python 2 and Python 3)::
 
-            sage: oct(Integer(10))
+            sage: Integer(10).oct()
             '12'
-            sage: oct(int(10))
+            sage: oct(Integer(10)) # py2
+            doctest:warning...:
+            DeprecationWarning: use the method .oct instead
+            See https://trac.sagemath.org/26756 for details.
+            '12'
+            sage: oct(int(10))  # py2
             '012'
-            sage: oct(Integer(-23))
+            sage: oct(int(10))  # py3
+            '0o12'
+
+            sage: Integer(-23).oct()
             '-27'
-            sage: oct(int(-23))
+            sage: oct(int(-23)) # py2
             '-027'
+            sage: oct(int(-23)) # py3
+            '-0o27'
         """
         return self.str(8)
 
+    def __oct__(self):
+        deprecation(26756, 'use the method .oct instead')
+        return self.oct()
+
     def binary(self):
         """
-        Return the binary digits of self as a string.
+        Return the binary digits of ``self`` as a string.
 
         EXAMPLES::
 
@@ -1328,7 +1343,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def nbits(self):
         """
-        Return the number of bits in self.
+        Return the number of bits in ``self``.
 
         EXAMPLES::
 
@@ -1714,8 +1729,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Make sure it works when -<long>n would overflow::
 
             sage: most_neg_long = int(-sys.maxsize - 1)
-            sage: type(most_neg_long), type(-most_neg_long)
-            (<... 'int'>, <type 'long'>)
+            sage: type(most_neg_long), type(-most_neg_long)  # py2
+            (<type 'int'>, <type 'long'>)
+            sage: type(most_neg_long), type(-most_neg_long)  # py3
+            (<class 'int'>, <class 'int'>)
             sage: 0 + most_neg_long == most_neg_long
             True
             sage: 0 - most_neg_long == -most_neg_long
@@ -1811,8 +1828,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             [0, 0, 0, 0, 0, 0, 0, 0]
             sage: 'hi' * 8
             'hihihihihihihihi'
+            sage: b'hi' * 8 == b'hihihihihihihihi'
+            True
         """
-        if isinstance(s, (list, tuple, basestring)):
+        if isinstance(s, (list, tuple, basestring, bytes)):
             if mpz_fits_slong_p(self.value):
                 return s * mpz_get_si(self.value)
             else:
@@ -1937,7 +1956,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                        mpq_denref((<Rational>right).value))
             return y
 
-        return coercion_model.bin_op(left, right, operator.div)
+        return coercion_model.bin_op(left, right, operator.truediv)
 
     cpdef _div_(self, right):
         r"""
@@ -3480,8 +3499,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             99028390823409823904823098490238409823490820938L
             sage: int(-n)
             -99028390823409823904823098490238409823490820938L
-            sage: type(n.__int__())
+            sage: type(n.__int__())  # py2
             <type 'long'>
+            sage: type(n.__int__())  # py3
+            <class 'int'>
             sage: int(-1), int(0), int(1)
             (-1, 0, 1)
         """
@@ -3501,7 +3522,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = 920938
             sage: long(n)
             920938L
-            sage: n.__long__()
+            sage: n.__long__()  # py2
             920938L
             sage: long(-1), long(0), long(1)
             (-1L, 0L, 1L)
@@ -3954,7 +3975,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def coprime_integers(self, m):
         """
-        Return the positive integers `< m` that are coprime to
+        Return the non-negative integers `< m` that are coprime to
         this integer.
 
         EXAMPLES::
@@ -3973,15 +3994,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: for n in srange(-6,7):
-            ....:     for m in range(1,abs(n)+3):
-            ....:         assert n.coprime_integers(m) == [k for k in srange(1,m) if gcd(k,n) == 1]
+            sage: 0.coprime_integers(10^100)
+            [1]
+            sage: 1.coprime_integers(10^100)
+            Traceback (most recent call last):
+            ...
+            OverflowError: bound is too large
+            sage: for n in srange(-6, 7):
+            ....:     for m in range(-1, 10):
+            ....:         assert n.coprime_integers(m) == [k for k in srange(0, m) if gcd(k, n) == 1]
 
         AUTHORS:
 
         - Naqi Jaffery (2006-01-24): examples
 
-        - David Roe (2017-10-02): Now uses sieving for larger inputs
+        - David Roe (2017-10-02): Use sieving
+
+        - Jeroen Demeyer (2018-06-25): allow returning zero (only relevant for 1.coprime_integers(n))
 
         ALGORITHM:
 
@@ -3990,32 +4019,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Then return a list of integers corresponding to the unset bits.
         """
         cdef Integer sieve, p, slf, mInteger = Integer(m)
-        if mpz_cmp_ui(mInteger.value, 1) <= 0:
-            return []
-        if mpz_sgn(self.value) == 0:
-            return [one]
-        if mpz_fits_slong_p(mInteger.value) == 0:
-            raise ValueError("m is too large")
-        cdef long mlong = mpz_get_si(mInteger.value)
+        cdef long k
         cdef unsigned long ilong, plong
+
+        # Trivial case m <= 0
+        if mpz_sgn(mInteger.value) <= 0:
+            return []
+
+        # Handle 0.coprime_integers(n) first because it's the only case
+        # where very large n are allowed
+        if mpz_sgn(self.value) == 0:
+            if mpz_cmp_ui(mInteger.value, 1) <= 0:
+                return []
+            return [one]
+
+        if mpz_fits_slong_p(mInteger.value) == 0:
+            raise OverflowError("bound is too large")
+        cdef long mlong = mpz_get_si(mInteger.value)
         if mpz_cmpabs_ui(self.value, 1) == 0:
-            return [Integer(ilong) for ilong in range(1, mlong)]
+            return [smallInteger(k) for k in range(mlong)]
         if (mpz_cmpabs(self.value, mInteger.value) >= 0 and
             (mpz_sgn(self.value) > 0 and self.is_prime() or
              mpz_sgn(self.value) < 0 and (-self).is_prime())):
-            return [Integer(ilong) for ilong in range(1, mlong)]
+            return [smallInteger(k) for k in range(1, mlong)]
         sieve = PY_NEW(Integer)
-        p = one
         slf = PY_NEW(Integer)
         mpz_set(slf.value, self.value)
+        p = one
+
         while True:
+            sig_check()
             p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
             if mpz_cmp_si(p.value, mlong) >= 0:
                 # p is larger than m, so no more primes are needed.
                 break
-            sig_on()
             ilong = plong = mpz_get_ui(p.value)
-            while ilong < mlong:
+            while ilong < <unsigned long>mlong:
                 # Set bits in sieve at each multiple of p
                 mpz_setbit(sieve.value, ilong)
                 ilong += plong
@@ -4023,12 +4062,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_divexact_ui(slf.value, slf.value, plong)
             while mpz_divisible_ui_p(slf.value, plong):
                 mpz_divexact_ui(slf.value, slf.value, plong)
-            sig_off()
             # If we have found all factors, we break
             if mpz_cmpabs_ui(slf.value, 1) == 0:
                 break
-        return [Integer(ilong) for ilong in range(1, mlong)
-                if mpz_tstbit(sieve.value, ilong) == 0]
+        return [smallInteger(k) for k in range(1, mlong)
+                if mpz_tstbit(sieve.value, k) == 0]
 
     def divides(self, n):
         """
@@ -6019,9 +6057,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-        -  ``prec`` - integer (default: None): if None, returns
-           an exact square root; otherwise returns a numerical square root if
-           necessary, to the given bits of precision.
+        -  ``prec`` - integer (default: None): if None, return an exact
+           square root; otherwise return a numerical square root, to the
+           given bits of precision.
 
         -  ``extend`` - bool (default: True); if True, return a
            square root in an extension ring, if necessary. Otherwise, raise a
@@ -6029,7 +6067,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            is not None.
 
         -  ``all`` - bool (default: False); if True, return all
-           square roots of self, instead of just one.
+           square roots of self (a list of length 0, 1 or 2).
 
         EXAMPLES::
 
@@ -6054,56 +6092,62 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.sqrt(extend=False)
             Traceback (most recent call last):
             ...
-            ValueError: square root of 2 not an integer
+            ArithmeticError: square root of 2 is not an integer
+            sage: (-1).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: square root of -1 is not an integer
             sage: Integer(144).sqrt(all=True)
             [12, -12]
             sage: Integer(0).sqrt(all=True)
             [0]
-            sage: type(Integer(5).sqrt())
+
+        TESTS::
+
+            sage: type(5.sqrt())
             <type 'sage.symbolic.expression.Expression'>
-            sage: type(Integer(5).sqrt(prec=53))
+            sage: type(5.sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
-            sage: type(Integer(-5).sqrt(prec=53))
+            sage: type((-5).sqrt(prec=53))
             <type 'sage.rings.complex_number.ComplexNumber'>
+            sage: type(0.sqrt(prec=53))
+            <type 'sage.rings.real_mpfr.RealNumber'>
 
-        TESTS:
-
-        Check that :trac:`9466` is fixed::
+        Check that :trac:`9466` and :trac:`26509` are fixed::
 
             sage: 3.sqrt(extend=False, all=True)
             []
+            sage: (-1).sqrt(extend=False, all=True)
+            []
         """
+        if prec is not None:
+            from sage.functions.other import _do_sqrt
+            return _do_sqrt(self, prec=prec, all=all)
+
         if mpz_sgn(self.value) == 0:
             return [self] if all else self
 
-        if mpz_sgn(self.value) < 0:
-            if not extend:
-                raise ValueError("square root of negative number not an integer")
-            from sage.functions.other import _do_sqrt
-            return _do_sqrt(self, prec=prec, all=all)
-
-        cdef int non_square
-        cdef Integer z = PY_NEW(Integer)
+        cdef bint is_square
+        cdef Integer z
         cdef mpz_t tmp
-        sig_on()
-        mpz_init(tmp)
-        mpz_sqrtrem(z.value, tmp, self.value)
-        non_square = mpz_sgn(tmp) != 0
-        mpz_clear(tmp)
-        sig_off()
+        if mpz_sgn(self.value) < 0:
+            is_square = False
+        else:
+            sig_on()
+            mpz_init(tmp)
+            z = PY_NEW(Integer)
+            mpz_sqrtrem(z.value, tmp, self.value)
+            is_square = (mpz_sgn(tmp) == 0)
+            mpz_clear(tmp)
+            sig_off()
 
-        if non_square:
-            if not extend:
-                if not all:
-                   raise ValueError("square root of %s not an integer" % self)
-                else:
-                    return []
-            from sage.functions.other import _do_sqrt
-            return _do_sqrt(self, prec=prec, all=all)
-
-        if prec:
-            from sage.functions.other import _do_sqrt
-            return _do_sqrt(self, prec=prec, all=all)
+        if not is_square:
+            if extend:
+                from sage.functions.other import _do_sqrt
+                return _do_sqrt(self, all=all)
+            if all:
+                return []
+            raise ArithmeticError(f"square root of {self} is not an integer")
 
         if all:
            return [z, -z]
@@ -6542,13 +6586,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a.inverse_mod(1890)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
-            sage: a = Integer(19)**100000
-            sage: b = a*a
-            sage: c = a.inverse_mod(b)
+            ZeroDivisionError: inverse of Mod(189, 1890) does not exist
+            sage: a = Integer(19)**100000  # long time
+            sage: c = a.inverse_mod(a*a)   # long time
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(..., ...) does not exist
 
         We check that :trac:`10625` is fixed::
 
@@ -6557,7 +6600,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         We check that :trac:`9955` is fixed::
 
-            sage: Rational(3)%Rational(-1)
+            sage: Rational(3) % Rational(-1)
             0
         """
         cdef int r
@@ -6571,7 +6614,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r = mpz_invert(ans.value, self.value, m.value)
         sig_off()
         if r == 0:
-            raise ZeroDivisionError("Inverse does not exist.")
+            raise ZeroDivisionError(f"inverse of Mod({self}, {m}) does not exist")
         return ans
 
     def gcd(self, n):
@@ -6945,8 +6988,6 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         from sage.misc.superseded import deprecation
         deprecation(17413, "use 0o as octal prefix instead of 0\nIf you do not want this number to be interpreted as octal, remove the leading zeros.")
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.functions', 'LCM_list', deprecation=22630)
 
 def GCD_list(v):
     r"""
@@ -7012,6 +7053,8 @@ def GCD_list(v):
 
     return z
 
+
+@cython.binding(True)
 def make_integer(s):
     """
     Create a Sage integer from the base-32 Python *string* s. This is
@@ -7028,8 +7071,9 @@ def make_integer(s):
         TypeError: expected str...Integer found
     """
     cdef Integer r = PY_NEW(Integer)
-    r._reduce_set(s)
+    mpz_set_str(r.value, str_to_bytes(s), 32)
     return r
+
 
 cdef class int_to_Z(Morphism):
     """
@@ -7080,7 +7124,7 @@ cdef class int_to_Z(Morphism):
             Set of Morphisms from Set of Python objects of class 'int' to Integer Ring in Category of sets
         """
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
 
     cpdef Element _call_(self, a):
@@ -7126,7 +7170,7 @@ cdef class long_to_Z(Morphism):
     """
     def __init__(self):
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
 
     cpdef Element _call_(self, a):

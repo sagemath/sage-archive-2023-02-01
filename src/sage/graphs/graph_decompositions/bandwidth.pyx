@@ -218,9 +218,9 @@ def bandwidth(G, k=None):
     if G.order() <= 1:
         from sage.matrix.constructor import Matrix
         if k is None:
-            return (0,G.vertices())
+            return 0, list(G)
         else:
-            return (G.vertices())
+            return list(G)
 
     if not G.is_connected():
         max_k = 0 if k is None else k
@@ -239,7 +239,8 @@ def bandwidth(G, k=None):
     # bandwidth_C
 
     cdef int n = G.order()
-    cdef list int_to_vertex = G.vertices()
+    # Must be the same order than in all_pairs_shortest_path_BFS
+    cdef list int_to_vertex = list(G)
 
     cdef MemoryAllocator mem = MemoryAllocator()
 
@@ -254,7 +255,8 @@ def bandwidth(G, k=None):
     cdef range_t *         range_array_tmp  = <range_t *>         mem.allocarray(n,   sizeof(range_t))
 
     cdef int i,j,kk
-    all_pairs_shortest_path_BFS(G,NULL,distances,NULL) # compute the distance matrix
+    # compute the distance matrix
+    all_pairs_shortest_path_BFS(G, NULL, distances, NULL, vertex_list=int_to_vertex)
 
     # fill d so that d[i][j] works
     for i in range(n):

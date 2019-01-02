@@ -399,7 +399,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         cdef Matrix M = self._matrix
         # We have a special method for dense matrices over ZZ
         if M.base_ring() is ZZ and M.is_dense():
-            M = M._invert_unit()
+            M = M.inverse_of_unit()
         else:
             M = ~M
             if M.base_ring() is not parent.base_ring():
@@ -664,7 +664,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             sage: G.gen(0).order(), G.gen(1).order()
             (7, 3)
 
-            sage: k = QQ;
+            sage: k = QQ
             sage: G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])]); G
             Matrix group over Rational Field with 2 generators (
             [1 1]  [1 0]

@@ -588,7 +588,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Note that the input *MUST* be an ``int``::
 
             sage: a = 10000000000000000000000rL
-            sage: f(a)
+            sage: f(a)  # py2
             Traceback (most recent call last):
             ...
             TypeError: must be a Python int object
@@ -1431,6 +1431,17 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Integers
         """
         return 'Integers'
+
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(ZZ)          # indirect doctest, optional - fricas
+            Integer
+        """
+        return 'Integer'
 
     def _magma_init_(self, magma):
         """

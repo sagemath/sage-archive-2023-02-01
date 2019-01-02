@@ -39,21 +39,6 @@ cdef inline an_element(R):
             except Exception:
                 pass
 
-cdef class LAction(Action):
-    """Action calls _l_action of the actor."""
-    def __init__(self, G, S):
-        Action.__init__(self, G, S, True, operator.mul)
-    cpdef _call_(self, g, a):
-        return g._l_action(a)  # a * g
-
-
-cdef class RAction(Action):
-    """Action calls _r_action of the actor."""
-    def __init__(self, G, S):
-        Action.__init__(self, G, S, False, operator.mul)
-    cpdef _call_(self, a, g):
-        return g._r_action(a)  # g * a
-
 
 # In the code below, I take the convention that g is acting on a.
 
@@ -78,7 +63,7 @@ cdef class GenericAction(Action):
             sage: sage.structure.coerce_actions.GenericAction(QQ, Z6, True)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Action not implemented.
+            NotImplementedError: action for <type 'sage.structure.coerce_actions.GenericAction'> not implemented
 
         This will break if we tried to use it::
 
@@ -129,31 +114,29 @@ cdef class ActOnAction(GenericAction):
     """
     Class for actions defined via the _act_on_ method.
     """
-    cpdef _call_(self, a, b):
+    cpdef _act_(self, g, x):
         """
         TESTS::
 
             sage: G = SymmetricGroup(3)
             sage: R.<x,y,z> = QQ[]
             sage: A = sage.structure.coerce_actions.ActOnAction(G, R, False)
-            sage: A._call_(x^2 + y - z, G((1,2)))
+            sage: A(x^2 + y - z, G((1,2)))
             y^2 + x - z
-            sage: A._call_(x+2*y+3*z, G((1,3,2)))
+            sage: A(x+2*y+3*z, G((1,3,2)))
             2*x + 3*y + z
 
             sage: type(A)
             <... 'sage.structure.coerce_actions.ActOnAction'>
         """
-        if self._is_left:
-            return (<Element>a)._act_on_(b, True)
-        else:
-            return (<Element>b)._act_on_(a, False)
+        return (<Element>g)._act_on_(x, self._is_left)
+
 
 cdef class ActedUponAction(GenericAction):
     """
     Class for actions defined via the _acted_upon_ method.
     """
-    cpdef _call_(self, a, b):
+    cpdef _act_(self, g, x):
         """
         TESTS::
 
@@ -161,16 +144,14 @@ cdef class ActedUponAction(GenericAction):
             sage: A = sage.structure.coerce_actions.ActedUponAction(M, Cusps, True)
             sage: A.act(matrix(ZZ, 2, [1,0,2,-1]), Cusp(1,2))
             Infinity
-            sage: A._call_(matrix(ZZ, 2, [1,0,2,-1]), Cusp(1,2))
+            sage: A(matrix(ZZ, 2, [1,0,2,-1]), Cusp(1,2))
             Infinity
 
             sage: type(A)
             <... 'sage.structure.coerce_actions.ActedUponAction'>
         """
-        if self._is_left:
-            return (<Element>b)._acted_upon_(a, False)
-        else:
-            return (<Element>a)._acted_upon_(b, True)
+        return (<Element>x)._acted_upon_(g, not self._is_left)
+
 
 def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
     r"""
@@ -577,8 +558,7 @@ cdef class ModuleAction(Action):
 
 
 cdef class LeftModuleAction(ModuleAction):
-
-    cpdef _call_(self, g, a):
+    cpdef _act_(self, g, a):
         """
         A left module action is an action that takes the ring element as the
         first argument (the left side) and the module element as the second
@@ -600,7 +580,7 @@ cdef class LeftModuleAction(ModuleAction):
             sage: A = LeftModuleAction(QQ, R)
             sage: A(1/2, x+1)
             1/2*x + 1/2
-            sage: A._call_(1/2, x+1) # safe only when arguments have exactly the correct parent
+            sage: A(1/2, x+1)
             1/2*x + 1/2
         """
         # The way we are called, we know for sure that a is a
@@ -615,7 +595,7 @@ cdef class LeftModuleAction(ModuleAction):
 
 
 cdef class RightModuleAction(ModuleAction):
-    cpdef _call_(self, a, g):
+    cpdef _act_(self, g, a):
         """
         A right module action is an action that takes the module element as the
         first argument (the left side) and the ring element as the second
@@ -633,7 +613,7 @@ cdef class RightModuleAction(ModuleAction):
             sage: A = RightModuleAction(ZZ, R)
             sage: A(x+5, 2)
             2*x + 10
-            sage: A._call_(x+5, 2) # safe only when arguments have exactly the correct parent
+            sage: A(x+5, 2)
             2*x + 10
         """
         # The way we are called, we know for sure that a is a
@@ -667,7 +647,7 @@ cdef class IntegerAction(Action):
     """
     def __init__(self, Z, S, is_left, op):
         if isinstance(Z, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             Z = Set_PythonType(Z)
         super().__init__(Z, S, is_left, op)
 
@@ -718,7 +698,7 @@ cdef class IntegerMulAction(IntegerAction):
         test = m + (-m)  # make sure addition and negation is allowed
         super().__init__(Z, M, is_left, operator.mul)
 
-    cpdef _call_(self, nn, a):
+    cpdef _act_(self, nn, a):
         """
         EXAMPLES:
 
@@ -759,13 +739,9 @@ cdef class IntegerMulAction(IntegerAction):
             Traceback (most recent call last):
             ...
             AlarmInterrupt
-
         """
         cdef int err = 0
         cdef long n_long
-
-        if not self._is_left:
-            a, nn = nn, a
 
         if integer_check_long(nn, &n_long, &err) and not err:
             return fast_mul_long(a, n_long)
@@ -848,7 +824,7 @@ cdef class IntegerPowAction(IntegerAction):
             raise TypeError(f"no integer powering action defined on {M}")
         super().__init__(Z, M, False, operator.pow)
 
-    cpdef _call_(self, a, n):
+    cpdef _act_(self, n, a):
         """
         EXAMPLES:
 

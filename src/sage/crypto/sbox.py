@@ -20,6 +20,8 @@ from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
 
+from sage.misc.superseded import deprecated_function_alias
+
 class SBox(SageObject):
     r"""
     A substitution box or S-box is one of the basic components of
@@ -105,6 +107,20 @@ class SBox(SageObject):
             sage: S(0)
             7
 
+        Construct S-box from univariate polynomial.::
+
+            sage: R = PolynomialRing(GF(2**3), 'x')
+            sage: inv = R.gen()**(2**3-2)
+            sage: inv = SBox(inv); inv
+            (0, 1, 5, 6, 7, 2, 3, 4)
+            sage: inv.differential_uniformity()
+            2
+
+            sage: SBox(PolynomialRing(GF(3**3), 'x').gen())
+            Traceback (most recent call last):
+            ...
+            TypeError: Only polynomials over rings with characteristic 2 allowed
+
         TESTS::
 
             sage: from sage.crypto.sbox import SBox
@@ -115,14 +131,25 @@ class SBox(SageObject):
             sage: S = SBox(1, 2, 3)
             Traceback (most recent call last):
             ...
-            TypeError: Lookup table length is not a power of 2.
+            TypeError: Lookup table length is not a power of 2
             sage: S = SBox(5, 6, 0, 3, 4, 2, 1, 2)
             sage: S.n
             3
         """
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
+
         if "S" in kwargs:
-            S = kwargs["S"]
-        elif len(args) == 1:
+            args = kwargs["S"]
+
+        if len(args) == 1 and is_Polynomial(args[0]):
+            # SBox defined via Univariate Polynomial, compute lookup table
+            # by evaluating the polynomial on every base_ring element
+            poly = args[0]
+            R = poly.parent().base_ring()
+            if R.characteristic() != 2:
+                raise TypeError("Only polynomials over rings with characteristic 2 allowed")
+            S = [poly(v) for v in sorted(R)]
+        elif len(args) == 1 and isinstance(args[0], (list, tuple)):
             S = args[0]
         elif len(args) > 1:
             S = args
@@ -132,18 +159,18 @@ class SBox(SageObject):
         _S = []
         for e in S:
             if is_FiniteFieldElement(e):
-                e = e.polynomial().change_ring(ZZ).subs( e.parent().characteristic() )
+                e = e.polynomial().change_ring(ZZ).subs(e.parent().characteristic())
             _S.append(e)
         S = _S
 
         if not ZZ(len(S)).is_power_of(2):
-            raise TypeError("Lookup table length is not a power of 2.")
+            raise TypeError("Lookup table length is not a power of 2")
         self._S = S
 
         self.m = ZZ(len(S)).exact_log(2)
         self.n = ZZ(max(S)).nbits()
         self._F = GF(2)
-        self._big_endian = kwargs.get("big_endian",True)
+        self._big_endian = kwargs.get("big_endian", True)
 
         self.differential_uniformity = self.maximal_difference_probability_absolute
 
@@ -443,9 +470,10 @@ class SBox(SageObject):
         for i in range(2**self.input_size()):
             yield self(i)
 
-    def difference_distribution_matrix(self):
+    @cached_method
+    def difference_distribution_table(self):
         """
-        Return difference distribution matrix ``A`` for this S-box.
+        Return difference distribution table (DDT) ``A`` for this S-box.
 
         The rows of ``A`` encode the differences ``Delta I`` of the
         input and the columns encode the difference ``Delta O`` for
@@ -461,7 +489,7 @@ class SBox(SageObject):
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
-            sage: S.difference_distribution_matrix()
+            sage: S.difference_distribution_table()
             [8 0 0 0 0 0 0 0]
             [0 2 2 0 2 0 0 2]
             [0 0 2 2 0 0 2 2]
@@ -487,6 +515,8 @@ class SBox(SageObject):
 
         return A
 
+    difference_distribution_matrix = deprecated_function_alias(25708, difference_distribution_table)
+
     def maximal_difference_probability_absolute(self):
         """
         Return the difference probability of the difference with the
@@ -507,7 +537,7 @@ class SBox(SageObject):
 
           This code is mainly called internally.
         """
-        A = self.difference_distribution_matrix().__copy__()
+        A = self.difference_distribution_table().__copy__()
         A[0,0] = 0
         return max(map(abs, A.list()))
 
@@ -527,9 +557,9 @@ class SBox(SageObject):
         return self.maximal_difference_probability_absolute()/(2.0**self.output_size())
 
     @cached_method
-    def linear_approximation_matrix(self, scale="absolute_bias"):
+    def linear_approximation_table(self, scale="absolute_bias"):
         r"""
-        Return linear approximation matrix (LAM) `A` for this S-box.
+        Return linear approximation table (LAT) `A` for this S-box.
 
         The entry `A[\alpha,\beta]` corresponds to the probability
         `Pr[\alpha\cdot x = \beta\cdot S(x)]`, where `S` is this S-box
@@ -548,7 +578,7 @@ class SBox(SageObject):
 
         INPUT:
 
-        - ``scale`` - string to choose the scaling for the LAM, one of
+        - ``scale`` - string to choose the scaling for the LAT, one of
             - "bias": elements are `e(\alpha, \beta)`
             - "correlation": elements are `c(\alpha, \beta)`
             - "absolute_bias": elements are `2^m\cdot e(\alpha, \beta)` (default)
@@ -558,7 +588,7 @@ class SBox(SageObject):
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
-            sage: lat_abs_bias = S.linear_approximation_matrix()
+            sage: lat_abs_bias = S.linear_approximation_table()
             sage: lat_abs_bias
             [ 4  0  0  0  0  0  0  0]
             [ 0  0  0  0  2  2  2 -2]
@@ -569,16 +599,16 @@ class SBox(SageObject):
             [ 0 -2 -2  0  0 -2  2  0]
             [ 0 -2  2  0 -2  0  0 -2]
 
-            sage: lat_abs_bias/(1<<S.m) == S.linear_approximation_matrix(scale="bias")
+            sage: lat_abs_bias/(1<<S.m) == S.linear_approximation_table(scale="bias")
             True
 
-            sage: lat_abs_bias/(1<<(S.m-1)) == S.linear_approximation_matrix(scale="correlation")
+            sage: lat_abs_bias/(1<<(S.m-1)) == S.linear_approximation_table(scale="correlation")
             True
 
-            sage: lat_abs_bias*2 == S.linear_approximation_matrix(scale="fourier_coefficient")
+            sage: lat_abs_bias*2 == S.linear_approximation_table(scale="fourier_coefficient")
             True
 
-        According to this matrix the first bit of the input is equal
+        According to this table the first bit of the input is equal
         to the third bit of the output 6 out of 8 times::
 
             sage: for i in srange(8): print(S.to_bits(i)[0] == S.to_bits(S(i))[2])
@@ -617,6 +647,8 @@ class SBox(SageObject):
 
         return A
 
+    linear_approximation_matrix = deprecated_function_alias(25708, linear_approximation_table)
+
     def maximal_linear_bias_absolute(self):
         """
         Return maximal linear bias, i.e. how often the linear
@@ -630,7 +662,7 @@ class SBox(SageObject):
             sage: S.maximal_linear_bias_absolute()
             2
         """
-        A = self.linear_approximation_matrix().__copy__()
+        A = self.linear_approximation_table().__copy__()
         A[0,0] = 0
         return max(map(abs, A.list()))
 
@@ -700,7 +732,6 @@ class SBox(SageObject):
             gens = X + Y
 
         m = self.input_size()
-        n = self.output_size()
 
         solutions = []
         for i in range(1<<m):
@@ -808,7 +839,6 @@ class SBox(SageObject):
 
         m = self.input_size()
         n = self.output_size()
-        F = self._F
 
         if X is None and Y is None:
             P = self.ring()
@@ -1258,7 +1288,7 @@ class SBox(SageObject):
         m = self.input_size()
         n = self.output_size()
         ret = (1<<m) + (1<<n)
-        lat = self.linear_approximation_matrix()
+        lat = self.linear_approximation_table()
 
         for a in range(1, 1<<m):
             for b in range(1<<n):
@@ -1269,11 +1299,11 @@ class SBox(SageObject):
         return ret
 
     @cached_method
-    def autocorrelation_matrix(self):
+    def autocorrelation_table(self):
         r"""
-        Return autocorrelation matrix correspond to this S-Box.
+        Return the autocorrelation table corresponding to this S-Box.
 
-        for an `m \times n` S-Box `S`, its autocorrelation matrix entry at
+        for an `m \times n` S-Box `S`, its autocorrelation table entry at
         row `a \in \GF{2}^m` and column `b \in \GF{2}^n`
         (considering their integer representation) is defined as:
 
@@ -1281,14 +1311,14 @@ class SBox(SageObject):
 
             \sum_{x \in \GF{2}^m} (-1)^{b \cdot S(x) \oplus b \cdot S(x \oplus a)}
 
-        Equivalently, the columns `b` of autocorrelation matrix correspond to
+        Equivalently, the columns `b` of autocorrelation table correspond to
         the autocorrelation spectrum of component function `b \cdot S(x)`.
 
         EXAMPLES::
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
-            sage: S.autocorrelation_matrix()
+            sage: S.autocorrelation_table()
             [ 8  8  8  8  8  8  8  8]
             [ 8  0  0  0  0  0  0 -8]
             [ 8  0 -8  0  0  0  0  0]
@@ -1301,32 +1331,36 @@ class SBox(SageObject):
         from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
 
         n = self.output_size()
-        A = self.difference_distribution_matrix() * hadamard_matrix(1<<n)
+        A = self.difference_distribution_table() * hadamard_matrix(1<<n)
         A.set_immutable()
 
         return A
 
+    autocorrelation_matrix = deprecated_function_alias(25708, autocorrelation_table)
+
     @cached_method
-    def boomerang_connectivity_matrix(self):
+    def boomerang_connectivity_table(self):
         r"""
-        Return the boomerang connectivity matrix for this S-Box.
+        Return the boomerang connectivity table (BCT) for this S-Box.
 
         Boomerang connectivity matrix of an invertible `m \times m`
         S-Box `S` is an `2^m \times 2^m` matrix with entry at row
-        `\Delta_i \in \mathbb{F}_2^m` and column `\Delta_o \in \mathbb{F}_2^m`
+        `\Delta_i \in \GF{2}^m` and column `\Delta_o \in \GF{2}^m`
         equal to
 
         .. MATH::
 
-            |\{ x \in \mathbb{F}_2^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
+            |\{ x \in \GF{2}^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
                S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
 
-        For more results concering boomerang connectivity matrix, see [CHPSS18]_ .
+        For more results concerning boomerang connectivity matrix, see [CHPSS18]_ .
+        The algorithm used here, is the one from Dunkelman, published in a
+        preprint, see [Du2018]_ .
 
         EXAMPLES::
 
             sage: from sage.crypto.sboxes import PRESENT
-            sage: PRESENT.boomerang_connectivity_matrix()
+            sage: PRESENT.boomerang_connectivity_table()
             [16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16]
             [16  0  4  4  0 16  4  4  4  4  0  0  4  4  0  0]
             [16  0  0  6  0  4  6  0  0  0  2  0  2  2  2  0]
@@ -1344,6 +1378,8 @@ class SBox(SageObject):
             [16  0  2  2  0  0  2  2  2  2  0  0  2  2  0  0]
             [16  8  0  0  8  0  0  0  0  0  0  8  0  0  8 16]
         """
+        from itertools import product
+
         Si = self.inverse()
 
         m = self.input_size()
@@ -1352,19 +1388,40 @@ class SBox(SageObject):
         nrows = 1 << m
         ncols = 1 << n
 
-        A = Matrix(ZZ, nrows, ncols)
+        A = []
 
-        for x in range(nrows):
-            for di in range(nrows):
-                for do in range(ncols):
-                    l = Si( self(x) ^ do )
-                    r = Si( self(x ^ di) ^ do )
-                    if (l ^ r == di):
-                        A[di, do] += 1
+        for delta_in in range(ncols):
+            table = [list() for _ in range(ncols)]
+            for x in range(nrows):
+                table[x ^ self(Si(x) ^ delta_in)].append(x)
 
+            row = [0]*ncols
+            for l in table:
+                for i, j in product(l, l):
+                    row[i ^ j] += 1
+            A += row
+
+        A = Matrix(ZZ, nrows, ncols, A)
         A.set_immutable()
         return A
 
+    boomerang_connectivity_matrix = deprecated_function_alias(25708, boomerang_connectivity_table)
+
+    def boomerang_uniformity(self):
+        """
+        Return the boomerang uniformity
+
+        The boomerang uniformity is defined as the highest entry in the
+        boomerang connectivity table, ignoring the first row and column.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.sboxes import AES
+            sage: AES.boomerang_uniformity()
+            6
+        """
+        bct = self.boomerang_connectivity_table()
+        return max(bct.delete_rows([0]).delete_columns([0]).list())
 
     def linear_structures(self):
         r"""
@@ -1397,7 +1454,7 @@ class SBox(SageObject):
         """
         n = self.output_size()
         m = self.input_size()
-        act = self.autocorrelation_matrix()
+        act = self.autocorrelation_table()
         ret = []
 
         for j in range(1, 1<<n):
@@ -1603,7 +1660,7 @@ class SBox(SageObject):
     def is_plateaued(self):
         r"""
         Return ``True`` if this S-Box is plateaued, i.e. for all nonzero
-        `b \in \mathbb{F}_2^n` the Boolean function `b \cdot S(x)`
+        `b \in \GF{2}^n` the Boolean function `b \cdot S(x)`
         is plateaued.
 
         EXAMPLES::
@@ -1639,7 +1696,7 @@ class SBox(SageObject):
             True
             sage: S.nonlinearity()
             6
-            sage: S.linear_approximation_matrix()
+            sage: S.linear_approximation_table()
             [ 8 -2  2 -2]
             [ 0 -2  2 -2]
             [ 0 -2  2 -2]
@@ -1678,6 +1735,7 @@ class SBox(SageObject):
             True
         """
         return self == self.inverse()
+
 
 def feistel_construction(*args):
     r"""

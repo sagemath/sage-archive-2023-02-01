@@ -417,7 +417,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         The first 17 rational numbers, ordered by height::
 
             sage: import itertools
-            sage: lst = [a for a in itertools.islice(Rationals(),17)]
+            sage: lst = [a for a in itertools.islice(Rationals(), 17r)]
             sage: lst
             [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3, -3, 2/3, -2/3, 3/2, -3/2, 1/4, -1/4]
             sage: [a.height() for a in lst]

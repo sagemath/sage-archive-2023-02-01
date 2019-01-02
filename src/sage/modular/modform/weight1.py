@@ -15,7 +15,8 @@ from sage.misc.cachefunc import cached_function
 from sage.rings.all import PowerSeriesRing, ZZ
 from sage.misc.misc import verbose
 from sage.structure.sequence import Sequence
-from sage.modular.arithgroup.all import Gamma0
+from sage.modular.arithgroup.all import Gamma0, GammaH
+from sage.modular.arithgroup.arithgroup_generic import ArithmeticSubgroup
 
 @cached_function
 def modular_ratio_space(chi):
@@ -35,7 +36,7 @@ def modular_ratio_space(chi):
          q^2 - 8/3*q^3 + 13/9*q^4 + 70/27*q^5 - 620/81*q^6 + 1858/243*q^7 + 2752/729*q^8 + O(q^9)]
     """
     from sage.modular.modform.constructor import EisensteinForms, CuspForms
-    
+
     if chi(-1) == 1: return []
     N = chi.modulus()
     chi = chi.minimize_base_ring()
@@ -65,11 +66,11 @@ def modular_ratio_space(chi):
         if I.rank() < d:
             verbose(" Cut down to dimension %s" % I.rank(), level=1)
             d = I.rank()
-        if I.rank() == 0: 
+        if I.rank() == 0:
             break
 
     verbose("Done: intersection is %s-dimensional" % I.dimension(), t=t, level=1)
-    
+
     A = PowerSeriesRing(K, 'q')
     return [A(x.list()).add_bigoh(R) for x in I.gens()]
 
@@ -89,15 +90,17 @@ def modular_ratio_to_prec(chi, qexp, prec):
     if prec <= qexp.prec():
         return qexp.add_bigoh(prec)
     from sage.modular.modform.constructor import EisensteinForms, CuspForms
+    C = CuspForms(chi.level(), 2, base_ring=qexp.base_ring())
     B = EisensteinForms(~chi, 1).gen(0).qexp(prec)
+    qexp = qexp.add_bigoh(C.sturm_bound())
     fB = qexp * B
-    fB_elt = CuspForms(chi.level(), 2, base_ring=qexp.base_ring())(fB)
+    fB_elt = C(fB, check=False)
     return fB_elt.qexp(prec) / B
 
 @cached_function
 def hecke_stable_subspace(chi, aux_prime=ZZ(2)):
     r"""
-    Compute a q-expansion basis for S_1(chi). 
+    Compute a q-expansion basis for S_1(chi).
 
     Results are returned as q-expansions to a certain fixed (and fairly high)
     precision. If more precision is required this can be obtained with
@@ -109,14 +112,24 @@ def hecke_stable_subspace(chi, aux_prime=ZZ(2)):
         sage: hecke_stable_subspace(DirichletGroup(59, QQ).0)
         [q - q^3 + q^4 - q^5 - q^7 - q^12 + q^15 + q^16 + 2*q^17 - q^19 - q^20 + q^21 + q^27 - q^28 - q^29 + q^35 + O(q^40)]
     """
-    from sage.modular.modform.constructor import EisensteinForms
+    # Deal quickly with the easy cases.
     if chi(-1) == 1: return []
     N = chi.modulus()
+    H = chi.kernel()
+    G = GammaH(N, H)
+    try:
+        if ArithmeticSubgroup.dimension_cusp_forms(G, 1) == 0:
+            verbose("no wt 1 cusp forms for N=%s, chi=%s by Riemann-Roch" % (N, chi._repr_short_()), level=1)
+            return []
+    except NotImplementedError:
+        pass
+
+    from sage.modular.modform.constructor import EisensteinForms
     chi = chi.minimize_base_ring()
     K = chi.base_ring()
 
     # Auxiliary prime for Hecke stability method
-    l = aux_prime 
+    l = aux_prime
     while l.divides(N): l = l.next_prime()
     verbose("Auxilliary prime: %s" % l, level=1)
 
@@ -132,7 +145,7 @@ def hecke_stable_subspace(chi, aux_prime=ZZ(2)):
 
     # We want to compute the largest subspace of I stable under T_l. To do
     # this, we compute I intersect T_l(I) modulo q^(R/l), and take its preimage
-    # under T_l, which is then well-defined modulo q^R. 
+    # under T_l, which is then well-defined modulo q^R.
 
     from sage.modular.modform.hecke_operator_on_qexp import hecke_operator_on_qexp
 
@@ -162,21 +175,36 @@ def hecke_stable_subspace(chi, aux_prime=ZZ(2)):
     t=verbose("Checking cuspidality", level=1)
     JEis = V.span(V(x.padded_list(R)) for x in EisensteinForms(chi, 1).q_echelon_basis(prec=R))
     D = JEis.intersection(J)
-    if D.dimension() != 0: 
+    if D.dimension() != 0:
         raise ArithmeticError("Got non-cuspidal form!")
     verbose("Done", t=t, level=1)
     qexps = Sequence(A(x.list()).add_bigoh(R) for x in J.gens())
     return qexps
 
 @cached_function
-def dimension_cusp_forms(chi):
+def dimension_wt1_cusp_forms(chi):
     r"""
     Return the dimension of the space of cusp forms of weight 1 and character chi.
 
     EXAMPLES::
 
         sage: chi = DirichletGroup(59, QQ).0
-        sage: sage.modular.modform.weight1.dimension_cusp_forms(chi)
+        sage: sage.modular.modform.weight1.dimension_wt1_cusp_forms(chi)
         1
     """
     return len(hecke_stable_subspace(chi))
+
+@cached_function
+def dimension_wt1_cusp_forms_gH(group):
+    r"""
+    Return the dimension of the space of cusp forms of weight 1 for the given
+    group (which should be of GammaH type). Computed by summing over Galois
+    orbits of characters modulo H.
+
+    EXAMPLES::
+
+        sage: sage.modular.modform.weight1.dimension_wt1_cusp_forms_gH(GammaH(31, [7]))
+        1
+    """
+    chis = [g.minimize_base_ring() for g in group.characters_mod_H(galois_orbits=True)]
+    return sum(dimension_wt1_cusp_forms(chi) * chi.base_ring().degree() for chi in chis)

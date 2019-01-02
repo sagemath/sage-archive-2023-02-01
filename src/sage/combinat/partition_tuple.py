@@ -517,7 +517,7 @@ class PartitionTuple(CombinatorialElement):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.options._reset()
 
-            sage: Partitions.options(convention="French");
+            sage: Partitions.options(convention="French")
             sage: PartitionTuples.options(display="diagram"); mu
             *
             *    **    *
@@ -749,7 +749,6 @@ class PartitionTuple(CombinatorialElement):
 
             sage: for t in PartitionTuple([[2,1],[3,2],[3]]).components():
             ....:     print('%s\n' % t.ferrers_diagram())
-            ...
             **
             *
             <BLANKLINE>
@@ -760,7 +759,6 @@ class PartitionTuple(CombinatorialElement):
             <BLANKLINE>
             sage: for t in PartitionTuple([3,2]).components():
             ....:     print('%s\n' % t.ferrers_diagram())
-            ...
             ***
             **
         """

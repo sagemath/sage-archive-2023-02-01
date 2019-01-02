@@ -129,7 +129,6 @@ def KneserGraph(n,k):
 
     return g
 
-from sage.graphs.graph import Graph
 
 def FurerGadget(k, prefix=None):
     r"""
@@ -204,7 +203,6 @@ def FurerGadget(k, prefix=None):
          (('Prefix', (1, 2)), ('Prefix', (2, 'a')), None)]
     """
     from itertools import repeat as rep, chain, combinations
-    from sage.graphs.graph import DiGraph
     if k <= 0:
         raise ValueError("The order of the Furer gadget must be greater than zero")
     G = Graph()
@@ -229,6 +227,7 @@ def FurerGadget(k, prefix=None):
         powerset = [(prefix,s) for s in powerset]
     partition.append(powerset)
     return G, partition
+
 
 def CaiFurerImmermanGraph(G, twisted=False):
     r"""
@@ -318,7 +317,6 @@ def CaiFurerImmermanGraph(G, twisted=False):
     newG = Graph()
     total_partition = []
     edge_index = {}
-    ps_partition = []
     for v in G:
         Fk, p = FurerGadget(G.degree(v), v)
         total_partition += p
@@ -415,6 +413,7 @@ def EgawaGraph(p, s):
                 u = prefix + (el,) + suffix
                 g.add_edge(v,u)
     return g
+
 
 def HammingGraph(n, q, X=None):
     r"""

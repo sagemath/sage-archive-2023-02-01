@@ -210,7 +210,6 @@ def trigrid(tripts):
             This method does NOT do any checks.
 
     """
-    n = 0
     pairs = [[0, 1], [1, 2], [0, 2]]
     cpt = list((float(tripts[0][0]+tripts[1][0]+tripts[2][0])/3,
                float(tripts[0][1]+tripts[1][1]+tripts[2][1])/3))
@@ -427,10 +426,9 @@ def slp(M1, pos_dict=None, B=None):
 
     """
     L = set(M1.loops())
-    sg = sorted(M1.simplify().groundset())
     nP = L | set(M1.simplify().groundset())
     P = set(M1.groundset())-nP
-    if len(P) > 0:
+    if P:
         if pos_dict is not None:
             pcls = list(set([frozenset(set(M1.closure([p])) - L)
                              for p in list(P)]))
@@ -684,7 +682,6 @@ def posdict_is_sane(M1, pos_dict):
             matroid and ``posdict`` is assumed to be a dictionary.
     """
     L = set(M1.loops())
-    sg = sorted(M1.simplify().groundset())
     nP = L | set(M1.simplify().groundset())
     P = set(M1.groundset())-nP
     pcls = list(set([frozenset(set(M1.closure([p])) - L) for p in list(P)]))

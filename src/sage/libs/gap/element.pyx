@@ -1346,12 +1346,14 @@ cdef class GapElement_Integer(GapElement):
             sage: int(libgap(3))
             3
             sage: type(_)
-            <... 'int'>
+            <type 'int'>
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
-            sage: type(_)
+            sage: type(_)  # py2
             <type 'long'>
+            sage: type(_)  # py3
+            <type 'int'>
         """
         return self.sage(ring=int)
 

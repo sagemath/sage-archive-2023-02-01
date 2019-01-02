@@ -1120,7 +1120,8 @@ class Gap(Gap_generic):
                  server=None,
                  server_tmpdir=None,
                  logfile=None,
-                 seed=None):
+                 seed=None,
+                 env={}):
         """
         EXAMPLES::
 
@@ -1154,7 +1155,8 @@ class Gap(Gap_generic):
                         restart_on_ctrlc=True,
                         verbose_start=False,
                         logfile=logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=100,
+                        env=env)
         self.__seq = 0
         self._seed = seed
 
@@ -1346,8 +1348,12 @@ class Gap(Gap_generic):
         """
         Print help on a given topic.
 
-        EXAMPLES::
+        EXAMPLES:
 
+        Note: In order to ensure consistent unicode handling from GAP we
+        start a GAP instance with a forced UTF-8 locale::
+
+            sage: gap = Gap(env={'LC_CTYPE': 'en_US.UTF-8'})
             sage: print(gap.help('SymmetricGroup', pager=False))
             <BLANKLINE>
               50.1-... SymmetricGroup
@@ -1662,6 +1668,7 @@ class GapFunctionElement(FunctionElement):
         """
         EXAMPLES::
 
+            sage: gap = Gap(env={'LC_CTYPE': 'en_US.UTF-8'})
             sage: print(gap(4).SymmetricGroup.__doc__)
             <BLANKLINE>
               50.1-... SymmetricGroup
@@ -1680,6 +1687,7 @@ class GapFunction(ExpectFunction):
         """
         EXAMPLES::
 
+            sage: gap = Gap(env={'LC_CTYPE': 'en_US.UTF-8'})
             sage: print(gap.SymmetricGroup.__doc__)
             <BLANKLINE>
               50.1-... SymmetricGroup

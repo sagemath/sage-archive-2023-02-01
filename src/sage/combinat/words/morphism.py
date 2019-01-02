@@ -53,6 +53,9 @@ Iterated image under a morphism::
     sage: m('y', 3)
     word: ysxyssxyxsxssysxyssxyss
 
+See more examples in the documentation of the call method
+(``m.__call__?``).
+
 Infinite fixed point of morphism::
 
     sage: fix = m.fixed_point('x')
@@ -230,52 +233,47 @@ class WordMorphism(SageObject):
     r"""
     WordMorphism class
 
-    EXAMPLES::
+    INPUT:
+
+    - ``data`` -- dict or str or an instance of WordMorphism, the map
+      giving the image of letters
+    - ``domain`` -- (optional:``None``) set of words over a given
+      alphabet
+    - ``codomain`` -- (optional:``None``) set of words over a given
+      alphabet
+
+    .. NOTE::
+
+        When the domain or the codomain are not explicitely given, it is
+        expected that the letters are comparable because the alphabets of
+        the domain and of the codomain are constructed from the map and are
+        *sorted*.
+
+    EXAMPLES:
+
+    From a dictionary::
 
         sage: n = WordMorphism({0:[0,2,2,1],1:[0,2],2:[2,2,1]})
+        sage: n
+        WordMorphism: 0->0221, 1->02, 2->221
+
+    From a string with ``'->'`` as separation::
+
         sage: m = WordMorphism('x->xyxsxss,s->xyss,y->ys')
+        sage: m
+        WordMorphism: s->xyss, x->xyxsxss, y->ys
+        sage: m.domain()
+        Finite words over {'s', 'x', 'y'}
+        sage: m.codomain()
+        Finite words over {'s', 'x', 'y'}
 
-    Power of a morphism::
+    Specifying the domain and codomain::
 
-        sage: n^2
-        WordMorphism: 0->022122122102, 1->0221221, 2->22122102
-
-    Image under a morphism::
-
-        sage: m('y')
-        word: ys
-        sage: m('xxxsy')
-        word: xyxsxssxyxsxssxyxsxssxyssys
-
-    Iterated image under a morphism::
-
-        sage: m('y', 3)
-        word: ysxyssxyxsxssysxyssxyss
-
-    See more examples in the documentation of the call method
-    (``m.__call__?``).
-
-    Infinite fixed point of morphism::
-
-        sage: fix = m.fixed_point('x')
-        sage: fix
-        word: xyxsxssysxyxsxssxyssxyxsxssxyssxyssysxys...
-        sage: fix.length()
-        +Infinity
-
-    Incidence matrix::
-
-        sage: matrix(m)
-        [2 3 1]
-        [1 3 0]
-        [1 1 1]
-
-    Many other functionalities...::
-
-        sage: m.is_identity()
-        False
-        sage: m.is_endomorphism()
-        True
+        sage: W = FiniteWords([0,1,2])
+        sage: d = {0:[0,1], 1:[0,1,0], 2:[0]}
+        sage: m = WordMorphism(d, domain=W, codomain=W)
+        sage: m([0]).parent()
+        Finite words over {0, 1, 2}
 
     TESTS::
 

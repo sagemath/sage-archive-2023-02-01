@@ -1120,7 +1120,8 @@ class Gap(Gap_generic):
                  server=None,
                  server_tmpdir=None,
                  logfile=None,
-                 seed=None):
+                 seed=None,
+                 env={}):
         """
         EXAMPLES::
 
@@ -1154,7 +1155,8 @@ class Gap(Gap_generic):
                         restart_on_ctrlc=True,
                         verbose_start=False,
                         logfile=logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=100,
+                        env=env)
         self.__seq = 0
         self._seed = seed
 

@@ -42,7 +42,7 @@ from sage.structure.element import Element
 
 from sage.sets.set import Set, Set_object_enumerated
 from sage.arith.all import binomial
-from sage.misc.misc import stable_uniq
+from sage.misc.misc import _stable_uniq as uniq
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from . import combination
@@ -238,7 +238,7 @@ class Subsets_s(Parent):
         Parent.__init__(self, category=EnumeratedSets().Finite())
         if s not in EnumeratedSets():
             from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-            L = list(stable_uniq(s))
+            L = list(uniq(s))
             s = FiniteEnumeratedSet(L)
         self._s = s
 

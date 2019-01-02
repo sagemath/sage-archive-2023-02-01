@@ -725,7 +725,7 @@ def uniq(x):
     return v
 
 
-def stable_uniq(L):
+def _stable_uniq(L):
     """
     Iterate over the elements of ``L``, yielding every element at most
     once: keep only the first occurance of any item.
@@ -738,11 +738,11 @@ def stable_uniq(L):
 
     EXAMPLES::
 
-        sage: from sage.misc.misc import stable_uniq
+        sage: from sage.misc.misc import _stable_uniq
         sage: L = [1, 1, 8, -5, 3, -5, 'a', 'x', 'a']
-        sage: it = stable_uniq(L)
+        sage: it = _stable_uniq(L)
         sage: it
-        <generator object stable_uniq at ...>
+        <generator object _stable_uniq at ...>
         sage: list(it)
         [1, 8, -5, 3, 'a', 'x']
     """

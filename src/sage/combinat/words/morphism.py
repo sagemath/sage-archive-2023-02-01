@@ -337,8 +337,6 @@ class WordMorphism(SageObject):
             WordMorphism: a->ab, b->ba
             sage: WordMorphism({2:[4,5,6],3:[1,2,3]})
             WordMorphism: 2->456, 3->123
-            sage: WordMorphism({'a':['a',6,'a'],6:[6,6,6,'a']})
-            WordMorphism: 6->666a, a->a6a
 
         The image of a letter can be a set, but the order is not
         preserved::
@@ -1263,8 +1261,8 @@ class WordMorphism(SageObject):
 
         ::
 
-            sage: s = WordMorphism({0:[1,2], 'a':(2,3,4), 'z':[9,8,7]})
-            sage: s.image(0)
+            sage: s = WordMorphism({'b':[1,2], 'a':(2,3,4), 'z':[9,8,7]})
+            sage: s.image('b')
             word: 12
             sage: s.image('a')
             word: 234

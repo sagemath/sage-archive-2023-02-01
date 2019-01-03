@@ -5199,7 +5199,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: cube.genus(circular=['01','10'])
             0
             sage: cube.genus(circular=['01','10'], on_embedding=True)
-            0
+            Traceback (most recent call last):
+            ...
+            ValueError: on_embedding is not a valid option when circular is defined
             sage: cube.genus(circular=['01','10'], maximal=True)
             Traceback (most recent call last):
             ...
@@ -5250,6 +5252,8 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("'circular' is expected to be a list")
             if maximal:
                 raise NotImplementedError("cannot compute the maximal genus of a genus respecting a boundary")
+            if on_embedding is not None:
+                raise ValueError("on_embedding is not a valid option when circular is defined")
             boundary = circular
             if hasattr(G, '_embedding'):
                 del(G._embedding)

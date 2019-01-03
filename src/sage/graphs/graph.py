@@ -3685,7 +3685,7 @@ class Graph(GenericGraph):
         if not n:
             return DiGraph()
 
-        vertices = self.vertices()
+        vertices = list(self)
         vertices_id = {y: x for x,y in enumerate(vertices)}
 
         b = {}
@@ -7648,9 +7648,9 @@ class Graph(GenericGraph):
         if not self.is_connected():
             g = Graph()
             for cc in self.connected_components_subgraphs():
-                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices()), algorithm=algorithm))
+                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertex_iterator()), algorithm=algorithm))
         else:
-            g = self._gomory_hu_tree(frozenset(self.vertices()), algorithm=algorithm)
+            g = self._gomory_hu_tree(frozenset(self.vertex_iterator()), algorithm=algorithm)
 
         if self.get_pos() is not None:
             g.set_pos(dict(self.get_pos()))

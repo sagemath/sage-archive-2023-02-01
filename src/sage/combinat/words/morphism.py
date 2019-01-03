@@ -238,16 +238,17 @@ class WordMorphism(SageObject):
     - ``data`` -- dict or str or an instance of WordMorphism, the map
       giving the image of letters
     - ``domain`` -- (optional:``None``) set of words over a given
-      alphabet
+      alphabet. If ``None``, the domain alphabet is computed from ``data``
+      and is *sorted*.
     - ``codomain`` -- (optional:``None``) set of words over a given
-      alphabet
+      alphabet. If ``None``, the codomain alphabet is computed from
+      ``data`` and is *sorted*.
 
     .. NOTE::
 
         When the domain or the codomain are not explicitely given, it is
         expected that the letters are comparable because the alphabets of
-        the domain and of the codomain are constructed from the map and are
-        *sorted*.
+        the domain and of the codomain are sorted.
 
     EXAMPLES:
 
@@ -274,6 +275,14 @@ class WordMorphism(SageObject):
         sage: m = WordMorphism(d, domain=W, codomain=W)
         sage: m([0]).parent()
         Finite words over {0, 1, 2}
+
+    When the alphabet is non-sortable, the domain and/or codomain must be
+    explicitely given::
+
+        sage: W = FiniteWords(['a',6])
+        sage: d = {'a':['a',6,'a'],6:[6,6,6,'a']}
+        sage: WordMorphism(d, domain=W, codomain=W)
+        WordMorphism: 6->666a, a->a6a
 
     TESTS::
 

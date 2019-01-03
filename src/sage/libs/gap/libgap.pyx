@@ -357,12 +357,26 @@ class Gap(Parent):
 
         EXAMPLES::
 
-            sage: libgap._construct_matrix(identity_matrix(ZZ,2))
+            sage: M = libgap._construct_matrix(identity_matrix(ZZ,2)); M
             [ [ 1, 0 ], [ 0, 1 ] ]
-            sage: libgap(identity_matrix(ZZ,2))  # syntactic sugar
+            sage: M.IsMatrix()
+            true
+
+            sage: M = libgap(identity_matrix(ZZ,2)); M  # syntactic sugar
             [ [ 1, 0 ], [ 0, 1 ] ]
-            sage: libgap(matrix(GF(3),2,2,[4,5,6,7]))
+            sage: M.IsMatrix()
+            true
+
+            sage: M = libgap(matrix(GF(3),2,2,[4,5,6,7])); M
             [ [ Z(3)^0, Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
+            sage: M.IsMatrix()
+            true
+
+            sage: x = polygen(QQ, 'x')
+            sage: M = libgap(matrix(QQ['x'],2,2,[x,5,6,7])); M
+            [ [ x, 5 ], [ 6, 7 ] ]
+            sage: M.IsMatrix()
+            true
 
         TESTS:
 
@@ -380,7 +394,7 @@ class Gap(Parent):
         except ValueError:
             raise TypeError('base ring is not supported by GAP')
         M_list = map(list, M.rows())
-        return make_GapElement_List(self, make_gap_list(M_list))
+        return make_GapElement_List(self, make_gap_matrix(M_list, gap_ring))
 
     def eval(self, gap_command):
         """

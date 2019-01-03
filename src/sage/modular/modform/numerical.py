@@ -212,7 +212,7 @@ class NumericalEigenforms(SageObject):
 
             sage: n = numerical_eigenforms(61, eps=2.0)
             sage: evectors = n._eigenvectors()
-            sage: evalues = diagonal_matrix(CDF, [-283.0, 108.522012456, 142.0])
+            sage: evalues = diagonal_matrix(CDF, [-283.0, 142.0, 108.522012456])
             sage: diff = n._hecke_matrix*evectors - evectors*evalues
             sage: sum([abs(diff[i,j]) for i in range(5) for j in range(3)]) < 1.0e-9
             True

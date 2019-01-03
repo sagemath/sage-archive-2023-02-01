@@ -972,7 +972,7 @@ class AsymptoticExpansionGenerators(SageObject):
             # because it does not exist in growth group.
             log_n = 1
 
-        it = reversed(list(islice(it, precision+1)))
+        it = reversed(list(islice(it, int(precision) + 1)))
         if normalized:
             beta_denominator = beta
         else:
@@ -1408,7 +1408,8 @@ def _fundamental_constant_implicit_function_(phi):
     """
     from sage.symbolic.ring import SR
     u = SR('u')
-    positive_solution = filter(lambda s: s.rhs() > 0, (phi(u) - u*phi(u).diff(u)).solve(u))
+    positive_solution = [s for s in (phi(u) - u*phi(u).diff(u)).solve(u)
+                         if s.rhs() > 0]
     if len(positive_solution) == 1:
         return positive_solution[0].rhs()
     raise ValueError('Fundamental constant tau could not be determined')

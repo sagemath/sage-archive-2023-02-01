@@ -443,7 +443,6 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.add_constraint(x[0] + 2*x[1] <= 4)
             sage: p.add_constraint(5*x[2] - x[1] <= 8)
             sage: round(p.solve(), 2)
-            ...
                      pcost       dcost       gap    pres   dres   k/t
                  ...
                 8.8

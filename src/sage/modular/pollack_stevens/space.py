@@ -761,7 +761,8 @@ class PollackStevensModularSymbolspace(Module):
             if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
                 t += D[g] * manin.gammas[g] - D[g]
             else:
-                if g in MR.reps_with_two_torsion():  # What is MR ??
+                # this was previously MR.reps_with_two_torsion() but there is no variable MR defined...
+                if g in manin.reps_with_two_torsion():
                     t -= D[g]
                 else:
                     t -= D[g]

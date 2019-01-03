@@ -341,8 +341,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
 
-from copy import copy
-
 
 class HyperplaneArrangementElement(Element):
     """
@@ -1896,7 +1894,7 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
 
-        - ``field`` -- a field (default: `\mathbb{Q}`), to be used as the
+        - ``field`` -- a field (default: `\QQ`), to be used as the
           base ring for the algebra (can also be a commutative ring, but
           then certain representation-theoretical methods might misbehave)
 
@@ -1981,7 +1979,6 @@ class HyperplaneArrangementElement(Element):
         # Some hackery to generate a matrix quickly and without
         # unnecessary sanitization/ducktyping:
         MS = MatrixSpace(field, N, N)
-        MC = MS._matrix_class
         table = []
         for j, sj in enumerate(Fs):
             matrix_j = []
@@ -1991,8 +1988,8 @@ class HyperplaneArrangementElement(Element):
                       for l, sil in enumerate(si)]
                 k = Fdict[tuple(sk)]
                 row_i[k] = one
-                matrix_j.extend(row_i)
-            table.append(MC(MS, matrix_j, copy=False, coerce=False))
+                matrix_j += row_i
+            table.append(MS(matrix_j, coerce=False))
         from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FDA
         return FDA(field, table, names=names, assume_associative=True)
 
@@ -2423,7 +2420,6 @@ class HyperplaneArrangementElement(Element):
             sage: factor(det(v))
             (h2 - 1) * (h2 + 1) * (h1 - 1) * (h1 + 1)
         """
-        from sage.rings.all import PolynomialRing
         from sage.matrix.constructor import identity_matrix
         from sage.misc.all import prod
         k = len(self)
@@ -2522,11 +2518,26 @@ class HyperplaneArrangementElement(Element):
             3
             sage: B.minimal_generated_number()
             4
+
+        TESTS:
+
+        Check that :trac:`26705` is fixed::
+
+            sage: w = WeylGroup(['A',4]).from_reduced_word([3,4,2,1])
+            sage: I = w.inversion_arrangement()
+            sage: I
+            Arrangement <a4 | a1 | a1 + a2 | a1 + a2 + a3 + a4>
+            sage: I.minimal_generated_number()
+            0
+            sage: I.is_formal()
+            True
         """
         V = VectorSpace(self.base_ring(), self.dimension())
         W = VectorSpace(self.base_ring(), self.n_hyperplanes())
         r = self.rank()
         M = self.matroid()
+        if len(M.groundset()) == r:  # there are no circuits
+            return ZZ.zero()
         norms = M.representation().columns()
         circuits = M.circuits()
         for i in range(2, self.n_hyperplanes()):
@@ -2635,7 +2646,7 @@ class HyperplaneArrangementElement(Element):
 
     @cached_method(key=lambda self,a: None)
     def is_free(self, algorithm="singular"):
-        """
+        r"""
         Return if ``self`` is free.
 
         A hyperplane arrangement `A` is free if the module

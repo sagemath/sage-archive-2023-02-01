@@ -20,6 +20,7 @@ cdef class ComplexBall(RingElement):
     cpdef ComplexIntervalFieldElement _complex_mpfi_(self, parent)
     cpdef RealBall real(self)
     cpdef RealBall imag(self)
+    cpdef pow(self, expo, analytic=?)
 
     cdef inline ComplexBall _new(self):
         cdef ComplexBall res = ComplexBall.__new__(ComplexBall)

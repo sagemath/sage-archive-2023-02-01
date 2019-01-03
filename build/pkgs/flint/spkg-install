@@ -10,11 +10,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-if [ "$SAGE64" = "yes" ]; then
-    echo "Building a 64-bit version of FLINT."
-    ABI="64"; export ABI
-fi
-
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of FLINT."
     CFLAGS="-O0 -g $CFLAGS"; export CFLAGS

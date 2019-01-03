@@ -18,13 +18,19 @@ elements. For general information about libGAP, you should read the
 
 from __future__ import absolute_import, print_function
 
-from cpython.object cimport *
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from cysignals.signals cimport sig_on, sig_off
 
+from .gap_includes cimport *
+from .util cimport *
+from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
 from sage.rings.all import ZZ, QQ, RDF
+
+from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
+from sage.combinat.permutation import Permutation
 
 decode_type_number = {
     libGAP_T_INT: 'T_INT (integer)',
@@ -99,7 +105,7 @@ cdef libGAP_Obj make_gap_record(sage_dict) except NULL:
     cdef libGAP_UInt rnam
     for d in data:
         key, val = d
-        rnam = libGAP_RNamName(key)
+        rnam = libGAP_RNamName(str_to_bytes(key))
         libGAP_AssPRec(rec, rnam, val.value)
     libgap_exit()
     return rec
@@ -147,7 +153,8 @@ cdef libGAP_Obj make_gap_string(sage_string) except NULL:
     """
     libgap_enter()
     cdef libGAP_Obj result
-    libGAP_C_NEW_STRING(result, len(sage_string), <char*>sage_string)
+    sage_string = str_to_bytes(sage_string)
+    libGAP_C_NEW_STRING(result, len(sage_string), sage_string)
     libgap_exit()
     return result
 
@@ -597,7 +604,7 @@ cdef class GapElement(RingElement):
             libgap_enter()
             libgap_start_interaction('')
             libGAP_ViewObjHandler(self.value)
-            s = libgap_get_output()
+            s = char_to_str(libgap_get_output())
             return s.strip()
         finally:
             libgap_finish_interaction()
@@ -727,6 +734,17 @@ cdef class GapElement(RingElement):
             sage: F2._set_compare_by_id()
             sage: F1 < F2 or F1 > F2
             True
+
+        Check that :trac:`26388` is fixed::
+
+            sage: 1 > libgap(1)
+            False
+            sage: libgap(1) > 1
+            False
+            sage: 1 >= libgap(1)
+            True
+            sage: libgap(1) >= 1
+            True
         """
         if self._compare_by_id != (<GapElement>other)._compare_by_id:
             raise ValueError('comparison style must be the same for both operands')
@@ -737,9 +755,9 @@ cdef class GapElement(RingElement):
         elif op == Py_EQ:
             return self._compare_equal(other)
         elif op == Py_GT:
-            return not self._compare_less(other)
+            return not self._compare_less(other) and not self._compare_equal(other)
         elif op == Py_GE:
-            return self._compare_equal(other) or not self._compare_less(other)
+            return not self._compare_less(other)
         elif op == Py_NE:
             return not self._compare_equal(other)
         else:
@@ -1300,13 +1318,13 @@ cdef class GapElement_Integer(GapElement):
 
             sage: int(libgap(3))
             3
-            sage: type(_)
-            <... 'int'>
+            sage: type(_) is int
+            True
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
-            sage: type(_)
-            <type 'long'>
+            sage: type(_) is long
+            True
         """
         return self.sage(ring=int)
 
@@ -2093,7 +2111,7 @@ cdef class GapElement_String(GapElement):
             <... 'str'>
         """
         libgap_enter()
-        s = libGAP_CSTR_STRING(self.value)
+        s = char_to_str(libGAP_CSTR_STRING(self.value))
         libgap_exit()
         return s
 
@@ -2417,7 +2435,7 @@ cdef class GapElement_MethodProxy(GapElement_Function):
             sage: lst
             [ 1,, 3, 4, 5 ]
         """
-        if len(args) > 0:
+        if args:
             return GapElement_Function.__call__(self, * ([self.first_argument] + list(args)))
         else:
             return GapElement_Function.__call__(self, self.first_argument)
@@ -2782,24 +2800,35 @@ cdef class GapElement_Permutation(GapElement):
         <type 'sage.libs.gap.element.GapElement_Permutation'>
     """
 
-    def sage(self):
+    def sage(self, parent=None):
         r"""
         Return the Sage equivalent of the :class:`GapElement`
+
+        If the permutation group is given as parent, this method is
+        *much* faster.
 
         EXAMPLES::
 
             sage: perm_gap = libgap.eval('(1,5,2)(4,3,8)');  perm_gap
             (1,5,2)(3,8,4)
             sage: perm_gap.sage()
+            [5, 1, 8, 3, 2, 6, 7, 4]
+            sage: type(_)
+            <class 'sage.combinat.permutation.StandardPermutations_all_with_category.element_class'>
+            sage: perm_gap.sage(PermutationGroup([(1,2),(1,2,3,4,5,6,7,8)]))
             (1,5,2)(3,8,4)
             sage: type(_)
             <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
         """
-        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+        cdef PermutationGroupElement one_c
+
         libgap = self.parent()
-        return PermutationGroupElement(libgap.ListPerm(self).sage())
+        lst = libgap.ListPerm(self)
 
-
+        if parent is None:
+            return Permutation(lst.sage(), check_input=False)
+        else:
+            return parent.one()._generate_new_GAP(lst)
 
 ############################################################################
 ### GapElement_Record ######################################################
@@ -2887,13 +2916,13 @@ cdef class GapElement_Record(GapElement):
         return GapElement_RecordIterator(self)
 
 
-    cpdef libGAP_UInt record_name_to_index(self, bytes py_name):
+    cpdef libGAP_UInt record_name_to_index(self, name):
         r"""
         Convert string to GAP record index.
 
         INPUT:
 
-        - ``py_name`` -- a python string.
+        - ``name`` -- a python string.
 
         OUTPUT:
 
@@ -2909,10 +2938,11 @@ cdef class GapElement_Record(GapElement):
             sage: rec.record_name_to_index('no_such_name') # random output
             3776L
         """
-        cdef char* c_name = py_name
+        name = str_to_bytes(name)
+
         try:
             libgap_enter()
-            return libGAP_RNamName(c_name)
+            return libGAP_RNamName(name)
         finally:
             libgap_exit()
 
@@ -3033,7 +3063,7 @@ cdef class GapElement_RecordIterator(object):
         # note the abs: negative values mean the rec keys are not sorted
         libgap_enter()
         key_index = abs(libGAP_GET_RNAM_PREC(self.rec.value, i))
-        key = libGAP_NAME_RNAM(key_index)
+        key = char_to_str(libGAP_NAME_RNAM(key_index))
         cdef libGAP_Obj result = libGAP_GET_ELM_PREC(self.rec.value,i)
         libgap_exit()
         val = make_any_gap_element(self.rec.parent(), result)

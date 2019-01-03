@@ -4,8 +4,8 @@ Manin symbols
 
 This module defines the class ManinSymbol.  A Manin symbol of
 weight `k`, level `N` has the form `[P(X,Y),(u:v)]` where
-`P(X,Y)\in\mathbb{Z}[X,Y]` is homogeneous of weight `k-2` and
-`(u:v)\in\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z}).`  The ManinSymbol class
+`P(X,Y)\in\ZZ[X,Y]` is homogeneous of weight `k-2` and
+`(u:v)\in\mathbb{P}^1(\ZZ/N\ZZ).`  The ManinSymbol class
 holds a "monomial Manin symbol" of the simpler form
 `[X^iY^{k-2-i},(u:v)]`, which is stored as a triple `(i,u,v)`; the
 weight and level are obtained from the parent structure, which is a
@@ -26,7 +26,7 @@ from sage.modular.cusps import Cusp
 from sage.rings.all import Infinity, ZZ
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport Element
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 
 
@@ -302,7 +302,7 @@ cdef class ManinSymbol(Element):
 
     def lift_to_sl2z(self, N=None):
         r"""
-        Return a lift of this Manin symbol to `SL_2(\mathbb{Z})`.
+        Return a lift of this Manin symbol to `SL_2(\ZZ)`.
 
         If this Manin symbol is `(c,d)` and `N` is its level, this
         function returns a list `[a,b, c',d']` that defines a 2x2
@@ -454,26 +454,25 @@ def _print_polypart(i, j):
         'Y'
     """
     if i > 1:
-        xpart = "X^%s"%i
+        xpart = "X^%s" % i
     elif i == 1:
         xpart = "X"
     else:
         xpart = ""
     if j > 1:
-        ypart = "Y^%s"%j
+        ypart = "Y^%s" % j
     elif j == 1:
         ypart = "Y"
     else:
         ypart = ""
-    if len(xpart) > 0 and len(ypart) > 0:
+    if xpart and ypart:
         times = "*"
     else:
         times = ""
-    if len(xpart + ypart) > 0:
-        polypart = "%s%s%s"%(xpart, times, ypart)
+    if xpart or ypart:
+        return xpart + times + ypart
     else:
-        polypart = ""
-    return polypart
+        return ""
 
 
 register_unpickle_override('sage.modular.modsym.manin_symbols',

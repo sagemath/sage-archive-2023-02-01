@@ -10,20 +10,20 @@ EXAMPLES::
     ....:     X = ToricVariety(fan)
     ....:     ideal = X.affine_algebraic_patch(cone).defining_ideal()
     ....:     print("{} {}".format(lp.n_vertices(), ideal.hilbert_series()))
-    3 (-t^2 - 7*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
-    3 (-t^2 - t - 1)/(t^3 - 3*t^2 + 3*t - 1)
+    3 (t^2 + 7*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
+    3 (t^2 + t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     3 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     3 (t^2 + 2*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     3 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
-    4 (-t^2 - 5*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
-    4 (-t^2 - 3*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
+    4 (t^2 + 5*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
+    4 (t^2 + 3*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 2*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 2*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     4 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
-    5 (-t^2 - 3*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
-    5 (-t^2 - 5*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
+    5 (t^2 + 3*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
+    5 (t^2 + 5*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     5 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     6 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
 """
@@ -148,8 +148,8 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: palp = polygons._palp_Popen()
-            sage: palp.stdout.readline()
-            '2 3  \n'
+            sage: palp.stdout.readline().decode('utf-8')
+            u'2 3  \n'
             sage: polygons._read_vertices(palp.stdout, 2, 3)
             [[1, 0], [0, 1], [-1, -1]]
         """
@@ -172,8 +172,8 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: palp = polygons._palp_Popen()
-            sage: palp.stdout.readline()
-            '2 3  \n'
+            sage: palp.stdout.readline().decode('utf-8')
+            u'2 3  \n'
             sage: polygons._read_vertices_transposed(palp.stdout, 2, 3)
             [[1, 0, -1], [0, 1, -1]]
         """
@@ -207,13 +207,12 @@ class PALPreader(SageObject):
             start = 0
         if step is None:
             step = 1
-
         palp = self._palp_Popen()
         with terminate(palp):
             palp_out = palp.stdout
             i = 0
             while True:
-                l = palp_out.readline().strip()
+                l = str(palp_out.readline().decode("utf-8")).strip()
                 if l=='' or l.startswith('#'):
                     return  # EOF
                 l=l.split()
@@ -363,7 +362,7 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: polygons.__iter__()
-            <generator object _iterate_Polyhedron at 0x...>
+            <generator object ..._iterate_Polyhedron at 0x...>
         """
         iterator = self._iterate()
         return iterator(None, None, None)

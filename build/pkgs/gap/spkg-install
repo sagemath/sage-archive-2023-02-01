@@ -19,15 +19,6 @@ echo "VERSION = $VERSION"
 echo "GAP_DIR = $GAP_DIR"
 echo "INSTALL_DIR = $INSTALL_DIR"
 
-if [[ "$SAGE64" = yes ]]; then
-    if [[ -z $CFLAG64 ]]; then
-        CFLAG64=-m64
-    fi
-    CFLAGS="$CFLAGS $CFLAG64"
-    CXXFLAGS="$CXXFLAGS $CFLAG64"
-    echo "Building a 64-bit version of GAP (with '$CFLAG64')."
-fi
-
 # Enable debug info if requested.
 # Note that -g3 allows you to use preprocessor macros in gdb which are widely used
 if [ "$SAGE_DEBUG" = yes ] ; then

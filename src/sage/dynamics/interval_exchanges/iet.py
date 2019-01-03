@@ -74,8 +74,7 @@ There are two plotting methods for iet::
     sage: T.plot_function()
     Graphics object consisting of 3 graphics primitives
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from copy import copy
 from sage.structure.sage_object import SageObject
@@ -830,7 +829,7 @@ class IntervalExchangeTransformation(SageObject):
             Graphics object consisting of 4 graphics primitives
         """
         from sage.plot.all import Graphics
-        from sage.plot.plot import line2d
+        from sage.plot.line import line2d
 
         G = Graphics()
         l = self.singularities()
@@ -876,8 +875,8 @@ class IntervalExchangeTransformation(SageObject):
             Graphics object consisting of 8 graphics primitives
         """
         from sage.plot.all import Graphics
-        from sage.plot.plot import line2d
-        from sage.plot.plot import text
+        from sage.plot.line import line2d
+        from sage.plot.text import text
         from sage.plot.colors import rainbow
 
         G = Graphics()

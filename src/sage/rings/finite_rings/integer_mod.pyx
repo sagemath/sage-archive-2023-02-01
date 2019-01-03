@@ -105,7 +105,7 @@ from sage.structure.element cimport RingElement, ModuleElement, Element
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.parent cimport Parent
@@ -333,6 +333,17 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
             sage: loads(a.dumps()) == a
             True
+
+        TESTS::
+
+            sage: TestSuite(Zmod(1)).run()
+            sage: TestSuite(Zmod(2)).run()
+            sage: TestSuite(Zmod(3)).run()
+            sage: TestSuite(Zmod(4)).run()
+            sage: TestSuite(Zmod(5)).run()
+            sage: TestSuite(Zmod(6)).run()
+            sage: TestSuite(Zmod(2^10 * 3^5)).run()
+            sage: TestSuite(Zmod(2^30 * 3^50 * 5^20)).run()
         """
         self._parent = parent
         self.__modulus = parent._pyx_order
@@ -406,7 +417,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             4
             sage: loads(a.dumps()) == a
             True
-            sage: a = Mod(-1,5^30)^25;
+            sage: a = Mod(-1,5^30)^25
             sage: loads(a.dumps()) == a
             True
         """
@@ -913,6 +924,31 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     cpdef bint is_unit(self):
         raise NotImplementedError
+
+    @coerce_binop
+    def divides(self, other):
+        r"""
+        Test wheter ``self`` divides ``other``.
+
+        EXAMPLES::
+
+            sage: R = Zmod(6)
+            sage: R(2).divides(R(4))
+            True
+            sage: R(4).divides(R(2))
+            True
+            sage: R(2).divides(R(3))
+            False
+        """
+        if not other:
+            return True
+        elif not self:
+            return False
+        mod = self.modulus()
+        sl = self.lift().gcd(mod)
+        if sl.is_one():
+            return True
+        return sl.divides(other.lift().gcd(mod))
 
     def is_square(self):
         r"""
@@ -1473,21 +1509,17 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:             b = K(a)
             ....:             try:
             ....:                 L = b.nth_root(e, all=True)
-            ....:                 if len(L) > 0:
+            ....:                 if L:
             ....:                     c = b.nth_root(e)
             ....:             except Exception:
             ....:                 L = [-1]
             ....:             M = b._nth_root_naive(e)
             ....:             if sorted(L) != M:
             ....:                 print("mod(%s, %s).nth_root(%s,all=True), mod(%s, %s)._nth_root_naive(%s)" % (a,n,e,a,n,e))
-            ....:             if len(L) > 0 and (c not in L):
+            ....:             if L and (c not in L):
             ....:                 print("mod(%s, %s).nth_root(%s), mod(%s, %s).nth_root(%s,all=True)" % (a,n,e,a,n,e))
         """
-        L = []
-        for a in self.parent():
-            if a**n == self:
-                L.append(a)
-        return L
+        return [a for a in self.parent() if a**n == self]
 
     def _balanced_abs(self):
         """
@@ -2192,17 +2224,16 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: ~mod(2,10^100)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(2, 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000) does not exist
         """
         if self.is_zero():
-            raise ZeroDivisionError("Inverse does not exist.")
+            raise ZeroDivisionError(f"inverse of Mod(0, {self.__modulus.sageInteger}) does not exist")
 
         cdef IntegerMod_gmp x
         x = self._new_c()
-        if mpz_invert(x.value, self.value, self.__modulus.sageInteger.value):
-            return x
-        else:
-            raise ZeroDivisionError("Inverse does not exist.")
+        if not mpz_invert(x.value, self.value, self.__modulus.sageInteger.value):
+            raise ZeroDivisionError(f"inverse of Mod({self}, {self.__modulus.sageInteger}) does not exist")
+        return x
 
     def lift(IntegerMod_gmp self):
         """
@@ -2489,7 +2520,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         if self.__modulus.inverses is not None:
             right_inverse = self.__modulus.inverses[(<IntegerMod_int>right).ivalue]
             if right_inverse is None:
-                raise ZeroDivisionError("Inverse does not exist.")
+                raise ZeroDivisionError(f"inverse of Mod({right}, {self.__modulus.sageInteger}) does not exist")
             else:
                 return self._new_c((self.ivalue * (<IntegerMod_int>right_inverse).ivalue) % self.__modulus.int32)
 
@@ -2615,7 +2646,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: mod(2, 100)^-1
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(2, 100) does not exist
             sage: mod(2, 100)^-100000000
             Traceback (most recent call last):
             ...
@@ -2688,7 +2719,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         if self.__modulus.inverses is not None:
             x = self.__modulus.inverses[self.ivalue]
             if x is None:
-                raise ZeroDivisionError("Inverse does not exist.")
+                raise ZeroDivisionError(f"inverse of Mod({self}, {self.__modulus.sageInteger}) does not exist")
             else:
                 return x
         else:
@@ -2989,7 +3020,7 @@ cdef int_fast32_t mod_inverse_int(int_fast32_t x, int_fast32_t n) except 0:
         last_t = t
         t = next_t
         next_t = last_t - q * t
-    raise ZeroDivisionError("Inverse does not exist.")
+    raise ZeroDivisionError(f"inverse of Mod({x}, {n}) does not exist")
 
 
 cdef int_fast32_t mod_pow_int(int_fast32_t base, int_fast32_t exp, int_fast32_t n):
@@ -3409,7 +3440,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: R(17)^-1
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(17, 1419857) does not exist
             sage: R(17)^-100000000
             Traceback (most recent call last):
             ...
@@ -3647,7 +3678,7 @@ cdef int_fast64_t mod_inverse_int64(int_fast64_t x, int_fast64_t n) except 0:
         last_t = t
         t = next_t
         next_t = last_t - q * t
-    raise ZeroDivisionError("Inverse does not exist.")
+    raise ZeroDivisionError(f"inverse of Mod({x}, {n}) does not exist")
 
 
 cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_t n):
@@ -4334,7 +4365,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
     """
     def __init__(self, R):
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), R))
 
     cpdef Element _call_(self, x):

@@ -8,7 +8,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .gap_includes cimport *
+from .types cimport libGAP_Obj
+
 
 ############################################################################
 ### Hooking into the GAP memory management #################################
@@ -18,9 +19,6 @@ cdef class ObjWrapper(object):
     cdef libGAP_Obj value
 
 cdef ObjWrapper wrap_obj(libGAP_Obj obj)
-
-# a dictionary to keep all GAP elements
-cdef dict owned_objects_refcount
 
 # returns the refcount dictionary for debugging purposes
 cpdef get_owned_objects()
@@ -38,21 +36,7 @@ cdef void gasman_callback()
 ### Initialization of libGAP ###############################################
 ############################################################################
 
-# To ensure that we call initialize_libgap only once.
-cdef bint _gap_is_initialized = False
 cdef initialize()
-
-
-############################################################################
-### Helper to protect temporary objects from deletion ######################
-############################################################################
-
-# Hold a reference (inside the GAP kernel) to obj so that it doesn't
-# get deleted this works by assigning it to a global variable. This is
-# very simple, but you can't use it to keep two objects alive. Be
-# careful.
-cdef libGAP_UInt reference_holder
-cdef void hold_reference(libGAP_Obj obj)
 
 
 ############################################################################

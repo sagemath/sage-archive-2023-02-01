@@ -147,14 +147,21 @@ Check that :trac:`17117` is fixed::
     sage: imag(e3)
     -1/2*E(12)^7 + 1/2*E(12)^11
 
+Check that :trac:`25686` is fixed::
+
+    sage: UCF = UniversalCyclotomicField()
+    sage: UCF.is_finite()
+    False
+
 AUTHORS:
 
 - Christian Stump (2013): initial Sage version (see :trac:`8327`)
 
 - Vincent Delecroix (2015): complete rewriting using libgap (see :trac:`18152`)
+
+- Sebastian Oehms (2018): deleting the method is_finite since it returned the wrong result (see :trac:`25686`)
 """
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.richcmp import rich_to_bool
 from sage.structure.unique_representation import UniqueRepresentation
@@ -169,10 +176,6 @@ from sage.rings.rational import Rational
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
-
-# Deprecations from the old universal cyclotomic field
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.rings", "universal_cyclotomic_field", deprecation=18152)
 
 libgap = GapElement_Integer = GapElement_Rational = GapElement_Cyclotomic = None
 gap = gap3 = None
@@ -263,9 +266,9 @@ class UniversalCyclotomicFieldElement(FieldElement):
         r"""
         INPUT:
 
-        - ``parent`` - a universal cyclotomic field
+        - ``parent`` -- a universal cyclotomic field
 
-        - ``obj`` - a libgap element (either an integer, a rational or a
+        - ``obj`` -- a libgap element (either an integer, a rational or a
           cyclotomic)
 
         TESTS::
@@ -454,8 +457,6 @@ class UniversalCyclotomicFieldElement(FieldElement):
             15
         """
         return self._obj.Conductor().sage()
-
-    field_order = deprecated_function_alias(18152, conductor)
 
     def _symbolic_(self, R):
         r"""
@@ -753,7 +754,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     def multiplicative_order(self):
         r"""
-        The multiplicative order.
+        Return the multiplicative order.
 
         EXAMPLES::
 
@@ -770,7 +771,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     def additive_order(self):
         r"""
-        The additive order.
+        Return the additive order.
 
         EXAMPLES::
 
@@ -977,7 +978,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
         n = k if n is None else ZZ(n)
         if not k.divides(n):
             raise ValueError("n = {} must be a multiple of the conductor ({})".format(n, k))
-        return [P.element_class(P, obj.GaloisCyc(i)) for i in range(n) if n.gcd(i) == 1]
+        return [P.element_class(P, obj.GaloisCyc(i))
+                for i in n.coprime_integers(n)]
 
     def norm_of_galois_extension(self):
         r"""
@@ -997,7 +999,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         obj = self._obj
         k = obj.Conductor().sage()
-        return libgap.Product(libgap([obj.GaloisCyc(i) for i in range(k) if k.gcd(i) == 1])).sage()
+        return libgap.Product(libgap([obj.GaloisCyc(i) for i in range(k)
+                                      if k.gcd(i) == 1])).sage()
 
     def minpoly(self, var='x'):
         r"""
@@ -1116,21 +1119,6 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 self.gen(3, 1),
                 self.gen(7, 1) - self(2) / self(3) * self.gen(7, 2))
 
-    def is_finite(self):
-        r"""
-        Return ``True``.
-
-        EXAMPLES::
-
-            sage: UniversalCyclotomicField().is_finite()
-            True
-
-        .. TODO::
-
-            this method should be provided by the category.
-        """
-        return True
-
     def _repr_(self):
         r"""
         TESTS::
@@ -1246,9 +1234,9 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UCF('[[0, 1], [0, 2]]')
             Traceback (most recent call last):
             ...
-            TypeError: [ [ 0, 1 ], [ 0, 2 ] ] of type <type
-            'sage.libs.gap.element.GapElement_List'> not valid to initialize an
-            element of the universal cyclotomic field
+            TypeError: [ [ 0, 1 ], [ 0, 2 ] ]
+            of type <type 'sage.libs.gap.element.GapElement_List'> not valid
+            to initialize an element of the universal cyclotomic field
 
         .. TODO::
 

@@ -57,8 +57,6 @@ from sage.rings.all import Infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-from sage.plot.misc import rename_keyword
-
 
 def Words(alphabet=None, length=None, finite=True, infinite=True):
     """
@@ -136,9 +134,9 @@ class AbstractLanguage(Parent):
             True
 
             sage: Words('abc').sortkey_letters
-            <bound method FiniteOrInfiniteWords._sortkey_trivial ...>
+            <bound method FiniteOrInfiniteWords._sortkey_trivial of ...>
             sage: Words('bac').sortkey_letters
-            <bound method FiniteOrInfiniteWords._sortkey_letters ...>
+            <bound method FiniteOrInfiniteWords._sortkey_letters of ...>
         """
         if isinstance(alphabet, (int, Integer)):
             from sage.sets.integer_range import IntegerRange
@@ -242,7 +240,8 @@ class AbstractLanguage(Parent):
             ...
             ValueError: z not in alphabet!
         """
-        for a in itertools.islice(w, length):
+        stop = None if length is None else int(length)
+        for a in itertools.islice(w, stop):
             if a not in self.alphabet():
                 raise ValueError("%s not in alphabet!" % a)
 
@@ -1020,7 +1019,6 @@ class FiniteWords(AbstractLanguage):
         return self([self.alphabet().random_element(*args, **kwds)
                      for x in range(length)])
 
-    @rename_keyword(deprecation=10134, l='arg')
     def iter_morphisms(self, arg=None, codomain=None, min_length=1):
         r"""
         Iterate over all morphisms with domain ``self`` and the given
@@ -2352,7 +2350,7 @@ class Words_all(FiniteOrInfiniteWords):
         pass
 
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.words.words", "Words_over_OrderedAlphabet", FiniteOrInfiniteWords)
 register_unpickle_override("sage.combinat.words.words", "Words_over_Alphabet", FiniteOrInfiniteWords)
 register_unpickle_override("sage.combinat.words.words", "FiniteWords_length_k_over_OrderedAlphabet", Words_n)

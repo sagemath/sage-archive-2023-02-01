@@ -222,13 +222,15 @@ class CartanType(cartan_type.CartanType_decorator):
             sage: CoxeterType(['I',5]).relabel({1:0,2:1})
             Coxeter type of ['I', 5] relabelled by {1: 0, 2: 1}
         """
+        from pprint import pformat
         # Special case for type D_4^3
         if (self._type.is_affine() and self._type.dual().type() == 'G'
                 and self.options("notation") == "Kac"):
             if compact:
                 return 'D4^3'
             return "['D', 4, 3]"
-        return self._type._repr_(compact = compact)+" relabelled by {}".format(self._relabelling)
+        relab = pformat(self._relabelling)
+        return self._type._repr_(compact = compact) + " relabelled by {}".format(relab)
 
     def _latex_(self):
         r"""

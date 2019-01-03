@@ -112,13 +112,13 @@ cdef class CategoryObject(SageObject):
     """
     def __init__(self, category = None, base = None):
         """
-        Initializes an object in a category
+        Initialize an object in a category.
 
         INPUT:
 
-        - ``category`` - The category this object belongs to. If this object
+        - ``category`` -- The category this object belongs to. If this object
           belongs to multiple categories, those can be passed as a tuple
-        - ``base`` - If this object has another object that should be
+        - ``base`` -- If this object has another object that should be
           considered a base in its primary category, you can include that base
           here.
 
@@ -153,7 +153,7 @@ cdef class CategoryObject(SageObject):
 
     def _init_category_(self, category):
         """
-        Sets the category or categories of this object.
+        Set the category or categories of this object.
 
         INPUT:
 
@@ -190,7 +190,7 @@ cdef class CategoryObject(SageObject):
 
     def _refine_category_(self, category):
         """
-        Changes the category of ``self`` into a subcategory.
+        Change the category of ``self`` into a subcategory.
 
         INPUT:
 
@@ -546,9 +546,11 @@ cdef class CategoryObject(SageObject):
 
     def inject_variables(self, scope=None, verbose=True):
         """
-        Inject the generators of self with their names into the
+        Inject the generators of ``self`` with their names into the
         namespace of the Python code from which this function is
-        called.  Thus, e.g., if the generators of self are labeled
+        called.
+
+        Thus, e.g., if the generators of ``self`` are labeled
         'a', 'b', and 'c', then after calling this method the
         variables a, b, and c in the current scope will be set
         equal to the generators of self.
@@ -571,14 +573,6 @@ cdef class CategoryObject(SageObject):
     #################################################################################################
     # Bases
     #################################################################################################
-
-    def has_base(self, category=None):
-        from sage.misc.superseded import deprecation
-        deprecation(21395, "The method has_base() is deprecated and will be removed")
-        if category is None:
-            return self._base is not None
-        else:
-            return category._obj_base(self) is not None
 
     def base_ring(self):
         """
@@ -645,8 +639,9 @@ cdef class CategoryObject(SageObject):
     def Hom(self, codomain, cat=None):
         r"""
         Return the homspace ``Hom(self, codomain, cat)`` of all
-        homomorphisms from self to codomain in the category cat.  The
-        default category is determined by ``self.category()`` and
+        homomorphisms from ``self`` to ``codomain`` in the category ``cat``.
+
+        The default category is determined by ``self.category()`` and
         ``codomain.category()``.
 
         EXAMPLES::
@@ -768,20 +763,23 @@ cdef class CategoryObject(SageObject):
 
     def __hash__(self):
         """
-        A default hash is provide based on the string representation of the
-        self. It is cached to remain consistent throughout a session, even
+        A default hash based on the string representation of ``self``.
+
+        It is cached to remain consistent throughout a session, even
         if the representation changes.
 
         EXAMPLES::
 
             sage: bla = PolynomialRing(ZZ,"x")
-            sage: hash(bla)
-            -5279516879544852222  # 64-bit
-            -1056120574           # 32-bit
+            sage: h1 = hash(bla)
+            sage: h1  # random
+            -5279516879544852222
             sage: bla.rename("toto")
-            sage: hash(bla)
-            -5279516879544852222  # 64-bit
-            -1056120574           # 32-bit
+            sage: h2 = hash(bla)
+            sage: h2  # random
+            -5279516879544852222
+            sage: h1 == h2
+            True
         """
         if self._hash_value == -1:
             self._hash_value = hash(repr(self))
@@ -815,6 +813,7 @@ cdef class CategoryObject(SageObject):
             running ._test_category() . . . pass
             running ._test_characteristic() . . . pass
             running ._test_distributivity() . . . pass
+            running ._test_divides() . . . pass
             running ._test_elements() . . .
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
@@ -887,6 +886,7 @@ cdef class CategoryObject(SageObject):
             _test_category
             _test_characteristic
             _test_distributivity
+            _test_divides
             _test_elements
             _test_elements_eq_reflexive
             _test_elements_eq_symmetric
@@ -926,7 +926,7 @@ cdef class CategoryObject(SageObject):
         EXAMPLES::
 
             sage: V = QQ^2
-            sage: V.__div__(V.span([(1,3)]))
+            sage: V.__div__(V.span([(1,3)]))  # py2
             Vector space quotient V/W of dimension 1 over Rational Field where
             V: Vector space of dimension 2 over Rational Field
             W: Vector space of degree 2 and dimension 1 over Rational Field
@@ -1012,10 +1012,14 @@ cpdef normalize_names(Py_ssize_t ngens, names):
         Traceback (most recent call last):
         ...
         IndexError: the number of names must equal the number of generators
-        sage: nn(None, "a")
+        sage: nn(None, "a")  # py2
         Traceback (most recent call last):
         ...
         TypeError: 'NoneType' object cannot be interpreted as an index
+        sage: nn(None, "a")  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: 'NoneType' object cannot be interpreted as an integer
         sage: nn(1, "")
         Traceback (most recent call last):
         ...

@@ -14009,7 +14009,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.eccentricity(7)
             2
             sage: G.eccentricity([7,8,9])
-            [3, 4, 2]
+            [2, 3, 4]
             sage: G.eccentricity([7,8,9], with_labels=True) == {8: 3, 9: 4, 7: 2}
             True
             sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
@@ -14102,24 +14102,28 @@ class GenericGraph(GenericGraph_pyx):
                 if by_weight:
                     raise ValueError("algorithm 'BFS' does not work with weights")
                 from sage.graphs.distances_all_pairs import eccentricity
-
+                algo = 'standard' if self.is_directed() else 'bounds'
                 if with_labels:
-                    return dict(zip(self.vertices(), eccentricity(self)))
+                    vertex_list = list(self)
+                    return dict(zip(vertex_list, eccentricity(self, algorithm=algo, vertex_list=vertex_list)))
                 else:
-                    return eccentricity(self, algorithm='standard' if self.is_directed() else 'bounds')
+                    return eccentricity(self, algorithm=algo)
+
             if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
                                                          weight_function,
                                                          check_weight)[0]
                 algorithm = 'From_Dictionary'
+
             v = self.vertices()
+
         elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
             raise ValueError("algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed")
 
         if not isinstance(v, list):
             v = [v]
-        e = {}
+        ecc = {}
 
         from sage.rings.infinity import Infinity
 
@@ -14135,18 +14139,18 @@ class GenericGraph(GenericGraph_pyx):
                                                     check_weight=check_weight)
 
             if len(length) != self.num_verts():
-                e[u] = Infinity
+                ecc[u] = Infinity
             else:
-                e[u] = max(length.values())
+                ecc[u] = max(length.values())
 
         if with_labels:
-            return e
+            return ecc
         else:
-            if len(e) == 1:
+            if len(ecc) == 1:
                 # return single value
-                v, = e.values()
+                v, = ecc.values()
                 return v
-            return list(itervalues(e))
+            return [ecc[u] for u in v]
 
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
